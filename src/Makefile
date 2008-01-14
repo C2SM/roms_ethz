@@ -90,7 +90,7 @@ FLTSRC = init_floats.F	init_arrays_floats.F	get_initial_floats.F\
 # Eecutable file.
 #========== =====
 #
-$(SBIN): $(OBJS)
+$(SBIN): mpc $(OBJS) 
 	$(LDR) $(FFLAGS) $(LDFLAGS) -o a.out $(OBJS) $(LCDF) $(LMPI)
 	mv a.out $(SBIN)
 2level: $(OBJS) $(LROMS2)
