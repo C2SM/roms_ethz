@@ -1,0 +1,70 @@
+! titlebc: Monterey level 1, 15km resolution
+
+! frstd:lastd:dskip:  2415 2415 10
+
+nfields:  1     number of fields to plot.
+  fldid:  18 20 54 57  field identification fldid(1:nfields)
+nlevels:  1     number of levels and/or depths to plot.
+ fldlev:  -5   levels (>0) or depths (<0) to plot fldlev(
+!   pmax:  34.2 20.  25.  12.5    37.3,  7.5  35.4 +5.25, +7.5, +0.6
+!   pmin:  32.2  8.  0.5  0.25   0.5  03 34.3, 0.5. 34.9 +3.25, +1.0,  -0.8
+   cint:  1.
+   icnt:  0    draw contours between color bands (1=yes/0=no)
+ isoval: 0.0   iso-surface value to process
+
+   iref: 0  secondary or reference field option (see below)
+ idover: 3 3  overlay field identification (for IREF=1,2 only)
+levover: 0  level of the overlay field (0 means same as current fldlev)
+   rmax: 25.0   overlay field minimum value (0.0 for default)
+   rmin:  2.5   overlay field maximum value (0.0 for default)
+
+
+! proj: SV Spherical projection type=(LC ST OR LE GN AE SV CE ME MO)
+! sath: 2.  Satelite orbit altitude
+! plon:plat:rota: -150. +5. 0.
+! pblat:ptlat:    bottom and top map latitudes
+! pllon:prlon:   left and right map longitudes
+
+      lgrid:  10   desired longitude/latitude grid spacing (degrees)
+    vec_lwd:  1.0  vector line width (1.0 for default)
+    vec_scl:  2.   vector length scale (1.0 for default)
+ivinc:jvinc: -1 -1 vector grid sampling in X- and Y-directions
+     vintrp:  1    vertical interpolation, 0=linear, 1=cubic splines
+
+    isecpos:  2  section positions (0=grid units, 1=Cartesian, 2=Spherical)
+xsec2:ysec2: -30 +60  ending   X,Y-position of section
+xsec1:ysec1: -30 -30  starting X,Y-position of section
+       dels:  0.2     section horizontal grid spacing (km or degrees)
+ sztop:szbot: 0. 5500.  shallowest and deepest depth to consider (meters).
+        kms:  40       number of refiment levels between sztop and szbot.
+      ifill:   0     filling under bottom: 0 => gray; >0 => pattern of dots
+
+     npage: 1  number of plots per page
+! postscript: T  postscript/gmeta switch
+  magscale:  1.
+  wrtclock:  T  write out model time clock 
+  wrtfield:  T  write out field name below the plot 
+   wrtrang:  T  write out data range values and CI.
+   wrtfile:  F  write out input primary filename.
+   wrtdate:  F  write out current date.
+     lview:  F
+     lland:  T   flag to color mask land: [0] no, [1] yes
+    lwater:  F
+  earthdat:  Earth..1  NCAR Graphics library Earth dataset "Earth..1" or 2
+
+  varids: /home/alex/Data/varid.dat  
+defaults: /home/alex/Data/default.cnt
+! palette:   /home/alex/Palettes/vel.pal
+
+
+
+  history: history.nc
+!  history: /space/history.nc.OBC_VOLCONS_4
+! history: /space/history.nc.OBC_FLUX_CORR
+! history: /space/history.nc
+! history: /space/history.nc.NEW_VOLCONS
+! history: /space/history.nc.HARD_VOLCONS
+! history: history.nc.NEW_VOLCONS
+! history: history.nc.NO_VOL_CONS
+! history: /space/Pierrick/control_run/mb_l1_safe_his.nc
+! history: mb_l1_safe_his_Y1M2.nc

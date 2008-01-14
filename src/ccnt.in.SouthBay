@@ -1,0 +1,58 @@
+title: :F15: ROMS 1.0
+title: :F10: US West Configuration.
+title: :F1:
+title:
+
+ frstd:lastd:dskip:  450 450 10000 3052.514 3052.514 5
+
+nfields: 1                 number of fields to plot
+fldid:   20, 16, 20,21     field identifications: fldid(1:nfields)
+nlevels: 1                 number of depths/levels/isopycnals to plot
+fldlev:  -20 -25 -30 -35 -40      depths (<0), levels (>0) or isopycnals (>1000)
+
+! pmax:  +0.03 0.175 +0.2  40.  20. 34.4
+! pmin:  -0.03 0.005 -0.2   2.  12. 32.2
+cint:  0.
+icnt:  0      draw contours between color bands: 0=no, 1=yes
+isoval: 0.    iso-surface value to process (see below)
+
+iref:   1       secondary or reference field option (see below)
+idover:  3    overlay field identification (for IREF=1,2 only)
+levover: 0    level of the overlay field (set to 0 if same as current FLDLEV)
+rmin:     0.
+rmax:    50.
+
+proj:         SV  Map projection type=(LC ST OR LE GN AE SV CE ME MO)
+plon:plat:rota: -115.  37. 0. Projection center coordinates and angle
+sath:         7. Satelite orbit altitude in Earth radii (SV only)
+! pblat:ptlat:     23.  48.0     bottom and top map latitudes
+! pllon:prlon:   -140.0 -115.0   left and right map longitudes
+
+pblat:ptlat:   32.28   34.08 bottom and top map latitudes (south <0)
+pllon:prlon: -119.4 -117.22 left and right map longitudes (west <0)
+
+lgrid:      0.5  desired longitude/latitude grid spacing (degrees)
+
+    vec_lwd:  1.   vector line width (1.0 for default)
+    vec_scl:  6.   vector length scale (1.0 for default)
+ivinc:jvinc:  1 1  vector grid sampling in X- and Y-directions
+      lmask:  0    flag to color mask land: [0] no, [1] yes
+     vintrp:  0    vertical interpolation, 0=linear, 1=cubic splines
+
+     npage: 11   number of plots per page
+postscript:  T   postscript/gmeta (T/F) switch
+  wrtclock:  F   write out model time clock 
+  wrtfield:  T   write out field name below the plot
+   wrtrang:  T   write out data range values and CI.
+   wrtfile:  F   write out input primary filename.
+   wrtdate:  F   write out current date.
+       cst:  T   read and plot coastlines and islands.
+
+   varid_file: /u/ac/shchepet/Data/varid.dat
+ palette_file: /u/ac/shchepet/Palettes/black_pat.pal 
+defaults_file: /u/ac/shchepet/Data/default.cnt
+   first_file:  usw15_his_Y2M4.nc.2 
+  second_file:  none 
+    grid_file:  usw15_his_Y2M4.nc.2
+   coast_file: /u/ac/pmarches/plot/Data/usw_coast.dat
+  cities_file: US_West_Cities.dat

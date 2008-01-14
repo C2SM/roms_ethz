@@ -1,0 +1,46 @@
+# Compiler definitions for NCSA Linux Xeon Cluster Tungsten.
+# This is a basic non-MPI, just Open MP-only setup which is a
+# simplified version of "Makedefs.Intel" [the difference is that
+# all switches are set assuming ifort 8.1 compiler (support for
+# earlier versions has been dropped, and netcdf library is stored
+# in home directory, rather than in the standard centralized place). 
+
+
+.SUFFIXES: .o .f .F
+
+.F.o:
+	$(CPP) -P $(CPPFLAGS) $*.F | mpc > $*.f
+	$(CFT) -c $(FFLAGS) $*.f -o $*.o
+#/bin/rm -f $*.f
+.F.f:
+	$(CPP) -P $(CPPFLAGS) $*.F | mpc > $*.f
+.f.o:
+	$(CFT) -c $(FFLAGS) $*.f -o $*.o
+.F:
+	$(CFT) -o $@ $(FFLAGS) $(LDFLAGS) $<
+.f:
+	$(CFT) -o $@ $(FFLAGS) $(LDFLAGS) $<
+.o:
+	$(CFT) -o $@ $(FFLAGS) $(LDFLAGS) $<
+
+
+      CPP = /lib/cpp -traditional
+ CPPFLAGS = -D__IFC
+
+ OMP_FLAG = -fpp2 -openmp
+
+      CFT = ifort $(OMP_FLAG) -pc80 -tpp7 -axN -xN -align dcommon -auto -stack_temps
+      LDR = $(CFT)
+
+   FFLAGS = -O3 -IPF_fma -ip
+#  FFLAGS = -g  -CB -CU -CV
+
+  LDFLAGS = -Vaxlib
+
+     LCDF = /u/ac/shchepet/lib/libnetcdf.a
+
+     TMP = /tmp
+
+COMP_FILES = work.pc work.pcl ifc??????
+
+

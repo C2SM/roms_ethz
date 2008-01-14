@@ -1,0 +1,61 @@
+# Header makefile: SGI and SGI/CRAY Origin version.
+#------- --------- --- --- -------- ---------------
+
+.SUFFIXES: .o .f .i .F
+
+.F.o:
+	$(CPP) -P $(CPPFLAGS) $*.F > $*.i
+	mpc $*.i > $*.f
+	rm $*.i
+	$(CFT) -c $(FFLAGS) $*.f
+	rm $*.f
+.F.f:
+	$(CPP) -P $(CPPFLAGS) $*.F > $*.i
+	mpc $*.i > $*.f
+	rm $*.i
+.f.o:
+	$(CFT) -c $(FFLAGS) $*.f
+.F:
+	$(CFT) -o $@ $(FFLAGS) $(LDFLAGS) $<
+.f:
+	$(CFT) -o $@ $(FFLAGS) $(LDFLAGS) $<
+
+#
+# Specific for SGI machines only:
+#--------- --- --- -------- -----
+#  BINARY_TYPE -- format of executable file[ n32 or 64]
+#  rii_files -- a directory created by compiler to keep
+#               information about common blocks   
+#
+#  CPP -- WARNING!!! DO NOT USE /lib/cpp ON SGI COMPUTERS,
+#         THERE IS A BUG IN THERE. READ cpp_bug.F FOR DETAILS.
+#
+#
+              CPP = /usr/lib32/cmplrs/cpp
+      BINARY_TYPE = n32
+           INCDIR = ../lib$(BINARY_TYPE)
+         CPPFLAGS = -DSGI -I$(INCDIR)
+
+              CFT = f77 -r8 -$(BINARY_TYPE) -mips4
+#                 -TARG:platform=ip21:processor=r8000:madd=ON
+              LDR = $(CFT)
+#              LDR = fort77 -r8 -$(BINARY_TYPE) -mips4
+
+           FFLAGS = -O3 -TENV:X=3
+
+#           FFLAGS = -O3 -OPT:fold_arith_limit=2000 -TENV:X=3
+#                   -OPT:Olimit=0:pad_common=OFF:reorg_common=OFF
+#                   -OPT:fold_arith_limit=2000
+#                   -GCM:aggressive_speculation=ON
+#                   -SWP:=on:trip_count=2
+#                   -TENV:large_GOT=ON -avoid_gp_overflow
+#                   -LNO:opt=0
+
+          LDFLAGS = -mp -mp_schedtype=simple
+#                   -non_shared
+
+           CDFLIB = $(INCDIR)/libnetcdf.a
+             LIBS = $(CDFLIB)
+
+       COMP_FILES = rii_files
+
