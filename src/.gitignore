@@ -1,0 +1,10 @@
+# Ignore sources and binaries generated during compilation
+*.f
+check_srcs.F
+check_switches1.F
+checkkwds
+cppcheck
+mpc
+roms
+setup_kwds.F
+srcscheck
