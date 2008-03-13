@@ -1,0 +1,70 @@
+# Definitions for Intel ifc FORTRAN compiler on Linux
+# =========== === ===== === ======= ======== == =====
+
+.SUFFIXES: .o .f .F
+
+.F.o:
+	$(CPP) -P $(CPPFLAGS) $*.F | mpc > $*.f
+	$(CFT) -c $(FFLAGS) $*.f -o $*.o
+#/bin/rm -f $*.f
+.F.f:
+	$(CPP) -P $(CPPFLAGS) $*.F | mpc > $*.f
+.f.o:
+	$(CFT) -c $(FFLAGS) $*.f -o $*.o
+.F:
+	$(CFT) -o $@ $(FFLAGS) $(LDFLAGS) $<
+.f:
+	$(CFT) -o $@ $(FFLAGS) $(LDFLAGS) $<
+.o:
+	$(CFT) -o $@ $(FFLAGS) $(LDFLAGS) $<
+
+
+#
+# C-preprocessor from Intel compiler package. Note: in this case
+# __IFC is a pre-defined macro, so there is no need to include it
+# into CPPFLAGS.
+#
+#     CPP = fpp
+
+      CPP = /usr/bin/cpp -traditional 
+ CPPFLAGS = -D__IFC -I/usr/lib/mpi/mpi_intel/include \
+            -I/home5/uwis/loher/netcdf/netcdf-3.6.1/ifort/include
+
+#
+# NOTE: The actual Intel compiler name is either "ifc" (versions 5.x,
+# 6.x or 7.x), or "ifort" (starting with version 8.0; name "ifc" is
+# still accepted, but causes warning messages).   To make this setup
+# universal and silent, soft links are added to Intel compiler bin
+# directory with "f90" pointing to either "ifc" or "ifort" whichever
+# is more appropriate. 
+#
+# Compiler settings:  -fpp2 is required only if -openmp is present.
+# Not having -fpp2 here just causes compiler warning (-fpp is set to
+# level 2 by -openmp), but other than that has no effect. Options
+# -tppX -axY activates specific optimizations
+#
+#                         -tpp6 -axK -xK  for Pentium III
+#                         -tpp7 -axW -xW  for Pentium 4/Xeon
+#
+# which allows the use of specialized instructions, hence affects
+# portability of executable file. Switch -pc80 increases precision
+# of floating point operation to 64 bits (vs. 53 bits double
+# precision default). 
+#
+
+
+CFT = /opt/intel/iforte9-9.1-037/bin/ifort
+LDR = $(CFT)
+
+FFLAGS = -O3 -axW
+#FFLAGS = -O3 -axW -i_dynamic -mcmodel=medium
+
+LDFLAGS = -Vaxlib
+
+COMP_FILES = work.pc work.pcl ifc??????
+LCDF = /home5/uwis/loher/netcdf/netcdf-3.6.1/ifort/lib/libnetcdf.a
+#LMPI = -lg2c -L/usr/lib/mpi/lib -lmpifarg -lmpi -lelan -g77libs
+LMPI = -L/usr/lib/mpi/mpi_intel/lib -lmpifarg -lmpi -lelan
+
+#HF
+TMP=.

@@ -1,0 +1,51 @@
+# Definitions for Portland Group Fortran compiler
+# =========== === ======== ===== ======= ========
+
+.SUFFIXES: .o .f .F
+
+.F.o:
+	$(CPP) -P $(CPPFLAGS) $*.F | mpc > $*.f
+	$(CFT) -c $(FFLAGS) $*.f -o $*.o
+#/bin/rm -f $*.f
+.F.f:
+	$(CPP) -P $(CPPFLAGS) $*.F | mpc > $*.f
+.f.o:
+	$(CFT) -c $(FFLAGS) $*.f -o $*.o
+.F:
+	$(CFT) -o $@ $(FFLAGS) $(LDFLAGS) $<
+.f:
+	$(CFT) -o $@ $(FFLAGS) $(LDFLAGS) $<
+.o:
+	$(CFT) -o $@ $(FFLAGS) $(LDFLAGS) $<
+
+#
+# Meaning of compiler optimization flags for PGI compiler:
+# -mp    activates processing of Open MP directives;
+# -pc 80 (other possibilities 32 and 64) directs compiler to utilize
+#        the extended precision arithmetics on IA-32 platform by
+#        using the full length of its 80-bit registers. In this case
+#        bits 0-63 are used for the significand, bits 64-78 for the
+#        exponent, and bit 79 for sign (the extended 80-bit real
+#        format).  Roundoff to the standard 64-bit length (53-bit
+#        precision significand) occurs at the stage when results
+#        leave the registers. This flag is synonymous to IFC -pc80.
+# -tp p7 
+#
+
+      CPP = /lib/cpp -traditional
+ CPPFLAGS = -DPGI
+
+      CFT = pgf90 -pc 80 -mp
+      LDR = $(CFT)
+
+    FFLAGS = -tp p7 -O4 -fast -fastsse unroll=n:4 vect=sse,assoc
+
+ COMP_FILES =
+
+
+   LCDF =/usr/local/lib/libnetcdf.a
+
+
+ LIBNCAR = -L/usr/local/ncarg/lib -L/usr/X11R6/lib -lncarg -lncarg_gks -lncarg_c -lX11 -lm
+
+

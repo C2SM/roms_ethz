@@ -1,0 +1,34 @@
+# Set of definitions for Lunix Cluster at SCRIPPS 
+#---- -- ----------- --- ----- ------- -- -------
+#
+.SUFFIXES: .o .f .i .F
+
+.f.o:
+	$(CFT) -c $(FFLAGS) $*.f
+.F.f:
+	$(CPP) -P $(CPPFLAGS) $*.F | mpc > $*.f
+
+.F.o:
+	$(CPP) -P $(CPPFLAGS) $*.F | mpc > $*.f
+	$(CFT) -c $(FFLAGS) $*.f
+#/bin/rm $*.f
+
+.F:
+	$(LDR) -o $@ $(FFLAGS) $(LDFLAGS) $<
+.f:
+	$(LDR) -o $@ $(FFLAGS) $(LDFLAGS) $<
+
+
+          CPP = /lib/cpp -DCLUSTER
+       INCDIR = ../lib
+     CPPFLAGS = -I$(INCDIR)
+
+          CFT = /usr/share/mpi/bin/mpif77
+          LDR = $(CFT) 
+
+       FFLAGS = -O3 
+
+      LDFLAGS = 
+         LCDF = $(INCDIR)/libnetcdf.a
+#         LMPI = /usr/share/mpi/lib/liblmpi.a
+

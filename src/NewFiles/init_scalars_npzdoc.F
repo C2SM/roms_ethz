@@ -1,0 +1,171 @@
+!
+!
+#include "cppdefs.h"
+#ifdef BIOLOGY_NPZDOC
+
+       subroutine init_scalars_npzdoc(ierr)
+!
+! Set initial values for  globally accessible (stored in common
+! blocks) scalar variables of the NPZDOC model.
+!
+      implicit none
+      integer ierr, i,j
+      integer omp_get_num_threads
+#include "param.h"
+#include "scalars.h"
+#include "ncvars.h"
+#include "bgcflux.h"
+#include "ncroms_bgcflux.h"
+!
+! Find out how many threads are created and check whether the number
+! of threads exceeds maximum allowed, as well as check if the number
+! of tiles is divisible by the number of threads, so the job can be
+! evenly partitioned, complain and signal to terminate, if something
+! is wrong. 
+! 
+C$OMP PARALLEL
+C$OMP CRITICAL (isca_cr_rgn)
+      numthreads=1
+C$      numthreads=omp_get_num_threads()
+C$OMP END CRITICAL (isca_cr_rgn)
+C$OMP END PARALLEL
+      MPI_master_only write(stdout,'(1x,A,3(1x,A,I3),A)') 'NUMBER',
+     &    'OF THREADS:',numthreads,'BLOCKING:',NSUB_X,'x',NSUB_E,'.'
+
+#ifdef MPI
+# define NUMPROC NNODES
+#else
+# define NUMPROC 1
+#endif
+
+      if (numthreads.gt.NUMPROC) then
+        MPI_master_only write(stdout,'(/1x,A,I3/)')
+     &    'ERROR: Requested number of threads exceeds setting: ', NUMPROC
+        ierr=ierr+1                                      !--> ERROR
+      elseif (mod(NSUB_X*NSUB_E,numthreads).ne.0) then
+        MPI_master_only write(stdout,
+     &                '(/1x,A,1x,A,I3,4x,A,I3,4x,A,I4,A)') 'ERROR:',
+     &                'wrong choice of numthreads =', numthreads,
+     &                'NSUB_X =', NSUB_X, 'NSUB_E =', NSUB_E, '.'
+        ierr=ierr+1                                      !--> ERROR
+      endif
+!
+      bio_count=0
+      do i=0,2*NT+1
+        global_sum(i)=QuadZero
+      enddo
+
+!
+! Define names of variables in NetCDF output files.
+! Inner dimension is for variable type and outer is for variable
+! attributes (name, long-name, units, field).
+!
+#ifdef SOLVE3D
+CR      write(stdout,'(1x,A,I3)') 'indxNO3 =',indxNO3
+      vname(1,indxNO3)='NO3                                       '
+      vname(2,indxNO3)='NO3 Nutrient                              '
+      vname(3,indxNO3)='mMol N m-3                                '
+      vname(4,indxNO3)='NO3, scalar, series                       '
+
+CR      write(stdout,'(1x,A,I3)') 'indxNH4 =',indxNH4
+      vname(1,indxNH4)='NH4                                       '
+      vname(2,indxNH4)='NH4 Nutrient                              '
+      vname(3,indxNH4)='mMol N m-3                                '
+      vname(4,indxNH4)='NH4, scalar, series                       '
+
+CR      write(stdout,'(1x,A,I3)') 'indxChla =',indxChla
+      vname(1,indxChla)='CHLA                                     '
+      vname(2,indxChla)='Chlorophyll A                            '
+      vname(3,indxChla)='mg Chla m-3                              '
+      vname(4,indxChla)='Chlorophyll, scalar, series              '
+
+CR      write(stdout,'(1x,A,I3)') 'indxPhyt =',indxPhyt
+      vname(1,indxPhyt)='PHYTO                                    '
+      vname(2,indxPhyt)='Phytoplankton                            '
+      vname(3,indxPhyt)='mMol N m-3                               '
+      vname(4,indxPhyt)='Phytoplankton, scalar, series            '
+
+CR      write(stdout,'(1x,A,I3)') 'indxZoo =',indxZoo
+      vname(1,indxZoo)='ZOO                                       '
+      vname(2,indxZoo)='Zooplankton                               '
+      vname(3,indxZoo)='mMol N m-3                                '
+      vname(4,indxZoo)='Zooplankton, scalar, series               '
+
+CR      write(stdout,'(1x,A,I3)') 'indxSDet =',indxSDet
+      vname(1,indxSDet)='SDET                                     '
+      vname(2,indxSDet)='Small Detritus Nutrient                  '
+      vname(3,indxSDet)='mMol N m-3                               '
+      vname(4,indxSDet)='Small Detritus, scalar, series           '
+
+CR      write(stdout,'(1x,A,I3)') 'indxLDet =',indxLDet
+      vname(1,indxLDet)='LDET                                     '
+      vname(2,indxLDet)='Large Detritus Nutrient                  '
+      vname(3,indxLDet)='mMol N m-3                               '
+      vname(4,indxLDet)='Large Detritus, scalar, series           '
+#  ifdef OXYGEN
+      vname(1,indxO2)='O2                                       '
+      vname(2,indxO2)='Oxygen                                   '
+      vname(3,indxO2)='mMol O2 m-3                              '
+      vname(4,indxO2)='Oxygen, scalar, series                   '
+#   ifdef CARBON
+      vname(1,indxDIC)='DIC                                      '
+      vname(2,indxDIC)='Dissolved Inorganic Carbon               '
+      vname(3,indxDIC)='mMol C m-3                               '
+      vname(4,indxDIC)='Dissolved Inorganic Carbon, scalar, series'
+      vname(1,indxTALK)='Alk                                      '
+      vname(2,indxTALK)='Total Alkalinity                         '
+      vname(3,indxTALK)='meq m-3                                  '
+      vname(4,indxTALK)='Total Alkalinity, scalar, series         '
+      vname(1,indxSDetC)='SDetC                                    '
+      vname(2,indxSDetC)='Small Detritus Carbon                    '
+      vname(3,indxSDetC)='mMol C m-3                               '
+      vname(4,indxSDetC)='Small Detritus Carbon, scalar, series    '
+      vname(1,indxLDetC)='LDetC                                    '
+      vname(2,indxLDetC)='Large Detritus Carbon                    '
+      vname(3,indxLDetC)='mMol C m-3                               '
+      vname(4,indxLDetC)='Large Detritus Carbon, scalar, series    '
+      vname(1,indxCaCO3)='CaCO3                                    '
+      vname(2,indxCaCO3)='Calcium carbonate precipitate            '
+      vname(3,indxCaCO3)='mMol C m-3                               '
+      vname(4,indxCaCO3)='CaCO3, scalar, series                    '
+#   endif /* CARBON */
+#  endif /* OXYGEN */
+#  ifdef SEDIMENT_BIOLOGY
+      vname(1,indxSedOrgN)=
+     &     'SedOrgN                                  '
+      vname(2,indxSedOrgN)=
+     &     'Sedimented Organic Material (N)          '
+      vname(3,indxSedOrgN)=
+     &     'mMol N m-2                               '
+      vname(4,indxSedOrgN)=
+     &     'Sedimented Organic N, scalar, series     '
+#   ifdef CARBON
+      vname(1,indxSedOrgC)=
+     &     'SedOrgC                                  '
+      vname(2,indxSedOrgC)=
+     &     'Sedimented Organic Material (C)          '
+      vname(3,indxSedOrgC)=
+     &     'mMol C m-2                               '
+      vname(4,indxSedOrgC)=
+     &     'Sedimented Organic C, scalar, series     '
+
+      vname(1,indxSedCaCO3)=
+     &     'SedCaCO3                                 '
+      vname(2,indxSedCaCO3)=
+     &     'Sedimented Calcium Carbonate             '
+      vname(3,indxSedCaCO3)=
+     &     'mMol C m-2                               '
+      vname(4,indxSedCaCO3)=
+     &     'Sedimented CaCO3, scalar, series         '
+#   endif /* CARBON */
+#  endif /* SEDIMENT_BIOLOGY */
+
+
+#endif /* SOLVE3D */
+      return
+      end
+#else /* BIOLOGY_NPZDOC */
+      subroutine init_scalars_npzdoc_empty()
+      return
+      end
+#endif /* BIOLOGY_NPZDOC */

@@ -1,0 +1,55 @@
+# Definitions for SGI Altix using Intel FORTRAN compiler
+# =========== === === ===== ===== ===== ======= ========
+
+.SUFFIXES: .o .f .F
+
+.F.o:
+	$(CPP) -P $(CPPFLAGS) $*.F | mpc > $*.f
+	$(CFT) -c $(FFLAGS) $*.f -o $*.o
+#/bin/rm -f $*.f
+.F.f:
+	$(CPP) -P $(CPPFLAGS) $*.F | mpc > $*.f
+.f.o:
+	$(CFT) -c $(FFLAGS) $*.f -o $*.o
+.F:
+	$(CFT) -o $@ $(FFLAGS) $(LDFLAGS) $<
+.f:
+	$(CFT) -o $@ $(FFLAGS) $(LDFLAGS) $<
+.o:
+	$(CFT) -o $@ $(FFLAGS) $(LDFLAGS) $<
+
+
+#
+# C-preprocessor from Intel compiler package. Note: in this case
+# __IFC is a pre-defined macro, so there is no need to include it
+# into CPPFLAGS.
+#
+#     CPP = fpp
+
+      CPP = /lib/cpp -traditional
+ CPPFLAGS = -D"__IFC=IA64"
+
+ OMP_FLAG = -fpp2 -openmp
+
+      CFT = ifort $(OMP_FLAG) -auto -stack_temps
+
+
+      LDR = $(CFT)
+
+   FFLAGS = -O3 -IPF_fma -IPF_fp_relaxed
+# -prof_gen
+#    FFLAGS = -O0
+#  FFLAGS = -O3
+#   FFLAGS = -g -CA -CB -CS -CU -CV 
+#  FFLAGS = $(CPPFLAGS) -O0
+
+  LDFLAGS = -Vaxlib
+
+
+ COMP_FILES = work.pc work.pcl ifc??????
+
+    LCDF =/largehome/edl/netcdf-3.5.1/src/libsrc/libnetcdf.a
+
+ LIBNCAR = -L/usr/local/ncarg/lib -L/usr/X11R6/lib -lncarg -lncarg_gks -lncarg_c -lX11 -lm
+
+

@@ -1,0 +1,37 @@
+# Header makefile for DEC Alpha:
+#======= ======== === === ======
+#
+.SUFFIXES: .o .f .i .F
+
+.F.o:
+	$(CPP) -P $(CPPFLAGS) $*.F > $*.i
+	mpc $*.i > $*.f
+	rm $*.i
+	$(CFT) -c $(FFLAGS) $*.f
+.F.f:
+	$(CPP) -P $(CPPFLAGS) $*.F > $*.i
+	mpc $*.i > $*.f
+	rm $*.i
+.f.o:
+	$(CFT) -c $(FFLAGS) $*.f
+.F:
+	$(CFT) -o $@ $(FFLAGS) $(LDFLAGS) $<
+.f:
+	$(CFT) -o $@ $(FFLAGS) $(LDFLAGS) $<
+
+
+              CPP = /usr/ccs/lib/cpp
+              CFT = f90 -r8 -C
+              LDR = $(CFT)
+
+           INCDIR = ../netcdf
+         CPPFLAGS = -I$(INCDIR)
+           FFLAGS = -g -C
+#           FFLAGS = -O4
+
+          LDFLAGS =
+
+           CDFLIB = $(INCDIR)/libnetcdf.a
+             LIBS = $(CDFLIB)
+
+

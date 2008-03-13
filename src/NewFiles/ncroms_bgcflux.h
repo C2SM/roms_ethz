@@ -1,0 +1,165 @@
+! This header file contains all variables and parameters for the 
+! netcdf output of biogeochemical fluxes.
+!
+! NOTE: This file must always be included AFTER bgcflux.h as it uses
+! some parameters that are defined in that file.
+
+#if defined SOLVE3D && defined BIOLOGY_NPZDOC && defined BGC_FLUX_ANALYSIS
+
+      logical new_bgc_flux_his
+      integer n_bgc_flux_his
+      common /scalars_bgc/
+     &     new_bgc_flux_his
+     &     , n_bgc_flux_his
+
+! indices for the netcdf output
+# ifdef OXYGEN
+      integer, parameter :: indxU10 = 1
+      integer, parameter :: indxKvO2 = 2
+      integer, parameter :: indxO2sat = 3
+#   ifdef CARBON
+      integer, parameter :: indxKvCO2 = 4
+      integer, parameter :: indxCO2sol = 5
+      integer, parameter :: indxPCO2 = 6
+      integer, parameter :: indxPCO2air = 7
+      integer, parameter :: indxPH = 8
+#   endif /* CARBON */
+# endif /* OXYGEN */
+
+! if OXYGEN and/or CARBON are not defined, there will be a gap in indices
+      integer, parameter :: indxPAR = 9
+      integer, parameter :: indxPARinc = 10
+
+! deliberately leave space for additional non-flux variables
+      integer, parameter :: indxFlux = 20 
+! first vertical sinking flux
+      integer, parameter :: indxVSinkFlux = indxFlux + NumFluxTerms 
+#  ifdef OXYGEN
+! first gas exchange flux
+      integer, parameter :: indxGasExcFlux = 
+     &     indxFlux + NumFluxTerms + NumVSinkTerms 
+#  endif
+#  ifdef SEDIMENT_BIOLOGY
+! first sediment-related flux
+      integer, parameter :: indxSedFlux = indxFlux + NumFluxTerms + 
+     &     NumVSinkTerms + NumGasExcTerms     
+#  endif /* SEDIMENT_BIOLOGY */
+
+      integer hisPAR, hisPARinc
+     &     , hisFlux(NumFluxTerms)
+     &     , hisVSinkFlux(NumVSinkTerms)
+#  ifdef OXYGEN
+     &     , hisONNO3, hisONNH4
+     &     , hisU10, hisKvO2, hisO2sat
+#   ifdef CARBON
+     &     , hisCNP, hisCNZ, hisrCaCO3orgC
+     &     , hisKvCO2, hisCO2sol, hisPCO2, hisPCO2air, hisPH
+#   endif /* CARBON */
+#  endif /* OXYGEN */
+#   ifdef OXYGEN
+     &     , hisGasExcFlux(NumGasExcTerms) 
+#   endif /* OXYGEN */
+#   ifdef SEDIMENT_BIOLOGY
+     &     , hisSedFlux(NumSedFluxTerms)
+#   endif /* SEDIMENT_BIOLOGY */
+     &     , nrpf_bgc_flux_his
+     &     , ncid_bgc_flux_his, nrec_bgc_flux_his
+     &     , bgc_flux_hisTime, bgc_flux_hisTstep
+     &     , bgc_flux_hisZ
+
+      common /ncids_bgc_flux/ hisPAR, hisPARinc
+     &     , hisFlux
+     &     , hisVSinkFlux
+#  ifdef OXYGEN
+     &     , hisONNO3, hisONNH4
+     &     , hisU10, hisKvO2, hisO2sat
+#   ifdef CARBON
+     &     , hisCNP, hisCNZ, hisrCaCO3orgC
+     &     , hisKvCO2, hisCO2sol, hisPCO2, hisPCO2air, hisPH
+#   endif /* CARBON */
+#  endif /* OXYGEN */
+#   ifdef OXYGEN
+     &     , hisGasExcFlux
+#   endif /* OXYGEN */
+#   ifdef SEDIMENT_BIOLOGY
+     &     , hisSedFlux
+#   endif /* SEDIMENT_BIOLOGY */
+     &     , nrpf_bgc_flux_his
+     &     , ncid_bgc_flux_his, nrec_bgc_flux_his
+     &     , bgc_flux_hisTime, bgc_flux_hisTstep
+     &     , bgc_flux_hisZ
+      
+      integer, parameter :: num_bgcflux = 20
+     &     + NumFluxTerms + NumVSinkTerms
+#   ifdef OXYGEN
+     &     + NumGasExcTerms 
+#   endif /* OXYGEN */
+#   ifdef SEDIMENT_BIOLOGY
+     &     + NumSedFluxTerms
+#   endif /* SEDIMENT_BIOLOGY */
+
+      character*80 bgc_flux_his_name,
+     &     vname_bgcflux(4, num_bgcflux)
+      common /c_bgcflux/ bgc_flux_his_name, vname_bgcflux
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+# ifdef AVERAGES
+
+      logical new_bgc_flux_avg
+      integer nts_bgc_flux_avg, n_bgc_flux_avg
+      common /scalars_bgc_avg/
+     &     new_bgc_flux_avg,
+     &     nts_bgc_flux_avg, n_bgc_flux_avg
+      real time_bgc_flux_avg
+      common /scalars_bgc_avg_real/ time_bgc_flux_avg
+
+      integer avgPAR, avgPARinc
+     &     , avgFlux(NumFluxTerms)
+     &     , avgVSinkFlux(NumVSinkTerms)
+#  ifdef OXYGEN
+     &     , avgONNO3, avgONNH4
+     &     , avgU10, avgKvO2, avgO2sat
+#   ifdef CARBON
+     &     , avgCNP, avgCNZ, avgrCaCO3orgC
+     &     , avgKvCO2, avgCO2sol, avgPCO2, avgPCO2air, avgPH
+#   endif /* CARBON */
+#  endif /* OXYGEN */
+#   ifdef OXYGEN
+     &     , avgGasExcFlux(NumGasExcTerms) 
+#   endif /* OXYGEN */
+#   ifdef SEDIMENT_BIOLOGY
+     &     , avgSedFlux(NumSedFluxTerms)
+#   endif /* SEDIMENT_BIOLOGY */
+     &     , nrpf_bgc_flux_avg
+     &     , ncid_bgc_flux_avg, nrec_bgc_flux_avg
+     &     , bgc_flux_avgTime, bgc_flux_avgTstep
+     &     , bgc_flux_avgZ
+
+      common /ncids_bgc_flux_avg/ avgPAR, avgPARinc
+     &     , avgFlux
+     &     , avgVSinkFlux
+#  ifdef OXYGEN
+     &     , avgONNO3, avgONNH4
+     &     , avgU10, avgKvO2, avgO2sat
+#   ifdef CARBON
+     &     , avgCNP, avgCNZ, avgrCaCO3orgC
+     &     , avgKvCO2, avgCO2sol, avgPCO2, avgPCO2air, avgPH
+#   endif /* CARBON */
+#  endif /* OXYGEN */
+#   ifdef OXYGEN
+     &     , avgGasExcFlux
+#   endif /* OXYGEN */
+#   ifdef SEDIMENT_BIOLOGY
+     &     , avgSedFlux
+#   endif /* SEDIMENT_BIOLOGY */
+     &     , nrpf_bgc_flux_avg
+     &     , ncid_bgc_flux_avg, nrec_bgc_flux_avg
+     &     , bgc_flux_avgTime, bgc_flux_avgTstep
+     &     , bgc_flux_avgZ
+
+      character*80 bgc_flux_avg_name
+      common /c_bgcflux_avg/ bgc_flux_avg_name
+
+# endif /* AVERAGES */
+
+#endif /* SOLVE3D && BIOLOGY_NPZDOC */

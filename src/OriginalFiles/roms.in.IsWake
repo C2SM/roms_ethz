@@ -1,0 +1,91 @@
+title:
+         Flow around isolated Island
+!
+! Case of 2D setup, 384x168 ==> dt=4.0
+!
+! time_stepping: NTIMES dt[sec] NDTFAST NINFO
+                 1944000    4.0    1     1     2D setup
+
+! history: LDEFHIS, NWRT, NRPFHIS / filename   2D case
+            F      10800        0
+                  his2D.nc
+
+
+
+!
+! High res. 2D: 768x336 ==> dt=2.0
+!
+! time_stepping: NTIMES dt[sec] NDTFAST NINFO
+                 3888000    2.0    1     1     2D setup
+
+! history: LDEFHIS, NWRT, NRPFHIS / filename   2D case
+            T     43200       0
+                  his_isw2D.nc
+
+! time_stepping: NTIMES dt[sec] NDTFAST NINFO
+                 13888000    1.0    1     1     2D setup
+
+! history: LDEFHIS, NWRT, NRPFHIS / filename   2D case
+            T      43200     120
+                  his_isw2D.nc
+
+
+!
+! Case of 3D setup, resolution 384x168x20 ==> dt/ndt=180./43
+!
+ time_stepping: NTIMES dt[sec] NDTFAST NINFO
+                 57601  180.   41     1 !<-- Rich 360x160 case
+ history: LDEFHIS, NWRT, NRPFHIS / filename
+            T      120    120  
+                his_isw.nc
+
+
+S-coord: THETA_S  THETA_B  hc(m)
+          2.5      0.d0    20.d0
+
+initial: NRREC / filename
+           0 
+                 none
+                 rst2D.nc
+
+restart:  NRST, NRPFRST / filename
+           14400    -4      !<-- restart every month in 3D case
+                  rst.nc
+
+
+primary_history_fields: zeta UBAR VBAR  U  V   wrtT(1:NT)
+                          T    T    T   T  T    T   T
+
+auxiliary_history_fields: rho Omega  W  Akv  Akt  Aks  HBL
+                           F   F     T   F    F    F    F 
+
+rho0:
+      1000.d0
+
+lin_EOS_cff: R0[Kg/m^3]  T0[deg C]  S0[PSU]  TCOEF  SCOEF
+               0.d0        0.d0       0.d0   1.0d0   0.d0
+
+lateral_visc: VISC2
+               0.  !<-- none for 3D setup
+               10. !<-- sufficient for 2D 384x168 (5. shows
+                                       some 2dx noise)
+
+
+
+vertical_mixing: Akv_bak Akt_bak(1:NT)  [m^2/sec for all]
+                 1.0d-3   0.d0    0.0d0
+
+bottom_drag:     RDRG(m/s),      RDRG2
+                 2.0e-4           0.d0
+gamma2:
+       +1.d0 ! <--- original setting was -1 to make no-slip boundary
+
+
+nudg_cof: TauM2_in/out  attnM2   TauM3_in/out  TauT_in/out [days for all]
+             0.1  1.     0.01      0.1 1.      0.  0.
+
+
+v_sponge:   V_SPONGE [m^2/sec]
+              0.
+
+
