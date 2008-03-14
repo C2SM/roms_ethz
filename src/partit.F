@@ -39,12 +39,12 @@
 ! partial files.
 !
 
-#define VERBOSE
+c--#define VERBOSE
 
       implicit none
 #include "netcdf.inc"
       integer maxdims, maxvars
-      parameter (maxdims=6, maxvars=64)
+      parameter (maxdims=32, maxvars=64)
       character src_name*80,  string*80
       character dimname(maxdims)*32, varname(maxvars)*32
 
@@ -772,7 +772,7 @@ c**               write(*,*) ' count:',    (count(j),j=1,vardims(i))
 
                   if (size .gt. 8*max_buff_size) then
                     if (allocated(buff)) deallocate(buff)
-          write(*,*) 'here 2'
+
                     max_buff_size=(size+7)/8
                     allocate (buff(max_buff_size))
 #ifdef VERBOSE

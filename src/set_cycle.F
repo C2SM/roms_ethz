@@ -28,7 +28,7 @@
       integer ncid, varid, ntime, icycle, irec, ierr,  itry, nvdims,
      &  vdims(8), vartype, nvatts, size, i, lvar, ldim, latt, lenstr
       logical found
-      character*16 varname, dimname, attname
+      character*16 varname, dimname, attname, testname
  
 #include "param.h"
 #include "scalars.h"
@@ -59,16 +59,16 @@
               found=.true.
               ntime=size
             else
-              write (stdout,'(/1x,4A/18x,A)') 'SET_CYCLE ERROR: ',
-     &                   'variable ''', varname(1:lvar), ''' has',
-     &                   'more than one ''_time'' dimension.'
+              write(stdout,'(/1x,4A/18x,A)')         '### ERROR: ',
+     &               'set_cycle :: variable ''',  varname(1:lvar),
+     &               ''' has', 'more than one ''_time'' dimension.'
               ierr=-9999
             endif
           endif
         else
-          write(stdout,'(/1x,4A/)') 'SET_CYCLE ERROR while ',
-     &                  'inquiring dimensions for variable ''',
-     &                                   varname(1:lvar), '''.'
+          write(stdout,'(/1x,4A/10x,A/)')  '### ERROR: set_cycle ',
+     &              ':: Cannot inquire dimensions for variable ''',
+     &               varname(1:lvar),   '''.',   nf_strerror(ierr) 
         endif
       enddo
 !
@@ -156,13 +156,13 @@ c           write(*,*) irec, ntime, icycle, cycle_length, tend
                       found=.true.
                     elseif (itry.gt.ntime) then
 
-         write(stdout,97) 'SET_CYCLE ERROR: Cannot set find ',
+         write(stdout,97) '### ERROR: set_cycle :: Cannot find ',
      &  'appropriate record after scanning all records ',
      &  'available:  icycle =', icycle,   'cycle_length =',
      &   cycle_length, ' tstart =', tstart,  'tend =', tend,
      &  'Possible cause: Check integrity of netCDF input ',
      &  'file for missing/corrupt data.' 
-  97     format(/1x,2A/9x,A,I16,3x,A,E16.9/4x,2(4x,A,E16.9)/1x,2A/)
+  97     format(/1x,2A/12x,A,I16,3x,A,E16.9/7x,2(4x,A,E16.9)/12x,2A)
 
                       ierr=1000 
                     else
@@ -184,8 +184,8 @@ c           write(*,*) irec, ntime, icycle, cycle_length, tend
                     irec=ntime
                     icycle=icycle-1
                   elseif (irec.lt.0) then
-                    write(*,'(/1x,2A/)') 'SET_CYCLE ERROR: run ',
-     &             'out of time records in non-recycling regime.'
+                    write(*,'(/1x,2A/)') '### ERROR: set_cycle :: ',
+     &            'run out of time records in non-recycling regime.'
                     ierr=-9999
                   endif
                 enddo
@@ -200,8 +200,21 @@ c           write(*,*) irec, ntime, icycle, cycle_length, tend
      &     'Cannot make general inquiry about variable with ID =',
      &      varid, 'in input file; netCDF error code =', ierr
       endif
-  1   format(/1x,'SET_CYCLE ERROR: cannot read variable ''', A,
-     &    ''' for record ', I4/10x, 'netCDF error code =', I5/)
+  1   format(/1x,'### ERROR: set_cycle :: cannot read variable ''',
+     &    A, ''' for record ', I4/10x, 'netCDF error code =', I5/)
+
+      if (ierr .ne. nf_noerr) then
+        i=nf_inq_varname (ncid, varid, testname)
+        if (i .eq. nf_noerr) then
+          lvar=lenstr(testname)
+          write(*,'(12x,A,I4,2x,3A,2z,A,1PE16.7/)')   'varid =',
+     &      varid, 'variable in question: ''', testname(1:lvar),
+     &      '''.', 'cycle_length=',  cycle_length
+
+        else
+
+        endif
+      endif
       return
       end
  
@@ -217,8 +230,8 @@ c           write(*,*) irec, ntime, icycle, cycle_length, tend
           irec=1
           icycle=icycle+1
         else
-          write(*,'(/2(1x,A)/)') 'ERROR in advance_cycle: run out',
-     &                  'of time records in non-recycling regime.'
+          write(*,'(/1x,2A/)') '### ERROR: advance_cycle :: run ',
+     &              'out of time records in non-recycling regime.'
           ierr=-9999
         endif
       endif

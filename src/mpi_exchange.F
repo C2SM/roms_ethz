@@ -4,32 +4,15 @@
       subroutine mpi_exchange_tile (istr,iend,jstr,jend, A, nmax)
 
       implicit none
-# include "param.h"
-# include "hidden_mpi_vars.h"
 # include "mpif.h"
+# include "param.h"
+# include "mess_buffers.h"
+# include "hidden_mpi_vars.h"
       integer istr,iend,jstr,jend, nmax 
       real A(GLOBAL_2D_ARRAY,nmax)
 CSDISTRIBUTE_RESHAPE A(BLOCK_PATTERN) BLOCK_CLAUSE
       integer i,j,k, isize,jsize,ksize, kshft, itag,jtag, iter,
      &        req(8), status(MPI_STATUS_SIZE,8), ierr, md_XI,md_ETA
- 
-      integer sub_X,size_X, sub_E,size_E, size_Z
-      parameter (size_Z=4*(N+1),
-     &     sub_X=(Lm+NSUB_X-1)/NSUB_X, size_X=2*(N+1)*(4+sub_X),
-     &     sub_E=(Mm+NSUB_E-1)/NSUB_E, size_E=2*(N+1)*(4+sub_E))
-
-      real  sn_NW(size_Z),   sendN(0:size_X),   sn_NE(size_Z),
-     &      rv_NW(size_Z),   recvN(0:size_X),   rv_NE(size_Z),
-     &    sendW(0:size_E),                      sendE(0:size_E),
-     &    recvW(0:size_E),                      recvE(0:size_E),
-     &      sn_SW(size_Z),   sendS(0:size_X),   sn_SE(size_Z),
-     &      rv_SW(size_Z),   recvS(0:size_X),   rv_SE(size_Z)
-
-      common /mpi_buffers/ sn_NW,rv_NW, sendN,recvN, sn_NE,rv_NE,
-     &                    sendW,recvW,                sendE,recvE,
-     &                     sn_SW,rv_SW, sendS,recvS, sn_SE,rv_SE
-C$OMP THREADPRIVATE(/mpi_buffers/)
-
 !
 #include "compute_message_bounds.h"
 !

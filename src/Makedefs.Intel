@@ -68,15 +68,17 @@
 
 
 
-# OMP_FLAG = -fpp2 -openmp
+ OMP_FLAG = -fpp2 -openmp
 
 #     CFT = ifc   $(OMP_FLAG) -pc80 -tpp7 -axW -xW
 #     CFT = ifort $(OMP_FLAG) -pc80 -tpp7 -axN -xN -auto -stack_temps
-      CFT = ifort $(OMP_FLAG) -pc80 -tpp7 -axP -xP -msse3 -align dcommon -auto -stack_temps
+      CFT = ifort $(OMP_FLAG) -pc80 -tpp7 -msse3 -align dcommon -auto -stack_temps
+      CFT = ifort $(OMP_FLAG)
 
       LDR = $(CFT)
 
    FFLAGS = -O3 -IPF_fma -ip 
+   FFLAGS = -O3 -arch pn3 
 # -prof_gen
 #    FFLAGS = -O0             #  -CA check pointer; -CS check shape
 #
@@ -91,7 +93,6 @@
  COMP_FILES = work.pc work.pcl ifc??????
 
    LCDF = -lnetcdf
-#   LCDF =/usr/local/lib/libnetcdf.a
 
 
  LIBNCAR = -L/usr/local/ncarg/lib -L/usr/X11R6/lib -lncarg -lncarg_gks -lncarg_c -lX11 -lm

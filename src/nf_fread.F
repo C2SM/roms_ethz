@@ -182,28 +182,35 @@ CSDISTRIBUTE_RESHAPE  A(BLOCK_PATTERN,*) BLOCK_CLAUSE
 !
 #ifndef WRITER
 # if defined EW_PERIODIC || defined NS_PERIODIC  || defined MPI
+#  ifdef MPI
+#   define EXCH_ARR_RANGE iwest,ieast,jsouth,jnorth
+#  else
+#   define EXCH_ARR_RANGE 1,Lm,1,Mm
+#  endif
+
         if (horiz_type.eq.0 .and. vert_type.eq.0) then
-          call exchange_r2d_tile (1,Lm,1,Mm, A)
+          call exchange_r2d_tile (EXCH_ARR_RANGE, A)
         elseif (horiz_type.eq.1 .and. vert_type.eq.0) then
-          call exchange_u2d_tile (1,Lm,1,Mm, A)
+          call exchange_u2d_tile (EXCH_ARR_RANGE, A)
         elseif (horiz_type.eq.2 .and. vert_type.eq.0) then
-          call exchange_v2d_tile (1,Lm,1,Mm, A)
+          call exchange_v2d_tile (EXCH_ARR_RANGE, A)
         elseif (horiz_type.eq.3 .and. vert_type.eq.0) then
-          call exchange_p2d_tile (1,Lm,1,Mm, A)
+          call exchange_p2d_tile (EXCH_ARR_RANGE, A)
 #  ifdef SOLVE3D
         elseif (horiz_type.eq.0 .and. vert_type.eq.1) then
-          call exchange_r3d_tile (1,Lm,1,Mm, A)
+          call exchange_r3d_tile (EXCH_ARR_RANGE, A)
         elseif (horiz_type.eq.1 .and. vert_type.eq.1) then
-          call exchange_u3d_tile (1,Lm,1,Mm, A)
+          call exchange_u3d_tile (EXCH_ARR_RANGE, A)
         elseif (horiz_type.eq.2 .and. vert_type.eq.1) then
-          call exchange_v3d_tile (1,Lm,1,Mm, A)
+          call exchange_v3d_tile (EXCH_ARR_RANGE, A)
         elseif (horiz_type.eq.3 .and. vert_type.eq.1) then
-          call exchange_p3d_tile (1,Lm,1,Mm, A)
+          call exchange_p3d_tile (EXCH_ARR_RANGE, A)
  
         elseif (horiz_type.eq.0 .and. vert_type.eq.2) then
-          call exchange_w3d_tile (1,Lm,1,Mm, A)
+          call exchange_w3d_tile (EXCH_ARR_RANGE, A)
 #  endif
         endif
+
 # endif
 #endif
       else

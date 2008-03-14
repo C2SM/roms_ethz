@@ -622,7 +622,7 @@ C$OMP END CRITICAL (diag_cr_rgn)
 
       np=0
       i=0
-      do while (i.lt.lstr)
+      do while (i.lt.lstr .and. np.lt.npars)
         i=i+1
         if (string(i:i).eq.'.') then
           k=i-1

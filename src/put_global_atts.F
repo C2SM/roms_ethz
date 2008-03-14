@@ -315,20 +315,29 @@ c     &                                       aparnam(1:lvar))
 !
 ! Equation of State parameters.
 !
-      ierr=nf_put_att_FTYPE(ncid,nf_global,'rho0',nf_ftype, 1,rho0)
-      ierr=nf_put_att_text (ncid,nf_global,'rho0_units', 16,
+      ierr=nf_put_att_FTYPE(ncid,nf_global, 'rho0',nf_ftype, 1,rho0)
+      ierr=nf_put_att_text (ncid,nf_global, 'rho0_units', 16,
      &                                            'kilogram meter-3')
 # ifndef NONLIN_EOS
-      ierr=nf_put_att_FTYPE(ncid,nf_global,'R0',  nf_ftype, 1, R0)
-      ierr=nf_put_att_text (ncid,nf_global,'R0_units', 16,
+      ierr=nf_put_att_FTYPE(ncid,nf_global, 'R0',  nf_ftype, 1, R0)
+      ierr=nf_put_att_text (ncid,nf_global, 'R0_units', 16,
      &                                            'kilogram meter-3')
- 
+
+      ierr=nf_put_att_FTYPE(ncid,nf_global, 'T0',  nf_ftype, 1, T0)
+      ierr=nf_put_att_text (ncid,nf_global, 'T0_units', 11,
+     &                                                 'deg Celsius')
+
       ierr=nf_put_att_FTYPE(ncid,nf_global,'Tcoef',nf_ftype, 1,Tcoef)
-      ierr=nf_put_att_text (ncid,nf_global,'Tcoef_units',9,
-     &                                                   'Celsius-1')
+      ierr=nf_put_att_text (ncid,nf_global,'Tcoef_units', 13,
+     &                                               'deg Celsius-1')
+
+#  ifdef SALINITY
+      ierr=nf_put_att_FTYPE(ncid,nf_global, 'S0',  nf_ftype, 1, S0)
+      ierr=nf_put_att_text (ncid,nf_global, 'S0_units',     3, 'PSU')
  
       ierr=nf_put_att_FTYPE(ncid,nf_global,'Scoef',nf_ftype, 1,Scoef)
       ierr=nf_put_att_text (ncid,nf_global,'Scoef_units', 5, 'PSU-1')
+#  endif
 # endif
 #endif /* SOLVE3D */
 !

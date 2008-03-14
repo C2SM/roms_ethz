@@ -64,35 +64,35 @@ cxx   write(*,*) 'entered nf_read_bry_EW...'
 #endif
 #ifdef MPI
 cxx       write(*,*) 'starting nf_read_bry_EW mpi exchange part'
-          if (SOUTH_INTER) then
+          if (south_inter) then
             call MPI_Irecv (bffr_rsv_S, kmax, MPI_DOUBLE_PRECISION,
      &                        p_S, 1, ocean_grid_comm, req(1), ierr)
           endif
-          if (NORTH_INTER) then
+          if (north_inter) then
             call MPI_Irecv (bffr_rsv_N, kmax, MPI_DOUBLE_PRECISION,
      &                        p_N, 2, ocean_grid_comm, req(2), ierr)
           endif
-          if (SOUTH_INTER) then
+          if (south_inter) then
             do k=1,kmax
               bffr_snd_S(k)=A(jmin,k)
             enddo
             call MPI_Send  (bffr_snd_S, kmax, MPI_DOUBLE_PRECISION,
      &                        p_S, 2, ocean_grid_comm,        ierr)
           endif
-          if (NORTH_INTER) then
+          if (north_inter) then
             do k=1,kmax
               bffr_snd_N(k)=A(jmax,k)
             enddo
             call MPI_Send  (bffr_snd_N, kmax, MPI_DOUBLE_PRECISION,
      &                        p_N, 1, ocean_grid_comm,        ierr)
           endif
-          if (SOUTH_INTER) then
+          if (south_inter) then
             call MPI_Wait (req(1),status(1,1),ierr)
             do k=1,kmax
               A(jmin-1,k)=bffr_rsv_S(k)
             enddo
           endif
-          if (NORTH_INTER) then
+          if (north_inter) then
             call MPI_Wait (req(2),status(1,2),ierr)
             do k=1,kmax
               A(jmax+1,k)=bffr_rsv_N(k)
@@ -168,35 +168,35 @@ cxx   write(*,*) 'entered nf_read_bry_NS...'
 #ifdef MPI
 cxx       write(*,*) 'starting nf_read_bry_NS mpi exchange part'
 
-          if (WEST_INTER) then
+          if (west_inter) then
             call MPI_Irecv (bffr_rsv_W, kmax, MPI_DOUBLE_PRECISION,
      &                        p_W, 3, ocean_grid_comm, req(1), ierr)
           endif
-          if (EAST_INTER) then
+          if (east_inter) then
             call MPI_Irecv (bffr_rsv_E, kmax, MPI_DOUBLE_PRECISION,
      &                        p_E, 4, ocean_grid_comm, req(2), ierr)
           endif
-          if (WEST_INTER) then
+          if (west_inter) then
             do k=1,kmax
               bffr_snd_W(k)=A(imin,k)
             enddo
             call MPI_Send  (bffr_snd_W, kmax, MPI_DOUBLE_PRECISION,
      &                        p_W, 4, ocean_grid_comm,       ierr)
           endif
-          if (EAST_INTER) then
+          if (east_inter) then
             do k=1,kmax
               bffr_snd_E(k)=A(imax,k)
             enddo
             call MPI_Send  (bffr_snd_E, kmax, MPI_DOUBLE_PRECISION,
      &                        p_E, 3, ocean_grid_comm,       ierr)
           endif
-          if (WEST_INTER) then
+          if (west_inter) then
             call MPI_Wait (req(1),status(1,1),ierr)
             do k=1,kmax
               A(imin-1,k)=bffr_rsv_W(k)
             enddo
           endif
-          if (EAST_INTER) then
+          if (east_inter) then
             call MPI_Wait (req(2),status(1,2),ierr)
             do k=1,kmax
               A(imax+1,k)=bffr_rsv_E(k)

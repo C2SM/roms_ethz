@@ -57,8 +57,8 @@ c--#define ALLOW_SINGLE_BLOCK_MODE
  is not defined).
 */
  
-c--#define MPI
-c--#define PARALLEL_FILES
+#define MPI
+!-- #define PARALLEL_FILES
  
 /* Define standard dimensions for the model arrays (vertical
  dimensions are inserted explicitly in the code, when needed).
@@ -110,10 +110,10 @@ c--#define PARALLEL_FILES
 */
  
 #ifdef MPI
-# define WESTERN_EDGE istr.eq.iwest .and. .not.WEST_INTER
-# define EASTERN_EDGE iend.eq.ieast .and. .not.EAST_INTER
-# define SOUTHERN_EDGE jstr.eq.jsouth .and. .not.SOUTH_INTER
-# define NORTHERN_EDGE jend.eq.jnorth .and. .not.NORTH_INTER
+# define WESTERN_EDGE istr.eq.iwest .and. .not.west_inter
+# define EASTERN_EDGE iend.eq.ieast .and. .not.east_inter
+# define SOUTHERN_EDGE jstr.eq.jsouth .and. .not.south_inter
+# define NORTHERN_EDGE jend.eq.jnorth .and. .not.north_inter
 #else
 # define WESTERN_EDGE istr.eq.1
 # define EASTERN_EDGE iend.eq.Lm
@@ -133,6 +133,13 @@ c--#define PARALLEL_FILES
 #ifdef NS_PERIODIC
 # undef SOUTHERN_EDGE
 # undef NORTHERN_EDGE
+#endif
+
+#ifdef MPI
+# define WEST_INTER west_inter.and.istr.eq.iwest
+# define EAST_INTER east_inter.and.iend.eq.ieast
+# define SOUTH_INTER south_inter.and.jstr.eq.jsouth
+# define NORTH_INTER north_inter.and.jend.eq.jnorth
 #endif
 
 /* The following four macros identify position of an MPI-node

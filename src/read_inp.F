@@ -48,6 +48,13 @@
       ierr=0    ! <-- reset error counter
       call check_tiling (ierr)
       call check_switches1 (ierr)
+#ifdef SOLVE3D
+      call check_rhs3d_switches (ierr)
+      call check_trc_adv_switches (ierr)
+# ifdef LMD_KPP
+      call check_kpp_switches (ierr)  
+# endif
+#endif
       call check_switches2 (ierr)
       if (ierr.ne.0) return
 !
@@ -82,6 +89,8 @@
       fname='pacific.in'
 #elif defined PACIFIC_2D
       fname='pacific_2D.in'
+#elif defined CANBAS2
+      fname='canBas2.in'
 #elif defined USWEST
       fname='mb_l1_safe.in'
 c--      fname='roms.in.USW20'
@@ -697,16 +706,21 @@ c--      fname='roms.in.US_West'
 !
         elseif (keyword(1:kwlen).eq.'lin_EOS_cff') then
           call cancel_kwd (keyword(1:kwlen), ierr)
-          read(input,*,err=95) R0, T0, S0, Tcoef, Scoef
+          read(input,*,err=95) R0, T0, Tcoef
+#  ifdef SALINITY
+     &                           , S0, Scoef
+#  endif
           MPI_master_only write(stdout,'(5(f10.4,2x,A,1x,A/))')
+     &       R0, 'R0       Background density in linear EOS',
+     &                                                  '[kg/m^3].',
      &       T0, 'T0       Background value for potential',
-     &                                     'temperature (Celsius).',
-     &       S0, 'S0       Background salinity (PSU),', 'constant.',
-     &       R0, 'R0       Background density (kg/m3) used in',
-     &                                                'linear EOS.',
+     &                                 'temperature [deg Celsius].',
      &    Tcoef, 'Tcoef    Thermal expansion coefficient',
-     &                                               '(1/Celsius).',
-     &    Scoef, 'Scoef    Saline contraction coefficient (1/PSU).'
+     &                                               '[1/Celsius].'
+#  ifdef SALINITY
+     &   ,   S0, 'S0       Background salinity [PSU],', 'constant.',
+     &    Scoef, 'Scoef    Saline contraction coefficient [1/PSU].'
+#  endif
 # endif
 # ifdef TS_DIF2
 !

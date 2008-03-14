@@ -29,8 +29,8 @@ auxiliary_history_fields: rho Omega  W  Akv  Akt  Aks  HBL
 rho0:
       1000.d0
 
-lin_EOS_cff: R0[Kg/m^3] T0[deg C] S0[PSU]  TCOEF   SCOEF
-               30.         0.          0.    0.28    0.
+lin_EOS_cff: R0[Kg/m^3] T0[deg C] TCOEF   S0[PSU] SCOEF
+               30.         0.      0.28      0.      0.
 
 lateral_visc: VISC2[m^2/sec]
                  0.

@@ -25,6 +25,8 @@ C$    integer nthrds
       call MPI_Comm_size (ocean_grid_comm, nsize,  ierr)
       call MPI_Comm_rank (ocean_grid_comm, mynode, ierr)
 
+      write(*,*) 'etner mpi_setup, node ', mynode, ' out of', nsize  
+
                                          ! Determine number of
 C$    if (mynode.eq.0) then              ! threads on the zeroth MPI
 C$OMP PARALLEL SHARED(nthrds)            ! node and broadcast it, so
@@ -40,45 +42,63 @@ C$    endif
       if (nsize.eq.NNODES) then ! specified as -np argument to mpirun
         inode=mod(mynode,NP_XI) ! command is consistent with the code
         jnode=mynode/NP_XI      ! parameter settings, and if so, find
+        irc=1-2*mod(jnode,2)
                                 ! indices inode,jnode identifying
         if (NP_XI.eq.1) then    ! placement of the subdomain to be
-          WEST_INTER=.false.    ! belonging to MPI process with rank
-          EAST_INTER=.false.    ! mynode on the "processor grid".
+          west_inter=.false.    ! belonging to MPI process with rank
+          east_inter=.false.    ! mynode on the "processor grid".
         else                    ! Depending on this location find
 # ifdef EW_PERIODIC
-          WEST_INTER=.true.     ! whether this subdomain has
-          EAST_INTER=.true.     ! neighbours on the four sides around
+          west_inter=.true.     ! whether this subdomain has
+          east_inter=.true.     ! neighbours on the four sides around
 # else
           if (inode.eq.0) then  ! and set corresponding logical
-            WEST_INTER=.false.  ! flags. Here WEST_INTER.eqv..true.
+            west_inter=.false.  ! flags. Here WEST_INTER.eqv..true.
           else                  ! means that I [MPI process with rank
-            WEST_INTER=.true.   ! mynode] have neighbor on west side,
+            west_inter=.true.   ! mynode] have neighbor on west side,
           endif                       ! so I have to send message to
           if (inode.eq.NP_XI-1) then  ! him and expect incoming
-            EAST_INTER=.false.        ! messages from him. Meaning
+            east_inter=.false.        ! messages from him. Meaning
           else                  ! of the three others, EAST_, SOUTH_,
-            EAST_INTER=.true.   ! and NORTH_INTER is the same, except
+            east_inter=.true.   ! and NORTH- _INTER is the same, except
           endif                 ! they refer to the different sides.
 # endif
         endif                   ! Note: periodic boundary conditions
                                 ! are treated exclussively via
+/*
         if (NP_ETA.eq.1) then   ! exchange of computational margins,
-          SOUTH_INTER=.false.   ! so that communication takes place
-          NORTH_INTER=.false.   ! even is the subdomain is located
+          south_inter=.false.   ! so that communication takes place
+          north_inter=.false.   ! even is the subdomain is located
         else                    ! on the side of the grid.
 # ifdef NS_PERIODIC
-          SOUTH_INTER=.true.
-          NORTH_INTER=.true.
+          south_inter=.true.
+          north_inter=.true.
 # else
           if (jnode.eq.0) then
-            SOUTH_INTER=.false.
+            south_inter=.false.
           else
-            SOUTH_INTER=.true.
+            south_inter=.true.
           endif
           if (jnode.eq.NP_ETA-1) then
-            NORTH_INTER=.false.
+            north_inter=.false.
           else
-            NORTH_INTER=.true.
+            north_inter=.true.
+          endif
+# endif
+*/
+          
+        south_inter=.false.
+        north_inter=.false.
+        if (NP_ETA.gt.1) then
+# ifdef NS_PERIODIC
+          south_inter=.true.
+          north_inter=.true.
+# else
+          if (jnode.gt.0) then
+            south_inter=.true.
+          endif
+          if (jnode.lt.NP_ETA-1) then
+            north_inter=.true.
           endif
 # endif
         endif
@@ -183,7 +203,7 @@ c#endif
         ierr=0
       else
         MPI_master_only write(stdout,'(/1x,A,I4,1x,A,I3,A/)')
-     &     'ERROR in MPI_Setup: number of MPI-nodes should be',
+     &   '### ERROR: mpi_setup: number of MPI-nodes should be',
      &                         NNODES, 'instead of', nsize, '.'
         ierr=99
       endif

@@ -32,10 +32,10 @@
 
 
 
-c--#define FAST_MODE
+#define FAST_MODE
 c--#define KEEP_CLOSED
-#define VERBOSE
-#define  AUTORENICE
+c--#define VERBOSE
+#define AUTORENICE
 
 
       implicit none

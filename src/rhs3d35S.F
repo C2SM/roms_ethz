@@ -588,42 +588,75 @@ c*        enddo
 ! "rubar", "rvbar" will be subtracted from the vertically integrated
 ! (here) "rufrc", "rvfrc".
 !
-      if (COUPLED_STAGE_ONLY) then
-        do i=istrU,iend
-          cff=dm_u(i,j)*dn_u(i,j)
-          ru(i,j,1)=ru(i,j,1) -cff*0.5*(rd(i-1,j)+rd(i,j))
-     &                                      *u(i,j,1,nrhs)
-          rufrc(i,j)=ru(i,j,1) +cff*sustr(i,j)
-        enddo
-        do k=2,N
+        if (COUPLED_STAGE_ONLY) then
           do i=istrU,iend
-            rufrc(i,j)=rufrc(i,j)+ru(i,j,k)
-          enddo
-        enddo
-
-        if (j.ge.jstrV) then
-          do i=istr,iend
-            cff=dm_v(i,j)*dn_v(i,j)
-            rv(i,j,1)=rv(i,j,1) -cff*0.5*(rd(i,j-1)+rd(i,j))
-     &                                        *v(i,j,1,nrhs)
-
-            rvfrc(i,j)=rv(i,j,1) +cff*svstr(i,j)
-
+            cff=dm_u(i,j)*dn_u(i,j)
+            ru(i,j,1)=ru(i,j,1) -cff*0.5*(rd(i-1,j)+rd(i,j))
+     &                                        *u(i,j,1,nrhs)
+            rufrc(i,j)=ru(i,j,1) +cff*sustr(i,j)
           enddo
           do k=2,N
-            do i=istr,iend
-              rvfrc(i,j)=rvfrc(i,j)+rv(i,j,k)
+            do i=istrU,iend
+              rufrc(i,j)=rufrc(i,j)+ru(i,j,k)
             enddo
           enddo
+
+          if (j.ge.jstrV) then
+            do i=istr,iend
+              cff=dm_v(i,j)*dn_v(i,j)
+              rv(i,j,1)=rv(i,j,1) -cff*0.5*(rd(i,j-1)+rd(i,j))
+     &                                          *v(i,j,1,nrhs)
+
+              rvfrc(i,j)=rv(i,j,1) +cff*svstr(i,j)
+            enddo
+            do k=2,N
+              do i=istr,iend
+                rvfrc(i,j)=rvfrc(i,j)+rv(i,j,k)
+              enddo
+            enddo
+          endif
         endif
-
-      endif
-
+# undef rd
 
       enddo      !<-- j
       return
       end
-# undef rd
+
+
+      subroutine check_rhs3d_switches (ierr)
+!
+! This routine keeps track of the status of local CPP-settings
+! in "rhs3d35S.F". This code must be placed here rather than in a
+! separate file in order to be exposed to the relevant CPP-settings.
+! It does not affect any model results, other than signature in
+! global attribute "CPPS" in output netCDF files.
+!
+      implicit none
+      integer ierr, is,ie, lenstr
+# include "param.h"
+# include "strings.h"
+      ie=lenstr(cpps)
+      is=ie+2
+      ie=is+30
+      if (ie.gt.max_opt_size) goto 99
+      cpps(is:ie)='<rhs3d35S.F>'
+      MPI_master_only write(stdout,'(1x,A)') cpps(is:ie)
+      is=ie+2
+# ifdef UPSTREAM
+      ie=is+7
+      if (ie.gt.max_opt_size) goto 99
+      cpps(is:ie)='UPSTREAM'
+      MPI_master_only write(stdout,'(10x,A)') cpps(is:ie)
+      is=ie+2
+# endif
+      return
+  99  MPI_master_only write(stdout,'(/1x,2A/12x,A/)') '### ERROR: ',
+     &  'Unsufficient lenght of string "cpps" in file "strings.h".',
+     &        'Increase parameter "max_opt_size" it and recompile.'
+      ierr=ierr+1
+      return
+      end
+
 #else
       subroutine rhs3d_empty
       end

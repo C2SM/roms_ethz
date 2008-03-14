@@ -4,50 +4,56 @@
       subroutine mpi_exchange_tile (istr,iend,jstr,jend, A, nmax)
 
       implicit none
-# include "param.h"
-# include "hidden_mpi_vars.h"
 # include "mpif.h"
-      integer istr,iend,jstr,jend, nmax 
+# include "param.h"
+# include "mess_buffers.h"
+# include "hidden_mpi_vars.h"
+      integer istr,iend,jstr,jend, nmax
       real A(GLOBAL_2D_ARRAY,nmax)
 CSDISTRIBUTE_RESHAPE A(BLOCK_PATTERN) BLOCK_CLAUSE
       integer i,j,k, isize,jsize,ksize, kshft, itag,jtag, indx,ierr,
      &        req(8), comm(8), status(MPI_STATUS_SIZE),  mess_count 
  
-      integer sub_X,size_X, sub_E,size_E, size_Z
-      parameter (size_Z=4*(N+1),
-     &     sub_X=(Lm+NSUB_X-1)/NSUB_X, size_X=2*(N+1)*(4+sub_X),
-     &     sub_E=(Mm+NSUB_E-1)/NSUB_E, size_E=2*(N+1)*(4+sub_E))
-
-      real  sn_NW(size_Z),   sendN(0:size_X),   sn_NE(size_Z),
-     &      rv_NW(size_Z),   recvN(0:size_X),   rv_NE(size_Z),
-     &    sendW(0:size_E),                      sendE(0:size_E),
-     &    recvW(0:size_E),                      recvE(0:size_E),
-     &      sn_SW(size_Z),   sendS(0:size_X),   sn_SE(size_Z),
-     &      rv_SW(size_Z),   recvS(0:size_X),   rv_SE(size_Z)
-
-      common /mpi_buffers/ sn_NW,rv_NW, sendN,recvN, sn_NE,rv_NE,
-     &                    sendW,recvW,                sendE,recvE,
-     &                     sn_SW,rv_SW, sendS,recvS, sn_SE,rv_SE
-C$OMP THREADPRIVATE(/mpi_buffers/)
+c**
+       integer ntl_xi, ntl_eta
 !
 #include "compute_message_bounds.h"
 !
+
+
+      if (istr.eq.iwest .and. iend.eq.ieast) then
+        ntl_xi=1
+      else
+         ntl_xi=NSUB_X
+      endif
+      if (jstr.eq.jsouth .and. jend.eq.jnorth) then
+        ntl_eta=1
+      else
+        ntl_eta=NSUB_E
+      endif
+
+
  
 !>      write(*,*) 'mpi_exchange in', mynode
  
- 
-      itag=(istr+iend)/(2*(iend-istr+1))   ! two-dimensional
-      jtag=(jstr+jend)/(2*(jend-jstr+1))   ! indices on tile grid.
+
+      itag=(istr+iend-2*iwest)/(2*(iend-istr+1))   ! two-dimensional
+      jtag=(jstr+jend-2*jsouth)/(2*(jend-jstr+1))  ! indices on tile grid.
+
 
 c      write(*,*) mynode, proc(2), ' itag,jtag =', itag,jtag
+
+c       write(*,*) mynode, jnode, jstr,jend,    ' jtag =', jtag, ntl_eta 
+
+
 
       ksize=4*nmax                    ! message sizes for
       isize=2*ishft*nmax              ! corner messages and sides
       jsize=2*jshft*nmax              ! in XI and ETA directions
  
-c*      write(*,'(2(6x,A,I2,2x,A,I3,2x,A,I3))')
-c*     &        'inode=',inode, 'imin=',imin, 'imax=',imax,
-c*     &        'jnode=',jnode, 'jmin=',jmin, 'jmax=',jmax
+c       write(*,'(2(6x,A,I2,2x,A,I3,2x,A,I3))')
+c    &        'inode=',inode, 'imin=',imin, 'imax=',imax,
+c    &        'jnode=',jnode, 'jmin=',jmin, 'jmax=',jmax
 #define write !
 !                                 Permutation array comm(1:8) keeps 
 ! Prepare to receive everything:  track which messages are actually 
@@ -69,7 +75,7 @@ c*     &        'jnode=',jnode, 'jmin=',jmin, 'jmax=',jmax
         comm(1)=1
       endif
 
-      if (EAST_INTER .and. itag.eq.NSUB_X-1) then
+      if (EAST_INTER .and. itag.eq.ntl_xi-1) then
         call MPI_Irecv (recvE, jsize, MPI_DOUBLE_PRECISION,
      &          p_E, 1+8*jtag, ocean_grid_comm, req(2), ierr)
         comm(2)=2
@@ -81,7 +87,7 @@ c*     &        'jnode=',jnode, 'jmin=',jmin, 'jmax=',jmax
         comm(3)=3
       endif
 
-      if (NORTH_INTER .and. jtag.eq.NSUB_E-1) then
+      if (NORTH_INTER .and. jtag.eq.ntl_eta-1) then
         call MPI_Irecv (recvN, isize, MPI_DOUBLE_PRECISION,
      &         p_N, 3+8*itag, ocean_grid_comm, req(4), ierr)
         comm(4)=4
@@ -94,21 +100,21 @@ c*     &        'jnode=',jnode, 'jmin=',jmin, 'jmax=',jmax
         comm(5)=5
       endif
 
-      if (NORTH_INTER .and. jtag.eq.NSUB_E-1 .and.
-     &     EAST_INTER .and. itag.eq.NSUB_X-1) then
+      if (NORTH_INTER .and. jtag.eq.ntl_eta-1 .and.
+     &     EAST_INTER .and. itag.eq.ntl_xi-1) then
         call MPI_Irecv (rv_NE, ksize, MPI_DOUBLE_PRECISION,
      &                  p_NE, 5, ocean_grid_comm, req(6), ierr)
         comm(6)=6
       endif
 
       if (SOUTH_INTER .and. jtag.eq.       0 .and.
-     &     EAST_INTER .and. itag.eq.NSUB_X-1) then
+     &     EAST_INTER .and. itag.eq.ntl_xi-1) then
         call MPI_Irecv (rv_SE, ksize, MPI_DOUBLE_PRECISION,
      &                  p_SE, 8, ocean_grid_comm, req(7), ierr)
         comm(7)=7
       endif
 
-      if (NORTH_INTER .and. jtag.eq.NSUB_E-1 .and.
+      if (NORTH_INTER .and. jtag.eq.ntl_eta-1 .and.
      &     WEST_INTER .and. itag.eq.       0) then
         call MPI_Irecv (rv_NW, ksize, MPI_DOUBLE_PRECISION,
      &                  p_NW, 7, ocean_grid_comm, req(8), ierr)
@@ -141,7 +147,7 @@ c*     &        'jnode=',jnode, 'jmin=',jmin, 'jmax=',jmax
      &                 p_W, 1+8*jtag, ocean_grid_comm,   ierr)
           endif
 
-          if (EAST_INTER .and. itag.eq.NSUB_X-1) then
+          if (EAST_INTER .and. itag.eq.ntl_xi-1) then
             write(*,*) 'mpi_exchange: 1.2', mynode
             do k=1,nmax
               kshft=2*(k-1)*jshft
@@ -171,7 +177,7 @@ c*     &        'jnode=',jnode, 'jmin=',jmin, 'jmax=',jmax
      &                 p_S, 3+8*itag, ocean_grid_comm,    ierr)
           endif
 
-          if (NORTH_INTER .and. jtag.eq.NSUB_E-1) then
+          if (NORTH_INTER .and. jtag.eq.ntl_eta-1) then
             write(*,*) 'mpi_exchange: 1.4', mynode
             do k=1,nmax
               kshft=2*(k-1)*ishft
@@ -203,8 +209,8 @@ c*     &        'jnode=',jnode, 'jmin=',jmin, 'jmax=',jmax
      &                      p_SW, 5, ocean_grid_comm,    ierr)
           endif
 
-          if (NORTH_INTER .and. jtag.eq.NSUB_E-1 .and.
-     &         EAST_INTER .and. itag.eq.NSUB_X-1) then
+          if (NORTH_INTER .and. jtag.eq.ntl_eta-1 .and.
+     &         EAST_INTER .and. itag.eq.ntl_xi-1) then
             write(*,*) 'mpi_exchange: 1.6', mynode
             do k=1,nmax
               sn_NE(k       )=A(ieast-1,jnorth-1,k)
@@ -220,7 +226,7 @@ c*     &        'jnode=',jnode, 'jmin=',jmin, 'jmax=',jmax
  
 
           if (SOUTH_INTER .and. jtag.eq.       0 .and.
-     &         EAST_INTER .and. itag.eq.NSUB_X-1) then
+     &         EAST_INTER .and. itag.eq.ntl_xi-1) then
             write(*,*) 'mpi_exchange: 1.7', mynode
             do k=1,nmax
               sn_SE(k       )=A(ieast-1,jsouth  ,k)
@@ -233,7 +239,7 @@ c*     &        'jnode=',jnode, 'jmin=',jmin, 'jmax=',jmax
      &                      p_SE, 7, ocean_grid_comm,     ierr)
           endif
 
-          if (NORTH_INTER .and. jtag.eq.NSUB_E-1 .and.
+          if (NORTH_INTER .and. jtag.eq.ntl_eta-1 .and.
      &         WEST_INTER .and. itag.eq.       0) then
             write(*,*) 'mpi_exchange: 1.8', mynode
             do k=1,nmax
