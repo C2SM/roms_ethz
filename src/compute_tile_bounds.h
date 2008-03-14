@@ -12,7 +12,9 @@
 !
       integer istr,iend, jstr,jend, i_X,j_E,
      &        size_X,margin_X, size_E,margin_E
-#ifndef MPI 
+#ifdef MPI 
+# include "hidden_mpi_vars.h"
+#else
       parameter (size_X=(Lm+NSUB_X-1)/NSUB_X,
      &           margin_X=(NSUB_X*size_X-Lm)/2,
      &           size_E=(Mm+NSUB_E-1)/NSUB_E,
@@ -41,7 +43,16 @@ C$      if (trd.gt.0) return !--> just return, if not master thread
  
         j_E=tile/NSUB_X
         i_X=tile-j_E*NSUB_X
+        if (mod(j_E,2).eq.1) i_X=NSUB_X-1 -i_X
+
 #ifdef MPI
+        if (mod(inode,2).gt.0) then
+          i_X=NSUB_X-1 -i_X
+        endif
+        if (mod(jnode,2).gt.0) then
+          j_E=NSUB_E-1 -j_E
+        endif
+
         size_X=(ieast-iwest+NSUB_X)/NSUB_X
         margin_X=(NSUB_X*size_X - ieast+iwest-1)/2
         istr=iwest-margin_X + i_X*size_X

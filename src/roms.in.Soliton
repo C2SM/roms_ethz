@@ -25,12 +25,12 @@ title:
                1600       0.0958  1      1      LF_AM3,384x128
 
 
-time_stepping: NTIMES   dt[sec]  NDTFAST  NINFO
-               2400       0.038     1       1  FB,576x192
+ time_stepping: NTIMES   dt[sec]  NDTFAST  NINFO
+               7200       0.037     1       1  FB,576x192
 
 
 ! time_stepping: NTIMES   dt[sec]  NDTFAST  NINFO
-                4800       0.028      1      1  FB,768x256
+                9600       0.028      1      1  FB,768x256
 
 ! time_stepping: NTIMES   dt[sec]  NDTFAST  NINFO
                6400       0.015      1      1  FB,1536x512

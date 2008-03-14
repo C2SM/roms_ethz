@@ -3,28 +3,13 @@
  
       subroutine mpi_exchange_tile (istr,iend,jstr,jend, A, nmax)
       implicit none
-# include "param.h"
-# include "hidden_mpi_vars.h"
 # include "mpif.h"
-      integer istr,iend,jstr,jend, nmax 
+# include "param.h"
+# include "mess_buffers.h"
+# include "hidden_mpi_vars.h"
+      integer istr,iend,jstr,jend, nmax
       real A(GLOBAL_2D_ARRAY,nmax)
 CSDISTRIBUTE_RESHAPE A(BLOCK_PATTERN) BLOCK_CLAUSE
- 
-      integer sub_X,size_X, sub_E,size_E
-      parameter (
-     &       sub_X=(Lm+NSUB_X-1)/NSUB_X,  size_X=2*(N+1)*(4+sub_X),
-     &       sub_E=(Mm+NSUB_E-1)/NSUB_E,  size_E=2*(N+1)*(4+sub_E))
-
-      real             sendN(0:size_X), recvN(0:size_X),
-     &   sendW(0:size_E),                          sendE(0:size_E),
-     &   recvW(0:size_E),                          recvE(0:size_E),
-     &                 sendS(0:size_X), recvS(0:size_X)
-
-      common /mpi_buffers/       sendN, recvN,   
-     &                   sendW,                 sendE,
-     &                   recvW,                 recvE,
-     &                           sendS, recvS
-C$OMP THREADPRIVATE(/mpi_buffers/)
 
       integer imin,imax,jmin,jmax, ishft,jshft,kshft, isize,jsize,
      &        itag,jtag,  md_XI,md_ETA,  i,j,k, iter, ierr,
@@ -50,7 +35,7 @@ C$OMP THREADPRIVATE(/mpi_buffers/)
 ! buffer-less in this code).
 !
 # ifdef EW_PERIODIC
-      if (NP_XI.eq.1) then                ! This means that if there
+      if (NP_XI.eq.1) then                ! this means that if there
         imin=istr-2                       ! is no partition in XI-
         imax=iend+2                       ! direction, then periodic
       else                                ! margins are included into
@@ -58,12 +43,12 @@ C$OMP THREADPRIVATE(/mpi_buffers/)
         imax=iend                         ! strip them out.
       endif
 # else
-      if (inode.eq.0 .and. istr.eq.1) then ! Extra point on either
-        imin=istr-1                        ! side to accomodate ghost
-      else                                 ! points associated with
-        imin=istr                          ! PHYSICAL boundaries.
+      if (WESTERN_EDGE) then              ! include extra point on
+        imin=istr-1                       ! either side to accomodate
+      else                                ! ghost points associated
+        imin=istr                         ! with PHYSICAL boundaries
       endif
-      if (inode.eq.NP_XI-1 .and. iend.eq.Lm) then
+      if (EASTERN_EDGE) then
         imax=iend+1
       else
         imax=iend
@@ -71,7 +56,7 @@ C$OMP THREADPRIVATE(/mpi_buffers/)
 # endif
       ishft=imax-imin+1
 
-      if (jstr.eq.1) then                 ! Setting message bounds
+      if (jstr.eq.jsouth) then            ! Setting message bounds
 # ifdef NS_PERIODIC
         jmin=jstr-2                       ! for east- and west-bound
 # else
@@ -84,7 +69,7 @@ C$OMP THREADPRIVATE(/mpi_buffers/)
       else                                ! contain ghost points of
         jmin=jstr                         ! north-south computational
       endif                               ! margines.
-      if (jend.eq.Mm) then
+      if (jend.eq.jnorth) then
 # ifdef NS_PERIODIC
         jmax=jend+2
 # else

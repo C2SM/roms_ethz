@@ -74,8 +74,8 @@ nudg_cof:   TauM_in TauM_out TauT_in TauT_out [days for all]
 ! The following three keywords are used only for rest state test
 ! problem to check for pressure gradient error.
 !
-lin_EOS_cff: R0 (Kg/m^3), T0 (deg C),  S0 (PSU),  TCOEF,  SCOEF
-              0.d0         0.d0         0.d0      0.28d0   0.8d0
+lin_EOS_cff: R0[kg/m^3]  T0[deg C] TCOEF    S0[PSU] SCOEF
+              0.d0         0.d0    0.28d0    0.d0    0.8d0
 vertical_mixing: Akv_bak Akt_bak(1:NT)  [m^2/sec for all]
                  1.0d-3   0.d0    0.0d0
 lateral_visc: VISC2

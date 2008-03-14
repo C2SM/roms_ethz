@@ -22,7 +22,7 @@
 
 c      integer size, kmp_get_stacksize_s
 
-      call system('uname -r')
+      call system('uname -nmr')
 
 c      size=kmp_get_stacksize_s()
       

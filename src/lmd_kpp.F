@@ -1,11 +1,11 @@
 #include "cppdefs.h"
 #if defined SOLVE3D && defined LMD_KPP
 c--#define BULK_DIFFERENCE
-#define INT_AT_W_POINTS
-c--#define INT_AT_RHO_POINTS
+c--#define INT_AT_W_POINTS
+#define INT_AT_RHO_POINTS
 
 
-#define SMOOTH_HBL
+c--#define SMOOTH_HBL
 #define LIMIT_UNSTABLE_ONLY
 c--#define LIMIT_MO_DEPTH
 
@@ -268,6 +268,9 @@ c--#define LIMIT_MO_DEPTH
 
 
       do i=I_EXT_RANGE
+c??     if (kbl(i).eq.N) then
+c??       hbl(i,j)=z_w(i,j,N)-z_w(i,j,N-1)
+
         if (kbl(i).gt.0) then
           k=kbl(i)
           hbl(i,j)=z_w(i,j,N)-( z_w(i,j,k-1)*Cr(i,k)
@@ -736,6 +739,77 @@ c fix by Gokhan
       call exchange_w3d_tile (istr,iend,jstr,jend,
      &                     Akt(START_2D_ARRAY,0,isalt))
 # endif
+      return
+      end
+
+
+      subroutine check_kpp_switches (ierr)
+!
+! The purpose of this routine is to keep track of status of
+! CPP-switches locally defined in this file. It must be placed
+! here rather than stored in a separate file in order to be
+! exposed to relevant CPP-settings. This routine does not affect
+! any model results, other than signature in global attribute
+! "CPPS" in output netCDF files.
+!
+      implicit none
+      integer ierr, is,ie, lenstr
+# include "param.h"
+# include "strings.h"
+      ie=lenstr(cpps)
+      is=ie+2
+      ie=is+10
+      if (ie.gt.max_opt_size) goto 99
+      cpps(is:ie)='<lmd_kpp.F>'
+      MPI_master_only write(stdout,'(1x,A)') cpps(is:ie) 
+      is=ie+2
+# ifdef BULK_DIFFERENCE
+      ie=is+14
+      if (ie.gt.max_opt_size) goto 99
+      cpps(is:ie)='BULK_DIFFERENCE'
+      MPI_master_only write(stdout,'(10x,A)') cpps(is:ie)
+      is=ie+2
+# endif
+# ifdef INT_AT_W_POINTS
+      ie=is+14
+      if (ie.gt.max_opt_size) goto 99
+      cpps(is:ie)='INT_AT_W_POINTS'
+      MPI_master_only write(stdout,'(10x,A)') cpps(is:ie)
+      is=ie+2
+# endif
+# ifdef INT_AT_RHO_POINTS
+      ie=is+16
+      if (ie.gt.max_opt_size) goto 99
+      cpps(is:ie)='INT_AT_RHO_POINTS'
+      MPI_master_only write(stdout,'(10x,A)') cpps(is:ie)
+      is=ie+2
+# endif
+# ifdef SMOOTH_HBL
+      ie=is+9
+      if (ie.gt.max_opt_size) goto 99
+      cpps(is:ie)='SMOOTH_HBL'
+      MPI_master_only write(stdout,'(10x,A)') cpps(is:ie)
+      is=ie+2
+# endif
+# ifdef LIMIT_UNSTABLE_ONLY
+      ie=is+18
+      if (ie.gt.max_opt_size) goto 99
+      cpps(is:ie)='LIMIT_UNSTABLE_ONLY'
+      MPI_master_only write(stdout,'(10x,A)') cpps(is:ie)
+      is=ie+2
+# endif
+# ifdef LIMIT_MO_DEPTH
+      ie=is+13
+      if (ie.gt.max_opt_size) goto 99
+      cpps(is:ie)='LIMIT_MO_DEPTH'
+      MPI_master_only write(stdout,'(10x,A)') cpps(is:ie)
+      is=ie+2
+# endif
+      return
+  99  MPI_master_only write(stdout,'(/1x,2A/12x,A/)') '### ERROR: ',
+     &  'Unsufficient lenght of string "cpps" in file "strings.h".',
+     &        'Increase parameter "max_opt_size" it and recompile.'
+      ierr=ierr+1
       return
       end
 #else

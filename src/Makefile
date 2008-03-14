@@ -2,8 +2,10 @@
 #========== ======= =========== ======== === ==== =====
 # Set machine dependent definitions and rules.
 
+include Makedefs.IntelMac64
+#include Makedefs.Intel_MPI
 #include Makedefs.Intel
-include Makedefs.IntelEM64T
+#include Makedefs.IntelEM64T
 #include Makedefs.Intel_MPI
 #include  Makedefs.CMPI
 #include  Makedefs.Tungsten
@@ -130,8 +132,9 @@ tools: $(TOOLS)
     TMP = .
 
 mpc: mpc.F Makefile
-	$(CPP) $(CPPFLAGS) -P mpc.F > $(TMP)/mpc.f
-	$(LDR) $(FFLAGS) $(LDFLAGS) -o mpc $(TMP)/mpc.f
+	$(CPP) $(CPPFLAGS) -P mpc.F > $(TMP)/mpc.for
+	$(LDR) $(LDFLAGS) -o mpc $(TMP)/mpc.for
+#	$(LDR) $(FFLAGS) $(LDFLAGS) -o mpc $(TMP)/mpc.for
 #	/bin/rm -rf $(TMP)/mpc.f
 cross_matrix: cross_matrix.o
 	$(LDR) $(FFLAGS) $(LDFLAGS) -o cross_matrix cross_matrix.o

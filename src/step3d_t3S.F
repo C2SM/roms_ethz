@@ -267,6 +267,79 @@ c??         enddo
 # endif
       return
       end
+
+
+
+
+      subroutine check_trc_adv_switches (ierr)
+!
+! This routine keeps track of the status of CPP-switch settings in
+! "compute_horiz_tracer_fluxes.h" and "compute_horiz_vert_fluxes.h".
+! This code must be placed here rather than in a separate file in
+! order to be exposed to the relevant CPP-settings.   It does not
+! affect any model results, other than signature in global attribute
+! "CPPS" in output netCDF files.
+!
+      implicit none
+      integer ierr, is,ie, lenstr
+# include "param.h"
+# include "strings.h"
+      ie=lenstr(cpps)
+      is=ie+2
+      ie=is+30
+      if (ie.gt.max_opt_size) goto 99
+      cpps(is:ie)='<compute_horiz_tracer_fluxes.h>'
+      MPI_master_only write(stdout,'(1x,A)') cpps(is:ie) 
+      is=ie+2
+
+# ifdef UPSTREAM
+      ie=is+7
+      if (ie.gt.max_opt_size) goto 99
+      cpps(is:ie)='UPSTREAM'
+      MPI_master_only write(stdout,'(10x,A)') cpps(is:ie)
+      is=ie+2
+# endif
+# ifdef AKIMA
+      ie=is+4
+      if (ie.gt.max_opt_size) goto 99
+      cpps(is:ie)='AKIMA'
+      MPI_master_only write(stdout,'(10x,A)') cpps(is:ie)
+      is=ie+2
+# endif
+# ifdef CONST_TRACERS
+      ie=is+7
+      if (ie.gt.max_opt_size) goto 99
+      cpps(is:ie)='CONST_TRACERS'
+      MPI_master_only write(stdout,'(10x,A)') cpps(is:ie)
+      is=ie+2
+# endif
+
+      ie=is+29
+      if (ie.gt.max_opt_size) goto 99
+      cpps(is:ie)='<compute_vert_tracer_fluxes.h>'
+      MPI_master_only write(stdout,'(1x,A)') cpps(is:ie)
+      is=ie+2
+# ifdef SPLINES
+      ie=is+6
+      if (ie.gt.max_opt_size) goto 99
+      cpps(is:ie)='SPLINES'
+      MPI_master_only write(stdout,'(10x,A)') cpps(is:ie)
+      is=ie+2
+# endif
+# ifdef AKIMA_V
+      ie=is+6
+      if (ie.gt.max_opt_size) goto 99
+      cpps(is:ie)='AKIMA_V'
+      MPI_master_only write(stdout,'(10x,A)') cpps(is:ie)
+      is=ie+2
+# endif
+      return
+  99  MPI_master_only write(stdout,'(/1x,2A/12x,A/)') '### ERROR: ',
+     &  'Unsufficient lenght of string "cpps" in file "strings.h".',
+     &        'Increase parameter "max_opt_size" it and recompile.'
+      ierr=ierr+1
+      return
+      end
 #else
       subroutine step3d_t_empty
       end
