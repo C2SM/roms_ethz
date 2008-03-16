@@ -36,6 +36,8 @@ c    &               LLm=432, MMm=320, N=32
      &               LLm=488, MMm=360, N=32
 
 c    &               LLm=768, MMm=512, N=40
+#elif defined ATL360X408
+     &               LLm=360,  MMm=408,  N=32
 
 #elif defined PACIFIC_2D
      &               LLm=768, MMm=512, N=1
@@ -59,9 +61,8 @@ c     &              LLm=1536, MMm=672, N=20
 c     &               LLm=96,  MMm=32,  N=1
 c     &                 LLm=97, MMm=33, N=1
 c     &               LLm=192, MMm=64,  N=1
-c     &               LLm=384, MMm=128, N=1
-     &                LLm=576, MMm=192, N=1
-
+     &               LLm=384, MMm=128, N=1
+c     &                LLm=576, MMm=192, N=1
 c     &               LLm=768, MMm=256, N=1
 #elif defined BRAZIL 
      &               LLm=168, MMm=272, N=40
@@ -109,28 +110,27 @@ c**  &               LLm=126,  MMm=254, N=20    ! USWEST grid 16
       integer NSUB_X, NSUB_E
 #ifdef MPI
       integer NP_XI, NP_ETA, NNODES
-      parameter (NP_XI=4, NP_ETA=1, NSUB_X=1, NSUB_E=1)
+      parameter (NP_XI=4, NP_ETA=2, NSUB_X=1, NSUB_E=1)
       parameter (NNODES=NP_XI*NP_ETA)
 #else
-c      parameter (NSUB_X=4, NSUB_E=60)
-c        parameter (NSUB_X=2, NSUB_E=10)
+c        parameter (NSUB_X=4, NSUB_E=60)
 c      parameter (NSUB_X=1, NSUB_E=1)
-       parameter (NSUB_X=4, NSUB_E=32)
+       parameter (NSUB_X=2, NSUB_E=22)
 #endif
 !
 ! Array dimensions and bounds of the used portions of sub-arrays
 !
-      integer Lm,Mm
+      integer Lm,Mm, irc
 #ifdef MPI
       parameter (Lm=(LLm+NP_XI-1)/NP_XI, Mm=(MMm+NP_ETA-1)/NP_ETA)
-      logical EAST_INTER, WEST_INTER, NORTH_INTER, SOUTH_INTER
+      logical west_inter, east_inter, south_inter, north_inter
       integer ocean_grid_comm, mynode, iwest, ieast, jsouth, jnorth,
      &                                 iSW_corn,     jSW_corn
       common /mpi_comm_vars/  ocean_grid_comm, mynode, iwest, ieast,
-     &        jsouth, jnorth, iSW_corn, jSW_corn,
-     &        EAST_INTER, WEST_INTER, NORTH_INTER, SOUTH_INTER 
+     &        jsouth, jnorth, iSW_corn, jSW_corn, irc,
+     &        west_inter, east_inter, south_inter, north_inter
 #else
-      parameter (Lm=LLm, Mm=MMm)
+      parameter (Lm=LLm, Mm=MMm, irc=1)
 #endif
 
 

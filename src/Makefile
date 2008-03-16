@@ -2,10 +2,8 @@
 #========== ======= =========== ======== === ==== =====
 # Set machine dependent definitions and rules.
 
-include Makedefs.IntelMac64
-#include Makedefs.Intel_MPI
 #include Makedefs.Intel
-#include Makedefs.IntelEM64T
+include Makedefs.IntelEM64T
 #include Makedefs.Intel_MPI
 #include  Makedefs.CMPI
 #include  Makedefs.Tungsten
@@ -92,7 +90,7 @@ FLTSRC = init_floats.F	init_arrays_floats.F	get_initial_floats.F\
 # Eecutable file.
 #========== =====
 #
-$(SBIN): mpc $(OBJS) 
+$(SBIN): $(OBJS)
 	$(LDR) $(FFLAGS) $(LDFLAGS) -o a.out $(OBJS) $(LCDF) $(LMPI)
 	mv a.out $(SBIN)
 2level: $(OBJS) $(LROMS2)
@@ -132,9 +130,8 @@ tools: $(TOOLS)
     TMP = .
 
 mpc: mpc.F Makefile
-	$(CPP) $(CPPFLAGS) -P mpc.F > $(TMP)/mpc.for
-	$(LDR) $(LDFLAGS) -o mpc $(TMP)/mpc.for
-#	$(LDR) $(FFLAGS) $(LDFLAGS) -o mpc $(TMP)/mpc.for
+	$(CPP) $(CPPFLAGS) -P mpc.F > $(TMP)/mpc.f
+	$(LDR) $(FFLAGS) $(LDFLAGS) -o mpc $(TMP)/mpc.f
 #	/bin/rm -rf $(TMP)/mpc.f
 cross_matrix: cross_matrix.o
 	$(LDR) $(FFLAGS) $(LDFLAGS) -o cross_matrix cross_matrix.o
@@ -187,7 +184,7 @@ plotter: plotter.o
 # Target to create tar file.
 # ====== == ====== === =====
 #
-tarfile:
+tarfile: clean
 	tar cvf roms.tar Make* *.F *.h *.inc etalon_data.* README.*  *.in *.in.*
 #
 # Cleaning targets

@@ -12,11 +12,13 @@
 #undef OVERFLOW        /* Graviational/Overflow Example */
 #undef SEAMOUNT        /* Seamount Example */
 #undef ISWAKE         /* Island Wake Example */
-#define SOLITON         /* Equatorial Rossby Wave Example */
+#undef SOLITON         /* Equatorial Rossby Wave Example */
 #undef RIVER          /* River runoff test problem */
 #undef UPWELLING       /* Upwelling Example */
 #undef USWEST          /* US West Coast Application */
 #undef WAVE_RAD        /* A test for wave radiation boundaries */
+#define ATL360X408    /* Whole Atlantic 360x408 */
+
 
 /*
     Embedded (nested) grid configuration segment
@@ -197,7 +199,7 @@ c--# define OBC_TORLANSKI
 # define ANA_STFLUX
 
 
-#elif defined PACIFIC   /* North-Equatorial Pacific Configuration */
+#elif defined PACIFIC || defined ATL360X408  /* North-Equatorial Pacific Configuration */
 # define SOLVE3D
 # define UV_COR
 # define UV_ADV
@@ -206,7 +208,7 @@ c--# define OBC_TORLANSKI
 # define MASKING
 # define MASK_LAND_DATA
 
-#define EXACT_RESTART
+# define EXACT_RESTART
 # define AVERAGES
 !                       Equation of State
 # define SALINITY
@@ -248,11 +250,15 @@ c>>># define TNUDGING
 c>>># define TCLIMATOLOGY
 c>>># define UCLIMATOLOGY
 
+c--mm:
+# define TNUDGING
+# define TCLIMATOLOGY
+# define UCLIMATOLOGY
 
-# define Z_FRC_BRY
-# define M2_FRC_BRY
-# define M3_FRC_BRY 
-# define T_FRC_BRY
+cmm# define Z_FRC_BRY
+cmm# define M2_FRC_BRY
+cmm# define M3_FRC_BRY 
+cmm# define T_FRC_BRY
 
 # define SPONGE
 

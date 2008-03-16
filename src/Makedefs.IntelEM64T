@@ -29,6 +29,7 @@
 
       CPP = /lib/cpp -traditional
  CPPFLAGS = -D__IFC
+ CPPFLAGS = -D__IFC -I/usr/lib/mpi/mpi_intel/include
 
 
 #
@@ -53,19 +54,20 @@
 # must be specified.
 
 
- OMP_FLAG = -fpp2 -openmp
+# OMP_FLAG = -fpp2 -openmp
 
-# LARGE_MEM_FLAG = -mcmodel=medium -i-dynamic
+LARGE_MEM_FLAG = -mcmodel=medium -i-dynamic
 
 #     CFT = ifc   $(OMP_FLAG) -pc80 -tpp7 -axW -xW
-#     CFT = ifort $(OMP_FLAG) -pc80 -tpp7 -axN -xN -auto -stack_temps
-#     CFT = ifort $(OMP_FLAG) -pc80 -tpp7 -axN -xN -align dcommon -auto -stack_temps
-      CFT = ifort $(OMP_FLAG) -pc80 -tpp7 -axW -xW -w95 -align dcommon -auto -stack_temps
+      CFT = ifort $(OMP_FLAG) -pc80 -tpp7 -axW -xW -auto -stack_temps
+#      CFT = ifort $(OMP_FLAG) -pc80 -tpp7 -axN -xN -align dcommon -auto -stack_temps
+      #mm CFT = ifort $(OMP_FLAG) -pc80  -mtune=core2 -axT -xT -w95 -align dcommon -auto -stack_temps
                             # -xW
 
 # -warn unused   
 
       LDR = $(CFT)
+#      LDR = mpif90 $(OMP_FLAG) -pc80 -tpp7 -axW -xW -w95 -align dcommon -auto -stack_temps
 
    FFLAGS =  -O3 -IPF_fma -ip $(LARGE_MEM_FLAG)
 #    FFLAGS =  -O2 -mp -fpe0 -fp-model strict
@@ -82,8 +84,6 @@
    LCDF = -lnetcdf
 #   LCDF =/usr/local/lib/libnetcdf.a
 #  LCDF =/home/alex/netcdf/netcdf-3.6.2-beta3/libsrc/.libs/libnetcdf.a
-# MM netcdf path on ETHZ Gonzales cluster
-  LCDF = /opt/netcdf/intel/lib/libnetcdf.a
 
 #    LMPI = /opt/mpich-1.2.7p1/lib/libmpich.a
 
@@ -91,4 +91,10 @@
 
 
 #LCDF = /home/alex/netcdf/netcdf-3.6.1-beta3/src/libsrc/libnetcdf.a
+
+#   LCDF = -lnetcdf
+# mm ETHZ Gonzales cluster
+LCDF = -L/opt/netcdf/intel/lib -lnetcdf
+# mm ETHZ Gonzales cluster
+LMPI = -L/usr/lib/mpi/mpi_intel/lib -lmpifarg -lmpi -lelan
 
