@@ -38,6 +38,8 @@ c    &               LLm=432, MMm=320, N=32
 c    &               LLm=768, MMm=512, N=40
 #elif defined ATL360X408
      &               LLm=360,  MMm=408,  N=32
+#elif defined ATL50S70N
+     &               LLm=360,  MMm=468,  N=32
 
 #elif defined PACIFIC_2D
      &               LLm=768, MMm=512, N=1
@@ -110,7 +112,7 @@ c**  &               LLm=126,  MMm=254, N=20    ! USWEST grid 16
       integer NSUB_X, NSUB_E
 #ifdef MPI
       integer NP_XI, NP_ETA, NNODES
-      parameter (NP_XI=4, NP_ETA=2, NSUB_X=1, NSUB_E=1)
+      parameter (NP_XI=4, NP_ETA=8, NSUB_X=1, NSUB_E=1)
       parameter (NNODES=NP_XI*NP_ETA)
 #else
 c        parameter (NSUB_X=4, NSUB_E=60)

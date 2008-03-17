@@ -17,7 +17,9 @@
 #undef UPWELLING       /* Upwelling Example */
 #undef USWEST          /* US West Coast Application */
 #undef WAVE_RAD        /* A test for wave radiation boundaries */
-#define ATL360X408    /* Whole Atlantic 360x408 */
+#define ATLANTIC    /* Whole Atlantic */
+#undef ATL360X408    /* Whole Atlantic 360x408 */
+#define ATL50S70N    /* Whole Atlantic 50S x 70N (360x468) */
 
 
 /*
@@ -199,7 +201,7 @@ c--# define OBC_TORLANSKI
 # define ANA_STFLUX
 
 
-#elif defined PACIFIC || defined ATL360X408  /* North-Equatorial Pacific Configuration */
+#elif defined PACIFIC || defined ATLANTIC /* North-Equatorial Pacific Configuration */
 # define SOLVE3D
 # define UV_COR
 # define UV_ADV
@@ -251,14 +253,27 @@ c>>># define TCLIMATOLOGY
 c>>># define UCLIMATOLOGY
 
 c--mm:
-# define TNUDGING
-# define TCLIMATOLOGY
-# define UCLIMATOLOGY
+# ifdef ATLANTIC
+#   define TNUDGING
+#   define TCLIMATOLOGY
+#   define UCLIMATOLOGY
 
-cmm# define Z_FRC_BRY
-cmm# define M2_FRC_BRY
-cmm# define M3_FRC_BRY 
-cmm# define T_FRC_BRY
+#   define OBC_SOUTH
+#   define OBC_EAST
+#   define OBC_NORTH
+#   undef OBC_WEST
+!   mm new switch STFLX_LIM, (implicit with PACIFIC switch)
+!   Shut off surface flux if SST<-2C  (ice formation)
+#   define STFLX_LIM   
+# endif
+
+
+# ifdef PACIFIC
+# define Z_FRC_BRY
+# define M2_FRC_BRY
+# define M3_FRC_BRY 
+# define T_FRC_BRY
+#endif
 
 # define SPONGE
 

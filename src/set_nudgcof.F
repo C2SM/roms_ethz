@@ -122,6 +122,9 @@ c      enddo
       isp=8              ! number of points in sponge layer
 #  elif defined PACIFIC
       isp=(LLm+1)/30
+#  elif defined ATL50S70N
+! mm use about the same number of points as for Pacific
+      isp=(LLm+1)/22
 #  else
       isp=(LLm+1)/12
 #  endif
