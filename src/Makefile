@@ -91,8 +91,8 @@ FLTSRC = init_floats.F	init_arrays_floats.F	get_initial_floats.F\
 #========== =====
 #
 $(SBIN): $(OBJS)
-	$(LDR) $(FFLAGS) $(LDFLAGS) -o a.out $(OBJS) $(LCDF) $(LMPI)
-	mv a.out $(SBIN)
+	$(LDR) $(FFLAGS) $(LDFLAGS) -o $@ $(OBJS) $(LCDF) $(LMPI)
+#mm	mv a.out $(SBIN)
 2level: $(OBJS) $(LROMS2)
 	$(LDR) $(FFLAGS) $(LDFLAGS) -o a.out $(OBJS) $(LROMS2) $(LCDF) $(LMPI)
 	mv a.out $(SBIN)
@@ -130,8 +130,8 @@ tools: $(TOOLS)
     TMP = .
 
 mpc: mpc.F Makefile
-	$(CPP) $(CPPFLAGS) -P mpc.F > $(TMP)/mpc.f
-	$(LDR) $(FFLAGS) $(LDFLAGS) -o mpc $(TMP)/mpc.f
+	$(CPP) $(CPPFLAGS) -P mpc.F > $(TMP)/mpc.for
+	$(LDR) $(FFLAGS) $(LDFLAGS) -o mpc $(TMP)/mpc.for
 #	/bin/rm -rf $(TMP)/mpc.f
 cross_matrix: cross_matrix.o
 	$(LDR) $(FFLAGS) $(LDFLAGS) -o cross_matrix cross_matrix.o
@@ -193,7 +193,7 @@ tarfile: clean
 rmtools:
 	/bin/rm -f $(TOOLS)
 clean:
-	/bin/rm -rf *.f *.o *.a *.s *.trace *~ $(COMP_FILES) 
+	/bin/rm -rf *.f *.for *.o *.a *.s *.trace *~ $(COMP_FILES) 
 allclean: clean
 	cd 2; make -f ./Makefile clean; cd ..
 	cd 3; make -f ./Makefile clean; cd ..

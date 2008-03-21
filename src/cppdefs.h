@@ -17,7 +17,6 @@
 #undef UPWELLING       /* Upwelling Example */
 #undef USWEST          /* US West Coast Application */
 #undef WAVE_RAD        /* A test for wave radiation boundaries */
-#define ATLANTIC    /* Whole Atlantic */
 #undef ATL360X408    /* Whole Atlantic 360x408 */
 #define ATL50S70N    /* Whole Atlantic 50S x 70N (360x468) */
 
@@ -35,6 +34,10 @@ c--#endif
 /*
    Main switch starts here: model configuration choice.
 */
+
+#if defined ATL50S70N || defined ATL360X408
+# define ATLANTIC
+#endif
 
 #if defined BASIN    /* Big Bad Basin Configuration */
 # define SOLVE3D

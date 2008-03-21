@@ -2,22 +2,19 @@
 # with settings for AMD Opteron processor
 # =========== === ===== === ======= ======== == =====
 
-.SUFFIXES: .o .f .F
+.SUFFIXES: .o .F
 
-.F.o:
-	$(CPP) -P $(CPPFLAGS) $*.F | mpc > $*.f
-	$(CFT) -c $(FFLAGS) $*.f -o $*.o
-#/bin/rm -f $*.f
-.F.f:
-	$(CPP) -P $(CPPFLAGS) $*.F | mpc > $*.f
-.f.o:
-	$(CFT) -c $(FFLAGS) $*.f -o $*.o
-.F:
-	$(CFT) -o $@ $(FFLAGS) $(LDFLAGS) $<
-.f:
-	$(CFT) -o $@ $(FFLAGS) $(LDFLAGS) $<
-.o:
-	$(CFT) -o $@ $(FFLAGS) $(LDFLAGS) $<
+# mm: Use pattern rule instead of implicit rule to be able
+# to indicate dependency on mpc
+#  Switch to .for extension to make it avoid confusions  for 
+# case insensitive file systems (e.g., Mac OSX)
+%.o:  mpc %.F 
+	$(CPP) -P $(CPPFLAGS) $*.F | mpc > $*.for
+	$(CFT) -c $(FFLAGS) $*.for -o $*.o
+#	/bin/rm -f $*.for
+
+# clear default implicit rule .F.f:
+%.f: %.F
 
 
 #
@@ -29,9 +26,11 @@
 
       CPP = /lib/cpp -traditional
  CPPFLAGS = -D__IFC
-#mm ETHZ Gonzales
-#mm  CPPFLAGS = -D__IFC -I/usr/lib/mpi/mpi_intel/include
-#mm ETHZ Brutus
+#mm ETHZ Gonzales or Brutus Quadrrics MPI
+CPPFLAGS = -D__IFC -I/usr/lib/mpi/mpi_intel/include
+
+#mm Brutus Quadrics MPI
+CPPFLAGS = -D__IFC -I /usr/include/mpi
 CPPFLAGS = -D__IFC -I/cluster/admin/mpich2/include
 
 
@@ -66,7 +65,8 @@ LARGE_MEM_FLAG = -mcmodel=medium -i-dynamic
 #      CFT = ifort $(OMP_FLAG) -pc80 -tpp7 -axN -xN -align dcommon -auto -stack_temps
       #mm CFT = ifort $(OMP_FLAG) -pc80  -mtune=core2 -axT -xT -w95 -align dcommon -auto -stack_temps
                             # -xW
-      CFT = mpif90 -f90=ifort $(OMP_FLAG) -pc80 -tpp7 -axW -xW -auto -stack_temps
+      # BRtusu mpich2: CFT = mpif90 -f90=ifort $(OMP_FLAG) -pc80 -axW -xW -auto -stack_temps
+      CFT = ifort $(OMP_FLAG) -pc80 -axW -xW -auto -stack_temps
 
 # -warn unused   
 
@@ -101,8 +101,8 @@ LARGE_MEM_FLAG = -mcmodel=medium -i-dynamic
 LCDF = -L/opt/netcdf/intel/lib -lnetcdf
 # mm ETHZ Brutus cluster
 LCDF = -L/panfs/panasas.hpc-net.ethz.ch/uwis/muennicm/intel/lib -lnetcdf
-# mm ETHZ Gonzales cluster
-# LMPI = -L/usr/lib/mpi/mpi_intel/lib -lmpifarg -lmpi -lelan
+# mm ETHZ Brutus/ Gonzales cluster Quadrics MPI
+LMPI = -L/usr/lib/mpi/mpi_intel/lib -lmpifarg -lmpi -lelan
 # mm A look at mpif90 made this the likely libraries to link against
 # mm Brutus OK:  LMPI = -L/cluster/admin/mpich2/lib -lmpich  -lpmpich -lpthread   -lrt
 
