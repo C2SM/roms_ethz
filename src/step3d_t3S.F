@@ -36,6 +36,13 @@ c--#define CONST_TRACERS
 # include "climat.h"
 # include "scalars.h"
 # include "sources.h"
+#ifdef PHYS_FLUX_ANALYSIS
+# include "physflux.h"
+#endif
+#ifdef PHYS_FLUX_ANALYSIS
+! temporary variable for calculation of vertical diffusive flux
+      real ThisVDF(PRIVATE_2D_SCRATCH_ARRAY,0:N)
+# endif /* PHYS_FLUX_ANALYSIS */
 !
 # include "compute_auxiliary_bounds.h"
 !
@@ -51,7 +58,28 @@ c--#define CONST_TRACERS
      &                                          +FE(i,j+1)-FE(i,j)
      &                                                           )
             enddo
-          enddo                 !-->  discard FX,FE
+          enddo
+# ifdef PHYS_FLUX_ANALYSIS
+! separate do loops (for better efficiency) to store the fluxes
+          j_loop2: do j=Jstr,Jend
+            do i=Istr,Iend+1
+               ! unit: mmol / s
+               HorXAdvFlux(i,j,k,itrc) = FX(i,j)
+# ifdef MASKING
+     &              * rmask(i,j)
+# endif
+            end do
+          end do j_loop2
+          j_loop3: do j=Jstr,Jend+1
+            do i=Istr,Iend
+               ! unit: mmol / s
+               HorYAdvFlux(i,j,k,itrc) = FE(i,j)
+# ifdef MASKING
+     &              * rmask(i,j)
+# endif
+            enddo
+          end do j_loop3
+# endif /* PHYS_FLUX_ANALYSIS */
         enddo
       enddo
  
@@ -65,13 +93,43 @@ c--#define CONST_TRACERS
               t(i,j,k,nnew,itrc)=t(i,j,k,nnew,itrc)-dt*pm(i,j)
      &                             *pn(i,j)*(FC(i,k)-FC(i,k-1))
             enddo
-          enddo               !--> discard FC
+          enddo
+# ifdef PHYS_FLUX_ANALYSIS
+! separate do loop (for better efficiency) to store the fluxes
+          do k=0,N
+            do i=Istr,Iend
+               ! unit: mmol / (m2 s)
+               VertAdvFlux(i,j,k,itrc) = FC(i,k)
+     &              * pm(i,j) * pn(i,j)
+# ifdef MASKING
+     &              * rmask(i,j)
+# endif
+            enddo
+          enddo
+# endif /* PHYS_FLUX_ANALYSIS */
 !
 ! Add surface and bottom fluxes
 !
           do i=istr,iend
             t(i,j,N,nnew,itrc)=t(i,j,N,nnew,itrc)+dt*stflx(i,j,itrc)
           enddo
+# ifdef FULL_PHYS_FLUX_ANALYSIS
+! separate do loops (for better efficiency) to store the fluxes
+          do i=Istr,Iend
+             ! unit = mmol / (m2 s)
+             TopFlux(i,j,itrc) = stflx(i,j,itrc)
+#  ifdef MASKING
+     &            * rmask(i,j)
+#  endif
+          enddo
+          do i=Istr,Iend
+             ! unit = mmol / (m2 s)
+             BottomFlux(i,j,itrc) = 0 !-btflx(i,j,itrc)
+#   ifdef MASKING
+     &            * rmask(i,j)
+#   endif
+          enddo
+# endif /* FULL_PHYS_FLUX_ANALYSIS */
 # ifdef LMD_KPP
 !
 ! Add the solar radiation flux in temperature equation. Also compute
@@ -157,6 +215,17 @@ c??         enddo
 ! the content of array t(:,:,:,nnew,itrc) has meaning of Hz*tracer.
 ! After the implicit step it becomes just tracer. 
 !
+# if defined PHYS_FLUX_ANALYSIS && defined VERT_DIFF_ANALYSIS
+! The vertical diffusive flux is not added in a step like the other fluxes,
+! so we store the old concentration (depth is already factored in here) first, 
+! and then add the new concentration.
+          do k=1,N
+            do i=Istr,Iend
+               ThisVDF(i, j, k) = t(i,j,k,nnew,itrc)
+            end do
+         end do
+# endif /* PHYS_FLUX_ANALYSIS & VERT_DIFF_ANALYSIS */
+
 # ifdef BIOLOGY
 #  ifdef SALINITY
           indx=min(itrc,isalt)
@@ -190,12 +259,42 @@ c??         enddo
             enddo
           enddo           !--> discard FC,CF,DC
 
+# if defined PHYS_FLUX_ANALYSIS && defined VERT_DIFF_ANALYSIS
+          do k=1,N
+            do i=Istr,Iend
+               ! ThisVDF is the old concentration times depth
+               ThisVDF(i,j,k) = 
+     &              (ThisVDF(i,j,k) - t(i,j,k,nnew,itrc) * Hz(i,j,k))
+     &              / dt
+# ifdef MASKING
+     &              * rmask(i,j)
+# endif
+            enddo
+          enddo
+          do i=Istr,Iend
+             ! unit: mmol / (m2 s)
+             VertDiffFlux(i,j,0,itrc) = 0.0 ! Neumann b.c. at bottom
+             do k=1,N-1
+                VertDiffFlux(i,j,k,itrc) = ThisVDF(i,j,k) +
+     &               VertDiffFlux(i,j,k-1,itrc)
+             end do
+             VertDiffFlux(i,j,N,itrc) = 0.0 ! Neumann b.c. at top
+         end do
+# endif /* PHYS_FLUX_ANALYSIS & VERT_DIFF_ANALYSIS */
+
 #ifdef CONST_TRACERS
           do k=1,N
             do i=istr,iend
               t(i,j,k,nnew,itrc)=t(i,j,k,nstp,itrc)
             enddo
           enddo
+# if defined PHYS_FLUX_ANALYSIS && defined VERT_DIFF_ANALYSIS
+          do k=1,N
+            do i=Istr,Iend
+               VertDiffFlux(i,j,k,itrc) = 0.0
+            enddo
+          enddo
+# endif /* PHYS_FLUX_ANALYSIS & VERT_DIFF_ANALYSIS */
 #endif
         enddo      ! <-- itrc
       enddo      ! <-- j
@@ -214,7 +313,7 @@ c??         enddo
       call ecosys_vst_tile (istr,iend,jstr,jend, nnew,dt)
 
       do itrc=1,NT  
-# elif defined BIOLOGY
+# elif defined BIOLOGY || defined BIOLOGY_NPZDOC
       enddo                                    ! Insert interactive
       call biology_tile (istr,iend,jstr,jend)  ! part of the
       do itrc=1,NT                             ! biological model
@@ -238,6 +337,13 @@ c??         enddo
               t(i,j,k,nnew,itrc)=t(i,j,k,nnew,itrc)
      &       +dt*Tnudgcof(i,j,itrc)*( tclm(i,j,k,itrc)
      &                             -t(i,j,k,nnew,itrc))
+#  ifdef FULL_PHYS_FLUX_ANALYSIS
+               NudgingFlux(i,j,k,itrc) = Tnudgcof(i,j,itrc) *
+     &              ( tclm(i,j,k,itrc) - t(i,j,k,nnew,itrc) )
+#   ifdef MASKING
+     &              * rmask(i,j)
+#   endif
+#  endif /* FULL_PHYS_FLUX_ANALYSIS */
 #  endif
 #  ifdef MASKING
               t(i,j,k,nnew,itrc)=t(i,j,k,nnew,itrc)*rmask(i,j)
@@ -267,6 +373,7 @@ c??         enddo
 # endif
       return
       end
+#else
 
 
 
@@ -289,7 +396,7 @@ c??         enddo
       ie=is+30
       if (ie.gt.max_opt_size) goto 99
       cpps(is:ie)='<compute_horiz_tracer_fluxes.h>'
-      MPI_master_only write(stdout,'(1x,A)') cpps(is:ie) 
+      MPI_master_only write(stdout,'(1x,A)') cpps(is:ie)
       is=ie+2
 
 # ifdef UPSTREAM
@@ -319,6 +426,9 @@ c??         enddo
       cpps(is:ie)='<compute_vert_tracer_fluxes.h>'
       MPI_master_only write(stdout,'(1x,A)') cpps(is:ie)
       is=ie+2
+
+      subroutine step3d_t_empty
+      end
 # ifdef SPLINES
       ie=is+6
       if (ie.gt.max_opt_size) goto 99
@@ -341,7 +451,6 @@ c??         enddo
       return
       end
 #else
-      subroutine step3d_t_empty
-      end
+
 #endif  /* SOLVE3D */
  

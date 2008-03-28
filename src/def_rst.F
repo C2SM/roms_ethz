@@ -292,6 +292,25 @@
      &                                     NF_FTYPE, 1, spv_set)
 # endif
         enddo
+# ifdef SEDIMENT_BIOLOGY
+!
+! Sediment tracer variables.
+!
+        do itrc=1,NT_sed
+          lvar=lenstr(vname(1,indxSedOrgN+itrc-1))
+          ierr=nf_def_var(ncid,vname(1,indxSedOrgN+itrc-1)(1:lvar),
+     &                          NF_FTYPE, 3, r2dgrd, rstTsed(itrc))
+          lvar=lenstr(vname(2,indxSedOrgN+itrc-1))
+          ierr=nf_put_att_text (ncid, rstTsed(itrc), 'long_name',
+     &         lvar,   vname(2,indxSedOrgN+itrc-1)(1:lvar))
+          lvar=lenstr(vname(3,indxSedOrgN+itrc-1))
+          ierr=nf_put_att_text (ncid, rstTsed(itrc), 'units', lvar,
+     &         vname(3,indxSedOrgN+itrc-1)(1:lvar))
+          lvar=lenstr(vname(4,indxSedOrgN+itrc-1))
+          ierr=nf_put_att_text (ncid, rstTsed(itrc), 'field', lvar,
+     &         vname(4,indxSedOrgN+itrc-1)(1:lvar))
+        enddo
+# endif /* SEDIMENT_BIOLOGY */
 
 # ifdef LMD_KPP
         lvar=lenstr(vname(1,indxHbl))
@@ -308,7 +327,7 @@
      &                                                 1, spv_set)
 #  endif
 # endif
-#endif
+#endif /* SOLVE3D */
 #ifdef FLOATS
         vinfo(1)='nfloats'
         vinfo(2)='total number of floats'
@@ -503,6 +522,21 @@
             goto 99                                       !--> ERROR
           endif
         enddo
+# ifdef SEDIMENT_BIOLOGY
+!
+! Sediment tracer variables.
+!
+        do itrc=1,NT_sed
+           lvar=lenstr(vname(1,indxSedOrgN+itrc-1))
+           ierr=nf_inq_varid (ncid, 
+     &          vname(1,indxSedOrgN+itrc-1)(1:lvar),rstTsed(itrc))
+           if (ierr .ne. nf_noerr) then
+              write(stdout,1) vname(1,indxSedOrgN+itrc-1)(1:lvar),
+     &             rstname(1:lstr) 
+              goto 99           !--> ERROR
+           endif
+        enddo
+# endif /* SEDIMENT_BIOLOGY */
 
 # ifdef LMD_KPP
         lvar=lenstr(vname(1,indxHbl))

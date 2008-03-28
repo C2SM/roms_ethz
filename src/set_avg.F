@@ -48,6 +48,9 @@
 # include "eos_vars.h"
 # include "mixing.h"
 # include "averages.h"
+# ifdef SEDIMENT_BIOLOGY
+#  include "bgcflux.h"
+# endif
 !
 #include "compute_auxiliary_bounds.h"
 !
@@ -108,6 +111,17 @@
              enddo
            endif
           enddo
+#ifdef SEDIMENT_BIOLOGY
+          do itrc=1,NT_sed
+             if (wrtavg(indxSedOrgN+itrc-1)) then
+                do j=JstrR,JendR
+                   do i=IstrR,IendR
+                      t_sed_avg(i,j,itrc)=t_sed(i,j,itrc)
+                   enddo
+                enddo
+             endif
+          enddo
+#endif /* SEDIMENT_BIOLOGY */
           if (wrtavg(indxR)) then
             do k=1,N
               do j=jstrR,jendR
@@ -186,6 +200,18 @@
               enddo
             endif
           enddo
+#ifdef SEDIMENT_BIOLOGY
+          do itrc=1,NT_sed
+             if (wrtavg(indxSedOrgN+itrc-1)) then
+                do j=JstrR,JendR
+                   do i=IstrR,IendR
+                      t_sed_avg(i,j,itrc)=t_sed_avg(i,j,itrc)
+     &                     +t_sed(i,j,itrc)
+                   enddo
+                enddo
+             endif
+          enddo
+#endif /* SEDIMENT_BIOLOGY */
           if (wrtavg(indxR)) then
             do k=1,N
               do j=jstrR,jendR
@@ -297,6 +323,18 @@
               enddo
             endif
           enddo
+#ifdef SEDIMENT_BIOLOGY
+          do itrc=1,NT_sed
+             if (wrtavg(indxSedOrgN+itrc-1)) then
+                do j=JstrR,JendR
+                   do i=IstrR,IendR
+                      t_sed_avg(i,j,itrc)=cff*( t_sed_avg(i,j,itrc)
+     &                     +t_sed(i,j,itrc))
+                   enddo
+                enddo
+             endif
+          enddo
+#endif /* SEDIMENT_BIOLOGY */
           if (wrtavg(indxR)) then
             do k=1,N
               do j=jstrR,jendR

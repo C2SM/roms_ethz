@@ -132,6 +132,16 @@ cc      write(*,*) 'kmp_stacksize =', size
 # endif
 #endif
       ncidclm=-1
+#ifdef BIOLOGY_NPZDOC
+      ncidclm2 = -1
+      ncidclm3 = -1
+# ifndef THREE_CLIM_FILES
+#  ifndef TWO_CLIM_FILES
+      clmname2 = clm_file
+#  endif
+      clmname3 = clm_file
+# endif
+#endif /* BIOLOGY_NPZDOC */
 #ifndef ANA_BRY
        bry_id=-1
 #endif

@@ -144,7 +144,7 @@
 # include "scalars.h"
 # include "ocean3d.h"
 # include "forces.h"
-# ifdef PACIFIC || STFLX_LIM
+# ifdef PACIFIC
 #  include "mixing.h"
 # endif
 !
@@ -258,7 +258,7 @@ c**      dSdt=0.
 ! Restrict stflx to prevent surface temperature to go below -2
 ! degrees C.
 !
-#  ifdef PACIFIC || STFLX_LIM
+#  ifdef PACIFIC
               stflx(i,j,itemp)=max( stflx(i,j,itemp),
 #   ifdef LMD_KPP
      &                          max(hbls(i,j,nstp), Hz(i,j,N))

@@ -17,6 +17,9 @@
 #endif
 #include "ncvars.h"
 #include "netcdf.inc"
+#ifdef SEDIMENT_BIOLOGY
+# include "bgcflux.h"
+#endif
 
 #if defined FLOATS
 # include "ncvars_floats.h"
@@ -150,6 +153,21 @@
           goto 99                                         !--> ERROR
         endif
       enddo
+#  ifdef SEDIMENT_BIOLOGY
+!
+! Sediment tracer variables.
+!
+      do itrc=1,NT_sed
+        ierr=nf_fwrite (t_sed(START_2D_ARRAY,itrc), ncidrst,
+     &                              rstTsed(itrc), record, r2dvar)
+        if (ierr .ne. nf_noerr) then
+          lvar=lenstr(vname(1,indxSedOrgN+itrc-1))
+          write(stdout,1) vname(1,indxSedOrgN+itrc-1)(1:lvar), 
+     &         record, ierr, nf_strerror(ierr) MYID
+          goto 99                                         !--> ERROR
+        endif
+      enddo
+#  endif /* SEDIMENT_BIOLOGY */
 
 # ifdef LMD_KPP
 !

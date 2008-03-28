@@ -16,10 +16,8 @@
 #undef RIVER          /* River runoff test problem */
 #undef UPWELLING       /* Upwelling Example */
 #undef USWEST          /* US West Coast Application */
+#define USWC_CENTRAL
 #undef WAVE_RAD        /* A test for wave radiation boundaries */
-#undef ATL360X408    /* Whole Atlantic 360x408 */
-#define ATL50S70N    /* Whole Atlantic 50S x 70N (360x468) */
-
 
 /*
     Embedded (nested) grid configuration segment
@@ -34,10 +32,6 @@ c--#endif
 /*
    Main switch starts here: model configuration choice.
 */
-
-#if defined ATL50S70N || defined ATL360X408
-# define ATLANTIC
-#endif
 
 #if defined BASIN    /* Big Bad Basin Configuration */
 # define SOLVE3D
@@ -204,7 +198,7 @@ c--# define OBC_TORLANSKI
 # define ANA_STFLUX
 
 
-#elif defined PACIFIC || defined ATLANTIC /* North-Equatorial Pacific Configuration */
+#elif defined PACIFIC   /* North-Equatorial Pacific Configuration */
 # define SOLVE3D
 # define UV_COR
 # define UV_ADV
@@ -213,7 +207,7 @@ c--# define OBC_TORLANSKI
 # define MASKING
 # define MASK_LAND_DATA
 
-# define EXACT_RESTART
+#define EXACT_RESTART
 # define AVERAGES
 !                       Equation of State
 # define SALINITY
@@ -255,28 +249,11 @@ c>>># define TNUDGING
 c>>># define TCLIMATOLOGY
 c>>># define UCLIMATOLOGY
 
-c--mm:
-# ifdef ATLANTIC
-#   define TNUDGING
-#   define TCLIMATOLOGY
-#   define UCLIMATOLOGY
 
-#   define OBC_SOUTH
-#   define OBC_EAST
-#   define OBC_NORTH
-#   undef OBC_WEST
-!   mm new switch STFLX_LIM, (implicit with PACIFIC switch)
-!   Shut off surface flux if SST<-2C  (ice formation)
-#   define STFLX_LIM   
-# endif
-
-
-# ifdef PACIFIC
 # define Z_FRC_BRY
 # define M2_FRC_BRY
 # define M3_FRC_BRY 
 # define T_FRC_BRY
-#endif
 
 # define SPONGE
 
@@ -464,7 +441,7 @@ c--# define OBC_M2ORLANSKI
 # define ANA_SRFLUX
 # define ANA_VMIX
  
-#elif defined USWEST   /* US West Coast Configuration */
+#elif defined USWC_CENTRAL   /* US West Coast Configuration */
 # define SOLVE3D
 # define UV_COR
 # define UV_ADV
@@ -566,3 +543,22 @@ c--# define OBC_M2ORLANSKI
  
 #include "set_global_definitions.h"
  
+! HF:
+#define BIOLOGY_NPZDOC
+#define VFLX_CORR
+!#define TWO_CLIM_FILES
+#define DAILYPAR_PHOTOINHIBITION
+#define OXYGEN
+#define OCMIP_OXYGENSAT
+#define OCMIP_OXYGEN_SC
+#define CARBON
+#define OCMIP_CARBON
+#define VARIABLE_ATM_PCO2
+#define CALC_CARBON_ONCE
+#define USE_PH_SAVED
+#define SEDIMENT_BIOLOGY
+#define BGC_FLUX_ANALYSIS
+#define BGC_FLUX_EXT_HIS_OUTPUT
+#define PHYS_FLUX_ANALYSIS
+!!#define VERT_DIFF_ANALYSIS
+#define FULL_PHYS_FLUX_ANALYSIS

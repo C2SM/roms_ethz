@@ -1,5 +1,5 @@
 #include "cppdefs.h"
- 
+#ifdef BIOLOGY_NPZDOC 
       subroutine bio_diag (tile)
       implicit none
       integer tile
@@ -20,8 +20,16 @@
 #include "grid.h"
 #include "ocean3d.h"
 #include "scalars.h"
+#ifdef MPI
+# include "mpif.h"
+      integer size, step, status(MPI_STATUS_SIZE), ierr
+      real*QUAD buff(0:2*NT+1)
+      common /xyz/ buff
+#endif
+#include "comm_vars.h"
  
-#define  ETALON_CHECK
+!#define  ETALON_CHECK
+#undef ETALON_CHECK
 #ifdef ETALON_CHECK
       integer ncheck, nparam
       parameter (ncheck=10, nparam=4)
@@ -31,7 +39,7 @@
       pointer (isym,symbol)
       real    A0(nparam), A1(nparam)
       integer P0(nparam), P1(nparam)
- 
+
 #include "etalon_data.h"
 #endif
  
@@ -43,9 +51,11 @@
         do j=jstr,jend
          do i=istr,iend
 #ifdef MASKING
-           cff1=ds*rmask(i,j)/(pm(i,j)*pn(i,j))  ! <-- grid box area
+           !cff1=ds*rmask(i,j)/(pm(i,j)*pn(i,j))  ! <-- grid box area
+           cff1=rmask(i,j)/(pm(i,j)*pn(i,j))  ! <-- grid box area
 #else
-           cff1=ds/(pm(i,j)*pn(i,j))
+           !cff1=ds/(pm(i,j)*pn(i,j))
+           cff1=1./(pm(i,j)*pn(i,j))
 #endif
            do k=1,N
             cff=cff1*Hz(i,j,k)       ! <-- volume of grid box(i,j,k)
@@ -86,7 +96,26 @@ C$OMP CRITICAL (bio_cr_rgn)
           if (bc_count.eq.NSUB) then      ! the last thread, whoever
             bc_count=0                    ! it is, not always master.
 #ifdef MPI
-  Reduce sequence here
+! Perform global summation among MPI processes:
+            if (NNODES.gt.1) then
+               size=NNODES
+ 3             step=(size+1)/2
+               if (mynode.ge.step .and. mynode.lt.size) then
+                  ! global_sum may be real*16, so the size of the message
+                  ! in the following send is doubled:
+                  call MPI_Send (global_sum, 4*NT+4, MPI_DOUBLE_PRECISION,
+     &               mynode-step, 17, MPI_COMM_WORLD, ierr)
+               elseif (mynode .lt. size-step) then
+                  call MPI_Recv (buff, 4*NT+4 , MPI_DOUBLE_PRECISION,
+     &               mynode+step, 17, MPI_COMM_WORLD, status, ierr)
+                  do itrc=1,2*NT+1
+                     global_sum(itrc)=global_sum(itrc)+buff(itrc)
+                  enddo
+               end if ! <-- mynode.ge.step .and. mynode.lt.size
+               size=step
+               if (size.gt.1) goto 3
+            end if ! <-- NNODES.gt.1
+            if (mynode.eq.0) then
 #endif
  
             cff=1./global_sum(1)
@@ -150,11 +179,121 @@ C$OMP CRITICAL (bio_cr_rgn)
                 endif
               endif
             enddo
+#endif /* ETALON_CHECK */
+#ifdef MPI
+          endif    ! <-- mynode.eq.0
 #endif
-          endif
+          endif  ! <-- bc_count.eq.NSUB
 C$OMP END CRITICAL (bio_cr_rgn)
-      endif
+      endif  ! <-- mod(iic-1,ninfo).eq.0
       return
       end
+
+
+#if defined SALINITY && defined VFLX_CORR
+! resets all global surface sums (volume and tracer concentrations) to 0
+      subroutine reset_global_srf_sum()
+
+!      USE param
+!      USE scalars
+
+      implicit none
+#include "param.h"
+#include "scalars.h"
+#include "comm_vars.h"   
+      integer itrc
+      do itrc = 0, NT
+         global_srf_sum(itrc) = 0.Q0
+      enddo
+      return
+      end
+
+! the wrapper routine for calc_global_srf_sum_tile
+      subroutine calc_global_srf_sum(tile)
+      implicit none
+      integer tile
+# include "param.h"
+# include "compute_tile_bounds.h"
+      call calc_global_srf_sum_tile(Istr,Iend,Jstr,Jend)
+
+      return 
+      end
+
+! calculates the global surface volume and concentrations for one tile
+      subroutine calc_global_srf_sum_tile(Istr,Iend,Jstr,Jend)
+      
+!      USE param
+!      USE scalars
+!      USE grid
+!      USE ocean3d
+
+      implicit none
+#include "param.h"
+#include "grid.h"
+#include "ocean3d.h"
+#include "scalars.h"
+#include "comm_vars.h"
+      integer i,j,Istr,Iend,Jstr,Jend,itrc,NSUB
+      real cff1
+      real*QUAD my_srf_sum(0:NT)
+
+      do itrc = 0, NT
+         my_srf_sum(itrc) = 0.Q0
+      enddo
+      do j=Jstr,Jend
+         do i=Istr,Iend
+#ifdef MASKING
+           cff1=rmask(i,j)/(pm(i,j)*pn(i,j))  ! <-- grid box area
+#else 
+           cff1=1./(pm(i,j)*pn(i,j))
+#endif
+           my_srf_sum(0)=my_srf_sum(0) + cff1*Hz(i,j,N) ! accumulate volume
+           do itrc=1,NT
+              my_srf_sum(itrc) = my_srf_sum(itrc) +
+     &             cff1 * Hz(i,j,N) * t(i,j,N,nstp,itrc) 
+           enddo
+
+           if (SINGLE_TILE_MODE) then
+              NSUB=1
+           else
+              NSUB=NSUB_X*NSUB_E
+           endif
+           
+C$OMP CRITICAL (bio_diag_rgn)
+           do itrc = 0, NT
+              global_srf_sum(itrc) = global_srf_sum(itrc) + 
+     &             my_srf_sum(itrc)
+           enddo
+C$OMP END CRITICAL (bio_diag_rgn)
+        enddo
+      enddo
+
+      return 
+      end
+
+! computes actual concentrations by dividing the total masses by volume
+      subroutine scale_global_srf_sum()
+
+!      USE param
+!      USE scalars
+
+      implicit none
+#include "param.h"
+#include "scalars.h"
+#include "comm_vars.h"
+      integer itrc
+      real*QUAD factor
+      factor = 1.Q0 / global_srf_sum(0)
+      do itrc = 1, NT
+         global_srf_sum(itrc) = global_srf_sum(itrc) * factor
+      enddo
+
+      return
+      end
+#endif /* SALINITY && VFLX_CORR */
  
- 
+#else /* BIOLOGY_NPZDOC */
+      subroutine bio_diag_empty()
+      return
+      end
+#endif /* BIOLOGY_NPZDOC */

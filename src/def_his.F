@@ -70,6 +70,9 @@
 # define vidAkt hisAkt
 # define vidAks hisAks
 # define vidHbl hisHbl
+# ifdef SEDIMENT_BIOLOGY
+#  define vidTsed hisTsed
+# endif
 #else
 # define ncname avgname
 # define rec_per_file nrpfavg
@@ -89,6 +92,9 @@
 # define vidAkt avgAkt
 # define vidAks avgAks
 # define vidHbl avgHbl
+# ifdef SEDIMENT_BIOLOGY
+#  define vidTsed avgTsed
+# endif
 #endif
 !
 ! Put time record index into file name. In  the case when model
@@ -378,6 +384,35 @@ c        ierr=nf_create(ncname(1:lstr), nf_clobber, ncid)
 #endif
           endif
         enddo
+# ifdef SEDIMENT_BIOLOGY
+!
+! Sediment tracer variables.
+!
+        do itrc=1,NT_sed
+          if (wrt(indxSedOrgN+itrc-1)) then
+            lvar=lenstr(vname(1,indxSedOrgN+itrc-1))
+            ierr=nf_def_var (ncid, 
+     &           vname(1,indxSedOrgN+itrc-1)(1:lvar),
+     &           NF_FOUT, 3, r2dgrd, vidTsed(itrc))
+# ifndef AVRH
+            lvar=lenstr(vname(2,indxSedOrgN+itrc-1))
+            ierr=nf_put_att_text (ncid, vidTsed(itrc), 'long_name',
+     &           lvar, vname(2,indxSedOrgN+itrc-1)(1:lvar))
+# else
+            text='averaged '/ /vname(2,indxSedOrgN+itrc-1)
+            lvar=lenstr(text)
+            ierr=nf_put_att_text (ncid, vidTsed(itrc), 'long_name',
+     &           lvar, text(1:lvar))
+# endif
+            lvar=lenstr(vname(3,indxSedOrgN+itrc-1))
+            ierr=nf_put_att_text (ncid, vidTsed(itrc), 'units', lvar,
+     &           vname(3,indxSedOrgN+itrc-1)(1:lvar))
+            lvar=lenstr(vname(4,indxSedOrgN+itrc-1))
+            ierr=nf_put_att_text (ncid, vidTsed(itrc), 'field', lvar,
+     &           vname(4,indxSedOrgN+itrc-1)(1:lvar))
+          endif
+        enddo
+# endif /* SEDIMENT_BIOLOGY */
 !
 ! Density anomaly.
 !
@@ -695,6 +730,23 @@ c        ierr=nf_create(ncname(1:lstr), nf_clobber, ncid)
             endif
           endif
         enddo
+# ifdef SEDIMENT_BIOLOGY
+!
+! Sediment tracer variables.
+!
+        do itrc=1,NT_sed
+          if (wrt(indxSedOrgN+itrc-1)) then
+            lvar=lenstr(vname(1,indxSedOrgN+itrc-1))
+            ierr=nf_inq_varid (ncid, 
+     &           vname(1,indxSedOrgN+itrc-1)(1:lvar),vidTsed(itrc))
+            if (ierr .ne. nf_noerr) then
+              write(stdout,1) vname(1,indxSedOrgN+itrc-1)(1:lvar),
+     &                                       ncname(1:lstr) 
+              goto 99                                     !--> ERROR
+            endif
+          endif
+        enddo
+# endif /* SEDIMENT_BIOLOGY */
 !
 ! Density anomaly.
 !
@@ -777,6 +829,19 @@ c        ierr=nf_create(ncname(1:lstr), nf_clobber, ncid)
           endif
         endif
 # endif
+# ifdef LMD_BKPP
+!
+! Depth of bottom planetary boundary layer.
+!
+        if (wrt(indxHbbl)) then
+          lvar=lenstr(vname(1,indxHbbl))
+          ierr=nf_inq_varid (ncid,vname(1,indxHbbl)(1:lvar), vidHbbl)
+          if (ierr .ne. nf_noerr) then
+            write(stdout,1) vname(1,indxHbbl)(1:lvar), ncname(1:lstr)
+            goto 99                                       !--> ERROR
+          endif
+        endif
+# endif
 #endif /* SOLVE3D */
         write(*,'(6x,2A,i4,1x,A,i4)')    'def_his/avg: Opened ',
      &              'existing file from record =', rec MYID
@@ -825,6 +890,10 @@ c        ierr=nf_create(ncname(1:lstr), nf_clobber, ncid)
 #undef vidU
 #undef vidV
 #undef vidT
+#ifdef SEDIMENT_BIOLOGY
+# undef vidTsed
+#endif
+
 #undef vidR
 #undef vidO
 #undef vidW

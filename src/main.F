@@ -19,17 +19,30 @@ C$    ierr=0
       call mpi_setup (ierr)
       tstart=MPI_Wtime()
 c**   call MPI_Test
-      if (ierr.eq.0) then
+      if (ierr.ne.0) goto 100
 # endif
-        call init_scalars (ierr)     ! Initialize global scalars,
-        if (ierr.eq.0) then          ! model tunable paparameters,
-C$        call omp_set_dynamic(.false.)
-C$OMP PARALLEL                       ! fast-time averaging weights
-          call roms_thread           ! for barotropic mode, and
-C$OMP END PARALLEL                   ! launch the model in OpenMP
-        endif                        ! parallel regime.
+! Initialize global scalars, fast-time averaging weights for barotropic mode,
+! and launch the model in OpenMP parallel regime.
+      call init_scalars (ierr)
+      if (ierr.ne.0) goto 100
+# ifdef BIOLOGY_NPZDOC
+      call init_scalars_npzdoc(ierr)
+      if (ierr.ne.0) goto 100 
+#  ifdef BGC_FLUX_ANALYSIS
+      call init_scalars_bgcflux(ierr)
+      if (ierr.ne.0) goto 100 
+#  endif
+# endif /* BIOLOGY_NPZDOC */
+# ifdef PHYS_FLUX_ANALYSIS
+      call init_scalars_physflux(ierr)
+      if (ierr.ne.0) goto 100 
+# endif /* PHYS_FLUX_ANALYSIS */
+C$       call omp_set_dynamic(.false.)
+C$OMP PARALLEL
+      call roms_thread
+C$OMP END PARALLEL
+ 100  continue
 # ifdef MPI
-      endif
       call MPI_Barrier(ocean_grid_comm, ierr)
       tend=MPI_Wtime()
       MPI_master_only write(*,*) 'run_time =', tend-tstart
@@ -233,6 +246,9 @@ CR      write(*,*)  ' -3' MYID
       enddo
 C$OMP BARRIER
 CR      write(*,*)  ' -2' MYID
+# ifdef BIOLOGY_NPZDOC
+      call init_biopar               ! set up biogeochemical parameters
+# endif /* BIOLOGY_NPZDOC */
 #endif
 !
 ! Set up climatological environment: Set nudging coefficient for
@@ -271,6 +287,27 @@ CR      write(*,*) ' -1' MYID
 ! exclussive with respect to cals ana_tclima, ana_ssh, and ana_bsedim
 ! just above.
 !
+
+#if defined SALINITY && defined BIOLOGY_NPZDOC && defined VFLX_CORR
+        call reset_global_srf_sum()
+! If the virtual flux correction is used, globally averaged concentrations
+! for the surface cells must be available for subroutine set_vbc_tile
+C$OMP PARALLEL DO PRIVATE(tile)
+        do tile=0,NSUB_X*NSUB_E-1
+           call calc_global_srf_sum(tile)
+        enddo
+
+! Keep this routine out of the parallel region        
+        call scale_global_srf_sum()
+#endif /* SALINITY && BIOLOGY_NPZDOC && VFLX_CORR */
+
+#ifdef BIOLOGY_NPZDOC
+C$OMP PARALLEL DO PRIVATE(tile)
+         do tile=0,NSUB_X*NSUB_E-1
+            call calcpar(tile)
+         enddo
+# endif /* BIOLOGY_NPZDOC */
+
 C$OMP MASTER
         if (ldefhis .and. wrthis(indxTime)) call wrt_his
 #ifdef STATIONS
@@ -359,6 +396,14 @@ C$OMP END MASTER
 #ifdef GRID_LEVEL
       integer iter
 #endif
+#ifdef BGC_FLUX_ANALYSIS
+# include "bgcflux.h"
+# include "ncroms_bgcflux.h"
+#endif
+#ifdef PHYS_FLUX_ANALYSIS
+# include "physflux.h"
+# include "ncroms_physflux.h"
+#endif
  
       trd=proc(2)
       range=(NSUB_X*NSUB_E+numthreads-1)/numthreads
@@ -404,7 +449,7 @@ C$OMP BARRIER
         call    rho_eos (tile)
         call    set_HUV (tile)
         call       diag (tile)
-#ifdef BIOLOGY
+#if defined BIOLOGY || defined BIOLOGY_NPZDOC
         call   bio_diag (tile)
 #endif
       enddo
@@ -436,7 +481,13 @@ C$OMP BARRIER
 # endif
 # ifdef AVERAGES
         call    set_avg (tile)
-# endif
+#  ifdef BGC_FLUX_ANALYSIS
+        call set_bgc_flux_avg(tile)
+#  endif
+#  ifdef PHYS_FLUX_ANALYSIS
+        call set_phys_flux_avg(tile)
+#  endif
+# endif /* AVERAGES */
       enddo
 C$OMP BARRIER
 
@@ -532,6 +583,35 @@ C$OMP BARRIER
       if (mod(iic-ntstart,nflt).eq.0) then
         diagfloats=.true.
       endif
+#endif
+
+#ifdef BGC_FLUX_ANALYSIS
+      if (iic > ntstart .and. n_bgc_flux_his > 0 .and. 
+     &     mod(iic-1, n_bgc_flux_his) == 0) then
+         nrec_bgc_flux_his = nrec_bgc_flux_his + 1
+         call wrt_bgc_flux_his
+      end if
+# ifdef AVERAGES
+      if (iic > ntstart .and. n_bgc_flux_avg > 0 .and. 
+     &     mod(iic-1, n_bgc_flux_avg) == 0) then
+         nrec_bgc_flux_avg = nrec_bgc_flux_avg + 1
+         call wrt_bgc_flux_avg
+      end if
+# endif
+#endif /* BGC_FLUX_ANALYSIS */
+#ifdef PHYS_FLUX_ANALYSIS
+      if (iic > ntstart .and. n_phys_flux_his > 0 .and. 
+     &     mod(iic-1, n_phys_flux_his) == 0) then
+         nrec_phys_flux_his = nrec_phys_flux_his + 1
+         call wrt_phys_flux_his
+      end if
+# ifdef AVERAGES
+      if (iic > ntstart .and. n_phys_flux_avg > 0 .and. 
+     &     mod(iic-1, n_phys_flux_avg) == 0) then
+         nrec_phys_flux_avg = nrec_phys_flux_avg + 1
+         call wrt_phys_flux_avg
+      end if
+# endif
 #endif
 
 #ifdef SOLVE3D

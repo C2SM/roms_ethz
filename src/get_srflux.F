@@ -123,7 +123,7 @@
       real cff, cff1, cff2
 # ifdef DIURNAL_SRFLUX
       real phase
-c??   real cos_h, dec, cos_d, sin_d, tan_d, phi, h0
+!cc      real cos_h, dec, cos_d, sin_d, tan_d, phi, h0
 #endif
 # define SRFLUX_DATA
 # include "param.h"
@@ -177,10 +177,17 @@ c     if (ZEROTH_TILE) write(*,*) 'swrad modulation', tdays, phase
         do j=jstrR,jendR
           do i=istrR,iendR
             srflx(i,j)=cff1*srflxg(i,j,it1)+cff2*srflxg(i,j,it2)
+c : zl 
 # ifdef DIURNAL_SRFLUX
-            cff=stflx(i,j,itemp)-srflx(i,j)  ! subtract shortwave 
-            srflx(i,j)=srflx(i,j)*phase      ! radiatin from the net, 
-            stflx(i,j,itemp)=cff+srflx(i,j)  ! modulate and add back
+            cff=stflx(i,j,itemp)-srflx(i,j)  ! subtract shortwave
+                                             ! radiatin from the net, 
+# ifdef DAILYPAR_PHOTOINHIBITION
+! save the daily average value for the evaluation of photoinhibited 
+! nitrification
+            srflx_dailyavg(i,j)=srflx(i,j)
+# endif 
+            srflx(i,j)=srflx(i,j)*phase      ! modulate 
+            stflx(i,j,itemp)=cff+srflx(i,j)  ! and add back
 # endif
           enddo
         enddo
@@ -193,7 +200,7 @@ c     if (ZEROTH_TILE) write(*,*) 'swrad modulation', tdays, phase
         ierr=ierr+1
       endif
  
-# ifdef XXXXX
+# ifdef XXXXX 
 !
 ! DIURNAL CYCLE - USED IN BOTH PHYSICAL AND ECOSYSTEM MODELS
 ! Patrick Marchesiello - 1999: Modulate average dayly insolation
@@ -217,6 +224,10 @@ c     if (ZEROTH_TILE) write(*,*) 'swrad modulation', tdays, phase
           h0=acos(-tan(phi)*tan_d)
           cff1=cos_d*cos(phi)
           cff2=sin_d*sin(phi)
+#ifdef DAILYPAR_PHOTOINHIBITION
+! save the daily average value for the biogeochemical model
+          srflx_dailyavg(i,j)=srflx(i,j)
+#endif /* DAILYPAR_PHOTOINHIBITION*/
           srflx(i,j)=srflx(i,j)*pi*(cos_h*cff1+cff2)
      &                        /(sin(h0)*cff1+h0*cff2)
           srflx(i,j)=max(0.,srflx(i,j))

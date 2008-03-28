@@ -59,6 +59,7 @@
       integer status(MPI_STATUS_SIZE), blank, ierr
 #endif
 !
+#include "bgcflux.h"
 #include "compute_extended_bounds.h"
 !
 #ifdef NOT_
@@ -107,12 +108,14 @@
           rhoA(i,j)=0.
           rhoS(i,j)=0.
 # endif
+# ifdef AVERAGES
           Zt_avg1(i,j)=0. !init
           DU_avg1(i,j)=0. !init
           DV_avg1(i,j)=0. !init
           DU_avg2(i,j)=0. !init
           DV_avg2(i,j)=0. !init
-#endif
+# endif
+#endif /* SOLVE3D */
 !
 ! WARNING: "rmask" MUST BE initialized to all-one state in order
 ! to read grid variables (coordinates, metric, topography), which
@@ -372,7 +375,25 @@
         enddo
       enddo
 # endif /* LMD_KPP */
+# ifdef SEDIMENT_BIOLOGY
+!
+! Initialize sediment array:
+!
+      do itrc=1,NT_sed
+         do k=1,N
+            do j=JstrR,JendR
+               do i=IstrR,IendR
+                  t_sed(i,j,itrc) = init
+# ifdef AVERAGES
+                  t_sed_avg(i,j,itrc) = init
+# endif
+               enddo
+            enddo
+         enddo
+      enddo
+# endif /* SEDIMENT_BIOLOGY */
 #endif /* SOLVE3D */
+
       return
       end
  

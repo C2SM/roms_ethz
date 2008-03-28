@@ -26,6 +26,9 @@
 #define time illegal
 #define tdays illegal
 #define nrrec illegal
+#ifdef SEDIMENT_BIOLOGY
+# include "bgcflux.h"
+#endif
 !
 ! Open initial conditions netCDF file for reading. Check that all
 ! spatial dimensions in that file are consistent with the model
@@ -426,9 +429,39 @@ c**      start_time=start_time - 20.*360. *day2sec
         else
           write(*,1) vname(1,indxT+itrc-1)(1:lvar), ininame(1:lstr),
      &                                            nf_strerror(ierr)
-          goto 99                                         !--> ERROR
+CDL Don't stop if no initial conditions are found. Start with 0 conc.
+CDL instead:
+          write(stdout,'(3a)') 'Start with zero concentration for ',
+     &       'variable ', vname(1,indxT+itrc-1)(1:lvar)
+CDL          goto 99                                         !--> ERROR
         endif
       enddo
+# ifdef SEDIMENT_BIOLOGY
+!
+! Sediment tracer variables.
+!
+      do itrc=1,NT_sed
+        lvar=lenstr(vname(1,indxSedOrgN+itrc-1))
+        ierr=nf_inq_varid (ncid, 
+     &       vname(1,indxSedOrgN+itrc-1)(1:lvar), varid)
+        if (ierr .eq. nf_noerr) then
+          ierr=nf_fread (t_sed(START_2D_ARRAY,itrc), ncid,  varid,
+     &                                               record, r2dvar)
+          if (ierr .ne. nf_noerr) then
+            write(stdout,2) vname(1,indxSedOrgN+itrc-1)(1:lvar),
+     &            record,  ininame(1:lstr)
+            goto 99                                       !--> ERROR
+          endif
+        else
+          write(stdout,1) vname(1,indxSedOrgN+itrc-1)(1:lvar),
+     &                                    ininame(1:lstr)
+          write(stdout,'(a,a)') 'Note: Previous versions of ROMS did ',
+     &         'not include sediment biology.'
+          write(stdout,'(a)') 'Start with 0 concentration.'
+CHF          goto 99                                         !--> ERROR
+        endif
+      enddo
+# endif /* SEDIMENT_BIOLOGY */
 # ifdef LMD_KPP
       lvar=lenstr(vname(1,indxHbl))
       ierr=nf_inq_varid (ncid, vname(1,indxHbl)(1:lvar), varid)

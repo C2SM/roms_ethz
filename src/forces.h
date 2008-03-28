@@ -113,8 +113,14 @@ CSDISTRIBUTE_RESHAPE  sssg(BLOCK_PATTERN,*) BLOCK_CLAUSE
 ! tsrflx  time of solar shortwave radiation flux.
 !
       real srflx(GLOBAL_2D_ARRAY)
+#ifdef DAILYPAR_PHOTOINHIBITION
+      real srflx_dailyavg(GLOBAL_2D_ARRAY)
+#endif /* DAILYPAR_PHOTOINHIBITION */
 CSDISTRIBUTE_RESHAPE srflx(BLOCK_PATTERN) BLOCK_CLAUSE
       common /forces_srflx/srflx
+#ifdef DAILYPAR_PHOTOINHIBITION
+     &       , srflx_dailyavg
+#endif /* DAILYPAR_PHOTOINHIBITION */
 # ifndef ANA_SRFLUX
 #  if defined SRFLUX_DATA || defined ALL_DATA
 #   undef SRFLUX_DATA

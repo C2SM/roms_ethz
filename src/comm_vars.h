@@ -39,9 +39,9 @@
       real*QUAD bc_flux, ubar_xs
       common /comm_vars/ bc_flux, ubar_xs
 #endif
-#ifdef BIOLOGY
-      real*QUAD global_sum(0:15)
-      common /comm_vars/ global_sum
+#if defined BIOLOGY || defined BIOLOGY_NPZDOC
+      real*QUAD global_sum(0:2*NT+1), global_srf_sum(0:NT)
+      common /comm_vars_bio/ global_sum, global_srf_sum
 #endif
       real hmin,hmax, grdmin,grdmax, rx0,rx1, Cu_min,Cu_max,
      &     Cu_Cor,    Cu_visc,   v2d_max, v3d_max, v3bc_max
