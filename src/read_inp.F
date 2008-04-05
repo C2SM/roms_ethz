@@ -13,14 +13,6 @@
 #ifdef FLOATS
 # include "ncvars_floats.h"
 #endif
-#ifdef BGC_FLUX_ANALYSIS
-# include "bgcflux.h"
-# include "ncroms_bgcflux.h"
-#endif
-#ifdef PHYS_FLUX_ANALYSIS
-# include "physflux.h"
-# include "ncroms_physflux.h"
-#endif
 #ifdef MPI
 # include "mpif.h"
 #endif
@@ -56,6 +48,13 @@
       ierr=0    ! <-- reset error counter
       call check_tiling (ierr)
       call check_switches1 (ierr)
+#ifdef SOLVE3D
+      call check_rhs3d_switches (ierr)
+      call check_trc_adv_switches (ierr)
+# ifdef LMD_KPP
+      call check_kpp_switches (ierr)  
+# endif
+#endif
       call check_switches2 (ierr)
       if (ierr.ne.0) return
 !
@@ -90,6 +89,8 @@
       fname='pacific.in'
 #elif defined PACIFIC_2D
       fname='pacific_2D.in'
+#elif defined CANBAS2
+      fname='canBas2.in'
 #elif defined USWEST
       fname='mb_l1_safe.in'
 c--      fname='roms.in.USW20'
@@ -280,36 +281,7 @@ c--      fname='roms.in.US_West'
           clm_file=fname(1:lstr)
           MPI_master_only write(stdout,'(3x,A,2x,A)')
      &          'Climatology File:', clm_file(1:lstr)
-# if defined TWO_CLIM_FILES || defined THREE_CLIM_FILES
-        elseif (keyword(1:kwlen).eq.'clim_file2') then
-          call cancel_kwd (keyword(1:kwlen), ierr)
-          read(input,'(A)',err=95) fname
-          lstr=lenstr(fname)
-#  if defined MPI && defined PARALLEL_FILES
-          call insert_node (fname, lstr, mynode, NNODES, ierr)
-#  endif
-          open (testunit, file=fname(1:lstr), status='old', err=97)
-          close(testunit)
-          clmname2=fname(1:lstr)
-          MPI_master_only write(stdout,'(3x,A,2x,A)')
-     &          'Climatology File 2:', clmname2(1:lstr)
-# endif /* TWO_CLIM_FILES || THREE_CLIM_FILES */
-# ifdef THREE_CLIM_FILES
-        elseif (keyword(1:kwlen).eq.'clim_file3') then
-          call cancel_kwd (keyword(1:kwlen), ierr)
-          read(input,'(A)',err=95) fname
-          lstr=lenstr(fname)
-#  if defined MPI && defined PARALLEL_FILES
-          call insert_node (fname, lstr, mynode, NNODES, ierr)
-#  endif
-          open (testunit, file=fname(1:lstr), status='old', err=97)
-          close(testunit)
-          clmname3=fname(1:lstr)
-          MPI_master_only write(stdout,'(3x,A,2x,A)')
-     &          'Climatology File 3:', clmname3(1:lstr)
-# endif /* THREE_CLIM_FILES */
 #endif
-
 #if defined T_FRC_BRY || defined M2_FRC_BRY || \
     defined M3_FRC_BRY || defined Z_FRC_BRY
 # ifndef ANA_BRY
@@ -458,114 +430,6 @@ c--      fname='roms.in.US_West'
 # endif /* MULT_CLIM_FILE */
 #endif   /* MOORE_BEC */
 
-#ifdef BGC_FLUX_ANALYSIS
-!
-! File name for histories of biogeochemical fluxes
-!
-        elseif (keyword(1:kwlen).eq.'bgc_flux_histories') then
-          call cancel_kwd (keyword(1:kwlen), ierr)
-          read(input,*,err=95) new_bgc_flux_his,
-     &         n_bgc_flux_his, nrpf_bgc_flux_his
-          read(input,'(A)',err=95) fname
-          lstr=lenstr(fname)
-# if defined MPI && defined PARALLEL_FILES
-          call insert_node (fname, lstr, mynode, NNODES, ierr)
-# endif
-          bgc_flux_his_name=fname(1:lstr)
-          MPI_master_only write(stdout,
-     &           '(I10,2x,A,1x,A/32x,A/,6x,A,2x,A,1x,A,I3)')
-     &      n_bgc_flux_his,   
-     &         'n_bgc_flux_his     Number of timesteps between',
-     &     'writing of',
-     &         ' biogeochemical fluxes into file.',
-     &     'Biogeochemical flux file:', 
-     &         bgc_flux_his_name(1:lstr),
-     &     'rec/file =', nrpf_bgc_flux_his
-
-# ifdef AVERAGES
-!
-! File name for averages of biogeochemical fluxes
-!
-        elseif (keyword(1:kwlen).eq.'bgc_flux_averages') then
-          call cancel_kwd (keyword(1:kwlen), ierr)
-          read(input,*,err=95) new_bgc_flux_avg,
-     &         nts_bgc_flux_avg, n_bgc_flux_avg, nrpf_bgc_flux_avg
-          read(input,'(A)',err=95) fname
-          lstr=lenstr(fname)
-#  if defined MPI && defined PARALLEL_FILES
-          call insert_node (fname, lstr, mynode, NNODES, ierr)
-#  endif
-          bgc_flux_avg_name=fname(1:lstr)
-          MPI_master_only write(stdout,
-     &           '(2(I10,2x,A,1x,A/32x,A/),6x,A,2x,A,1x,A,I3)')
-     &      nts_bgc_flux_avg, 
-     &         'nts_bgc_flux_avg   Starting timestep for the',
-     &           ' accumulation of output', 
-     &         ' time-averaged biogeochemical fluxes.',
-     &      n_bgc_flux_avg,   
-     &         'n_bgc_flux_avg     Number of timesteps between',
-     &     'writing of',
-     &         ' time-averaged biogeochemical fluxes into file.',
-     &     'Averaged biogeochemical flux file:', 
-     &         bgc_flux_avg_name(1:lstr),
-     &     'rec/file =', nrpf_bgc_flux_avg
-# endif /* AVERAGES */
-#endif /* BGC_FLUX_ANALYSIS */
-#ifdef PHYS_FLUX_ANALYSIS
-!
-! File name for histories of physical fluxes
-!
-        elseif (keyword(1:kwlen).eq.'phys_flux_histories') then
-          call cancel_kwd (keyword(1:kwlen), ierr)
-          read(input,*,err=95) new_phys_flux_his,
-     &         n_phys_flux_his, nrpf_phys_flux_his
-          read(input,'(A)',err=95) fname
-          lstr=lenstr(fname)
-# if defined MPI && defined PARALLEL_FILES
-          call insert_node (fname, lstr, mynode, NNODES, ierr)
-# endif
-          phys_flux_his_name=fname(1:lstr)
-          MPI_master_only write(stdout,
-     &           '(I10,2x,A,1x,A/32x,A/,6x,A,2x,A,1x,A,I3)')
-     &      n_phys_flux_his,
-     &         'n_phys_flux_his    Number of timesteps between',
-     &     ' writing of',
-     &         ' physical fluxes into file.',
-     &     'Physical flux file:',
-     &         phys_flux_his_name(1:lstr),
-     &     'rec/file =', nrpf_phys_flux_his
-
-# ifdef AVERAGES
-!
-! File name for averages of physical fluxes
-!
-        elseif (keyword(1:kwlen).eq.'phys_flux_averages') then
-          call cancel_kwd (keyword(1:kwlen), ierr)
-          read(input,*,err=95) new_phys_flux_avg,
-     &         nts_phys_flux_avg, n_phys_flux_avg,
-     &         nrpf_phys_flux_avg
-          read(input,'(A)',err=95) fname
-          lstr=lenstr(fname)
-#  if defined MPI && defined PARALLEL_FILES
-          call insert_node (fname, lstr, mynode, NNODES, ierr)
-#  endif
-          phys_flux_avg_name=fname(1:lstr)
-          MPI_master_only write(stdout,
-     &           '(2(I10,2x,A,1x,A/32x,A/),6x,A,2x,A,1x,A,I3)')
-     &      nts_phys_flux_avg,
-     &         'nts_phys_flux_avg  Starting timestep for the',
-     &           ' accumulation of output',
-     &         ' time-averaged physical fluxes.',
-     &      n_phys_flux_avg,
-     &         'n_phys_flux_avg    Number of timesteps between',
-     &     ' writing of',
-     &         ' time-averaged physical fluxes into file.',
-     &     'Averaged physical flux file:',
-     &         phys_flux_avg_name(1:lstr),
-     &     'rec/file =', nrpf_phys_flux_avg
-# endif /* AVERAGES */
-#endif /* PHYS_FLUX_ANALYSIS */
-
 
 
 
@@ -666,10 +530,6 @@ c--      fname='roms.in.US_West'
 #ifdef SOLVE3D
      &                      ,  wrthis(indxU),  wrthis(indxV)
      &                      , (wrthis(itrc), itrc=indxT,indxT+NT-1)
-# ifdef SEDIMENT_BIOLOGY
-     &                      , (wrthis(itrc), 
-     &                         itrc=indxSedOrgN,indxSedOrgN+NT_sed-1)
-# endif /* SEDIMENT_BIOLOGY */
 #endif
           if ( wrthis(indxZ) .or. wrthis(indxUb) .or. wrthis(indxVb)
 #ifdef SOLVE3D
@@ -687,18 +547,10 @@ c--      fname='roms.in.US_West'
      &    , wrthis(indxU),  'write U    ', '3D U-momentum component.'
           do itrc=1,NT
             if (wrthis(indxT+itrc-1)) wrthis(indxTime)=.true.
-            MPI_master_only write(stdout, '(6x,L1,2x,A,I2,A,I2,A)')
+            MPI_master_only write(stdout, '(6x,L1,2x,A,I1,A,I2,A)')
      &                       wrthis(indxT+itrc-1), 'write T(', itrc,
      &                                ')  Tracer of index', itrc,'.'
           enddo
-# ifdef SEDIMENT_BIOLOGY
-          do itrc = 1, NT_sed
-            if (wrthis(indxSedOrgN+itrc-1)) wrthis(indxTime)=.true.
-            MPI_master_only write(stdout, '(6x,L1,2x,A,I2,A,I2,A)')
-     &           wrthis(indxSedOrgN+itrc-1), 'write T_sed(', 
-     &           itrc,')  Sediment tracer of index ', itrc,'.' 
-          end do
-# endif /* SEDIMENT_BIOLOGY */
  
         elseif (keyword(1:kwlen).eq.'auxiliary_history_fields') then
           call cancel_kwd (keyword(1:kwlen), ierr)
@@ -747,10 +599,6 @@ c--      fname='roms.in.US_West'
 # ifdef SOLVE3D
      &                      ,  wrtavg(indxU),  wrtavg(indxV)
      &                      , (wrtavg(itrc), itrc=indxT,indxT+NT-1)
-#  ifdef SEDIMENT_BIOLOGY
-     &                      , (wrtavg(itrc), 
-     &                         itrc=indxSedOrgN,indxSedOrgN+NT_sed-1)
-#  endif /* SEDIMENT_BIOLOGY */
 # endif
           if ( wrtavg(indxZ) .or. wrtavg(indxUb) .or. wrtavg(indxVb)
 # ifdef SOLVE3D
@@ -769,18 +617,10 @@ c--      fname='roms.in.US_West'
           do itrc=1,NT
             if (wrtavg(indxT+itrc-1)) wrtavg(indxTime)=.true.
             MPI_master_only write(stdout,
-     &                       '(6x,L1,2x,A,I2,A,2x,A,I2,A)')
+     &                       '(6x,L1,2x,A,I1,A,2x,A,I2,A)')
      &                        wrtavg(indxT+itrc-1), 'write T(',
      &                        itrc,')', 'Tracer of index', itrc,'.'
           enddo
-#  ifdef SEDIMENT_BIOLOGY
-          do itrc = 1, NT_sed
-            if (wrtavg(indxSedOrgN+itrc-1)) wrtavg(indxTime)=.true.
-            MPI_master_only write(stdout, '(6x,L1,2x,A,I2,A,I2,A)')
-     &           wrtavg(indxSedOrgN+itrc-1), 'write T_sed(', 
-     &           itrc,')  Sediment tracer of index ', itrc,'.' 
-          end do
-#  endif /* SEDIMENT_BIOLOGY */
  
         elseif (keyword(1:kwlen).eq.'auxiliary_averages') then
           call cancel_kwd (keyword(1:kwlen), ierr)
@@ -866,16 +706,21 @@ c--      fname='roms.in.US_West'
 !
         elseif (keyword(1:kwlen).eq.'lin_EOS_cff') then
           call cancel_kwd (keyword(1:kwlen), ierr)
-          read(input,*,err=95) R0, T0, S0, Tcoef, Scoef
+          read(input,*,err=95) R0, T0, Tcoef
+#  ifdef SALINITY
+     &                           , S0, Scoef
+#  endif
           MPI_master_only write(stdout,'(5(f10.4,2x,A,1x,A/))')
+     &       R0, 'R0       Background density in linear EOS',
+     &                                                  '[kg/m^3].',
      &       T0, 'T0       Background value for potential',
-     &                                     'temperature (Celsius).',
-     &       S0, 'S0       Background salinity (PSU),', 'constant.',
-     &       R0, 'R0       Background density (kg/m3) used in',
-     &                                                'linear EOS.',
+     &                                 'temperature [deg Celsius].',
      &    Tcoef, 'Tcoef    Thermal expansion coefficient',
-     &                                               '(1/Celsius).',
-     &    Scoef, 'Scoef    Saline contraction coefficient (1/PSU).'
+     &                                               '[1/Celsius].'
+#  ifdef SALINITY
+     &   ,   S0, 'S0       Background salinity [PSU],', 'constant.',
+     &    Scoef, 'Scoef    Saline contraction coefficient [1/PSU].'
+#  endif
 # endif
 # ifdef TS_DIF2
 !
@@ -936,14 +781,12 @@ c--      fname='roms.in.US_West'
 !
 ! Parameters for the sponge layers
 !
-         elseif (keyword(1:kwlen).eq.'sponge') then
-           call cancel_kwd (keyword(1:kwlen), ierr)
-           read(input,*,err=95) x_sponge, v_sponge
-           MPI_master_only write(stdout,'(1pe10.2,2x,A)')
-     &       x_sponge,'x_sponge Thickness of sponge layer (m)'
-           MPI_master_only write(stdout,'(f10.2,2x,A)')
-     &       v_sponge,'v_sponge Viscosity in sponge layer (m2/s)'
-# endif
+        elseif (keyword(1:kwlen).eq.'v_sponge') then
+          call cancel_kwd (keyword(1:kwlen), ierr)
+          read(input,*,err=95) v_sponge
+          MPI_master_only write(stdout,'(f10.2,2x,A)')  v_sponge,
+     &      'v_sponge   Maximum viscosity in sponge layer [m2/s]'
+#endif
 
 #if  defined T_FRC_BRY || defined M2_FRC_BRY || defined TNUDGING \
   || defined Z_FRC_BRY || defined M3_FRC_BRY || defined M2NUDGING \
@@ -1004,7 +847,7 @@ c--      fname='roms.in.US_West'
 #endif
         else
           MPI_master_only write(stdout,'(/1x,4A/)') 'WARNING: ',
-     &                'Unrecognized keyword ''', keyword(1:kwlen),
+     &                'Urecognized keyword ''', keyword(1:kwlen),
      &                                      ''' --> DISREGARDED.'
         endif
        if (keyword(1:kwlen) .eq. end_signal) goto 99

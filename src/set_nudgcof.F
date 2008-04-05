@@ -125,8 +125,15 @@ c      enddo
 #  elif defined ATL50S70N
 ! mm use about the same number of points as for Pacific
       isp=(LLm+1)/22
-#  else
+#  elif defined OLD_SPONGE_DEFAULT
       isp=(LLm+1)/12
+#  else
+!--------------------------------------------------------------------
+!  Set up nudging towards climatology time-scale coeffcients [1/s]
+!  and/or increase horizontal mixing in the sponge areas.
+!--------------------------------------------------------------------
+!
+      isp=int(x_sponge*pm(1,1)) ! number of points in layer
 #  endif
  
       do j=max(-1,jstrR-1),jendR
@@ -159,10 +166,10 @@ c      enddo
           ibnd=min(ibnd,Mm+1-j)
 #   endif
 #  endif
-#  ifdef PACIFIC
-          wrk(i,j)=0.5 + 0.5*cos(pi*float(ibnd)/float(isp))
-#  else
+#  ifdef LINEAR_SPONGE_PROFILE
           wrk(i,j)=float(isp-ibnd)/float(isp)
+#  else
+          wrk(i,j)=0.5 + 0.5*cos(pi*float(ibnd)/float(isp))
 #  endif
         enddo
       enddo
@@ -224,6 +231,7 @@ c        endif
         do j=jstrR,jendR
           do i=istrR,iendR
             diff2(i,j,itrc)=diff2(i,j,itemp)
+! Agrif Roms:            diff2(i,j,itrc)=diff2(i,j,itemp)+tnu2(itrc)
           enddo
         enddo
       enddo

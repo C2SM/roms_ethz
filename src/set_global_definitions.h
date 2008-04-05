@@ -219,8 +219,10 @@ c--#define ALLOW_SINGLE_BLOCK_MODE
 # define FIRST_TIME_STEP iic.eq.ntstart
 #endif
 #ifdef SOLVE3D
+# define fast_indx_out kstp
 # define FIRST_2D_STEP iif.eq.1
 #else
+# define fast_indx_out knew
 # define FIRST_2D_STEP iic.eq.ntstart
 #endif
  

@@ -97,8 +97,8 @@ C$OMP THREADPRIVATE(/priv_scalars/)
 # endif
 #endif
 #ifdef SPONGE
-      real v_sponge
-      common /scalars_main/ v_sponge
+      real x_sponge, v_sponge
+      common /scalars_main/ x_sponge, v_sponge
 #endif
 #if  defined T_FRC_BRY || defined M2_FRC_BRY || defined TNUDGING \
   || defined Z_FRC_BRY || defined M3_FRC_BRY || defined M2NUDGING \

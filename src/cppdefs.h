@@ -18,6 +18,9 @@
 #undef USWEST          /* US West Coast Application */
 #define USWC_CENTRAL
 #undef WAVE_RAD        /* A test for wave radiation boundaries */
+#undef ATL360X408    /* Whole Atlantic 360x408 */
+!--> #define ATL50S70N    /* Whole Atlantic 50S x 70N (360x468) */
+
 
 /*
     Embedded (nested) grid configuration segment
@@ -32,6 +35,10 @@ c--#endif
 /*
    Main switch starts here: model configuration choice.
 */
+
+#if defined ATL50S70N || defined ATL360X408
+# define ATLANTIC
+#endif
 
 #if defined BASIN    /* Big Bad Basin Configuration */
 # define SOLVE3D
@@ -198,7 +205,7 @@ c--# define OBC_TORLANSKI
 # define ANA_STFLUX
 
 
-#elif defined PACIFIC   /* North-Equatorial Pacific Configuration */
+#elif defined PACIFIC || defined ATLANTIC /* North-Equatorial Pacific Configuration */
 # define SOLVE3D
 # define UV_COR
 # define UV_ADV
@@ -207,7 +214,7 @@ c--# define OBC_TORLANSKI
 # define MASKING
 # define MASK_LAND_DATA
 
-#define EXACT_RESTART
+# define EXACT_RESTART
 # define AVERAGES
 !                       Equation of State
 # define SALINITY
@@ -249,11 +256,28 @@ c>>># define TNUDGING
 c>>># define TCLIMATOLOGY
 c>>># define UCLIMATOLOGY
 
+c--mm:
+# ifdef ATLANTIC
+#   define TNUDGING
+#   define TCLIMATOLOGY
+#   define UCLIMATOLOGY
 
+#   define OBC_SOUTH
+#   define OBC_EAST
+#   define OBC_NORTH
+#   undef OBC_WEST
+!   mm new switch STFLX_LIM, (implicit with PACIFIC switch)
+!   Shut off surface flux if SST<-2C  (ice formation)
+#   define STFLX_LIM   
+# endif
+
+
+# ifdef PACIFIC
 # define Z_FRC_BRY
 # define M2_FRC_BRY
 # define M3_FRC_BRY 
 # define T_FRC_BRY
+#endif
 
 # define SPONGE
 
