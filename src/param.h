@@ -148,6 +148,7 @@ c      parameter (NSUB_X=1, NSUB_E=1)
      &          , isalt
 # endif
 # if defined BIOLOGY || defined BIOLOGY_NPZDOC
+     &          , ntrc_salt, ntrc_bio
      &          , itrc_bio
 #  ifdef SEDIMENT_BIOLOGY
      &     , NT_sed
@@ -174,23 +175,18 @@ c      parameter (NSUB_X=1, NSUB_E=1)
 # endif /* BIOLOGY_NPZDOC */
       parameter (itemp=1
 # ifdef SALINITY
-     &           isalt=2,
-#  ifdef BIOLOGY
-     &           NT=7, iNO3_=3, iNH4_=4, iDet_=5, iPhyt=6, iZoo_=7
-#  else
-     &           NT=2
-#  endif
+     &           , isalt=2, ntrc_salt=1
 # else
-#  ifdef BIOLOGY
+     &           , ntrc_salt=0
+# endif
+# ifdef BIOLOGY
      &           , ntrc_bio=5, itrc_bio=itemp+ntrc_salt+1
      &           , iNO3_=itrc_bio, iNH4_=iNO3_+1, iDet_=iNO3_+2
      &           , iPhyt=iNO3_+3, iZoo_=iNO3_+4
-     &           , NT=6, iNO3_=2, iNH4_=3, iDet_=4, iPhyt=5, iZoo_=6
-#  else
-     &           NT=1
-#  endif
+# elif !defined BIOLOGY_NPZDOC
+     &           , ntrc_bio=0
 # endif
-     &           )
+     &     )
 # ifdef BIOLOGY_NPZDOC
       parameter (itrc_bio=itemp+ntrc_salt+1) 
       parameter (iNO3_=itrc_bio, 
