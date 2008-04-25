@@ -226,14 +226,14 @@ c??         enddo
          end do
 # endif /* PHYS_FLUX_ANALYSIS & VERT_DIFF_ANALYSIS */
 
-# ifdef BIOLOGY
+# ifdef AN_UNDEFINED_CASE
+          indx=itrc
+# else
 #  ifdef SALINITY
           indx=min(itrc,isalt)
 #  else
           indx=min(itrc,itemp)
 #  endif
-# else
-          indx=itrc
 # endif
           do i=istr,iend
             FC(i,1)=dt*Akt(i,j,1,indx)/(z_r(i,j,2)-z_r(i,j,1))
@@ -373,9 +373,6 @@ c??         enddo
 # endif
       return
       end
-#else
-
-
 
 
       subroutine check_trc_adv_switches (ierr)
@@ -426,9 +423,6 @@ c??         enddo
       cpps(is:ie)='<compute_vert_tracer_fluxes.h>'
       MPI_master_only write(stdout,'(1x,A)') cpps(is:ie)
       is=ie+2
-
-      subroutine step3d_t_empty
-      end
 # ifdef SPLINES
       ie=is+6
       if (ie.gt.max_opt_size) goto 99
@@ -445,12 +439,13 @@ c??         enddo
 # endif
       return
   99  MPI_master_only write(stdout,'(/1x,2A/12x,A/)') '### ERROR: ',
-     &  'Unsufficient lenght of string "cpps" in file "strings.h".',
+     &  'Insufficient length of string "cpps" in file "strings.h".',
      &        'Increase parameter "max_opt_size" it and recompile.'
       ierr=ierr+1
       return
       end
 #else
-
+      subroutine step3d_t_empty
+      end
 #endif  /* SOLVE3D */
  

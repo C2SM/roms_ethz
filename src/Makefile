@@ -3,7 +3,7 @@
 # Set machine dependent definitions and rules.
 
 #include Makedefs.Intel
-include Makedefs.IntelEM64T
+#include Makedefs.IntelEM64T
 #include Makedefs.Intel_MPI
 #include  Makedefs.CMPI
 #include  Makedefs.Tungsten
@@ -13,6 +13,7 @@ include Makedefs.IntelEM64T
 #include Makedefs.GCC
 #include Makedefs.g95
 #include Makedefs.Fujitsu
+include Makedefs.Gonzales.ifort
 
 
 
@@ -26,6 +27,7 @@ include Makedefs.IntelEM64T
 #  3) 3D time stepping engine;    7) netCDF I/O routines;
 #  4) sea-water EOS routines;     8) model forcing routines; 
 #
+# Group 9 contains the new files for the NPZD code.
 
 KRNSRC = main.F		step2D_FB.F	read_inp.F	sta_par.F\
 	timers.F	setup_kwds.F	check_switches1.F\
@@ -50,7 +52,15 @@ KRNSRC = main.F		step2D_FB.F	read_inp.F	sta_par.F\
 \
 	exchange.F	mpi_setup.F	mpi_exchange8WA.F\
 \
-	lenstr.F	get_date.F
+	lenstr.F	get_date.F\
+\
+	CalcPar.F  carbon.F  co2calc_SWS.F  def_bgc_flux.F\
+        drtsafe.F  init_biopar.F  init_scalars_bgcflux.F  init_scalars_npzdoc.F\
+        init_scalars_physflux.F o2sato.F set_bgc_flux_avg.F\
+	ta_iter_SWS.F wrt_bgc_flux_avg.F wrt_bgc_flux_his.F\
+	def_phys_flux.F\
+	set_phys_flux_avg.F wrt_phys_flux_his.F wrt_phys_flux_avg.F\
+	biology.F  bio_diag.F
 
 
 IOSRC = nf_fread.F	nf_read_bry.F	set_cycle.F	checkdims.F\

@@ -566,11 +566,13 @@ c--# define OBC_M2ORLANSKI
 #endif
  
 #include "set_global_definitions.h"
- 
-#ifdef USWC_CENTRAL
-! HF:
+
+
 #define BIOLOGY_NPZDOC
-#define VFLX_CORR
+
+#ifdef BIOLOGY_NPZDOC
+! HF:
+!HF#define VFLX_CORR
 !#define TWO_CLIM_FILES
 #define DAILYPAR_PHOTOINHIBITION
 #define OXYGEN
@@ -582,9 +584,9 @@ c--# define OBC_M2ORLANSKI
 #define CALC_CARBON_ONCE
 #define USE_PH_SAVED
 #define SEDIMENT_BIOLOGY
-#define BGC_FLUX_ANALYSIS
+!HF#define BGC_FLUX_ANALYSIS
 #define BGC_FLUX_EXT_HIS_OUTPUT
-#define PHYS_FLUX_ANALYSIS
+!HF#define PHYS_FLUX_ANALYSIS
 !!#define VERT_DIFF_ANALYSIS
 #define FULL_PHYS_FLUX_ANALYSIS
 #endif

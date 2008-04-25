@@ -42,17 +42,18 @@
 # ifdef BIOLOGY
       integer indxNO3, indxNH4, indxChla,
      &        indxPhyt, indxZoo, indxSDet, indxLDet
-#  ifdef SALINITY
-      parameter (indxNO3=indxS+1)
-#  else
-      parameter (indxNO3=indxT+1)
-#  endif
+      parameter (indxNO3=indxT+ntrc_salt+ntrc_pas+1)
       parameter (indxNH4=indxNO3+1,  indxChla=indxNO3+2,
      &           indxPhyt=indxNO3+3, indxZoo=indxNO3+4,
      &           indxSDet=indxNO3+5, indxLDet=indxNO3+6)
-# endif
+# endif /* BIOLOGY */
       integer indxO, indxW, indxR, indxAkv, indxAkt
-      parameter (indxO=indxT+NT, indxW=indxO+1, indxR=indxO+2,
+      parameter (indxO=indxT+NT
+# ifdef SEDIMENT_BIOLOGY
+     &     + NT_sed
+# endif
+     &     )
+      parameter (indxW=indxO+1, indxR=indxO+2,
      &                     indxAkv=indxR+1, indxAkt=indxAkv+1)
 # ifdef SALINITY
       integer indxAks
@@ -104,8 +105,43 @@
      &                         indxHS=indxAi+4, indxTIsrf=indxAi+5)
 #endif
 
-
-
+#ifdef SOLVE3D
+# ifdef BIOLOGY_NPZDOC
+      integer indxNO3, indxNH4, indxChla,
+     &        indxPhyt, indxZoo, indxSDet, indxLDet
+      parameter (indxNO3=indxT+ntrc_salt+ntrc_pas+1)
+      parameter (indxNH4 =indxNO3+1, indxChla=indxNO3+2, 
+     &           indxPhyt=indxNO3+3, indxZoo=indxNO3+4, 
+     &           indxSDet=indxNO3+5, indxLDet=indxNO3+6)
+#  ifdef OXYGEN
+      integer indxO2
+      parameter (indxO2 = indxLDet + 1)
+#   ifdef CARBON 
+      integer indxDIC, indxTALK, indxSDetC, indxLDetC, indxCaCO3
+      parameter (indxDIC = indxO2 + 1)
+      parameter (indxTALK = indxDIC + 1)
+      parameter (indxSDetC = indxTALK + 1)
+      parameter (indxLDetC = indxSDetC + 1)
+      parameter (indxCaCO3 = indxLDetC + 1)
+#   endif /* CARBON */
+#  endif /* OXYGEN */
+#  ifdef SEDIMENT_BIOLOGY
+      integer indxSedOrgN
+#   ifdef CARBON
+      parameter (indxSedOrgN = indxCaCO3 + 1)
+      integer indxSedOrgC, indxSedCaCO3
+      parameter (indxSedOrgC = indxSedOrgN + 1)
+      parameter (indxSedCaCO3 = indxSedOrgC + 1)
+#   else /* CARBON */
+#    ifdef OXYGEN
+      parameter (indxSedOrgN = indxO2 + 1)
+#    else /* OXYGEN */
+      parameter (indxSedOrgN = indxLDet + 1)
+#    endif /* OXYGEN */
+#   endif /* CARBON */
+#  endif /* SEDIMENT_BIOLOGY */
+# endif /* BIOLOGY_NPZDOC */
+#endif /* SOLVE3D */
 
 
 
@@ -148,15 +184,14 @@
       parameter (max_frc_file=4)
       integer max_frc, ncidfrc(max_frc_file), nrst, ncidrst, nrecrst,
      &      nrrec, nrpfrst, ncidclm, nwrt, ncidhis, nrechis, nrpfhis
+#ifdef BIOLOGY_NPZDOC
+     &     , ncidclm2, ncidclm3
+#endif
       common /ncvars/       max_frc, ncidfrc, nrst, ncidrst, nrecrst,
      &      nrrec, nrpfrst, ncidclm, nwrt, ncidhis, nrechis, nrpfhis
-      
-
-
-
-
-
-
+#ifdef BIOLOGY_NPZDOC
+     &     , ncidclm2, ncidclm3
+#endif
 
 
 
@@ -186,9 +221,15 @@
 #ifdef SOLVE3D
       integer rstU, rstV, rstT(NT+1), hisO,   hisW,   hisR,
      &        hisU, hisV, hisT(NT+1), hisAkv, hisAkt, hisAks
+# ifdef SEDIMENT_BIOLOGY
+     &      , rstTsed(NT_sed), hisTsed(NT_sed)
+# endif /* SEDIMENT_BIOLOGY */
       common /ncvars/
      &        rstU, rstV, rstT,       hisO,   hisW,   hisR,
      &        hisU, hisV, hisT,       hisAkv, hisAkt, hisAks
+# ifdef SEDIMENT_BIOLOGY
+     &      , rstTsed, hisTsed
+# endif /* SEDIMENT_BIOLOGY */
 
 # ifdef LMD_KPP
       integer rstHbl, hisHbl
@@ -204,8 +245,14 @@
 # ifdef SOLVE3D
       integer avgU,  avgV,  avgT(NT+1), avgR,
      &        avgO,  avgW,  avgAkv,     avgAkt,  avgAks
+#  ifdef SEDIMENT_BIOLOGY
+     &      , avgTsed(NT_sed)
+#  endif /* SEDIMENT_BIOLOGY */
       common /ncvars/ avgU, avgV,       avgT,    avgR, 
      &        avgO,  avgW,  avgAkv,     avgAkt,  avgAks
+#  ifdef SEDIMENT_BIOLOGY
+     &      , avgTsed
+#  endif /* SEDIMENT_BIOLOGY */
 #  ifdef LMD_KPP
       integer avgHbl
       common /ncvars/ avgHbl
@@ -233,6 +280,7 @@
 #endif
 
 #ifdef SOLVE3D
+! Hartmut: # define NWRTHIS 130+NT
 # define NWRTHIS 16+NT-2
 #else
 # define NWRTHIS 14      
@@ -293,7 +341,13 @@
 #endif
 #if (defined TCLIMATOLOGY && !defined ANA_TCLIMA) || !defined ANA_SSH
       character*(max_name_size) clm_file
+# ifdef BIOLOGY_NPZDOC
+     & , clmname2, clmname3
+# endif
       common /cncvars/ clm_file
+# ifdef BIOLOGY_NPZDOC
+     & , clmname2, clmname3
+# endif
 #endif
 #if defined T_FRC_BRY  || defined M2_FRC_BRY || \
     defined M3_FRC_BRY || defined Z_FRC_BRY
@@ -309,11 +363,5 @@
       character*(max_name_size) aparnam, assname
       common /cncvars/ aparnam, assname
 #endif
-      character*42  vname(3,
-#ifdef BIOLOGY
-     &                       39+NT-2)
-#else
-     &                       39)
-#endif
+      character*42  vname(4,39+NT-2)
       common /cncvars/ vname
- 

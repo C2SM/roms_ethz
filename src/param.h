@@ -76,6 +76,8 @@ c     &               LLm=768, MMm=256, N=1
 c     &                LLm=60,  MMm=240,  N=24
 #elif defined UPWELLING
      &               LLm=20,  MMm=80,  N=16
+#elif defined HUMBOLDT
+     &               LLm=384, MMm=800, N=30       ! SAWC 8 km
 #elif defined USWEST
 # ifdef GRID_LEVEL
 #  if GRID_LEVEL == 1
@@ -92,8 +94,8 @@ c>>  &               LLm=72,   MMm=240, N=32    ! PEC2 of Xavier
 c**  &               LLm=62,   MMm=126, N=40    ! SCB L0 grid 
 c**  &               LLm=83,   MMm=168, N=20    ! MB_L1
 c**  &               LLm=126,  MMm=254, N=20    ! USWEST grid 16 
-
-     &               LLm=312,  MMm=512, N=32    ! USW8 - lev0, 8km
+     &		     LLm=62,   MMm=126, N=20    ! USWEST grid 15 (20 km)
+!HF     &               LLm=312,  MMm=512, N=32    ! USW8 - lev0, 8km
 
 # endif /* GRID_LEVEL */
 #elif defined USWC_CENTRAL
@@ -143,17 +145,16 @@ c      parameter (NSUB_X=1, NSUB_E=1)
 !------- -- ------- --- ------ -------------- --------
 !
 #ifdef SOLVE3D
-      integer NT, itemp
+      integer NT, itemp, ntrc_salt, ntrc_pas, ntrc_bio
 # ifdef SALINITY
      &          , isalt
 # endif
 # if defined BIOLOGY || defined BIOLOGY_NPZDOC
-     &          , ntrc_salt, ntrc_bio
      &          , itrc_bio
 #  ifdef SEDIMENT_BIOLOGY
      &     , NT_sed
 #  endif
-# endif /* BIOLOGY_NPZDOC */
+# endif /* BIOLOGY || BIOLOGY_NPZDOC */
 # ifdef BIOLOGY
      &          , iNO3_, iNH4_, iDet_, iPhyt, iZoo_
 # endif
@@ -179,16 +180,25 @@ c      parameter (NSUB_X=1, NSUB_E=1)
 # else
      &           , ntrc_salt=0
 # endif
-# ifdef BIOLOGY
-     &           , ntrc_bio=5, itrc_bio=itemp+ntrc_salt+1
-     &           , iNO3_=itrc_bio, iNH4_=iNO3_+1, iDet_=iNO3_+2
-     &           , iPhyt=iNO3_+3, iZoo_=iNO3_+4
-# elif !defined BIOLOGY_NPZDOC
-     &           , ntrc_bio=0
-# endif
      &     )
+# ifdef PASSIVE_TRACER
+      parameter (ntrc_pas=20)
+      integer itpas(ntrc_pas)
+      common /pass_tracer/ itpas
+# else
+      parameter (ntrc_pas=0)
+# endif
+
+# ifdef BIOLOGY
+      parameter (ntrc_bio=5, itrc_bio=itemp+ntrc_salt+ntrc_pas+1
+     &           , iNO3_=itrc_bio, iNH4_=iNO3_+1, iDet_=iNO3_+2
+     &           , iPhyt=iNO3_+3, iZoo_=iNO3_+4)
+# elif !defined BIOLOGY_NPZDOC
+      parameter (ntrc_bio=0)
+# endif
+
 # ifdef BIOLOGY_NPZDOC
-      parameter (itrc_bio=itemp+ntrc_salt+1) 
+      parameter (itrc_bio=itemp+ntrc_salt+ntrc_pas+1) 
       parameter (iNO3_=itrc_bio, 
      &            iNH4_=iNO3_+1, iChla=iNO3_+2, iPhyt=iNO3_+3,
      &            iZoo_=iNO3_+4, iSDet=iNO3_+5, iLDet=iNO3_+6)
@@ -219,9 +229,11 @@ c      parameter (NSUB_X=1, NSUB_E=1)
 #  endif /* SEDIMENT_BIOLOGY */
 # endif /* BIOLOGY_NPZDOC */
 
-      parameter (NT=itemp+ntrc_salt+ntrc_bio)
+      parameter (NT=itemp+ntrc_salt+ntrc_pas+ntrc_bio)
 
 #endif /*SOLVE3D */
+
+
 #ifdef PSOURCE
       integer Msrc         ! Number of point sources, if any
       parameter (Msrc=10)
