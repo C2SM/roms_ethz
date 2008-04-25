@@ -12,6 +12,11 @@
       real cff
       integer  lstr, lenstr, ierr, ierr_all, itrc
       integer  nf_read_bry_EW, nf_read_bry_NS 
+# ifdef T_FRC_BRY
+      integer lvar
+      character*40 vname_bry
+      logical bry_set
+# endif
 !
 ! Initialization: Check, whether boundary forcing file is already
 !---------------- opened, and if not, open it.  Find and save netCDF
@@ -69,6 +74,24 @@
           if (ierr.ne.nf_noerr) write(stdout,1) 'salt_west'
           ierr_all=ierr_all+ierr
 #    endif
+!HF: this includes PASSIVE_TRACER and all biogeochemical tracers
+! if none of these are defined, the starting index will be higher
+! than NT and the loop will not run
+          do itrc = itemp + ntrc_salt + 1, NT
+             lvar=lenstr(vname(1,itrc+indxT-itemp))
+             vname_bry = vname(1,itrc+indxT-itemp)(1:lvar)//'_west'
+
+             ierr=nf_inq_varid (bry_id, vname_bry,
+     &            t_west_id(itrc))
+! NOTE: as currently coded, only a warning is issued, not an error
+! default boundary conditions and/or error handling must be provided below!
+             if (ierr.ne.nf_noerr) then
+                write(stdout,11) vname_bry(1:lvar+5)
+! HF, apparently, a bogus variable ID is assigned if an error occurs, whose
+! usage later would cause problems
+                t_west_id(itrc) = 0
+             end if
+          end do
 #   endif
 #  endif
 # endif
@@ -105,6 +128,21 @@
           if (ierr.ne.nf_noerr) write(stdout,1) 'salt_east'
           ierr_all=ierr_all+ierr
 #    endif
+          do itrc = itemp + ntrc_salt + 1, NT
+             lvar=lenstr(vname(1,itrc+indxT-itemp))
+             vname_bry = vname(1,itrc+indxT-itemp)(1:lvar)//'_east'
+
+             ierr=nf_inq_varid (bry_id, vname_bry,
+     &            t_east_id(itrc))
+! NOTE: as currently coded, only a warning is issued, not an error
+! default boundary conditions and/or error handling must be provided below!
+             if (ierr.ne.nf_noerr) then
+                write(stdout,11) vname_bry(1:lvar+5)
+! HF, apparently, a bogus variable ID is assigned if an error occurs, whose
+! usage later would cause problems
+                t_east_id(itrc) = 0
+             end if
+          end do
 #   endif
 #  endif
 # endif
@@ -141,6 +179,21 @@
           if (ierr.ne.nf_noerr) write(stdout,1) 'salt_south'
           ierr_all=ierr_all+ierr
 #    endif
+          do itrc = itemp + ntrc_salt + 1, NT
+             lvar=lenstr(vname(1,itrc+indxT-itemp))
+             vname_bry = vname(1,itrc+indxT-itemp)(1:lvar)//'_south'
+
+             ierr=nf_inq_varid (bry_id, vname_bry,
+     &            t_south_id(itrc))
+! NOTE: as currently coded, only a warning is issued, not an error
+! default boundary conditions and/or error handling must be provided below!
+             if (ierr.ne.nf_noerr) then
+                write(stdout,11) vname_bry(1:lvar+6)
+! HF, apparently, a bogus variable ID is assigned if an error occurs, whose
+! usage later would cause problems
+                t_south_id(itrc) = 0
+             end if
+          end do
 #   endif
 #  endif
 # endif
@@ -177,6 +230,22 @@
           if (ierr.ne.nf_noerr) write(stdout,1) 'salt_north'
           ierr_all=ierr_all+ierr
 #    endif
+          do itrc = itemp + ntrc_salt + 1, NT
+             lvar=lenstr(vname(1,itrc+indxT-itemp))
+             vname_bry = vname(1,itrc+indxT-itemp)(1:lvar)//'_north'
+
+             ierr=nf_inq_varid (bry_id, vname_bry,
+     &            t_north_id(itrc))
+! NOTE: as currently coded, only a warning is issued, not an error
+! default boundary conditions and/or error handling must be provided below!
+             if (ierr.ne.nf_noerr) then
+                write(stdout,11) vname_bry(1:lvar+6)
+! HF, apparently, a bogus variable ID is assigned if an error occurs, whose
+! usage later would cause problems
+                t_north_id(itrc) = 0
+             end if
+
+          end do
 #   endif
 #  endif
 # endif
@@ -194,6 +263,8 @@
         endif
       endif
   1   format(' ERROR in get_all_bry: cannot find variable ''',A,'''')
+  11   format(' NOTE in get_all_bry: cannot find variable ''',A,'''')
+
 !
 ! Read data from the file:  Check if model time is bounded by past
 !----- ---- ---- --- -----  and future data times: if not, increment
@@ -238,14 +309,85 @@
 #   endif
 #   ifdef T_FRC_BRY
             do itrc=1,NT
-              ierr=nf_read_bry_EW (t_west_dt(0,1,itbry,itrc), bry_id,
-     &                             t_west_id(itrc),  bry_rec, r3dvar)
-              if (ierr.ne.nf_noerr)  write(stdout,2)  'trc_west'
-              ierr_all=ierr_all+ierr
+               bry_set = .false.
+               lvar=lenstr(vname(1,indxT+itrc-1))
+               vname_bry=vname(1,indxT+itrc-1)(1:lvar)//'_west'
+               if (t_west_id(itrc) .gt. 0) then
+                  ierr=nf_read_bry_EW (t_west_dt(0,1,itbry,itrc), 
+     &                 bry_id, t_west_id(itrc),  bry_rec, r3dvar)
+                  if (ierr.ne.nf_noerr)  then
+                     if (itrc .le. 1 + ntrc_salt) then
+                        write(stdout,2)  vname_bry(1:lvar+5)
+                        ierr_all=ierr_all+ierr
+                     end if
+                  else
+                     bry_set = .true.   
+                  end if
+               end if
+! HF: NOTE carefully: if other tracers are used that are not covered
+! by the currently defined cases, code for default values (or errors)
+! must be added
+#    ifdef PASSIVE_TRACER
+               if (.not. bry_set .and. itrc .ge. itpas(1) .and. 
+     &              itrc .le. itpas(ntrc_pas)) then
+                  ierr = 0
+                  write(stdout,3)  vname_bry(1:lvar+5)
+                  t_west_dt(:,:,itbry,itrc) = 0.0
+!HF: assume a special case: if number of passive tracers equals number
+! of sigma levels, use each passive tracer to track advection/diffusion
+! from one sigma level
+                  if (ntrc_pas .eq. N) then
+!HF concentration is 1 in layer equal to index, 0 otherwise
+                     t_west_dt(:,itrc-itpas(1)+1,itbry,itrc) = 1.0
+                  end if
+               end if
+#    endif /* PASSIVE_TRACER */
+
+#    ifdef BIOLOGY_NPZDOC
+! do not provide defaults for selected biogeochemical variables
+               if (.not. bry_set .and. itrc .ge. iNO3_ .and. 
+     &              itrc .le. iNO3_ + ntrc_bio - 1) then
+                  if (itrc .eq. iNO3_
+#     ifdef OXYGEN
+     &                 .or. itrc .eq. iO2
+#     endif
+#     ifdef CARBON
+     &                 .or. itrc .eq. iDIC .or. itrc .eq. iTALK
+#     endif
+     &                 ) then
+                     write(stdout,2)  vname_bry(1:lvar+5)
+                     ierr_all=ierr_all+ierr
+                  else
+                     ierr = 0
+                     write(stdout,3)  vname_bry(1:lvar+5)
+                     if (itrc .eq. iNH4_) then
+                        t_west_dt(:,:,itbry,itrc) = 0.0
+                     else if (itrc .eq. iChla) then
+                        t_west_dt(:,:,itbry,itrc) = 0.10
+                     else if (itrc .eq. iPhyt) then
+                        t_west_dt(:,:,itbry,itrc) = 0.05
+                     else if (itrc .eq. iZoo_) then
+                        t_west_dt(:,:,itbry,itrc) = 0.02
+                     else if (itrc .eq. iSDet) then
+                        t_west_dt(:,:,itbry,itrc) = 0.0
+                     else if (itrc .eq. iLDet) then
+                        t_west_dt(:,:,itbry,itrc) = 0.0
+#     ifdef CARBON
+                     else if (itrc .eq. iSDetC) then
+                        t_west_dt(:,:,itbry,itrc) = 0.0
+                     else if (itrc .eq. iLDetC) then
+                        t_west_dt(:,:,itbry,itrc) = 0.0
+                     else if (itrc .eq. iCaCO3) then
+                        t_west_dt(:,:,itbry,itrc) = 0.0
+#     endif
+                     end if
+                  end if
+               end if
+#    endif /* BIOLOGY_NPZDOC */
             enddo
-#   endif
-#  endif
-# endif
+#   endif /* T_FRC_BRY */
+#  endif /* SOLVE3D */
+# endif /* OBC_WEST */
 
 # ifdef OBC_EAST
 #  ifdef Z_FRC_BRY
@@ -277,14 +419,86 @@
 #   endif
 #   ifdef T_FRC_BRY
             do itrc=1,NT
-              ierr=nf_read_bry_EW (t_east_dt(0,1,itbry,itrc), bry_id,
-     &                             t_east_id(itrc),  bry_rec, r3dvar)
-              if (ierr.ne.nf_noerr)  write(stdout,2)  'trc_east'
-              ierr_all=ierr_all+ierr
+               bry_set = .false.
+               lvar=lenstr(vname(1,indxT+itrc-1))
+               vname_bry = vname(1,indxT+itrc-1)(1:lvar)//'_east'
+               if (t_east_id(itrc) .gt. 0) then
+                  ierr=nf_read_bry_EW (t_east_dt(0,1,itbry,itrc),
+     &                 bry_id, t_east_id(itrc),  bry_rec, r3dvar)
+                  if (ierr.ne.nf_noerr)  then
+                     if (itrc .le. 1 + ntrc_salt) then
+                        write(stdout,2)  vname_bry(1:lvar+5)
+                        ierr_all=ierr_all+ierr
+                     end if
+                  else
+                     bry_set = .true.   
+                  end if
+               end if
+! HF: NOTE carefully: if other tracers are used that are not covered
+! by the currently defined cases, code for default values (or errors)
+! must be added
+#    ifdef PASSIVE_TRACER
+               if (.not. bry_set .and. itrc .ge. itpas(1) .and. 
+     &              itrc .le. itpas(ntrc_pas)) then
+                  ierr = 0
+                  write(stdout,3)  vname_bry(1:lvar+5)
+                  t_east_dt(:,:,itbry,itrc) = 0.0
+!HF: assume a special case: if number of passive tracers equals number
+! of sigma levels, use each passive tracer to track advection/diffusion
+! from one sigma level
+                  if (ntrc_pas .eq. N) then
+!HF concentration is 1 in layer equal to index, 0 otherwise
+                     t_east_dt(:,itrc-itpas(1)+1,itbry,itrc) = 1.0
+                  end if
+               end if
+#    endif /* PASSIVE_TRACER */
+
+#    ifdef BIOLOGY_NPZDOC
+! do not provide defaults for selected biogeochemical variables
+               if (.not. bry_set .and. itrc .ge. iNO3_ .and. 
+     &              itrc .le. iNO3_ + ntrc_bio - 1) then
+                  if (itrc .eq. iNO3_
+#     ifdef OXYGEN
+     &                 .or. itrc .eq. iO2
+#     endif
+#     ifdef CARBON
+     &                 .or. itrc .eq. iDIC .or. itrc .eq. iTALK
+#     endif
+     &                 ) then
+                     write(stdout,2)  vname_bry(1:lvar+5)
+                     ierr_all=ierr_all+ierr
+                  else
+                     ierr = 0
+                     write(stdout,3)  vname_bry(1:lvar+5)
+                     if (itrc .eq. iNH4_) then
+                        t_east_dt(:,:,itbry,itrc) = 0.0
+                     else if (itrc .eq. iChla) then
+                        t_east_dt(:,:,itbry,itrc) = 0.10
+                     else if (itrc .eq. iPhyt) then
+                        t_east_dt(:,:,itbry,itrc) = 0.05
+                     else if (itrc .eq. iZoo_) then
+                        t_east_dt(:,:,itbry,itrc) = 0.02
+                     else if (itrc .eq. iSDet) then
+                        t_east_dt(:,:,itbry,itrc) = 0.0
+                     else if (itrc .eq. iLDet) then
+                        t_east_dt(:,:,itbry,itrc) = 0.0
+#     ifdef CARBON
+                     else if (itrc .eq. iSDetC) then
+                        t_east_dt(:,:,itbry,itrc) = 0.0
+                     else if (itrc .eq. iLDetC) then
+                        t_east_dt(:,:,itbry,itrc) = 0.0
+                     else if (itrc .eq. iCaCO3) then
+                        t_east_dt(:,:,itbry,itrc) = 0.0
+#     endif
+                     end if
+                  end if
+               end if
+#    endif /* BIOLOGY_NPZDOC */
             enddo
-#   endif
-#  endif
-# endif
+#   endif /* T_FRC_BRY */
+#  endif /* SOLVE3D */
+# endif /* OBC_EAST */
+
 
 # ifdef OBC_SOUTH
 #  ifdef Z_FRC_BRY
@@ -317,14 +531,85 @@
 #   endif
 #   ifdef T_FRC_BRY
             do itrc=1,NT
-              ierr=nf_read_bry_NS (t_south_dt(0,1,itbry,itrc), bry_id,
-     &                             t_south_id(itrc),  bry_rec, r3dvar)
-              if (ierr.ne.nf_noerr) write(stdout,2) 'trc_south'
-              ierr_all=ierr_all+ierr
+               bry_set = .false.
+               lvar=lenstr(vname(1,indxT+itrc-1))
+               vname_bry = vname(1,indxT+itrc-1)(1:lvar)//'_south'
+               if (t_south_id(itrc) .gt. 0) then
+                  ierr=nf_read_bry_NS (t_south_dt(0,1,itbry,itrc),
+     &                 bry_id, t_south_id(itrc),  bry_rec, r3dvar)
+                  if (ierr.ne.nf_noerr)  then
+                     if (itrc .le. 1 + ntrc_salt) then
+                        write(stdout,2)  vname_bry(1:lvar+6)
+                        ierr_all=ierr_all+ierr
+                     end if
+                  else
+                     bry_set = .true.   
+                  end if
+               end if
+! HF: NOTE carefully: if other tracers are used that are not covered
+! by the currently defined cases, code for default values (or errors)
+! must be added
+#    ifdef PASSIVE_TRACER
+               if (.not. bry_set .and. itrc .ge. itpas(1) .and. 
+     &              itrc .le. itpas(ntrc_pas)) then
+                  ierr = 0
+                  write(stdout,3)  vname_bry(1:lvar+6)
+                  t_south_dt(:,:,itbry,itrc) = 0.0
+!HF: assume a special case: if number of passive tracers equals number
+! of sigma levels, use each passive tracer to track advection/diffusion
+! from one sigma level
+                  if (ntrc_pas .eq. N) then
+!HF concentration is 1 in layer equal to index, 0 otherwise
+                     t_south_dt(:,itrc-itpas(1)+1,itbry,itrc) = 1.0
+                  end if
+               end if
+#    endif /* PASSIVE_TRACER */
+
+#    ifdef BIOLOGY_NPZDOC
+! do not provide defaults for selected biogeochemical variables
+               if (.not. bry_set .and. itrc .ge. iNO3_ .and. 
+     &              itrc .le. iNO3_ + ntrc_bio - 1) then
+                  if (itrc .eq. iNO3_
+#     ifdef OXYGEN
+     &                 .or. itrc .eq. iO2
+#     endif
+#     ifdef CARBON
+     &                 .or. itrc .eq. iDIC .or. itrc .eq. iTALK
+#     endif
+     &                 ) then
+                     write(stdout,2)  vname_bry(1:lvar+6)
+                     ierr_all=ierr_all+ierr
+                  else
+                     ierr = 0
+                     write(stdout,3)  vname_bry(1:lvar+6)
+                     if (itrc .eq. iNH4_) then
+                        t_south_dt(:,:,itbry,itrc) = 0.0
+                     else if (itrc .eq. iChla) then
+                        t_south_dt(:,:,itbry,itrc) = 0.10
+                     else if (itrc .eq. iPhyt) then
+                        t_south_dt(:,:,itbry,itrc) = 0.05
+                     else if (itrc .eq. iZoo_) then
+                        t_south_dt(:,:,itbry,itrc) = 0.02
+                     else if (itrc .eq. iSDet) then
+                        t_south_dt(:,:,itbry,itrc) = 0.0
+                     else if (itrc .eq. iLDet) then
+                        t_south_dt(:,:,itbry,itrc) = 0.0
+#     ifdef CARBON
+                     else if (itrc .eq. iSDetC) then
+                        t_south_dt(:,:,itbry,itrc) = 0.0
+                     else if (itrc .eq. iLDetC) then
+                        t_south_dt(:,:,itbry,itrc) = 0.0
+                     else if (itrc .eq. iCaCO3) then
+                        t_south_dt(:,:,itbry,itrc) = 0.0
+#     endif
+                     end if
+                  end if
+               end if
+#    endif /* BIOLOGY_NPZDOC */
             enddo
-#   endif
-#  endif
-# endif
+#   endif /* T_FRC_BRY */
+#  endif /* SOLVE3D */
+# endif /* OBC_SOUTH */
 
 # ifdef OBC_NORTH
 #  ifdef Z_FRC_BRY
@@ -356,14 +641,86 @@
 #   endif
 #   ifdef T_FRC_BRY
             do itrc=1,NT
-              ierr=nf_read_bry_NS (t_north_dt(0,1,itbry,itrc), bry_id,
-     &                             t_north_id(itrc),  bry_rec, r3dvar)
-              if (ierr.ne.nf_noerr)  write(stdout,2)  'temp_north'
-              ierr_all=ierr_all+ierr
+               bry_set = .false.
+               lvar=lenstr(vname(1,indxT+itrc-1))
+               vname_bry = vname(1,indxT+itrc-1)(1:lvar)//'_north'
+               if (t_north_id(itrc) .gt. 0) then
+                  ierr=nf_read_bry_NS (t_north_dt(0,1,itbry,itrc),
+     &                 bry_id, t_north_id(itrc),  bry_rec, r3dvar)
+                  if (ierr.ne.nf_noerr)  then
+                     if (itrc .le. 1 + ntrc_salt) then
+                        write(stdout,2)  vname_bry(1:lvar+6)
+                        ierr_all=ierr_all+ierr
+                     end if
+                  else
+                     bry_set = .true.   
+                  end if
+               end if
+! HF: NOTE carefully: if other tracers are used that are not covered
+! by the currently defined cases, code for default values (or errors)
+! must be added
+#    ifdef PASSIVE_TRACER
+               if (.not. bry_set .and. itrc .ge. itpas(1) .and. 
+     &              itrc .le. itpas(ntrc_pas)) then
+                  ierr = 0
+                  write(stdout,3)  vname_bry(1:lvar+6)
+                  t_north_dt(:,:,itbry,itrc) = 0.0
+!HF: assume a special case: if number of passive tracers equals number
+! of sigma levels, use each passive tracer to track advection/diffusion
+! from one sigma level
+                  if (ntrc_pas .eq. N) then
+!HF concentration is 1 in layer equal to index, 0 otherwise
+                     t_north_dt(:,itrc-itpas(1)+1,itbry,itrc) = 1.0
+                  end if
+               end if
+#    endif /* PASSIVE_TRACER */
+
+#    ifdef BIOLOGY_NPZDOC
+! do not provide defaults for selected biogeochemical variables
+               if (.not. bry_set .and. itrc .ge. iNO3_ .and. 
+     &              itrc .le. iNO3_ + ntrc_bio - 1) then
+                  if (itrc .eq. iNO3_
+#     ifdef OXYGEN
+     &                 .or. itrc .eq. iO2
+#     endif
+#     ifdef CARBON
+     &                 .or. itrc .eq. iDIC .or. itrc .eq. iTALK
+#     endif
+     &                 ) then
+                     write(stdout,2)  vname_bry(1:lvar+6)
+                     ierr_all=ierr_all+ierr
+                  else
+                     ierr = 0
+                     write(stdout,3)  vname_bry(1:lvar+6)
+                     if (itrc .eq. iNH4_) then
+                        t_north_dt(:,:,itbry,itrc) = 0.0
+                     else if (itrc .eq. iChla) then
+                        t_north_dt(:,:,itbry,itrc) = 0.10
+                     else if (itrc .eq. iPhyt) then
+                        t_north_dt(:,:,itbry,itrc) = 0.05
+                     else if (itrc .eq. iZoo_) then
+                        t_north_dt(:,:,itbry,itrc) = 0.02
+                     else if (itrc .eq. iSDet) then
+                        t_north_dt(:,:,itbry,itrc) = 0.0
+                     else if (itrc .eq. iLDet) then
+                        t_north_dt(:,:,itbry,itrc) = 0.0
+#     ifdef CARBON
+                     else if (itrc .eq. iSDetC) then
+                        t_north_dt(:,:,itbry,itrc) = 0.0
+                     else if (itrc .eq. iLDetC) then
+                        t_north_dt(:,:,itbry,itrc) = 0.0
+                     else if (itrc .eq. iCaCO3) then
+                        t_north_dt(:,:,itbry,itrc) = 0.0
+#     endif
+                     end if
+                  end if
+               end if
+#    endif /* BIOLOGY_NPZDOC */
             enddo
-#   endif
-#  endif
-# endif
+#   endif /* T_FRC_BRY */
+#  endif /* SOLVE3D */
+# endif /* OBC_NORTH */
+
             ierr=ierr_all
             if (ierr.eq.0) then
               write(stdout,'(6x,A,2x,A,F12.4,2(1x,A,I4))')
@@ -387,6 +744,8 @@
         endif
       enddo
   2   format(' ERROR in get_bry_all: cannot read variable ''',A,'''')
+ 3    format('  NOTE in get_bry_all: cannot read variable ''',A,'''/',
+     &     ' - using default values')
       return
       end 
 
@@ -397,6 +756,7 @@
       integer istr,iend,jstr,jend, ierr, imin,imax,jmin,jmax,
      &                                   i,j,k, it1,it2, itrc
       real cff, cff1,cff2
+
 # include "param.h"
 # include "scalars.h"
 # include  "boundary.h"

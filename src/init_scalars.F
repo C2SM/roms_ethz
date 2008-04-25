@@ -10,6 +10,10 @@
 !
       implicit none
       integer ierr, i,j
+#ifdef PASSIVE_TRACER
+      integer itrc
+      character*3 c_indx
+#endif
 #define ALL_DATA
 #include "param.h"
 #include "scalars.h"
@@ -202,6 +206,27 @@ CR      write(stdout,'(1x,A,I3)') 'indxS = ',indxS
       vname(2,indxS)='salinity                                  '
       vname(3,indxS)='PSU                                       '
 # endif
+
+# ifdef PASSIVE_TRACER
+      do itrc = 1, ntrc_pas
+         itpas(itrc) = itemp + ntrc_salt + itrc
+      end do
+!
+      do itrc = indxT+ntrc_salt+1,indxT+ntrc_salt+ntrc_pas
+         if (itrc-indxT-ntrc_salt .lt. 10) then
+            write (c_indx, '(i1)') itrc-indxT-ntrc_salt
+         else if (itrc-indxT-ntrc_salt .lt. 100) then
+            write (c_indx, '(i2)') itrc-indxT-ntrc_salt
+         else
+            write (c_indx, '(i3)') itrc-indxT-ntrc_salt
+         end if
+         vname(1,itrc) = 'tpas'//trim(c_indx)
+         vname(2,itrc) = 'passive tracer '//c_indx
+         vname(3,itrc)='no unit'
+         vname(4,itrc)='passive tracer, scalar, series'
+      end do
+# endif
+
 # ifdef BIOLOGY
 CR      write(stdout,'(1x,A,I3)') 'indxNO3 =',indxNO3
       vname(1,indxNO3)='NO3                                       '

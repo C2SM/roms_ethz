@@ -431,9 +431,24 @@ c**      start_time=start_time - 20.*360. *day2sec
      &                                            nf_strerror(ierr)
 CDL Don't stop if no initial conditions are found. Start with 0 conc.
 CDL instead:
-          write(stdout,'(3a)') 'Start with zero concentration for ',
-     &       'variable ', vname(1,indxT+itrc-1)(1:lvar)
+# ifdef PASSIVE_TRACER
+! HF: assume a special case: if number of passive tracers equals number
+! of sigma levels, use each passive tracer to track advection/diffusion
+! from one sigma level
+          if (ntrc_pas .eq. N .and.
+     &         (itrc .ge. itpas(1) .and. itrc .le. itpas(N)) ) then
+             write(stdout,'(3a)') 'Start with unit concentration for ',
+     &            'variable ', vname(1,indxT+itrc-1)(1:lvar)
+!HF concentration is 1 in layer equal to index, 0 otherwise
+             t(:,:,itrc-itpas(1)+1,tindx,itrc) = 1.0
+          else
+# endif
+             write(stdout,'(3a)') 'Start with zero concentration for ',
+     &            'variable ', vname(1,indxT+itrc-1)(1:lvar)
 CDL          goto 99                                         !--> ERROR
+# ifdef PASSIVE_TRACER
+          end if
+# endif
         endif
       enddo
 # ifdef SEDIMENT_BIOLOGY
