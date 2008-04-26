@@ -950,11 +950,11 @@ c--      fname='roms.in.US_West'
 !
 ! Parameters for the sponge layers
 !
-         elseif (keyword(1:kwlen).eq.'v_sponge') then
+         elseif (keyword(1:kwlen).eq.'sponge') then
            call cancel_kwd (keyword(1:kwlen), ierr)
-           read(input,*,err=95) v_sponge
-!hf           MPI_master_only write(stdout,'(1pe10.2,2x,A)')
-!hf     &       x_sponge,'x_sponge Thickness of sponge layer (m)'
+           read(input,*,err=95) x_sponge,v_sponge
+           MPI_master_only write(stdout,'(1pe10.2,2x,A)')
+     &       x_sponge,'x_sponge Thickness of sponge layer (m)'
            MPI_master_only write(stdout,'(f10.2,2x,A)')
      &       v_sponge,'v_sponge Viscosity in sponge layer (m2/s)'
 # endif

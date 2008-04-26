@@ -322,17 +322,17 @@
 
 #if defined TWO_CLIM_FILES
                 if (itrc .ge. iNO3_) then
-                  ierr=nf_fread (tclima(START_2D_ARRAY,1,i,itrc),
+              ierr=nf_fread (tclima(START_2D_ARRAY,1,ittclm(itrc),itrc),
      &                    ncidclm2, tclm_id(itrc),
      &                    tclm_rec(itrc), r3dvar)
                 else
 #elif defined THREE_CLIM_FILES
                 if (itrc .ge. iNO3_ .and. itrc .le. iLDet) then
-                  ierr=nf_fread (tclima(START_2D_ARRAY,1,i,itrc),
+              ierr=nf_fread (tclima(START_2D_ARRAY,1,ittclm(itrc),itrc),
      &                    ncidclm2, tclm_id(itrc),
      &                    tclm_rec(itrc), r3dvar)
                 else if (itrc .gt. iLDet) then
-                  ierr=nf_fread (tclima(START_2D_ARRAY,1,i,itrc),
+              ierr=nf_fread (tclima(START_2D_ARRAY,1,ittclm(itrc),itrc),
      &                    ncidclm3, tclm_id(itrc),
      &                    tclm_rec(itrc), r3dvar)
                 else
@@ -372,6 +372,10 @@
 
   4   format(/1x,'ERROR in get_tclima: cannot read variable ''',
      &                  A, ''', itrc =', I3, ' for record', I3/)
+
+  5   format(/1x,'ERROR in get_tclima: cannot open file ''',
+     &                  A, '''.'/)
+
 #if defined TWO_CLIM_FILES || defined THREE_CLIM_FILES
  22   write(stdout,5) clmname2(1:lstr)
       goto 99

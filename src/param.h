@@ -99,7 +99,8 @@ c**  &               LLm=126,  MMm=254, N=20    ! USWEST grid 16
 
 # endif /* GRID_LEVEL */
 #elif defined USWC_CENTRAL
-     &               LLm=83, MMm=168, N=20
+c**     &               LLm=83, MMm=168, N=32
+     &               LLm=248, MMm=504, N=32   ! new 5km config
 #elif defined WAVE_RAD
      &              LLm=384,  MMm=384, N=1
 #else
@@ -116,7 +117,7 @@ c**  &               LLm=126,  MMm=254, N=20    ! USWEST grid 16
       integer NSUB_X, NSUB_E
 #ifdef MPI
       integer NP_XI, NP_ETA, NNODES
-      parameter (NP_XI=4, NP_ETA=8, NSUB_X=1, NSUB_E=1)
+      parameter (NP_XI=8, NP_ETA=8, NSUB_X=1, NSUB_E=1)
       parameter (NNODES=NP_XI*NP_ETA)
 #else
 c        parameter (NSUB_X=4, NSUB_E=60)
