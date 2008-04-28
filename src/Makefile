@@ -13,8 +13,8 @@
 #include Makedefs.GCC
 #include Makedefs.g95
 #include Makedefs.Fujitsu
-include Makedefs.Gonzales.ifort
-
+#include Makedefs.Gonzales.ifort
+include Makedefs.IntelBrutus
 
 
 
