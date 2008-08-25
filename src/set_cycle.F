@@ -78,7 +78,8 @@
 ! means that no recycling will be performed).
 !
       if (ierr.eq.nf_noerr) then
-        if (ntime.gt.1) then
+!DL        if (ntime.gt.1) then
+        if (ntime.ge.1) then
           i=0
           do while (i.lt.nvatts .and. ierr.eq.nf_noerr)
             i=i+1

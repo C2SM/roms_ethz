@@ -47,14 +47,14 @@
      &           indxPhyt=indxNO3+3, indxZoo=indxNO3+4,
      &           indxSDet=indxNO3+5, indxLDet=indxNO3+6)
 # endif /* BIOLOGY */
-      integer indxO, indxW, indxR, indxAkv, indxAkt
+      integer indxO, indxW, indxR, indxAkv, indxAkt, indxRich
       parameter (indxO=indxT+NT
 # ifdef SEDIMENT_BIOLOGY
      &     + NT_sed
 # endif
      &     )
       parameter (indxW=indxO+1, indxR=indxO+2,
-     &                     indxAkv=indxR+1, indxAkt=indxAkv+1)
+     &     indxAkv=indxR+1, indxRich=indxAkv+1, indxAkt=indxAkv+2)
 # ifdef SALINITY
       integer indxAks
       parameter (indxAks=indxAkt+1)
@@ -89,10 +89,16 @@
       integer indxSST, indxdQdSST, indxSSS
       parameter (indxSST=indxSWRad+1, indxdQdSST=indxSST+1,
      &                                   indxSSS=indxSST+2)
+# ifdef BIOLOGY_BEC
+      integer indxdust
+      parameter (indxdust=indxSST+3)
+      integer indxiron
+      parameter (indxiron=indxSST+4)
+# endif
 # ifdef SG_BBL96
 #  ifndef ANA_WWAVE
       integer indxWWA,indxWWD,indxWWP
-      parameter (indxWWA=indxSSS+1,   indxWWD=indxWWA+1,
+      parameter (indxWWA=indxSST+5,   indxWWD=indxWWA+1,
      &                                indxWWP=indxWWA+2)
 #  endif
 # endif
@@ -141,6 +147,25 @@
 #   endif /* CARBON */
 #  endif /* SEDIMENT_BIOLOGY */
 # endif /* BIOLOGY_NPZDOC */
+# ifdef BIOLOGY_BEC
+       integer indxPo4,indxNo3,indxSio3,indxNh4,indxFe,indxO2,indxDic,
+     &   indxAlk,indxDoc,indxSpc,indxSpchl,indxSpcaco3,indxDiatc,indxDiatchl,
+     & indxZooc,indxSpfe,indxDiatsi,indxDiatfe,indxDiazc,indxDiazchl,
+     & indxDiazfe,indxDon,indxDofe,indxDop,indxPH
+       parameter ( indxPO4=indxT+ntrc_salt+ntrc_pas+1,
+     &           indxNo3 =indxPO4+1, indxSio3=indxPO4+2,
+     &           indxNh4 =indxPO4+3, indxFe=indxPO4+4,
+     &           indxO2 =indxPO4+5, indxDic=indxPO4+6,
+     &           indxAlk =indxPO4+7, indxDoc=indxPO4+8,
+     &           indxSpc =indxPO4+9, indxSpchl=indxPO4+10,
+     &           indxSpcaco3 =indxPO4+11, indxDiatc=indxPO4+12,
+     &           indxDiatchl =indxPO4+13, indxZooc=indxPO4+14,
+     &           indxSpfe =indxPO4+15, indxDiatsi=indxPO4+16,
+     &           indxDiatfe =indxPO4+17, indxDiazc=indxPO4+18,
+     &           indxDiazchl =indxPO4+19, indxDiazfe=indxPO4+20,
+     &           indxDon =indxPO4+21, indxDofe=indxPO4+22,
+     &           indxDop =indxPO4+23, indxPH =indxPO4+24)
+# endif /* BIOLOGY_BEC */
 #endif /* SOLVE3D */
 
 
@@ -187,12 +212,17 @@
 #ifdef BIOLOGY_NPZDOC
      &     , ncidclm2, ncidclm3
 #endif
+#ifdef BIOLOGY_BEC
+     &     , ncidclm2, ncidclm3, ncidclm4, ntdust, ntiron
+#endif
       common /ncvars/       max_frc, ncidfrc, nrst, ncidrst, nrecrst,
      &      nrrec, nrpfrst, ncidclm, nwrt, ncidhis, nrechis, nrpfhis
 #ifdef BIOLOGY_NPZDOC
      &     , ncidclm2, ncidclm3
 #endif
-
+#ifdef BIOLOGY_BEC
+     &     , ncidclm2, ncidclm3, ncidclm4, ntdust, ntiron
+#endif
 
 
 
@@ -220,13 +250,19 @@
      &        hisTime, hisTstep,      hisZ,   hisUb,  hisVb
 #ifdef SOLVE3D
       integer rstU, rstV, rstT(NT+1), hisO,   hisW,   hisR,
-     &        hisU, hisV, hisT(NT+1), hisAkv, hisAkt, hisAks
+     &        hisU, hisV, hisT(NT+1), hisAkv, hisAkt, hisAks, hisRich
+# ifdef BIOLOGY_BEC
+     &      , rstPH
+# endif
 # ifdef SEDIMENT_BIOLOGY
      &      , rstTsed(NT_sed), hisTsed(NT_sed)
 # endif /* SEDIMENT_BIOLOGY */
       common /ncvars/
      &        rstU, rstV, rstT,       hisO,   hisW,   hisR,
-     &        hisU, hisV, hisT,       hisAkv, hisAkt, hisAks
+     &        hisU, hisV, hisT,       hisAkv, hisAkt, hisAks, hisRich
+# ifdef BIOLOGY_BEC
+     &      , rstPH
+# endif
 # ifdef SEDIMENT_BIOLOGY
      &      , rstTsed, hisTsed
 # endif /* SEDIMENT_BIOLOGY */
@@ -244,12 +280,12 @@
      &        avgTime, avgTstep, avgZ,    avgUb, avgVb
 # ifdef SOLVE3D
       integer avgU,  avgV,  avgT(NT+1), avgR,
-     &        avgO,  avgW,  avgAkv,     avgAkt,  avgAks
+     &        avgO,  avgW,  avgAkv,     avgAkt,  avgAks, avgRich
 #  ifdef SEDIMENT_BIOLOGY
      &      , avgTsed(NT_sed)
 #  endif /* SEDIMENT_BIOLOGY */
       common /ncvars/ avgU, avgV,       avgT,    avgR, 
-     &        avgO,  avgW,  avgAkv,     avgAkt,  avgAks
+     &        avgO,  avgW,  avgAkv,     avgAkt,  avgAks, avgRich
 #  ifdef SEDIMENT_BIOLOGY
      &      , avgTsed
 #  endif /* SEDIMENT_BIOLOGY */
@@ -342,11 +378,17 @@
 #if (defined TCLIMATOLOGY && !defined ANA_TCLIMA) || !defined ANA_SSH
       character*(max_name_size) clm_file
 # ifdef BIOLOGY_NPZDOC
-     & , clmname2, clmname3
+     & , clm_file2, clm_file3
+# endif
+# ifdef BIOLOGY_BEC
+     & , clm_file2, clm_file3, clm_file4
 # endif
       common /cncvars/ clm_file
 # ifdef BIOLOGY_NPZDOC
-     & , clmname2, clmname3
+     & , clm_file2, clm_file3
+# endif
+# ifdef BIOLOGY_BEC
+     & , clm_file2, clm_file3, clm_file4
 # endif
 #endif
 #if defined T_FRC_BRY  || defined M2_FRC_BRY || \

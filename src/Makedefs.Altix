@@ -27,16 +27,20 @@
 #     CPP = fpp
 
       CPP = /lib/cpp -traditional
- CPPFLAGS = -D"__IFC=IA64"
+ CPPFLAGS = -D"__IFC=IA64" 
+#-I/usr/local/mpich/mpich-g2-1.2.6e-mpi12-intel81-r1/mpich-g2/include/
 
- OMP_FLAG = -fpp2 -openmp
+ OMP_FLAG = 
+#-fpp2 -openmp
 
-      CFT = ifort $(OMP_FLAG) -auto -stack_temps
+      CFT = /usr/local/intel/10.1.015/bin/ifort $(OMP_FLAG) -auto -stack_temps
 
 
       LDR = $(CFT)
 
-   FFLAGS = -O3 -IPF_fma -IPF_fp_relaxed
+   FFLAGS = -O2 -mp -assume 2underscores
+#   FFLAGS = -O2 -IPF_fma -IPF_fp_relaxed
+#   FFLAGS = -O0 -IPF_fp_relaxed
 # -prof_gen
 #    FFLAGS = -O0
 #  FFLAGS = -O3
@@ -48,8 +52,10 @@
 
  COMP_FILES = work.pc work.pcl ifc??????
 
-    LCDF =/largehome/edl/netcdf-3.5.1/src/libsrc/libnetcdf.a
+    LCDF =$(HOME)/lib/libnetcdf.a
 
- LIBNCAR = -L/usr/local/ncarg/lib -L/usr/X11R6/lib -lncarg -lncarg_gks -lncarg_c -lX11 -lm
+LMPI = -lmpi
+ LIBNCAR = 
+#-L/usr/local/ncarg/lib -L/usr/X11R6/lib -lncarg -lncarg_gks -lncarg_c -lX11 -lm
 
 

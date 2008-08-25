@@ -265,6 +265,20 @@ CR      write(*,*) 'wrt_his:  wrtAkv' MYID
         endif
 CR      write(*,*) 'wrt_his:  wrtAkt' MYID
       endif
+!
+! Write out local gradient Richardson number
+!
+      if (wrthis(indxRich)) then
+        ierr=nf_fwrite (Rich(START_2D_ARRAY,0), ncidhis,
+     &                                hisRich, record, w3dvar)
+        if (ierr .ne. nf_noerr) then
+          lvar=lenstr(vname(1,indxRich))
+          write(stdout,1) vname(1,indxRich)(1:lvar), record, ierr,
+     &                    nf_strerror(ierr) MYID
+          goto 99                                         !--> ERROR
+        endif
+CR      write(*,*) 'wrt_his:  wrtRich' MYID
+      endif
 # ifdef SALINITY
 !
 !  Write out vertical diffusion coefficient for salinity.

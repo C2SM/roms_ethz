@@ -350,6 +350,7 @@
 # else
               Akt(i,j,k,itrc)=init
 # endif
+              Rich(i,j,k)=init
             enddo
           enddo
         enddo

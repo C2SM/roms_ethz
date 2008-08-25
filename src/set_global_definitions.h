@@ -58,7 +58,7 @@ c--#define ALLOW_SINGLE_BLOCK_MODE
 */
  
 #define MPI
-!-- #define PARALLEL_FILES
+#define PARALLEL_FILES
  
 /* Define standard dimensions for the model arrays (vertical
  dimensions are inserted explicitly in the code, when needed).

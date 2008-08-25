@@ -200,6 +200,19 @@ CR      write(*,*) 'wrt_avg:  wrtT_sed  ' MYID
           goto 99                                         !--> ERROR
         endif
       endif
+!
+! Write out local gradient Richardson number
+!
+      if (wrtavg(indxRich)) then
+        ierr=nf_fwrite (rich_avg(START_2D_ARRAY,0), ncidavg,
+     &                                avgRich, record, w3dvar)
+        if (ierr .ne. nf_noerr) then
+          lvar=lenstr(vname(1,indxRich))
+          write(stdout,1) vname(1,indxRich)(1:lvar), record, ierr,
+     &                    nf_strerror(ierr) MYID
+          goto 99                                         !--> ERROR
+        endif
+      endif
 # ifdef SALINITY
 !
 !  Write out vertical diffusion coefficient for salinity.

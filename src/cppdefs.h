@@ -7,7 +7,7 @@
 #undef DAMEE_B         /* North Atlantic DAMEE, Big Domain */
 #undef GRAV_ADJ        /* Graviational Adjustment Example */
 #undef NJ_BIGHT        /* New Jersey Bight Application */
-#undef PACIFIC         /* North-Equatorial Pacific Application */
+#define PACIFIC         /* North-Equatorial Pacific Application */
 #undef PACIFIC_2D     /* Pacific Tsunami model */
 #undef OVERFLOW        /* Graviational/Overflow Example */
 #undef SEAMOUNT        /* Seamount Example */
@@ -16,7 +16,7 @@
 #undef RIVER          /* River runoff test problem */
 #undef UPWELLING       /* Upwelling Example */
 #undef USWEST          /* US West Coast Application */
-#define USWC_CENTRAL
+#undef USWC_CENTRAL
 #undef WAVE_RAD        /* A test for wave radiation boundaries */
 #undef ATL360X408    /* Whole Atlantic 360x408 */
 !--> #define ATL50S70N    /* Whole Atlantic 50S x 70N (360x468) */
@@ -271,12 +271,36 @@ c--mm:
 #   define STFLX_LIM   
 # endif
 
-
+c--DL:
 # ifdef PACIFIC
-# define Z_FRC_BRY
-# define M2_FRC_BRY
-# define M3_FRC_BRY 
-# define T_FRC_BRY
+!# define Z_FRC_BRY
+!# define M2_FRC_BRY
+!# define M3_FRC_BRY 
+!# define T_FRC_BRY
+# define TNUDGING
+# define TCLIMATOLOGY
+# define BIO_1ST_USTREAM_TEST
+# define DAILYPAR_BEC
+# define DIURNAL_SRFLUX
+# ifdef TCLIMATOLOGY
+#   define CLIMAT_TS_MIXH
+# endif
+# define VERT_DIFF_ANALYSIS
+# undef OBC_WEST
+# undef OBC_SOUTH
+# undef OBC_M2FLATHER
+# undef OBC_M3ORLANSKI
+# undef OBC_TORLANSKI
+# undef M2NUDGING
+# undef M3NUDGING
+# undef LMD_NONLOCAL
+# undef EXACT_RESTART
+# undef NEW_S_COORD
+!# define AN_UNDEFINED_CASE
+! Switches related to biology:
+#define BIOLOGY_BEC
+#define FOUR_CLIM_FILES
+!#define BGC_FLUX_ANALYSIS
 #endif
 
 # define SPONGE
@@ -568,7 +592,10 @@ c--# define OBC_M2ORLANSKI
 #include "set_global_definitions.h"
 
 
-#define BIOLOGY_NPZDOC
+!!#define BIOLOGY_NPZDOC
+!#define BIOLOGY_BEC
+!#define FOUR_CLIM_FILES
+!#define BGC_FLUX_ANALYSIS
 
 #ifdef BIOLOGY_NPZDOC
 ! HF:
@@ -590,4 +617,9 @@ c--# define OBC_M2ORLANSKI
 !HF#define PHYS_FLUX_ANALYSIS
 !!#define VERT_DIFF_ANALYSIS
 !#define FULL_PHYS_FLUX_ANALYSIS
+#endif
+
+#ifndef BIOLOGY_BEC
+# undef BIO_1ST_USTREAM_TEST
+# undef DAILYPAR_BEC
 #endif

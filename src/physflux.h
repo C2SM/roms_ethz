@@ -10,7 +10,7 @@
 ! only T and S have fluxes
       parameter (NT_PFA = 2)
 #else
-# if defined VERT_DIFF_ANALYSIS && defined MOORE_BEC
+# if defined VERT_DIFF_ANALYSIS && defined BIOLOGY_BEC
 ! number of components has to be limited so that program fits into memory
       parameter (NT_PFA = 22)
 # else

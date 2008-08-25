@@ -8,6 +8,9 @@
 #include "scalars.h"
 #include "ncvars.h"
 #include "netcdf.inc"
+!#ifdef BIOLOGY_BEC
+!# include "ncroms_bgcflux.h"
+!#endif
 #ifdef FLOATS
 # include "floats.h"
 # include "ncvars_floats.h"
@@ -378,6 +381,21 @@
         ierr=nf_put_att_text(ncid,rsttrack,'Content',lvar,
      &                         vinfo(3)(1:lvar))
 #endif /* FLOATS */
+# ifdef BIOLOGY_BEC
+! pH value
+        lvar = lenstr(vname(1,indxPH))
+        ierr=nf_def_var (ncid, vname(1,indxPH)(1:lvar),
+     &       NF_FTYPE, 3, r2dgrd, rstPH)
+        lvar=lenstr(vname(2,indxPH))
+        ierr=nf_put_att_text (ncid, rstPH, 'long_name',
+     &       lvar, vname(2,indxPH)(1:lvar))
+        lvar=lenstr(vname(3,indxPH))
+        ierr=nf_put_att_text (ncid, rstPH, 'units', lvar,
+     &       vname(3,indxPH)(1:lvar))
+        lvar=lenstr(vname(4,indxPH))
+        ierr=nf_put_att_text (ncid, rstPH, 'field', lvar,
+     &       vname(4,indxPH)(1:lvar))
+# endif /* BIOLOGY_BEC */
 !
 ! Leave definition mode.                  Also initialize record
 ! ----- ---------- -----                  dimension size to zero.
@@ -537,6 +555,16 @@
            endif
         enddo
 # endif /* SEDIMENT_BIOLOGY */
+
+# ifdef BIOLOGY_BEC
+! pH value
+        lvar=lenstr(vname(1,indxPH))
+        ierr=nf_inq_varid (ncid, vname(1,indxPH)(1:lvar), rstPH)
+        if (ierr. ne. nf_noerr) then
+          write(stdout,1) vname(1,indxPH)(1:lvar), rstname(1:lstr)
+          goto 99                                         !--> ERROR
+        endif
+# endif /* BIOLOGY_BEC */
 
 # ifdef LMD_KPP
         lvar=lenstr(vname(1,indxHbl))

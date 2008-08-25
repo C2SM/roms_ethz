@@ -29,7 +29,8 @@
 ! spacing,  which severely restricts the choice of hc.  In the lower
 ! case "hc" can be selected independently from minimum depth "hmin".
 !  
-#define NEW_S_COORD
+! DL: Now NEW_S_COORD is set in cppdefs.h:
+!#define NEW_S_COORD 
 
 #ifdef SOLVE3D
       real theta_s,theta_b, hc, Cs_w(0:N), Cs_r(N)

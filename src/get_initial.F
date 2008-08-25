@@ -20,6 +20,10 @@
 #include "netcdf.inc"
 #include "ocean2d.h"
 #include "ocean3d.h"
+#ifdef BIOLOGY_BEC
+# include "ecosys_bec.h"
+# include "ncroms_bgcflux.h"
+#endif
 #ifdef LMD_KPP
 # include "mixing.h"
 #endif
@@ -429,8 +433,6 @@ c**      start_time=start_time - 20.*360. *day2sec
         else
           write(*,1) vname(1,indxT+itrc-1)(1:lvar), ininame(1:lstr),
      &                                            nf_strerror(ierr)
-CDL Don't stop if no initial conditions are found. Start with 0 conc.
-CDL instead:
 # ifdef PASSIVE_TRACER
 ! HF: assume a special case: if number of passive tracers equals number
 ! of sigma levels, use each passive tracer to track advection/diffusion
@@ -443,6 +445,8 @@ CDL instead:
              t(:,:,itrc-itpas(1)+1,tindx,itrc) = 1.0
           else
 # endif
+CDL Don't stop if no initial conditions are found. Start with 0 conc.
+CDL instead:
              write(stdout,'(3a)') 'Start with zero concentration for ',
      &            'variable ', vname(1,indxT+itrc-1)(1:lvar)
 CDL          goto 99                                         !--> ERROR
@@ -477,6 +481,26 @@ CHF          goto 99                                         !--> ERROR
         endif
       enddo
 # endif /* SEDIMENT_BIOLOGY */
+# ifdef BIOLOGY_BEC 
+      ! ph_hist is initialized to 0 in ecosys_init
+      call ecosys_init
+      ! if it is present in the restart file (only recently added), ! these values will be used instead
+      lvar=lenstr(vname(1,indxPH))
+      ierr=nf_inq_varid (ncid, vname(1,indxPH)(1:lvar), varid)
+      if (ierr .eq. nf_noerr) then
+         ierr=nf_fread (ph_hist(START_2D_ARRAY), ncid,  varid,
+     &                                               record, r2dvar)
+         if (ierr .ne. nf_noerr) then
+            write(stdout,2) vname_bgcflux(1,8)(1:lvar), record,
+     &           ininame(1:lstr)
+            goto 99             !--> ERROR
+         endif
+      else
+         write(stdout,*) 
+     &        'pH field not in init/rst file, initialize to 0'
+      endif
+# endif /* BIOLOGY_BEC */
+      print *, 'get_in: after reading pH'
 # ifdef LMD_KPP
       lvar=lenstr(vname(1,indxHbl))
       ierr=nf_inq_varid (ncid, vname(1,indxHbl)(1:lvar), varid)

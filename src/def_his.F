@@ -68,6 +68,7 @@
 # define vidW hisW
 # define vidAkv hisAkv
 # define vidAkt hisAkt
+# define vidRich hisRich
 # define vidAks hisAks
 # define vidHbl hisHbl
 # ifdef SEDIMENT_BIOLOGY
@@ -90,6 +91,7 @@
 # define vidW avgW
 # define vidAkv avgAkv
 # define vidAkt avgAkt
+# define vidRich avgRich
 # define vidAks avgAks
 # define vidHbl avgHbl
 # ifdef SEDIMENT_BIOLOGY
@@ -152,8 +154,8 @@
 ! ====== === ======= ======== =====    and define all variables.
 !
   10  if (create_new_file) then
-c        ierr=nf_create(ncname(1:lstr), nf_clobber, ncid)
-        ierr=nf_create(ncname(1:lstr), nf_64bit_offset, ncid)
+        ierr=nf_create(ncname(1:lstr), nf_clobber, ncid)
+chf        ierr=nf_create(ncname(1:lstr), nf_64bit_offset, ncid)
         if (ierr .ne. nf_noerr) then
           write(stdout,'(/1x,4A/)') 'ERROR in def_his/avg: Can not ',
      &                 'create netCDF file ''', ncname(1:lstr), '''.'
@@ -528,6 +530,29 @@ c        ierr=nf_create(ncname(1:lstr), nf_clobber, ncid)
      &                                   NF_FOUT, 1, spv_set)
 #endif
         endif
+!
+! Local gradient Richardson number:
+!
+        if (wrt(indxRich)) then
+          lvar=lenstr(vname(1,indxRich))
+          ierr=nf_def_var (ncid, vname(1,indxRich)(1:lvar), NF_FOUT,
+     &                                           4, w3dgrd, vidRich)
+# ifdef AVRH
+          text='averaged '/ /vname(2,indxRich)
+# else
+          text=vname(2,indxRich)
+# endif
+          lvar=lenstr(text)
+          ierr=nf_put_att_text (ncid, vidRich, 'long_name', lvar,
+     &                                              text(1:lvar))
+          lvar=lenstr(vname(3,indxRich))
+          ierr=nf_put_att_text (ncid, vidRich, 'units',     lvar,
+     &                                  vname(3,indxRich)(1:lvar))
+#ifdef MASK_LAND_DATA 
+          ierr=nf_put_att_FOUT (ncid, vidRich, '_FillValue',
+     &                                   NF_FOUT, 1, spv_set)
+#endif
+        endif
 # ifdef SALINITY
 !
 ! Vertical diffusion coefficient for salinity.
@@ -802,7 +827,17 @@ c        ierr=nf_create(ncname(1:lstr), nf_clobber, ncid)
             goto 99                                       !--> ERROR
           endif
         endif
- 
+!
+! Local gradient Richardson number:
+!
+        if (wrt(indxRich)) then
+          lvar=lenstr(vname(1,indxRich))
+          ierr=nf_inq_varid (ncid,vname(1,indxRich)(1:lvar), vidRich)
+          if (ierr .ne. nf_noerr) then
+            write(stdout,1) vname(1,indxRich)(1:lvar), ncname(1:lstr)
+            goto 99                                       !--> ERROR
+          endif
+        endif
 # ifdef SALINITY
 !
 ! Vertical diffusion coefficient for salinity.
@@ -844,17 +879,20 @@ c        ierr=nf_create(ncname(1:lstr), nf_clobber, ncid)
 # endif
 #endif /* SOLVE3D */
         write(*,'(6x,2A,i4,1x,A,i4)')    'def_his/avg: Opened ',
-     &              'existing file from record =', rec MYID
+     &              'existing file from record =',
+     &              rec MYID
  
 #if defined MPI & !defined PARALLEL_FILES
       else
         ierr=nf_open (ncname(1:lstr), nf_write, ncid)
         if (ierr .eq. nf_noerr) then
           write(stdout,'(1x,4A,I3)')        'def_his/avg: Opened ',
-     &      'existing file ''', ncname(1:lstr), ''' ncid =', ncid
+     &      'existing file ''', ncname(1:lstr), ''' ncid =', 
+     &          ncid  MYID
         else
           write(stdout,'(/1x,5A,I4/)')   '### ERROR: def_his/avg: ',
-     &      'Cannot open file ''', ncname(1:lstr), '''.' MYID
+     &      'Cannot open file ''', ncname(1:lstr), '''.' 
+     &      MYID
           goto 99                                         !--> ERROR
         endif
 #endif
@@ -899,6 +937,7 @@ c        ierr=nf_create(ncname(1:lstr), nf_clobber, ncid)
 #undef vidW
 #undef vidAkv
 #undef vidAkt
+#undef vidRich
 #undef vidAks
 #undef vidHbl
  

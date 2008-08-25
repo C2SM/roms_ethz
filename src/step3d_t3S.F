@@ -305,12 +305,13 @@ c??         enddo
       do itrc=1,NT
         call t3dbc_tile (istr,iend,jstr,jend, itrc, WORK)
 
-# if defined MOORE_BEC
-      enddo                                    ! Multi-Group species
-                                               ! biological Model
-      call ecosys_tile (istr,iend,jstr,jend)   ! (MGM) 
-      call mgm_avg_tile (istr,iend,jstr,jend)  
-      call ecosys_vst_tile (istr,iend,jstr,jend, nnew,dt)
+# if defined BIOLOGY_BEC
+      enddo                                    ! Biogeochemical
+                                               ! Elemental Cycles
+      call ecosys_tile (istr,iend,jstr,jend)   ! (BEC) model 
+#  ifdef BGC_FLUX_ANALYSIS
+       call set_bec_flux_avg_tile (istr,iend,jstr,jend)
+#  endif
 
       do itrc=1,NT  
 # elif defined BIOLOGY || defined BIOLOGY_NPZDOC

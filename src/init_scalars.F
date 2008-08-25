@@ -26,7 +26,9 @@
 
 c      integer size, kmp_get_stacksize_s
 
+#ifndef ABE
       call system('uname -nmr')
+#endif
 
 c      size=kmp_get_stacksize_s()
       
@@ -146,6 +148,11 @@ cc      write(*,*) 'kmp_stacksize =', size
       clmname3 = clm_file
 # endif
 #endif /* BIOLOGY_NPZDOC */
+#ifdef BIOLOGY_BEC
+      ncidclm2 = -1
+      ncidclm3 = -1
+      ncidclm4 = -1
+#endif
 #ifndef ANA_BRY
        bry_id=-1
 #endif
@@ -273,6 +280,11 @@ CR      write(stdout,'(1x,A,I3)') 'indxAkv =',indxAkv
       vname(1,indxAkv)='AKv                                       '
       vname(2,indxAkv)='vertical viscosity coefficient            '
       vname(3,indxAkv)='meter2 second-1                           '
+
+CR      write(stdout,'(1x,A,I3)') 'indxRich =',indxRich
+      vname(1,indxRich)='Rich                                      '
+      vname(2,indxRich)='local gradient Richardson number          '
+      vname(3,indxRich)='                                          '
  
 CR      write(stdout,'(1x,A,I3)') 'indxAkt =',indxAkt
       vname(1,indxAkt)='AKt                                       '

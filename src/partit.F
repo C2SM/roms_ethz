@@ -44,7 +44,7 @@ c--#define VERBOSE
       implicit none
 #include "netcdf.inc"
       integer maxdims, maxvars
-      parameter (maxdims=32, maxvars=64)
+      parameter (maxdims=32, maxvars=96)
       character src_name*80,  string*80
       character dimname(maxdims)*32, varname(maxvars)*32
 

@@ -225,6 +225,7 @@
 !
         do j=jstr,jend
           do i=istr,iend
+            Rich(i,j,k) = Rig(i,j,k)*Ri0
 # ifdef LMD_RIMIX
             cff=min(1., max(0., Rig(i,j,k)))  ! Compute mixing die
             nu_sx=1. - cff*cff                ! to shear instability

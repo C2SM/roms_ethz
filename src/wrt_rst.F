@@ -20,6 +20,10 @@
 #ifdef SEDIMENT_BIOLOGY
 # include "bgcflux.h"
 #endif
+#ifdef BIOLOGY_BEC
+# include "ecosys_bec.h"
+!# include "ncroms_bgcflux.h"
+#endif
 
 #if defined FLOATS
 # include "ncvars_floats.h"
@@ -168,6 +172,16 @@
         endif
       enddo
 #  endif /* SEDIMENT_BIOLOGY */
+#  ifdef BIOLOGY_BEC
+! pH value
+      ierr=nf_fwrite (ph_hist, ncidrst, rstPH, record, r2dvar)
+      if (ierr .ne. nf_noerr) then
+         lvar=lenstr(vname(1,indxPH))
+         write(stdout,1) vname(1,indxPH)(1:lvar), record,
+     &        ierr, nf_strerror(ierr) MYID
+         goto 99                !--> ERROR
+      endif
+#  endif /* BIOLOGY_BEC */
 
 # ifdef LMD_KPP
 !

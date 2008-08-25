@@ -181,7 +181,7 @@ c : zl
 # ifdef DIURNAL_SRFLUX
             cff=stflx(i,j,itemp)-srflx(i,j)  ! subtract shortwave
                                              ! radiatin from the net, 
-# ifdef DAILYPAR_PHOTOINHIBITION
+# if defined DAILYPAR_PHOTOINHIBITION || defined DAILYPAR_BEC
 ! save the daily average value for the evaluation of photoinhibited 
 ! nitrification
             srflx_dailyavg(i,j)=srflx(i,j)
@@ -224,10 +224,10 @@ c : zl
           h0=acos(-tan(phi)*tan_d)
           cff1=cos_d*cos(phi)
           cff2=sin_d*sin(phi)
-#ifdef DAILYPAR_PHOTOINHIBITION
+#if defined DAILYPAR_PHOTOINHIBITION || defined DAILYPAR_BEC
 ! save the daily average value for the biogeochemical model
           srflx_dailyavg(i,j)=srflx(i,j)
-#endif /* DAILYPAR_PHOTOINHIBITION*/
+#endif /* DAILYPAR_PHOTOINHIBITION || DAILYPAR_BEC */
           srflx(i,j)=srflx(i,j)*pi*(cos_h*cff1+cff2)
      &                        /(sin(h0)*cff1+h0*cff2)
           srflx(i,j)=max(0.,srflx(i,j))

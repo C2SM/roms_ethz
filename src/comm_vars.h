@@ -39,7 +39,7 @@
       real*QUAD bc_flux, ubar_xs
       common /comm_vars/ bc_flux, ubar_xs
 #endif
-#if defined BIOLOGY || defined BIOLOGY_NPZDOC
+#if defined BIOLOGY || defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC
       real*QUAD global_sum(0:2*NT+1), global_srf_sum(0:NT)
       common /comm_vars_bio/ global_sum, global_srf_sum
 #endif

@@ -104,6 +104,44 @@ CSDISTRIBUTE_RESHAPE  sssg(BLOCK_PATTERN,*) BLOCK_CLAUSE
 
 #  endif /* SST_DATA */
 # endif /* QCORRECTION && !ANA_SST */
+
+#ifdef BIOLOGY_BEC
+! dust flux
+
+         real dust(GLOBAL_2D_ARRAY) 
+CSDISTRIBUTE_RESHAPE  dust(BLOCK_PATTERN,*) BLOCK_CLAUSE
+           common /forces_dust/dust
+       real dustg(GLOBAL_2D_ARRAY,2)
+CSDISTRIBUTE_RESHAPE  dustg(BLOCK_PATTERN,*) BLOCK_CLAUSE
+       common /dustdat_dustg/dustg
+
+        real dustp(2), dust_time(2),dust_cycle, scldqdt
+        integer itdust,dust_id,ldustgrd ,dust_ncycle,
+     &  dust_rec,dust_tid
+       common/dustdat/itdust,dust_id,ldustgrd,
+     &  dust_ncycle,dust_rec,dust_tid
+       common/dustdat1/dustp,dust_time,dust_cycle,scldqdt
+
+
+! iron flux
+       real iron(GLOBAL_2D_ARRAY)
+CSDISTRIBUTE_RESHAPE  iron(BLOCK_PATTERN,*) BLOCK_CLAUSE
+       common /forces_iron/iron
+       real irong(GLOBAL_2D_ARRAY,2)
+CSDISTRIBUTE_RESHAPE irong(BLOCK_PATTERN,*) BLOCK_CLAUSE
+       common /irondat_irong/irong
+     
+       real ironp(2),iron_time(2),iron_cycle
+       integer itiron,iron_id,lirongrd,iron_ncycle,
+     &  iron_rec,iron_tid
+
+       common/irondat/ironp,iron_time,iron_cycle
+       common/irondat1/itiron,iron_id,lirongrd,
+     &  iron_ncycle,iron_rec,iron_tid
+
+#endif
+
+
 !
 ! Solar short-wave radiation flux:
 !====== ===== ==== ========= =====
@@ -113,14 +151,14 @@ CSDISTRIBUTE_RESHAPE  sssg(BLOCK_PATTERN,*) BLOCK_CLAUSE
 ! tsrflx  time of solar shortwave radiation flux.
 !
       real srflx(GLOBAL_2D_ARRAY)
-#ifdef DAILYPAR_PHOTOINHIBITION
+#if defined DAILYPAR_PHOTOINHIBITION || defined DAILYPAR_BEC
       real srflx_dailyavg(GLOBAL_2D_ARRAY)
-#endif /* DAILYPAR_PHOTOINHIBITION */
+#endif /* DAILYPAR_PHOTOINHIBITION || DAILYPAR_BEC */
 CSDISTRIBUTE_RESHAPE srflx(BLOCK_PATTERN) BLOCK_CLAUSE
       common /forces_srflx/srflx
-#ifdef DAILYPAR_PHOTOINHIBITION
+#if defined DAILYPAR_PHOTOINHIBITION || defined DAILYPAR_BEC
      &       , srflx_dailyavg
-#endif /* DAILYPAR_PHOTOINHIBITION */
+#endif /* DAILYPAR_PHOTOINHIBITION || DAILYPAR_BEC */
 # ifndef ANA_SRFLUX
 #  if defined SRFLUX_DATA || defined ALL_DATA
 #   undef SRFLUX_DATA

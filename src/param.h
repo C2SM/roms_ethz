@@ -29,11 +29,11 @@ c     &               LLm=256, MMm=2,   N=64
 c*   &               LLm=98,  MMm=206, N=12
      &               LLm=24,  MMm=34,  N=10
 #elif defined PACIFIC
-c    &               LLm=384, MMm=224, N=30
+     &               LLm=384, MMm=224, N=30
 c    &               LLm=392, MMm=288, N=30
 
 c    &               LLm=432, MMm=320, N=32
-     &               LLm=488, MMm=360, N=32
+c     &               LLm=488, MMm=360, N=32
 
 c    &               LLm=768, MMm=512, N=40
 #elif defined ATL360X408
@@ -117,7 +117,11 @@ c**     &               LLm=83, MMm=168, N=32
       integer NSUB_X, NSUB_E
 #ifdef MPI
       integer NP_XI, NP_ETA, NNODES
-      parameter (NP_XI=8, NP_ETA=8, NSUB_X=1, NSUB_E=1)
+# ifdef HUMBOLDT
+      parameter (NP_XI=2, NP_ETA=16, NSUB_X=1, NSUB_E=1)
+# else
+      parameter (NP_XI=4, NP_ETA=8, NSUB_X=1, NSUB_E=1)
+# endif
       parameter (NNODES=NP_XI*NP_ETA)
 #else
 c        parameter (NSUB_X=4, NSUB_E=60)
@@ -140,6 +144,11 @@ c      parameter (NSUB_X=1, NSUB_E=1)
       parameter (Lm=LLm, Mm=MMm, irc=1)
 #endif
 
+#ifdef BIOLOGY_BEC
+        integer Nmgmhist
+        parameter(Nmgmhist=76)
+#endif
+
 
 !
 ! Number of tracers and tracer identification indices:
@@ -150,12 +159,12 @@ c      parameter (NSUB_X=1, NSUB_E=1)
 # ifdef SALINITY
      &          , isalt
 # endif
-# if defined BIOLOGY || defined BIOLOGY_NPZDOC
+# if defined BIOLOGY || defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC
      &          , itrc_bio
 #  ifdef SEDIMENT_BIOLOGY
      &     , NT_sed
 #  endif
-# endif /* BIOLOGY || BIOLOGY_NPZDOC */
+# endif /* BIOLOGY || BIOLOGY_NPZDOC || defined BIOLOGY_BEC */
 # ifdef BIOLOGY
      &          , iNO3_, iNH4_, iDet_, iPhyt, iZoo_
 # endif
@@ -175,6 +184,12 @@ c      parameter (NSUB_X=1, NSUB_E=1)
 #   endif /* CARBON */
 #  endif /* SEDIMENT_BIOLOGY */
 # endif /* BIOLOGY_NPZDOC */
+# ifdef BIOLOGY_BEC
+     &     ,iPO4,iNO3,iSIO3,iNH4,iFE,iO2,iDIC,
+     &     iALK,iDOC,iSPC,iSPCHL,iSPCACO3,iDIATC,
+     &     iDIATCHL,iZOOC,iSPFE,iDIATSI,iDIATFE,iDIAZC,
+     &     iDIAZCHL,iDIAZFE,iDON,iDOFE,iDOP
+# endif
       parameter (itemp=1
 # ifdef SALINITY
      &           , isalt=2, ntrc_salt=1
@@ -194,11 +209,7 @@ c      parameter (NSUB_X=1, NSUB_E=1)
       parameter (ntrc_bio=5, itrc_bio=itemp+ntrc_salt+ntrc_pas+1
      &           , iNO3_=itrc_bio, iNH4_=iNO3_+1, iDet_=iNO3_+2
      &           , iPhyt=iNO3_+3, iZoo_=iNO3_+4)
-# elif !defined BIOLOGY_NPZDOC
-      parameter (ntrc_bio=0)
-# endif
-
-# ifdef BIOLOGY_NPZDOC
+# elif defined BIOLOGY_NPZDOC
       parameter (itrc_bio=itemp+ntrc_salt+ntrc_pas+1) 
       parameter (iNO3_=itrc_bio, 
      &            iNH4_=iNO3_+1, iChla=iNO3_+2, iPhyt=iNO3_+3,
@@ -228,7 +239,21 @@ c      parameter (NSUB_X=1, NSUB_E=1)
       parameter (NT_sed=1)
 #   endif
 #  endif /* SEDIMENT_BIOLOGY */
-# endif /* BIOLOGY_NPZDOC */
+# elif defined BIOLOGY_BEC
+      parameter (ntrc_bio=24, itrc_bio=itemp+ntrc_salt+ntrc_pas+1) 
+      parameter (iPO4=itrc_bio, 
+     &            iNO3=iPO4+1, iSIO3=iPO4+2, iNH4=iPO4+3,
+     &            iFE=iPO4+4, iO2=iPO4+5, iDIC=iPO4+6,
+     &            iALK=iPO4+7, iDOC=iPO4+8, iSPC=iPO4+9,
+     &            iSPCHL=iPO4+10, iSPCACO3=iPO4+11, iDIATC=iPO4+12,
+     &            iDIATCHL=iPO4+13, iZOOC=iPO4+14, iSPFE=iPO4+15,
+     &            iDIATSI=iPO4+16, iDIATFE=iPO4+17, iDIAZC=iPO4+18,
+     &            iDIAZCHL=iPO4+19, iDIAZFE=iPO4+20, iDON=iPO4+21,
+     &            iDOFE=iPO4+22, iDOP=iPO4+23)
+# else
+      parameter (ntrc_bio=0)
+# endif /* BIOLOGY */
+
 
       parameter (NT=itemp+ntrc_salt+ntrc_pas+ntrc_bio)
 

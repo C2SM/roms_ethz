@@ -384,6 +384,59 @@
                   end if
                end if
 #    endif /* BIOLOGY_NPZDOC */
+
+#    ifdef BIOLOGY_BEC
+! do not provide defaults for selected biogeochemical variables
+               if (.not. bry_set .and. itrc .ge. iPO4 .and. 
+     &              itrc .le. iPO4 + ntrc_bio - 1) then
+                  if ( (itrc .ge. iPO4 .and. itrc .le. iSIO3)
+     &                 .or. (itrc .ge. iFE .and. itrc .le. iALK)
+     &                 ) then
+                     write(stdout,2)  vname_bry(1:lvar+5)
+                     ierr_all=ierr_all+ierr
+                  else
+                     ierr = 0
+                     write(stdout,3)  vname_bry(1:lvar+5)
+                     if (itrc .eq. iNH4 .or. itrc .eq. iDOC .or.
+     &                    itrc .eq. iDON .or. itrc. eq. iDOFE
+     &                    .or. itrc .eq. iDOP) then
+                        t_west_dt(:,:,itbry,itrc) = 0.0
+                     else if (itrc .eq. iSPC) then
+                        t_west_dt(:,:,itbry,itrc) = 0.10
+                     else if (itrc .eq. iSPCHL) then
+                        t_west_dt(:,:,itbry,itrc) = 0.1 *
+     &                       t_west_dt(:,:,itbry,iSPC)  
+                     else if (itrc .eq. iSPFE) then
+                        t_west_dt(:,:,itbry,itrc) = 4.d-5 *
+     &                     t_west_dt(:,:,itbry,iSPC)  
+                     else if (itrc .eq. iSPCACO3) then
+                        t_west_dt(:,:,itbry,itrc) = 0.03 *
+     &                     t_west_dt(:,:,itbry,iSPC)  
+                     else if (itrc .eq. iDIATC) then
+                        t_west_dt(:,:,itbry,itrc) = 0.10
+                     else if (itrc .eq. iDIATCHL) then
+                        t_west_dt(:,:,itbry,itrc) = 0.1 *
+     &                       t_west_dt(:,:,itbry,iDIATC)  
+                     else if (itrc .eq. iDIATSI) then
+                        t_west_dt(:,:,itbry,itrc) = 0.2 *
+     &                       t_west_dt(:,:,itbry,iDIATC)  
+                     else if (itrc .eq. iDIATFE) then
+                        t_west_dt(:,:,itbry,itrc) = 3.d-5 *
+     &                       t_west_dt(:,:,itbry,iDIATC)  
+                     else if (itrc .eq. iDIAZC) then
+                        t_west_dt(:,:,itbry,itrc) = 0.01
+                     else if (itrc .eq. iDIAZCHL) then
+                        t_west_dt(:,:,itbry,itrc) = 0.1 *
+     &                       t_west_dt(:,:,itbry,iDIAZC)  
+                     else if (itrc .eq. iDIAZFE) then
+                        t_west_dt(:,:,itbry,itrc) = 3.d-5 *
+     &                       t_west_dt(:,:,itbry,iDIAZC)  
+                     else if (itrc .eq. iZOOC) then
+                        t_west_dt(:,:,itbry,itrc) = 0.05
+                     end if
+                  end if
+               end if
+#    endif /* BIOLOGY_BEC */
             enddo
 #   endif /* T_FRC_BRY */
 #  endif /* SOLVE3D */
@@ -494,6 +547,59 @@
                   end if
                end if
 #    endif /* BIOLOGY_NPZDOC */
+
+#    ifdef BIOLOGY_BEC
+! do not provide defaults for selected biogeochemical variables
+               if (.not. bry_set .and. itrc .ge. iPO4 .and. 
+     &              itrc .le. iPO4 + ntrc_bio - 1) then
+                  if ( (itrc .ge. iPO4 .and. itrc .le. iSIO3)
+     &                 .or. (itrc .ge. iFE .and. itrc .le. iALK)
+     &                 ) then
+                     write(stdout,2)  vname_bry(1:lvar+5)
+                     ierr_all=ierr_all+ierr
+                  else
+                     ierr = 0
+                     write(stdout,3)  vname_bry(1:lvar+5)
+                     if (itrc .eq. iNH4 .or. itrc .eq. iDOC .or.
+     &                    itrc .eq. iDON .or. itrc. eq. iDOFE
+     &                    .or. itrc .eq. iDOP) then
+                        t_east_dt(:,:,itbry,itrc) = 0.0
+                     else if (itrc .eq. iSPC) then
+                        t_east_dt(:,:,itbry,itrc) = 0.10
+                     else if (itrc .eq. iSPCHL) then
+                        t_east_dt(:,:,itbry,itrc) = 0.1 *
+     &                       t_east_dt(:,:,itbry,iSPC)  
+                     else if (itrc .eq. iSPFE) then
+                        t_east_dt(:,:,itbry,itrc) = 4.d-5 *
+     &                     t_east_dt(:,:,itbry,iSPC)  
+                     else if (itrc .eq. iSPCACO3) then
+                        t_east_dt(:,:,itbry,itrc) = 0.03 *
+     &                     t_east_dt(:,:,itbry,iSPC)  
+                     else if (itrc .eq. iDIATC) then
+                        t_east_dt(:,:,itbry,itrc) = 0.10
+                     else if (itrc .eq. iDIATCHL) then
+                        t_east_dt(:,:,itbry,itrc) = 0.1 *
+     &                       t_east_dt(:,:,itbry,iDIATC)  
+                     else if (itrc .eq. iDIATSI) then
+                        t_east_dt(:,:,itbry,itrc) = 0.2 *
+     &                       t_east_dt(:,:,itbry,iDIATC)  
+                     else if (itrc .eq. iDIATFE) then
+                        t_east_dt(:,:,itbry,itrc) = 3.d-5 *
+     &                       t_east_dt(:,:,itbry,iDIATC)  
+                     else if (itrc .eq. iDIAZC) then
+                        t_east_dt(:,:,itbry,itrc) = 0.01
+                     else if (itrc .eq. iDIAZCHL) then
+                        t_east_dt(:,:,itbry,itrc) = 0.1 *
+     &                       t_east_dt(:,:,itbry,iDIAZC)  
+                     else if (itrc .eq. iDIAZFE) then
+                        t_east_dt(:,:,itbry,itrc) = 3.d-5 *
+     &                       t_east_dt(:,:,itbry,iDIAZC)  
+                     else if (itrc .eq. iZOOC) then
+                        t_east_dt(:,:,itbry,itrc) = 0.05
+                     end if
+                  end if
+               end if
+#    endif /* BIOLOGY_BEC */
             enddo
 #   endif /* T_FRC_BRY */
 #  endif /* SOLVE3D */
@@ -606,6 +712,59 @@
                   end if
                end if
 #    endif /* BIOLOGY_NPZDOC */
+
+#    ifdef BIOLOGY_BEC
+! do not provide defaults for selected biogeochemical variables
+               if (.not. bry_set .and. itrc .ge. iPO4 .and. 
+     &              itrc .le. iPO4 + ntrc_bio - 1) then
+                  if ( (itrc .ge. iPO4 .and. itrc .le. iSIO3)
+     &                 .or. (itrc .ge. iFE .and. itrc .le. iALK)
+     &                 ) then
+                     write(stdout,2)  vname_bry(1:lvar+6)
+                     ierr_all=ierr_all+ierr
+                  else
+                     ierr = 0
+                     write(stdout,3)  vname_bry(1:lvar+6)
+                     if (itrc .eq. iNH4 .or. itrc .eq. iDOC .or.
+     &                    itrc .eq. iDON .or. itrc. eq. iDOFE
+     &                    .or. itrc .eq. iDOP) then
+                        t_south_dt(:,:,itbry,itrc) = 0.0
+                     else if (itrc .eq. iSPC) then
+                        t_south_dt(:,:,itbry,itrc) = 0.10
+                     else if (itrc .eq. iSPCHL) then
+                        t_south_dt(:,:,itbry,itrc) = 0.1 *
+     &                       t_south_dt(:,:,itbry,iSPC)  
+                     else if (itrc .eq. iSPFE) then
+                        t_south_dt(:,:,itbry,itrc) = 4.d-5 *
+     &                     t_south_dt(:,:,itbry,iSPC)  
+                     else if (itrc .eq. iSPCACO3) then
+                        t_south_dt(:,:,itbry,itrc) = 0.03 *
+     &                     t_south_dt(:,:,itbry,iSPC)  
+                     else if (itrc .eq. iDIATC) then
+                        t_south_dt(:,:,itbry,itrc) = 0.10
+                     else if (itrc .eq. iDIATCHL) then
+                        t_south_dt(:,:,itbry,itrc) = 0.1 *
+     &                       t_south_dt(:,:,itbry,iDIATC)  
+                     else if (itrc .eq. iDIATSI) then
+                        t_south_dt(:,:,itbry,itrc) = 0.2 *
+     &                       t_south_dt(:,:,itbry,iDIATC)  
+                     else if (itrc .eq. iDIATFE) then
+                        t_south_dt(:,:,itbry,itrc) = 3.d-5 *
+     &                       t_south_dt(:,:,itbry,iDIATC)  
+                     else if (itrc .eq. iDIAZC) then
+                        t_south_dt(:,:,itbry,itrc) = 0.01
+                     else if (itrc .eq. iDIAZCHL) then
+                        t_south_dt(:,:,itbry,itrc) = 0.1 *
+     &                       t_south_dt(:,:,itbry,iDIAZC)  
+                     else if (itrc .eq. iDIAZFE) then
+                        t_south_dt(:,:,itbry,itrc) = 3.d-5 *
+     &                       t_south_dt(:,:,itbry,iDIAZC)  
+                     else if (itrc .eq. iZOOC) then
+                        t_south_dt(:,:,itbry,itrc) = 0.05
+                     end if
+                  end if
+               end if
+#    endif /* BIOLOGY_BEC */
             enddo
 #   endif /* T_FRC_BRY */
 #  endif /* SOLVE3D */
@@ -716,6 +875,59 @@
                   end if
                end if
 #    endif /* BIOLOGY_NPZDOC */
+
+#    ifdef BIOLOGY_BEC
+! do not provide defaults for selected biogeochemical variables
+               if (.not. bry_set .and. itrc .ge. iPO4 .and. 
+     &              itrc .le. iPO4 + ntrc_bio - 1) then
+                  if ( (itrc .ge. iPO4 .and. itrc .le. iSIO3)
+     &                 .or. (itrc .ge. iFE .and. itrc .le. iALK)
+     &                 ) then
+                     write(stdout,2)  vname_bry(1:lvar+6)
+                     ierr_all=ierr_all+ierr
+                  else
+                     ierr = 0
+                     write(stdout,3)  vname_bry(1:lvar+6)
+                     if (itrc .eq. iNH4 .or. itrc .eq. iDOC .or.
+     &                    itrc .eq. iDON .or. itrc. eq. iDOFE
+     &                    .or. itrc .eq. iDOP) then
+                        t_north_dt(:,:,itbry,itrc) = 0.0
+                     else if (itrc .eq. iSPC) then
+                        t_north_dt(:,:,itbry,itrc) = 0.10
+                     else if (itrc .eq. iSPCHL) then
+                        t_north_dt(:,:,itbry,itrc) = 0.1 *
+     &                       t_north_dt(:,:,itbry,iSPC)  
+                     else if (itrc .eq. iSPFE) then
+                        t_north_dt(:,:,itbry,itrc) = 4.d-5 *
+     &                     t_north_dt(:,:,itbry,iSPC)  
+                     else if (itrc .eq. iSPCACO3) then
+                        t_north_dt(:,:,itbry,itrc) = 0.03 *
+     &                     t_north_dt(:,:,itbry,iSPC)  
+                     else if (itrc .eq. iDIATC) then
+                        t_north_dt(:,:,itbry,itrc) = 0.10
+                     else if (itrc .eq. iDIATCHL) then
+                        t_north_dt(:,:,itbry,itrc) = 0.1 *
+     &                       t_north_dt(:,:,itbry,iDIATC)  
+                     else if (itrc .eq. iDIATSI) then
+                        t_north_dt(:,:,itbry,itrc) = 0.2 *
+     &                       t_north_dt(:,:,itbry,iDIATC)  
+                     else if (itrc .eq. iDIATFE) then
+                        t_north_dt(:,:,itbry,itrc) = 3.d-5 *
+     &                       t_north_dt(:,:,itbry,iDIATC)  
+                     else if (itrc .eq. iDIAZC) then
+                        t_north_dt(:,:,itbry,itrc) = 0.01
+                     else if (itrc .eq. iDIAZCHL) then
+                        t_north_dt(:,:,itbry,itrc) = 0.1 *
+     &                       t_north_dt(:,:,itbry,iDIAZC)  
+                     else if (itrc .eq. iDIAZFE) then
+                        t_north_dt(:,:,itbry,itrc) = 3.d-5 *
+     &                       t_north_dt(:,:,itbry,iDIAZC)  
+                     else if (itrc .eq. iZOOC) then
+                        t_north_dt(:,:,itbry,itrc) = 0.05
+                     end if
+                  end if
+               end if
+#    endif /* BIOLOGY_BEC */
             enddo
 #   endif /* T_FRC_BRY */
 #  endif /* SOLVE3D */

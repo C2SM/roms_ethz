@@ -289,7 +289,8 @@ c--      fname='roms.in.US_West'
           clm_file=fname(1:lstr)
           MPI_master_only write(stdout,'(3x,A,2x,A)')
      &          'Climatology File:', clm_file(1:lstr)
-# if defined TWO_CLIM_FILES || defined THREE_CLIM_FILES
+# if defined TWO_CLIM_FILES || defined THREE_CLIM_FILES || \
+        defined FOUR_CLIM_FILES
         elseif (keyword(1:kwlen).eq.'clim_file2') then
           call cancel_kwd (keyword(1:kwlen), ierr)
           read(input,'(A)',err=95) fname
@@ -299,11 +300,11 @@ c--      fname='roms.in.US_West'
 #  endif
           open (testunit, file=fname(1:lstr), status='old', err=97)
           close(testunit)
-          clmname2=fname(1:lstr)
+          clm_file2=fname(1:lstr)
           MPI_master_only write(stdout,'(3x,A,2x,A)')
-     &          'Climatology File 2:', clmname2(1:lstr)
-# endif /* TWO_CLIM_FILES || THREE_CLIM_FILES */
-# ifdef THREE_CLIM_FILES
+     &          'Climatology File 2:', clm_file2(1:lstr)
+# endif /* TWO_CLIM_FILES || THREE_CLIM_FILES || FOUR_CLIM_FILES */
+# if defined THREE_CLIM_FILES || defined FOUR_CLIM_FILES
         elseif (keyword(1:kwlen).eq.'clim_file3') then
           call cancel_kwd (keyword(1:kwlen), ierr)
           read(input,'(A)',err=95) fname
@@ -313,10 +314,25 @@ c--      fname='roms.in.US_West'
 #  endif
           open (testunit, file=fname(1:lstr), status='old', err=97)
           close(testunit)
-          clmname3=fname(1:lstr)
+          clm_file3=fname(1:lstr)
           MPI_master_only write(stdout,'(3x,A,2x,A)')
-     &          'Climatology File 3:', clmname3(1:lstr)
-# endif /* THREE_CLIM_FILES */
+     &          'Climatology File 3:', clm_file3(1:lstr)
+# endif /* THREE_CLIM_FILES || FOUR_CLIM_FILES */
+# ifdef FOUR_CLIM_FILES
+         elseif (keyword(1:kwlen).eq.'clim_file4') then
+          call cancel_kwd (keyword(1:kwlen), ierr)
+          read(input,'(A)',err=95) fname
+          lstr=lenstr(fname)
+#  if defined MPI && defined PARALLEL_FILES
+          call insert_node (fname, lstr, mynode, NNODES, ierr)
+#  endif
+          open (testunit, file=fname(1:lstr), status='old', err=97)
+          close(testunit)
+          clm_file4=fname(1:lstr)
+          MPI_master_only write(stdout,'(3x,A,2x,A)')
+     &          'Climatology File 4:', clm_file4(1:lstr)
+         
+# endif /* FOUR_CLIM_FILES */
 #endif
 
 #if defined T_FRC_BRY || defined M2_FRC_BRY || \
@@ -338,7 +354,7 @@ c--      fname='roms.in.US_West'
           MPI_master_only write(stdout,'(6x,A,2x,A)')
      &          'Boundary File:', bry_file(1:lstr)
 # endif
-#endif
+#endif /* SOLVED3D && TCLIMATOLOGY etc. */
 !
 ! Restart file name.
 !
@@ -394,7 +410,7 @@ c--      fname='roms.in.US_West'
      &     'rec/file =', nrpfavg
 #endif
 
-#ifdef MOORE_BEC
+#ifdef BIOLOGY_BEC_NOMORE
         elseif (keyword(1:kwlen).eq.'mgm_history') then
           call cancel_kwd (keyword(1:kwlen), ierr)
           read(input,*,err=95) nwrtmgm,  nprfmgm
@@ -405,7 +421,7 @@ c--      fname='roms.in.US_West'
 # endif
           mgmfname=fname(1:lstr)
           MPI_master_only write(stdout,
-     &               '(7x,A,2x,A,2x,A,2x,A,I42x,A,I3)')
+     &               '(7x,A,2x,A,2x,A,2x,A,I6,A,I3)')
      &         'MGM History File:', mgmfname(1:lstr),  'Create new:',
      &          'nwrt =', nwrtmgm, 'rec/file =', nprfmgm
 
@@ -420,52 +436,12 @@ c--      fname='roms.in.US_West'
 # endif
           mgmavgfname=fname(1:lstr)
           MPI_master_only write(stdout,
-     &               '(7x,A,2x,A,2x,A,2x,A,I42x,A,I3)')
+     &               '(7x,A,2x,A,2x,A,2x,A,I6,A,I3)')
      &         'MGM History File:', mgmavgfname(1:lstr),  'Create new:',
      &          'nwrt =', nwrtmgmavg, 'rec/file =', nprfmgmavg
+#endif   /* BIOLOGY_BEC_NOMORE */
 
 
-# ifdef MULT_CLIM_FILE
-        elseif (keyword(1:kwlen).eq.'clim_file2') then
-          call cancel_kwd (keyword(1:kwlen), ierr)
-          read(input,'(A)',err=95) fname
-          lstr=lenstr(fname)
-#  if defined MPI && defined PARALLEL_FILES
-          call insert_node (fname, lstr, mynode, NNODES, ierr)
-#  endif
-          open (testunit, file=fname(1:lstr), status='old', err=97)
-          close(testunit)
-          clm_file2=fname(1:lstr)
-          MPI_master_only write(stdout,'(3x,A,2x,A)')
-     &          'Climatology File:', clm_file2(1:lstr)
-         
-         elseif (keyword(1:kwlen).eq.'clim_file3') then
-          call cancel_kwd (keyword(1:kwlen), ierr)
-          read(input,'(A)',err=95) fname
-          lstr=lenstr(fname)
-#  if defined MPI && defined PARALLEL_FILES
-          call insert_node (fname, lstr, mynode, NNODES, ierr)
-#  endif
-          open (testunit, file=fname(1:lstr), status='old', err=97)
-          close(testunit)
-          clm_file3=fname(1:lstr)
-          MPI_master_only write(stdout,'(3x,A,2x,A)')
-     &          'Climatology File:', clm_file3(1:lstr)
-         elseif (keyword(1:kwlen).eq.'clim_file4') then
-          call cancel_kwd (keyword(1:kwlen), ierr)
-          read(input,'(A)',err=95) fname
-          lstr=lenstr(fname)
-#  if defined MPI && defined PARALLEL_FILES
-          call insert_node (fname, lstr, mynode, NNODES, ierr)
-#  endif
-          open (testunit, file=fname(1:lstr), status='old', err=97)
-          close(testunit)
-          clm_file4=fname(1:lstr)
-          MPI_master_only write(stdout,'(3x,A,2x,A)')
-     &          'Climatology File:', clm_file4(1:lstr)
-         
-# endif /* MULT_CLIM_FILE */
-#endif   /* MOORE_BEC */
 
 #ifdef BGC_FLUX_ANALYSIS
 !
@@ -713,6 +689,7 @@ c--      fname='roms.in.US_West'
           call cancel_kwd (keyword(1:kwlen), ierr)
           read(input,*,err=95) wrthis(indxR), wrthis(indxO)
      &          ,  wrthis(indxW),  wrthis(indxAkv),  wrthis(indxAkt)
+     &          ,  wrthis(indxRich)
 # ifdef SALINITY
      &                                            ,  wrthis(indxAks)
 #  ifdef LMD_KPP
@@ -721,6 +698,7 @@ c--      fname='roms.in.US_West'
 # endif
           if ( wrthis(indxR) .or. wrthis(indxO) .or. wrthis(indxW)
      &                     .or. wrthis(indxAkv) .or. wrthis(indxAkt)
+     &                     .or. wrthis(indxRich)
 # ifdef SALINITY
      &                                          .or. wrthis(indxAks)
 #  ifdef LMD_KPP
@@ -736,6 +714,8 @@ c--      fname='roms.in.US_West'
      &    , wrthis(indxAkv),'write Akv  ', 'Vertical viscosity'
      &    , wrthis(indxAkt),'write Akt  ',
      &                        'Vertical diffusivity for temperature.'
+     &    , wrthis(indxRich), 'write Rich ', 
+     &                        'Local gradient Richardson number'
 # ifdef SALINITY
      &    , wrthis(indxAks),'write Aks  ',
      &                           'Vertical diffusivity for salinity.'
@@ -795,6 +775,7 @@ c--      fname='roms.in.US_West'
           call cancel_kwd (keyword(1:kwlen), ierr)
           read(input,*,err=95) wrtavg(indxR), wrtavg(indxO)
      &          ,  wrtavg(indxW),  wrtavg(indxAkv),  wrtavg(indxAkt)
+     &          ,  wrtavg(indxRich)
 #  ifdef SALINITY
      &                                            ,  wrtavg(indxAks)
 #   ifdef LMD_KPP
@@ -803,6 +784,7 @@ c--      fname='roms.in.US_West'
 #  endif
           if ( wrtavg(indxR) .or. wrtavg(indxO) .or. wrtavg(indxW)
      &                     .or. wrtavg(indxAkv) .or. wrtavg(indxAkt)
+     &                     .or. wrtavg(indxRich)
 #  ifdef SALINITY
      &                                          .or. wrtavg(indxAks)
 #   ifdef LMD_KPP
@@ -818,6 +800,8 @@ c--      fname='roms.in.US_West'
      &    , wrtavg(indxAkv),'write Akv  ', 'Vertical viscosity'
      &    , wrtavg(indxAkt),'write Akt  ',
      &                        'Vertical diffusivity for temperature.'
+     &    , wrthis(indxRich), 'write Rich ', 
+     &                        'Local gradient Richardson number'
 #  ifdef SALINITY
      &    , wrtavg(indxAks),'write Aks  ',
      &                           'Vertical diffusivity for salinity.'
@@ -900,8 +884,8 @@ c--      fname='roms.in.US_West'
           read(input,*,err=95) (tnu2(itrc),itrc=1,NT)
           do itrc=1,NT
             MPI_master_only write(stdout,7) tnu2(itrc), itrc, itrc
-   7        format(1pe10.3,'  tnu2(',i1,')     Horizontal Laplacian '
-     &       ,'mixing coefficient (m2/s)',/,32x,'for tracer ',i1,'.')
+   7        format(1pe10.3,'  tnu2(',i2,')     Horizontal Laplacian '
+     &       ,'mixing coefficient (m2/s)',/,32x,'for tracer ',i2,'.')
           enddo
 # endif
 # if !defined LMD_MIXING && !defined BVF_MIXING\

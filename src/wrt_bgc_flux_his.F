@@ -5,7 +5,7 @@
 !
 !
 #include "cppdefs.h"
-#ifdef BGC_FLUX_ANALYSIS 
+#if defined BIOLOGY_NPZDOC && defined BGC_FLUX_ANALYSIS 
 ! Write biogeochemical flux fields into netCDF file
       subroutine wrt_bgc_flux_his
       implicit none
@@ -307,4 +307,4 @@ CR      write(*,*) 'wrt_his:  wrtPAR' MYID
 #else /* BGC_FLUX_ANALYSIS */
       subroutine wrt_bgc_flux_his_empty
       end
-#endif /* BGC_FLUX_ANALYSIS */
+#endif /* BIOLOGY_NPZDOC && BGC_FLUX_ANALYSIS */

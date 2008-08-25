@@ -41,7 +41,7 @@ c--#define VERBOSE
       implicit none
 #include "netcdf.inc"
       integer maxdims, maxvars, maxnodes
-      parameter (maxdims=32, maxvars=64, maxnodes=384)
+      parameter (maxdims=32, maxvars=128, maxnodes=384)
       character ncname0*64, ncname(0:maxnodes-1)*64, string*80
       character root*64, root_bak*64, sffx*8, sffx_bak*8
       character dimname(maxdims)*32, varname(maxvars)*32
@@ -422,13 +422,13 @@ c   &              ',', j, ' which already defined in another file.'
             write(*,'(/8x,2A,I4,1x,4A/15x,A,1x,A/)')   '### ERROR: ',
      &                  'number of dimensions', ndims,  'in netCDF ',
      &        'file ''',  ncname(0)(1:lstr), '''',  'exceeds limit.',
-     &        'Increase parameter maxdims in file "partit.F".'
+     &        'Increase parameter maxdims in file "ncjoin.F".'
             goto 97
           elseif (nvars .gt. maxvars) then
             write(*,'(/8x,2A,I4,1x,4A/15x,A,1x,A/)')   '### ERROR: ',
      &        'number of variables',  nvars,  'in netCDF', 'file ''',
      &                    ncname(0)(1:lstr), '''',  'exceeds limit.',
-     &        'Increase parameter maxvars in file "partit.F".'
+     &        'Increase parameter maxvars in file "ncjoin.F".'
             goto 97
           endif
 !

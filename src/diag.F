@@ -1,6 +1,6 @@
 #include "cppdefs.h"
 #define SUM_BY_PAIRS
-#define  ETALON_CHECK
+#undef  ETALON_CHECK
  
       subroutine diag (tile)
       implicit none

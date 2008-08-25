@@ -4,7 +4,7 @@
 !
 !
 #include "cppdefs.h"
-#if defined BGC_FLUX_ANALYSIS && defined AVERAGES
+#if defined BIOLOGY_NPZDOC && defined BGC_FLUX_ANALYSIS && defined AVERAGES
 ! Write time-averaged biogeochemical flux fields into averages netCDF file
       subroutine wrt_bgc_flux_avg
       implicit none
@@ -304,4 +304,4 @@ CR      write(*,*) 'wrt_avg:  wrtPCO2air' MYID
 #else /* BGC_FLUX_ANALYSIS && AVERAGES */
       subroutine wrt_bgc_flux_avg_empty
       end
-#endif /* BGC_FLUX_ANALYSIS && AVERAGES */
+#endif /* BIOLOGY_NPZDOC && BGC_FLUX_ANALYSIS && AVERAGES */

@@ -57,6 +57,10 @@
       if (ierr.eq.0) call get_sss (ierr)
 
 # endif
+# ifdef BIOLOGY_BEC
+        if (ierr.eq.0)  call get_dust(ierr)
+        if (ierr.eq.0)  call get_iron(ierr)
+# endif
 # if defined LMD_KPP && !defined ANA_SRFLUX
       if (ierr.eq.0) call get_srflux (ierr)
 # endif
@@ -164,6 +168,10 @@ c***              no code here
 #  else
       call set_stflux_tile (istr,iend,jstr,jend, isalt, ierr)
 #  endif
+# endif
+# ifdef BIOLOGY_BEC
+      call set_iron_tile (Istr,Iend,Jstr,Jend,ierr) 
+      call set_dust_tile (Istr,Iend,Jstr,Jend,ierr) 
 # endif
 # ifdef LMD_KPP
 #  ifdef ANA_SRFLUX

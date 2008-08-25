@@ -4,14 +4,47 @@
 ! NOTE: This file must always be included AFTER bgcflux.h as it uses
 ! some parameters that are defined in that file.
 
-#if defined SOLVE3D && defined BIOLOGY_NPZDOC && defined BGC_FLUX_ANALYSIS
+!#if defined SOLVE3D & defined BGC_FLUX_ANALYSIS
 
       logical new_bgc_flux_his
-      integer n_bgc_flux_his
+      integer n_bgc_flux_his, nrpf_bgc_flux_his
+     &     , ncid_bgc_flux_his, nrec_bgc_flux_his
       common /scalars_bgc/
      &     new_bgc_flux_his
-     &     , n_bgc_flux_his
+     &     , n_bgc_flux_his, nrpf_bgc_flux_his
+     &     , ncid_bgc_flux_his, nrec_bgc_flux_his
 
+#ifdef AVERAGES
+      integer ncid_bgc_flux_avg, nrec_bgc_flux_avg
+     &     , nrpf_bgc_flux_avg
+      common /scalars_bgc_avg/ ncid_bgc_flux_avg, nrec_bgc_flux_avg
+     &     , nrpf_bgc_flux_avg
+
+      character*80 bgc_flux_avg_name
+      common /c_bgcflux_avg/ bgc_flux_avg_name
+#endif
+
+# ifdef BIOLOGY_NPZDOC
+      integer, parameter :: num_bgcflux = 20
+     &     + NumFluxTerms + NumVSinkTerms
+#   ifdef OXYGEN
+     &     + NumGasExcTerms 
+#   endif /* OXYGEN */
+#   ifdef SEDIMENT_BIOLOGY
+     &     + NumSedFluxTerms
+#   endif /* SEDIMENT_BIOLOGY */
+# elif defined BIOLOGY_BEC
+      integer, parameter :: num_bgcflux = 76 
+      integer, dimension(num_bgcflux) :: vid_bec_flux_his
+      common /c_bgcflux_bec/ vid_bec_flux_his
+# endif
+
+      character*80 bgc_flux_his_name,
+     &     vname_bgcflux(4, num_bgcflux)
+      common /c_bgcflux/ bgc_flux_his_name, vname_bgcflux
+
+!!!!!!!!!!!!!!!!!!!!!!!! NPZD model !!!!!!!!!!!!!!!!!!!
+# ifdef BIOLOGY_NPZDOC
 ! indices for the netcdf output
 # ifdef OXYGEN
       integer, parameter :: indxU10 = 1
@@ -62,8 +95,6 @@
 #   ifdef SEDIMENT_BIOLOGY
      &     , hisSedFlux(NumSedFluxTerms)
 #   endif /* SEDIMENT_BIOLOGY */
-     &     , nrpf_bgc_flux_his
-     &     , ncid_bgc_flux_his, nrec_bgc_flux_his
      &     , bgc_flux_hisTime, bgc_flux_hisTstep
      &     , bgc_flux_hisZ
 
@@ -84,23 +115,9 @@
 #   ifdef SEDIMENT_BIOLOGY
      &     , hisSedFlux
 #   endif /* SEDIMENT_BIOLOGY */
-     &     , nrpf_bgc_flux_his
-     &     , ncid_bgc_flux_his, nrec_bgc_flux_his
      &     , bgc_flux_hisTime, bgc_flux_hisTstep
      &     , bgc_flux_hisZ
-      
-      integer, parameter :: num_bgcflux = 20
-     &     + NumFluxTerms + NumVSinkTerms
-#   ifdef OXYGEN
-     &     + NumGasExcTerms 
-#   endif /* OXYGEN */
-#   ifdef SEDIMENT_BIOLOGY
-     &     + NumSedFluxTerms
-#   endif /* SEDIMENT_BIOLOGY */
-
-      character*80 bgc_flux_his_name,
-     &     vname_bgcflux(4, num_bgcflux)
-      common /c_bgcflux/ bgc_flux_his_name, vname_bgcflux
+#endif /* BIOLOGY_NPZDOC */      
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 # ifdef AVERAGES
@@ -113,6 +130,7 @@
       real time_bgc_flux_avg
       common /scalars_bgc_avg_real/ time_bgc_flux_avg
 
+# ifdef BIOLOGY_NPZDOC
       integer avgPAR, avgPARinc
      &     , avgFlux(NumFluxTerms)
      &     , avgVSinkFlux(NumVSinkTerms)
@@ -130,8 +148,6 @@
 #   ifdef SEDIMENT_BIOLOGY
      &     , avgSedFlux(NumSedFluxTerms)
 #   endif /* SEDIMENT_BIOLOGY */
-     &     , nrpf_bgc_flux_avg
-     &     , ncid_bgc_flux_avg, nrec_bgc_flux_avg
      &     , bgc_flux_avgTime, bgc_flux_avgTstep
      &     , bgc_flux_avgZ
 
@@ -152,14 +168,14 @@
 #   ifdef SEDIMENT_BIOLOGY
      &     , avgSedFlux
 #   endif /* SEDIMENT_BIOLOGY */
-     &     , nrpf_bgc_flux_avg
-     &     , ncid_bgc_flux_avg, nrec_bgc_flux_avg
      &     , bgc_flux_avgTime, bgc_flux_avgTstep
      &     , bgc_flux_avgZ
+#endif /* BIOLOGY_NPZDOC */
 
-      character*80 bgc_flux_avg_name
-      common /c_bgcflux_avg/ bgc_flux_avg_name
-
+#  ifdef BIOLOGY_BEC
+      integer, dimension(num_bgcflux) :: vid_bec_flux_avg
+      common /c_bgcflux_avg_bec/ vid_bec_flux_avg
+#  endif
 # endif /* AVERAGES */
 
-#endif /* SOLVE3D && BIOLOGY_NPZDOC */
+!#endif /* SOLVE3D && BGC_FLUX_ANALYSIS */

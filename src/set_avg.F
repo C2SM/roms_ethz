@@ -244,6 +244,15 @@
               enddo
             enddo
           endif
+          if (wrtavg(indxRich)) then
+            do k=0,N
+              do j=jstrR,jendR
+                do i=istrR,iendR
+                  rich_avg(i,j,k)=rich_avg(i,j,k)+Rich(i,j,k)
+                enddo
+              enddo
+            enddo
+          endif
 #  ifdef SALINITY
           if (wrtavg(indxAks)) then
             do k=0,N
@@ -364,6 +373,15 @@
               do j=jstrR,jendR
                 do i=istrR,iendR
                   akt_avg(i,j,k)=cff*(akt_avg(i,j,k)+Akt(i,j,k,itemp))
+                enddo
+              enddo
+            enddo
+          endif
+          if (wrtavg(indxRich)) then
+            do k=0,N
+              do j=jstrR,jendR
+                do i=istrR,iendR
+                  rich_avg(i,j,k)=cff*(rich_avg(i,j,k)+Rich(i,j,k))
                 enddo
               enddo
             enddo

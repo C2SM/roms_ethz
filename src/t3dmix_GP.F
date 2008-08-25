@@ -183,9 +183,45 @@ c**  &                                                             )
      &                                                   )/Hz(i,j,k)
             enddo
           enddo
+#  ifdef FULL_PHYS_FLUX_ANALYSIS
+        do j=Jstr,Jend
+           do i=Istr,Iend+1
+              ! unit: mmol/s
+              HorXMixFlux(i,j,k,itrc) = -FX(i,j)
+#   ifdef MASKING
+     &              * rmask(i,j)
+#   endif
+           end do
+        end do
+        do j=Jstr,Jend+1
+           do i=Istr,Iend+1
+              ! unit: mmol/s
+              HorYMixFlux(i,j,k,itrc) = -FE(i,j)
+#   ifdef MASKING
+     &              * rmask(i,j)
+#   endif
+           end do
+        end do
+        do j=Jstr,Jend
+           do i=Istr,Iend
+              ! unit: mmol/(m2 s)
+              ! reverse sign so that fluxes are positive upwards
+              VertMixFlux(i,j,k,itrc) = -FC(i,j,k2)
+#   ifdef MASKING
+     &             * rmask(i,j)
+#   endif
+            enddo
+          enddo
+       else ! <-- k.gt.0
+          do j=Jstr,Jend+1
+             do i=Istr,Iend+1
+                VertMixFlux(i,j,k,itrc) = 0.0
+             end do
+          end do
+#  endif /* FULL_PHYS_FLUX_ANALYSIS */
         endif  ! <-- k.gt.0
       enddo   ! --> k
-# endif /* T_DIF2 */
+# endif /* TS_DIF2 */
 # ifdef TS_DIF4
 #  ifndef EW_PERIODIC
       if (WESTERN_EDGE) then

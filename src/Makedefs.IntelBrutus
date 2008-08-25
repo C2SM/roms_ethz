@@ -60,11 +60,11 @@ CPPFLAGS = -D__IFC -I/usr/lib/mpi/mpi_intel/include
 LARGE_MEM_FLAG = -mcmodel=medium -i-dynamic
 
 #     CFT = ifc   $(OMP_FLAG) -pc80 -tpp7 -axW -xW
-      CFT = ifort $(OMP_FLAG) -pc80 -tpp7 -axW -xW -auto -stack_temps
+#      CFT = ifort $(OMP_FLAG) -pc80 -tpp7 -axW -xW -auto -stack_temps
 #      CFT = ifort $(OMP_FLAG) -pc80 -tpp7 -axN -xN -align dcommon -auto -stack_temps
       #mm CFT = ifort $(OMP_FLAG) -pc80  -mtune=core2 -axT -xT -w95 -align dcommon -auto -stack_temps
                             # -xW
-      CFT = ifort $(OMP_FLAG) -pc80 -axW -xW -auto -stack_temps
+#      CFT = ifort $(OMP_FLAG) -pc80 -axW -xW -auto -stack_temps
       # Brutus  mpich2: CFT = mpif90 -f90=ifort $(OMP_FLAG) -pc80 -axW -xW -auto -stack_temps
 #      CFT =/opt/hpmpi/bin/mpif90 $(OMP_FLAG) -pc80 -axW -xW -auto -stack_temps
      CFT =mpif90 -f90=ifort $(OMP_FLAG) -pc80 -axW -xW -auto -stack_temps
@@ -87,7 +87,7 @@ LARGE_MEM_FLAG = -mcmodel=medium -i-dynamic
 
  COMP_FILES = work.pc work.pcl ifort*
 
-   LCDF = -lnetcdf
+#   LCDF = -lnetcdf
 #   LCDF =/usr/local/lib/libnetcdf.a
 #  LCDF =/home/alex/netcdf/netcdf-3.6.2-beta3/libsrc/.libs/libnetcdf.a
 
@@ -100,9 +100,9 @@ LARGE_MEM_FLAG = -mcmodel=medium -i-dynamic
 
 #   LCDF = -lnetcdf
 # mm ETHZ Gonzales cluster
-LCDF = -L/opt/netcdf/intel/lib -lnetcdf
+LCDF = -L/opt/netcdf/3.6.2/lib -lnetcdf
 # mm ETHZ Brutus cluster
-LCDF = -L/panfs/panasas.hpc-net.ethz.ch/uwis/muennicm/intel/lib -lnetcdf
+#LCDF = -L/panfs/panasas.hpc-net.ethz.ch/uwis/muennicm/intel/lib -lnetcdf
 # mm ETHZ Brutus/ Gonzales cluster Quadrics MPI
 LMPI = -L/usr/lib/mpi/mpi_intel/lib -lmpifarg -lmpi -lelan
 # mm A look at mpif90 made this the likely libraries to link against

@@ -9,7 +9,7 @@
 #ifndef AVRH
 # include "cppdefs.h"
 #endif
-#ifdef BGC_FLUX_ANALYSIS
+#if defined BIOLOGY_NPZDOC && defined BGC_FLUX_ANALYSIS
 #ifdef AVRH
       subroutine def_bgc_flux_avg (ncid, total_rec, ierr)
 #else
@@ -1215,4 +1215,4 @@
       subroutine def_bgc_flux_empty()
       return
       end
-#endif /* BGC_FLUX_ANALYSIS */
+#endif /* BIOLOGY_NPZDOC && BGC_FLUX_ANALYSIS */

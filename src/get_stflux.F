@@ -106,7 +106,8 @@
             if (ierr .eq. nf_noerr) then
               write(stdout,'(6x,A,I2,1x,A,F12.4,2(1x,A,I4))')
      &           'get_stflux -- read surface flux for tracer', itrc,
-     &           'stf_time =', cff, 'rec =', stf_rec(itrc) MYID
+     &           'stf_time =', cff, 'rec =', 
+     &           stf_rec(itrc) MYID
               if (ntstf(itrc).eq.1) return
             else
               write(stdout,2) 'stflux', itrc, stf_rec
@@ -304,6 +305,18 @@ c**  &                                         -tclm(i,j,N,isalt)
 
             enddo
           enddo
+# if defined SALINITY && (defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC) && defined VFLX_CORR
+! Flux correction for all biological/chemical tracers
+          cff = 1. / global_srf_sum(isalt)
+          do itrc = isalt+1, NT
+             do j=JstrR,JendR
+                do i=IstrR,IendR
+                   stflx(i,j,itrc)=stflx(i,j,isalt)*
+     &                 global_srf_sum(itrc) * cff 
+                enddo
+             enddo
+          enddo
+# endif /* SALINITY && (BIOLOGY_NPZDOC || BIOLOGY_BEC) && VFLX_CORR */
 # endif
         endif
       elseif (ZEROTH_TILE) then
@@ -321,4 +334,3 @@ c**  &                                         -tclm(i,j,N,isalt)
       subroutine get_stflux_empty
       end
 #endif /* SOLVE3D  && !ANA_STFLUX || (SALINITY && !ANA_SSFLUX) */
- 

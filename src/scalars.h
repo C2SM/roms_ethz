@@ -136,4 +136,7 @@ C$OMP THREADPRIVATE(/priv_scalars/)
 #else
       parameter (g=9.81) ! m/s^2
 #endif
- 
+#ifdef BIOLOGY_BEC
+      real nmol_cm2_to_mmol_m2
+      parameter (nmol_cm2_to_mmol_m2 = 0.01)
+#endif

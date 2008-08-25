@@ -8,7 +8,7 @@
 !
 !
 #include "cppdefs.h"
-#if defined BGC_FLUX_ANALYSIS && defined AVERAGES
+#if defined BIOLOGY_NPZDOC && defined BGC_FLUX_ANALYSIS && defined AVERAGES
 
       subroutine set_bgc_flux_avg(tile)
       implicit none
@@ -453,5 +453,5 @@
 #else /* BGC_FLUX_ANALYSIS && AVERAGES */
       subroutine set_bgc_flux_avg_empty
       end
-#endif /* BGC_FLUX_ANALYSIS && AVERAGES */
+#endif /* BIOLOGY_NPZDOC && BGC_FLUX_ANALYSIS && AVERAGES */
 

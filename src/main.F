@@ -33,6 +33,10 @@ c**   call MPI_Test
       if (ierr.ne.0) goto 100 
 #  endif
 # endif /* BIOLOGY_NPZDOC */
+# ifdef BIOLOGY_BEC
+      call init_scalars_bec(ierr)
+      if (ierr.ne.0) goto 100
+# endif
 # ifdef PHYS_FLUX_ANALYSIS
       call init_scalars_physflux(ierr)
       if (ierr.ne.0) goto 100 
@@ -204,7 +208,8 @@ C$OMP BARRIER
 C$OMP MASTER                         ! setup environmental variables
         call get_initial (nrrec-1,2) ! (e.g. analytical boundary
 C$OMP END MASTER                     ! forcing), call it first, even
-C$OMP BARRIER                        ! in the case of restart run.
+C$OMP BARRIER 
+                       ! in the case of restart run.
 # ifdef SOLVE3D
         do tile=my_tile_range
           call set_depth (tile)     !<-- needed to initialize Hz_bak
@@ -288,10 +293,11 @@ CR      write(*,*) ' -1' MYID
 ! just above.
 !
 
-#if defined SALINITY && defined BIOLOGY_NPZDOC && defined VFLX_CORR
+#if defined SALINITY && (defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC) && defined VFLX_CORR
         call reset_global_srf_sum()
 ! If the virtual flux correction is used, globally averaged concentrations
-! for the surface cells must be available for subroutine set_vbc_tile
+! for the surface cells must be available for subroutine set_stflux_tile
+! (which is called by get_forces)
 C$OMP PARALLEL DO PRIVATE(tile)
         do tile=0,NSUB_X*NSUB_E-1
            call calc_global_srf_sum(tile)
@@ -299,7 +305,7 @@ C$OMP PARALLEL DO PRIVATE(tile)
 
 ! Keep this routine out of the parallel region        
         call scale_global_srf_sum()
-#endif /* SALINITY && BIOLOGY_NPZDOC && VFLX_CORR */
+#endif /* SALINITY && (BIOLOGY_NPZDOC || BIOLOGY_BEC) && VFLX_CORR */
 
 #ifdef BIOLOGY_NPZDOC
 C$OMP PARALLEL DO PRIVATE(tile)
@@ -404,6 +410,9 @@ C$OMP END MASTER
 # include "physflux.h"
 # include "ncroms_physflux.h"
 #endif
+#ifdef BIOLOGY_BEC
+# include "bec_avg.h"
+#endif
  
       trd=proc(2)
       range=(NSUB_X*NSUB_E+numthreads-1)/numthreads
@@ -434,6 +443,22 @@ C$OMP END MASTER
       if (synchro_flag) then
         synchro_flag=.false.
 C$OMP MASTER
+#ifdef SOLVE3D
+# if defined SALINITY && (defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC) && defined VFLX_CORR
+        call reset_global_srf_sum()
+! If the virtual flux correction is used, globally averaged concentrations
+! for the surface cells must be available for subroutine set_stflux_tile
+! (which is called by get_forces)
+
+! hf: this loop could be parallelized
+        do tile=my_first,my_last
+	   call calc_global_srf_sum(tile)
+        enddo
+
+! Keep this routine out of the parallel region
+        call scale_global_srf_sum()
+# endif /* SALINITY && (BIOLOGY_NPZDOC || BIOLOGY_BEC) && VFLX_CORR */
+#endif /* SOLVE3D */
         call get_forces               ! Read forcing/climatology data
 C$OMP END MASTER
 C$OMP BARRIER
@@ -449,7 +474,7 @@ C$OMP BARRIER
         call    rho_eos (tile)
         call    set_HUV (tile)
         call       diag (tile)
-#if defined BIOLOGY || defined BIOLOGY_NPZDOC
+#if defined BIOLOGY || defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC
         call   bio_diag (tile)
 #endif
       enddo
@@ -482,7 +507,11 @@ C$OMP BARRIER
 # ifdef AVERAGES
         call    set_avg (tile)
 #  ifdef BGC_FLUX_ANALYSIS
+#   ifdef BIOLOGY_NPZDOC
         call set_bgc_flux_avg(tile)
+#   elif defined BIOLOGY_BEC
+! currently called from step3d_t3S (uses istr etc. as arg's, not tile)
+#   endif
 #  endif
 #  ifdef PHYS_FLUX_ANALYSIS
         call set_phys_flux_avg(tile)
@@ -572,6 +601,22 @@ C$OMP MASTER
      &      call wrt_floats
         diagfloats=.false.
 #endif
+#ifdef BIOLOGY_BEC_NOMORE
+      if ( iic.gt.ntstart .and. ( mod(iic-ntstart,nwrtmgm).eq.0) ) then
+           nrecmgm=nrecmgm+1
+           call wrt_mgm
+        end if
+
+      if ( iic.gt.ntstart .and. (mod(iic-ntstart,nwrtmgmavg).eq.0)) then
+         nrecmgmavg=nrecmgmavg+1
+         call wrt_mgmavg
+# ifdef ASCII_OUTPUT
+         MPI_master_only print *, 
+     &        'back from wrt_mgmavg, before barrier,iic:',iic
+     &        MYID
+# endif
+      end if
+#endif /* BIOLOGY_BEC_NOMORE */
 C$OMP END MASTER
 C$OMP BARRIER
         if (may_day_flag .ne. 0)     goto 99   !-->  EXIT
@@ -589,13 +634,21 @@ C$OMP BARRIER
       if (iic > ntstart .and. n_bgc_flux_his > 0 .and. 
      &     mod(iic-1, n_bgc_flux_his) == 0) then
          nrec_bgc_flux_his = nrec_bgc_flux_his + 1
+# ifdef BIOLOGY_NPZDOC
          call wrt_bgc_flux_his
+# elif defined BIOLOGY_BEC
+         call wrt_bec_flux_his
+# endif
       end if
 # ifdef AVERAGES
       if (iic > ntstart .and. n_bgc_flux_avg > 0 .and. 
      &     mod(iic-1, n_bgc_flux_avg) == 0) then
          nrec_bgc_flux_avg = nrec_bgc_flux_avg + 1
+# ifdef BIOLOGY_NPZDOC
          call wrt_bgc_flux_avg
+# elif defined BIOLOGY_BEC
+         call wrt_bec_flux_avg
+# endif
       end if
 # endif
 #endif /* BGC_FLUX_ANALYSIS */

@@ -27,7 +27,7 @@ include Makedefs.IntelBrutus
 #  3) 3D time stepping engine;    7) netCDF I/O routines;
 #  4) sea-water EOS routines;     8) model forcing routines; 
 #
-# Group 9 contains the new files for the NPZD code.
+# Group 9 contains the new files for the NPZD code, group 10 for the BEC code.
 
 KRNSRC = main.F		step2D_FB.F	read_inp.F	sta_par.F\
 	timers.F	setup_kwds.F	check_switches1.F\
@@ -60,7 +60,11 @@ KRNSRC = main.F		step2D_FB.F	read_inp.F	sta_par.F\
 	ta_iter_SWS.F wrt_bgc_flux_avg.F wrt_bgc_flux_his.F\
 	def_phys_flux.F\
 	set_phys_flux_avg.F wrt_phys_flux_his.F wrt_phys_flux_avg.F\
-	biology.F  bio_diag.F
+	biology.F  bio_diag.F\
+\
+	init_scalars_bec.F ecosys_bec.F ecosys_bec_init.F get_dust.F\
+	get_iron.F set_bec_flux_avg.F wrt_bec_flux_avg.F wrt_bec_flux_his.F\
+	init_scalars_becflux.F def_bec_flux.F
 
 
 IOSRC = nf_fread.F	nf_read_bry.F	set_cycle.F	checkdims.F\
