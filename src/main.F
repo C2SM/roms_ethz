@@ -443,22 +443,6 @@ C$OMP END MASTER
       if (synchro_flag) then
         synchro_flag=.false.
 C$OMP MASTER
-#ifdef SOLVE3D
-# if defined SALINITY && (defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC) && defined VFLX_CORR
-        call reset_global_srf_sum()
-! If the virtual flux correction is used, globally averaged concentrations
-! for the surface cells must be available for subroutine set_stflux_tile
-! (which is called by get_forces)
-
-! hf: this loop could be parallelized
-        do tile=my_first,my_last
-	   call calc_global_srf_sum(tile)
-        enddo
-
-! Keep this routine out of the parallel region
-        call scale_global_srf_sum()
-# endif /* SALINITY && (BIOLOGY_NPZDOC || BIOLOGY_BEC) && VFLX_CORR */
-#endif /* SOLVE3D */
         call get_forces               ! Read forcing/climatology data
 C$OMP END MASTER
 C$OMP BARRIER

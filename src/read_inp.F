@@ -715,7 +715,7 @@ c--      fname='roms.in.US_West'
      &    , wrthis(indxAkt),'write Akt  ',
      &                        'Vertical diffusivity for temperature.'
      &    , wrthis(indxRich), 'write Rich ', 
-     &                        'Local gradient Richardson number'
+     &               'Diffusivity due to vertical velocity shear'
 # ifdef SALINITY
      &    , wrthis(indxAks),'write Aks  ',
      &                           'Vertical diffusivity for salinity.'
@@ -801,7 +801,7 @@ c--      fname='roms.in.US_West'
      &    , wrtavg(indxAkt),'write Akt  ',
      &                        'Vertical diffusivity for temperature.'
      &    , wrthis(indxRich), 'write Rich ', 
-     &                        'Local gradient Richardson number'
+     &                'Diffusivity due to vertical velocity shear'
 #  ifdef SALINITY
      &    , wrtavg(indxAks),'write Aks  ',
      &                           'Vertical diffusivity for salinity.'

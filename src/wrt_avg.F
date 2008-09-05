@@ -201,7 +201,7 @@ CR      write(*,*) 'wrt_avg:  wrtT_sed  ' MYID
         endif
       endif
 !
-! Write out local gradient Richardson number
+! Write out diffusion coefficient due to vertical velocity shear:
 !
       if (wrtavg(indxRich)) then
         ierr=nf_fwrite (rich_avg(START_2D_ARRAY,0), ncidavg,

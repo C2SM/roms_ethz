@@ -660,11 +660,11 @@
 !
 #ifdef OXYGEN
 !       air-sea flux of O2
-!       abs(z_w(i,j,N-1))==> volume of upper layer
+!       Hz(i,j,N) ==> thickness of upper layer
         ThisGasExcFlux(OFlux_GasExc) = Kv_O2_loc * (O2satu_loc - O2(N))
 !       ThisGasExcFlux is positive if ocean takes up O2 from the atmosphere
         O2(N) = O2(N) + ThisGasExcFlux(OFlux_GasExc) * dtsec /
-     &       abs(z_w(i,j,N-1))
+     &       Hz(i,j,N)
 #endif /* OXYGEN */
 !
 #ifdef CARBON
@@ -719,11 +719,11 @@
 #endif
 !
 !       air-sea flux of CO2
-!       abs(z_w(i,j,N-1))==> volume of upper layer
+!       Hz(i,j,N) ==> thickness of upper layer 
         ThisGasExcFlux(CFlux_GasExc) = CO2sol_loc * Kv_CO2_loc *
      &       (pCO2air_loc - pCO2sw_loc)
         DIC(N) = DIC(N) + ThisGasExcFlux(CFlux_GasExc) * dtsec /
-     &       abs(z_w(i,j,N-1))
+     &       Hz(i,j,N)
 #endif /* CARBON */
 !
 ! Vertical sinking: Vertical advection algorithm based on monotonic,

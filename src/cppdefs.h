@@ -301,6 +301,8 @@ c--DL:
 #define BIOLOGY_BEC
 #define FOUR_CLIM_FILES
 !#define BGC_FLUX_ANALYSIS
+! Other switches:
+#define VFLX_CORR
 #endif
 
 # define SPONGE

@@ -110,7 +110,8 @@
             ierr=nf_fread (dqdtg(START_2D_ARRAY,itdqdt), ncid,
      &                                 dqdt_id, dqdt_rec, r2dvar)
             if (ierr .eq. nf_noerr) then
-              write(stdout,'(6x,2A,F12.4,2(1x,A,I4))') 'get_dqdt   ',
+              MPI_master_only
+     &        write(stdout,'(6x,2A,F12.4,2(1x,A,I4))') 'get_dqdt   ',
      &                '-- read dQdT                      for time =',
      &                 cff, 'rec =', dqdt_rec MYID
             else

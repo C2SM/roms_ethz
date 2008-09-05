@@ -104,7 +104,8 @@
             ierr=nf_fread (stflxg(START_2D_ARRAY,itstf(itrc),itrc),
      &                 ncid, stf_id(itrc), stf_rec(itrc), r2dvar)
             if (ierr .eq. nf_noerr) then
-              write(stdout,'(6x,A,I2,1x,A,F12.4,2(1x,A,I4))')
+              MPI_master_only
+     &        write(stdout,'(6x,A,I2,1x,A,F12.4,2(1x,A,I4))')
      &           'get_stflux -- read surface flux for tracer', itrc,
      &           'stf_time =', cff, 'rec =', 
      &           stf_rec(itrc) MYID
@@ -305,18 +306,6 @@ c**  &                                         -tclm(i,j,N,isalt)
 
             enddo
           enddo
-# if defined SALINITY && (defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC) && defined VFLX_CORR
-! Flux correction for all biological/chemical tracers
-          cff = 1. / global_srf_sum(isalt)
-          do itrc = isalt+1, NT
-             do j=JstrR,JendR
-                do i=IstrR,IendR
-                   stflx(i,j,itrc)=stflx(i,j,isalt)*
-     &                 global_srf_sum(itrc) * cff 
-                enddo
-             enddo
-          enddo
-# endif /* SALINITY && (BIOLOGY_NPZDOC || BIOLOGY_BEC) && VFLX_CORR */
 # endif
         endif
       elseif (ZEROTH_TILE) then

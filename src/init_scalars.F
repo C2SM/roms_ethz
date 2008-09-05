@@ -283,8 +283,8 @@ CR      write(stdout,'(1x,A,I3)') 'indxAkv =',indxAkv
 
 CR      write(stdout,'(1x,A,I3)') 'indxRich =',indxRich
       vname(1,indxRich)='Rich                                      '
-      vname(2,indxRich)='local gradient Richardson number          '
-      vname(3,indxRich)='                                          '
+      vname(2,indxRich)='Diffusivity due to vert. shear instability'
+      vname(3,indxRich)='meter2 second-1                           '
  
 CR      write(stdout,'(1x,A,I3)') 'indxAkt =',indxAkt
       vname(1,indxAkt)='AKt                                       '

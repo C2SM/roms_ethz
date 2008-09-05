@@ -677,9 +677,11 @@ c              goto 99                                     !--> ERROR
               endif ! if (itrc.eq.itemp .or. itrc.eq. isalt ...)
 #endif
                 if (ierr.eq.nf_noerr) then
-                  write(stdout,'(6x,A,I3,1x,A,F12.4,2(1x,A,I4))')
+                  MPI_master_only
+     &            write(stdout,'(6x,A,I3,1x,A,F12.4,2(1x,A,I4))')
      &            'get_tclima -- read climatology for tracer', itrc,
-     &            'tclm_time =', cff,  'rec =', tclm_rec(itrc) MYID
+     &            'tclm_time =', cff,  'rec =', 
+     &            tclm_rec(itrc) MYID
                   if (nttclm(itrc).eq.1) goto 30
                 else
                   lvar=lenstr(vname(1,indxT+itrc-1))

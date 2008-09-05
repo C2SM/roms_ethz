@@ -266,7 +266,7 @@ CR      write(*,*) 'wrt_his:  wrtAkv' MYID
 CR      write(*,*) 'wrt_his:  wrtAkt' MYID
       endif
 !
-! Write out local gradient Richardson number
+! Write out diffusion coefficient due to vertical velocity shear:
 !
       if (wrthis(indxRich)) then
         ierr=nf_fwrite (Rich(START_2D_ARRAY,0), ncidhis,

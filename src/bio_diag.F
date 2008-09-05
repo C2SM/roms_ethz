@@ -205,6 +205,7 @@ C$OMP END CRITICAL (bio_cr_rgn)
       do itrc = 0, NT
          global_srf_sum(itrc) = 0.Q0
       enddo
+
       return
       end
 
@@ -283,7 +284,13 @@ C$OMP END CRITICAL (bio_diag_rgn)
 #include "comm_vars.h"
       integer itrc
       real*QUAD factor
-      factor = 1.Q0 / global_srf_sum(0)
+      if (global_srf_sum(0) .gt. 0) then
+         factor = 1.Q0 / global_srf_sum(0)
+      else
+         ! global_srf_sum(0) may be zero (if the whole MPI domain happens
+         ! to be on the land)
+         factor = 0.0
+      end if
       do itrc = 1, NT
          global_srf_sum(itrc) = global_srf_sum(itrc) * factor
       enddo

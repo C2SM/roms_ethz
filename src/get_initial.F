@@ -491,7 +491,7 @@ CHF          goto 99                                         !--> ERROR
          ierr=nf_fread (ph_hist(START_2D_ARRAY), ncid,  varid,
      &                                               record, r2dvar)
          if (ierr .ne. nf_noerr) then
-            write(stdout,2) vname_bgcflux(1,8)(1:lvar), record,
+            write(stdout,2) vname(1,indxPH)(1:lvar), record,
      &           ininame(1:lstr)
             goto 99             !--> ERROR
          endif
@@ -500,7 +500,6 @@ CHF          goto 99                                         !--> ERROR
      &        'pH field not in init/rst file, initialize to 0'
       endif
 # endif /* BIOLOGY_BEC */
-      print *, 'get_in: after reading pH'
 # ifdef LMD_KPP
       lvar=lenstr(vname(1,indxHbl))
       ierr=nf_inq_varid (ncid, vname(1,indxHbl)(1:lvar), varid)

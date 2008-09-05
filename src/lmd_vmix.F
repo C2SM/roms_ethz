@@ -225,7 +225,6 @@
 !
         do j=jstr,jend
           do i=istr,iend
-            Rich(i,j,k) = Rig(i,j,k)*Ri0
 # ifdef LMD_RIMIX
             cff=min(1., max(0., Rig(i,j,k)))  ! Compute mixing die
             nu_sx=1. - cff*cff                ! to shear instability
@@ -233,6 +232,9 @@
                                               ! breaking.
             Kv(i,j,k)=nuwm + nu0m*nu_sx
             Kt(i,j,k)=nuws + nu0s*nu_sx
+CDL
+            Rich(i,j,k) = nu0s*nu_sx
+CDL
 # else
             Kv(i,j,k)=nuwm                    ! internal waves
             Kt(i,j,k)=nuws                    ! only

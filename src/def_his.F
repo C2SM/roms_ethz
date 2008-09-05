@@ -531,7 +531,7 @@ chf        ierr=nf_create(ncname(1:lstr), nf_64bit_offset, ncid)
 #endif
         endif
 !
-! Local gradient Richardson number:
+! Diffusivity due to vertical velocity shear:
 !
         if (wrt(indxRich)) then
           lvar=lenstr(vname(1,indxRich))
@@ -610,7 +610,8 @@ chf        ierr=nf_create(ncname(1:lstr), nf_64bit_offset, ncid)
 !
         ierr=nf_enddef(ncid)
         write(stdout,'(6x,5A,i4)')     'def_his/avg: Created new ',
-     &               'netCDF file ''', ncname(1:lstr), '''.' MYID
+     &               'netCDF file ''', ncname(1:lstr), 
+     &               '''.' MYID
 !
 ! Open existing file and prepare for appending data:   Inquire about
 ! ==== ======== ==== === ======= === ========= ====    dimensions and
@@ -828,7 +829,7 @@ chf        ierr=nf_create(ncname(1:lstr), nf_64bit_offset, ncid)
           endif
         endif
 !
-! Local gradient Richardson number:
+! Diffusivity due to vertical velocity shear:
 !
         if (wrt(indxRich)) then
           lvar=lenstr(vname(1,indxRich))

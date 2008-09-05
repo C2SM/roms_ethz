@@ -87,7 +87,8 @@
             ierr=nf_fread (sssg(START_2D_ARRAY,itsss), ncid,
      &                                 sss_id, sss_rec, r2dvar)
             if (ierr .eq. nf_noerr) then
-              write(stdout,'(6x,2A,F12.4,2(1x,A,I4))') 'get_sss   ',
+              MPI_master_only
+     &        write(stdout,'(6x,2A,F12.4,2(1x,A,I4))') 'get_sss   ',
      &              '--  read SSS                       for time =',
      &               cff, 'rec =', sss_rec MYID
             else

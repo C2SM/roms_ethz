@@ -94,7 +94,8 @@
               ierr=nf_fread (svstrg(START_2D_ARRAY,itsms), ncid,
      &                                      svsid, sms_rec, v2dvar)
               if (ierr .eq. nf_noerr) then
-                write(stdout,'(6x,A,3x,A,F12.4,2(1x,A,I4))')
+                MPI_master_only
+     &          write(stdout,'(6x,A,3x,A,F12.4,2(1x,A,I4))')
      &          'get_smflux -- read surface momentum stress',
      &          'sms_time =', cff, 'rec =',sms_rec MYID
                  if (ntsms.eq.1) return

@@ -113,8 +113,13 @@
 ! first.
 !
       implicit none
-      integer tile, ierr
+      integer tile, ierr, itrc, i, j
+      real cff
 #include "param.h"
+#if defined VFLX_CORR && (defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC)
+# include "comm_vars.h"
+# include "forces.h"
+#endif
 !
 #include "compute_tile_bounds.h"
 !
@@ -167,8 +172,26 @@ c***              no code here
       call ana_stflux_tile (istr,iend,jstr,jend, isalt)
 #  else
       call set_stflux_tile (istr,iend,jstr,jend, isalt, ierr)
-#  endif
-# endif
+#   if defined VFLX_CORR && (defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC)
+      ! Flux correction for all biological/chemical tracers
+      if (global_srf_sum(isalt) .gt. 0.0) then
+         cff = 1. / global_srf_sum(isalt)
+      else
+         ! global_srf_sum(isalt) may be zero (if the whole MPI domain
+         ! happens to be on the land)
+         cff = 0.0
+      end if
+      do itrc=isalt+1,NT
+         do j=jstr,jend
+            do i=istr,iend
+               stflx(i,j,itrc)=stflx(i,j,isalt)*
+     &              global_srf_sum(itrc) * cff
+            enddo
+         enddo
+      enddo
+#   endif /* VFLX_CORR && (BIOLOGY_NPZDOC || BIOLOGY_BEC) */
+#  endif /* ANA_SSFLUX */
+# endif /* SALINITY */
 # ifdef BIOLOGY_BEC
       call set_iron_tile (Istr,Iend,Jstr,Jend,ierr) 
       call set_dust_tile (Istr,Iend,Jstr,Jend,ierr) 
