@@ -207,6 +207,7 @@
 
 #undef ncname
 #undef rec_per_file
+#undef vid_bec_flux
 
 # ifndef AVRH
 #  ifdef AVERAGES      

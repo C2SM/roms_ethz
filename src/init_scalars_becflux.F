@@ -18,7 +18,6 @@
        ncid_bgc_flux_avg=-1
        nrec_bgc_flux_avg=0
 #endif
-       print * 'init_scalars_becflux called-------------------------------'
        ind=1
        vname_bgcflux(1,ind)='WS'
        vname_bgcflux(2,ind)='WS_AVG'
