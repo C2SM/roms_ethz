@@ -128,6 +128,26 @@ CR      write(stdout,'(1x,A,I3)') 'indxLDet =',indxLDet
       vname(2,indxCaCO3)='Calcium carbonate precipitate            '
       vname(3,indxCaCO3)='mMol C m-3                               '
       vname(4,indxCaCO3)='CaCO3, scalar, series                    '
+!DL: pH treated here for avg/his/rst files;
+!DL: and in init_scalars_bgcflux for flux files:
+      vname(1,indxPH_rst)='PH'
+      vname(2,indxPH_rst)='pH value'
+      vname(3,indxPH_rst)=' '
+      vname(4,indxPH_rst)=' '
+!DL: some more variables which have been moved from the flux files to
+!DL: averages/histrory/restart files:
+      vname(1,indxPCO2_rst)='pCO2                                 '
+      vname(2,indxPCO2_rst)='surface pCO2                         '
+      vname(3,indxPCO2_rst)='ppm                                  '
+      vname(4,indxPCO2_rst)='pCO2, scalar, series                 '
+      vname(1,indxPCO2air_rst)='pCO2air                           '
+      vname(2,indxPCO2air_rst)='air pCO2                          '
+      vname(3,indxPCO2air_rst)='ppm                               '
+      vname(4,indxPCO2air_rst)='pCO2air, scalar, series           '
+      vname(1,indxPAR_rst)='PAR                                   '
+      vname(2,indxPAR_rst)='Photosynthetically active radiation   '
+      vname(3,indxPAR_rst)='W m-2                                 '
+      vname(4,indxPAR_rst)='PAR, scalar, series                   '
 #   endif /* CARBON */
 #  endif /* OXYGEN */
 #  ifdef SEDIMENT_BIOLOGY

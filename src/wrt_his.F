@@ -17,6 +17,9 @@
 #ifdef SEDIMENT_BIOLOGY
 # include "bgcflux.h"
 #endif
+#ifdef BIOLOGY_BEC
+# include "ecosys_bec.h"
+#endif
 #ifdef SOLVE3D
       integer tile, itrc,i,j,k
 # include "work.h"
@@ -279,6 +282,20 @@ CR      write(*,*) 'wrt_his:  wrtAkt' MYID
         endif
 CR      write(*,*) 'wrt_his:  wrtRich' MYID
       endif
+!
+! Write out local gradient Richardson number:
+!
+      if (wrthis(indxRichN)) then
+        ierr=nf_fwrite (RichN(START_2D_ARRAY,0), ncidhis,
+     &                                hisRichN, record, w3dvar)
+        if (ierr .ne. nf_noerr) then
+          lvar=lenstr(vname(1,indxRichN))
+          write(stdout,1) vname(1,indxRichN)(1:lvar), record, ierr,
+     &                    nf_strerror(ierr) MYID
+          goto 99                                         !--> ERROR
+        endif
+CR      write(*,*) 'wrt_his:  wrtRichN' MYID
+      endif
 # ifdef SALINITY
 !
 !  Write out vertical diffusion coefficient for salinity.
@@ -311,7 +328,88 @@ CR      write(*,*) 'wrt_his:  wrtAks' MYID
 CR      write(*,*) 'wrt_his:  wrtHBL' MYID
       endif
 # endif
-#endif
+# if defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC
+!
+! Write out averaged pH:
+!
+      ierr=nf_fwrite (pH_hist(START_2D_ARRAY), ncidhis,
+     &                              hisPH, record, r2dvar)
+      if (ierr .ne. nf_noerr) then
+        lvar=lenstr(vname(1,indxPH_rst))
+        write(stdout,1) vname(1,indxPH_rst)(1:lvar), record, ierr,
+     &                  nf_strerror(ierr) MYID
+        goto 99                                         !--> ERROR
+      endif
+!
+! Write out averaged pCO2:
+!
+      ierr=nf_fwrite (pCO2sw(START_2D_ARRAY), ncidhis,
+     &                              hisPCO2, record, r2dvar)
+      if (ierr .ne. nf_noerr) then
+        lvar=lenstr(vname(1,indxPCO2_rst))
+        write(stdout,1) vname(1,indxPCO2_rst)(1:lvar), record, ierr,
+     &                  nf_strerror(ierr) MYID
+        goto 99                                         !--> ERROR
+      endif
+!
+! Write out averaged pCO2air:
+!
+      ierr=nf_fwrite (pCO2air(START_2D_ARRAY), ncidhis,
+     &                              hisPCO2air, record, r2dvar)
+      if (ierr .ne. nf_noerr) then
+        lvar=lenstr(vname(1,indxPCO2air_rst))
+        write(stdout,1) vname(1,indxPCO2air_rst)(1:lvar), record, ierr,
+     &                  nf_strerror(ierr) MYID
+        goto 99                                         !--> ERROR
+      endif
+!
+! PAR:
+!
+      ierr=nf_fwrite (PAR(START_2D_ARRAY,1), ncidhis,
+     &                              hisPAR, record, r3dvar)
+      if (ierr .ne. nf_noerr) then
+        lvar=lenstr(vname(1,indxPAR_rst))
+        write(stdout,1) vname(1,indxPAR_rst)(1:lvar), record, ierr,
+     &                  nf_strerror(ierr) MYID
+        goto 99                                         !--> ERROR
+      endif
+# endif /* BIOLOGY_NPZDOC || BIOLOGY_BEC */
+# ifdef BIOLOGY_BEC__OBSOLETE
+!
+! Write out averaged pCO2:
+!
+      ierr=nf_fwrite (pCO2surf_hist(START_2D_ARRAY), ncidhis,
+     &                              hisPCO2_rst, record, r2dvar)
+      if (ierr .ne. nf_noerr) then
+        lvar=lenstr(vname(1,indxPCO2_rst))
+        write(stdout,1) vname(1,indxPCO2_rst)(1:lvar), record, ierr,
+     &                  nf_strerror(ierr) MYID
+        goto 99                                         !--> ERROR
+      endif
+!
+! Write out averaged DpCO2:
+!
+      ierr=nf_fwrite (DpCO2_hist(START_2D_ARRAY), ncidhis,
+     &                              hisDPCO2_rst, record, r2dvar)
+      if (ierr .ne. nf_noerr) then
+        lvar=lenstr(vname(1,indxDPCO2_rst))
+        write(stdout,1) vname(1,indxDPCO2_rst)(1:lvar), record, ierr,
+     &                  nf_strerror(ierr) MYID
+        goto 99                                         !--> ERROR
+      endif
+!
+! PAR:
+!
+      ierr=nf_fwrite (PAR_avg_hist(START_2D_ARRAY,0), ncidhis,
+     &                              hisPAR_rst, record, r3dvar)
+      if (ierr .ne. nf_noerr) then
+        lvar=lenstr(vname(1,indxPAR_rst))
+        write(stdout,1) vname(1,indxPAR_rst)(1:lvar), record, ierr,
+     &                  nf_strerror(ierr) MYID
+        goto 99                                         !--> ERROR
+      endif
+# endif /* BIOLOGY_BEC__OBSOLETE */
+#endif /* SOLVE3D */
   1   format(/1x, 'WRT_HIS ERROR while writing variable ''', A,
      &         ''' into history file.'  /11x, 'Time record:', I6,
      &         3x,'netCDF error code',i4 /11x,'Cause of error: ',

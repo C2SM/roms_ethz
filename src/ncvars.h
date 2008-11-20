@@ -48,13 +48,19 @@
      &           indxSDet=indxNO3+5, indxLDet=indxNO3+6)
 # endif /* BIOLOGY */
       integer indxO, indxW, indxR, indxAkv, indxAkt, indxRich
+      integer indxRichN
       parameter (indxO=indxT+NT
-# ifdef SEDIMENT_BIOLOGY
+# if defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC
+      /* Create space for pH, pCO2, pCO2air, and PAR: */
+     &     + 4
+#  ifdef SEDIMENT_BIOLOGY
      &     + NT_sed
-# endif
+#  endif
+# endif /* BIOLOGY_NPZDOC || BIOLOGY_BEC */
      &     )
       parameter (indxW=indxO+1, indxR=indxO+2,
-     &     indxAkv=indxR+1, indxRich=indxAkv+1, indxAkt=indxAkv+2)
+     &     indxAkv=indxR+1, indxRich=indxAkv+1, indxRichN=indxAkv+2,
+     &     indxAkt=indxAkv+3)
 # ifdef SALINITY
       integer indxAks
       parameter (indxAks=indxAkt+1)
@@ -124,17 +130,22 @@
       parameter (indxO2 = indxLDet + 1)
 #   ifdef CARBON 
       integer indxDIC, indxTALK, indxSDetC, indxLDetC, indxCaCO3
+      integer indxPH_rst, indxPCO2_rst, indxPCO2air_rst, indxPAR_rst
       parameter (indxDIC = indxO2 + 1)
       parameter (indxTALK = indxDIC + 1)
       parameter (indxSDetC = indxTALK + 1)
       parameter (indxLDetC = indxSDetC + 1)
       parameter (indxCaCO3 = indxLDetC + 1)
+      parameter (indxPH_rst = indxCaCO3 + 1)
+      parameter (indxPCO2_rst = indxPH_rst + 1)
+      parameter (indxPCO2air_rst = indxPCO2_rst + 1)
+      parameter (indxPAR_rst = indxPCO2air_rst + 1)
 #   endif /* CARBON */
 #  endif /* OXYGEN */
 #  ifdef SEDIMENT_BIOLOGY
       integer indxSedOrgN
 #   ifdef CARBON
-      parameter (indxSedOrgN = indxCaCO3 + 1)
+      parameter (indxSedOrgN = indxPAR_rst + 1)
       integer indxSedOrgC, indxSedCaCO3
       parameter (indxSedOrgC = indxSedOrgN + 1)
       parameter (indxSedCaCO3 = indxSedOrgC + 1)
@@ -151,7 +162,8 @@
        integer indxPo4,indxNo3,indxSio3,indxNh4,indxFe,indxO2,indxDic,
      &   indxAlk,indxDoc,indxSpc,indxSpchl,indxSpcaco3,indxDiatc,indxDiatchl,
      & indxZooc,indxSpfe,indxDiatsi,indxDiatfe,indxDiazc,indxDiazchl,
-     & indxDiazfe,indxDon,indxDofe,indxDop,indxPH
+     & indxDiazfe,indxDon,indxDofe,indxDop,indxPH_rst,
+     & indxPCO2_rst, indxPCO2air_rst, indxPAR_rst
        parameter ( indxPO4=indxT+ntrc_salt+ntrc_pas+1,
      &           indxNo3 =indxPO4+1, indxSio3=indxPO4+2,
      &           indxNh4 =indxPO4+3, indxFe=indxPO4+4,
@@ -164,7 +176,11 @@
      &           indxDiatfe =indxPO4+17, indxDiazc=indxPO4+18,
      &           indxDiazchl =indxPO4+19, indxDiazfe=indxPO4+20,
      &           indxDon =indxPO4+21, indxDofe=indxPO4+22,
-     &           indxDop =indxPO4+23, indxPH =indxPO4+24)
+     &           indxDop =indxPO4+23)
+       parameter (indxPH_rst = indxDOP+1) 
+       parameter(indxPCO2_rst = indxPH_rst+1,
+     &      indxPCO2air_rst = indxPCO2_rst+1,
+     &      indxPAR_rst = indxPCO2air_rst+1)
 # endif /* BIOLOGY_BEC */
 #endif /* SOLVE3D */
 
@@ -250,19 +266,31 @@
      &        hisTime, hisTstep,      hisZ,   hisUb,  hisVb
 #ifdef SOLVE3D
       integer rstU, rstV, rstT(NT+1), hisO,   hisW,   hisR,
-     &        hisU, hisV, hisT(NT+1), hisAkv, hisAkt, hisAks, hisRich
-# ifdef BIOLOGY_BEC
-     &      , rstPH
-# endif
+     &        hisU, hisV, hisT(NT+1), hisAkv, hisAkt, hisAks, 
+     &        hisRich, hisRichN
+# if defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC
+     &      , rstPH, rstPCO2, rstPCO2air, rstPAR
+     &      , hisPH, hisPCO2, hisPCO2air, hisPAR
+     &      , avgPH, avgPCO2, avgPCO2air, avgPAR
+# endif /* BIOLOGY_NPZDOC || BIOLOGY_BEC */
+#if defined BGC_FLUX_ANALYSIS || defined PHYS_FLUX_ANALYSIS
+     &      , rstTstepFA
+#endif
 # ifdef SEDIMENT_BIOLOGY
      &      , rstTsed(NT_sed), hisTsed(NT_sed)
 # endif /* SEDIMENT_BIOLOGY */
       common /ncvars/
      &        rstU, rstV, rstT,       hisO,   hisW,   hisR,
-     &        hisU, hisV, hisT,       hisAkv, hisAkt, hisAks, hisRich
-# ifdef BIOLOGY_BEC
-     &      , rstPH
-# endif
+     &        hisU, hisV, hisT,       hisAkv, hisAkt, hisAks, 
+     &        hisRich, hisRichN
+# if defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC
+     &      , rstPH, rstPCO2, rstPCO2air, rstPAR
+     &      , hisPH, hisPCO2, hisPCO2air, hisPAR
+     &      , avgPH, avgPCO2, avgPCO2air, avgPAR
+# endif /* BIOLOGY_NPZDOC || BIOLOGY_BEC */
+#if defined BGC_FLUX_ANALYSIS || defined PHYS_FLUX_ANALYSIS
+     &      , rstTstepFA
+#endif
 # ifdef SEDIMENT_BIOLOGY
      &      , rstTsed, hisTsed
 # endif /* SEDIMENT_BIOLOGY */
@@ -280,12 +308,14 @@
      &        avgTime, avgTstep, avgZ,    avgUb, avgVb
 # ifdef SOLVE3D
       integer avgU,  avgV,  avgT(NT+1), avgR,
-     &        avgO,  avgW,  avgAkv,     avgAkt,  avgAks, avgRich
+     &        avgO,  avgW,  avgAkv,     avgAkt,  avgAks,
+     &        avgRich, avgRichN
 #  ifdef SEDIMENT_BIOLOGY
      &      , avgTsed(NT_sed)
 #  endif /* SEDIMENT_BIOLOGY */
       common /ncvars/ avgU, avgV,       avgT,    avgR, 
-     &        avgO,  avgW,  avgAkv,     avgAkt,  avgAks, avgRich
+     &        avgO,  avgW,  avgAkv,     avgAkt,  avgAks,
+     &        avgRich, avgRichN
 #  ifdef SEDIMENT_BIOLOGY
      &      , avgTsed
 #  endif /* SEDIMENT_BIOLOGY */
@@ -316,8 +346,7 @@
 #endif
 
 #ifdef SOLVE3D
-! Hartmut: # define NWRTHIS 130+NT
-# define NWRTHIS 16+NT-2
+# define NWRTHIS 100+NT
 #else
 # define NWRTHIS 14      
 #endif

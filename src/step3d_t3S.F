@@ -60,25 +60,27 @@ c--#define CONST_TRACERS
             enddo
           enddo
 # ifdef PHYS_FLUX_ANALYSIS
+          if (itrc .le. NT_PFA) then
 ! separate do loops (for better efficiency) to store the fluxes
-          j_loop2: do j=Jstr,Jend
-            do i=Istr,Iend+1
-               ! unit: mmol / s
-               HorXAdvFlux(i,j,k,itrc) = FX(i,j)
+             j_loop2: do j=Jstr,Jend
+                do i=Istr,Iend+1
+                                ! unit: mmol / s
+                   HorXAdvFlux(i,j,k,itrc) = FX(i,j)
 # ifdef MASKING
-     &              * rmask(i,j)
+     &                  * rmask(i,j)
 # endif
-            end do
-          end do j_loop2
-          j_loop3: do j=Jstr,Jend+1
-            do i=Istr,Iend
-               ! unit: mmol / s
-               HorYAdvFlux(i,j,k,itrc) = FE(i,j)
+                end do
+             end do j_loop2
+             j_loop3: do j=Jstr,Jend+1
+                do i=Istr,Iend
+                                ! unit: mmol / s
+                   HorYAdvFlux(i,j,k,itrc) = FE(i,j)
 # ifdef MASKING
-     &              * rmask(i,j)
+     &                  * rmask(i,j)
 # endif
-            enddo
-          end do j_loop3
+                enddo
+             end do j_loop3
+          end if
 # endif /* PHYS_FLUX_ANALYSIS */
         enddo
       enddo
@@ -95,17 +97,19 @@ c--#define CONST_TRACERS
             enddo
           enddo
 # ifdef PHYS_FLUX_ANALYSIS
+          if (itrc .le. NT_PFA) then
 ! separate do loop (for better efficiency) to store the fluxes
-          do k=0,N
-            do i=Istr,Iend
+             do k=0,N
+                do i=Istr,Iend
                ! unit: mmol / (m2 s)
-               VertAdvFlux(i,j,k,itrc) = FC(i,k)
-     &              * pm(i,j) * pn(i,j)
+                   VertAdvFlux(i,j,k,itrc) = FC(i,k)
+     &                  * pm(i,j) * pn(i,j)
 # ifdef MASKING
-     &              * rmask(i,j)
+     &                  * rmask(i,j)
 # endif
-            enddo
-          enddo
+                enddo
+             enddo
+          end if
 # endif /* PHYS_FLUX_ANALYSIS */
 !
 ! Add surface and bottom fluxes
@@ -114,21 +118,23 @@ c--#define CONST_TRACERS
             t(i,j,N,nnew,itrc)=t(i,j,N,nnew,itrc)+dt*stflx(i,j,itrc)
           enddo
 # ifdef FULL_PHYS_FLUX_ANALYSIS
+          if (itrc .le. NT_PFA) then
 ! separate do loops (for better efficiency) to store the fluxes
-          do i=Istr,Iend
+             do i=Istr,Iend
              ! unit = mmol / (m2 s)
-             TopFlux(i,j,itrc) = stflx(i,j,itrc)
+                TopFlux(i,j,itrc) = stflx(i,j,itrc)
 #  ifdef MASKING
-     &            * rmask(i,j)
+     &               * rmask(i,j)
 #  endif
-          enddo
-          do i=Istr,Iend
+             enddo
+             do i=Istr,Iend
              ! unit = mmol / (m2 s)
-             BottomFlux(i,j,itrc) = 0 !-btflx(i,j,itrc)
+                BottomFlux(i,j,itrc) = 0 !-btflx(i,j,itrc)
 #   ifdef MASKING
-     &            * rmask(i,j)
+     &               * rmask(i,j)
 #   endif
-          enddo
+             enddo
+          end if
 # endif /* FULL_PHYS_FLUX_ANALYSIS */
 # ifdef LMD_KPP
 !
@@ -271,15 +277,17 @@ c??         enddo
 # endif
             enddo
           enddo
-          do i=Istr,Iend
+          if (itrc .le. NT_PFA) then
+             do i=Istr,Iend
              ! unit: mmol / (m2 s)
-             VertDiffFlux(i,j,0,itrc) = 0.0 ! Neumann b.c. at bottom
-             do k=1,N-1
-                VertDiffFlux(i,j,k,itrc) = ThisVDF(i,j,k) +
-     &               VertDiffFlux(i,j,k-1,itrc)
+                VertDiffFlux(i,j,0,itrc) = 0.0 ! Neumann b.c. at bottom
+                do k=1,N-1
+                   VertDiffFlux(i,j,k,itrc) = ThisVDF(i,j,k) +
+     &                  VertDiffFlux(i,j,k-1,itrc)
+                end do
+                VertDiffFlux(i,j,N,itrc) = 0.0 ! Neumann b.c. at top
              end do
-             VertDiffFlux(i,j,N,itrc) = 0.0 ! Neumann b.c. at top
-         end do
+          end if
 # endif /* PHYS_FLUX_ANALYSIS & VERT_DIFF_ANALYSIS */
 
 #ifdef CONST_TRACERS
@@ -289,11 +297,13 @@ c??         enddo
             enddo
           enddo
 # if defined PHYS_FLUX_ANALYSIS && defined VERT_DIFF_ANALYSIS
-          do k=1,N
-            do i=Istr,Iend
-               VertDiffFlux(i,j,k,itrc) = 0.0
-            enddo
-          enddo
+          if (itrc .le. NT_PFA) then
+             do k=1,N
+                do i=Istr,Iend
+                   VertDiffFlux(i,j,k,itrc) = 0.0
+                enddo
+             enddo
+          end if
 # endif /* PHYS_FLUX_ANALYSIS & VERT_DIFF_ANALYSIS */
 #endif
         enddo      ! <-- itrc
@@ -339,11 +349,13 @@ c??         enddo
      &       +dt*Tnudgcof(i,j,itrc)*( tclm(i,j,k,itrc)
      &                             -t(i,j,k,nnew,itrc))
 #  ifdef FULL_PHYS_FLUX_ANALYSIS
+          if (itrc .le. NT_PFA) then
                NudgingFlux(i,j,k,itrc) = Tnudgcof(i,j,itrc) *
      &              ( tclm(i,j,k,itrc) - t(i,j,k,nnew,itrc) )
 #   ifdef MASKING
      &              * rmask(i,j)
 #   endif
+            end if
 #  endif /* FULL_PHYS_FLUX_ANALYSIS */
 #  endif
 #  ifdef MASKING

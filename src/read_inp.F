@@ -689,7 +689,7 @@ c--      fname='roms.in.US_West'
           call cancel_kwd (keyword(1:kwlen), ierr)
           read(input,*,err=95) wrthis(indxR), wrthis(indxO)
      &          ,  wrthis(indxW),  wrthis(indxAkv),  wrthis(indxAkt)
-     &          ,  wrthis(indxRich)
+     &          ,  wrthis(indxRich), wrthis(indxRichN)
 # ifdef SALINITY
      &                                            ,  wrthis(indxAks)
 #  ifdef LMD_KPP
@@ -698,7 +698,7 @@ c--      fname='roms.in.US_West'
 # endif
           if ( wrthis(indxR) .or. wrthis(indxO) .or. wrthis(indxW)
      &                     .or. wrthis(indxAkv) .or. wrthis(indxAkt)
-     &                     .or. wrthis(indxRich)
+     &                     .or. wrthis(indxRich) .or. wrthis(indxRichN)
 # ifdef SALINITY
      &                                          .or. wrthis(indxAks)
 #  ifdef LMD_KPP
@@ -716,6 +716,8 @@ c--      fname='roms.in.US_West'
      &                        'Vertical diffusivity for temperature.'
      &    , wrthis(indxRich), 'write Rich ', 
      &               'Diffusivity due to vertical velocity shear'
+     &    , wrthis(indxRichN), 'write RichN', 
+     &               'Local gradient Richardson number'
 # ifdef SALINITY
      &    , wrthis(indxAks),'write Aks  ',
      &                           'Vertical diffusivity for salinity.'
@@ -775,7 +777,7 @@ c--      fname='roms.in.US_West'
           call cancel_kwd (keyword(1:kwlen), ierr)
           read(input,*,err=95) wrtavg(indxR), wrtavg(indxO)
      &          ,  wrtavg(indxW),  wrtavg(indxAkv),  wrtavg(indxAkt)
-     &          ,  wrtavg(indxRich)
+     &          ,  wrtavg(indxRich), wrtavg(indxRichN)
 #  ifdef SALINITY
      &                                            ,  wrtavg(indxAks)
 #   ifdef LMD_KPP
@@ -783,8 +785,8 @@ c--      fname='roms.in.US_West'
 #   endif
 #  endif
           if ( wrtavg(indxR) .or. wrtavg(indxO) .or. wrtavg(indxW)
-     &                     .or. wrtavg(indxAkv) .or. wrtavg(indxAkt)
-     &                     .or. wrtavg(indxRich)
+     &                  .or. wrtavg(indxAkv) .or. wrtavg(indxAkt)
+     &                  .or. wrtavg(indxRich) .or. wrtavg(indxRichN)
 #  ifdef SALINITY
      &                                          .or. wrtavg(indxAks)
 #   ifdef LMD_KPP
@@ -800,8 +802,10 @@ c--      fname='roms.in.US_West'
      &    , wrtavg(indxAkv),'write Akv  ', 'Vertical viscosity'
      &    , wrtavg(indxAkt),'write Akt  ',
      &                        'Vertical diffusivity for temperature.'
-     &    , wrthis(indxRich), 'write Rich ', 
+     &    , wrtavg(indxRich), 'write Rich ', 
      &                'Diffusivity due to vertical velocity shear'
+     &    , wrtavg(indxRichN), 'write RichN', 
+     &               'Local gradient Richardson number'
 #  ifdef SALINITY
      &    , wrtavg(indxAks),'write Aks  ',
      &                           'Vertical diffusivity for salinity.'

@@ -85,7 +85,23 @@
 !
 !
 !--------------------------------------------------------------------------
-        ctime = 1
+         if (abs(parm_sp_kno3 - 0.5) .gt. 1.D-3) then
+             print *, 'BEGIN eco_set_int: parm_sp_kNO3: ',
+     &        parm_sp_kno3
+#ifdef MPI
+     &        ,' mynode =', mynode
+#endif
+             stop 'l91 kno3'
+          end if
+          if (abs(parm_sp_kpo4 - 0.0005) .gt. 1.D-4) then
+             print *, 'BEGIN eco_set_int: parm_sp_kPO4: ',
+     &        parm_sp_kpo4
+#ifdef MPI
+     &        ,' mynode =', mynode
+#endif
+             stop 'l96 kpo4'
+          end if
+         ctime = 1
           do m=1,ntrc_bio
              do k=1,N
                tracer(istr:iend,jstr:jend,k,m,ctime)=
@@ -193,12 +209,13 @@
          tracer(istr:iend,jstr:jend,N,o2_ind,ctime)=
      &         tracer(istr:iend,jstr:jend,N,o2_ind,ctime)+
      &         stf(istr:iend,jstr:jend,o2_ind)
-     &         *dt/dz(istr:iend,jstr:jend,N)
+     &         *dt/Hz(istr:iend,jstr:jend,N)
             FG_O2_HIST(ISTR:IEND,JSTR:JEND) = FLUX
         ELSEWHERE
             O2SAT_HIST(ISTR:IEND,JSTR:JEND) = c0
            FG_O2_HIST(ISTR:IEND,JSTR:JEND) = c0
          END WHERE
+
        END IF
 
     !------------------------------------------------------------------------
@@ -217,8 +234,15 @@
            END WHERE
 
         ! OCMIP-2 mandated value (278 ppm, dry-air, 1 atm)
-!HF          XCO2 = 370.0
-           XCO2 = 278.0
+# ifdef VARIABLE_ATM_PCO2
+      ! the factor deg2rad converts 360d into one full cycle of 2 pi
+      ! the subtraction of 30d ensures that the maximum is reached
+      ! at the end of April and the minimum at the end of October
+           XCO2 = 370. + 2.9 * sin(deg2rad*(tdays-30.))
+# else /* VARIABLE_ATM_PCO2 */
+           XCO2 = 370.0
+!HF           XCO2 = 278.0
+# endif /* VARIABLE_ATM_PCO2 */
            
 
          DO j = jstr,jend
@@ -252,12 +276,13 @@
      &          DCO2STAR_ROW, pCO2SURF_ROW, 
      &           DpCO2_ROW,istr,iend)
 
-           PH_HIST(istr:iend,j) = PH_NEW
+           pH_hist(istr:iend,j) = PH_NEW
 
            CO2STAR_HIST(istr:iend,j)  = CO2STAR_ROW
            DCO2STAR_HIST(istr:iend,j) = DCO2STAR_ROW
-           pCO2SURF_HIST(istr:iend,j) = pCO2SURF_ROW
-           DpCO2_HIST(istr:iend,j)    = DpCO2_ROW
+           pCO2sw(istr:iend,j) = pCO2SURF_ROW
+!HF           DpCO2(istr:iend,j)    = DpCO2_ROW
+           pCO2air(istr:iend,j)  = pCO2SURF_ROW - DpCO2_ROW
 
            FLUX(istr:iend,j) = PV(istr:iend,j) * DCO2STAR_ROW
          END DO
@@ -268,12 +293,13 @@
          tracer(istr:iend,jstr:jend,N,dic_ind,ctime)=
      &       tracer(istr:iend,jstr:jend,N,dic_ind,ctime)+
      &       stf(istr:iend,jstr:jend,dic_ind)
-     &       *dt/dz(istr:iend,jstr:jend,N)
+     &       *dt/Hz(istr:iend,jstr:jend,N)
          FG_CO2_HIST(istr:iend,jstr:jend) = 
      &                   FLUX(istr:iend,jstr:jend)
          
 
          endif
+
        !---------------------------------------------------------------------
        !   set surface iron flux from instant release from dust
        !----------------------------------------------------------------------
@@ -288,7 +314,7 @@
          tracer(istr:iend,jstr:jend,N,fe_ind,ctime)=
      &         tracer(istr:iend,jstr:jend,N,fe_ind,ctime)+
      &         stf(istr:iend,jstr:jend,fe_ind)
-     &         *dt/dz(istr:iend,jstr:jend,N)
+     &         *dt/Hz(istr:iend,jstr:jend,N)
 
           IRON_FLUX_HIST(ISTR:IEND,JSTR:JEND) = FLUX
 !end of set_sflux part
@@ -313,8 +339,6 @@
      &             tracer(istr:iend,jstr:jend,k,m,ctime)
            enddo 
         enddo
-
-        
       return 
        end
 
@@ -326,6 +350,7 @@
 !need for im_eco,jm_eco
 #include "param_bec.h"
 #include "ecosys_bec.h"
+#include "ocean3d.h"
         integer ctime,istr,iend,j
         real dt
 
@@ -387,7 +412,7 @@
         REAL, DIMENSION(istr:iend) :: 
      &    PAR_in,          ! photosynthetically available radiation (W/m^2)
      &    KPARdz,          ! PAR adsorption coefficient (non-dim)
-     &    PAR_avg,         ! average PAR over mixed layer depth (W/m^2)
+     &    PAR_lay,         ! average PAR over layer depth (W/m^2)
      &    DOC_prod,        ! production of DOC (mmol C/m^3/sec)
      &    DOC_remin,       ! remineralization of DOC (mmol C/m^3/sec)
      &    NITRIF,          ! nitrification (NH4 -> NO3) (mmol N/m^3/sec)
@@ -529,8 +554,25 @@
 !zhc zt is 3d
      &    C_loss_thres    ! bio-C threshold at which losses go to zero (mmol C/m^3)
 
+
          integer setinterior,curtime,k
-        
+         if (abs(parm_sp_kno3 - 0.5) .gt. 1.D-3) then
+             print *, 'BEGIN eco_set_int: parm_sp_kNO3: ',
+     &        parm_sp_kno3
+#ifdef MPI
+     &        ,' mynode =', mynode
+#endif
+             stop 'kno3'
+          end if
+          if (abs(parm_sp_kpo4 - 0.0005) .gt. 1.D-4) then
+             print *, 'BEGIN eco_set_int: parm_sp_kPO4: ',
+     &        parm_sp_kpo4
+#ifdef MPI
+     &        ,' mynode =', mynode
+#endif
+             stop 'kpo4'
+          end if
+
           setinterior=1
          
     !---------------------------------------------------------------------------
@@ -766,9 +808,10 @@
      &        PAR_in = c0
 
         KPARdz = (0.03 * (spChl_loc + diatChl_loc + 
-     &     	diazChl_loc) + 0.04) * dz(istr:iend,j,k)
+     &     	diazChl_loc) + 0.04) * Hz(istr:iend,j,k)
          PAR_out = PAR_in * EXP(-KPARdz)
-         PAR_avg = PAR_in * (c1 - EXP(-KPARdz)) / KPARdz
+         PAR_lay = PAR_in * (c1 - EXP(-KPARdz)) / KPARdz
+
 
     !---------------------------------------------------------------------------
     !   Tref = 30.0 reference temperature (deg. C)
@@ -797,6 +840,9 @@
     !   that the min. cell quota does in GD98.
     !---------------------------------------------------------------------------
 
+         if (parm_sp_kNO3 .eq. 0.)
+     &        print *, 'ECO - parm_sp_kNO3: ',
+     &        parm_sp_kNO3  MYID
         VNO3_sp = (NO3_loc / parm_sp_kNO3) / 
      &    (c1 + (NO3_loc / parm_sp_kNO3) + (NH4_loc / parm_sp_kNH4))
 
@@ -832,12 +878,13 @@
            PCmax = PCref * f_nut * Tfunc
 
         light_lim = (c1 - EXP((-c1 * parm_alphaChl * thetaC_sp * 
-     &   PAR_avg) / (PCmax + epsTinv)))
+     &   PAR_lay) / (PCmax + epsTinv)))
         PCphoto_sp = PCmax * light_lim
        
         sp_light_lim_HIST(ISTR:IEND,J,K) = light_lim
 
         photoC_sp = PCphoto_sp * spC_loc
+
     !---------------------------------------------------------------------------
     !   Get nutrient uptakes by small phyto based on calculated C fixation
     !   total N uptake (VNC_sp) is used in photoadaption
@@ -863,7 +910,7 @@
     !   GD 98 Chl. synth. term
     !---------------------------------------------------------------------------
 
-         WORK = parm_alphaChl * thetaC_sp * PAR_avg
+         WORK = parm_alphaChl * thetaC_sp * PAR_lay
        WHERE (WORK > c0)
         pChl = 2.3 * PCphoto_sp / WORK
         photoacc_sp = (pChl * VNC_sp / thetaC_sp) * spChl_loc
@@ -947,7 +994,7 @@
          PCmax = PCref * f_nut * Tfunc
 
         light_lim = (c1 - EXP((-c1 * parm_alphaChl * thetaC_diat 
-     &    * PAR_avg) / 
+     &    * PAR_lay) / 
      &              (PCmax + epsTinv)))
 
          PCphoto_diat = PCmax * light_lim
@@ -980,7 +1027,7 @@
     !   GD 98 Chl. synth. term
     !---------------------------------------------------------------------------
 
-         WORK = parm_alphaChl * thetaC_diat * PAR_avg
+         WORK = parm_alphaChl * thetaC_diat * PAR_lay
        WHERE (WORK > c0)
            pChl = 3.3 * PCphoto_diat / WORK
           photoacc_diat = (pChl * VNC_diat / thetaC_diat) * diatChl_loc
@@ -1009,12 +1056,13 @@
         PCmax = PCrefDiaz * f_nut * Tfunc
 
         light_lim = (c1 - EXP((-c1 * parm_alphaDiaz * thetaC_diaz 
-     &    * PAR_avg) / 
+     &    * PAR_lay) / 
      &              (PCmax + epsTinv)))
           PCphoto_diaz = PCmax * light_lim
           diaz_light_lim_HIST(ISTR:IEND,J,K) = light_lim
 
          photoC_diaz = PCphoto_diaz * diazC_loc
+
     !---------------------------------------------------------------------------
     !   Get N fixation by diazotrophs based on C fixation,
     !   Diazotrophs fix more than they need then 30% is excreted
@@ -1040,14 +1088,14 @@
     !   GD 98 Chl. synth. term
     !---------------------------------------------------------------------------
      
-         WORK = parm_alphaDiaz * thetaC_diaz * PAR_avg
+         WORK = parm_alphaDiaz * thetaC_diaz * PAR_lay
         WHERE (WORK > c0)
             pChl = 3.4 * PCphoto_diaz / WORK
           photoacc_diaz = (pChl * Vnc_diaz / thetaC_diaz) * diazChl_loc
         ELSEWHERE
            photoacc_diaz = c0
          END WHERE
-    
+
     
 
     !---------------------------------------------------------------------------
@@ -1071,10 +1119,10 @@
 !              C_loss_thres = c0
 !             END IF
 !          END IF
-         WHERE (zt(istr:iend,j,k) > thres_z1) 
-            WHERE (zt(istr:iend,j,k) < thres_z2) 
+         WHERE (-z_r(istr:iend,j,k) > thres_z1) 
+            WHERE (-z_r(istr:iend,j,k) < thres_z2) 
               C_loss_thres = C_loss_thres * 
-     &          (thres_z2 - zt(istr:iend,j,k)) / 
+     &          (thres_z2 + z_r(istr:iend,j,k)) / 
      &               (thres_z2 - thres_z1)
              ELSE WHERE
               C_loss_thres = c0
@@ -1089,6 +1137,9 @@
      &       sp_mort2 * Pprime * Pprime)
 
          reduceV = Pprime * Pprime
+         if (abs(parm_z_grz - 1.05) .gt. 1.e-4) 
+     &        print *, 'eco_set_int: parm_z_grz: ',
+     &        parm_z_grz  MYID
          z_grz_sqr = parm_z_grz * parm_z_grz
           graze_sp = z_umax * zooC_loc * (reduceV / 
      &            (reduceV + z_grz_sqr))
@@ -1135,10 +1186,10 @@
 !               C_loss_thres = c0
 !           END IF
 !         END IF
-         WHERE (zt(istr:iend,j,k) > thres_z1) 
-            WHERE (zt(istr:iend,j,k) < thres_z2) 
+         WHERE (-z_r(istr:iend,j,k) > thres_z1) 
+            WHERE (-z_r(istr:iend,j,k) < thres_z2) 
               C_loss_thres = C_loss_thres * 
-     &            (thres_z2 - zt(istr:iend,j,k)) / 
+     &            (thres_z2 + z_r(istr:iend,j,k)) / 
      &               (thres_z2 - thres_z1)
              ELSE WHERE
               C_loss_thres = c0
@@ -1199,10 +1250,10 @@
 !             C_loss_diaz = c0
 !         END IF
 !        END IF
-         WHERE (zt(istr:iend,j,k) > thres_z1) 
-            WHERE (zt(istr:iend,j,k) < thres_z2) 
+         WHERE (-z_r(istr:iend,j,k) > thres_z1) 
+            WHERE (-z_r(istr:iend,j,k) < thres_z2) 
              C_loss_diaz = C_loss_diaz *
-     &             (thres_z2-zt(istr:iend,j,k))/
+     &             (thres_z2 + z_r(istr:iend,j,k))/
      &             (thres_z2-thres_z1)
              ELSE WHERE
               C_loss_diaz = c0
@@ -1269,10 +1320,10 @@
 !              C_loss_thres = c0
 !           END IF
 !        END IF
-         WHERE (zt(istr:iend,j,k) > thres_z1) 
-            WHERE (zt(istr:iend,j,k) < thres_z2) 
+         WHERE (-z_r(istr:iend,j,k) > thres_z1) 
+            WHERE (-z_r(istr:iend,j,k) < thres_z2) 
               C_loss_thres = C_loss_thres *
-     &            ((zt(istr:iend,j,k)-thres_z1)/
+     &            ((-z_r(istr:iend,j,k)-thres_z1)/
      &                 (thres_z2-thres_z1))
              ELSE WHERE
               C_loss_thres = c0
@@ -1309,6 +1360,7 @@
         DON_remin = DON_loc * DOM_remin
         DOFe_remin = DOFe_loc * DOM_remin
         DOP_remin = DOP_loc * DOM_remin
+
 
     !---------------------------------------------------------------------------
     !   large detritus C
@@ -1640,10 +1692,11 @@
      &       - diaz_loss_dic) / parm_Red_P_C_O2)
        END WHERE
 
+
     !---------------------------------------------------------------------------
     !   various tavg/history variables
     !---------------------------------------------------------------------------
-        PAR_avg_HIST(ISTR:IEND,J,K)         = PAR_avg
+        PAR(ISTR:IEND,J,K)                  = PAR_lay
         graze_sp_HIST(ISTR:IEND,J,K)        = graze_sp
         graze_diat_HIST(ISTR:IEND,J,K)      = graze_diat
         graze_diaz_HIST(ISTR:IEND,J,K)	 = graze_diaz
@@ -1670,6 +1723,8 @@
         DOFe_remin_HIST(ISTR:IEND,J,K)       = DOFe_remin
         Fe_scavenge_HIST(ISTR:IEND,J,K)     = Fe_scavenge
         Fe_scavenge_rate_HIST(ISTR:IEND,J,K) = Fe_scavenge_rate
+
+
         TRACER(istr:iend,j,k,:,curtime)=
      &      TRACER(istr:iend,j,k,:,curtime)*dt
      &      +TRACER(istr:iend,j,k,:,ctime)
@@ -1843,6 +1898,7 @@
 !need for im_eco,jm_eco
 #include "param_bec.h"
 #include "ecosys_bec.h"
+#include "ocean3d.h"
 
     !---------------------------------------------------------------------------
     !   Compute outgoing fluxes and remineralization terms. Assumes that
@@ -1974,14 +2030,14 @@
              Tfunc_POC = 1.12 ** (0.1 * temp(i) - 3.0)
              Tfunc_SiO2 = 4.0 ** (0.1 * temp(i) - 3.0)
 
-    	     decay_POC_E = EXP(-dz(i,j,k) / diss(1) * Tfunc_POC)
-    	     decay_SiO2  = EXP(-dz(i,j,k) / diss(3) * Tfunc_SiO2)
+    	     decay_POC_E = EXP(-Hz(i,j,k) / diss(1) * Tfunc_POC)
+    	     decay_SiO2  = EXP(-Hz(i,j,k) / diss(3) * Tfunc_SiO2)
 !HF    	     decay_POC_E = EXP(-dz(i,j,k) / (diss(1) / Tfunc(i,j)))
 !HF    	     decay_SiO2  = EXP(-dz(i,j,k) / (diss(3) / Tfunc(i,j)))
 
-             decay_CaCO3 = EXP(-dz(i,j,k) / Diss(2))
-             decay_dust  = EXP(-dz(i,j,k) / diss(4))
-             decay_Hard  = EXP(-dz(i,j,k) * 2.5e-5)
+             decay_CaCO3 = EXP(-Hz(i,j,k) / Diss(2))
+             decay_dust  = EXP(-Hz(i,j,k) / diss(4))
+             decay_Hard  = EXP(-Hz(i,j,k) * 2.5e-5)
 !HF             decay_Hard  = EXP(-dz(i,j,k) / 4.0e6) 4e6 cm = 40000 m
 
 
@@ -2001,7 +2057,7 @@
               Sinking_Particle_P_Caco3(5,i,j) = 
      &               Sinking_Particle_P_Caco3(2,i,j) * decay_Hard + 
      &               Sinking_Particle_P_Caco3(3,i,j) * 
-     &               (Gamma(2) * dz(i,j,k))
+     &               (Gamma(2) * Hz(i,j,k))
 
                Sinking_Particle_P_Sio2(4,i,j) = 
      &               Sinking_Particle_P_Sio2(1,i,j) * decay_SiO2 + 
@@ -2012,7 +2068,7 @@
                 Sinking_Particle_P_Sio2(5,i,j) = 
      &               Sinking_Particle_P_Sio2(2,i,j) * decay_Hard + 
      &               Sinking_Particle_P_Sio2(3,i,j) * 
-     &              (Gamma(3) * dz(i,j,k))
+     &              (Gamma(3) * Hz(i,j,k))
 
                 sinking_particle_dust(4,i,j) = 
      &                  sinking_particle_dust(1,i,j) * decay_dust
@@ -2061,10 +2117,10 @@
 
              IF (new_QA_dust_def > c0) THEN
                 new_QA_dust_def = new_QA_dust_def - 
-     &                    POC_prod_avail * dz(i,j,k)
+     &                    POC_prod_avail * Hz(i,j,k)
 
                 IF (new_QA_dust_def < c0) THEN
-                   POC_prod_avail = -new_QA_dust_def / dz(i,j,k)
+                   POC_prod_avail = -new_QA_dust_def / Hz(i,j,k)
                    new_QA_dust_def = c0
                 ELSE
                    POC_prod_avail = c0
@@ -2111,27 +2167,27 @@
      &             ((Sinking_Particle_P_Caco3(1,i,j) - 
      &             Sinking_Particle_P_Caco3(4,i,j)) + 
      &             (Sinking_Particle_P_Caco3(2,i,j) - 
-     &             Sinking_Particle_P_Caco3(5,i,j))) * dzr(i,j,k)
+     &             Sinking_Particle_P_Caco3(5,i,j))) / Hz(i,j,k)
 
              Sinking_Particle_P_Sio2(6,i,j) = 
      &              Sinking_Particle_P_Sio2(3,i,j) + 
      &             ((Sinking_Particle_P_Sio2(1,i,j) - 
      &             Sinking_Particle_P_Sio2(4,i,j)) + 
      &             (Sinking_Particle_P_Sio2(2,i,j) - 
-     &             Sinking_Particle_P_Sio2(5,i,j))) * dzr(i,j,k)
+     &             Sinking_Particle_P_Sio2(5,i,j))) / Hz(i,j,k)
                   
              SINKING_PARTICLE_POC(6,i,j) = 
      &              SINKING_PARTICLE_POC(3,i,j) + 
      &             ((SINKING_PARTICLE_POC(1,i,j) - 
      &             SINKING_PARTICLE_POC(4,i,j)) + 
      &             (SINKING_PARTICLE_POC(2,i,j) - 
-     &             SINKING_PARTICLE_POC(5,i,j))) * dzr(i,j,k)
+     &             SINKING_PARTICLE_POC(5,i,j))) / Hz(i,j,k)
                   
              sinking_particle_dust(6,i,j) = 
      &            ((sinking_particle_dust(1,i,j) - 
      &            sinking_particle_dust(4,i,j)) + 
      &             (sinking_particle_dust(2,i,j) - 
-     &             sinking_particle_dust(5,i,j))) * dzr(i,j,k)
+     &             sinking_particle_dust(5,i,j))) / Hz(i,j,k)
 
 
              !------------------------------------------------------------------
@@ -2152,7 +2208,7 @@
              END IF
 
              sinking_particle_p_iron(4,i,j) = 
-     &            sinking_particle_p_iron(1,i,j) + dz(i,j,k) * 
+     &            sinking_particle_p_iron(1,i,j) + Hz(i,j,k) * 
      &            ((c1 - gamma(5)) * sinking_particle_p_iron(3,i,j) 
      &           - sinking_particle_p_iron(6,i,j))
                   
@@ -2160,7 +2216,7 @@
              IF (sinking_particle_p_iron(4,i,j) < c0) THEN
                 sinking_particle_p_iron(4,i,j) = c0
                 sinking_particle_p_iron(6,i,j) = 
-     &              sinking_particle_p_iron(1,i,j) * dzr(i,j,k) + 
+     &              sinking_particle_p_iron(1,i,j) / Hz(i,j,k) + 
      &               (c1 - gamma(5)) * sinking_particle_p_iron(3,i,j)
              END IF
              
@@ -2215,35 +2271,35 @@
      &            Sinking_Particle_P_Caco3(6,i,j) + 
      &            (Sinking_Particle_P_Caco3(4,i,j) + 
      &            Sinking_Particle_P_Caco3(5,i,j)) 
-     &            * dzr(i,j,k)
+     &            / Hz(i,j,k)
              Sinking_Particle_P_Caco3(4,i,j) = c0
              Sinking_Particle_P_Caco3(5,i,j) = c0
 
              Sinking_Particle_P_Sio2(6,i,j) = 
      &             Sinking_Particle_P_Sio2(6,i,j) + 
      &             (Sinking_Particle_P_Sio2(4,i,j) + 
-     &             Sinking_Particle_P_Sio2(5,i,j)) * dzr(i,j,k)
+     &             Sinking_Particle_P_Sio2(5,i,j)) / Hz(i,j,k)
              Sinking_Particle_P_Sio2(4,i,j) = c0
              Sinking_Particle_P_Sio2(5,i,j) = c0
 
              sinking_particle_dust(6,i,j) = 
      &             sinking_particle_dust(6,i,j) + 
      &             (sinking_particle_dust(4,i,j) + 
-     &            sinking_particle_dust(5,i,j)) * dzr(i,j,k)
+     &            sinking_particle_dust(5,i,j)) / Hz(i,j,k)
              sinking_particle_dust(4,i,j) = c0
              sinking_particle_dust(5,i,j) = c0
 
              SINKING_PARTICLE_POC(6,i,j) = 
      &             SINKING_PARTICLE_POC(6,i,j) + 
      &             (SINKING_PARTICLE_POC(4,i,j) + 
-     &             SINKING_PARTICLE_POC(5,i,j)) * dzr(i,j,k)
+     &             SINKING_PARTICLE_POC(5,i,j)) / Hz(i,j,k)
              SINKING_PARTICLE_POC(4,i,j) = c0
              SINKING_PARTICLE_POC(5,i,j) = c0
 
              sinking_particle_p_iron(6,i,j) = 
      &          sinking_particle_p_iron(6,i,j) + 
      &             (sinking_particle_p_iron(4,i,j) + 
-     &         sinking_particle_p_iron(5,i,j)) * dzr(i,j,k)
+     &         sinking_particle_p_iron(5,i,j)) / Hz(i,j,k)
              sinking_particle_p_iron(4,i,j) = c0
              sinking_particle_p_iron(5,i,j) = c0
              
@@ -2260,10 +2316,10 @@
           
 !zhc:              IF (k < 14) THEN
 !HF             IF (zt(i,j,k) < 110000.) THEN
-             IF (zt(i,j,k) < 1100.) THEN
+             IF (-z_r(i,j,k) < 1100.) THEN
                sinking_particle_p_iron(6,i,j) = 
      &             sinking_particle_p_iron(6,i,j) + 
-     &        	    (2.3148e-8 * dzr(i,j,k))
+     &        	    (2.3148e-8 / Hz(i,j,k))
 !HF     &        	    (2.3148e-6 * dzr(i,j,k))
              ENDIF
             

@@ -34,7 +34,8 @@
      &     + NumSedFluxTerms
 #   endif /* SEDIMENT_BIOLOGY */
 # elif defined BIOLOGY_BEC
-      integer, parameter :: num_bgcflux = 76 
+      integer, parameter :: num_bgcflux_2d = 14
+      integer, parameter :: num_bgcflux = 74 
       integer, dimension(num_bgcflux) :: vid_bec_flux_his
       common /c_bgcflux_bec/ vid_bec_flux_his
 # endif
@@ -174,7 +175,10 @@
 
 #  ifdef BIOLOGY_BEC
       integer, dimension(num_bgcflux) :: vid_bec_flux_avg
-      common /c_bgcflux_avg_bec/ vid_bec_flux_avg
+      integer bgc_flux_avgTstep, bgc_flux_avgTime
+      integer bgc_flux_hisTstep, bgc_flux_hisTime
+      common /c_bgcflux_avg_bec/ vid_bec_flux_avg, bgc_flux_avgTstep, bgc_flux_avgTime,
+     &   bgc_flux_hisTstep, bgc_flux_hisTime
 #  endif
 # endif /* AVERAGES */
 

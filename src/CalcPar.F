@@ -225,7 +225,7 @@
       pCO2sw(i,j)=pCO2sw_loc
       CO2sol(i,j) = CO2sol_loc
 #  ifdef OCMIP_CARBON
-      pHsw(i,j) = pHsw_loc
+      pH_hist(i,j) = pHsw_loc
       pCO2air(i,j) = pCO2air_loc
       Kv_CO2(i,j) = Kv_CO2_loc
 #  endif /* OCMIP_CARBON */

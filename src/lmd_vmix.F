@@ -234,6 +234,7 @@
             Kt(i,j,k)=nuws + nu0s*nu_sx
 CDL
             Rich(i,j,k) = nu0s*nu_sx
+            RichN(i,j,k) = Rig(i,j,k)
 CDL
 # else
             Kv(i,j,k)=nuwm                    ! internal waves

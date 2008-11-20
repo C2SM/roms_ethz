@@ -107,10 +107,13 @@
 #  ifdef CARBON
       real Kv_CO2(GLOBAL_2D_ARRAY)
       real CO2sol(GLOBAL_2D_ARRAY)
-      real pHsw(GLOBAL_2D_ARRAY)
+      !DL: use pH_hist instead of pHsw:
+      !real pHsw(GLOBAL_2D_ARRAY)
+      real pH_hist(GLOBAL_2D_ARRAY)
       real pCO2sw(GLOBAL_2D_ARRAY)
       real pCO2air(GLOBAL_2D_ARRAY)
-      common /gasexc_co2/Kv_CO2, CO2sol, pHsw, pCO2sw, pCO2air
+      !common /gasexc_co2/Kv_CO2, CO2sol, pHsw, pCO2sw, pCO2air
+      common /gasexc_co2/Kv_CO2, CO2sol, pH_hist, pCO2sw, pCO2air
 #  endif /* CARBON */
 #endif /* OXYGEN */
 

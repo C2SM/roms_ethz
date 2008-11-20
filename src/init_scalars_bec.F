@@ -185,6 +185,7 @@ CR      write(stdout,'(1x,A,I3)') 'indxNH4 =',indxNH4
       vname(3,indxDop)='mMol P m-3                               '
       vname(4,indxDop)='DOP, scalar, series                      '
 
+
       vname(1,indxdust)='dust                                       '
       vname(2,indxdust)='dust flux                      '
       vname(3,indxdust)='kg m-2 s-1                                '
@@ -195,12 +196,26 @@ CR      write(stdout,'(1x,A,I3)') 'indxNH4 =',indxNH4
       vname(3,indxiron)='nmol cm-2 s-1                             '
       vname(4,indxiron)='iron, scalar, series                       '
 
-CDL: pH is treated here instead of in init_scalars_becflux:
-      vname(1,indxPH)='PH'
-      vname(2,indxPH)='pH value'
-      vname(3,indxPH)=' '
-      vname(4,indxPH)=' '
-CDL
+CDL: pH is treated here for rst files;
+CDL: and in init_scalars_becflux for flux files:
+      vname(1,indxPH_rst)='PH'
+      vname(2,indxPH_rst)='pH value'
+      vname(3,indxPH_rst)=' '
+      vname(4,indxPH_rst)=' '
+!DL: some more variables which are to be output also to
+!DL: averages/history/restart files:
+      vname(1,indxPCO2_rst)='pCO2                                 '
+      vname(2,indxPCO2_rst)='Surface water pCO2                   '
+      vname(3,indxPCO2_rst)='ppm                                  '
+      vname(4,indxPCO2_rst)='pCO2, scalar, series                 '
+      vname(1,indxPCO2air_rst)='pCO2air                           '
+      vname(2,indxPCO2air_rst)='Atmospheric pCO2                  '
+      vname(3,indxPCO2air_rst)='ppm                               '
+      vname(4,indxPCO2air_rst)='           '
+      vname(1,indxPAR_rst)='PAR                                   '
+      vname(2,indxPAR_rst)='Photosynthetically active radiation   '
+      vname(3,indxPAR_rst)='W m-2                                 '
+      vname(4,indxPAR_rst)='PAR, scalar, series                   '
 #endif /* SOLVE3D */
       return
       end

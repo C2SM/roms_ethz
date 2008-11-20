@@ -22,7 +22,7 @@
 !HF        write(stdout,*)"mynode,blank",mynode,blank
 #endif
    
-
+      print *, 'wrt_bec_flux_his: at start', MYNODE
       call def_bec_flux_his (ncid_bgc_flux_his, nrec_bgc_flux_his, ierr)
       if (ierr .ne. nf_noerr) goto 99
       lstr=lenstr(bgc_flux_his_name)
@@ -32,7 +32,6 @@
       else
         record=1+mod(nrec_bgc_flux_his-1, nrpf_bgc_flux_his)
       endif
-       record=nrec_bgc_flux_his
 
 ! Time step number and record numbers.
 
@@ -109,9 +108,11 @@
             goto 99                                       !--> ERROR
           endif
 
+
+# ifdef NOT_USED___NEEDS_RECODING_IF_USED
        itrc=itrc+1
-       ierr=nf_fwrite(schmidt_co2_hist(START_2D_ARRAY), 
-     &      ncid_bgc_flux_his,vid_bec_flux_his(itrc), record, r2dvar)
+          ierr=nf_fwrite(ph_hist(START_2D_ARRAY), ncid_bgc_flux_his,
+     &                          vid_bec_flux_his(itrc), record, r2dvar)
           if (ierr .ne. nf_noerr) then
             lvar=lenstr(vname_bgcflux(1,itrc))
             write(stdout,1) vname_bgcflux(1,itrc)(1:lvar), record,
@@ -120,8 +121,29 @@
           endif
 
        itrc=itrc+1
-          ierr=nf_fwrite(ph_hist(START_2D_ARRAY), ncid_bgc_flux_his,
+       ierr=nf_fwrite(pco2surf_hist(START_2D_ARRAY), ncid_bgc_flux_his,
      &                          vid_bec_flux_his(itrc), record, r2dvar)
+          if (ierr .ne. nf_noerr) then
+            lvar=lenstr(vname_bgcflux(1,itrc))
+            write(stdout,1) vname_bgcflux(1,itrc)(1:lvar), record,
+     &                      ierr MYID
+            goto 99                                       !--> ERROR
+          endif
+       itrc=itrc+1
+          ierr=nf_fwrite(dpco2_hist(START_2D_ARRAY), ncid_bgc_flux_his,
+     &                          vid_bec_flux_his(itrc), record, r2dvar)
+          if (ierr .ne. nf_noerr) then
+            lvar=lenstr(vname_bgcflux(1,itrc))
+            write(stdout,1) vname_bgcflux(1,itrc)(1:lvar), record,
+     &                      ierr MYID
+            goto 99                                       !--> ERROR
+          endif
+
+# endif /* NOT_USED___NEEDS_RECODING_IF_USED */
+
+       itrc=itrc+1
+       ierr=nf_fwrite(schmidt_co2_hist(START_2D_ARRAY), 
+     &      ncid_bgc_flux_his,vid_bec_flux_his(itrc), record, r2dvar)
           if (ierr .ne. nf_noerr) then
             lvar=lenstr(vname_bgcflux(1,itrc))
             write(stdout,1) vname_bgcflux(1,itrc)(1:lvar), record,
@@ -150,26 +172,6 @@
           endif
 
        itrc=itrc+1
-       ierr=nf_fwrite(pco2surf_hist(START_2D_ARRAY), ncid_bgc_flux_his,
-     &                          vid_bec_flux_his(itrc), record, r2dvar)
-          if (ierr .ne. nf_noerr) then
-            lvar=lenstr(vname_bgcflux(1,itrc))
-            write(stdout,1) vname_bgcflux(1,itrc)(1:lvar), record,
-     &                      ierr MYID
-            goto 99                                       !--> ERROR
-          endif
-
-       itrc=itrc+1
-          ierr=nf_fwrite(dpco2_hist(START_2D_ARRAY), ncid_bgc_flux_his,
-     &                          vid_bec_flux_his(itrc), record, r2dvar)
-          if (ierr .ne. nf_noerr) then
-            lvar=lenstr(vname_bgcflux(1,itrc))
-            write(stdout,1) vname_bgcflux(1,itrc)(1:lvar), record,
-     &                      ierr MYID
-            goto 99                                       !--> ERROR
-          endif
-
-       itrc=itrc+1
           ierr=nf_fwrite(fg_co2_hist(START_2D_ARRAY), ncid_bgc_flux_his,
      &                          vid_bec_flux_his(itrc), record, r2dvar)
           if (ierr .ne. nf_noerr) then
@@ -189,6 +191,16 @@
             goto 99                                       !--> ERROR
           endif
 
+       itrc=itrc+1
+       ierr=nf_fwrite(PARinc(START_2D_ARRAY), ncid_bgc_flux_his,
+     &      vid_bec_flux_his(itrc), record, r2dvar)
+       if (ierr .ne. nf_noerr) then
+          lvar=lenstr(vname_bgcflux(1,itrc))
+          write(stdout,1) vname_bgcflux(1,itrc)(1:lvar), record,
+     &         ierr MYID
+          goto 99               !--> ERROR
+       endif
+       
 !write 3d flux snapshots
 
        itrc=itrc+1
@@ -222,7 +234,7 @@
           endif
 
         itrc=itrc+1
-        ierr=nf_fwrite(par_avg_hist(START_2D_ARRAY,1), 
+        ierr=nf_fwrite(par(START_2D_ARRAY,1), 
      &       ncid_bgc_flux_his,vid_bec_flux_his(itrc), record, r3dvar)
           if (ierr .ne. nf_noerr) then
             lvar=lenstr(vname_bgcflux(1,itrc))
@@ -562,6 +574,7 @@
      &                      ierr MYID
             goto 99                                       !--> ERROR
           endif
+          MPI_master_only print *, 'wrt_bec_flux_his: diat_po4_lim_hist written' 
           itrc=itrc+1
           ierr=nf_fwrite(diat_sio3_lim_hist(START_2D_ARRAY,1), 
      &         ncid_bgc_flux_his,vid_bec_flux_his(itrc), record, r3dvar)
@@ -760,11 +773,9 @@
      &                      ierr MYID
             goto 99                                       !--> ERROR
           endif
-     
 
 
-
-  1   format(/1x,'WRT_mgm ERROR while writing variable ''', A,
+  1   format(/1x,'WRT_BEC_FLUX_HIS ERROR while writing variable ''', A,
      &          ''' into history file.', /11x, 'Time record:',
      &                   I6,3x,'netCDF error code',i4,3x,a,i4)
        goto 100 
@@ -796,6 +807,7 @@
      &             'synchronize/close history netCDF file.'
         may_day_flag=3
       endif
+      print *, 'wrt_bec_flux_his: at end', MYNODE
 
 #if defined MPI & !defined PARALLEL_FILES
       if (mynode .lt. NNODES-1) then

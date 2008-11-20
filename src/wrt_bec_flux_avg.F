@@ -1,5 +1,5 @@
 #include "cppdefs.h"
-#if defined BIOLOGY_BEC && defined BGC_FLUX_ANALYSIS
+#if defined BIOLOGY_BEC && defined BGC_FLUX_ANALYSIS && defined AVERAGES
 
        subroutine wrt_bec_flux_avg
        implicit none
@@ -49,24 +49,28 @@
       cff=1./float(n_bgc_flux_avg)
 
 
+         time_bgc_flux_avg = time_bgc_flux_avg * cff
          WS_AVG = WS_AVG * cff
          XKW_AVG = XKW_AVG * cff
          ap_AVG = ap_AVG * cff
          SCHMIDT_O2_AVG = SCHMIDT_O2_AVG* cff
          O2SAT_AVG = O2SAT_AVG* cff 
          FG_O2_AVG = FG_O2_AVG * cff
-         SCHMIDT_CO2_AVG = SCHMIDT_CO2_AVG * cff
+# ifdef NOT_USED___NEEDS_RECODING_IF_USED
          PH_AVG =  PH_AVG * cff 
-         CO2STAR_AVG = CO2STAR_AVG * cff
-         DCO2STAR_AVG = DCO2STAR_AVG * cff
          pCO2SURF_AVG = pCO2SURF_AVG * cff
          DpCO2_AVG = DpCO2_AVG * cff
+# endif /* NOT_USED___NEEDS_RECODING_IF_USED */
+         SCHMIDT_CO2_AVG = SCHMIDT_CO2_AVG * cff
+         CO2STAR_AVG = CO2STAR_AVG * cff
+         DCO2STAR_AVG = DCO2STAR_AVG * cff
          FG_CO2_AVG = FG_CO2_AVG * cff
          IRON_FLUX_AVG = IRON_FLUX_AVG * cff
+         PARinc_avg = PARinc_avg * cff
          PO4_RESTORE_AVG = PO4_RESTORE_AVG * cff
          NO3_RESTORE_AVG = NO3_RESTORE_AVG * cff
          SiO3_RESTORE_AVG = SiO3_RESTORE_AVG * cff
-         PAR_avg_AVG = PAR_avg_AVG * cff
+         PAR_flux_AVG = PAR_flux_AVG * cff
          PO4STAR_AVG = PO4STAR_AVG * cff
          POC_FLUX_IN_AVG = POC_FLUX_IN_AVG * cff
          POC_PROD_AVG = POC_PROD_AVG * cff
@@ -125,6 +129,36 @@
          photoFe_diat_AVG = photoFe_diat_AVG * cff
          photoFe_sp_AVG = photoFe_sp_AVG * cff
          nitrif_AVG = nitrif_AVG * cff
+
+
+! Time step and record indices.
+!
+      ibuff(1)=iic
+      ibuff(2)=nrecrst
+      ibuff(3)=nrechis
+      ibuff(4)=nrec_bgc_flux_avg
+
+      start(1)=1
+      start(2)=record
+      count(1)=4
+      count(2)=1
+      ierr=nf_put_vara_int(ncid_bgc_flux_avg, bgc_flux_avgTstep,
+     &     start, count, ibuff)
+      if (ierr .ne. nf_noerr) then
+        write(stdout,1) 'time_step', record,ierr MYID
+        goto 99                                           !--> ERROR
+      endif
+!
+! Averaged time
+!
+      ierr=nf_put_var1_double (ncid_bgc_flux_avg, bgc_flux_avgTime,
+     &     record, time_bgc_flux_avg)
+      if (ierr .ne. nf_noerr) then
+        lvar=lenstr(vname(1,indxTime))
+        write(stdout,1) vname(1,indxTime)(1:lvar), record, ierr
+     &                  MYID
+        goto 99                                           !--> ERROR
+      endif
 
        itrc=1
           ierr=nf_fwrite(ws_avg(START_2D_ARRAY), ncid_bgc_flux_avg,
@@ -189,8 +223,10 @@
             goto 99                                       !--> ERROR
           endif
 
+
+# ifdef NOT_USED___NEEDS_RECODING_IF_USED
        itrc=itrc+1
-       ierr=nf_fwrite(schmidt_co2_avg(START_2D_ARRAY),ncid_bgc_flux_avg,
+          ierr=nf_fwrite(ph_avg(START_2D_ARRAY), ncid_bgc_flux_avg,
      &                          vid_bec_flux_avg(itrc), record, r2dvar)
           if (ierr .ne. nf_noerr) then
             lvar=lenstr(vname_bgcflux(1,itrc))
@@ -200,7 +236,28 @@
           endif
 
        itrc=itrc+1
-          ierr=nf_fwrite(ph_avg(START_2D_ARRAY), ncid_bgc_flux_avg,
+       ierr=nf_fwrite(pco2surf_avg(START_2D_ARRAY), ncid_bgc_flux_avg,
+     &                          vid_bec_flux_avg(itrc), record, r2dvar)
+          if (ierr .ne. nf_noerr) then
+            lvar=lenstr(vname_bgcflux(1,itrc))
+            write(stdout,1) vname_bgcflux(1,itrc)(1:lvar), record,
+     &                      ierr MYID
+            goto 99                                       !--> ERROR
+          endif
+
+       itrc=itrc+1
+          ierr=nf_fwrite(dpco2_avg(START_2D_ARRAY), ncid_bgc_flux_avg,
+     &                          vid_bec_flux_avg(itrc), record, r2dvar)
+          if (ierr .ne. nf_noerr) then
+            lvar=lenstr(vname_bgcflux(1,itrc))
+            write(stdout,1) vname_bgcflux(1,itrc)(1:lvar), record,
+     &                      ierr MYID
+            goto 99                                       !--> ERROR
+          endif
+# endif /* NOT_USED___NEEDS_RECODING_IF_USED */
+
+       itrc=itrc+1
+       ierr=nf_fwrite(schmidt_co2_avg(START_2D_ARRAY),ncid_bgc_flux_avg,
      &                          vid_bec_flux_avg(itrc), record, r2dvar)
           if (ierr .ne. nf_noerr) then
             lvar=lenstr(vname_bgcflux(1,itrc))
@@ -230,26 +287,6 @@
           endif
 
        itrc=itrc+1
-       ierr=nf_fwrite(pco2surf_avg(START_2D_ARRAY), ncid_bgc_flux_avg,
-     &                          vid_bec_flux_avg(itrc), record, r2dvar)
-          if (ierr .ne. nf_noerr) then
-            lvar=lenstr(vname_bgcflux(1,itrc))
-            write(stdout,1) vname_bgcflux(1,itrc)(1:lvar), record,
-     &                      ierr MYID
-            goto 99                                       !--> ERROR
-          endif
-
-       itrc=itrc+1
-          ierr=nf_fwrite(dpco2_avg(START_2D_ARRAY), ncid_bgc_flux_avg,
-     &                          vid_bec_flux_avg(itrc), record, r2dvar)
-          if (ierr .ne. nf_noerr) then
-            lvar=lenstr(vname_bgcflux(1,itrc))
-            write(stdout,1) vname_bgcflux(1,itrc)(1:lvar), record,
-     &                      ierr MYID
-            goto 99                                       !--> ERROR
-          endif
-
-       itrc=itrc+1
           ierr=nf_fwrite(fg_co2_avg(START_2D_ARRAY), ncid_bgc_flux_avg,
      &                          vid_bec_flux_avg(itrc), record, r2dvar)
           if (ierr .ne. nf_noerr) then
@@ -269,9 +306,17 @@
             goto 99                                       !--> ERROR
           endif
 
-!write 3d fluxes
+       itrc=itrc+1
+       ierr=nf_fwrite(PARinc_avg(START_2D_ARRAY), ncid_bgc_flux_avg,
+     &      vid_bec_flux_avg(itrc), record, r2dvar)
+       if (ierr .ne. nf_noerr) then
+          lvar=lenstr(vname_bgcflux(1,itrc))
+          write(stdout,1) vname_bgcflux(1,itrc)(1:lvar), record,
+     &         ierr MYID
+          goto 99               !--> ERROR
+       endif
 
-!WARN HF: output of prod_avg was here       itrc=itrc+1
+!write 3d fluxes
 
        itrc=itrc+1
        ierr=nf_fwrite(po4_restore_avg(START_2D_ARRAY,1), 
@@ -304,7 +349,7 @@
           endif
 
         itrc=itrc+1
-        ierr=nf_fwrite(par_avg_avg(START_2D_ARRAY,1), ncid_bgc_flux_avg,
+        ierr=nf_fwrite(par_flux_avg(START_2D_ARRAY,1), ncid_bgc_flux_avg,
      &                          vid_bec_flux_avg(itrc), record, r3dvar)
           if (ierr .ne. nf_noerr) then
             lvar=lenstr(vname_bgcflux(1,itrc))
@@ -898,18 +943,21 @@
          SCHMIDT_O2_AVG = 0.0 
          O2SAT_AVG = 0.0 
          FG_O2_AVG = 0.0 
-         SCHMIDT_CO2_AVG = 0.0 
+# ifdef NOT_USED___NEEDS_RECODING_IF_USED
          PH_AVG = 0.0  
-         CO2STAR_AVG = 0.0 
-         DCO2STAR_AVG = 0.0 
          pCO2SURF_AVG = 0.0
          DpCO2_AVG = 0.0
+# endif /* NOT_USED___NEEDS_RECODING_IF_USED */
+         SCHMIDT_CO2_AVG = 0.0 
+         CO2STAR_AVG = 0.0 
+         DCO2STAR_AVG = 0.0 
          FG_CO2_AVG = 0.0 
          IRON_FLUX_AVG = 0.0 
+         PARinc_avg = 0.0 
          PO4_RESTORE_AVG = 0.0 
          NO3_RESTORE_AVG = 0.0 
          SiO3_RESTORE_AVG = 0.0 
-         PAR_avg_AVG = 0.0 
+         PAR_flux_AVG = 0.0 
          PO4STAR_AVG = 0.0 
          POC_FLUX_IN_AVG = 0.0 
          POC_PROD_AVG = 0.0
@@ -968,6 +1016,7 @@
          photoFe_diat_AVG = 0.0
          photoFe_sp_AVG = 0.0 
          nitrif_AVG = 0.0
+
 #ifdef ASCII_OUTPUT
          write(stdout,*) 'leaving wrt_bec_flux_avg, node ', mynode
 #endif
@@ -977,4 +1026,4 @@
        subroutine ecosys_wrt_bec_flux_avg_empty ()
        
          end
-#endif  /* BIOLOGY_BEC && BGC_FLUX_ANALYSIS */
+#endif  /* BIOLOGY_BEC && BGC_FLUX_ANALYSIS && AVERAGES */

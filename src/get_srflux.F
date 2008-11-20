@@ -88,8 +88,8 @@
             ierr=nf_fread (srflxg(START_2D_ARRAY,itsrf), ncid,
      &                                   srf_id, srf_rec, r2dvar)
             if (ierr .eq. nf_noerr) then
-              MPI_master_only
-     &        write(stdout,'(6x,2A,F12.4,2(1x,A,I4))') 'get_srflux ',
+              MPI_master_only write(stdout,
+     &        '(6x,2A,F12.4,2(1x,A,I4))') 'get_srflux ',
      &                '-- read solar shortwave radiation srf_time =',
      &                 cff, 'rec =', srf_rec MYID
               if (ntsrf.eq.1) return

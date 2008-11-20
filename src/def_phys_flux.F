@@ -53,6 +53,16 @@
 #include "physflux.h"
 #include "ncroms_physflux.h"
 
+#ifdef MASK_LAND_DATA
+# ifdef HIS_DOUBLE
+      real*8 spv_set
+      parameter (spv_set=1.D+33)
+# else
+      real*4 spv_set
+      parameter (spv_set=1.E+33)
+# endif
+#endif
+
 #ifndef AVRH
 # define ncname phys_flux_his_name
 # define rec_per_file nrpf_phys_flux_his
@@ -254,8 +264,9 @@
         ierr=nf_put_att_text (ncid, vidTime, 'units',  lvar,
      &       vname(3,indxTime)(1:lvar))
         lvar=lenstr(vname(4,indxTime))
-        ierr=nf_put_att_text (ncid, vidTime, 'field',  lvar,
-     &       vname(4,indxTime)(1:lvar))
+!        ierr=nf_put_att_text (ncid, vidTime, 'field',  lvar,
+!     &       vname(4,indxTime)(1:lvar))
+
 ! Free surface
         lvar=lenstr(vname(1,indxZ))
         ierr=nf_def_var (ncid, vname(1,indxZ)(1:lvar),
@@ -274,8 +285,12 @@
         ierr=nf_put_att_text (ncid, vidZ, 'units',     lvar,
      &       vname(3,indxZ)(1:lvar))
         lvar=lenstr(vname(4,indxZ))
-        ierr=nf_put_att_text (ncid, vidZ, 'field',     lvar,
-     &       vname(4,indxZ)(1:lvar))
+!        ierr=nf_put_att_text (ncid, vidZ, 'field',     lvar,
+!     &       vname(4,indxZ)(1:lvar))
+#ifdef MASK_LAND_DATA
+        ierr=nf_put_att_FOUT (ncid, vidZ, '_FillValue',
+     &       NF_FOUT, 1, spv_set)
+#endif
 !
 ! Fluxes of tracer variables
 !
@@ -302,9 +317,13 @@
      &          'units', lvar, 
      &          vname_phys(3,indxHorXAdvFlux+iflux-1)(1:lvar))
            lvar=lenstr(vname_phys(4,indxHorXAdvFlux+iflux-1))
-           ierr=nf_put_att_text(ncid, vidHorXAdvFlux(iflux),   
-     &             'field', lvar, 
-     &          vname_phys(4,indxHorXAdvFlux+iflux-1)(1:lvar))
+!           ierr=nf_put_att_text(ncid, vidHorXAdvFlux(iflux),   
+!     &             'field', lvar, 
+!     &          vname_phys(4,indxHorXAdvFlux+iflux-1)(1:lvar))
+#ifdef MASK_LAND_DATA
+          ierr=nf_put_att_FOUT (ncid, vidHorXAdvFlux(iflux),
+     &          '_FillValue', NF_FOUT, 1, spv_set)
+#endif
         end do
 ! horizontal advective fluxes (eta-direction)
         do iflux = 1, NT_PFA
@@ -329,9 +348,13 @@
      &          'units', lvar, 
      &          vname_phys(3,indxHorYAdvFlux+iflux-1)(1:lvar))
            lvar=lenstr(vname_phys(4,indxHorYAdvFlux+iflux-1))
-           ierr=nf_put_att_text (ncid, vidHorYAdvFlux(iflux),     
-     &          'field', lvar, 
-     &          vname_phys(4,indxHorYAdvFlux+iflux-1)(1:lvar))
+!           ierr=nf_put_att_text (ncid, vidHorYAdvFlux(iflux),     
+!     &          'field', lvar, 
+!     &          vname_phys(4,indxHorYAdvFlux+iflux-1)(1:lvar))
+#ifdef MASK_LAND_DATA
+          ierr=nf_put_att_FOUT (ncid, vidHorYAdvFlux(iflux),
+     &          '_FillValue', NF_FOUT, 1, spv_set)
+#endif
         end do
 ! vertical advective fluxes
         do iflux = 1, NT_PFA
@@ -356,9 +379,13 @@
      &          'units', lvar, 
      &          vname_phys(3,indxVertAdvFlux+iflux-1)(1:lvar))
            lvar=lenstr(vname_phys(4,indxVertAdvFlux+iflux-1))
-           ierr=nf_put_att_text (ncid, vidVertAdvFlux(iflux),     
-     &          'field', lvar, 
-     &          vname_phys(4,indxVertAdvFlux+iflux-1)(1:lvar))
+!           ierr=nf_put_att_text (ncid, vidVertAdvFlux(iflux),     
+!     &          'field', lvar, 
+!     &          vname_phys(4,indxVertAdvFlux+iflux-1)(1:lvar))
+#ifdef MASK_LAND_DATA
+          ierr=nf_put_att_FOUT (ncid, vidVertAdvFlux(iflux),
+     &          '_FillValue', NF_FOUT, 1, spv_set)
+#endif
         end do
 #ifdef VERT_DIFF_ANALYSIS
 ! vertical diffusive fluxes
@@ -383,8 +410,12 @@
            ierr=nf_put_att_text(ncid, vidVertDiffFlux(iflux),'units',
      &          lvar, vname_phys(3,indxVertDiffFlux+iflux-1)(1:lvar))
            lvar=lenstr(vname_phys(4,indxVertDiffFlux+iflux-1))
-           ierr=nf_put_att_text(ncid, vidVertDiffFlux(iflux),'field',
-     &          lvar, vname_phys(4,indxVertDiffFlux+iflux-1)(1:lvar))
+!           ierr=nf_put_att_text(ncid, vidVertDiffFlux(iflux),'field',
+!     &          lvar, vname_phys(4,indxVertDiffFlux+iflux-1)(1:lvar))
+#ifdef MASK_LAND_DATA
+          ierr=nf_put_att_FOUT (ncid, vidVertDiffFlux(iflux),
+     &          '_FillValue', NF_FOUT, 1, spv_set)
+#endif
         end do
 #endif /* VERT_DIFF_ANALYSIS */
 # ifdef FULL_PHYS_FLUX_ANALYSIS
@@ -410,8 +441,12 @@
            ierr=nf_put_att_text (ncid, vidTopFlux(iflux),'units',     
      &          lvar, vname_phys(3,indxTopFlux+iflux-1)(1:lvar))
            lvar=lenstr(vname_phys(4,indxTopFlux+iflux-1))
-           ierr=nf_put_att_text (ncid, vidTopFlux(iflux),'field',     
-     &          lvar, vname_phys(4,indxTopFlux+iflux-1)(1:lvar))
+!           ierr=nf_put_att_text (ncid, vidTopFlux(iflux),'field',     
+!     &          lvar, vname_phys(4,indxTopFlux+iflux-1)(1:lvar))
+#ifdef MASK_LAND_DATA
+          ierr=nf_put_att_FOUT (ncid, vidTopFlux(iflux),
+     &          '_FillValue', NF_FOUT, 1, spv_set)
+#endif
         end do
 ! bottom fluxes
         do iflux = 1, NT_PFA
@@ -435,8 +470,12 @@
            ierr=nf_put_att_text (ncid, vidBottomFlux(iflux),'units',
      &          lvar, vname_phys(3,indxBottomFlux+iflux-1)(1:lvar))
            lvar=lenstr(vname_phys(4,indxBottomFlux+iflux-1))
-           ierr=nf_put_att_text (ncid, vidBottomFlux(iflux),'field',
-     &          lvar, vname_phys(4,indxBottomFlux+iflux-1)(1:lvar))
+!           ierr=nf_put_att_text (ncid, vidBottomFlux(iflux),'field',
+!     &          lvar, vname_phys(4,indxBottomFlux+iflux-1)(1:lvar))
+#ifdef MASK_LAND_DATA
+          ierr=nf_put_att_FOUT (ncid, vidBottomFlux(iflux),
+     &          '_FillValue', NF_FOUT, 1, spv_set)
+#endif
         end do
 ! horizontal mixing fluxes (xi-direction)
         do iflux = 1, NT_PFA
@@ -461,9 +500,13 @@
      &          'units', lvar, 
      &          vname_phys(3,indxHorXMixFlux+iflux-1)(1:lvar))
            lvar=lenstr(vname_phys(4,indxHorXMixFlux+iflux-1))
-           ierr=nf_put_att_text(ncid, vidHorXMixFlux(iflux),   
-     &             'field', lvar, 
-     &          vname_phys(4,indxHorXMixFlux+iflux-1)(1:lvar))
+!           ierr=nf_put_att_text(ncid, vidHorXMixFlux(iflux),   
+!     &             'field', lvar, 
+!     &          vname_phys(4,indxHorXMixFlux+iflux-1)(1:lvar))
+#ifdef MASK_LAND_DATA
+          ierr=nf_put_att_FOUT (ncid, vidHorXMixFlux(iflux),
+     &          '_FillValue', NF_FOUT, 1, spv_set)
+#endif
         end do
 ! horizontal mixing fluxes (eta-direction)
         do iflux = 1, NT_PFA
@@ -488,9 +531,13 @@
      &          'units', lvar, 
      &          vname_phys(3,indxHorYMixFlux+iflux-1)(1:lvar))
            lvar=lenstr(vname_phys(4,indxHorYMixFlux+iflux-1))
-           ierr=nf_put_att_text (ncid, vidHorYMixFlux(iflux),     
-     &          'field', lvar, 
-     &          vname_phys(4,indxHorYMixFlux+iflux-1)(1:lvar))
+!           ierr=nf_put_att_text (ncid, vidHorYMixFlux(iflux),     
+!     &          'field', lvar, 
+!     &          vname_phys(4,indxHorYMixFlux+iflux-1)(1:lvar))
+#ifdef MASK_LAND_DATA
+          ierr=nf_put_att_FOUT (ncid, vidHorYMixFlux(iflux),
+     &          '_FillValue', NF_FOUT, 1, spv_set)
+#endif
         end do
 ! vertical mixing fluxes
         do iflux = 1, NT_PFA
@@ -515,9 +562,13 @@
      &          'units', lvar, 
      &          vname_phys(3,indxVertMixFlux+iflux-1)(1:lvar))
            lvar=lenstr(vname_phys(4,indxVertMixFlux+iflux-1))
-           ierr=nf_put_att_text (ncid, vidVertMixFlux(iflux),     
-     &          'field', lvar, 
-     &          vname_phys(4,indxVertMixFlux+iflux-1)(1:lvar))
+!           ierr=nf_put_att_text (ncid, vidVertMixFlux(iflux),     
+!     &          'field', lvar, 
+!     &          vname_phys(4,indxVertMixFlux+iflux-1)(1:lvar))
+#ifdef MASK_LAND_DATA
+          ierr=nf_put_att_FOUT (ncid, vidVertMixFlux(iflux),
+     &          '_FillValue', NF_FOUT, 1, spv_set)
+#endif
         end do
 ! nudging fluxes
         do iflux = 1, NT_PFA
@@ -542,9 +593,13 @@
      &          'units', lvar, 
      &          vname_phys(3,indxNudgingFlux+iflux-1)(1:lvar))
            lvar=lenstr(vname_phys(4,indxNudgingFlux+iflux-1))
-           ierr=nf_put_att_text (ncid, vidNudgingFlux(iflux),     
-     &          'field', lvar, 
-     &          vname_phys(4,indxNudgingFlux+iflux-1)(1:lvar))
+!           ierr=nf_put_att_text (ncid, vidNudgingFlux(iflux),     
+!     &          'field', lvar, 
+!     &          vname_phys(4,indxNudgingFlux+iflux-1)(1:lvar))
+#ifdef MASK_LAND_DATA
+          ierr=nf_put_att_FOUT (ncid, vidNudgingFlux(iflux),
+     &          '_FillValue', NF_FOUT, 1, spv_set)
+#endif
         end do
 # endif /* FULL_PHYS_FLUX_ANALYSIS */
 !

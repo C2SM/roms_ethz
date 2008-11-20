@@ -23,6 +23,12 @@
 #ifdef BIOLOGY_BEC
 # include "ecosys_bec.h"
 # include "ncroms_bgcflux.h"
+!HF not needed, only for debugging:
+# include "param_bec.h"
+#endif
+#ifdef PHYS_FLUX_ANALYSIS
+#  include "physflux.h"
+#  include "ncroms_physflux.h"
 #endif
 #ifdef LMD_KPP
 # include "mixing.h"
@@ -30,7 +36,7 @@
 #define time illegal
 #define tdays illegal
 #define nrrec illegal
-#ifdef SEDIMENT_BIOLOGY
+#ifdef BIOLOGY_NPZDOC
 # include "bgcflux.h"
 #endif
 !
@@ -322,6 +328,47 @@ c**      start_time=start_time - 20.*360. *day2sec
       endif
 #endif
 
+#if defined BGC_FLUX_ANALYSIS || defined PHYS_FLUX_ANALYSIS
+      ierr=nf_inq_varid (ncid, 'fa_time_step', varid)
+      if (ierr .eq. nf_noerr) then
+        start(1)=1
+        start(2)=record
+        count(1)=4
+        count(2)=1
+        ierr=nf_get_vara_int (ncid, varid, start, count, ibuff)
+        if (ierr .eq. nf_noerr) then
+# ifdef BGC_FLUX_ANALYSIS
+          nrec_bgc_flux_his=ibuff(1)
+          write(stdout,'(6x,A,I4)')
+     &         'GET_INITIAL: bgc_flux_his rec =',
+     &         nrec_bgc_flux_his
+#  ifdef AVERAGES
+          nrec_bgc_flux_avg=ibuff(2)
+          write(stdout,'(6x,A,I4)')
+     &         'GET_INITIAL: bgc_flux_avg rec =',
+     &         nrec_bgc_flux_avg
+#  endif
+# endif
+# ifdef PHYS_FLUX_ANALYSIS
+          nrec_phys_flux_his=ibuff(3)
+          write(stdout,'(6x,A,I4)')
+     &         'GET_INITIAL: phys_flux_his rec =',
+     &         nrec_phys_flux_his
+#  ifdef AVERAGES
+          nrec_phys_flux_avg=ibuff(4)
+          write(stdout,'(6x,A,I4)')
+     &         'GET_INITIAL: phys_flux_avg rec =',
+     &         nrec_phys_flux_avg
+#  endif
+# endif
+        else
+          write(stdout,'(/1x,2A/)') 'GET_INITIAL WARNING: Cannot ',
+     &          'read record indices for flux analysis.'
+!!!          goto 99                                         !--> ERROR
+        endif
+! no "else" needed, initialization to 0 in init_scalars...F routines
+      endif
+#endif /* BGC_FLUX_ANALYSIS || PHYS_FLUX_ANALYSIS */
 
 !
 ! Free-surface.
@@ -482,24 +529,142 @@ CHF          goto 99                                         !--> ERROR
       enddo
 # endif /* SEDIMENT_BIOLOGY */
 # ifdef BIOLOGY_BEC 
-      ! ph_hist is initialized to 0 in ecosys_init
+      ! pH is initialized to 0 in ecosys_init
       call ecosys_init
-      ! if it is present in the restart file (only recently added), ! these values will be used instead
-      lvar=lenstr(vname(1,indxPH))
-      ierr=nf_inq_varid (ncid, vname(1,indxPH)(1:lvar), varid)
+         if (abs(parm_sp_kno3 - 0.5) .gt. 1.D-3) then
+             print *, 'get_initial: parm_sp_kNO3: ',
+     &        parm_sp_kno3
+# ifdef MPI
+     &        ,' mynode =', mynode
+# endif
+             stop 'get_init kno3'
+          end if
+          if (abs(parm_sp_kpo4 - 0.0005) .gt. 1.D-4) then
+             print *, 'get_initial: parm_sp_kPO4: ',
+     &        parm_sp_kpo4
+# ifdef MPI
+     &        ,' mynode =', mynode
+# endif
+             stop 'get_init kpo4'
+          end if
+# endif
+# if defined BIOLOGY_BEC || defined BIOLOGY_NPZDOC
+      ! pH and PAR can be treated for both BEC and NPZD.
+      ! if pH field is present in the restart file (only recently added), 
+      ! these values will be used instead of the zero initialization
+      lvar=lenstr(vname(1,indxPH_rst))
+      ierr=nf_inq_varid (ncid, vname(1,indxPH_rst)(1:lvar), varid)
       if (ierr .eq. nf_noerr) then
          ierr=nf_fread (ph_hist(START_2D_ARRAY), ncid,  varid,
      &                                               record, r2dvar)
          if (ierr .ne. nf_noerr) then
-            write(stdout,2) vname(1,indxPH)(1:lvar), record,
+            write(stdout,2) vname(1,indxPH_rst)(1:lvar), record,
      &           ininame(1:lstr)
             goto 99             !--> ERROR
          endif
       else
-         write(stdout,*) 
+         MPI_master_only write(stdout,*) 
      &        'pH field not in init/rst file, initialize to 0'
       endif
-# endif /* BIOLOGY_BEC */
+
+!HF# endif /* BIOLOGY_BEC || BIOLOGY_NPZDOC */
+!HF# ifdef BIOLOGY_NPZDOC
+      ! pCO2:
+      lvar=lenstr(vname(1,indxPCO2_rst))
+      ierr=nf_inq_varid (ncid, vname(1,indxPCO2_rst)(1:lvar), varid)
+      if (ierr .eq. nf_noerr) then
+         ierr=nf_fread (pCO2sw(START_2D_ARRAY), ncid,  varid,
+     &                                               record, r2dvar)
+         if (ierr .ne. nf_noerr) then
+            write(stdout,2) vname(1,indxPCO2_rst)(1:lvar), record,
+     &           ininame(1:lstr)
+            goto 99             !--> ERROR
+         endif
+      else
+         MPI_master_only write(stdout,*) 
+     &        'PCO2 not in init/rst file, initialize to 0'
+      endif
+
+      ! pCO2 in the air:
+      lvar=lenstr(vname(1,indxPCO2air_rst))
+      ierr=nf_inq_varid (ncid, vname(1,indxPCO2air_rst)(1:lvar), varid)
+      if (ierr .eq. nf_noerr) then
+         ierr=nf_fread (pCO2air(START_2D_ARRAY), ncid,  varid,
+     &                                               record, r2dvar)
+         if (ierr .ne. nf_noerr) then
+            write(stdout,2) vname(1,indxPCO2air_rst)(1:lvar), record,
+     &           ininame(1:lstr)
+            goto 99             !--> ERROR
+         endif
+      else
+         MPI_master_only write(stdout,*) 
+     &        'PCO2air not in init/rst file, initialize to 0'
+      endif
+
+      ! Photosynthetically available radiation:
+      lvar=lenstr(vname(1,indxPAR_rst))
+      ierr=nf_inq_varid (ncid, vname(1,indxPAR_rst)(1:lvar), varid)
+      if (ierr .eq. nf_noerr) then
+         ierr=nf_fread (PAR(START_2D_ARRAY,1), ncid,  varid,
+     &                                               record, r2dvar)
+         if (ierr .ne. nf_noerr) then
+            write(stdout,2) vname(1,indxPAR_rst)(1:lvar), record,
+     &           ininame(1:lstr)
+            goto 99             !--> ERROR
+         endif
+      else
+         MPI_master_only write(stdout,*) 
+     &        'PAR not in init/rst file, initialize to 0'
+      endif
+# endif /* BIOLOGY_NPZDOC || BIOLOGY_NPZDOC */
+# ifdef BIOLOGY_BEC__OBSOLETE
+      ! pCO2:
+      lvar=lenstr(vname(1,indxPCO2_rst))
+      ierr=nf_inq_varid (ncid, vname(1,indxPCO2_rst)(1:lvar), varid)
+      if (ierr .eq. nf_noerr) then
+         ierr=nf_fread (pCO2sw(START_2D_ARRAY), ncid,  varid,
+     &                                               record, r2dvar)
+         if (ierr .ne. nf_noerr) then
+            write(stdout,2) vname(1,indxPCO2_rst)(1:lvar), record,
+     &           ininame(1:lstr)
+            goto 99             !--> ERROR
+         endif
+      else
+         MPI_master_only write(stdout,*) 
+     &        'PCO2 not in init/rst file, initialize to 0'
+      endif
+
+      ! DpCO2:
+      lvar=lenstr(vname(1,indxDPCO2_rst))
+      ierr=nf_inq_varid (ncid, vname(1,indxDPCO2_rst)(1:lvar), varid)
+      if (ierr .eq. nf_noerr) then
+         ierr=nf_fread (DpCO2_hist(START_2D_ARRAY), ncid,  varid,
+     &                                               record, r2dvar)
+         if (ierr .ne. nf_noerr) then
+            write(stdout,2) vname(1,indxDPCO2_rst)(1:lvar), record,
+     &           ininame(1:lstr)
+            goto 99             !--> ERROR
+         endif
+      else
+         MPI_master_only write(stdout,*) 
+     &        'Delta PCO2 not in init/rst file, initialize to 0'
+      endif
+      ! Photosynthetically available radiation:
+      lvar=lenstr(vname(1,indxPAR_rst))
+      ierr=nf_inq_varid (ncid, vname(1,indxPAR_rst)(1:lvar), varid)
+      if (ierr .eq. nf_noerr) then
+         ierr=nf_fread (PAR_avg_hist(START_2D_ARRAY,1), ncid,  varid,
+     &                                               record, r2dvar)
+         if (ierr .ne. nf_noerr) then
+            write(stdout,2) vname(1,indxPAR_rst)(1:lvar), record,
+     &           ininame(1:lstr)
+            goto 99             !--> ERROR
+         endif
+      else
+         MPI_master_only write(stdout,*) 
+     &        'PAR not in init/rst file, initialize to 0'
+      endif
+# endif /* BIOLOGY_BEC__OBSOLETE */
 # ifdef LMD_KPP
       lvar=lenstr(vname(1,indxHbl))
       ierr=nf_inq_varid (ncid, vname(1,indxHbl)(1:lvar), varid)
@@ -527,6 +692,22 @@ CHF          goto 99                                         !--> ERROR
 !
 !  Close input NetCDF file.
 !
+         if (abs(parm_sp_kno3 - 0.5) .gt. 1.D-3) then
+             print *, 'get_initial: parm_sp_kNO3: ',
+     &        parm_sp_kno3
+#ifdef MPI
+     &        ,' mynode =', mynode
+#endif
+             stop 'end get_init kno3'
+          end if
+          if (abs(parm_sp_kpo4 - 0.0005) .gt. 1.D-4) then
+             print *, 'get_initial: parm_sp_kPO4: ',
+     &        parm_sp_kpo4
+#ifdef MPI
+     &        ,' mynode =', mynode
+#endif
+             stop 'end get_init kpo4'
+          end if
       ierr=nf_close(ncid)
       return
   99  may_day_flag=2

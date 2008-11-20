@@ -17,6 +17,9 @@
 # ifdef BIOLOGY_BEC
       integer lstr2, lstr3, lstr4
 # endif
+# ifdef BIOLOGY_NPZDOC
+      integer lstr2, lstr3
+# endif
 !
 ! Initialization: Check, whether climatological data file is already
 !================ opened, and if not, open it.  Find and save netCDF
@@ -118,7 +121,7 @@
               ierr=nf_inq_varid (ncidclm2, 'no3_time', tclm_tid(itrc))
               if (ierr .ne. nf_noerr) then
                 MPI_master_only write(stdout,3) 'no3_time', 
-     &                clm_file2(1:lstr2)
+     &                itrc, clm_file2(1:lstr2)
                 tclm_tid(itrc) = 0
                 ierr = nf_noerr
               endif
@@ -126,7 +129,7 @@
               ierr=nf_inq_varid (ncidclm2, 'nh4_time', tclm_tid(itrc))
               if (ierr .ne. nf_noerr) then
                 MPI_master_only write(stdout,3) 'nh4_time', 
-     &                clm_file2(1:lstr2)
+     &                itrc, clm_file2(1:lstr2)
                 tclm_tid(itrc) = 0
                 ierr = nf_noerr
               endif
@@ -134,7 +137,7 @@
               ierr=nf_inq_varid (ncidclm2, 'chla_time', tclm_tid(itrc))
               if (ierr .ne. nf_noerr) then
                 MPI_master_only write(stdout,3) 'chla_time', 
-     &                clm_file2(1:lstr2)
+     &                itrc, clm_file2(1:lstr2)
                 tclm_tid(itrc) = 0
                 ierr = nf_noerr
             endif
@@ -142,7 +145,7 @@
               ierr=nf_inq_varid (ncidclm2, 'phyto_time', tclm_tid(itrc))
               if (ierr .ne. nf_noerr) then
                 MPI_master_only write(stdout,3) 'phyto_time', 
-     &                clm_file2(1:lstr2)
+     &                itrc, clm_file2(1:lstr2)
                 tclm_tid(itrc) = 0
                 ierr = nf_noerr
               endif
@@ -150,7 +153,7 @@
               ierr=nf_inq_varid (ncidclm2, 'zoo_time', tclm_tid(itrc))
               if (ierr .ne. nf_noerr) then
                 MPI_master_only write(stdout,3) 'zoo_time', 
-     &                clm_file2(1:lstr2)
+     &                itrc, clm_file2(1:lstr2)
                 tclm_tid(itrc) = 0
                 ierr = nf_noerr
               endif
@@ -158,7 +161,7 @@
               ierr=nf_inq_varid (ncidclm2, 'sdet_time', tclm_tid(itrc))
               if (ierr .ne. nf_noerr) then
                 MPI_master_only write(stdout,3) 'sdet_time', 
-     &                clm_file2(1:lstr2)
+     &                itrc, clm_file2(1:lstr2)
                 tclm_tid(itrc) = 0
                 ierr = nf_noerr
               endif
@@ -166,7 +169,7 @@
               ierr=nf_inq_varid (ncidclm2, 'ldet_time', tclm_tid(itrc))
               if (ierr .ne. nf_noerr) then
                 MPI_master_only write(stdout,3) 'ldet_time', 
-     &                clm_file2(1:lstr2)
+     &                itrc, clm_file2(1:lstr2)
                 tclm_tid(itrc) = 0
                 ierr = nf_noerr
               endif
@@ -175,7 +178,7 @@
               ierr=nf_inq_varid (ncidclm3, 'o2_time', tclm_tid(itrc))
               if (ierr .ne. nf_noerr) then
                 MPI_master_only write(stdout,3) 'o2_time', 
-     &                clm_file3(1:lstr3)
+     &                itrc, clm_file3(1:lstr3)
                 tclm_tid(itrc) = 0
                 ierr = nf_noerr
               endif
@@ -184,7 +187,7 @@
               ierr=nf_inq_varid (ncidclm3, 'dic_time', tclm_tid(itrc))
               if (ierr .ne. nf_noerr) then
                 MPI_master_only write(stdout,3) 'dic_time', 
-     &                clm_file3(1:lstr3)
+     &                itrc, clm_file3(1:lstr3)
                 tclm_tid(itrc) = 0
                 ierr = nf_noerr
             endif
@@ -192,7 +195,7 @@
               ierr=nf_inq_varid (ncidclm3, 'alk_time', tclm_tid(itrc))
               if (ierr .ne. nf_noerr) then
                 MPI_master_only write(stdout,3) 'alk_time', 
-     &                clm_file3(1:lstr3)
+     &                itrc, clm_file3(1:lstr3)
                 tclm_tid(itrc) = 0
                 ierr = nf_noerr
             endif
@@ -200,7 +203,7 @@
               ierr=nf_inq_varid (ncidclm3, 'sdetc_time', tclm_tid(itrc))
               if (ierr .ne. nf_noerr) then
                 MPI_master_only write(stdout,3) 'sdetc_time', 
-     &                clm_file3(1:lstr3)
+     &                itrc, clm_file3(1:lstr3)
                 tclm_tid(itrc) = 0
                 ierr = nf_noerr
               endif
@@ -208,7 +211,7 @@
               ierr=nf_inq_varid (ncidclm3, 'ldetc_time', tclm_tid(itrc))
               if (ierr .ne. nf_noerr) then
                 MPI_master_only write(stdout,3) 'ldetc_time', 
-     &                clm_file3(1:lstr3)
+     &                itrc, clm_file3(1:lstr3)
                 tclm_tid(itrc) = 0
                 ierr = nf_noerr
               endif
@@ -216,7 +219,7 @@
               ierr=nf_inq_varid (ncidclm3, 'caco3_time', tclm_tid(itrc))
               if (ierr .ne. nf_noerr) then
                 MPI_master_only write(stdout,3) 'caco3_time', 
-     &                clm_file3(1:lstr3)
+     &                itrc, clm_file3(1:lstr3)
                 tclm_tid(itrc) = 0
                 ierr = nf_noerr
               endif
@@ -263,7 +266,7 @@
             ierr=nf_inq_varid (ncidclm2, 'nh4_time', tclm_tid(itrc))
             if (ierr .ne. nf_noerr) then
                 MPI_master_only write(stdout,3) 'nh4_time', 
-     &                clm_file2(1:lstr2)
+     &                itrc, clm_file2(1:lstr2)
                 tclm_tid(itrc) = 0
                 ierr = nf_noerr
 !             write(stdout,1) 'nh4_time', itrc, clm_file2(1:lstr2)
@@ -272,7 +275,7 @@
             ierr=nf_inq_varid (ncidclm2, 'doc_time', tclm_tid(itrc))
             if (ierr .ne. nf_noerr) then
                 MPI_master_only write(stdout,3) 'doc_time', 
-     &                clm_file2(1:lstr2)
+     &                itrc, clm_file2(1:lstr2)
                 tclm_tid(itrc) = 0
                 ierr = nf_noerr
 !               write(stdout,1) 'doc_time', itrc, clm_file2(1:lstr2)
@@ -281,7 +284,7 @@
             ierr=nf_inq_varid (ncidclm2, 'dop_time', tclm_tid(itrc))
             if (ierr .ne. nf_noerr) then
                 MPI_master_only write(stdout,3) 'dop_time', 
-     &                clm_file2(1:lstr2)
+     &                itrc, clm_file2(1:lstr2)
                 tclm_tid(itrc) = 0
                 ierr = nf_noerr
 !               write(stdout,1) 'dop_time', itrc, clm_file2(1:lstr2)
@@ -291,7 +294,7 @@ c              goto 99                                     !--> ERROR
             ierr=nf_inq_varid (ncidclm2, 'don_time', tclm_tid(itrc))
             if (ierr .ne. nf_noerr) then
                 MPI_master_only write(stdout,3) 'don_time', 
-     &                clm_file2(1:lstr2)
+     &                itrc, clm_file2(1:lstr2)
                 tclm_tid(itrc) = 0
                 ierr = nf_noerr
 !                write(stdout,1) 'don_time', itrc, clm_file2(1:lstr2)
@@ -301,7 +304,7 @@ c              goto 99                                     !--> ERROR
             ierr=nf_inq_varid (ncidclm2, 'dofe_time', tclm_tid(itrc))
             if (ierr .ne. nf_noerr) then
                 MPI_master_only write(stdout,3) 'dofe_time', 
-     &                clm_file2(1:lstr2)
+     &                itrc, clm_file2(1:lstr2)
                 tclm_tid(itrc) = 0
                 ierr = nf_noerr
 !               write(stdout,1) 'dofe_time', itrc, clm_file2(1:lstr2)
@@ -424,7 +427,7 @@ c              goto 99                                     !--> ERROR
      &              tclm_id(itrc))
                 if (ierr .ne. nf_noerr) then
                   write(stdout,3) vname(1,indxT+itrc-1)(1:lvar),
-     &                 clm_file2(1:lstr2)
+     &                 itrc, clm_file2(1:lstr2)
                   goto 99       !--> ERROR
                 endif
               else   
@@ -435,7 +438,7 @@ c              goto 99                                     !--> ERROR
      &              tclm_id(itrc))
                 if (ierr .ne. nf_noerr) then
                   write(stdout,3) vname(1,indxT+itrc-1)(1:lvar),
-     &                 clm_file2(1:lstr2)
+     &                 itrc, clm_file2(1:lstr2)
                   goto 99       !--> ERROR
                 endif
               else if (itrc .gt. iLDet) then
@@ -444,7 +447,7 @@ c              goto 99                                     !--> ERROR
      &              tclm_id(itrc))
                 if (ierr .ne. nf_noerr) then
                   write(stdout,3) vname(1,indxT+itrc-1)(1:lvar),
-     &                 clm_file3(1:lstr3)
+     &                 itrc, clm_file3(1:lstr3)
                   goto 99       !--> ERROR
                 endif
               else
@@ -532,7 +535,8 @@ c              goto 99                                     !--> ERROR
      &                                   itrc, clm_file3(1:lstr3)
               endif
            elseif ( itrc .eq.izooc .or. itrc.eq. idiazc .or. 
-     &        itrc.eq. idiazchl .or. itrc.eq. idiazfe) then
+     &        itrc.eq. idiazchl .or. itrc.eq. idiazfe
+     &             ) then
               ierr=nf_inq_varid (ncidclm4, vname(1,indxT+itrc-1)
      &                                  (1:lvar), tclm_id(itrc))
               if (ierr .eq. nf_noerr) then
@@ -561,7 +565,7 @@ c              goto 99                                     !--> ERROR
      &       'Setting analytical climatology for this variable.')
 # endif
   3   format(1x,'get_tclima: cannot find variable ''',
-     &    A, '''', ' in netCDF file ''', A, 
+     &    A, ''', itrc =',I3/7x, ' in netCDF file ''', A, 
      &    '''. Default values will be used for corresponding tracer.' )
 !
 ! Read data from the file:  Check if model time is bounded by past
@@ -677,8 +681,8 @@ c              goto 99                                     !--> ERROR
               endif ! if (itrc.eq.itemp .or. itrc.eq. isalt ...)
 #endif
                 if (ierr.eq.nf_noerr) then
-                  MPI_master_only
-     &            write(stdout,'(6x,A,I3,1x,A,F12.4,2(1x,A,I4))')
+                  MPI_master_only write(stdout,
+     &            '(6x,A,I3,1x,A,F12.4,2(1x,A,I4))')
      &            'get_tclima -- read climatology for tracer', itrc,
      &            'tclm_time =', cff,  'rec =', 
      &            tclm_rec(itrc) MYID

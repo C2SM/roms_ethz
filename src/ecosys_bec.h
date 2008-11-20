@@ -3,9 +3,9 @@
 !MODHF      integer kmt(GLOBAL_2D_ARRAY)          
 ! k index of deepest grid cell on T grid
 
-       real dz(GLOBAL_2D_ARRAY,N), 
-     & dzr(GLOBAL_2D_ARRAY,N), 
-     & zt(GLOBAL_2D_ARRAY,N)              
+!HF       real dz(GLOBAL_2D_ARRAY,N), 
+!HF     & dzr(GLOBAL_2D_ARRAY,N), 
+!HF     & zt(GLOBAL_2D_ARRAY,N)              
 !dz: thickness of layer k
 !dzr: reciprocals of dz, 
 !zt: vert dist from sfc to midpoint of layer
@@ -14,9 +14,9 @@
 
         common /tracers/ tracer
 !MODHF        common /vert/ kmt
-        common /dzc/dz
-        common /dzrc/dzr
-        common /ztc/zt
+!HF        common /dzc/dz
+!HF        common /dzrc/dzr
+!HF        common /ztc/zt
 
         real ifrac(GLOBAL_2D_ARRAY),
      &    press(GLOBAL_2D_ARRAY)
@@ -38,16 +38,17 @@
      &   PH_HIST(GLOBAL_2D_ARRAY), 
      &   CO2STAR_HIST(GLOBAL_2D_ARRAY),  
      &   DCO2STAR_HIST(GLOBAL_2D_ARRAY), 
-     &   pCO2SURF_HIST(GLOBAL_2D_ARRAY), 
-     &   DpCO2_HIST(GLOBAL_2D_ARRAY), 
+     &   pCO2sw(GLOBAL_2D_ARRAY), 
+!hf     &   DpCO2(GLOBAL_2D_ARRAY), 
+     &   pCO2air(GLOBAL_2D_ARRAY), 
      &    FG_CO2_HIST(GLOBAL_2D_ARRAY), 
-     &   IRON_FLUX_HIST(GLOBAL_2D_ARRAY)
-
+     &   IRON_FLUX_HIST(GLOBAL_2D_ARRAY),
+     &       PARinc(GLOBAL_2D_ARRAY)
         real 
      &    PO4_RESTORE_HIST(GLOBAL_2D_ARRAY,N), 
      &    NO3_RESTORE_HIST(GLOBAL_2D_ARRAY,N), 
      &    SiO3_RESTORE_HIST(GLOBAL_2D_ARRAY,N), 
-     &   PAR_avg_HIST(GLOBAL_2D_ARRAY,N), 
+     &   PAR(GLOBAL_2D_ARRAY,N), 
      &   PO4STAR_HIST(GLOBAL_2D_ARRAY,N), 
      &    POC_FLUX_IN_HIST(GLOBAL_2D_ARRAY,N), 
      &    POC_PROD_HIST(GLOBAL_2D_ARRAY,N), 
@@ -111,13 +112,16 @@
      &    photoFe_sp_HIST(GLOBAL_2D_ARRAY,N),
      &    nitrif_HIST(GLOBAL_2D_ARRAY,N)
 
+
+
        common /time_averaging1/WS_HIST, XKW_HIST, 
      &   AP_HIST, SCHMIDT_O2_HIST, O2SAT_HIST, FG_O2_HIST, 
      &    SCHMIDT_CO2_HIST, PH_HIST, CO2STAR_HIST, 
-     &    DCO2STAR_HIST, pCO2SURF_HIST, DpCO2_HIST, 
-     &    FG_CO2_HIST, IRON_FLUX_HIST, 
+     &    DCO2STAR_HIST, pCO2sw,pCO2air, 
+!hf DpCO2,
+     &    FG_CO2_HIST, IRON_FLUX_HIST, PARinc,
      &    PO4_RESTORE_HIST, NO3_RESTORE_HIST, 
-     &    SiO3_RESTORE_HIST, PAR_avg_HIST, PO4STAR_HIST, 
+     &    SiO3_RESTORE_HIST, PAR, PO4STAR_HIST, 
      &    POC_FLUX_IN_HIST, POC_PROD_HIST, POC_REMIN_HIST, 
      &    CaCO3_FLUX_IN_HIST, CaCO3_PROD_HIST, 
      &    CaCO3_REMIN_HIST,  SiO2_FLUX_IN_HIST, 

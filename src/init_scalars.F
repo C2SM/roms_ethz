@@ -35,7 +35,6 @@ c      size=kmp_get_stacksize_s()
 
 cc      write(*,*) 'kmp_stacksize =', size
 
- 
       start_time=0.                  ! Set time and evolving
       nfast=1                        ! time indices to their
       iic=0                          ! default initial values.
@@ -285,7 +284,11 @@ CR      write(stdout,'(1x,A,I3)') 'indxRich =',indxRich
       vname(1,indxRich)='Rich                                      '
       vname(2,indxRich)='Diffusivity due to vert. shear instability'
       vname(3,indxRich)='meter2 second-1                           '
- 
+
+      vname(1,indxRichN)='RichN                                    '
+      vname(2,indxRichN)='Local gradient Richardson number          '
+      vname(3,indxRichN)='                                          '
+
 CR      write(stdout,'(1x,A,I3)') 'indxAkt =',indxAkt
       vname(1,indxAkt)='AKt                                       '
       vname(2,indxAkt)='temperature vertical diffusion coefficient'

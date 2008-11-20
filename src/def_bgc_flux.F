@@ -52,6 +52,16 @@
 #include "bgcflux.h"
 #include "ncroms_bgcflux.h"
 
+#ifdef MASK_LAND_DATA
+# ifdef HIS_DOUBLE
+      real*8 spv_set
+      parameter (spv_set=1.D+33)
+# else
+      real*4 spv_set
+      parameter (spv_set=1.E+33)
+# endif
+#endif
+
 #ifndef AVRH
 # define ncname bgc_flux_his_name 
 # define rec_per_file nrpf_bgc_flux_his
@@ -366,11 +376,10 @@
         lvar = lenstr(text)
         ierr = nf_put_att_text(ncid, vidONNO3, 'long_name', 
      &          lvar, text(1:lvar))
-        
-      if (ierr .ne. nf_noerr) then
-        write(stdout,'(a,1x,i3)') 'Error while defining ON_NO3', ierr
-        goto 99                                           !--> ERROR
-      endif
+        if (ierr .ne. nf_noerr) then
+          write(stdout,'(a,1x,i3)') 'Error while defining ON_NO3', ierr
+          goto 99                                           !--> ERROR
+        endif
 !
         ierr = nf_def_var(ncid, 'ON_NH4', NF_FOUT, 0, 0, vidONNH4)
         text =
@@ -433,9 +442,10 @@
         lvar=lenstr(vname(3,indxTime))
         ierr=nf_put_att_text (ncid, vidTime, 'units',  lvar,
      &       vname(3,indxTime)(1:lvar))
-        lvar=lenstr(vname(4,indxTime))
-        ierr=nf_put_att_text (ncid, vidTime, 'field',  lvar,
-     &       vname(4,indxTime)(1:lvar))
+!        lvar=lenstr(vname(4,indxTime))
+!        ierr=nf_put_att_text (ncid, vidTime, 'field',  lvar,
+!     &       vname(4,indxTime)(1:lvar))
+
 ! Free surface
         lvar=lenstr(vname(1,indxZ))
         ierr=nf_def_var (ncid, vname(1,indxZ)(1:lvar),
@@ -453,9 +463,13 @@
         lvar=lenstr(vname(3,indxZ))
         ierr=nf_put_att_text (ncid, vidZ, 'units',     lvar,
      &       vname(3,indxZ)(1:lvar))
-        lvar=lenstr(vname(4,indxZ))
-        ierr=nf_put_att_text (ncid, vidZ, 'field',     lvar,
-     &       vname(4,indxZ)(1:lvar))
+!        lvar=lenstr(vname(4,indxZ))
+!        ierr=nf_put_att_text (ncid, vidZ, 'field',     lvar,
+!     &       vname(4,indxZ)(1:lvar))
+#ifdef MASK_LAND_DATA
+        ierr=nf_put_att_FOUT (ncid, vidZ, '_FillValue',
+     &       NF_FOUT, 1, spv_set)
+#endif
 
 #  ifdef OXYGEN
 !
@@ -478,9 +492,13 @@
           lvar=lenstr(vname_bgcflux(3,indxU10))
           ierr=nf_put_att_text (ncid, vidU10, 'units',     lvar,
      &         vname_bgcflux(3,indxU10)(1:lvar))
-          lvar=lenstr(vname_bgcflux(4,indxU10))
-          ierr=nf_put_att_text (ncid, vidU10, 'field',     lvar,
-     &         vname_bgcflux(4,indxU10)(1:lvar))
+!          lvar=lenstr(vname_bgcflux(4,indxU10))
+!          ierr=nf_put_att_text (ncid, vidU10, 'field',     lvar,
+!     &         vname_bgcflux(4,indxU10)(1:lvar))
+#ifdef MASK_LAND_DATA
+          ierr=nf_put_att_FOUT (ncid, vidU10, '_FillValue',
+     &       NF_FOUT, 1, spv_set)
+#endif
 !     endif
 !
 ! Gas exchange coefficient of O2
@@ -502,9 +520,13 @@
           lvar=lenstr(vname_bgcflux(3,indxKvO2))
           ierr=nf_put_att_text (ncid, vidKvO2, 'units',     lvar,
      &         vname_bgcflux(3,indxKvO2)(1:lvar))
-          lvar=lenstr(vname_bgcflux(4,indxKvO2))
-          ierr=nf_put_att_text (ncid, vidKvO2, 'field',     lvar,
-     &         vname_bgcflux(4,indxKvO2)(1:lvar))
+!          lvar=lenstr(vname_bgcflux(4,indxKvO2))
+!          ierr=nf_put_att_text (ncid, vidKvO2, 'field',     lvar,
+!     &         vname_bgcflux(4,indxKvO2)(1:lvar))
+#ifdef MASK_LAND_DATA
+          ierr=nf_put_att_FOUT (ncid, vidKvO2, '_FillValue',
+     &         NF_FOUT, 1, spv_set)
+#endif
 !        endif
 !
 ! Saturation concentration of O2
@@ -526,9 +548,13 @@
           lvar=lenstr(vname_bgcflux(3,indxO2sat))
           ierr=nf_put_att_text (ncid, vidO2sat, 'units',     lvar,
      &         vname_bgcflux(3,indxO2sat)(1:lvar))
-          lvar=lenstr(vname_bgcflux(4,indxO2sat))
-          ierr=nf_put_att_text (ncid, vidO2sat, 'field',     lvar,
-     &         vname_bgcflux(4,indxO2sat)(1:lvar))
+!          lvar=lenstr(vname_bgcflux(4,indxO2sat))
+!          ierr=nf_put_att_text (ncid, vidO2sat, 'field',     lvar,
+!     &         vname_bgcflux(4,indxO2sat)(1:lvar))
+#ifdef MASK_LAND_DATA
+          ierr=nf_put_att_FOUT (ncid, vidO2sat, '_FillValue',
+     &         NF_FOUT, 1, spv_set)
+#endif
 !        endif
 #   ifdef CARBON
 !
@@ -551,9 +577,13 @@
           lvar=lenstr(vname_bgcflux(3,indxKvCO2))
           ierr=nf_put_att_text (ncid, vidKvCO2, 'units',     lvar,
      &         vname_bgcflux(3,indxKvCO2)(1:lvar))
-          lvar=lenstr(vname_bgcflux(4,indxKvCO2))
-          ierr=nf_put_att_text (ncid, vidKvCO2, 'field',     lvar,
-     &         vname_bgcflux(4,indxKvCO2)(1:lvar))
+!          lvar=lenstr(vname_bgcflux(4,indxKvCO2))
+!          ierr=nf_put_att_text (ncid, vidKvCO2, 'field',     lvar,
+!     &         vname_bgcflux(4,indxKvCO2)(1:lvar))
+#ifdef MASK_LAND_DATA
+          ierr=nf_put_att_FOUT (ncid, vidKvCO2, '_FillValue',
+     &         NF_FOUT, 1, spv_set)
+#endif
 !        endif
 !
 ! Solubility of CO2
@@ -575,9 +605,13 @@
           lvar=lenstr(vname_bgcflux(3,indxCO2sol))
           ierr=nf_put_att_text (ncid, vidCO2sol, 'units',     lvar,
      &         vname_bgcflux(3,indxCO2sol)(1:lvar))
-          lvar=lenstr(vname_bgcflux(4,indxCO2sol))
-          ierr=nf_put_att_text (ncid, vidCO2sol, 'field',     lvar,
-     &         vname_bgcflux(4,indxCO2sol)(1:lvar))
+!          lvar=lenstr(vname_bgcflux(4,indxCO2sol))
+!          ierr=nf_put_att_text (ncid, vidCO2sol, 'field',     lvar,
+!     &         vname_bgcflux(4,indxCO2sol)(1:lvar))
+#ifdef MASK_LAND_DATA
+          ierr=nf_put_att_FOUT (ncid, vidCO2sol, '_FillValue',
+     &         NF_FOUT, 1, spv_set)
+#endif
 !        endif
 !
 ! Surface pCO2
@@ -599,9 +633,13 @@
           lvar=lenstr(vname_bgcflux(3,indxPCO2))
           ierr=nf_put_att_text (ncid, vidPCO2, 'units',     lvar,
      &         vname_bgcflux(3,indxPCO2)(1:lvar))
-          lvar=lenstr(vname_bgcflux(4,indxPCO2))
-          ierr=nf_put_att_text (ncid, vidPCO2, 'field',     lvar,
-     &         vname_bgcflux(4,indxPCO2)(1:lvar))
+!          lvar=lenstr(vname_bgcflux(4,indxPCO2))
+!          ierr=nf_put_att_text (ncid, vidPCO2, 'field',     lvar,
+!     &         vname_bgcflux(4,indxPCO2)(1:lvar))
+#ifdef MASK_LAND_DATA
+          ierr=nf_put_att_FOUT (ncid, vidPCO2, '_FillValue',
+     &         NF_FOUT, 1, spv_set)
+#endif
 !        endif
 !
 ! Air pCO2
@@ -623,9 +661,13 @@
           lvar=lenstr(vname_bgcflux(3,indxPCO2air))
           ierr=nf_put_att_text (ncid, vidPCO2air, 'units',     lvar,
      &         vname_bgcflux(3,indxPCO2air)(1:lvar))
-          lvar=lenstr(vname_bgcflux(4,indxPCO2air))
-          ierr=nf_put_att_text (ncid, vidPCO2air, 'field',     lvar,
-     &         vname_bgcflux(4,indxPCO2air)(1:lvar))
+!          lvar=lenstr(vname_bgcflux(4,indxPCO2air))
+!          ierr=nf_put_att_text (ncid, vidPCO2air, 'field',     lvar,
+!     &         vname_bgcflux(4,indxPCO2air)(1:lvar))
+#ifdef MASK_LAND_DATA
+          ierr=nf_put_att_FOUT (ncid, vidPCO2air, '_FillValue',
+     &         NF_FOUT, 1, spv_set)
+#endif
 !        endif
 !
 !     Surface pH
@@ -647,9 +689,13 @@
           lvar=lenstr(vname_bgcflux(3,indxPH))
           ierr=nf_put_att_text (ncid, vidPH, 'units',     lvar,
      &                                  vname_bgcflux(3,indxPH)(1:lvar))
-          lvar=lenstr(vname_bgcflux(4,indxPH))
-          ierr=nf_put_att_text (ncid, vidPH, 'field',     lvar,
-     &                                  vname_bgcflux(4,indxPH)(1:lvar))
+!          lvar=lenstr(vname_bgcflux(4,indxPH))
+!          ierr=nf_put_att_text (ncid, vidPH, 'field',     lvar,
+!     &                                  vname_bgcflux(4,indxPH)(1:lvar))
+#ifdef MASK_LAND_DATA
+          ierr=nf_put_att_FOUT (ncid, vidPH, '_FillValue',
+     &         NF_FOUT, 1, spv_set)
+#endif
 !        endif
 #   endif /* CARBON */
 #  endif /* OXYGEN */
@@ -673,9 +719,13 @@
           lvar=lenstr(vname_bgcflux(3,indxPAR))
           ierr=nf_put_att_text (ncid, vidPAR, 'units',     lvar,
      &         vname_bgcflux(3,indxPAR)(1:lvar))
-          lvar=lenstr(vname_bgcflux(4,indxPAR))
-          ierr=nf_put_att_text (ncid, vidPAR, 'field',     lvar,
-     &         vname_bgcflux(4,indxPAR)(1:lvar))
+!          lvar=lenstr(vname_bgcflux(4,indxPAR))
+!          ierr=nf_put_att_text (ncid, vidPAR, 'field',     lvar,
+!     &         vname_bgcflux(4,indxPAR)(1:lvar))
+#ifdef MASK_LAND_DATA
+          ierr=nf_put_att_FOUT (ncid, vidPAR, '_FillValue',
+     &         NF_FOUT, 1, spv_set)
+#endif
 
           lvar=lenstr(vname_bgcflux(1,indxPARinc))
           ierr=nf_def_var (ncid, vname_bgcflux(1,indxPARinc)(1:lvar),
@@ -693,9 +743,13 @@
           lvar=lenstr(vname_bgcflux(3,indxPARinc))
           ierr=nf_put_att_text (ncid, vidPARinc, 'units',     lvar,
      &         vname_bgcflux(3,indxPARinc)(1:lvar))
-          lvar=lenstr(vname_bgcflux(4,indxPARinc))
-          ierr=nf_put_att_text (ncid, vidPARinc, 'field',     lvar,
-     &         vname_bgcflux(4,indxPARinc)(1:lvar))
+!          lvar=lenstr(vname_bgcflux(4,indxPARinc))
+!          ierr=nf_put_att_text (ncid, vidPARinc, 'field',     lvar,
+!     &         vname_bgcflux(4,indxPARinc)(1:lvar))
+#ifdef MASK_LAND_DATA
+          ierr=nf_put_att_FOUT (ncid, vidPARinc, '_FillValue',
+     &         NF_FOUT, 1, spv_set)
+#endif
 !        endif
 !
 ! Fluxes of tracer variables
@@ -723,9 +777,13 @@
            lvar=lenstr(vname_bgcflux(3,indxFlux+iflux-1))
            ierr=nf_put_att_text (ncid, vidFlux(iflux), 'units',     
      &          lvar, vname_bgcflux(3,indxFlux+iflux-1)(1:lvar))
-           lvar=lenstr(vname_bgcflux(4,indxFlux+iflux-1))
-           ierr=nf_put_att_text (ncid, vidFlux(iflux), 'field',     
-     &          lvar, vname_bgcflux(4,indxFlux+iflux-1)(1:lvar))
+!           lvar=lenstr(vname_bgcflux(4,indxFlux+iflux-1))
+!           ierr=nf_put_att_text (ncid, vidFlux(iflux), 'field',     
+!     &          lvar, vname_bgcflux(4,indxFlux+iflux-1)(1:lvar))
+#  ifdef MASK_LAND_DATA
+           ierr=nf_put_att_FOUT (ncid, vidFlux(iflux), '_FillValue',
+     &           NF_FOUT, 1, spv_set)
+#  endif
         end do
 #  ifdef OXYGEN
 ! gas exchange fluxes
@@ -749,9 +807,13 @@
            lvar=lenstr(vname_bgcflux(3,indxGasExcFlux+iflux-1))
            ierr=nf_put_att_text (ncid, vidGasExcFlux(iflux), 'units',
      &          lvar, vname_bgcflux(3,indxGasExcFlux+iflux-1)(1:lvar))
-           lvar=lenstr(vname_bgcflux(4,indxGasExcFlux+iflux-1))
-           ierr=nf_put_att_text (ncid, vidGasExcFlux(iflux), 'field',
-     &          lvar, vname_bgcflux(4,indxGasExcFlux+iflux-1)(1:lvar))
+!           lvar=lenstr(vname_bgcflux(4,indxGasExcFlux+iflux-1))
+!           ierr=nf_put_att_text (ncid, vidGasExcFlux(iflux), 'field',
+!     &          lvar, vname_bgcflux(4,indxGasExcFlux+iflux-1)(1:lvar))
+#  ifdef MASK_LAND_DATA
+           ierr=nf_put_att_FOUT(ncid, vidGasExcFlux(iflux),'_FillValue',
+     &           NF_FOUT, 1, spv_set)
+#  endif
         end do
 #  endif /* OXYGEN */
 #  if defined AVRH || defined BGC_FLUX_EXT_HIS_OUTPUT 
@@ -776,9 +838,13 @@
            lvar=lenstr(vname_bgcflux(3,indxVSinkFlux+iflux-1))
            ierr=nf_put_att_text (ncid, vidVSinkFlux(iflux), 'units',
      &          lvar, vname_bgcflux(3,indxVSinkFlux+iflux-1)(1:lvar))
-           lvar=lenstr(vname_bgcflux(4,indxVSinkFlux+iflux-1))
-           ierr=nf_put_att_text (ncid, vidVSinkFlux(iflux), 'field',
-     &          lvar, vname_bgcflux(4,indxVSinkFlux+iflux-1)(1:lvar))
+!           lvar=lenstr(vname_bgcflux(4,indxVSinkFlux+iflux-1))
+!           ierr=nf_put_att_text (ncid, vidVSinkFlux(iflux), 'field',
+!     &          lvar, vname_bgcflux(4,indxVSinkFlux+iflux-1)(1:lvar))
+#  ifdef MASK_LAND_DATA
+           ierr=nf_put_att_FOUT(ncid, vidVSinkFlux(iflux), '_FillValue',
+     &           NF_FOUT, 1, spv_set)
+#  endif
         end do
 # ifdef SEDIMENT_BIOLOGY
 ! Sediment-related fluxes
@@ -802,9 +868,13 @@
            lvar=lenstr(vname_bgcflux(3,indxSedFlux+iflux-1))
            ierr=nf_put_att_text (ncid, vidSedFlux(iflux), 'units',
      &          lvar, vname_bgcflux(3,indxSedFlux+iflux-1)(1:lvar))
-           lvar=lenstr(vname_bgcflux(4,indxSedFlux+iflux-1))
-           ierr=nf_put_att_text (ncid, vidSedFlux(iflux), 'field',
-     &          lvar, vname_bgcflux(4,indxSedFlux+iflux-1)(1:lvar))
+!           lvar=lenstr(vname_bgcflux(4,indxSedFlux+iflux-1))
+!           ierr=nf_put_att_text (ncid, vidSedFlux(iflux), 'field',
+!     &          lvar, vname_bgcflux(4,indxSedFlux+iflux-1)(1:lvar))
+#  ifdef MASK_LAND_DATA
+           ierr=nf_put_att_FOUT (ncid, vidSedFlux(iflux), '_FillValue',
+     &         NF_FOUT, 1, spv_set)
+#  endif
         end do
 
 # endif /* SEDIMENT_BIOLOGY */
@@ -1077,7 +1147,7 @@
      &          vname_bgcflux(1,indxFlux+iflux-1)(1:lvar),
      &          vidFlux(iflux))
            if (ierr .ne. nf_noerr) then
-              write(stdout,1) vname_bgcflux(1,indxFlux+iflux-1)(1:lvar), 
+              write(stdout,1) vname_bgcflux(1,indxFlux+iflux-1)(1:lvar),
      &             ncname(1:lstr)
               goto 99           !--> ERROR
         endif
@@ -1119,8 +1189,8 @@
      &          vname_bgcflux(1,indxSedFlux+iflux-1)(1:lvar),
      &          vidSedFlux(iflux))
            if (ierr .ne. nf_noerr) then
-              write(stdout,1) vname_bgcflux(1,indxSedFlux+iflux-1)(1:lvar), 
-     &             ncname(1:lstr)
+              write(stdout,1) vname_bgcflux(1,
+     &             indxSedFlux+iflux-1)(1:lvar), ncname(1:lstr)
               goto 99           !--> ERROR
            endif
         end do

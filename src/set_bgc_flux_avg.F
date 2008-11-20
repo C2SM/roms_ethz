@@ -58,7 +58,7 @@
 # include "bgcflux.h"
 # include "ncroms_bgcflux.h"
 !
-#include "compute_auxiliary_bounds.h"
+# include "compute_auxiliary_bounds.h"
 !
 ! calculation of averaged fluxes will only be performed if n_bgc_flux_avg
 ! is a positive number
@@ -127,7 +127,7 @@
 !          if (wrtavg(indxPH)) then
              do j=JstrR,JendR
                 do i=IstrR,IendR
-                   pH_avg(i,j)=pHsw(i,j)
+                   pH_avg(i,j)=pH_hist(i,j)
                 enddo
              enddo
 !          endif
@@ -250,7 +250,7 @@
 !          if (wrtavg(indxPH)) then
              do j=JstrR,JendR
                 do i=IstrR,IendR
-                   pH_avg(i,j)=pH_avg(i,j)+pHsw(i,j)
+                   pH_avg(i,j)=pH_avg(i,j)+pH_hist(i,j)
                 enddo
              enddo
 !          endif
@@ -378,7 +378,7 @@
 !          if (wrtavg(indxPH)) then
               do j=JstrR,JendR
                  do i=IstrR,IendR
-                    pH_avg(i,j)=cff*( pH_avg(i,j) + pHsw(i,j) )
+                    pH_avg(i,j)=cff*( pH_avg(i,j) + pH_hist(i,j) )
                  enddo
               enddo
 !          endif

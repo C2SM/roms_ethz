@@ -125,8 +125,8 @@ c**     &               LLm=83, MMm=168, N=32
       parameter (NNODES=NP_XI*NP_ETA)
 #else
 c        parameter (NSUB_X=4, NSUB_E=60)
-c      parameter (NSUB_X=1, NSUB_E=1)
-       parameter (NSUB_X=2, NSUB_E=22)
+      parameter (NSUB_X=1, NSUB_E=1)
+!       parameter (NSUB_X=2, NSUB_E=22)
 #endif
 !
 ! Array dimensions and bounds of the used portions of sub-arrays
@@ -143,12 +143,6 @@ c      parameter (NSUB_X=1, NSUB_E=1)
 #else
       parameter (Lm=LLm, Mm=MMm, irc=1)
 #endif
-
-#ifdef BIOLOGY_BEC
-        integer Nmgmhist
-        parameter(Nmgmhist=76)
-#endif
-
 
 !
 ! Number of tracers and tracer identification indices:
@@ -189,7 +183,7 @@ c      parameter (NSUB_X=1, NSUB_E=1)
      &     iALK,iDOC,iSPC,iSPCHL,iSPCACO3,iDIATC,
      &     iDIATCHL,iZOOC,iSPFE,iDIATSI,iDIATFE,iDIAZC,
      &     iDIAZCHL,iDIAZFE,iDON,iDOFE,iDOP
-# endif
+# endif /* BIOLOGY_BEC */
       parameter (itemp=1
 # ifdef SALINITY
      &           , isalt=2, ntrc_salt=1
@@ -240,7 +234,7 @@ c      parameter (NSUB_X=1, NSUB_E=1)
 #   endif
 #  endif /* SEDIMENT_BIOLOGY */
 # elif defined BIOLOGY_BEC
-      parameter (ntrc_bio=24, itrc_bio=itemp+ntrc_salt+ntrc_pas+1) 
+      parameter (itrc_bio=itemp+ntrc_salt+ntrc_pas+1) 
       parameter (iPO4=itrc_bio, 
      &            iNO3=iPO4+1, iSIO3=iPO4+2, iNH4=iPO4+3,
      &            iFE=iPO4+4, iO2=iPO4+5, iDIC=iPO4+6,
@@ -250,6 +244,7 @@ c      parameter (NSUB_X=1, NSUB_E=1)
      &            iDIATSI=iPO4+16, iDIATFE=iPO4+17, iDIAZC=iPO4+18,
      &            iDIAZCHL=iPO4+19, iDIAZFE=iPO4+20, iDON=iPO4+21,
      &            iDOFE=iPO4+22, iDOP=iPO4+23)
+      parameter (ntrc_bio=24)
 # else
       parameter (ntrc_bio=0)
 # endif /* BIOLOGY */

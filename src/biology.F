@@ -696,9 +696,9 @@
 !HF: WARN
 #define USE_PH_SAVED
 #ifdef USE_PH_SAVED
-          if (abs(pHsw(i,j) - 8.1d0) .lt. 2.d-1) then
-             pHLo = pHsw(i,j) - pHeps
-             pHHi = pHsw(i,j) + pHeps
+          if (abs(ph_hist(i,j) - 8.1d0) .lt. 2.d-1) then
+             pHLo = ph_hist(i,j) - pHeps
+             pHHi = ph_hist(i,j) + pHeps
           else
 #endif
              pHLo = 6.5d0
@@ -1072,7 +1072,7 @@
           pCO2sw(i,j) = pCO2sw_loc
           CO2sol(i,j) = CO2sol_loc
 #  ifdef OCMIP_CARBON
-          pHsw(i,j) = pHsw_loc
+          ph_hist(i,j) = pHsw_loc
           pCO2air(i,j) = pCO2air_loc
           Kv_CO2(i,j) = Kv_CO2_loc
 #  endif /* OCMIP_CARBON */

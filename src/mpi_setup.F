@@ -25,7 +25,7 @@ C$    integer nthrds
       call MPI_Comm_size (ocean_grid_comm, nsize,  ierr)
       call MPI_Comm_rank (ocean_grid_comm, mynode, ierr)
 
-      write(*,*) 'etner mpi_setup, node ', mynode, ' out of', nsize  
+!      write(*,*) 'enter mpi_setup, node ', mynode, ' out of', nsize  
 
                                          ! Determine number of
 C$    if (mynode.eq.0) then              ! threads on the zeroth MPI
@@ -153,7 +153,6 @@ c      write(*,'(A,7I5,1x,A,I4)') 'ETA:',MMm, off_ETA, jSW_corn, Mm,
 c    & jnorth-jsouth+1,jsouth+jSW_corn,jnorth+jSW_corn,'node=',mynode
 
         
-
 # ifdef PARALLEL_FILES
          xi_rho=ieast-iwest+1
          if (EASTERN_MPI_EDGE) then

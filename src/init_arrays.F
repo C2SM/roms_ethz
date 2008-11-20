@@ -351,6 +351,7 @@
               Akt(i,j,k,itrc)=init
 # endif
               Rich(i,j,k)=init
+              RichN(i,j,k)=init
             enddo
           enddo
         enddo
@@ -393,6 +394,33 @@
          enddo
       enddo
 # endif /* SEDIMENT_BIOLOGY */
+!
+! Initialize some more arrays (pH, pCO2sw, pCO2air, PAR) for NPZD model:
+!
+# ifdef BIOLOGY_NPZDOC
+      do j=JstrR,JendR
+         do i=IstrR,IendR
+           pH_hist(i,j) = 0.0
+           pCO2sw(i,j) = 0.0
+           pCO2air(i,j) = 0.0
+#  ifdef AVERAGES
+           pH_avg(i,j) = 0.0
+           pCO2_avg(i,j) = 0.0
+           pCO2air_avg(i,j) = 0.0
+#  endif
+         end do
+      end do
+      do k=1,N
+         do j=JstrR,JendR
+           do i=IstrR,IendR
+              PAR(i,j,k) = 0.0
+#  ifdef AVERAGES
+              PAR_avg(i,j,k) = 0.0
+#  endif
+           end do
+         end do
+      end do
+# endif /* BIOLOGY_NPZDOC */
 #endif /* SOLVE3D */
 
       return

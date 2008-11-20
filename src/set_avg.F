@@ -19,7 +19,7 @@
 ! averaged are sampled during the next time step, rather than at
 ! the end of the time step when they were computed.
 !
-! Thought this algorithm results in somewhat ackwad controlling
+! Thought this algorithm results in somewhat awkward controlling
 ! logic it has the advantage that that all fields to be sampled
 ! correspond to exactly the same time, which is time step "n".
 ! Particularly, this is done this way because vertical velocity
@@ -48,8 +48,12 @@
 # include "eos_vars.h"
 # include "mixing.h"
 # include "averages.h"
-# ifdef SEDIMENT_BIOLOGY
+# ifdef BIOLOGY_NPZDOC
 #  include "bgcflux.h"
+# endif
+# ifdef BIOLOGY_BEC
+#  include "ecosys_bec.h"
+#  include "bec_avg.h"
 # endif
 !
 #include "compute_auxiliary_bounds.h"
@@ -111,7 +115,7 @@
              enddo
            endif
           enddo
-#ifdef SEDIMENT_BIOLOGY
+#  ifdef SEDIMENT_BIOLOGY
           do itrc=1,NT_sed
              if (wrtavg(indxSedOrgN+itrc-1)) then
                 do j=JstrR,JendR
@@ -121,7 +125,39 @@
                 enddo
              endif
           enddo
-#endif /* SEDIMENT_BIOLOGY */
+#  endif /* SEDIMENT_BIOLOGY */
+#  if defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC
+          do j=JstrR,JendR
+             do i=IstrR,IendR
+                pH_avg(i,j) = pH_hist(i,j)
+                pCO2_avg(i,j) = pCO2sw(i,j)
+                pCO2air_avg(i,j) = pCO2air(i,j)
+             end do
+          end do
+          do k=1,N
+            do j=jstrR,jendR
+               do i=istrR,iendR
+                  PAR_avg(i,j,k) = PAR(i,j,k)
+               end do
+            end do
+          end do
+#  endif /* BIOLOGY_NPZDOC || BIOLOGY_BEC */
+#  ifdef BIOLOGY_BEC__OBSOLETE
+          do j=JstrR,JendR
+             do i=IstrR,IendR
+                pH_avg(i,j) = pH_hist(i,j)
+                pCO2surf_avg(i,j) = pCO2surf_hist(i,j)
+                DpCO2_avg(i,j) = DpCO2_hist(i,j)
+             end do
+          end do
+          do k=1,N
+            do j=jstrR,jendR
+               do i=istrR,iendR
+                  PAR_avg_avg(i,j,k) = PAR_avg_hist(i,j,k)
+               end do
+            end do
+          end do
+#  endif /* BIOLOGY_BEC__OBSOLETE */
           if (wrtavg(indxR)) then
             do k=1,N
               do j=jstrR,jendR
@@ -145,7 +181,54 @@
               enddo
             enddo
           endif
-# endif
+          if (wrtavg(indxAkt)) then
+            do k=0,N
+              do j=jstrR,jendR
+                do i=istrR,iendR
+                  akt_avg(i,j,k)=Akt(i,j,k,itemp)
+                enddo
+              enddo
+            enddo
+          endif
+          if (wrtavg(indxRich)) then
+            do k=0,N
+              do j=jstrR,jendR
+                do i=istrR,iendR
+                  rich_avg(i,j,k)=Rich(i,j,k)
+                enddo
+              enddo
+            enddo
+          endif
+          if (wrtavg(indxRichN)) then
+            do k=0,N
+              do j=jstrR,jendR
+                do i=istrR,iendR
+                  richN_avg(i,j,k)=RichN(i,j,k)
+                enddo
+              enddo
+            enddo
+          endif
+#  ifdef SALINITY
+          if (wrtavg(indxAks)) then
+            do k=0,N
+              do j=jstrR,jendR
+                do i=istrR,iendR
+                  aks_avg(i,j,k)=Akt(i,j,k,isalt)
+                enddo
+              enddo
+            enddo
+          endif
+#  endif
+#  ifdef LMD_KPP
+          if (wrtavg(indxHbl)) then
+            do j=jstrR,jendR
+              do i=istrR,iendR
+                hbl_avg(i,j)=hbls(i,j,nstp)
+              enddo
+            enddo
+          endif
+#  endif
+# endif /* SOLVE3D */
         elseif (mod(iic-ntsavg,navg).gt.1) then
           if (ZEROTH_TILE) time_avg=time_avg+time
           if (wrtavg(indxZ)) then
@@ -200,7 +283,7 @@
               enddo
             endif
           enddo
-#ifdef SEDIMENT_BIOLOGY
+#  ifdef SEDIMENT_BIOLOGY
           do itrc=1,NT_sed
              if (wrtavg(indxSedOrgN+itrc-1)) then
                 do j=JstrR,JendR
@@ -211,7 +294,40 @@
                 enddo
              endif
           enddo
-#endif /* SEDIMENT_BIOLOGY */
+#  endif /* SEDIMENT_BIOLOGY */
+#  if defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC
+          do j=JstrR,JendR
+             do i=IstrR,IendR
+                pH_avg(i,j) = pH_avg(i,j) + pH_hist(i,j)
+                pCO2_avg(i,j) = pCO2_avg(i,j) + pCO2sw(i,j)
+                pCO2air_avg(i,j) = pCO2air_avg(i,j) + pCO2air(i,j)
+             end do
+          end do
+          do k=1,N
+            do j=jstrR,jendR
+               do i=istrR,iendR
+                  PAR_avg(i,j,k) = PAR_avg(i,j,k) + PAR(i,j,k)
+               end do
+            end do
+          end do
+#  endif /* BIOLOGY_NPZDOC || BIOLOGY_BEC */
+#  ifdef BIOLOGY_BEC__OBSOLETE
+          do j=JstrR,JendR
+             do i=IstrR,IendR
+                pH_avg(i,j) = pH_avg(i,j) + pH_hist(i,j)
+                pCO2surf_avg(i,j) = pCO2surf_avg(i,j) + pCO2surf_hist(i,j)
+                DpCO2_avg(i,j) = DpCO2_avg(i,j) + DpCO2_hist(i,j)
+             end do
+          end do
+          do k=1,N
+            do j=jstrR,jendR
+               do i=istrR,iendR
+                  PAR_avg_avg(i,j,k) = PAR_avg_avg(i,j,k) + 
+     &                 PAR_avg_hist(i,j,k)
+               end do
+            end do
+          end do
+#  endif /* BIOLOGY_BEC__OBSOLETE */
           if (wrtavg(indxR)) then
             do k=1,N
               do j=jstrR,jendR
@@ -249,6 +365,15 @@
               do j=jstrR,jendR
                 do i=istrR,iendR
                   rich_avg(i,j,k)=rich_avg(i,j,k)+Rich(i,j,k)
+                enddo
+              enddo
+            enddo
+          endif
+          if (wrtavg(indxRichN)) then
+            do k=0,N
+              do j=jstrR,jendR
+                do i=istrR,iendR
+                  richN_avg(i,j,k)=richN_avg(i,j,k)+RichN(i,j,k)
                 enddo
               enddo
             enddo
@@ -344,6 +469,40 @@
              endif
           enddo
 #endif /* SEDIMENT_BIOLOGY */
+#  if defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC
+          do j=JstrR,JendR
+             do i=IstrR,IendR
+                pH_avg(i,j) = cff*( pH_avg(i,j) + pH_hist(i,j) )
+                pCO2_avg(i,j) = cff*( pCO2_avg(i,j) + pCO2sw(i,j) )
+                pCO2air_avg(i,j) = cff*(pCO2air_avg(i,j) + pCO2air(i,j))
+             end do
+          end do
+          do k=1,N
+            do j=jstrR,jendR
+               do i=istrR,iendR
+                  PAR_avg(i,j,k) = cff*( PAR_avg(i,j,k) + PAR(i,j,k) )
+               end do
+            end do
+          end do
+#  endif /* BIOLOGY_NPZDOC */
+#  ifdef BIOLOGY_BEC__OBSOLETE
+          do j=JstrR,JendR
+             do i=IstrR,IendR
+                pH_avg(i,j) = cff*( pH_avg(i,j) + pH_hist(i,j) )
+                pCO2surf_avg(i,j) = cff*( pCO2surf_avg(i,j) + 
+     &               pCO2surf_hist(i,j) )
+                DpCO2_avg(i,j) = cff*( DpCO2_avg(i,j) + DpCO2_hist(i,j))
+             end do
+          end do
+          do k=1,N
+            do j=jstrR,jendR
+               do i=istrR,iendR
+                  PAR_avg_avg(i,j,k) = cff*( PAR_avg_avg(i,j,k) + 
+     &                 PAR_avg_hist(i,j,k) )
+               end do
+            end do
+          end do
+#  endif /* BIOLOGY_BEC */
           if (wrtavg(indxR)) then
             do k=1,N
               do j=jstrR,jendR
@@ -382,6 +541,15 @@
               do j=jstrR,jendR
                 do i=istrR,iendR
                   rich_avg(i,j,k)=cff*(rich_avg(i,j,k)+Rich(i,j,k))
+                enddo
+              enddo
+            enddo
+          endif
+          if (wrtavg(indxRichN)) then
+            do k=0,N
+              do j=jstrR,jendR
+                do i=istrR,iendR
+                  richN_avg(i,j,k)=cff*(richN_avg(i,j,k)+RichN(i,j,k))
                 enddo
               enddo
             enddo

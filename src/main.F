@@ -27,7 +27,7 @@ c**   call MPI_Test
       if (ierr.ne.0) goto 100
 # ifdef BIOLOGY_NPZDOC
       call init_scalars_npzdoc(ierr)
-      if (ierr.ne.0) goto 100 
+      if (ierr.ne.0) goto 100
 #  ifdef BGC_FLUX_ANALYSIS
       call init_scalars_bgcflux(ierr)
       if (ierr.ne.0) goto 100 
@@ -97,7 +97,7 @@ C$    integer omp_get_thread_num, omp_get_num_threads
 # include "floats.h"
 # include "ncvars_floats.h"
 #endif
- 
+
       numthreads=1
 C$    numthreads=omp_get_num_threads()
       trd=0
@@ -478,7 +478,7 @@ c        call lmd_kmix (tile)
 # endif
       enddo
 C$OMP BARRIER
- 
+
       do tile=my_tile_range
         call     prsgrd (tile)
         call      rhs3d (tile)
@@ -559,6 +559,45 @@ C$OMP MASTER
 #ifdef AVERAGES
         if (mod(iic-ntsavg,navg) .eq.0) nrecavg=nrecavg+1
 #endif
+
+!DL: place following block before writing of rst file:
+#ifdef BGC_FLUX_ANALYSIS
+      if (iic > ntstart .and. n_bgc_flux_his > 0 .and. 
+     &     mod(iic-1, n_bgc_flux_his) == 0) then
+         nrec_bgc_flux_his = nrec_bgc_flux_his + 1
+# ifdef BIOLOGY_NPZDOC
+         call wrt_bgc_flux_his
+# elif defined BIOLOGY_BEC
+         call wrt_bec_flux_his
+# endif
+      end if
+# ifdef AVERAGES
+      if (iic > ntstart .and. n_bgc_flux_avg > 0 .and. 
+     &     mod(iic-1, n_bgc_flux_avg) == 0) then
+         nrec_bgc_flux_avg = nrec_bgc_flux_avg + 1
+# ifdef BIOLOGY_NPZDOC
+         call wrt_bgc_flux_avg
+# elif defined BIOLOGY_BEC
+         call wrt_bec_flux_avg
+# endif
+      end if
+# endif
+#endif /* BGC_FLUX_ANALYSIS */
+#ifdef PHYS_FLUX_ANALYSIS
+      if (iic > ntstart .and. n_phys_flux_his > 0 .and. 
+     &     mod(iic-1, n_phys_flux_his) == 0) then
+         nrec_phys_flux_his = nrec_phys_flux_his + 1
+         call wrt_phys_flux_his
+      end if
+# ifdef AVERAGES
+      if (iic > ntstart .and. n_phys_flux_avg > 0 .and. 
+     &     mod(iic-1, n_phys_flux_avg) == 0) then
+         nrec_phys_flux_avg = nrec_phys_flux_avg + 1
+         call wrt_phys_flux_avg
+      end if
+# endif
+#endif /* PHYS_FLUX_ANALYSIS */
+
 #ifdef STATIONS
         if (mod(iic-ntstart,nsta).eq.0) nrecsta=nrecsta+1
 #endif
@@ -614,42 +653,6 @@ C$OMP BARRIER
       endif
 #endif
 
-#ifdef BGC_FLUX_ANALYSIS
-      if (iic > ntstart .and. n_bgc_flux_his > 0 .and. 
-     &     mod(iic-1, n_bgc_flux_his) == 0) then
-         nrec_bgc_flux_his = nrec_bgc_flux_his + 1
-# ifdef BIOLOGY_NPZDOC
-         call wrt_bgc_flux_his
-# elif defined BIOLOGY_BEC
-         call wrt_bec_flux_his
-# endif
-      end if
-# ifdef AVERAGES
-      if (iic > ntstart .and. n_bgc_flux_avg > 0 .and. 
-     &     mod(iic-1, n_bgc_flux_avg) == 0) then
-         nrec_bgc_flux_avg = nrec_bgc_flux_avg + 1
-# ifdef BIOLOGY_NPZDOC
-         call wrt_bgc_flux_avg
-# elif defined BIOLOGY_BEC
-         call wrt_bec_flux_avg
-# endif
-      end if
-# endif
-#endif /* BGC_FLUX_ANALYSIS */
-#ifdef PHYS_FLUX_ANALYSIS
-      if (iic > ntstart .and. n_phys_flux_his > 0 .and. 
-     &     mod(iic-1, n_phys_flux_his) == 0) then
-         nrec_phys_flux_his = nrec_phys_flux_his + 1
-         call wrt_phys_flux_his
-      end if
-# ifdef AVERAGES
-      if (iic > ntstart .and. n_phys_flux_avg > 0 .and. 
-     &     mod(iic-1, n_phys_flux_avg) == 0) then
-         nrec_phys_flux_avg = nrec_phys_flux_avg + 1
-         call wrt_phys_flux_avg
-      end if
-# endif
-#endif
 
 #ifdef SOLVE3D
 !
@@ -701,7 +704,7 @@ C$OMP BARRIER
 #else
       enddo    ! <-- iif
  
- 
+
 # ifdef PRED_COUPLED_MODE
       do tile=my_tile_range      ! This code segment is for
         call set_HUV1 (tile)     ! predictor-coupled version.

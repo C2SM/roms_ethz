@@ -87,8 +87,8 @@
             ierr=nf_fread (sstg(START_2D_ARRAY,itsst), ncid,
      &                                 sst_id, sst_rec, r2dvar)
             if (ierr .eq. nf_noerr) then
-              MPI_master_only
-     &        write(stdout,'(6x,2A,F12.4,2(1x,A,I4))') 'get_sst    ',
+              MPI_master_only write(stdout,
+     &        '(6x,2A,F12.4,2(1x,A,I4))') 'get_sst    ',
      &                '-- read SST                       for time =',
      &                   cff, 'rec =', sst_rec MYID
             else

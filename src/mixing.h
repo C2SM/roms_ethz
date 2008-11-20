@@ -24,8 +24,8 @@ CSDISTRIBUTE_RESHAPE Akv(BLOCK_PATTERN,*) BLOCK_CLAUSE
       real Akt(GLOBAL_2D_ARRAY,0:N,NT)
 CSDISTRIBUTE_RESHAPE Akt(BLOCK_PATTERN,*,*) BLOCK_CLAUSE
       common /mixing_Akv/Akv /mixing_Akt/Akt
-      real Rich(GLOBAL_2D_ARRAY,0:N)
-      common Rich
+      real Rich(GLOBAL_2D_ARRAY,0:N), RichN(GLOBAL_2D_ARRAY,0:N)
+      common Rich, RichN
 # if defined BVF_MIXING || defined LMD_MIXING  || defined LMD_KPP \
   || defined MY2_MIXING || defined MY25_MIXING || defined PP_MIXING
       real bvf(GLOBAL_2D_ARRAY,0:N)

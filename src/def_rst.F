@@ -8,9 +8,9 @@
 #include "scalars.h"
 #include "ncvars.h"
 #include "netcdf.inc"
-!#ifdef BIOLOGY_BEC
-!# include "ncroms_bgcflux.h"
-!#endif
+#ifdef BIOLOGY_BEC
+# include "ecosys_bec.h"
+#endif
 #ifdef FLOATS
 # include "floats.h"
 # include "ncvars_floats.h"
@@ -185,6 +185,15 @@
      &                                                 rstTstep)
         ierr=nf_put_att_text (ncid, rstTstep, 'long_name', 48,
      &       'time step and record numbers from initialization')
+#if defined BGC_FLUX_ANALYSIS || defined PHYS_FLUX_ANALYSIS
+!
+! Time record numbers for flux analysis:
+!
+        ierr=nf_def_var (ncid, 'fa_time_step', nf_int, 2, auxil,
+     &                                                 rstTstepFA)
+        ierr=nf_put_att_text (ncid, rstTstepFA, 'long_name', 57,
+     &  'time record numbers from initialization for flux analysis')
+#endif /* BGC_FLUX_ANALYSIS || PHYS_FLUX_ANALYSIS */
 !
 ! Time.
 !
@@ -381,21 +390,88 @@
         ierr=nf_put_att_text(ncid,rsttrack,'Content',lvar,
      &                         vinfo(3)(1:lvar))
 #endif /* FLOATS */
-# ifdef BIOLOGY_BEC
-! pH value
-        lvar = lenstr(vname(1,indxPH))
-        ierr=nf_def_var (ncid, vname(1,indxPH)(1:lvar),
+# if defined BIOLOGY_BEC || defined BIOLOGY_NPZDOC
+!
+! pH:
+!
+        lvar = lenstr(vname(1,indxPH_rst))
+        ierr=nf_def_var (ncid, vname(1,indxPH_rst)(1:lvar),
      &       NF_FTYPE, 3, r2dgrd, rstPH)
-        lvar=lenstr(vname(2,indxPH))
+        lvar=lenstr(vname(2,indxPH_rst))
         ierr=nf_put_att_text (ncid, rstPH, 'long_name',
-     &       lvar, vname(2,indxPH)(1:lvar))
-        lvar=lenstr(vname(3,indxPH))
+     &       lvar, vname(2,indxPH_rst)(1:lvar))
+        lvar=lenstr(vname(3,indxPH_rst))
         ierr=nf_put_att_text (ncid, rstPH, 'units', lvar,
-     &       vname(3,indxPH)(1:lvar))
-        lvar=lenstr(vname(4,indxPH))
+     &       vname(3,indxPH_rst)(1:lvar))
+        lvar=lenstr(vname(4,indxPH_rst))
         ierr=nf_put_att_text (ncid, rstPH, 'field', lvar,
-     &       vname(4,indxPH)(1:lvar))
-# endif /* BIOLOGY_BEC */
+     &       vname(4,indxPH_rst)(1:lvar))
+!
+! pCO2:
+!
+        lvar = lenstr(vname(1,indxPCO2_rst))
+        ierr=nf_def_var (ncid, vname(1,indxPCO2_rst)(1:lvar),
+     &       NF_FTYPE, 3, r2dgrd, rstPCO2)
+        lvar=lenstr(vname(2,indxPCO2_rst))
+        ierr=nf_put_att_text (ncid, rstPCO2, 'long_name',
+     &       lvar, vname(2,indxPCO2_rst)(1:lvar))
+        lvar=lenstr(vname(3,indxPCO2_rst))
+        ierr=nf_put_att_text (ncid, rstPCO2, 'units', lvar,
+     &       vname(3,indxPCO2_rst)(1:lvar))
+        lvar=lenstr(vname(4,indxPCO2_rst))
+        ierr=nf_put_att_text (ncid, rstPCO2, 'field', lvar,
+     &       vname(4,indxPCO2_rst)(1:lvar))
+#  ifdef UNNECESSARY_OUTPUT
+!
+! pCO2air:
+!
+        lvar = lenstr(vname(1,indxPCO2air_rst))
+        ierr=nf_def_var (ncid, vname(1,indxPCO2air_rst)(1:lvar),
+     &       NF_FTYPE, 3, r2dgrd, rstPCO2air)
+        lvar=lenstr(vname(2,indxPCO2air_rst))
+        ierr=nf_put_att_text (ncid, rstPCO2air, 'long_name',
+     &       lvar, vname(2,indxPCO2air_rst)(1:lvar))
+        lvar=lenstr(vname(3,indxPCO2air_rst))
+        ierr=nf_put_att_text (ncid, rstPCO2air, 'units', lvar,
+     &       vname(3,indxPCO2air_rst)(1:lvar))
+        lvar=lenstr(vname(4,indxPCO2air_rst))
+        ierr=nf_put_att_text (ncid, rstPCO2air, 'field', lvar,
+     &       vname(4,indxPCO2air_rst)(1:lvar))
+#  endif /* UNNECESSARY_OUTPUT */
+!
+! PAR:
+!
+        lvar = lenstr(vname(1,indxPAR_rst))
+        ierr=nf_def_var (ncid, vname(1,indxPAR_rst)(1:lvar),
+     &       NF_FTYPE, 4, r3dgrd, rstPAR)
+        lvar=lenstr(vname(2,indxPAR_rst))
+        ierr=nf_put_att_text (ncid, rstPAR, 'long_name',
+     &       lvar, vname(2,indxPAR_rst)(1:lvar))
+        lvar=lenstr(vname(3,indxPAR_rst))
+        ierr=nf_put_att_text (ncid, rstPAR, 'units', lvar,
+     &       vname(3,indxPAR_rst)(1:lvar))
+        lvar=lenstr(vname(4,indxPAR_rst))
+        ierr=nf_put_att_text (ncid, rstPAR, 'field', lvar,
+     &       vname(4,indxPAR_rst)(1:lvar))
+# endif /* BIOLOGY_BEC || BIOLOGY_NPZDOC */
+# ifdef BIOLOGY_BEC__OBSOLETE
+!
+! DpCO2:
+!
+        lvar = lenstr(vname(1,indxDPCO2_rst))
+        ierr=nf_def_var (ncid, vname(1,indxDPCO2_rst)(1:lvar),
+     &       NF_FTYPE, 3, r2dgrd, rstDPCO2)
+        lvar=lenstr(vname(2,indxDPCO2_rst))
+        ierr=nf_put_att_text (ncid, rstDPCO2, 'long_name',
+     &       lvar, vname(2,indxDPCO2_rst)(1:lvar))
+        lvar=lenstr(vname(3,indxDPCO2_rst))
+        ierr=nf_put_att_text (ncid, rstDPCO2, 'units', lvar,
+     &       vname(3,indxDPCO2_rst)(1:lvar))
+        lvar=lenstr(vname(4,indxDPCO2_rst))
+        ierr=nf_put_att_text (ncid, rstDPCO2, 'field', lvar,
+     &       vname(4,indxDPCO2_rst)(1:lvar))
+# endif /* BIOLOGY_BEC__OBSOLETE */
+
 !
 ! Leave definition mode.                  Also initialize record
 ! ----- ---------- -----                  dimension size to zero.
@@ -475,6 +551,16 @@
           write(stdout,1) 'time_step', rstname(1:lstr)
           goto 99                                         !--> ERROR
         endif
+#if defined BGC_FLUX_ANALYSIS || defined PHYS_FLUX_ANALYSIS
+!
+! Time record numbers for flux analysis:
+!
+        ierr=nf_inq_varid (ncid, 'fa_time_step', rstTstepFA)
+        if (ierr .ne. nf_noerr) then
+          write(stdout,1) 'fa_time_step', rstname(1:lstr)
+          goto 99                                         !--> ERROR
+        endif
+#endif /* BGC_FLUX_ANALYSIS || PHYS_FLUX_ANALYSIS */
 !
 ! Time.
 !
@@ -556,15 +642,57 @@
         enddo
 # endif /* SEDIMENT_BIOLOGY */
 
-# ifdef BIOLOGY_BEC
-! pH value
-        lvar=lenstr(vname(1,indxPH))
-        ierr=nf_inq_varid (ncid, vname(1,indxPH)(1:lvar), rstPH)
+# if defined BIOLOGY_BEC || defined BIOLOGY_NPZDOC
+!
+! pH:
+!
+        lvar=lenstr(vname(1,indxPH_rst))
+        ierr=nf_inq_varid (ncid, vname(1,indxPH_rst)(1:lvar), rstPH)
         if (ierr. ne. nf_noerr) then
-          write(stdout,1) vname(1,indxPH)(1:lvar), rstname(1:lstr)
+          write(stdout,1) vname(1,indxPH_rst)(1:lvar), rstname(1:lstr)
           goto 99                                         !--> ERROR
         endif
-# endif /* BIOLOGY_BEC */
+!
+! pCO2:
+!
+        lvar=lenstr(vname(1,indxPCO2_rst))
+        ierr=nf_inq_varid (ncid, vname(1,indxPCO2_rst)(1:lvar), rstPCO2)
+        if (ierr. ne. nf_noerr) then
+          write(stdout,1) vname(1,indxPCO2_rst)(1:lvar), rstname(1:lstr)
+          goto 99                                         !--> ERROR
+        endif
+!
+! PAR:
+!
+        lvar=lenstr(vname(1,indxPAR_rst))
+        ierr=nf_inq_varid (ncid, vname(1,indxPAR_rst)(1:lvar), rstPAR)
+        if (ierr. ne. nf_noerr) then
+          write(stdout,1) vname(1,indxPAR_rst)(1:lvar), rstname(1:lstr)
+          goto 99                                         !--> ERROR
+        endif
+# endif /* BIOLOGY_BEC || BIOLOGY_NPZDOC */
+# ifdef UNNECESSARY_OUTPUT
+!
+! pCO2air:
+!
+        lvar=lenstr(vname(1,indxPCO2air_rst))
+        ierr=nf_inq_varid (ncid, vname(1,indxPCO2air_rst)(1:lvar), rstPCO2air)
+        if (ierr. ne. nf_noerr) then
+          write(stdout,1) vname(1,indxPCO2air_rst)(1:lvar), rstname(1:lstr)
+          goto 99                                         !--> ERROR
+        endif
+# endif /* UNNECESSARY_OUTPUT */
+# ifdef BIOLOGY_BEC__OBSOLETE
+!
+! DpCO2:
+!
+        lvar=lenstr(vname(1,indxDPCO2_rst))
+        ierr=nf_inq_varid (ncid, vname(1,indxDPCO2_rst)(1:lvar), rstDPCO2)
+        if (ierr. ne. nf_noerr) then
+          write(stdout,1) vname(1,indxDPCO2_rst)(1:lvar), rstname(1:lstr)
+          goto 99                                         !--> ERROR
+        endif
+# endif /* BIOLOGY_BEC__OBSOLETE */
 
 # ifdef LMD_KPP
         lvar=lenstr(vname(1,indxHbl))

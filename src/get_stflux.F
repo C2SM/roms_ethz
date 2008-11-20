@@ -104,8 +104,8 @@
             ierr=nf_fread (stflxg(START_2D_ARRAY,itstf(itrc),itrc),
      &                 ncid, stf_id(itrc), stf_rec(itrc), r2dvar)
             if (ierr .eq. nf_noerr) then
-              MPI_master_only
-     &        write(stdout,'(6x,A,I2,1x,A,F12.4,2(1x,A,I4))')
+              MPI_master_only write(stdout,
+     &        '(6x,A,I2,1x,A,F12.4,2(1x,A,I4))')
      &           'get_stflux -- read surface flux for tracer', itrc,
      &           'stf_time =', cff, 'rec =', 
      &           stf_rec(itrc) MYID
@@ -298,8 +298,9 @@ c**      dSdt=0.
 !
      &                 -dSdt*Hz(i,j,N)*( t(i,j,N,nrhs,isalt)
 c**  &                                         -tclm(i,j,N,isalt)
-
+# if defined QCORRECTION && !defined ANA_SST
      &                   -(cff7*sssg(i,j,it7)+cff8*sssg(i,j,it8))
+#endif
      &                                                          )
 
 

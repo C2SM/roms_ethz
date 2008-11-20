@@ -5,8 +5,12 @@
 # include "param.h"
 # include "ecosys_bec.h"
 # include "bec_avg.h"
+# include "ncroms_bgcflux.h"
+# include "scalars.h"
            integer::istr,jstr,iend,jend
 
+         time_bgc_flux_avg = time_bgc_flux_avg + time
+! 2D variables
          WS_AVG(ISTR:IEND,JSTR:JEND) = WS_AVG(ISTR:IEND,JSTR:JEND) 
      &                       + WS_hist(istr:iend,jstr:jend)
          XKW_AVG(ISTR:IEND,JSTR:JEND) = XKW_AVG(ISTR:IEND,JSTR:JEND) 
@@ -22,29 +26,35 @@
          FG_O2_AVG(ISTR:IEND,JSTR:JEND) = 
      &                       FG_O2_AVG(ISTR:IEND,JSTR:JEND) 
      &                      +FG_O2_hist(istr:iend,jstr:jend)
-         SCHMIDT_CO2_AVG(ISTR:IEND,JSTR:JEND) = 
-     &                 SCHMIDT_CO2_AVG(ISTR:IEND,JSTR:JEND) 
-     &                + SCHMIDT_CO2_hist(istr:iend,jstr:jend)
+# ifdef NOT_USED___NEEDS_RECODING_IF_USED
          PH_AVG(ISTR:IEND,JSTR:JEND) =  PH_AVG(ISTR:IEND,JSTR:JEND) 
      &                       + PH_hist(istr:iend,jstr:jend)
-         CO2STAR_AVG(ISTR:IEND,JSTR:JEND) = 
-     &                     CO2STAR_AVG(ISTR:IEND,JSTR:JEND) 
-     &                    + CO2STAR_hist(istr:iend,jstr:jend)
-         DCO2STAR_AVG(ISTR:IEND,JSTR:JEND) = 
-     &                  DCO2STAR_AVG(ISTR:IEND,JSTR:JEND) 
-     &                  + DCO2STAR_hist(istr:iend,jstr:jend)
          pCO2SURF_AVG(ISTR:IEND,JSTR:JEND) = 
      &                 pCO2SURF_AVG(ISTR:IEND,JSTR:JEND) 
      &                 + pCO2SURF_hist(istr:iend,jstr:jend)
          DpCO2_AVG(ISTR:IEND,JSTR:JEND) = 
      &                    DpCO2_AVG(ISTR:IEND,JSTR:JEND) 
      &                  + DpCO2_hist(istr:iend,jstr:jend)
+# endif /* NOT_USED___NEEDS_RECODING_IF_USED */
+         SCHMIDT_CO2_AVG(ISTR:IEND,JSTR:JEND) = 
+     &                 SCHMIDT_CO2_AVG(ISTR:IEND,JSTR:JEND) 
+     &                + SCHMIDT_CO2_hist(istr:iend,jstr:jend)
+         CO2STAR_AVG(ISTR:IEND,JSTR:JEND) = 
+     &                     CO2STAR_AVG(ISTR:IEND,JSTR:JEND) 
+     &                    + CO2STAR_hist(istr:iend,jstr:jend)
+         DCO2STAR_AVG(ISTR:IEND,JSTR:JEND) = 
+     &                  DCO2STAR_AVG(ISTR:IEND,JSTR:JEND) 
+     &                  + DCO2STAR_hist(istr:iend,jstr:jend)
          FG_CO2_AVG(ISTR:IEND,JSTR:JEND) = 
      &                   FG_CO2_AVG(ISTR:IEND,JSTR:JEND) 
      &                 + FG_CO2_hist(istr:iend,jstr:jend)
          IRON_FLUX_AVG(ISTR:IEND,JSTR:JEND) = 
      &                 IRON_FLUX_AVG(ISTR:IEND,JSTR:JEND) 
      &               + IRON_FLUX_hist(istr:iend,jstr:jend)
+         PARinc_AVG(ISTR:IEND,JSTR:JEND) = 
+     &                PARinc_AVG(ISTR:IEND,JSTR:JEND) 
+     &                + PARinc(istr:iend,jstr:jend)
+! 3D variables
          PO4_RESTORE_AVG(ISTR:IEND,JSTR:JEND,:) = 
      &                 PO4_RESTORE_AVG(ISTR:IEND,JSTR:JEND,:) 
      &                 + PO4_RESTORE_hist(istr:iend,jstr:jend,:)
@@ -54,9 +64,9 @@
          SiO3_RESTORE_AVG(ISTR:IEND,JSTR:JEND,:) = 
      &                SiO3_RESTORE_AVG(ISTR:IEND,JSTR:JEND,:) 
      &                + SiO3_RESTORE_hist(istr:iend,jstr:jend,:)
-         PAR_avg_AVG(ISTR:IEND,JSTR:JEND,:) = 
-     &                PAR_avg_AVG(ISTR:IEND,JSTR:JEND,:) 
-     &                + PAR_avg_hist(istr:iend,jstr:jend,:)
+         PAR_flux_AVG(ISTR:IEND,JSTR:JEND,:) = 
+     &                PAR_flux_AVG(ISTR:IEND,JSTR:JEND,:) 
+     &                + PAR(istr:iend,jstr:jend,:)
          PO4STAR_AVG(ISTR:IEND,JSTR:JEND,:) = 
      &                PO4STAR_AVG(ISTR:IEND,JSTR:JEND,:) 
      &               + PO4STAR_hist(istr:iend,jstr:jend,:)

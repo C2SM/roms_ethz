@@ -1,4 +1,4 @@
-!zhc: This file includes parameters which originally definited in ecosys_parms.F90 from WHOI
+!zhc: This file includes parameters which were originally defined in ecosys_parms.F90 from WHOI
 
         real c1, c0, c2,c1000,p5,spd,dps,t0_kelvin
          parameter ( c1=1., c0=0.0,c2=2., 
@@ -70,4 +70,5 @@
      &   parm_diat_kPO4, parm_z_grz, parm_alphaChl, 
      &   parm_labile_ratio, parm_alphaDiaz, parm_diaz_umax_0,
      &   gQsi_0, gQsi_coef, gQsi_max
+
 

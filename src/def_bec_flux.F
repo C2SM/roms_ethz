@@ -19,15 +19,31 @@
       integer ncid, total_rec, ierr, rec, lstr,lvar,lenstr, timedim
      &      , r2dgrd(3), checkdims,auxil(2)
      &       , r3dgrd(4), itrc
+      character*80 text
+
+#ifdef MASK_LAND_DATA
+# ifdef HIS_DOUBLE
+      real*8 spv_set
+      parameter (spv_set=1.D+33)
+# else
+      real*4 spv_set
+      parameter (spv_set=1.E+33)
+# endif
+#endif
+
 
 #ifndef AVRH
 # define ncname bgc_flux_his_name 
 # define rec_per_file nrpf_bgc_flux_his
 # define vid_bec_flux vid_bec_flux_his
+# define vidTime bgc_flux_hisTime
+# define vidTstep bgc_flux_hisTstep
 #else /* AVRH */
 # define ncname bgc_flux_avg_name
 # define rec_per_file nrpf_bgc_flux_avg
 # define vid_bec_flux vid_bec_flux_avg
+# define vidTime bgc_flux_avgTime
+# define vidTstep bgc_flux_avgTstep
 #endif
 
       ierr=0
@@ -75,9 +91,36 @@
         r3dgrd(2)=r2dgrd(2)         ! 3D RHO-type
         r3dgrd(4)=timedim           !
 
+!
+! Time step number and time record indices:
+!
+        ierr=nf_def_var (ncid, 'time_step', nf_int, 2, auxil,
+     &       vidTstep)
+        ierr=nf_put_att_text (ncid, vidTstep, 'long_name', 48,
+     &       'time step and record numbers from initialization')
+!
+! Time.
+!
+        lvar=lenstr(vname(1,indxTime))
+! hf: always use double precision for the time variable
+        ierr=nf_def_var (ncid, vname(1,indxTime)(1:lvar),
+     &       NF_DOUBLE, 1, timedim, vidTime)
+#ifndef AVRH
+        lvar=lenstr(vname(2,indxTime))
+        ierr=nf_put_att_text (ncid, vidTime, 'long_name', lvar,
+     &       vname(2,indxTime)(1:lvar))
+#else
+        text='averaged '/ /vname(2,indxTime)
+        lvar=lenstr(text)
+        ierr=nf_put_att_text (ncid, vidTime, 'long_name', lvar,
+     &       text(1:lvar))
+#endif
+        lvar=lenstr(vname(3,indxTime))
+        ierr=nf_put_att_text (ncid, vidTime, 'units',  lvar,
+     &       vname(3,indxTime)(1:lvar))
 
  
-        do itrc=1,14
+        do itrc=1,num_bgcflux_2d
           lvar=lenstr(vname_bgcflux(1,itrc))
           ierr=nf_def_var (ncid, vname_bgcflux(1,itrc)(1:lvar),
      &                             NF_FOUT, 3, r2dgrd, 
@@ -90,12 +133,16 @@
           ierr=nf_put_att_text (ncid, vid_bec_flux(itrc), 'units',
      &         lvar, vname_bgcflux(3,itrc)(1:lvar))
           lvar=lenstr(vname_bgcflux(4,itrc))
-          ierr=nf_put_att_text (ncid, vid_bec_flux(itrc), 'field',  
-     &         lvar, vname_bgcflux(4,itrc)(1:lvar))
+!          ierr=nf_put_att_text (ncid, vid_bec_flux(itrc), 'field',  
+!     &         lvar, vname_bgcflux(4,itrc)(1:lvar))
+#ifdef MASK_LAND_DATA
+          ierr=nf_put_att_FOUT (ncid, vid_bec_flux(itrc), '_FillValue',
+     &         NF_FOUT, 1, spv_set)
+#endif
          
         enddo
        
-        do itrc=15,num_bgcflux
+        do itrc=num_bgcflux_2d + 1,num_bgcflux
           lvar=lenstr(vname_bgcflux(1,itrc))
           ierr=nf_def_var (ncid, vname_bgcflux(1,itrc)(1:lvar),
      &         NF_FOUT, 4, r3dgrd, vid_bec_flux(itrc))
@@ -107,8 +154,12 @@
           ierr=nf_put_att_text (ncid, vid_bec_flux(itrc), 'units',
      &         lvar,vname_bgcflux(3,itrc)(1:lvar))
           lvar=lenstr(vname_bgcflux(4,itrc))
-          ierr=nf_put_att_text (ncid, vid_bec_flux(itrc), 'field',  
-     &         lvar, vname_bgcflux(4,itrc)(1:lvar))
+!          ierr=nf_put_att_text (ncid, vid_bec_flux(itrc), 'field',  
+!     &         lvar, vname_bgcflux(4,itrc)(1:lvar))
+#ifdef MASK_LAND_DATA
+          ierr=nf_put_att_FOUT (ncid, vid_bec_flux(itrc), '_FillValue',
+     &         NF_FOUT, 1, spv_set)
+#endif
          
         enddo
        
@@ -208,6 +259,8 @@
 #undef ncname
 #undef rec_per_file
 #undef vid_bec_flux
+#undef vidTime
+#undef vidTstep
 
 # ifndef AVRH
 #  ifdef AVERAGES      

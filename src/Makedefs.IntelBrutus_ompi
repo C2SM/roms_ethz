@@ -67,7 +67,7 @@ LARGE_MEM_FLAG = -mcmodel=medium -i-dynamic
 #      CFT = ifort $(OMP_FLAG) -pc80 -axW -xW -auto -stack_temps
       # Brutus  mpich2: CFT = mpif90 -f90=ifort $(OMP_FLAG) -pc80 -axW -xW -auto -stack_temps
 #      CFT =/opt/hpmpi/bin/mpif90 $(OMP_FLAG) -pc80 -axW -xW -auto -stack_temps
-     CFT =mpif90 -f90=ifort $(OMP_FLAG) -pc80 -axW -xW -auto -stack_temps
+     CFT =mpif90 $(OMP_FLAG) -pc80 -axW -xW -auto -stack_temps
 
 #      CFT =mpif90 
 
@@ -104,7 +104,7 @@ LCDF = -L/opt/netcdf/3.6.2/lib -lnetcdf
 # mm ETHZ Brutus cluster
 #LCDF = -L/panfs/panasas.hpc-net.ethz.ch/uwis/muennicm/intel/lib -lnetcdf
 # mm ETHZ Brutus/ Gonzales cluster Quadrics MPI
-LMPI = -L$(MPI_ROOT)/lib -lmpifarg -lmpi -lelan
+LMPI = -L$(MPI_ROOT)/lib -lmpi
 # mm A look at mpif90 made this the likely libraries to link against
 # mm Brutus OK:  LMPI = -L/cluster/admin/mpich2/lib -lmpich  -lpmpich -lpthread   -lrt
 

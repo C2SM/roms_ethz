@@ -17,20 +17,6 @@
 !since tracer structure is different to t(roms),first, assign to tracer
          integer::i,j,k,m,nn
 
-         do nn=1,N
-           dz(:,:,nn)=hz(:,:,nn)
-!HF2           dz(:,:,nn)=hz(:,:,km_eco-nn+1)
-!HF           dz(:,:,nn)=hz(:,:,km_eco-nn+1)*100.
-
-           zt(:,:,nn)=-1.0*z_r(:,:,nn)
-!HF2           zt(:,:,nn)=-1.0*z_r(:,:,km_eco-nn+1)
-!HF           zt(:,:,nn)=-1.0*z_r(:,:,km_eco-nn+1)*100.
-           dzr(:,:,nn)=1.0/dz(:,:,nn)
-         enddo
-
-!         print *, "dz",dz(5,5,1:km_eco)
-!         print *, "hz",hz(5,5,1:km_eco)
-
         sinking_particle_POC=0.0
         sinking_particle_P_CaCO3=0.0
         sinking_particle_P_SiO2=0.0
@@ -135,17 +121,18 @@
        O2SAT_HIST           = c0    
        FG_O2_HIST           = c0    
        SCHMIDT_CO2_HIST     = c0    
-       PH_HIST              = c0    
+       pH_hist              = c0    
        CO2STAR_HIST         = c0    
        DCO2STAR_HIST        = c0    
-       pCO2SURF_HIST        = c0    
-       DpCO2_HIST           = c0    
+       pCO2sw               = c0    
+!HF       DpCO2_HIST           = c0
+       pCO2air              = c0
        FG_CO2_HIST          = c0    
        IRON_FLUX_HIST       = c0    
        PO4_RESTORE_HIST     = c0    
        NO3_RESTORE_HIST     = c0    
        SiO3_RESTORE_HIST    = c0    
-       PAR_avg_HIST         = c0    
+       PAR                  = c0    
        PO4STAR_HIST         = c0    
        POC_FLUX_IN_HIST     = c0    
        POC_PROD_HIST        = c0    
@@ -202,7 +189,8 @@
        bSi_form_HIST	 = c0    
        photoFe_diat_HIST    = c0    
        photoFe_diaz_HIST    = c0    
-       photoFe_sp_HIST      = c0    
+       photoFe_sp_HIST      = c0
+       nitrif_hist       = c0
 
 # ifdef BGC_FLUX_ANALYSIS
        call init_scalars_becflux()

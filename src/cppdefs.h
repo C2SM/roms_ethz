@@ -300,7 +300,8 @@ c--DL:
 ! Switches related to biology:
 #define BIOLOGY_BEC
 #define FOUR_CLIM_FILES
-!#define BGC_FLUX_ANALYSIS
+#define BGC_FLUX_ANALYSIS
+#define PHYS_FLUX_ANALYSIS
 ! Other switches:
 #define VFLX_CORR
 #endif

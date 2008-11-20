@@ -170,7 +170,7 @@ CR      write(*,*) 'wrt_his:  wrtPCO2' MYID
 CR      write(*,*) 'wrt_his:  wrtPCO2air' MYID
 !      endif
 !      if (wrthis(indxPH)) then
-        ierr=nf_fwrite (pHsw, ncid_bgc_flux_his, hisPH, record, r2dvar)
+        ierr=nf_fwrite (pH_hist, ncid_bgc_flux_his, hisPH, record, r2dvar)
         if (ierr .ne. nf_noerr) then
           lvar=lenstr(vname_bgcflux(1,indxPH))
           write(stdout,1) vname_bgcflux(1,indxPH)(1:lvar), record, ierr,

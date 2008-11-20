@@ -17,12 +17,17 @@
 #endif
 #include "ncvars.h"
 #include "netcdf.inc"
-#ifdef SEDIMENT_BIOLOGY
+#if defined BGC_FLUX_ANALYSIS || defined SEDIMENT_BIOLOGY
 # include "bgcflux.h"
+# include "ncroms_bgcflux.h"
 #endif
 #ifdef BIOLOGY_BEC
 # include "ecosys_bec.h"
-!# include "ncroms_bgcflux.h"
+# include "bec_avg.h"
+#endif
+#ifdef PHYS_FLUX_ANALYSIS
+# include "physflux.h"
+# include "ncroms_physflux.h"
 #endif
 
 #if defined FLOATS
@@ -78,6 +83,30 @@
      &                   MYID
         goto 99                                           !--> ERROR
       endif
+#if defined BGC_FLUX_ANALYSIS || defined PHYS_FLUX_ANALYSIS
+! Time record numbers for flux analysis:
+      ! default values: 0; replace where appropriate
+      ibuff = (/0, 0, 0, 0/)
+# ifdef BGC_FLUX_ANALYSIS
+      ibuff(1) = nrec_bgc_flux_his
+#  ifdef AVERAGES
+      ibuff(2) = nrec_bgc_flux_avg
+#  endif
+# endif
+# ifdef PHYS_FLUX_ANALYSIS
+      ibuff(3) = nrec_phys_flux_his
+#  ifdef AVERAGES
+      ibuff(4) = nrec_phys_flux_avg
+#  endif
+# endif
+! start and count values are the same as for time_step
+      ierr=nf_put_vara_int (ncidrst, rstTstepFA, start, count, ibuff)
+      if (ierr .ne. nf_noerr) then
+        write(stdout,1) 'fa_time_step', record, ierr
+     &                   MYID
+        goto 99                                           !--> ERROR
+      endif
+#endif /* BGC_FLUX_ANALYSIS || PHYS_FLUX_ANALYSIS */
 !
 ! Time.
 !
@@ -172,16 +201,82 @@
         endif
       enddo
 #  endif /* SEDIMENT_BIOLOGY */
-#  ifdef BIOLOGY_BEC
-! pH value
+#  if defined BIOLOGY_BEC || defined BIOLOGY_NPZDOC
+!
+! pH:
+!
       ierr=nf_fwrite (ph_hist, ncidrst, rstPH, record, r2dvar)
       if (ierr .ne. nf_noerr) then
-         lvar=lenstr(vname(1,indxPH))
-         write(stdout,1) vname(1,indxPH)(1:lvar), record,
+         lvar=lenstr(vname(1,indxPH_rst))
+         write(stdout,1) vname(1,indxPH_rst)(1:lvar), record,
      &        ierr, nf_strerror(ierr) MYID
          goto 99                !--> ERROR
       endif
-#  endif /* BIOLOGY_BEC */
+!
+! pCO2:
+!
+      ierr=nf_fwrite (pCO2sw, ncidrst, rstPCO2, record, r2dvar)
+      if (ierr .ne. nf_noerr) then
+         lvar=lenstr(vname(1,indxPCO2_rst))
+         write(stdout,1) vname(1,indxPCO2_rst)(1:lvar), record,
+     &        ierr, nf_strerror(ierr) MYID
+         goto 99                !--> ERROR
+      endif
+#  ifdef UNNECESSARY_OUTPUT
+!
+! pCO2air:
+!
+      ierr=nf_fwrite (pCO2air, ncidrst, rstPCO2air, record, r2dvar)
+      if (ierr .ne. nf_noerr) then
+         lvar=lenstr(vname(1,indxPCO2air_rst))
+         write(stdout,1) vname(1,indxPCO2air_rst)(1:lvar), record,
+     &        ierr, nf_strerror(ierr) MYID
+         goto 99                !--> ERROR
+      endif
+#  endif /* UNNECESSARY_OUTPUT */
+!
+! PAR:
+!
+      ierr=nf_fwrite (PAR, ncidrst, rstPAR, record, r3dvar)
+      if (ierr .ne. nf_noerr) then
+         lvar=lenstr(vname(1,indxPAR_rst))
+         write(stdout,1) vname(1,indxPAR_rst)(1:lvar), record,
+     &        ierr, nf_strerror(ierr) MYID
+         goto 99                !--> ERROR
+      endif
+#  endif /* BIOLOGY_NPZDOC || BIOLOGY_BEC */
+#  ifdef BIOLOGY_BEC__OBSOLETE
+!
+! pCO2:
+!
+      ierr=nf_fwrite (pCO2surf_hist, ncidrst, rstPCO2, record, r2dvar)
+      if (ierr .ne. nf_noerr) then
+         lvar=lenstr(vname(1,indxPCO2_rst))
+         write(stdout,1) vname(1,indxPCO2_rst)(1:lvar), record,
+     &        ierr, nf_strerror(ierr) MYID
+         goto 99                !--> ERROR
+      endif
+!
+! DpCO2:
+!
+      ierr=nf_fwrite (DpCO2_hist, ncidrst, rstDPCO2, record, r2dvar)
+      if (ierr .ne. nf_noerr) then
+         lvar=lenstr(vname(1,indxDPCO2_rst))
+         write(stdout,1) vname(1,indxDPCO2_rst)(1:lvar), record,
+     &        ierr, nf_strerror(ierr) MYID
+         goto 99                !--> ERROR
+      endif
+!
+! PAR:
+!
+      ierr=nf_fwrite (PAR_avg_hist, ncidrst, rstPAR, record, r2dvar)
+      if (ierr .ne. nf_noerr) then
+         lvar=lenstr(vname(1,indxPAR_rst))
+         write(stdout,1) vname(1,indxPAR_rst)(1:lvar), record,
+     &        ierr, nf_strerror(ierr) MYID
+         goto 99                !--> ERROR
+      endif
+#  endif /* BIOLOGY_BEC__OBSOLETE */
 
 # ifdef LMD_KPP
 !
