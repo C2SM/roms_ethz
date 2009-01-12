@@ -149,38 +149,38 @@ CR      write(*,*) 'wrt_avg:  wrtKvO2' MYID
 !  Write out surface pCO2 (ppm)
 !
 !      if (wrtavg(indxPCO2)) then
-        ierr=nf_fwrite (pco2_avg(START_2D_ARRAY), ncid_bgc_flux_avg, 
-     &       avgPCO2, record, r2dvar)
-        if (ierr .ne. nf_noerr) then
-          lvar=lenstr(vname_bgcflux(1,indxPCO2))
-          write(stdout,1) vname_bgcflux(1,indxPCO2)(1:lvar), record,
-     &         ierr, nf_strerror(ierr) MYID
-          goto 99                                         !--> ERROR
-        endif
-!      endif
-!      if (wrtavg(indxPCO2air)) then
-        ierr=nf_fwrite(pCO2air_avg, ncid_bgc_flux_avg, avgPCO2air, 
-     &       record,r2dvar)
-        if (ierr .ne. nf_noerr) then
-          lvar=lenstr(vname_bgcflux(1,indxPCO2air))
-          write(stdout,1) vname_bgcflux(1,indxPCO2air)(1:lvar), record,
-     &                    ierr, nf_strerror(ierr) MYID
-          goto 99                                         !--> ERROR
-        endif
-CR      write(*,*) 'wrt_avg:  wrtPCO2air' MYID
+!DL        ierr=nf_fwrite (pco2_avg(START_2D_ARRAY), ncid_bgc_flux_avg, 
+!DL     &       avgPCO2, record, r2dvar)
+!DL        if (ierr .ne. nf_noerr) then
+!DL          lvar=lenstr(vname_bgcflux(1,indxPCO2))
+!DL          write(stdout,1) vname_bgcflux(1,indxPCO2)(1:lvar), record,
+!DL     &         ierr, nf_strerror(ierr) MYID
+!DL          goto 99                                         !--> ERROR
+!DL        endif
+!DL!      endif
+!DL!      if (wrtavg(indxPCO2air)) then
+!DL        ierr=nf_fwrite(pCO2air_avg, ncid_bgc_flux_avg, avgPCO2air, 
+!DL     &       record,r2dvar)
+!DL        if (ierr .ne. nf_noerr) then
+!DL          lvar=lenstr(vname_bgcflux(1,indxPCO2air))
+!DL          write(stdout,1) vname_bgcflux(1,indxPCO2air)(1:lvar), record,
+!DL     &                    ierr, nf_strerror(ierr) MYID
+!DL          goto 99                                         !--> ERROR
+!DL        endif
+!DLCR      write(*,*) 'wrt_avg:  wrtPCO2air' MYID
 !      endif
 !
 !  Write out surface pH
 !
 !      if (wrtavg(indxPH)) then
-        ierr=nf_fwrite (pH_avg(START_2D_ARRAY), ncid_bgc_flux_avg,
-     &                                           avgPH, record, r2dvar)
-        if (ierr .ne. nf_noerr) then
-          lvar=lenstr(vname_bgcflux(1,indxPH))
-          write(stdout,1) vname_bgcflux(1,indxPH)(1:lvar), record, ierr,
-     &         nf_strerror(ierr) MYID
-          goto 99                                         !--> ERROR
-        endif
+!DL        ierr=nf_fwrite (pH_avg(START_2D_ARRAY), ncid_bgc_flux_avg,
+!DL     &                                           avgPH, record, r2dvar)
+!DL        if (ierr .ne. nf_noerr) then
+!DL          lvar=lenstr(vname_bgcflux(1,indxPH))
+!DL          write(stdout,1) vname_bgcflux(1,indxPH)(1:lvar), record, ierr,
+!DL     &         nf_strerror(ierr) MYID
+!DL          goto 99                                         !--> ERROR
+!DL        endif
 !      endif
 #    endif /* CARBON */
 #   endif /* OXYGEN */
@@ -189,7 +189,7 @@ CR      write(*,*) 'wrt_avg:  wrtPCO2air' MYID
 !
       if (wrtavg(indxPAR)) then
         ierr=nf_fwrite (PAR_avg(START_2D_ARRAY,1), ncid_bgc_flux_avg,
-     &                                           avgPAR, record, r3dvar)
+     &                                           avgPAR_flux, record, r3dvar)
         if (ierr .ne. nf_noerr) then
           lvar=lenstr(vname_bgcflux(1,indxPAR))
           write(stdout,1) vname_bgcflux(1,indxPAR)(1:lvar), record,

@@ -103,6 +103,8 @@
       fname='mb_l1_safe.in'
 c--      fname='roms.in.USW20'
 c--      fname='roms.in.US_West'
+#elif defined USWC_CENTRAL
+      fname='usw.in'
 #elif defined DAMEE_B
       fname='roms.in.Atl4'
 #else

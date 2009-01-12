@@ -226,7 +226,7 @@
       integer max_frc, ncidfrc(max_frc_file), nrst, ncidrst, nrecrst,
      &      nrrec, nrpfrst, ncidclm, nwrt, ncidhis, nrechis, nrpfhis
 #ifdef BIOLOGY_NPZDOC
-     &     , ncidclm2, ncidclm3
+     &     , ncidclm2, ncidclm3, ncidclm4
 #endif
 #ifdef BIOLOGY_BEC
      &     , ncidclm2, ncidclm3, ncidclm4, ntdust, ntiron
@@ -234,7 +234,7 @@
       common /ncvars/       max_frc, ncidfrc, nrst, ncidrst, nrecrst,
      &      nrrec, nrpfrst, ncidclm, nwrt, ncidhis, nrechis, nrpfhis
 #ifdef BIOLOGY_NPZDOC
-     &     , ncidclm2, ncidclm3
+     &     , ncidclm2, ncidclm3, ncidclm4
 #endif
 #ifdef BIOLOGY_BEC
      &     , ncidclm2, ncidclm3, ncidclm4, ntdust, ntiron
@@ -406,17 +406,17 @@
 #endif
 #if (defined TCLIMATOLOGY && !defined ANA_TCLIMA) || !defined ANA_SSH
       character*(max_name_size) clm_file
-# ifdef BIOLOGY_NPZDOC
-     & , clm_file2, clm_file3
-# endif
-# ifdef BIOLOGY_BEC
+!# ifdef BIOLOGY_NPZDOC
+!     & , clm_file2, clm_file3
+!# endif
+# if defined BIOLOGY_BEC || defined BIOLOGY_NPZDOC
      & , clm_file2, clm_file3, clm_file4
 # endif
       common /cncvars/ clm_file
-# ifdef BIOLOGY_NPZDOC
-     & , clm_file2, clm_file3
-# endif
-# ifdef BIOLOGY_BEC
+!# ifdef BIOLOGY_NPZDOC
+!     & , clm_file2, clm_file3
+!# endif
+# if defined BIOLOGY_BEC || defined BIOLOGY_NPZDOC
      & , clm_file2, clm_file3, clm_file4
 # endif
 #endif

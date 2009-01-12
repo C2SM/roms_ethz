@@ -79,7 +79,7 @@
      &     NumVSinkTerms + NumGasExcTerms     
 #  endif /* SEDIMENT_BIOLOGY */
 
-      integer hisPAR, hisPARinc
+      integer hisPAR_flux, hisPARinc
      &     , hisFlux(NumFluxTerms)
      &     , hisVSinkFlux(NumVSinkTerms)
 #  ifdef OXYGEN
@@ -87,7 +87,7 @@
      &     , hisU10, hisKvO2, hisO2sat
 #   ifdef CARBON
      &     , hisCNP, hisCNZ, hisrCaCO3orgC
-     &     , hisKvCO2, hisCO2sol, hisPCO2, hisPCO2air, hisPH
+     &     , hisKvCO2, hisCO2sol
 #   endif /* CARBON */
 #  endif /* OXYGEN */
 #   ifdef OXYGEN
@@ -99,7 +99,7 @@
      &     , bgc_flux_hisTime, bgc_flux_hisTstep
      &     , bgc_flux_hisZ
 
-      common /ncids_bgc_flux/ hisPAR, hisPARinc
+      common /ncids_bgc_flux/ hisPAR_flux, hisPARinc
      &     , hisFlux
      &     , hisVSinkFlux
 #  ifdef OXYGEN
@@ -107,7 +107,7 @@
      &     , hisU10, hisKvO2, hisO2sat
 #   ifdef CARBON
      &     , hisCNP, hisCNZ, hisrCaCO3orgC
-     &     , hisKvCO2, hisCO2sol, hisPCO2, hisPCO2air, hisPH
+     &     , hisKvCO2, hisCO2sol
 #   endif /* CARBON */
 #  endif /* OXYGEN */
 #   ifdef OXYGEN
@@ -132,7 +132,7 @@
       common /scalars_bgc_avg_real/ time_bgc_flux_avg
 
 # ifdef BIOLOGY_NPZDOC
-      integer avgPAR, avgPARinc
+      integer avgPAR_flux, avgPARinc
      &     , avgFlux(NumFluxTerms)
      &     , avgVSinkFlux(NumVSinkTerms)
 #  ifdef OXYGEN
@@ -140,7 +140,7 @@
      &     , avgU10, avgKvO2, avgO2sat
 #   ifdef CARBON
      &     , avgCNP, avgCNZ, avgrCaCO3orgC
-     &     , avgKvCO2, avgCO2sol, avgPCO2, avgPCO2air, avgPH
+     &     , avgKvCO2, avgCO2sol
 #   endif /* CARBON */
 #  endif /* OXYGEN */
 #   ifdef OXYGEN
@@ -152,7 +152,7 @@
      &     , bgc_flux_avgTime, bgc_flux_avgTstep
      &     , bgc_flux_avgZ
 
-      common /ncids_bgc_flux_avg/ avgPAR, avgPARinc
+      common /ncids_bgc_flux_avg/ avgPAR_flux, avgPARinc
      &     , avgFlux
      &     , avgVSinkFlux
 #  ifdef OXYGEN
@@ -160,7 +160,7 @@
      &     , avgU10, avgKvO2, avgO2sat
 #   ifdef CARBON
      &     , avgCNP, avgCNZ, avgrCaCO3orgC
-     &     , avgKvCO2, avgCO2sol, avgPCO2, avgPCO2air, avgPH
+     &     , avgKvCO2, avgCO2sol
 #   endif /* CARBON */
 #  endif /* OXYGEN */
 #   ifdef OXYGEN

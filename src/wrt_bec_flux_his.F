@@ -22,7 +22,6 @@
 !HF        write(stdout,*)"mynode,blank",mynode,blank
 #endif
    
-      print *, 'wrt_bec_flux_his: at start', MYNODE
       call def_bec_flux_his (ncid_bgc_flux_his, nrec_bgc_flux_his, ierr)
       if (ierr .ne. nf_noerr) goto 99
       lstr=lenstr(bgc_flux_his_name)
@@ -574,7 +573,6 @@
      &                      ierr MYID
             goto 99                                       !--> ERROR
           endif
-          MPI_master_only print *, 'wrt_bec_flux_his: diat_po4_lim_hist written' 
           itrc=itrc+1
           ierr=nf_fwrite(diat_sio3_lim_hist(START_2D_ARRAY,1), 
      &         ncid_bgc_flux_his,vid_bec_flux_his(itrc), record, r3dvar)
@@ -807,7 +805,6 @@
      &             'synchronize/close history netCDF file.'
         may_day_flag=3
       endif
-      print *, 'wrt_bec_flux_his: at end', MYNODE
 
 #if defined MPI & !defined PARALLEL_FILES
       if (mynode .lt. NNODES-1) then

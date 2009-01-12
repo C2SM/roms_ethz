@@ -148,41 +148,41 @@ CR      write(*,*) 'wrt_his:  wrtKvO2' MYID
 CR      write(*,*) 'wrt_his:  wrtKvO2' MYID
 !      endif
 !      if (wrthis(indxPCO2)) then
-        ierr=nf_fwrite (pCO2sw, ncid_bgc_flux_his, hisPCO2, record, 
-     &       r2dvar)
-        if (ierr .ne. nf_noerr) then
-          lvar=lenstr(vname_bgcflux(1,indxPCO2))
-          write(stdout,1) vname_bgcflux(1,indxPCO2)(1:lvar), record,
-     &                    ierr, nf_strerror(ierr) MYID
-          goto 99                                         !--> ERROR
-        endif
-CR      write(*,*) 'wrt_his:  wrtPCO2' MYID
+!DL        ierr=nf_fwrite (pCO2sw, ncid_bgc_flux_his, hisPCO2, record, 
+!DL     &       r2dvar)
+!DL        if (ierr .ne. nf_noerr) then
+!DL          lvar=lenstr(vname_bgcflux(1,indxPCO2))
+!DL          write(stdout,1) vname_bgcflux(1,indxPCO2)(1:lvar), record,
+!DL     &                    ierr, nf_strerror(ierr) MYID
+!DL          goto 99                                         !--> ERROR
+!DL        endif
+!DLCR      write(*,*) 'wrt_his:  wrtPCO2' MYID
 !      endif
 !      if (wrthis(indxPCO2air)) then
-        ierr=nf_fwrite (pCO2air, ncid_bgc_flux_his, hisPCO2air, record, 
-     &       r2dvar)
-        if (ierr .ne. nf_noerr) then
-          lvar=lenstr(vname_bgcflux(1,indxPCO2air))
-          write(stdout,1) vname_bgcflux(1,indxPCO2air)(1:lvar), record,
-     &                    ierr, nf_strerror(ierr) MYID
-          goto 99                                         !--> ERROR
-        endif
-CR      write(*,*) 'wrt_his:  wrtPCO2air' MYID
+!DL        ierr=nf_fwrite (pCO2air, ncid_bgc_flux_his, hisPCO2air, record, 
+!DL     &       r2dvar)
+!DL        if (ierr .ne. nf_noerr) then
+!DL          lvar=lenstr(vname_bgcflux(1,indxPCO2air))
+!DL          write(stdout,1) vname_bgcflux(1,indxPCO2air)(1:lvar), record,
+!DL     &                    ierr, nf_strerror(ierr) MYID
+!DL          goto 99                                         !--> ERROR
+!DL        endif
+!DLCR      write(*,*) 'wrt_his:  wrtPCO2air' MYID
 !      endif
 !      if (wrthis(indxPH)) then
-        ierr=nf_fwrite (pH_hist, ncid_bgc_flux_his, hisPH, record, r2dvar)
-        if (ierr .ne. nf_noerr) then
-          lvar=lenstr(vname_bgcflux(1,indxPH))
-          write(stdout,1) vname_bgcflux(1,indxPH)(1:lvar), record, ierr,
-     &                    nf_strerror(ierr) MYID
-          goto 99                                         !--> ERROR
-        endif
-CR      write(*,*) 'wrt_his:  wrtPH' MYID
+!DL        ierr=nf_fwrite (pH_hist, ncid_bgc_flux_his, hisPH, record, r2dvar)
+!DL        if (ierr .ne. nf_noerr) then
+!DL          lvar=lenstr(vname_bgcflux(1,indxPH))
+!DL          write(stdout,1) vname_bgcflux(1,indxPH)(1:lvar), record, ierr,
+!DL     &                    nf_strerror(ierr) MYID
+!DL          goto 99                                         !--> ERROR
+!DL        endif
+!DLCR      write(*,*) 'wrt_his:  wrtPH' MYID
 !      endif
 #  endif /* CARBON */
 # endif /* OXYGEN */
 !      if (wrthis(indxPAR)) then
-        ierr=nf_fwrite(PAR, ncid_bgc_flux_his, hisPAR, record, r3dvar)
+        ierr=nf_fwrite(PAR, ncid_bgc_flux_his, hisPAR_flux, record, r3dvar)
         if (ierr .ne. nf_noerr) then
           lvar=lenstr(vname_bgcflux(1,indxPAR))
           write(stdout,1) vname_bgcflux(1,indxPAR)(1:lvar), record,

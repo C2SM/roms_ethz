@@ -7,7 +7,7 @@
 #undef DAMEE_B         /* North Atlantic DAMEE, Big Domain */
 #undef GRAV_ADJ        /* Graviational Adjustment Example */
 #undef NJ_BIGHT        /* New Jersey Bight Application */
-#define PACIFIC         /* North-Equatorial Pacific Application */
+#undef PACIFIC         /* North-Equatorial Pacific Application */
 #undef PACIFIC_2D     /* Pacific Tsunami model */
 #undef OVERFLOW        /* Graviational/Overflow Example */
 #undef SEAMOUNT        /* Seamount Example */
@@ -16,7 +16,7 @@
 #undef RIVER          /* River runoff test problem */
 #undef UPWELLING       /* Upwelling Example */
 #undef USWEST          /* US West Coast Application */
-#undef USWC_CENTRAL
+#define USWC_CENTRAL
 #undef WAVE_RAD        /* A test for wave radiation boundaries */
 #undef ATL360X408    /* Whole Atlantic 360x408 */
 !--> #define ATL50S70N    /* Whole Atlantic 50S x 70N (360x468) */
@@ -298,7 +298,8 @@ c--DL:
 # undef NEW_S_COORD
 !# define AN_UNDEFINED_CASE
 ! Switches related to biology:
-#define BIOLOGY_BEC
+!#define BIOLOGY_BEC
+#define BIOLOGY_NPZDOC
 #define FOUR_CLIM_FILES
 #define BGC_FLUX_ANALYSIS
 #define PHYS_FLUX_ANALYSIS
@@ -563,6 +564,7 @@ c--# define OBC_M2ORLANSKI
 # define AVERAGES
 !                       Biology
 # undef BIOLOGY
+# define BIOLOGY_BEC
 # undef FLOATS
 # ifdef FLOATS
 #   undef FLOATS_GLOBAL_ATTRIBUTES
@@ -595,16 +597,16 @@ c--# define OBC_M2ORLANSKI
 #include "set_global_definitions.h"
 
 
-!!#define BIOLOGY_NPZDOC
+!#define BIOLOGY_NPZDOC
 !#define BIOLOGY_BEC
 !#define FOUR_CLIM_FILES
 !#define BGC_FLUX_ANALYSIS
 
 #ifdef BIOLOGY_NPZDOC
 ! HF:
-!HF#define VFLX_CORR
+#define VFLX_CORR
 !#define TWO_CLIM_FILES
-#define THREE_CLIM_FILES
+!#define THREE_CLIM_FILES
 #define DAILYPAR_PHOTOINHIBITION
 #define OXYGEN
 #define OCMIP_OXYGENSAT

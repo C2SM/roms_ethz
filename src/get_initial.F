@@ -22,7 +22,7 @@
 #include "ocean3d.h"
 #ifdef BIOLOGY_BEC
 # include "ecosys_bec.h"
-# include "ncroms_bgcflux.h"
+!# include "ncroms_bgcflux.h"
 !HF not needed, only for debugging:
 # include "param_bec.h"
 #endif
@@ -30,13 +30,17 @@
 #  include "physflux.h"
 #  include "ncroms_physflux.h"
 #endif
+#ifdef BGC_FLUX_ANALYSIS
+# include "bgcflux.h"
+# include "ncroms_bgcflux.h"
+#endif
 #ifdef LMD_KPP
 # include "mixing.h"
 #endif
 #define time illegal
 #define tdays illegal
 #define nrrec illegal
-#ifdef BIOLOGY_NPZDOC
+#if defined BIOLOGY_NPZDOC && !defined BGC_FLUX_ANALYSIS
 # include "bgcflux.h"
 #endif
 !
@@ -528,7 +532,7 @@ CHF          goto 99                                         !--> ERROR
         endif
       enddo
 # endif /* SEDIMENT_BIOLOGY */
-# ifdef BIOLOGY_BEC 
+# ifdef BIOLOGY_BEC
       ! pH is initialized to 0 in ecosys_init
       call ecosys_init
          if (abs(parm_sp_kno3 - 0.5) .gt. 1.D-3) then
@@ -692,6 +696,7 @@ CHF          goto 99                                         !--> ERROR
 !
 !  Close input NetCDF file.
 !
+#ifdef BIOLOGY_BEC 
          if (abs(parm_sp_kno3 - 0.5) .gt. 1.D-3) then
              print *, 'get_initial: parm_sp_kNO3: ',
      &        parm_sp_kno3
@@ -708,6 +713,8 @@ CHF          goto 99                                         !--> ERROR
 #endif
              stop 'end get_init kpo4'
           end if
+#endif /* BIOLOGY_BEC */
+
       ierr=nf_close(ncid)
       return
   99  may_day_flag=2

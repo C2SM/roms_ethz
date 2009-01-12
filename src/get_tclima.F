@@ -14,12 +14,12 @@
 # include "netcdf.inc"
       real cff
       integer i,itrc, lstr,lvar,lenstr, ierr, nf_fread
-# ifdef BIOLOGY_BEC
+# if defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC
       integer lstr2, lstr3, lstr4
 # endif
-# ifdef BIOLOGY_NPZDOC
-      integer lstr2, lstr3
-# endif
+!# ifdef BIOLOGY_NPZDOC
+!      integer lstr2, lstr3
+!# endif
 !
 ! Initialization: Check, whether climatological data file is already
 !================ opened, and if not, open it.  Find and save netCDF
@@ -39,8 +39,7 @@
      &                  'in get_tclima: can not open netCDF file ''',
      &                                      clm_file(1:lstr),   '''.'
         endif
-#ifdef BIOLOGY_NPZDOC
-#if defined TWO_CLIM_FILES || defined THREE_CLIM_FILES
+#if defined TWO_CLIM_FILES || defined THREE_CLIM_FILES || defined FOUR_CLIM_FILES
         if (ncidclm2.eq.-1) then
            lstr2=lenstr(clm_file2)
            ierr=nf_open (clm_file2(1:lstr2), nf_nowrite, ncidclm2)
@@ -49,40 +48,20 @@
 #else
         ncidclm2 = ncidclm
         clm_file2 = clm_file
+        lstr2 = lstr
 #endif
-#ifdef THREE_CLIM_FILES
+#if defined THREE_CLIM_FILES || defined FOUR_CLIM_FILES
         if (ncidclm3.eq.-1) then
           lstr3=lenstr(clm_file3)
           ierr=nf_open (clm_file3(1:lstr3), nf_nowrite, ncidclm3)
           if (ierr .ne. nf_noerr) goto 33                !--> ERROR
         endif
 #else
-# ifdef TWO_CLIM_FILES
         ncidclm3 = ncidclm2
         clm_file3 = clm_file2
-# else
-        ncidclm3 = ncidclm
-        clm_file3 = clm_file
-# endif
+        lstr3 = lstr2
 #endif
-#endif /* BIOLOGY_NPZDOC */
-#ifdef BIOLOGY_BEC
 # ifdef FOUR_CLIM_FILES
-        if (ncidclm2.eq.-1) then
-          lstr2=lenstr(clm_file2)
-          ierr=nf_open (clm_file2(1:lstr2), nf_nowrite, ncidclm2)
-          if (ierr .ne. nf_noerr) write(stdout,'(/1x,4A/)') 'ERROR ',
-     &                  'in get_tclima: can not open netCDF file ''',
-     &                                      clm_file2(1:lstr2),   '''.'
-        endif
-        if (ncidclm3.eq.-1) then
-          lstr3=lenstr(clm_file3)
-          ierr=nf_open (clm_file3(1:lstr3), nf_nowrite, ncidclm3)
-!         write(stdout,*)"clim_file3",clm_file3(1:lstr3),ncidclm3,ierr
-          if (ierr .ne. nf_noerr) write(stdout,'(/1x,4A/)') 'ERROR ',
-     &                  'in get_tclima: can not open netCDF file ''',
-     &                                      clm_file3(1:lstr3),   '''.'
-        endif
         if (ncidclm4.eq.-1) then
           lstr4=lenstr(clm_file4)
           ierr=nf_open (clm_file4(1:lstr4), nf_nowrite, ncidclm4)
@@ -91,18 +70,10 @@
      &                                      clm_file(1:lstr4),   '''.'
         endif
 # else
-! DL: Settings if only one climatology file is used:
-        ncidclm2 = ncidclm
-        clm_file2 = clm_file
-        lstr2 = lstr
-        ncidclm3 = ncidclm
-        clm_file3 = clm_file
-        lstr3 = lstr
-        ncidclm4 = ncidclm
-        clm_file4 = clm_file
-        lstr4 = lstr
+        ncidclm4 = ncidclm3
+        clm_file4 = clm_file3
+        lstr4 = lstr3
 # endif /* FOUR_CLIM_FILES */
-#endif /* BIOLOGY_BEC */
 
         do itrc=1,NT
           if (ierr.eq.nf_noerr) then

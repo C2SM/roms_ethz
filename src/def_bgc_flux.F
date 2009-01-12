@@ -73,10 +73,10 @@
 # define vidO2sat hisO2sat
 # define vidKvCO2 hisKvCO2
 # define vidCO2sol hisCO2sol
-# define vidPCO2 hisPCO2
-# define vidPCO2air hisPCO2air
-# define vidPH hisPH
-# define vidPAR hisPAR
+!# define vidPCO2 hisPCO2
+!# define vidPCO2air hisPCO2air
+!# define vidPH hisPH
+# define vidPAR hisPAR_flux
 # define vidPARinc hisPARinc
 # define vidFlux hisFlux
 # define vidGasExcFlux hisGasExcFlux
@@ -98,10 +98,10 @@
 # define vidO2sat avgO2sat
 # define vidKvCO2 avgKvCO2
 # define vidCO2sol avgCO2sol
-# define vidPCO2 avgPCO2
-# define vidPCO2air avgPCO2air
-# define vidPH avgPH
-# define vidPAR avgPAR
+!# define vidPCO2 avgPCO2
+!# define vidPCO2air avgPCO2air
+!# define vidPH avgPH
+# define vidPAR avgPAR_flux
 # define vidPARinc avgPARinc
 # define vidFlux avgFlux
 # define vidGasExcFlux avgGasExcFlux
@@ -617,85 +617,85 @@
 ! Surface pCO2
 !
 !        if (wrt(indxPCO2)) then
-          lvar=lenstr(vname_bgcflux(1,indxPCO2))
-          ierr=nf_def_var (ncid, vname_bgcflux(1,indxPCO2)(1:lvar),
-     &                             NF_FOUT, 3, r2dgrd, vidPCO2)
-#  ifndef AVRH
-          lvar=lenstr(vname_bgcflux(2,indxPCO2))
-          ierr=nf_put_att_text (ncid, vidPCO2, 'long_name', lvar,
-     &         vname_bgcflux(2,indxPCO2)(1:lvar))
-#  else
-          text='averaged '/ /vname_bgcflux(2,indxPCO2)
-          lvar=lenstr(text)
-          ierr=nf_put_att_text (ncid, vidPCO2, 'long_name', lvar,
-     &                                              text(1:lvar))
-#  endif
-          lvar=lenstr(vname_bgcflux(3,indxPCO2))
-          ierr=nf_put_att_text (ncid, vidPCO2, 'units',     lvar,
-     &         vname_bgcflux(3,indxPCO2)(1:lvar))
-!          lvar=lenstr(vname_bgcflux(4,indxPCO2))
-!          ierr=nf_put_att_text (ncid, vidPCO2, 'field',     lvar,
-!     &         vname_bgcflux(4,indxPCO2)(1:lvar))
-#ifdef MASK_LAND_DATA
-          ierr=nf_put_att_FOUT (ncid, vidPCO2, '_FillValue',
-     &         NF_FOUT, 1, spv_set)
-#endif
+!DL          lvar=lenstr(vname_bgcflux(1,indxPCO2))
+!DL          ierr=nf_def_var (ncid, vname_bgcflux(1,indxPCO2)(1:lvar),
+!DL     &                             NF_FOUT, 3, r2dgrd, vidPCO2)
+!DL#  ifndef AVRH
+!DL          lvar=lenstr(vname_bgcflux(2,indxPCO2))
+!DL          ierr=nf_put_att_text (ncid, vidPCO2, 'long_name', lvar,
+!DL     &         vname_bgcflux(2,indxPCO2)(1:lvar))
+!DL#  else
+!DL          text='averaged '/ /vname_bgcflux(2,indxPCO2)
+!DL          lvar=lenstr(text)
+!DL          ierr=nf_put_att_text (ncid, vidPCO2, 'long_name', lvar,
+!DL     &                                              text(1:lvar))
+!DL#  endif
+!DL          lvar=lenstr(vname_bgcflux(3,indxPCO2))
+!DL          ierr=nf_put_att_text (ncid, vidPCO2, 'units',     lvar,
+!DL     &         vname_bgcflux(3,indxPCO2)(1:lvar))
+!DL!          lvar=lenstr(vname_bgcflux(4,indxPCO2))
+!DL!          ierr=nf_put_att_text (ncid, vidPCO2, 'field',     lvar,
+!DL!     &         vname_bgcflux(4,indxPCO2)(1:lvar))
+!DL#ifdef MASK_LAND_DATA
+!DL          ierr=nf_put_att_FOUT (ncid, vidPCO2, '_FillValue',
+!DL     &         NF_FOUT, 1, spv_set)
+!DL#endif
 !        endif
 !
 ! Air pCO2
 !
 !        if (wrt(indxPCO2air)) then
-          lvar=lenstr(vname_bgcflux(1,indxPCO2air))
-          ierr=nf_def_var (ncid, vname_bgcflux(1,indxPCO2air)(1:lvar),
-     &                             NF_FOUT, 3, r2dgrd, vidPCO2air)
-#  ifndef AVRH
-          lvar=lenstr(vname_bgcflux(2,indxPCO2air))
-          ierr=nf_put_att_text (ncid, vidPCO2air, 'long_name', lvar,
-     &         vname_bgcflux(2,indxPCO2air)(1:lvar))
-#  else
-          text='averaged '/ /vname_bgcflux(2,indxPCO2air)
-          lvar=lenstr(text)
-          ierr=nf_put_att_text (ncid, vidPCO2air, 'long_name', lvar,
-     &                                              text(1:lvar))
-#  endif
-          lvar=lenstr(vname_bgcflux(3,indxPCO2air))
-          ierr=nf_put_att_text (ncid, vidPCO2air, 'units',     lvar,
-     &         vname_bgcflux(3,indxPCO2air)(1:lvar))
-!          lvar=lenstr(vname_bgcflux(4,indxPCO2air))
-!          ierr=nf_put_att_text (ncid, vidPCO2air, 'field',     lvar,
-!     &         vname_bgcflux(4,indxPCO2air)(1:lvar))
-#ifdef MASK_LAND_DATA
-          ierr=nf_put_att_FOUT (ncid, vidPCO2air, '_FillValue',
-     &         NF_FOUT, 1, spv_set)
-#endif
+!DL          lvar=lenstr(vname_bgcflux(1,indxPCO2air))
+!DL          ierr=nf_def_var (ncid, vname_bgcflux(1,indxPCO2air)(1:lvar),
+!DL     &                             NF_FOUT, 3, r2dgrd, vidPCO2air)
+!DL#  ifndef AVRH
+!DL          lvar=lenstr(vname_bgcflux(2,indxPCO2air))
+!DL          ierr=nf_put_att_text (ncid, vidPCO2air, 'long_name', lvar,
+!DL     &         vname_bgcflux(2,indxPCO2air)(1:lvar))
+!DL#  else
+!DL          text='averaged '/ /vname_bgcflux(2,indxPCO2air)
+!DL          lvar=lenstr(text)
+!DL          ierr=nf_put_att_text (ncid, vidPCO2air, 'long_name', lvar,
+!DL     &                                              text(1:lvar))
+!DL#  endif
+!DL          lvar=lenstr(vname_bgcflux(3,indxPCO2air))
+!DL          ierr=nf_put_att_text (ncid, vidPCO2air, 'units',     lvar,
+!DL     &         vname_bgcflux(3,indxPCO2air)(1:lvar))
+!DL!          lvar=lenstr(vname_bgcflux(4,indxPCO2air))
+!DL!          ierr=nf_put_att_text (ncid, vidPCO2air, 'field',     lvar,
+!DL!     &         vname_bgcflux(4,indxPCO2air)(1:lvar))
+!DL#ifdef MASK_LAND_DATA
+!DL          ierr=nf_put_att_FOUT (ncid, vidPCO2air, '_FillValue',
+!DL     &         NF_FOUT, 1, spv_set)
+!DL#endif
 !        endif
 !
 !     Surface pH
 !
 !        if (wrt(indxPH)) then
-          lvar=lenstr(vname_bgcflux(1,indxPH))
-          ierr=nf_def_var (ncid, vname_bgcflux(1,indxPH)(1:lvar),
-     &                             NF_FOUT, 3, r2dgrd, vidPH)
-#  ifndef AVRH
-          lvar=lenstr(vname_bgcflux(2,indxPH))
-          ierr=nf_put_att_text (ncid, vidPH, 'long_name', lvar,
-     &                                  vname_bgcflux(2,indxPH)(1:lvar))
-#  else
-          text='averaged '/ /vname_bgcflux(2,indxPH)
-          lvar=lenstr(text)
-          ierr=nf_put_att_text (ncid, vidPH, 'long_name', lvar,
-     &                                              text(1:lvar))
-#  endif
-          lvar=lenstr(vname_bgcflux(3,indxPH))
-          ierr=nf_put_att_text (ncid, vidPH, 'units',     lvar,
-     &                                  vname_bgcflux(3,indxPH)(1:lvar))
-!          lvar=lenstr(vname_bgcflux(4,indxPH))
-!          ierr=nf_put_att_text (ncid, vidPH, 'field',     lvar,
-!     &                                  vname_bgcflux(4,indxPH)(1:lvar))
-#ifdef MASK_LAND_DATA
-          ierr=nf_put_att_FOUT (ncid, vidPH, '_FillValue',
-     &         NF_FOUT, 1, spv_set)
-#endif
+!DL          lvar=lenstr(vname_bgcflux(1,indxPH))
+!DL          ierr=nf_def_var (ncid, vname_bgcflux(1,indxPH)(1:lvar),
+!DL     &                             NF_FOUT, 3, r2dgrd, vidPH)
+!DL#  ifndef AVRH
+!DL          lvar=lenstr(vname_bgcflux(2,indxPH))
+!DL          ierr=nf_put_att_text (ncid, vidPH, 'long_name', lvar,
+!DL     &                                  vname_bgcflux(2,indxPH)(1:lvar))
+!DL#  else
+!DL          text='averaged '/ /vname_bgcflux(2,indxPH)
+!DL          lvar=lenstr(text)
+!DL          ierr=nf_put_att_text (ncid, vidPH, 'long_name', lvar,
+!DL     &                                              text(1:lvar))
+!DL#  endif
+!DL          lvar=lenstr(vname_bgcflux(3,indxPH))
+!DL          ierr=nf_put_att_text (ncid, vidPH, 'units',     lvar,
+!DL     &                                  vname_bgcflux(3,indxPH)(1:lvar))
+!DL!          lvar=lenstr(vname_bgcflux(4,indxPH))
+!DL!          ierr=nf_put_att_text (ncid, vidPH, 'field',     lvar,
+!DL!     &                                  vname_bgcflux(4,indxPH)(1:lvar))
+!DL#ifdef MASK_LAND_DATA
+!DL          ierr=nf_put_att_FOUT (ncid, vidPH, '_FillValue',
+!DL     &         NF_FOUT, 1, spv_set)
+!DL#endif
 !        endif
 #   endif /* CARBON */
 #  endif /* OXYGEN */
@@ -1074,40 +1074,40 @@
 ! Surface pCO2
 !
 !        if (wrt(indxPCO2)) then
-          lvar=lenstr(vname_bgcflux(1,indxPCO2))
-          ierr=nf_inq_varid (ncid, vname_bgcflux(1,indxPCO2)(1:lvar),
-     &                             vidPCO2)
-          if (ierr .ne. nf_noerr) then
-             write(stdout,1) vname_bgcflux(1,indxPCO2)(1:lvar), 
-     &            ncname(1:lstr)
-             goto 99            !--> ERROR
-          endif
+!DL          lvar=lenstr(vname_bgcflux(1,indxPCO2))
+!DL          ierr=nf_inq_varid (ncid, vname_bgcflux(1,indxPCO2)(1:lvar),
+!DL     &                             vidPCO2)
+!DL          if (ierr .ne. nf_noerr) then
+!DL             write(stdout,1) vname_bgcflux(1,indxPCO2)(1:lvar), 
+!DL     &            ncname(1:lstr)
+!DL             goto 99            !--> ERROR
+!DL          endif
 !        endif
 !
 ! Air pCO2
 !
 !        if (wrt(indxPCO2air)) then
-          lvar=lenstr(vname_bgcflux(1,indxPCO2air))
-          ierr=nf_inq_varid (ncid, vname_bgcflux(1,indxPCO2air)(1:lvar),
-     &                             vidPCO2air)
-          if (ierr .ne. nf_noerr) then
-             write(stdout,1) vname_bgcflux(1,indxPCO2air)(1:lvar), 
-     &            ncname(1:lstr)
-             goto 99            !--> ERROR
-          endif
+!DL          lvar=lenstr(vname_bgcflux(1,indxPCO2air))
+!DL          ierr=nf_inq_varid (ncid, vname_bgcflux(1,indxPCO2air)(1:lvar),
+!DL     &                             vidPCO2air)
+!DL          if (ierr .ne. nf_noerr) then
+!DL             write(stdout,1) vname_bgcflux(1,indxPCO2air)(1:lvar), 
+!DL     &            ncname(1:lstr)
+!DL             goto 99            !--> ERROR
+!DL          endif
 !        endif
 !
 !     Surface pH
 !
 !        if (wrt(indxPH)) then
-          lvar=lenstr(vname_bgcflux(1,indxPH))
-          ierr=nf_inq_varid (ncid, vname_bgcflux(1,indxPH)(1:lvar),
-     &                             vidPH)
-          if (ierr .ne. nf_noerr) then
-             write(stdout,1) vname_bgcflux(1,indxPH)(1:lvar), 
-     &            ncname(1:lstr)
-             goto 99            !--> ERROR
-          endif
+!DL          lvar=lenstr(vname_bgcflux(1,indxPH))
+!DL          ierr=nf_inq_varid (ncid, vname_bgcflux(1,indxPH)(1:lvar),
+!DL     &                             vidPH)
+!DL          if (ierr .ne. nf_noerr) then
+!DL             write(stdout,1) vname_bgcflux(1,indxPH)(1:lvar), 
+!DL     &            ncname(1:lstr)
+!DL             goto 99            !--> ERROR
+!DL          endif
 !        endif
 #   endif /* CARBON */
 #  endif /* OXYGEN */
