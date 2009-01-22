@@ -77,7 +77,7 @@
 !# define vidPCO2air hisPCO2air
 !# define vidPH hisPH
 # define vidPAR hisPAR_flux
-# define vidPARinc hisPARinc
+# define vidPARinc hisPARinc_flux
 # define vidFlux hisFlux
 # define vidGasExcFlux hisGasExcFlux
 # define vidVSinkFlux hisVSinkFlux
@@ -102,7 +102,7 @@
 !# define vidPCO2air avgPCO2air
 !# define vidPH avgPH
 # define vidPAR avgPAR_flux
-# define vidPARinc avgPARinc
+# define vidPARinc avgPARinc_flux
 # define vidFlux avgFlux
 # define vidGasExcFlux avgGasExcFlux
 # define vidVSinkFlux avgVSinkFlux
@@ -1281,7 +1281,7 @@
 #   include "def_bgc_flux.F"
 #  endif /* AVERAGES */
 # endif
-#else /* BGC_FLUX_ANALYSIS */
+#else /* BIOLOGY_NPZDOC && BGC_FLUX_ANALYSIS */
       subroutine def_bgc_flux_empty()
       return
       end

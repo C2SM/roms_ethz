@@ -188,16 +188,16 @@ CR      write(*,*) 'wrt_avg:  wrtKvO2' MYID
 !  Write out PAR (W m-2)
 !
       if (wrtavg(indxPAR)) then
-        ierr=nf_fwrite (PAR_avg(START_2D_ARRAY,1), ncid_bgc_flux_avg,
-     &                                           avgPAR_flux, record, r3dvar)
+        ierr=nf_fwrite (PAR_flux_avg(START_2D_ARRAY,1),
+     &        ncid_bgc_flux_avg, avgPAR_flux, record, r3dvar)
         if (ierr .ne. nf_noerr) then
           lvar=lenstr(vname_bgcflux(1,indxPAR))
           write(stdout,1) vname_bgcflux(1,indxPAR)(1:lvar), record,
      &         ierr, nf_strerror(ierr) MYID
           goto 99                                         !--> ERROR
         endif
-        ierr=nf_fwrite (PARinc_avg(START_2D_ARRAY), ncid_bgc_flux_avg, 
-     &       avgPARinc, record, r2dvar)
+        ierr=nf_fwrite (PARinc_flux_avg(START_2D_ARRAY), 
+     &        ncid_bgc_flux_avg, avgPARinc_flux, record, r2dvar)
         if (ierr .ne. nf_noerr) then
           lvar=lenstr(vname_bgcflux(1,indxPARinc))
           write(stdout,1) vname_bgcflux(1,indxPARinc)(1:lvar), record,
@@ -301,7 +301,7 @@ CR      write(*,*) 'wrt_avg:  wrtKvO2' MYID
 # endif
       return
       end
-#else /* BGC_FLUX_ANALYSIS && AVERAGES */
+#else /* BIOLOGY_NPZDOC && BGC_FLUX_ANALYSIS && AVERAGES */
       subroutine wrt_bgc_flux_avg_empty
       end
 #endif /* BIOLOGY_NPZDOC && BGC_FLUX_ANALYSIS && AVERAGES */

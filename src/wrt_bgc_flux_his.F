@@ -189,8 +189,7 @@ CR      write(*,*) 'wrt_his:  wrtKvO2' MYID
      &                    ierr, nf_strerror(ierr) MYID
           goto 99                                         !--> ERROR
         endif
-CR      write(*,*) 'wrt_his:  wrtPAR' MYID
-        ierr=nf_fwrite(PARinc, ncid_bgc_flux_his, hisPARinc, record, 
+        ierr=nf_fwrite(PARinc, ncid_bgc_flux_his, hisPARinc_flux, record, 
      &       r2dvar)
         if (ierr .ne. nf_noerr) then
           lvar=lenstr(vname_bgcflux(1,indxPARinc))
@@ -304,7 +303,7 @@ CR      write(*,*) 'wrt_his:  wrtPAR' MYID
 # endif
       return
       end
-#else /* BGC_FLUX_ANALYSIS */
+#else /* BIOLOGY_NPZDOC && BGC_FLUX_ANALYSIS */
       subroutine wrt_bgc_flux_his_empty
       end
 #endif /* BIOLOGY_NPZDOC && BGC_FLUX_ANALYSIS */
