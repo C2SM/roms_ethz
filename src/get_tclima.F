@@ -35,9 +35,12 @@
       if (iic.eq.ntstart) then
         if (ncidclm.eq.-1) then
           ierr=nf_open (clm_file(1:lstr), nf_nowrite, ncidclm)
-          if (ierr .ne. nf_noerr) write(stdout,'(/1x,4A/)') 'ERROR ',
-     &                  'in get_tclima: can not open netCDF file ''',
-     &                                      clm_file(1:lstr),   '''.'
+          if (ierr .ne. nf_noerr) then
+             write(stdout,'(/1x,4A/)') 'ERROR ',
+     &            'in get_tclima: can not open netCDF file ''',
+     &            clm_file(1:lstr),   '''.'
+             goto 99
+          end if
         endif
 #if defined TWO_CLIM_FILES || defined THREE_CLIM_FILES || defined FOUR_CLIM_FILES
         if (ncidclm2.eq.-1) then
@@ -65,14 +68,14 @@
         if (ncidclm4.eq.-1) then
           lstr4=lenstr(clm_file4)
           ierr=nf_open (clm_file4(1:lstr4), nf_nowrite, ncidclm4)
-          if (ierr .ne. nf_noerr) write(stdout,'(/1x,4A/)') 'ERROR ',
-     &                  'in get_tclima: can not open netCDF file ''',
-     &                                      clm_file(1:lstr4),   '''.'
+          if (ierr .ne. nf_noerr) goto 44
         endif
 # else
+#  ifdef BIOLOGY_BEC
         ncidclm4 = ncidclm3
         clm_file4 = clm_file3
         lstr4 = lstr3
+#  endif
 # endif /* FOUR_CLIM_FILES */
 
         do itrc=1,NT
@@ -439,15 +442,18 @@ c              goto 99                                     !--> ERROR
 #if defined TWO_CLIM_FILES
                 if (itrc .ge. iNO3_) then
                    call set_cycle (ncidclm2,tclm_tid(itrc),nttclm(itrc),
-     &              tclm_cycle(itrc), tclm_ncycle(itrc), tclm_rec(itrc))
+     &              tclm_cycle(itrc), tclm_ncycle(itrc), tclm_rec(itrc), 
+     &                  ierr)
                 else
 #elif defined THREE_CLIM_FILES
                 if (itrc .ge. iNO3_ .and. itrc .le. iLDet) then
                   call set_cycle (ncidclm2,tclm_tid(itrc),nttclm(itrc),
-     &              tclm_cycle(itrc), tclm_ncycle(itrc), tclm_rec(itrc))
+     &              tclm_cycle(itrc), tclm_ncycle(itrc), tclm_rec(itrc), 
+     &                  ierr)
                 else if (itrc .gt. iLDet) then
                   call set_cycle (ncidclm3, tclm_tid(itrc),nttclm(itrc),
-     &              tclm_cycle(itrc), tclm_ncycle(itrc), tclm_rec(itrc))
+     &              tclm_cycle(itrc), tclm_ncycle(itrc), tclm_rec(itrc), 
+     &                  ierr)
                 else
 #endif
                 call set_cycle (ncidclm,tclm_tid(itrc), nttclm(itrc),
@@ -686,17 +692,21 @@ c              goto 99                                     !--> ERROR
   5   format(/1x,'ERROR in get_tclima: cannot open file ''',
      &                  A, '''.'/)
 
-#if defined TWO_CLIM_FILES || defined THREE_CLIM_FILES
+#if defined TWO_CLIM_FILES || defined THREE_CLIM_FILES || defined FOUR_CLIM_FILES
  22   write(stdout,5) clm_file2(1:lstr2)
       goto 99
 #endif
-#ifdef THREE_CLIM_FILES
+#if defined THREE_CLIM_FILES || defined FOUR_CLIM_FILES
  33   write(stdout,5) clm_file3(1:lstr3)
       goto 99
 #endif
-#if defined TWO_CLIM_FILES || defined THREE_CLIM_FILES
- 99   ierr = nf_noerr + 1
+#ifdef FOUR_CLIM_FILES
+ 44   write(stdout,5) clm_file4(1:lstr4)
+      goto 99
 #endif
+
+ 99   ierr = nf_noerr + 1
+
       return
       end
  
