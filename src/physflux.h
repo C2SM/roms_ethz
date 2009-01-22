@@ -10,8 +10,9 @@
 ! only T and S have fluxes
       parameter (NT_PFA = 2)
 #else
-# if defined VERT_DIFF_ANALYSIS && defined BIOLOGY_BEC
-! number of components has to be limited so that program fits into memory
+# ifdef LIMIT_NT_PFA
+! for some large domains, the number of components has to be limited so that
+! the program fits into memory - adjust NT_PFA as appropriate (<= NT)
       parameter (NT_PFA = 22)
 # else
       parameter (NT_PFA = NT)
