@@ -30,18 +30,16 @@
       call def_bec_flux_avg (ncid_bgc_flux_avg, nrec_bgc_flux_avg, ierr)
       if (ierr .ne. nf_noerr) goto 99
       lstr=lenstr(bgc_flux_avg_name)
-      nrec_bgc_flux_avg=max(nrec_bgc_flux_avg,1)      !!! that global avg
-      if (nrpf_bgc_flux_avg.eq.0) then               !!! record index is
-        record=nrec_bgc_flux_avg                    !!! advanced by main.  
+!                                                !!! WARNING: Here it is
+! Set record within the file.                    !!! assumed that global
+!                                                !!! restart record index
+      nrec_bgc_flux_avg=max(nrec_bgc_flux_avg,1) !!! that global avg
+      if (nrpf_bgc_flux_avg.eq.0) then           !!! record index is
+        record=nrec_bgc_flux_avg                 !!! advanced by main.  
       else
         record=1+mod(nrec_bgc_flux_avg-1, nrpf_bgc_flux_avg)
       endif
 
-
-      ibuff(1)=iic
-      ibuff(2)=nrecrst
-      ibuff(3)=nrechis
-      ibuff(4)=0
       start(1)=1
       start(2)=record
       count(1)=4
@@ -66,7 +64,7 @@
          DCO2STAR_AVG = DCO2STAR_AVG * cff
          FG_CO2_AVG = FG_CO2_AVG * cff
          IRON_FLUX_AVG = IRON_FLUX_AVG * cff
-         PARinc_avg = PARinc_avg * cff
+         PARinc_flux_avg = PARinc_flux_avg * cff
          PO4_RESTORE_AVG = PO4_RESTORE_AVG * cff
          NO3_RESTORE_AVG = NO3_RESTORE_AVG * cff
          SiO3_RESTORE_AVG = SiO3_RESTORE_AVG * cff
@@ -158,6 +156,18 @@
         write(stdout,1) vname(1,indxTime)(1:lvar), record, ierr
      &                  MYID
         goto 99                                           !--> ERROR
+      endif
+
+! Barotropic mode variable: free-surface
+! Always include this in the output so that depths of sigma levels
+! can be computed
+      ierr=nf_fwrite (zeta_bgc_flux_avg(START_2D_ARRAY), 
+     &     ncid_bgc_flux_avg, bgc_flux_avgZ,record, r2dvar)
+      if (ierr .ne. nf_noerr) then
+         lvar=lenstr(vname(1,indxZ))
+         write(stdout,1) vname(1,indxZ)(1:lvar), record, ierr
+     &        MYID
+         goto 99                !--> ERROR
       endif
 
        itrc=1
@@ -307,7 +317,7 @@
           endif
 
        itrc=itrc+1
-       ierr=nf_fwrite(PARinc_avg(START_2D_ARRAY), ncid_bgc_flux_avg,
+       ierr=nf_fwrite(PARinc_flux_avg(START_2D_ARRAY),ncid_bgc_flux_avg,
      &      vid_bec_flux_avg(itrc), record, r2dvar)
        if (ierr .ne. nf_noerr) then
           lvar=lenstr(vname_bgcflux(1,itrc))
@@ -349,7 +359,7 @@
           endif
 
         itrc=itrc+1
-        ierr=nf_fwrite(par_flux_avg(START_2D_ARRAY,1), ncid_bgc_flux_avg,
+        ierr=nf_fwrite(par_flux_avg(START_2D_ARRAY,1),ncid_bgc_flux_avg,
      &                          vid_bec_flux_avg(itrc), record, r3dvar)
           if (ierr .ne. nf_noerr) then
             lvar=lenstr(vname_bgcflux(1,itrc))
@@ -887,8 +897,6 @@
      &                      ierr MYID
             goto 99                                       !--> ERROR
           endif
-     
-
 
 
   1   format(/1x,'WRT_bec_flux_avg ERROR while writing variable ''', A,
@@ -953,7 +961,7 @@
          DCO2STAR_AVG = 0.0 
          FG_CO2_AVG = 0.0 
          IRON_FLUX_AVG = 0.0 
-         PARinc_avg = 0.0 
+         PARinc_flux_avg = 0.0 
          PO4_RESTORE_AVG = 0.0 
          NO3_RESTORE_AVG = 0.0 
          SiO3_RESTORE_AVG = 0.0 

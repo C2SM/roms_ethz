@@ -2,7 +2,8 @@
      &     AP_AVG, SCHMIDT_O2_AVG, O2SAT_AVG, FG_O2_AVG, 
      &     PH_AVG, pCO2_AVG, pCO2air_AVG, 
      &     SCHMIDT_CO2_AVG, CO2STAR_AVG, DCO2STAR_AVG, 
-     &     FG_CO2_AVG, IRON_FLUX_AVG, PARinc_avg
+     &     FG_CO2_AVG, IRON_FLUX_AVG, PARinc_avg,
+     &     PARinc_flux_avg, zeta_bgc_flux_avg
         real,dimension(GLOBAL_2D_ARRAY,N)::  
      &    PAR_avg,
      &    PO4_RESTORE_AVG, NO3_RESTORE_AVG, 
@@ -37,7 +38,8 @@
      &    AP_AVG, SCHMIDT_O2_AVG, O2SAT_AVG, FG_O2_AVG, 
      &    PH_AVG, pCO2_AVG, pCO2air_AVG, 
      &    SCHMIDT_CO2_AVG, CO2STAR_AVG, DCO2STAR_AVG, 
-     &    FG_CO2_AVG, IRON_FLUX_AVG, PARinc_avg, PAR_avg,
+     &    FG_CO2_AVG, IRON_FLUX_AVG, PARinc_avg, 
+     %    PARinc_flux_avg, zeta_bgc_flux_avg, PAR_avg,
      &    PO4_RESTORE_AVG, NO3_RESTORE_AVG, 
      &    SiO3_RESTORE_AVG, PAR_flux_avg, PO4STAR_AVG, 
      &    POC_FLUX_IN_AVG, POC_PROD_AVG, POC_REMIN_AVG, 

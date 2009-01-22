@@ -7,10 +7,14 @@
 # include "bec_avg.h"
 # include "ncroms_bgcflux.h"
 # include "scalars.h"
+# include "ocean2d.h"
            integer::istr,jstr,iend,jend
 
          time_bgc_flux_avg = time_bgc_flux_avg + time
 ! 2D variables
+         zeta_bgc_flux_avg(ISTR:IEND,JSTR:JEND) = 
+     &        zeta_bgc_flux_avg(ISTR:IEND,JSTR:JEND) +
+     &        zeta(istr:iend,jstr:jend,nstp)
          WS_AVG(ISTR:IEND,JSTR:JEND) = WS_AVG(ISTR:IEND,JSTR:JEND) 
      &                       + WS_hist(istr:iend,jstr:jend)
          XKW_AVG(ISTR:IEND,JSTR:JEND) = XKW_AVG(ISTR:IEND,JSTR:JEND) 
@@ -51,8 +55,8 @@
          IRON_FLUX_AVG(ISTR:IEND,JSTR:JEND) = 
      &                 IRON_FLUX_AVG(ISTR:IEND,JSTR:JEND) 
      &               + IRON_FLUX_hist(istr:iend,jstr:jend)
-         PARinc_AVG(ISTR:IEND,JSTR:JEND) = 
-     &                PARinc_AVG(ISTR:IEND,JSTR:JEND) 
+         PARinc_flux_AVG(ISTR:IEND,JSTR:JEND) = 
+     &                PARinc_flux_AVG(ISTR:IEND,JSTR:JEND) 
      &                + PARinc(istr:iend,jstr:jend)
 ! 3D variables
          PO4_RESTORE_AVG(ISTR:IEND,JSTR:JEND,:) = 
