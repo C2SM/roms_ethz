@@ -13,10 +13,10 @@
 ! Initialize netCDF files IDs to closed status.
 !
        ncid_bgc_flux_his=-1
-!DL       nrec_bgc_flux_his=0
+       nrec_bgc_flux_his=0
 #ifdef AVERAGES
        ncid_bgc_flux_avg=-1
-!DL       nrec_bgc_flux_avg=0
+       nrec_bgc_flux_avg=0
 #endif
        ind=1
        vname_bgcflux(1,ind)='WS'
