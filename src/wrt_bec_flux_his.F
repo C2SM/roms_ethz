@@ -6,6 +6,7 @@
 #include "ecosys_bec.h"
 #include "netcdf.inc"
 #include "scalars.h"
+#include "ocean2d.h"
 !for iic
 #include "ncvars.h"
 #include "ncroms_bgcflux.h"
@@ -43,6 +44,17 @@
       count(1)=4
       count(2)=1
 
+! Barotropic mode variable: free-surface
+! Always include this in the output so that depths of sigma levels
+! can be computed
+      ierr=nf_fwrite (zeta(START_2D_ARRAY,fast_indx_out), 
+     &     ncid_bgc_flux_his, bgc_flux_hisZ,record, r2dvar)
+      if (ierr .ne. nf_noerr) then
+         lvar=lenstr(vname(1,indxZ))
+         write(stdout,1) vname(1,indxZ)(1:lvar), record, ierr
+     &        MYID
+         goto 99                !--> ERROR
+      endif
 
        itrc=1
           ierr=nf_fwrite(ws_hist(START_2D_ARRAY), ncid_bgc_flux_his,
