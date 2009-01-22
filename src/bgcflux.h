@@ -164,8 +164,14 @@
       real PARinc_avg(GLOBAL_2D_ARRAY)
       common /avg_par/ PAR_avg,PARinc_avg
 
+#  ifdef BGC_FLUX_ANALYSIS
+      real PAR_flux_avg(GLOBAL_2D_ARRAY,N)
+      real PARinc_flux_avg(GLOBAL_2D_ARRAY)
+      common /avg_par_flux/ PAR_flux_avg,PARinc_flux_avg
+
       real zeta_bgc_flux_avg(GLOBAL_2D_ARRAY)
       common /ocean_zeta_bgc_flux_avg/zeta_bgc_flux_avg
+#  endif /* BGC_FLUX_ANALYSIS */
 
 #  ifdef OXYGEN
       real u10_avg(GLOBAL_2D_ARRAY)
