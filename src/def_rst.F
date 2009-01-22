@@ -318,9 +318,13 @@
           lvar=lenstr(vname(3,indxSedOrgN+itrc-1))
           ierr=nf_put_att_text (ncid, rstTsed(itrc), 'units', lvar,
      &         vname(3,indxSedOrgN+itrc-1)(1:lvar))
-          lvar=lenstr(vname(4,indxSedOrgN+itrc-1))
-          ierr=nf_put_att_text (ncid, rstTsed(itrc), 'field', lvar,
-     &         vname(4,indxSedOrgN+itrc-1)(1:lvar))
+!          lvar=lenstr(vname(4,indxSedOrgN+itrc-1))
+!          ierr=nf_put_att_text (ncid, rstTsed(itrc), 'field', lvar,
+!     &         vname(4,indxSedOrgN+itrc-1)(1:lvar))
+#ifdef MASK_LAND_DATA
+        ierr=nf_put_att_FTYPE (ncid, rstTsed(itrc), '_FillValue',
+     &         NF_FTYPE, 1, spv_set)
+#endif
         enddo
 # endif /* SEDIMENT_BIOLOGY */
 
@@ -403,9 +407,10 @@
         lvar=lenstr(vname(3,indxPH_rst))
         ierr=nf_put_att_text (ncid, rstPH, 'units', lvar,
      &       vname(3,indxPH_rst)(1:lvar))
-        lvar=lenstr(vname(4,indxPH_rst))
-        ierr=nf_put_att_text (ncid, rstPH, 'field', lvar,
-     &       vname(4,indxPH_rst)(1:lvar))
+#ifdef MASK_LAND_DATA
+        ierr=nf_put_att_FTYPE (ncid, rstPH, '_FillValue', NF_FTYPE,
+     &                                                 1, spv_set)
+#endif
 !
 ! pCO2:
 !
@@ -418,10 +423,12 @@
         lvar=lenstr(vname(3,indxPCO2_rst))
         ierr=nf_put_att_text (ncid, rstPCO2, 'units', lvar,
      &       vname(3,indxPCO2_rst)(1:lvar))
-        lvar=lenstr(vname(4,indxPCO2_rst))
-        ierr=nf_put_att_text (ncid, rstPCO2, 'field', lvar,
-     &       vname(4,indxPCO2_rst)(1:lvar))
-#  ifdef UNNECESSARY_OUTPUT
+#ifdef MASK_LAND_DATA
+        ierr=nf_put_att_FTYPE (ncid, rstPCO2, '_FillValue', NF_FTYPE,
+     &                                                 1, spv_set)
+#endif
+
+#  ifdef OUTPUT_PCO2AIR_RST
 !
 ! pCO2air:
 !
@@ -434,10 +441,11 @@
         lvar=lenstr(vname(3,indxPCO2air_rst))
         ierr=nf_put_att_text (ncid, rstPCO2air, 'units', lvar,
      &       vname(3,indxPCO2air_rst)(1:lvar))
-        lvar=lenstr(vname(4,indxPCO2air_rst))
-        ierr=nf_put_att_text (ncid, rstPCO2air, 'field', lvar,
-     &       vname(4,indxPCO2air_rst)(1:lvar))
-#  endif /* UNNECESSARY_OUTPUT */
+#ifdef MASK_LAND_DATA
+        ierr=nf_put_att_FTYPE (ncid, rstPCO2air, '_FillValue', NF_FTYPE,
+     &                                                 1, spv_set)
+#endif
+#  endif /* OUTPUT_PCO2AIR_RST */
 !
 ! PAR:
 !
@@ -450,27 +458,12 @@
         lvar=lenstr(vname(3,indxPAR_rst))
         ierr=nf_put_att_text (ncid, rstPAR, 'units', lvar,
      &       vname(3,indxPAR_rst)(1:lvar))
-        lvar=lenstr(vname(4,indxPAR_rst))
-        ierr=nf_put_att_text (ncid, rstPAR, 'field', lvar,
-     &       vname(4,indxPAR_rst)(1:lvar))
+#ifdef MASK_LAND_DATA
+        ierr=nf_put_att_FTYPE (ncid, rstPAR, '_FillValue', NF_FTYPE,
+     &                                                 1, spv_set)
+#endif
+
 # endif /* BIOLOGY_BEC || BIOLOGY_NPZDOC */
-# ifdef BIOLOGY_BEC__OBSOLETE
-!
-! DpCO2:
-!
-        lvar = lenstr(vname(1,indxDPCO2_rst))
-        ierr=nf_def_var (ncid, vname(1,indxDPCO2_rst)(1:lvar),
-     &       NF_FTYPE, 3, r2dgrd, rstDPCO2)
-        lvar=lenstr(vname(2,indxDPCO2_rst))
-        ierr=nf_put_att_text (ncid, rstDPCO2, 'long_name',
-     &       lvar, vname(2,indxDPCO2_rst)(1:lvar))
-        lvar=lenstr(vname(3,indxDPCO2_rst))
-        ierr=nf_put_att_text (ncid, rstDPCO2, 'units', lvar,
-     &       vname(3,indxDPCO2_rst)(1:lvar))
-        lvar=lenstr(vname(4,indxDPCO2_rst))
-        ierr=nf_put_att_text (ncid, rstDPCO2, 'field', lvar,
-     &       vname(4,indxDPCO2_rst)(1:lvar))
-# endif /* BIOLOGY_BEC__OBSOLETE */
 
 !
 ! Leave definition mode.                  Also initialize record
@@ -682,17 +675,6 @@
           goto 99                                         !--> ERROR
         endif
 # endif /* UNNECESSARY_OUTPUT */
-# ifdef BIOLOGY_BEC__OBSOLETE
-!
-! DpCO2:
-!
-        lvar=lenstr(vname(1,indxDPCO2_rst))
-        ierr=nf_inq_varid (ncid, vname(1,indxDPCO2_rst)(1:lvar), rstDPCO2)
-        if (ierr. ne. nf_noerr) then
-          write(stdout,1) vname(1,indxDPCO2_rst)(1:lvar), rstname(1:lstr)
-          goto 99                                         !--> ERROR
-        endif
-# endif /* BIOLOGY_BEC__OBSOLETE */
 
 # ifdef LMD_KPP
         lvar=lenstr(vname(1,indxHbl))
