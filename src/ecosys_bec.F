@@ -85,22 +85,6 @@
 !
 !
 !--------------------------------------------------------------------------
-         if (abs(parm_sp_kno3 - 0.5) .gt. 1.D-3) then
-             print *, 'BEGIN eco_set_int: parm_sp_kNO3: ',
-     &        parm_sp_kno3
-#ifdef MPI
-     &        ,' mynode =', mynode
-#endif
-             stop 'l91 kno3'
-          end if
-          if (abs(parm_sp_kpo4 - 0.0005) .gt. 1.D-4) then
-             print *, 'BEGIN eco_set_int: parm_sp_kPO4: ',
-     &        parm_sp_kpo4
-#ifdef MPI
-     &        ,' mynode =', mynode
-#endif
-             stop 'l96 kpo4'
-          end if
          ctime = 1
           do m=1,ntrc_bio
              do k=1,N
@@ -556,22 +540,6 @@
 
 
          integer setinterior,curtime,k
-         if (abs(parm_sp_kno3 - 0.5) .gt. 1.D-3) then
-             print *, 'BEGIN eco_set_int: parm_sp_kNO3: ',
-     &        parm_sp_kno3
-#ifdef MPI
-     &        ,' mynode =', mynode
-#endif
-             stop 'kno3'
-          end if
-          if (abs(parm_sp_kpo4 - 0.0005) .gt. 1.D-4) then
-             print *, 'BEGIN eco_set_int: parm_sp_kPO4: ',
-     &        parm_sp_kpo4
-#ifdef MPI
-     &        ,' mynode =', mynode
-#endif
-             stop 'kpo4'
-          end if
 
           setinterior=1
          
@@ -782,6 +750,7 @@
            ELSE WHERE
               PAR_out = c0
            END WHERE
+           PARinc(istr:iend,j) = PAR_out(istr:iend)
            CALL init_particulate_terms(QA_dust_def,istr,iend,j,
      &          dust_flux)
         END IF
@@ -840,9 +809,6 @@
     !   that the min. cell quota does in GD98.
     !---------------------------------------------------------------------------
 
-         if (parm_sp_kNO3 .eq. 0.)
-     &        print *, 'ECO - parm_sp_kNO3: ',
-     &        parm_sp_kNO3  MYID
         VNO3_sp = (NO3_loc / parm_sp_kNO3) / 
      &    (c1 + (NO3_loc / parm_sp_kNO3) + (NH4_loc / parm_sp_kNH4))
 
@@ -1137,9 +1103,6 @@
      &       sp_mort2 * Pprime * Pprime)
 
          reduceV = Pprime * Pprime
-         if (abs(parm_z_grz - 1.05) .gt. 1.e-4) 
-     &        print *, 'eco_set_int: parm_z_grz: ',
-     &        parm_z_grz  MYID
          z_grz_sqr = parm_z_grz * parm_z_grz
           graze_sp = z_umax * zooC_loc * (reduceV / 
      &            (reduceV + z_grz_sqr))
