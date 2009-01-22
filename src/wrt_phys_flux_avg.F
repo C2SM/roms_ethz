@@ -147,7 +147,7 @@
 #endif /* VERT_DIFF_ANALYSIS */
 # ifdef FULL_PHYS_FLUX_ANALYSIS
 ! top fluxes
-      do iflux = 1, NT
+      do iflux = 1, NT_PFA
          ierr = nf_fwrite(TopFlux_avg(START_2D_ARRAY,iflux), 
      &        ncid_phys_flux_avg, avgTopFlux(iflux), record, r2dvar)
          if (ierr .ne. nf_noerr) then
@@ -158,7 +158,7 @@
          end if
       end do
 ! bottom fluxes
-      do iflux = 1, NT
+      do iflux = 1, NT_PFA
          ierr = nf_fwrite(BottomFlux_avg(START_2D_ARRAY,iflux), 
      &        ncid_phys_flux_avg, avgBottomFlux(iflux), record, r2dvar)
          if (ierr .ne. nf_noerr) then
@@ -169,7 +169,7 @@
          end if
       end do
 ! horizontal mixing fluxes (xi-direction)
-      do iflux = 1, NT
+      do iflux = 1, NT_PFA
          ierr = nf_fwrite(HorXMixFlux_avg(START_2D_ARRAY,1,iflux), 
      &        ncid_phys_flux_avg, avgHorXMixFlux(iflux), record, r3dvar)
          if (ierr .ne. nf_noerr) then
@@ -180,7 +180,7 @@
          end if
       end do
 ! horizontal mixing fluxes (eta-direction)
-      do iflux = 1, NT
+      do iflux = 1, NT_PFA
          ierr = nf_fwrite(HorYMixFlux_avg(START_2D_ARRAY,1,iflux), 
      &        ncid_phys_flux_avg, avgHorYMixFlux(iflux), record, r3dvar)
          if (ierr .ne. nf_noerr) then
@@ -191,7 +191,7 @@
          end if
       end do
 ! vertical mixing fluxes
-      do iflux = 1, NT
+      do iflux = 1, NT_PFA
          ierr = nf_fwrite(VertMixFlux_avg(START_2D_ARRAY,
      &        0,iflux), 
      &        ncid_phys_flux_avg, avgVertMixFlux(iflux), record, w3dvar)
@@ -203,7 +203,7 @@
          end if
       end do
 ! nudging divergences
-      do iflux = 1, NT
+      do iflux = 1, NT_PFA
          ierr = nf_fwrite(NudgingFlux_avg(START_2D_ARRAY,
      &        1,iflux), 
      &        ncid_phys_flux_avg, avgNudgingFlux(iflux), record, r3dvar)

@@ -124,14 +124,14 @@
             end do
 #endif
 # ifdef FULL_PHYS_FLUX_ANALYSIS
-            do iflux = 1, NT
+            do iflux = 1, NT_PFA
                do j = JstrR, JendR
                   do i = IstrR, IendR 
                      TopFlux_avg(i,j,iflux) = TopFlux(i,j,iflux)  
                   end do
                end do
             end do
-            do iflux = 1, NT
+            do iflux = 1, NT_PFA
                do j = JstrR, JendR
                   do i = IstrR, IendR 
                      BottomFlux_avg(i,j,iflux) = 
@@ -139,7 +139,7 @@
                   end do
                end do
             end do
-            do iflux = 1, NT
+            do iflux = 1, NT_PFA
                do k = 1, N
                   do j = JstrR, JendR
                      do i = IstrR, IendR 
@@ -149,7 +149,7 @@
                   end do
                end do
             end do
-            do iflux = 1, NT
+            do iflux = 1, NT_PFA
                do k = 1, N
                   do j = JstrR, JendR
                      do i = IstrR, IendR 
@@ -159,7 +159,7 @@
                   end do
                end do
             end do
-            do iflux = 1, NT
+            do iflux = 1, NT_PFA
                do k = 0, N
                   do j = JstrR, JendR
                      do i = IstrR, IendR 
@@ -169,7 +169,7 @@
                   end do
                end do
             end do
-            do iflux = 1, NT
+            do iflux = 1, NT_PFA
                do k = 1, N
                   do j = JstrR, JendR
                      do i = IstrR, IendR 
@@ -236,7 +236,7 @@
             end do
 #endif
 # ifdef FULL_PHYS_FLUX_ANALYSIS
-            do iflux = 1, NT
+            do iflux = 1, NT_PFA
                do j = JstrR, JendR
                   do i = IstrR, IendR 
                      TopFlux_avg(i,j,iflux) = 
@@ -245,7 +245,7 @@
                   end do
                end do
             end do
-            do iflux = 1, NT
+            do iflux = 1, NT_PFA
                do j = JstrR, JendR
                   do i = IstrR, IendR 
                      BottomFlux_avg(i,j,iflux) = 
@@ -254,7 +254,7 @@
                   end do
                end do
             end do
-            do iflux = 1, NT
+            do iflux = 1, NT_PFA
                do k = 1, N
                   do j = JstrR, JendR
                      do i = IstrR, IendR 
@@ -265,7 +265,7 @@
                   end do
                end do
             end do
-            do iflux = 1, NT
+            do iflux = 1, NT_PFA
                do k = 1, N
                   do j = JstrR, JendR
                      do i = IstrR, IendR 
@@ -276,7 +276,7 @@
                   end do
                end do
             end do
-            do iflux = 1, NT
+            do iflux = 1, NT_PFA
                do k = 0, N
                   do j = JstrR, JendR
                      do i = IstrR, IendR 
@@ -287,7 +287,7 @@
                   end do
                end do
             end do
-            do iflux = 1, NT
+            do iflux = 1, NT_PFA
                do k = 1, N
                   do j = JstrR, JendR
                      do i = IstrR, IendR 
@@ -357,7 +357,7 @@
             end do
 #endif
 # ifdef FULL_PHYS_FLUX_ANALYSIS
-            do iflux = 1, NT
+            do iflux = 1, NT_PFA
                do j = JstrR, JendR
                   do i = IstrR, IendR 
                      TopFlux_avg(i,j,iflux) = cff *
@@ -366,7 +366,7 @@
                   end do
                end do
             end do
-            do iflux = 1, NT
+            do iflux = 1, NT_PFA
                do j = JstrR, JendR
                   do i = IstrR, IendR 
                      BottomFlux_avg(i,j,iflux) = cff *
@@ -375,7 +375,7 @@
                   end do
                end do
             end do
-            do iflux = 1, NT
+            do iflux = 1, NT_PFA
                do k = 1, N
                   do j = JstrR, JendR
                      do i = IstrR, IendR 
@@ -386,7 +386,7 @@
                   end do
                end do
             end do
-            do iflux = 1, NT
+            do iflux = 1, NT_PFA
                do k = 1, N
                   do j = JstrR, JendR
                      do i = IstrR, IendR 
@@ -397,7 +397,7 @@
                   end do
                end do
             end do
-            do iflux = 1, NT
+            do iflux = 1, NT_PFA
                do k = 0, N
                   do j = JstrR, JendR
                      do i = IstrR, IendR 
@@ -408,7 +408,7 @@
                   end do
                end do
             end do
-            do iflux = 1, NT
+            do iflux = 1, NT_PFA
                do k = 1, N
                   do j = JstrR, JendR
                      do i = IstrR, IendR 
