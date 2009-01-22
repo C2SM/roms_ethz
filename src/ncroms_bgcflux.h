@@ -4,7 +4,7 @@
 ! NOTE: This file must always be included AFTER bgcflux.h as it uses
 ! some parameters that are defined in that file.
 
-!#if defined SOLVE3D & defined BGC_FLUX_ANALYSIS
+#if defined SOLVE3D && defined BGC_FLUX_ANALYSIS
 
       logical new_bgc_flux_his
       integer n_bgc_flux_his, nrpf_bgc_flux_his
@@ -22,6 +22,7 @@
 
       character*80 bgc_flux_avg_name
       common /c_bgcflux_avg/ bgc_flux_avg_name
+
 #endif
 
 # ifdef BIOLOGY_NPZDOC
@@ -34,7 +35,7 @@
      &     + NumSedFluxTerms
 #   endif /* SEDIMENT_BIOLOGY */
 # elif defined BIOLOGY_BEC
-      integer, parameter :: num_bgcflux_2d = 14
+      integer, parameter :: num_bgcflux_2d = 12
       integer, parameter :: num_bgcflux = 74 
       integer, dimension(num_bgcflux) :: vid_bec_flux_his
       common /c_bgcflux_bec/ vid_bec_flux_his
@@ -79,7 +80,7 @@
      &     NumVSinkTerms + NumGasExcTerms     
 #  endif /* SEDIMENT_BIOLOGY */
 
-      integer hisPAR_flux, hisPARinc
+      integer hisPAR_flux, hisPARinc_flux
      &     , hisFlux(NumFluxTerms)
      &     , hisVSinkFlux(NumVSinkTerms)
 #  ifdef OXYGEN
@@ -99,7 +100,7 @@
      &     , bgc_flux_hisTime, bgc_flux_hisTstep
      &     , bgc_flux_hisZ
 
-      common /ncids_bgc_flux/ hisPAR_flux, hisPARinc
+      common /ncids_bgc_flux/ hisPAR_flux, hisPARinc_flux
      &     , hisFlux
      &     , hisVSinkFlux
 #  ifdef OXYGEN
@@ -119,6 +120,12 @@
      &     , bgc_flux_hisTime, bgc_flux_hisTstep
      &     , bgc_flux_hisZ
 #endif /* BIOLOGY_NPZDOC */      
+#ifdef BIOLOGY_BEC
+      integer bgc_flux_hisTime, bgc_flux_hisTstep
+     &     , bgc_flux_hisZ
+      common /ncids_bgc_flux/ bgc_flux_hisTime, bgc_flux_hisTstep
+     &     , bgc_flux_hisZ      
+#endif /* BIOLOGY_BEC */
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 # ifdef AVERAGES
@@ -132,7 +139,7 @@
       common /scalars_bgc_avg_real/ time_bgc_flux_avg
 
 # ifdef BIOLOGY_NPZDOC
-      integer avgPAR_flux, avgPARinc
+      integer avgPAR_flux, avgPARinc_flux
      &     , avgFlux(NumFluxTerms)
      &     , avgVSinkFlux(NumVSinkTerms)
 #  ifdef OXYGEN
@@ -152,7 +159,7 @@
      &     , bgc_flux_avgTime, bgc_flux_avgTstep
      &     , bgc_flux_avgZ
 
-      common /ncids_bgc_flux_avg/ avgPAR_flux, avgPARinc
+      common /ncids_bgc_flux_avg/ avgPAR_flux, avgPARinc_flux
      &     , avgFlux
      &     , avgVSinkFlux
 #  ifdef OXYGEN
@@ -175,11 +182,11 @@
 
 #  ifdef BIOLOGY_BEC
       integer, dimension(num_bgcflux) :: vid_bec_flux_avg
-      integer bgc_flux_avgTstep, bgc_flux_avgTime
-      integer bgc_flux_hisTstep, bgc_flux_hisTime
-      common /c_bgcflux_avg_bec/ vid_bec_flux_avg, bgc_flux_avgTstep, bgc_flux_avgTime,
-     &   bgc_flux_hisTstep, bgc_flux_hisTime
+      integer :: bgc_flux_avgTstep, bgc_flux_avgTime,
+     &    bgc_flux_avgZ
+      common /c_bgcflux_avg_bec/ vid_bec_flux_avg, bgc_flux_avgTstep,
+     &    bgc_flux_avgTime, bgc_flux_avgZ
 #  endif
 # endif /* AVERAGES */
 
-!#endif /* SOLVE3D && BGC_FLUX_ANALYSIS */
+#endif /* SOLVE3D && BGC_FLUX_ANALYSIS */
