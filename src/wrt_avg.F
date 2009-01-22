@@ -297,6 +297,17 @@ CR      write(*,*) 'wrt_avg:  wrtT_sed  ' MYID
 !
 ! PAR:
 !
+      ierr=nf_fwrite (PARinc_avg(START_2D_ARRAY), ncidavg,
+     &                              avgPARinc, record, r2dvar)
+      if (ierr .ne. nf_noerr) then
+        lvar=lenstr(vname(1,indxPARinc_rst))
+        write(stdout,1) vname(1,indxPARinc_rst)(1:lvar), record, ierr,
+     &                  nf_strerror(ierr) MYID
+        goto 99                                         !--> ERROR
+      endif
+!
+! PAR:
+!
       ierr=nf_fwrite (PAR_avg(START_2D_ARRAY,1), ncidavg,
      &                              avgPAR, record, r3dvar)
       if (ierr .ne. nf_noerr) then
@@ -306,41 +317,6 @@ CR      write(*,*) 'wrt_avg:  wrtT_sed  ' MYID
         goto 99                                         !--> ERROR
       endif
 # endif /* BIOLOGY_NPZDOC || BIOLOGY_BEC */
-# ifdef BIOLOGY_BEC__OBSOLETE
-!
-! Write out averaged pCO2:
-!
-      ierr=nf_fwrite (pCO2surf_avg(START_2D_ARRAY), ncidavg,
-     &                              avgPCO2_rst, record, r2dvar)
-      if (ierr .ne. nf_noerr) then
-        lvar=lenstr(vname(1,indxPCO2_rst))
-        write(stdout,1) vname(1,indxPCO2_rst)(1:lvar), record, ierr,
-     &                  nf_strerror(ierr) MYID
-        goto 99                                         !--> ERROR
-      endif
-!
-! Write out averaged DpCO2:
-!
-      ierr=nf_fwrite (DpCO2_avg(START_2D_ARRAY), ncidavg,
-     &                              avgDPCO2_rst, record, r2dvar)
-      if (ierr .ne. nf_noerr) then
-        lvar=lenstr(vname(1,indxDPCO2_rst))
-        write(stdout,1) vname(1,indxDPCO2_rst)(1:lvar), record, ierr,
-     &                  nf_strerror(ierr) MYID
-        goto 99                                         !--> ERROR
-      endif
-!
-! PAR:
-!
-      ierr=nf_fwrite (PAR_avg_avg(START_2D_ARRAY,0), ncidavg,
-     &                              avgPAR_rst, record, r3dvar)
-      if (ierr .ne. nf_noerr) then
-        lvar=lenstr(vname(1,indxPAR_rst))
-        write(stdout,1) vname(1,indxPAR_rst)(1:lvar), record, ierr,
-     &                  nf_strerror(ierr) MYID
-        goto 99                                         !--> ERROR
-      endif
-# endif /* BIOLOGY_BEC__OBSOLETE */
 # endif /* SOLVE3D */
   1   format(/' WRT_AVG - ERROR while writing variable(',1x,a,1x,
      &               ')into averages file.',/,11x,'Time record:',

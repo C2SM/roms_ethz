@@ -76,17 +76,12 @@
 #  define vidPH hisPH
 #  define vidPCO2 hisPCO2
 #  define vidPCO2air hisPCO2air
+#  define vidPARinc hisPARinc
 #  define vidPAR hisPAR
 #  ifdef SEDIMENT_BIOLOGY
 #   define vidTsed hisTsed
 #  endif
 # endif /* BIOLOGY_NPZDOC || BIOLOGY_BEC*/
-# ifdef BIOLOGY_BEC__OBSOLETE
-#  define vidPH hisPH_rst
-#  define vidPCO2 hisPCO2_rst
-#  define vidDPCO2 hisDPCO2_rst
-#  define vidPAR hisPAR_rst
-# endif
 #else
 # define ncname avgname
 # define rec_per_file nrpfavg
@@ -112,17 +107,12 @@
 #  define vidPH avgPH
 #  define vidPCO2 avgPCO2
 #  define vidPCO2air avgPCO2air
+#  define vidPARinc avgPARinc
 #  define vidPAR avgPAR
 #  ifdef SEDIMENT_BIOLOGY
 #    define vidTsed avgTsed
 #  endif
 # endif /* BIOLOGY_NPZDOC || BIOLOGY_BEC */
-# ifdef BIOLOGY_BEC__OBSOLETE
-#  define vidPH avgPH_rst
-#  define vidPCO2 avgPCO2_rst
-#  define vidDPCO2 avgDPCO2_rst
-#  define vidPAR avgPAR_rst
-# endif
 #endif
 !
 ! Put time record index into file name. In  the case when model
@@ -711,9 +701,30 @@ chf        ierr=nf_create(ncname(1:lstr), nf_64bit_offset, ncid)
      &                                              text(1:lvar))
         lvar=lenstr(vname(3,indxPCO2air_rst))
         ierr=nf_put_att_text (ncid, vidPCO2air, 'units',     lvar,
-     &                                  vname(3,indxPCO2air_rst)(1:lvar))
+     &       vname(3,indxPCO2air_rst)(1:lvar))
 #ifdef MASK_LAND_DATA 
         ierr=nf_put_att_FOUT (ncid, vidPCO2air, '_FillValue',
+     &                                  NF_FOUT, 1, spv_set)
+#endif
+!
+! PARinc:
+!
+        lvar=lenstr(vname(1,indxPARinc_rst))
+        ierr=nf_def_var (ncid, vname(1,indxPARinc_rst)(1:lvar), NF_FOUT,
+     &       3, r2dgrd, vidPARinc)
+#  ifdef AVRH
+        text='averaged '/ /vname(2,indxPARinc_rst)
+#  else
+        text=vname(2,indxPARinc_rst)
+#  endif
+        lvar=lenstr(text)
+        ierr=nf_put_att_text (ncid, vidPARinc, 'long_name', lvar,
+     &                                              text(1:lvar))
+        lvar=lenstr(vname(3,indxPARinc_rst))
+        ierr=nf_put_att_text (ncid, vidPARinc, 'units',     lvar,
+     &                                  vname(3,indxPARinc_rst)(1:lvar))
+#ifdef MASK_LAND_DATA 
+        ierr=nf_put_att_FOUT (ncid, vidPARinc, '_FillValue',
      &                                  NF_FOUT, 1, spv_set)
 #endif
 !
@@ -738,29 +749,6 @@ chf        ierr=nf_create(ncname(1:lstr), nf_64bit_offset, ncid)
      &                                  NF_FOUT, 1, spv_set)
 #endif
 #endif /* BIOLOGY_NPZDOC || BIOLOGY_BEC */
-#ifdef BIOLOGY_BEC__OBSOLETE
-!
-! DpCO2:
-!
-        lvar=lenstr(vname(1,indxDPCO2_rst))
-        ierr=nf_def_var (ncid, vname(1,indxDPCO2_rst)(1:lvar), NF_FOUT,
-     &                                           3, r2dgrd, vidDPCO2)
-#  ifdef AVRH
-        text='averaged '/ /vname(2,indxDPCO2_rst)
-#  else
-        text=vname(2,indxDPCO2_rst)
-#  endif
-        lvar=lenstr(text)
-        ierr=nf_put_att_text (ncid, vidDPCO2, 'long_name', lvar,
-     &                                              text(1:lvar))
-        lvar=lenstr(vname(3,indxDPCO2_rst))
-        ierr=nf_put_att_text (ncid, vidDPCO2, 'units',     lvar,
-     &                                  vname(3,indxDPCO2_rst)(1:lvar))
-#ifdef MASK_LAND_DATA 
-        ierr=nf_put_att_FOUT (ncid, vidDPCO2, '_FillValue',
-     &                                  NF_FOUT, 1, spv_set)
-#endif
-#endif /* BIOLOGY_BEC__OBSOLETE */
 #endif /* SOLVE3D */
 !
 ! Leave definition mode.
@@ -1070,9 +1058,22 @@ chf        ierr=nf_create(ncname(1:lstr), nf_64bit_offset, ncid)
 ! pCO2air:
 !
         lvar=lenstr(vname(1,indxPCO2air_rst))
-        ierr=nf_inq_varid (ncid,vname(1,indxPCO2air_rst)(1:lvar), vidPCO2air)
+        ierr=nf_inq_varid (ncid,vname(1,indxPCO2air_rst)(1:lvar), 
+     &       vidPCO2air)
         if (ierr .ne. nf_noerr) then
-           write(stdout,1) vname(1,indxPCO2air_rst)(1:lvar), ncname(1:lstr)
+           write(stdout,1) vname(1,indxPCO2air_rst)(1:lvar), 
+     &          ncname(1:lstr)
+           goto 99                                       !--> ERROR
+        endif
+!
+! PARinc:
+!
+        lvar=lenstr(vname(1,indxPARinc_rst))
+        ierr=nf_inq_varid (ncid,vname(1,indxPARinc_rst)(1:lvar), 
+     &       vidPARinc)
+        if (ierr .ne. nf_noerr) then
+           write(stdout,1) vname(1,indxPARinc_rst)(1:lvar), 
+     &          ncname(1:lstr)
            goto 99                                       !--> ERROR
         endif
 !
@@ -1085,17 +1086,6 @@ chf        ierr=nf_create(ncname(1:lstr), nf_64bit_offset, ncid)
            goto 99                                       !--> ERROR
         endif
 # endif /* BIOLOGY_NPZDOC || BIOLOGY_BEC */
-# ifdef BIOLOGY_BEC__OBSOLETE
-!
-! DpCO2:
-!
-        lvar=lenstr(vname(1,indxDPCO2_rst))
-        ierr=nf_inq_varid (ncid,vname(1,indxDPCO2_rst)(1:lvar), vidDPCO2)
-        if (ierr .ne. nf_noerr) then
-           write(stdout,1) vname(1,indxDPCO2_rst)(1:lvar), ncname(1:lstr)
-           goto 99                                       !--> ERROR
-        endif
-# endif /* BIOLOGY_BEC__OBSOLETE */
 #endif /* SOLVE3D */
         write(*,'(6x,2A,i4,1x,A,i4)')    'def_his/avg: Opened ',
      &              'existing file from record =',
@@ -1151,17 +1141,12 @@ chf        ierr=nf_create(ncname(1:lstr), nf_64bit_offset, ncid)
 # undef vidPH
 # undef vidPCO2
 # undef vidPCO2air
+# undef vidPARinc
 # undef vidPAR
 #  ifdef SEDIMENT_BIOLOGY
 #   undef vidTsed
 #  endif
 #endif /* BIOLOGY_NPZDOC || BIOLOGY_BEC */
-#ifdef BIOLOGY_BEC__OBSOLETE
-# undef vidPH
-# undef vidPCO2
-# undef vidDPCO2
-# undef vidPAR
-#endif
 
 #undef vidR
 #undef vidO
