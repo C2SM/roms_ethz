@@ -8,7 +8,7 @@
 ! indxU,indxV     3D U- and V-momenta.
 ! indxT,indxS, ..., indxZoo  tracers (temerature, salinity,
 !                 biological tracers.
-! indxO,indeW     omega vertical mass flux and true vertical velocity
+! indxO,indxW     omega vertical mass flux and true vertical velocity
 ! indxR           density anomaly
 !
 ! indxAkv,indxAkt,indxAks  vertical viscosity/diffusivity coeffcients
@@ -51,8 +51,8 @@
       integer indxRichN
       parameter (indxO=indxT+NT
 # if defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC
-      /* Create space for pH, pCO2, pCO2air, and PAR: */
-     &     + 4
+      /* Create space for pH, pCO2, pCO2air, PARinc, and PAR: */
+     &     + 5
 #  ifdef SEDIMENT_BIOLOGY
      &     + NT_sed
 #  endif
@@ -130,7 +130,8 @@
       parameter (indxO2 = indxLDet + 1)
 #   ifdef CARBON 
       integer indxDIC, indxTALK, indxSDetC, indxLDetC, indxCaCO3
-      integer indxPH_rst, indxPCO2_rst, indxPCO2air_rst, indxPAR_rst
+      integer indxPH_rst, indxPCO2_rst, indxPCO2air_rst
+      integer indxPARinc_rst, indxPAR_rst
       parameter (indxDIC = indxO2 + 1)
       parameter (indxTALK = indxDIC + 1)
       parameter (indxSDetC = indxTALK + 1)
@@ -139,7 +140,8 @@
       parameter (indxPH_rst = indxCaCO3 + 1)
       parameter (indxPCO2_rst = indxPH_rst + 1)
       parameter (indxPCO2air_rst = indxPCO2_rst + 1)
-      parameter (indxPAR_rst = indxPCO2air_rst + 1)
+      parameter (indxPARinc_rst = indxPCO2air_rst + 1)
+      parameter (indxPAR_rst = indxPARinc_rst + 1)
 #   endif /* CARBON */
 #  endif /* OXYGEN */
 #  ifdef SEDIMENT_BIOLOGY
@@ -163,7 +165,7 @@
      &   indxAlk,indxDoc,indxSpc,indxSpchl,indxSpcaco3,indxDiatc,indxDiatchl,
      & indxZooc,indxSpfe,indxDiatsi,indxDiatfe,indxDiazc,indxDiazchl,
      & indxDiazfe,indxDon,indxDofe,indxDop,indxPH_rst,
-     & indxPCO2_rst, indxPCO2air_rst, indxPAR_rst
+     & indxPCO2_rst, indxPCO2air_rst, indxPARinc_rst, indxPAR_rst
        parameter ( indxPO4=indxT+ntrc_salt+ntrc_pas+1,
      &           indxNo3 =indxPO4+1, indxSio3=indxPO4+2,
      &           indxNh4 =indxPO4+3, indxFe=indxPO4+4,
@@ -180,7 +182,8 @@
        parameter (indxPH_rst = indxDOP+1) 
        parameter(indxPCO2_rst = indxPH_rst+1,
      &      indxPCO2air_rst = indxPCO2_rst+1,
-     &      indxPAR_rst = indxPCO2air_rst+1)
+     &      indxPARinc_rst = indxPCO2air_rst+1,
+     &      indxPAR_rst = indxPARinc_rst+1)
 # endif /* BIOLOGY_BEC */
 #endif /* SOLVE3D */
 
@@ -226,7 +229,7 @@
       integer max_frc, ncidfrc(max_frc_file), nrst, ncidrst, nrecrst,
      &      nrrec, nrpfrst, ncidclm, nwrt, ncidhis, nrechis, nrpfhis
 #ifdef BIOLOGY_NPZDOC
-     &     , ncidclm2, ncidclm3, ncidclm4
+     &     , ncidclm2, ncidclm3
 #endif
 #ifdef BIOLOGY_BEC
      &     , ncidclm2, ncidclm3, ncidclm4, ntdust, ntiron
@@ -234,7 +237,7 @@
       common /ncvars/       max_frc, ncidfrc, nrst, ncidrst, nrecrst,
      &      nrrec, nrpfrst, ncidclm, nwrt, ncidhis, nrechis, nrpfhis
 #ifdef BIOLOGY_NPZDOC
-     &     , ncidclm2, ncidclm3, ncidclm4
+     &     , ncidclm2, ncidclm3
 #endif
 #ifdef BIOLOGY_BEC
      &     , ncidclm2, ncidclm3, ncidclm4, ntdust, ntiron
@@ -270,8 +273,8 @@
      &        hisRich, hisRichN
 # if defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC
      &      , rstPH, rstPCO2, rstPCO2air, rstPAR
-     &      , hisPH, hisPCO2, hisPCO2air, hisPAR
-     &      , avgPH, avgPCO2, avgPCO2air, avgPAR
+     &      , hisPH, hisPCO2, hisPCO2air, hisPARinc, hisPAR
+     &      , avgPH, avgPCO2, avgPCO2air, avgPARinc, avgPAR
 # endif /* BIOLOGY_NPZDOC || BIOLOGY_BEC */
 #if defined BGC_FLUX_ANALYSIS || defined PHYS_FLUX_ANALYSIS
      &      , rstTstepFA
@@ -285,8 +288,8 @@
      &        hisRich, hisRichN
 # if defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC
      &      , rstPH, rstPCO2, rstPCO2air, rstPAR
-     &      , hisPH, hisPCO2, hisPCO2air, hisPAR
-     &      , avgPH, avgPCO2, avgPCO2air, avgPAR
+     &      , hisPH, hisPCO2, hisPCO2air, hisPARinc, hisPAR
+     &      , avgPH, avgPCO2, avgPCO2air, avgPARinc, avgPAR
 # endif /* BIOLOGY_NPZDOC || BIOLOGY_BEC */
 #if defined BGC_FLUX_ANALYSIS || defined PHYS_FLUX_ANALYSIS
      &      , rstTstepFA
@@ -434,5 +437,5 @@
       character*(max_name_size) aparnam, assname
       common /cncvars/ aparnam, assname
 #endif
-      character*42  vname(4,39+NT-2)
+      character*42  vname(4,40+NT-2)
       common /cncvars/ vname
