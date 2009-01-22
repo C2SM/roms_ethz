@@ -142,22 +142,6 @@
             end do
           end do
 #  endif /* BIOLOGY_NPZDOC || BIOLOGY_BEC */
-#  ifdef BIOLOGY_BEC__OBSOLETE
-          do j=JstrR,JendR
-             do i=IstrR,IendR
-                pH_avg(i,j) = pH_hist(i,j)
-                pCO2surf_avg(i,j) = pCO2surf_hist(i,j)
-                DpCO2_avg(i,j) = DpCO2_hist(i,j)
-             end do
-          end do
-          do k=1,N
-            do j=jstrR,jendR
-               do i=istrR,iendR
-                  PAR_avg_avg(i,j,k) = PAR_avg_hist(i,j,k)
-               end do
-            end do
-          end do
-#  endif /* BIOLOGY_BEC__OBSOLETE */
           if (wrtavg(indxR)) then
             do k=1,N
               do j=jstrR,jendR
@@ -311,23 +295,6 @@
             end do
           end do
 #  endif /* BIOLOGY_NPZDOC || BIOLOGY_BEC */
-#  ifdef BIOLOGY_BEC__OBSOLETE
-          do j=JstrR,JendR
-             do i=IstrR,IendR
-                pH_avg(i,j) = pH_avg(i,j) + pH_hist(i,j)
-                pCO2surf_avg(i,j) = pCO2surf_avg(i,j) + pCO2surf_hist(i,j)
-                DpCO2_avg(i,j) = DpCO2_avg(i,j) + DpCO2_hist(i,j)
-             end do
-          end do
-          do k=1,N
-            do j=jstrR,jendR
-               do i=istrR,iendR
-                  PAR_avg_avg(i,j,k) = PAR_avg_avg(i,j,k) + 
-     &                 PAR_avg_hist(i,j,k)
-               end do
-            end do
-          end do
-#  endif /* BIOLOGY_BEC__OBSOLETE */
           if (wrtavg(indxR)) then
             do k=1,N
               do j=jstrR,jendR
@@ -485,24 +452,6 @@
             end do
           end do
 #  endif /* BIOLOGY_NPZDOC */
-#  ifdef BIOLOGY_BEC__OBSOLETE
-          do j=JstrR,JendR
-             do i=IstrR,IendR
-                pH_avg(i,j) = cff*( pH_avg(i,j) + pH_hist(i,j) )
-                pCO2surf_avg(i,j) = cff*( pCO2surf_avg(i,j) + 
-     &               pCO2surf_hist(i,j) )
-                DpCO2_avg(i,j) = cff*( DpCO2_avg(i,j) + DpCO2_hist(i,j))
-             end do
-          end do
-          do k=1,N
-            do j=jstrR,jendR
-               do i=istrR,iendR
-                  PAR_avg_avg(i,j,k) = cff*( PAR_avg_avg(i,j,k) + 
-     &                 PAR_avg_hist(i,j,k) )
-               end do
-            end do
-          end do
-#  endif /* BIOLOGY_BEC */
           if (wrtavg(indxR)) then
             do k=1,N
               do j=jstrR,jendR

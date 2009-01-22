@@ -46,6 +46,10 @@
       if (mynode.gt.0) call MPI_Recv (blank, 1, MPI_INTEGER,
      &            mynode-1, 1, ocean_grid_comm, status, ierr)
 #endif
+
+!hf initialization needed in case of error during call to def_rst
+      record = 0
+
 !
 ! Create/open restart file; write grid arrays, if so requested,
 ! then set record index within the file..
@@ -222,7 +226,7 @@
      &        ierr, nf_strerror(ierr) MYID
          goto 99                !--> ERROR
       endif
-#  ifdef UNNECESSARY_OUTPUT
+#  ifdef OUTPUT_PCO2AIR_RST
 !
 ! pCO2air:
 !
@@ -233,7 +237,7 @@
      &        ierr, nf_strerror(ierr) MYID
          goto 99                !--> ERROR
       endif
-#  endif /* UNNECESSARY_OUTPUT */
+#  endif /* OUTPUT_PCO2AIR_RST */
 !
 ! PAR:
 !
@@ -244,39 +248,7 @@
      &        ierr, nf_strerror(ierr) MYID
          goto 99                !--> ERROR
       endif
-#  endif /* BIOLOGY_NPZDOC || BIOLOGY_BEC */
-#  ifdef BIOLOGY_BEC__OBSOLETE
-!
-! pCO2:
-!
-      ierr=nf_fwrite (pCO2surf_hist, ncidrst, rstPCO2, record, r2dvar)
-      if (ierr .ne. nf_noerr) then
-         lvar=lenstr(vname(1,indxPCO2_rst))
-         write(stdout,1) vname(1,indxPCO2_rst)(1:lvar), record,
-     &        ierr, nf_strerror(ierr) MYID
-         goto 99                !--> ERROR
-      endif
-!
-! DpCO2:
-!
-      ierr=nf_fwrite (DpCO2_hist, ncidrst, rstDPCO2, record, r2dvar)
-      if (ierr .ne. nf_noerr) then
-         lvar=lenstr(vname(1,indxDPCO2_rst))
-         write(stdout,1) vname(1,indxDPCO2_rst)(1:lvar), record,
-     &        ierr, nf_strerror(ierr) MYID
-         goto 99                !--> ERROR
-      endif
-!
-! PAR:
-!
-      ierr=nf_fwrite (PAR_avg_hist, ncidrst, rstPAR, record, r2dvar)
-      if (ierr .ne. nf_noerr) then
-         lvar=lenstr(vname(1,indxPAR_rst))
-         write(stdout,1) vname(1,indxPAR_rst)(1:lvar), record,
-     &        ierr, nf_strerror(ierr) MYID
-         goto 99                !--> ERROR
-      endif
-#  endif /* BIOLOGY_BEC__OBSOLETE */
+#  endif /* BIOLOGY_BEC || BIOLOGY_NPZDOC */
 
 # ifdef LMD_KPP
 !

@@ -535,22 +535,6 @@ CHF          goto 99                                         !--> ERROR
 # ifdef BIOLOGY_BEC
       ! pH is initialized to 0 in ecosys_init
       call ecosys_init
-         if (abs(parm_sp_kno3 - 0.5) .gt. 1.D-3) then
-             print *, 'get_initial: parm_sp_kNO3: ',
-     &        parm_sp_kno3
-# ifdef MPI
-     &        ,' mynode =', mynode
-# endif
-             stop 'get_init kno3'
-          end if
-          if (abs(parm_sp_kpo4 - 0.0005) .gt. 1.D-4) then
-             print *, 'get_initial: parm_sp_kPO4: ',
-     &        parm_sp_kpo4
-# ifdef MPI
-     &        ,' mynode =', mynode
-# endif
-             stop 'get_init kpo4'
-          end if
 # endif
 # if defined BIOLOGY_BEC || defined BIOLOGY_NPZDOC
       ! pH and PAR can be treated for both BEC and NPZD.
@@ -571,8 +555,6 @@ CHF          goto 99                                         !--> ERROR
      &        'pH field not in init/rst file, initialize to 0'
       endif
 
-!HF# endif /* BIOLOGY_BEC || BIOLOGY_NPZDOC */
-!HF# ifdef BIOLOGY_NPZDOC
       ! pCO2:
       lvar=lenstr(vname(1,indxPCO2_rst))
       ierr=nf_inq_varid (ncid, vname(1,indxPCO2_rst)(1:lvar), varid)
@@ -620,55 +602,7 @@ CHF          goto 99                                         !--> ERROR
          MPI_master_only write(stdout,*) 
      &        'PAR not in init/rst file, initialize to 0'
       endif
-# endif /* BIOLOGY_NPZDOC || BIOLOGY_NPZDOC */
-# ifdef BIOLOGY_BEC__OBSOLETE
-      ! pCO2:
-      lvar=lenstr(vname(1,indxPCO2_rst))
-      ierr=nf_inq_varid (ncid, vname(1,indxPCO2_rst)(1:lvar), varid)
-      if (ierr .eq. nf_noerr) then
-         ierr=nf_fread (pCO2sw(START_2D_ARRAY), ncid,  varid,
-     &                                               record, r2dvar)
-         if (ierr .ne. nf_noerr) then
-            write(stdout,2) vname(1,indxPCO2_rst)(1:lvar), record,
-     &           ininame(1:lstr)
-            goto 99             !--> ERROR
-         endif
-      else
-         MPI_master_only write(stdout,*) 
-     &        'PCO2 not in init/rst file, initialize to 0'
-      endif
-
-      ! DpCO2:
-      lvar=lenstr(vname(1,indxDPCO2_rst))
-      ierr=nf_inq_varid (ncid, vname(1,indxDPCO2_rst)(1:lvar), varid)
-      if (ierr .eq. nf_noerr) then
-         ierr=nf_fread (DpCO2_hist(START_2D_ARRAY), ncid,  varid,
-     &                                               record, r2dvar)
-         if (ierr .ne. nf_noerr) then
-            write(stdout,2) vname(1,indxDPCO2_rst)(1:lvar), record,
-     &           ininame(1:lstr)
-            goto 99             !--> ERROR
-         endif
-      else
-         MPI_master_only write(stdout,*) 
-     &        'Delta PCO2 not in init/rst file, initialize to 0'
-      endif
-      ! Photosynthetically available radiation:
-      lvar=lenstr(vname(1,indxPAR_rst))
-      ierr=nf_inq_varid (ncid, vname(1,indxPAR_rst)(1:lvar), varid)
-      if (ierr .eq. nf_noerr) then
-         ierr=nf_fread (PAR_avg_hist(START_2D_ARRAY,1), ncid,  varid,
-     &                                               record, r2dvar)
-         if (ierr .ne. nf_noerr) then
-            write(stdout,2) vname(1,indxPAR_rst)(1:lvar), record,
-     &           ininame(1:lstr)
-            goto 99             !--> ERROR
-         endif
-      else
-         MPI_master_only write(stdout,*) 
-     &        'PAR not in init/rst file, initialize to 0'
-      endif
-# endif /* BIOLOGY_BEC__OBSOLETE */
+# endif /* BIOLOGY_BEC || BIOLOGY_NPZDOC */
 # ifdef LMD_KPP
       lvar=lenstr(vname(1,indxHbl))
       ierr=nf_inq_varid (ncid, vname(1,indxHbl)(1:lvar), varid)
@@ -689,31 +623,13 @@ CHF          goto 99                                         !--> ERROR
 
 # endif
 #endif
-  1   format(/1x,'### ERROR: get_initial :: Cannot find variable ''',
+  1   format(/1x,'### NOTE: get_initial :: Cannot find variable ''',
      &               A,'''' /12x, 'in netCDF file ''', A, ''''/12x,A)
   2   format(/1x,'### ERROR: get_initial :: Cannot read variable ''',
      &             A,'''' /12x, 'from netCDF file ''', A, ''''/12x,A)
 !
 !  Close input NetCDF file.
 !
-#ifdef BIOLOGY_BEC 
-         if (abs(parm_sp_kno3 - 0.5) .gt. 1.D-3) then
-             print *, 'get_initial: parm_sp_kNO3: ',
-     &        parm_sp_kno3
-#ifdef MPI
-     &        ,' mynode =', mynode
-#endif
-             stop 'end get_init kno3'
-          end if
-          if (abs(parm_sp_kpo4 - 0.0005) .gt. 1.D-4) then
-             print *, 'get_initial: parm_sp_kPO4: ',
-     &        parm_sp_kpo4
-#ifdef MPI
-     &        ,' mynode =', mynode
-#endif
-             stop 'end get_init kpo4'
-          end if
-#endif /* BIOLOGY_BEC */
 
       ierr=nf_close(ncid)
       return
