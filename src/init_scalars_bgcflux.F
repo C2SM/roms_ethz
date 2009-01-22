@@ -55,8 +55,9 @@ C$OMP END PARALLEL
 ! Initialize netCDF files IDs to closed status.
 !
       ncid_bgc_flux_his = -1
+#ifdef AVERAGES
       ncid_bgc_flux_avg = -1
-
+#endif
 !
 ! Define names of variables in NetCDF output files.
 ! Inner dimension is for variable type and outer is for variable

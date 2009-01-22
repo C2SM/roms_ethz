@@ -54,7 +54,9 @@ C$OMP END PARALLEL
 ! Initialize netCDF files IDs to closed status.
 !
       ncid_phys_flux_his = -1
+#ifdef AVERAGES
       ncid_phys_flux_avg = -1
+#endif
 
 !
 ! Define names of variables in NetCDF output files.
