@@ -1657,6 +1657,224 @@ C$OMP END PARALLEL
 #   endif /* CARBON */
 #  endif /* OXYGEN */
 # endif /* BIOLOGY_NPZDOC */
+# ifdef BIOLOGY_BEC
+      vname_phys(1,indxTopFlux+2)=
+     &     'TopFlux_PO4                            '
+      vname_phys(2,indxTopFlux+2)=
+     &     'Top diffusive flux of PO4             '
+      vname_phys(3,indxTopFlux+2)=
+     &     'mmol P s-1                                 '
+      vname_phys(4,indxTopFlux+2)=
+     &     'TopFlux_PO4, scalar, series            '
+
+      vname_phys(1,indxTopFlux+3)=
+     &     'TopFlux_NO3                            '
+      vname_phys(2,indxTopFlux+3)=
+     &     'Top diffusive flux of NO3             '
+      vname_phys(3,indxTopFlux+3)=
+     &     'mmol N s-1                                 '
+      vname_phys(4,indxTopFlux+3)=
+     &     'TopFlux_NO3, scalar, series            '
+
+      vname_phys(1,indxTopFlux+4)=
+     &     'TopFlux_SiO3                           '
+      vname_phys(2,indxTopFlux+4)=
+     &     'Top diffusive flux of SiO3            '
+      vname_phys(3,indxTopFlux+4)=
+     &     'mmol Si s-1                                '
+      vname_phys(4,indxTopFlux+4)=
+     &     'TopFlux_SiO3, scalar, series           '
+
+      vname_phys(1,indxTopFlux+5)=
+     &     'TopFlux_NH4                            '
+      vname_phys(2,indxTopFlux+5)=
+     &     'Top diffusive flux of NH4     '
+      vname_phys(3,indxTopFlux+5)=
+     &     'mmol N s-1                                 '
+      vname_phys(4,indxTopFlux+5)=
+     &     'TopFlux_NH4, scalar, series            '
+
+      vname_phys(1,indxTopFlux+6)=
+     &     'TopFlux_Fe                            '
+      vname_phys(2,indxTopFlux+6)=
+     &     'Top diffusive flux of Fe     '
+      vname_phys(3,indxTopFlux+6)=
+     &     'mmol Fe s-1                               '
+      vname_phys(4,indxTopFlux+6)=
+     &     'TopFlux_Fe, scalar, series            '
+
+      vname_phys(1,indxTopFlux+7)=
+     &     'TopFlux_O2                            '
+      vname_phys(2,indxTopFlux+7)=
+     &     'Top diffusive flux of O2     '
+      vname_phys(3,indxTopFlux+7)=
+     &     'mmol O2 s-1                               '
+      vname_phys(4,indxTopFlux+7)=
+     &     'TopFlux_O2, scalar, series            '
+
+      vname_phys(1,indxTopFlux+8)=
+     &     'TopFlux_DIC                            '
+      vname_phys(2,indxTopFlux+8)=
+     &     'Top diffusive flux of DIC     '
+      vname_phys(3,indxTopFlux+8)=
+     &     'mmol C s-1                                 '
+      vname_phys(4,indxTopFlux+8)=
+     &     'TopFlux_DIC, scalar, series            '
+
+      vname_phys(1,indxTopFlux+9)=
+     &     'TopFlux_Alk                            '
+      vname_phys(2,indxTopFlux+9)=
+     &     'Top diffusive flux of Alk     '
+      vname_phys(3,indxTopFlux+9)=
+     &     'mmol s-1                                   '
+      vname_phys(4,indxTopFlux+9)=
+     &     'TopFlux_Alk, scalar, series            '
+
+      vname_phys(1,indxTopFlux+10)=
+     &     'TopFlux_DOC                            '
+      vname_phys(2,indxTopFlux+10)=
+     &     'Top diffusive flux of DOC     '
+      vname_phys(3,indxTopFlux+10)=
+     &     'mmol C s-1                                 '
+      vname_phys(4,indxTopFlux+10)=
+     &     'TopFlux_DOC, scalar, series            '
+
+      vname_phys(1,indxTopFlux+11)=
+     &     'TopFlux_SPC                            '
+      vname_phys(2,indxTopFlux+11)=
+     &     'Top diffusive flux of SPC     '
+      vname_phys(3,indxTopFlux+11)=
+     &     'mmol C s-1                                 '
+      vname_phys(4,indxTopFlux+11)=
+     &     'TopFlux_SPC, scalar, series            '
+
+      vname_phys(1,indxTopFlux+12)=
+     &     'TopFlux_SPChl                          '
+      vname_phys(2,indxTopFlux+12)=
+     &     'Top diffusive flux of SPChl   '
+      vname_phys(3,indxTopFlux+12)=
+     &     'mg Chl-a s-1                               '
+      vname_phys(4,indxTopFlux+12)=
+     &     'TopFlux_SPChl, scalar, series          '
+
+      vname_phys(1,indxTopFlux+13)=
+     &     'TopFlux_SPCaCO3                        '
+      vname_phys(2,indxTopFlux+13)=
+     &     'Top diffusive flux of SPCaCO3 '
+      vname_phys(3,indxTopFlux+13)=
+     &     'mmol CaCO3 s-1                             '
+      vname_phys(4,indxTopFlux+13)=
+     &     'TopFlux_SPCaCO3, scalar, series        '
+
+      vname_phys(1,indxTopFlux+14)=
+     &     'TopFlux_DiatC                          '
+      vname_phys(2,indxTopFlux+14)=
+     &     'Top diffusive flux of DiatC   '
+      vname_phys(3,indxTopFlux+14)=
+     &     'mmol C s-1                                 '
+      vname_phys(4,indxTopFlux+14)=
+     &     'TopFlux_DiatC, scalar, series          '
+
+      vname_phys(1,indxTopFlux+15)=
+     &     'TopFlux_DiatChl                        '
+      vname_phys(2,indxTopFlux+15)=
+     &     'Top diffusive flux of DiatChl '
+      vname_phys(3,indxTopFlux+15)=
+     &     'mg Chl-a s-1                               '
+      vname_phys(4,indxTopFlux+15)=
+     &     'TopFlux_DiatChl, scalar, series        '
+
+      vname_phys(1,indxTopFlux+16)=
+     &     'TopFlux_ZooC                           '
+      vname_phys(2,indxTopFlux+16)=
+     &     'Top diffusive flux of ZooC    '
+      vname_phys(3,indxTopFlux+16)=
+     &     'mmol C s-1                                 '
+      vname_phys(4,indxTopFlux+16)=
+     &     'TopFlux_ZooC, scalar, series           '
+
+      vname_phys(1,indxTopFlux+17)=
+     &     'TopFlux_SPFe                           '
+      vname_phys(2,indxTopFlux+17)=
+     &     'Top diffusive flux of SPFe    '
+      vname_phys(3,indxTopFlux+17)=
+     &     'mmol Fe s-1                                '
+      vname_phys(4,indxTopFlux+17)=
+     &     'TopFlux_SPFe, scalar, series           '
+
+      vname_phys(1,indxTopFlux+18)=
+     &     'TopFlux_DiatSi                         '
+      vname_phys(2,indxTopFlux+18)=
+     &     'Top diffusive flux of DiatSi  '
+      vname_phys(3,indxTopFlux+18)=
+     &     'mmol Si s-1                                '
+      vname_phys(4,indxTopFlux+18)=
+     &     'TopFlux_DiatSi, scalar, series         '
+
+      vname_phys(1,indxTopFlux+19)=
+     &     'TopFlux_DiatFe                         '
+      vname_phys(2,indxTopFlux+19)=
+     &     'Top diffusive flux of DiatFe  '
+      vname_phys(3,indxTopFlux+19)=
+     &     'mmol Fe s-1                                '
+      vname_phys(4,indxTopFlux+19)=
+     &     'TopFlux_DiatFe, scalar, series         '
+
+      vname_phys(1,indxTopFlux+20)=
+     &     'TopFlux_DiazC                          '
+      vname_phys(2,indxTopFlux+20)=
+     &     'Top diffusive flux of DiazC   '
+      vname_phys(3,indxTopFlux+20)=
+     &     'mmol C s-1                                 '
+      vname_phys(4,indxTopFlux+20)=
+     &     'TopFlux_DiazC, scalar, series          '
+
+      vname_phys(1,indxTopFlux+21)=
+     &     'TopFlux_DiazChl                        '
+      vname_phys(2,indxTopFlux+21)=
+     &     'Top diffusive flux of DiazChl '
+      vname_phys(3,indxTopFlux+21)=
+     &     'mg Chl-a s-1                               '
+      vname_phys(4,indxTopFlux+21)=
+     &     'TopFlux_DiazChl, scalar, series        '
+#  ifdef PHYS_FLUX_ALL_COMPS
+      vname_phys(1,indxTopFlux+22)=
+     &     'TopFlux_DiazFe                         '
+      vname_phys(2,indxTopFlux+22)=
+     &     'Top diffusive flux of DiazFe  '
+      vname_phys(3,indxTopFlux+22)=
+     &     'mmol Fe s-1                                '
+      vname_phys(4,indxTopFlux+22)=
+     &     'TopFlux_DiazFe, scalar, series         '
+
+      vname_phys(1,indxTopFlux+23)=
+     &     'TopFlux_DON                            '
+      vname_phys(2,indxTopFlux+23)=
+     &     'Top diffusive flux of DON     '
+      vname_phys(3,indxTopFlux+23)=
+     &     'mmol N s-1                                 '
+      vname_phys(4,indxTopFlux+23)=
+     &     'TopFlux_DON, scalar, series            '
+
+      vname_phys(1,indxTopFlux+24)=
+     &     'TopFlux_DOFe                           '
+      vname_phys(2,indxTopFlux+24)=
+     &     'Top diffusive flux of DOFe    '
+      vname_phys(3,indxTopFlux+24)=
+     &     'mmol Fe s-1                                '
+      vname_phys(4,indxTopFlux+24)=
+     &     'TopFlux_DOFe, scalar, series           '
+
+      vname_phys(1,indxTopFlux+25)=
+     &     'TopFlux_DOP                            '
+      vname_phys(2,indxTopFlux+25)=
+     &     'Top diffusive flux of DOP     '
+      vname_phys(3,indxTopFlux+25)=
+     &     'mmol P s-1                                 '
+      vname_phys(4,indxTopFlux+25)=
+     &     'TopFlux_DOP, scalar, series            '
+#  endif /* PHYS_FLUX_ALL_COMPS */
+# endif /* BIOLOGY_BEC */
 ! bottom fluxes
       vname_phys(1,indxBottomFlux)=
      &     'BottomFlux_Temp                            '
@@ -1799,6 +2017,225 @@ C$OMP END PARALLEL
 #   endif /* CARBON */
 #  endif /* OXYGEN */
 # endif /* BIOLOGY_NPZDOC */
+# ifdef BIOLOGY_BEC
+      vname_phys(1,indxBottomFlux+2)=
+     &     'BottomFlux_PO4                            '
+      vname_phys(2,indxBottomFlux+2)=
+     &     'Bottom diffusive flux of PO4             '
+      vname_phys(3,indxBottomFlux+2)=
+     &     'mmol P s-1                                 '
+      vname_phys(4,indxBottomFlux+2)=
+     &     'BottomFlux_PO4, scalar, series            '
+
+      vname_phys(1,indxBottomFlux+3)=
+     &     'BottomFlux_NO3                            '
+      vname_phys(2,indxBottomFlux+3)=
+     &     'Bottom diffusive flux of NO3             '
+      vname_phys(3,indxBottomFlux+3)=
+     &     'mmol N s-1                                 '
+      vname_phys(4,indxBottomFlux+3)=
+     &     'BottomFlux_NO3, scalar, series            '
+
+      vname_phys(1,indxBottomFlux+4)=
+     &     'BottomFlux_SiO3                           '
+      vname_phys(2,indxBottomFlux+4)=
+     &     'Bottom diffusive flux of SiO3            '
+      vname_phys(3,indxBottomFlux+4)=
+     &     'mmol Si s-1                                '
+      vname_phys(4,indxBottomFlux+4)=
+     &     'BottomFlux_SiO3, scalar, series           '
+
+      vname_phys(1,indxBottomFlux+5)=
+     &     'BottomFlux_NH4                            '
+      vname_phys(2,indxBottomFlux+5)=
+     &     'Bottom diffusive flux of NH4     '
+      vname_phys(3,indxBottomFlux+5)=
+     &     'mmol N s-1                                 '
+      vname_phys(4,indxBottomFlux+5)=
+     &     'BottomFlux_NH4, scalar, series            '
+
+      vname_phys(1,indxBottomFlux+6)=
+     &     'BottomFlux_Fe                            '
+      vname_phys(2,indxBottomFlux+6)=
+     &     'Bottom diffusive flux of Fe     '
+      vname_phys(3,indxBottomFlux+6)=
+     &     'mmol Fe s-1                               '
+      vname_phys(4,indxBottomFlux+6)=
+     &     'BottomFlux_Fe, scalar, series            '
+
+      vname_phys(1,indxBottomFlux+7)=
+     &     'BottomFlux_O2                            '
+      vname_phys(2,indxBottomFlux+7)=
+     &     'Bottom diffusive flux of O2     '
+      vname_phys(3,indxBottomFlux+7)=
+     &     'mmol O2 s-1                               '
+      vname_phys(4,indxBottomFlux+7)=
+     &     'BottomFlux_O2, scalar, series            '
+
+      vname_phys(1,indxBottomFlux+8)=
+     &     'BottomFlux_DIC                            '
+      vname_phys(2,indxBottomFlux+8)=
+     &     'Bottom diffusive flux of DIC     '
+      vname_phys(3,indxBottomFlux+8)=
+     &     'mmol C s-1                                 '
+      vname_phys(4,indxBottomFlux+8)=
+     &     'BottomFlux_DIC, scalar, series            '
+
+      vname_phys(1,indxBottomFlux+9)=
+     &     'BottomFlux_Alk                            '
+      vname_phys(2,indxBottomFlux+9)=
+     &     'Bottom diffusive flux of Alk     '
+      vname_phys(3,indxBottomFlux+9)=
+     &     'mmol s-1                                   '
+      vname_phys(4,indxBottomFlux+9)=
+     &     'BottomFlux_Alk, scalar, series            '
+
+      vname_phys(1,indxBottomFlux+10)=
+     &     'BottomFlux_DOC                            '
+      vname_phys(2,indxBottomFlux+10)=
+     &     'Bottom diffusive flux of DOC     '
+      vname_phys(3,indxBottomFlux+10)=
+     &     'mmol C s-1                                 '
+      vname_phys(4,indxBottomFlux+10)=
+     &     'BottomFlux_DOC, scalar, series            '
+
+      vname_phys(1,indxBottomFlux+11)=
+     &     'BottomFlux_SPC                            '
+      vname_phys(2,indxBottomFlux+11)=
+     &     'Bottom diffusive flux of SPC     '
+      vname_phys(3,indxBottomFlux+11)=
+     &     'mmol C s-1                                 '
+      vname_phys(4,indxBottomFlux+11)=
+     &     'BottomFlux_SPC, scalar, series            '
+
+      vname_phys(1,indxBottomFlux+12)=
+     &     'BottomFlux_SPChl                          '
+      vname_phys(2,indxBottomFlux+12)=
+     &     'Bottom diffusive flux of SPChl   '
+      vname_phys(3,indxBottomFlux+12)=
+     &     'mg Chl-a s-1                               '
+      vname_phys(4,indxBottomFlux+12)=
+     &     'BottomFlux_SPChl, scalar, series          '
+
+      vname_phys(1,indxBottomFlux+13)=
+     &     'BottomFlux_SPCaCO3                        '
+      vname_phys(2,indxBottomFlux+13)=
+     &     'Bottom diffusive flux of SPCaCO3 '
+      vname_phys(3,indxBottomFlux+13)=
+     &     'mmol CaCO3 s-1                             '
+      vname_phys(4,indxBottomFlux+13)=
+     &     'BottomFlux_SPCaCO3, scalar, series        '
+
+      vname_phys(1,indxBottomFlux+14)=
+     &     'BottomFlux_DiatC                          '
+      vname_phys(2,indxBottomFlux+14)=
+     &     'Bottom diffusive flux of DiatC   '
+      vname_phys(3,indxBottomFlux+14)=
+     &     'mmol C s-1                                 '
+      vname_phys(4,indxBottomFlux+14)=
+     &     'BottomFlux_DiatC, scalar, series          '
+
+      vname_phys(1,indxBottomFlux+15)=
+     &     'BottomFlux_DiatChl                        '
+      vname_phys(2,indxBottomFlux+15)=
+     &     'Bottom diffusive flux of DiatChl '
+      vname_phys(3,indxBottomFlux+15)=
+     &     'mg Chl-a s-1                               '
+      vname_phys(4,indxBottomFlux+15)=
+     &     'BottomFlux_DiatChl, scalar, series        '
+
+      vname_phys(1,indxBottomFlux+16)=
+     &     'BottomFlux_ZooC                           '
+      vname_phys(2,indxBottomFlux+16)=
+     &     'Bottom diffusive flux of ZooC    '
+      vname_phys(3,indxBottomFlux+16)=
+     &     'mmol C s-1                                 '
+      vname_phys(4,indxBottomFlux+16)=
+     &     'BottomFlux_ZooC, scalar, series           '
+
+      vname_phys(1,indxBottomFlux+17)=
+     &     'BottomFlux_SPFe                           '
+      vname_phys(2,indxBottomFlux+17)=
+     &     'Bottom diffusive flux of SPFe    '
+      vname_phys(3,indxBottomFlux+17)=
+     &     'mmol Fe s-1                                '
+      vname_phys(4,indxBottomFlux+17)=
+     &     'BottomFlux_SPFe, scalar, series           '
+
+      vname_phys(1,indxBottomFlux+18)=
+     &     'BottomFlux_DiatSi                         '
+      vname_phys(2,indxBottomFlux+18)=
+     &     'Bottom diffusive flux of DiatSi  '
+      vname_phys(3,indxBottomFlux+18)=
+     &     'mmol Si s-1                                '
+      vname_phys(4,indxBottomFlux+18)=
+     &     'BottomFlux_DiatSi, scalar, series         '
+
+      vname_phys(1,indxBottomFlux+19)=
+     &     'BottomFlux_DiatFe                         '
+      vname_phys(2,indxBottomFlux+19)=
+     &     'Bottom diffusive flux of DiatFe  '
+      vname_phys(3,indxBottomFlux+19)=
+     &     'mmol Fe s-1                                '
+      vname_phys(4,indxBottomFlux+19)=
+     &     'BottomFlux_DiatFe, scalar, series         '
+
+      vname_phys(1,indxBottomFlux+20)=
+     &     'BottomFlux_DiazC                          '
+      vname_phys(2,indxBottomFlux+20)=
+     &     'Bottom diffusive flux of DiazC   '
+      vname_phys(3,indxBottomFlux+20)=
+     &     'mmol C s-1                                 '
+      vname_phys(4,indxBottomFlux+20)=
+     &     'BottomFlux_DiazC, scalar, series          '
+
+      vname_phys(1,indxBottomFlux+21)=
+     &     'BottomFlux_DiazChl                        '
+      vname_phys(2,indxBottomFlux+21)=
+     &     'Bottom diffusive flux of DiazChl '
+      vname_phys(3,indxBottomFlux+21)=
+     &     'mg Chl-a s-1                               '
+      vname_phys(4,indxBottomFlux+21)=
+     &     'BottomFlux_DiazChl, scalar, series        '
+#  ifdef PHYS_FLUX_ALL_COMPS
+      vname_phys(1,indxBottomFlux+22)=
+     &     'BottomFlux_DiazFe                         '
+      vname_phys(2,indxBottomFlux+22)=
+     &     'Bottom diffusive flux of DiazFe  '
+      vname_phys(3,indxBottomFlux+22)=
+     &     'mmol Fe s-1                                '
+      vname_phys(4,indxBottomFlux+22)=
+     &     'BottomFlux_DiazFe, scalar, series         '
+
+      vname_phys(1,indxBottomFlux+23)=
+     &     'BottomFlux_DON                            '
+      vname_phys(2,indxBottomFlux+23)=
+     &     'Bottom diffusive flux of DON     '
+      vname_phys(3,indxBottomFlux+23)=
+     &     'mmol N s-1                                 '
+      vname_phys(4,indxBottomFlux+23)=
+     &     'BottomFlux_DON, scalar, series            '
+
+      vname_phys(1,indxBottomFlux+24)=
+     &     'BottomFlux_DOFe                           '
+      vname_phys(2,indxBottomFlux+24)=
+     &     'Bottom diffusive flux of DOFe    '
+      vname_phys(3,indxBottomFlux+24)=
+     &     'mmol Fe s-1                                '
+      vname_phys(4,indxBottomFlux+24)=
+     &     'BottomFlux_DOFe, scalar, series           '
+
+      vname_phys(1,indxBottomFlux+25)=
+     &     'BottomFlux_DOP                            '
+      vname_phys(2,indxBottomFlux+25)=
+     &     'Bottom diffusive flux of DOP     '
+      vname_phys(3,indxBottomFlux+25)=
+     &     'mmol P s-1                                 '
+      vname_phys(4,indxBottomFlux+25)=
+     &     'BottomFlux_DOP, scalar, series            '
+#  endif /* PHYS_FLUX_ALL_COMPS */
+# endif /* BIOLOGY_BEC */
+
 ! horizontal mixing fluxes in xi-direction
       vname_phys(1,indxHorXMixFlux)=
      &     'HorXMixFlux_Temp                           '
@@ -1941,6 +2378,224 @@ C$OMP END PARALLEL
 #   endif /* CARBON */
 #  endif /* OXYGEN */
 # endif /* BIOLOGY_NPZDOC */
+# ifdef BIOLOGY_BEC
+      vname_phys(1,indxHorXMixFlux+2)=
+     &     'HorXMixFlux_PO4                            '
+      vname_phys(2,indxHorXMixFlux+2)=
+     &     'Horizontal (xi) mixing flux of PO4             '
+      vname_phys(3,indxHorXMixFlux+2)=
+     &     'mmol P s-1                                 '
+      vname_phys(4,indxHorXMixFlux+2)=
+     &     'HorXMixFlux_PO4, scalar, series            '
+
+      vname_phys(1,indxHorXMixFlux+3)=
+     &     'HorXMixFlux_NO3                            '
+      vname_phys(2,indxHorXMixFlux+3)=
+     &     'Horizontal (xi) mixing flux of NO3             '
+      vname_phys(3,indxHorXMixFlux+3)=
+     &     'mmol N s-1                                 '
+      vname_phys(4,indxHorXMixFlux+3)=
+     &     'HorXMixFlux_NO3, scalar, series            '
+
+      vname_phys(1,indxHorXMixFlux+4)=
+     &     'HorXMixFlux_SiO3                           '
+      vname_phys(2,indxHorXMixFlux+4)=
+     &     'Horizontal (xi) mixing flux of SiO3            '
+      vname_phys(3,indxHorXMixFlux+4)=
+     &     'mmol Si s-1                                '
+      vname_phys(4,indxHorXMixFlux+4)=
+     &     'HorXMixFlux_SiO3, scalar, series           '
+
+      vname_phys(1,indxHorXMixFlux+5)=
+     &     'HorXMixFlux_NH4                            '
+      vname_phys(2,indxHorXMixFlux+5)=
+     &     'Horizontal (xi) mixing flux of NH4     '
+      vname_phys(3,indxHorXMixFlux+5)=
+     &     'mmol N s-1                                 '
+      vname_phys(4,indxHorXMixFlux+5)=
+     &     'HorXMixFlux_NH4, scalar, series            '
+
+      vname_phys(1,indxHorXMixFlux+6)=
+     &     'HorXMixFlux_Fe                            '
+      vname_phys(2,indxHorXMixFlux+6)=
+     &     'Horizontal (xi) mixing flux of Fe     '
+      vname_phys(3,indxHorXMixFlux+6)=
+     &     'mmol Fe s-1                               '
+      vname_phys(4,indxHorXMixFlux+6)=
+     &     'HorXMixFlux_Fe, scalar, series            '
+
+      vname_phys(1,indxHorXMixFlux+7)=
+     &     'HorXMixFlux_O2                            '
+      vname_phys(2,indxHorXMixFlux+7)=
+     &     'Horizontal (xi) mixing flux of O2     '
+      vname_phys(3,indxHorXMixFlux+7)=
+     &     'mmol O2 s-1                               '
+      vname_phys(4,indxHorXMixFlux+7)=
+     &     'HorXMixFlux_O2, scalar, series            '
+
+      vname_phys(1,indxHorXMixFlux+8)=
+     &     'HorXMixFlux_DIC                            '
+      vname_phys(2,indxHorXMixFlux+8)=
+     &     'Horizontal (xi) mixing flux of DIC     '
+      vname_phys(3,indxHorXMixFlux+8)=
+     &     'mmol C s-1                                 '
+      vname_phys(4,indxHorXMixFlux+8)=
+     &     'HorXMixFlux_DIC, scalar, series            '
+
+      vname_phys(1,indxHorXMixFlux+9)=
+     &     'HorXMixFlux_Alk                            '
+      vname_phys(2,indxHorXMixFlux+9)=
+     &     'Horizontal (xi) mixing flux of Alk     '
+      vname_phys(3,indxHorXMixFlux+9)=
+     &     'mmol s-1                                   '
+      vname_phys(4,indxHorXMixFlux+9)=
+     &     'HorXMixFlux_Alk, scalar, series            '
+
+      vname_phys(1,indxHorXMixFlux+10)=
+     &     'HorXMixFlux_DOC                            '
+      vname_phys(2,indxHorXMixFlux+10)=
+     &     'Horizontal (xi) mixing flux of DOC     '
+      vname_phys(3,indxHorXMixFlux+10)=
+     &     'mmol C s-1                                 '
+      vname_phys(4,indxHorXMixFlux+10)=
+     &     'HorXMixFlux_DOC, scalar, series            '
+
+      vname_phys(1,indxHorXMixFlux+11)=
+     &     'HorXMixFlux_SPC                            '
+      vname_phys(2,indxHorXMixFlux+11)=
+     &     'Horizontal (xi) mixing flux of SPC     '
+      vname_phys(3,indxHorXMixFlux+11)=
+     &     'mmol C s-1                                 '
+      vname_phys(4,indxHorXMixFlux+11)=
+     &     'HorXMixFlux_SPC, scalar, series            '
+
+      vname_phys(1,indxHorXMixFlux+12)=
+     &     'HorXMixFlux_SPChl                          '
+      vname_phys(2,indxHorXMixFlux+12)=
+     &     'Horizontal (xi) mixing flux of SPChl   '
+      vname_phys(3,indxHorXMixFlux+12)=
+     &     'mg Chl-a s-1                               '
+      vname_phys(4,indxHorXMixFlux+12)=
+     &     'HorXMixFlux_SPChl, scalar, series          '
+
+      vname_phys(1,indxHorXMixFlux+13)=
+     &     'HorXMixFlux_SPCaCO3                        '
+      vname_phys(2,indxHorXMixFlux+13)=
+     &     'Horizontal (xi) mixing flux of SPCaCO3 '
+      vname_phys(3,indxHorXMixFlux+13)=
+     &     'mmol CaCO3 s-1                             '
+      vname_phys(4,indxHorXMixFlux+13)=
+     &     'HorXMixFlux_SPCaCO3, scalar, series        '
+
+      vname_phys(1,indxHorXMixFlux+14)=
+     &     'HorXMixFlux_DiatC                          '
+      vname_phys(2,indxHorXMixFlux+14)=
+     &     'Horizontal (xi) mixing flux of DiatC   '
+      vname_phys(3,indxHorXMixFlux+14)=
+     &     'mmol C s-1                                 '
+      vname_phys(4,indxHorXMixFlux+14)=
+     &     'HorXMixFlux_DiatC, scalar, series          '
+
+      vname_phys(1,indxHorXMixFlux+15)=
+     &     'HorXMixFlux_DiatChl                        '
+      vname_phys(2,indxHorXMixFlux+15)=
+     &     'Horizontal (xi) mixing flux of DiatChl '
+      vname_phys(3,indxHorXMixFlux+15)=
+     &     'mg Chl-a s-1                               '
+      vname_phys(4,indxHorXMixFlux+15)=
+     &     'HorXMixFlux_DiatChl, scalar, series        '
+
+      vname_phys(1,indxHorXMixFlux+16)=
+     &     'HorXMixFlux_ZooC                           '
+      vname_phys(2,indxHorXMixFlux+16)=
+     &     'Horizontal (xi) mixing flux of ZooC    '
+      vname_phys(3,indxHorXMixFlux+16)=
+     &     'mmol C s-1                                 '
+      vname_phys(4,indxHorXMixFlux+16)=
+     &     'HorXMixFlux_ZooC, scalar, series           '
+
+      vname_phys(1,indxHorXMixFlux+17)=
+     &     'HorXMixFlux_SPFe                           '
+      vname_phys(2,indxHorXMixFlux+17)=
+     &     'Horizontal (xi) mixing flux of SPFe    '
+      vname_phys(3,indxHorXMixFlux+17)=
+     &     'mmol Fe s-1                                '
+      vname_phys(4,indxHorXMixFlux+17)=
+     &     'HorXMixFlux_SPFe, scalar, series           '
+
+      vname_phys(1,indxHorXMixFlux+18)=
+     &     'HorXMixFlux_DiatSi                         '
+      vname_phys(2,indxHorXMixFlux+18)=
+     &     'Horizontal (xi) mixing flux of DiatSi  '
+      vname_phys(3,indxHorXMixFlux+18)=
+     &     'mmol Si s-1                                '
+      vname_phys(4,indxHorXMixFlux+18)=
+     &     'HorXMixFlux_DiatSi, scalar, series         '
+
+      vname_phys(1,indxHorXMixFlux+19)=
+     &     'HorXMixFlux_DiatFe                         '
+      vname_phys(2,indxHorXMixFlux+19)=
+     &     'Horizontal (xi) mixing flux of DiatFe  '
+      vname_phys(3,indxHorXMixFlux+19)=
+     &     'mmol Fe s-1                                '
+      vname_phys(4,indxHorXMixFlux+19)=
+     &     'HorXMixFlux_DiatFe, scalar, series         '
+
+      vname_phys(1,indxHorXMixFlux+20)=
+     &     'HorXMixFlux_DiazC                          '
+      vname_phys(2,indxHorXMixFlux+20)=
+     &     'Horizontal (xi) mixing flux of DiazC   '
+      vname_phys(3,indxHorXMixFlux+20)=
+     &     'mmol C s-1                                 '
+      vname_phys(4,indxHorXMixFlux+20)=
+     &     'HorXMixFlux_DiazC, scalar, series          '
+
+      vname_phys(1,indxHorXMixFlux+21)=
+     &     'HorXMixFlux_DiazChl                        '
+      vname_phys(2,indxHorXMixFlux+21)=
+     &     'Horizontal (xi) mixing flux of DiazChl '
+      vname_phys(3,indxHorXMixFlux+21)=
+     &     'mg Chl-a s-1                               '
+      vname_phys(4,indxHorXMixFlux+21)=
+     &     'HorXMixFlux_DiazChl, scalar, series        '
+#  ifdef PHYS_FLUX_ALL_COMPS
+      vname_phys(1,indxHorXMixFlux+22)=
+     &     'HorXMixFlux_DiazFe                         '
+      vname_phys(2,indxHorXMixFlux+22)=
+     &     'Horizontal (xi) mixing flux of DiazFe  '
+      vname_phys(3,indxHorXMixFlux+22)=
+     &     'mmol Fe s-1                                '
+      vname_phys(4,indxHorXMixFlux+22)=
+     &     'HorXMixFlux_DiazFe, scalar, series         '
+
+      vname_phys(1,indxHorXMixFlux+23)=
+     &     'HorXMixFlux_DON                            '
+      vname_phys(2,indxHorXMixFlux+23)=
+     &     'Horizontal (xi) mixing flux of DON     '
+      vname_phys(3,indxHorXMixFlux+23)=
+     &     'mmol N s-1                                 '
+      vname_phys(4,indxHorXMixFlux+23)=
+     &     'HorXMixFlux_DON, scalar, series            '
+
+      vname_phys(1,indxHorXMixFlux+24)=
+     &     'HorXMixFlux_DOFe                           '
+      vname_phys(2,indxHorXMixFlux+24)=
+     &     'Horizontal (xi) mixing flux of DOFe    '
+      vname_phys(3,indxHorXMixFlux+24)=
+     &     'mmol Fe s-1                                '
+      vname_phys(4,indxHorXMixFlux+24)=
+     &     'HorXMixFlux_DOFe, scalar, series           '
+
+      vname_phys(1,indxHorXMixFlux+25)=
+     &     'HorXMixFlux_DOP                            '
+      vname_phys(2,indxHorXMixFlux+25)=
+     &     'Horizontal (xi) mixing flux of DOP     '
+      vname_phys(3,indxHorXMixFlux+25)=
+     &     'mmol P s-1                                 '
+      vname_phys(4,indxHorXMixFlux+25)=
+     &     'HorXMixFlux_DOP, scalar, series            '
+#  endif /* PHYS_FLUX_ALL_COMPS */
+# endif /* BIOLOGY_BEC */
 
 ! horizontal mixing fluxes in eta-direction
       vname_phys(1,indxHorYMixFlux)=
@@ -2084,6 +2739,224 @@ C$OMP END PARALLEL
 #   endif /* CARBON */
 #  endif /* OXYGEN */
 # endif /* BIOLOGY_NPZDOC */
+# ifdef BIOLOGY_BEC
+      vname_phys(1,indxHorYMixFlux+2)=
+     &     'HorYMixFlux_PO4                            '
+      vname_phys(2,indxHorYMixFlux+2)=
+     &     'Horizontal (eta) mixing flux of PO4             '
+      vname_phys(3,indxHorYMixFlux+2)=
+     &     'mmol P s-1                                 '
+      vname_phys(4,indxHorYMixFlux+2)=
+     &     'HorYMixFlux_PO4, scalar, series            '
+
+      vname_phys(1,indxHorYMixFlux+3)=
+     &     'HorYMixFlux_NO3                            '
+      vname_phys(2,indxHorYMixFlux+3)=
+     &     'Horizontal (eta) mixing flux of NO3             '
+      vname_phys(3,indxHorYMixFlux+3)=
+     &     'mmol N s-1                                 '
+      vname_phys(4,indxHorYMixFlux+3)=
+     &     'HorYMixFlux_NO3, scalar, series            '
+
+      vname_phys(1,indxHorYMixFlux+4)=
+     &     'HorYMixFlux_SiO3                           '
+      vname_phys(2,indxHorYMixFlux+4)=
+     &     'Horizontal (eta) mixing flux of SiO3            '
+      vname_phys(3,indxHorYMixFlux+4)=
+     &     'mmol Si s-1                                '
+      vname_phys(4,indxHorYMixFlux+4)=
+     &     'HorYMixFlux_SiO3, scalar, series           '
+
+      vname_phys(1,indxHorYMixFlux+5)=
+     &     'HorYMixFlux_NH4                            '
+      vname_phys(2,indxHorYMixFlux+5)=
+     &     'Horizontal (eta) mixing flux of NH4     '
+      vname_phys(3,indxHorYMixFlux+5)=
+     &     'mmol N s-1                                 '
+      vname_phys(4,indxHorYMixFlux+5)=
+     &     'HorYMixFlux_NH4, scalar, series            '
+
+      vname_phys(1,indxHorYMixFlux+6)=
+     &     'HorYMixFlux_Fe                            '
+      vname_phys(2,indxHorYMixFlux+6)=
+     &     'Horizontal (eta) mixing flux of Fe     '
+      vname_phys(3,indxHorYMixFlux+6)=
+     &     'mmol Fe s-1                               '
+      vname_phys(4,indxHorYMixFlux+6)=
+     &     'HorYMixFlux_Fe, scalar, series            '
+
+      vname_phys(1,indxHorYMixFlux+7)=
+     &     'HorYMixFlux_O2                            '
+      vname_phys(2,indxHorYMixFlux+7)=
+     &     'Horizontal (eta) mixing flux of O2     '
+      vname_phys(3,indxHorYMixFlux+7)=
+     &     'mmol O2 s-1                               '
+      vname_phys(4,indxHorYMixFlux+7)=
+     &     'HorYMixFlux_O2, scalar, series            '
+
+      vname_phys(1,indxHorYMixFlux+8)=
+     &     'HorYMixFlux_DIC                            '
+      vname_phys(2,indxHorYMixFlux+8)=
+     &     'Horizontal (eta) mixing flux of DIC     '
+      vname_phys(3,indxHorYMixFlux+8)=
+     &     'mmol C s-1                                 '
+      vname_phys(4,indxHorYMixFlux+8)=
+     &     'HorYMixFlux_DIC, scalar, series            '
+
+      vname_phys(1,indxHorYMixFlux+9)=
+     &     'HorYMixFlux_Alk                            '
+      vname_phys(2,indxHorYMixFlux+9)=
+     &     'Horizontal (eta) mixing flux of Alk     '
+      vname_phys(3,indxHorYMixFlux+9)=
+     &     'mmol s-1                                   '
+      vname_phys(4,indxHorYMixFlux+9)=
+     &     'HorYMixFlux_Alk, scalar, series            '
+
+      vname_phys(1,indxHorYMixFlux+10)=
+     &     'HorYMixFlux_DOC                            '
+      vname_phys(2,indxHorYMixFlux+10)=
+     &     'Horizontal (eta) mixing flux of DOC     '
+      vname_phys(3,indxHorYMixFlux+10)=
+     &     'mmol C s-1                                 '
+      vname_phys(4,indxHorYMixFlux+10)=
+     &     'HorYMixFlux_DOC, scalar, series            '
+
+      vname_phys(1,indxHorYMixFlux+11)=
+     &     'HorYMixFlux_SPC                            '
+      vname_phys(2,indxHorYMixFlux+11)=
+     &     'Horizontal (eta) mixing flux of SPC     '
+      vname_phys(3,indxHorYMixFlux+11)=
+     &     'mmol C s-1                                 '
+      vname_phys(4,indxHorYMixFlux+11)=
+     &     'HorYMixFlux_SPC, scalar, series            '
+
+      vname_phys(1,indxHorYMixFlux+12)=
+     &     'HorYMixFlux_SPChl                          '
+      vname_phys(2,indxHorYMixFlux+12)=
+     &     'Horizontal (eta) mixing flux of SPChl   '
+      vname_phys(3,indxHorYMixFlux+12)=
+     &     'mg Chl-a s-1                               '
+      vname_phys(4,indxHorYMixFlux+12)=
+     &     'HorYMixFlux_SPChl, scalar, series          '
+
+      vname_phys(1,indxHorYMixFlux+13)=
+     &     'HorYMixFlux_SPCaCO3                        '
+      vname_phys(2,indxHorYMixFlux+13)=
+     &     'Horizontal (eta) mixing flux of SPCaCO3 '
+      vname_phys(3,indxHorYMixFlux+13)=
+     &     'mmol CaCO3 s-1                             '
+      vname_phys(4,indxHorYMixFlux+13)=
+     &     'HorYMixFlux_SPCaCO3, scalar, series        '
+
+      vname_phys(1,indxHorYMixFlux+14)=
+     &     'HorYMixFlux_DiatC                          '
+      vname_phys(2,indxHorYMixFlux+14)=
+     &     'Horizontal (eta) mixing flux of DiatC   '
+      vname_phys(3,indxHorYMixFlux+14)=
+     &     'mmol C s-1                                 '
+      vname_phys(4,indxHorYMixFlux+14)=
+     &     'HorYMixFlux_DiatC, scalar, series          '
+
+      vname_phys(1,indxHorYMixFlux+15)=
+     &     'HorYMixFlux_DiatChl                        '
+      vname_phys(2,indxHorYMixFlux+15)=
+     &     'Horizontal (eta) mixing flux of DiatChl '
+      vname_phys(3,indxHorYMixFlux+15)=
+     &     'mg Chl-a s-1                               '
+      vname_phys(4,indxHorYMixFlux+15)=
+     &     'HorYMixFlux_DiatChl, scalar, series        '
+
+      vname_phys(1,indxHorYMixFlux+16)=
+     &     'HorYMixFlux_ZooC                           '
+      vname_phys(2,indxHorYMixFlux+16)=
+     &     'Horizontal (eta) mixing flux of ZooC    '
+      vname_phys(3,indxHorYMixFlux+16)=
+     &     'mmol C s-1                                 '
+      vname_phys(4,indxHorYMixFlux+16)=
+     &     'HorYMixFlux_ZooC, scalar, series           '
+
+      vname_phys(1,indxHorYMixFlux+17)=
+     &     'HorYMixFlux_SPFe                           '
+      vname_phys(2,indxHorYMixFlux+17)=
+     &     'Horizontal (eta) mixing flux of SPFe    '
+      vname_phys(3,indxHorYMixFlux+17)=
+     &     'mmol Fe s-1                                '
+      vname_phys(4,indxHorYMixFlux+17)=
+     &     'HorYMixFlux_SPFe, scalar, series           '
+
+      vname_phys(1,indxHorYMixFlux+18)=
+     &     'HorYMixFlux_DiatSi                         '
+      vname_phys(2,indxHorYMixFlux+18)=
+     &     'Horizontal (eta) mixing flux of DiatSi  '
+      vname_phys(3,indxHorYMixFlux+18)=
+     &     'mmol Si s-1                                '
+      vname_phys(4,indxHorYMixFlux+18)=
+     &     'HorYMixFlux_DiatSi, scalar, series         '
+
+      vname_phys(1,indxHorYMixFlux+19)=
+     &     'HorYMixFlux_DiatFe                         '
+      vname_phys(2,indxHorYMixFlux+19)=
+     &     'Horizontal (eta) mixing flux of DiatFe  '
+      vname_phys(3,indxHorYMixFlux+19)=
+     &     'mmol Fe s-1                                '
+      vname_phys(4,indxHorYMixFlux+19)=
+     &     'HorYMixFlux_DiatFe, scalar, series         '
+
+      vname_phys(1,indxHorYMixFlux+20)=
+     &     'HorYMixFlux_DiazC                          '
+      vname_phys(2,indxHorYMixFlux+20)=
+     &     'Horizontal (eta) mixing flux of DiazC   '
+      vname_phys(3,indxHorYMixFlux+20)=
+     &     'mmol C s-1                                 '
+      vname_phys(4,indxHorYMixFlux+20)=
+     &     'HorYMixFlux_DiazC, scalar, series          '
+
+      vname_phys(1,indxHorYMixFlux+21)=
+     &     'HorYMixFlux_DiazChl                        '
+      vname_phys(2,indxHorYMixFlux+21)=
+     &     'Horizontal (eta) mixing flux of DiazChl '
+      vname_phys(3,indxHorYMixFlux+21)=
+     &     'mg Chl-a s-1                               '
+      vname_phys(4,indxHorYMixFlux+21)=
+     &     'HorYMixFlux_DiazChl, scalar, series        '
+#  ifdef PHYS_FLUX_ALL_COMPS
+      vname_phys(1,indxHorYMixFlux+22)=
+     &     'HorYMixFlux_DiazFe                         '
+      vname_phys(2,indxHorYMixFlux+22)=
+     &     'Horizontal (eta) mixing flux of DiazFe  '
+      vname_phys(3,indxHorYMixFlux+22)=
+     &     'mmol Fe s-1                                '
+      vname_phys(4,indxHorYMixFlux+22)=
+     &     'HorYMixFlux_DiazFe, scalar, series         '
+
+      vname_phys(1,indxHorYMixFlux+23)=
+     &     'HorYMixFlux_DON                            '
+      vname_phys(2,indxHorYMixFlux+23)=
+     &     'Horizontal (eta) mixing flux of DON     '
+      vname_phys(3,indxHorYMixFlux+23)=
+     &     'mmol N s-1                                 '
+      vname_phys(4,indxHorYMixFlux+23)=
+     &     'HorYMixFlux_DON, scalar, series            '
+
+      vname_phys(1,indxHorYMixFlux+24)=
+     &     'HorYMixFlux_DOFe                           '
+      vname_phys(2,indxHorYMixFlux+24)=
+     &     'Horizontal (eta) mixing flux of DOFe    '
+      vname_phys(3,indxHorYMixFlux+24)=
+     &     'mmol Fe s-1                                '
+      vname_phys(4,indxHorYMixFlux+24)=
+     &     'HorYMixFlux_DOFe, scalar, series           '
+
+      vname_phys(1,indxHorYMixFlux+25)=
+     &     'HorYMixFlux_DOP                            '
+      vname_phys(2,indxHorYMixFlux+25)=
+     &     'Horizontal (eta) mixing flux of DOP     '
+      vname_phys(3,indxHorYMixFlux+25)=
+     &     'mmol P s-1                                 '
+      vname_phys(4,indxHorYMixFlux+25)=
+     &     'HorYMixFlux_DOP, scalar, series            '
+#  endif /* PHYS_FLUX_ALL_COMPS */
+# endif /* BIOLOGY_BEC */
 
 ! vertical mixing fluxes
       vname_phys(1,indxVertMixFlux)=
@@ -2227,6 +3100,224 @@ C$OMP END PARALLEL
 #   endif /* CARBON */
 #  endif /* OXYGEN */
 # endif /* BIOLOGY_NPZDOC */
+# ifdef BIOLOGY_BEC
+      vname_phys(1,indxVertMixFlux+2)=
+     &     'VertMixFlux_PO4                            '
+      vname_phys(2,indxVertMixFlux+2)=
+     &     'Vertical mixing flux of PO4             '
+      vname_phys(3,indxVertMixFlux+2)=
+     &     'mmol P s-1                                 '
+      vname_phys(4,indxVertMixFlux+2)=
+     &     'VertMixFlux_PO4, scalar, series            '
+
+      vname_phys(1,indxVertMixFlux+3)=
+     &     'VertMixFlux_NO3                            '
+      vname_phys(2,indxVertMixFlux+3)=
+     &     'Vertical mixing flux of NO3             '
+      vname_phys(3,indxVertMixFlux+3)=
+     &     'mmol N s-1                                 '
+      vname_phys(4,indxVertMixFlux+3)=
+     &     'VertMixFlux_NO3, scalar, series            '
+
+      vname_phys(1,indxVertMixFlux+4)=
+     &     'VertMixFlux_SiO3                           '
+      vname_phys(2,indxVertMixFlux+4)=
+     &     'Vertical mixing flux of SiO3            '
+      vname_phys(3,indxVertMixFlux+4)=
+     &     'mmol Si s-1                                '
+      vname_phys(4,indxVertMixFlux+4)=
+     &     'VertMixFlux_SiO3, scalar, series           '
+
+      vname_phys(1,indxVertMixFlux+5)=
+     &     'VertMixFlux_NH4                            '
+      vname_phys(2,indxVertMixFlux+5)=
+     &     'Vertical mixing flux of NH4     '
+      vname_phys(3,indxVertMixFlux+5)=
+     &     'mmol N s-1                                 '
+      vname_phys(4,indxVertMixFlux+5)=
+     &     'VertMixFlux_NH4, scalar, series            '
+
+      vname_phys(1,indxVertMixFlux+6)=
+     &     'VertMixFlux_Fe                            '
+      vname_phys(2,indxVertMixFlux+6)=
+     &     'Vertical mixing flux of Fe     '
+      vname_phys(3,indxVertMixFlux+6)=
+     &     'mmol Fe s-1                               '
+      vname_phys(4,indxVertMixFlux+6)=
+     &     'VertMixFlux_Fe, scalar, series            '
+
+      vname_phys(1,indxVertMixFlux+7)=
+     &     'VertMixFlux_O2                            '
+      vname_phys(2,indxVertMixFlux+7)=
+     &     'Vertical mixing flux of O2     '
+      vname_phys(3,indxVertMixFlux+7)=
+     &     'mmol O2 s-1                               '
+      vname_phys(4,indxVertMixFlux+7)=
+     &     'VertMixFlux_O2, scalar, series            '
+
+      vname_phys(1,indxVertMixFlux+8)=
+     &     'VertMixFlux_DIC                            '
+      vname_phys(2,indxVertMixFlux+8)=
+     &     'Vertical mixing flux of DIC     '
+      vname_phys(3,indxVertMixFlux+8)=
+     &     'mmol C s-1                                 '
+      vname_phys(4,indxVertMixFlux+8)=
+     &     'VertMixFlux_DIC, scalar, series            '
+
+      vname_phys(1,indxVertMixFlux+9)=
+     &     'VertMixFlux_Alk                            '
+      vname_phys(2,indxVertMixFlux+9)=
+     &     'Vertical mixing flux of Alk     '
+      vname_phys(3,indxVertMixFlux+9)=
+     &     'mmol s-1                                   '
+      vname_phys(4,indxVertMixFlux+9)=
+     &     'VertMixFlux_Alk, scalar, series            '
+
+      vname_phys(1,indxVertMixFlux+10)=
+     &     'VertMixFlux_DOC                            '
+      vname_phys(2,indxVertMixFlux+10)=
+     &     'Vertical mixing flux of DOC     '
+      vname_phys(3,indxVertMixFlux+10)=
+     &     'mmol C s-1                                 '
+      vname_phys(4,indxVertMixFlux+10)=
+     &     'VertMixFlux_DOC, scalar, series            '
+
+      vname_phys(1,indxVertMixFlux+11)=
+     &     'VertMixFlux_SPC                            '
+      vname_phys(2,indxVertMixFlux+11)=
+     &     'Vertical mixing flux of SPC     '
+      vname_phys(3,indxVertMixFlux+11)=
+     &     'mmol C s-1                                 '
+      vname_phys(4,indxVertMixFlux+11)=
+     &     'VertMixFlux_SPC, scalar, series            '
+
+      vname_phys(1,indxVertMixFlux+12)=
+     &     'VertMixFlux_SPChl                          '
+      vname_phys(2,indxVertMixFlux+12)=
+     &     'Vertical mixing flux of SPChl   '
+      vname_phys(3,indxVertMixFlux+12)=
+     &     'mg Chl-a s-1                               '
+      vname_phys(4,indxVertMixFlux+12)=
+     &     'VertMixFlux_SPChl, scalar, series          '
+
+      vname_phys(1,indxVertMixFlux+13)=
+     &     'VertMixFlux_SPCaCO3                        '
+      vname_phys(2,indxVertMixFlux+13)=
+     &     'Vertical mixing flux of SPCaCO3 '
+      vname_phys(3,indxVertMixFlux+13)=
+     &     'mmol CaCO3 s-1                             '
+      vname_phys(4,indxVertMixFlux+13)=
+     &     'VertMixFlux_SPCaCO3, scalar, series        '
+
+      vname_phys(1,indxVertMixFlux+14)=
+     &     'VertMixFlux_DiatC                          '
+      vname_phys(2,indxVertMixFlux+14)=
+     &     'Vertical mixing flux of DiatC   '
+      vname_phys(3,indxVertMixFlux+14)=
+     &     'mmol C s-1                                 '
+      vname_phys(4,indxVertMixFlux+14)=
+     &     'VertMixFlux_DiatC, scalar, series          '
+
+      vname_phys(1,indxVertMixFlux+15)=
+     &     'VertMixFlux_DiatChl                        '
+      vname_phys(2,indxVertMixFlux+15)=
+     &     'Vertical mixing flux of DiatChl '
+      vname_phys(3,indxVertMixFlux+15)=
+     &     'mg Chl-a s-1                               '
+      vname_phys(4,indxVertMixFlux+15)=
+     &     'VertMixFlux_DiatChl, scalar, series        '
+
+      vname_phys(1,indxVertMixFlux+16)=
+     &     'VertMixFlux_ZooC                           '
+      vname_phys(2,indxVertMixFlux+16)=
+     &     'Vertical mixing flux of ZooC    '
+      vname_phys(3,indxVertMixFlux+16)=
+     &     'mmol C s-1                                 '
+      vname_phys(4,indxVertMixFlux+16)=
+     &     'VertMixFlux_ZooC, scalar, series           '
+
+      vname_phys(1,indxVertMixFlux+17)=
+     &     'VertMixFlux_SPFe                           '
+      vname_phys(2,indxVertMixFlux+17)=
+     &     'Vertical mixing flux of SPFe    '
+      vname_phys(3,indxVertMixFlux+17)=
+     &     'mmol Fe s-1                                '
+      vname_phys(4,indxVertMixFlux+17)=
+     &     'VertMixFlux_SPFe, scalar, series           '
+
+      vname_phys(1,indxVertMixFlux+18)=
+     &     'VertMixFlux_DiatSi                         '
+      vname_phys(2,indxVertMixFlux+18)=
+     &     'Vertical mixing flux of DiatSi  '
+      vname_phys(3,indxVertMixFlux+18)=
+     &     'mmol Si s-1                                '
+      vname_phys(4,indxVertMixFlux+18)=
+     &     'VertMixFlux_DiatSi, scalar, series         '
+
+      vname_phys(1,indxVertMixFlux+19)=
+     &     'VertMixFlux_DiatFe                         '
+      vname_phys(2,indxVertMixFlux+19)=
+     &     'Vertical mixing flux of DiatFe  '
+      vname_phys(3,indxVertMixFlux+19)=
+     &     'mmol Fe s-1                                '
+      vname_phys(4,indxVertMixFlux+19)=
+     &     'VertMixFlux_DiatFe, scalar, series         '
+
+      vname_phys(1,indxVertMixFlux+20)=
+     &     'VertMixFlux_DiazC                          '
+      vname_phys(2,indxVertMixFlux+20)=
+     &     'Vertical mixing flux of DiazC   '
+      vname_phys(3,indxVertMixFlux+20)=
+     &     'mmol C s-1                                 '
+      vname_phys(4,indxVertMixFlux+20)=
+     &     'VertMixFlux_DiazC, scalar, series          '
+
+      vname_phys(1,indxVertMixFlux+21)=
+     &     'VertMixFlux_DiazChl                        '
+      vname_phys(2,indxVertMixFlux+21)=
+     &     'Vertical mixing flux of DiazChl '
+      vname_phys(3,indxVertMixFlux+21)=
+     &     'mg Chl-a s-1                               '
+      vname_phys(4,indxVertMixFlux+21)=
+     &     'VertMixFlux_DiazChl, scalar, series        '
+#  ifdef PHYS_FLUX_ALL_COMPS
+      vname_phys(1,indxVertMixFlux+22)=
+     &     'VertMixFlux_DiazFe                         '
+      vname_phys(2,indxVertMixFlux+22)=
+     &     'Vertical mixing flux of DiazFe  '
+      vname_phys(3,indxVertMixFlux+22)=
+     &     'mmol Fe s-1                                '
+      vname_phys(4,indxVertMixFlux+22)=
+     &     'VertMixFlux_DiazFe, scalar, series         '
+
+      vname_phys(1,indxVertMixFlux+23)=
+     &     'VertMixFlux_DON                            '
+      vname_phys(2,indxVertMixFlux+23)=
+     &     'Vertical mixing flux of DON     '
+      vname_phys(3,indxVertMixFlux+23)=
+     &     'mmol N s-1                                 '
+      vname_phys(4,indxVertMixFlux+23)=
+     &     'VertMixFlux_DON, scalar, series            '
+
+      vname_phys(1,indxVertMixFlux+24)=
+     &     'VertMixFlux_DOFe                           '
+      vname_phys(2,indxVertMixFlux+24)=
+     &     'Vertical mixing flux of DOFe    '
+      vname_phys(3,indxVertMixFlux+24)=
+     &     'mmol Fe s-1                                '
+      vname_phys(4,indxVertMixFlux+24)=
+     &     'VertMixFlux_DOFe, scalar, series           '
+
+      vname_phys(1,indxVertMixFlux+25)=
+     &     'VertMixFlux_DOP                            '
+      vname_phys(2,indxVertMixFlux+25)=
+     &     'Vertical mixing flux of DOP     '
+      vname_phys(3,indxVertMixFlux+25)=
+     &     'mmol P s-1                                 '
+      vname_phys(4,indxVertMixFlux+25)=
+     &     'VertMixFlux_DOP, scalar, series            '
+#  endif /* PHYS_FLUX_ALL_COMPS */
+# endif /* BIOLOGY_BEC */
 
 ! nudging divergences
       vname_phys(1,indxNudgingFlux)=
@@ -2370,6 +3461,224 @@ C$OMP END PARALLEL
 #   endif /* CARBON */
 #  endif /* OXYGEN */
 # endif /* BIOLOGY_NPZDOC */
+# ifdef BIOLOGY_BEC
+      vname_phys(1,indxNudgingFlux+2)=
+     &     'NudgingFlux_PO4                            '
+      vname_phys(2,indxNudgingFlux+2)=
+     &     'Nudging divergence of PO4             '
+      vname_phys(3,indxNudgingFlux+2)=
+     &     'mmol P s-1                                 '
+      vname_phys(4,indxNudgingFlux+2)=
+     &     'NudgingFlux_PO4, scalar, series            '
+
+      vname_phys(1,indxNudgingFlux+3)=
+     &     'NudgingFlux_NO3                            '
+      vname_phys(2,indxNudgingFlux+3)=
+     &     'Nudging divergence of NO3             '
+      vname_phys(3,indxNudgingFlux+3)=
+     &     'mmol N s-1                                 '
+      vname_phys(4,indxNudgingFlux+3)=
+     &     'NudgingFlux_NO3, scalar, series            '
+
+      vname_phys(1,indxNudgingFlux+4)=
+     &     'NudgingFlux_SiO3                           '
+      vname_phys(2,indxNudgingFlux+4)=
+     &     'Nudging divergence of SiO3            '
+      vname_phys(3,indxNudgingFlux+4)=
+     &     'mmol Si s-1                                '
+      vname_phys(4,indxNudgingFlux+4)=
+     &     'NudgingFlux_SiO3, scalar, series           '
+
+      vname_phys(1,indxNudgingFlux+5)=
+     &     'NudgingFlux_NH4                            '
+      vname_phys(2,indxNudgingFlux+5)=
+     &     'Nudging divergence of NH4     '
+      vname_phys(3,indxNudgingFlux+5)=
+     &     'mmol N s-1                                 '
+      vname_phys(4,indxNudgingFlux+5)=
+     &     'NudgingFlux_NH4, scalar, series            '
+
+      vname_phys(1,indxNudgingFlux+6)=
+     &     'NudgingFlux_Fe                            '
+      vname_phys(2,indxNudgingFlux+6)=
+     &     'Nudging divergence of Fe     '
+      vname_phys(3,indxNudgingFlux+6)=
+     &     'mmol Fe s-1                               '
+      vname_phys(4,indxNudgingFlux+6)=
+     &     'NudgingFlux_Fe, scalar, series            '
+
+      vname_phys(1,indxNudgingFlux+7)=
+     &     'NudgingFlux_O2                            '
+      vname_phys(2,indxNudgingFlux+7)=
+     &     'Nudging divergence of O2     '
+      vname_phys(3,indxNudgingFlux+7)=
+     &     'mmol O2 s-1                               '
+      vname_phys(4,indxNudgingFlux+7)=
+     &     'NudgingFlux_O2, scalar, series            '
+
+      vname_phys(1,indxNudgingFlux+8)=
+     &     'NudgingFlux_DIC                            '
+      vname_phys(2,indxNudgingFlux+8)=
+     &     'Nudging divergence of DIC     '
+      vname_phys(3,indxNudgingFlux+8)=
+     &     'mmol C s-1                                 '
+      vname_phys(4,indxNudgingFlux+8)=
+     &     'NudgingFlux_DIC, scalar, series            '
+
+      vname_phys(1,indxNudgingFlux+9)=
+     &     'NudgingFlux_Alk                            '
+      vname_phys(2,indxNudgingFlux+9)=
+     &     'Nudging divergence of Alk     '
+      vname_phys(3,indxNudgingFlux+9)=
+     &     'mmol s-1                                   '
+      vname_phys(4,indxNudgingFlux+9)=
+     &     'NudgingFlux_Alk, scalar, series            '
+
+      vname_phys(1,indxNudgingFlux+10)=
+     &     'NudgingFlux_DOC                            '
+      vname_phys(2,indxNudgingFlux+10)=
+     &     'Nudging divergence of DOC     '
+      vname_phys(3,indxNudgingFlux+10)=
+     &     'mmol C s-1                                 '
+      vname_phys(4,indxNudgingFlux+10)=
+     &     'NudgingFlux_DOC, scalar, series            '
+
+      vname_phys(1,indxNudgingFlux+11)=
+     &     'NudgingFlux_SPC                            '
+      vname_phys(2,indxNudgingFlux+11)=
+     &     'Nudging divergence of SPC     '
+      vname_phys(3,indxNudgingFlux+11)=
+     &     'mmol C s-1                                 '
+      vname_phys(4,indxNudgingFlux+11)=
+     &     'NudgingFlux_SPC, scalar, series            '
+
+      vname_phys(1,indxNudgingFlux+12)=
+     &     'NudgingFlux_SPChl                          '
+      vname_phys(2,indxNudgingFlux+12)=
+     &     'Nudging divergence of SPChl   '
+      vname_phys(3,indxNudgingFlux+12)=
+     &     'mg Chl-a s-1                               '
+      vname_phys(4,indxNudgingFlux+12)=
+     &     'NudgingFlux_SPChl, scalar, series          '
+
+      vname_phys(1,indxNudgingFlux+13)=
+     &     'NudgingFlux_SPCaCO3                        '
+      vname_phys(2,indxNudgingFlux+13)=
+     &     'Nudging divergence of SPCaCO3 '
+      vname_phys(3,indxNudgingFlux+13)=
+     &     'mmol CaCO3 s-1                             '
+      vname_phys(4,indxNudgingFlux+13)=
+     &     'NudgingFlux_SPCaCO3, scalar, series        '
+
+      vname_phys(1,indxNudgingFlux+14)=
+     &     'NudgingFlux_DiatC                          '
+      vname_phys(2,indxNudgingFlux+14)=
+     &     'Nudging divergence of DiatC   '
+      vname_phys(3,indxNudgingFlux+14)=
+     &     'mmol C s-1                                 '
+      vname_phys(4,indxNudgingFlux+14)=
+     &     'NudgingFlux_DiatC, scalar, series          '
+
+      vname_phys(1,indxNudgingFlux+15)=
+     &     'NudgingFlux_DiatChl                        '
+      vname_phys(2,indxNudgingFlux+15)=
+     &     'Nudging divergence of DiatChl '
+      vname_phys(3,indxNudgingFlux+15)=
+     &     'mg Chl-a s-1                               '
+      vname_phys(4,indxNudgingFlux+15)=
+     &     'NudgingFlux_DiatChl, scalar, series        '
+
+      vname_phys(1,indxNudgingFlux+16)=
+     &     'NudgingFlux_ZooC                           '
+      vname_phys(2,indxNudgingFlux+16)=
+     &     'Nudging divergence of ZooC    '
+      vname_phys(3,indxNudgingFlux+16)=
+     &     'mmol C s-1                                 '
+      vname_phys(4,indxNudgingFlux+16)=
+     &     'NudgingFlux_ZooC, scalar, series           '
+
+      vname_phys(1,indxNudgingFlux+17)=
+     &     'NudgingFlux_SPFe                           '
+      vname_phys(2,indxNudgingFlux+17)=
+     &     'Nudging divergence of SPFe    '
+      vname_phys(3,indxNudgingFlux+17)=
+     &     'mmol Fe s-1                                '
+      vname_phys(4,indxNudgingFlux+17)=
+     &     'NudgingFlux_SPFe, scalar, series           '
+
+      vname_phys(1,indxNudgingFlux+18)=
+     &     'NudgingFlux_DiatSi                         '
+      vname_phys(2,indxNudgingFlux+18)=
+     &     'Nudging divergence of DiatSi  '
+      vname_phys(3,indxNudgingFlux+18)=
+     &     'mmol Si s-1                                '
+      vname_phys(4,indxNudgingFlux+18)=
+     &     'NudgingFlux_DiatSi, scalar, series         '
+
+      vname_phys(1,indxNudgingFlux+19)=
+     &     'NudgingFlux_DiatFe                         '
+      vname_phys(2,indxNudgingFlux+19)=
+     &     'Nudging divergence of DiatFe  '
+      vname_phys(3,indxNudgingFlux+19)=
+     &     'mmol Fe s-1                                '
+      vname_phys(4,indxNudgingFlux+19)=
+     &     'NudgingFlux_DiatFe, scalar, series         '
+
+      vname_phys(1,indxNudgingFlux+20)=
+     &     'NudgingFlux_DiazC                          '
+      vname_phys(2,indxNudgingFlux+20)=
+     &     'Nudging divergence of DiazC   '
+      vname_phys(3,indxNudgingFlux+20)=
+     &     'mmol C s-1                                 '
+      vname_phys(4,indxNudgingFlux+20)=
+     &     'NudgingFlux_DiazC, scalar, series          '
+
+      vname_phys(1,indxNudgingFlux+21)=
+     &     'NudgingFlux_DiazChl                        '
+      vname_phys(2,indxNudgingFlux+21)=
+     &     'Nudging divergence of DiazChl '
+      vname_phys(3,indxNudgingFlux+21)=
+     &     'mg Chl-a s-1                               '
+      vname_phys(4,indxNudgingFlux+21)=
+     &     'NudgingFlux_DiazChl, scalar, series        '
+#  ifdef PHYS_FLUX_ALL_COMPS
+      vname_phys(1,indxNudgingFlux+22)=
+     &     'NudgingFlux_DiazFe                         '
+      vname_phys(2,indxNudgingFlux+22)=
+     &     'Nudging divergence of DiazFe  '
+      vname_phys(3,indxNudgingFlux+22)=
+     &     'mmol Fe s-1                                '
+      vname_phys(4,indxNudgingFlux+22)=
+     &     'NudgingFlux_DiazFe, scalar, series         '
+
+      vname_phys(1,indxNudgingFlux+23)=
+     &     'NudgingFlux_DON                            '
+      vname_phys(2,indxNudgingFlux+23)=
+     &     'Nudging divergence of DON     '
+      vname_phys(3,indxNudgingFlux+23)=
+     &     'mmol N s-1                                 '
+      vname_phys(4,indxNudgingFlux+23)=
+     &     'NudgingFlux_DON, scalar, series            '
+
+      vname_phys(1,indxNudgingFlux+24)=
+     &     'NudgingFlux_DOFe                           '
+      vname_phys(2,indxNudgingFlux+24)=
+     &     'Nudging divergence of DOFe    '
+      vname_phys(3,indxNudgingFlux+24)=
+     &     'mmol Fe s-1                                '
+      vname_phys(4,indxNudgingFlux+24)=
+     &     'NudgingFlux_DOFe, scalar, series           '
+
+      vname_phys(1,indxNudgingFlux+25)=
+     &     'NudgingFlux_DOP                            '
+      vname_phys(2,indxNudgingFlux+25)=
+     &     'Nudging divergence of DOP     '
+      vname_phys(3,indxNudgingFlux+25)=
+     &     'mmol P s-1                                 '
+      vname_phys(4,indxNudgingFlux+25)=
+     &     'NudgingFlux_DOP, scalar, series            '
+#  endif /* PHYS_FLUX_ALL_COMPS */
+# endif /* BIOLOGY_BEC */
 # endif /* FULL_PHYS_FLUX_ANALYSIS */
 #endif /* SOLVE3D */
       return
