@@ -888,6 +888,7 @@ c              goto 99                                     !--> ERROR
             CN_avg = 0.5 * (CN_P + CN_Z)
             tclm(:,:,:,iSDetC)=tclm(:,:,:,iSDet) * CN_avg
          else if (itrc .eq. iLDetC) then  
+            CN_avg = 0.5 * (CN_P + CN_Z)
             tclm(:,:,:,iLDetC)=tclm(:,:,:,iLDet) * CN_avg
          else if (itrc .eq. iCaCO3) then  
             tclm(:,:,:,iCaCO3)=0.0
