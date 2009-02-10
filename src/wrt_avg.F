@@ -192,6 +192,18 @@ CR      write(*,*) 'wrt_avg:  wrtT_sed  ' MYID
         endif
       endif
 !
+! Write out true vertical velocity (m/s).
+!
+      if (wrtavg(indxW)) then
+        ierr=nf_fwrite(w_mean, ncidavg, avgW, record, r3dvar)
+        if (ierr .ne. nf_noerr) then
+          lvar=lenstr(vname(1,indxW))
+          write(stdout,1) vname(1,indxW)(1:lvar), record, ierr
+     &                    MYID
+          goto 99                                         !--> ERROR
+        endif
+      endif
+!
 !  Write out vertical diffusion coefficient for potential temperature.
 !
       if (wrtavg(indxAkt)) then

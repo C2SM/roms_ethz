@@ -20,9 +20,11 @@ CSDISTRIBUTE_RESHAPE t_avg(BLOCK_PATTERN,*,*) BLOCK_CLAUSE
       real rho_avg(GLOBAL_2D_ARRAY,N)
 CSDISTRIBUTE_RESHAPE rho_avg(BLOCK_PATTERN,*) BLOCK_CLAUSE
       real w_avg(GLOBAL_2D_ARRAY,0:N)
+      real w_mean(GLOBAL_2D_ARRAY,N)
 CSDISTRIBUTE_RESHAPE w_avg(BLOCK_PATTERN,*) BLOCK_CLAUSE
       common /avg_u/u_avg /avg_v/v_avg /avg_t/t_avg
      &                /avg_rho/rho_avg /avg_w/w_avg
+     &                /mean_w/w_mean
       real akt_avg(GLOBAL_2D_ARRAY,0:N)
 CSDISTRIBUTE_RESHAPE akt_avg(BLOCK_PATTERN,*) BLOCK_CLAUSE
       common /avg_akt/akt_avg

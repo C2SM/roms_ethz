@@ -6,11 +6,11 @@
       integer tile
 # include "param.h"
 # include "compute_tile_bounds.h"
-      call set_avg_tile (istr,iend,jstr,jend)
+      call set_avg_tile (istr,iend,jstr,jend,tile)
       return
       end
  
-      subroutine set_avg_tile (istr,iend,jstr,jend)
+      subroutine set_avg_tile (istr,iend,jstr,jend,tile)
 !
 ! Compute time-averaged fields within a tile.
 ! ------- ------------- ------ ------ - -----
@@ -34,7 +34,7 @@
 ! contribution and scaling.
 !
       implicit none
-      integer istr,iend,jstr,jend, i,j
+      integer istr,iend,jstr,jend, i,j, tile
 # ifdef SOLVE3D
      &                       , itrc, k
 # endif
@@ -55,6 +55,7 @@
 #  include "ecosys_bec.h"
 #  include "bec_avg.h"
 # endif
+# include "work.h"
 !
 #include "compute_auxiliary_bounds.h"
 !
@@ -165,6 +166,18 @@
               enddo
             enddo
           endif
+! --T.Nagai to put true vertical velocity 6/29/2006
+          if (wrtavg(indxW)) then
+              call Wvlcty (tile, work) 
+            do k=1,N
+              do j=JstrR,JendR
+                do i=IstrR,IendR
+                  w_mean(i,j,k)=work(i,j,k)
+                enddo
+              enddo
+            enddo
+          endif
+! --T.Nagai to put true vertical velocity 6/29/2006
           if (wrtavg(indxAkt)) then
             do k=0,N
               do j=jstrR,jendR
@@ -318,6 +331,18 @@
               enddo
             enddo
           endif
+! --T.Nagai to put true vertical velocity 6/29/2006
+          if (wrtavg(indxW)) then
+              call Wvlcty (tile, work) 
+            do k=1,N
+              do j=JstrR,JendR
+                do i=IstrR,IendR
+                  w_mean(i,j,k)=w_mean(i,j,k)+work(i,j,k)
+                enddo
+              enddo
+            enddo
+          endif
+! --T.Nagai to put true vertical velocity 6/29/2006
           if (wrtavg(indxAkt)) then
             do k=0,N
               do j=jstrR,jendR
@@ -476,6 +501,18 @@
               enddo
             enddo
           endif
+! --T.Nagai to put true vertical velocity 6/29/2006
+          if (wrtavg(indxW)) then
+              call Wvlcty (tile, work) 
+            do k=1,N
+              do j=JstrR,JendR
+                do i=IstrR,IendR
+                  w_mean(i,j,k)=cff*(w_mean(i,j,k)+work(i,j,k))
+                enddo
+              enddo
+            enddo
+          endif
+! --T.Nagai to put true vertical velocity 6/29/2006
           if (wrtavg(indxAkt)) then
             do k=0,N
               do j=jstrR,jendR
