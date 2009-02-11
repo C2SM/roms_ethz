@@ -26,7 +26,10 @@
       call def_bec_flux_his (ncid_bgc_flux_his, nrec_bgc_flux_his, ierr)
       if (ierr .ne. nf_noerr) goto 99
       lstr=lenstr(bgc_flux_his_name)
-      if (iic.eq.0) nrec_bgc_flux_his=nrec_bgc_flux_his+1      !!! that global history
+!                                            !!! WARNING: Here it is
+! Set record within the file.                !!! assumed that global
+!                                            !!! restart record index
+      nrec_bgc_flux_his=max(nrec_bgc_flux_his,1) !!! nrec_bgc_flux_his 
       if (nrpf_bgc_flux_his.eq.0) then               !!! record index is
         record=nrec_bgc_flux_his                    !!! advanced by main.  
       else
@@ -38,11 +41,30 @@
       ibuff(1)=iic
       ibuff(2)=nrecrst
       ibuff(3)=nrechis
-      ibuff(4)=0
+      ibuff(4)=nrec_bgc_flux_his
+
       start(1)=1
       start(2)=record
       count(1)=4
       count(2)=1
+
+      ierr=nf_put_vara_int(ncid_bgc_flux_his, bgc_flux_hisTstep, 
+     &     start, count, ibuff)
+      if (ierr .ne. nf_noerr) then
+        write(stdout,1) 'time_step', record,ierr MYID
+        goto 99                                           !--> ERROR
+      endif
+!
+! Time
+!
+      ierr=nf_put_var1_double (ncid_bgc_flux_his, bgc_flux_hisTime,  
+     &     record, time)
+      if (ierr .ne. nf_noerr) then
+        lvar=lenstr(vname(1,indxTime))
+        write(stdout,1) vname(1,indxTime)(1:lvar), record, ierr
+     &                  MYID
+        goto 99                                           !--> ERROR
+      endif
 
 ! Barotropic mode variable: free-surface
 ! Always include this in the output so that depths of sigma levels
