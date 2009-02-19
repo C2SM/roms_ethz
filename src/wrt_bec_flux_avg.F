@@ -944,7 +944,7 @@
 #endif
 
 
-
+         time_bgc_flux_avg = 0.0
          WS_AVG = 0.0 
          XKW_AVG = 0.0 
          ap_AVG = 0.0 
