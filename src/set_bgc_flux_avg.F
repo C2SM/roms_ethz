@@ -137,13 +137,13 @@
             do k=1,N
                do j=JstrR,JendR
                   do i=IstrR,IendR
-                     PAR_avg(i,j,k)=PAR(i,j,k)
+                     PAR_flux_avg(i,j,k)=PAR(i,j,k)
                   enddo
                enddo
             enddo
             do j=JstrR,JendR
                do i=IstrR,IendR
-                  PARinc_avg(i,j)=PARinc(i,j)
+                  PARinc_flux_avg(i,j)=PARinc(i,j)
                enddo
             enddo
 !          endif
@@ -260,13 +260,13 @@
              do k=1,N
                 do j=JstrR,JendR
                    do i=IstrR,IendR
-                      PAR_avg(i,j,k)=PAR_avg(i,j,k)+PAR(i,j,k)
+                      PAR_flux_avg(i,j,k)=PAR_flux_avg(i,j,k)+PAR(i,j,k)
                    enddo
                 enddo
              enddo
              do j=JstrR,JendR
                 do i=IstrR,IendR
-                   PARinc_avg(i,j)=PARinc_avg(i,j)+PARinc(i,j)
+                   PARinc_flux_avg(i,j)=PARinc_flux_avg(i,j)+PARinc(i,j)
                 enddo
              enddo
 !          endif
@@ -388,13 +388,15 @@
              do k=1,N
                 do j=JstrR,JendR
                    do i=IstrR,IendR
-                      PAR_avg(i,j,k)=cff*( PAR_avg(i,j,k) + PAR(i,j,k))
+                      PAR_flux_avg(i,j,k)=cff*( PAR_flux_avg(i,j,k) + 
+     &                     PAR(i,j,k))
                    enddo
                 enddo
              enddo
              do j=JstrR,JendR
                 do i=IstrR,IendR
-                   PARinc_avg(i,j)=cff*( PARinc_avg(i,j) + PARinc(i,j))
+                   PARinc_flux_avg(i,j)=cff*( PARinc_flux_avg(i,j) + 
+     &                  PARinc(i,j))
                 enddo
              enddo
 !          endif
@@ -450,7 +452,7 @@
          
       return
       end
-#else /* BGC_FLUX_ANALYSIS && AVERAGES */
+#else /* BIOLOGY_NPZDOC && BGC_FLUX_ANALYSIS && AVERAGES */
       subroutine set_bgc_flux_avg_empty
       end
 #endif /* BIOLOGY_NPZDOC && BGC_FLUX_ANALYSIS && AVERAGES */
