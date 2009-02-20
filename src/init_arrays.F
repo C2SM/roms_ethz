@@ -59,7 +59,16 @@
       integer status(MPI_STATUS_SIZE), blank, ierr
 #endif
 !
-#include "bgcflux.h"
+#ifdef SOLVE3D
+# ifdef BIOLOGY_NPZDOC
+#  include "bgcflux.h"
+# endif
+
+# if defined BIOLOGY_BEC && defined BGC_FLUX_ANALYSIS && defined AVERAGES
+#  include "bec_avg.h"
+# endif
+#endif /* SOLVE3D */
+
 #include "compute_extended_bounds.h"
 !
 #ifdef NOT_
@@ -403,10 +412,12 @@
            pH_hist(i,j) = 0.0
            pCO2sw(i,j) = 0.0
            pCO2air(i,j) = 0.0
+           PARinc(i,j) = 0.0
 #  ifdef AVERAGES
            pH_avg(i,j) = 0.0
            pCO2_avg(i,j) = 0.0
            pCO2air_avg(i,j) = 0.0
+           PARinc_avg(i,j) = 0.0
 #  endif
          end do
       end do
@@ -421,6 +432,20 @@
          end do
       end do
 # endif /* BIOLOGY_NPZDOC */
+# if defined BGC_FLUX_ANALYSIS && defined AVERAGES
+      do j=JstrR,JendR
+         do i=IstrR,IendR
+           PARinc_flux_avg(i,j) = 0.0
+         end do
+      end do
+      do k=1,N
+         do j=JstrR,JendR
+           do i=IstrR,IendR
+              PAR_flux_avg(i,j,k) = 0.0
+           end do
+         end do
+      end do
+# endif /* BGC_FLUX_ANALYSIS && AVERAGES */
 #endif /* SOLVE3D */
 
       return
