@@ -82,7 +82,7 @@
 ! Barotropic mode variable: free-surface
 ! Always include this in the output so that depths of sigma levels
 ! can be computed
-      ierr=nf_fwrite (zeta(START_2D_ARRAY,fast_indx_out), 
+      ierr=nf_fwrite (zeta(START_2D_ARRAY,knew), 
      &     ncid_phys_flux_his, phys_flux_hisZ,record, r2dvar)
       if (ierr .ne. nf_noerr) then
          lvar=lenstr(vname(1,indxZ))

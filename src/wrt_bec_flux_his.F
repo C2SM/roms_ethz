@@ -69,7 +69,7 @@
 ! Barotropic mode variable: free-surface
 ! Always include this in the output so that depths of sigma levels
 ! can be computed
-      ierr=nf_fwrite (zeta(START_2D_ARRAY,fast_indx_out), 
+      ierr=nf_fwrite (zeta(START_2D_ARRAY,knew), 
      &     ncid_bgc_flux_his, bgc_flux_hisZ,record, r2dvar)
       if (ierr .ne. nf_noerr) then
          lvar=lenstr(vname(1,indxZ))
@@ -817,7 +817,7 @@
 ! Synchronize netCDF file to disk to allow other processes
 ! to access data immediately after it is written.
 !
-#if defined MPI & !defined PARALLEL_FILES
+#if defined MPI && !defined PARALLEL_FILES
       ierr=nf_close (ncid_bgc_flux_his)
       if (nrpf_bgc_flux_his.gt.0 .and. record.ge.nrpf_bgc_flux_his) 
      &     ncid_bgc_flux_his=-1
@@ -840,7 +840,7 @@
         may_day_flag=3
       endif
 
-#if defined MPI & !defined PARALLEL_FILES
+#if defined MPI && !defined PARALLEL_FILES
       if (mynode .lt. NNODES-1) then
          blank=30+mynode
         call MPI_Send (blank, 1, MPI_INTEGER, mynode+1,
