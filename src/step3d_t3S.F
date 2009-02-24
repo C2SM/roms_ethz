@@ -319,9 +319,6 @@ c??         enddo
       enddo                                    ! Biogeochemical
                                                ! Elemental Cycles
       call ecosys_tile (istr,iend,jstr,jend)   ! (BEC) model 
-#  ifdef BGC_FLUX_ANALYSIS
-       call set_bec_flux_avg_tile (istr,iend,jstr,jend)
-#  endif
 
       do itrc=1,NT  
 # elif defined BIOLOGY || defined BIOLOGY_NPZDOC
