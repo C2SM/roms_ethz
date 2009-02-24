@@ -494,7 +494,7 @@ C$OMP BARRIER
 #   ifdef BIOLOGY_NPZDOC
         call set_bgc_flux_avg(tile)
 #   elif defined BIOLOGY_BEC
-! currently called from step3d_t3S (uses istr etc. as arg's, not tile)
+        call set_bec_flux_avg(tile)
 #   endif
 #  endif
 #  ifdef PHYS_FLUX_ANALYSIS
@@ -534,6 +534,32 @@ C$OMP BARRIER
 ! Output block: write restart/history files.
 !======= ====== ===== =============== ======
 !
+!DL: place following block before writing of rst file:
+#ifdef BGC_FLUX_ANALYSIS
+      if (iic > ntstart .and. n_bgc_flux_his > 0 .and. 
+     &     mod(iic-ntstart, n_bgc_flux_his) == 0) then
+         nrec_bgc_flux_his = nrec_bgc_flux_his + 1
+      end if
+# ifdef AVERAGES
+      if (iic > ntstart .and. n_bgc_flux_avg > 0 .and. 
+     &     mod(iic-ntstart, n_bgc_flux_avg) == 0) then
+         nrec_bgc_flux_avg = nrec_bgc_flux_avg + 1
+      end if
+# endif
+#endif /* BGC_FLUX_ANALYSIS */
+#ifdef PHYS_FLUX_ANALYSIS
+      if (iic > ntstart .and. n_phys_flux_his > 0 .and. 
+     &     mod(iic-ntstart, n_phys_flux_his) == 0) then
+         nrec_phys_flux_his = nrec_phys_flux_his + 1
+      end if
+# ifdef AVERAGES
+      if (iic > ntstart .and. n_phys_flux_avg > 0 .and. 
+     &     mod(iic-ntstart, n_phys_flux_avg) == 0) then
+         nrec_phys_flux_avg = nrec_phys_flux_avg + 1
+      end if
+# endif
+#endif /* PHYS_FLUX_ANALYSIS */
+
       if ( iic.gt.ntstart .and. ( mod(iic-ntstart,nrst).eq.0
 #ifdef EXACT_RESTART
      &                        .or. mod(iic-ntstart+1,nrst).eq.0
@@ -560,43 +586,6 @@ C$OMP MASTER
         if (mod(iic-ntsavg,navg) .eq.0) nrecavg=nrecavg+1
 #endif
 
-!DL: place following block before writing of rst file:
-#ifdef BGC_FLUX_ANALYSIS
-      if (iic > ntstart .and. n_bgc_flux_his > 0 .and. 
-     &     mod(iic-1, n_bgc_flux_his) == 0) then
-         nrec_bgc_flux_his = nrec_bgc_flux_his + 1
-# ifdef BIOLOGY_NPZDOC
-         call wrt_bgc_flux_his
-# elif defined BIOLOGY_BEC
-         call wrt_bec_flux_his
-# endif
-      end if
-# ifdef AVERAGES
-      if (iic > ntstart .and. n_bgc_flux_avg > 0 .and. 
-     &     mod(iic-1, n_bgc_flux_avg) == 0) then
-         nrec_bgc_flux_avg = nrec_bgc_flux_avg + 1
-# ifdef BIOLOGY_NPZDOC
-         call wrt_bgc_flux_avg
-# elif defined BIOLOGY_BEC
-         call wrt_bec_flux_avg
-# endif
-      end if
-# endif
-#endif /* BGC_FLUX_ANALYSIS */
-#ifdef PHYS_FLUX_ANALYSIS
-      if (iic > ntstart .and. n_phys_flux_his > 0 .and. 
-     &     mod(iic-1, n_phys_flux_his) == 0) then
-         nrec_phys_flux_his = nrec_phys_flux_his + 1
-         call wrt_phys_flux_his
-      end if
-# ifdef AVERAGES
-      if (iic > ntstart .and. n_phys_flux_avg > 0 .and. 
-     &     mod(iic-1, n_phys_flux_avg) == 0) then
-         nrec_phys_flux_avg = nrec_phys_flux_avg + 1
-         call wrt_phys_flux_avg
-      end if
-# endif
-#endif /* PHYS_FLUX_ANALYSIS */
 
 #ifdef STATIONS
         if (mod(iic-ntstart,nsta).eq.0) nrecsta=nrecsta+1
@@ -624,22 +613,40 @@ C$OMP MASTER
      &      call wrt_floats
         diagfloats=.false.
 #endif
-#ifdef BIOLOGY_BEC_NOMORE
-      if ( iic.gt.ntstart .and. ( mod(iic-ntstart,nwrtmgm).eq.0) ) then
-           nrecmgm=nrecmgm+1
-           call wrt_mgm
-        end if
 
-      if ( iic.gt.ntstart .and. (mod(iic-ntstart,nwrtmgmavg).eq.0)) then
-         nrecmgmavg=nrecmgmavg+1
-         call wrt_mgmavg
-# ifdef ASCII_OUTPUT
-         MPI_master_only print *, 
-     &        'back from wrt_mgmavg, before barrier,iic:',iic
-     &        MYID
+#ifdef BGC_FLUX_ANALYSIS
+      if (iic > ntstart .and. n_bgc_flux_his > 0 .and. 
+     &     mod(iic-ntstart, n_bgc_flux_his) == 0) then
+# ifdef BIOLOGY_NPZDOC
+         call wrt_bgc_flux_his
+# elif defined BIOLOGY_BEC
+         call wrt_bec_flux_his
 # endif
       end if
-#endif /* BIOLOGY_BEC_NOMORE */
+# ifdef AVERAGES
+      if (iic > ntstart .and. n_bgc_flux_avg > 0 .and. 
+     &     mod(iic-ntstart, n_bgc_flux_avg) == 0) then
+# ifdef BIOLOGY_NPZDOC
+         call wrt_bgc_flux_avg
+# elif defined BIOLOGY_BEC
+         call wrt_bec_flux_avg
+# endif
+      end if
+# endif
+#endif /* BGC_FLUX_ANALYSIS */
+#ifdef PHYS_FLUX_ANALYSIS
+      if (iic > ntstart .and. n_phys_flux_his > 0 .and. 
+     &     mod(iic-ntstart, n_phys_flux_his) == 0) then
+         call wrt_phys_flux_his
+      end if
+# ifdef AVERAGES
+      if (iic > ntstart .and. n_phys_flux_avg > 0 .and. 
+     &     mod(iic-ntstart, n_phys_flux_avg) == 0) then
+         call wrt_phys_flux_avg
+      end if
+# endif
+#endif /* PHYS_FLUX_ANALYSIS */
+
 C$OMP END MASTER
 C$OMP BARRIER
         if (may_day_flag .ne. 0)     goto 99   !-->  EXIT
