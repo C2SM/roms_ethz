@@ -83,7 +83,7 @@
 !
       create_new_file=ldefhis
       if (ncid.ne.-1) create_new_file=.false.
-#if defined MPI & !defined PARALLEL_FILES
+#if defined MPI && !defined PARALLEL_FILES
       if (mynode.gt.0) create_new_file=.false.
 #endif
 !
@@ -91,7 +91,12 @@
 !======= === ======= =====    and define all variables.
 !
   10  if (create_new_file) then
+#ifdef LARGE_RST_FILES
+        ierr=nf_create(rstname(1:lstr), or(nf_clobber,nf_64bit_offset),
+     &        ncid)
+#else
         ierr=nf_create(rstname(1:lstr), nf_clobber, ncid)
+#endif
         if (ierr.ne.nf_noerr) then
           write(stdout,'(/1x,4A/12x,A/)')  '### ERROR: def_rst :: ',
      &      'Cannot create restart NetCDF file ''', rstname(1:lstr),
@@ -509,7 +514,7 @@
               rec=rec-ierr
             elseif (nrpfrst.eq.0) then
               total_rec=rec+1           ! <-- set to the next record
-#if defined MPI & !defined PARALLEL_FILES
+#if defined MPI && !defined PARALLEL_FILES
               if (mynode.gt.0) total_rec=total_rec-1
 #endif
             endif
@@ -518,7 +523,7 @@
         endif
  
         if (ierr. ne. nf_noerr) then
-#if defined MPI & !defined PARALLEL_FILES
+#if defined MPI && !defined PARALLEL_FILES
           if (mynode.eq.0) then
             create_new_file=.true.
             goto 10
@@ -691,7 +696,7 @@
      &             'existing restart file,  record =', rec
      &              MYID
  
-#if defined MPI & !defined PARALLEL_FILES
+#if defined MPI && !defined PARALLEL_FILES
       else
         ierr=nf_open (rstname(1:lstr), nf_write, ncid)
         if (ierr .ne. nf_noerr) then
@@ -715,7 +720,7 @@
       end
 !
 ! The following is just a instrumented wrapped-around of nf_def_dim
-! designed to print oou an error message, if something goes wrong.
+! designed to print out an error message, if something goes wrong.
 ! This is needed because there is no error handling code in the
 ! calling routine. 
 !
