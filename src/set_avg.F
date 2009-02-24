@@ -60,10 +60,10 @@
 #include "compute_auxiliary_bounds.h"
 !
       if (iic.gt.ntsavg) then
-        if (mod(iic-ntsavg,navg).eq.1) then
+        if (navg .eq. 1 .or. mod(iic-ntsavg,navg).eq.1) then
           if (ZEROTH_TILE) then
             time_avg=time
-      MPI_master_only write(*,*) 'started averaging',iic,ntsavg,navg
+!      MPI_master_only write(*,*) 'started averaging',iic,ntsavg,navg
           endif
           if (wrtavg(indxZ)) then
             do j=jstrR,jendR
@@ -133,6 +133,11 @@
                 pH_avg(i,j) = pH_hist(i,j)
                 pCO2_avg(i,j) = pCO2sw(i,j)
                 pCO2air_avg(i,j) = pCO2air(i,j)
+             end do
+          end do
+          do j=jstrR,jendR
+             do i=istrR,iendR
+                PARinc_avg(i,j) = PARinc(i,j)
              end do
           end do
           do k=1,N
@@ -300,6 +305,11 @@
                 pCO2air_avg(i,j) = pCO2air_avg(i,j) + pCO2air(i,j)
              end do
           end do
+          do j=jstrR,jendR
+             do i=istrR,iendR
+                PARinc_avg(i,j) = PARinc_avg(i,j) + PARinc(i,j)
+             end do
+          end do
           do k=1,N
             do j=jstrR,jendR
                do i=istrR,iendR
@@ -395,7 +405,7 @@
           cff=1./float(navg)
           if (ZEROTH_TILE) then
              time_avg=cff*(time_avg+time)
-      MPI_master_only write(*,*) 'finish averaging',iic,ntsavg,navg
+!      MPI_master_only write(*,*) 'finish averaging',iic,ntsavg,navg
           endif
           if (wrtavg(indxZ)) then
             do j=jstrR,jendR
@@ -467,6 +477,11 @@
                 pH_avg(i,j) = cff*( pH_avg(i,j) + pH_hist(i,j) )
                 pCO2_avg(i,j) = cff*( pCO2_avg(i,j) + pCO2sw(i,j) )
                 pCO2air_avg(i,j) = cff*(pCO2air_avg(i,j) + pCO2air(i,j))
+             end do
+          end do
+          do j=jstrR,jendR
+             do i=istrR,iendR
+                PARinc_avg(i,j) = cff*( PARinc_avg(i,j) + PARinc(i,j) )
              end do
           end do
           do k=1,N
