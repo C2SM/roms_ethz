@@ -41,9 +41,9 @@
 ! The same applies to the density field.
 !
 ! The algorithm consists of three logical blocks: (1) initialization
-! of the averages arrays: when mod(iic-1,navg).eq.1 the target arrays
+! of the averages arrays: when mod(iic-nts_phys_flux_avg,navg).eq.1 the target arrays
 ! are set to the first contribution; (2) accumulation of averaged
-! data, when mod(iic-1,navg).gt.1; and (3) adding the last
+! data, when mod(iic-nts_phys_flux_avg,navg).gt.1; and (3) adding the last
 ! contribution and scaling.
 !
 !      USE scalars
@@ -74,11 +74,11 @@
 
       if (iic.gt.nts_phys_flux_avg) then
          if (n_phys_flux_avg .eq. 1 .or. 
-     &        mod(iic-1,n_phys_flux_avg).eq.1) then
+     &        mod(iic-nts_phys_flux_avg,n_phys_flux_avg).eq.1) then
             if (ZEROTH_TILE) time_phys_flux_avg=time
             do j = JstrR, JendR
                do i = IstrR, IendR
-                  zeta_phys_flux_avg(i,j) = zeta(i,j,fast_indx_out)
+                  zeta_phys_flux_avg(i,j) = zeta(i,j,knew)
                end do
             end do
             do iflux = 1, NT_PFA
@@ -180,13 +180,13 @@
                end do
             end do
 # endif /* FULL_PHYS_FLUX_ANALYSIS */
-         elseif (mod(iic-1,n_phys_flux_avg).gt.1) then
+         elseif (mod(iic-nts_phys_flux_avg,n_phys_flux_avg).gt.1) then
             if (ZEROTH_TILE) time_phys_flux_avg=
      &           time_phys_flux_avg+time
             do j = JstrR, JendR
                do i = IstrR, IendR
                   zeta_phys_flux_avg(i,j) = zeta_phys_flux_avg(i,j) +
-     &                 zeta(i,j,fast_indx_out)
+     &                 zeta(i,j,knew)
                end do
             end do
             do iflux = 1, NT_PFA
@@ -299,7 +299,7 @@
                end do
             end do
 # endif /* FULL_PHYS_FLUX_ANALYSIS */
-         elseif (mod(iic-1,n_phys_flux_avg).eq.0) then
+         elseif (mod(iic-nts_phys_flux_avg,n_phys_flux_avg).eq.0) then
             cff=1./float(n_phys_flux_avg)
             if (ZEROTH_TILE) time_phys_flux_avg=cff*
      &           (time_phys_flux_avg+time)
@@ -307,7 +307,7 @@
                do i = IstrR, IendR
                   zeta_phys_flux_avg(i,j) = cff * 
      &                 ( zeta_phys_flux_avg(i,j) + 
-     &                 zeta(i,j,fast_indx_out) )
+     &                 zeta(i,j,knew) )
                end do
             end do
             do iflux = 1, NT_PFA

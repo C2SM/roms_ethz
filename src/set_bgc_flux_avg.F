@@ -70,7 +70,7 @@
             if (ZEROTH_TILE) time_bgc_flux_avg=time
             do j = JstrR, JendR
                do i = IstrR, IendR
-                  zeta_bgc_flux_avg(i,j) = zeta(i,j,nstp)
+                  zeta_bgc_flux_avg(i,j) = zeta(i,j,knew)
                end do
             end do
 #   ifdef OXYGEN
@@ -193,7 +193,7 @@
             do j = JstrR, JendR
                do i = IstrR, IendR
                   zeta_bgc_flux_avg(i,j) = zeta_bgc_flux_avg(i,j) +
-     &                 zeta(i,j,nstp)
+     &                 zeta(i,j,knew)
                end do
             end do
 #   ifdef OXYGEN
@@ -321,7 +321,7 @@
             do j = JstrR, JendR
                do i = IstrR, IendR
                   zeta_bgc_flux_avg(i,j) = cff * ( 
-     &                 zeta_bgc_flux_avg(i,j) + zeta(i,j,nstp) )
+     &                 zeta_bgc_flux_avg(i,j) + zeta(i,j,knew) )
                end do
             end do
 #   ifdef OXYGEN
