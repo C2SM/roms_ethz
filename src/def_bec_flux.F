@@ -68,7 +68,12 @@
 #endif
 
   10  if (create_new_file) then
+#ifdef LARGE_BGC_FILES
+        ierr=nf_create(ncname(1:lstr), or(nf_clobber,nf_64bit_offset),
+     &        ncid)
+#else
         ierr=nf_create(ncname(1:lstr), nf_clobber, ncid)
+#endif
         if (ierr .ne. nf_noerr) then
           write(stdout,'(/3(1x,A)/)') 'ERROR in wrt_bec_flux_his:',
      &           'Cannot create netCDF file:', ncname(1:lstr)
