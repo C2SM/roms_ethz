@@ -169,7 +169,12 @@
 ! ====== === ======= ======== =====    and define all variables.
 !
   10  create_new_file_if: if (create_new_file) then
+#ifdef LARGE_PHYS_FILES
+        ierr=nf_create(ncname(1:lstr), or(nf_clobber,nf_64bit_offset),
+     &        ncid)
+#else
         ierr=nf_create(ncname(1:lstr), nf_clobber, ncid)
+#endif
         if (ierr .ne. nf_noerr) then
           write(stdout,'(/3(1x,A)/)') 'ERROR in def_phys_flux_his/avg:',
      &           'Cannot create netCDF file:', 
