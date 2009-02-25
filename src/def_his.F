@@ -162,7 +162,7 @@
 !
       create_new_file=ldefhis
       if (ncid.ne.-1) create_new_file=.false.
-#if defined MPI & !defined PARALLEL_FILES
+#if defined MPI && !defined PARALLEL_FILES
       if (mynode.gt.0) create_new_file=.false.
 #endif
 !
@@ -170,8 +170,15 @@
 ! ====== === ======= ======== =====    and define all variables.
 !
   10  if (create_new_file) then
+#if defined AVRH && defined LARGE_AVG_FILES
+        ierr=nf_create(ncname(1:lstr), or(nf_clobber,nf_64bit_offset),
+     &       ncid)
+#elif !defined AVRH && defined LARGE_HIS_FILES
+        ierr=nf_create(ncname(1:lstr), or(nf_clobber,nf_64bit_offset),
+     &       ncid)
+#else
         ierr=nf_create(ncname(1:lstr), nf_clobber, ncid)
-chf        ierr=nf_create(ncname(1:lstr), nf_64bit_offset, ncid)
+#endif
         if (ierr .ne. nf_noerr) then
           write(stdout,'(/1x,4A/)') 'ERROR in def_his/avg: Can not ',
      &                 'create netCDF file ''', ncname(1:lstr), '''.'
@@ -790,7 +797,7 @@ chf        ierr=nf_create(ncname(1:lstr), nf_64bit_offset, ncid)
               rec=rec-ierr
             elseif (rec_per_file.eq.0) then
               total_rec=rec+1           ! <-- set to the next record
-#if defined MPI & !defined PARALLEL_FILES
+#if defined MPI && !defined PARALLEL_FILES
               if (mynode.gt.0) total_rec=total_rec-1
 #endif
             endif
@@ -799,7 +806,7 @@ chf        ierr=nf_create(ncname(1:lstr), nf_64bit_offset, ncid)
         endif
  
         if (ierr. ne. nf_noerr) then
-#if defined MPI & !defined PARALLEL_FILES
+#if defined MPI && !defined PARALLEL_FILES
           if (mynode.eq.0) then
             create_new_file=.true.
             goto 10
@@ -1091,7 +1098,7 @@ chf        ierr=nf_create(ncname(1:lstr), nf_64bit_offset, ncid)
      &              'existing file from record =',
      &              rec MYID
  
-#if defined MPI & !defined PARALLEL_FILES
+#if defined MPI && !defined PARALLEL_FILES
       else
         ierr=nf_open (ncname(1:lstr), nf_write, ncid)
         if (ierr .eq. nf_noerr) then
