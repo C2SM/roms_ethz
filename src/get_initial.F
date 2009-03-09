@@ -34,7 +34,7 @@
 # include "bgcflux.h"
 # include "ncroms_bgcflux.h"
 #endif
-#ifdef LMD_KPP
+#if defined LMD_KPP || defined LMD_BKPP
 # include "mixing.h"
 #endif
 #define time illegal
@@ -532,10 +532,6 @@ CHF          goto 99                                         !--> ERROR
         endif
       enddo
 # endif /* SEDIMENT_BIOLOGY */
-# ifdef BIOLOGY_BEC
-      ! pH is initialized to 0 in ecosys_init
-      call ecosys_init
-# endif
 # if defined BIOLOGY_BEC || defined BIOLOGY_NPZDOC
       ! pH and PAR can be treated for both BEC and NPZD.
       ! if pH field is present in the restart file (only recently added), 
@@ -622,11 +618,30 @@ CHF          goto 99                                         !--> ERROR
       endif
 
 # endif
-#endif
+
+# ifdef LMD_BKPP
+      lvar=lenstr(vname(1,indxHbbl))
+      ierr=nf_inq_varid (ncid, vname(1,indxHbbl)(1:lvar), varid)
+      if (ierr .eq. nf_noerr) then
+        ierr=nf_fread (hbbls(START_2D_ARRAY,tindx), ncid, varid,
+     &                                           record, r2dvar)
+        if (ierr .ne. nf_noerr) then
+          write(*,2) vname(1,indxHbbl)(1:lvar), record,
+     &               ininame(1:lstr), nf_strerror(ierr)
+          goto 99                                        !--> ERROR
+        endif
+      else
+        write(stdout,3) vname(1,indxHbbl)(1:lvar), ininame(1:lstr)
+      endif
+# endif
+#endif /* SOLVE3D */
   1   format(/1x,'### NOTE: get_initial :: Cannot find variable ''',
      &               A,'''' /12x, 'in netCDF file ''', A, ''''/12x,A)
   2   format(/1x,'### ERROR: get_initial :: Cannot read variable ''',
      &             A,'''' /12x, 'from netCDF file ''', A, ''''/12x,A)
+  3   format(/1x,'### WARNING: get_initial :: Cannot find variable ''',
+     &             A,'''' /12x, ' from netCDF file ''',A, '''' /12x,
+     &             ' ==> initialized to zero state.')
 !
 !  Close input NetCDF file.
 !

@@ -196,6 +196,10 @@ C$OMP BARRIER                        ! slope parameters "rx0", "rx1".
 CR      write(*,*) ' -6' MYID
 #endif
  
+# ifdef BIOLOGY_BEC
+      ! pH is initialized to 0 in ecosys_init
+      call ecosys_init
+# endif
                                      ! Set initial conditions for
 #ifdef ANA_INITIAL
       do tile=my_tile_range          ! model prognostic variables,
