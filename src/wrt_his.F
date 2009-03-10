@@ -328,6 +328,21 @@ CR      write(*,*) 'wrt_his:  wrtAks' MYID
 CR      write(*,*) 'wrt_his:  wrtHBL' MYID
       endif
 # endif
+# ifdef LMD_BKPP
+!
+!  Write out depth of bottom boundary layer (m).
+!
+      if (wrthis(indxHbbl)) then
+        ierr=nf_fwrite (hbbls(START_2D_ARRAY,nstp), ncidhis,
+     &                              hisHbbl, record, r2dvar)
+        if (ierr .ne. nf_noerr) then
+          lvar=lenstr(vname(1,indxHbbl))
+          write(stdout,1) vname(1,indxHbbl)(1:lvar), record, ierr,
+     &                    nf_strerror(ierr) MYID
+          goto 99                                         !--> ERROR
+        endif
+      endif
+# endif
 # if defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC
 !
 ! Write out averaged pH:

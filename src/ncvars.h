@@ -13,6 +13,7 @@
 !
 ! indxAkv,indxAkt,indxAks  vertical viscosity/diffusivity coeffcients
 ! indxHbl         depth of planetary boundary layer in KPP model
+! indxHbbl        depth of bottom boundary layer in (B)KPP model
 !
 ! indxSUSTR,indxSVSTR  surface U-, V-momentum stress (wind forcing)
 ! indxSHFl        net surface heat flux.
@@ -73,19 +74,27 @@
       parameter (indxHbl=indxAkt+1)
 #  endif
 # endif
-#endif
+# ifdef LMD_BKPP
+      integer indxHbbl
+#  ifdef SALINITY
+      parameter (indxHbbl=indxAks+2)
+#  else
+      parameter (indxHbbl=indxAkt+2)
+#  endif
+# endif
+#endif /* SOLVE3D */
 
 
       integer indxSUSTR, indxSVSTR
 #ifdef SOLVE3D
-      parameter (indxSUSTR=indxAkt+3, indxSVSTR=indxAkt+4)
+      parameter (indxSUSTR=indxAkt+4, indxSVSTR=indxAkt+5)
 #else
       parameter (indxSUSTR=indxVb+1,  indxSVSTR=indxSUSTR+1)
 #endif
 
 #ifdef SOLVE3D
       integer indxSHFl, indxSWRad
-      parameter (indxSHFl=indxAkt+5)
+      parameter (indxSHFl=indxAkt+6)
 # ifdef SALINITY
       integer indxSSFl
       parameter (indxSSFl=indxSHFl+1, indxSWRad=indxSHFl+2)
@@ -179,7 +188,8 @@
      &           indxDiazchl =indxPO4+19, indxDiazfe=indxPO4+20,
      &           indxDon =indxPO4+21, indxDofe=indxPO4+22,
      &           indxDop =indxPO4+23)
-       parameter (indxPH_rst = indxDOP+1) 
+       parameter (indxPH_rst = indxDOP+1
+     &      )
        parameter(indxPCO2_rst = indxPH_rst+1,
      &      indxPCO2air_rst = indxPCO2_rst+1,
      &      indxPARinc_rst = indxPCO2air_rst+1,
@@ -302,7 +312,11 @@
       integer rstHbl, hisHbl
       common /ncvars/ rstHbl, hisHbl
 # endif
-#endif
+# ifdef LMD_BKPP
+      integer rstHbbl, hisHbbl
+      common /ncvars/ rstHbbl, hisHbbl
+# endif
+#endif /* SOLVE3D */
 
 #ifdef AVERAGES
       integer ncidavg, nrecavg,  nrpfavg,
@@ -326,8 +340,12 @@
       integer avgHbl
       common /ncvars/ avgHbl
 #  endif
-# endif
-#endif
+#  ifdef LMD_BKPP
+      integer avgHbbl
+      common /ncvars/ avgHbbl
+#  endif
+# endif /* SOLVE3D */
+#endif /* AVERAGES */
 
 #ifdef STATIONS
       integer ncidsta, nrecsta,  nrpfsta,  stadid,    stazid,
@@ -345,8 +363,12 @@
       integer stahblid
       common /ncvars/ stahblid
 #  endif
-# endif
-#endif
+#  ifdef LMD_BKPP
+      integer stahbblid
+      common /ncvars/ stahbblid
+#  endif
+# endif /* SOLVE3D */
+#endif /* STATIONS */
 
 #ifdef SOLVE3D
 # define NWRTHIS 100+NT

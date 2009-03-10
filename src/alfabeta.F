@@ -1,5 +1,5 @@
 #include "cppdefs.h"
-#if defined SOLVE3D && defined LMD_KPP
+#if defined SOLVE3D && (defined LMD_KPP || defined LMD_BKPP)
 
       subroutine alfabeta_tile (istr,iend,jstr,jend,
      &               imin,imax,jmin,jmax, alpha,beta)
@@ -71,5 +71,5 @@
 #else
       subroutine alfabeta_empty
       end
-#endif /* LMD_KPP */
+#endif /* SOLVE3D && (LMD_KPP || LMD_BKPP) */
  

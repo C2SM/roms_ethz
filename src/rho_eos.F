@@ -164,7 +164,8 @@
 #  include "coupling.h"
 #  include "scalars.h"
 #  if defined BVF_MIXING || defined LMD_MIXING  || defined LMD_KPP \
-   || defined MY2_MIXING || defined MY25_MIXING || defined PP_MIXING
+   || defined MY2_MIXING || defined MY25_MIXING || defined PP_MIXING \
+   || defined LMD_BKPP
 #   include "mixing.h"
 #  endif
 !
@@ -258,7 +259,8 @@ c**         rho(i,j,k)=rho1(i,j,k)
 #   endif
 #  endif
 #  if defined BVF_MIXING || defined LMD_MIXING  || defined LMD_KPP \
-   || defined MY2_MIXING || defined MY25_MIXING || defined PP_MIXING
+   || defined MY2_MIXING || defined MY25_MIXING || defined PP_MIXING \
+   || defined LMD_BKPP
 #   ifndef SPLIT_EOS
             dpth=z_w(i,j,N)-z_w(i,j,k)
             K_up(i,k)=K0+dpth*(K1+K2*dpth)
@@ -301,7 +303,8 @@ c**         rho(i,j,k)=rho1(i,j,k)
           enddo
         enddo
 #  if defined BVF_MIXING || defined LMD_MIXING  || defined LMD_KPP \
-   || defined MY2_MIXING || defined MY25_MIXING || defined PP_MIXING
+   || defined MY2_MIXING || defined MY25_MIXING || defined PP_MIXING \
+   || defined LMD_BKPP
         do i=istrR,iendR
           bvf(i,j,N)=bvf(i,j,N-1)
           bvf(i,j,0)=bvf(i,j,  1)
@@ -329,7 +332,8 @@ c**         rho(i,j,k)=rho1(i,j,k)
 #  include "coupling.h"
 #  include "scalars.h"
 #  if defined BVF_MIXING || defined LMD_MIXING  || defined LMD_KPP \
-   || defined MY2_MIXING || defined MY25_MIXING || defined PP_MIXING
+   || defined MY2_MIXING || defined MY25_MIXING || defined PP_MIXING \
+   || defined LMD_BKPP
 #   include "mixing.h"
 #  endif
 !
@@ -368,7 +372,8 @@ c     &                                )/(z_w(i,j,k)-z_w(i,j,k-1))
           enddo
         enddo
 #  if defined BVF_MIXING || defined LMD_MIXING  || defined LMD_KPP \
-   || defined MY2_MIXING || defined MY25_MIXING || defined PP_MIXING
+   || defined MY2_MIXING || defined MY25_MIXING || defined PP_MIXING \
+   || defined LMD_BKPP
         cff=g/rho0
         do k=1,N-1
           do i=istrR,iendR

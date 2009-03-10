@@ -697,6 +697,9 @@ c--      fname='roms.in.US_West'
 #  ifdef LMD_KPP
      &                                            ,  wrthis(indxHbl)
 #  endif
+# ifdef LMD_BKPP
+     &                                            ,  wrthis(indxHbbl)
+# endif
 # endif
           if ( wrthis(indxR) .or. wrthis(indxO) .or. wrthis(indxW)
      &                     .or. wrthis(indxAkv) .or. wrthis(indxAkt)
@@ -706,6 +709,9 @@ c--      fname='roms.in.US_West'
 #  ifdef LMD_KPP
      &                                          .or. wrthis(indxHbl)
 #  endif
+# ifdef LMD_BKPP
+     &                                          .or. wrthis(indxHbbl)
+# endif
 # endif
      &       ) wrthis(indxTime)=.true.
  
@@ -723,10 +729,14 @@ c--      fname='roms.in.US_West'
 # ifdef SALINITY
      &    , wrthis(indxAks),'write Aks  ',
      &                           'Vertical diffusivity for salinity.'
-#  ifdef LMD_KPP
+# endif
+# ifdef LMD_KPP
      &    , wrthis(indxHbl),'write Hbl  ',
      &                            'Depth of KPP-model boundary layer'
-#  endif
+# endif
+# ifdef LMD_BKPP
+     &    , wrthis(indxHbbl),'write Hbbl ',
+     &                           'Depth of BOTTOM-KPP boundary layer.'
 # endif
 #endif /* SOLVE3D */
 #ifdef AVERAGES
@@ -782,18 +792,24 @@ c--      fname='roms.in.US_West'
      &          ,  wrtavg(indxRich), wrtavg(indxRichN)
 #  ifdef SALINITY
      &                                            ,  wrtavg(indxAks)
-#   ifdef LMD_KPP
+#  endif
+#  ifdef LMD_KPP
      &                                            ,  wrtavg(indxHbl)
-#   endif
+#  endif
+#  ifdef LMD_BKPP
+     &                                            ,  wrtavg(indxHbbl)
 #  endif
           if ( wrtavg(indxR) .or. wrtavg(indxO) .or. wrtavg(indxW)
      &                  .or. wrtavg(indxAkv) .or. wrtavg(indxAkt)
      &                  .or. wrtavg(indxRich) .or. wrtavg(indxRichN)
 #  ifdef SALINITY
      &                                          .or. wrtavg(indxAks)
-#   ifdef LMD_KPP
+#  endif
+#  ifdef LMD_KPP
      &                                          .or. wrtavg(indxHbl)
-#   endif
+#  endif
+#  ifdef LMD_BKPP
+     &                                          .or. wrtavg(indxHbbl)
 #  endif
      &       ) wrtavg(indxTime)=.true.
  
@@ -811,10 +827,14 @@ c--      fname='roms.in.US_West'
 #  ifdef SALINITY
      &    , wrtavg(indxAks),'write Aks  ',
      &                           'Vertical diffusivity for salinity.'
-#   ifdef LMD_KPP
+#  endif
+#  ifdef LMD_KPP
      &    , wrtavg(indxHbl),'write Hbl  ',
      &                            'Depth of KPP-model boundary layer'
-#   endif
+#  endif
+#  ifdef LMD_BKPP
+     &    , wrtavg(indxHbbl),'write Hbbl ',
+     &                            'Depth of BOTTOM-KPP boundary layer'
 #  endif
 # endif /* SOLVE3D */
 #endif /* AVERAGES */

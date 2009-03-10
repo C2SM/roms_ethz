@@ -348,6 +348,22 @@
      &                                                 1, spv_set)
 #  endif
 # endif
+
+# ifdef LMD_BKPP
+        lvar=lenstr(vname(1,indxHbbl))
+        ierr=nf_def_var (ncid, vname(1,indxHbbl)(1:lvar), NF_FTYPE,
+     &                                           3, r2dgrd, rstHbbl)
+        lvar=lenstr(vname(2,indxHbbl))
+        ierr=nf_put_att_text (ncid, rstHbbl, 'long_name', lvar,
+     &                                    vname(2,indxHbbl)(1:lvar))
+        lvar=lenstr(vname(3,indxHbbl))
+        ierr=nf_put_att_text (ncid, rstHbbl, 'units', lvar,
+     &                                    vname(3,indxHbbl)(1:lvar))
+#  ifdef MASK_LAND_DATA
+        ierr=nf_put_att_FTYPE (ncid, rstHbbl, '_FillValue', NF_FTYPE,
+     &                                                 1, spv_set)
+#  endif
+# endif
 #endif /* SOLVE3D */
 #ifdef FLOATS
         vinfo(1)='nfloats'
@@ -686,6 +702,15 @@
         ierr=nf_inq_varid (ncid, vname(1,indxHbl), rstHbl)
         if (ierr. ne. nf_noerr) then
           write(stdout,1) vname(1,indxHbl)(1:lvar), rstname(1:lstr)
+          goto 99                                         !--> ERROR
+        endif
+# endif
+
+# ifdef LMD_BKPP
+        lvar=lenstr(vname(1,indxHbbl))
+        ierr=nf_inq_varid (ncid, vname(1,indxHbbl), rstHbbl)
+        if (ierr. ne. nf_noerr) then
+          write(stdout,1) vname(1,indxHbbl)(1:lvar), rstname(1:lstr)
           goto 99                                         !--> ERROR
         endif
 # endif

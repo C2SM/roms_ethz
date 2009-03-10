@@ -61,7 +61,7 @@
         if (ierr.eq.0)  call get_dust(ierr)
         if (ierr.eq.0)  call get_iron(ierr)
 # endif
-# if defined LMD_KPP && !defined ANA_SRFLUX
+# if (defined LMD_KPP || defined LMD_BKPP) && !defined ANA_SRFLUX
       if (ierr.eq.0) call get_srflux (ierr)
 # endif
 #endif
@@ -196,7 +196,7 @@ c***              no code here
       call set_iron_tile (Istr,Iend,Jstr,Jend,ierr) 
       call set_dust_tile (Istr,Iend,Jstr,Jend,ierr) 
 # endif
-# ifdef LMD_KPP
+# if (defined LMD_KPP || defined LMD_BKPP)
 #  ifdef ANA_SRFLUX
       call ana_srflux_tile (istr,iend,jstr,jend)
 #  else

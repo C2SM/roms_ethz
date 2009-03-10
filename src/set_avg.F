@@ -230,6 +230,15 @@
             enddo
           endif
 #  endif
+#  ifdef LMD_BKPP
+        if (wrtavg(indxHbbl)) then
+          do j=jstrR,jendR
+            do i=istrR,iendR
+              hbbl_avg(i,j)=hbbls(i,j,nstp)
+            enddo
+          enddo
+        endif
+#  endif
 # endif /* SOLVE3D */
         elseif (mod(iic-ntsavg,navg).gt.1) then
           if (ZEROTH_TILE) time_avg=time_avg+time
@@ -399,6 +408,15 @@
               enddo
             enddo
           endif
+#  endif
+#  ifdef LMD_BKPP
+        if (wrtavg(indxHbbl)) then
+          do j=jstrR,jendR
+            do i=istrR,iendR
+              hbbl_avg(i,j)=hbbl_avg(i,j)+hbbls(i,j,nstp)
+            enddo
+          enddo
+        endif
 #  endif
 # endif /* SOLVE3D */
         elseif (mod(iic-ntsavg,navg).eq.0) then
@@ -574,6 +592,15 @@
               enddo
             enddo
           endif
+#  endif
+#  ifdef LMD_BKPP
+        if (wrtavg(indxHbbl)) then
+          do j=jstrR,jendR
+            do i=istrR,iendR
+              hbbl_avg(i,j)=cff*(hbbl_avg(i,j)+hbbls(i,j,nstp))
+            enddo
+          enddo
+        endif
 #  endif
 # endif /* SOLVE3D */
         endif

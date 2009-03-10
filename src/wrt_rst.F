@@ -12,7 +12,7 @@
 #include "scalars.h"
 #include "ocean2d.h"
 #include "ocean3d.h"
-#ifdef LMD_KPP
+#if defined LMD_KPP || defined LMD_BKPP
 # include "mixing.h"
 #endif
 #include "ncvars.h"
@@ -265,6 +265,20 @@
 # endif
 #endif
 
+# ifdef LMD_BKPP
+!
+! Thickness of bottom boundary layer (m).
+!
+      ierr=nf_fwrite (hbbls(START_2D_ARRAY,nstp), ncidrst,
+     &                              rstHbbl, record, r2dvar)
+      if (ierr .ne. nf_noerr) then
+        lvar=lenstr(vname(1,indxHbbl))
+        write(stdout,1) vname(1,indxHbbl)(1:lvar), record, ierr,
+     &                    nf_strerror(ierr) MYID
+        goto 99                                         !--> ERROR
+      endif
+# endif
+
 #ifdef FLOATS
 ! write nfloats
       ierr=nf_put_vara_int (ncidrst, rstnfloats, record, 1, nfloats)
@@ -358,7 +372,7 @@
 ! Synchronize restart netCDF file to disk to allow other
 ! processes to access data immediately after it is written.
 !
-#if defined MPI & !defined PARALLEL_FILES
+#if defined MPI && !defined PARALLEL_FILES
       ierr=nf_close (ncidrst)
       if (nrpfrst.gt.0 .and. record.ge.nrpfrst) ncidrst=-1
 #else
@@ -379,7 +393,7 @@
         may_day_flag=3
       endif
  
-#if defined MPI & !defined PARALLEL_FILES
+#if defined MPI && !defined PARALLEL_FILES
       if (mynode .lt. NNODES-1) then
         call MPI_Send (blank, 1, MPI_INTEGER, mynode+1,
      &                        1, ocean_grid_comm, ierr)

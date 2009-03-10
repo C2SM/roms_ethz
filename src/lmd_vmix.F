@@ -20,6 +20,15 @@
      &                   A2d(1,13), A2d(1,14), A2d(1,15), A2d(1,16),
      &                   A2d(1,17), A2d(1,18), A2d(1,19)          )
 # endif
+# ifdef LMD_BKPP
+      call lmd_bkpp_tile (istr,iend,jstr,jend,
+     &                   A3d(1, 1), A3d(1, 2), A3d(1, 3),
+     &                   A2d(1, 1), A2d(1, 2), A2d(1, 3), A2d(1, 4),
+     &                   A2d(1, 5), A2d(1, 6), A2d(1, 7), A2d(1, 8),
+     &                   A2d(1, 9), A2d(1,10), A2d(1,11), A2d(1,12),
+     &                                         A2d(1,13), A2d(1,14))
+
+# endif
       return
       end
  
@@ -240,7 +249,7 @@ CDL
             Kv(i,j,k)=nuwm                    ! internal waves
             Kt(i,j,k)=nuws                    ! only
 # endif
-# if defined LMD_CONVEC && !defined LMD_KPP
+# if defined LMD_CONVEC && !defined LMD_KPP && !defined LMD_BKPP
             if (Rig(i,j,k).lt.0.) then        ! In the case of KPP
               Kv(i,j,k)=Kv(i,j,k) + nu0c      ! convective adjustment
               Kt(i,j,k)=Kt(i,j,k) + nu0c      ! will be added later
@@ -333,7 +342,7 @@ CDL
         enddo
 # endif /* LMD_DDMIX */
       enddo     ! <-- k
-# ifdef LMD_KPP
+# if defined LMD_KPP || defined LMD_BKPP
 !
 ! Pad out surface and bottom values for lmd_blmix calculations.
 ! The interior values used here may not be the best values to
@@ -375,12 +384,12 @@ CDL
 #  endif
 # endif
  
-# endif /* LMD_KPP */
+# endif /* LMD_KPP || LMD_BKPP */
       return
       end
 #else
       subroutine lmd_vmix_empty
       end
-#endif /* LMD_MIXING */
+#endif /* SOLVE3D && LMD_MIXING */
  
  

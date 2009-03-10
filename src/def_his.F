@@ -72,6 +72,7 @@
 # define vidRichN hisRichN
 # define vidAks hisAks
 # define vidHbl hisHbl
+# define vidHbbl hisHbbl
 # if defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC
 #  define vidPH hisPH
 #  define vidPCO2 hisPCO2
@@ -103,6 +104,7 @@
 # define vidRichN avgRichN
 # define vidAks avgAks
 # define vidHbl avgHbl
+# define vidHbbl avgHbbl
 # if defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC
 #  define vidPH avgPH
 #  define vidPCO2 avgPCO2
@@ -649,6 +651,28 @@
 #endif
         endif
 # endif /* LMD_KPP */
+!
+# ifdef LMD_BKPP
+!
+! Depth of bottom boundary layer.
+!
+        if (wrt(indxHbbl)) then
+          lvar=lenstr(vname(1,indxHbbl))
+          ierr=nf_def_var (ncid, vname(1,indxHbbl)(1:lvar), NF_FOUT,
+     &                                           3, r2dgrd, vidHbbl)
+#  ifdef AVRH
+          text='averaged '/ /vname(2,indxHbbl)
+#  else
+          text=vname(2,indxHbbl)
+#  endif
+          lvar=lenstr(text)
+          ierr=nf_put_att_text (ncid, vidHbbl, 'long_name', lvar,
+     &                                              text(1:lvar))
+          lvar=lenstr(vname(3,indxHbbl))
+          ierr=nf_put_att_text (ncid, vidHbbl, 'units',     lvar,
+     &                                  vname(3,indxHbbl)(1:lvar))
+        endif
+# endif /* LMD_BKPP */
 # if defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC
 !
 ! pH
@@ -1164,6 +1188,7 @@
 #undef vidRichN
 #undef vidAks
 #undef vidHbl
+#undef vidHbbl
  
 #ifndef AVRH
 # define AVRH

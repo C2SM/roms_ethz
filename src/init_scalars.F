@@ -305,7 +305,12 @@ CR      write(stdout,'(1x,A,I3)') 'indxHbl =',indxHbl
       vname(2,indxHbl)='Thickness of KPP surface boundary layer'
       vname(3,indxHbl)='meter'
 # endif
-#endif
+# ifdef LMD_BKPP
+      vname(1,indxHbbl)='hbbl                                     '
+      vname(2,indxHbbl)='Thickness of KPP bottom boundary layer   '
+      vname(3,indxHbbl)='meter                                    '
+# endif
+#endif /* SOLVE3D */
 CR      write(stdout,'(1x,A,I3)') 'indxSUSTR =',indxSUSTR
       vname(1,indxSUSTR)='sustr                                     '
       vname(2,indxSUSTR)='surface u-momentum stress                 '
