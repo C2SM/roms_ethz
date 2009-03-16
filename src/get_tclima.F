@@ -48,7 +48,7 @@
            ierr=nf_open (clm_file2(1:lstr2), nf_nowrite, ncidclm2)
            if (ierr .ne. nf_noerr) goto 22 !--> ERROR
         endif
-#else
+#elif defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC
         ncidclm2 = ncidclm
         clm_file2 = clm_file
         lstr2 = lstr
@@ -59,7 +59,7 @@
           ierr=nf_open (clm_file3(1:lstr3), nf_nowrite, ncidclm3)
           if (ierr .ne. nf_noerr) goto 33                !--> ERROR
         endif
-#else
+#elif defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC
         ncidclm3 = ncidclm2
         clm_file3 = clm_file2
         lstr3 = lstr2
