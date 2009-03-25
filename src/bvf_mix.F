@@ -6,13 +6,13 @@
       integer tile
 # include "param.h"
 # include "compute_tile_bounds.h"
-      call bvf_mix_tile (istr,iend,jstr,jend)
+      call bvf_mix_tile (Istr,Iend,Jstr,Jend)
       return
       end
  
-      subroutine bvf_mix_tile (istr,iend,jstr,jend)
+      subroutine bvf_mix_tile (Istr,Iend,Jstr,Jend)
       implicit none
-      integer istr,iend,jstr,jend, i,j,k
+      integer Istr,Iend,Jstr,Jend, i,j,k
       real bvf_numin, bvf_numax, bvf_nu0c, bvf_nu0, cff
       parameter (
      &    bvf_numin=3.e-5,  ! Upper and lower bounds for
@@ -30,8 +30,8 @@
 ! unstable regime, set diffusivities to "bvf_nu0c".
 !
       do k=1,N-1
-        do j=jstr,jend
-          do i=istr,iend
+        do j=Jstr,Jend
+          do i=Istr,Iend
             Akv(i,j,k)=Akv_bak
             if (bvf(i,j,k).gt.0.) then
               cff=bvf_nu0/sqrt(bvf(i,j,k))
@@ -52,10 +52,10 @@
       enddo
  
 # if defined EW_PERIODIC || defined NS_PERIODIC || defined MPI
-      call exchange_w3d_tile (istr,iend,jstr,jend, Akv)
-      call exchange_w3d_tile (istr,iend,jstr,jend,
+      call exchange_w3d_tile (Istr,Iend,Jstr,Jend, Akv)
+      call exchange_w3d_tile (Istr,Iend,Jstr,Jend,
      &                     Akt(START_2D_ARRAY,0,itemp))
-      call exchange_w3d_tile (istr,iend,jstr,jend,
+      call exchange_w3d_tile (Istr,Iend,Jstr,Jend,
      &                     Akt(START_2D_ARRAY,0,isalt))
 # endif
       return

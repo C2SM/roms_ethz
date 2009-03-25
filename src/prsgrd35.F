@@ -7,18 +7,18 @@
 # include "param.h"
 # include "private_scratch.h"
 # include "compute_tile_bounds.h"
-      call prsgrd_tile (istr,iend,jstr,jend,  A3d(1,1), A3d(1,2),
+      call prsgrd_tile (Istr,Iend,Jstr,Jend,  A3d(1,1), A3d(1,2),
      &                                        A3d(1,3), A3d(1,4),
      &                    A2d(1,1), A2d(1,2), A2d(1,3), A2d(1,4),
      &                    A2d(1,5), A2d(1,6), A2d(1,7), A2d(1,8))
       return
       end
  
-      subroutine prsgrd_tile (istr,iend,jstr,jend, ru,rv,
+      subroutine prsgrd_tile (Istr,Iend,Jstr,Jend, ru,rv,
      &                                 gradZ,gradR, grdZ,avgZ,
      &                         grdR,avgR, grdR1,avgR1, dHz,CF)
       implicit none
-      integer istr,iend,jstr,jend, i,j,k
+      integer Istr,Iend,Jstr,Jend, i,j,k
 # include "param.h"
       real ru(PRIVATE_2D_SCRATCH_ARRAY,N),
      &     rv(PRIVATE_2D_SCRATCH_ARRAY,N),
@@ -41,9 +41,9 @@
 # include "compute_auxiliary_bounds.h"
 !                                               Compute XI-component
 !                                               ======= == =========
-      do j=jstr,jend
+      do j=Jstr,Jend
         do k=0,N
-          do i=istrU,iend
+          do i=IstrU,Iend
             gradZ(i,j,k)=(z_w(i,j,k)-z_w(i-1,j,k))
 # ifdef MASKING
      &                                 *umask(i,j)
@@ -51,7 +51,7 @@
           enddo
         enddo
         do k=1,N
-          do i=istrU-1,iend+1
+          do i=IstrU-1,Iend+1
             gradR(i,j,k)=(rho(i,j,k)-rho(i-1,j,k))
 # ifdef MASKING
      &                                 *umask(i,j)
@@ -60,7 +60,7 @@
         enddo
  
         do k=0,N
-          do i=istrU,iend
+          do i=IstrU,Iend
 c??            grdZ(i,k)=1.0833333333333333*gradZ(i,j,k)
 c??     &               -0.0416666666666666*( gradZ(i-1,j,k)
 c??     &                                    +gradZ(i+1,j,k))
@@ -70,7 +70,7 @@ c?     &             +0.0625*(gradZ(i-1,j,k)-gradZ(i+1,j,k))
           enddo
         enddo
         do k=1,N
-          do i=istrU,iend
+          do i=IstrU,Iend
 c??            grdR(i,k)=1.0833333333333333*gradR(i,j,k)
 c??     &               -0.0416666666666666*( gradR(i-1,j,k)
 c??     &                                    +gradR(i+1,j,k))
@@ -83,13 +83,13 @@ c?     &             +0.0625*(gradR(i-1,j,k)-gradR(i+1,j,k))
           enddo
         enddo
 !-
-        do i=istrU,iend
+        do i=IstrU,Iend
           CF(i,0)=-1.
           grdR1(i,0)=0.
           avgR1(i,0)=0.
         enddo
         do k=1,N-1,+1
-          do i=istrU,iend
+          do i=IstrU,Iend
             cff=1./(2.*dHz(i,k+1)+dHz(i,k)*(2.-CF(i,k-1)))
  
             CF(i,k)=cff*dHz(i,k+1)
@@ -101,7 +101,7 @@ c?     &             +0.0625*(gradR(i-1,j,k)-gradR(i+1,j,k))
      &                              -dHz(i,k)*avgR1(i,k-1))
           enddo
         enddo
-        do i=istrU,iend
+        do i=IstrU,Iend
           cff=1./(1.+CF(i,N-1))
           grdR1(i,N)=cff*grdR1(i,N-1)
           grdR1(i,N-1)=    grdR1(i,N)
@@ -110,20 +110,20 @@ c?     &             +0.0625*(gradR(i-1,j,k)-gradR(i+1,j,k))
           avgR1(i,N-1)=    avgR1(i,N)
         enddo
         do k=N-2,0,-1
-          do i=istrU,iend
+          do i=IstrU,Iend
             grdR1(i,k)=grdR1(i,k)-CF(i,k)*grdR1(i,k+1)
             avgR1(i,k)=avgR1(i,k)-CF(i,k)*avgR1(i,k+1)
           enddo
         enddo
 !-
-        do i=istrU,iend
+        do i=IstrU,Iend
           CF(i,N)=(rho0+avgR(i,N)+0.5*avgR1(i,N)*dHz(i,N))
      &                           *(z_w(i,j,N)-z_w(i-1,j,N))
         enddo
  
         cff=0.5*g/rho0
         do k=N,1,-1
-          do i=istrU,iend
+          do i=IstrU,Iend
             dCF=dHz(i,k)*( grdR(i,k)-0.25*(avgR1(i,k)+avgR1(i,k-1))
      &                                      *(grdZ(i,k)+grdZ(i,k-1))
  
@@ -148,9 +148,9 @@ c?     &             +0.0625*(gradR(i-1,j,k)-gradR(i+1,j,k))
       enddo
 !                                              Compute ETA-component
 !                                              ======= === =========
-      do j=jstrV-1,jend+1
+      do j=JstrV-1,Jend+1
         do k=0,N
-          do i=istr,iend
+          do i=Istr,Iend
             gradZ(i,j,k)=(z_w(i,j,k)-z_w(i,j-1,k))
 # ifdef MASKING
      &                                 *vmask(i,j)
@@ -158,7 +158,7 @@ c?     &             +0.0625*(gradR(i-1,j,k)-gradR(i+1,j,k))
           enddo
         enddo
         do k=1,N
-          do i=istr,iend
+          do i=Istr,Iend
             gradR(i,j,k)=(rho(i,j,k)-rho(i,j-1,k))
 # ifdef MASKING
      &                                 *vmask(i,j)
@@ -167,9 +167,9 @@ c?     &             +0.0625*(gradR(i-1,j,k)-gradR(i+1,j,k))
         enddo
       enddo
  
-      do j=jstrV,jend
+      do j=JstrV,Jend
         do k=0,N
-          do i=istr,iend
+          do i=Istr,Iend
 c??            grdZ(i,k)=1.0833333333333333*gradZ(i,j,k)
 c??     &               -0.0416666666666666*( gradZ(i,j-1,k)
 c??     &                                    +gradZ(i,j+1,k))
@@ -180,7 +180,7 @@ c?     &             +0.0625*(gradZ(i,j-1,k)-gradZ(i,j+1,k))
           enddo
         enddo
         do k=1,N
-          do i=istr,iend
+          do i=Istr,Iend
 c??            grdR(i,k)=1.0833333333333333*gradR(i,j,k)
 c??     &               -0.0416666666666666*( gradR(i,j+1,k)
 c??     &                                    +gradR(i,j-1,k))
@@ -193,13 +193,13 @@ c?     &             +0.0625*(gradR(i,j-1,k)-gradR(i,j+1,k))
           enddo
         enddo
  
-        do i=istr,iend
+        do i=Istr,Iend
           CF(i,0)=-1.
           grdR1(i,0)=0.
           avgR1(i,0)=0.
         enddo
         do k=1,N-1,+1
-          do i=istr,iend
+          do i=Istr,Iend
             cff=1./(2.*dHz(i,k+1)+dHz(i,k)*(2.-CF(i,k-1)))
  
             CF(i,k)=cff*dHz(i,k+1)
@@ -211,7 +211,7 @@ c?     &             +0.0625*(gradR(i,j-1,k)-gradR(i,j+1,k))
      &                              -dHz(i,k)*avgR1(i,k-1))
           enddo
         enddo
-        do i=istr,iend
+        do i=Istr,Iend
           cff=1./(1.+CF(i,N-1))
           grdR1(i,N)=cff*grdR1(i,N-1)
           grdR1(i,N-1)=    grdR1(i,N)
@@ -220,19 +220,19 @@ c?     &             +0.0625*(gradR(i,j-1,k)-gradR(i,j+1,k))
           avgR1(i,N-1)=    avgR1(i,N)
         enddo
         do k=N-2,0,-1
-          do i=istr,iend
+          do i=Istr,Iend
             grdR1(i,k)=grdR1(i,k)-CF(i,k)*grdR1(i,k+1)
             avgR1(i,k)=avgR1(i,k)-CF(i,k)*avgR1(i,k+1)
           enddo
         enddo
  
-        do i=istr,iend
+        do i=Istr,Iend
           CF(i,N)=(rho0+avgR(i,N)+0.5*avgR1(i,N)*dHz(i,N))
      &                           *(z_w(i,j,N)-z_w(i,j-1,N))
         enddo
         cff=0.5*g/rho0
         do k=N,1,-1
-          do i=istr,iend
+          do i=Istr,Iend
             dCF=dHz(i,k)*( grdR(i,k)-0.25*(avgR1(i,k)+avgR1(i,k-1))
      &                                      *(grdZ(i,k)+grdZ(i,k-1))
  

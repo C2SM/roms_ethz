@@ -1,10 +1,10 @@
-      subroutine exchange_tile (istr,iend,jstr,jend, A,nmax)
+      subroutine exchange_tile (Istr,Iend,Jstr,Jend, A,nmax)
 
       implicit none
       
 #include "param.h"
 #include "scalars.h"
-      integer istr,iend,jstr,jend, nmax, i,j,k
+      integer Istr,Iend,Jstr,Jend, nmax, i,j,k
       real A(GLOBAL_2D_ARRAY,nmax)
 CSDISTRIBUTE_RESHAPE A(BLOCK_PATTERN,*) BLOCK_CLAUSE
 !
@@ -12,9 +12,9 @@ CSDISTRIBUTE_RESHAPE A(BLOCK_PATTERN,*) BLOCK_CLAUSE
 !
 #ifdef EW_PERIODIC
 # ifdef NS_PERIODIC
-#  define J_RANGE jstr,jend
+#  define J_RANGE Jstr,Jend
 # else
-#  define J_RANGE jstrR,jendR
+#  define J_RANGE JstrR,JendR
 # endif
 # ifdef MPI
       if (NP_XI.eq.1) then
@@ -43,9 +43,9 @@ CSDISTRIBUTE_RESHAPE A(BLOCK_PATTERN,*) BLOCK_CLAUSE
  
 #ifdef NS_PERIODIC
 # ifdef EW_PERIODIC
-#  define I_RANGE istr,iend
+#  define I_RANGE Istr,Iend
 # else
-#  define I_RANGE istrR,iendR
+#  define I_RANGE IstrR,IendR
 # endif
 # ifdef MPI
       if (NP_ETA.eq.1) then
@@ -113,7 +113,7 @@ CSDISTRIBUTE_RESHAPE A(BLOCK_PATTERN,*) BLOCK_CLAUSE
 # endif
 #endif
 #ifdef MPI
-      call mpi_exchange_tile (istr,iend,jstr,jend,  A,nmax)
+      call mpi_exchange_tile (Istr,Iend,Jstr,Jend,  A,nmax)
 #endif
       return
       end

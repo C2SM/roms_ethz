@@ -10,7 +10,7 @@ c--#define SMOOTH_HBL
 c--#define LIMIT_MO_DEPTH
 
  
-      subroutine lmd_kpp_tile (istr,iend,jstr,jend, Kv,Kt,Ks,
+      subroutine lmd_kpp_tile (Istr,Iend,Jstr,Jend, Kv,Kt,Ks,
      &                         ustar, Bo,Bosol,hbl, FX,FE,FE1,
      &                         Cr,FC, wrk1,wrk2,
      &                     Gm1,dGm1dS, Gt1,dGt1dS,  Gs1,dGs1dS,
@@ -24,7 +24,7 @@ c--#define LIMIT_MO_DEPTH
 # include "scalars.h"
 # define tind nstp
 
-      integer istr,iend,jstr,jend, i,j,k
+      integer Istr,Iend,Jstr,Jend, i,j,k
 # ifdef SMOOTH_HBL
      &      , imin,imax,jmin,jmax
 # endif 
@@ -119,40 +119,40 @@ c--#define LIMIT_MO_DEPTH
 
 # ifdef SMOOTH_HBL
 #  ifdef EW_PERIODIC
-      imin=istr-1
-      imax=iend+1
+      imin=Istr-1
+      imax=Iend+1
 #  else
       if (WESTERN_EDGE) then
-        imin=istr
+        imin=Istr
       else
-        imin=istr-1
+        imin=Istr-1
       endif
       if (EASTERN_EDGE) then
-        imax=iend
+        imax=Iend
       else
-        imax=iend+1
+        imax=Iend+1
       endif
 #  endif
 #  ifdef NS_PERIODIC
-      jmin=jstr-1
-      jmax=jend+1
+      jmin=Jstr-1
+      jmax=Jend+1
 #  else
       if (SOUTHERN_EDGE) then
-        jmin=jstr
+        jmin=Jstr
       else
-        jmin=jstr-1
+        jmin=Jstr-1
       endif
       if (NORTHERN_EDGE) then
-        jmax=jend
+        jmax=Jend
       else
-        jmax=jend+1
+        jmax=Jend+1
       endif
 #  endif
 #  define I_EXT_RANGE imin,imax
 #  define J_EXT_RANGE jmin,jmax
 # else
-#  define I_EXT_RANGE istr,iend
-#  define J_EXT_RANGE jstr,jend
+#  define I_EXT_RANGE Istr,Iend
+#  define J_EXT_RANGE Jstr,Jend
 # endif
 !
 ! Compute thermal expansion coefficient "alpha" [kg/m^3/decC] and
@@ -169,7 +169,7 @@ c--#define LIMIT_MO_DEPTH
 !
 # define alpha Bosol
 # define beta  Bo
-      call alfabeta_tile (istr,iend,jstr,jend, I_EXT_RANGE,
+      call alfabeta_tile (Istr,Iend,Jstr,Jend, I_EXT_RANGE,
      &                             J_EXT_RANGE, alpha,beta)
       do j=J_EXT_RANGE
         do i=I_EXT_RANGE
@@ -410,38 +410,38 @@ c fix by Gokhan
 #  ifndef EW_PERIODIC
       if (WESTERN_EDGE) then
         do j=J_EXT_RANGE
-          hbl(istr-1,j)=hbl(istr,j)
+          hbl(Istr-1,j)=hbl(Istr,j)
         enddo
       endif
       if (EASTERN_EDGE) then
         do j=J_EXT_RANGE
-          hbl(iend+1,j)=hbl(iend,j)
+          hbl(Iend+1,j)=hbl(Iend,j)
         enddo
       endif
 #  endif
 #  ifndef NS_PERIODIC
       if (SOUTHERN_EDGE) then
         do i=I_EXT_RANGE
-          hbl(i,jstr-1)=hbl(i,jstr)
+          hbl(i,Jstr-1)=hbl(i,Jstr)
         enddo
       endif
       if (NORTHERN_EDGE) then
         do i=I_EXT_RANGE
-          hbl(i,jend+1)=hbl(i,jend)
+          hbl(i,Jend+1)=hbl(i,Jend)
         enddo
       endif
 #   ifndef EW_PERIODIC
       if (WESTERN_EDGE .and. SOUTHERN_EDGE) then
-        hbl(istr-1,jstr-1)=hbl(istr,jstr)
+        hbl(Istr-1,Jstr-1)=hbl(Istr,Jstr)
       endif
       if (WESTERN_EDGE .and. NORTHERN_EDGE) then
-        hbl(istr-1,jend+1)=hbl(istr,jend)
+        hbl(Istr-1,Jend+1)=hbl(Istr,Jend)
       endif
       if (EASTERN_EDGE .and. SOUTHERN_EDGE) then
-        hbl(iend+1,jstr-1)=hbl(iend,jstr)
+        hbl(Iend+1,Jstr-1)=hbl(Iend,Jstr)
       endif
       if (EASTERN_EDGE .and. NORTHERN_EDGE) then
-        hbl(iend+1,jend+1)=hbl(iend,jend)
+        hbl(Iend+1,Jend+1)=hbl(Iend,Jend)
       endif
 #   endif
 #  endif
@@ -470,16 +470,16 @@ c fix by Gokhan
 ! attenuate 1D 2dx-mode by factors of 1/4 and 1/2 per iteration
 ! respectively.
 !
-      do j=jstr-1,jend+1
-        do i=istr,iend+1
+      do j=Jstr-1,Jend+1
+        do i=Istr,Iend+1
           FX(i,j)=(hbl(i,j)-hbl(i-1,j))
 #  ifdef MASKING
      &                      *umask(i,j)
 #  endif
         enddo
       enddo
-      do j=jstr,jend+1
-        do i=istr-1,iend+1
+      do j=Jstr,Jend+1
+        do i=Istr-1,Iend+1
           FE(i,j)=(hbl(i,j)-hbl(i,j-1))
 #  ifdef MASKING
      &                      *vmask(i,j)
@@ -488,20 +488,20 @@ c fix by Gokhan
       enddo
       cff=1.D0/12.D0
       cff1=3.D0/16.D0
-      do j=jstr,jend+1
-        do i=istr,iend
+      do j=Jstr,Jend+1
+        do i=Istr,Iend
           FE1(i,j)=FE(i,j)+cff*( FX(i+1,j)+FX(i,j-1)
      &                          -FX(i,j)-FX(i+1,j-1))
         enddo
       enddo                      
-      do j=jstr,jend
-        do i=istr,iend+1
+      do j=Jstr,Jend
+        do i=Istr,Iend+1
           FX(i,j)=FX(i,j)+cff*( FE(i,j+1)+FE(i-1,j)
      &                         -FE(i,j)-FE(i-1,j+1))
         enddo
       enddo
-      do j=jstr,jend
-        do i=istr,iend
+      do j=Jstr,Jend
+        do i=Istr,Iend
           hbl(i,j)=hbl(i,j)+cff1*( FX(i+1,j)-FX(i,j)
      &                          +FE1(i,j+1)-FE1(i,j))
 #  ifdef MASKING
@@ -510,7 +510,7 @@ c fix by Gokhan
         enddo            !--> discard FX,FE,FE1
       enddo
 
-      do j=jstr,jend   !--> restart j-loop
+      do j=Jstr,Jend   !--> restart j-loop
 # endif                     /* SMOOTH_HBL */
 # undef I_EXT_RANGE
 # undef J_EXT_RANGE
@@ -521,11 +521,11 @@ c fix by Gokhan
 
 
 
-        do i=istr,iend
+        do i=Istr,Iend
           kbl(i)=N             !<-- initialize search
         enddo
         do k=N-1,1,-1       ! find new boundary layer index "kbl".
-          do i=istr,iend
+          do i=Istr,Iend
             if (z_w(i,j,k) .gt. z_w(i,j,N)-hbl(i,j)) kbl(i)=k
           enddo
         enddo
@@ -536,7 +536,7 @@ c fix by Gokhan
 
 
 # ifdef LIMIT_EKMAN_OLD_WAY 
-        do i=istr,iend
+        do i=Istr,Iend
           k=kbl(i)
           z_bl=z_w(i,j,N)-hbl(i,j)
 
@@ -556,7 +556,7 @@ c fix by Gokhan
           kbl(i)=N        !--> re-initialize search, and
         enddo             !    search for boundary layer
         do k=N-1,1,-1     !    index again.
-          do i=istr,iend
+          do i=Istr,Iend
             if (z_w(i,j,k) .gt. z_w(i,j,N)-hbl(i,j)) kbl(i)=k
           enddo
         enddo
@@ -569,7 +569,7 @@ c fix by Gokhan
 ! matching values and vertical derivatives of  interior mixing
 ! coefficients at hbl (sigma=1).
 !
-        do i=istr,iend
+        do i=Istr,Iend
           k=kbl(i)
           z_bl=z_w(i,j,N)-hbl(i,j)
           zscale=hbl(i,j)
@@ -619,7 +619,7 @@ c fix by Gokhan
 !--------- -------- ----- ------ -------------
 ! Compute turbulent velocity scales at vertical W-points.
 !
-        do i=istr,iend
+        do i=Istr,Iend
           do k=N-1,kbl(i),-1
             Bfsfc=Bfsfc_bl(i)
             zscale=z_w(i,j,N)-z_w(i,j,k)
@@ -675,7 +675,7 @@ c fix by Gokhan
 
 
         do k=1,N-1
-          do i=istr,iend
+          do i=Istr,Iend
             Akv(i,j,k)=Kv(i,j,k)
             Akt(i,j,k,itemp)=Kt(i,j,k)
  
@@ -686,57 +686,57 @@ c fix by Gokhan
         enddo
       enddo
 
-      do j=jstr,jend                 ! Copy "hbl" into its shared
-        do i=istr,iend               ! array and pad out ghost points
+      do j=Jstr,Jend                 ! Copy "hbl" into its shared
+        do i=Istr,Iend               ! array and pad out ghost points
           hbls(i,j,3-nstp)=hbl(i,j)  ! at lateral-sideboundaries. 
         enddo
       enddo
 # ifndef EW_PERIODIC
       if (WESTERN_EDGE) then
-        do j=jstr,jend
-          hbls(istr-1,j,3-nstp)=hbls(istr,j,3-nstp)
+        do j=Jstr,Jend
+          hbls(Istr-1,j,3-nstp)=hbls(Istr,j,3-nstp)
         enddo
       endif
       if (EASTERN_EDGE) then
-        do j=jstr,jend
-          hbls(iend+1,j,3-nstp)=hbls(iend,j,3-nstp)
+        do j=Jstr,Jend
+          hbls(Iend+1,j,3-nstp)=hbls(Iend,j,3-nstp)
         enddo
       endif
 # endif
 # ifndef NS_PERIODIC
       if (SOUTHERN_EDGE) then
-        do i=istr,iend
-          hbls(i,jstr-1,3-nstp)=hbls(i,jstr,3-nstp)
+        do i=Istr,Iend
+          hbls(i,Jstr-1,3-nstp)=hbls(i,Jstr,3-nstp)
         enddo
       endif
       if (NORTHERN_EDGE) then
-        do i=istr,iend
-          hbls(i,jend+1,3-nstp)=hbls(i,jend,3-nstp)
+        do i=Istr,Iend
+          hbls(i,Jend+1,3-nstp)=hbls(i,Jend,3-nstp)
         enddo
       endif
 #  ifndef EW_PERIODIC
       if (WESTERN_EDGE .and. SOUTHERN_EDGE) then
-        hbls(istr-1,jstr-1,3-nstp)=hbls(istr,jstr,3-nstp)
+        hbls(Istr-1,Jstr-1,3-nstp)=hbls(Istr,Jstr,3-nstp)
       endif
       if (WESTERN_EDGE .and. NORTHERN_EDGE) then
-        hbls(istr-1,jend+1,3-nstp)=hbls(istr,jend,3-nstp)
+        hbls(Istr-1,Jend+1,3-nstp)=hbls(Istr,Jend,3-nstp)
       endif
       if (EASTERN_EDGE .and. SOUTHERN_EDGE) then
-        hbls(iend+1,jstr-1,3-nstp)=hbls(iend,jstr,3-nstp)
+        hbls(Iend+1,Jstr-1,3-nstp)=hbls(Iend,Jstr,3-nstp)
       endif
       if (EASTERN_EDGE .and. NORTHERN_EDGE) then
-        hbls(iend+1,jend+1,3-nstp)=hbls(iend,jend,3-nstp)
+        hbls(Iend+1,Jend+1,3-nstp)=hbls(Iend,Jend,3-nstp)
       endif
 #  endif
 # endif
 
 # if defined EW_PERIODIC || defined NS_PERIODIC || defined MPI
-      call exchange_r2d_tile (istr,iend,jstr,jend,
+      call exchange_r2d_tile (Istr,Iend,Jstr,Jend,
      &                     hbls(START_2D_ARRAY,3-nstp))
-      call exchange_w3d_tile (istr,iend,jstr,jend, Akv)
-      call exchange_w3d_tile (istr,iend,jstr,jend,
+      call exchange_w3d_tile (Istr,Iend,Jstr,Jend, Akv)
+      call exchange_w3d_tile (Istr,Iend,Jstr,Jend,
      &                     Akt(START_2D_ARRAY,0,itemp))
-      call exchange_w3d_tile (istr,iend,jstr,jend,
+      call exchange_w3d_tile (Istr,Iend,Jstr,Jend,
      &                     Akt(START_2D_ARRAY,0,isalt))
 # endif
       return

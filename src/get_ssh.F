@@ -99,12 +99,12 @@
       end
  
  
-      subroutine set_ssh_tile (istr,iend,jstr,jend, ierr)
+      subroutine set_ssh_tile (Istr,Iend,Jstr,Jend, ierr)
 !
 ! Set-up sea surface height climatology for current tile.
 !
       implicit none
-      integer istr,iend,jstr,jend, ierr, i,j, it1,it2
+      integer Istr,Iend,Jstr,Jend, ierr, i,j, it1,it2
       real cff1, cff2, cff
 # define SSH_DATA
 # include "param.h"
@@ -129,8 +129,8 @@
  
       if (ntssh.eq.1) then                   ! Load time-invariant
         if (iic.eq.ntstart) then             ! sea-surface height.
-          do j=jstrR,jendR
-            do i=istrR,iendR
+          do j=JstrR,JendR
+            do i=IstrR,IendR
               ssh(i,j)=sshg(i,j,itssh)
             enddo
           enddo
@@ -139,8 +139,8 @@
         cff=1./(cff1+cff2)                             ! sea-surface
         cff1=cff1*cff                                  ! height in
         cff2=cff2*cff                                  ! in time.
-        do j=jstrR,jendR
-          do i=istrR,iendR
+        do j=JstrR,JendR
+          do i=IstrR,IendR
             ssh(i,j)=cff1*sshg(i,j,it1)+cff2*sshg(i,j,it2)
           enddo
         enddo

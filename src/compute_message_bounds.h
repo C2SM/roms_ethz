@@ -1,44 +1,44 @@
       integer imin,imax,ishft, jmin,jmax,jshft
 # ifdef EW_PERIODIC
       if (NP_XI.eq.1) then                ! this means that if there
-        imin=istr-2                       ! is no partition in XI-
-        imax=iend+2                       ! direction, then periodic
+        imin=Istr-2                       ! is no partition in XI-
+        imax=Iend+2                       ! direction, then periodic
       else                                ! margins are included into
-        imin=istr                         ! the message; otherwise
-        imax=iend                         ! strip them out.
+        imin=Istr                         ! the message; otherwise
+        imax=Iend                         ! strip them out.
       endif
 # else
       if (WESTERN_EDGE) then              ! extra point on either
-        imin=istr-1                       ! side to accomodate ghost
+        imin=Istr-1                       ! side to accomodate ghost
       else                                ! points associated with
-        imin=istr                         ! PHYSICAL boundaries.
+        imin=Istr                         ! PHYSICAL boundaries.
       endif
       if (EASTERN_EDGE) then
-        imax=iend+1
+        imax=Iend+1
       else
-        imax=iend
+        imax=Iend
       endif
 # endif
       ishft=imax-imin+1
  
 # ifdef NS_PERIODIC
       if (NP_ETA.eq.1) then               ! if no partition in ETA- 
-        jmin=jstr-2                       ! include periodic into the
-        jmax=jend+2                       ! message; otherwise strip 
+        jmin=Jstr-2                       ! include periodic into the
+        jmax=Jend+2                       ! message; otherwise strip 
       else                                ! them out 
-        jmin=jstr
-        jmax=jend
+        jmin=Jstr
+        jmax=Jend
       endif
 # else
       if (SOUTHERN_EDGE) then             ! extra point on either
-        jmin=jstr-1                       ! side to accomodate ghost
+        jmin=Jstr-1                       ! side to accomodate ghost
       else                                ! points associated with
-        jmin=jstr                         ! PHYSICAL boundaries.
+        jmin=Jstr                         ! PHYSICAL boundaries.
       endif
       if (NORTHERN_EDGE) then
-        jmax=jend+1
+        jmax=Jend+1
       else
-        jmax=jend
+        jmax=Jend
       endif
 # endif
       jshft=jmax-jmin+1

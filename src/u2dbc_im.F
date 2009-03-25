@@ -6,17 +6,17 @@
 #include "param.h"
 #include "private_scratch.h"
 #include "compute_tile_bounds.h"
-      call u2dbc_tile (istr,iend,jstr,jend, A2d(1,1))
+      call u2dbc_tile (Istr,Iend,Jstr,Jend, A2d(1,1))
       return
       end
  
-      subroutine u2dbc_tile (istr,iend,jstr,jend, grad)
+      subroutine u2dbc_tile (Istr,Iend,Jstr,Jend, grad)
 !
 ! Set lateral boundary conditions for the barotropic (i.e.
 ! vertically integrated) XI-component velocity ubar(:,:,knew).
 !
       implicit none
-      integer istr,iend,jstr,jend, i,j
+      integer Istr,Iend,Jstr,Jend, i,j
       real grad(PRIVATE_2D_SCRATCH_ARRAY), eps,cff, cx,cy,
      &            dft,dfx,dfy, tau,tau_in,tau_out, uv_crss
      & ,zx,hx
@@ -45,19 +45,19 @@
       if (WESTERN_EDGE) then                
 # ifdef OBC_WEST                  
 #  ifdef OBC_M2ORLANSKI
-        do j=jstr,jend+1
-          grad(istr  ,j)=(ubar(istr  ,j,kstp)-ubar(istr  ,j-1,kstp))
+        do j=Jstr,Jend+1
+          grad(Istr  ,j)=(ubar(Istr  ,j,kstp)-ubar(Istr  ,j-1,kstp))
 #   ifdef MASKING
-     &                                                *pmask(istr,j)
+     &                                                *pmask(Istr,j)
 #   endif
-          grad(istr+1,j)=(ubar(istr+1,j,kstp)-ubar(istr+1,j-1,kstp))
+          grad(Istr+1,j)=(ubar(Istr+1,j,kstp)-ubar(Istr+1,j-1,kstp))
 #   ifdef MASKING
-     &                                              *pmask(istr+1,j)
+     &                                              *pmask(Istr+1,j)
 #   endif
         enddo
-        do j=jstr,jend
-          dft=ubar(istr+1,j,kstp)-ubar(istr+1,j,knew)
-          dfx=ubar(istr+1,j,knew)-ubar(istr+2,j,knew)
+        do j=Jstr,Jend
+          dft=ubar(Istr+1,j,kstp)-ubar(Istr+1,j,knew)
+          dfx=ubar(Istr+1,j,knew)-ubar(Istr+2,j,knew)
  
           if (dfx*dft .lt. 0.) then
             dft=0.                       ! <-- cancel cx, if inflow
@@ -68,10 +68,10 @@
 #   endif
           endif
  
-          if (dft*(grad(istr+1,j)+grad(istr+1,j+1)) .gt. 0.) then
-            dfy=grad(istr+1,j  )
+          if (dft*(grad(Istr+1,j)+grad(Istr+1,j+1)) .gt. 0.) then
+            dfy=grad(Istr+1,j  )
           else
-            dfy=grad(istr+1,j+1)
+            dfy=grad(Istr+1,j+1)
           endif
  
 #   ifdef OBC_RAD_NORMAL
@@ -85,10 +85,10 @@
           cy=min(cff,max(dft*dfy,-cff))
 #   endif
  
-          ubar(istr,j,knew)=( cff*ubar(istr,j,kstp)
-     &                       +cx*ubar(istr+1,j,knew)
-     &                    -max(cy,0.)*grad(istr,j  )
-     &                    -min(cy,0.)*grad(istr,j+1)
+          ubar(Istr,j,knew)=( cff*ubar(Istr,j,kstp)
+     &                       +cx*ubar(Istr+1,j,knew)
+     &                    -max(cy,0.)*grad(Istr,j  )
+     &                    -min(cy,0.)*grad(Istr,j+1)
      &                                   )/(cff+cx)
 #   ifdef OBC_FLUX_CORR
      &                                    -uv_crss
@@ -105,46 +105,46 @@
 ! same time provide sufficient restoring.
 !
 #   if defined M2_FRC_BRY || defined M2NUDGING
-          ubar(istr,j,knew)=(1.-tau)*ubar(istr,j,knew)
+          ubar(Istr,j,knew)=(1.-tau)*ubar(Istr,j,knew)
 #    ifdef M2_FRC_BRY
      &                                    +tau*ubar_west(j)
 
-     &       -attnM2*dtfast*g*0.5*(pm(istr-1,j)+pm(istr,j))
-     &                    *(zeta(istr,j,knew)-zeta_west(j))
+     &       -attnM2*dtfast*g*0.5*(pm(Istr-1,j)+pm(Istr,j))
+     &                    *(zeta(Istr,j,knew)-zeta_west(j))
 #    else
-     &                                   +tau*ubclm(istr,j)
+     &                                   +tau*ubclm(Istr,j)
 
-     &       -attnM2*dtfast*g*0.5*(pm(istr-1,j)+pm(istr,j))
-     &                   *(zeta(istr,j,knew)-ssh(istr-1,j))
+     &       -attnM2*dtfast*g*0.5*(pm(Istr-1,j)+pm(Istr,j))
+     &                   *(zeta(Istr,j,knew)-ssh(Istr-1,j))
 #    endif
 #   endif
 #   ifdef MASKING
-          ubar(istr,j,knew)=ubar(istr,j,knew)*umask(istr,j)
+          ubar(Istr,j,knew)=ubar(Istr,j,knew)*umask(Istr,j)
 #   endif
         enddo
 #  else          /* alternative open: Flather, specified, gradient */
-        do j=jstr,jend
+        do j=Jstr,Jend
 #   if defined OBC_M2FLATHER
-C**       ubar(istr,j,knew)= -sqrt(2.*g/(h(istr-1,j)+h(istr,j)))
-c**  &             *( 0.5*(zeta(istr-1,j,knew)+zeta(istr,j,knew))
+C**       ubar(Istr,j,knew)= -sqrt(2.*g/(h(Istr-1,j)+h(Istr,j)))
+c**  &             *( 0.5*(zeta(Istr-1,j,knew)+zeta(Istr,j,knew))
 #    ifdef M2_FRC_BRY
 c**  &                               -zeta_west(j) )+ubar_west(j)
-c**  &     -zeta_west(j) )+0.5*(ubar_west(j)+ubar(istr+1,j,knew))
+c**  &     -zeta_west(j) )+0.5*(ubar_west(j)+ubar(Istr+1,j,knew))
 #    else
-c**  &                             -ssh(istr-1,j) )+ubclm(istr,j)
+c**  &                             -ssh(Istr-1,j) )+ubclm(Istr,j)
 #    endif
 
 
 
 
-          cff=0.5*(h(istr-1,j)+h(istr,j))
+          cff=0.5*(h(Istr-1,j)+h(Istr,j))
           hx=sqrt(g/cff)
-          cx=dtfast*cff*hx*0.5*(pm(istr-1,j)+pm(istr,j))
+          cx=dtfast*cff*hx*0.5*(pm(Istr-1,j)+pm(Istr,j))
 
-          zx=(0.5+cx)*zeta(istr,j,kstp)+(0.5-cx)*zeta(istr-1,j,kstp)
+          zx=(0.5+cx)*zeta(Istr,j,kstp)+(0.5-cx)*zeta(Istr-1,j,kstp)
           if (cx .gt. 0.292893218813452) then
-            zx=zx + ( zeta(istr,j,knew) +cx*zeta(istr-1,j,kstp)
-     &                               -(1.+cx)*zeta(istr,j,kstp)
+            zx=zx + ( zeta(Istr,j,knew) +cx*zeta(Istr-1,j,kstp)
+     &                               -(1.+cx)*zeta(Istr,j,kstp)
      &                           )*(1.-0.292893218813452/cx)**2
           endif
 
@@ -152,18 +152,18 @@ c**  &                             -ssh(istr-1,j) )+ubclm(istr,j)
 
 
 c          if (cx .lt. 0.25) then
-c           zx=(0.5+cx)*zeta(istr,j,kstp)+(0.5-cx)*zeta(istr-1,j,kstp)
+c           zx=(0.5+cx)*zeta(Istr,j,kstp)+(0.5-cx)*zeta(Istr-1,j,kstp)
 c          else
-c            zx=( 0.375*zeta(istr,j,kstp)   +0.125*zeta(istr-1,j,kstp)
-c     &                       +(cx-0.25)*zeta(istr,j,knew) )/(cx+0.25)
+c            zx=( 0.375*zeta(Istr,j,kstp)   +0.125*zeta(Istr-1,j,kstp)
+c     &                       +(cx-0.25)*zeta(Istr,j,knew) )/(cx+0.25)
 c          endif
 
-          ubar(istr,j,knew)=0.5*( (1.-cx)*ubar(istr,j,kstp)
-     &                               +cx*ubar(istr+1,j,kstp)
+          ubar(Istr,j,knew)=0.5*( (1.-cx)*ubar(Istr,j,kstp)
+     &                               +cx*ubar(Istr+1,j,kstp)
 #    ifdef M2_FRC_BRY
      &                   +ubar_west(j) -hx*(zx-zeta_west(j))
 #    else
-     &                 +ubclm(istr,j) -hx*(zx-ssh(istr-1,j))
+     &                 +ubclm(Istr,j) -hx*(zx-ssh(Istr-1,j))
 #    endif
      &                                                    )
 
@@ -175,24 +175,24 @@ c          endif
 
 #   elif defined OBC_M2SPECIFIED       /* Island Wake case: convert */
 #    ifdef M2_FRC_BRY                  /* specified inflow velocity */
-          ubar(istr,j,knew)=ubar_west(j) /* into constant flux.    */
+          ubar(Istr,j,knew)=ubar_west(j) /* into constant flux.    */
 #     ifdef ISWAKE
-     &         *(1.+(zeta_west(j)-zeta(istr,j,knew))/h(istr,j))
+     &         *(1.+(zeta_west(j)-zeta(Istr,j,knew))/h(Istr,j))
 #     endif
 #    else
-          ubar(istr,j,knew)=ubclm(istr,j)
+          ubar(Istr,j,knew)=ubclm(Istr,j)
 #    endif
 #   else
-          ubar(istr,j,knew)=ubar(istr+1,j,knew)
+          ubar(Istr,j,knew)=ubar(Istr+1,j,knew)
 #   endif
 #   ifdef MASKING
-          ubar(istr,j,knew)=ubar(istr,j,knew)*umask(istr,j)
+          ubar(Istr,j,knew)=ubar(Istr,j,knew)*umask(Istr,j)
 #   endif
         enddo
 #  endif
 # else
-        do j=jstr,jend                          ! Western edge closed
-          ubar(istr,j,knew)=0.                  ! ======= ==== ======
+        do j=Jstr,Jend                          ! Western edge closed
+          ubar(Istr,j,knew)=0.                  ! ======= ==== ======
         enddo                                   !  (no-flux, default)
 # endif           /* OBC_WEST */
       endif     !<-- WESTERN_EDGE
@@ -206,19 +206,19 @@ c--#endif
 #  ifdef OBC_M2ORLANSKI
 !                                           Eastern edge radiation BC
 !                                           ======= ==== ========= ==
-        do j=jstr,jend+1
-          grad(iend  ,j)=(ubar(iend  ,j,kstp)-ubar(iend  ,j-1,kstp))
+        do j=Jstr,Jend+1
+          grad(Iend  ,j)=(ubar(Iend  ,j,kstp)-ubar(Iend  ,j-1,kstp))
 #   ifdef MASKING 
-     &                                                *pmask(iend,j)
+     &                                                *pmask(Iend,j)
 #   endif
-          grad(iend+1,j)=(ubar(iend+1,j,kstp)-ubar(iend+1,j-1,kstp))
+          grad(Iend+1,j)=(ubar(Iend+1,j,kstp)-ubar(Iend+1,j-1,kstp))
 #   ifdef MASKING
-     &                                              *pmask(iend+1,j)
+     &                                              *pmask(Iend+1,j)
 #   endif
         enddo
-        do j=jstr,jend
-          dft=ubar(iend,j,kstp)-ubar(iend  ,j,knew)
-          dfx=ubar(iend,j,knew)-ubar(iend-1,j,knew)
+        do j=Jstr,Jend
+          dft=ubar(Iend,j,kstp)-ubar(Iend  ,j,knew)
+          dfx=ubar(Iend,j,knew)-ubar(Iend-1,j,knew)
  
           if (dfx*dft .lt. 0.) then
             dft=0.                       ! <-- cancel cx, if inflow
@@ -229,10 +229,10 @@ c--#endif
 #   endif
           endif
  
-          if (dft*(grad(iend,j)+grad(iend,j+1)) .gt. 0.) then
-            dfy=grad(iend,j)
+          if (dft*(grad(Iend,j)+grad(Iend,j+1)) .gt. 0.) then
+            dfy=grad(Iend,j)
           else
-            dfy=grad(iend,j+1)
+            dfy=grad(Iend,j+1)
           endif
  
 #   ifdef OBC_RAD_NORMAL
@@ -246,52 +246,52 @@ c--#endif
           cy=min(cff,max(dft*dfy,-cff))
 #   endif
  
-          ubar(iend+1,j,knew)=( cff*ubar(iend+1,j,kstp)
-     &                             +cx*ubar(iend,j,knew)
-     &                      -max(cy,0.)*grad(iend+1,j  )
-     &                      -min(cy,0.)*grad(iend+1,j+1)
+          ubar(Iend+1,j,knew)=( cff*ubar(Iend+1,j,kstp)
+     &                             +cx*ubar(Iend,j,knew)
+     &                      -max(cy,0.)*grad(Iend+1,j  )
+     &                      -min(cy,0.)*grad(Iend+1,j+1)
      &                                       )/(cff+cx)
 #   if defined OBC_FLUX_CORR
      &                                       +uv_crss
 #   endif
 #   if defined M2_FRC_BRY || defined M2NUDGING
-          ubar(iend+1,j,knew)=(1.-tau)*ubar(iend+1,j,knew)
+          ubar(Iend+1,j,knew)=(1.-tau)*ubar(Iend+1,j,knew)
 #    ifdef M2_FRC_BRY
      &                                    +tau*ubar_east(j)
 
-     &       +attnM2*dtfast*g*0.5*(pm(iend,j)+pm(iend+1,j))
-     &                    *(zeta(iend,j,knew)-zeta_east(j))
+     &       +attnM2*dtfast*g*0.5*(pm(Iend,j)+pm(Iend+1,j))
+     &                    *(zeta(Iend,j,knew)-zeta_east(j))
 #    else
-     &                                 +tau*ubclm(iend+1,j)
+     &                                 +tau*ubclm(Iend+1,j)
 
-     &       +attnM2*dtfast*g*0.5*(pm(iend,j)+pm(iend+1,j))
-     &                   *(zeta(iend,j,knew)-ssh(iend+1,j))
+     &       +attnM2*dtfast*g*0.5*(pm(Iend,j)+pm(Iend+1,j))
+     &                   *(zeta(Iend,j,knew)-ssh(Iend+1,j))
 #    endif
 #   endif
 #   ifdef MASKING
-          ubar(iend+1,j,knew)=ubar(iend+1,j,knew)*umask(iend+1,j)
+          ubar(Iend+1,j,knew)=ubar(Iend+1,j,knew)*umask(Iend+1,j)
 #   endif
         enddo
 #  else          /* alternative open: Flather, specified, gradient */
-        do j=jstr,jend
+        do j=Jstr,Jend
 #   if defined OBC_M2FLATHER
-c**          ubar(iend+1,j,knew)= +sqrt(2.*g/(h(iend,j)+h(iend+1,j)))
-c**     &               *( 0.5*(zeta(iend,j,knew)+zeta(iend+1,j,knew))
+c**          ubar(Iend+1,j,knew)= +sqrt(2.*g/(h(Iend,j)+h(Iend+1,j)))
+c**     &               *( 0.5*(zeta(Iend,j,knew)+zeta(Iend+1,j,knew))
 c**#    ifdef M2_FRC_BRY
 c**     &                                 -zeta_east(j) )+ubar_east(j)
 c**#    else
-c**     &                             -ssh(iend+1,j) )+ubclm(iend+1,j)
+c**     &                             -ssh(Iend+1,j) )+ubclm(Iend+1,j)
 c**#    endif
 
 
-          cff=0.5*(h(iend,j)+h(iend+1,j))
+          cff=0.5*(h(Iend,j)+h(Iend+1,j))
           hx=sqrt(g/cff)
-          cx=dtfast*cff*hx*0.5*(pm(iend,j)+pm(iend+1,j))
+          cx=dtfast*cff*hx*0.5*(pm(Iend,j)+pm(Iend+1,j))
 
-          zx=(0.5+cx)*zeta(iend,j,kstp)+(0.5-cx)*zeta(iend+1,j,kstp)
+          zx=(0.5+cx)*zeta(Iend,j,kstp)+(0.5-cx)*zeta(Iend+1,j,kstp)
           if (cx .gt. 0.292893218813452) then
-            zx=zx + ( zeta(iend,j,knew) +cx*zeta(iend+1,j,kstp)
-     &                               -(1.+cx)*zeta(iend,j,kstp)
+            zx=zx + ( zeta(Iend,j,knew) +cx*zeta(Iend+1,j,kstp)
+     &                               -(1.+cx)*zeta(Iend,j,kstp)
      &                           )*(1.-0.292893218813452/cx)**2
           endif
 
@@ -299,24 +299,24 @@ c**#    endif
 
 
 c          if (cx .gt. 0.5) then
-c            zx=zeta(iend,j,knew) -(0.5/cx)*(zeta(iend,j,knew)
-c     &                                     -zeta(iend,j,kstp))
+c            zx=zeta(Iend,j,knew) -(0.5/cx)*(zeta(Iend,j,knew)
+c     &                                     -zeta(Iend,j,kstp))
 c          endif
 
 c          if (cx .gt. 0.25) then
-c            zx=( 0.375*zeta(iend,j,kstp) +0.125*zeta(iend+1,j,kstp)
-c     &                     +(cx-0.25)*zeta(iend,j,knew) )/(cx+0.25)
+c            zx=( 0.375*zeta(Iend,j,kstp) +0.125*zeta(Iend+1,j,kstp)
+c     &                     +(cx-0.25)*zeta(Iend,j,knew) )/(cx+0.25)
 c          endif
 
 
 
 
-          ubar(iend+1,j,knew)=0.5*( (1.-cx)*ubar(iend+1,j,kstp)
-     &                                     +cx*ubar(iend,j,kstp)
+          ubar(Iend+1,j,knew)=0.5*( (1.-cx)*ubar(Iend+1,j,kstp)
+     &                                     +cx*ubar(Iend,j,kstp)
 #    ifdef M2_FRC_BRY
      &                       +ubar_east(j) +hx*(zx-zeta_east(j))
 #    else
-     &                   +ubclm(iend+1,j) +hx*(zx-ssh(iend+1,j))
+     &                   +ubclm(Iend+1,j) +hx*(zx-ssh(Iend+1,j))
 #    endif
      &                                                        )
 
@@ -327,21 +327,21 @@ c          endif
 
 #   elif defined OBC_M2SPECIFIED
 #    ifdef M2_FRC_BRY
-          ubar(iend+1,j,knew)=ubar_east(j)
+          ubar(Iend+1,j,knew)=ubar_east(j)
 #    else
-          ubar(iend+1,j,knew)=ubclm(iend+1,j)
+          ubar(Iend+1,j,knew)=ubclm(Iend+1,j)
 #    endif
 #   else
-          ubar(iend+1,j,knew)=ubar(iend,j,knew)
+          ubar(Iend+1,j,knew)=ubar(Iend,j,knew)
 #   endif
 #   ifdef MASKING
-          ubar(iend+1,j,knew)=ubar(iend+1,j,knew)*umask(iend+1,j)
+          ubar(Iend+1,j,knew)=ubar(Iend+1,j,knew)*umask(Iend+1,j)
 #   endif
         enddo
 #  endif
 # else
-        do j=jstr,jend                       ! Eastern edge closed BC
-          ubar(iend+1,j,knew)=0.             ! ======= ==== ====== ==
+        do j=Jstr,Jend                       ! Eastern edge closed BC
+          ubar(Iend+1,j,knew)=0.             ! ======= ==== ====== ==
         enddo
 # endif /* OBC_EAST */
       endif         !<-- EASTERN_EDGE
@@ -363,15 +363,15 @@ c****
 #  if defined OBC_M2ORLANSKI
 !                                          Southern edge radiation BC
 !                                          ======== ==== ========= ==
-        do i=istrU-1,iend
-          grad(i,jstr-1)=ubar(i+1,jstr-1,kstp)-ubar(i,jstr-1,kstp)
-          grad(i,jstr  )=ubar(i+1,jstr  ,kstp)-ubar(i,jstr  ,kstp)
+        do i=IstrU-1,Iend
+          grad(i,Jstr-1)=ubar(i+1,Jstr-1,kstp)-ubar(i,Jstr-1,kstp)
+          grad(i,Jstr  )=ubar(i+1,Jstr  ,kstp)-ubar(i,Jstr  ,kstp)
         enddo
-        do i=istrU,iend
+        do i=IstrU,Iend
 
 /* --->
-          dft=ubar(i,jstr,kstp)-ubar(i,jstr  ,knew)
-          dfx=ubar(i,jstr,knew)-ubar(i,jstr+1,knew)
+          dft=ubar(i,Jstr,kstp)-ubar(i,Jstr  ,knew)
+          dfx=ubar(i,Jstr,knew)-ubar(i,Jstr+1,knew)
  
           if (dfx*dft .lt. 0.) then
             dft=0.                        ! <-- cancel cx, if inflow
@@ -382,10 +382,10 @@ c****
 #   endif
           endif
  
-          if (dft*(grad(i-1,jstr)+grad(i,jstr)) .gt. 0.) then
-            dfy=grad(i-1,jstr)
+          if (dft*(grad(i-1,Jstr)+grad(i,Jstr)) .gt. 0.) then
+            dfy=grad(i-1,Jstr)
           else
-            dfy=grad(i  ,jstr)
+            dfy=grad(i  ,Jstr)
           endif
  
 #   ifdef OBC_RAD_NORMAL
@@ -399,20 +399,20 @@ c****
           cy=min(cff,max(dft*dfy,-cff))
 #   endif
  
-          ubar(i,jstr-1,knew)=( cff*ubar(i,jstr-1,kstp)
-     &                             +cx*ubar(i,jstr,knew)
-     &                      -max(cy,0.)*grad(i-1,jstr-1)
-     &                      -min(cy,0.)*grad(i  ,jstr-1)
+          ubar(i,Jstr-1,knew)=( cff*ubar(i,Jstr-1,kstp)
+     &                             +cx*ubar(i,Jstr,knew)
+     &                      -max(cy,0.)*grad(i-1,Jstr-1)
+     &                      -min(cy,0.)*grad(i  ,Jstr-1)
      &                                       )/(cff+cx)
 
 
 ---> */
 
-          cx=-0.125*dtfast*(vbar(i,jstr,kstp)+vbar(i-1,jstr,kstp))
-     &      *(pn(i,jstr-1)+pn(i-1,jstr-1)+pn(i,jstr)+pn(i-1,jstr))
+          cx=-0.125*dtfast*(vbar(i,Jstr,kstp)+vbar(i-1,Jstr,kstp))
+     &      *(pn(i,Jstr-1)+pn(i-1,Jstr-1)+pn(i,Jstr)+pn(i-1,Jstr))
 
-          cy= 0.125*dtfast*(ubar(i,jstr-1,kstp)+ubar(i,jstr,kstp))
-     &      *(pm(i,jstr-1)+pm(i-1,jstr-1)+pm(i,jstr)+pm(i-1,jstr))
+          cy= 0.125*dtfast*(ubar(i,Jstr-1,kstp)+ubar(i,Jstr,kstp))
+     &      *(pm(i,Jstr-1)+pm(i-1,Jstr-1)+pm(i,Jstr)+pm(i-1,Jstr))
 
 
           if (cx.gt.0.) then
@@ -422,13 +422,13 @@ c****
             cx=0.
           endif
 
-          ubar(i,jstr-1,knew)=(1.-cx)*( ubar(i,jstr-1,kstp)
-     &                          -max(cy,0.)*grad(i-1,jstr-1)
-     &                          -min(cy,0.)*grad(i  ,jstr-1)
+          ubar(i,Jstr-1,knew)=(1.-cx)*( ubar(i,Jstr-1,kstp)
+     &                          -max(cy,0.)*grad(i-1,Jstr-1)
+     &                          -min(cy,0.)*grad(i  ,Jstr-1)
      &                                                     )
-     &                       +cx*(        ubar(i,jstr,kstp)
-     &                            -max(cy,0.)*grad(i-1,jstr)
-     &                            -min(cy,0.)*grad(i  ,jstr)
+     &                       +cx*(        ubar(i,Jstr,kstp)
+     &                            -max(cy,0.)*grad(i-1,Jstr)
+     &                            -min(cy,0.)*grad(i  ,Jstr)
      &                                                     )
 
 
@@ -438,50 +438,50 @@ c****
 
 
 #   if defined M2_FRC_BRY || defined M2NUDGING
-          ubar(i,jstr-1,knew)=(1.-tau)*ubar(i,jstr-1,knew)
+          ubar(i,Jstr-1,knew)=(1.-tau)*ubar(i,Jstr-1,knew)
 #    ifdef M2_FRC_BRY
      &                                  +tau*ubar_south(i)
 #    else
-     &                                +tau*ubclm(i,jstr-1)
+     &                                +tau*ubclm(i,Jstr-1)
 #    endif
 #   endif
 #   ifdef MASKING
-          ubar(i,jstr-1,knew)=ubar(i,jstr-1,knew)*umask(i,jstr-1)
+          ubar(i,Jstr-1,knew)=ubar(i,Jstr-1,knew)*umask(i,Jstr-1)
 #   endif
         enddo
 #  else          /* alternative open: Chapman, specified, gradient */
-        do i=istrU,iend
+        do i=IstrU,Iend
 #   if defined OBC_M2FLATHER
-          cx=dtfast*0.5*(pn(i-1,jstr-1)+pn(i,jstr-1))
-     &        *sqrt(0.5*g*(h(i-1,jstr-1)+h(i,jstr-1)))
+          cx=dtfast*0.5*(pn(i-1,Jstr-1)+pn(i,Jstr-1))
+     &        *sqrt(0.5*g*(h(i-1,Jstr-1)+h(i,Jstr-1)))
 
-          ubar(i,jstr-1,knew)=( ubar(i,jstr-1,kstp)
-     &                  +cx*ubar(i,jstr,knew) )/(1.+cx)
+          ubar(i,Jstr-1,knew)=( ubar(i,Jstr-1,kstp)
+     &                  +cx*ubar(i,Jstr,knew) )/(1.+cx)
 #   elif defined OBC_M2SPECIFIED
 #    ifdef M2_FRC_BRY
-          ubar(i,jstr-1,knew)=ubar_south(i)
+          ubar(i,Jstr-1,knew)=ubar_south(i)
 #    else 
-          ubar(i,jstr-1,knew)=ubclm(i,jstr-1)
+          ubar(i,Jstr-1,knew)=ubclm(i,Jstr-1)
 #    endif
 #   else
-          ubar(i,jstr-1,knew)=ubar(i,jstr,knew)
+          ubar(i,Jstr-1,knew)=ubar(i,Jstr,knew)
 #   endif
 #   ifdef MASKING
-          ubar(i,jstr-1,knew)=ubar(i,jstr-1,knew)*umask(i,jstr-1)
+          ubar(i,Jstr-1,knew)=ubar(i,Jstr-1,knew)*umask(i,Jstr-1)
 #   endif
         enddo
 #  endif
 # else
 #  ifdef EW_PERIODIC
-#   define I_RANGE istrU,iend
+#   define I_RANGE IstrU,Iend
 #  else
-#   define I_RANGE istr,iendR
+#   define I_RANGE Istr,IendR
 #  endif
                                         ! Wall: free-slip (gamma2=+1)
         do i=I_RANGE                    ! ====    no-slip (gamma2=-1)
-          ubar(i,jstr-1,knew)=gamma2*ubar(i,jstr,knew)
+          ubar(i,Jstr-1,knew)=gamma2*ubar(i,Jstr,knew)
 #  ifdef MASKING
-     &                                *umask(i,jstr-1)
+     &                                *umask(i,Jstr-1)
 #  endif
         enddo
 #  undef I_RANGE
@@ -495,14 +495,14 @@ c****
 #  if defined OBC_M2ORLANSKI
 !                                          Northern edge radiation BC
 !                                          ======== ==== ========= ==
-        do i=istrU-1,iend
-          grad(i,jend  )=ubar(i+1,jend  ,kstp)-ubar(i,jend,kstp  )
-          grad(i,jend+1)=ubar(i+1,jend+1,kstp)-ubar(i,jend+1,kstp)
+        do i=IstrU-1,Iend
+          grad(i,Jend  )=ubar(i+1,Jend  ,kstp)-ubar(i,Jend,kstp  )
+          grad(i,Jend+1)=ubar(i+1,Jend+1,kstp)-ubar(i,Jend+1,kstp)
         enddo
-        do i=istrU,iend
+        do i=IstrU,Iend
 /* --->
-          dft=ubar(i,jend,kstp)-ubar(i,jend  ,knew)
-          dfx=ubar(i,jend,knew)-ubar(i,jend-1,knew)
+          dft=ubar(i,Jend,kstp)-ubar(i,Jend  ,knew)
+          dfx=ubar(i,Jend,knew)-ubar(i,Jend-1,knew)
  
           if (dfx*dft .lt. 0.) then
             dft=0.                        ! <-- cancel cx, if inflow
@@ -513,10 +513,10 @@ c****
 #   endif
           endif
  
-          if (dft*(grad(i-1,jend)+grad(i,jend)) .gt. 0.) then
-            dfy=grad(i-1,jend)
+          if (dft*(grad(i-1,Jend)+grad(i,Jend)) .gt. 0.) then
+            dfy=grad(i-1,Jend)
           else
-            dfy=grad(i  ,jend)
+            dfy=grad(i  ,Jend)
           endif
  
 #   ifdef OBC_RAD_NORMAL
@@ -530,18 +530,18 @@ c****
           cy=min(cff,max(dft*dfy,-cff))
 #   endif
  
-          ubar(i,jend+1,knew)=( cff*ubar(i,jend+1,kstp)
-     &                             +cx*ubar(i,jend,knew)
-     &                      -max(cy,0.)*grad(i-1,jend+1)
-     &                      -min(cy,0.)*grad(i  ,jend+1)
+          ubar(i,Jend+1,knew)=( cff*ubar(i,Jend+1,kstp)
+     &                             +cx*ubar(i,Jend,knew)
+     &                      -max(cy,0.)*grad(i-1,Jend+1)
+     &                      -min(cy,0.)*grad(i  ,Jend+1)
      &                                       )/(cff+cx)
 ---> */
 
-          cx=0.125*dtfast*(vbar(i,jend+1,kstp)+vbar(i-1,jend+1,kstp))
-     &         *(pn(i,jend)+pn(i-1,jend)+pn(i,jend+1)+pn(i-1,jend+1))
+          cx=0.125*dtfast*(vbar(i,Jend+1,kstp)+vbar(i-1,Jend+1,kstp))
+     &         *(pn(i,Jend)+pn(i-1,Jend)+pn(i,Jend+1)+pn(i-1,Jend+1))
 
-          cy=0.125*dtfast*(ubar(i,jend,kstp)+ubar(i,jend+1,kstp))
-     &         *(pm(i,jend)+pm(i-1,jend)+pm(i,jend+1)+pm(i-1,jend+1))
+          cy=0.125*dtfast*(ubar(i,Jend,kstp)+ubar(i,Jend+1,kstp))
+     &         *(pm(i,Jend)+pm(i-1,Jend)+pm(i,Jend+1)+pm(i-1,Jend+1))
 
           if (cx.gt.0.) then
             tau=0.
@@ -550,13 +550,13 @@ c****
             cx=0.
           endif
 
-          ubar(i,jend+1,knew)=(1.-cx)*( ubar(i,jend+1,kstp)
-     &                          -max(cy,0.)*grad(i-1,jend+1)
-     &                          -min(cy,0.)*grad(i  ,jend+1)
+          ubar(i,Jend+1,knew)=(1.-cx)*( ubar(i,Jend+1,kstp)
+     &                          -max(cy,0.)*grad(i-1,Jend+1)
+     &                          -min(cy,0.)*grad(i  ,Jend+1)
      &                                                     )
-     &                       +cx*(        ubar(i,jend,kstp)
-     &                            -max(cy,0.)*grad(i-1,jend)
-     &                            -min(cy,0.)*grad(i  ,jend)
+     &                       +cx*(        ubar(i,Jend,kstp)
+     &                            -max(cy,0.)*grad(i-1,Jend)
+     &                            -min(cy,0.)*grad(i  ,Jend)
      &                                                     )
 
 
@@ -564,50 +564,50 @@ c****
 
 
 #   if defined M2_FRC_BRY || defined M2NUDGING
-          ubar(i,jend+1,knew)=(1.-tau)*ubar(i,jend+1,knew)
+          ubar(i,Jend+1,knew)=(1.-tau)*ubar(i,Jend+1,knew)
 #    ifdef M2_FRC_BRY
      &                                  +tau*ubar_north(i)
 #    else
-     &                                +tau*ubclm(i,jend+1)
+     &                                +tau*ubclm(i,Jend+1)
 #    endif
 #   endif
 #   ifdef MASKING
-          ubar(i,jend+1,knew)=ubar(i,jend+1,knew)*umask(i,jend+1)
+          ubar(i,Jend+1,knew)=ubar(i,Jend+1,knew)*umask(i,Jend+1)
 #   endif
         enddo
 #  else          /* alternative open: Chapman, specified, gradient */
-        do i=istrU,iend
+        do i=IstrU,Iend
 #   if defined OBC_M2FLATHER
-          cx=dtfast*sqrt(0.5*g*(h(i-1,jend+1)+h(i,jend+1)))
-     &                    *0.5*(pn(i-1,jend+1)+pn(i,jend+1))
+          cx=dtfast*sqrt(0.5*g*(h(i-1,Jend+1)+h(i,Jend+1)))
+     &                    *0.5*(pn(i-1,Jend+1)+pn(i,Jend+1))
 
-          ubar(i,jend+1,knew)=( ubar(i,jend+1,kstp)
-     &                +cx*ubar(i,jend,knew))/(1.+cx)
+          ubar(i,Jend+1,knew)=( ubar(i,Jend+1,kstp)
+     &                +cx*ubar(i,Jend,knew))/(1.+cx)
 #   elif defined OBC_M2SPECIFIED
 #    ifdef M2_FRC_BRY
-          ubar(i,jend+1,knew)=ubar_north(i)
+          ubar(i,Jend+1,knew)=ubar_north(i)
 #    else
-          ubar(i,jend+1,knew)=ubclm(i,jend+1)
+          ubar(i,Jend+1,knew)=ubclm(i,Jend+1)
 #    endif
 #   else
-          ubar(i,jend+1,knew)=ubar(i,jend,knew)
+          ubar(i,Jend+1,knew)=ubar(i,Jend,knew)
 #   endif
 #   ifdef MASKING
-          ubar(i,jend+1,knew)=ubar(i,jend+1,knew)*umask(i,jend+1)
+          ubar(i,Jend+1,knew)=ubar(i,Jend+1,knew)*umask(i,Jend+1)
 #   endif
         enddo
 #  endif
 # else
 #  ifdef EW_PERIODIC
-#   define I_RANGE istrU,iend
+#   define I_RANGE IstrU,Iend
 #  else
-#   define I_RANGE istr,iendR
+#   define I_RANGE Istr,IendR
 #  endif
                                        !  Wall: free-slip (gamma2=+1)
         do i=I_RANGE                   !  =====   no-slip (gamma2=-1)
-          ubar(i,jend+1,knew)=gamma2*ubar(i,jend,knew)
+          ubar(i,Jend+1,knew)=gamma2*ubar(i,Jend,knew)
 #  ifdef MASKING
-     &                                *umask(i,jend+1)
+     &                                *umask(i,Jend+1)
 #  endif
         enddo
 #  undef I_RANGE
@@ -620,26 +620,26 @@ c****
  
 #if defined OBC_SOUTH && defined OBC_WEST
       if (WESTERN_EDGE .and. SOUTHERN_EDGE) then
-        ubar(istr,jstr-1,knew)=0.5*( ubar(istr+1,jstr-1,knew)
-     &                                  +ubar(istr,jstr,knew))
+        ubar(Istr,Jstr-1,knew)=0.5*( ubar(Istr+1,Jstr-1,knew)
+     &                                  +ubar(Istr,Jstr,knew))
       endif
 #endif
 #if defined OBC_SOUTH && defined OBC_EAST
       if (EASTERN_EDGE .and. SOUTHERN_EDGE) then
-        ubar(iend+1,jstr-1,knew)=0.5*( ubar(iend,jstr-1,knew)
-     &                                +ubar(iend+1,jstr,knew))
+        ubar(Iend+1,Jstr-1,knew)=0.5*( ubar(Iend,Jstr-1,knew)
+     &                                +ubar(Iend+1,Jstr,knew))
       endif
 #endif
 #if defined OBC_NORTH && defined OBC_WEST
       if (WESTERN_EDGE .and. NORTHERN_EDGE) then
-        ubar(istr,jend+1,knew)=0.5*( ubar(istr+1,jend+1,knew)
-     &                                  +ubar(istr,jend,knew))
+        ubar(Istr,Jend+1,knew)=0.5*( ubar(Istr+1,Jend+1,knew)
+     &                                  +ubar(Istr,Jend,knew))
       endif
 #endif
 #if defined OBC_NORTH && defined OBC_EAST
       if (EASTERN_EDGE .and. NORTHERN_EDGE) then
-        ubar(iend+1,jend+1,knew)=0.5*( ubar(iend,jend+1,knew)
-     &                                +ubar(iend+1,jend,knew))
+        ubar(Iend+1,Jend+1,knew)=0.5*( ubar(Iend,Jend+1,knew)
+     &                                +ubar(Iend+1,Jend,knew))
       endif
 #endif
       return

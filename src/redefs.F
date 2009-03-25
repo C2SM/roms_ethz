@@ -18,7 +18,7 @@
       parameter (max_string_size=72, maxwords=256, iin=11, iout=12)
       character suffix*2, fname*32,  bffr*(max_string_size),
      &  string*(16*max_string_size), small*(16*max_string_size)
-      integer kA,kZ,ksa,ksz,k0,k9,ksft, line, ierr, istr,iend,length,
+      integer kA,kZ,ksa,ksz,k0,k9,ksft, line, ierr, Istr,Iend,length,
      &    nwords,is(maxwords),ie(maxwords), i,j,k,n, last_arg, iargc
       logical lswtch, not_end_of_file
 !
@@ -89,23 +89,23 @@
           line=0
           not_end_of_file=.true.
           call read_bffr (fname, iin, line,  max_string_size,
-     &                        bffr, istr,iend, not_end_of_file)
+     &                        bffr, Istr,Iend, not_end_of_file)
           do while (not_end_of_file)
-            string(1:iend)=bffr(1:iend)
-            length=iend
+            string(1:Iend)=bffr(1:Iend)
+            length=Iend
  1          call read_bffr (fname, iin, line,  max_string_size,
-     &                          bffr, istr,iend, not_end_of_file)
-            if (istr.gt.0.and.iend.gt.0 .and. bffr(6:6).ne.' ') then
+     &                          bffr, Istr,Iend, not_end_of_file)
+            if (Istr.gt.0.and.Iend.gt.0 .and. bffr(6:6).ne.' ') then
               string(length+1:length+1)=' '
-              string(length+2:length+iend-istr+2)=bffr(istr:iend)
-              length=length+iend-istr+2
+              string(length+2:length+Iend-Istr+2)=bffr(Istr:Iend)
+              length=length+Iend-Istr+2
               goto 1
             endif
             string(length+1:length+1)=' '
             if (length.gt.0) then
-              istr=1
-              do while (string(istr:istr).eq.' '.and. istr.lt.length)
-                istr=istr+1
+              Istr=1
+              do while (string(Istr:Istr).eq.' '.and. Istr.lt.length)
+                Istr=Istr+1
               enddo
 !
 ! The following code segment forms an auxiliary string "small" which
@@ -114,7 +114,7 @@
 ! is needed to allow case-blind identification of names (as words
 ! within the string), which occur in the filowing code segment. 
 !
-              do i=istr,length
+              do i=Istr,length
                 k=ichar(string(i:i))
                 if (k.ge.kA .and. k.le.kZ) then
                   small(i:i)=char(k+ksft)
@@ -137,7 +137,7 @@
               enddo
  
               nwords=0
-              i=istr
+              i=Istr
               do while (i.lt.length)
                 do while (string(i:i).eq.' ')
                   i=i+1
@@ -211,42 +211,42 @@
 ! counter and set end-of-file flag.
 ! 
       subroutine read_bffr (fname, iin, line, max_string_size,
-     &                                    bffr, istr,iend, leof)
+     &                                    bffr, Istr,Iend, leof)
       implicit none
-      integer iin, line, max_string_size, istr,iend, i, ierr
+      integer iin, line, max_string_size, Istr,Iend, i, ierr
       character fname*(*),  bffr*(*),  quote*1
       logical leof, lswtch
                                ! Reset everything to all-blanc and
       quote=char(39)           ! zero status, then read in one line.
-      iend=0                   ! Check whether it is an F77 style
+      Iend=0                   ! Check whether it is an F77 style
       do i=1,max_string_size   ! comment, and if so, check further
         bffr(i:i)=' '          ! whether dollar sign is present, so
       enddo                    ! it is a directive or conditionally
-      do while (leof .and. iend.eq.0)
+      do while (leof .and. Iend.eq.0)
         line=line+1
         read(iin,'(A)',iostat=ierr,end=1) bffr
         goto 2
   1     leof=.false.
   2     if (bffr(1:1).eq.'C' .or. bffr(1:1).eq.'c' .or.
      &                            bffr(1:1).eq.'!') then
-          istr=0
+          Istr=0
           do i=2,5
-            if (bffr(i:i).eq.'$') istr=2
+            if (bffr(i:i).eq.'$') Istr=2
           enddo
         elseif (bffr(1:1).eq.'#') then
-          istr=0
+          Istr=0
         else                   ! compiled line of code. Note that
-          istr=1               ! variable "lstr" is used as signal
+          Istr=1               ! variable "lstr" is used as signal
         endif                  ! flag here. If the line is not a
-        if (istr.gt.0) then    ! comment find positions of its first
+        if (Istr.gt.0) then    ! comment find positions of its first
           lswtch=.false.       ! and last non-blanc symbols.
-          do i=istr,max_string_size
+          do i=Istr,max_string_size
             if (bffr(i:i).eq.quote) then
               lswtch=.not.lswtch
             elseif (bffr(i:i).eq.'!' .and. .not.lswtch) then
               goto 3
             endif
-            if (bffr(i:i).ne.' ') iend=i
+            if (bffr(i:i).ne.' ') Iend=i
           enddo
 c--#ifdef TRAP_SINGLE_QUOTES
           if (lswtch) then
@@ -259,29 +259,29 @@ c--#ifdef TRAP_SINGLE_QUOTES
      &       'quote on line', line, 'in file ''', fname(1:i), '''.'
           endif
 c--#endif
-   3      do while (iend.gt.1 .and. bffr(iend:iend).eq.' ')
-            iend=iend-1
+   3      do while (Iend.gt.1 .and. bffr(Iend:Iend).eq.' ')
+            Iend=Iend-1
           enddo
-          if (iend.eq.1 .and. bffr(1:1).eq.' ') iend=0
+          if (Iend.eq.1 .and. bffr(1:1).eq.' ') Iend=0
         endif
       enddo
-      if (iend.gt.0) then
-        istr=1
+      if (Iend.gt.0) then
+        Istr=1
         if (bffr(6:6).ne.' ') then
-          istr=7
+          Istr=7
         else
-          istr=1
+          Istr=1
         endif
-        do while (bffr(istr:istr).eq.' ' .and. istr.lt.iend)
-          istr=istr+1
+        do while (bffr(Istr:Istr).eq.' ' .and. Istr.lt.Iend)
+          Istr=Istr+1
         enddo
       else
-        istr=0
+        Istr=0
       endif
-      do i=iend+1,max_string_size
+      do i=Iend+1,max_string_size
         bffr(i:i)=' '
       enddo
-c**   if (iend.gt.0) write(*,*) bffr(istr:iend)
+c**   if (Iend.gt.0) write(*,*) bffr(Istr:Iend)
       return
       end
  

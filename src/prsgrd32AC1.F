@@ -7,7 +7,7 @@
 # include "param.h"
 # include "private_scratch.h"
 # include "compute_tile_bounds.h"
-      call prsgrd32AC1_tile (istr,iend,jstr,jend, A3d(1,1),A3d(1,2),
+      call prsgrd32AC1_tile (Istr,Iend,Jstr,Jend, A3d(1,1),A3d(1,2),
      &                                                      A3d(1,3),
 # ifdef SPLIT_EOS
      &                                                      A3d(1,4),
@@ -17,13 +17,13 @@
       return
       end
  
-      subroutine prsgrd32AC1_tile (istr,iend,jstr,jend, ru,rv, P,
+      subroutine prsgrd32AC1_tile (Istr,Iend,Jstr,Jend, ru,rv, P,
 # ifdef SPLIT_EOS
      &                                                        rho,
 # endif
      &                                       dR,dZ, FC,dZx,rx,dRx)
       implicit none
-      integer istr,iend,jstr,jend, i,j,k, imin,imax,jmin,jmax
+      integer Istr,Iend,Jstr,Jend, i,j,k, imin,imax,jmin,jmax
 # include "param.h"
       real ru(PRIVATE_2D_SCRATCH_ARRAY,N),   OneFifth,
      &     rv(PRIVATE_2D_SCRATCH_ARRAY,N),   OneTwelfth,
@@ -91,33 +91,33 @@
 !
 # ifndef EW_PERIODIC
       if (WESTERN_EDGE) then     ! Restrict extended ranges one
-        imin=istrU               ! point inward near the physical
+        imin=IstrU               ! point inward near the physical
       else                       ! boundary. Note that this version
-        imin=istrU-1             ! of code is suitable for MPI
+        imin=IstrU-1             ! of code is suitable for MPI
       endif                      ! configuration too.
       if (EASTERN_EDGE) then
-        imax=iend
+        imax=Iend
       else
-        imax=iend+1
+        imax=Iend+1
       endif
 # else
-      imin=istr-1
-      imax=iend+1
+      imin=Istr-1
+      imax=Iend+1
 # endif
 # ifndef NS_PERIODIC
         if (SOUTHERN_EDGE) then
-          jmin=jstrV
+          jmin=JstrV
         else
-          jmin=jstrV-1
+          jmin=JstrV-1
         endif
         if (NORTHERN_EDGE) then
-          jmax=jend
+          jmax=Jend
         else
-          jmax=jend+1
+          jmax=Jend+1
         endif
 # else
-        jmin=jstr-1
-        jmax=jend+1
+        jmin=Jstr-1
+        jmax=Jend+1
 # endif
 !
 ! Preliminary step (same for XI- and ETA-components:
@@ -126,9 +126,9 @@
       GRho=g/rho0
       HalfGRho=0.5*GRho
  
-      do j=jstrV-1,jend
+      do j=JstrV-1,Jend
         do k=1,N-1
-          do i=istrU-1,iend
+          do i=IstrU-1,Iend
             dZ(i,k)=z_r(i,j,k+1)-z_r(i,j,k)
 # ifdef SPLIT_EOS
             dpth=z_w(i,j,N)-0.5*(z_r(i,j,k+1)+z_r(i,j,k))
@@ -141,14 +141,14 @@
 # endif
           enddo
         enddo
-        do i=istrU-1,iend
+        do i=IstrU-1,Iend
           dR(i,N)=dR(i,N-1)
           dR(i,0)=dR(i,1)
           dZ(i,N)=dZ(i,N-1)
           dZ(i,0)=dZ(i,1)
         enddo
         do k=N,1,-1               !--> irreversible
-          do i=istrU-1,iend
+          do i=IstrU-1,Iend
             cff=2.*dZ(i,k)*dZ(i,k-1)
             dZ(i,k)=cff/(dZ(i,k)+dZ(i,k-1))
  
@@ -165,13 +165,13 @@
 # endif
           enddo
         enddo
-        do i=istrU-1,iend
+        do i=IstrU-1,Iend
           P(i,j,N)=g*z_w(i,j,N) + GRho*( rho(i,j,N)
      &       +0.5*(rho(i,j,N)-rho(i,j,N-1))*(z_w(i,j,N)-z_r(i,j,N))
      &          /(z_r(i,j,N)-z_r(i,j,N-1)) )*(z_w(i,j,N)-z_r(i,j,N))
         enddo
         do k=N-1,1,-1
-          do i=istrU-1,iend
+          do i=IstrU-1,Iend
             P(i,j,k)=P(i,j,k+1)+HalfGRho*( (rho(i,j,k+1)+rho(i,j,k))
      &                                     *(z_r(i,j,k+1)-z_r(i,j,k))
  
@@ -189,7 +189,7 @@
 !-------- ------------ -- -------- -------- -----
 !
       do k=N,1,-1
-        do j=jstr,jend
+        do j=Jstr,Jend
           do i=imin,imax
             FC(i,j)=(z_r(i,j,k)-z_r(i-1,j,k))
 # ifdef MASKING
@@ -213,21 +213,21 @@
  
 # ifndef EW_PERIODIC
         if (WESTERN_EDGE) then         ! Extrapolate elementary
-          do j=jstr,jend               ! differences near physical
+          do j=Jstr,Jend               ! differences near physical
             FC(imin-1,j)=FC(imin,j)    ! boundaries to compencate.
             rx(imin-1,j)=rx(imin,j)    ! for reduced loop ranges.
           enddo
         endif
         if (EASTERN_EDGE) then
-          do j=jstr,jend
+          do j=Jstr,Jend
             FC(imax+1,j)=FC(imax,j)
             rx(imax+1,j)=rx(imax,j)
           enddo
         endif
 # endif
  
-        do j=jstr,jend
-          do i=istrU-1,iend
+        do j=Jstr,Jend
+          do i=IstrU-1,Iend
             cff=2.*FC(i,j)*FC(i+1,j)
             if (cff.gt.epsil) then
               dZx(i,j)=cff/(FC(i,j)+FC(i+1,j))
@@ -247,7 +247,7 @@
 # endif
           enddo               !--> discard FC, rx
 
-          do i=istrU,iend
+          do i=IstrU,Iend
             ru(i,j,k)=0.5*(Hz(i,j,k)+Hz(i-1,j,k))*dn_u(i,j)*(
      &                              P(i-1,j,k)-P(i,j,k)-HalfGRho*(
 
@@ -266,7 +266,7 @@
 !-------------- -- -------- -------- -----
 !
         do j=jmin,jmax
-          do i=istr,iend
+          do i=Istr,Iend
             FC(i,j)=(z_r(i,j,k)-z_r(i,j-1,k))
 # ifdef MASKING
      &                              *vmask(i,j)
@@ -289,21 +289,21 @@
  
 # ifndef NS_PERIODIC
         if (SOUTHERN_EDGE) then
-          do i=istr,iend
+          do i=Istr,Iend
             FC(i,jmin-1)=FC(i,jmin)
             rx(i,jmin-1)=rx(i,jmin)
           enddo
         endif
         if (NORTHERN_EDGE) then
-          do i=istr,iend
+          do i=Istr,Iend
             FC(i,jmax+1)=FC(i,jmax)
             rx(i,jmax+1)=rx(i,jmax)
           enddo
         endif
 # endif
  
-        do j=jstrV-1,jend
-          do i=istr,iend
+        do j=JstrV-1,Jend
+          do i=Istr,Iend
             cff=2.*FC(i,j)*FC(i,j+1)
             if (cff.gt.epsil) then
 c**         if ((FC(i,j).gt.0. .and. FC(i,j+1).gt.0.) .or.
@@ -327,8 +327,8 @@ c**  &          (rx(i,j).lt.0. .and. rx(i,j+1).lt.0.)) then
 # endif
           enddo               !--> discard FC, rx
  
-          if (j.ge.jstrV) then
-            do i=istr,iend
+          if (j.ge.JstrV) then
+            do i=Istr,Iend
               rv(i,j,k)=0.5*(Hz(i,j,k)+Hz(i,j-1,k))*dm_v(i,j)*(
      &                             P(i,j-1,k)-P(i,j,k) -HalfGRho*(
 

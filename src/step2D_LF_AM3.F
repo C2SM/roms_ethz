@@ -6,19 +6,19 @@
 #include "param.h"
 #include "private_scratch.h"
 #include "compute_tile_bounds.h"
-      call step2D_LFAM3_tile (istr,iend,jstr,jend, A2d(1,1),
+      call step2D_LFAM3_tile (Istr,Iend,Jstr,Jend, A2d(1,1),
      &                            A2d(1,2),  A2d(1, 3), A2d(1, 4),
      &                  A2d(1,5), A2d(1, 6), A2d(1, 7), A2d(1, 8),
      &                  A2d(1,9), A2d(1,10), A2d(1,11), A2d(1,12))
       return
       end
  
-      subroutine step2D_LFAM3_tile (istr,iend,jstr,jend, zeta_new,
+      subroutine step2D_LFAM3_tile (Istr,Iend,Jstr,Jend, zeta_new,
      &                              Dnew, rubar, rvbar, DUon, DVom,
      &                              Drhs, Drhs_p, UFe,UFx,VFe,VFx)
       implicit none
 #include "param.h"
-      integer istr,iend,jstr,jend, i,j, krhs, kbak
+      integer Istr,Iend,Jstr,Jend, i,j, krhs, kbak
       real zeta_new(PRIVATE_2D_SCRATCH_ARRAY),
      &         Dnew(PRIVATE_2D_SCRATCH_ARRAY),  cff,
      &        rubar(PRIVATE_2D_SCRATCH_ARRAY),  cff1,
@@ -79,8 +79,8 @@ c*    parameter (gamma=1./12., beta=0.1,  epsil=0.6 )  !--> Cu=1.050
 ! in nonlinear advection terms for the barotropic momentum
 ! equations.
 !
-# define JR_RANGE jstrV-2,jend+1
-# define IR_RANGE istrU-2,iend+1
+# define JR_RANGE JstrV-2,Jend+1
+# define IR_RANGE IstrU-2,Iend+1
 
       do j=JR_RANGE
         do i=IR_RANGE
@@ -90,20 +90,20 @@ c*    parameter (gamma=1./12., beta=0.1,  epsil=0.6 )  !--> Cu=1.050
 #undef IR_RANGE
 #undef JR_RANGE
  
-      do j=jstr-1,jendR
-        do i=istrU-1,iend+1
+      do j=Jstr-1,JendR
+        do i=IstrU-1,Iend+1
           DUon(i,j)=0.5*(Drhs(i,j)+Drhs(i-1,j))
      &                 *ubar(i,j,krhs)*dn_u(i,j)
         enddo
       enddo
-      do j=jstrV-1,jend+1
-        do i=istr-1,iendR
+      do j=JstrV-1,Jend+1
+        do i=Istr-1,IendR
           DVom(i,j)=0.5*(Drhs(i,j)+Drhs(i,j-1))
      &                 *vbar(i,j,krhs)*dm_v(i,j)
         enddo
       enddo
 #ifdef OBC_VOLCONS
-      call set_DUV_bc_tile (istr,iend,jstr,jend, Drhs, DUon,DVom)
+      call set_DUV_bc_tile (Istr,Iend,Jstr,Jend, Drhs, DUon,DVom)
 #endif
  
 #ifdef SOLVE3D
@@ -117,8 +117,8 @@ c*    parameter (gamma=1./12., beta=0.1,  epsil=0.6 )  !--> Cu=1.050
                                    ! barotropic mode averages arrays
       if (PREDICTOR_2D_STEP) then  ! during the first predictor step.
         if (FIRST_2D_STEP) then    ! At all subsequent time steps
-          do j=jstrR,jendR         ! accumulate averages of the first
-            do i=istrR,iendR       ! kind using DELAYED mode, i.e.,
+          do j=JstrR,JendR         ! accumulate averages of the first
+            do i=IstrR,IendR       ! kind using DELAYED mode, i.e.,
               Zt_avg1(i,j)=0.      ! Zt_avg1 are accumulated not
               DU_avg1(i,j)=0.      ! immediately after corrector step
               DV_avg1(i,j)=0.      ! when they are computed, but
@@ -128,8 +128,8 @@ c*    parameter (gamma=1./12., beta=0.1,  epsil=0.6 )  !--> Cu=1.050
           enddo                    ! computed anyway. The last time
         else                       ! step has special code to add all
           cff=weight(1,iif-1)      ! three barotropic variables after
-          do j=jstrR,jendR         ! the last corrector substep.
-            do i=istrR,iendR
+          do j=JstrR,JendR         ! the last corrector substep.
+            do i=IstrR,IendR
               Zt_avg1(i,j)=Zt_avg1(i,j)+cff*zeta(i,j,krhs)
               DU_avg1(i,j)=DU_avg1(i,j)+cff*DUon(i,j)
               DV_avg1(i,j)=DV_avg1(i,j)+cff*DVom(i,j)
@@ -138,15 +138,15 @@ c*    parameter (gamma=1./12., beta=0.1,  epsil=0.6 )  !--> Cu=1.050
         endif
       else                   !--> CORRECTOR_2D_STEP
         cff=weight(2,iif)
-        do j=jstrR,jendR
-          do i=istrR,iendR
+        do j=JstrR,JendR
+          do i=IstrR,IendR
             DU_avg2(i,j)=DU_avg2(i,j)+cff*DUon(i,j)
             DV_avg2(i,j)=DV_avg2(i,j)+cff*DVom(i,j)
           enddo
         enddo
       endif
 #else
-      if (PREDICTOR_2D_STEP) call diag_tile (istr,iend,jstr,jend,
+      if (PREDICTOR_2D_STEP) call diag_tile (Istr,Iend,Jstr,Jend,
      &                                               UFx,UFe,VFx)
 #endif /* SOLVE3D */
 !
@@ -188,8 +188,8 @@ c*    parameter (gamma=1./12., beta=0.1,  epsil=0.6 )  !--> Cu=1.050
           cff3=beta                 ! the first time step)
         endif
  
-        do j=jstrV-1,jend
-          do i=istrU-1,iend
+        do j=JstrV-1,Jend
+          do i=IstrU-1,Iend
             zeta_new(i,j)=zeta(i,j,kbak) + cff*pm(i,j)*pn(i,j)
      &         *(DUon(i,j)-DUon(i+1,j) + DVom(i,j)-DVom(i,j+1))
 #ifdef MASKING
@@ -222,8 +222,8 @@ c*    parameter (gamma=1./12., beta=0.1,  epsil=0.6 )  !--> Cu=1.050
           cff3=       -gamma *epsil     ! step.
         endif
  
-        do j=jstrV-1,jend
-          do i=istrU-1,iend
+        do j=JstrV-1,Jend
+          do i=IstrU-1,Iend
             zeta_new(i,j)=zeta(i,j,kstp) + dtfast*pm(i,j)*pn(i,j)
      &            *(DUon(i,j)-DUon(i+1,j) + DVom(i,j)-DVom(i,j+1))
 #ifdef MASKING
@@ -254,7 +254,7 @@ c*    parameter (gamma=1./12., beta=0.1,  epsil=0.6 )  !--> Cu=1.050
 ! to be this way makes it possible avoid storing r.h.s. for zeta,
 ! uvar and vbar between predictor and corrector sub-steps.
 !
-      call zetabc_tile (istr,iend,jstr,jend, zeta_new)
+      call zetabc_tile (Istr,Iend,Jstr,Jend, zeta_new)
  
       if (PREDICTOR_2D_STEP) then
         if (FIRST_2D_STEP) then
@@ -266,15 +266,15 @@ c*    parameter (gamma=1./12., beta=0.1,  epsil=0.6 )  !--> Cu=1.050
           cff2=0.5+2.*gamma
           cff3=      -gamma
         endif
-        do j=jstrR,jendR
-          do i=istrR,iendR
+        do j=JstrR,JendR
+          do i=IstrR,IendR
             zeta(i,j,knew)=cff1*zeta_new(i,j)+cff2*zeta(i,j,kstp)
      &                                       +cff3*zeta(i,j,kbak)
           enddo
         enddo
       else
-        do j=jstrR,jendR
-          do i=istrR,iendR
+        do j=JstrR,JendR
+          do i=IstrR,IendR
             zeta(i,j,knew)=zeta_new(i,j)
           enddo
         enddo
@@ -293,8 +293,8 @@ c*    parameter (gamma=1./12., beta=0.1,  epsil=0.6 )  !--> Cu=1.050
 ! version for the case when both CPP switches below are defined.
 !
       cff=0.5*g
-      do j=jstr,jend
-        do i=istr,iend
+      do j=Jstr,Jend
+        do i=Istr,Iend
           rubar(i,j)=cff*dn_u(i,j)*( (h(i-1,j)+h(i,j))*(rzeta(i-1,j)
      &                        -rzeta(i,j)) +rzeta2(i-1,j)-rzeta2(i,j)
  
@@ -337,38 +337,38 @@ c*    parameter (gamma=1./12., beta=0.1,  epsil=0.6 )  !--> Cu=1.050
 ! Compute horizontal advection terms for momentum equations (2D only)
 !
 #ifdef UV_ADV
-      do j=jstr,jend
-        do i=istrU-1,iend
+      do j=Jstr,Jend
+        do i=IstrU-1,Iend
           UFx(i,j)=0.25*(DUon(i,j)+DUon(i+1,j))
      &        *(ubar(i,j,krhs)+ubar(i+1,j,krhs))
         enddo
       enddo
-      do j=jstrV-1,jend
-        do i=istr,iend
+      do j=JstrV-1,Jend
+        do i=Istr,Iend
           VFe(i,j)=0.25*(DVom(i,j)+DVom(i,j+1))
      &        *(vbar(i,j,krhs)+vbar(i,j+1,krhs))
         enddo
       enddo
-      do j=jstr,jend+1
-        do i=istrU,iend
+      do j=Jstr,Jend+1
+        do i=IstrU,Iend
           UFe(i,j)=0.25*(DVom(i,j)+DVom(i-1,j))
      &        *(ubar(i,j,krhs)+ubar(i,j-1,krhs))
         enddo
       enddo
-      do j=jstrV,jend
-        do i=istr,iend+1
+      do j=JstrV,Jend
+        do i=Istr,Iend+1
           VFx(i,j)=0.25*(DUon(i,j)+DUon(i,j-1))
      &        *(vbar(i,j,krhs)+vbar(i-1,j,krhs))
         enddo
       enddo            !--> discard DUon,DVom
-      do j=jstr,jend
-        do i=istrU,iend
+      do j=Jstr,Jend
+        do i=IstrU,Iend
           rubar(i,j)=rubar(i,j)-UFx(i,j)+UFx(i-1,j)
      &                         -UFe(i,j+1)+UFe(i,j)
         enddo
       enddo
-      do j=jstrV,jend
-        do i=istr,iend
+      do j=JstrV,Jend
+        do i=Istr,Iend
           rvbar(i,j)=rvbar(i,j)-VFx(i+1,j)+VFx(i,j)
      &                         -VFe(i,j)+VFe(i,j-1)
         enddo
@@ -379,8 +379,8 @@ c*    parameter (gamma=1./12., beta=0.1,  epsil=0.6 )  !--> Cu=1.050
 ! terms (2D only).
 !
 #if defined UV_COR || (defined CURVGRID && defined UV_ADV)
-      do j=jstrV-1,jend
-        do i=istrU-1,iend
+      do j=JstrV-1,Jend
+        do i=IstrU-1,Iend
           cff=Drhs(i,j)*(
 # ifdef UV_COR
      &                    fomn(i,j)
@@ -394,13 +394,13 @@ c*    parameter (gamma=1./12., beta=0.1,  epsil=0.6 )  !--> Cu=1.050
           VFe(i,j)=cff*(ubar(i,j,krhs)+ubar(i+1,j,krhs))
         enddo
       enddo
-      do j=jstr,jend
-        do i=istrU,iend
+      do j=Jstr,Jend
+        do i=IstrU,Iend
           rubar(i,j)=rubar(i,j)+0.25*(UFx(i,j)+UFx(i-1,j))
         enddo
       enddo
-      do j=jstrV,jend
-        do i=istr,iend
+      do j=JstrV,Jend
+        do i=Istr,Iend
           rvbar(i,j)=rvbar(i,j)-0.25*(VFe(i,j)+VFe(i,j-1))
         enddo
       enddo                   !--> discard UFx,UFe,VFx,VFe
@@ -412,15 +412,15 @@ c*    parameter (gamma=1./12., beta=0.1,  epsil=0.6 )  !--> Cu=1.050
 ! boundary conditions for "Drhs". Then compute total depth at PSI-
 ! points "Drhs_p".
 !
-      do j=jstr,jend+1
-        do i=istr,iend+1
+      do j=Jstr,Jend+1
+        do i=Istr,Iend+1
           Drhs_p(i,j)=0.25*( Drhs(i,j  )+Drhs(i-1,j  )
      &                      +Drhs(i,j-1)+Drhs(i-1,j-1))
         enddo
       enddo
 
-      do j=jstrV-1,jend
-        do i=istrU-1,iend
+      do j=JstrV-1,Jend
+        do i=IstrU-1,Iend
           cff=2.*Drhs(i,j)*visc2_r(i,j)
           UFx(i,j)=cff*(ubar(i+1,j,krhs)-ubar(i,j,krhs))
      &                                 *pm(i,j)*dn_r(i,j)
@@ -428,8 +428,8 @@ c*    parameter (gamma=1./12., beta=0.1,  epsil=0.6 )  !--> Cu=1.050
      &                                 *pn(i,j)*dm_r(i,j)
         enddo
       enddo
-      do j=jstr,jend+1
-        do i=istr,iend+1
+      do j=Jstr,Jend+1
+        do i=Istr,Iend+1
           cff=visc2_p(i,j)*Drhs_p(i,j)*0.25*(
      &                 (pn(i,j)+pn(i-1,j)+pn(i,j-1)+pn(i-1,j-1))
      &                        *(ubar(i,j,krhs)-ubar(i,j-1,krhs))
@@ -443,14 +443,14 @@ c*    parameter (gamma=1./12., beta=0.1,  epsil=0.6 )  !--> Cu=1.050
           VFx(i,j)=cff*dn_p(i,j)
         enddo
       enddo
-      do j=jstr,jend
-        do i=istrU,iend
+      do j=Jstr,Jend
+        do i=IstrU,Iend
           rubar(i,j)=rubar(i,j)+UFx(i,j)-UFx(i-1,j)
      &                         +UFe(i,j+1)-UFe(i,j)
         enddo
       enddo
-      do j=jstrV,jend
-        do i=istr,iend
+      do j=JstrV,Jend
+        do i=Istr,Iend
           rvbar(i,j)=rvbar(i,j)+VFx(i+1,j)-VFx(i,j)
      &                         +VFe(i,j)-VFe(i,j-1)
         enddo
@@ -462,8 +462,8 @@ c*    parameter (gamma=1./12., beta=0.1,  epsil=0.6 )  !--> Cu=1.050
 !
 #ifndef SOLVE3D
       if (rdrg2.gt.0.) then
-        do j=jstr,jend
-          do i=istrU,iend
+        do j=Jstr,Jend
+          do i=IstrU,Iend
             cff=0.25*( vbar(i  ,j,krhs)+vbar(i  ,j+1,krhs)
      &                +vbar(i-1,j,krhs)+vbar(i-1,j+1,krhs))
             rubar(i,j)=rubar(i,j)-ubar(i,j,krhs)*( rdrg+rdrg2
@@ -471,8 +471,8 @@ c*    parameter (gamma=1./12., beta=0.1,  epsil=0.6 )  !--> Cu=1.050
      &                                     )*dm_u(i,j)*dn_u(i,j)
           enddo
         enddo
-        do j=jstrV,jend
-          do i=istr,iend
+        do j=JstrV,Jend
+          do i=Istr,Iend
             cff=0.25*( ubar(i,j  ,krhs)+ubar(i+1,j  ,krhs)
      &                +ubar(i,j-1,krhs)+ubar(i+1,j-1,krhs))
             rvbar(i,j)=rvbar(i,j)-vbar(i,j,krhs)*( rdrg+rdrg2
@@ -481,14 +481,14 @@ c*    parameter (gamma=1./12., beta=0.1,  epsil=0.6 )  !--> Cu=1.050
           enddo
         enddo
       else if (rdrg.gt.0.0) then
-        do j=jstr,jend
-          do i=istrU,iend
+        do j=Jstr,Jend
+          do i=IstrU,Iend
             rubar(i,j)=rubar(i,j)-rdrg*ubar(i,j,krhs)
      &                            *dm_u(i,j)*dn_u(i,j)
           enddo
         enddo
-        do j=jstrV,jend
-          do i=istr,iend
+        do j=JstrV,Jend
+          do i=Istr,Iend
             rvbar(i,j)=rvbar(i,j)-rdrg*vbar(i,j,krhs)
      &                            *dm_v(i,j)*dn_v(i,j)
           enddo
@@ -527,16 +527,16 @@ c*    parameter (gamma=1./12., beta=0.1,  epsil=0.6 )  !--> Cu=1.050
           cff1=1.5+cff3                  ! maximum stability (with
         endif                            ! special care for startup)
  
-        do j=jstr,jend
-          do i=istrU,iend
+        do j=Jstr,Jend
+          do i=IstrU,Iend
             cff=rufrc(i,j)-rubar(i,j)
             rufrc(i,j)=cff1*cff + cff2*rufrc_bak(i,j,3-nstp)
      &                             + cff3*rufrc_bak(i,j,nstp)
             rufrc_bak(i,j,nstp)=cff
           enddo
         enddo
-        do j=jstrV,jend
-          do i=istr,iend
+        do j=JstrV,Jend
+          do i=Istr,Iend
             cff=rvfrc(i,j)-rvbar(i,j)
             rvfrc(i,j)=cff1*cff + cff2*rvfrc_bak(i,j,3-nstp)
      &                             + cff3*rvfrc_bak(i,j,nstp)
@@ -544,8 +544,8 @@ c*    parameter (gamma=1./12., beta=0.1,  epsil=0.6 )  !--> Cu=1.050
           enddo
         enddo
 # else
-        do j=jstr,jend                       ! This version is
-          do i=istr,iend                     ! designed for coupling
+        do j=Jstr,Jend                       ! This version is
+          do i=Istr,Iend                     ! designed for coupling
             rufrc(i,j)=rufrc(i,j)-rubar(i,j) ! during 3D corrector
             rvfrc(i,j)=rvfrc(i,j)-rvbar(i,j) ! sub-step: no forward
           enddo                              ! extrapolation needs
@@ -562,8 +562,8 @@ c*    parameter (gamma=1./12., beta=0.1,  epsil=0.6 )  !--> Cu=1.050
 # define rzeta2  VFe
 # define rzetaSA VFx
 
-        do j=jstrV-1,jend
-          do i=istrU-1,iend
+        do j=JstrV-1,Jend
+          do i=IstrU-1,Iend
             zwrk(i,j)=0.333333333333*(zeta_new(i,j)-zeta(i,j,kstp))
 # if defined VAR_RHO_2D && defined SOLVE3D
             rzeta(i,j)=(1.+rhoS(i,j))*zwrk(i,j)
@@ -579,8 +579,8 @@ c*    parameter (gamma=1./12., beta=0.1,  epsil=0.6 )  !--> Cu=1.050
         enddo
 
         cff=0.5*g
-        do j=jstr,jend
-          do i=istr,iend
+        do j=Jstr,Jend
+          do i=Istr,Iend
             rubar(i,j)=rubar(i,j) +cff*dn_u(i,j)*( (h(i-1,j)+h(i,j))
      &          *(rzeta(i-1,j)-rzeta(i,j)) +rzeta2(i-1,j)-rzeta2(i,j)
 
@@ -618,14 +618,14 @@ c*    parameter (gamma=1./12., beta=0.1,  epsil=0.6 )  !--> Cu=1.050
 !
 #define Dstp DUon
       if (FIRST_2D_STEP .or. .not. PREDICTOR_2D_STEP) then
-        do j=jstrV-1,jend
-          do i=istrU-1,iend
+        do j=JstrV-1,Jend
+          do i=IstrU-1,Iend
             Dstp(i,j)=h(i,j)+zeta(i,j,kstp)
           enddo
         enddo
       else
-        do j=jstrV-1,jend
-          do i=istrU-1,iend
+        do j=JstrV-1,Jend
+          do i=IstrU-1,Iend
             Dstp(i,j)=h(i,j)+zeta(i,j,kbak)
           enddo
         enddo
@@ -644,8 +644,8 @@ c*    parameter (gamma=1./12., beta=0.1,  epsil=0.6 )  !--> Cu=1.050
           cff3=      -gamma
         endif
  
-        do j=jstr,jend
-          do i=istrU,iend
+        do j=Jstr,Jend
+          do i=IstrU,Iend
             ubar(i,j,knew)=( ubar(i,j,kbak)*(Dstp(i,j)+Dstp(i-1,j))
      &                  +cff*(pm(i,j)+pm(i-1,j))*(pn(i,j)+pn(i-1,j))
 #ifdef SOLVE3D
@@ -661,8 +661,8 @@ c*    parameter (gamma=1./12., beta=0.1,  epsil=0.6 )  !--> Cu=1.050
      &                                        +cff3*ubar(i,j,kbak)
           enddo
         enddo
-        do j=jstrV,jend
-          do i=istr,iend
+        do j=JstrV,Jend
+          do i=Istr,Iend
             vbar(i,j,knew)=( vbar(i,j,kbak)*(Dstp(i,j)+Dstp(i,j-1))
      &                  +cff*(pm(i,j)+pm(i,j-1))*(pn(i,j)+pn(i,j-1))
 #ifdef SOLVE3D
@@ -680,8 +680,8 @@ c*    parameter (gamma=1./12., beta=0.1,  epsil=0.6 )  !--> Cu=1.050
         enddo
       else                        !--> CORRECTOR_2D_STEP
         cff=0.5*dtfast
-        do j=jstr,jend
-          do i=istrU,iend
+        do j=Jstr,Jend
+          do i=IstrU,Iend
             ubar(i,j,knew)=( ubar(i,j,kstp)*(Dstp(i,j)+Dstp(i-1,j))
      &                  +cff*(pm(i,j)+pm(i-1,j))*(pn(i,j)+pn(i-1,j))
 #ifdef SOLVE3D
@@ -695,8 +695,8 @@ c*    parameter (gamma=1./12., beta=0.1,  epsil=0.6 )  !--> Cu=1.050
 #endif
           enddo
         enddo
-        do j=jstrV,jend
-          do i=istr,iend
+        do j=JstrV,Jend
+          do i=Istr,Iend
             vbar(i,j,knew)=( vbar(i,j,kstp)*(Dstp(i,j)+Dstp(i,j-1))
      &                  +cff*(pm(i,j)+pm(i,j-1))*(pn(i,j)+pn(i,j-1))
 #ifdef SOLVE3D
@@ -714,8 +714,8 @@ c*    parameter (gamma=1./12., beta=0.1,  epsil=0.6 )  !--> Cu=1.050
 #undef Dstp
 c??
 c??
-c      do j=jstr,jend
-c        do i=istr,iend
+c      do j=Jstr,Jend
+c        do i=Istr,Iend
 c          ubar(i,j,knew)=0.
 c          vbar(i,j,knew)=0.
 c        enddo
@@ -727,17 +727,17 @@ c??
 ! Set boundary conditions and compute integral mass flux accross
 ! all open boundaries, if any.
 !
-      call    u2dbc_tile (istr,iend,jstr,jend, UFx)
-      call    v2dbc_tile (istr,iend,jstr,jend, UFx)
+      call    u2dbc_tile (Istr,Iend,Jstr,Jend, UFx)
+      call    v2dbc_tile (Istr,Iend,Jstr,Jend, UFx)
 #ifdef OBC_VOLCONS
-      call obc_flux_tile (istr,iend,jstr,jend, UFx)
+      call obc_flux_tile (Istr,Iend,Jstr,Jend, UFx)
 #endif
 #ifdef PSOURCE
       do is=1,Nsrc           ! Apply point mass sources associated
         i=Isrc(is)           ! with river runoff simulations.
         j=Jsrc(is)
-        if (istrR.le.i .and. i.le.iendR .and.
-     &      jstrR.le.j .and. j.le.jendR) then
+        if (IstrR.le.i .and. i.le.IendR .and.
+     &      JstrR.le.j .and. j.le.JendR) then
           if (Dsrc(is).eq.0) then
             ubar(i,j,knew)=2.*Qbar(is)/( dn_u(i,j)
      &                   *(Dnew(i-1,j)+Dnew(i,j)) )
@@ -761,30 +761,30 @@ c??
 !
       if (iif.eq.nfast .and. knew.lt.3) then
         if (WESTERN_EDGE) then
-          do j=jstr-1,jendR
-            Dnew(istr-1,j)=h(istr-1,j)+zeta_new(istr-1,j)
+          do j=Jstr-1,JendR
+            Dnew(Istr-1,j)=h(Istr-1,j)+zeta_new(Istr-1,j)
           enddo
         endif
         if (EASTERN_EDGE) then
-          do j=jstr-1,jendR
-            Dnew(iend+1,j)=h(iend+1,j)+zeta_new(iend+1,j)
+          do j=Jstr-1,JendR
+            Dnew(Iend+1,j)=h(Iend+1,j)+zeta_new(Iend+1,j)
           enddo
         endif
         if (SOUTHERN_EDGE) then
-          do i=istr-1,iendR
-            Dnew(i,jstr-1)=h(i,jstr-1)+zeta_new(i,jstr-1)
+          do i=Istr-1,IendR
+            Dnew(i,Jstr-1)=h(i,Jstr-1)+zeta_new(i,Jstr-1)
           enddo
         endif
         if (NORTHERN_EDGE) then
-          do i=istr-1,iendR
-            Dnew(i,jend+1)=h(i,jend+1)+zeta_new(i,jend+1)
+          do i=Istr-1,IendR
+            Dnew(i,Jend+1)=h(i,Jend+1)+zeta_new(i,Jend+1)
           enddo
         endif
  
         cff=weight(1,iif)
         cff1=0.5*cff
-        do j=jstrR,jendR
-          do i=istrR,iendR
+        do j=JstrR,JendR
+          do i=IstrR,IendR
             Zt_avg1(i,j)=Zt_avg1(i,j)+cff*zeta(i,j,knew)
             DU_avg1(i,j)=DU_avg1(i,j)+cff1*ubar(i,j,knew)
      &                 *(Dnew(i,j)+Dnew(i-1,j))*dn_u(i,j)
@@ -802,16 +802,16 @@ c??
             zeta(i,j,knew)=Zt_avg1(i,j)
           enddo
         enddo
-        call set_depth_tile (istr,iend,jstr,jend, UFx)
+        call set_depth_tile (Istr,Iend,Jstr,Jend, UFx)
       endif
 #endif
  
 #if defined EW_PERIODIC || defined NS_PERIODIC || defined  MPI
-      call exchange_r2d_tile (istr,iend,jstr,jend,
+      call exchange_r2d_tile (Istr,Iend,Jstr,Jend,
      &                  zeta(START_2D_ARRAY,knew))
-      call exchange_u2d_tile (istr,iend,jstr,jend,
+      call exchange_u2d_tile (Istr,Iend,Jstr,Jend,
      &                  ubar(START_2D_ARRAY,knew))
-      call exchange_v2d_tile (istr,iend,jstr,jend,
+      call exchange_v2d_tile (Istr,Iend,Jstr,Jend,
      &                  vbar(START_2D_ARRAY,knew))
 #endif
       return

@@ -1,7 +1,7 @@
 #include "cppdefs.h"
 #ifdef OBC_VOLCONS
 
-      subroutine obc_flux_tile (istr,iend,jstr,jend, dFlx)
+      subroutine obc_flux_tile (Istr,Iend,Jstr,Jend, dFlx)
 !
 ! Compute integral crossection of open all boundaries "bc_crss" and
 ! integral mass flux "bc_flux" incoming into model domain (hence
@@ -14,7 +14,7 @@
 ! "ubar_xs" needed to cancel exactly global mass gain.  
 !
       implicit none
-      integer istr,iend,jstr,jend,  i,j, inc,jnc, nsubs 
+      integer Istr,Iend,Jstr,Jend,  i,j, inc,jnc, nsubs 
       real*QUAD dFlx(PRIVATE_2D_SCRATCH_ARRAY), my_crss, my_flux
 # include "param.h"
 # include "grid.h"
@@ -31,99 +31,99 @@
                           ! subdomains 
 # ifdef OBC_WEST
       if (WESTERN_EDGE) then
-        do j=jstr,jend
-          dFlx(istr,j)=0.5*( zeta(istr-1,j,knew)+zeta(istr,j,knew)
-     &                        +h(istr-1,j)+h(istr,j) )*dn_u(istr,j)
+        do j=Jstr,Jend
+          dFlx(Istr,j)=0.5*( zeta(Istr-1,j,knew)+zeta(Istr,j,knew)
+     &                        +h(Istr-1,j)+h(Istr,j) )*dn_u(Istr,j)
 #  ifdef MASKING
-     &                                               *umask(istr,j)
+     &                                               *umask(Istr,j)
 #  endif
-          dFlx(istr-1,j)=dFlx(istr,j)*ubar(istr,j,knew)
-c**       my_crss=my_crss + dFlx(istr  ,j)
-c**       my_flux=my_flux + dFlx(istr-1,j)
+          dFlx(Istr-1,j)=dFlx(Istr,j)*ubar(Istr,j,knew)
+c**       my_crss=my_crss + dFlx(Istr  ,j)
+c**       my_flux=my_flux + dFlx(Istr-1,j)
         enddo
         jnc=1
-        do while(jstr.le.jend-jnc)
-          do j=jstr,jend-jnc,2*jnc
-            dFlx(istr  ,j) = dFlx(istr  ,j) + dFlx(istr  ,j+jnc)
-            dFlx(istr-1,j) = dFlx(istr-1,j) + dFlx(istr-1,j+jnc)
+        do while(Jstr.le.Jend-jnc)
+          do j=Jstr,Jend-jnc,2*jnc
+            dFlx(Istr  ,j) = dFlx(Istr  ,j) + dFlx(Istr  ,j+jnc)
+            dFlx(Istr-1,j) = dFlx(Istr-1,j) + dFlx(Istr-1,j+jnc)
           enddo
           jnc=2*jnc
         enddo
-        my_crss=my_crss + dFlx(istr  ,jstr)
-        my_flux=my_flux + dFlx(istr-1,jstr)
+        my_crss=my_crss + dFlx(Istr  ,Jstr)
+        my_flux=my_flux + dFlx(Istr-1,Jstr)
       endif
 # endif
 # ifdef OBC_EAST
       if (EASTERN_EDGE) then
-        do j=jstr,jend
-          dFlx(iend,j)=0.5*( zeta(iend,j,knew)+zeta(iend+1,j,knew)
-     &                      +h(iend,j)+h(iend+1,j) )*dn_u(iend+1,j)
+        do j=Jstr,Jend
+          dFlx(Iend,j)=0.5*( zeta(Iend,j,knew)+zeta(Iend+1,j,knew)
+     &                      +h(Iend,j)+h(Iend+1,j) )*dn_u(Iend+1,j)
 #  ifdef MASKING
-     &                                             *umask(iend+1,j)
+     &                                             *umask(Iend+1,j)
 #  endif
-          dFlx(iend+1,j)=dFlx(iend,j)*ubar(iend+1,j,knew)
-c**       my_crss=my_crss + dFlx(iend  ,j)
-c**       my_flux=my_flux - dFlx(iend+1,j)
+          dFlx(Iend+1,j)=dFlx(Iend,j)*ubar(Iend+1,j,knew)
+c**       my_crss=my_crss + dFlx(Iend  ,j)
+c**       my_flux=my_flux - dFlx(Iend+1,j)
         enddo
         jnc=1
-        do while(jstr.le.jend-jnc)
-          do j=jstr,jend-jnc,2*jnc
-            dFlx(iend  ,j) = dFlx(iend  ,j) + dFlx(iend  ,j+jnc)
-            dFlx(iend+1,j) = dFlx(iend+1,j) + dFlx(iend+1,j+jnc)
+        do while(Jstr.le.Jend-jnc)
+          do j=Jstr,Jend-jnc,2*jnc
+            dFlx(Iend  ,j) = dFlx(Iend  ,j) + dFlx(Iend  ,j+jnc)
+            dFlx(Iend+1,j) = dFlx(Iend+1,j) + dFlx(Iend+1,j+jnc)
           enddo
           jnc=2*jnc
         enddo
-        my_crss=my_crss + dFlx(iend  ,jstr)
-        my_flux=my_flux - dFlx(iend+1,jstr)
+        my_crss=my_crss + dFlx(Iend  ,Jstr)
+        my_flux=my_flux - dFlx(Iend+1,Jstr)
       endif
 # endif
 # ifdef OBC_SOUTH
       if (SOUTHERN_EDGE) then
-        do i=istr,iend
-          dFlx(i,jstr)=0.5*( zeta(i,jstr,knew)+zeta(i,jstr-1,knew)
-     &                        +h(i,jstr)+h(i,jstr-1) )*dm_v(i,jstr)
+        do i=Istr,Iend
+          dFlx(i,Jstr)=0.5*( zeta(i,Jstr,knew)+zeta(i,Jstr-1,knew)
+     &                        +h(i,Jstr)+h(i,Jstr-1) )*dm_v(i,Jstr)
 #  ifdef MASKING
-     &                                               *vmask(i,jstr)
+     &                                               *vmask(i,Jstr)
 #  endif
-          dFlx(i,jstr-1)=dFlx(i,jstr)*vbar(i,jstr,knew)
-c**       my_crss=my_crss + dFlx(i,jstr  )
-c**       my_flux=my_flux + dFlx(i,jstr-1)
+          dFlx(i,Jstr-1)=dFlx(i,Jstr)*vbar(i,Jstr,knew)
+c**       my_crss=my_crss + dFlx(i,Jstr  )
+c**       my_flux=my_flux + dFlx(i,Jstr-1)
         enddo
         inc=1
-        do while(istr.le.iend-inc)
-          do i=istr,iend-inc,2*inc
-            dFlx(i,jstr  ) = dFlx(i,jstr  ) + dFlx(i+inc,jstr  )
-            dFlx(i,jstr-1) = dFlx(i,jstr-1) + dFlx(i+inc,jstr-1)
+        do while(Istr.le.Iend-inc)
+          do i=Istr,Iend-inc,2*inc
+            dFlx(i,Jstr  ) = dFlx(i,Jstr  ) + dFlx(i+inc,Jstr  )
+            dFlx(i,Jstr-1) = dFlx(i,Jstr-1) + dFlx(i+inc,Jstr-1)
           enddo
           inc=2*inc
         enddo
-        my_crss=my_crss + dFlx(istr,jstr  )
-        my_flux=my_flux + dFlx(istr,jstr-1)
+        my_crss=my_crss + dFlx(Istr,Jstr  )
+        my_flux=my_flux + dFlx(Istr,Jstr-1)
       endif
 # endif
 # ifdef OBC_NORTH
       if (NORTHERN_EDGE) then
-        do i=istr,iend
-          dFlx(i,jend)=0.5*( zeta(i,jend,knew)+zeta(i,jend+1,knew)
-     &                      +h(i,jend)+h(i,jend+1) )*dm_v(i,jend+1)
+        do i=Istr,Iend
+          dFlx(i,Jend)=0.5*( zeta(i,Jend,knew)+zeta(i,Jend+1,knew)
+     &                      +h(i,Jend)+h(i,Jend+1) )*dm_v(i,Jend+1)
 #  ifdef MASKING
-     &                                             *vmask(i,jend+1)
+     &                                             *vmask(i,Jend+1)
 #  endif
-          dFlx(i,jend+1)=dFlx(i,jend)*vbar(i,jend+1,knew)
+          dFlx(i,Jend+1)=dFlx(i,Jend)*vbar(i,Jend+1,knew)
 
-c**       my_crss=my_crss + dFlx(i,jend  )
-c**       my_flux=my_flux - dFlx(i,jend+1)
+c**       my_crss=my_crss + dFlx(i,Jend  )
+c**       my_flux=my_flux - dFlx(i,Jend+1)
         enddo
         inc=1
-        do while(istr.le.iend-inc)
-          do i=istr,iend-inc,2*inc
-             dFlx(i,jend  ) = dFlx(i,jend  ) + dFlx(i+inc,jend  )
-             dFlx(i,jend+1) = dFlx(i,jend+1) + dFlx(i+inc,jend+1)
+        do while(Istr.le.Iend-inc)
+          do i=Istr,Iend-inc,2*inc
+             dFlx(i,Jend  ) = dFlx(i,Jend  ) + dFlx(i+inc,Jend  )
+             dFlx(i,Jend+1) = dFlx(i,Jend+1) + dFlx(i+inc,Jend+1)
           enddo
           inc=2*inc
         enddo
-        my_crss=my_crss + dFlx(istr,jend  )
-        my_flux=my_flux - dFlx(istr,jend+1)
+        my_crss=my_crss + dFlx(Istr,Jend  )
+        my_flux=my_flux - dFlx(Istr,Jend+1)
       endif
 # endif
 
@@ -176,7 +176,7 @@ C$OMP END CRITICAL (obc_flx_cr_rgn)
 #endif
 #if defined OBC_FLUX_CORR || defined OBC_VOLCONS
 
-      subroutine set_DUV_bc_tile (istr,iend,jstr,jend, Drhs, DUon,
+      subroutine set_DUV_bc_tile (Istr,Iend,Jstr,Jend, Drhs, DUon,
      &                                                       DVom)
 !
 ! Correct vertically integrated mass fluxes DUon and DVom along
@@ -186,7 +186,7 @@ C$OMP END CRITICAL (obc_flx_cr_rgn)
 !  
       implicit none
 # include "param.h"
-      integer istr,iend,jstr,jend, i,j
+      integer Istr,Iend,Jstr,Jend, i,j
       real Drhs(PRIVATE_2D_SCRATCH_ARRAY),
      &     DUon(PRIVATE_2D_SCRATCH_ARRAY),
      &     DVom(PRIVATE_2D_SCRATCH_ARRAY)
@@ -198,44 +198,44 @@ C$OMP END CRITICAL (obc_flx_cr_rgn)
 !
 # ifdef OBC_WEST
       if (WESTERN_EDGE) then
-        do j=jstr-1,jendR
-          DUon(istr,j)=DUon(istr,j) - ubar_xs*dn_u(istr,j)
-     &                         *0.5*(Drhs(istr,j)+Drhs(istr-1,j))
+        do j=Jstr-1,JendR
+          DUon(Istr,j)=DUon(Istr,j) - ubar_xs*dn_u(Istr,j)
+     &                         *0.5*(Drhs(Istr,j)+Drhs(Istr-1,j))
 #  ifdef MASKING
-     &                                             *umask(istr,j)
+     &                                             *umask(Istr,j)
 #  endif
         enddo
       endif
 # endif
 # ifdef OBC_EAST
       if (EASTERN_EDGE) then
-        do j=jstr-1,jendR
-          DUon(iend+1,j)=DUon(iend+1,j) + ubar_xs*dn_u(iend+1,j)
-     &                         *0.5*(Drhs(iend+1,j)+Drhs(iend,j))
+        do j=Jstr-1,JendR
+          DUon(Iend+1,j)=DUon(Iend+1,j) + ubar_xs*dn_u(Iend+1,j)
+     &                         *0.5*(Drhs(Iend+1,j)+Drhs(Iend,j))
 #  ifdef MASKING
-     &                                           *umask(iend+1,j)
+     &                                           *umask(Iend+1,j)
 #  endif
         enddo
       endif
 # endif
 # ifdef OBC_SOUTH
       if (SOUTHERN_EDGE) then
-        do i=istr-1,iendR
-          DVom(i,jstr)=DVom(i,jstr) - ubar_xs*dm_v(i,jstr)
-     &                         *0.5*(Drhs(i,jstr)+Drhs(i,jstr-1))
+        do i=Istr-1,IendR
+          DVom(i,Jstr)=DVom(i,Jstr) - ubar_xs*dm_v(i,Jstr)
+     &                         *0.5*(Drhs(i,Jstr)+Drhs(i,Jstr-1))
 #  ifdef MASKING
-     &                                             *vmask(i,jstr)
+     &                                             *vmask(i,Jstr)
 #  endif
         enddo
       endif
 # endif
 # ifdef OBC_NORTH
       if (NORTHERN_EDGE) then
-        do i=istr-1,iendR
-          DVom(i,jend+1)=DVom(i,jend+1) + ubar_xs*dm_v(i,jend+1)
-     &                         *0.5*(Drhs(i,jend+1)+Drhs(i,jend))
+        do i=Istr-1,IendR
+          DVom(i,Jend+1)=DVom(i,Jend+1) + ubar_xs*dm_v(i,Jend+1)
+     &                         *0.5*(Drhs(i,Jend+1)+Drhs(i,Jend))
 #  ifdef MASKING
-     &                                           *vmask(i,jend+1)
+     &                                           *vmask(i,Jend+1)
 #  endif
         enddo
       endif

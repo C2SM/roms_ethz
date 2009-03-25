@@ -138,7 +138,7 @@ c--# define VECTORIZE
      &          type_none,  char_type,  int_type,  real_type
       parameter (type_none=' ', char_type='1',
      &           int_type='2',  real_type='3')
-      integer last_arg, iin,iout, iocheck, line, istr, ibarr,
+      integer last_arg, iin,iout, iocheck, line, Istr, ibarr,
      &        length, i,j,k,m, is,ie, isft, ks1,ks2,ks3,ks4,ks5
       logical not_end_of_file, directive, dir_switch, lswtch
 #ifdef DOUBLE_CONST
@@ -184,7 +184,7 @@ c--# define VECTORIZE
       not_end_of_file=.true.
       line=0
   1    line=line+1
-        istr=0
+        Istr=0
         length=0                ! Reset the string length and blank
         directive=.false.       ! out the string itself. Then read
         do i=1,max_length       ! in a new string.
@@ -225,7 +225,7 @@ c--# define VECTORIZE
 ! character of the actual fortran code, that is ignoring the F90
 ! commentaries starting with an exclamation sign outside quites.
 ! After that fing the starting  non-blank, non-tab character of the
-! line "istr".
+! line "Istr".
 !
         if (length.gt.0) then
           do while (length.gt.1 .and. (symbol(length).eq.' '
@@ -234,10 +234,10 @@ c--# define VECTORIZE
           enddo
         endif
         if (length.gt.0) then
-          istr=1
-          do while (istr.lt.length .and. (symbol(istr).eq.' '
-     &                       .or. ichar(symbol(istr)).eq.9))
-            istr=istr+1
+          Istr=1
+          do while (Istr.lt.length .and. (symbol(Istr).eq.' '
+     &                       .or. ichar(symbol(Istr)).eq.9))
+            Istr=Istr+1
           enddo
         else
           if (not_end_of_file) then
@@ -247,17 +247,17 @@ c--# define VECTORIZE
           endif       ! everything and quit (note that not having 
         endif         ! this logical branch causes "mpc" to terminate 
                       ! abnormally in the case when input file has an
-                      ! empty line  at the end becase "istr=0" and the
+                      ! empty line  at the end becase "Istr=0" and the
                       ! code proceeds beyind this point. 
 
-c**     write(*,*) 'line=', line, ' istr=', istr,
+c**     write(*,*) 'line=', line, ' Istr=', Istr,
 c**  &      ' not_end_of_file =', not_end_of_file
 
 !
 ! Recognize REAL or real and turn it into REAL*8 or real*8,
 ! but do not convert REAL*4 or real*4 into real*8.
 !
-        i=istr
+        i=Istr
         type=type_none
 #if defined REAL_TO_REAL8 || defined F77_TO_F95
         if (symbol(i  ).eq.'R' .or. symbol(i  ).eq.'r') then
@@ -687,7 +687,7 @@ c--#endif
 ! Automatically place loop vectorization directives for i-loops
 !
 
-        do i=istr,length
+        do i=Istr,length
           if (symbol(i).ge.'A' .and. symbol(i).le.'Z') then
             scratch(i:i)=char(ichar(symbol(i))+case_fold)
           else
@@ -695,7 +695,7 @@ c--#endif
           endif 
         enddo
 
-        i=istr
+        i=Istr
         if (scratch(i:i+1).eq.'do') then
           i=i+2
           do while (i.lt.length .and. scratch(i:i).eq.' ')
@@ -712,7 +712,7 @@ c--#endif
                 i=i+1
               enddo
 
-              if (scratch(i:i+3).eq.'istr' .or.
+              if (scratch(i:i+3).eq.'Istr' .or.
      &            scratch(i:i+3).eq.'imin') then
                 i=i+4
                 do while (i.lt.length .and. scratch(i:i).ne.',')
@@ -720,7 +720,7 @@ c--#endif
                 enddo
                 if (i.lt.length) then
                   i=i+1
-                  if (scratch(i:i+3).eq.'iend' .or.
+                  if (scratch(i:i+3).eq.'Iend' .or.
      &                scratch(i:i+3).eq.'imax') then
                     i=i+3
                     do while (i.lt.length .and. scratch(i:i).ne.',')
@@ -776,7 +776,7 @@ c                      write(iout,'(A)') '!dec$ prefetch'
 ! adjacent one), who proceeds with this subdomain, and therefore
 ! enjoys all its cache_lines coherent with its cache at this moment.
 !
-        i=istr
+        i=Istr
         if (symbol(i).eq.'d' .and. symbol(i+1).eq.'o') then
           i=i+2
           do while (symbol(i).eq.' ' .and. i.lt.length)

@@ -7,7 +7,7 @@
 #include "private_scratch.h"
 #include "compute_tile_bounds.h"
       do itrc=1,NT
-        call t3dmix_tile (istr,iend,jstr,jend, itrc, A3d(1,1),
+        call t3dmix_tile (Istr,Iend,Jstr,Jend, itrc, A3d(1,1),
      &                                    A2d(1, 1), A2d(1, 2),
      &                          A2d(1,3), A2d(1, 5), A2d(1, 7),
      &                          A2d(1,9), A2d(1,11), A2d(1,13))
@@ -15,7 +15,7 @@
       return
       end
  
-      subroutine t3dmix_tile (istr,iend,jstr,jend, itrc, LapT, FX,FE,
+      subroutine t3dmix_tile (Istr,Iend,Jstr,Jend, itrc, LapT, FX,FE,
      &                                  FC,dTdr, dTdx,dTde,dRdx,dRde)
 !
 !--------------------------------------------------------------------
@@ -24,7 +24,7 @@
 !
       implicit none
 #include "param.h"
-      integer itrc, istr,iend,jstr,jend, i,j,k,k1,k2
+      integer itrc, Istr,Iend,Jstr,Jend, i,j,k,k1,k2
       real LapT(PRIVATE_2D_SCRATCH_ARRAY,0:N),
      &       FX(PRIVATE_2D_SCRATCH_ARRAY),
      &       FE(PRIVATE_2D_SCRATCH_ARRAY),
@@ -72,8 +72,8 @@ c-#define MIN_STRAT  0.1
        k2=3-k1
  
         if (k.lt.N) then
-          do j=jstr,jend
-            do i=istr,iend+1
+          do j=Jstr,Jend
+            do i=Istr,Iend+1
               cff=0.5*(pm(i,j)+pm(i-1,j)) SWITCH umask(i,j)
               dRdx(i,j,k2)=cff*(rho(i,j,k+1) -rho(i-1,j,k+1))
               dTdx(i,j,k2)=cff*(t(i,j,k+1,nrhs,itrc)
@@ -84,8 +84,8 @@ c-#define MIN_STRAT  0.1
      &                                                      )
             enddo
           enddo
-          do j=jstr,jend+1
-            do i=istr,iend
+          do j=Jstr,Jend+1
+            do i=Istr,Iend
               cff=0.5*(pn(i,j)+pn(i,j-1)) SWITCH vmask(i,j)
               dRde(i,j,k2)=cff*(rho(i,j,k+1) -rho(i,j-1,k+1))
               dTde(i,j,k2)=cff*(t(i,j,k+1,nrhs,itrc)
@@ -99,15 +99,15 @@ c-#define MIN_STRAT  0.1
         endif
  
         if (k.eq.0 .or. k.eq.N) then
-          do j=jstr-1,jend+1
-            do i=istr-1,iend+1
+          do j=Jstr-1,Jend+1
+            do i=Istr-1,Iend+1
               dTdr(i,j,k2)=0.0     ! Set no-flux bottom or
               FC(i,j,k2)=0.0       ! top boundary conditions.
             enddo
           enddo
         else
-          do j=jstr-1,jend+1
-            do i=istr-1,iend+1
+          do j=Jstr-1,Jend+1
+            do i=Istr-1,Iend+1
 #if defined MAX_SLOPE
               cff=MAX( rho(i,j,k)-rho(i,j,k+1),
      &                 1.E-14,
@@ -136,8 +136,8 @@ c-#define MIN_STRAT  0.1
         endif
  
         if (k.gt.0) then
-          do j=jstr,jend
-            do i=istr,iend+1
+          do j=Jstr,Jend
+            do i=Istr,Iend+1
               FX(i,j)=0.25*(diff2(i,j,itrc)+diff2(i-1,j,itrc))
      &                     *(Hz(i,j,k)+Hz(i-1,j,k))*dn_u(i,j)*(
      &         dTdx(i  ,j,k1)-0.5*(
@@ -146,8 +146,8 @@ c-#define MIN_STRAT  0.1
      &                                                             ))
             enddo
           enddo
-          do j=jstr,jend+1
-            do i=istr,iend
+          do j=Jstr,Jend+1
+            do i=Istr,Iend
               FE(i,j)=0.25*(diff2(i,j,itrc)+diff2(i,j-1,itrc))
      &                        *(Hz(i,j,k)+Hz(i,j-1,k))*dm_v(i,j)*(
      &                                                  dTde(i,j,k1)
@@ -157,8 +157,8 @@ c-#define MIN_STRAT  0.1
             enddo
           enddo
           if (k.lt.N) then
-            do j=jstr,jend
-              do i=istr,iend
+            do j=Jstr,Jend
+              do i=Istr,Iend
 c                cff1=MAX(dRdx(i,j,k1)+dRdx(i+1,j,k2),0.)
 c                cff2=MIN(dRdx(i,j,k2)+dRdx(i+1,j,k1),0.)
 c
@@ -204,8 +204,8 @@ c     &                                                             )
               enddo
             enddo
           endif
-          do j=jstr,jend
-            do i=istr,iend
+          do j=Jstr,Jend
+            do i=Istr,Iend
               t(i,j,k,nnew,itrc)=t(i,j,k,nnew,itrc) + dt*(
      &                   pm(i,j)*pn(i,j)*( FX(i+1,j)-FX(i,j)
      &                                    +FE(i,j+1)-FE(i,j))
@@ -219,14 +219,14 @@ c     &                                                             )
  
 #ifdef TS_DIF4
 # ifdef EW_PERIODIC
-#  define I_EXT_RANGE istr-1,iend+1
+#  define I_EXT_RANGE Istr-1,Iend+1
 # else
-#  define I_EXT_RANGE max(istr-1,1),min(iend+1,Lm)
+#  define I_EXT_RANGE max(Istr-1,1),min(Iend+1,Lm)
 # endif
 # ifdef NS_PERIODIC
-#  define J_EXT_RANGE jstr-1,jend+1
+#  define J_EXT_RANGE Jstr-1,Jend+1
 # else
-#  define J_EXT_RANGE max(jstr-1,1),min(jend+1,Mm)
+#  define J_EXT_RANGE max(Jstr-1,1),min(Jend+1,Mm)
 # endif
 !
 !  Add in horizontal biharmonic diffusion along rotated surfaces.
@@ -406,9 +406,9 @@ c     &                                                             )
           do k=1,N
             do j=J_EXT_RANGE
 #  ifdef WESTERN_WALL
-              LapT(istr-1,j,k)=0.
+              LapT(Istr-1,j,k)=0.
 #  else
-              LapT(istr-1,j,k)=LapT(istr,j,k)
+              LapT(Istr-1,j,k)=LapT(Istr,j,k)
 #  endif
             enddo
           enddo
@@ -417,9 +417,9 @@ c     &                                                             )
           do k=1,N
             do j=J_EXT_RANGE
 #  ifdef EASTERN_WALL
-              LapT(iend+1,j,k)=0.
+              LapT(Iend+1,j,k)=0.
 #  else
-              LapT(iend+1,j,k)=LapT(iend,j,k)
+              LapT(Iend+1,j,k)=LapT(Iend,j,k)
 #  endif
             enddo
           enddo
@@ -430,9 +430,9 @@ c     &                                                             )
           do k=1,N
             do i=I_EXT_RANGE
 #  ifdef SOUTHERN_WALL
-              LapT(i,jstr-1,k)=0.
+              LapT(i,Jstr-1,k)=0.
 #  else
-              LapT(i,jstr-1,k)=LapT(i,jstr,k)
+              LapT(i,Jstr-1,k)=LapT(i,Jstr,k)
 #  endif
             enddo
           enddo
@@ -441,9 +441,9 @@ c     &                                                             )
           do k=1,N
             do i=I_EXT_RANGE
 #  ifdef NORTHERN_WALL
-              LapT(i,jend+1,k)=0.
+              LapT(i,Jend+1,k)=0.
 #  else
-              LapT(i,jend+1,k)=LapT(i,jend,k)
+              LapT(i,Jend+1,k)=LapT(i,Jend,k)
 #  endif
             enddo
           enddo
@@ -461,15 +461,15 @@ c     &                                                             )
        k2=3-k1
  
         if (k.lt.N) then
-          do j=jstr,jend
-            do i=istr,iend+1
+          do j=Jstr,Jend
+            do i=Istr,Iend+1
               cff=0.5*(pm(i,j)+pm(i-1,j)) SWITCH umask(i,j)
               dRdx(i,j,k2)=cff*(rho(i,j,k+1) -rho(i-1,j,k+1))
               dTdx(i,j,k2)=cff*(LapT(i,j,k+1)-LapT(i-1,j,k+1))
             enddo
           enddo
-          do j=jstr,jend+1
-            do i=istr,iend
+          do j=Jstr,Jend+1
+            do i=Istr,Iend
               cff=0.5*(pn(i,j)+pn(i,j-1)) SWITCH vmask(i,j)
               dRde(i,j,k2)=cff*(rho(i,j,k+1) -rho(i,j-1,k+1))
               dTde(i,j,k2)=cff*(LapT(i,j,k+1)-LapT(i,j-1,k+1))
@@ -478,15 +478,15 @@ c     &                                                             )
         endif
  
         if (k.eq.0 .or. k.eq.N) then
-          do j=jstr-1,jend+1
-            do i=istr-1,iend+1
+          do j=Jstr-1,Jend+1
+            do i=Istr-1,Iend+1
               FC(i,j,k2)=0.0
               dTdr(i,j,k2)=0.0
             enddo
           enddo
         else
-          do j=jstr-1,jend+1
-            do i=istr-1,iend+1
+          do j=Jstr-1,Jend+1
+            do i=Istr-1,Iend+1
 #if defined MAX_SLOPE
               cff=MAX( rho(i,j,k)-rho(i,j,k+1),
      &                 1.E-14,
@@ -511,8 +511,8 @@ c     &                                                             )
         endif
  
         if (k.gt.0) then
-          do j=jstr,jend
-            do i=istr,iend+1
+          do j=Jstr,Jend
+            do i=Istr,Iend+1
               FX(i,j)=-0.25*(diff4(i,j,itrc)+diff4(i-1,j,itrc))
      &                     *(Hz(i,j,k)+Hz(i-1,j,k))*dn_u(i,j)*(
      &         dTdx(i  ,j,k1)-0.5*(
@@ -521,8 +521,8 @@ c     &                                                             )
      &                                                             ))
             enddo
           enddo
-          do j=jstr,jend+1
-            do i=istr,iend
+          do j=Jstr,Jend+1
+            do i=Istr,Iend
               FE(i,j)=-0.25*(diff4(i,j,itrc)+diff4(i,j-1,itrc))
      &                     *(Hz(i,j,k)+Hz(i,j-1,k))*dm_v(i,j)*(
      &         dTde(i,j,k1)-0.5*(
@@ -532,8 +532,8 @@ c     &                                                             )
             enddo
           enddo
           if (k.lt.N) then
-            do j=jstr,jend
-              do i=istr,iend
+            do j=Jstr,Jend
+              do i=Istr,Iend
 c                cff1=MAX(dRdx(i,j,k1)+dRdx(i+1,j,k2),0.)
 c                cff2=MIN(dRdx(i,j,k2)+dRdx(i+1,j,k1),0.)
 c
@@ -579,8 +579,8 @@ c     &                                                             )
               enddo
             enddo
           endif
-          do j=jstr,jend
-            do i=istr,iend
+          do j=Jstr,Jend
+            do i=Istr,Iend
               t(i,j,k,nnew,itrc)=t(i,j,k,nnew,itrc) + dt*(
      &                   pm(i,j)*pn(i,j)*( FX(i+1,j)-FX(i,j)
      &                                    +FE(i,j+1)-FE(i,j))
@@ -592,7 +592,7 @@ c     &                                                             )
 #  endif /* T_DIF4 */
 
 # if defined EW_PERIODIC || defined NS_PERIODIC || defined MPI
-        call exchange_r3d_tile (istr,iend,jstr,jend,
+        call exchange_r3d_tile (Istr,Iend,Jstr,Jend,
      &                          t(START_2D_ARRAY,1,nnew,itrc))
 # endif
 

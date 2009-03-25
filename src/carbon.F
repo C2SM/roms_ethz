@@ -372,7 +372,7 @@
 !     T(5) = TSi    !       These last two were set earlier.
 !***********************************************************************
 !     CalculateK0:
-!     Weiss, R. F., Marine Chemistry 2:203-215, 1974.
+!     Weiss, R. F., Marine ChemIstry 2:203-215, 1974.
       TTT = TempK / 100.
       lnK0 = -60.2409 + 93.4517 / TTT + 23.3585 * log(TTT)
       lnK0 = lnK0 + Sal * 
@@ -403,7 +403,7 @@
         KS = KS * (1. - .001005 * Sal)     !  convert to mol/kg-SW
 !
       elseif (WhoseKSO4 .eq. 2) then ! CASE 2
-!       Khoo, et al, Analytical Chemistry, 49(1):29-34, 1977
+!       Khoo, et al, Analytical ChemIstry, 49(1):29-34, 1977
 !       KS was found by titrations with a hydrogen electrode
 !       of artificial seawater containing sulfate (but without F)
 !       at 3 salinities from 20 to 45 and artificial seawater NOT
@@ -424,7 +424,7 @@
 !
 !***********************************************************************
 !     CalculateKF:
-!     Dickson, A. G. and Riley, J. P., Marine Chemistry 7:89-99, 1979:
+!     Dickson, A. G. and Riley, J. P., Marine ChemIstry 7:89-99, 1979:
       lnKF = 1590.2 / TempK - 12.641 + 1.525 * sqrt(IonS)
       KF = exp(lnKF)     !  this is on the free pH scale in mol/kg-H2O
       KF = KF * (1. - .001005 * Sal)     !  convert to mol/kg-SW
@@ -498,7 +498,7 @@
         KW = exp(lnKW)     !  this is on the SWS pH scale
       elseif (WhichKs .eq. 8) then ! CASE 8
 !       Millero, Geochemica et Cosmochemica Acta 43:1651-1661, 1979
-!       refit data of Harned and Owen, The Physical Chemistry of
+!       refit data of Harned and Owen, The Physical ChemIstry of
 !       Electrolyte Solutions, 1958
         lnKW = 148.9802 - 13847.26 / TempK - 23.6521 * logTempK
         KW = exp(lnKW)
@@ -507,7 +507,7 @@
 !     CalculateKP1KP2KP3KSi:
 !     SELECT CASE WhichKs
       if (WhichKs .le. 5) then ! CASE 1, 2, 3, 4, 5
-!        Yao and Millero, Aquatic Geochemistry 1:53-88, 1995
+!        Yao and Millero, Aquatic GeochemIstry 1:53-88, 1995
 !        KP1, KP2, KP3 are on the SWS pH scale in mol/kg-SW.
 !        KSi was given on the SWS pH scale in molal units.
          lnKP1 = -4576.752 / TempK + 115.54 - 18.453 * logTempK
@@ -559,9 +559,9 @@
 !***********************************************************************
 !     CalculateK1K2:
       if (WhichKs .eq. 1) then ! CASE 1
-!       ROY et al, Marine Chemistry, 44:249-267, 1993
-!       (see also: Erratum, Marine Chemistry 45:337, 1994
-!       and Erratum, Marine Chemistry 52:183, 1996)
+!       ROY et al, Marine ChemIstry, 44:249-267, 1993
+!       (see also: Erratum, Marine ChemIstry 45:337, 1994
+!       and Erratum, Marine ChemIstry 52:183, 1996)
 !       !!! Typo: in the abstract on p. 249: in the eq. for lnK1* the
 !       last term should have S raised to the power 1.5.
 !       They claim standard deviations (p. 254) of the fits as
@@ -996,7 +996,7 @@
 !     !!! This assumes that the pressure is at one atmosphere, 
 !          or close to it.
 !     Otherwise, the Pres term in the exponent affects the results.
-!     Weiss, R. F., Marine Chemistry 2:203-215, 1974.
+!     Weiss, R. F., Marine ChemIstry 2:203-215, 1974.
 !     Delta and B in cm3/mol
       Delta = (57.7 - .118 * TempK)
       B = -1636.75 + 12.0408 * TempK - .0327957 * TempK * TempK
@@ -1012,7 +1012,7 @@
 !***********************************************************************
 !     CalculateVPFac:
 !     Weiss, R. F., and Price, B. A., Nitrous oxide solubility in water
-!     and seawater, Marine Chemistry 8:347-359, 1980.
+!     and seawater, Marine ChemIstry 8:347-359, 1980.
 !     They fit the data of Goff and Gratch (1946) with the vapor pressure
 !     lowering by sea salt as given by Robinson (1954).
 !     This fits the more complicated Goff and Gratch, and Robinson 

@@ -7,14 +7,14 @@
 # include "param.h"
 # include "private_scratch.h"
 # include "compute_tile_bounds.h"
-      call prsgrd30A_tile (istr,iend,jstr,jend, A3d(1,1), A3d(1,2),
+      call prsgrd30A_tile (Istr,Iend,Jstr,Jend, A3d(1,1), A3d(1,2),
      &                                                    A2d(1,1))
       return
       end
  
-      subroutine prsgrd30A_tile (istr,iend,jstr,jend, ru,rv, P)
+      subroutine prsgrd30A_tile (Istr,Iend,Jstr,Jend, ru,rv, P)
       implicit none
-      integer istr,iend,jstr,jend, i,j,k
+      integer Istr,Iend,Jstr,Jend, i,j,k
 # include "param.h"
       real ru(PRIVATE_2D_SCRATCH_ARRAY,N),
      &     rv(PRIVATE_2D_SCRATCH_ARRAY,N),  GRho,
@@ -33,8 +33,8 @@
       HalfGRho=0.5*GRho
       do k=N,1,-1           !--> irreversible
         if (k.eq.N) then
-          do j=jstrV-1,jend
-            do i=istrU-1,iend
+          do j=JstrV-1,Jend
+            do i=IstrU-1,Iend
               P(i,j)=g*z_w(i,j,N) + GRho*(z_w(i,j,N)-z_r(i,j,N))
      &                 *( rho(i,j,N)+0.5*(rho(i,j,N)-rho(i,j,N-1))
      &          *(z_w(i,j,N)-z_r(i,j,N))/(z_r(i,j,N)-z_r(i,j,N-1))
@@ -42,16 +42,16 @@
             enddo
           enddo
         else
-          do j=jstrV-1,jend
-            do i=istrU-1,iend
+          do j=JstrV-1,Jend
+            do i=IstrU-1,Iend
               P(i,j)=P(i,j)+HalfGRho*(rho(i,j,k+1)+rho(i,j,k))
      &                              *(z_r(i,j,k+1)-z_r(i,j,k))
             enddo
           enddo
         endif
  
-        do j=jstr,jend
-          do i=istrU,iend
+        do j=Jstr,Jend
+          do i=IstrU,Iend
             ru(i,j,k)=0.5*(Hz(i,j,k)+Hz(i-1,j,k))*dn_u(i,j)*(
      &          P(i-1,j)-P(i,j)-HalfGRho*(rho(i,j,k)+rho(i-1,j,k))
      &                                  *(z_r(i,j,k)-z_r(i-1,j,k))
@@ -59,8 +59,8 @@
           enddo
         enddo
  
-        do j=jstrV,jend
-          do i=istr,iend
+        do j=JstrV,Jend
+          do i=Istr,Iend
             rv(i,j,k)=0.5*(Hz(i,j,k)+Hz(i,j-1,k))*dm_v(i,j)*(
      &          P(i,j-1)-P(i,j)-HalfGRho*(rho(i,j,k)+rho(i,j-1,k))
      &                                  *(z_r(i,j,k)-z_r(i,j-1,k))

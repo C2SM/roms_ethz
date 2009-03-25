@@ -963,9 +963,9 @@
 
 
 
-      subroutine set_all_bry_tile (istr,iend,jstr,jend, ierr)
+      subroutine set_all_bry_tile (Istr,Iend,Jstr,Jend, ierr)
       implicit none
-      integer istr,iend,jstr,jend, ierr, imin,imax,jmin,jmax,
+      integer Istr,Iend,Jstr,Jend, ierr, imin,imax,jmin,jmax,
      &                                   i,j,k, it1,it2, itrc
       real cff, cff1,cff2
 
@@ -974,43 +974,43 @@
 # include  "boundary.h"
                                         ! NOTE: Time interpolation
       if (WESTERN_EDGE) then            ! of BRY forcing variables is 
-        imin=istr-1                     ! done over non-standard 
+        imin=Istr-1                     ! done over non-standard 
 # ifdef MPI
       elseif (WEST_INTER) then          ! ranges of spatial indices
-        imin=istr-1                     ! which is designed to avoid
+        imin=Istr-1                     ! which is designed to avoid
 # endif
       else                              ! the need of MPI-excange of
-        imin=istr                       ! ghost points of BRY arrays 
+        imin=Istr                       ! ghost points of BRY arrays 
       endif                             ! and, at the same time, to
                                         ! have only one row of ghost
       if (EASTERN_EDGE) then            ! points (hence, standard
-        imax=iend+1                     ! "extended" bounds) are not
+        imax=Iend+1                     ! "extended" bounds) are not
 # ifdef MPI
       elseif (EAST_INTER) then          ! applicable here.
-        imax=iend+1 
+        imax=Iend+1 
 # endif
       else
-        imax=iend
+        imax=Iend
       endif
 
       if (SOUTHERN_EDGE) then
-        jmin=jstr-1
+        jmin=Jstr-1
 # ifdef MPI
       elseif (SOUTH_INTER) then
-        jmin=jstr-1
+        jmin=Jstr-1
 # endif
       else
-        jmin=jstr
+        jmin=Jstr
       endif
 
       if (NORTHERN_EDGE) then
-        jmax=jend+1
+        jmax=Jend+1
 # ifdef MPI
       elseif (NORTH_INTER) then
-        jmax=jend+1
+        jmax=Jend+1
 # endif
       else
-        jmax=jend
+        jmax=Jend
       endif
 
 

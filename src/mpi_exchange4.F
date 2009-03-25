@@ -1,13 +1,13 @@
 #include "cppdefs.h"
 #ifdef MPI
  
-      subroutine mpi_exchange_tile (istr,iend,jstr,jend, A, nmax)
+      subroutine mpi_exchange_tile (Istr,Iend,Jstr,Jend, A, nmax)
       implicit none
 # include "mpif.h"
 # include "param.h"
 # include "mess_buffers.h"
 # include "hidden_mpi_vars.h"
-      integer istr,iend,jstr,jend, nmax
+      integer Istr,Iend,Jstr,Jend, nmax
       real A(GLOBAL_2D_ARRAY,nmax)
 CSDISTRIBUTE_RESHAPE A(BLOCK_PATTERN) BLOCK_CLAUSE
 
@@ -36,59 +36,59 @@ CSDISTRIBUTE_RESHAPE A(BLOCK_PATTERN) BLOCK_CLAUSE
 !
 # ifdef EW_PERIODIC
       if (NP_XI.eq.1) then                ! this means that if there
-        imin=istr-2                       ! is no partition in XI-
-        imax=iend+2                       ! direction, then periodic
+        imin=Istr-2                       ! is no partition in XI-
+        imax=Iend+2                       ! direction, then periodic
       else                                ! margins are included into
-        imin=istr                         ! the message; otherwise
-        imax=iend                         ! strip them out.
+        imin=Istr                         ! the message; otherwise
+        imax=Iend                         ! strip them out.
       endif
 # else
       if (WESTERN_EDGE) then              ! include extra point on
-        imin=istr-1                       ! either side to accomodate
+        imin=Istr-1                       ! either side to accomodate
       else                                ! ghost points associated
-        imin=istr                         ! with PHYSICAL boundaries
+        imin=Istr                         ! with PHYSICAL boundaries
       endif
       if (EASTERN_EDGE) then
-        imax=iend+1
+        imax=Iend+1
       else
-        imax=iend
+        imax=Iend
       endif
 # endif
       ishft=imax-imin+1
 
-      if (jstr.eq.jsouth) then            ! Setting message bounds
+      if (Jstr.eq.jsouth) then            ! Setting message bounds
 # ifdef NS_PERIODIC
-        jmin=jstr-2                       ! for east- and west-bound
+        jmin=Jstr-2                       ! for east- and west-bound
 # else
         if (jnode.eq.0) then              ! messages differs from the
-          jmin=jstr-1                     ! south-north above because
+          jmin=Jstr-1                     ! south-north above because
         else                              ! now messages always
-          jmin=jstr-2                     ! inclide two ghost points
+          jmin=Jstr-2                     ! inclide two ghost points
         endif                             ! on either end, which
 # endif
       else                                ! contain ghost points of
-        jmin=jstr                         ! north-south computational
+        jmin=Jstr                         ! north-south computational
       endif                               ! margines.
-      if (jend.eq.jnorth) then
+      if (Jend.eq.jnorth) then
 # ifdef NS_PERIODIC
-        jmax=jend+2
+        jmax=Jend+2
 # else
         if (jnode.eq.NP_ETA-1) then
-          jmax=jend+1
+          jmax=Jend+1
         else
-          jmax=jend+2
+          jmax=Jend+2
         endif
 # endif
       else
-        jmax=jend
+        jmax=Jend
       endif
       jshft=jmax-jmin+1
 
       isize=2*ishft*nmax
       jsize=2*jshft*nmax
  
-      itag=(istr+iend)/(2*(iend-istr+1))   ! two-dimensional
-      jtag=(jstr+jend)/(2*(jend-jstr+1))   ! indices on tile grid.
+      itag=(Istr+Iend)/(2*(Iend-Istr+1))   ! two-dimensional
+      jtag=(Jstr+Jend)/(2*(Jend-Jstr+1))   ! indices on tile grid.
 
 c*    write(*,*) mynode, proc(2), ' itag,jtag =', itag,jtag
 c*    write(*,'(2(6x,A,I2,2x,A,I3,2x,A,I3))')

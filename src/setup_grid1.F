@@ -5,13 +5,13 @@
       integer tile                          ! terms.
 #include "param.h"
 #include "compute_tile_bounds.h"
-      call setup_grid1_tile (istr,iend,jstr,jend)
+      call setup_grid1_tile (Istr,Iend,Jstr,Jend)
       return
       end
  
-      subroutine setup_grid1_tile (istr,iend,jstr,jend)
+      subroutine setup_grid1_tile (Istr,Iend,Jstr,Jend)
       implicit none
-      integer istr,iend,jstr,jend, i,j
+      integer Istr,Iend,Jstr,Jend, i,j
       real cff1, cff2
 #include "param.h"
 #include "scalars.h"
@@ -21,32 +21,32 @@
 !
 !  Set f/mn,at horizontal RHO-points.
 !
-      do j=jstrR,jendR                             ! This array
-        do i=istrR,iendR                           ! is NOT to be
+      do j=JstrR,JendR                             ! This array
+        do i=IstrR,IendR                           ! is NOT to be
           fomn(i,j)=f(i,j)/(pm(i,j)*pn(i,j))       ! communicated
         enddo                                      ! in MPI code;
       enddo                                        ! others are...
  
 #ifdef EW_PERIODIC
-# define IR_RANGE istr,iend
-# define IU_RANGE istr,iend
+# define IR_RANGE Istr,Iend
+# define IU_RANGE Istr,Iend
 #else
-# define IR_RANGE istrR,iendR
-# define IU_RANGE  istr,iendR
+# define IR_RANGE IstrR,IendR
+# define IU_RANGE  Istr,IendR
 # ifdef MPI
-      if (WEST_INTER) istrR=istr          ! Ghost points along
-      if (EAST_INTER) iendR=iend          ! computational boundary...
+      if (WEST_INTER) IstrR=Istr          ! Ghost points along
+      if (EAST_INTER) IendR=Iend          ! computational boundary...
 # endif
 #endif
 #ifdef NS_PERIODIC
-# define JR_RANGE jstr,jend
-# define JV_RANGE jstr,jend
+# define JR_RANGE Jstr,Jend
+# define JV_RANGE Jstr,Jend
 #else
-# define JR_RANGE jstrR,jendR
-# define JV_RANGE  jstr,jendR
+# define JR_RANGE JstrR,JendR
+# define JV_RANGE  Jstr,JendR
 # ifdef MPI
-      if (SOUTH_INTER) jstrR=jstr         ! are filled during
-      if (NORTH_INTER) jendR=jend         ! subsequent communication
+      if (SOUTH_INTER) JstrR=Jstr         ! are filled during
+      if (NORTH_INTER) JendR=Jend         ! subsequent communication
 # endif
 #endif
 !
@@ -63,8 +63,8 @@
 !
 !  Compute d(1/n)/d(xi) and d(1/m)/d(eta) tems, both at RHO-points.
 !
-      do j=jstr,jend
-        do i=istr,iend
+      do j=Jstr,Jend
+        do i=Istr,Iend
           dndx(i,j)=0.5/pn(i+1,j)-0.5/pn(i-1,j)
           dmde(i,j)=0.5/pm(i,j+1)-0.5/pm(i,j-1)
         enddo
@@ -164,27 +164,27 @@ C***      if (gamma2.lt.0.) pmask(i,j)=2.-pmask(i,j)
 #undef JV_RANGE
  
 #if defined EW_PERIODIC || defined NS_PERIODIC || defined MPI
-      call exchange_r2d_tile (istr,iend,jstr,jend, dm_r)
-      call exchange_r2d_tile (istr,iend,jstr,jend, dn_r)
+      call exchange_r2d_tile (Istr,Iend,Jstr,Jend, dm_r)
+      call exchange_r2d_tile (Istr,Iend,Jstr,Jend, dn_r)
 # if defined CURVGRID && defined UV_ADV
-      call exchange_r2d_tile (istr,iend,jstr,jend,   dndx)
-      call exchange_r2d_tile (istr,iend,jstr,jend,   dmde)
+      call exchange_r2d_tile (Istr,Iend,Jstr,Jend,   dndx)
+      call exchange_r2d_tile (Istr,Iend,Jstr,Jend,   dmde)
 # endif
-      call exchange_u2d_tile (istr,iend,jstr,jend, pmon_u)
-      call exchange_u2d_tile (istr,iend,jstr,jend,   dm_u)
-      call exchange_u2d_tile (istr,iend,jstr,jend,   dn_u)
+      call exchange_u2d_tile (Istr,Iend,Jstr,Jend, pmon_u)
+      call exchange_u2d_tile (Istr,Iend,Jstr,Jend,   dm_u)
+      call exchange_u2d_tile (Istr,Iend,Jstr,Jend,   dn_u)
  
-      call exchange_v2d_tile (istr,iend,jstr,jend, pnom_v)
-      call exchange_v2d_tile (istr,iend,jstr,jend,   dm_v)
-      call exchange_v2d_tile (istr,iend,jstr,jend,   dn_v)
+      call exchange_v2d_tile (Istr,Iend,Jstr,Jend, pnom_v)
+      call exchange_v2d_tile (Istr,Iend,Jstr,Jend,   dm_v)
+      call exchange_v2d_tile (Istr,Iend,Jstr,Jend,   dn_v)
  
-      call exchange_p2d_tile (istr,iend,jstr,jend, dm_p)
-      call exchange_p2d_tile (istr,iend,jstr,jend, dn_p)
+      call exchange_p2d_tile (Istr,Iend,Jstr,Jend, dm_p)
+      call exchange_p2d_tile (Istr,Iend,Jstr,Jend, dn_p)
 # ifdef MASKING
-      call exchange_r2d_tile (istr,iend,jstr,jend,  rmask)
-      call exchange_u2d_tile (istr,iend,jstr,jend,  umask)
-      call exchange_v2d_tile (istr,iend,jstr,jend,  vmask)
-      call exchange_p2d_tile (istr,iend,jstr,jend,  pmask)
+      call exchange_r2d_tile (Istr,Iend,Jstr,Jend,  rmask)
+      call exchange_u2d_tile (Istr,Iend,Jstr,Jend,  umask)
+      call exchange_v2d_tile (Istr,Iend,Jstr,Jend,  vmask)
+      call exchange_p2d_tile (Istr,Iend,Jstr,Jend,  pmask)
 # endif
 #endif
       return

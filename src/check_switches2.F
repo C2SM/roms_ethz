@@ -16,20 +16,20 @@
 #include "param.h"
 #include "compute_tile_bounds.h"
 
-      isize=iend-istr+1                  ! NOTE: run terminates, if
-      jsize=jend-jstr+1                  ! violation occurs here.
+      isize=Iend-Istr+1                  ! NOTE: run terminates, if
+      jsize=Jend-Jstr+1                  ! violation occurs here.
 
       if (isize.lt.2) then
         ierr=ierr+1
         write(*,'(1x,2A,I3,1x,A,I4,3x,A,I3,1x,A,2I4)') 'ERROR: ',
      &           'NSUB_X =', NSUB_X, 'is incompatible with Lm =',
-     &           Lm, 'i_X =', i_X,  '==> istr,iend =', istr,iend
+     &           Lm, 'i_X =', i_X,  '==> Istr,Iend =', Istr,Iend
       endif
       if (jsize.lt.2) then
         ierr=ierr+1
         write(*,'(1x,2A,I3,1x,A,I4,3x,A,I3,1x,A,2I4)') 'ERROR: ',
      &           'NSUB_E =', NSUB_E, 'is incompatible with Mm =',
-     &           Mm, 'j_E =', j_E,  '==> jstr,jend =', jstr,jend
+     &           Mm, 'j_E =', j_E,  '==> Jstr,Jend =', Jstr,Jend
       endif
       return
       end

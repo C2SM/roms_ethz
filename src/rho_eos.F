@@ -8,11 +8,11 @@
 #  include "param.h"
 #  include "private_scratch.h"
 #  include "compute_tile_bounds.h"
-      call rho_eos_tile (istr,iend,jstr,jend, A2d(1,1), A2d(1,2))
+      call rho_eos_tile (Istr,Iend,Jstr,Jend, A2d(1,1), A2d(1,2))
       return
       end
  
-      subroutine rho_eos_tile (istr,iend,jstr,jend, K_up,K_dw)
+      subroutine rho_eos_tile (Istr,Iend,Jstr,Jend, K_up,K_dw)
 !
 ! Compute density anomaly from T,S via Equation Of State (EOS) for
 !-------- ------- ------- ----  for seawater. Following Jackett and 
@@ -119,7 +119,7 @@
 !
       implicit none
 #  include "param.h"
-      integer istr,iend,jstr,jend, i,j,k
+      integer Istr,Iend,Jstr,Jend, i,j,k
       real K_up(PRIVATE_1D_SCRATCH_ARRAY,0:N), K0,
      &     K_dw(PRIVATE_1D_SCRATCH_ARRAY,0:N), K1,K2,
  
@@ -192,9 +192,9 @@ c**   rho0=1000.D0+rho1_0
 #  endif
 
       dr00=r00-rho0
-      do j=jstrR,jendR
+      do j=JstrR,JendR
         do k=1,N                                       ! NONLINEAR
-          do i=istrR,iendR                             !  EQUATION
+          do i=IstrR,IendR                             !  EQUATION
             Tt=t(i,j,k,nrhs,itemp)                     !  OF STATE
 #  ifdef SALINITY
             Ts=max(t(i,j,k,nrhs,isalt), 0.)
@@ -272,7 +272,7 @@ c**         rho(i,j,k)=rho1(i,j,k)
  
         cff=g/rho0
         do k=1,N-1
-          do i=istrR,iendR
+          do i=IstrR,IendR
 
 #   ifdef SPLIT_EOS
             dpth=z_w(i,j,N)-0.5*(z_r(i,j,k+1)+z_r(i,j,k))
@@ -305,7 +305,7 @@ c**         rho(i,j,k)=rho1(i,j,k)
 #  if defined BVF_MIXING || defined LMD_MIXING  || defined LMD_KPP \
    || defined MY2_MIXING || defined MY25_MIXING || defined PP_MIXING \
    || defined LMD_BKPP
-        do i=istrR,iendR
+        do i=IstrR,IendR
           bvf(i,j,N)=bvf(i,j,N-1)
           bvf(i,j,0)=bvf(i,j,  1)
         enddo
@@ -317,14 +317,14 @@ c**         rho(i,j,k)=rho1(i,j,k)
       integer tile                                     ! OF STATE
 #  include "param.h"
 #  include "compute_tile_bounds.h"
-      call rho_eos_tile (istr,iend,jstr,jend)
+      call rho_eos_tile (Istr,Iend,Jstr,Jend)
       return
       end
  
-      subroutine rho_eos_tile (istr,iend,jstr,jend)
+      subroutine rho_eos_tile (Istr,Iend,Jstr,Jend)
       implicit none
 #  include "param.h"
-      integer istr,iend,jstr,jend, i,j,k
+      integer Istr,Iend,Jstr,Jend, i,j,k
       real cff,cff1
 #  include "grid.h"
 #  include "ocean3d.h"
@@ -339,9 +339,9 @@ c**         rho(i,j,k)=rho1(i,j,k)
 !
 #  include "compute_extended_bounds.h"
 !
-      do j=jstrR,jendR
+      do j=JstrR,JendR
         do k=1,N
-          do i=istrR,iendR
+          do i=IstrR,IendR
             rho(i,j,k)=R0 -Tcoef*t(i,j,k,nrhs,itemp)
 #   ifdef SALINITY
      &                    +Scoef*t(i,j,k,nrhs,isalt)
@@ -376,12 +376,12 @@ c     &                                )/(z_w(i,j,k)-z_w(i,j,k-1))
    || defined LMD_BKPP
         cff=g/rho0
         do k=1,N-1
-          do i=istrR,iendR
+          do i=IstrR,IendR
             bvf(i,j,k)=cff*(rho(i,j,k)-rho(i,j,k+1))
      &                     /(z_r(i,j,k+1)-z_r(i,j,k))
           enddo
         enddo
-        do i=istrR,iendR
+        do i=IstrR,IendR
           bvf(i,j,N)=bvf(i,j,N-1)
           bvf(i,j,0)=bvf(i,j,  1)
         enddo
@@ -397,7 +397,7 @@ c     &                                )/(z_w(i,j,k)-z_w(i,j,k-1))
 ! nondimensional quantities of comparable value.
 !
 # ifdef VAR_RHO_2D
-        do i=istrR,iendR
+        do i=IstrR,IendR
 #  ifdef SPLIT_EOS
           dpth=z_w(i,j,N)-z_r(i,j,N)
           cff=Hz(i,j,N)*(rho1(i,j,N)+qp1(i,j,N)*dpth*(1.-qp2*dpth))
@@ -408,7 +408,7 @@ c     &                                )/(z_w(i,j,k)-z_w(i,j,k-1))
           rhoA(i,j)=cff
         enddo
         do k=N-1,1,-1
-          do i=istrR,iendR
+          do i=IstrR,IendR
 #  ifdef SPLIT_EOS
             dpth=z_w(i,j,N)-z_r(i,j,k)
             cff=Hz(i,j,k)*(rho1(i,j,k)+qp1(i,j,k)*dpth*(1.-qp2*dpth))
@@ -420,7 +420,7 @@ c     &                                )/(z_w(i,j,k)-z_w(i,j,k-1))
           enddo
         enddo
         cff1=1./rho0
-        do i=istrR,iendR
+        do i=IstrR,IendR
           cff=1./(z_w(i,j,N)-z_w(i,j,0))
           rhoA(i,j)=cff*cff1*rhoA(i,j)
           rhoS(i,j)=2.*cff*cff*cff1*rhoS(i,j)

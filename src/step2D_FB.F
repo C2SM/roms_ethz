@@ -6,14 +6,14 @@
 #include "param.h"
 #include "private_scratch.h"
 #include "compute_tile_bounds.h"
-      call step2D_FB_tile (istr,iend,jstr,jend, A2d(1,1),  A2d(1,2),
+      call step2D_FB_tile (Istr,Iend,Jstr,Jend, A2d(1,1),  A2d(1,2),
      &                    A2d(1, 3), A2d(1, 4), A2d(1, 5), A2d(1, 6),
      &                    A2d(1, 7), A2d(1, 8), A2d(1, 9), A2d(1,10),
      &                               A2d(1,11), A2d(1,12), A2d(1,13))
       return
       end
  
-      subroutine step2D_FB_tile (istr,iend,jstr,jend, zeta_new,Dnew,
+      subroutine step2D_FB_tile (Istr,Iend,Jstr,Jend, zeta_new,Dnew,
      &                           rubar,rvbar,  urhs,vrhs,  DUon,DVom,
      &                                        Drhs, UFx,UFe,VFx,VFe)
 !
@@ -24,7 +24,7 @@
 !
       implicit none
 #include "param.h"
-      integer istr,iend,jstr,jend, i,j, kbak, kold
+      integer Istr,Iend,Jstr,Jend, i,j, kbak, kold
       real zeta_new(PRIVATE_2D_SCRATCH_ARRAY),
      &         Dnew(PRIVATE_2D_SCRATCH_ARRAY),  cff,
      &        rubar(PRIVATE_2D_SCRATCH_ARRAY),  cff0,
@@ -94,22 +94,22 @@ czz     cff3= 0.22
         cff3= 0.281105
       endif
  
-      do j=jstrV-2,jend+1
-        do i=istrU-2,iend+1
+      do j=JstrV-2,Jend+1
+        do i=IstrU-2,Iend+1
           Drhs(i,j)=h(i,j)+cff1*zeta(i,j,kstp)+cff2*zeta(i,j,kbak)
      &                                         +cff3*zeta(i,j,kold)
         enddo
       enddo
  
-      do j=jstr-1,jend+1
-        do i=istrU-1,iend+1
+      do j=Jstr-1,Jend+1
+        do i=IstrU-1,Iend+1
           urhs(i,j)=cff1*ubar(i,j,kstp) +cff2*ubar(i,j,kbak)
      &                                         +cff3*ubar(i,j,kold)
           DUon(i,j)=0.5*(Drhs(i,j)+Drhs(i-1,j))*dn_u(i,j)*urhs(i,j)
         enddo
       enddo
-      do j=jstrV-1,jend+1
-        do i=istr-1,iend+1
+      do j=JstrV-1,Jend+1
+        do i=Istr-1,Iend+1
           vrhs(i,j)=cff1*vbar(i,j,kstp) +cff2*vbar(i,j,kbak)
      &                                         +cff3*vbar(i,j,kold)
           DVom(i,j)=0.5*(Drhs(i,j)+Drhs(i,j-1))*dm_v(i,j)*vrhs(i,j)
@@ -117,7 +117,7 @@ czz     cff3= 0.22
       enddo
  
 #ifdef OBC_VOLCONS
-      call set_DUV_bc_tile (istr,iend,jstr,jend, Drhs, DUon,DVom)
+      call set_DUV_bc_tile (Istr,Iend,Jstr,Jend, Drhs, DUon,DVom)
 #endif
 !
 ! Advance free-surface:   Compute zeta_new, which is at new time
@@ -175,8 +175,8 @@ czz     cff3=0.0088
 #define rzeta2  VFe
 #define rzetaSA VFx
  
-      do j=jstrV-1,jend
-        do i=istrU-1,iend
+      do j=JstrV-1,Jend
+        do i=IstrU-1,Iend
           zeta_new(i,j)=zeta(i,j,kstp) + dtfast*pm(i,j)*pn(i,j)
      &            *(DUon(i,j)-DUon(i+1,j)+DVom(i,j)-DVom(i,j+1))
 #ifdef MASKING
@@ -201,10 +201,10 @@ czz     cff3=0.0088
 ! Set boundary conditions for the free-surface, after which copy
 ! the newly computed free-surface zeta_new into shared array.
 !
-      call zetabc_tile (istr,iend,jstr,jend, zeta_new)
+      call zetabc_tile (Istr,Iend,Jstr,Jend, zeta_new)
 
-      do j=jstrR,jendR
-        do i=istrR,iendR
+      do j=JstrR,JendR
+        do i=IstrR,IendR
           zeta(i,j,knew)=zeta_new(i,j)
         enddo
       enddo
@@ -221,8 +221,8 @@ czz     cff3=0.0088
         cff2=weight(2,iif)
  
         if (FIRST_2D_STEP) then
-          do j=jstrR,jendR
-            do i=istrR,iendR
+          do j=JstrR,JendR
+            do i=IstrR,IendR
               Zt_avg1(i,j)=cff1*zeta(i,j,knew)
               DU_avg1(i,j)=0.
               DV_avg1(i,j)=0.
@@ -231,8 +231,8 @@ czz     cff3=0.0088
             enddo
           enddo
         else
-          do j=jstrR,jendR
-            do i=istrR,iendR
+          do j=JstrR,JendR
+            do i=IstrR,IendR
               Zt_avg1(i,j)=Zt_avg1(i,j)+cff1*zeta(i,j,knew)
               DU_avg2(i,j)=DU_avg2(i,j)+cff2*DUon(i,j)
               DV_avg2(i,j)=DV_avg2(i,j)+cff2*DVom(i,j)
@@ -254,8 +254,8 @@ czz     cff3=0.0088
 ! version for the case when both CPP switches below are defined.
 !
       cff=0.5*g
-      do j=jstr,jend
-        do i=istr,iend
+      do j=Jstr,Jend
+        do i=Istr,Iend
           rubar(i,j)=cff*dn_u(i,j)*( (h(i-1,j)+h(i,j))*(rzeta(i-1,j)
      &                        -rzeta(i,j)) +rzeta2(i-1,j)-rzeta2(i,j)
  
@@ -300,8 +300,8 @@ c---># undef UV_ADV
 ! NOTE: mathematically necessary (minimal) index ranges for momentum-
 ! flux components are 
 !
-!      UFx(istrU-1:iend,jstr:jend)   VFx(istr:iend+1,jstrV:jend)
-!      UFe(istrU:iend,jstr:jend+1)   VFe(istr,iend,jstrV-1,jend)
+!      UFx(IstrU-1:Iend,Jstr:Jend)   VFx(Istr:Iend+1,JstrV:Jend)
+!      UFe(IstrU:Iend,Jstr:Jend+1)   VFe(Istr,Iend,JstrV-1,Jend)
 !
 ! however, for the purpose computational efficiency, these ranges are
 ! unified by suppressing U,V-suffices in order to allow fusion of the
@@ -310,8 +310,8 @@ c---># undef UV_ADV
 ! directions. 
 !
 #ifdef UV_ADV
-      do j=jstr,jend
-        do i=istr-1,iend
+      do j=Jstr,Jend
+        do i=Istr-1,Iend
           UFx(i,j)=0.25*(DUon(i,j)+DUon(i+1,j))
      &                     *(urhs(i,j)+urhs(i+1,j))
 
@@ -322,8 +322,8 @@ c---># undef UV_ADV
 # endif
         enddo
       enddo
-      do j=jstr-1,jend
-        do i=istr,iend
+      do j=Jstr-1,Jend
+        do i=Istr,Iend
           VFe(i,j)=0.25*(DVom(i,j)+DVom(i,j+1))
      &                      *(vrhs(i,j)+vrhs(i,j+1))
 
@@ -334,8 +334,8 @@ c---># undef UV_ADV
 # endif
         enddo
       enddo
-      do j=jstr,jend
-        do i=istr,iend
+      do j=Jstr,Jend
+        do i=Istr,Iend
           rubar(i,j)=rubar(i,j)-UFx(i,j)+UFx(i-1,j)
      &                         -UFe(i,j+1)+UFe(i,j)
 
@@ -349,8 +349,8 @@ c---># undef UV_ADV
 ! terms (2D only).
 !
 # if defined UV_COR || (defined CURVGRID && defined UV_ADV)
-      do j=jstrV-1,jend
-        do i=istrU-1,iend
+      do j=JstrV-1,Jend
+        do i=IstrU-1,Iend
           cff=Drhs(i,j)*(
 #  ifdef UV_COR
      &                             fomn(i,j)
@@ -364,13 +364,13 @@ c---># undef UV_ADV
           VFe(i,j)=cff*(urhs(i,j)+urhs(i+1,j))
         enddo
       enddo
-      do j=jstr,jend
-        do i=istrU,iend
+      do j=Jstr,Jend
+        do i=IstrU,Iend
           rubar(i,j)=rubar(i,j)+0.25*(UFx(i,j)+UFx(i-1,j))
         enddo
       enddo
-      do j=jstrV,jend
-        do i=istr,iend
+      do j=JstrV,Jend
+        do i=Istr,Iend
           rvbar(i,j)=rvbar(i,j)-0.25*(VFe(i,j)+VFe(i,j-1))
         enddo
       enddo
@@ -379,8 +379,8 @@ c---># undef UV_ADV
 ! Compute horizontal viscous stress terms (2D only).
 !
 # ifdef UV_VIS2
-      do j=jstr-1,jend
-        do i=istr-1,iend
+      do j=Jstr-1,Jend
+        do i=Istr-1,Iend
           cff=2.*Drhs(i,j)*visc2_r(i,j)
           UFx(i,j)=cff*(ubar(i+1,j,kstp)-ubar(i,j,kstp))
      &                                 *pm(i,j)*dn_r(i,j)
@@ -405,8 +405,8 @@ c---># undef UV_ADV
           VFx(i+1,j+1)=cff1*dn_p(i+1,j+1)
         enddo
       enddo
-      do j=jstr,jend
-        do i=istr,iend
+      do j=Jstr,Jend
+        do i=Istr,Iend
           rubar(i,j)=rubar(i,j)+UFx(i,j)-UFx(i-1,j)
      &                         +UFe(i,j+1)-UFe(i,j)
 
@@ -419,8 +419,8 @@ c---># undef UV_ADV
 ! Bottom drag: linear and/or quadratic law. 
 !
 #ifdef SOLVE3D
-      do j=jstr,jend        
-        do i=istr,iend
+      do j=Jstr,Jend        
+        do i=Istr,Iend
           rubar(i,j)=rubar(i,j) - 0.5*(r_D(i,j)+r_D(i-1,j))
      &                  *dm_u(i,j)*dn_u(i,j)*ubar(i,j,kstp)
 
@@ -432,8 +432,8 @@ c---># undef UV_ADV
 # ifndef LINEAR_DRAG_ONLY
 #  define rd VFx
       if (rdrg2 .gt. 0.) then
-        do j=jstrV-1,jend
-          do i=istrU-1,iend
+        do j=JstrV-1,Jend
+          do i=IstrU-1,Iend
             rd(i,j)=rdrg + rdrg2*sqrt( 0.333333333333*(
      &              ubar(i,j,kstp)**2 +ubar(i+1,j,kstp)**2
      &                    +ubar(i,j,kstp)*ubar(i+1,j,kstp)
@@ -442,8 +442,8 @@ c---># undef UV_ADV
      &                                                 ))
           enddo
         enddo
-        do j=jstr,jend
-          do i=istrU,iend
+        do j=Jstr,Jend
+          do i=IstrU,Iend
             rubar(i,j)=rubar(i,j) - 0.5*(rd(i,j)+rd(i-1,j))
      &                  *dm_u(i,j)*dn_u(i,j)*ubar(i,j,kstp)
 
@@ -455,8 +455,8 @@ c---># undef UV_ADV
 #else
       if (rdrg .gt. 0.) then
 #endif
-        do j=jstr,jend
-          do i=istrU,iend
+        do j=Jstr,Jend
+          do i=IstrU,Iend
             rubar(i,j)=rubar(i,j) - rdrg*dm_u(i,j)*dn_u(i,j)
      &                                       *ubar(i,j,kstp)
 
@@ -501,16 +501,16 @@ c---># undef UV_ADV
           cff1=1.5+cff3                  ! maximum stability (with
         endif                            ! special care for startup)
 
-        do j=jstr,jend
-          do i=istrU,iend
+        do j=Jstr,Jend
+          do i=IstrU,Iend
             cff=rufrc(i,j)-rubar(i,j)
             rufrc(i,j)=cff1*cff + cff2*rufrc_bak(i,j,3-nstp)
      &                             + cff3*rufrc_bak(i,j,nstp)
             rufrc_bak(i,j,nstp)=cff
           enddo
         enddo
-        do j=jstrV,jend
-          do i=istr,iend
+        do j=JstrV,Jend
+          do i=Istr,Iend
             cff=rvfrc(i,j)-rvbar(i,j)
             rvfrc(i,j)=cff1*cff + cff2*rvfrc_bak(i,j,3-nstp)
      &                             + cff3*rvfrc_bak(i,j,nstp)
@@ -518,8 +518,8 @@ c---># undef UV_ADV
           enddo
         enddo
 # else
-        do j=jstr,jend                       ! This version is
-          do i=istr,iend                     ! designed for coupling
+        do j=Jstr,Jend                       ! This version is
+          do i=Istr,Iend                     ! designed for coupling
             rufrc(i,j)=rufrc(i,j)-rubar(i,j) ! during 3D corrector
             rvfrc(i,j)=rvfrc(i,j)-rvbar(i,j) ! sub-step: no forward
           enddo                              ! extrapolation needs
@@ -537,8 +537,8 @@ c---># undef UV_ADV
 # define rzeta2  VFe
 # define rzetaSA VFx
 
-        do j=jstrV-1,jend
-          do i=istrU-1,iend
+        do j=JstrV-1,Jend
+          do i=IstrU-1,Iend
             zwrk(i,j)=zeta_new(i,j)-zeta(i,j,kstp)
 # if defined VAR_RHO_2D && defined SOLVE3D
             rzeta(i,j)=(1.+rhoS(i,j))*zwrk(i,j)
@@ -552,8 +552,8 @@ c---># undef UV_ADV
         enddo
 
         cff=0.5*g
-        do j=jstr,jend
-          do i=istr,iend
+        do j=Jstr,Jend
+          do i=Istr,Iend
             rubar(i,j)=rubar(i,j) +cff*dn_u(i,j)*( (h(i-1,j)+h(i,j))
      &          *(rzeta(i-1,j)-rzeta(i,j)) +rzeta2(i-1,j)-rzeta2(i,j)
 
@@ -594,8 +594,8 @@ c---># undef UV_ADV
 !
 #define Dstp DUon
  
-      do j=jstrV-1,jend
-        do i=istrU-1,iend
+      do j=JstrV-1,Jend
+        do i=IstrU-1,Iend
           Dstp(i,j)=zeta(i,j,kstp)+h(i,j)
         enddo
       enddo
@@ -606,8 +606,8 @@ c---># undef UV_ADV
 #else
       cff2=2.*dtfast
 #endif
-      do j=jstr,jend
-        do i=istrU,iend
+      do j=Jstr,Jend
+        do i=IstrU,Iend
           DUnew=( (Dstp(i,j)+Dstp(i-1,j))*ubar(i,j,kstp)
      &        +cff*(pm(i,j)+pm(i-1,j))*(pn(i,j)+pn(i-1,j))
 #ifdef SOLVE3D
@@ -625,8 +625,8 @@ c---># undef UV_ADV
 #endif
         enddo
       enddo
-      do j=jstrV,jend
-        do i=istr,iend
+      do j=JstrV,Jend
+        do i=Istr,Iend
           DVnew=( (Dstp(i,j)+Dstp(i,j-1))*vbar(i,j,kstp)
      &        +cff*(pm(i,j)+pm(i,j-1))*(pn(i,j)+pn(i,j-1))
 #ifdef SOLVE3D
@@ -648,10 +648,10 @@ c---># undef UV_ADV
 ! Set boundary conditions and compute integral mass flux accross
 ! all open boundaries, if any.
 !
-      call    u2dbc_tile (istr,iend,jstr,jend, UFx)
-      call    v2dbc_tile (istr,iend,jstr,jend, UFx)
+      call    u2dbc_tile (Istr,Iend,Jstr,Jend, UFx)
+      call    v2dbc_tile (Istr,Iend,Jstr,Jend, UFx)
 #ifdef OBC_VOLCONS
-      call obc_flux_tile (istr,iend,jstr,jend, UFx)
+      call obc_flux_tile (Istr,Iend,Jstr,Jend, UFx)
 #endif
 !
 ! Compute fast-time averaged barotropic mass fluxes along physical
@@ -660,70 +660,70 @@ c---># undef UV_ADV
 #ifdef SOLVE3D
 # ifndef EW_PERIODIC
       if (WESTERN_EDGE) then
-        do j=jstr-1,jendR
-          Dnew(istr-1,j)=h(istr-1,j)+zeta_new(istr-1,j)
+        do j=Jstr-1,JendR
+          Dnew(Istr-1,j)=h(Istr-1,j)+zeta_new(Istr-1,j)
         enddo
       endif
       if (EASTERN_EDGE) then
-        do j=jstr-1,jendR
-          Dnew(iend+1,j)=h(iend+1,j)+zeta_new(iend+1,j)
+        do j=Jstr-1,JendR
+          Dnew(Iend+1,j)=h(Iend+1,j)+zeta_new(Iend+1,j)
         enddo
       endif
 # endif
 # ifndef NS_PERIODIC
       if (SOUTHERN_EDGE) then
-        do i=istr-1,iendR
-          Dnew(i,jstr-1)=h(i,jstr-1)+zeta_new(i,jstr-1)
+        do i=Istr-1,IendR
+          Dnew(i,Jstr-1)=h(i,Jstr-1)+zeta_new(i,Jstr-1)
         enddo
       endif
       if (NORTHERN_EDGE) then
-        do i=istr-1,iendR
-          Dnew(i,jend+1)=h(i,jend+1)+zeta_new(i,jend+1)
+        do i=Istr-1,IendR
+          Dnew(i,Jend+1)=h(i,Jend+1)+zeta_new(i,Jend+1)
         enddo
       endif
 # endif
       cff1=0.5*weight(1,iif)
 # ifndef EW_PERIODIC
       if (WESTERN_EDGE) then
-        do j=jstrR,jendR
-          DU_avg1(istrU-1,j)=DU_avg1(istrU-1,j)+cff1*(Dnew(istrU-1,j)
-     &         +Dnew(istrU-2,j))*ubar(istrU-1,j,knew)*dn_u(istrU-1,j)
+        do j=JstrR,JendR
+          DU_avg1(IstrU-1,j)=DU_avg1(IstrU-1,j)+cff1*(Dnew(IstrU-1,j)
+     &         +Dnew(IstrU-2,j))*ubar(IstrU-1,j,knew)*dn_u(IstrU-1,j)
         enddo
-        do j=jstrV,jend
-          DV_avg1(istr-1,j)=DV_avg1(istr-1,j) +cff1*(Dnew(istr-1,j)
-     &       +Dnew(istr-1,j-1) )*vbar(istr-1,j,knew)*dm_v(istr-1,j)
+        do j=JstrV,Jend
+          DV_avg1(Istr-1,j)=DV_avg1(Istr-1,j) +cff1*(Dnew(Istr-1,j)
+     &       +Dnew(Istr-1,j-1) )*vbar(Istr-1,j,knew)*dm_v(Istr-1,j)
         enddo
       endif
       if (EASTERN_EDGE) then
-        do j=jstrR,jendR
-          DU_avg1(iend+1,j)=DU_avg1(iend+1,j) +cff1*( Dnew(iend+1,j)
-     &            +Dnew(iend,j) )*ubar(iend+1,j,knew)*dn_u(iend+1,j)
+        do j=JstrR,JendR
+          DU_avg1(Iend+1,j)=DU_avg1(Iend+1,j) +cff1*( Dnew(Iend+1,j)
+     &            +Dnew(Iend,j) )*ubar(Iend+1,j,knew)*dn_u(Iend+1,j)
         enddo
-        do j=jstrV,jend
-          DV_avg1(iend+1,j)=DV_avg1(iend+1,j) +cff1*( Dnew(iend+1,j)
-     &        +Dnew(iend+1,j-1) )*vbar(iend+1,j,knew)*dm_v(iend+1,j)
+        do j=JstrV,Jend
+          DV_avg1(Iend+1,j)=DV_avg1(Iend+1,j) +cff1*( Dnew(Iend+1,j)
+     &        +Dnew(Iend+1,j-1) )*vbar(Iend+1,j,knew)*dm_v(Iend+1,j)
         enddo
       endif
 # endif
 # ifndef NS_PERIODIC
       if (SOUTHERN_EDGE) then
-        do i=istrU,iend
-          DU_avg1(i,jstr-1)=DU_avg1(i,jstr-1) +cff1*( Dnew(i,jstr-1)
-     &        +Dnew(i-1,jstr-1) )*ubar(i,jstr-1,knew)*dn_u(i,jstr-1)
+        do i=IstrU,Iend
+          DU_avg1(i,Jstr-1)=DU_avg1(i,Jstr-1) +cff1*( Dnew(i,Jstr-1)
+     &        +Dnew(i-1,Jstr-1) )*ubar(i,Jstr-1,knew)*dn_u(i,Jstr-1)
         enddo
-        do i=istrR,iendR
-          DV_avg1(i,jstrV-1)=DV_avg1(i,jstrV-1)+cff1*(Dnew(i,jstrV-1)
-     &         +Dnew(i,jstrV-2))*vbar(i,jstrV-1,knew)*dm_v(i,jstrV-1)
+        do i=IstrR,IendR
+          DV_avg1(i,JstrV-1)=DV_avg1(i,JstrV-1)+cff1*(Dnew(i,JstrV-1)
+     &         +Dnew(i,JstrV-2))*vbar(i,JstrV-1,knew)*dm_v(i,JstrV-1)
         enddo
       endif
       if (NORTHERN_EDGE) then
-        do i=istrU,iend
-          DU_avg1(i,jend+1)=DU_avg1(i,jend+1) +cff1*( Dnew(i,jend+1)
-     &        +Dnew(i-1,jend+1) )*ubar(i,jend+1,knew)*dn_u(i,jend+1)
+        do i=IstrU,Iend
+          DU_avg1(i,Jend+1)=DU_avg1(i,Jend+1) +cff1*( Dnew(i,Jend+1)
+     &        +Dnew(i-1,Jend+1) )*ubar(i,Jend+1,knew)*dn_u(i,Jend+1)
         enddo
-        do i=istrR,iendR
-          DV_avg1(i,jend+1)=DV_avg1(i,jend+1) +cff1*( Dnew(i,jend+1)
-     &            +Dnew(i,jend) )*vbar(i,jend+1,knew)*dm_v(i,jend+1)
+        do i=IstrR,IendR
+          DV_avg1(i,Jend+1)=DV_avg1(i,Jend+1) +cff1*( Dnew(i,Jend+1)
+     &            +Dnew(i,Jend) )*vbar(i,Jend+1,knew)*dm_v(i,Jend+1)
         enddo
       endif
 # endif 
@@ -732,8 +732,8 @@ c---># undef UV_ADV
       do is=1,Nsrc           ! Apply point mass sources associated
         i=Isrc(is)           ! with river runoff simulations.
         j=Jsrc(is)
-        if (istrR.le.i .and. i.le.iendR .and.
-     &      jstrR.le.j .and. j.le.jendR) then
+        if (IstrR.le.i .and. i.le.IendR .and.
+     &      JstrR.le.j .and. j.le.JendR) then
           if (Dsrc(is).eq.0) then
             ubar(i,j,knew)=2.*Qbar(is)/( dn_u(i,j)
      &                   *(Dnew(i-1,j)+Dnew(i,j)) )
@@ -760,23 +760,23 @@ c---># undef UV_ADV
 !
 #ifdef SOLVE3D
       if (iif.eq.nfast) then
-        do j=jstrR,jendR
-          do i=istrR,iendR
+        do j=JstrR,JendR
+          do i=IstrR,IendR
             zeta(i,j,knew)=Zt_avg1(i,j)
           enddo
         enddo
-        call set_depth_tile (istr,iend,jstr,jend, UFx)
+        call set_depth_tile (Istr,Iend,Jstr,Jend, UFx)
       endif
 #else
-      call diag_tile (istr,iend,jstr,jend, UFx,UFe,VFx)
+      call diag_tile (Istr,Iend,Jstr,Jend, UFx,UFe,VFx)
 #endif
 
 #if defined EW_PERIODIC || defined NS_PERIODIC || defined  MPI
-      call exchange_r2d_tile (istr,iend,jstr,jend,
+      call exchange_r2d_tile (Istr,Iend,Jstr,Jend,
      &                   zeta(START_2D_ARRAY,knew))
-      call exchange_u2d_tile (istr,iend,jstr,jend,
+      call exchange_u2d_tile (Istr,Iend,Jstr,Jend,
      &                   ubar(START_2D_ARRAY,knew))
-      call exchange_v2d_tile (istr,iend,jstr,jend,
+      call exchange_v2d_tile (Istr,Iend,Jstr,Jend,
      &                   vbar(START_2D_ARRAY,knew))
 #endif
       return

@@ -7,12 +7,12 @@
 # include "param.h"
 # include "private_scratch.h"
 # include "compute_tile_bounds.h"
-      call swr_frac_tile (istr,iend,jstr,jend, A2d(1,1),A2d(1,2))
+      call swr_frac_tile (Istr,Iend,Jstr,Jend, A2d(1,1),A2d(1,2))
       return
       end
 
  
-      subroutine swr_frac_tile (istr,iend,jstr,jend, swdk1,swdk2)
+      subroutine swr_frac_tile (Istr,Iend,Jstr,Jend, swdk1,swdk2)
 !
 ! Compute fraction of solar shortwave flux penetrating to the
 ! specified depth due to exponential decay in Jerlov water type
@@ -27,8 +27,8 @@
 ! output: swr_frac (in "mixing.h")  shortwave radiation fraction
 !
       implicit none
-      integer istr,iend,jstr,jend,     i,j,k, Jwt
-      real  swdk1(istr:iend), swdk2(istr:iend)
+      integer Istr,Iend,Jstr,Jend,     i,j,k, Jwt
+      real  swdk1(Istr:Iend), swdk2(Istr:Iend)
       real mu1(5),mu2(5), r1(5), attn1, attn2, xi1,xi2
 # include "param.h"
 # include "ocean3d.h"
@@ -57,14 +57,14 @@
       attn1=-1./mu1(Jwt)
       attn2=-1./mu2(Jwt) 
 
-      do j=jstr,jend                     ! Algorithm: set fractions
-        do i=istr,iend                   ! for each spectral band at
+      do j=Jstr,Jend                     ! Algorithm: set fractions
+        do i=Istr,Iend                   ! for each spectral band at
           swdk1(i)=r1(Jwt)               ! surface, then attenuate
           swdk2(i)=1.-swdk1(i)           ! them separately throughout
           swr_frac(i,j,N)=1.             ! the water column.
         enddo
         do k=N,1,-1
-          do i=istr,iend
+          do i=Istr,Iend
             xi1=attn1*Hz(i,j,k)
             if (xi1 .gt. -20.) then        ! this logic to avoid
               swdk1(i)=swdk1(i)*exp(xi1)   ! computing exponent for
@@ -84,7 +84,7 @@
         enddo
       enddo
 # if defined EW_PERIODIC || defined NS_PERIODIC || defined MPI
-      call exchange_w3d_tile (istr,iend,jstr,jend, swr_frac)
+      call exchange_w3d_tile (Istr,Iend,Jstr,Jend, swr_frac)
 # endif
       return
       end

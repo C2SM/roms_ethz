@@ -6,11 +6,11 @@
 #include "param.h"
 #include "private_scratch.h"
 #include "compute_tile_bounds.h"
-      call setup_grid2_tile (istr,iend,jstr,jend, A2d(1,1))
+      call setup_grid2_tile (Istr,Iend,Jstr,Jend, A2d(1,1))
       return
       end
  
-      subroutine setup_grid2_tile (istr,iend,jstr,jend, dA)
+      subroutine setup_grid2_tile (Istr,Iend,Jstr,Jend, dA)
 !
 ! Find minimum and maximum depth of model topography; minimum and
 ! maximum horizontal XI- and ETA-grid intervals around h-points;
@@ -20,7 +20,7 @@
 ! boundaries.
 !
       implicit none
-      integer istr,iend,jstr,jend, i,j, nsub, inc,jnc
+      integer Istr,Iend,Jstr,Jend, i,j, nsub, inc,jnc
       real*QUAD dA(2,PRIVATE_2D_SCRATCH_ARRAY),
      &          my_area,  my_volume,  my_crss
       real my_hmax, my_grdmax, my_Cu_max, cff,
@@ -46,8 +46,8 @@
       my_Cu_max=-1.E+20            ! where c=sqrt(g*h) is phase
       my_Cu_Cor=-1.E+20            ! speed for barotropic mode,
                                    ! and dx,dy are grid spacings
-      do j=jstrR,jendR             ! in each direction.
-        do i=istrR,iendR
+      do j=JstrR,JendR             ! in each direction.
+        do i=IstrR,IendR
 #ifdef MASKING
           if (rmask(i,j) .gt. 0.5) then
 #endif
@@ -74,8 +74,8 @@
         enddo                      ! Compute unmasked total area
       enddo                        ! and unperturbed volume of model
                                    ! grid (assuming zero free-surface
-      do j=jstr,jend               ! disturbance everywhere.
-        do i=istr,iend             !
+      do j=Jstr,Jend               ! disturbance everywhere.
+        do i=Istr,Iend             !
 #ifdef MASKING
           dA(1,i,j)=rmask(i,j)/(pm(i,j)*pn(i,j))
 #else
@@ -91,9 +91,9 @@
       jnc=1                        ! errors.
  
       do while (lsumX .or. lsumY)
-        if (istr.le.iend-inc) then
-          do j=jstr,jend
-            do i=istr,iend-inc,2*inc
+        if (Istr.le.Iend-inc) then
+          do j=Jstr,Jend
+            do i=Istr,Iend-inc,2*inc
               dA(1,i,j) = dA(1,i,j) + dA(1,i+inc,j)
               dA(2,i,j) = dA(2,i,j) + dA(2,i+inc,j)
             enddo
@@ -102,9 +102,9 @@
         else
           lsumX=.false.
         endif
-        if (jstr.le.jend-jnc) then
-          do j=jstr,jend-jnc,2*jnc
-            do i=istr,iend
+        if (Jstr.le.Jend-jnc) then
+          do j=Jstr,Jend-jnc,2*jnc
+            do i=Istr,Iend
               dA(1,i,j) = dA(1,i,j) + dA(1,i,j+jnc)
               dA(2,i,j) = dA(2,i,j) + dA(2,i,j+jnc)
             enddo
@@ -115,13 +115,13 @@
         endif
       enddo
  
-      my_area   = dA(1,istr,jstr)
-      my_volume = dA(2,istr,jstr)
+      my_area   = dA(1,Istr,Jstr)
+      my_volume = dA(2,Istr,Jstr)
  
 c**   my_area=QuadZero             ! Straight summation: this code
 c**   my_volume=QuadZero           ! produces result which differs
-c**   do j=jstr,jend               ! above only by roundoff errors.
-c**     do i=istr,iend
+c**   do j=Jstr,Jend               ! above only by roundoff errors.
+c**     do i=Istr,Iend
 c**       my_area   = my_area   + dA(1,i,j)
 c**       my_volume = my_volume + dA(2,i,j)
 c**     enddo
@@ -130,74 +130,74 @@ c**   enddo
       my_crss=QuadZero             ! of all open boundaries...
 #ifdef OBC_WEST
       if (WESTERN_EDGE) then
-        do j=jstr,jend
-          dA(1,istr,j)=0.5*(h(istr-1,j)+h(istr,j))*dn_u(istr,j)
+        do j=Jstr,Jend
+          dA(1,Istr,j)=0.5*(h(Istr-1,j)+h(Istr,j))*dn_u(Istr,j)
 # ifdef MASKING
-     &                                            *umask(istr,j)
+     &                                            *umask(Istr,j)
 # endif
         enddo
         jnc=1
-        do while(jstr.le.jend-jnc)
-          do j=jstr,jend-jnc,2*jnc
-            dA(1,istr,j) = dA(1,istr,j) + dA(1,istr,j+jnc)
+        do while(Jstr.le.Jend-jnc)
+          do j=Jstr,Jend-jnc,2*jnc
+            dA(1,Istr,j) = dA(1,Istr,j) + dA(1,Istr,j+jnc)
           enddo
           jnc=2*jnc
         enddo
-        my_crss=my_crss + dA(1,istr,jstr)
+        my_crss=my_crss + dA(1,Istr,Jstr)
       endif
 #endif
 #ifdef OBC_EAST
       if (EASTERN_EDGE) then
-        do j=jstr,jend
-          dA(1,iend,j)=0.5*(h(iend,j)+h(iend+1,j))*dn_u(iend+1,j)
+        do j=Jstr,Jend
+          dA(1,Iend,j)=0.5*(h(Iend,j)+h(Iend+1,j))*dn_u(Iend+1,j)
 # ifdef MASKING
-     &                                            *umask(iend+1,j)
+     &                                            *umask(Iend+1,j)
 # endif
         enddo
         jnc=1
-        do while(jstr.le.jend-jnc)
-          do j=jstr,jend-jnc,2*jnc
-            dA(1,iend,j) = dA(1,iend,j) + dA(1,iend,j+jnc)
+        do while(Jstr.le.Jend-jnc)
+          do j=Jstr,Jend-jnc,2*jnc
+            dA(1,Iend,j) = dA(1,Iend,j) + dA(1,Iend,j+jnc)
           enddo
           jnc=2*jnc
         enddo
-        my_crss=my_crss + dA(1,iend,jstr)
+        my_crss=my_crss + dA(1,Iend,Jstr)
       endif
 #endif
 #ifdef OBC_SOUTH
       if (SOUTHERN_EDGE) then
-        do i=istr,iend
-          dA(1,i,jstr)=0.5*(h(i,jstr)+h(i,jstr-1))*dm_v(i,jstr)
+        do i=Istr,Iend
+          dA(1,i,Jstr)=0.5*(h(i,Jstr)+h(i,Jstr-1))*dm_v(i,Jstr)
 # ifdef MASKING
-     &                                            *vmask(i,jstr)
+     &                                            *vmask(i,Jstr)
 # endif
         enddo
         inc=1
-        do while(istr.le.iend-inc)
-          do i=istr,iend-inc,2*inc
-            dA(1,i,jstr) = dA(1,i,jstr) + dA(1,i+inc,jstr)
+        do while(Istr.le.Iend-inc)
+          do i=Istr,Iend-inc,2*inc
+            dA(1,i,Jstr) = dA(1,i,Jstr) + dA(1,i+inc,Jstr)
           enddo
           inc=2*inc
         enddo
-        my_crss=my_crss + dA(1,istr,jstr)
+        my_crss=my_crss + dA(1,Istr,Jstr)
       endif
 #endif
 #ifdef OBC_NORTH
       if (NORTHERN_EDGE) then
-        do i=istr,iend
-          dA(1,i,jend)=0.5*(h(i,jend)+h(i,jend+1))*dm_v(i,jend+1)
+        do i=Istr,Iend
+          dA(1,i,Jend)=0.5*(h(i,Jend)+h(i,Jend+1))*dm_v(i,Jend+1)
 # ifdef MASKING
-     &                                            *vmask(i,jend+1)
+     &                                            *vmask(i,Jend+1)
 # endif
         enddo
         inc=1
-        do while(istr.le.iend-inc)
-          do i=istr,iend-inc,2*inc
-            dA(1,i,jend) = dA(1,i,jend) + dA(1,i+inc,jend)
+        do while(Istr.le.Iend-inc)
+          do i=Istr,Iend-inc,2*inc
+            dA(1,i,Jend) = dA(1,i,Jend) + dA(1,i+inc,Jend)
           enddo
           inc=2*inc
         enddo
-        my_crss=my_crss + dA(1,istr,jend)
+        my_crss=my_crss + dA(1,Istr,Jend)
       endif
 #endif
 !
@@ -321,7 +321,7 @@ C$OMP END CRITICAL (grd2_cr_rgn)
  
 #if defined VIS_GRID || defined DIF_GRID
 # if defined EW_PERIODIC || defined NS_PERIODIC || defined MPI
-      call exchange_r2d_tile (istr,iend,jstr,jend,  grdscl)
+      call exchange_r2d_tile (Istr,Iend,Jstr,Jend,  grdscl)
 # endif
 #endif
       return

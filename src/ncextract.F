@@ -25,7 +25,7 @@
       character string*(max_string), buff*(max_string),
      &  quote*1, double_quote*1, nfword(max_found)*(max_size)
       integer nlen(max_found), nfound, iargc, last_arg, n,
-     &    case_fold, i,j, ie,is, istrt,length, line,iocheck
+     &    case_fold, i,j, ie,is, Istrt,length, line,iocheck
       logical not_end_of_file, lswtch, lprint
  
       nfound=0
@@ -65,9 +65,9 @@
             do while (length.gt.0 .and. string(length:length).eq.' ')
               length=length-1
             enddo
-            istrt=1
-            do while (istrt.lt.length.and.string(istrt:istrt).eq.' ')
-              istrt=istrt+1
+            Istrt=1
+            do while (Istrt.lt.length.and.string(Istrt:Istrt).eq.' ')
+              Istrt=Istrt+1
             enddo
 !
 ! Save the non-modified copu of the string into buffer (only for
@@ -76,7 +76,7 @@
 ! and underscore.
 !
             if (n.eq.last_arg+1) buff=string(1:length)
-            do i=istrt,length
+            do i=Istrt,length
               if (string(i:i).ge.'A' .and. string(i:i).le.'Z') then
                 string(i:i)=char(ichar(string(i:i))+case_fold)
               elseif (string(i:i).ge.'a'.and.string(i:i).le.'z') then
@@ -97,7 +97,7 @@
 ! the whole non-modified version of the line into the new file.
 !
             lprint=.false.
-            i=istrt
+            i=Istrt
             do while (i.lt.length)
               if (string(i:i+2).eq.'nf_') then
                 is=i

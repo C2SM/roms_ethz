@@ -7,12 +7,12 @@
 # include "param.h"
 # include "private_scratch.h"
 # include "compute_tile_bounds.h"
-      call visc3d_tile (istr,iend,jstr,jend, A2d(1,1), A2d(1,2),
+      call visc3d_tile (Istr,Iend,Jstr,Jend, A2d(1,1), A2d(1,2),
      &                                       A2d(1,3), A2d(1,4))
       return
       end
  
-      subroutine visc3d_tile (istr,iend,jstr,jend, UFx,UFe,VFx,VFe)
+      subroutine visc3d_tile (Istr,Iend,Jstr,Jend, UFx,UFe,VFx,VFe)
 !
 ! Computes harmonic mixing of momentum, along constant S-surfaces
 ! as horizontal divergence of the stress tensor. A transverse
@@ -35,7 +35,7 @@
 !     permitting ocean models, Mon. Wea. Rev., 128, 8, 2935-2946.
 !
       implicit none
-      integer istr,iend,jstr,jend, i,j,k, indx
+      integer Istr,Iend,Jstr,Jend, i,j,k, indx
       real UFe(PRIVATE_2D_SCRATCH_ARRAY),
      &     UFx(PRIVATE_2D_SCRATCH_ARRAY), cff,
      &     VFe(PRIVATE_2D_SCRATCH_ARRAY),
@@ -57,8 +57,8 @@
 !  tensor (m5/s2) in XI- and ETA-directions.
 !
       do k=1,N
-        do j=jstrV-1,jend
-          do i=istrU-1,iend
+        do j=JstrV-1,Jend
+          do i=IstrU-1,Iend
             cff=0.5*Hz(i,j,k)*visc2_r(i,j)*(
  
      &      dn_r(i,j)*pm(i,j)*( (pn(i  ,j)+pn(i+1,j))*u(i+1,j,k,nstp)
@@ -72,8 +72,8 @@
             VFe(i,j)= -cff*dm_r(i,j)*dm_r(i,j)
           enddo
         enddo
-        do j=jstr,jend+1
-          do i=istr,iend+1
+        do j=Jstr,Jend+1
+          do i=Istr,Iend+1
             cff=0.125*(Hz(i-1,j,k)+Hz(i,j,k)+Hz(i-1,j-1,k)
      &                         +Hz(i,j-1,k))*visc2_p(i,j)*(
  
@@ -99,8 +99,8 @@
 ! integral of viscous terms and add it into coupling terms for the
 ! barotropic mode
 !
-        do j=jstr,jend
-          do i=istrU,iend
+        do j=Jstr,Jend
+          do i=IstrU,Iend
             cff=0.125*(pm(i-1,j)+pm(i,j))*(pn(i-1,j) +pn(i,j))
      &             *( (pn(i-1,j)+pn(i,j))*(UFx(i,j)-UFx(i-1,j))
      &               +(pm(i-1,j)+pm(i,j))*(UFe(i,j+1)-UFe(i,j))
@@ -109,8 +109,8 @@
             u(i,j,k,indx)=u(i,j,k,indx) + dt*cff
           enddo
         enddo
-        do j=jstrV,jend
-          do i=istr,iend
+        do j=JstrV,Jend
+          do i=Istr,Iend
             cff=0.125*(pm(i,j)+pm(i,j-1))*(pn(i,j) +pn(i,j-1))
      &             *( (pn(i,j-1)+pn(i,j))*(VFx(i+1,j)-VFx(i,j))
      &               +(pm(i,j-1)+pm(i,j))*(VFe(i,j)-VFe(i,j-1))

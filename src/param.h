@@ -29,7 +29,7 @@ c     &               LLm=256, MMm=2,   N=64
 c*   &               LLm=98,  MMm=206, N=12
      &               LLm=24,  MMm=34,  N=10
 #elif defined PACIFIC
-     &               LLm=384, MMm=224, N=30
+     &               LLm=2, MMm=3, N=32
 c    &               LLm=392, MMm=288, N=30
 
 c    &               LLm=432, MMm=320, N=32
@@ -99,8 +99,8 @@ c**  &               LLm=126,  MMm=254, N=20    ! USWEST grid 16
 
 # endif /* GRID_LEVEL */
 #elif defined USWC_CENTRAL
-     &               LLm=83, MMm=168, N=20
-c     &               LLm=248, MMm=504, N=32   ! new 5km config
+c**     &               LLm=83, MMm=168, N=32
+     &               LLm=248, MMm=504, N=32   ! new 5km config
 #elif defined WAVE_RAD
      &              LLm=384,  MMm=384, N=1
 #else
@@ -119,10 +119,8 @@ c     &               LLm=248, MMm=504, N=32   ! new 5km config
       integer NP_XI, NP_ETA, NNODES
 # ifdef HUMBOLDT
       parameter (NP_XI=2, NP_ETA=16, NSUB_X=1, NSUB_E=1)
-# elif defined USWC_CENTRAL
-      parameter (NP_XI=1, NP_ETA=24, NSUB_X=1, NSUB_E=1)
 # else
-      parameter (NP_XI=4, NP_ETA=8, NSUB_X=1, NSUB_E=1)
+      parameter (NP_XI=2, NP_ETA=2, NSUB_X=1, NSUB_E=1)
 # endif
       parameter (NNODES=NP_XI*NP_ETA)
 #else

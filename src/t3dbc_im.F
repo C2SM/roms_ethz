@@ -1,12 +1,12 @@
 #include "cppdefs.h"
 #ifdef SOLVE3D
  
-      subroutine t3dbc_tile (istr,iend,jstr,jend, itrc, grad)
+      subroutine t3dbc_tile (Istr,Iend,Jstr,Jend, itrc, grad)
 !
 ! Set lateral boundary conditions for tracer field t(:,:,:,itrc)
 !
       implicit none
-      integer istr,iend,jstr,jend, itrc, i,j,k
+      integer Istr,Iend,Jstr,Jend, itrc, i,j,k
       real grad(PRIVATE_2D_SCRATCH_ARRAY), eps, dtfwd,
      &     cff, cx,cy, dft,dfx,dfy, tau,tau_in,tau_out
       parameter (eps=1.E-20)
@@ -35,22 +35,22 @@
       if (WESTERN_EDGE) then
 #  if defined OBC_WEST && defined OBC_TORLANSKI
         do k=1,N
-          do j=jstr,jend+1
-            grad(istr-1,j)=( t(istr-1,j  ,k,nstp,itrc)
-     &                      -t(istr-1,j-1,k,nstp,itrc))
+          do j=Jstr,Jend+1
+            grad(Istr-1,j)=( t(Istr-1,j  ,k,nstp,itrc)
+     &                      -t(Istr-1,j-1,k,nstp,itrc))
 #   ifdef MASKING
-     &                                 *vmask(istr-1,j)
+     &                                 *vmask(Istr-1,j)
 #   endif
-            grad(istr  ,j)=( t(istr  ,j  ,k,nstp,itrc)
-     &                      -t(istr  ,j-1,k,nstp,itrc))
+            grad(Istr  ,j)=( t(Istr  ,j  ,k,nstp,itrc)
+     &                      -t(Istr  ,j-1,k,nstp,itrc))
 #   ifdef MASKING
-     &                                   *vmask(istr,j)
+     &                                   *vmask(Istr,j)
 #   endif
           enddo
-          do j=jstr,jend
+          do j=Jstr,Jend
 /* --->
-            dft=t(istr,j,k,nstp,itrc)-t(istr  ,j,k,nnew,itrc)
-            dfx=t(istr,j,k,nnew,itrc)-t(istr+1,j,k,nnew,itrc)
+            dft=t(Istr,j,k,nstp,itrc)-t(Istr  ,j,k,nnew,itrc)
+            dfx=t(Istr,j,k,nnew,itrc)-t(Istr+1,j,k,nnew,itrc)
  
             if (dfx*dft .lt. 0.) then
               dft=0.                  ! <-- cancel, if inflow 
@@ -61,10 +61,10 @@
 #   endif
             endif
  
-            if (dft*(grad(istr,j)+grad(istr,j+1)) .gt. 0.) then
-              dfy=grad(istr,j)
+            if (dft*(grad(Istr,j)+grad(Istr,j+1)) .gt. 0.) then
+              dfy=grad(Istr,j)
             else
-              dfy=grad(istr,j+1)
+              dfy=grad(Istr,j+1)
             endif
  
 #   ifdef OBC_RAD_NORMAL
@@ -77,19 +77,19 @@
 #   else
             cy=min(cff,max(dft*dfy,-cff))
 #   endif
-            t(istr-1,j,k,nnew,itrc)=( cff*t(istr-1,j,k,nstp,itrc)
-     &                                   +cx*t(istr,j,k,nnew,itrc)
-     &                                -max(cy,0.)*grad(istr-1,j  )
-     &                                -min(cy,0.)*grad(istr-1,j+1)
+            t(Istr-1,j,k,nnew,itrc)=( cff*t(Istr-1,j,k,nstp,itrc)
+     &                                   +cx*t(Istr,j,k,nnew,itrc)
+     &                                -max(cy,0.)*grad(Istr-1,j  )
+     &                                -min(cy,0.)*grad(Istr-1,j+1)
      &                                                 )/(cff+cx)
 
 ---> */
 
 
 
-            cx=-dtfwd*u(istr,j,k,nrhs)*pm(istr-1,j)
-            cy=0.5*dtfwd*(v(istr-1,j,k,nrhs)+v(istr-1,j+1,k,nrhs))
-     &                                               *pn(istr-1,j)
+            cx=-dtfwd*u(Istr,j,k,nrhs)*pm(Istr-1,j)
+            cy=0.5*dtfwd*(v(Istr-1,j,k,nrhs)+v(Istr-1,j+1,k,nrhs))
+     &                                               *pn(Istr-1,j)
 
             if (cx.gt.0.) then
               tau=0.
@@ -98,45 +98,45 @@
               cx=0.
             endif
 
-            t(istr-1,j,k,nnew,itrc)=(1.-cx)*( t(istr-1,j,k,nstp,itrc)
-     &                                   -max(cy,0.)*grad(istr-1,j  )
-     &                                   -min(cy,0.)*grad(istr-1,j+1)
+            t(Istr-1,j,k,nnew,itrc)=(1.-cx)*( t(Istr-1,j,k,nstp,itrc)
+     &                                   -max(cy,0.)*grad(Istr-1,j  )
+     &                                   -min(cy,0.)*grad(Istr-1,j+1)
      &                                                              )
-     &                                  +cx*(  t(istr,j,k,nstp,itrc)
-     &                                     -max(cy,0.)*grad(istr,j  )
-     &                                     -min(cy,0.)*grad(istr,j+1)
+     &                                  +cx*(  t(Istr,j,k,nstp,itrc)
+     &                                     -max(cy,0.)*grad(Istr,j  )
+     &                                     -min(cy,0.)*grad(Istr,j+1)
      &                                                              )
 
 
 
 #   if defined T_FRC_BRY || defined TNUDGING
-            t(istr-1,j,k,nnew,itrc)=(1.-tau)*t(istr-1,j,k,nnew,itrc)
+            t(Istr-1,j,k,nnew,itrc)=(1.-tau)*t(Istr-1,j,k,nnew,itrc)
 #    ifdef T_FRC_BRY
      &                                    +tau*t_west(j,k,itrc)     
 #    else
-     &                                    +tau*tclm(istr-1,j,k,itrc)
+     &                                    +tau*tclm(Istr-1,j,k,itrc)
 #    endif
 #   endif
 #   ifdef MASKING
-            t(istr-1,j,k,nnew,itrc)=t(istr-1,j,k,nnew,itrc)
-     &                                      *rmask(istr-1,j)
+            t(Istr-1,j,k,nnew,itrc)=t(Istr-1,j,k,nnew,itrc)
+     &                                      *rmask(Istr-1,j)
 #   endif
           enddo
         enddo
 #  else
         do k=1,N
-          do j=jstr,jend
+          do j=Jstr,Jend
 #   if defined OBC_WEST && defined OBC_TSPECIFIED
 #    ifdef T_FRC_BRY
-            t(istr-1,j,k,nnew,itrc)=t_west(j,k,itrc)
+            t(Istr-1,j,k,nnew,itrc)=t_west(j,k,itrc)
 #    else
-            t(istr-1,j,k,nnew,itrc)=tclm(istr-1,j,k,itrc)
+            t(Istr-1,j,k,nnew,itrc)=tclm(Istr-1,j,k,itrc)
 #    endif
 #   else
-            t(istr-1,j,k,nnew,itrc)=t(istr,j,k,nnew,itrc)
+            t(Istr-1,j,k,nnew,itrc)=t(Istr,j,k,nnew,itrc)
 #   endif
 #   ifdef MASKING
-     &                                   *rmask(istr-1,j)
+     &                                   *rmask(Istr-1,j)
 #   endif
           enddo
         enddo
@@ -152,22 +152,22 @@
 !
 !                                        !  Eastern edge radiation BC
         do k=1,N                         !  ======= ==== ========= ==
-          do j=jstr,jend+1
-           grad(iend  ,j)=( t(iend  ,j  ,k,nstp,itrc)
-     &                     -t(iend  ,j-1,k,nstp,itrc))
+          do j=Jstr,Jend+1
+           grad(Iend  ,j)=( t(Iend  ,j  ,k,nstp,itrc)
+     &                     -t(Iend  ,j-1,k,nstp,itrc))
 #   ifdef MASKING
-     &                                  *vmask(iend,j)
+     &                                  *vmask(Iend,j)
 #   endif
-           grad(iend+1,j)=( t(iend+1,j  ,k,nstp,itrc)
-     &                     -t(iend+1,j-1,k,nstp,itrc))
+           grad(Iend+1,j)=( t(Iend+1,j  ,k,nstp,itrc)
+     &                     -t(Iend+1,j-1,k,nstp,itrc))
 #   ifdef MASKING
-     &                                *vmask(iend+1,j)
+     &                                *vmask(Iend+1,j)
 #   endif
           enddo
-          do j=jstr,jend
+          do j=Jstr,Jend
 /* --->
-            dft=t(iend,j,k,nstp,itrc)-t(iend  ,j,k,nnew,itrc)
-            dfx=t(iend,j,k,nnew,itrc)-t(iend-1,j,k,nnew,itrc)
+            dft=t(Iend,j,k,nstp,itrc)-t(Iend  ,j,k,nnew,itrc)
+            dfx=t(Iend,j,k,nnew,itrc)-t(Iend-1,j,k,nnew,itrc)
  
             if (dfx*dft .lt. 0.) then
               dft=0.                  ! <-- cancel, if inflow 
@@ -178,10 +178,10 @@
 #   endif
             endif
  
-            if (dft*(grad(iend,j)+grad(iend,j+1)) .gt. 0.) then
-              dfy=grad(iend,j)
+            if (dft*(grad(Iend,j)+grad(Iend,j+1)) .gt. 0.) then
+              dfy=grad(Iend,j)
             else
-              dfy=grad(iend,j+1)
+              dfy=grad(Iend,j+1)
             endif
  
 #   ifdef OBC_RAD_NORMAL
@@ -195,18 +195,18 @@
             cy=min(cff,max(dft*dfy,-cff))
 #   endif
  
-            t(iend+1,j,k,nnew,itrc)=( cff*t(iend+1,j,k,nstp,itrc)
-     &                                   +cx*t(iend,j,k,nnew,itrc)
-     &                                -max(cy,0.)*grad(iend+1,j  )
-     &                                -min(cy,0.)*grad(iend+1,j+1)
+            t(Iend+1,j,k,nnew,itrc)=( cff*t(Iend+1,j,k,nstp,itrc)
+     &                                   +cx*t(Iend,j,k,nnew,itrc)
+     &                                -max(cy,0.)*grad(Iend+1,j  )
+     &                                -min(cy,0.)*grad(Iend+1,j+1)
      &                                                 )/(cff+cx)
 
 ---> */
 
 
-            cx=dtfwd*u(iend+1,j,k,nrhs)*pm(iend+1,j)
-            cy=0.5*dtfwd*(v(iend+1,j,k,nrhs)+v(iend+1,j+1,k,nrhs))
-     &                                               *pn(iend+1,j)
+            cx=dtfwd*u(Iend+1,j,k,nrhs)*pm(Iend+1,j)
+            cy=0.5*dtfwd*(v(Iend+1,j,k,nrhs)+v(Iend+1,j+1,k,nrhs))
+     &                                               *pn(Iend+1,j)
           
             if (cx.gt.0.) then
               tau=0.
@@ -215,44 +215,44 @@
               cx=0.
             endif
 
-            t(iend+1,j,k,nnew,itrc)=(1.-cx)*( t(iend+1,j,k,nstp,itrc)
-     &                                   -max(cy,0.)*grad(iend+1,j  )
-     &                                   -min(cy,0.)*grad(iend+1,j+1)
+            t(Iend+1,j,k,nnew,itrc)=(1.-cx)*( t(Iend+1,j,k,nstp,itrc)
+     &                                   -max(cy,0.)*grad(Iend+1,j  )
+     &                                   -min(cy,0.)*grad(Iend+1,j+1)
      &                                                              )
-     &                                  +cx*(  t(iend,j,k,nnew,itrc)
-     &                                     -max(cy,0.)*grad(iend,j  )
-     &                                     -min(cy,0.)*grad(iend,j+1)
+     &                                  +cx*(  t(Iend,j,k,nnew,itrc)
+     &                                     -max(cy,0.)*grad(Iend,j  )
+     &                                     -min(cy,0.)*grad(Iend,j+1)
      &                                                              )
 
 
 #   if defined T_FRC_BRY || defined TNUDGING
-            t(iend+1,j,k,nnew,itrc)=(1.-tau)*t(iend+1,j,k,nnew,itrc)
+            t(Iend+1,j,k,nnew,itrc)=(1.-tau)*t(Iend+1,j,k,nnew,itrc)
 #    ifdef T_FRC_BRY
      &                                         +tau*t_east(j,k,itrc)
 #    else
-     &                                    +tau*tclm(iend+1,j,k,itrc)
+     &                                    +tau*tclm(Iend+1,j,k,itrc)
 #    endif
 #   endif
 #   ifdef MASKING
-            t(iend+1,j,k,nnew,itrc)=t(iend+1,j,k,nnew,itrc)
-     &                                     *rmask(iend+1,j)
+            t(Iend+1,j,k,nnew,itrc)=t(Iend+1,j,k,nnew,itrc)
+     &                                     *rmask(Iend+1,j)
 #   endif
           enddo
         enddo
 #  else
         do k=1,N
-          do j=jstr,jend
+          do j=Jstr,Jend
 #   if defined OBC_EAST && defined OBC_TSPECIFIED
 #    ifdef T_FRC_BRY
-            t(iend+1,j,k,nnew,itrc)=t_east(j,k,itrc) 
+            t(Iend+1,j,k,nnew,itrc)=t_east(j,k,itrc) 
 #    else
-            t(iend+1,j,k,nnew,itrc)=tclm(iend+1,j,k,itrc)
+            t(Iend+1,j,k,nnew,itrc)=tclm(Iend+1,j,k,itrc)
 #    endif
 #   else
-            t(iend+1,j,k,nnew,itrc)=t(iend,j,k,nnew,itrc)
+            t(Iend+1,j,k,nnew,itrc)=t(Iend,j,k,nnew,itrc)
 #   endif
 #   ifdef MASKING
-     &                                   *rmask(iend+1,j)
+     &                                   *rmask(Iend+1,j)
 #   endif
           enddo
         enddo
@@ -270,22 +270,22 @@
       if (SOUTHERN_EDGE) then
 #  if defined OBC_SOUTH && defined OBC_TORLANSKI
         do k=1,N
-          do i=istr,iend+1
-            grad(i,jstr  )=( t(i  ,jstr  ,k,nstp,itrc)
-     &                      -t(i-1,jstr  ,k,nstp,itrc))
+          do i=Istr,Iend+1
+            grad(i,Jstr  )=( t(i  ,Jstr  ,k,nstp,itrc)
+     &                      -t(i-1,Jstr  ,k,nstp,itrc))
 #   ifdef MASKING
-     &                                   *umask(i,jstr)
+     &                                   *umask(i,Jstr)
 #   endif
-            grad(i,jstr-1)=( t(i  ,jstr-1,k,nstp,itrc)
-     &                      -t(i-1,jstr-1,k,nstp,itrc))
+            grad(i,Jstr-1)=( t(i  ,Jstr-1,k,nstp,itrc)
+     &                      -t(i-1,Jstr-1,k,nstp,itrc))
 #   ifdef MASKING
-     &                                *umask(i,jstr-1)
+     &                                *umask(i,Jstr-1)
 #   endif
           enddo
-          do i=istr,iend
+          do i=Istr,Iend
 /* --->
-            dft=t(i,jstr,k,nstp,itrc)-t(i,jstr  ,k,nnew,itrc)
-            dfx=t(i,jstr,k,nnew,itrc)-t(i,jstr+1,k,nnew,itrc)
+            dft=t(i,Jstr,k,nstp,itrc)-t(i,Jstr  ,k,nnew,itrc)
+            dfx=t(i,Jstr,k,nnew,itrc)-t(i,Jstr+1,k,nnew,itrc)
  
             if (dfx*dft .lt. 0.) then
               dft=0.                   ! <-- cancel, if inflow 
@@ -296,10 +296,10 @@
 #   endif
             endif
  
-            if (dft*(grad(i,jstr)+grad(i+1,jstr)) .gt. 0.) then
-              dfy=grad(i,jstr)
+            if (dft*(grad(i,Jstr)+grad(i+1,Jstr)) .gt. 0.) then
+              dfy=grad(i,Jstr)
             else
-              dfy=grad(i+1,jstr)
+              dfy=grad(i+1,Jstr)
             endif
  
 #   ifdef OBC_RAD_NORMAL
@@ -313,18 +313,18 @@
             cy=min(cff,max(dft*dfy,-cff))
 #   endif
  
-            t(i,jstr-1,k,nnew,itrc)=( cff*t(i,jstr-1,k,nstp,itrc)
-     &                                   +cx*t(i,jstr,k,nnew,itrc)
-     &                                -max(cy,0.)*grad(i  ,jstr-1)
-     &                                -min(cy,0.)*grad(i+1,jstr-1)
+            t(i,Jstr-1,k,nnew,itrc)=( cff*t(i,Jstr-1,k,nstp,itrc)
+     &                                   +cx*t(i,Jstr,k,nnew,itrc)
+     &                                -max(cy,0.)*grad(i  ,Jstr-1)
+     &                                -min(cy,0.)*grad(i+1,Jstr-1)
      &                                                 )/(cff+cx)
 
 ---> */
 
 
-            cx=-dtfwd*v(i,jstr,k,nrhs)*pn(i,jstr-1)
-            cy=0.5*dtfwd*(u(i,jstr-1,k,nrhs)+u(i+1,jstr-1,k,nrhs))
-     &                                            *pm(i,jstr-1)
+            cx=-dtfwd*v(i,Jstr,k,nrhs)*pn(i,Jstr-1)
+            cy=0.5*dtfwd*(u(i,Jstr-1,k,nrhs)+u(i+1,Jstr-1,k,nrhs))
+     &                                            *pm(i,Jstr-1)
 
             if (cx.gt.0.) then
               tau=0.
@@ -333,44 +333,44 @@
               cx=0.
             endif
 
-            t(i,jstr-1,k,nnew,itrc)=(1.-cx)*( t(i,jstr-1,k,nstp,itrc)
-     &                                   -max(cy,0.)*grad(i  ,jstr-1)
-     &                                   -min(cy,0.)*grad(i+1,jstr-1)
+            t(i,Jstr-1,k,nnew,itrc)=(1.-cx)*( t(i,Jstr-1,k,nstp,itrc)
+     &                                   -max(cy,0.)*grad(i  ,Jstr-1)
+     &                                   -min(cy,0.)*grad(i+1,Jstr-1)
      &                                                              )
-     &                                  +cx*(  t(i,jstr,k,nstp,itrc)
-     &                                     -max(cy,0.)*grad(i  ,jstr)
-     &                                     -min(cy,0.)*grad(i+1,jstr)
+     &                                  +cx*(  t(i,Jstr,k,nstp,itrc)
+     &                                     -max(cy,0.)*grad(i  ,Jstr)
+     &                                     -min(cy,0.)*grad(i+1,Jstr)
      &                                                              )
 
 
 #   if defined T_FRC_BRY || defined TNUDGING
-            t(i,jstr-1,k,nnew,itrc)=(1.-tau)*t(i,jstr-1,k,nnew,itrc)
+            t(i,Jstr-1,k,nnew,itrc)=(1.-tau)*t(i,Jstr-1,k,nnew,itrc)
 #    ifdef T_FRC_BRY
      &                                        +tau*t_south(i,k,itrc)
 #    else
-     &                                    +tau*tclm(i,jstr-1,k,itrc)
+     &                                    +tau*tclm(i,Jstr-1,k,itrc)
 #    endif
 #   endif
 #   ifdef MASKING
-            t(i,jstr-1,k,nnew,itrc)=t(i,jstr-1,k,nnew,itrc)
-     &                                     *rmask(i,jstr-1)
+            t(i,Jstr-1,k,nnew,itrc)=t(i,Jstr-1,k,nnew,itrc)
+     &                                     *rmask(i,Jstr-1)
 #   endif
           enddo
         enddo
 #  else
         do k=1,N
-          do i=istr,iend
+          do i=Istr,Iend
 #   if defined OBC_SOUTH && defined OBC_TSPECIFIED
 #    ifdef T_FRC_BRY
-            t(i,jstr-1,k,nnew,itrc)=t_south(i,k,itrc)
+            t(i,Jstr-1,k,nnew,itrc)=t_south(i,k,itrc)
 #    else
-            t(i,jstr-1,k,nnew,itrc)=tclm(i,jstr-1,k,itrc)
+            t(i,Jstr-1,k,nnew,itrc)=tclm(i,Jstr-1,k,itrc)
 #    endif
 #   else
-            t(i,jstr-1,k,nnew,itrc)=t(i,jstr,k,nnew,itrc)
+            t(i,Jstr-1,k,nnew,itrc)=t(i,Jstr,k,nnew,itrc)
 #   endif
 #   ifdef MASKING
-     &                                   *rmask(i,jstr-1)
+     &                                   *rmask(i,Jstr-1)
 #   endif
           enddo
         enddo
@@ -381,22 +381,22 @@
       if (NORTHERN_EDGE) then
 #  if defined OBC_NORTH && defined OBC_TORLANSKI
         do k=1,N
-          do i=istr,iend+1
-            grad(i,jend  )=( t(i  ,jend  ,k,nstp,itrc)
-     &                      -t(i-1,jend  ,k,nstp,itrc))
+          do i=Istr,Iend+1
+            grad(i,Jend  )=( t(i  ,Jend  ,k,nstp,itrc)
+     &                      -t(i-1,Jend  ,k,nstp,itrc))
 #   ifdef MASKING
-     &                                   *umask(i,jend)
+     &                                   *umask(i,Jend)
 #   endif
-            grad(i,jend+1)=( t(i  ,jend+1,k,nstp,itrc)
-     &                      -t(i-1,jend+1,k,nstp,itrc))
+            grad(i,Jend+1)=( t(i  ,Jend+1,k,nstp,itrc)
+     &                      -t(i-1,Jend+1,k,nstp,itrc))
 #   ifdef MASKING
-     &                                 *umask(i,jend+1)
+     &                                 *umask(i,Jend+1)
 #   endif
           enddo
-          do i=istr,iend
+          do i=Istr,Iend
 /* --->
-            dft=t(i,jend,k,nstp,itrc)-t(i,jend  ,k,nnew,itrc)
-            dfx=t(i,jend,k,nnew,itrc)-t(i,jend-1,k,nnew,itrc)
+            dft=t(i,Jend,k,nstp,itrc)-t(i,Jend  ,k,nnew,itrc)
+            dfx=t(i,Jend,k,nnew,itrc)-t(i,Jend-1,k,nnew,itrc)
  
             if (dfx*dft .lt. 0.) then
               dft=0.                          ! <-- cancel, if inflow 
@@ -407,10 +407,10 @@
 #   endif
             endif
  
-            if (dft*(grad(i,jend)+grad(i+1,jend)) .gt. 0.) then
-              dfy=grad(i,jend)
+            if (dft*(grad(i,Jend)+grad(i+1,Jend)) .gt. 0.) then
+              dfy=grad(i,Jend)
             else
-              dfy=grad(i+1,jend)
+              dfy=grad(i+1,Jend)
             endif
  
 #   ifdef OBC_RAD_NORMAL
@@ -423,16 +423,16 @@
 #   else
             cy=min(cff,max(dft*dfy,-cff))
 #   endif
-            t(i,jend+1,k,nnew,itrc)=( cff*t(i,jend+1,k,nstp,itrc)
-     &                                 +cx*t(i,jend  ,k,nnew,itrc)
-     &                                -max(cy,0.)*grad(i  ,jend+1)
-     &                                -min(cy,0.)*grad(i+1,jend+1)
+            t(i,Jend+1,k,nnew,itrc)=( cff*t(i,Jend+1,k,nstp,itrc)
+     &                                 +cx*t(i,Jend  ,k,nnew,itrc)
+     &                                -max(cy,0.)*grad(i  ,Jend+1)
+     &                                -min(cy,0.)*grad(i+1,Jend+1)
      &                                                 )/(cff+cx)
 
 ---> */
-            cx=dtfwd*v(i,jend+1,k,nrhs)*pn(i,jend+1)
-            cy=0.5*dtfwd*(u(i,jend+1,k,nrhs)+u(i+1,jend+1,k,nrhs))
-     &                                            *pm(i,jend+1)
+            cx=dtfwd*v(i,Jend+1,k,nrhs)*pn(i,Jend+1)
+            cy=0.5*dtfwd*(u(i,Jend+1,k,nrhs)+u(i+1,Jend+1,k,nrhs))
+     &                                            *pm(i,Jend+1)
 
             if (cx.gt.0.) then
               tau=0.
@@ -441,13 +441,13 @@
               cx=0.
             endif
 
-            t(i,jend+1,k,nnew,itrc)=(1.-cx)*( t(i,jend+1,k,nstp,itrc)
-     &                                   -max(cy,0.)*grad(i  ,jend+1)
-     &                                   -min(cy,0.)*grad(i+1,jend+1)
+            t(i,Jend+1,k,nnew,itrc)=(1.-cx)*( t(i,Jend+1,k,nstp,itrc)
+     &                                   -max(cy,0.)*grad(i  ,Jend+1)
+     &                                   -min(cy,0.)*grad(i+1,Jend+1)
      &                                                              )
-     &                                  +cx*(  t(i,jend,k,nnew,itrc)
-     &                                     -max(cy,0.)*grad(i  ,jend)
-     &                                     -min(cy,0.)*grad(i+1,jend)
+     &                                  +cx*(  t(i,Jend,k,nnew,itrc)
+     &                                     -max(cy,0.)*grad(i  ,Jend)
+     &                                     -min(cy,0.)*grad(i+1,Jend)
      &                                                              )
 
 
@@ -455,33 +455,33 @@
 
 
 #   if defined T_FRC_BRY || defined TNUDGING
-            t(i,jend+1,k,nnew,itrc)=(1.-tau)*t(i,jend+1,k,nnew,itrc)
+            t(i,Jend+1,k,nnew,itrc)=(1.-tau)*t(i,Jend+1,k,nnew,itrc)
 #    ifdef T_FRC_BRY
      &                                        +tau*t_north(i,k,itrc)
 #    else
-     &                                    +tau*tclm(i,jend+1,k,itrc)
+     &                                    +tau*tclm(i,Jend+1,k,itrc)
 #    endif
 #   endif
 #   ifdef MASKING
-            t(i,jend+1,k,nnew,itrc)=t(i,jend+1,k,nnew,itrc)
-     &                                     *rmask(i,jend+1)
+            t(i,Jend+1,k,nnew,itrc)=t(i,Jend+1,k,nnew,itrc)
+     &                                     *rmask(i,Jend+1)
 #   endif
           enddo
         enddo
 #  else
         do k=1,N
-          do i=istr,iend
+          do i=Istr,Iend
 #   if defined OBC_NORTH && defined OBC_TSPECIFIED
 #    ifdef T_FRC_BRY
-            t(i,jend+1,k,nnew,itrc)=t_north(i,k,itrc)
+            t(i,Jend+1,k,nnew,itrc)=t_north(i,k,itrc)
 #    else
-            t(i,jend+1,k,nnew,itrc)=tclm(i,jend+1,k,itrc)
+            t(i,Jend+1,k,nnew,itrc)=tclm(i,Jend+1,k,itrc)
 #    endif
 #   else
-            t(i,jend+1,k,nnew,itrc)=t(i,jend,k,nnew,itrc)
+            t(i,Jend+1,k,nnew,itrc)=t(i,Jend,k,nnew,itrc)
 #   endif
 #   ifdef MASKING
-     &                                   *rmask(i,jend+1)
+     &                                   *rmask(i,Jend+1)
 #   endif
           enddo
         enddo
@@ -502,92 +502,92 @@
 #  ifndef NS_PERIODIC
       if (SOUTHERN_EDGE .and. WESTERN_EDGE) then
 #   ifdef MASKING
-        cff=rmask(istr,jstr-1)+rmask(istr-1,jstr)
+        cff=rmask(Istr,Jstr-1)+rmask(Istr-1,Jstr)
         if (cff.gt.0.) then
           cff=1./cff
           do k=1,N
-            t(istr-1,jstr-1,k,nnew,itrc)=cff*(
-     &              rmask(istr,jstr-1)*t(istr,jstr-1,k,nnew,itrc)
-     &             +rmask(istr-1,jstr)*t(istr-1,jstr,k,nnew,itrc))
+            t(Istr-1,Jstr-1,k,nnew,itrc)=cff*(
+     &              rmask(Istr,Jstr-1)*t(Istr,Jstr-1,k,nnew,itrc)
+     &             +rmask(Istr-1,Jstr)*t(Istr-1,Jstr,k,nnew,itrc))
           enddo
         else
           do k=1,N
-            t(istr-1,jstr-1,k,nnew,itrc)=0.
+            t(Istr-1,Jstr-1,k,nnew,itrc)=0.
           enddo
         endif
 #   else
         do k=1,N
-          t(istr-1,jstr-1,k,nnew,itrc)=0.5*( t(istr,jstr-1,k,nnew,
-     &                           itrc)+t(istr-1,jstr,k,nnew,itrc))
+          t(Istr-1,Jstr-1,k,nnew,itrc)=0.5*( t(Istr,Jstr-1,k,nnew,
+     &                           itrc)+t(Istr-1,Jstr,k,nnew,itrc))
         enddo
 #   endif
       endif
 
       if (SOUTHERN_EDGE .and. EASTERN_EDGE) then
 #   ifdef MASKING
-        cff=rmask(iend,jstr-1)+rmask(iend+1,jstr)
+        cff=rmask(Iend,Jstr-1)+rmask(Iend+1,Jstr)
         if (cff.gt.0.) then
           cff=1./cff
           do k=1,N
-            t(iend+1,jstr-1,k,nnew,itrc)=cff*(
-     &              rmask(iend,jstr-1)*t(iend,jstr-1,k,nnew,itrc)
-     &             +rmask(iend+1,jstr)*t(iend+1,jstr,k,nnew,itrc))
+            t(Iend+1,Jstr-1,k,nnew,itrc)=cff*(
+     &              rmask(Iend,Jstr-1)*t(Iend,Jstr-1,k,nnew,itrc)
+     &             +rmask(Iend+1,Jstr)*t(Iend+1,Jstr,k,nnew,itrc))
           enddo
         else
           do k=1,N
-            t(iend+1,jstr-1,k,nnew,itrc)=0.
+            t(Iend+1,Jstr-1,k,nnew,itrc)=0.
           enddo
         endif
 #   else
         do k=1,N
-          t(iend+1,jstr-1,k,nnew,itrc)=0.5*(t(iend,jstr-1,k,nnew,
-     &                           itrc)+t(iend+1,jstr,k,nnew,itrc))
+          t(Iend+1,Jstr-1,k,nnew,itrc)=0.5*(t(Iend,Jstr-1,k,nnew,
+     &                           itrc)+t(Iend+1,Jstr,k,nnew,itrc))
         enddo
 #   endif
       endif
 
       if (NORTHERN_EDGE .and. WESTERN_EDGE) then
 #   ifdef MASKING
-        cff=rmask(istr,jend+1)+rmask(istr-1,jend)
+        cff=rmask(Istr,Jend+1)+rmask(Istr-1,Jend)
         if (cff.gt.0.) then
           cff=1./cff
           do k=1,N
-            t(istr-1,jend+1,k,nnew,itrc)=cff*(
-     &              rmask(istr,jend+1)*t(istr,jend+1,k,nnew,itrc)
-     &             +rmask(istr-1,jend)*t(istr-1,jend,k,nnew,itrc))
+            t(Istr-1,Jend+1,k,nnew,itrc)=cff*(
+     &              rmask(Istr,Jend+1)*t(Istr,Jend+1,k,nnew,itrc)
+     &             +rmask(Istr-1,Jend)*t(Istr-1,Jend,k,nnew,itrc))
           enddo
         else
           do k=1,N
-            t(istr-1,jend+1,k,nnew,itrc)=0.
+            t(Istr-1,Jend+1,k,nnew,itrc)=0.
           enddo
         endif
 #   else
         do k=1,N
-          t(istr-1,jend+1,k,nnew,itrc)=0.5*( t(istr,jend+1,k,nnew,
-     &                           itrc)+t(istr-1,jend,k,nnew,itrc))
+          t(Istr-1,Jend+1,k,nnew,itrc)=0.5*( t(Istr,Jend+1,k,nnew,
+     &                           itrc)+t(Istr-1,Jend,k,nnew,itrc))
         enddo
 #   endif
       endif
 
       if (NORTHERN_EDGE .and. EASTERN_EDGE) then
 #   ifdef MASKING
-        cff=rmask(iend,jend+1)+rmask(iend+1,jend)
+        cff=rmask(Iend,Jend+1)+rmask(Iend+1,Jend)
         if (cff.gt.0.) then
           cff=1./cff
           do k=1,N
-            t(iend+1,jend+1,k,nnew,itrc)=cff*(
-     &              rmask(iend,jend+1)*t(iend,jend+1,k,nnew,itrc)
-     &             +rmask(iend+1,jend)*t(iend+1,jend,k,nnew,itrc))
+            t(Iend+1,Jend+1,k,nnew,itrc)=cff*(
+     &              rmask(Iend,Jend+1)*t(Iend,Jend+1,k,nnew,itrc)
+     &             +rmask(Iend+1,Jend)*t(Iend+1,Jend,k,nnew,itrc))
           enddo
         else
           do k=1,N
-            t(iend+1,jend+1,k,nnew,itrc)=0.
+            t(Iend+1,Jend+1,k,nnew,itrc)=0.
           enddo
         endif
 #   else
         do k=1,N
-          t(iend+1,jend+1,k,nnew,itrc)=0.5*( t(iend,jend+1,k,nnew,
-     &                           itrc)+t(iend+1,jend,k,nnew,itrc))
+          t(Iend+1,Jend+1,k,nnew,itrc)=0.5*( t(Iend,Jend+1,k,nnew,
+     &                           itrc)+t(Iend+1,Jend,k,nnew,itrc))
         enddo
 #   endif
       endif

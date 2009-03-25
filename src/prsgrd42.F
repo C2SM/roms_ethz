@@ -7,17 +7,17 @@
 # include "param.h"
 # include "private_scratch.h"
 # include "compute_tile_bounds.h"
-      call prsgrd42_tile (istr,iend,jstr,jend,  A3d(1,1), A3d(1,2),
+      call prsgrd42_tile (Istr,Iend,Jstr,Jend,  A3d(1,1), A3d(1,2),
      &                      A3d(1,3), A3d(1,4), A3d(1,5), A2d(1,1),
      &                      A2d(1,2), A2d(1,3), A2d(1,4), A2d(1,5))
       return
       end
  
-      subroutine prsgrd42_tile (istr,iend,jstr,jend, ru,rv, P,r,FX,
+      subroutine prsgrd42_tile (Istr,Iend,Jstr,Jend, ru,rv, P,r,FX,
      &                                              FC,aR,dR,aL,dL)
  
       implicit none
-      integer istr,iend,jstr,jend, i,j,k
+      integer Istr,Iend,Jstr,Jend, i,j,k
 # include "param.h"
       real ru(PRIVATE_2D_SCRATCH_ARRAY, N),  Zero, Half,
      &     rv(PRIVATE_2D_SCRATCH_ARRAY,  N), One,  ThreeHalfth,
@@ -44,20 +44,20 @@ c--#define NEUMANN
 !
 ! Parabolic WENO reconstruction: The second and third loops below
 !---------- ---- --------------- compute left and right side limits
-! aL,aR of the field rho assuming monotonized parabolic distributions
+! aL,aR of the field rho assuming monotonized parabolic dIstributions
 ! within each grid box. Also computed are dL,dR, which are then used
 ! as a measure of quadratic variation during sabsequent WENO
 ! reconciliation of side limits.
 !
-      do j=jstrV-2,jend+1
+      do j=JstrV-2,Jend+1
         do k=N-1,1,-1
-          do i=istrU-2,iend+1
+          do i=IstrU-2,Iend+1
             FC(i,k)=(rho(i,j,k+1)-rho(i,j,k))/(Hz(i,j,k+1)+Hz(i,j,k))
           enddo
         enddo
  
         do k=2,N-1
-          do i=istrU-2,iend+1
+          do i=IstrU-2,Iend+1
             deltaR=Hz(i,j,k)*FC(i,k)
             deltaL=Hz(i,j,k)*FC(i,k-1)
  
@@ -83,7 +83,7 @@ c--#define NEUMANN
           enddo
         enddo
  
-        do i=istrU-2,iend+1
+        do i=IstrU-2,Iend+1
           aL(i,N)=aR(i,N-1)
           aR(i,N)=Two*rho(i,j,N)-aL(i,N)
  
@@ -98,7 +98,7 @@ c--#define NEUMANN
         enddo
  
         do k=1,N-1
-          do i=istrU-2,iend+1
+          do i=IstrU-2,Iend+1
              deltaL=max(dL(i,k),epsil)
              deltaR=max(dR(i,k+1),epsil)
              r(i,j,k)=(deltaR*aR(i,k)+deltaL*aL(i,k+1))
@@ -106,7 +106,7 @@ c--#define NEUMANN
           enddo
         enddo
  
-        do i=istrU-2,iend+1
+        do i=IstrU-2,Iend+1
 #ifdef NEUMANN
           r(i,j,N)=ThreeHalfth*rho(i,j,N)-Half*r(i,j,N-1)
           r(i,j,0)=ThreeHalfth*rho(i,j,1)-Half*r(i,j,1)
@@ -118,11 +118,11 @@ c--#define NEUMANN
 !
 ! (2) Compute pressure P and lateral pressure force FX:
 !
-        do i=istrU-2,iend+1 !--> set pressure at free surface,
+        do i=IstrU-2,Iend+1 !--> set pressure at free surface,
           P(i,j,N)=Zero     !    initialize vertical integration
         enddo
         do k=N,1,-1
-          do i=istrU-2,iend+1
+          do i=IstrU-2,Iend+1
             P(i,j,k-1)=P(i,j,k)+Hz(i,j,k)*rho(i,j,k)
  
             deltaR=r(i,j,k)-rho(i,j,k)
@@ -145,12 +145,12 @@ c--#define NEUMANN
 ! (3) Compute net horizontal (along geopetential) XI- and
 ! ETA-components of pressure gradients
 !
-        if (j.ge.jstr .and. j.le.jend) then
-          do i=istrU-1,iend+1
+        if (j.ge.Jstr .and. j.le.Jend) then
+          do i=IstrU-1,Iend+1
             FC(i,N)=Zero      !--> set pressure at free surface.
           enddo
           do k=N,1,-1
-            do i=istrU-1,iend+1
+            do i=IstrU-1,Iend+1
               dP=P(i-1,j,k-1)-P(i,j,k-1)
               dh=z_w(i,j,k-1)-z_w(i-1,j,k-1)
  
@@ -178,12 +178,12 @@ c--#define NEUMANN
           enddo        !--> discard FC, keep ru,FX
         endif
  
-        if (j.ge.jstrV-1) then
-          do i=istr,iend
+        if (j.ge.JstrV-1) then
+          do i=Istr,Iend
             FC(i,N)=Zero    !--> set pressure at free surface.
           enddo
           do k=N,1,-1
-            do i=istr,iend
+            do i=Istr,Iend
               dP=P(i,j-1,k-1)-P(i,j,k-1)
               dh=z_w(i,j,k-1)-z_w(i,j-1,k-1)
  
@@ -238,9 +238,9 @@ c--#define NEUMANN
       rr=g/(24.*rho0)
       cff=0.5*g
       cff1=0.5*g/rho0
-      do j=jstr,jend
+      do j=Jstr,Jend
         do k=N-1,1,-1
-          do i=istrU,iend
+          do i=IstrU,Iend
             dh=rr*(z_w(i,j,k)-z_w(i-1,j,k))
             FC(i,  k)=max(dh,Zero)*( ru(i,j,k+1) +ru(i+1,j,k)
      &                              -ru(i,j,k) -ru(i-1,j,k+1))
@@ -248,14 +248,14 @@ c--#define NEUMANN
      &                              -ru(i,j,k+1) -ru(i-1,j,k))
           enddo
         enddo
-        do i=istrU,iend
+        do i=IstrU,Iend
           FC(i,N)=0.
           dh=rr*(z_w(i,j,0)-z_w(i-1,j,0))
           FC(i,0)=max(dh,Zero)*(ru(i,j,1) -ru(i-1,j,1))
      &           +min(dh,Zero)*(ru(i+1,j,1) -ru(i,j,1))
         enddo
         do k=1,N
-          do i=istrU,iend
+          do i=IstrU,Iend
             ru(i,j,k)=( (Hz(i-1,j,k)+Hz(i,j,k))*(
      &         cff*(z_w(i-1,j,N)-z_w(i,j,N)) + cff1*ru(i,j,k)
      &                      ) + FC(i,k)-FC(i,k-1) )*dn_u(i,j)
@@ -263,9 +263,9 @@ c--#define NEUMANN
         enddo
       enddo
  
-      do j=jstrV,jend
+      do j=JstrV,Jend
         do k=N-1,1,-1
-          do i=istr,iend
+          do i=Istr,Iend
             dh=rr*(z_w(i,j,k)-z_w(i,j-1,k))
             FX(i,j,k)=max(dh,Zero)*( rv(i,j,k+1) +rv(i+1,j,k)
      &                              -rv(i,j,k) -rv(i,j-1,k+1))
@@ -273,16 +273,16 @@ c--#define NEUMANN
      &                              -rv(i,j,k+1) -rv(i,j-1,k))
           enddo
         enddo
-        do i=istr,iend
+        do i=Istr,Iend
           FX(i,j,N)=0.
           dh=rr*(z_w(i,j,0)-z_w(i,j-1,0))
           FX(i,j,0)=max(dh,Zero)*(rv(i,j,1) -rv(i,j-1,1))
      &             +min(dh,Zero)*(rv(i+1,j,1) -rv(i,j,1))
         enddo
       enddo
-      do j=jstrV,jend
+      do j=JstrV,Jend
         do k=1,N
-          do i=istr,iend
+          do i=Istr,Iend
             rv(i,j,k)=( (Hz(i,j-1,k)+Hz(i,j,k))*(
      &         cff*(z_w(i,j-1,N)-z_w(i,j,N)) + cff1*rv(i,j,k)
      &                  ) + FX(i,j,k)-FX(i,j,k-1) )*dm_v(i,j)

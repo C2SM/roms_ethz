@@ -14,7 +14,7 @@
 ! Tsrc       Tracer (tracer units) point Sources/Sinks.
 ! TsrcG      Latest two-time snapshots of tracer (tracer units)
 !              point Sources/Sinks.
-! Qshape     Nondimensional shape function to distribute mass
+! Qshape     Nondimensional shape function to dIstribute mass
 !             ass point Sources/Sinks vertically.
 !
       real Qbar(Msrc), Qsrc(Msrc,N),  Qshape(Msrc,N),

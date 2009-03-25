@@ -125,9 +125,9 @@
  
  
  
-      subroutine set_smflux_tile (istr,iend,jstr,jend, ierr)
+      subroutine set_smflux_tile (Istr,Iend,Jstr,Jend, ierr)
       implicit none
-      integer istr,iend,jstr,jend, ierr, i,j, it1,it2
+      integer Istr,Iend,Jstr,Jend, ierr, i,j, it1,it2
       real cff, cff1,cff2
 # define SMFLUX_DATA
 # include "param.h"
@@ -156,8 +156,8 @@
       if (ntsms.eq.1) then                ! Load time-invariant
         if (iic.eq.ntstart) then          ! wind stress components
           cff=1./rho0
-          do j=jstrR,jendR
-            do i=IstR,iendR
+          do j=JstrR,JendR
+            do i=IstR,IendR
               sustr(i,j)=cff*sustrg(i,j,itsms)
               svstr(i,j)=cff*svstrg(i,j,itsms)
             enddo                                ! Interpolate wind
@@ -167,8 +167,8 @@
         cff=1./(rho0*(cff1+cff2))                ! to [m^2/s^2], i.e.
         cff1=cff1*cff                            ! converting it into
         cff2=cff2*cff                            ! kinematic momentum
-        do j=jstrR,jendR                         ! flux.
-          do i=istrR,iendR
+        do j=JstrR,JendR                         ! flux.
+          do i=IstrR,IendR
             sustr(i,j)=cff1*sustrg(i,j,it1)+cff2*sustrg(i,j,it2)
             svstr(i,j)=cff1*svstrg(i,j,it1)+cff2*svstrg(i,j,it2)
           enddo

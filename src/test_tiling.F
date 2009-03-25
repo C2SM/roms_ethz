@@ -16,12 +16,12 @@
       endif
       if (tile .lt. NSUB_X*NSUB_E) then
         if (j_E.eq.0) then
-          write(*,'(9I5)') tile, i_X, margin_X, iend-istr+1,
-     &                                 istr,iend, Lm,NSUB_X
-          if (iend.eq.Lm) write(*,*)
+          write(*,'(9I5)') tile, i_X, margin_X, Iend-Istr+1,
+     &                                 Istr,Iend, Lm,NSUB_X
+          if (Iend.eq.Lm) write(*,*)
 c        elseif (i_X.eq.0) then
-c          write(*,'(9I5)') tile, j_E, margin_E, jend-jstr+1,
-c     &                               jstr,jend, Mm,NSUB_E
+c          write(*,'(9I5)') tile, j_E, margin_E, Jend-Jstr+1,
+c     &                               Jstr,Jend, Mm,NSUB_E
         endif
       endif
       return

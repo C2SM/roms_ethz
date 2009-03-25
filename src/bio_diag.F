@@ -5,13 +5,13 @@
       integer tile
 # include "param.h"
 # include "compute_tile_bounds.h"
-      call bio_diag_tile  (istr,iend,jstr,jend)
+      call bio_diag_tile  (Istr,Iend,Jstr,Jend)
       return
       end
  
-      subroutine bio_diag_tile (istr,iend,jstr,jend)
+      subroutine bio_diag_tile (Istr,Iend,Jstr,Jend)
       implicit none
-      integer istr,iend,jstr,jend, i,j,k,itrc, iocheck
+      integer Istr,Iend,Jstr,Jend, i,j,k,itrc, iocheck
 #include "param.h"
       real cff1, NSUB
       real*QUAD cff, my_sum(0:2*NT+1)
@@ -48,8 +48,8 @@
           my_sum(2*itrc  )=0.          ! <-- Reset local sums
           my_sum(2*itrc+1)=0.
         enddo
-        do j=jstr,jend
-         do i=istr,iend
+        do j=Jstr,Jend
+         do i=Istr,Iend
 #ifdef MASKING
            !cff1=ds*rmask(i,j)/(pm(i,j)*pn(i,j))  ! <-- grid box area
            cff1=rmask(i,j)/(pm(i,j)*pn(i,j))  ! <-- grid box area
@@ -136,10 +136,12 @@ C$OMP CRITICAL (bio_cr_rgn)
             enddo
  
             cff=global_sum(13) + global_sum(15)
- 
-            write(stdout,2) iic-1,tdays, cff, global_sum(7),
-     &                    global_sum(9), global_sum(11), proc(2)
-   2        format(I6, F12.5, 1PE16.9, 3(1PE14.7), I3)
+
+c JDS These lines were commented in order to increase  simulations
+c   speed            
+c            write(stdout,2) iic-1,tdays, cff, global_sum(7),
+c     &                    global_sum(9), global_sum(11), proc(2)
+c   2        format(I6, F12.5, 1PE16.9, 3(1PE14.7), I3)
  
 #ifdef  ETALON_CHECK
             do icheck=1,ncheck

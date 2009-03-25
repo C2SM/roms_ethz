@@ -7,7 +7,7 @@ c--#define SMOOTH_HBL
 c--#define LIMIT_UNSTABLE_ONLY
 
  
-      subroutine lmd_kpp_tile (istr,iend,jstr,jend, Kv,Kt,Ks, Rib,
+      subroutine lmd_kpp_tile (Istr,Iend,Jstr,Jend, Kv,Kt,Ks, Rib,
      &                         ustar, hbl,srf_dpth, Bo,Bosol, Bfsfc,
      &                         Gm1,dGm1dS,  Gt1,dGt1dS,  Gs1,dGs1dS,
      &                                           zscale,ws,wm,
@@ -21,7 +21,7 @@ c--#define LIMIT_UNSTABLE_ONLY
 # include "scalars.h"
 # define tind nstp
 
-      integer istr,iend,jstr,jend, imin,imax,jmin,jmax, i,j,k, itrc
+      integer Istr,Iend,Jstr,Jend, imin,imax,jmin,jmax, i,j,k, itrc
       real Kv(PRIVATE_2D_SCRATCH_ARRAY,0:N),
      &     Kt(PRIVATE_2D_SCRATCH_ARRAY,0:N),
      &     Ks(PRIVATE_2D_SCRATCH_ARRAY,0:N),
@@ -97,40 +97,40 @@ c--#define LIMIT_UNSTABLE_ONLY
 
 # ifdef SMOOTH_HBL
 #  ifdef EW_PERIODIC
-      imin=istr-1
-      imax=iend+1
+      imin=Istr-1
+      imax=Iend+1
 #  else
       if (WESTERN_EDGE) then
-        imin=istr
+        imin=Istr
       else
-        imin=istr-1
+        imin=Istr-1
       endif
       if (EASTERN_EDGE) then
-        imax=iend
+        imax=Iend
       else
-        imax=iend+1
+        imax=Iend+1
       endif
 #  endif
 #  ifdef NS_PERIODIC
-      jmin=jstr-1
-      jmax=jend+1
+      jmin=Jstr-1
+      jmax=Jend+1
 #  else
       if (SOUTHERN_EDGE) then
-        jmin=jstr
+        jmin=Jstr
       else
-        jmin=jstr-1
+        jmin=Jstr-1
       endif
       if (NORTHERN_EDGE) then
-        jmax=jend
+        jmax=Jend
       else
-        jmax=jend+1
+        jmax=Jend+1
       endif
 #  endif
 # else
-      imin=istr
-      imax=iend
-      jmin=jstr
-      jmax=jend
+      imin=Istr
+      imax=Iend
+      jmin=Jstr
+      jmax=Jend
 # endif
 # define I_EXT_RANGE imin,imax
 # define J_EXT_RANGE jmin,jmax
@@ -150,7 +150,7 @@ c--#define LIMIT_UNSTABLE_ONLY
 !
 #define alpha wm 
 #define beta  ws 
-      call alfabeta_tile (istr,iend,jstr,jend, I_EXT_RANGE,
+      call alfabeta_tile (Istr,Iend,Jstr,Jend, I_EXT_RANGE,
      &                             J_EXT_RANGE, alpha,beta)
       do j=J_EXT_RANGE
         do i=I_EXT_RANGE
@@ -209,7 +209,7 @@ c--#define LIMIT_UNSTABLE_ONLY
             zscale(i,j)=z_w(i,j,N)-z_r(i,j,k)
           enddo
         enddo
-        call lmd_swfrac_tile (istr,iend,jstr,jend, I_EXT_RANGE,
+        call lmd_swfrac_tile (Istr,Iend,Jstr,Jend, I_EXT_RANGE,
      &                                J_EXT_RANGE, zscale,swdk)
         do j=J_EXT_RANGE
           do i=I_EXT_RANGE
@@ -225,7 +225,7 @@ c--#define LIMIT_UNSTABLE_ONLY
           enddo
         enddo
 
-        call lmd_wscale_tile (istr,iend,jstr,jend, I_EXT_RANGE,
+        call lmd_wscale_tile (Istr,Iend,Jstr,Jend, I_EXT_RANGE,
      &                J_EXT_RANGE, ustar, Bfsfc, zscale, wm,ws)
         cff=g/rho0
         do j=J_EXT_RANGE
@@ -293,7 +293,7 @@ c--#define LIMIT_UNSTABLE_ONLY
             zscale(i,j)=z_w(i,j,N)-z_r(i,j,k)
           enddo
         enddo
-        call lmd_swfrac_tile (istr,iend,jstr,jend, I_EXT_RANGE,
+        call lmd_swfrac_tile (Istr,Iend,Jstr,Jend, I_EXT_RANGE,
      &                                J_EXT_RANGE, zscale,swdk)
         do j=J_EXT_RANGE
           do i=I_EXT_RANGE
@@ -329,7 +329,7 @@ c--#define LIMIT_UNSTABLE_ONLY
         enddo
 
 
-        call lmd_wscale_tile (istr,iend,jstr,jend, I_EXT_RANGE,
+        call lmd_wscale_tile (Istr,Iend,Jstr,Jend, I_EXT_RANGE,
      &                J_EXT_RANGE, ustar, Bfsfc, zscale, wm,ws)
         cff=g/rho0
         do j=J_EXT_RANGE
@@ -452,7 +452,7 @@ c        enddo
             zscale(i,j)=z_w(i,j,N)-z_w(i,j,k-1)
           enddo
         enddo
-        call lmd_swfrac_tile (istr,iend,jstr,jend, I_EXT_RANGE,
+        call lmd_swfrac_tile (Istr,Iend,Jstr,Jend, I_EXT_RANGE,
      &                                J_EXT_RANGE, zscale,swdk)
         do j=J_EXT_RANGE
           do i=I_EXT_RANGE
@@ -468,7 +468,7 @@ c        enddo
           enddo
         enddo
 
-        call lmd_wscale_tile (istr,iend,jstr,jend, I_EXT_RANGE,
+        call lmd_wscale_tile (Istr,Iend,Jstr,Jend, I_EXT_RANGE,
      &                J_EXT_RANGE, ustar, Bfsfc, zscale, wm,ws)
         cff=g/rho0
         do j=J_EXT_RANGE
@@ -507,49 +507,49 @@ c        enddo
 #  ifndef EW_PERIODIC
       if (WESTERN_EDGE) then
         do j=J_EXT_RANGE
-          hbl(istr-1,j)=hbl(istr,j)
+          hbl(Istr-1,j)=hbl(Istr,j)
         enddo
       endif
       if (EASTERN_EDGE) then
         do j=J_EXT_RANGE
-          hbl(iend+1,j)=hbl(iend,j)
+          hbl(Iend+1,j)=hbl(Iend,j)
         enddo
       endif
 #  endif
 #  ifndef NS_PERIODIC
       if (SOUTHERN_EDGE) then 
         do i=I_EXT_RANGE
-          hbl(i,jstr-1)=hbl(i,jstr)   
+          hbl(i,Jstr-1)=hbl(i,Jstr)   
         enddo
       endif
       if (NORTHERN_EDGE) then
         do i=I_EXT_RANGE
-          hbl(i,jend+1)=hbl(i,jend)
+          hbl(i,Jend+1)=hbl(i,Jend)
         enddo
       endif
 #   ifndef EW_PERIODIC
       if (WESTERN_EDGE .and. SOUTHERN_EDGE) then
-        hbl(istr-1,jstr-1)=hbl(istr,jstr)
+        hbl(Istr-1,Jstr-1)=hbl(Istr,Jstr)
       endif
       if (WESTERN_EDGE .and. NORTHERN_EDGE) then
-        hbl(istr-1,jend+1)=hbl(istr,jend)
+        hbl(Istr-1,Jend+1)=hbl(Istr,Jend)
       endif
       if (EASTERN_EDGE .and. SOUTHERN_EDGE) then
-        hbl(iend+1,jstr-1)=hbl(iend,jstr)
+        hbl(Iend+1,Jstr-1)=hbl(Iend,Jstr)
       endif
       if (EASTERN_EDGE .and. NORTHERN_EDGE) then
-        hbl(iend+1,jend+1)=hbl(iend,jend)
+        hbl(Iend+1,Jend+1)=hbl(Iend,Jend)
       endif
 #   endif               /* ! The actual smoothing via 2 passes     */
 #  endif                /* ! of 4-point averaging; arrays "wm,ws"  */
-      do j=jstr,jend+1     ! are used as scratch arrays here. 
-        do i=istr,iend+1
+      do j=Jstr,Jend+1     ! are used as scratch arrays here. 
+        do i=Istr,Iend+1
           wm(i,j)=rmask(i,j)+rmask(i-1,j)+rmask(i,j-1)+rmask(i-1,j-1)
           ws(i,j)=  hbl(i,j)  +hbl(i-1,j)  +hbl(i,j-1)  +hbl(i-1,j-1)
         enddo
       enddo
-      do j=jstr,jend
-        do i=istr,iend
+      do j=Jstr,Jend
+        do i=Istr,Iend
           cff_dn=wm(i,j)+wm(i+1,j)+wm(i,j+1)+wm(i+1,j+1)
           cff_up=ws(i,j)+ws(i+1,j)+ws(i,j+1)+ws(i+1,j+1)
           if (cff_dn.gt.0) hbl(i,j)=cff_up/cff_dn 
@@ -567,10 +567,10 @@ c        enddo
 !  Insure that Bfsfc is never equal to zero
 !
 #define swdk wm
-      call lmd_swfrac_tile (istr,iend,jstr,jend,
-     &                      istr,iend,jstr,jend, hbl,swdk)
-      do j=jstr,jend
-        do i=istr,iend
+      call lmd_swfrac_tile (Istr,Iend,Jstr,Jend,
+     &                      Istr,Iend,Jstr,Jend, hbl,swdk)
+      do j=Jstr,Jend
+        do i=Istr,Iend
           Bfsfc(i,j)=Bo(i,j)+Bosol(i,j)*(1.-swdk(i,j))
         enddo
       enddo      !--> discard swdk
@@ -579,8 +579,8 @@ c        enddo
 !  Compare "hbl" with physically limiting cases (Ekman depth
 !  and Monin-Obukhov depth) and correct.
 !
-      do j=jstr,jend
-        do i=istr,iend
+      do j=Jstr,Jend
+        do i=Istr,Iend
           if (Bfsfc(i,j).gt.0.) then
 c**            hekman=cekman*ustar(i,j)/max(abs(f(i,j)),eps)
 c**            hbl(i,j)=min(hbl(i,j), hekman)
@@ -597,8 +597,8 @@ c**            hbl(i,j)=min(hbl(i,j), h_MO)
       enddo
                                  ! Find new boundary
       do k=N-1,1,-1              ! layer index "kbl".
-        do j=jstr,jend
-          do i=istr,iend
+        do j=Jstr,Jend
+          do i=Istr,Iend
             if (z_w(i,j,k) .gt. z_w(i,j,N)-hbl(i,j)) kbl(i,j)=k
           enddo
         enddo
@@ -608,11 +608,11 @@ c**            hbl(i,j)=min(hbl(i,j), h_MO)
 ! tubulent velocity scales (wm,ws) at "hbl".
 !
 #define swdk wm
-      call lmd_swfrac_tile (istr,iend,jstr,jend, istr,iend,jstr,jend,
+      call lmd_swfrac_tile (Istr,Iend,Jstr,Jend, Istr,Iend,Jstr,Jend,
      &                                                      hbl,swdk)
 
-      do j=jstr,jend
-        do i=istr,iend
+      do j=Jstr,Jend
+        do i=Istr,Iend
           Bfsfc(i,j)=Bo(i,j)+Bosol(i,j)*(1.-swdk(i,j))
 #undef swdk
 # ifdef MASKING
@@ -630,15 +630,15 @@ c**            hbl(i,j)=min(hbl(i,j), h_MO)
         enddo
       enddo
 
-      call lmd_wscale_tile (istr,iend,jstr,jend, istr,iend,jstr,jend,
+      call lmd_wscale_tile (Istr,Iend,Jstr,Jend, Istr,Iend,Jstr,Jend,
      &                                   ustar, Bfsfc, zscale, wm,ws)
 !
 ! Compute nondimensional shape function coefficients Gx( ) by
 ! matching values and vertical derivatives of  interior mixing
 ! coefficients at hbl (sigma=1).
 !
-      do j=jstr,jend
-        do i=istr,iend
+      do j=Jstr,Jend
+        do i=Istr,Iend
 # ifdef LIMIT_UNSTABLE_ONLY
           f1=5.0 * max(0., Bfsfc(i,j)) * vonKar/(ustar(i,j)**4+eps)
 # else
@@ -680,8 +680,8 @@ c      endif
 ! Compute turbulent velocity scales at vertical W-points.
 !
       do k=1,N-1
-        do j=jstr,jend
-          do i=istr,iend
+        do j=Jstr,Jend
+          do i=Istr,Iend
             zscale(i,j)=z_w(i,j,N)-z_w(i,j,k)
 # ifdef LIMIT_UNSTABLE_ONLY
             if (Bfsfc(i,j).lt.0.) then
@@ -692,14 +692,14 @@ c      endif
 # endif
           enddo
         enddo
-        call lmd_wscale_tile (istr,iend,jstr,jend,
-     &                        istr,iend,jstr,jend,
+        call lmd_wscale_tile (Istr,Iend,Jstr,Jend,
+     &                        Istr,Iend,Jstr,Jend,
      &            ustar, Bfsfc, zscale, wm,ws)
 !
 ! Compute vertical mixing coefficients
 !
-        do j=jstr,jend
-          do i=istr,iend
+        do j=Jstr,Jend
+          do i=Istr,Iend
             if (k.ge.kbl(i,j)) then
               sigma=(z_w(i,j,N)-z_w(i,j,k))/(hbl(i,j)+eps)
 # ifdef MASKING
@@ -750,8 +750,8 @@ c**              Ks(i,j,k)=min(nubl,Ks(i,j,k))
 !  Finalize: Set vertical mixing coefficients "Akv" and "Akt" using a
 !  time  filter to avoid temporal instability of the implicit scheme.
 !
-        do j=jstr,jend
-          do i=istr,iend
+        do j=Jstr,Jend
+          do i=Istr,Iend
             Akv(i,j,k)=Kv(i,j,k)
             Akt(i,j,k,itemp)=Kt(i,j,k)
  
@@ -768,61 +768,61 @@ c**              Ks(i,j,k)=min(nubl,Ks(i,j,k))
         enddo
       enddo
 
-      do j=jstr,jend                  ! Copy "hbl" into its shared
-        do i=istr,iend                ! array and pad out alues at
+      do j=Jstr,Jend                  ! Copy "hbl" into its shared
+        do i=Istr,Iend                ! array and pad out alues at
           hbls(i,j,3-nstp)=hbl(i,j)   ! lateral side-boundaries. 
         enddo
       enddo
 # ifndef EW_PERIODIC
       if (WESTERN_EDGE) then
-        do j=jstr,jend
-          hbls(istr-1,j,3-nstp)=hbls(istr,j,3-nstp)
+        do j=Jstr,Jend
+          hbls(Istr-1,j,3-nstp)=hbls(Istr,j,3-nstp)
         enddo
       endif
       if (EASTERN_EDGE) then
-        do j=jstr,jend
-          hbls(iend+1,j,3-nstp)=hbls(iend,j,3-nstp)
+        do j=Jstr,Jend
+          hbls(Iend+1,j,3-nstp)=hbls(Iend,j,3-nstp)
         enddo
       endif
 # endif
 # ifndef NS_PERIODIC
       if (SOUTHERN_EDGE) then
-        do i=istr,iend
-          hbls(i,jstr-1,3-nstp)=hbls(i,jstr,3-nstp)
+        do i=Istr,Iend
+          hbls(i,Jstr-1,3-nstp)=hbls(i,Jstr,3-nstp)
         enddo
       endif
       if (NORTHERN_EDGE) then
-        do i=istr,iend
-          hbls(i,jend+1,3-nstp)=hbls(i,jend,3-nstp)
+        do i=Istr,Iend
+          hbls(i,Jend+1,3-nstp)=hbls(i,Jend,3-nstp)
         enddo
       endif
 #  ifndef EW_PERIODIC
       if (WESTERN_EDGE .and.
      &    SOUTHERN_EDGE) then
-        hbls(istr-1,jstr-1,3-nstp)=hbls(istr,jstr,3-nstp)
+        hbls(Istr-1,Jstr-1,3-nstp)=hbls(Istr,Jstr,3-nstp)
       endif
       if (WESTERN_EDGE .and.
      &    NORTHERN_EDGE) then
-        hbls(istr-1,jend+1,3-nstp)=hbls(istr,jend,3-nstp)
+        hbls(Istr-1,Jend+1,3-nstp)=hbls(Istr,Jend,3-nstp)
       endif
       if (EASTERN_EDGE .and.
      &    SOUTHERN_EDGE) then
-        hbls(iend+1,jstr-1,3-nstp)=hbls(iend,jstr,3-nstp)
+        hbls(Iend+1,Jstr-1,3-nstp)=hbls(Iend,Jstr,3-nstp)
       endif
       if (EASTERN_EDGE .and.
      &    NORTHERN_EDGE) then
-        hbls(iend+1,jend+1,3-nstp)=hbls(iend,jend,3-nstp)
+        hbls(Iend+1,Jend+1,3-nstp)=hbls(Iend,Jend,3-nstp)
       endif
 #  endif
 # endif
 
 # if defined EW_PERIODIC || defined NS_PERIODIC || defined MPI
-      call exchange_r2d_tile (istr,iend,jstr,jend,
+      call exchange_r2d_tile (Istr,Iend,Jstr,Jend,
      &                     hbls(START_2D_ARRAY,3-nstp))
-      call exchange_w3d_tile (istr,iend,jstr,jend, Akv)
-      call exchange_w3d_tile (istr,iend,jstr,jend,
+      call exchange_w3d_tile (Istr,Iend,Jstr,Jend, Akv)
+      call exchange_w3d_tile (Istr,Iend,Jstr,Jend,
      &                     Akt(START_2D_ARRAY,0,itemp))
-      call exchange_w3d_tile (istr,iend,jstr,jend,
+      call exchange_w3d_tile (Istr,Iend,Jstr,Jend,
      &                     Akt(START_2D_ARRAY,0,isalt))
 # endif
       return
@@ -835,7 +835,7 @@ c**              Ks(i,j,k)=min(nubl,Ks(i,j,k))
 # undef jmax
 
  
-      subroutine lmd_wscale_tile (istr,iend,jstr,jend,
+      subroutine lmd_wscale_tile (Istr,Iend,Jstr,Jend,
      &                            imin,imax,jmin,jmax,
      &                     ustar, Bfsfc,zscale, wm,ws)
 !
@@ -856,7 +856,7 @@ c**              Ks(i,j,k)=min(nubl,Ks(i,j,k))
 #  include "grid.h"
 # endif
  
-      integer istr,iend,jstr,jend, imin,imax,jmin,jmax, i,j
+      integer Istr,Iend,Jstr,Jend, imin,imax,jmin,jmax, i,j
       real ustar(PRIVATE_2D_SCRATCH_ARRAY),
      &     Bfsfc(PRIVATE_2D_SCRATCH_ARRAY),
      &    zscale(PRIVATE_2D_SCRATCH_ARRAY),   ustar3,   r2,

@@ -7,14 +7,14 @@
 # include "param.h"
 # include "private_scratch.h"
 # include "compute_tile_bounds.h"
-      call prsgrd_tile (istr,iend,jstr,jend, A3d(1,1), A3d(1,2),
+      call prsgrd_tile (Istr,Iend,Jstr,Jend, A3d(1,1), A3d(1,2),
      &                                                 A2d(1,1))
       return
       end
  
-      subroutine prsgrd_tile (istr,iend,jstr,jend, ru,rv, pgrd)
+      subroutine prsgrd_tile (Istr,Iend,Jstr,Jend, ru,rv, pgrd)
       implicit none
-      integer istr,iend,jstr,jend, i,j,k
+      integer Istr,Iend,Jstr,Jend, i,j,k
 # include "param.h"
       real ru(PRIVATE_2D_SCRATCH_ARRAY,N),  cff,  A, J1,J2,J3,
      &     rv(PRIVATE_2D_SCRATCH_ARRAY,N),        B, W1,W2,W3,
@@ -26,9 +26,9 @@
 !
 # include "compute_auxiliary_bounds.h"
 !
-      do j=jstr,jend
+      do j=Jstr,Jend
         cff=0.5*g/rho0
-        do i=istrU,iend
+        do i=IstrU,Iend
           pgrd(i)=cff*(rho(i,j,N)-rho(i-1,j,N))
      &                             *( z_w(i,j,N)+z_w(i-1,j,N)
      &                               -z_r(i,j,N)-z_r(i-1,j,N))
@@ -41,7 +41,7 @@
  
         cff=0.25*g/rho0
         k=N-1
-        do i=istrU,iend
+        do i=IstrU,Iend
           A=(rho(i,j,k+1)+rho(i,j,k)-rho(i-1,j,k+1)-rho(i-1,j,k))
      &     *(z_r(i,j,k+1)-z_r(i,j,k)+z_r(i-1,j,k+1)-z_r(i-1,j,k))
  
@@ -54,7 +54,7 @@
         enddo
  
         do k=N-2,2,-1
-         do i=istrU,iend
+         do i=IstrU,Iend
            A=(rho(i,j,k+1)+rho(i,j,k)-rho(i-1,j,k+1)-rho(i-1,j,k))
      &      *(z_r(i,j,k+1)-z_r(i,j,k)+z_r(i-1,j,k+1)-z_r(i-1,j,k))
  
@@ -92,7 +92,7 @@
         enddo
  
         k=1
-        do i=istrU,iend
+        do i=IstrU,Iend
           A=(rho(i,j,k+1)+rho(i,j,k)-rho(i-1,j,k+1)-rho(i-1,j,k))
      &     *(z_r(i,j,k+1)-z_r(i,j,k)+z_r(i-1,j,k+1)-z_r(i-1,j,k))
  
@@ -105,9 +105,9 @@
         enddo
  
  
-        if (j.ge.jstrV) then
+        if (j.ge.JstrV) then
           cff=0.5*g/rho0
-          do i=istr,iend
+          do i=Istr,Iend
             pgrd(i)=cff*(rho(i,j,N)-rho(i,j-1,N))
      &                               *( z_w(i,j,N)+z_w(i,j-1,N)
      &                                 -z_r(i,j,N)-z_r(i,j-1,N))
@@ -125,7 +125,7 @@
  
           cff=0.25*g/rho0
           k=N-1
-          do i=istr,iend
+          do i=Istr,Iend
             A=(rho(i,j,k+1)+rho(i,j,k)-rho(i,j-1,k+1)-rho(i,j-1,k))
      &       *(z_r(i,j,k+1)-z_r(i,j,k)+z_r(i,j-1,k+1)-z_r(i,j-1,k))
  
@@ -138,7 +138,7 @@
           enddo
  
           do k=N-2,2,-1
-           do i=istr,iend
+           do i=Istr,Iend
             A=(rho(i,j,k+1)+rho(i,j,k)-rho(i,j-1,k+1)-rho(i,j-1,k))
      &       *(z_r(i,j,k+1)-z_r(i,j,k)+z_r(i,j-1,k+1)-z_r(i,j-1,k))
  
@@ -176,7 +176,7 @@
           enddo
  
           k=1
-          do i=istr,iend
+          do i=Istr,Iend
             A=(rho(i,j,k+1)+rho(i,j,k)-rho(i,j-1,k+1)-rho(i,j-1,k))
      &       *(z_r(i,j,k+1)-z_r(i,j,k)+z_r(i,j-1,k+1)-z_r(i,j-1,k))
  

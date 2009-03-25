@@ -9,12 +9,12 @@
 CSDISTRIBUTE_RESHAPE z_w(BLOCK_PATTERN,*) BLOCK_CLAUSE
 # include "private_scratch.h"
 # include "compute_tile_bounds.h"
-      call Wvlcty_tile (istr,iend,jstr,jend, Wvlc, A2d(1,1),
+      call Wvlcty_tile (Istr,Iend,Jstr,Jend, Wvlc, A2d(1,1),
      &                                   A2d(1,1), A2d(1,2))
       return
       end
  
-      subroutine Wvlcty_tile (istr,iend,jstr,jend, Wvlc,
+      subroutine Wvlcty_tile (Istr,Iend,Jstr,Jend, Wvlc,
      &                                   Wrk, Wxi, Weta)
 !
 ! Compute absolute vertical velocity, which consists of three
@@ -27,7 +27,7 @@ CSDISTRIBUTE_RESHAPE z_w(BLOCK_PATTERN,*) BLOCK_CLAUSE
 !
       implicit none
 # include "param.h"
-      integer istr,iend,jstr,jend, imin,imax,jmin,jmax, i,j,k
+      integer Istr,Iend,Jstr,Jend, imin,imax,jmin,jmax, i,j,k
       real Wvlc(GLOBAL_2D_ARRAY,N)
 CSDISTRIBUTE_RESHAPE z_w(BLOCK_PATTERN,*) BLOCK_CLAUSE
       real Wrk(PRIVATE_1D_SCRATCH_ARRAY,0:N),
@@ -41,18 +41,18 @@ CSDISTRIBUTE_RESHAPE z_w(BLOCK_PATTERN,*) BLOCK_CLAUSE
 # include "compute_extended_bounds.h"
 !
 # ifdef EW_PERIODIC
-      imin=max(istrR, istr-1)        ! The logic here is somewhat
-      imax=min(iendR, iend+1)        ! opposite to the standard
+      imin=max(IstrR, Istr-1)        ! The logic here is somewhat
+      imax=min(IendR, Iend+1)        ! opposite to the standard
 #else
-      imin=istr                      ! "auxiliary" bounds: extend 
-      imax=iend                      ! the range of computation of  
+      imin=Istr                      ! "auxiliary" bounds: extend 
+      imax=Iend                      ! the range of computation of  
 # endif
 # ifdef NS_PERIODIC
-      jmin=max(jstrR, jstr-1)        ! "Wvlc", by one row of points
-      jmax=min(jendR, jend+1)        ! on the side, but only in the
+      jmin=max(JstrR, Jstr-1)        ! "Wvlc", by one row of points
+      jmax=min(JendR, Jend+1)        ! on the side, but only in the
 # else
-      jmin=jstr                      ! case of periodic direction.
-      jmax=jend
+      jmin=Jstr                      ! case of periodic direction.
+      jmax=Jend
 # endif
 !
 ! Compute "omega" vertical velocity by means of integration of mass

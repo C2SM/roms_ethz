@@ -9,18 +9,18 @@ c--#define CONST_TRACERS
 # include "param.h"
 # include "private_scratch.h"
 # include "compute_tile_bounds.h"
-      call pre_step3d_tile (istr,iend,jstr,jend,  A3d(1,1), A3d(1,2),
+      call pre_step3d_tile (Istr,Iend,Jstr,Jend,  A3d(1,1), A3d(1,2),
      &                                                      A3d(1,3),
      &                        A2d(1,1), A2d(1,2), A2d(1,3),
      &                        A2d(1,1), A2d(1,2), A2d(1,3), A2d(1,4))
       return
       end
  
-      subroutine pre_step3d_tile (istr,iend,jstr,jend, ru,rv,
+      subroutine pre_step3d_tile (Istr,Iend,Jstr,Jend, ru,rv,
      &                     Hz_half, FC,CF,DC, FX,FE,WORK,dTdz)
       implicit none
 # include "param.h"
-      integer istr,iend,jstr,jend,  itrc, indx, 
+      integer Istr,Iend,Jstr,Jend,  itrc, indx, 
      &        imin,imax,jmin,jmax,  i,j,k,   is
       real ru(PRIVATE_2D_SCRATCH_ARRAY,N),    cff,
      &     rv(PRIVATE_2D_SCRATCH_ARRAY,N),    cff1,
@@ -93,8 +93,8 @@ c--#define CONST_TRACERS
 c      write(*,'(A,2I3,3F16.8)') 'iic,indx,cff[1,2] =', iic,indx,cff,cff1,cff2
 
       do k=1,N
-        do j=jstrV-1,jend
-          do i=istrU-1,iend
+        do j=JstrV-1,Jend
+          do i=IstrU-1,Iend
             Hz_half(i,j,k)=cff1*Hz(i,j,k)+cff2*Hz_bak(i,j,k)
      &       -cff*pm(i,j)*pn(i,j)*( FlxU(i+1,j,k)-FlxU(i,j,k)
      &                             +FlxV(i,j+1,k)-FlxV(i,j,k)
@@ -111,8 +111,8 @@ c      write(*,'(A,2I3,3F16.8)') 'iic,indx,cff[1,2] =', iic,indx,cff,cff1,cff2
  
           if (FIRST_TIME_STEP) then
             cff=0.5*dt
-            do j=jstr,jend
-              do i=istr,iend
+            do j=Jstr,Jend
+              do i=Istr,Iend
                 t(i,j,k,nnew,itrc)=Hz(i,j,k)*t(i,j,k,nstp,itrc)
      &                  -cff*pm(i,j)*pn(i,j)*( FX(i+1,j)-FX(i,j)
      &                                        +FE(i,j+1)-FE(i,j))
@@ -124,8 +124,8 @@ c      write(*,'(A,2I3,3F16.8)') 'iic,indx,cff[1,2] =', iic,indx,cff,cff1,cff2
             cff=(1.-gamma)*dt
             cff1=0.5+gamma
             cff2=0.5-gamma
-            do j=jstr,jend
-              do i=istr,iend
+            do j=Jstr,Jend
+              do i=Istr,Iend
                 t(i,j,k,nnew,itrc)=cff1*Hz(i,j,k)*t(i,j,k,nstp,itrc)
      &                         +cff2*Hz_bak(i,j,k)*t(i,j,k,indx,itrc)
      &                      -cff*pm(i,j)*pn(i,j)*( FX(i+1,j)-FX(i,j)
@@ -145,9 +145,9 @@ c      write(*,'(A,2I3,3F16.8)') 'iic,indx,cff[1,2] =', iic,indx,cff,cff1,cff2
 ! interpolation is considered obsolete, but the code is retained for
 ! reference].
 !
-      do j=jstr,jend                      ! this is just to share
+      do j=Jstr,Jend                      ! this is just to share
         do k=1,N                          ! division by Hz_half
-          do i=istr,iend                  ! among all the tracers
+          do i=Istr,Iend                  ! among all the tracers
             DC(i,k)=1./Hz_half(i,j,k)     ! indexed as itrc
           enddo
         enddo
@@ -161,7 +161,7 @@ c      write(*,'(A,2I3,3F16.8)') 'iic,indx,cff[1,2] =', iic,indx,cff,cff1,cff2
             cff=(1.-gamma)*dt
           endif
           do k=1,N
-            do i=istr,iend
+            do i=Istr,Iend
               t(i,j,k,nnew,itrc)=DC(i,k)*( t(i,j,k,nnew,itrc)
      &               -cff*pm(i,j)*pn(i,j)*(FC(i,k)-FC(i,k-1)))
 #ifdef CONST_TRACERS
@@ -176,12 +176,12 @@ c      write(*,'(A,2I3,3F16.8)') 'iic,indx,cff[1,2] =', iic,indx,cff,cff1,cff2
 !--------- ----------   ! 3D momentum equations, it is just added 
 !                       ! in to the appropriate shared array. 
 !
-        do i=istrU,iend
+        do i=IstrU,Iend
           DC(i,0)=0.25*(pm(i,j)+pm(i-1,j))*(pn(i,j)+pn(i-1,j))
         enddo
         if (FIRST_TIME_STEP) then
           do k=1,N
-            do i=istrU,iend
+            do i=IstrU,Iend
               u(i,j,k,nnew)=( u(i,j,k,nstp)*(Hz(i,j,k)+Hz(i-1,j,k))
      &                                         +dt*DC(i,0)*ru(i,j,k)
      &                           )/(Hz_half(i,j,k)+Hz_half(i-1,j,k))
@@ -195,7 +195,7 @@ c      write(*,'(A,2I3,3F16.8)') 'iic,indx,cff[1,2] =', iic,indx,cff,cff1,cff2
           cff1=0.5+gamma
           cff2=0.5-gamma
           do k=1,N
-            do i=istrU,iend
+            do i=IstrU,Iend
               u(i,j,k,nnew)=( cff1*u(i,j,k,nstp)*( Hz(i,j,k)
      &                                            +Hz(i-1,j,k))
      &                       +cff2*u(i,j,k,indx)*( Hz_bak(i,j,k)
@@ -209,13 +209,13 @@ c      write(*,'(A,2I3,3F16.8)') 'iic,indx,cff[1,2] =', iic,indx,cff,cff1,cff2
           enddo
         endif                    !--> discard DC
  
-        if (j.ge.jstrV) then
-          do i=istr,iend
+        if (j.ge.JstrV) then
+          do i=Istr,Iend
             DC(i,0)=0.25*(pm(i,j)+pm(i,j-1))*(pn(i,j)+pn(i,j-1))
           enddo
           if (FIRST_TIME_STEP) then
             do k=1,N
-              do i=istr,iend
+              do i=Istr,Iend
                 v(i,j,k,nnew)=(v(i,j,k,nstp)*(Hz(i,j,k)+Hz(i,j-1,k))
      &                                          +dt*DC(i,0)*rv(i,j,k)
      &                            )/(Hz_half(i,j,k)+Hz_half(i,j-1,k))
@@ -229,7 +229,7 @@ c      write(*,'(A,2I3,3F16.8)') 'iic,indx,cff[1,2] =', iic,indx,cff,cff1,cff2
             cff1=0.5+gamma
             cff2=0.5-gamma
             do k=1,N
-              do i=istr,iend
+              do i=Istr,Iend
                 v(i,j,k,nnew)=( cff1*v(i,j,k,nstp)*( Hz(i,j,k)
      &                                              +Hz(i,j-1,k))
      &                         +cff2*v(i,j,k,indx)*( Hz_bak(i,j,k)
@@ -245,15 +245,15 @@ c      write(*,'(A,2I3,3F16.8)') 'iic,indx,cff[1,2] =', iic,indx,cff,cff1,cff2
         endif
       enddo     !<-- j
  
-      call u3dbc_tile (istr,iend,jstr,jend, DC)
-      call v3dbc_tile (istr,iend,jstr,jend, DC)
+      call u3dbc_tile (Istr,Iend,Jstr,Jend, DC)
+      call v3dbc_tile (Istr,Iend,Jstr,Jend, DC)
 
 # ifdef PSOURCE
       do is=1,Nsrc           ! Apply point mass sources associated
         i=Isrc(is)           ! with river runoff simulations.
         j=Jsrc(is)
-        if (istrR.le.i .and. i.le.iendR .and. 
-     &      jstrR.le.j .and. j.le.jendR) then
+        if (IstrR.le.i .and. i.le.IendR .and. 
+     &      JstrR.le.j .and. j.le.JendR) then
           if (Dsrc(is).eq.0) then
             do k=1,N
               u(i,j,k,nnew)=2.*Qsrc(is,k)/( dn_u(i,j)*(
@@ -281,9 +281,9 @@ c      write(*,'(A,2I3,3F16.8)') 'iic,indx,cff[1,2] =', iic,indx,cff,cff1,cff2
 ! Set PHYSICAL lateral boundary conditions for tracer field.
 !
       do itrc=1,NT
-        call t3dbc_tile (istr,iend,jstr,jend, itrc, WORK)
+        call t3dbc_tile (Istr,Iend,Jstr,Jend, itrc, WORK)
 # if defined EW_PERIODIC || defined NS_PERIODIC || defined MPI
-        call exchange_r3d_tile (istr,iend,jstr,jend,
+        call exchange_r3d_tile (Istr,Iend,Jstr,Jend,
      &                          t(START_2D_ARRAY,1,nnew,itrc))
 # endif
       enddo

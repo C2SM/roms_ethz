@@ -7,16 +7,16 @@
 # include "param.h"
 # include "private_scratch.h"
 # include "compute_tile_bounds.h"
-      call prsgrd32A_tile (istr,iend,jstr,jend,  A3d(1,1), A3d(1,2),
+      call prsgrd32A_tile (Istr,Iend,Jstr,Jend,  A3d(1,1), A3d(1,2),
      &                                A3d(1,3),  A2d(1,1), A2d(1,2),
      &                       A2d(1,1), A2d(1,2), A2d(1,3), A2d(1,4))
       return
       end
  
-      subroutine prsgrd32A_tile (istr,iend,jstr,jend, ru,rv, P,
+      subroutine prsgrd32A_tile (Istr,Iend,Jstr,Jend, ru,rv, P,
      &                                   dR,dZ, FC,aux,dRx,dZx)
       implicit none
-      integer istr,iend,jstr,jend, i,j,k
+      integer Istr,Iend,Jstr,Jend, i,j,k
 # include "param.h"
       real ru(PRIVATE_2D_SCRATCH_ARRAY,N),   OneFifth,
      &     rv(PRIVATE_2D_SCRATCH_ARRAY,N),   OneTwelfth,
@@ -57,21 +57,21 @@
       GRho=g/rho0
       HalfGRho=0.5*GRho
  
-      do j=jstrV-1,jend
+      do j=JstrV-1,Jend
         do k=1,N-1
-          do i=istrU-1,iend
+          do i=IstrU-1,Iend
             dR(i,k)=rho(i,j,k+1)-rho(i,j,k)
             dZ(i,k)=z_r(i,j,k+1)-z_r(i,j,k)
           enddo
         enddo
-        do i=istrU-1,iend
+        do i=IstrU-1,Iend
           dR(i,N)=dR(i,N-1)
           dZ(i,N)=dZ(i,N-1)
           dR(i,0)=dR(i,1)
           dZ(i,0)=dZ(i,1)
         enddo
         do k=N,1,-1               !--> irreversible
-          do i=istrU-1,iend
+          do i=IstrU-1,Iend
             cff=2.*dR(i,k)*dR(i,k-1)
             if (cff.gt.epsil) then
               dR(i,k)=cff/(dR(i,k)+dR(i,k-1))
@@ -81,13 +81,13 @@
             dZ(i,k)=2.*dZ(i,k)*dZ(i,k-1)/(dZ(i,k)+dZ(i,k-1))
           enddo
         enddo
-        do i=istrU-1,iend
+        do i=IstrU-1,Iend
           P(i,j,N)=g*z_w(i,j,N) + GRho*( rho(i,j,N)
      &        +0.5*(rho(i,j,N)-rho(i,j,N-1))*(z_w(i,j,N)-z_r(i,j,N))
      &           /(z_r(i,j,N)-z_r(i,j,N-1)) )*(z_w(i,j,N)-z_r(i,j,N))
         enddo
         do k=N-1,1,-1
-          do i=istrU-1,iend
+          do i=IstrU-1,Iend
             P(i,j,k)=P(i,j,k+1)+HalfGRho*( (rho(i,j,k+1)+rho(i,j,k))
      &                                     *(z_r(i,j,k+1)-z_r(i,j,k))
  
@@ -105,8 +105,8 @@
 !-------- ------------ -- -------- -------- -----
 !
       do k=N,1,-1
-        do j=jstr,jend
-          do i=istrU-1,iend+1
+        do j=Jstr,Jend
+          do i=IstrU-1,Iend+1
             aux(i,j)=(z_r(i,j,k)-z_r(i-1,j,k))
 #ifdef MASKING
      &                              *umask(i,j)
@@ -118,8 +118,8 @@
           enddo
         enddo
  
-        do j=jstr,jend
-          do i=istrU-1,iend
+        do j=Jstr,Jend
+          do i=IstrU-1,Iend
             cff=2.*aux(i,j)*aux(i+1,j)
             if (cff.gt.epsil) then
               dZx(i,j)=cff/(aux(i,j)+aux(i+1,j))
@@ -135,8 +135,8 @@
           enddo
         enddo                 !--> discard aux, FC
  
-        do j=jstr,jend
-          do i=istrU,iend
+        do j=Jstr,Jend
+          do i=IstrU,Iend
             ru(i,j,k)=0.5*(Hz(i,j,k)+Hz(i-1,j,k))*dn_u(i,j)*(
      &                           P(i-1,j,k)-P(i,j,k)-HalfGRho*(
      &          (rho(i,j,k)+rho(i-1,j,k))*(z_r(i,j,k)-z_r(i-1,j,k))
@@ -153,8 +153,8 @@
 ! ETA-component of pressure gradient term:
 !-------------- -- -------- -------- -----
 !
-        do j=jstrV-1,jend+1
-          do i=istr,iend
+        do j=JstrV-1,Jend+1
+          do i=Istr,Iend
             aux(i,j)=(z_r(i,j,k)-z_r(i,j-1,k))
 #ifdef MASKING
      &                              *vmask(i,j)
@@ -166,8 +166,8 @@
           enddo
         enddo                 !--> discard aux, FC
  
-        do j=jstrV-1,jend
-          do i=istr,iend
+        do j=JstrV-1,Jend
+          do i=Istr,Iend
             cff=2.*aux(i,j)*aux(i,j+1)
             if (cff.gt.epsil) then
               dZx(i,j)=cff/(aux(i,j)+aux(i,j+1))
@@ -183,8 +183,8 @@
           enddo
         enddo
  
-        do j=jstrV,jend
-          do i=istr,iend
+        do j=JstrV,Jend
+          do i=Istr,Iend
             rv(i,j,k)=0.5*(Hz(i,j,k)+Hz(i,j-1,k))*dm_v(i,j)*(
      &      P(i,j-1,k)-P(i,j,k)-HalfGRho*( (rho(i,j,k)+rho(i,j-1,k))
      &                                     *(z_r(i,j,k)-z_r(i,j-1,k))

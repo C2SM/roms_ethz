@@ -3,11 +3,11 @@
 #include "cppdefs.h"
 #if GRID_LEVEL < MAX_GRID_LEVEL
 
-      subroutine int_r2d_west (istr,iend,jstr,jend, q,buff)
+      subroutine int_r2d_west (Istr,Iend,Jstr,Jend, q,buff)
       implicit none
 # include "param.h"
 # include "grid.h"
-      integer istr,iend,jstr,jend, jmin,jmax, i,j,jc
+      integer Istr,Iend,Jstr,Jend, jmin,jmax, i,j,jc
       real q(GLOBAL_2D_ARRAY)
       real buff(PRIVATE_2D_SCRATCH_ARRAY)
       real qC,qxR,qxL, qyR,qyL, qxyRR,qxyLR,qxyRL,qxyLL,
@@ -15,8 +15,8 @@
       parameter (OneSixth=1./6., OneFourth=0.25,
      &           OneThird=1./3., TwoThird=2./3.)
 
-      jmin=jmin_child+(jstr-1)/3
-      jmax=jmin_child+(jend-1)/3
+      jmin=jmin_child+(Jstr-1)/3
+      jmax=jmin_child+(Jend-1)/3
       i=imin_child-1
 
       do j=jmin,jmax
@@ -52,18 +52,18 @@
      &       +qyL-(q(i-1,j)-q(i-1,j-1))*vmask(i-1,j)
 
         jc=2+3*(j-jmin_child)
-        buff(istr-2,jc  )=qC
-        buff(istr-2,jc+1)=qC +OneSixth*(qyR+qyL+OneThird*(qyR-qyL))
-        buff(istr-2,jc-1)=qC -OneSixth*(qyR+qyL-OneThird*(qyR-qyL))
+        buff(Istr-2,jc  )=qC
+        buff(Istr-2,jc+1)=qC +OneSixth*(qyR+qyL+OneThird*(qyR-qyL))
+        buff(Istr-2,jc-1)=qC -OneSixth*(qyR+qyL-OneThird*(qyR-qyL))
 
-        buff(istr-1,jc  )=qC +OneSixth*(qxR+qxL+OneThird*(qxR-qxL))
-        buff(istr-1,jc+1)=qC +OneSixth*( qxR+qxL +qyR+qyL
+        buff(Istr-1,jc  )=qC +OneSixth*(qxR+qxL+OneThird*(qxR-qxL))
+        buff(Istr-1,jc+1)=qC +OneSixth*( qxR+qxL +qyR+qyL
      &                        +OneThird*( qxR-qxL +qyR-qyL
      &                        +OneFourth*( qxyRR+qxyLR+qxyRL+qxyLL
      &                          +TwoThird*( qxyRR     -qxyLL
      &                           +OneSixth*( qxyRR-qxyLR-qxyRL+qxyLL
      &                                                         )))))
-        buff(istr-1,jc-1)=qC +OneSixth*( qxR+qxL -qyR-qyL
+        buff(Istr-1,jc-1)=qC +OneSixth*( qxR+qxL -qyR-qyL
      &                        +OneThird*( qxR-qxL +qyR-qyL
      &                        -OneFourth*( qxyRR+qxyLR+qxyRL+qxyLL
      &                          +TwoThird*(      -qxyLR+qxyRL
@@ -75,11 +75,11 @@
 
 
 
-      subroutine int_r2d_east (istr,iend,jstr,jend, q,buff)
+      subroutine int_r2d_east (Istr,Iend,Jstr,Jend, q,buff)
       implicit none
 # include "param.h"
 # include "grid.h"
-      integer istr,iend,jstr,jend, jmin,jmax, i,j,jc
+      integer Istr,Iend,Jstr,Jend, jmin,jmax, i,j,jc
       real q(GLOBAL_2D_ARRAY)
       real buff(PRIVATE_2D_SCRATCH_ARRAY)
       real qC,qxR,qxL, qyR,qyL, qxyRR,qxyLR,qxyRL,qxyLL,
@@ -87,8 +87,8 @@
       parameter (OneSixth=1./6., OneFourth=0.25,
      &           OneThird=1./3., TwoThird=2./3.)
 
-      jmin=jmin_child+(jstr-1)/3
-      jmax=jmin_child+(jend-1)/3
+      jmin=jmin_child+(Jstr-1)/3
+      jmax=jmin_child+(Jend-1)/3
       i=imax_child
 
       do j=jmin,jmax
@@ -124,18 +124,18 @@
      &       +qyL-(q(i-1,j)-q(i-1,j-1))*vmask(i-1,j)
 
         jc=2+3*(j-jmin_child)
-        buff(iend+2,jc  )=qC
-        buff(iend+2,jc+1)=qC +OneSixth*(qyR+qyL+OneThird*(qyR-qyL))
-        buff(iend+2,jc-1)=qC -OneSixth*(qyR+qyL-OneThird*(qyR-qyL))
+        buff(Iend+2,jc  )=qC
+        buff(Iend+2,jc+1)=qC +OneSixth*(qyR+qyL+OneThird*(qyR-qyL))
+        buff(Iend+2,jc-1)=qC -OneSixth*(qyR+qyL-OneThird*(qyR-qyL))
 
-        buff(iend+1,jc  )=qC -OneSixth*(qxR+qxL-OneThird*(qxR-qxL))
-        buff(iend+1,jc+1)=qC +OneSixth*( -qxR-qxL +qyR+qyL
+        buff(Iend+1,jc  )=qC -OneSixth*(qxR+qxL-OneThird*(qxR-qxL))
+        buff(Iend+1,jc+1)=qC +OneSixth*( -qxR-qxL +qyR+qyL
      &                        +OneThird*( qxR-qxL  +qyR-qyL
      &                        -OneFourth*( qxyRR+qxyLR+qxyRL+qxyLL
      &                          +TwoThird*(      qxyLR-qxyRL
      &                           -OneSixth*( qxyRR-qxyLR-qxyRL+qxyLL
      &                                                         )))))
-        buff(iend+1,jc-1)=qC -OneSixth*( qxR+qxL +qyR+qyL
+        buff(Iend+1,jc-1)=qC -OneSixth*( qxR+qxL +qyR+qyL
      &                        -OneThird*( qxR-qxL +qyR-qyL
      &                        +OneFourth*( qxyRR+qxyLR+qxyRL+qxyLL
      &                          -TwoThird*( qxyRR-qxyLL
@@ -147,11 +147,11 @@
 
 
 
-      subroutine int_r2d_south (istr,iend,jstr,jend, q,buff)
+      subroutine int_r2d_south (Istr,Iend,Jstr,Jend, q,buff)
       implicit none
 # include "param.h"
 # include "grid.h"
-      integer istr,iend,jstr,jend, imin,imax, i,j, ic
+      integer Istr,Iend,Jstr,Jend, imin,imax, i,j, ic
       real q(GLOBAL_2D_ARRAY)
       real buff(PRIVATE_2D_SCRATCH_ARRAY)
       real qC,qxR,qxL, qyR,qyL, qxyRR,qxyLR,qxyRL,qxyLL,
@@ -159,8 +159,8 @@
       parameter (OneSixth=1./6., OneFourth=0.25,
      &           OneThird=1./3., TwoThird=2./3.)
 
-      imin=imin_child+(jstr-1)/3
-      imax=imin_child+(jend-1)/3
+      imin=imin_child+(Jstr-1)/3
+      imax=imin_child+(Jend-1)/3
       j=jmin_child-1
 
       do i=imin,imax
@@ -196,18 +196,18 @@
      &       +qyL-(q(i-1,j)-q(i-1,j-1))*vmask(i-1,j)
 
         ic=2+3*(i-imin_child)
-        buff(ic  ,jstr-2)=qC
-        buff(ic+1,jstr-2)=qC +OneSixth*(qxR+qxL+OneThird*(qxR-qxL))
-        buff(ic-1,jstr-2)=qC -OneSixth*(qxR+qxL-OneThird*(qxR-qxL))
+        buff(ic  ,Jstr-2)=qC
+        buff(ic+1,Jstr-2)=qC +OneSixth*(qxR+qxL+OneThird*(qxR-qxL))
+        buff(ic-1,Jstr-2)=qC -OneSixth*(qxR+qxL-OneThird*(qxR-qxL))
 
-        buff(ic  ,jstr-1)=qC +OneSixth*(qyR+qyL+OneThird*(qyR-qyL))
-        buff(ic+1,jstr-1)=qC +OneSixth*( qxR+qxL +qyR+qyL
+        buff(ic  ,Jstr-1)=qC +OneSixth*(qyR+qyL+OneThird*(qyR-qyL))
+        buff(ic+1,Jstr-1)=qC +OneSixth*( qxR+qxL +qyR+qyL
      &                        +OneThird*( qxR-qxL +qyR-qyL
      &                        +OneFourth*( qxyRR+qxyLR+qxyRL+qxyLL
      &                          +TwoThird*( qxyRR     -qxyLL
      &                           +OneSixth*( qxyRR-qxyLR-qxyRL+qxyLL
      &                                                         )))))
-        buff(ic-1,jstr-1)=qC +OneSixth*( -qxR-qxL +qyR+qyL
+        buff(ic-1,Jstr-1)=qC +OneSixth*( -qxR-qxL +qyR+qyL
      &                        +OneThird*( qxR-qxL  +qyR-qyL
      &                        -OneFourth*( qxyRR+qxyLR+qxyRL+qxyLL
      &                          +TwoThird*(      qxyLR-qxyRL
@@ -219,11 +219,11 @@
 
 
 
-      subroutine int_r2d_north (istr,iend,jstr,jend, q,buff)
+      subroutine int_r2d_north (Istr,Iend,Jstr,Jend, q,buff)
       implicit none
 # include "param.h"
 # include "grid.h"
-      integer istr,iend,jstr,jend, imin,imax, i,j, ic
+      integer Istr,Iend,Jstr,Jend, imin,imax, i,j, ic
       real q(GLOBAL_2D_ARRAY)
       real buff(PRIVATE_2D_SCRATCH_ARRAY)
       real qC,qxR,qxL, qyR,qyL, qxyRR,qxyLR,qxyRL,qxyLL,
@@ -231,8 +231,8 @@
       parameter (OneSixth=1./6., OneFourth=0.25,
      &           OneThird=1./3., TwoThird=2./3.)
 
-      imin=imin_child+(jstr-1)/3
-      imax=imin_child+(jend-1)/3
+      imin=imin_child+(Jstr-1)/3
+      imax=imin_child+(Jend-1)/3
       j=jmax_child
 
       do i=imin,imax
@@ -268,18 +268,18 @@
      &       +qyL-(q(i-1,j)-q(i-1,j-1))*vmask(i-1,j)
 
         ic=2+3*(i-imin_child)
-        buff(ic  ,jend+2)=qC
-        buff(ic+1,jend+2)=qC +OneSixth*(qxR+qxL+OneThird*(qxR-qxL))
-        buff(ic-1,jend+2)=qC -OneSixth*(qxR+qxL-OneThird*(qxR-qxL))
+        buff(ic  ,Jend+2)=qC
+        buff(ic+1,Jend+2)=qC +OneSixth*(qxR+qxL+OneThird*(qxR-qxL))
+        buff(ic-1,Jend+2)=qC -OneSixth*(qxR+qxL-OneThird*(qxR-qxL))
 
-        buff(ic  ,jend+1)=qC -OneSixth*(qyR+qyL-OneThird*(qyR-qyL))
-        buff(ic+1,jend+1)=qC +OneSixth*( qxR+qxL -qyR-qyL
+        buff(ic  ,Jend+1)=qC -OneSixth*(qyR+qyL-OneThird*(qyR-qyL))
+        buff(ic+1,Jend+1)=qC +OneSixth*( qxR+qxL -qyR-qyL
      &                        +OneThird*( qxR-qxL +qyR-qyL
      &                        -OneFourth*( qxyRR+qxyLR+qxyRL+qxyLL
      &                          +TwoThird*(      -qxyLR+qxyRL
      &                           -OneSixth*( qxyRR-qxyLR-qxyRL+qxyLL
      &                                                         )))))
-        buff(ic-1,jend+1)=qC -OneSixth*( qxR+qxL +qyR+qyL
+        buff(ic-1,Jend+1)=qC -OneSixth*( qxR+qxL +qyR+qyL
      &                        -OneThird*( qxR-qxL +qyR-qyL
      &                        +OneFourth*( qxyRR+qxyLR+qxyRL+qxyLL
      &                          -TwoThird*( qxyRR-qxyLL

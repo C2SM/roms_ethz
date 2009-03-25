@@ -135,7 +135,7 @@ CR      write(stdout,'(1x,A,I3)') 'indxLDet =',indxLDet
       vname(3,indxPH_rst)=' '
       vname(4,indxPH_rst)=' '
 !DL: some more variables which have been moved from the flux files to
-!DL: averages/histrory/restart files:
+!DL: averages/hIstrory/restart files:
       vname(1,indxPCO2_rst)='pCO2                                 '
       vname(2,indxPCO2_rst)='surface pCO2                         '
       vname(3,indxPCO2_rst)='ppm                                  '

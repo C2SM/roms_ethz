@@ -1,7 +1,7 @@
 #include "cppdefs.h"
 #if defined SOLVE3D && (defined LMD_KPP || defined LMD_BKPP)
 
-      subroutine alfabeta_tile (istr,iend,jstr,jend,
+      subroutine alfabeta_tile (Istr,Iend,Jstr,Jend,
      &               imin,imax,jmin,jmax, alpha,beta)
 !
 ! Compute thermal expansion and saline contraction coefficients
@@ -16,7 +16,7 @@
 !
       implicit none
 # include "param.h"
-      integer istr,iend,jstr,jend, imin,imax,jmin,jmax, i,j
+      integer Istr,Iend,Jstr,Jend, imin,imax,jmin,jmax, i,j
       real    alpha(PRIVATE_2D_SCRATCH_ARRAY),
      &        beta(PRIVATE_2D_SCRATCH_ARRAY)
 # include "grid.h"

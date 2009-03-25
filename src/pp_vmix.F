@@ -68,8 +68,8 @@
 !  Compute vertical mixing coefficients for momentum and tracers.
 !
       do k=1,N-1
-        do j=jstr,jend
-          do i=istr,iend
+        do j=Jstr,Jend
+          do i=Istr,Iend
             if (Rig(i,j,k).lt.Ri_big .and. Rig(i,j,k).gt.Ri_low) then
               fac=1.+pp_alpha*Ri_big
               Akv(i,j,k)=pp_numax
@@ -86,11 +86,11 @@
       enddo
  
 # if defined EW_PERIODIC || defined NS_PERIODIC || defined MPI
-      call exchange_w3d_tile (istr,iend,jstr,jend, Akv)
-      call exchange_w3d_tile (istr,iend,jstr,jend,
+      call exchange_w3d_tile (Istr,Iend,Jstr,Jend, Akv)
+      call exchange_w3d_tile (Istr,Iend,Jstr,Jend,
      &                     Akt(START_2D_ARRAY,0,itemp))
 #  ifdef SALINITY
-      call exchange_w3d_tile (istr,iend,jstr,jend,
+      call exchange_w3d_tile (Istr,Iend,Jstr,Jend,
      &                     Akt(START_2D_ARRAY,0,isalt))
 #  endif
 # endif

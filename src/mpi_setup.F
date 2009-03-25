@@ -229,13 +229,13 @@ c---#define CHECK_MPI
       integer tile
 #  include "param.h"
 #  include "compute_tile_bounds.h"
-      call MPI_Test1_tile  (istr,iend,jstr,jend)
+      call MPI_Test1_tile  (Istr,Iend,Jstr,Jend)
       return
       end
  
-      subroutine MPI_Test1_tile (istr,iend,jstr,jend)
+      subroutine MPI_Test1_tile (Istr,Iend,Jstr,Jend)
       implicit none
-      integer istr,iend,jstr,jend
+      integer Istr,Iend,Jstr,Jend
 #  include "param.h"
 #  include "scalars.h"
 #  include "mpif.h"
@@ -248,14 +248,14 @@ c---#define CHECK_MPI
 !
 #  include "compute_extended_bounds.h"
 !
-      do j=jstrR,jendR
-        do i=istrR,iendR
+      do j=JstrR,JendR
+        do i=IstrR,IendR
 c          temp2D(i,j)=1.*mynode+0.5
            temp2D(i,j)=-1.*(mynode+1)
         enddo
       enddo
-      do j=jstr,jend
-        do i=istr,iend
+      do j=Jstr,Jend
+        do i=Istr,Iend
           temp2D(i,j)=1.*mynode+1.
 c          temp2D(i,j)=i+inode*Lm
 c          temp2D(i,j)=j+jnode*Mm
@@ -263,7 +263,7 @@ c          temp2D(i,j)=j+jnode*Mm
       enddo
  
  
-      call mpi_exchange_tile (istr,iend,jstr,jend, temp2D, 1)
+      call mpi_exchange_tile (Istr,Iend,Jstr,Jend, temp2D, 1)
  
       do i=mynode,NNODES
         call MPI_Barrier (ocean_grid_comm, ierr)
@@ -272,15 +272,15 @@ c          temp2D(i,j)=j+jnode*Mm
       write(*,*)
       write(*,'(A5,I3,2I4)') 'node=',mynode, inode,jnode
       write(*,*)
-      do j=jendR,jstrR,-1
-       write(string,'(I3,3x,20F4.1)') j, (temp2D(i,j), i=istrR,iendR)
-        do i=7,6+4*(iendR-istrR+1)
+      do j=JendR,JstrR,-1
+       write(string,'(I3,3x,20F4.1)') j, (temp2D(i,j), i=IstrR,IendR)
+        do i=7,6+4*(IendR-IstrR+1)
          if (string(i-1).eq.'.' .and. string(i).eq.'0') string(i)=' '
         enddo
-       write(*,'(128A1)') (string(i), i=1,6+4*(iendR-istrR+1))
+       write(*,'(128A1)') (string(i), i=1,6+4*(IendR-IstrR+1))
       enddo
       write(*,*)
-        write(*,'(5x,20I4)') (i,i=istrR,iendR)
+        write(*,'(5x,20I4)') (i,i=IstrR,IendR)
       write(*,*)
       write(*,*)
       do i=0,mynode
@@ -292,20 +292,20 @@ c      return
  
  
       do k=0,N
-        do j=jstrR,jendR
-          do i=istrR,iendR
+        do j=JstrR,JendR
+          do i=IstrR,IendR
             temp3D(i,j,k)=-1.*(mynode+1)
           enddo
         enddo
-        do j=jstr,jend
-          do i=istr,iend
+        do j=Jstr,Jend
+          do i=Istr,Iend
             temp3D(i,j,k)=1.*mynode+1.
-             temp3D(i,j,k)=0.1*( float(j-1+(jend-jstr+1)*mynode) )
+             temp3D(i,j,k)=0.1*( float(j-1+(Jend-Jstr+1)*mynode) )
           enddo
         enddo
       enddo
  
-      call mpi_exchange_tile (istr,iend,jstr,jend, temp3D,N+1)
+      call mpi_exchange_tile (Istr,Iend,Jstr,Jend, temp3D,N+1)
  
       do k=0,N
         write(*,*) 'k=',k
@@ -316,15 +316,15 @@ c      return
         write(*,*)
         write(*,'(A5,I3,2I4)') 'node=',mynode, inode,jnode
         write(*,*)
-        do j=jendR,jstrR,-1
-        write(string,'(I3,3x,20F4.1)')j,(temp3D(i,j,k),i=istrR,iendR)
-         do i=7,6+4*(iendR-istrR+1)
+        do j=JendR,JstrR,-1
+        write(string,'(I3,3x,20F4.1)')j,(temp3D(i,j,k),i=IstrR,IendR)
+         do i=7,6+4*(IendR-IstrR+1)
           if (string(i-1).eq.'.'.and.string(i).eq.'0') string(i)=' '
          enddo
-        write(*,'(128A1)') (string(i), i=1,6+4*(iendR-istrR+1))
+        write(*,'(128A1)') (string(i), i=1,6+4*(IendR-IstrR+1))
         enddo
         write(*,*)
-        write(*,'(5x,20I4)') (i,i=istrR,iendR)
+        write(*,'(5x,20I4)') (i,i=IstrR,IendR)
         write(*,*)
         write(*,*)
         do i=0,mynode

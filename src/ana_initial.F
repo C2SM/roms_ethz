@@ -7,17 +7,17 @@
 # include "param.h"
 # include "private_scratch.h"
 # include "compute_tile_bounds.h"
-      call ana_initial_tile (istr,iend,jstr,jend, A2d(1,1))
+      call ana_initial_tile (Istr,Iend,Jstr,Jend, A2d(1,1))
       return
       end
  
-      subroutine ana_initial_tile (istr,iend,jstr,jend, wrk1)
+      subroutine ana_initial_tile (Istr,Iend,Jstr,Jend, wrk1)
 !
 ! Set initial conditions for momentum and tracer variables using
 !  analytical expressions.
 !
       implicit none
-      integer istr,iend,jstr,jend, i,j,k, itrc, i0,j0
+      integer Istr,Iend,Jstr,Jend, i,j,k, itrc, i0,j0
       real wrk1(PRIVATE_2D_SCRATCH_ARRAY) 
       real Ampl, fac, x,y, x0,y0, cff, cff1,cff2,cff3
 #ifdef ISWAKE
@@ -39,8 +39,8 @@
 !
 # include "compute_auxiliary_bounds.h"
 !
-      do j=jstrR,jendR       ! Set everything (except temperature
-        do i=istrR,iendR     ! and salinity) to all-zero state, then  
+      do j=JstrR,JendR       ! Set everything (except temperature
+        do i=IstrR,IendR     ! and salinity) to all-zero state, then  
           zeta(i,j,1)=0.     ! modify some of the variables, if a
           ubar(i,j,1)=0.     ! non-trivial initialization required.
           vbar(i,j,1)=0.     ! Note: A code to initialize T [and S]
@@ -48,8 +48,8 @@
       enddo                  ! applications.
 # ifdef SOLVE3D
       do k=1,N
-        do j=jstrR,jendR
-          do i=istrR,iendR
+        do j=JstrR,JendR
+          do i=IstrR,IendR
             u(i,j,k,1)=0.
             u(i,j,k,2)=0.
             v(i,j,k,1)=0.
@@ -65,8 +65,8 @@
       y0=el/2.               ! domain. This is because the analytical
       cff1=0.395             ! fields are terminated at the
       cff2=0.771*(cff1*cff1) ! boundarieas, where their values are 
-      do j=jstrR,jendR       ! replaced via periodicity conditions. 
-        do i=istrR,iendR     ! The replacement causes differences 
+      do j=JstrR,JendR       ! replaced via periodicity conditions. 
+        do i=IstrR,IendR     ! The replacement causes differences 
           x=xr(i,j)-x0       ! between left- and right-travelling 
           y=yr(i,j)-y0       ! solitons discoverable by ETALON CHECK. 
           cff3=exp(-cff1*x)
@@ -75,8 +75,8 @@
         enddo
       enddo
 
-      do j=jstrR,jendR
-        do i=istr,iendR
+      do j=JstrR,JendR
+        do i=Istr,IendR
           x=0.5*(xr(i-1,j)+xr(i,j))-x0
           y=0.5*(yr(i-1,j)+yr(i,j))-y0
           cff3=exp(-cff1*x)
@@ -84,8 +84,8 @@
           ubar(i,j,1)=0.25*fac*(6.*y*y-9.)*exp(-0.5*y*y)
         enddo
       enddo
-      do j=jstr,jendR
-        do i=istrR,iendR
+      do j=Jstr,JendR
+        do i=IstrR,IendR
           x=0.5*(xr(i,j-1)+xr(i,j))-x0
           y=0.5*(yr(i,j-1)+yr(i,j))-y0
           cff3=exp(-cff1*x)
@@ -94,13 +94,13 @@
      &                                  *exp(-0.5*y*y)
         enddo
       enddo
-      if (fomn(istr,jend)-fomn(istr,jstr) .lt. 0.) then
+      if (fomn(Istr,Jend)-fomn(Istr,Jstr) .lt. 0.) then
 C$OMP MASTER
           MPI_master_only write(stdout,'(/1x,2A/)') '>>> Eastward-',
      &          'travelling soliton: reversing initial velocities.'
 C$OMP END MASTER
-        do j=jstrR,jendR               ! Reverse velocities, if the 
-          do i=istrR,iendR             ! sign of gradient of Coriolis 
+        do j=JstrR,JendR               ! Reverse velocities, if the 
+          do i=IstrR,IendR             ! sign of gradient of Coriolis 
             ubar(i,j,1)=-ubar(i,j,1)   ! parameter "beta" is negative
             vbar(i,j,1)=-vbar(i,j,1)   ! (see ana_grid). In this case 
           enddo                        ! soliton should travel to the 
@@ -112,8 +112,8 @@ C$OMP END MASTER
       x0=xl/2.                     ! Set initial perturbation in 
       y0=el/2.                     ! in free surface and velocities 
       cff=64./xl                   ! for isotripically expanding 
-      do j=jstr,jend               ! circular wave. 
-        do i=istr,iend
+      do j=Jstr,Jend               ! circular wave. 
+        do i=Istr,Iend
           x=cff*(xr(i,j)-x0)
           y=cff*(yr(i,j)-y0)
           cff1=sqrt(x*x+y*y)
@@ -122,8 +122,8 @@ C$OMP END MASTER
           endif
         enddo
       enddo
-      do j=jstr,jend
-        do i=istr,iend
+      do j=Jstr,Jend
+        do i=Istr,Iend
           x=cff*(0.5*(xr(i-1,j)+xr(i,j))-x0)
           y=cff*(               yr(i,j) -y0)
           cff1=sqrt(x*x+y*y)
@@ -133,8 +133,8 @@ C$OMP END MASTER
           endif
         enddo
       enddo
-      do j=jstr,jend
-        do i=istr,iend
+      do j=Jstr,Jend
+        do i=Istr,Iend
           x=cff*(               xr(i,j) -x0)
           y=cff*(0.5*(yr(i,j-1)+yr(i,j))-y0)
           cff1=sqrt(x*x+y*y)
@@ -151,8 +151,8 @@ C$OMP END MASTER
       cff1=(44.690/39.382)**2
       cff2=cff1*(rho0*800./g)*(5.0e-5/((42.689/44.690)**2))
       do k=1,N
-        do j=jstrR,jendR
-          do i=istrR,iendR
+        do j=JstrR,JendR
+          do i=IstrR,IendR
             t(i,j,k,1,itemp)=cff2*exp(z_r(i,j,k)/800.)
      &                 *(0.6-0.4*tanh(z_r(i,j,k)/800.))
             t(i,j,k,2,itemp)=t(i,j,k,1,itemp)
@@ -163,8 +163,8 @@ C$OMP END MASTER
 # elif defined CANYON_A
 #  ifdef SOLVE3D
       do k=1,N
-        do j=jstrR,jendR
-          do i=istrR,iendR
+        do j=JstrR,JendR
+          do i=IstrR,IendR
             t(i,j,k,1,itemp)=T0
             t(i,j,k,2,itemp)=t(i,j,k,1,itemp)
           enddo
@@ -174,8 +174,8 @@ C$OMP END MASTER
 # elif defined CANYON_B
 #  ifdef SOLVE3D
       do k=1,N
-        do j=jstrR,jendR
-          do i=istrR,iendR
+        do j=JstrR,JendR
+          do i=IstrR,IendR
             t(i,j,k,1,itemp)=3.488*exp(z_r(i,j,k)/800.)
      &        *(1.-0.666666666666*tanh(z_r(i,j,k)/800.))
             t(i,j,k,2,itemp)=t(i,j,k,1,itemp)
@@ -186,8 +186,8 @@ C$OMP END MASTER
 # elif defined DAMEE_B
 #  ifdef SOLVE3D
       do k=1,N
-        do j=jstrR,jendR
-          do i=istrR,iendR
+        do j=JstrR,JendR
+          do i=IstrR,IendR
 c            t(i,j,k,1,itemp)=0.2+6.*exp(z_r(i,j,k)/2500.)
 c     &              +30./(1.+exp((-200.-z_r(i,j,k))/200.))
  
@@ -211,8 +211,8 @@ c     &              +30./(1.+exp((-200.-z_r(i,j,k))/200.))
 #  endif
       cff=1.                         ! A provision is made to form
       do k=1,N                       ! a 2-point transitional layer
-        do j=jstrR,jendR             ! between T=+1 and T=-1, hence
-          do i=istrR,iendR           ! "softening" the step function.
+        do j=JstrR,JendR             ! between T=+1 and T=-1, hence
+          do i=IstrR,IendR           ! "softening" the step function.
             if (i.lt.i0) then        ! Normally "cff" set to 0.75
               t(i,j,k,1,itemp)=+1.   ! resulting in transitional
               t(i,j,k,2,itemp)=+1.   ! values of 3/8 of the total
@@ -234,8 +234,8 @@ c     &              +30./(1.+exp((-200.-z_r(i,j,k))/200.))
 # elif defined OVERFLOW
 #  ifdef SOLVE3D
       do k=1,N
-        do j=jstrR,jendR
-          do i=istrR,iendR
+        do j=JstrR,JendR
+          do i=IstrR,IendR
 c           t(i,j,k,1,itemp)=T0-0.5*T0*(1.+tanh((yr(i,j)-25000.)
 c     &                                                   /1000.))
  
@@ -249,8 +249,8 @@ c     &                                                   /1000.))
 # elif defined NJ_BIGHT
 #  ifdef SOLVE3D
       do k=1,N
-        do j=jstrR,jendR
-          do i=istrR,iendR
+        do j=JstrR,JendR
+          do i=IstrR,IendR
             if (z_r(i,j,k).ge.-15.0) then
               t(i,j,k,1,itemp)=2.049264257728403e+01-z_r(i,j,k)*(
      &                         2.640850848793918e-01+z_r(i,j,k)*(
@@ -283,8 +283,8 @@ c     &                                                   /1000.))
 # elif defined SEAMOUNT
 #  ifdef SOLVE3D
       do k=1,N
-        do j=jstrR,jendR
-          do i=istrR,iendR
+        do j=JstrR,JendR
+          do i=IstrR,IendR
 #   ifdef NONLIN_EOS
             t(i,j,k,1,itemp)=4.0  ! Just spatially uniform T,S to
             t(i,j,k,2,isalt)=33.0 ! illustrate compressibility effect.
@@ -366,8 +366,8 @@ c     &                            +z_w(i,j,k-1))/5000.)
                               ! and density field. 
 
       cff=1./(1.+exp(-2.*Zthrm/dZthrm))
-      do j=jstrR,jendR
-        do i=istrR,iendR
+      do j=JstrR,JendR
+        do i=IstrR,IendR
           xitm=(-Zthrm  -cffS*f(i,j)*(yr(i,j)-y0))/dZthrm
           zeta(i,j,1)=(AmpR/rho0) *0.5*dZthrm
      &                       *log( cff*(1.+exp(2.*xitm)) )
@@ -379,8 +379,8 @@ c     &                            +z_w(i,j,k-1))/5000.)
         enddo
       enddo
       do k=N,1,-1
-        do j=jstrR,jendR
-          do i=istrR,iendR
+        do j=JstrR,JendR
+          do i=IstrR,IendR
             xitm=(z_r(i,j,k)-Zthrm -cffS*f(i,j)*(yr(i,j)-y0))/dZthrm
             t(i,j,k,1,itemp)= 0.5*AmpR*tanh(xitm)
 #ifdef MASKING
@@ -388,8 +388,8 @@ c     &                            +z_w(i,j,k-1))/5000.)
 #endif
           enddo
         enddo
-        do j=jstrR,jendR
-          do i=istr,IendR
+        do j=JstrR,JendR
+          do i=Istr,IendR
             xitm=( 0.5*(z_r(i,j,k)+z_r(i-1,j,k)) -Zthrm
      &                    -cffS*0.5*(f(i,j)+f(i-1,j))
      &                  *(0.5*(yr(i,j)+yr(i-1,j))-y0) )/dZthrm
@@ -403,8 +403,8 @@ c     &                            +z_w(i,j,k-1))/5000.)
           enddo
         enddo
       enddo
-      do j=jstrR,jendR
-        do i=istr,IendR
+      do j=JstrR,JendR
+        do i=Istr,IendR
           ubar(i,j,1)=ubar(i,j,1)/( z_w(i,j,N)+z_w(i-1,j,N)
      &                             -z_w(i,j,0)-z_w(i-1,j,0))
         enddo
@@ -418,16 +418,16 @@ c     &                            +z_w(i,j,k-1))/5000.)
       x0=xl/2.            ! posed as 3D.
       y0=el/2.
 
-      do j=jstrR,jendR
-        do i=istrR,iendR
+      do j=JstrR,JendR
+        do i=IstrR,IendR
           zeta(i,j,1)=-cff*f(i,j)*(yr(i,j)-y0)
           ubar(i,j,1)=AmpU
           vbar(i,j,1)=0.
         enddo
       enddo
       do k=1,N
-        do j=jstrR,jendR
-          do i=istrR,iendR
+        do j=JstrR,JendR
+          do i=IstrR,IendR
             u(i,j,k,1)=ubar(i,j,1)
             v(i,j,k,1)=vbar(i,j,1)
             t(i,j,k,1,itemp)=0.
@@ -447,8 +447,8 @@ c     &                            +z_w(i,j,k-1))/5000.)
       sna=sin(alpha)
       x0=xl/2.
       y0=el/2.
-      do j=jstrR,jendR
-        do i=istrR,iendR
+      do j=JstrR,JendR
+        do i=IstrR,IendR
           zeta(i,j,1)=-cff*f(i,j)*((yr(i,j)-y0)*csa-(xr(i,j)-y0)*sna)
           ubar(i,j,1)=AmpU*csa
           vbar(i,j,1)=AmpU*sna
@@ -459,21 +459,21 @@ c     &                            +z_w(i,j,k-1))/5000.)
 #  ifdef ANA_BRY
       if (WESTERN_EDGE) then
 #    ifdef M2_FRC_BRY
-        do j=jstrR,jendR                     ! Save perimeter values
-          zeta_west(j)=zeta(istr-1,j,1)      ! of the initial fields
-          ubar_west(j)=ubar(istr  ,j,1)      ! to be used as external
-          vbar_west(j)=vbar(istr-1,j,1)      ! forcing data for side 
+        do j=JstrR,JendR                     ! Save perimeter values
+          zeta_west(j)=zeta(Istr-1,j,1)      ! of the initial fields
+          ubar_west(j)=ubar(Istr  ,j,1)      ! to be used as external
+          vbar_west(j)=vbar(Istr-1,j,1)      ! forcing data for side 
         enddo                                ! boundaries.
 #    endif
 #    ifdef SOLVE3D
         do k=1,N
-          do j=jstrR,jendR
+          do j=JstrR,JendR
 #     ifdef M3_FRC_BRY
-            u_west(j,k)=u(istr  ,j,k,1)
-            v_west(j,k)=v(istr-1,j,k,1)
+            u_west(j,k)=u(Istr  ,j,k,1)
+            v_west(j,k)=v(Istr-1,j,k,1)
 #     endif
 #     ifdef T_FRC_BRY
-            t_west(j,k,itemp)=t(istr-1,j,k,1,itemp)
+            t_west(j,k,itemp)=t(Istr-1,j,k,1,itemp)
 #     endif
           enddo
         enddo
@@ -482,21 +482,21 @@ c     &                            +z_w(i,j,k-1))/5000.)
 
       if (EASTERN_EDGE) then
 #    ifdef M2_FRC_BRY
-        do j=jstrR,jendR
-          zeta_east(j)=zeta(iend+1,j,1)
-          ubar_east(j)=ubar(iend+1,j,1)
-          vbar_east(j)=vbar(iend+1,j,1)
+        do j=JstrR,JendR
+          zeta_east(j)=zeta(Iend+1,j,1)
+          ubar_east(j)=ubar(Iend+1,j,1)
+          vbar_east(j)=vbar(Iend+1,j,1)
         enddo
 #    endif
 #    ifdef SOLVE3D
         do k=1,N
-          do j=jstrR,jendR
+          do j=JstrR,JendR
 #     ifdef M3_FRC_BRY
-            u_east(j,k)=u(iend+1,j,k,1)
-            v_east(j,k)=v(iend+1,j,k,1)
+            u_east(j,k)=u(Iend+1,j,k,1)
+            v_east(j,k)=v(Iend+1,j,k,1)
 #     endif
 #     ifdef T_FRC_BRY
-            t_east(j,k,itemp)=t(iend+1,j,k,1,itemp)
+            t_east(j,k,itemp)=t(Iend+1,j,k,1,itemp)
 #     endif
           enddo
         enddo
@@ -506,21 +506,21 @@ c     &                            +z_w(i,j,k-1))/5000.)
 #    ifdef OBC_SOUTH
       if (SOUTHERN_EDGE) then
 #     ifdef M2_FRC_BRY
-        do i=istrR,iendR
-          zeta_south(i)=zeta(i,jstr-1,1)
-          ubar_south(i)=ubar(i,jstr-1,1)
-          vbar_south(i)=vbar(i,jstr  ,1)
+        do i=IstrR,IendR
+          zeta_south(i)=zeta(i,Jstr-1,1)
+          ubar_south(i)=ubar(i,Jstr-1,1)
+          vbar_south(i)=vbar(i,Jstr  ,1)
         enddo
 #     endif
 #     ifdef SOLVE3D
         do k=1,N
-          do i=istrR,iendR 
+          do i=IstrR,IendR 
 #      ifdef M3_FRC_BRY
-            u_south(i,k)=u(i,jstr-1,k,1)
-            v_south(i,k)=v(i,jstr  ,k,1)
+            u_south(i,k)=u(i,Jstr-1,k,1)
+            v_south(i,k)=v(i,Jstr  ,k,1)
 #      endif
 #      ifdef T_FRC_BRY
-            t_south(i,k,itemp)=t(i,jstr-1,k,1,itemp)
+            t_south(i,k,itemp)=t(i,Jstr-1,k,1,itemp)
 #      endif
           enddo
         enddo
@@ -531,21 +531,21 @@ c     &                            +z_w(i,j,k-1))/5000.)
 #    ifdef OBC_NORTH
       if (NORTHERN_EDGE) then
 #     ifdef M2_FRC_BRY
-        do i=istrR,iendR
-          zeta_north(i)=zeta(i,jend+1,1)
-          ubar_north(i)=ubar(i,jend+1,1)
-          vbar_north(i)=vbar(i,jend+1,1)
+        do i=IstrR,IendR
+          zeta_north(i)=zeta(i,Jend+1,1)
+          ubar_north(i)=ubar(i,Jend+1,1)
+          vbar_north(i)=vbar(i,Jend+1,1)
         enddo
 #     endif
 #     ifdef SOLVE3D
         do k=1,N
-          do i=istrR,iendR
+          do i=IstrR,IendR
 #      ifdef M3_FRC_BRY
-            u_north(i,k)=u(i,jend+1,k,1)
-            v_north(i,k)=v(i,jend+1,k,1)
+            u_north(i,k)=u(i,Jend+1,k,1)
+            v_north(i,k)=v(i,Jend+1,k,1)
 #      endif
 #      ifdef T_FRC_BRY
-            t_north(i,k,itemp)=t(i,jend+1,k,1,itemp)
+            t_north(i,k,itemp)=t(i,Jend+1,k,1,itemp)
 #      endif
           enddo
         enddo
@@ -555,8 +555,8 @@ c     &                            +z_w(i,j,k-1))/5000.)
 
 #  else
 #   ifdef UCLIMATOLOGY
-      do j=jstrR,jendR                   ! Save initial data into
-        do i=istrR,iendR                 ! climatology for the
+      do j=JstrR,JendR                   ! Save initial data into
+        do i=IstrR,IendR                 ! climatology for the
           ubclm(i,j)=ubar(i,j,1)         ! subsequent use as inflow
           vbclm(i,j)=vbar(i,j,1)         ! boundary conditions
         enddo
@@ -564,8 +564,8 @@ c     &                            +z_w(i,j,k-1))/5000.)
 #   endif
 #   ifdef SOLVE3D
       do k=1,N
-        do j=jstrR,jendR
-          do i=istrR,iendR
+        do j=JstrR,JendR
+          do i=IstrR,IendR
 #    ifdef UCLIMATOLOGY
             uclm(i,j,k)=u(i,j,k,1)
             vclm(i,j,k)=v(i,j,k,1)
@@ -583,8 +583,8 @@ c     &                            +z_w(i,j,k-1))/5000.)
 # elif defined SHELFRONT
 #  ifdef SOLVE3D
       do k=1,N
-        do j=jstrR,jendR
-          do i=istrR,iendR
+        do j=JstrR,JendR
+          do i=IstrR,IendR
             t(i,j,k,1,itemp)=T0+2.5*tanh((yr(i,j)-50000.0)/20000.0)
             t(i,j,k,2,itemp)=t(i,j,k,1,itemp)
             t(i,j,k,1,isalt)=S0  +  tanh((yr(i,j)-50000.0)/20000.0)
@@ -596,8 +596,8 @@ c     &                            +z_w(i,j,k-1))/5000.)
 # elif defined TASMAN_SEA
 #  ifdef SOLVE3D
       do k=1,N
-        do j=jstrR,jendR
-          do i=istrR,iendR
+        do j=JstrR,JendR
+          do i=IstrR,IendR
             t(i,j,k,1,itemp)=17.4+z_r(i,j,k)*(1.727e-2+z_r(i,j,k)*
      &                           (5.707e-06+z_r(i,j,k)*(5.921e-10)))
             t(i,j,k,1,isalt)=35.08+z_r(i,j,k)*(7.56e-4+z_r(i,j,k)*
@@ -611,8 +611,8 @@ c     &                            +z_w(i,j,k-1))/5000.)
 # elif defined UPWELLING
 #  ifdef SOLVE3D
       do k=1,N
-        do j=jstrR,jendR
-          do i=istrR,iendR
+        do j=JstrR,JendR
+          do i=IstrR,IendR
 c            t(i,j,k,1,itemp)=14.+8.*exp(z_r(i,j,k)/50.)
  
 #define Z0 (-35.)
@@ -661,8 +661,8 @@ c*            t(i,j,k,1,isalt)=1.E-4*yr(i,j)-S0 +0.1
 # elif defined  RIVER
 #  ifdef SOLVE3D
       do k=1,N
-        do j=jstrR,jendR
-          do i=istrR,iendR
+        do j=JstrR,JendR
+          do i=IstrR,IendR
             t(i,j,k,1,itemp)=4.+10.*exp(z_r(i,j,k)/50.)
             t(i,j,k,1,isalt)=36.
             t(i,j,k,2,itemp)=t(i,j,k,1,itemp)
@@ -691,8 +691,8 @@ c*            t(i,j,k,1,isalt)=1.E-4*yr(i,j)-S0 +0.1
 #  endif
 
       cff1=800./dble(LLm)
-      do j=jstrR,jendR
-        do i=istrR,iendR
+      do j=JstrR,JendR
+        do i=IstrR,IendR
           cff=cff1*sqrt(dble(i-i0)**2+dble(j-j0)**2)
           if (cff.lt.pi) then
             zeta(i,j,1)=Ampl*(0.5+0.5*cos(cff))
@@ -702,8 +702,8 @@ c*            t(i,j,k,1,isalt)=1.E-4*yr(i,j)-S0 +0.1
 # elif defined USWEST
 #  ifdef SOLVE3D
       do k=1,N
-        do j=jstrR,jendR
-          do i=istrR,iendR
+        do j=JstrR,JendR
+          do i=IstrR,IendR
 c**         t(i,j,k,1,itemp)=10.+10.*exp(z_r(i,j,k)/200.)
 c**         t(i,j,k,1,itemp)=20. + z_r(i,j,k)/4500.
 c*          t(i,j,k,1,itemp)=4.+13.*exp(z_r(i,j,k)/450.)
@@ -758,8 +758,8 @@ c*     &                                  +(z_r(i,j,k)-Z1)/STRAT
 # else
 #  ifdef SOLVE3D
       do k=1,N
-        do j=jstrR,jendR
-          do i=istrR,iendR
+        do j=JstrR,JendR
+          do i=IstrR,IendR
             t(i,j,k,1,itemp)=???
             t(i,j,k,2,itemp)=???
             t(i,j,k,1,isalt)=???
@@ -772,34 +772,34 @@ c*     &                                  +(z_r(i,j,k)-Z1)/STRAT
 
 # if defined EW_PERIODIC || defined NS_PERIODIC || defined  MPI
 
-      call exchange_r2d_tile (istr,iend,jstr,jend,
+      call exchange_r2d_tile (Istr,Iend,Jstr,Jend,
      &                        zeta(START_2D_ARRAY,1))
-      call exchange_u2d_tile (istr,iend,jstr,jend,
+      call exchange_u2d_tile (Istr,Iend,Jstr,Jend,
      &                        ubar(START_2D_ARRAY,1))
-      call exchange_v2d_tile (istr,iend,jstr,jend,
+      call exchange_v2d_tile (Istr,Iend,Jstr,Jend,
      &                        vbar(START_2D_ARRAY,1))
 #  ifdef SOLVE3D
-      call exchange_u3d_tile (istr,iend,jstr,jend,
+      call exchange_u3d_tile (Istr,Iend,Jstr,Jend,
      &                         u(START_2D_ARRAY,1,1))
-      call exchange_v3d_tile (istr,iend,jstr,jend,
+      call exchange_v3d_tile (Istr,Iend,Jstr,Jend,
      &                         v(START_2D_ARRAY,1,1))
       do itrc=1,NT
-        call exchange_r3d_tile (istr,iend,jstr,jend,
+        call exchange_r3d_tile (Istr,Iend,Jstr,Jend,
      &                   t(START_2D_ARRAY,1,1,itrc))
       enddo
 #  endif
 #  ifdef ISWAKE
 #   ifdef UCLIMATOLOGY
-      call exchange_u2d_tile (istr,iend,jstr,jend, ubclm)
-      call exchange_u2d_tile (istr,iend,jstr,jend, vbclm)
+      call exchange_u2d_tile (Istr,Iend,Jstr,Jend, ubclm)
+      call exchange_u2d_tile (Istr,Iend,Jstr,Jend, vbclm)
 #   endif
 #   ifdef SOLVE3D
 #    ifdef UCLIMATOLOGY
-      call exchange_u3d_tile (istr,iend,jstr,jend,  uclm)
-      call exchange_u3d_tile (istr,iend,jstr,jend,  vclm)
+      call exchange_u3d_tile (Istr,Iend,Jstr,Jend,  uclm)
+      call exchange_u3d_tile (Istr,Iend,Jstr,Jend,  vclm)
 #    endif
 #    ifdef TCLIMATOLOGY
-      call exchange_u3d_tile (istr,iend,jstr,jend,
+      call exchange_u3d_tile (Istr,Iend,Jstr,Jend,
      &                       tclm(START_2D_ARRAY,1,itemp)
 #    endif
 #   endif

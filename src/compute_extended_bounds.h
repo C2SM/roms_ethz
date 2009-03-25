@@ -4,17 +4,17 @@
 ! ghost points of PHYSICAL side boundaries and halo points associated
 ! with computational margins of MPI-subdomains.
 !
-#ifdef istrR
-# undef istrR
+#ifdef IstrR
+# undef IstrR
 #endif
-#ifdef iendR
-# undef iendR
+#ifdef IendR
+# undef IendR
 #endif
-#ifdef jstrR
-# undef jstrR
+#ifdef JstrR
+# undef JstrR
 #endif
-#ifdef jendR
-# undef jendR
+#ifdef JendR
+# undef JendR
 #endif
 #ifndef MPI
 # define iwest 1
@@ -26,77 +26,77 @@
 
 
 
-      integer istrR,iendR,jstrR,jendR
-      if (istr.eq.iwest) then
+      integer IstrR,IendR,JstrR,JendR
+      if (Istr.eq.iwest) then
 # ifdef EW_PERIODIC
-        istrR=istr-2
+        IstrR=Istr-2
 # else
 #  ifdef MPI
         if (WEST_INTER) then
-          istrR=istr-2
+          IstrR=Istr-2
         else
-          istrR=istr-1
+          IstrR=Istr-1
         endif
 #  else
-        istrR=istr-1
+        IstrR=Istr-1
 #  endif
 # endif
       else
-        istrR=istr
+        IstrR=Istr
       endif
  
-      if (iend.eq.ieast) then
+      if (Iend.eq.ieast) then
 # ifdef EW_PERIODIC
-        iendR=iend+2
+        IendR=Iend+2
 # else
 #  ifdef MPI
         if (EAST_INTER) then
-          iendR=iend+2
+          IendR=Iend+2
         else
-          iendR=iend+1
+          IendR=Iend+1
         endif
 #  else
-        iendR=iend+1
+        IendR=Iend+1
 #  endif
 # endif
       else
-        iendR=iend
+        IendR=Iend
       endif
  
-      if (jstr.eq.jsouth) then
+      if (Jstr.eq.jsouth) then
 # ifdef NS_PERIODIC
-        jstrR=jstr-2
+        JstrR=Jstr-2
 # else
 #  ifdef MPI
         if (SOUTH_INTER) then
-          jstrR=jstr-2
+          JstrR=Jstr-2
         else
-          jstrR=jstr-1
+          JstrR=Jstr-1
         endif
 #  else
-        jstrR=jstr-1
+        JstrR=Jstr-1
 #  endif
 # endif
       else
-        jstrR=jstr
+        JstrR=Jstr
       endif
  
-      if (jend.eq.jnorth) then
+      if (Jend.eq.jnorth) then
 # ifdef NS_PERIODIC
-        jendR=jend+2
+        JendR=Jend+2
 # else
 #  ifdef MPI
         if (NORTH_INTER) then
-          jendR=jend+2
+          JendR=Jend+2
         else
-          jendR=jend+1
+          JendR=Jend+1
         endif
 #  else
-        jendR=jend+1
+        JendR=Jend+1
 #  endif
 # endif
       else
-        jendR=jend
+        JendR=Jend
       endif
 
 #ifndef MPI

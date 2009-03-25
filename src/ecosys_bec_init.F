@@ -15,7 +15,16 @@
 #include "ecosys_bec.h"
 
 !since tracer structure is different to t(roms),first, assign to tracer
-         integer::i,j,k,m,nn
+      integer::i,j,k,m,nn
+      
+!JDS namelist files for parameter input/output to optimization purposes
+      integer status
+      character*100 filename_biopar_bec_nml, filename_biopar_out_bec_nml
+
+      filename_biopar_bec_nml = 'biopar_bec.nml'
+      filename_biopar_out_bec_nml = 'biopar_out_bec.nml'
+
+
 
         sinking_particle_POC=0.0
         sinking_particle_P_CaCO3=0.0
@@ -73,12 +82,40 @@
         ldust_flux      =.TRUE.
 
 
+! JDS: parameters that were initialized within ecosys_bec.F are now included here:
+	 PCref      = 3.0 * dps
+         sp_mort    = 0.1 * dps
+         sp_mort2   = 0.009 * dps
+         diat_mort  = 0.1 * dps
+         diat_mort2 = 0.009 * dps
+         z_ingest   = 0.3
+         thres_z1   = 100.0   ! 100 m
+         thres_z2   = 200.0   ! 200 m
+
+         PCrefDiaz  = 0.4 * dps
+! HF: changed from "0.18" on Oct 3, 2005, following Keith Moore's changes
+         diaz_mort  = 0.16 * dps
+! HF: changed from "0.008" on Oct 3, 2005, following Keith Moore's changes
+         diaz_kPO4  = 0.005 ! 1.6 * diatom value
+         diaz_kFe   = 0.1e-3
+
+    !---------------------------------------------------------------------------
+    !   SET FIXED RATIOS for N/C, P/C, SiO3/C, Fe/C
+    !   assumes C/N/P of 117/16/1 based on Anderson and Sarmiento, 1994
+    !   for diazotrophs a N/P of 45 is assumed based on Letelier & Karl, 1998
+    !---------------------------------------------------------------------------
+
+         Q         = 0.137
+         Qp        = 0.00855
+! HF: changed from "0.00304" on Oct 3, 2005, following Keith Moore's changes
+         Qp_diaz   = 0.002735
+         Qfe_zoo   = 2.5e-6
+
          where(rmask ==1)
               landmask=.TRUE.
             elsewhere 
                landmask=.FALSE.
             endwhere
-
 
     !------------------------------------------------------------------------
     ! initialize tracers and apply land mask to tracers (suppose done by roms
@@ -191,6 +228,39 @@
        photoFe_diaz_HIST    = c0    
        photoFe_sp_HIST      = c0
        nitrif_hist       = c0
+
+!Jds: writing and reading namelist files to prescribe parameters
+
+
+      open(73,file=filename_biopar_bec_nml,status='old',iostat=status)
+! Since this file is optional, it's okay to proceed if it doesn't exist or
+! can't be read.
+      if (status .eq. 0) then
+         read(73,NML=biology_param_bec_nml,iostat=status)
+         if (status .ne. 0) then
+            print *, 'Could not read the biology parameter namelist!'
+         else
+            print *, 'Biology parameters were read from ',
+     &           filename_biopar_bec_nml
+         end if
+         close(73)
+      else
+         print *, 'Biology parameter namelist file was not found'
+         print *, 'Default values will be used.'
+      end if
+
+      open(74,file=filename_biopar_out_bec_nml,status='unknown',
+     &     iostat=status)
+      if (status .eq. 0) then
+         write(74,NML=biology_param_bec_nml,iostat=status)
+         if (status .ne. 0) then
+            print *, 'Could not write the biology parameter namelist!'
+         end if
+         close(74)
+      else
+         print *, 'Could not create output file ',
+     &        filename_biopar_out_bec_nml
+      end if
 
 # ifdef BGC_FLUX_ANALYSIS
        call init_scalars_becflux()
