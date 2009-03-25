@@ -1,11 +1,11 @@
-      subroutine exchange_3d_tile (Istr,Iend,Jstr,Jend, A)
+      subroutine exchange_3d_tile (istr,iend,jstr,jend, A)
 !
 ! Set periodic boundary conditions (if any) for a three-dimensional
 ! field A of RHO-, U-, V- or PSI-type. This file is designed to
 ! generate five different subroutines, by redefining (via CPP) the
 ! name of the subroutine exchange_2d_tile above and the starting
-! indices ISTART = [Istr for U-,PSI-type; IstrR for V-,RHO-type]
-! and JSTART = [Jstr for V-,PSI-type; JstrR for U-,RHO-type] below,
+! indices ISTART = [istr for U-,PSI-type; istrR for V-,RHO-type]
+! and JSTART = [jstr for V-,PSI-type; jstrR for U-,RHO-type] below,
 ! as well as macro KSTART for the vertical RHO- and W-types. See
 ! also mounting file exchange.F
 !
@@ -14,20 +14,20 @@
 #include "scalars.h"
       real A(GLOBAL_2D_ARRAY,KSTART:N)
 CSDISTRIBUTE_RESHAPE A(BLOCK_PATTERN,*) BLOCK_CLAUSE
-      integer Istr,Iend,Jstr,Jend, i,j,k
+      integer istr,iend,jstr,jend, i,j,k
 !
 #include "compute_auxiliary_bounds.h"
 !
 #ifdef EW_PERIODIC
 # ifdef NS_PERIODIC
-#  define J_RANGE Jstr,Jend
+#  define J_RANGE jstr,jend
 # else
-#  define J_RANGE JSTART,JendR
+#  define J_RANGE JSTART,jendR
 # endif
 # ifdef MPI
       if (NP_XI.eq.1) then
 # endif
-        if (Istr.eq.1) then
+        if (istr.eq.1) then
           do k=KSTART,N
             do j=J_RANGE
               A(Lm+1,j,k)=A(1,j,k)
@@ -35,7 +35,7 @@ CSDISTRIBUTE_RESHAPE A(BLOCK_PATTERN,*) BLOCK_CLAUSE
             enddo
           enddo
         endif
-        if (Iend.eq.Lm) then
+        if (iend.eq.Lm) then
           do k=KSTART,N
             do j=J_RANGE
               A(-1,j,k)=A(Lm-1,j,k)
@@ -51,14 +51,14 @@ CSDISTRIBUTE_RESHAPE A(BLOCK_PATTERN,*) BLOCK_CLAUSE
  
 #ifdef NS_PERIODIC
 # ifdef EW_PERIODIC
-#  define I_RANGE Istr,Iend
+#  define I_RANGE istr,iend
 # else
-#  define I_RANGE ISTART,IendR
+#  define I_RANGE ISTART,iendR
 # endif
 # ifdef MPI
       if (NP_ETA.eq.1) then
 # endif
-        if (Jstr.eq.1) then
+        if (jstr.eq.1) then
           do k=KSTART,N
             do i=I_RANGE
               A(i,Mm+1,k)=A(i,1,k)
@@ -66,7 +66,7 @@ CSDISTRIBUTE_RESHAPE A(BLOCK_PATTERN,*) BLOCK_CLAUSE
             enddo
           enddo
         endif
-        if (Jend.eq.Mm) then
+        if (jend.eq.Mm) then
           do k=KSTART,N
             do i=I_RANGE
               A(i,-1,k)=A(i,Mm-1,k)
@@ -84,7 +84,7 @@ CSDISTRIBUTE_RESHAPE A(BLOCK_PATTERN,*) BLOCK_CLAUSE
 # ifdef MPI
       if (NP_XI.eq.1 .and. NP_ETA.eq.1) then
 # endif
-        if (Istr.eq.1 .and. Jstr.eq.1) then
+        if (istr.eq.1 .and. jstr.eq.1) then
           do k=KSTART,N
             A(Lm+1,Mm+1,k)=A(1,1,k)
             A(Lm+1,Mm+2,k)=A(1,2,k)
@@ -92,7 +92,7 @@ CSDISTRIBUTE_RESHAPE A(BLOCK_PATTERN,*) BLOCK_CLAUSE
             A(Lm+2,Mm+2,k)=A(2,2,k)
           enddo
         endif
-        if (Iend.eq.Lm .and. Jstr.eq.1) then
+        if (iend.eq.Lm .and. jstr.eq.1) then
           do k=KSTART,N
             A(-1,Mm+1,k)=A(Lm-1,1,k)
             A( 0,Mm+1,k)=A(Lm  ,1,k)
@@ -100,7 +100,7 @@ CSDISTRIBUTE_RESHAPE A(BLOCK_PATTERN,*) BLOCK_CLAUSE
             A( 0,Mm+2,k)=A(Lm  ,2,k)
           enddo
         endif
-        if (Istr.eq.1 .and. Jend.eq.Mm) then
+        if (istr.eq.1 .and. jend.eq.Mm) then
           do k=KSTART,N
             A(Lm+1,-1,k)=A(1,Mm-1,k)
             A(Lm+1, 0,k)=A(1,Mm  ,k)
@@ -108,7 +108,7 @@ CSDISTRIBUTE_RESHAPE A(BLOCK_PATTERN,*) BLOCK_CLAUSE
             A(Lm+2, 0,k)=A(2,Mm  ,k)
           enddo
         endif
-        if (Iend.eq.Lm .and. Jend.eq.Mm) then
+        if (iend.eq.Lm .and. jend.eq.Mm) then
           do k=KSTART,N
             A(-1,-1,k)=A(Lm-1,Mm-1,k)
             A( 0,-1,k)=A(Lm  ,Mm-1,k)
@@ -122,7 +122,7 @@ CSDISTRIBUTE_RESHAPE A(BLOCK_PATTERN,*) BLOCK_CLAUSE
 #endif
 #ifdef MPI
       k=N-KSTART+1
-      call mpi_exchange_tile (Istr,Iend,Jstr,Jend,  A,k)
+      call mpi_exchange_tile (istr,iend,jstr,jend,  A,k)
 #endif
       return
       end

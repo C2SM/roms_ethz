@@ -9,17 +9,17 @@ c--#define CONST_TRACERS
 # include "param.h"
 # include "private_scratch.h"
 # include "compute_tile_bounds.h"
-      call step3d_t_tile (Istr,Iend,Jstr,Jend, A2d(1,1), A2d(1,2),
+      call step3d_t_tile (istr,iend,jstr,jend, A2d(1,1), A2d(1,2),
      &                                         A2d(1,3), A2d(1,4),
      &                               A2d(1,1), A2d(1,2), A2d(1,3))
       return
       end
  
-      subroutine step3d_t_tile (Istr,Iend,Jstr,Jend,
+      subroutine step3d_t_tile (istr,iend,jstr,jend,
      &                   FX,FE,WORK,dTdz,  FC,CF,DC)
       implicit none
 # include "param.h"
-      integer Istr,Iend,Jstr,Jend, itrc,
+      integer istr,iend,jstr,jend, itrc,
      &        imin,imax,jmin,jmax, i,j,k, indx
       real FX(PRIVATE_2D_SCRATCH_ARRAY),
      &     FE(PRIVATE_2D_SCRATCH_ARRAY),  cff,
@@ -51,8 +51,8 @@ c--#define CONST_TRACERS
  
 # include "compute_horiz_tracer_fluxes.h"
  
-          do j=Jstr,Jend
-            do i=Istr,Iend
+          do j=jstr,jend
+            do i=istr,iend
               t(i,j,k,nnew,itrc)=Hz_bak(i,j,k)*t(i,j,k,nstp,itrc)
      &                     -dt*pm(i,j)*pn(i,j)*( FX(i+1,j)-FX(i,j)
      &                                          +FE(i,j+1)-FE(i,j)
@@ -85,13 +85,13 @@ c--#define CONST_TRACERS
         enddo
       enddo
  
-      do j=Jstr,Jend
+      do j=jstr,jend
         do itrc=1,NT
  
 # include "compute_vert_tracer_fluxes.h"
  
           do k=1,N            ! Apply vertical advective fluxes.
-            do i=Istr,Iend
+            do i=istr,iend
               t(i,j,k,nnew,itrc)=t(i,j,k,nnew,itrc)-dt*pm(i,j)
      &                             *pn(i,j)*(FC(i,k)-FC(i,k-1))
             enddo
@@ -114,7 +114,7 @@ c--#define CONST_TRACERS
 !
 ! Add surface and bottom fluxes
 !
-          do i=Istr,Iend
+          do i=istr,iend
             t(i,j,N,nnew,itrc)=t(i,j,N,nnew,itrc)+dt*stflx(i,j,itrc)
           enddo
 # ifdef FULL_PHYS_FLUX_ANALYSIS
@@ -145,7 +145,7 @@ c--#define CONST_TRACERS
 !
           if (itrc.eq.itemp) then
             do k=N-1,1,-1
-              do i=Istr,Iend
+              do i=istr,iend
                 cff=srflx(i,j)*swr_frac(i,j,k)
 #  ifdef LMD_NONLOCAL
      &                 -ghat(i,j,k)*(stflx(i,j,itemp)-srflx(i,j))
@@ -161,7 +161,7 @@ c?? way to the bottom is entirely absorbed within the botom-most grid
 c?? box, rather that reflected/scatered back to the water column. It 
 c?? is not clear, however, how to deal with this situation correctly
 c??
-c??         do i=Istr,Iend
+c??         do i=istr,iend
 c??           cff=srflx(i,j)*swr_frac(i,j,0)
 c??#  ifdef LMD_NONLOCAL
 c??  &               -ghat(i,j,0)*(stflx(i,j,itemp)-srflx(i,j))
@@ -173,7 +173,7 @@ c??         enddo
 #  if defined LMD_NONLOCAL && defined SALINITY
           elseif (itrc.eq.isalt) then
             do k=N-1,1,-1
-              do i=Istr,Iend
+              do i=istr,iend
                 cff=-dt*ghat(i,j,k)*stflx(i,j,isalt)
                 t(i,j,k+1,nnew,isalt)=t(i,j,k+1,nnew,isalt) -cff
                 t(i,j,k  ,nnew,isalt)=t(i,j,k  ,nnew,isalt) +cff
@@ -216,7 +216,7 @@ c??         enddo
 ! The FC(N)=FC(0)=0 boundary conditions does not mean that physical
 ! boundary conditions are no flux: the forcing fluxes have been
 ! applied explicitly above.  Instead, the no-flux condition should
-! be interpreted as that the implicit step merely redIstributes the
+! be interpreted as that the implicit step merely redistributes the
 ! tracer concentration throughout the water column. At this moment
 ! the content of array t(:,:,:,nnew,itrc) has meaning of Hz*tracer.
 ! After the implicit step it becomes just tracer. 
@@ -241,26 +241,26 @@ c??         enddo
           indx=min(itrc,itemp)
 #  endif
 # endif
-          do i=Istr,Iend
+          do i=istr,iend
             FC(i,1)=dt*Akt(i,j,1,indx)/(z_r(i,j,2)-z_r(i,j,1))
             cff=1./(Hz(i,j,1)+FC(i,1))
             CF(i,1)=cff*FC(i,1)
             DC(i,1)=cff*t(i,j,1,nnew,itrc)
           enddo
           do k=2,N-1,+1
-            do i=Istr,Iend
+            do i=istr,iend
               FC(i,k)=dt*Akt(i,j,k,indx)/(z_r(i,j,k+1)-z_r(i,j,k))
               cff=1./( Hz(i,j,k) +FC(i,k)+FC(i,k-1)*(1.-CF(i,k-1)) )
               CF(i,k)=cff*FC(i,k)
               DC(i,k)=cff*(t(i,j,k,nnew,itrc)+FC(i,k-1)*DC(i,k-1))
             enddo
           enddo
-          do i=Istr,Iend
+          do i=istr,iend
              t(i,j,N,nnew,itrc)=( t(i,j,N,nnew,itrc) +FC(i,N-1)
      &         *DC(i,N-1) )/(Hz(i,j,N)+FC(i,N-1)*(1.-CF(i,N-1)))
           enddo
           do k=N-1,1,-1
-            do i=Istr,Iend
+            do i=istr,iend
               t(i,j,k,nnew,itrc)=DC(i,k)+CF(i,k)*t(i,j,k+1,nnew,itrc)
             enddo
           enddo           !--> discard FC,CF,DC
@@ -292,7 +292,7 @@ c??         enddo
 
 #ifdef CONST_TRACERS
           do k=1,N
-            do i=Istr,Iend
+            do i=istr,iend
               t(i,j,k,nnew,itrc)=t(i,j,k,nstp,itrc)
             enddo
           enddo
@@ -313,30 +313,30 @@ c??         enddo
 ! apply land-sea mask and exchange periodic boundary conditions.
 !
       do itrc=1,NT
-        call t3dbc_tile (Istr,Iend,Jstr,Jend, itrc, WORK)
+        call t3dbc_tile (istr,iend,jstr,jend, itrc, WORK)
 
 # if defined BIOLOGY_BEC
       enddo                                    ! Biogeochemical
                                                ! Elemental Cycles
-      call ecosys_tile (Istr,Iend,Jstr,Jend)   ! (BEC) model 
+      call ecosys_tile (istr,iend,jstr,jend)   ! (BEC) model 
 
       do itrc=1,NT  
 # elif defined BIOLOGY || defined BIOLOGY_NPZDOC
       enddo                                    ! Insert interactive
-      call biology_tile (Istr,Iend,Jstr,Jend)  ! part of the
+      call biology_tile (istr,iend,jstr,jend)  ! part of the
       do itrc=1,NT                             ! biological model
 # endif
  
 # if defined MASKING || defined TCLIMATOLOGY
 #  ifdef EW_PERIODIC
-#   define I_RANGE Istr,Iend
+#   define I_RANGE istr,iend
 #  else
-#   define I_RANGE IstrR,IendR
+#   define I_RANGE istrR,iendR
 #  endif
 #  ifdef NS_PERIODIC
-#   define J_RANGE Jstr,Jend
+#   define J_RANGE jstr,jend
 #  else
-#   define J_RANGE JstrR,JendR
+#   define J_RANGE jstrR,jendR
 #  endif
         do k=1,N
           do j=J_RANGE
@@ -376,7 +376,7 @@ c??         enddo
 # if !defined TS_DIF2 && !defined TS_DIF4
 #  if defined EW_PERIODIC || defined NS_PERIODIC || defined MPI
       do itrc=1,NT
-        call exchange_r3d_tile (Istr,Iend,Jstr,Jend,
+        call exchange_r3d_tile (istr,iend,jstr,jend,
      &                          t(START_2D_ARRAY,1,nnew,itrc))
       enddo
 #  endif

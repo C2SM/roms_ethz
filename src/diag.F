@@ -8,7 +8,7 @@
 #include "param.h"
 #include "private_scratch.h"
 #include "compute_tile_bounds.h"
-      call diag_tile (Istr,Iend,Jstr,Jend,  A2d(1,1), A2d(1,2),
+      call diag_tile (istr,iend,jstr,jend,  A2d(1,1), A2d(1,2),
      &                                                 A2d(1,3)
 #ifdef SOLVE3D
      &       , A2d(1,4), A2d(1,5), A2d(1,6), A2d(1,7), A2d(1,8)
@@ -17,13 +17,13 @@
       return
       end
  
-      subroutine diag_tile (Istr,Iend,Jstr,Jend, dVol, ke,pe
+      subroutine diag_tile (istr,iend,jstr,jend, dVol, ke,pe
 #ifdef SOLVE3D
      &                           , ke2b, ke3bc, kesrf, ub,vb
 #endif
      &                                                      )
       implicit none
-      integer Istr,Iend,Jstr,Jend, i,j,k, nsubs, ierr, ie
+      integer istr,iend,jstr,jend, i,j,k, nsubs, ierr, ie
 #include "param.h"
       real dVol(PRIVATE_2D_SCRATCH_ARRAY),  cff,
      &       ke(PRIVATE_2D_SCRATCH_ARRAY),  dA,    v2, 
@@ -102,7 +102,7 @@
 ! potential energy, horizontally averaged free-surface perturbation;
 ! maximum velocity, etc. Since this operation involves computation of
 ! global sums, it is done in three stages: at first, summation within
-! the tile [subdomain of indices (Istr:Iend,Jstr:Jend)] independently
+! the tile [subdomain of indices (istr:iend,jstr:jend)] independently
 ! by individual threads. In the case of three dimensions also perform
 ! verical summation at this stage; then summation accross the threads
 ! of the same MPI process (if any), and, finally, MPI reduction to
@@ -113,18 +113,18 @@
 #ifdef SOLVE3D
         my_v3d_max=0.
         my_v3bc_max=0.
-        do j=Jstr,Jend+1
-          do i=Istr,Iend+1
+        do j=jstr,jend+1
+          do i=istr,iend+1
             ub(i,j)=(Hz(i,j,N)+Hz(i-1,j,N))*u(i,j,N,nstp)
             vb(i,j)=(Hz(i,j,N)+Hz(i,j-1,N))*v(i,j,N,nstp)
           enddo
           do k=N-1,2,-1
-            do i=Istr,Iend+1
+            do i=istr,iend+1
               ub(i,j)=ub(i,j)+(Hz(i,j,k)+Hz(i-1,j,k))*u(i,j,k,nstp)
               vb(i,j)=vb(i,j)+(Hz(i,j,k)+Hz(i,j-1,k))*v(i,j,k,nstp)
             enddo
           enddo
-          do i=Istr,Iend+1
+          do i=istr,iend+1
             ub(i,j)=(ub(i,j)+(Hz(i,j,1)+Hz(i-1,j,1))*u(i,j,1,nstp))
      &           /(z_w(i,j,N)+z_w(i-1,j,N)-z_w(i,j,0)-z_w(i-1,j,0))
             vb(i,j)=(vb(i,j)+(Hz(i,j,1)+Hz(i,j-1,1))*v(i,j,1,nstp))
@@ -133,8 +133,8 @@
         enddo
  
         cff=g/rho0
-        do j=Jstr,Jend
-          do i=Istr,Iend
+        do j=jstr,jend
+          do i=istr,iend
             v2=0.5*(ub(i,j)**2+ub(i+1,j)**2 +vb(i,j)**2+vb(i,j+1)**2)
             my_v2d_max=max(my_v2d_max, v2)
  
@@ -147,7 +147,7 @@
      &                       +v(i,j,N,nstp)**2 + v(i,j+1,N,nstp)**2)
           enddo
           do k=N,1,-1
-            do i=Istr,Iend
+            do i=istr,iend
               v2=0.5*( u(i,j,k,nstp)**2 + u(i+1,j,k,nstp)**2
      &                +v(i,j,k,nstp)**2 + v(i,j+1,k,nstp)**2)
  
@@ -172,7 +172,7 @@
               ke3bc(i,j)=ke3bc(i,j) + 0.5*v2bc*Hz(i,j,k)
             enddo
           enddo
-          do i=Istr,Iend
+          do i=istr,iend
 # ifdef MASKING
             dA=rmask(i,j)/(pm(i,j)*pn(i,j))
 # else
@@ -188,8 +188,8 @@
         enddo
 #else
         cff=0.5*g
-        do j=Jstr,Jend
-          do i=Istr,Iend
+        do j=jstr,jend
+          do i=istr,iend
             v2=0.5*( ubar(i,j,kstp)**2+ubar(i+1,j,kstp)**2
      &              +vbar(i,j,kstp)**2+vbar(i,j+1,kstp)**2)
             my_v2d_max=max(my_v2d_max, v2)
@@ -214,9 +214,9 @@
         jnc=1                           ! by pairs algorithm to avoid
                                         ! accumulation of roundoff
         do while (lsumX .or. lsumY)     ! errors.
-          if (Istr.le.Iend-inc) then
-            do j=Jstr,Jend
-              do i=Istr,Iend-inc,2*inc
+          if (istr.le.iend-inc) then
+            do j=jstr,jend
+              do i=istr,iend-inc,2*inc
                  dVol(i,j) =  dVol(i,j) +  dVol(i+inc,j)
                    ke(i,j) =    ke(i,j) +    ke(i+inc,j)
                    pe(i,j) =    pe(i,j) +    pe(i+inc,j)
@@ -231,9 +231,9 @@
           else
             lsumX=.false.
           endif
-          if (Jstr.le.Jend-jnc) then
-            do j=Jstr,Jend-jnc,2*jnc
-              do i=Istr,Iend
+          if (jstr.le.jend-jnc) then
+            do j=jstr,jend-jnc,2*jnc
+              do i=istr,iend
                  dVol(i,j) =  dVol(i,j) +  dVol(i,j+jnc)
                    ke(i,j) =    ke(i,j) +    ke(i,j+jnc)
                    pe(i,j) =    pe(i,j) +    pe(i,j+jnc)
@@ -250,37 +250,37 @@
           endif                         ! effort to counter roundoff
         enddo                           ! errors.
 #else
-        do j=Jstr+1,Jend
-          do i=Istr,Iend
-            dVol(i,Jstr)  = dVol(i,Jstr)  + dVol(i,j)
-            ke(i,Jstr)    = ke(i,Jstr)    + ke(i,j)
-            pe(i,Jstr)    = pe(i,Jstr)    + pe(i,j)
+        do j=jstr+1,jend
+          do i=istr,iend
+            dVol(i,jstr)  = dVol(i,jstr)  + dVol(i,j)
+            ke(i,jstr)    = ke(i,jstr)    + ke(i,j)
+            pe(i,jstr)    = pe(i,jstr)    + pe(i,j)
 # ifdef SOLVE3D
-            ke2b(i,Jstr)  = ke2b(i,Jstr)  + ke2b(i,j)
-            ke3bc(i,Jstr) = ke3bc(i,Jstr) + ke3bc(i,j)
-            kesrf(i,Jstr) = kesrf(i,Jstr) + kesrf(i,j)
+            ke2b(i,jstr)  = ke2b(i,jstr)  + ke2b(i,j)
+            ke3bc(i,jstr) = ke3bc(i,jstr) + ke3bc(i,j)
+            kesrf(i,jstr) = kesrf(i,jstr) + kesrf(i,j)
 # endif
           enddo
         enddo
-        do i=Istr+1,Iend
-          dVol(Istr,Jstr)  = dVol(Istr,Jstr)  + dVol(i,Jstr)
-          ke(Istr,Jstr)    = ke(Istr,Jstr)    + ke(i,Jstr)
-          pe(Istr,Jstr)    = pe(Istr,Jstr)    + pe(i,Jstr)
+        do i=istr+1,iend
+          dVol(istr,jstr)  = dVol(istr,jstr)  + dVol(i,jstr)
+          ke(istr,jstr)    = ke(istr,jstr)    + ke(i,jstr)
+          pe(istr,jstr)    = pe(istr,jstr)    + pe(i,jstr)
 # ifdef SOLVE3D
-          ke2b(Istr,Jstr)  = ke2b(Istr,Jstr)  + ke2b(i,Jstr)
-          ke3bc(Istr,Jstr) = ke3bc(Istr,Jstr) + ke3bc(i,Jstr)
-          kesrf(Istr,Jstr) = kesrf(Istr,Jstr) + kesrf(i,Jstr)
+          ke2b(istr,jstr)  = ke2b(istr,jstr)  + ke2b(i,jstr)
+          ke3bc(istr,jstr) = ke3bc(istr,jstr) + ke3bc(i,jstr)
+          kesrf(istr,jstr) = kesrf(istr,jstr) + kesrf(i,jstr)
 # endif
         enddo
 #endif
  
-        my_avzeta=dVol(Istr,Jstr)
-        my_ke=ke(Istr,Jstr)
-        my_pe=pe(Istr,Jstr)
+        my_avzeta=dVol(istr,jstr)
+        my_ke=ke(istr,jstr)
+        my_pe=pe(istr,jstr)
 #ifdef SOLVE3D
-        my_ke2b=ke2b(Istr,Jstr)
-        my_ke3bc=ke3bc(Istr,Jstr)
-        my_kesrf=kesrf(Istr,Jstr)
+        my_ke2b=ke2b(istr,jstr)
+        my_ke3bc=ke3bc(istr,jstr)
+        my_kesrf=kesrf(istr,jstr)
 #endif
         if (SINGLE_TILE_MODE) then
           nsubs=1
@@ -443,10 +443,8 @@ C$   &                                                   , proc(2)
             do while (i.lt.18 .and. tstring(i:i).eq.' ')
               i=i+1
             enddo
-c JDS These lines were commented in order to increase simulations
-c speed             
-c            write(stdout,'(I7,1x,A,1x,A)') iic-1, tstring(i:i+8),
-c     &                                          check_line(1:ie)
+            write(stdout,'(I7,1x,A,1x,A)') iic-1, tstring(i:i+8),
+     &                                          check_line(1:ie)
             call flush(stdout)
 
 #ifdef  ETALON_CHECK

@@ -127,23 +127,23 @@
 
 # if defined M2NUDGING && !defined M2_FRC_BRY
 #  ifdef ANA_SSH
-      call ana_ssh_tile (Istr,Iend,Jstr,Jend)
+      call ana_ssh_tile (istr,iend,jstr,jend)
 #  else
-      call set_ssh_tile (Istr,Iend,Jstr,Jend, ierr)
+      call set_ssh_tile (istr,iend,jstr,jend, ierr)
 #  endif
 # endif
 # ifdef UCLIMATOLOGY
 #  ifdef ANA_UCLIMA
-      call ana_uclima_tile (Istr,Iend,Jstr,Jend)
+      call ana_uclima_tile (istr,iend,jstr,jend)
 #  else
-      call set_uclima_tile (Istr,Iend,Jstr,Jend, ierr)
+      call set_uclima_tile (istr,iend,jstr,jend, ierr)
 #  endif
 # endif
 # if defined SOLVE3D && defined TCLIMATOLOGY
 #  ifdef ANA_TCLIMA
-      call ana_tclima_tile (Istr,Iend,Jstr,Jend)
+      call ana_tclima_tile (istr,iend,jstr,jend)
 #  else
-      call set_tclima_tile (Istr,Iend,Jstr,Jend, ierr)
+      call set_tclima_tile (istr,iend,jstr,jend, ierr)
 #  endif
 # endif
 # if  defined T_FRC_BRY  || defined M2_FRC_BRY || \
@@ -151,27 +151,27 @@
 #  ifdef ANA_BRY 
 c***              no code here
 #  else
-      call set_all_bry_tile (Istr,Iend,Jstr,Jend, ierr)
+      call set_all_bry_tile (istr,iend,jstr,jend, ierr)
 #  endif
 # endif
 
                                         !--> Surface fluxes
 #ifdef ANA_SMFLUX
-      call ana_smflux_tile (Istr,Iend,Jstr,Jend)
+      call ana_smflux_tile (istr,iend,jstr,jend)
 #else
-      call set_smflux_tile (Istr,Iend,Jstr,Jend, ierr)
+      call set_smflux_tile (istr,iend,jstr,jend, ierr)
 #endif
 #ifdef SOLVE3D
 # ifdef ANA_STFLUX
-      call ana_stflux_tile (Istr,Iend,Jstr,Jend, itemp)
+      call ana_stflux_tile (istr,iend,jstr,jend, itemp)
 # else
-      call set_stflux_tile (Istr,Iend,Jstr,Jend, itemp, ierr)
+      call set_stflux_tile (istr,iend,jstr,jend, itemp, ierr)
 # endif
 # ifdef SALINITY
 #  ifdef ANA_SSFLUX
-      call ana_stflux_tile (Istr,Iend,Jstr,Jend, isalt)
+      call ana_stflux_tile (istr,iend,jstr,jend, isalt)
 #  else
-      call set_stflux_tile (Istr,Iend,Jstr,Jend, isalt, ierr)
+      call set_stflux_tile (istr,iend,jstr,jend, isalt, ierr)
 #   if defined VFLX_CORR && (defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC)
       ! Flux correction for all biological/chemical tracers
       if (global_srf_sum(isalt) .gt. 0.0) then
@@ -182,8 +182,8 @@ c***              no code here
          cff = 0.0
       end if
       do itrc=isalt+1,NT
-         do j=Jstr,Jend
-            do i=Istr,Iend
+         do j=jstr,jend
+            do i=istr,iend
                stflx(i,j,itrc)=stflx(i,j,isalt)*
      &              global_srf_sum(itrc) * cff
             enddo
@@ -198,9 +198,9 @@ c***              no code here
 # endif
 # if (defined LMD_KPP || defined LMD_BKPP)
 #  ifdef ANA_SRFLUX
-      call ana_srflux_tile (Istr,Iend,Jstr,Jend)
+      call ana_srflux_tile (istr,iend,jstr,jend)
 #  else
-      call set_srflux_tile (Istr,Iend,Jstr,Jend, ierr)
+      call set_srflux_tile (istr,iend,jstr,jend, ierr)
 #  endif
 # endif
 #endif
@@ -214,7 +214,7 @@ c***              no code here
 # ifdef ANA_WWAVE
       call ana_wwave ILLEGAL
 # else
-      call set_wwave_tile (Istr,Iend,Jstr,Jend)
+      call set_wwave_tile (istr,iend,jstr,jend)
 # endif
       call sg_bbl96 ILLEGAL
 #endif

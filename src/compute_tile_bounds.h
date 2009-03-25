@@ -7,10 +7,10 @@
 !                the specified subdomain;  tile=NSUB_X*NSUB_E
 !                corresponds to the whole domain of RHO points
 !                treated as a single block.
-! outputs: Istr,Iend -- starting and ending indices of subdomain
-!          Jstr,Jend    tile in XI- and ETA-directions.
+! outputs: istr,iend -- starting and ending indices of subdomain
+!          jstr,jend    tile in XI- and ETA-directions.
 !
-      integer Istr,Iend, Jstr,Jend, i_X,j_E,
+      integer istr,iend, jstr,jend, i_X,j_E,
      &        size_X,margin_X, size_E,margin_E
 #ifdef MPI 
 # include "hidden_mpi_vars.h"
@@ -28,15 +28,15 @@ C$    integer trd, omp_get_thread_num
 C$      trd=omp_get_thread_num()
 C$      if (trd.gt.0) return !--> just return, if not master thread
 # ifdef MPI    
-        Istr=iwest      ! MONOBLOCK VERSION:
-        Iend=ieast      ! Do not divide grid
-        Jstr=jsouth     ! into tiles.
-        Jend=jnorth 
+        istr=iwest      ! MONOBLOCK VERSION:
+        iend=ieast      ! Do not divide grid
+        jstr=jsouth     ! into tiles.
+        jend=jnorth 
   else
-        Istr=1
-        Iend=Lm
-        Jstr=1
-        Jend=Mm
+        istr=1
+        iend=Lm
+        jstr=1
+        jend=Mm
       else
 # endif
 #endif
@@ -55,26 +55,26 @@ C$      if (trd.gt.0) return !--> just return, if not master thread
 
         size_X=(ieast-iwest+NSUB_X)/NSUB_X
         margin_X=(NSUB_X*size_X - ieast+iwest-1)/2
-        Istr=iwest-margin_X + i_X*size_X
-        Iend=min( Istr + size_X-1 ,ieast)
-        Istr=max(Istr,iwest)
+        istr=iwest-margin_X + i_X*size_X
+        iend=min( istr + size_X-1 ,ieast)
+        istr=max(istr,iwest)
 #else
-        Istr=1-margin_X + i_X*size_X
-        Iend=min( Istr + size_X-1, Lm)
-        Istr=max(Istr,1)
+        istr=1-margin_X + i_X*size_X
+        iend=min( istr + size_X-1, Lm)
+        istr=max(istr,1)
 #endif
 
 
 #ifdef MPI
         size_E=(jnorth-jsouth +NSUB_E)/NSUB_E
         margin_E=(NSUB_E*size_E -jnorth+jsouth-1)/2
-        Jstr=jsouth-margin_E + j_E*size_E
-        Jend=min( Jstr + size_E-1 ,jnorth)
-        Jstr=max(Jstr,jsouth)
+        jstr=jsouth-margin_E + j_E*size_E
+        jend=min( jstr + size_E-1 ,jnorth)
+        jstr=max(jstr,jsouth)
 #else
-        Jstr=1-margin_E + j_E*size_E
-        Jend=min( Jstr + size_E-1, Mm)
-        Jstr=max(Jstr,1)
+        jstr=1-margin_E + j_E*size_E
+        jend=min( jstr + size_E-1, Mm)
+        jstr=max(jstr,1)
 #endif
 
  

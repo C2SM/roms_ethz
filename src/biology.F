@@ -393,7 +393,7 @@
 !         surface from solar radiation x 0.43. Then, within each grid box
 !         compute attenuation coefficient based on the concentration of
 !         chlorphyll a inside the grid box, and attenuate PAR from surface
-!         down (thus, PAR at certain depth depends on the whole dIstribution
+!         down (thus, PAR at certain depth depends on the whole distribution
 !         of chlorophyll a above). To compute t_PPmax, one needs PAR somewhat in
 !         the middle of the gridbox, so that attenuation "attn" corresponds
 !         to half of the grid box height, while PAR is multiplied by it

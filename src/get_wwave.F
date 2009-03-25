@@ -260,14 +260,14 @@
      &                  'for time = ', g12.4)
       return
       end
-      subroutine set_wwave_tile (Istr,Iend,Jstr,Jend)
+      subroutine set_wwave_tile (istr,iend,jstr,jend)
 !
 !--------------------------------------------------------------------
 !  Set-up wind-induced wave data for current tile.
 !--------------------------------------------------------------------
 !
       implicit none
-      integer Istr,Iend,Jstr,Jend, i,j, i1,it2
+      integer istr,iend,jstr,jend, i,j, i1,it2
       real cff, cff1,cff2, cff3,cff4, cff5,cff6, wwa,wwd,wwp
 # include "param.h"
 # include "pconst.h"
@@ -289,8 +289,8 @@
       if (ww_onerec) then
         if (iic.eq.ntstart) then
           if (lwwgrd) then
-            do j=JstrR,JendR
-              do i=IstrR,JendR
+            do j=jstrR,jendR
+              do i=istrR,jendR
                 Awave(i,j)=sclwwa*wwag(i,j,itww)
                 Dwave(i,j)=sclwwd*wwdg(i,j,itww)
                 Pwave(i,j)=sclwwp*wwpg(i,j,itww)
@@ -300,8 +300,8 @@
             wwa=sclwwa*wwap(itww)
             wwd=sclwwd*wwdp(itww)
             wwp=sclwwp*wwpp(itww)
-            do j=JstrR,JendR
-              do i=IstrR,JendR
+            do j=jstrR,jendR
+              do i=istrR,jendR
                 Awave(i,j)=wwa
                 Dwave(i,j)=wwd
                 Pwave(i,j)=wwp
@@ -329,8 +329,8 @@
         fac1=fac*fac1
         fac2=fac*fac2
         if (lwwgrd) then
-          do j=JstrR,JendR
-            do i=IstrR,IendR
+          do j=jstrR,jendR
+            do i=istrR,iendR
               Awave(i,j)=fac1*wwag(i,j,it1)+fac2*wwag(i,j,it2)
               Dwave(i,j)=fac3*wwdg(i,j,it1)+fac4*wwdg(i,j,it2)
               Pwave(i,j)=fac5*wwpg(i,j,it1)+fac6*wwpg(i,j,it2)
@@ -340,8 +340,8 @@
           wwa=fac1*wwap(it1)+fac2*wwap(it2)
           wwd=fac3*wwdp(it1)+fac4*wwdp(it2)
           wwp=fac5*wwpp(it1)+fac6*wwpp(it2)
-          do j=JstrR,JendR
-            do i=IstrR,JendR
+          do j=jstrR,jendR
+            do i=istrR,jendR
               Awave(i,j)=wwa
               Dwave(i,j)=wwd
               Pwave(i,j)=wwp

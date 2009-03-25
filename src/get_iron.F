@@ -149,8 +149,8 @@
         cff2=cff2*cff                ! data to model time.  Convert
                                      ! units of dQdSST from
 
-        do j=JstrR,JendR             !
-          do i=IstrR,IendR
+        do j=jstrR,jendR             !
+          do i=istrR,iendR
              ! convert units from CCSM to ROMS (nmol/cm2 to mmol/m2)
               iron(i,j)=(cff1*irong(i,j,it1)+cff2*irong(i,j,it2))
      &            * nmol_cm2_to_mmol_m2

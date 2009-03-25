@@ -8,16 +8,16 @@
 # include "param.h"
 # include "private_scratch.h"
 # include "compute_tile_bounds.h"
-      call sediment_tile (Istr,Iend,Jstr,Jend, A2d(1,1), A2d(1,2),
+      call sediment_tile (istr,iend,jstr,jend, A2d(1,1), A2d(1,2),
      &                     A2d(1,3), A2d(1,4), A2d(1,5), A2d(1, 6),
      &                     A2d(1,7), A2d(1,8), A2d(1,9), A2d(1,10))
       return
       end
  
-      subroutine sediment_tile (Istr,Iend,Jstr,Jend, FC, qc, qR,qL,
+      subroutine sediment_tile (istr,iend,jstr,jend, FC, qc, qR,qL,
      &                      WR,WL, Hz_inv,Hz_inv2,Hz_inv3, ksource)
       implicit none
-      integer Istr,Iend,Jstr,Jend,   ised,indx, i,j,k,ks
+      integer istr,iend,jstr,jend,   ised,indx, i,j,k,ks
 # include "param.h"
       real FC(PRIVATE_1D_SCRATCH_ARRAY,0:N),   cff,
      &       qc(PRIVATE_1D_SCRATCH_ARRAY,N),   cff1, cu,
@@ -48,19 +48,19 @@ c??
 c??
 c??
  
-      do j=Jstr,Jend                        ! Auxiliary step: save
+      do j=jstr,jend                        ! Auxiliary step: save
         do k=1,N                            ! inverses of grid box
-          do i=Istr,Iend                    ! heights to avoid
+          do i=istr,iend                    ! heights to avoid
             Hz_inv(i,k)=1./Hz(i,j,k)        ! repeated divisions
           enddo
         enddo
         do k=1,N-1
-          do i=Istr,Iend
+          do i=istr,iend
             Hz_inv2(i,k)=1./(Hz(i,j,k)+Hz(i,j,k+1))
           enddo
         enddo
         do k=2,N-1
-          do i=Istr,Iend
+          do i=istr,iend
             Hz_inv3(i,k)=1./(Hz(i,j,k-1)+Hz(i,j,k)+Hz(i,j,k+1))
           enddo
         enddo
@@ -76,18 +76,18 @@ c??
         do ised=1,NST
           indx=idsed(ised)
           do k=1,N
-            do i=Istr,Iend
+            do i=istr,iend
               qc(i,k)=t(i,j,k,nnew,indx)
             enddo
           enddo
  
           do k=N-1,1,-1
-            do i=Istr,Iend
+            do i=istr,iend
               FC(i,k)=(qc(i,k+1)-qc(i,k))*Hz_inv2(i,k)
             enddo
           enddo
           do k=2,N-1
-            do i=Istr,Iend
+            do i=istr,iend
               dltR=Hz(i,j,k)*FC(i,k)
               dltL=Hz(i,j,k)*FC(i,k-1)
               cff=Hz(i,j,k-1)+2.*Hz(i,j,k)+Hz(i,j,k+1)
@@ -115,7 +115,7 @@ c??
                                             ! of the whole profile is
           cff=1.0E-14                       ! not guaranteed, because
           do k=2,N-2                        ! qL(k+1)-qR(k) may still
-            do i=Istr,Iend                  ! have different sign
+            do i=istr,iend                  ! have different sign
               dltL=max(WL(i,k),   cff)      ! than qc(k+1)-qc(k)...
               dltR=max(WR(i,k+1), cff)
               qR(i,k)=(dltR*qR(i,k)+dltL*qL(i,k+1))/(dltR+dltL)
@@ -123,7 +123,7 @@ c??
             enddo                           !   ...this possibility
           enddo      !--> discard WR,WL     ! is excluded, after qL
                                             ! and qR are reconciled
-          do i=Istr,Iend                    ! using WENO procedire.
+          do i=istr,iend                    ! using WENO procedire.
             FC(i,N)=0.     !<-- no-flux BC
 # if defined LINEAR_CONTINUATION
             qL(i,N)=qR(i,N-1)
@@ -134,7 +134,7 @@ c??
 # else
             qR(i,N)=qc(i,N)                 ! Strictly monotone
             qL(i,N)=qc(i,N)                 ! version as the default:
-            qR(i,N-1)=qc(i,N)               ! dIstributions at top...
+            qR(i,N-1)=qc(i,N)               ! distributions at top...
 # endif
 # if defined LINEAR_CONTINUATION
             qR(i,1)=qL(i,2)
@@ -150,7 +150,7 @@ c??
           enddo
  
           do k=1,N                          ! Since the reconciled
-            do i=Istr,Iend                  ! interfacial values may
+            do i=istr,iend                  ! interfacial values may
               dltR=qR(i,k)-qc(i,k)          ! cause non-monotonic
               dltL=qc(i,k)-qL(i,k)          ! behavior of parabolic
               cffR=2.*dltR                  ! segments inside grid
@@ -179,7 +179,7 @@ c??
 !
           cff=dt*abs(Wsed(ised))          ! In the two code segments
           do k=1,N                        ! WL is z-coordinate of the
-            do i=Istr,Iend                ! departure point for grid
+            do i=istr,iend                ! departure point for grid
               FC(i,k-1)=0.                ! box interface z_w with
               WL(i,k)=z_w(i,j,k-1)+cff    ! the same indices;
               WR(i,k)=Hz(i,j,k)*qc(i,k)   ! FC is finite volume flux;
@@ -188,7 +188,7 @@ c??
           enddo                           ! contains the departure
           do k=1,N                        ! point (restricted by N);
             do ks=k,N-1                   ! During the search: also
-              do i=Istr,Iend
+              do i=istr,iend
                 if (WL(i,k) .gt. z_w(i,j,ks)) then
                   ksource(i,k)=ks+1
                   FC(i,k-1)=FC(i,k-1)+WR(i,ks)
@@ -198,7 +198,7 @@ c??
           enddo       !--> discard WR     ! in FC.
  
           do k=1,N                        ! Finalize computation of
-            do i=Istr,Iend                ! flux: add fractional part
+            do i=istr,iend                ! flux: add fractional part
               ks=ksource(i,k)
               cu=min(1.,(WL(i,k)-z_w(i,j,ks-1))*Hz_inv(i,ks))
               FC(i,k-1)=FC(i,k-1) + Hz(i,j,ks)*cu*( qL(i,ks)
@@ -207,7 +207,7 @@ c??
             enddo
           enddo              !--> discard WL
           do k=1,N,+1
-            do i=Istr,Iend
+            do i=istr,iend
               qc(i,k)=qc(i,k) + (FC(i,k)-FC(i,k-1))*Hz_inv(i,k)
             enddo
           enddo    !--> discard everything, except qc,FC(:,0)
@@ -226,7 +226,7 @@ c??
           cff1=1./tau_ce(ised)
           cff2=Srho(ised)*(1.-poros(ised))
           cff3=1./cff2
-          do i=Istr,Iend
+          do i=istr,iend
 # ifdef BBL
             tau_water=0.5*sqrt( (bustrw(i,j)+bustrw(i+1,j))**2
      &                         +(bvstrw(i,j)+bvstrw(i,j+1))**2)
@@ -246,7 +246,7 @@ c??
           enddo
 
           do k=1,N                         ! Write concentration of 
-            do i=Istr,Iend                 ! suspended sediment back
+            do i=istr,iend                 ! suspended sediment back
                 t(i,j,k,nnew,indx)=qc(i,k) ! to its global array.
 # ifdef MASKING
      &                         *rmask(i,j)

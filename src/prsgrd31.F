@@ -7,15 +7,15 @@
 # include "param.h"
 # include "private_scratch.h"
 # include "compute_tile_bounds.h"
-      call prsgrd31_tile (Istr,Iend,Jstr,Jend, A3d(1,1), A3d(1,2),
+      call prsgrd31_tile (istr,iend,jstr,jend, A3d(1,1), A3d(1,2),
      &                                         A2d(1,1), A2d(1,2))
       return
       end
  
-      subroutine prsgrd31_tile (Istr,Iend,Jstr,Jend, ru,rv, rsurf,
+      subroutine prsgrd31_tile (istr,iend,jstr,jend, ru,rv, rsurf,
      &                                                       pgrd)
       implicit none
-      integer Istr,Iend,Jstr,Jend, i,j,k
+      integer istr,iend,jstr,jend, i,j,k
 # include "param.h"
       real ru(PRIVATE_2D_SCRATCH_ARRAY,N),
      &     rv(PRIVATE_2D_SCRATCH_ARRAY,N), cff,
@@ -59,16 +59,16 @@ c--#define WJ_GRADP 0.125
 ! rewritten in diagonal form (lile in Lin, 1997), which minimizes
 ! the number of operations relatively to any other form.
 !
-      do j=JstrV-1,Jend
-        do i=IstrU-1,Iend
+      do j=jstrV-1,jend
+        do i=istrU-1,iend
           rsurf(i,j)=rho(i,j,N) + (rho(i,j,N)-rho(i,j,N-1))
      &                              *(z_w(i,j,N)-z_r(i,j,N))
      &                            /(z_r(i,j,N)-z_r(i,j,N-1))
         enddo
  
-        if (j.ge.Jstr) then
+        if (j.ge.jstr) then
           cff=0.5*g/rho0
-          do i=IstrU,Iend
+          do i=istrU,iend
             pgrd(i)=(g+cff*(rsurf(i-1,j)+rsurf(i,j)))*( z_w(i-1,j,N)
      &                                                   -z_w(i,j,N))
  
@@ -84,7 +84,7 @@ c--#define WJ_GRADP 0.125
           cff=0.5*g/rho0
 # endif
           do k=N-1,1,-1
-            do i=IstrU,Iend
+            do i=istrU,iend
 # ifdef WJ_GRADP
               gamma=WJ_GRADP
      &         *(z_r(i,j,k+1)-z_r(i-1,j,k+1)+z_r(i,j,k)-z_r(i-1,j,k))
@@ -118,9 +118,9 @@ c--#define WJ_GRADP 0.125
 ! ETA-component: same sequence as above.
 !---- ---------- ---- -------- -- ------
 !
-        if (j.ge.JstrV) then
+        if (j.ge.jstrV) then
           cff=0.5*g/rho0
-          do i=Istr,Iend
+          do i=istr,iend
             pgrd(i)=(g+cff*(rsurf(i,j-1)+rsurf(i,j)))*( z_w(i,j-1,N)
      &                                                   -z_w(i,j,N))
  
@@ -136,7 +136,7 @@ c--#define WJ_GRADP 0.125
           cff=0.5*g/rho0
 # endif
           do k=N-1,1,-1
-            do i=Istr,Iend
+            do i=istr,iend
 # ifdef WJ_GRADP
               gamma=WJ_GRADP
      &         *(z_r(i,j,k+1)-z_r(i,j-1,k+1)+z_r(i,j,k)-z_r(i,j-1,k))

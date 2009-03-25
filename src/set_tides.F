@@ -17,12 +17,12 @@
 # include "param.h"
 # include "private_scratch.h"
 # include "compute_tile_bounds.h"
-      call set_tides_tile (Istr,Iend,Jstr,Jend, A2d(1,1), A2d(1,2),
+      call set_tides_tile (istr,iend,jstr,jend, A2d(1,1), A2d(1,2),
      &                                          A2d(1,3), A2d(1,4))
       return
       end
 
-      subroutine set_tides_tile (Istr,Iend,Jstr,Jend, Cangle, Sangle,
+      subroutine set_tides_tile (istr,iend,jstr,jend, Cangle, Sangle,
      &                                                Cphase, Sphase)
       implicit none
 # include "param.h"
@@ -32,7 +32,7 @@
 # include "tides.h"
 # include "boundary.h"
 
-      integer Istr,Iend,Jstr,Jend,    itide, i,j
+      integer istr,iend,jstr,jend,    itide, i,j
       real Cangle(PRIVATE_2D_SCRATCH_ARRAY), angle,
      &     Sangle(PRIVATE_2D_SCRATCH_ARRAY), phase, 
      &     Cphase(PRIVATE_2D_SCRATCH_ARRAY), omega, 
@@ -52,53 +52,53 @@
 # if defined SSH_TIDES
 #  if defined OBC_WEST
           if (WESTERN_EDGE) then
-            do j=JstrR,JendR
+            do j=jstrR,jendR
 #   ifdef Z_FRC_BRY
               zeta_west(j) =zeta_west(j)
 #   else
-              ssh(Istr-1,j)=ssh(Istr-1,j)
+              ssh(istr-1,j)=ssh(istr-1,j)
 #   endif
-     &              +ramp*SSH_Tamp(Istr-1,j,itide)
-     &       *cos(omega-SSH_Tphase(Istr-1,j,itide))
+     &              +ramp*SSH_Tamp(istr-1,j,itide)
+     &       *cos(omega-SSH_Tphase(istr-1,j,itide))
             enddo
           endif
 #  endif
 #  if defined OBC_EAST
           if (EASTERN_EDGE) then
-            do j=JstrR,JendR
+            do j=jstrR,jendR
 #   ifdef Z_FRC_BRY
               zeta_east(j) =zeta_east(j)
 #   else
-              ssh(Iend+1,j)=ssh(Iend+1,j)
+              ssh(iend+1,j)=ssh(iend+1,j)
 #   endif
-     &                   +ramp*SSH_Tamp(Iend+1,j,itide)
-     &            *cos(omega-SSH_Tphase(Iend+1,j,itide))
+     &                   +ramp*SSH_Tamp(iend+1,j,itide)
+     &            *cos(omega-SSH_Tphase(iend+1,j,itide))
             enddo
           endif
 #  endif
 #  if defined OBC_SOUTH
           if (SOUTHERN_EDGE) then
-            do i=IstrR,IendR
+            do i=istrR,iendR
 #   ifdef Z_FRC_BRY
               zeta_south(i)=zeta_south(i)
 #   else
-              ssh(i,Jstr-1)=ssh(i,Jstr-1)
+              ssh(i,jstr-1)=ssh(i,jstr-1)
 #   endif
-     &                   +ramp*SSH_Tamp(i,Jstr-1,itide)
-     &            *cos(omega-SSH_Tphase(i,Jstr-1,itide))
+     &                   +ramp*SSH_Tamp(i,jstr-1,itide)
+     &            *cos(omega-SSH_Tphase(i,jstr-1,itide))
             enddo
           endif
 #  endif
 #  if defined OBC_NORTH
           if (NORTHERN_EDGE) then
-            do i=IstrR,IendR
+            do i=istrR,iendR
 #   ifdef Z_FRC_BRY
               zeta_north(i)=zeta_north(i)
 #   else
-              ssh(i,Jend+1)=ssh(i,Jend+1)
+              ssh(i,jend+1)=ssh(i,jend+1)
 #   endif
-     &                   +ramp*SSH_Tamp(i,Jend+1,itide)
-     &            *cos(omega-SSH_Tphase(i,Jend+1,itide))
+     &                   +ramp*SSH_Tamp(i,jend+1,itide)
+     &            *cos(omega-SSH_Tphase(i,jend+1,itide))
             enddo
           endif
 #  endif
@@ -106,8 +106,8 @@
 # if defined UV_TIDES
 #  ifdef OBC_WEST
           if (WESTERN_EDGE) THEN
-            do i=Istr-1,Istr
-              do j=Jstr-1,JendR
+            do i=istr-1,istr
+              do j=jstr-1,jendR
                 angle=UV_Tangle(i,j,itide)-angler(i,j)
                 phase=omega-UV_Tphase(i,j,itide)
                 Cangle(i,j)=cos(angle)
@@ -116,8 +116,8 @@
                 Sphase(i,j)=sin(phase)
               enddo
             enddo
-            do j=JstrR,JendR
-              i=IstrU-1
+            do j=jstrR,jendR
+              i=istrU-1
 #   ifdef M2_FRC_BRY
               ubar_west(j)=ubar_west(j)
 #   else
@@ -130,8 +130,8 @@
      &       *(Sangle(i-1,j)+Sangle(i,j))*(Sphase(i-1,j)+Sphase(i,j))
      &                                                              )
             enddo
-            do j=Jstr,JendR
-              i=Istr-1
+            do j=jstr,jendR
+              i=istr-1
 #   ifdef M2_FRC_BRY
               vbar_west(j)=vbar_west(j)
 #   else
@@ -149,8 +149,8 @@
 
 #  ifdef OBC_EAST
           if (EASTERN_EDGE) THEN
-            do i=Iend,Iend+1
-              do j=Jstr-1,JendR
+            do i=iend,iend+1
+              do j=jstr-1,jendR
                 angle=UV_Tangle(i,j,itide)-angler(i,j)
                 phase=omega-UV_Tphase(i,j,itide)
                 Cangle(i,j)=cos(angle)
@@ -159,8 +159,8 @@
                 Sphase(i,j)=sin(phase)
               enddo
             enddo
-            do j=JstrR,JendR
-              i=Iend+1
+            do j=jstrR,jendR
+              i=iend+1
 #   ifdef M2_FRC_BRY
               ubar_east(j)=ubar_east(j)
 #   else
@@ -175,8 +175,8 @@
      &                                   *(Sphase(i-1,j)+Sphase(i,j))
      &                                                              )
             enddo
-            do j=Jstr,JendR
-              i=Iend+1
+            do j=jstr,jendR
+              i=iend+1
 #   ifdef M2_FRC_BRY
               vbar_east(j)=vbar_east(j)
 #   else
@@ -194,8 +194,8 @@
 
 #  ifdef OBC_SOUTH
           if (SOUTHERN_EDGE) THEN
-            do j=Jstr-1,Jstr
-              do i=Istr-1,IendR
+            do j=jstr-1,jstr
+              do i=istr-1,iendR
                 angle=UV_Tangle(i,j,itide)-angler(i,j)
                 phase=omega-UV_Tphase(i,j,itide)
                 Cangle(i,j)=cos(angle)
@@ -204,8 +204,8 @@
                 Sphase(i,j)=sin(phase)
               enddo
             enddo
-            do i=Istr,IendR
-              j=Jstr-1
+            do i=istr,iendR
+              j=jstr-1
 #   ifdef M2_FRC_BRY
               ubar_south(i)=ubar_south(i)
 #   else
@@ -218,8 +218,8 @@
      &       *(Sangle(i-1,j)+Sangle(i,j))*(Sphase(i-1,j)+Sphase(i,j))
      &                                                              )
             enddo
-            do i=IstrR,IendR
-              j=JstrV-1
+            do i=istrR,iendR
+              j=jstrV-1
 #   ifdef M2_FRC_BRY
               vbar_south(i)=vbar_south(i)
 #   else
@@ -236,8 +236,8 @@
 #  endif
 #  ifdef OBC_NORTH
           if (NORTHERN_EDGE) THEN
-            do j=Jend,Jend+1
-              do i=Istr-1,IendR
+            do j=jend,jend+1
+              do i=istr-1,iendR
                 angle=UV_Tangle(i,j,itide)-angler(i,j)
                 phase=omega-UV_Tphase(i,j,itide)
                 Cangle(i,j)=cos(angle)
@@ -246,8 +246,8 @@
                 Sphase(i,j)=sin(phase)
               enddo
             enddo
-            do i=Istr,IendR
-              j=Jend+1
+            do i=istr,iendR
+              j=jend+1
 #   ifdef M2_FRC_BRY
               ubar_north(i)=ubar_north(i)
 #   else
@@ -261,8 +261,8 @@
      &                                                              )
             enddo
 
-            do i=IstrR,IendR
-              j=Jend+1
+            do i=istrR,iendR
+              j=jend+1
 #   ifdef M2_FRC_BRY
               vbar_north(i)=vbar_north(i)
 #   else

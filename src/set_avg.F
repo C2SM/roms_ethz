@@ -6,11 +6,11 @@
       integer tile
 # include "param.h"
 # include "compute_tile_bounds.h"
-      call set_avg_tile (Istr,Iend,Jstr,Jend,tile)
+      call set_avg_tile (istr,iend,jstr,jend,tile)
       return
       end
  
-      subroutine set_avg_tile (Istr,Iend,Jstr,Jend,tile)
+      subroutine set_avg_tile (istr,iend,jstr,jend,tile)
 !
 ! Compute time-averaged fields within a tile.
 ! ------- ------------- ------ ------ - -----
@@ -34,7 +34,7 @@
 ! contribution and scaling.
 !
       implicit none
-      integer Istr,Iend,Jstr,Jend, i,j, tile
+      integer istr,iend,jstr,jend, i,j, tile
 # ifdef SOLVE3D
      &                       , itrc, k
 # endif
@@ -66,22 +66,22 @@
 !      MPI_master_only write(*,*) 'started averaging',iic,ntsavg,navg
           endif
           if (wrtavg(indxZ)) then
-            do j=JstrR,JendR
-              do i=IstrR,IendR
+            do j=jstrR,jendR
+              do i=istrR,iendR
                 zeta_avg(i,j)=zeta(i,j,knew)
               enddo
             enddo
           endif
           if (wrtavg(indxUb)) then
-            do j=JstrR,JendR
-              do i=IstrR,IendR
+            do j=jstrR,jendR
+              do i=istrR,iendR
                 ubar_avg(i,j)=ubar(i,j,knew)
               enddo
             enddo
           endif
           if (wrtavg(indxVb)) then
-            do j=JstrR,JendR
-              do i=IstrR,IendR
+            do j=jstrR,jendR
+              do i=istrR,iendR
                 vbar_avg(i,j)=vbar(i,j,knew)
               enddo
             enddo
@@ -89,8 +89,8 @@
 # ifdef SOLVE3D
           if (wrtavg(indxU)) then
             do k=1,N
-              do j=JstrR,JendR
-                do i=IstrR,IendR
+              do j=jstrR,jendR
+                do i=istrR,iendR
                   u_avg(i,j,k)=u(i,j,k,nstp)
                 enddo
               enddo
@@ -98,8 +98,8 @@
           endif
           if (wrtavg(indxV)) then
             do k=1,N
-              do j=JstrR,JendR
-                do i=IstrR,IendR
+              do j=jstrR,jendR
+                do i=istrR,iendR
                   v_avg(i,j,k)=v(i,j,k,nstp)
                 enddo
               enddo
@@ -108,8 +108,8 @@
           do itrc=1,NT
            if (wrtavg(indxT+itrc-1)) then
              do k=1,N
-               do j=JstrR,JendR
-                 do i=IstrR,IendR
+               do j=jstrR,jendR
+                 do i=istrR,iendR
                    t_avg(i,j,k,itrc)=t(i,j,k,nstp,itrc)
                  enddo
                enddo
@@ -135,14 +135,14 @@
                 pCO2air_avg(i,j) = pCO2air(i,j)
              end do
           end do
-          do j=JstrR,JendR
-             do i=IstrR,IendR
+          do j=jstrR,jendR
+             do i=istrR,iendR
                 PARinc_avg(i,j) = PARinc(i,j)
              end do
           end do
           do k=1,N
-            do j=JstrR,JendR
-               do i=IstrR,IendR
+            do j=jstrR,jendR
+               do i=istrR,iendR
                   PAR_avg(i,j,k) = PAR(i,j,k)
                end do
             end do
@@ -150,8 +150,8 @@
 #  endif /* BIOLOGY_NPZDOC || BIOLOGY_BEC */
           if (wrtavg(indxR)) then
             do k=1,N
-              do j=JstrR,JendR
-                do i=IstrR,IendR
+              do j=jstrR,jendR
+                do i=istrR,iendR
 #  ifdef SPLIT_EOS
                   rho_avg(i,j,k)=rho1(i,j,k)+qp1(i,j,k)
      &                          *(z_w(i,j,N)-z_r(i,j,k))
@@ -164,8 +164,8 @@
           endif
           if (wrtavg(indxO)) then
             do k=1,N
-              do j=JstrR,JendR
-                do i=IstrR,IendR
+              do j=jstrR,jendR
+                do i=istrR,iendR
                   w_avg(i,j,k)=w(i,j,k)
                 enddo
               enddo
@@ -185,8 +185,8 @@
 ! --T.Nagai to put true vertical velocity 6/29/2006
           if (wrtavg(indxAkt)) then
             do k=0,N
-              do j=JstrR,JendR
-                do i=IstrR,IendR
+              do j=jstrR,jendR
+                do i=istrR,iendR
                   akt_avg(i,j,k)=Akt(i,j,k,itemp)
                 enddo
               enddo
@@ -194,8 +194,8 @@
           endif
           if (wrtavg(indxRich)) then
             do k=0,N
-              do j=JstrR,JendR
-                do i=IstrR,IendR
+              do j=jstrR,jendR
+                do i=istrR,iendR
                   rich_avg(i,j,k)=Rich(i,j,k)
                 enddo
               enddo
@@ -203,8 +203,8 @@
           endif
           if (wrtavg(indxRichN)) then
             do k=0,N
-              do j=JstrR,JendR
-                do i=IstrR,IendR
+              do j=jstrR,jendR
+                do i=istrR,iendR
                   richN_avg(i,j,k)=RichN(i,j,k)
                 enddo
               enddo
@@ -213,8 +213,8 @@
 #  ifdef SALINITY
           if (wrtavg(indxAks)) then
             do k=0,N
-              do j=JstrR,JendR
-                do i=IstrR,IendR
+              do j=jstrR,jendR
+                do i=istrR,iendR
                   aks_avg(i,j,k)=Akt(i,j,k,isalt)
                 enddo
               enddo
@@ -223,8 +223,8 @@
 #  endif
 #  ifdef LMD_KPP
           if (wrtavg(indxHbl)) then
-            do j=JstrR,JendR
-              do i=IstrR,IendR
+            do j=jstrR,jendR
+              do i=istrR,iendR
                 hbl_avg(i,j)=hbls(i,j,nstp)
               enddo
             enddo
@@ -232,8 +232,8 @@
 #  endif
 #  ifdef LMD_BKPP
         if (wrtavg(indxHbbl)) then
-          do j=JstrR,JendR
-            do i=IstrR,IendR
+          do j=jstrR,jendR
+            do i=istrR,iendR
               hbbl_avg(i,j)=hbbls(i,j,nstp)
             enddo
           enddo
@@ -243,22 +243,22 @@
         elseif (mod(iic-ntsavg,navg).gt.1) then
           if (ZEROTH_TILE) time_avg=time_avg+time
           if (wrtavg(indxZ)) then
-            do j=JstrR,JendR
-              do i=IstrR,IendR
+            do j=jstrR,jendR
+              do i=istrR,iendR
                 zeta_avg(i,j)=zeta_avg(i,j)+zeta(i,j,knew)
               enddo
             enddo
           endif
           if (wrtavg(indxUb)) then
-            do j=JstrR,JendR
-              do i=IstrR,IendR
+            do j=jstrR,jendR
+              do i=istrR,iendR
                 ubar_avg(i,j)=ubar_avg(i,j)+ubar(i,j,knew)
               enddo
             enddo
           endif
           if (wrtavg(indxVb)) then
-            do j=JstrR,JendR
-              do i=IstrR,IendR
+            do j=jstrR,jendR
+              do i=istrR,iendR
                 vbar_avg(i,j)=vbar_avg(i,j)+vbar(i,j,knew)
               enddo
             enddo
@@ -266,8 +266,8 @@
 # ifdef SOLVE3D
           if (wrtavg(indxU)) then
             do k=1,N
-              do j=JstrR,JendR
-                do i=IstrR,IendR
+              do j=jstrR,jendR
+                do i=istrR,iendR
                   u_avg(i,j,k)=u_avg(i,j,k)+u(i,j,k,nstp)
                 enddo
               enddo
@@ -275,8 +275,8 @@
           endif
           if (wrtavg(indxV)) then
             do k=1,N
-              do j=JstrR,JendR
-                do i=IstrR,IendR
+              do j=jstrR,jendR
+                do i=istrR,iendR
                   v_avg(i,j,k)=v_avg(i,j,k)+v(i,j,k,nstp)
                 enddo
               enddo
@@ -285,8 +285,8 @@
           do itrc=1,NT
             if (wrtavg(indxT+itrc-1)) then
               do k=1,N
-                do j=JstrR,JendR
-                  do i=IstrR,IendR
+                do j=jstrR,jendR
+                  do i=istrR,iendR
                     t_avg(i,j,k,itrc)=t_avg(i,j,k,itrc)
      &                              +t(i,j,k,nstp,itrc)
                   enddo
@@ -314,14 +314,14 @@
                 pCO2air_avg(i,j) = pCO2air_avg(i,j) + pCO2air(i,j)
              end do
           end do
-          do j=JstrR,JendR
-             do i=IstrR,IendR
+          do j=jstrR,jendR
+             do i=istrR,iendR
                 PARinc_avg(i,j) = PARinc_avg(i,j) + PARinc(i,j)
              end do
           end do
           do k=1,N
-            do j=JstrR,JendR
-               do i=IstrR,IendR
+            do j=jstrR,jendR
+               do i=istrR,iendR
                   PAR_avg(i,j,k) = PAR_avg(i,j,k) + PAR(i,j,k)
                end do
             end do
@@ -329,8 +329,8 @@
 #  endif /* BIOLOGY_NPZDOC || BIOLOGY_BEC */
           if (wrtavg(indxR)) then
             do k=1,N
-              do j=JstrR,JendR
-                do i=IstrR,IendR
+              do j=jstrR,jendR
+                do i=istrR,iendR
 #  ifdef SPLIT_EOS
                   rho_avg(i,j,k)=rho_avg(i,j,k) + rho1(i,j,k)
      &                     +qp1(i,j,k)*(z_w(i,j,N)-z_r(i,j,k))
@@ -343,8 +343,8 @@
           endif
           if (wrtavg(indxO)) then
             do k=1,N
-              do j=JstrR,JendR
-                do i=IstrR,IendR
+              do j=jstrR,jendR
+                do i=istrR,iendR
                   w_avg(i,j,k)=w_avg(i,j,k)+w(i,j,k)
                 enddo
               enddo
@@ -364,8 +364,8 @@
 ! --T.Nagai to put true vertical velocity 6/29/2006
           if (wrtavg(indxAkt)) then
             do k=0,N
-              do j=JstrR,JendR
-                do i=IstrR,IendR
+              do j=jstrR,jendR
+                do i=istrR,iendR
                   akt_avg(i,j,k)=akt_avg(i,j,k)+Akt(i,j,k,itemp)
                 enddo
               enddo
@@ -373,8 +373,8 @@
           endif
           if (wrtavg(indxRich)) then
             do k=0,N
-              do j=JstrR,JendR
-                do i=IstrR,IendR
+              do j=jstrR,jendR
+                do i=istrR,iendR
                   rich_avg(i,j,k)=rich_avg(i,j,k)+Rich(i,j,k)
                 enddo
               enddo
@@ -382,8 +382,8 @@
           endif
           if (wrtavg(indxRichN)) then
             do k=0,N
-              do j=JstrR,JendR
-                do i=IstrR,IendR
+              do j=jstrR,jendR
+                do i=istrR,iendR
                   richN_avg(i,j,k)=richN_avg(i,j,k)+RichN(i,j,k)
                 enddo
               enddo
@@ -392,8 +392,8 @@
 #  ifdef SALINITY
           if (wrtavg(indxAks)) then
             do k=0,N
-              do j=JstrR,JendR
-                do i=IstrR,IendR
+              do j=jstrR,jendR
+                do i=istrR,iendR
                   aks_avg(i,j,k)=aks_avg(i,j,k)+Akt(i,j,k,isalt)
                 enddo
               enddo
@@ -402,8 +402,8 @@
 #  endif
 #  ifdef LMD_KPP
           if (wrtavg(indxHbl)) then
-            do j=JstrR,JendR
-              do i=IstrR,IendR
+            do j=jstrR,jendR
+              do i=istrR,iendR
                 hbl_avg(i,j)=hbl_avg(i,j)+hbls(i,j,nstp)
               enddo
             enddo
@@ -411,8 +411,8 @@
 #  endif
 #  ifdef LMD_BKPP
         if (wrtavg(indxHbbl)) then
-          do j=JstrR,JendR
-            do i=IstrR,IendR
+          do j=jstrR,jendR
+            do i=istrR,iendR
               hbbl_avg(i,j)=hbbl_avg(i,j)+hbbls(i,j,nstp)
             enddo
           enddo
@@ -426,22 +426,22 @@
 !      MPI_master_only write(*,*) 'finish averaging',iic,ntsavg,navg
           endif
           if (wrtavg(indxZ)) then
-            do j=JstrR,JendR
-              do i=IstrR,IendR
+            do j=jstrR,jendR
+              do i=istrR,iendR
                 zeta_avg(i,j)=cff*( zeta_avg(i,j)+zeta(i,j,knew))
               enddo
             enddo
           endif
           if (wrtavg(indxUb)) then
-            do j=JstrR,JendR
-              do i=IstrR,IendR
+            do j=jstrR,jendR
+              do i=istrR,iendR
                 ubar_avg(i,j)=cff*( ubar_avg(i,j)+ubar(i,j,knew))
               enddo
             enddo
           endif
           if (wrtavg(indxVb)) then
-            do j=JstrR,JendR
-              do i=IstrR,IendR
+            do j=jstrR,jendR
+              do i=istrR,iendR
                 vbar_avg(i,j)=cff*( vbar_avg(i,j)+vbar(i,j,knew))
               enddo
             enddo
@@ -449,8 +449,8 @@
 # ifdef SOLVE3D
           if (wrtavg(indxU)) then
             do k=1,N
-              do j=JstrR,JendR
-                do i=IstrR,IendR
+              do j=jstrR,jendR
+                do i=istrR,iendR
                   u_avg(i,j,k)=cff*(u_avg(i,j,k)+u(i,j,k,nstp))
                 enddo
               enddo
@@ -458,8 +458,8 @@
           endif
           if (wrtavg(indxV)) then
             do k=1,N
-              do j=JstrR,JendR
-                do i=IstrR,IendR
+              do j=jstrR,jendR
+                do i=istrR,iendR
                   v_avg(i,j,k)=cff*(v_avg(i,j,k)+v(i,j,k,nstp))
                 enddo
               enddo
@@ -468,8 +468,8 @@
           do itrc=1,NT
             if (wrtavg(indxT+itrc-1)) then
               do k=1,N
-                do j=JstrR,JendR
-                  do i=IstrR,IendR
+                do j=jstrR,jendR
+                  do i=istrR,iendR
                     t_avg(i,j,k,itrc)=cff*( t_avg(i,j,k,itrc)
      &                                    +t(i,j,k,nstp,itrc))
                   enddo
@@ -497,14 +497,14 @@
                 pCO2air_avg(i,j) = cff*(pCO2air_avg(i,j) + pCO2air(i,j))
              end do
           end do
-          do j=JstrR,JendR
-             do i=IstrR,IendR
+          do j=jstrR,jendR
+             do i=istrR,iendR
                 PARinc_avg(i,j) = cff*( PARinc_avg(i,j) + PARinc(i,j) )
              end do
           end do
           do k=1,N
-            do j=JstrR,JendR
-               do i=IstrR,IendR
+            do j=jstrR,jendR
+               do i=istrR,iendR
                   PAR_avg(i,j,k) = cff*( PAR_avg(i,j,k) + PAR(i,j,k) )
                end do
             end do
@@ -512,8 +512,8 @@
 #  endif /* BIOLOGY_NPZDOC */
           if (wrtavg(indxR)) then
             do k=1,N
-              do j=JstrR,JendR
-                do i=IstrR,IendR
+              do j=jstrR,jendR
+                do i=istrR,iendR
 #  ifdef SPLIT_EOS
                   rho_avg(i,j,k)=cff*( rho_avg(i,j,k) + rho1(i,j,k)
      &                          +qp1(i,j,k)*(z_w(i,j,N)-z_r(i,j,k)))
@@ -526,8 +526,8 @@
           endif
           if (wrtavg(indxO)) then
             do k=1,N
-              do j=JstrR,JendR
-                do i=IstrR,IendR
+              do j=jstrR,jendR
+                do i=istrR,iendR
                   w_avg(i,j,k)=cff*pm(i,j)*pn(i,j)*( w_avg(i,j,k)
      &                                                  +w(i,j,k))
                 enddo
@@ -548,8 +548,8 @@
 ! --T.Nagai to put true vertical velocity 6/29/2006
           if (wrtavg(indxAkt)) then
             do k=0,N
-              do j=JstrR,JendR
-                do i=IstrR,IendR
+              do j=jstrR,jendR
+                do i=istrR,iendR
                   akt_avg(i,j,k)=cff*(akt_avg(i,j,k)+Akt(i,j,k,itemp))
                 enddo
               enddo
@@ -557,8 +557,8 @@
           endif
           if (wrtavg(indxRich)) then
             do k=0,N
-              do j=JstrR,JendR
-                do i=IstrR,IendR
+              do j=jstrR,jendR
+                do i=istrR,iendR
                   rich_avg(i,j,k)=cff*(rich_avg(i,j,k)+Rich(i,j,k))
                 enddo
               enddo
@@ -566,8 +566,8 @@
           endif
           if (wrtavg(indxRichN)) then
             do k=0,N
-              do j=JstrR,JendR
-                do i=IstrR,IendR
+              do j=jstrR,jendR
+                do i=istrR,iendR
                   richN_avg(i,j,k)=cff*(richN_avg(i,j,k)+RichN(i,j,k))
                 enddo
               enddo
@@ -576,8 +576,8 @@
 #  ifdef SALINITY
           if (wrtavg(indxAks)) then
             do k=0,N
-              do j=JstrR,JendR
-                do i=IstrR,IendR
+              do j=jstrR,jendR
+                do i=istrR,iendR
                   aks_avg(i,j,k)=cff*(aks_avg(i,j,k)+Akt(i,j,k,isalt))
                 enddo
               enddo
@@ -586,8 +586,8 @@
 #  endif
 #  ifdef LMD_KPP
           if (wrtavg(indxHbl)) then
-            do j=JstrR,JendR
-              do i=IstrR,IendR
+            do j=jstrR,jendR
+              do i=istrR,iendR
                 hbl_avg(i,j)=cff*(hbl_avg(i,j)+hbls(i,j,nstp))
               enddo
             enddo
@@ -595,8 +595,8 @@
 #  endif
 #  ifdef LMD_BKPP
         if (wrtavg(indxHbbl)) then
-          do j=JstrR,JendR
-            do i=IstrR,IendR
+          do j=jstrR,jendR
+            do i=istrR,iendR
               hbbl_avg(i,j)=cff*(hbbl_avg(i,j)+hbbls(i,j,nstp))
             enddo
           enddo

@@ -7,19 +7,19 @@
 # include "param.h"
 # include "private_scratch.h"
 # include "compute_tile_bounds.h"
-      call prsgrd00_tile (Istr,Iend,Jstr,Jend, A3d(1,1),A3d(1,2))
+      call prsgrd00_tile (istr,iend,jstr,jend, A3d(1,1),A3d(1,2))
       return
       end
  
-      subroutine prsgrd00_tile (Istr,Iend,Jstr,Jend, ru,rv)
+      subroutine prsgrd00_tile (istr,iend,jstr,jend, ru,rv)
       implicit none
-      integer Istr,Iend,Jstr,Jend, i,j,k
+      integer istr,iend,jstr,jend, i,j,k
 # include "param.h"
       real ru(PRIVATE_2D_SCRATCH_ARRAY,N),
      &     rv(PRIVATE_2D_SCRATCH_ARRAY,N)
       do k=1,N
-        do j=Jstr,Jend
-          do i=Istr,Iend
+        do j=jstr,jend
+          do i=istr,iend
             ru(i,j,k)=0.
             rv(i,j,k)=0.
           enddo

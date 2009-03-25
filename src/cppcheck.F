@@ -42,7 +42,7 @@
      &                                  , max_switches
       parameter (nwords=16              , max_switches=1024)
       integer istart(nwords), is        , size(max_switches)
-     &       ,  Iend(nwords), ie,ln     , line(max_switches)
+     &       ,  iend(nwords), ie,ln     , line(max_switches)
       logical macro(nwords)             , example
       character fname(4)*32
       character switch(max_switches)*32
@@ -104,7 +104,7 @@
               istart(n)=i
             elseif (comment  .and. string(i:i+1).eq.'*/') then
               comment=.false.
-              Iend(n)=i+1
+              iend(n)=i+1
             endif
             i=i+1
           enddo
@@ -114,7 +114,7 @@
             n=n-1                       ! and disregard all symbols
           endif                         ! one right right from it.
           do k=1,n                      !
-            do i=istart(k),Iend(k)      !
+            do i=istart(k),iend(k)      !
               string(i:i)=' '           ! blank out C-style comments
             enddo                       !
           enddo                         ! Suppress special characters
@@ -144,21 +144,21 @@ c*   &      string(i:i)=' '
               istart(n)=i
             elseif (string(i:i).eq.' ' .and.  word) then
               word=.false.
-              Iend(n)=i-1
+              iend(n)=i-1
             endif
            if (i.lt.lstring) goto 6
-          if (word) Iend(n)=i
+          if (word) iend(n)=i
  
 c**     write(*,'(/,I4,I4,/)') count, n ! Print out words.
 c**     do k=1,n
-c**       write(*,'(10x,80A1)') (string(i:i), i=istart(k),Iend(k))
+c**       write(*,'(10x,80A1)') (string(i:i), i=istart(k),iend(k))
 c**     enddo
                                         ! Identify CPP-commands (i.e.
           command=.false.               ! reserved words) and CPP-
           do k=1,n                      ! macro names among the words
             macro(k)=.false.            ! of the line. Cancel example
             is=istart(k)                ! switch when encounter first
-            ie=Iend(k)                  ! conditional CPP-command.
+            ie=iend(k)                  ! conditional CPP-command.
             ln=ie-is+1
             status=.false.
  
@@ -191,7 +191,7 @@ c**     enddo
             elseif (command) then
               command=.false.
               macro(k)=.true.
-c**         elseif (string(istart(1):Iend(1)) .ne. 'include') then
+c**         elseif (string(istart(1):iend(1)) .ne. 'include') then
 c**          write (*,'(6x,A,1x,A,1x,I4,A1/8x,A)') 'CPPCHECK ERROR:',
 c**  &       'Unknown CPP-command on line', count, ':', string(is:ie)
             endif
@@ -199,14 +199,14 @@ c**  &       'Unknown CPP-command on line', count, ':', string(is:ie)
 c**       write(*,'(/2I4/)') count,n ! Print out CPP-macro names.
 c**       do k=1,n
 c**         if (macro(k)) then
-c**           write(*,'(10x,80A1)') (string(i:i),i=istart(k),Iend(k))
+c**           write(*,'(10x,80A1)') (string(i:i),i=istart(k),iend(k))
 c**         endif
 c**       enddo
                                         ! Scan catalog of previously
           do k=1,n                      ! discovered switches to find 
             if (macro(k)) then          ! match with CPP-macro names 
               is=istart(k)              ! found in the present line. 
-              ie=Iend(k)                ! If no match is found, add 
+              ie=iend(k)                ! If no match is found, add 
               ln=ie-is+1
               if (ifile.gt.1 .and. nstdpth.gt.0) then
                 new=.false.

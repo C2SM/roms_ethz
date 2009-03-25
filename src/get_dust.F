@@ -148,8 +148,8 @@
         cff2=cff2*cff                ! data to model time.  Convert
                                      ! units of dQdSST from
 
-        do j=JstrR,JendR             !
-          do i=IstrR,IendR
+        do j=jstrR,jendR             !
+          do i=istrR,iendR
               dust(i,j)=cff1*dustg(i,j,it1)+cff2*dustg(i,j,it2)
           enddo
         enddo

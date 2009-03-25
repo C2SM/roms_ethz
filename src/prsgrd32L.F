@@ -7,16 +7,16 @@
 # include "param.h"
 # include "private_scratch.h"
 # include "compute_tile_bounds.h"
-      call prsgrd32_tile (Istr,Iend,Jstr,Jend,  A3d(1,1), A3d(1,2),
+      call prsgrd32_tile (istr,iend,jstr,jend,  A3d(1,1), A3d(1,2),
      &                                A3d(1,3), A2d(1,1), A2d(1,2),
      &                      A2d(1,1), A2d(1,2), A2d(1,3), A2d(1,4))
       return
       end
  
-      subroutine prsgrd32_tile (Istr,Iend,Jstr,Jend, ru,rv, FX,
+      subroutine prsgrd32_tile (istr,iend,jstr,jend, ru,rv, FX,
      &                                   dR,dZ, aux,dRx,dZx,FC)
       implicit none
-      integer Istr,Iend,Jstr,Jend, i,j,k, k1,k2
+      integer istr,iend,jstr,jend, i,j,k, k1,k2
 # include "param.h"
       real ru(PRIVATE_2D_SCRATCH_ARRAY,N),   OneFifth,
      &     rv(PRIVATE_2D_SCRATCH_ARRAY,N),   OneTwelfth,
@@ -54,21 +54,21 @@
       GRho=g/rho0
       HalfGRho=0.5*GRho
  
-      do j=JstrV-1,Jend
+      do j=jstrV-1,jend
         do k=1,N-1
-          do i=IstrU-1,Iend
+          do i=istrU-1,iend
             dR(i,k)=rho(i,j,k+1)-rho(i,j,k)
             dZ(i,k)=z_r(i,j,k+1)-z_r(i,j,k)
           enddo
         enddo
-        do i=IstrU-1,Iend
+        do i=istrU-1,iend
           dR(i,N)=dR(i,N-1)
           dZ(i,N)=dZ(i,N-1)
           dR(i,0)=dR(i,1)
           dZ(i,0)=dZ(i,1)
         enddo
         do k=N,1,-1               !--> irreversible
-          do i=IstrU-1,Iend
+          do i=istrU-1,iend
 c            cff=2.*dR(i,k)*dR(i,k-1)
 c            if (cff.gt.epsil) then
 c              dR(i,k)=cff/(dR(i,k)+dR(i,k-1))
@@ -83,7 +83,7 @@ c            dZ(i,k)=2.*dZ(i,k)*dZ(i,k-1)/(dZ(i,k)+dZ(i,k-1))
           enddo
         enddo
         do k=1,N-1
-          do i=IstrU-1,Iend
+          do i=istrU-1,iend
             FX(i,j,k)=HalfGRho*( (rho(i,j,k+1)+rho(i,j,k))
      &                               *(z_r(i,j,k+1)-z_r(i,j,k))
  
@@ -95,7 +95,7 @@ c            dZ(i,k)=2.*dZ(i,k)*dZ(i,k-1)/(dZ(i,k)+dZ(i,k-1))
      &                                                             ))
           enddo
         enddo
-        do i=IstrU-1,Iend
+        do i=istrU-1,iend
           FX(i,j,N)=GRho*( rho(i,j,N) +0.5*(rho(i,j,N)-rho(i,j,N-1))
      &             *(z_w(i,j,N)-z_r(i,j,N))/(z_r(i,j,N)-z_r(i,j,N-1))
      &                                      )*(z_w(i,j,N)-z_r(i,j,N))
@@ -108,8 +108,8 @@ c            dZ(i,k)=2.*dZ(i,k)*dZ(i,k-1)/(dZ(i,k)+dZ(i,k-1))
       do k=N,1,-1     !--> irreversible
         k1=1+mod(k,2)
         k2=3-k1
-        do j=Jstr,Jend
-          do i=IstrU-1,Iend+1
+        do j=jstr,jend
+          do i=istrU-1,iend+1
             aux(i,j)=(z_r(i,j,k)-z_r(i-1,j,k))
 #ifdef MASKING
      &                               *umask(i,j)
@@ -121,8 +121,8 @@ c            dZ(i,k)=2.*dZ(i,k)*dZ(i,k-1)/(dZ(i,k)+dZ(i,k-1))
           enddo
         enddo
  
-        do j=Jstr,Jend
-          do i=IstrU-1,Iend
+        do j=jstr,jend
+          do i=istrU-1,iend
 c            cff=2.*aux(i,j)*aux(i+1,j)
 c            if (cff.gt.epsil) then
 c              dZx(i,j)=cff/(aux(i,j)+aux(i+1,j))
@@ -142,8 +142,8 @@ c            endif
           enddo
         enddo                 !--> discard aux, FC(:,:,k1)
  
-        do j=Jstr,Jend
-          do i=IstrU,Iend
+        do j=jstr,jend
+          do i=istrU,iend
             FC(i,j,k1)=HalfGRho*( (rho(i,j,k)+rho(i-1,j,k))
      &                                 *(z_r(i,j,k)-z_r(i-1,j,k))
  
@@ -156,15 +156,15 @@ c            endif
           enddo
         enddo
         if (k.eq.N) then
-          do j=Jstr,Jend
-            do i=IstrU,Iend
+          do j=jstr,jend
+            do i=istrU,iend
               ru(i,j,N)=g*(z_w(i-1,j,N)-z_w(i,j,N))
      &                 +FX(i-1,j,N)-FX(i,j,N)-FC(i,j,k1)
             enddo
           enddo
         else
-          do j=Jstr,Jend
-            do i=IstrU,Iend
+          do j=jstr,jend
+            do i=istrU,iend
               ru(i,j,k)=ru(i,j,k+1) +FX(i-1,j,k)-FX(i,j,k)
      &                               +FC(i,j,k2)-FC(i,j,k1)
  
@@ -174,8 +174,8 @@ c            endif
           enddo
         endif
       enddo
-      do j=Jstr,Jend
-        do i=IstrU,Iend
+      do j=jstr,jend
+        do i=istrU,iend
           ru(i,j,1)=ru(i,j,1)*0.5*(Hz(i,j,1)+Hz(i-1,j,1))*dn_u(i,j)
         enddo
       enddo
@@ -186,8 +186,8 @@ c            endif
       do k=N,1,-1     !--> irreversible
         k1=1+mod(k,2)
         k2=3-k1
-        do j=JstrV-1,Jend+1
-          do i=Istr,Iend
+        do j=jstrV-1,jend+1
+          do i=istr,iend
             aux(i,j)=(z_r(i,j,k)-z_r(i,j-1,k))
 #ifdef MASKING
      &                               *vmask(i,j)
@@ -199,8 +199,8 @@ c            endif
           enddo
         enddo
  
-        do j=JstrV-1,Jend
-          do i=Istr,Iend
+        do j=jstrV-1,jend
+          do i=istr,iend
 c            cff=2.*aux(i,j)*aux(i,j+1)
 c            if (cff.gt.epsil) then
 c              dZx(i,j)=cff/(aux(i,j)+aux(i,j+1))
@@ -220,8 +220,8 @@ c            endif
           enddo         !--> discard aux, FC(:,:,k1)
         enddo
  
-        do j=JstrV,Jend
-          do i=Istr,Iend
+        do j=jstrV,jend
+          do i=istr,iend
             FC(i,j,k1)=HalfGRho*( (rho(i,j,k)+rho(i,j-1,k))
      &                                 *(z_r(i,j,k)-z_r(i,j-1,k))
  
@@ -234,15 +234,15 @@ c            endif
           enddo         !-->  discard dRx, dZx
         enddo
         if (k.eq.N) then
-          do j=JstrV,Jend
-            do i=Istr,Iend
+          do j=jstrV,jend
+            do i=istr,iend
               rv(i,j,N)=g*(z_w(i,j-1,N)-z_w(i,j,N))
      &                 +FX(i,j-1,N)-FX(i,j,N)-FC(i,j,k1)
             enddo
           enddo
         else
-          do j=JstrV,Jend
-            do i=Istr,Iend
+          do j=jstrV,jend
+            do i=istr,iend
               rv(i,j,k)=rv(i,j,k+1) +FX(i,j-1,k)-FX(i,j,k)
      &                               +FC(i,j,k2)-FC(i,j,k1)
  
@@ -252,8 +252,8 @@ c            endif
           enddo
         endif
       enddo
-      do j=JstrV,Jend
-        do i=Istr,Iend
+      do j=jstrV,jend
+        do i=istr,iend
           rv(i,j,1)=rv(i,j,1)*0.5*(Hz(i,j,1)+Hz(i,j-1,1))*dm_v(i,j)
         enddo
       enddo

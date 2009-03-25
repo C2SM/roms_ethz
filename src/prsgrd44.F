@@ -7,18 +7,18 @@
 # include "param.h"
 # include "private_scratch.h"
 # include "compute_tile_bounds.h"
-      call prsgrd44_tile (Istr,Iend,Jstr,Jend,  A3d(1,1), A3d(1,2),
+      call prsgrd44_tile (istr,iend,jstr,jend,  A3d(1,1), A3d(1,2),
      &                      A3d(1,3), A3d(1,4), A3d(1,5), A3d(1,6),
      &                                A2d(1,1), A2d(1,2), A2d(1,3),
      &                      A2d(1,4), A2d(1,5), A2d(1,6), A2d(1,7))
       return
       end
  
-      subroutine prsgrd44_tile (Istr,Iend,Jstr,Jend, ru,rv, P,r,d,
+      subroutine prsgrd44_tile (istr,iend,jstr,jend, ru,rv, P,r,d,
      &                                  FX, FC,r1,d1, aR,dR,aL,dL)
  
       implicit none
-      integer Istr,Iend,Jstr,Jend, i,j,k
+      integer istr,iend,jstr,jend, i,j,k
 # include "param.h"
       real ru(PRIVATE_2D_SCRATCH_ARRAY, N),  Zero, Half,
      &     rv(PRIVATE_2D_SCRATCH_ARRAY,  N), One,  ThreeHalfth,
@@ -50,14 +50,14 @@ c--#define NEUMANN
 !
 ! Parabolic WENO reconstruction: The second and third loops below
 !---------- ---- --------------- compute left and right side limits
-! aL,aR of the field rho assuming monotonized parabolic dIstributions
+! aL,aR of the field rho assuming monotonized parabolic distributions
 ! within each grid box. Also computed are dL,dR, which are then used
 ! as a measure of quadratic variation during sabsequent WENO
 ! reconciliation of side limits.
 !
-      do j=JstrV-1,Jend
+      do j=jstrV-1,jend
         do k=N-1,1,-1
-          do i=IstrU-1,Iend
+          do i=istrU-1,iend
             FC(i,k)=One/(Hz(i,j,k+1)+Hz(i,j,k))
             r(i,j,k)=FC(i,k)*(rho(i,j,k+1)*Hz(i,j,k)
      &                        +rho(i,j,k)*Hz(i,j,k+1))
@@ -66,7 +66,7 @@ c--#define NEUMANN
         enddo
  
         do k=2,N-1
-          do i=IstrU-1,Iend
+          do i=istrU-1,iend
             deltaR=Hz(i,j,k)*d(i,j,k)
             deltaL=Hz(i,j,k)*d(i,j,k-1)
  
@@ -92,7 +92,7 @@ c--#define NEUMANN
           enddo
         enddo
  
-        do i=IstrU-1,Iend
+        do i=istrU-1,iend
           aL(i,N)=aR(i,N-1)
           aR(i,N)=Two*rho(i,j,N)-aL(i,N)
  
@@ -107,7 +107,7 @@ c--#define NEUMANN
         enddo
  
         do k=1,N-1
-          do i=IstrU-1,Iend
+          do i=istrU-1,iend
              deltaL=max(dL(i,k),eps)
              deltaR=max(dR(i,k+1),eps)
              r1(i,k)=(deltaR*aR(i,k)+deltaL*aL(i,k+1))
@@ -115,7 +115,7 @@ c--#define NEUMANN
           enddo
         enddo
  
-        do i=IstrU-1,Iend
+        do i=istrU-1,iend
 #ifdef NEUMANN
           r1(i,N)=ThreeHalfth*rho(i,j,N)-Half*r1(i,N-1)
           r1(i,0)=ThreeHalfth*rho(i,j,1)-Half*r1(i,1)
@@ -127,7 +127,7 @@ c--#define NEUMANN
 !
 ! Power-law reconciliation: It starts with computation of side
 !------ --- --------------- limits dR,dL of the first derivative
-! assuming parabolic dIstributions within each grid box. In this
+! assuming parabolic distributions within each grid box. In this
 ! version of the code, before doing so (see "else" branch of 3-way
 ! switch below), in situation when interfacial deviations deltaR
 ! and deltaL are differ by more than a factor of two (hence
@@ -139,7 +139,7 @@ c--#define NEUMANN
 ! for reference.
 !
         do k=1,N
-          do i=IstrU-1,Iend
+          do i=istrU-1,iend
  
 c**         cff=Two/Hz(i,j,k)
 c**         dR(i,k)=cff*(Two*r1(i,k)+r1(i,k-1)-Three*rho(i,j,k))
@@ -184,7 +184,7 @@ c**         if (cff*dL(i,k).lt.Zero) dL(i,k)=Zero
 ! computation of sqrt for the sake of computational efficiency.
 !
         do k=N-1,1,-1
-          do i=IstrU-1,Iend
+          do i=istrU-1,iend
             d(i,j,k)=FC(i,k)*(Hz(i,j,k+1)*dL(i,k+1)+Hz(i,j,k)*dR(i,k))
  
             cffR=8.*(dR(i,k)+Two*dL(i,k))
@@ -220,7 +220,7 @@ c*             if (cff.gt.eps) Ampl=Ampl/(rr+sqrt(cff))
             r(i,j,k)=r1(i,k)+Ampl
           enddo
         enddo
-        do i=IstrU-1,Iend
+        do i=istrU-1,iend
 #ifdef NEUMANN
           r(i,j,0)=ThreeHalfs*rho(i,j,1)-Half*r(i,j,1)
           r(i,j,N)=ThreeHalfs*rho(i,j,N)-Half*r(i,j,N-1)
@@ -237,11 +237,11 @@ c*             if (cff.gt.eps) Ampl=Ampl/(rr+sqrt(cff))
 !
 ! (2) Compute pressure P and lateral pressure force FX:
 !
-        do i=IstrU-1,Iend  !--> set pressure at free surface,
+        do i=istrU-1,iend  !--> set pressure at free surface,
           P(i,j,N)=Zero    !    initialize vertical integration
         enddo
         do k=N,1,-1
-          do i=IstrU-1,Iend
+          do i=istrU-1,iend
             P(i,j,k-1)=P(i,j,k)+Hz(i,j,k)*rho(i,j,k)
  
             FX(i,j,k)=Half*Hz(i,j,k)*( P(i,j,k)+P(i,j,k-1)
@@ -254,14 +254,14 @@ c*             if (cff.gt.eps) Ampl=Ampl/(rr+sqrt(cff))
 !
 ! (3) Compute net pressure gradient forces, XI- and ETA-components.
 !
-        if (j.ge.Jstr) then
-          do i=IstrU,Iend
+        if (j.ge.jstr) then
+          do i=istrU,iend
             FC(i,N)=Zero    !--> set pressure at free surface.
           enddo
           cff=0.5*g
           cff1=g/rho0
           do k=N,1,-1
-            do i=IstrU,Iend
+            do i=istrU,iend
               dh=z_w(i,j,k-1)-z_w(i-1,j,k-1)
  
               dP=P(i-1,j,k-1)-P(i,j,k-1)
@@ -291,14 +291,14 @@ c*             if (cff.gt.eps) Ampl=Ampl/(rr+sqrt(cff))
           enddo
         endif
  
-        if (j.ge.JstrV) then
-          do i=Istr,Iend
+        if (j.ge.jstrV) then
+          do i=istr,iend
             FC(i,N)=Zero    !--> set pressure at free surface.
           enddo
           cff=0.5*g
           cff1=g/rho0
           do k=N,1,-1
-            do i=Istr,Iend
+            do i=istr,iend
               dh=z_w(i,j,k-1)-z_w(i,j-1,k-1)
  
               dP=P(i,j-1,k-1)-P(i,j,k-1)

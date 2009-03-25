@@ -7,17 +7,17 @@
 # include "param.h"
 # include "private_scratch.h"
 # include "compute_tile_bounds.h"
-      call prsgrd32A_tile (Istr,Iend,Jstr,Jend,  A3d(1,1), A3d(1,2),
+      call prsgrd32A_tile (istr,iend,jstr,jend,  A3d(1,1), A3d(1,2),
      &                        A3d(1,3), A2d(1,1), A2d(1,2), A2d(1,3),
      &                                  A2d(1,1), A2d(1,2), A2d(1,3),
      &                                 A2d(1,4), A2d(1,5), A2d(1,6))
       return
       end
  
-      subroutine prsgrd32A_tile (Istr,Iend,Jstr,Jend, ru,rv, P,
+      subroutine prsgrd32A_tile (istr,iend,jstr,jend, ru,rv, P,
      &                         dR,dZ,dq, FC,dZx,rx, dRx,qx,dqx)
       implicit none
-      integer Istr,Iend,Jstr,Jend, i,j,k
+      integer istr,iend,jstr,jend, i,j,k
 # include "param.h"
       real ru(PRIVATE_2D_SCRATCH_ARRAY,N),   OneFifth,
      &     rv(PRIVATE_2D_SCRATCH_ARRAY,N),   OneTwelfth,
@@ -76,9 +76,9 @@
       GRho=g/rho0
       HalfGRho=0.5*GRho
  
-      do j=JstrV-1,Jend
+      do j=jstrV-1,jend
         do k=1,N-1
-          do i=IstrU-1,Iend
+          do i=istrU-1,iend
             dR(i,k)=rho1(i,j,k+1)-rho1(i,j,k)
 # ifdef SPLIT_EOS
                dq(i,k)=qp1(i,j,k+1)-qp1(i,j,k)
@@ -86,7 +86,7 @@
             dZ(i,k)=z_r(i,j,k+1)-z_r(i,j,k)
           enddo
         enddo
-        do i=IstrU-1,Iend
+        do i=istrU-1,iend
           dR(i,N)=dR(i,N-1)
           dR(i,0)=dR(i,1)
 # ifdef SPLIT_EOS
@@ -97,7 +97,7 @@
           dZ(i,0)=dZ(i,1)
         enddo
         do k=N,1,-1               !--> irreversible
-          do i=IstrU-1,Iend
+          do i=istrU-1,iend
             cfr=2.*dR(i,k)*dR(i,k-1)
             if (cfr.gt.epsil) then
               dR(i,k)=cfr/(dR(i,k)+dR(i,k-1))
@@ -115,13 +115,13 @@
             dZ(i,k)=2.*dZ(i,k)*dZ(i,k-1)/(dZ(i,k)+dZ(i,k-1))
           enddo
         enddo
-        do i=IstrU-1,Iend
+        do i=istrU-1,iend
           P(i,j,N)=g*z_w(i,j,N) + GRho*( rho1(i,j,N)
      &       +0.5*(rho1(i,j,N)-rho1(i,j,N-1))*(z_w(i,j,N)-z_r(i,j,N))
      &           /(z_r(i,j,N)-z_r(i,j,N-1)) )*(z_w(i,j,N)-z_r(i,j,N))
         enddo
         do k=N-1,1,-1
-          do i=IstrU-1,Iend
+          do i=istrU-1,iend
             P(i,j,k)=P(i,j,k+1)+HalfGRho*( (z_r(i,j,k+1)-z_r(i,j,k))
      &                                   *( rho1(i,j,k+1)+rho1(i,j,k)
 # ifdef SPLIT_EOS
@@ -152,8 +152,8 @@
 !-------- ------------ -- -------- -------- -----
 !
       do k=N,1,-1
-        do j=Jstr,Jend
-          do i=IstrU-1,Iend+1
+        do j=jstr,jend
+          do i=istrU-1,iend+1
             FC(i,j)=(z_r(i,j,k)-z_r(i-1,j,k))
 # ifdef MASKING
      &                              *umask(i,j)
@@ -171,8 +171,8 @@
           enddo
         enddo
  
-        do j=Jstr,Jend
-          do i=IstrU-1,Iend
+        do j=jstr,jend
+          do i=istrU-1,iend
             cff=2.*FC(i,j)*FC(i+1,j)
             if (cff.gt.epsil) then
               dZx(i,j)=cff/(FC(i,j)+FC(i+1,j))
@@ -196,8 +196,8 @@
           enddo
         enddo                 !--> discard FC, rx, qx
  
-        do j=Jstr,Jend
-          do i=IstrU,Iend
+        do j=jstr,jend
+          do i=istrU,iend
             ru(i,j,k)=0.5*(Hz(i,j,k)+Hz(i-1,j,k))*dn_u(i,j)*(
      &      P(i-1,j,k)-P(i,j,k)-HalfGRho*( (z_r(i,j,k)-z_r(i-1,j,k))
      &                                   *( rho1(i,j,k)+rho1(i-1,j,k)
@@ -228,8 +228,8 @@
 ! ETA-component of pressure gradient term:
 !-------------- -- -------- -------- -----
 !
-        do j=JstrV-1,Jend+1
-          do i=Istr,Iend
+        do j=jstrV-1,jend+1
+          do i=istr,iend
             FC(i,j)=(z_r(i,j,k)-z_r(i,j-1,k))
 # ifdef MASKING
      &                              *vmask(i,j)
@@ -247,8 +247,8 @@
           enddo
         enddo
  
-        do j=JstrV-1,Jend
-          do i=Istr,Iend
+        do j=jstrV-1,jend
+          do i=istr,iend
             cff=2.*FC(i,j)*FC(i,j+1)
             if (cff.gt.epsil) then
               dZx(i,j)=cff/(FC(i,j)+FC(i,j+1))
@@ -272,8 +272,8 @@
           enddo
         enddo                 !--> discard FC, rx, qx
  
-        do j=JstrV,Jend
-          do i=Istr,Iend
+        do j=jstrV,jend
+          do i=istr,iend
             rv(i,j,k)=0.5*(Hz(i,j,k)+Hz(i,j-1,k))*dm_v(i,j)*(
      &      P(i,j-1,k)-P(i,j,k)-HalfGRho*( (z_r(i,j,k)-z_r(i,j-1,k))
      &                                   *( rho1(i,j,k)+rho1(i,j-1,k)

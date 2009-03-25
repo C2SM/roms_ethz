@@ -711,12 +711,12 @@ c              goto 99                                     !--> ERROR
       end
  
  
-      subroutine set_tclima_tile (Istr,Iend,Jstr,Jend, ierr)
+      subroutine set_tclima_tile (istr,iend,jstr,jend, ierr)
 !
 ! Set-up tracer climatology for current tile.
 !
       implicit none
-      integer Istr,Iend,Jstr,Jend, ierr, itrc,i,j,k, it1,it2
+      integer istr,iend,jstr,jend, ierr, itrc,i,j,k, it1,it2
       real cff, cff1, cff2
 # define TCLIMA_DATA
 # include "param.h"
@@ -750,8 +750,8 @@ c              goto 99                                     !--> ERROR
           if (nttclm(itrc).eq.1) then         ! Load time-invariant
             if (iic.eq.0) then                ! tracer climatology.
               do k=1,N
-                do j=JstrR,JendR
-                  do i=IstrR,IendR
+                do j=jstrR,jendR
+                  do i=istrR,iendR
                     tclm(i,j,k,itrc)=tclima(i,j,k,ittclm(itrc),itrc)
                   enddo
                 enddo
@@ -762,8 +762,8 @@ c              goto 99                                     !--> ERROR
             cff1=cff1*cff                             ! tracer
             cff2=cff2*cff                             ! climatology
             do k=1,N                                  ! climatology
-              do j=JstrR,JendR                        ! in time.
-                do i=IstrR,IendR
+              do j=jstrR,jendR                        ! in time.
+                do i=istrR,iendR
                   tclm(i,j,k,itrc)=cff1*tclima(i,j,k,it1,itrc)
      &                            +cff2*tclima(i,j,k,it2,itrc)
                 enddo
@@ -781,8 +781,8 @@ c              goto 99                                     !--> ERROR
 #  define SiO4 cff1
         elseif (itrc.eq.iNO3_) then     ! <-- analytical setup for
           do k=1,N                      ! climatology for biological
-            do j=JstrR,JendR            ! constituents.
-              do i=IstrR,IendR
+            do j=jstrR,jendR            ! constituents.
+              do i=istrR,iendR
                 temp=tclm(i,j,k,itemp)
                 if (temp.lt.8.) then
                   SiO4=30.
@@ -808,8 +808,8 @@ c              goto 99                                     !--> ERROR
           enddo
         elseif (iic.eq.ntstart .and. itrc.eq.iNH4_) then
           do k=1,N
-            do j=JstrR,JendR
-              do i=IstrR,IendR
+            do j=jstrR,jendR
+              do i=istrR,iendR
                 if (tclm_tid(iNH4_).lt.0) tclm(i,j,k,iNH4_)=0.10
                 if (tclm_tid(iChla).lt.0) tclm(i,j,k,iChla)=0.08
                 if (tclm_tid(iPhyt).lt.0) tclm(i,j,k,iPhyt)=0.06

@@ -7,7 +7,7 @@
 # include "param.h"
 # include "private_scratch.h"
 # include "compute_tile_bounds.h"
-      call lmd_kmix_tile (Istr,Iend,Jstr,Jend,  A2d(1,1), A2d(1,2),
+      call lmd_kmix_tile (istr,iend,jstr,jend,  A2d(1,1), A2d(1,2),
      &                                          A2d(1, 3), A2d(1,4),
      &                   A2d(1, 5), A2d(1, 6),  A2d(1, 7), A2d(1, 8),
      &                   A2d(1, 9), A2d(1,10),  A2d(1,11), A2d(1,12),
@@ -15,7 +15,7 @@
       return
       end
 
-      subroutine lmd_kmix_tile (Istr,Iend,Jstr,Jend, alpha,beta,
+      subroutine lmd_kmix_tile (istr,iend,jstr,jend, alpha,beta,
      &                             Hz_inv, uc,vc,du,dv, dr,dRdz,
      &                             Bfsfc, FC, Cr, Kv,Kt,Ks, A) 
 
@@ -28,7 +28,7 @@
 # include "forces.h"
 #define tind nstp
 
-      integer Istr,Iend,Jstr,Jend, i,j,k, km
+      integer istr,iend,jstr,jend, i,j,k, km
       real alpha(PRIVATE_2D_SCRATCH_ARRAY),      cff,
      &      beta(PRIVATE_2D_SCRATCH_ARRAY),      cff1,    cff2,
 
@@ -135,7 +135,7 @@
 
 
 
-      call alfabeta_tile (Istr,Iend,Jstr,Jend, alpha,beta)
+      call alfabeta_tile (istr,iend,jstr,jend, alpha,beta)
 !
 ! Preliminary step: compute vertical derivatives of potential
 ! density of and velocity components (which are first interpolated
@@ -143,13 +143,13 @@
 ! limited vertical derivatives of density dRdz, which are needed
 ! later for accurate mid-point interpolation of density.
 !
-      do j=Jstr,Jend
-        do i=Istr,Iend
+      do j=jstr,jend
+        do i=istr,iend
           uc(i,1)=0.5D0*(u(i,j,1,nstp)+u(i+1,j,1,nstp))
           vc(i,1)=0.5D0*(v(i,j,1,nstp)+v(i,j+1,1,nstp))
         enddo
         do k=1,N-1,+1
-          do i=Istr,Iend
+          do i=istr,iend
             uc(i,k+1)=0.5D0*(u(i,j,k+1,nstp)+u(i+1,j,k+1,nstp))
             vc(i,k+1)=0.5D0*(v(i,j,k+1,nstp)+v(i,j+1,k+1,nstp))
 
@@ -166,7 +166,7 @@
         enddo
 
         do k=2,N-1
-          do i=Istr,Iend
+          do i=istr,iend
             cff=(dr(i,k)*Hz_inv(i,k)+dr(i,k-1)*Hz_inv(i,k-1))
      &                              /(Hz_inv(i,k)+Hz_inv(i,k-1))
             if (dr(i,k).gt.0.D0  .and.  dr(i,k-1).gt.0.D0) then
@@ -178,7 +178,7 @@
             endif
           enddo
         enddo
-        do i=Istr,Iend
+        do i=istr,iend
           dRdz(i,N)=2.D0*dr(i,N-1) - dRdz(i,N-1)
           dRdz(i,1)=2.D0*dr(i,1) - dRdz(i,2)
           du(i,N)=du(i,N-1)
@@ -200,7 +200,7 @@
         grho0Ri=g/(rho0*Ricr)
         cff1=C_MO/vonKar 
 
-        do i=Istr,Iend
+        do i=istr,iend
           A(i,srf_dpth)=hbl(i,j)*epssfc
           A(i,ustar)=max( sqrt( 0.5D0*sqrt(
      &                              (sustr(i,j)+sustr(i+1,j))**2
@@ -236,7 +236,7 @@
         cff2=1.D0/mu2(jwt)     ! exp(-x) = -----------------------
                                !            1 + (2/3)x + (1/6)x^2
         do k=N,1,-1
-          do i=Istr,Iend
+          do i=istr,iend
             xi1=min(3.D0, cff1*Hz(i,j,k))
             uc(i,k-1)=uc(i,k)*(3.D0-xi1)/(3.D0+xi1*(2.D0-0.5D0*xi1))
 
@@ -253,7 +253,7 @@ c**
 c**
 #define Rib FC
 
-        do i=Istr,Iend
+        do i=istr,iend
           Rib(N,k)=0.
           Rib(1,k)=0.
           A(i,kbl)=1.+eps
@@ -262,7 +262,7 @@ c**
 
         cff=g/rho0
         do k=N-1,2,-1
-          do i=Istr,Iend
+          do i=istr,iend
             Ritop=-cff*(rho1(i,j,N)-rho1(i,j,k))
      &                   *(z_r(i,j,N)-z_r(i,j,k))
 
@@ -295,7 +295,7 @@ c**
 
           enddo
 
-          do i=Istr,Iend
+          do i=istr,iend
             if (A(i,kbl).lt.2. .and. Rib(i,k).gt.Ricr) then
               A(i,zbl)=        ( z_r(i,j,k+1)*(Rib(i,k)-Ricr)
      &                           +z_r(i,j,k)*(Ricr-Rib(i,k+1))
@@ -306,13 +306,13 @@ c**
         enddo
 
 
-        do i=Istr,Iend
+        do i=istr,iend
           k=int(A(i,kbl))
           A(i,Bfsfc_bl)=Bfsfc(i,k)
         enddo
 
 
-        do i=Istr,Iend
+        do i=istr,iend
           if (A(i,Bfsfc_bl).gt.0.) then
             hekman=cekman*A(i,ustar)/max(abs(f(i,j)),eps)
             hmonob=cmonob*A(i,ustar)**3/(vonKar*A(i,Bfsfc_bl))
@@ -324,7 +324,7 @@ c**
         enddo
                                  ! Find new boundary
         do k=N-1,1,-1            ! layer index "kbl".
-          do i=Istr,Iend
+          do i=istr,iend
             if (z_w(i,j,k) .gt. A(i,zbl)) A(i,kbl)=float(k)+eps
           enddo
         enddo
@@ -357,7 +357,7 @@ c**
 
 #ifdef JUNK
 
-          do i=Istr,Iend
+          do i=istr,iend
 /*
             FC(i,k-1)=FC(i,k) + Hz(i,j,k)*( 0.375D0*( du(i,k)**2
      &                   +du(i,k-1)**2  +dv(i,k)**2+dv(i,k-1)**2)
@@ -432,7 +432,7 @@ c**
 !
 ! Find extent of boundary layer
 !
-        do i=Istr,Iend
+        do i=istr,iend
           k=int(A(i,kbl)+0.5D0)
           if (k.gt.0) then
             A(i,zbl)=(z_w(i,j,k)*Cr(i,k-1)-z_w(i,j,k-1)*Cr(i,k))
@@ -449,7 +449,7 @@ c**
 !                                             C_MO * ustar^3
 ! Monin-Obukhov limitation depth: h_MO(z) = ------------------
 !                                             vonKar*Bfsfc(z)
-        do i=Istr,Iend
+        do i=istr,iend
           k=int(A(i,kmo)+0.5D0)
           if (k.gt.0) then
             cff=A(i,h_MO)
@@ -484,7 +484,7 @@ c          write(*,*) A(i,zbl), A(i,h_MO)
 # ifdef LMD_RIMIX
 # define Rig uc
         do k=1,N-1
-          do i=Istr,Iend
+          do i=istr,iend
             cff=0.5/(z_r(i,j,k+1)-z_r(i,j,k))
             dudz=cff*( u(i  ,j,k+1,tind)-u(i  ,j,k,tind)
      &                +u(i+1,j,k+1,tind)-u(i+1,j,k,tind))
@@ -498,17 +498,17 @@ c     &                                      +dv(i,k)**2, eps)
 #  ifdef VERT_SMOOTH_RI
           enddo
         enddo
-        do i=Istr,Iend
+        do i=istr,iend
           uc(i,N)=uc(i,N-1)
           uc(i,0)=uc(i,  1)
         enddo
         do k=1,N
-          do i=Istr,Iend
+          do i=istr,iend
             vc(i,k)=0.25*(uc(i,k)+uc(i,k-1))
           enddo
         enddo
         do k=1,N-1
-          do i=Istr,Iend
+          do i=istr,iend
             uc(i,k)=vc(i,k)+vc(i,k+1)
 #  endif
             cff=min(1., max(0., Rig(i,k)))
@@ -526,7 +526,7 @@ c     &                                      +dv(i,k)**2, eps)
         enddo
 # else
         do k=1,N-1
-          do i=Istr,Iend
+          do i=istr,iend
             Kv(i,k)=nuwm   ! internal wave breaking
             Kt(i,k)=nuws   ! mixing
 #  ifdef SALINITY
@@ -538,7 +538,7 @@ c     &                                      +dv(i,k)**2, eps)
           enddo
         enddo
 # endif
-        do i=Istr,Iend
+        do i=istr,iend
           Kv(i,0)=Kv(i,  1)
           Kv(i,N)=Kv(i,N-1)
           Kt(i,0)=Kt(i,  1)
@@ -555,7 +555,7 @@ c     &                                      +dv(i,k)**2, eps)
 !
 !------------  
 !
-        do i=Istr,Iend
+        do i=istr,iend
           k=int(A(i,kbl)+0.5D0)
           cff=1.D0/(z_w(i,j,k)-z_w(i,j,k-1))
           cff_up=cff*(A(i,zbl) -z_w(i,j,k-1))
@@ -615,7 +615,7 @@ c     &                                      +dv(i,k)**2, eps)
 !
 
 
-        do i=Istr,Iend
+        do i=istr,iend
           km=int(A(i,kbl)+0.5D0) 
           hbld=z_w(i,j,N)-A(i,zbl)
           hbl_inv=1.D0/hbld
@@ -682,7 +682,7 @@ c     &                                      +dv(i,k)**2, eps)
 
 # ifdef LMD_CONVEC
         do k=1,N-1
-          do i=Istr,Iend 
+          do i=istr,iend 
             if (dr(i,k).lt.0.D0 .and. z_w(i,j,k).lt.A(i,zbl)) then
               Kv(i,k)=Kv(i,k) +nu0c
               Kt(i,k)=Kt(i,k) +nu0c
@@ -694,11 +694,11 @@ c     &                                      +dv(i,k)**2, eps)
         enddo
 # endif
 
-        do i=Istr,Iend
+        do i=istr,iend
           hbl(i,j)=(z_w(i,j,N)-A(i,zbl))*rmask(i,j)
         enddo
         do k=0,N
-          do i=Istr,Iend
+          do i=istr,iend
             Akv(i,j,k)=Kv(i,k)          *rmask(i,j)
             Akt(i,j,k,itemp)=Kt(i,k)    *rmask(i,j)
 #  ifdef SALINITY

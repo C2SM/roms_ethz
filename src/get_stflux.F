@@ -130,12 +130,12 @@
       return
       end
  
-      subroutine set_stflux_tile (Istr,Iend,Jstr,Jend, itrc, ierr)
+      subroutine set_stflux_tile (istr,iend,jstr,jend, itrc, ierr)
 !
 ! Set-up surface tracer flux for current tile.
 !
       implicit none
-      integer Istr,Iend,Jstr,Jend, itrc, ierr, i,j, it1,it2,
+      integer istr,iend,jstr,jend, itrc, ierr, i,j, it1,it2,
      &                                    it3,it4, it5,it6, it7,it8
       real cff, cff1,cff2, cff3,cff4, cff5,cff6, cff7,cff8, dSdt
 
@@ -204,16 +204,16 @@ c**      dSdt=0.
       if (ntstf(itrc).eq.1) then           ! Load time-invariant
         if (itrc.eq.itemp) then            ! surface tracer flux
           cff=1./(rho0*Cp)
-          do j=JstrR,JendR
-            do i=IstrR,IendR
+          do j=jstrR,jendR
+            do i=istrR,iendR
               stflx(i,j,itemp)=cff*stflxg(i,j,itstf(itemp),itemp)
             enddo
           enddo
 # ifdef SALINITY
         elseif (itrc.eq.isalt) then
           cff=0.01/86400.
-          do j=JstrR,JendR
-            do i=IstrR,IendR
+          do j=jstrR,jendR
+            do i=istrR,iendR
               stflx(i,j,isalt)=cff*stflxg(i,j,itstf(isalt),isalt)
      &                                       *t(i,j,N,nrhs,isalt)
             enddo
@@ -245,8 +245,8 @@ c**      dSdt=0.
 # endif
 
 
-          do j=JstrR,JendR
-            do i=IstrR,IendR
+          do j=jstrR,jendR
+            do i=istrR,iendR
               stflx(i,j,itemp)=cff1*stflxg(i,j,it1,itemp)
      &                          +cff2*stflxg(i,j,it2,itemp)
 
@@ -284,8 +284,8 @@ c**      dSdt=0.
           cff7=cff7*cff
           cff8=cff8*cff
 
-          do j=JstrR,JendR
-            do i=IstrR,IendR
+          do j=jstrR,jendR
+            do i=istrR,iendR
               stflx(i,j,isalt)=t(i,j,N,nrhs,isalt)*(
      &                     cff1*stflxg(i,j,it1,isalt)
      &                    +cff2*stflxg(i,j,it2,isalt)

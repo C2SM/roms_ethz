@@ -1,7 +1,7 @@
 #include "cppdefs.h"
 #ifdef LMD_KPP
  
-      subroutine lmd_swfrac_tile (Istr,Iend,Jstr,Jend,
+      subroutine lmd_swfrac_tile (istr,iend,jstr,jend,
      &                     imin,imax,jmin,jmax, Z,swdk)
 !
 ! Compute fraction of solar shortwave flux penetrating to the
@@ -17,7 +17,7 @@
 !  This routine was adapted from Bill Large 1995 code.
 !
       implicit none
-      integer Istr,Iend,Jstr,Jend, imin,imax,jmin,jmax, i,j, Jwt
+      integer istr,iend,jstr,jend, imin,imax,jmin,jmax, i,j, Jwt
       real Z(PRIVATE_2D_SCRATCH_ARRAY),
      &     swdk(PRIVATE_2D_SCRATCH_ARRAY),
      &     mu1(5),mu2(5), r1(5), attn1,attn2,

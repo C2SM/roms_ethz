@@ -115,12 +115,12 @@
  
  
  
-      subroutine set_srflux_tile (Istr,Iend,Jstr,Jend, ierr)
+      subroutine set_srflux_tile (istr,iend,jstr,jend, ierr)
 !
 ! Set-up shortwave radiation flux for current tile.
 !
       implicit none
-      integer Istr,Iend,Jstr,Jend, ierr, i,j, it1,it2
+      integer istr,iend,jstr,jend, ierr, i,j, it1,it2
       real cff, cff1, cff2
 # ifdef DIURNAL_SRFLUX
       real phase
@@ -165,8 +165,8 @@ c     if (ZEROTH_TILE) write(*,*) 'swrad modulation', tdays, phase
       if (ntsrf.eq.1) then                  ! Load time-invariant
         if (iic.eq.ntstart) then            ! shortwave radiation
           cff=1/(rho0*Cp)                   ! flux
-          do j=JstrR,JendR
-            do i=IstrR,IendR
+          do j=jstrR,jendR
+            do i=istrR,iendR
               srflx(i,j)=cff*srflxg(i,j,itsrf)
             enddo
           enddo
@@ -175,8 +175,8 @@ c     if (ZEROTH_TILE) write(*,*) 'swrad modulation', tdays, phase
         cff=1./(rho0*Cp*(cff1+cff2))                ! shortwave
         cff1=cff1*cff                               ! radiation
         cff2=cff2*cff                               ! flux in time.
-        do j=JstrR,JendR
-          do i=IstrR,IendR
+        do j=jstrR,jendR
+          do i=istrR,iendR
             srflx(i,j)=cff1*srflxg(i,j,it1)+cff2*srflxg(i,j,it2)
 c : zl 
 # ifdef DIURNAL_SRFLUX
@@ -219,8 +219,8 @@ c : zl
       cos_d=cos(dec)
       sin_d=sin(dec)
       tan_d=tan(dec)
-      do j=JstrR,JendR
-        do i=IstrR,IendR
+      do j=jstrR,jendR
+        do i=istrR,iendR
           phi=latr(i,j)*deg2rad
           h0=acos(-tan(phi)*tan_d)
           cff1=cos_d*cos(phi)

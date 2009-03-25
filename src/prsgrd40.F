@@ -7,12 +7,12 @@
 # include "param.h"
 # include "private_scratch.h"
 # include "compute_tile_bounds.h"
-      call prsgrd40_tile (Istr,Iend,Jstr,Jend,   A3d(1,1), A3d(1,2),
+      call prsgrd40_tile (istr,iend,jstr,jend,   A3d(1,1), A3d(1,2),
      &                                 A3d(1,3), A3d(1,4), A2d(1,1))
       return
       end
  
-      subroutine prsgrd40_tile (Istr,Iend,Jstr,Jend, ru,rv, P,FX,FC)
+      subroutine prsgrd40_tile (istr,iend,jstr,jend, ru,rv, P,FX,FC)
 !
 ! Finite-volime pressure gradient scheme by S. J. Lin, 1997
 !======= ====== ======== ======== ====== == == == ==== ====
@@ -22,7 +22,7 @@
 ! vol. 123, pp. 1749-1762.
 !
       implicit none
-      integer Istr,Iend,Jstr,Jend, i,j,k
+      integer istr,iend,jstr,jend, i,j,k
 # include "param.h"
       real ru(PRIVATE_2D_SCRATCH_ARRAY, N),
      &     rv(PRIVATE_2D_SCRATCH_ARRAY,  N), grho,
@@ -39,21 +39,21 @@
  
       Half_g=0.5*g
       grho=g/rho0
-      do j=JstrV-1,Jend
-        do i=IstrU-1,Iend  !--> set pressure at free surface,
+      do j=jstrV-1,jend
+        do i=istrU-1,iend  !--> set pressure at free surface,
           P(i,j,N)=0.      !    initialize vertical integration
           FC(i,N)=0.
         enddo
         do k=N,1,-1
-          do i=IstrU-1,Iend
+          do i=istrU-1,iend
             P(i,j,k-1)=P(i,j,k)+Hz(i,j,k)*rho(i,j,k)
             FX(i,j,k)=0.5*Hz(i,j,k)*( P(i,j,k)+P(i,j,k-1))
           enddo
         enddo
  
-        if (j.ge.Jstr) then
+        if (j.ge.jstr) then
           do k=N,1,-1
-            do i=IstrU,Iend
+            do i=istrU,iend
               FC(i,k-1)=0.5*(P(i,j,k-1)+P(i-1,j,k-1))
      &                        *(z_w(i,j,k-1)-z_w(i-1,j,k-1))
  
@@ -66,9 +66,9 @@
           enddo
         endif
  
-        if (j.ge.JstrV) then
+        if (j.ge.jstrV) then
           do k=N,1,-1
-            do i=Istr,Iend
+            do i=istr,iend
               FC(i,k-1)=0.5*(P(i,j,k-1)+P(i,j-1,k-1))
      &                        *(z_w(i,j,k-1)-z_w(i,j-1,k-1))
  

@@ -149,12 +149,12 @@
       return
       end
  
-      subroutine set_uclima_tile (Istr,Iend,Jstr,Jend, ierr)
+      subroutine set_uclima_tile (istr,iend,jstr,jend, ierr)
 !
 !  Set-up momentum climatology for current tile.
 !
       implicit none
-      integer Istr,Iend,Jstr,Jend, ierr, i,j,k, it1,it2
+      integer istr,iend,jstr,jend, ierr, i,j,k, it1,it2
       real cff, cff1, cff2
 # include "param.h"
 # include "climat.h"
@@ -179,16 +179,16 @@
  
       if (ntuclm.eq.1) then                 ! load time-invariant
         if (iic.eq.0) then                  ! momentum climatology.
-          do j=JstrR,JendR
-            do i=IstrR,IendR
+          do j=jstrR,jendR
+            do i=istrR,iendR
               ubclm(i,j)=ubclima(i,j,ituclm)
               vbclm(i,j)=vbclima(i,j,ituclm)
             enddo
           enddo
 # ifdef SOLVE3D
           do k=1,N
-            do j=JstrR,JendR
-              do i=IstrR,IendR
+            do j=jstrR,jendR
+              do i=istrR,iendR
                 uclm(i,j,k)=uclima(i,j,k,ituclm)
                 vclm(i,j,k)=vclima(i,j,k,ituclm)
               enddo
@@ -200,8 +200,8 @@
         cff=1./(cff1+cff2)                        ! interpolate
         cff1=cff1*cff                             ! tracer
         cff2=cff2*cff                             ! climatology
-        do j=JstrR,JendR                          ! in time.
-          do i=IstrR,IendR
+        do j=jstrR,jendR                          ! in time.
+          do i=istrR,iendR
             ubclm(i,j)=cff1*ubclima(i,j,it1)
      &                +cff2*ubclima(i,j,it2)
             vbclm(i,j)=cff1*vbclima(i,j,it1)
@@ -210,8 +210,8 @@
         enddo
 # ifdef SOLVE3D
         do k=1,N
-          do j=JstrR,JendR
-            do i=IstrR,IendR
+          do j=jstrR,jendR
+            do i=istrR,iendR
               uclm(i,j,k)=cff1*uclima(i,j,k,it1)
      &                   +cff2*uclima(i,j,k,it2)
               vclm(i,j,k)=cff1*vclima(i,j,k,it1)

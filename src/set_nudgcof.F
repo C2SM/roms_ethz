@@ -7,13 +7,13 @@
 # include "param.h"
 # include "private_scratch.h"
 # include "compute_tile_bounds.h"
-      call set_nudgcof_tile (Istr,Iend,Jstr,Jend, A2d(1,1))
+      call set_nudgcof_tile (istr,iend,jstr,jend, A2d(1,1))
       return
       end
  
-      subroutine set_nudgcof_tile (Istr,Iend,Jstr,Jend, wrk)
+      subroutine set_nudgcof_tile (istr,iend,jstr,jend, wrk)
       implicit none
-      integer Istr,Iend,Jstr,Jend
+      integer istr,iend,jstr,jend
       real wrk(PRIVATE_2D_SCRATCH_ARRAY)
       integer i,j, isp , I1,I0,I2,J1,J0,J2, ibnd,itrc
       real cff,cff1,cff2,cff3, frac, Tau
@@ -27,8 +27,8 @@
 !
 # if defined DAMEE_B
       Tau=1./(5.*86400.)              ! Make two nudging bands along
-      do j=JstrR,JendR                ! southern and northern borders
-        do i=IstrR,IendR              ! of the domain.
+      do j=jstrR,jendR                ! southern and northern borders
+        do i=istrR,iendR              ! of the domain.
           Tnudgcof(i,j,itemp)=0.
         enddo
 #  ifdef MPI
@@ -38,13 +38,13 @@
 #  endif
         cff=Tau*(179./168. - frac*352./21.)      ! All these fancy
         if (cff.gt.0.) then                      ! looking rational
-          do i=IstrR,IendR                       ! fractions are just
+          do i=istrR,iendR                       ! fractions are just
             Tnudgcof(i,j,itemp)=cff              ! for the reasons of
           enddo                                  ! compatibility with
         endif                                    ! legacy code and do
         cff=Tau*(179./168. - (1.-frac)*352./21.) ! carry any mystical
         if (cff.gt.0.) then                      ! meaning.
-          do i=IstrR,IendR
+          do i=istrR,iendR
             Tnudgcof(i,j,itemp)=cff
           enddo
         endif
@@ -80,22 +80,22 @@
       J0=J0 -jSW_corn
       J2=J2 -jSW_corn
 #  endif
-      do j=max(JstrR,J1),min(J2,JendR)
-        do i=max(IstrR,I1),min(I2,IendR)
+      do j=max(jstrR,J1),min(J2,jendR)
+        do i=max(istrR,I1),min(I2,iendR)
           cff=frac*sqrt(float((i-I0)*(i-I0)+(j-J0)*(j-J0)))
           Tnudgcof(i,j,itemp)=max(0., cff3+cff*(cff2-cff3) )
         enddo
       enddo
  
-      do j=JstrR,JendR
-        do i=IstrR,IendR
+      do j=jstrR,jendR
+        do i=istrR,iendR
           Tnudgcof(i,j,isalt)=Tnudgcof(i,j,itemp)
         enddo
       enddo
  
 c--# elif defined PACIFIC
 c      Tau=1./(5.*86400.)              ! Make nudging band along
-c      do j=JstrR,JendR                ! southern boundary
+c      do j=jstrR,jendR                ! southern boundary
 c--#  ifdef MPI
 c        frac=(float(j+jSW_corn)-0.5)/float(MMm)
 c--#  else
@@ -103,11 +103,11 @@ c        frac=(float(j)         -0.5)/float(MMm)
 c--#  endif
 c        cff=Tau*(1.-frac/16.)
 c        if (cff.gt.0.) then
-c          do i=IstrR,IendR
+c          do i=istrR,iendR
 c            Tnudgcof(i,j,itemp)=cff
 c          enddo
 c        else
-c          do i=IstrR,IendR
+c          do i=istrR,iendR
 c            Tnudgcof(i,j,itemp)=0.
 c          enddo
 c        endif
@@ -136,8 +136,8 @@ c      enddo
       isp=int(x_sponge*pm(1,1)) ! number of points in layer
 #  endif
  
-      do j=max(-1,JstrR-1),JendR
-        do i=max(-1,IstrR-1),IendR
+      do j=max(-1,jstrR-1),jendR
+        do i=max(-1,istrR-1),iendR
           ibnd=isp
 #  ifdef MPI
 #   ifdef OBC_WEST
@@ -174,8 +174,8 @@ c      enddo
         enddo
       enddo
  
-      do j=JstrR,JendR
-        do i=IstrR,IendR
+      do j=jstrR,jendR
+        do i=istrR,iendR
 #  ifdef SPONGE
 #   ifdef UV_VIS2
           visc2_r(i,j)=visc2_r(i,j)+v_sponge*wrk(i,j)
@@ -199,15 +199,15 @@ c        endif
  
 #  if defined SOLVE3D && defined TCLIMATOLOGY 
       do itrc=2,NT               ! includes BIOLOGY variables
-        do j=JstrR,JendR
-          do i=IstrR,IendR
+        do j=jstrR,jendR
+          do i=istrR,iendR
             Tnudgcof(i,j,itrc)=Tnudgcof(i,j,itemp)
           enddo
         enddo
       enddo
 #   if defined ROBUST_DIAG
-      do j=JstrR,JendR         ! nudging everywhere
-        do i=IstrR,IendR
+      do j=jstrR,jendR         ! nudging everywhere
+        do i=istrR,iendR
           Tnudgcof(i,j,itemp)=1./(360.*86400.)
 #     if defined SALINITY
           Tnudgcof(i,j,isalt)=1./(360.*86400.)
@@ -219,8 +219,8 @@ c        endif
  
 #  ifdef SPONGE
 #   ifdef UV_VIS2
-      do j=Jstr,JendR        ! viscosity at psi points
-        do i=Istr,IendR
+      do j=jstr,jendR        ! viscosity at psi points
+        do i=istr,iendR
           visc2_p(i,j)=visc2_p(i,j)+0.25*v_sponge*( wrk(i,j)
      &                  +wrk(i-1,j)+wrk(i,j-1)+wrk(i-1,j-1))
         enddo
@@ -228,8 +228,8 @@ c        endif
 #   endif
 #   if defined SOLVE3D && defined TS_DIF2
       do itrc=2,NT           ! diffusivity for the other tracers
-        do j=JstrR,JendR
-          do i=IstrR,IendR
+        do j=jstrR,jendR
+          do i=istrR,iendR
             diff2(i,j,itrc)=diff2(i,j,itemp)
 ! Agrif Roms:            diff2(i,j,itrc)=diff2(i,j,itemp)+tnu2(itrc)
           enddo
@@ -238,7 +238,7 @@ c        endif
 #   endif
 #   ifdef UV_VIS2
 #    if defined EW_PERIODIC || defined NS_PERIODIC || defined MPI
-        call exchange_p2d_tile (Istr,Iend,Jstr,Jend, visc2_p)
+        call exchange_p2d_tile (istr,iend,jstr,jend, visc2_p)
 #    endif
 #   endif
 #  endif

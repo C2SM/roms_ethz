@@ -1,14 +1,14 @@
 #include "cppdefs.h"
 #ifdef MPI
  
-      subroutine mpi_exchange_tile (Istr,Iend,Jstr,Jend, A, nmax)
+      subroutine mpi_exchange_tile (istr,iend,jstr,jend, A, nmax)
 
       implicit none
 # include "mpif.h"
 # include "param.h"
 # include "mess_buffers.h"
 # include "hidden_mpi_vars.h"
-      integer Istr,Iend,Jstr,Jend, nmax 
+      integer istr,iend,jstr,jend, nmax 
       real A(GLOBAL_2D_ARRAY,nmax)
 CSDISTRIBUTE_RESHAPE A(BLOCK_PATTERN) BLOCK_CLAUSE
       integer i,j,k, isize,jsize,ksize, kshft, itag,jtag, iter,
@@ -20,8 +20,8 @@ CSDISTRIBUTE_RESHAPE A(BLOCK_PATTERN) BLOCK_CLAUSE
 !>      write(*,*) 'mpi_exchange in', mynode
  
  
-      itag=(Istr+Iend)/(2*(Iend-Istr+1))   ! two-dimensional
-      jtag=(Jstr+Jend)/(2*(Jend-Jstr+1))   ! indices on tile grid.
+      itag=(istr+iend)/(2*(iend-istr+1))   ! two-dimensional
+      jtag=(jstr+jend)/(2*(jend-jstr+1))   ! indices on tile grid.
 
 c      write(*,*) mynode, proc(2), ' itag,jtag =', itag,jtag
 

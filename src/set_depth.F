@@ -8,11 +8,11 @@
 # include "param.h"
 # include "private_scratch.h"
 # include "compute_tile_bounds.h"
-      call set_depth_tile (Istr,Iend,Jstr,Jend, A2d(1,1))
+      call set_depth_tile (istr,iend,jstr,jend, A2d(1,1))
       return
       end
  
-      subroutine set_depth_tile (Istr,Iend,Jstr,Jend, dV)
+      subroutine set_depth_tile (istr,iend,jstr,jend, dV)
 !
 ! Create S-coordinate system: based on model topography h(i,j),
 ! fast-time-averaged free-surface field and vertical coordinate
@@ -21,7 +21,7 @@
 ! grid boxes.
 !
       implicit none
-      integer Istr,Iend,Jstr,Jend, i,j,k
+      integer istr,iend,jstr,jend, i,j,k
       real cff_r,cff1_r,cff2_r, cff_w,cff1_w,cff2_w, z_r0,z_w0, ds
 # include "param.h"
 # ifdef OBC_FLUX_CORR
@@ -41,8 +41,8 @@
 # include "compute_auxiliary_bounds.h"
 !
       if (iic.eq.0) then               ! During initialization and
-        do j=JstrR,JendR               ! /or restart: copy initial
-          do i=IstrR,IendR             ! free surface field into
+        do j=jstrR,jendR               ! /or restart: copy initial
+          do i=istrR,iendR             ! free surface field into
 # ifdef NEW_S_COORD
             hinv(i,j)=1./(h(i,j)+hc)   ! array for holding fast-time
 # else
@@ -51,15 +51,15 @@
           enddo
         enddo
 
-        do j=JstrR,JendR
-          do i=Istr,IendR
+        do j=jstrR,jendR
+          do i=istr,iendR
             DU_avg1(i,j)=0.5*( h(i-1,j)+h(i,j)+zeta(i,j,1)
      &              +zeta(i-1,j,1) )*dn_u(i,j)*ubar(i,j,1)
           enddo
         enddo
 
-        do j=Jstr,JendR
-          do i=IstrR,IendR
+        do j=jstr,jendR
+          do i=istrR,iendR
             DV_avg1(i,j)=0.5*( h(i,j)+h(i,j-1)+zeta(i,j,1)
      &              +zeta(i,j-1,1) )*dm_v(i,j)*vbar(i,j,1)
           enddo
@@ -67,8 +67,8 @@
       endif
  
 # ifdef OBC_FLUX_CORR
-      do j=Jstr,Jend
-        do i=Istr,Iend
+      do j=jstr,jend
+        do i=istr,iend
 #  ifdef MASKING
          dV(i,j)=rmask(i,j)*Zt_avg1(i,j)/(pm(i,j)*pn(i,j))
 #  else
@@ -83,9 +83,9 @@
       jnc=1                        ! errors.
  
       do while (lsumX .or. lsumY)
-        if (Istr.le.Iend-inc) then
-          do j=Jstr,Jend
-            do i=Istr,Iend-inc,2*inc
+        if (istr.le.iend-inc) then
+          do j=jstr,jend
+            do i=istr,iend-inc,2*inc
               dV(i,j)=dV(i,j)+dV(i+inc,j)
             enddo
           enddo
@@ -93,9 +93,9 @@
         else
           lsumX=.false.
         endif
-        if (Jstr.le.Jend-jnc) then
-          do j=Jstr,Jend-jnc,2*jnc
-            do i=Istr,Iend
+        if (jstr.le.jend-jnc) then
+          do j=jstr,jend-jnc,2*jnc
+            do i=istr,iend
               dV(i,j)=dV(i,j)+dV(i,j+jnc)
             enddo
           enddo
@@ -104,11 +104,11 @@
           lsumY=.false.
         endif
       enddo
-      my_exc_vol=dV(Istr,Jstr)
+      my_exc_vol=dV(istr,jstr)
                                      ! Straight summation: this code
 c**   my_exc_vol=QuadZero            ! produces result which differs
-c**   do j=Jstr,Jend                 ! above only by roundoff errors.
-c**     do i=Istr,Iend
+c**   do j=jstr,jend                 ! above only by roundoff errors.
+c**     do i=istr,iend
 c**       my_exc_vol=my_exc_vol+dV(i,j)
 c**     enddo
 c**   enddo
@@ -135,8 +135,8 @@ C$OMP END CRITICAL (obc_flux_corr_crgn)
 # endif
 
       ds=1.D0/dble(N)
-      do j=JstrR,JendR
-        do i=IstrR,IendR
+      do j=jstrR,jendR
+        do i=istrR,iendR
           z_w(i,j,0)=-h(i,j)
         enddo
         
@@ -155,7 +155,7 @@ C$OMP END CRITICAL (obc_flux_corr_crgn)
           cff1_r=Cs_r(k)
 
  
-          do i=IstrR,IendR
+          do i=istrR,iendR
 # ifdef NEW_S_COORD
             z_w(i,j,k)=zeta(i,j,knew) +(zeta(i,j,knew)+h(i,j))
      &                        *(cff_w+cff1_w*h(i,j))*hinv(i,j) 
@@ -177,12 +177,12 @@ C$OMP END CRITICAL (obc_flux_corr_crgn)
       enddo
 # if defined EW_PERIODIC || defined NS_PERIODIC || defined  MPI
       if (iic.eq.0) then
-        call exchange_r2d_tile (Istr,Iend,Jstr,Jend, hinv)
+        call exchange_r2d_tile (istr,iend,jstr,jend, hinv)
       endif
-      call exchange_w3d_tile (Istr,Iend,Jstr,Jend, z_w)
-      call exchange_r3d_tile (Istr,Iend,Jstr,Jend, z_r)
-      call exchange_r3d_tile (Istr,Iend,Jstr,Jend, Hz)
-      call exchange_r3d_tile (Istr,Iend,Jstr,Jend, Hz_bak)
+      call exchange_w3d_tile (istr,iend,jstr,jend, z_w)
+      call exchange_r3d_tile (istr,iend,jstr,jend, z_r)
+      call exchange_r3d_tile (istr,iend,jstr,jend, Hz)
+      call exchange_r3d_tile (istr,iend,jstr,jend, Hz_bak)
 # endif
       return
       end
@@ -194,13 +194,13 @@ C$OMP END CRITICAL (obc_flux_corr_crgn)
       integer tile
 # include "param.h"
 # include "compute_tile_bounds.h"
-      call set_HUV_tile (Istr,Iend,Jstr,Jend)
+      call set_HUV_tile (istr,iend,jstr,jend)
       return
       end
  
-      subroutine set_HUV_tile (Istr,Iend,Jstr,Jend)
+      subroutine set_HUV_tile (istr,iend,jstr,jend)
       implicit none
-      integer Istr,Iend,Jstr,Jend, i,j,k
+      integer istr,iend,jstr,jend, i,j,k
 # include "param.h"
 # include "grid.h"
 # include "ocean3d.h"
@@ -209,22 +209,22 @@ C$OMP END CRITICAL (obc_flux_corr_crgn)
 # include "compute_auxiliary_bounds.h"
 !
       do k=1,N
-        do j=JstrR,JendR
-          do i=Istr,IendR
+        do j=jstrR,jendR
+          do i=istr,iendR
             FlxU(i,j,k)=0.5*(Hz(i,j,k)+Hz(i-1,j,k))*dn_u(i,j)
      &                                         *u(i,j,k,nrhs)
           enddo
         enddo
-        do j=Jstr,JendR
-          do i=IstrR,IendR
+        do j=jstr,jendR
+          do i=istrR,iendR
             FlxV(i,j,k)=0.5*(Hz(i,j,k)+Hz(i,j-1,k))*dm_v(i,j)
      &                                         *v(i,j,k,nrhs)
           enddo
         enddo
       enddo
 # if defined EW_PERIODIC || defined NS_PERIODIC || defined MPI
-      call exchange_u3d_tile (Istr,Iend,Jstr,Jend, FlxU)
-      call exchange_v3d_tile (Istr,Iend,Jstr,Jend, FlxV)
+      call exchange_u3d_tile (istr,iend,jstr,jend, FlxU)
+      call exchange_v3d_tile (istr,iend,jstr,jend, FlxV)
 # endif
       return
       end
@@ -235,13 +235,13 @@ C$OMP END CRITICAL (obc_flux_corr_crgn)
 #include "param.h"
 #include "private_scratch.h"
 #include "compute_tile_bounds.h"
-      call set_HUV1_tile (Istr,Iend,Jstr,Jend, A2d(1,1), A2d(1,2))
+      call set_HUV1_tile (istr,iend,jstr,jend, A2d(1,1), A2d(1,2))
       return
       end
  
-      subroutine set_HUV1_tile (Istr,Iend,Jstr,Jend, DC,FC)
+      subroutine set_HUV1_tile (istr,iend,jstr,jend, DC,FC)
       implicit none
-      integer Istr,Iend,Jstr,Jend, i,j,k
+      integer istr,iend,jstr,jend, i,j,k
 # include "param.h"
       real DC(PRIVATE_1D_SCRATCH_ARRAY,0:N),
      &     FC(PRIVATE_1D_SCRATCH_ARRAY,0:N)
@@ -252,20 +252,20 @@ C$OMP END CRITICAL (obc_flux_corr_crgn)
 !
 # include "compute_auxiliary_bounds.h"
 !
-      do j=JstrR,JendR
-        do i=Istr,IendR
+      do j=jstrR,jendR
+        do i=istr,iendR
           DC(i,N)=0.5*(Hz(i,j,N)+Hz(i-1,j,N))*dn_u(i,j)
           DC(i,0)=DC(i,N)
           FC(i,0)=DC(i,N)*u(i,j,N,nnew)
         enddo
         do k=N-1,1,-1
-          do i=Istr,IendR
+          do i=istr,iendR
             DC(i,k)=0.5*(Hz(i,j,k)+Hz(i-1,j,k))*dn_u(i,j)
             DC(i,0)=DC(i,0)+DC(i,k)
             FC(i,0)=FC(i,0)+DC(i,k)*u(i,j,k,nnew)
           enddo
         enddo
-        do i=Istr,IendR
+        do i=istr,iendR
 c??       FC(i,0)=(FC(i,0)-DU_avg2(i,j))/DC(i,0)
 c>          FC(i,0)=(FC(i,0)-DU_avg1(i,j))/DC(i,0)
           
@@ -274,7 +274,7 @@ c>          FC(i,0)=(FC(i,0)-DU_avg1(i,j))/DC(i,0)
 
         enddo
         do k=1,N
-          do i=Istr,IendR
+          do i=istr,iendR
             u(i,j,k,nnew)=(u(i,j,k,nnew)-FC(i,0))
 # ifdef MASKING
      &                                *umask(i,j)
@@ -282,20 +282,20 @@ c>          FC(i,0)=(FC(i,0)-DU_avg1(i,j))/DC(i,0)
             FlxU(i,j,k)=DC(i,k)*u(i,j,k,nnew)
           enddo
         enddo
-        if (j.ge.Jstr) then
-          do i=IstrR,IendR
+        if (j.ge.jstr) then
+          do i=istrR,iendR
             DC(i,N)=0.5*(Hz(i,j,N)+Hz(i,j-1,N))*dm_v(i,j)
             DC(i,0)=DC(i,N)
             FC(i,0)=DC(i,N)*v(i,j,N,nnew)
           enddo
           do k=N-1,1,-1
-            do i=IstrR,IendR
+            do i=istrR,iendR
               DC(i,k)=0.5*(Hz(i,j,k)+Hz(i,j-1,k))*dm_v(i,j)
               DC(i,0)=DC(i,0)+DC(i,k)
               FC(i,0)=FC(i,0)+DC(i,k)*v(i,j,k,nnew)
             enddo
           enddo
-          do i=IstrR,IendR
+          do i=istrR,iendR
 c??         FC(i,0)=(FC(i,0)-DV_avg2(i,j))/DC(i,0)
 c>            FC(i,0)=(FC(i,0)-DV_avg1(i,j))/DC(i,0)
 
@@ -303,7 +303,7 @@ c>            FC(i,0)=(FC(i,0)-DV_avg1(i,j))/DC(i,0)
      &                      +DV_avg2(i,j))/DC(i,0)
           enddo
           do k=1,N
-            do i=IstrR,IendR
+            do i=istrR,iendR
               v(i,j,k,nnew)=(v(i,j,k,nnew)-FC(i,0))
 # ifdef MASKING
      &                                *vmask(i,j)
@@ -317,11 +317,11 @@ c>            FC(i,0)=(FC(i,0)-DV_avg1(i,j))/DC(i,0)
 ! Exchange periodic boundaries, if so prescribed.
 !
 # if defined EW_PERIODIC || defined NS_PERIODIC || defined MPI
-      call exchange_u3d_tile (Istr,Iend,Jstr,Jend, FlxU)
-      call exchange_v3d_tile (Istr,Iend,Jstr,Jend, FlxV)
-      call exchange_u3d_tile (Istr,Iend,Jstr,Jend,
+      call exchange_u3d_tile (istr,iend,jstr,jend, FlxU)
+      call exchange_v3d_tile (istr,iend,jstr,jend, FlxV)
+      call exchange_u3d_tile (istr,iend,jstr,jend,
      &                          u(START_2D_ARRAY,1,nnew))
-      call exchange_v3d_tile (Istr,Iend,Jstr,Jend,
+      call exchange_v3d_tile (istr,iend,jstr,jend,
      &                          v(START_2D_ARRAY,1,nnew))
 # endif
       return

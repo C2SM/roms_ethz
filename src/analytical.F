@@ -27,13 +27,13 @@
 !-------------------------------------------------------------------
 !
 #if defined ANA_BSEDIM && defined SG_BBL96
-      subroutine ana_bsedim_tile (Istr,Iend,Jstr,Jend)
+      subroutine ana_bsedim_tile (istr,iend,jstr,jend)
 !
 ! Set initial bottom sediment grain diameter size [m]  and density
 ! used in the bottom boundary formulation [kg/m^3].
 !
       implicit none
-      integer Istr,Iend,Jstr,Jend, i,j
+      integer istr,iend,jstr,jend, i,j
 # include "param.h"
 # include "bblm.h"
 # include "grid.h"
@@ -41,8 +41,8 @@
 !
 # include "compute_auxiliary_bounds.h"
 !
-      do j=JstrR,JendR
-        do i=IstrR,IendR
+      do j=jstrR,jendR
+        do i=istrR,iendR
           Ssize(i,j)=???
           Sdens(i,j)=???
         enddo
@@ -58,7 +58,7 @@
 
 
 #if defined SOLVE3D && defined ANA_MEANRHO
-      subroutine ana_meanRHO_tile (Istr,Iend,Jstr,Jend)
+      subroutine ana_meanRHO_tile (istr,iend,jstr,jend)
 !
 !--------------------------------------------------------------------
 !  This subroutine sets mean density anomaly [kg/m^3] using an
@@ -66,7 +66,7 @@
 !--------------------------------------------------------------------
 !
       implicit none
-      integer Istr,Iend,Jstr,Jend, i,j,k
+      integer istr,iend,jstr,jend, i,j,k
       real cff1, cff2 , cff3, cff4
 # include "param.h"
 # include "grid.h"
@@ -83,8 +83,8 @@ c     cff1=(44.690/39.382)**2
 c     cff2=cff1*(rho0*800./g)*(5.0e-5/((42.689/44.690)**2))
 c-song:
       do k=1,N
-        do j=JstrR,JendR
-          do i=IstrR,IendR
+        do j=jstrR,jendR
+          do i=istrR,iendR
 c           rhobar(i,j,k)=R0-cff2*exp(z_r(i,j,k)/800.)*
             rhobar(i,j,k)=R0-
      &  (44.690/39.382)**2
@@ -96,16 +96,16 @@ c           rhobar(i,j,k)=R0-cff2*exp(z_r(i,j,k)/800.)*
       enddo
 # elif defined CANYON_A || defined GRAV_ADJ || defined OVERFLOW
       do k=1,N
-        do j=JstrR,JendR
-          do i=IstrR,IendR
+        do j=jstrR,jendR
+          do i=istrR,iendR
             rhobar(i,j,k)=R0
           enddo
         enddo
       enddo
 # elif defined CANYON_B
       do k=1,N
-        do j=JstrR,JendR
-          do i=IstrR,IendR
+        do j=jstrR,jendR
+          do i=istrR,iendR
             rhobar(i,j,k)=R0-3.488*exp(z_w(i,j,k)/800.)*
      &                  (1.-(2./3.)*tanh(z_r(i,j,k)/800.))
           enddo
@@ -113,8 +113,8 @@ c           rhobar(i,j,k)=R0-cff2*exp(z_r(i,j,k)/800.)*
       enddo
 # elif defined NJ_BIGHT
       do k=1,N
-        do j=JstrR,JendR
-          do i=IstrR,IendR
+        do j=jstrR,jendR
+          do i=istrR,iendR
             if (z_r(i,j,k).ge.-15.0 ) then
               cff1=2.049264257728403e+01-z_r(i,j,k)*(
      &               2.640850848793918e-01+z_r(i,j,k)*(
@@ -144,32 +144,32 @@ c           rhobar(i,j,k)=R0-cff2*exp(z_r(i,j,k)/800.)*
       enddo
 # elif defined SEAMOUNT
       do k=1,N
-        do j=JstrR,JendR
-          do i=IstrR,IendR
+        do j=jstrR,jendR
+          do i=istrR,iendR
             rhobar(i,j,k)=28.-2.*exp(z_r(i,j,k)/1000.)
           enddo
         enddo
       enddo
 # elif defined SHELFRONT
       do k=1,N
-        do j=JstrR,JendR
-          do i=IstrR,IendR
+        do j=jstrR,jendR
+          do i=istrR,iendR
             rhobar(i,j,k)=R0
           enddo
         enddo
       enddo
 # elif defined UPWELLING
       do k=1,N
-        do j=JstrR,JendR
-          do i=IstrR,IendR
+        do j=jstrR,jendR
+          do i=istrR,iendR
             rhobar(i,j,k)=26.459472-2.24*exp(z_r(i,j,k)/50.)
           enddo
         enddo
       enddo
 # elif defined JET
       do k=1,N
-        do j=JstrR,JendR
-          do i=IstrR,IendR
+        do j=jstrR,jendR
+          do i=istrR,iendR
            cff1=TL1+
      &          TL2*z_r(i,j,k)+
      &          TL3*exp(z_r(i,j,k)/ZL1)
@@ -190,8 +190,8 @@ c           rhobar(i,j,k)=R0-cff2*exp(z_r(i,j,k)/800.)*
       enddo
 # else
       do k=1,N
-        do j=JstrR,JendR
-          do i=IstrR,IendR
+        do j=jstrR,jendR
+          do i=istrR,iendR
             rhobar(i,j,k)=???
           enddo
         enddo
@@ -202,8 +202,8 @@ c           rhobar(i,j,k)=R0-cff2*exp(z_r(i,j,k)/800.)*
 !  Apply Land/Sea mask.
 !
       do k=1,N
-        do j=JstrR,JendR
-          do i=IstrR,IendR
+        do j=jstrR,jendR
+          do i=istrR,iendR
             rhobar(i,j,k)=rhobar(i,j,k)*rmask(i,j)
           enddo
         enddo
@@ -215,13 +215,13 @@ c           rhobar(i,j,k)=R0-cff2*exp(z_r(i,j,k)/800.)*
  
  
 #ifdef ANA_SMFLUX
-      subroutine ana_smflux_tile (Istr,Iend,Jstr,Jend)
+      subroutine ana_smflux_tile (istr,iend,jstr,jend)
 !
 ! Sets kinematic surface momentum flux (wind stress) "sustr"
 ! and "svstr"  [m^2/s^2] using an analytical expression.
 !
       implicit none
-      integer Istr,Iend,Jstr,Jend, i,j
+      integer istr,iend,jstr,jend, i,j
 # include "param.h"
 # include "grid.h"
 # include "forces.h"
@@ -232,8 +232,8 @@ c           rhobar(i,j,k)=R0-cff2*exp(z_r(i,j,k)/800.)*
 # include "compute_auxiliary_bounds.h"
 !
                           ! Set kinematic surface momentum flux
-      do j=JstrR,JendR    ! (wind stress) components in XI- and ETA-
-        do i=IstrR,IendR  ! directions [m^2/s^2] at horizontal U-
+      do j=jstrR,jendR    ! (wind stress) components in XI- and ETA-
+        do i=istrR,iendR  ! directions [m^2/s^2] at horizontal U-
           sustr(i,j)=0.   ! and V-points respectively.  For the sake 
           svstr(i,j)=0.   ! of code compactness, both components are
         enddo             ! set to zero at first (default values)
@@ -242,14 +242,14 @@ c           rhobar(i,j,k)=R0-cff2*exp(z_r(i,j,k)/800.)*
 # ifdef BASIN
       cff1=0.0001 * 0.5*(1.+tanh((time-6.*86400.)/(3.*86400.)))
       cff2=2.*pi/el
-      do j=JstrR,JendR
-        do i=Istr,IendR
+      do j=jstrR,jendR
+        do i=istr,iendR
           sustr(i,j)=-cff1*cos(cff2*yr(i,j))
         enddo
       enddo
 # elif defined CANYON_A || defined CANYON_B
-      do j=JstrR,JendR
-        do i=Istr,IendR
+      do j=jstrR,jendR
+        do i=istr,iendR
           sustr(i,j)=0.0001*0.5*sin(2.*pi*tdays/10.)*
      &               (1.-tanh((yr(i,j)-0.5*el)/10000.))
         enddo
@@ -264,14 +264,14 @@ c           rhobar(i,j,k)=R0-cff2*exp(z_r(i,j,k)/800.)*
         Ewind=windamp*dircoef/rho0
         Nwind=windamp/rho0
       endif
-      do j=JstrR,JendR
-        do i=Istr,IendR
+      do j=jstrR,jendR
+        do i=istr,iendR
           cff1=0.5*(angler(i-1,j)+angler(i,j))
           sustr(i,j)=Ewind*cos(cff1)+Nwind*sin(cff1)
         enddo
       enddo
-      do j=Jstr,JendR
-        do i=IstrR,IendR
+      do j=jstr,jendR
+        do i=istrR,iendR
           cff1=0.5*(angler(i,j)+angler(i,j-1))
           svstr(i,j)=-Ewind*sin(cff1)+Nwind*cos(cff1)
         enddo
@@ -279,8 +279,8 @@ c           rhobar(i,j,k)=R0-cff2*exp(z_r(i,j,k)/800.)*
 
 # elif defined TASMAN_SEA
       windamp=0.5*(1.+tanh((time-6.*86400.)/(3.*86400.)))
-      do j=JstrR,JendR
-        do i=Istr,IendR
+      do j=jstrR,jendR
+        do i=istr,iendR
           cff1=yr(i,j)/el
           sustr(i,j)=windamp*cff1*(1.-cff1)*( 1.7580e-3 +cff1*(
      &                       -2.7907e-3+cff1*( -4.0764e-3+cff1*(
@@ -300,22 +300,22 @@ c??
 c      windamp=0.
 c??
 c??
-      do j=JstrR,JendR
-        do i=Istr,IendR
+      do j=jstrR,jendR
+        do i=istr,iendR
           sustr(i,j)=windamp
         enddo
       enddo
 # elif defined USWEST
-      do j=JstrR,JendR
-        do i=Istr,IendR
+      do j=jstrR,jendR
+        do i=istr,iendR
 c         cff1=(latr(i,j)-latr(Lm/2,Mm/2))/20.
 c         sustr(i,j)=1.d-4.*cff1
 c         sustr(i,j)=-1.d-4
           sustr(i,j)=0.
         enddo
       enddo
-      do j=Jstr,JendR
-        do i=IstrR,IendR
+      do j=jstr,jendR
+        do i=istrR,iendR
 c          svstr(i,j)=-1.0d-4
           svstr(i,j)=0.
         enddo
@@ -327,13 +327,13 @@ c          svstr(i,j)=-1.0d-4
 
 #if defined ANA_SRFLUX && defined SOLVE3D
 
-      subroutine ana_srflux_tile (Istr,Iend,Jstr,Jend)
+      subroutine ana_srflux_tile (istr,iend,jstr,jend)
 !
 ! Set kinematic surface solar shortwave radiation flux "srflx"
 ! [degC m/s] using an analytical expression.
 !
       implicit none
-      integer Istr,Iend,Jstr,Jend, i,j
+      integer istr,iend,jstr,jend, i,j
 # include "param.h"
 # include "grid.h"
 # include "forces.h"
@@ -341,8 +341,8 @@ c          svstr(i,j)=-1.0d-4
 !
 # include "compute_extended_bounds.h"
 !
-      do j=JstrR,JendR
-        do i=IstrR,IendR
+      do j=jstrR,jendR
+        do i=istrR,iendR
           srflx(i,j)=0.
         enddo
       enddo
@@ -357,13 +357,13 @@ c          svstr(i,j)=-1.0d-4
       integer tile                             ! climatology [m]
 #include "param.h"
 #include "compute_tile_bounds.h"
-      call ana_ssh_tile   (Istr,Iend,Jstr,Jend)
+      call ana_ssh_tile   (istr,iend,jstr,jend)
       return
       end
 
-      subroutine ana_ssh_tile (Istr,Iend,Jstr,Jend)
+      subroutine ana_ssh_tile (istr,iend,jstr,jend)
       implicit none
-      integer Istr,Iend,Jstr,Jend, i,j
+      integer istr,iend,jstr,jend, i,j
 #ifdef JET
       real TL0, TC0, cff1, cff2, cff3, cff4
 #endif
@@ -379,8 +379,8 @@ c          svstr(i,j)=-1.0d-4
 # if defined JET
       TL0=-TL1 - 0.5*TL2*ZREF**2 - ZL1*TL3*exp(ZREF/ZL1)
       TC0=-TC1 - 0.5*TC2*ZREF**2 - ZC2*TC3*exp((ZREF-ZC1)/ZC2)
-      do j=JstrR,JendR
-        do i=IstrR,IendR
+      do j=jstrR,jendR
+        do i=istrR,iendR
          cff1=YC1+YC2*tanh(YC3*xr(i,j)+YC4)
          cff2=TL0+ZL1*TL3
          cff3=TC0+ZC2*TC3*exp(-ZC1/ZC2)
@@ -391,8 +391,8 @@ c          svstr(i,j)=-1.0d-4
         enddo
       enddo
 # else
-      do j=JstrR,JendR
-        do i=IstrR,IendR
+      do j=jstrR,jendR
+        do i=istrR,iendR
           ssh(i,j)=???
         enddo
       enddo
@@ -402,13 +402,13 @@ c          svstr(i,j)=-1.0d-4
 #endif
 #ifdef SOLVE3D
 # if defined ANA_STFLUX || defined ANA_SSFLUX
-      subroutine ana_stflux_tile (Istr,Iend,Jstr,Jend, itrc)
+      subroutine ana_stflux_tile (istr,iend,jstr,jend, itrc)
 !
 ! Set kinematic surface flux of tracer type variables "stflx" (tracer
 ! units m/s) using analytical expressions.
 !
       implicit none
-      integer Istr,Iend,Jstr,Jend, itrc, i,j
+      integer istr,iend,jstr,jend, itrc, i,j
 #  include "param.h"
 #  include "grid.h"
 #  include "forces.h"
@@ -421,8 +421,8 @@ c          svstr(i,j)=-1.0d-4
 ! Set kinematic surface heat flux [degC m/s] at horizontal
 ! RHO-points.
 !
-        do j=JstrR,JendR
-          do i=IstrR,IendR
+        do j=jstrR,jendR
+          do i=istrR,iendR
             stflx(i,j,itemp)=0.
           enddo
         enddo
@@ -433,8 +433,8 @@ c          svstr(i,j)=-1.0d-4
 ! Set kinematic surface freshwater flux (m/s) at horizontal
 ! RHO-points, scaling by surface salinity is done in STEP3D.
 !
-        do j=JstrR,JendR
-          do i=IstrR,IendR
+        do j=jstrR,jendR
+          do i=istrR,iendR
             stflx(i,j,isalt)=0.
           enddo
         enddo
@@ -456,16 +456,16 @@ c          svstr(i,j)=-1.0d-4
       integer tile
 # include "param.h"
 # include "compute_tile_bounds.h"
-      call ana_tclima_tile   (Istr,Iend,Jstr,Jend)
+      call ana_tclima_tile   (istr,iend,jstr,jend)
       return
       end
 
-      subroutine ana_tclima_tile (Istr,Iend,Jstr,Jend)
+      subroutine ana_tclima_tile (istr,iend,jstr,jend)
 !
 ! Set analytical tracer climatology fields.
 !
       implicit none
-      integer Istr,Iend,Jstr,Jend, i,j,k
+      integer istr,iend,jstr,jend, i,j,k
 #  ifdef JET
       real cff1, cff2, cff3
 #  endif
@@ -479,8 +479,8 @@ c          svstr(i,j)=-1.0d-4
 !
 #  if defined NJ_BIGHT
       do k=1,N
-        do j=JstrR,JendR
-          do i=IstrR,IendR
+        do j=jstrR,jendR
+          do i=istrR,iendR
             if (z_r(i,j,k).ge.-15.0) then
               tclm(i,j,k,itemp)=2.049264257728403e+01-z_r(i,j,k)*(
      &                          2.640850848793918e-01+z_r(i,j,k)*(
@@ -509,8 +509,8 @@ c          svstr(i,j)=-1.0d-4
       enddo
 #  elif defined JET
       do k=1,N
-        do j=JstrR,JendR
-          do i=IstrR,IendR
+        do j=jstrR,jendR
+          do i=istrR,iendR
            cff1=TL1+ TL2*z_r(i,j,k) +TL3*exp(z_r(i,j,k)/ZL1)
            cff2=TC1+ TC2*z_r(i,j,k) +TC3*exp((z_r(i,j,k)-ZC1)/ZC2)
            cff3=YC1+YC2*tanh(YC3*xr(i,j)+YC4)
@@ -528,8 +528,8 @@ c          svstr(i,j)=-1.0d-4
 !
 #  else
       do k=1,N
-        do j=JstrR,JendR
-          do i=IstrR,IendR
+        do j=jstrR,jendR
+          do i=istrR,iendR
             tclm(i,j,k,itemp)=???
 #   ifdef SALINITY
             tclm(i,j,k,isalt)=???
@@ -551,18 +551,18 @@ c          svstr(i,j)=-1.0d-4
 #include "param.h"
 #include "private_scratch.h"
 #include "compute_tile_bounds.h"
-      call ana_uclima_tile   (Istr,Iend,Jstr,Jend)!,A2d(1,1),A2d(1,2))
+      call ana_uclima_tile   (istr,iend,jstr,jend)!,A2d(1,1),A2d(1,2))
       return
       end
 !
-      subroutine ana_uclima_tile (Istr,Iend,Jstr,Jend )!, wrk1,wrk2)
+      subroutine ana_uclima_tile (istr,iend,jstr,jend )!, wrk1,wrk2)
 !
 !---------------------------------------------------------------------
 !  This routine sets analytical momentum climatology fields.
 !---------------------------------------------------------------------
 !
       implicit none
-      integer Istr,Iend,Jstr,Jend, i,j,k
+      integer istr,iend,jstr,jend, i,j,k
 c      real wrk1(PRIVATE_2D_SCRATCH_ARRAY),
 c     &     wrk2(PRIVATE_2D_SCRATCH_ARRAY)
 # ifdef JET
@@ -580,16 +580,16 @@ c     &     wrk2(PRIVATE_2D_SCRATCH_ARRAY)
 !---- ----------- ------ --- ------ ---- ----------
 !
 # if defined USWEST
-      do j=JstrR,JendR
-        do i=IstrR,IendR
+      do j=jstrR,jendR
+        do i=istrR,iendR
           ubclm(i,j)=0.
           vbclm(i,j)=0.
         enddo
       enddo
 #  ifdef SOLVE3D
       do k=1,N
-        do j=JstrR,JendR
-          do i=IstrR,IendR
+        do j=jstrR,jendR
+          do i=istrR,iendR
             uclm(i,j,k)=0.
             vclm(i,j,k)=0.
           enddo
@@ -603,8 +603,8 @@ c     &     wrk2(PRIVATE_2D_SCRATCH_ARRAY)
       TC0=-TC1-
      &    0.5*TC2*ZREF**2-
      &    ZC2*TC3*exp((ZREF-ZC1)/ZC2)
-      do j=Jstr-1,Jend+1
-        do i=Istr-1,Iend+1
+      do j=jstr-1,jend+1
+        do i=istr-1,iend+1
          cff1=TL0*h(i,j)-
      &        0.5*TL1*h(i,j)**2+
      &        TL2*(h(i,j)**3)/6-
@@ -630,20 +630,20 @@ c     &     wrk2(PRIVATE_2D_SCRATCH_ARRAY)
          wrk2(i,j)=cff4*cff5*(cff1-cff2)
         enddo
       enddo
-      do j=JstrR,JendR
-        do i=Istr,IendR
+      do j=jstrR,jendR
+        do i=istr,iendR
           ubclm(i,j)=0.5*(wrk1(i,j)+wrk1(i-1,j))
         enddo
       enddo
-      do j=Jstr,JendR
-        do i=IstrR,IendR
+      do j=jstr,jendR
+        do i=istrR,iendR
           vbclm(i,j)=0.5*(wrk2(i,j)+wrk2(i,j-1))
         enddo
       enddo
 #  ifdef SOLVE3D
       do k=1,N
-        do j=Jstr-1,Jend+1
-          do i=Istr-1,Iend+1
+        do j=jstr-1,jend+1
+          do i=istr-1,iend+1
            cff1=TL0+
      &        TL1*z_r(i,j,k)+
      &        0.5*TL2*(z_r(i,j,k)**2)+
@@ -668,13 +668,13 @@ c     &     wrk2(PRIVATE_2D_SCRATCH_ARRAY)
            wrk2(i,j)=cff4*cff5*(cff1-cff2)
           enddo
         enddo
-        do j=JstrR,JendR
-          do i=Istr,IendR
+        do j=jstrR,jendR
+          do i=istr,iendR
            uclm(i,j,k)=0.5*(wrk1(i,j)+wrk1(i-1,j))
           enddo
         enddo
-        do j=Jstr,JendR
-          do i=IstrR,IendR
+        do j=jstr,jendR
+          do i=istrR,iendR
            vclm(i,j,k)=0.5*(wrk2(i,j)+wrk2(i,j-1))
           enddo
         enddo
@@ -687,16 +687,16 @@ c     &     wrk2(PRIVATE_2D_SCRATCH_ARRAY)
 ! that.
 !
 # else
-      do j=JstrR,JendR
-        do i=IstrR,IendR
+      do j=jstrR,jendR
+        do i=istrR,iendR
           ubclm(i,j)=???
           vbclm(i,j)=???
         enddo
       enddo
 #  ifdef SOLVE3D
       do k=1,N
-        do j=JstrR,JendR
-          do i=IstrR,IendR
+        do j=jstrR,jendR
+          do i=istrR,iendR
             uclm(i,j,k)=???
             vclm(i,j,k)=???
           enddo
@@ -709,13 +709,13 @@ c     &     wrk2(PRIVATE_2D_SCRATCH_ARRAY)
 #endif /* ANA_UCLIMA && UCLIMATOLOGY */
 !
 #if defined ANA_WWAVE && defined SG_BBL96
-      subroutine ana_wwave_tile (Istr,Iend,Jstr,Jend)
+      subroutine ana_wwave_tile (istr,iend,jstr,jend)
 !
 ! Set wind induced wave amplitude, direction and period for
 ! bottom boundary layer formulation.
 !
       implicit none
-      integer Istr,Iend,Jstr,Jend, i,j
+      integer istr,iend,jstr,jend, i,j
 # include "param.h"
 # include "bblm.h"
 # include "grid.h"
@@ -726,8 +726,8 @@ c     &     wrk2(PRIVATE_2D_SCRATCH_ARRAY)
 !  Set wind induced wave amplitude (m), direction (radians) and
 !  period (s) at RHO-points.
 !
-      do j=JstrR,JendR
-        do i=IstrR,IendR
+      do j=jstrR,jendR
+        do i=istrR,iendR
           Awave(i,j)=???
           Dwave(i,j)=???
           Pwave(i,j)=???
@@ -783,7 +783,7 @@ c     &     wrk2(PRIVATE_2D_SCRATCH_ARRAY)
         Lsrc(4,isalt)=.true.
 #  ifdef SOLVE3D
         do is=1,Nsrc                   ! Set-up nondimensional shape
-          do k=1,9                     ! function to dIstribute mass
+          do k=1,9                     ! function to distribute mass
             Qshape(is,k)=0.1           ! point sources/sinks
           enddo                        ! vertically.
           Qshape(is,10)=0.06           ! These most add to unity!
@@ -807,7 +807,7 @@ c     &     wrk2(PRIVATE_2D_SCRATCH_ARRAY)
 #  ifdef SOLVE3D
         cff=1./float(N)
         do k=1,N                         ! Uniform vertical
-          do is=1,Nsrc                   ! dIstribution
+          do is=1,Nsrc                   ! distribution
             Qshape(is,k)=cff
           enddo
         enddo
@@ -820,7 +820,7 @@ c     &     wrk2(PRIVATE_2D_SCRATCH_ARRAY)
 !
 ! Set-up vertically integrated mass transport [m3/s] of point
 ! sources (these may time-dependent; positive in the positive U-
-! or V-direction and vice-versa) and vertically dIstribute them
+! or V-direction and vice-versa) and vertically distribute them
 ! according to mass transport profile chosen above.
 !
 # ifdef SOLVE3D

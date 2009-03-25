@@ -8,10 +8,10 @@
 # include "param.h"
 # include "private_scratch.h"
 # include "compute_tile_bounds.h"
-      call lmd_vmix_tile (Istr,Iend,Jstr,Jend, A3d(1,1), A3d(1,2),
+      call lmd_vmix_tile (istr,iend,jstr,jend, A3d(1,1), A3d(1,2),
      &                                         A3d(1,3), A3d(1,4))
 # ifdef LMD_KPP
-      call lmd_kpp_tile  (Istr,Iend,Jstr,Jend, A3d(1,1),  A3d(1, 2),
+      call lmd_kpp_tile  (istr,iend,jstr,jend, A3d(1,1),  A3d(1, 2),
      &                                                     A3d(1,3), 
 
      &                   A2d(1, 1), A2d(1, 2), A2d(1, 3), A2d(1, 4),
@@ -21,7 +21,7 @@
      &                   A2d(1,17), A2d(1,18), A2d(1,19)          )
 # endif
 # ifdef LMD_BKPP
-      call lmd_bkpp_tile (Istr,Iend,Jstr,Jend,
+      call lmd_bkpp_tile (istr,iend,jstr,jend,
      &                   A3d(1, 1), A3d(1, 2), A3d(1, 3),
      &                   A2d(1, 1), A2d(1, 2), A2d(1, 3), A2d(1, 4),
      &                   A2d(1, 5), A2d(1, 6), A2d(1, 7), A2d(1, 8),
@@ -32,7 +32,7 @@
       return
       end
  
-      subroutine lmd_vmix_tile (Istr,Iend,Jstr,Jend, Kv,Kt,Ks, Rig)
+      subroutine lmd_vmix_tile (istr,iend,jstr,jend, Kv,Kt,Ks, Rig)
 !
 !  This subroutine computes vertical mixing coefficients for momentum
 !  and tracers at the ocean interior using the Large, McWilliams and
@@ -57,7 +57,7 @@
 # include "mixing.h"
 # include "scalars.h"
 
-      integer Istr,Iend,Jstr,Jend, i,j,k
+      integer istr,iend,jstr,jend, i,j,k
       real Rig(PRIVATE_2D_SCRATCH_ARRAY,0:N),
      &      Kv(PRIVATE_2D_SCRATCH_ARRAY,0:N),
      &      Kt(PRIVATE_2D_SCRATCH_ARRAY,0:N),
@@ -110,44 +110,44 @@
 # define tind nstp
 # ifdef SMOOTH_RIG 
 #  ifdef EW_PERIODIC
-#   define I_EXT_RANGE Istr-1,Iend+1
+#   define I_EXT_RANGE istr-1,iend+1
 #  else
 #   define I_EXT_RANGE imin,imax
       integer imin,imax
 #  endif
 #  ifdef NS_PERIODIC
-#   define J_EXT_RANGE Jstr-1,Jend+1
+#   define J_EXT_RANGE jstr-1,jend+1
 #  else
 #   define J_EXT_RANGE jmin,jmax
       integer jmin,jmax
 #  endif
 #  ifndef EW_PERIODIC
       if (WESTERN_EDGE) then
-        imin=Istr
+        imin=istr
       else
-        imin=Istr-1
+        imin=istr-1
       endif
       if (EASTERN_EDGE) then
-        imax=Iend
+        imax=iend
       else
-        imax=Iend+1
+        imax=iend+1
       endif
 #  endif
 #  ifndef NS_PERIODIC
       if (SOUTHERN_EDGE) then
-        jmin=Jstr
+        jmin=jstr
       else
-        jmin=Jstr-1
+        jmin=jstr-1
       endif
       if (NORTHERN_EDGE) then
-        jmax=Jend
+        jmax=jend
       else
-        jmax=Jend+1
+        jmax=jend+1
       endif
 #  endif
 # else
-#  define I_EXT_RANGE Istr,Iend
-#  define J_EXT_RANGE Jstr,Jend
+#  define I_EXT_RANGE istr,iend
+#  define J_EXT_RANGE jstr,jend
 # endif
 !                                    ! Compute horizontal velocity
 ! Compute local Richardson number:   ! shear  (du/dz)^2+(dv/dz)^2  at
@@ -171,54 +171,54 @@
 #  ifndef EW_PERIODIC
         if (WESTERN_EDGE) then
           do j=J_EXT_RANGE
-            Rig(Istr-1,j,k)=Rig(Istr,j,k)
+            Rig(istr-1,j,k)=Rig(istr,j,k)
           enddo
         endif
         if (EASTERN_EDGE) then
           do j=J_EXT_RANGE
-            Rig(Iend+1,j,k)=Rig(Iend,j,k)
+            Rig(iend+1,j,k)=Rig(iend,j,k)
           enddo
         endif
 #  endif
 #  ifndef NS_PERIODIC
         if (SOUTHERN_EDGE) then
           do i=I_EXT_RANGE
-            Rig(i,Jstr-1,k)=Rig(i,Jstr,k)
+            Rig(i,jstr-1,k)=Rig(i,jstr,k)
           enddo
         endif
         if (NORTHERN_EDGE) then
           do i=I_EXT_RANGE
-            Rig(i,Jend+1,k)=Rig(i,Jend,k)
+            Rig(i,jend+1,k)=Rig(i,jend,k)
           enddo
         endif
 #   ifndef EW_PERIODIC
         if (WESTERN_EDGE .and.
      &      SOUTHERN_EDGE) then
-          Rig(Istr-1,Jstr-1,k)=Rig(Istr,Jstr,k)
+          Rig(istr-1,jstr-1,k)=Rig(istr,jstr,k)
         endif
         if (WESTERN_EDGE .and.
      &      NORTHERN_EDGE) then
-          Rig(Istr-1,Jend+1,k)=Rig(Istr,Jend,k)
+          Rig(istr-1,jend+1,k)=Rig(istr,jend,k)
         endif
         if (EASTERN_EDGE .and.
      &      SOUTHERN_EDGE) then
-          Rig(Iend+1,Jstr-1,k)=Rig(Iend,Jstr,k)
+          Rig(iend+1,jstr-1,k)=Rig(iend,jstr,k)
         endif
         if (EASTERN_EDGE .and.
      &      NORTHERN_EDGE) then
-          Rig(Iend+1,Jend+1,k)=Rig(Iend,Jend,k)
+          Rig(iend+1,jend+1,k)=Rig(iend,jend,k)
         endif
 #   endif
 #  endif
                                    ! Smooth Rig horizontally: use
-        do j=Jstr-1,Jend           ! array Rig(:,:,0) as scratch. 
-          do i=Istr-1,Iend
+        do j=jstr-1,jend           ! array Rig(:,:,0) as scratch. 
+          do i=istr-1,iend
             Rig(i,j,0)=0.25*(Rig(i,j  ,k)+Rig(i+1,j  ,k)
      &                      +Rig(i,j+1,k)+Rig(i+1,j+1,k))
           enddo
         enddo
-        do j=Jstr,Jend
-          do i=Istr,Iend
+        do j=jstr,jend
+          do i=istr,iend
             Rig(i,j,k)=0.25*(Rig(i,j  ,0)+Rig(i-1,j  ,0)
      &                      +Rig(i,j-1,0)+Rig(i-1,j-1,0))
           enddo
@@ -232,8 +232,8 @@
 ! instability due to resolved vertical shear, internal wave breaking,
 ! and double diffusion.
 !
-        do j=Jstr,Jend
-          do i=Istr,Iend
+        do j=jstr,jend
+          do i=istr,iend
 # ifdef LMD_RIMIX
             cff=min(1., max(0., Rig(i,j,k)))  ! Compute mixing die
             nu_sx=1. - cff*cff                ! to shear instability
@@ -271,8 +271,8 @@ CDL
 !
 ! Compute double-diffusive density ratio, Rrho.
 !
-        do j=Jstr,Jend
-          do i=Istr,Iend
+        do j=jstr,jend
+          do i=istr,iend
             Tt=0.5*(t(i,j,k,tind,itemp)+t(i,j,k+1,tind,itemp))
             Ts=0.5*(t(i,j,k,tind,isalt)+t(i,j,k+1,tind,isalt))
      &                                                 -Smean
@@ -348,8 +348,8 @@ CDL
 ! The interior values used here may not be the best values to
 ! use for the padding.
 !
-      do j=Jstr,Jend
-        do i=Istr,Iend
+      do j=jstr,jend
+        do i=istr,iend
           Kv(i,j,N)=Kv(i,j,N-1)
           Ks(i,j,N)=Ks(i,j,N-1)
           Kt(i,j,N)=Kt(i,j,N-1)
@@ -363,8 +363,8 @@ CDL
 ! Finalize: Copy everything into shared arrays:
 !
       do k=1,N-1
-        do j=Jstr,Jend
-          do i=Istr,Iend
+        do j=jstr,jend
+          do i=istr,iend
             Akv(i,j,k)=Kv(i,j,k)
             Akt(i,j,k,itemp)=Kt(i,j,k)
 # ifdef SALINITY
@@ -375,11 +375,11 @@ CDL
       enddo
  
 # if defined EW_PERIODIC || defined NS_PERIODIC || defined MPI
-      call exchange_w3d_tile (Istr,Iend,Jstr,Jend, Akv)
-      call exchange_w3d_tile (Istr,Iend,Jstr,Jend,
+      call exchange_w3d_tile (istr,iend,jstr,jend, Akv)
+      call exchange_w3d_tile (istr,iend,jstr,jend,
      &                     Akt(START_2D_ARRAY,0,itemp))
 #  ifdef SALINITY
-      call exchange_w3d_tile (Istr,Iend,Jstr,Jend,
+      call exchange_w3d_tile (istr,iend,jstr,jend,
      &                     Akt(START_2D_ARRAY,0,isalt))
 #  endif
 # endif

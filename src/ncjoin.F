@@ -1425,7 +1425,7 @@ c?                  endif
 # endif
       integer vardims, ndims
       integer count(vardims), start1(vardims), count1(vardims)
-      integer i,        Istr,imax,imax1,  j,js,js1, Jstr,jmax,jmax1,
+      integer i,        istr,imax,imax1,  j,js,js1, jstr,jmax,jmax1,
      &        k,ks,ks1, kstr,kmax,kmax1,  l,ls,ls1, lstr,lmax,lmax1
 !
 ! Check whether the last dimension is unlimited dimension and if so,
@@ -1438,14 +1438,14 @@ c?                  endif
         ndims=vardims
       endif
       imax=count(1)              ! WARNING: This code is restricted
-      Istr=start1(1)             ! for partitioned arrays to have
+      istr=start1(1)             ! for partitioned arrays to have
       imax1=count1(1)            ! no more that 4 dimensions, not
       if (ndims.gt.1) then       ! counting unlimited dimension.
         jmax=count(2)
-        Jstr=start1(2)           ! Furthermore, it is assumed that
+        jstr=start1(2)           ! Furthermore, it is assumed that
         jmax1=count1(2)          ! unlimited dimension is always
       else                       ! the last one [this is the standard
-        Jstr=1                   ! practice in ROMS, however netCDF
+        jstr=1                   ! practice in ROMS, however netCDF
         jmax=1                   ! is not restricted to do so.
         jmax1=1
       endif
@@ -1477,7 +1477,7 @@ c?                  endif
 c*    write(*,'(1x,A,2I3,3(3x,A,4I4))') 'ndims,vardims =', ndims,
 c*   & vardims, 'imax1,jmax1,kmax1,lmax1 =', imax1,jmax1,kmax1,lmax1,
 c*   &                  'imax,jmax,kmax,lmax =', imax,jmax,kmax,lmax,
-c*   &                  'Istr,Jstr,kstr,lstr =', Istr,Jstr,kstr,lstr
+c*   &                  'istr,jstr,kstr,lstr =', istr,jstr,kstr,lstr
   
       do l=1,lmax
         ls=l-1
@@ -1487,9 +1487,9 @@ c*   &                  'Istr,Jstr,kstr,lstr =', Istr,Jstr,kstr,lstr
           ks1=k+kstr-2 + ls1*kmax1
           do j=1,jmax
             js=j-1 +ks*jmax
-            js1=j+Jstr-2 + ks1*jmax1
+            js1=j+jstr-2 + ks1*jmax1
             do i=1,imax
-              bfr_out(i+Istr-1 + js1*imax1)=buff(i + js*imax)
+              bfr_out(i+istr-1 + js1*imax1)=buff(i + js*imax)
             enddo
           enddo
         enddo

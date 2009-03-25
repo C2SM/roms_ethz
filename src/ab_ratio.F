@@ -1,7 +1,7 @@
 #include "cppdefs.h"
 #if defined SOLVE3D && defined LMD_MIXING
  
-      subroutine ab_ratio_slice (ratio, Istr,Iend, j)
+      subroutine ab_ratio_slice (ratio, istr,iend, j)
 !
 !   This subroutine calculates the ratio of the thermodynamic
 !  expansion coefficients for potential temperature and salinity,
@@ -22,7 +22,7 @@
 !
       implicit none
 # include "param.h"
-      integer Istr,Iend, j, i,k
+      integer istr,iend, j, i,k
       real ratio(PRIVATE_1D_SCRATCH_ARRAY,0:N), cff
 # include "grid.h"
 # include "ocean3d.h"
@@ -48,7 +48,7 @@
 !     Tp        pressure/depth, (depth in meters and positive).
 !
       do k=1,N-1
-        do i=Istr,Iend
+        do i=istr,iend
           Tt=0.5*(t(i,j,k,tind,itemp)+t(i,j,k+1,tind,itemp))
 #  ifdef SALINITY
           Ts=0.5*(t(i,j,k,tind,isalt)+t(i,j,k+1,tind,isalt))
@@ -75,7 +75,7 @@
       cff=Tcoef
 #  endif
       do k=1,N-1
-        do i=Istr,Iend
+        do i=istr,iend
           ratio(i,k)=cff
         enddo
       enddo

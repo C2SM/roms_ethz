@@ -7,15 +7,15 @@
 # include "param.h"
 # include "private_scratch.h"
 # include "compute_tile_bounds.h"
-      call prsgrd41_tile (Istr,Iend,Jstr,Jend,   A3d(1,1), A3d(1,2),
+      call prsgrd41_tile (istr,iend,jstr,jend,   A3d(1,1), A3d(1,2),
      &                                 A3d(1,3), A2d(1,1), A2d(1,2))
       return
       end
  
-      subroutine prsgrd41_tile (Istr,Iend,Jstr,Jend, ru,rv, FX,FC,P)
+      subroutine prsgrd41_tile (istr,iend,jstr,jend, ru,rv, FX,FC,P)
  
       implicit none
-      integer Istr,Iend,Jstr,Jend, i,j,k
+      integer istr,iend,jstr,jend, i,j,k
 # include "param.h"
       real ru(PRIVATE_2D_SCRATCH_ARRAY, N),
      &     rv(PRIVATE_2D_SCRATCH_ARRAY,  N),  cff, cff1,
@@ -41,7 +41,7 @@
 ! The following code is a modified version, which is also cast into
 ! a finite volume framework (see ru,rv which appear in form of
 ! differences of two pairs of fluxes), but these fluxes are computed
-! by assuming  bi-linear density dIstribution within the control
+! by assuming  bi-linear density distribution within the control
 ! volume with subsequent analytical integration.
 !
 ! Reference: Lin, Shian-Jiann, 1997: A finite volume integration
@@ -54,21 +54,21 @@
 ! z_r(i,j,k). Consequently, z_r(i,j,k) does not appear anywhere in
 ! this code.
 !
-      do j=JstrV-1,Jend         ! Vertical derivatives of density.
+      do j=jstrV-1,jend         ! Vertical derivatives of density.
         do k=1,N-1
-          do i=IstrU-1,Iend
+          do i=istrU-1,iend
              FC(i,k)=Two*(rho(i,j,k+1)-rho(i,j,k))
      &                     /(Hz(i,j,k+1)+Hz(i,j,k))
           enddo
         enddo                   ! FX are pressure fluxes across
                                 ! side facets of controm volumes.
-        do i=IstrU-1,Iend
+        do i=istrU-1,iend
           FX(i,j,N)=Half*Hz(i,j,N)*Hz(i,j,N)*( rho(i,j,N)
      &                      +OneSixth*Hz(i,j,N)*FC(i,N-1))
           P(i,N-1)=rho(i,j,N)*Hz(i,j,N)
         enddo
         do k=N-1,2,-1
-          do i=IstrU-1,Iend
+          do i=istrU-1,iend
             FX(i,j,k)=Hz(i,j,k)*( P(i,k)+Half*Hz(i,j,k)*( rho(i,j,k)
      &        +OneSixth*Hz(i,j,k)*( FC(i,k  )*(Hz(i,j,k+1)+Hz(i,j,k))
      &                             +FC(i,k-1)*(Hz(i,j,k)+Hz(i,j,k-1))
@@ -77,20 +77,20 @@
             P(i,k-1)=P(i,k)+rho(i,j,k)*Hz(i,j,k)
           enddo
         enddo
-        do i=IstrU-1,Iend
+        do i=istrU-1,iend
           FX(i,j,1)=Hz(i,j,1)*( P(i,1)+Half*Hz(i,j,1)*( rho(i,j,1)
      &                               +OneSixth*Hz(i,j,1)*FC(i,1) ))
         enddo  !--> discard P,FC
  
-        if (j.ge.Jstr) then     ! In the code segment below P(i,k-1)
-          do i=IstrU,Iend       ! is pressure averaged over the lower
+        if (j.ge.jstr) then     ! In the code segment below P(i,k-1)
+          do i=istrU,iend       ! is pressure averaged over the lower
             P(i,N)=Zero         ! horizontal (along sigma) facet of
             FC(i,N)=Zero        ! the control volume around velocity
           enddo                 ! u(i,j,k), while FC is net pressure
           cff=0.5*g             ! force accross that facet. Lengthy
           cff1=g/rho0           ! expression after OneSixth is net
           do k=N,1,-1           ! water mass in the control volume.
-            do i=IstrU,Iend
+            do i=istrU,iend
               P(i,k-1)=P(i,k) + OneSixth*( rho(i-1,j,k)*Hz(i-1,j,k)
      &            +(rho(i,j,k)+rho(i-1,j,k))*(Hz(i,j,k)+Hz(i-1,j,k))
      &                                        +rho(i,j,k)*Hz(i,j,k))
@@ -106,15 +106,15 @@
           enddo   !--> discard P,FC
         endif
  
-        if (j.ge.JstrV) then
-          do i=Istr,Iend
+        if (j.ge.jstrV) then
+          do i=istr,iend
             P(i,N)=Zero
             FC(i,N)=Zero
           enddo
           cff=0.5*g
           cff1=g/rho0
           do k=N,1,-1
-            do i=Istr,Iend
+            do i=istr,iend
               P(i,k-1)=P(i,k) + OneSixth*( rho(i,j-1,k)*Hz(i,j-1,k)
      &            +(rho(i,j,k)+rho(i,j-1,k))*(Hz(i,j,k)+Hz(i,j-1,k))
      &                                        +rho(i,j,k)*Hz(i,j,k))

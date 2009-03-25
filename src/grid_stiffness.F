@@ -6,11 +6,11 @@
       integer tile
 # include "param.h"
 # include "compute_tile_bounds.h"
-      call grid_stiffness_tile (Istr,Iend,Jstr,Jend)
+      call grid_stiffness_tile (istr,iend,jstr,jend)
       return
       end
  
-      subroutine grid_stiffness_tile (Istr,Iend,Jstr,Jend)
+      subroutine grid_stiffness_tile (istr,iend,jstr,jend)
 !
 ! Survey three-dimensional grid in order to determine maximum
 ! grid stiffness ratio:
@@ -23,7 +23,7 @@
 ! computations.
 !
       implicit none
-      integer Istr,Iend,Jstr,Jend, i,j,k, NSUB
+      integer istr,iend,jstr,jend, i,j,k, NSUB
       real my_rx0, my_rx1
 # ifdef MPI
 #  include "mpif.h"
@@ -42,8 +42,8 @@
       my_rx0=0.
       my_rx1=0.
  
-      do j=Jstr,Jend
-        do i=IstrU,Iend
+      do j=jstr,jend
+        do i=istrU,iend
 # ifdef MASKING
           if (umask(i,j).gt.0.5) then
 # endif
@@ -62,8 +62,8 @@
         enddo
       enddo
  
-      do j=JstrV,Jend
-        do i=Istr,Iend
+      do j=jstrV,jend
+        do i=istr,iend
 # ifdef MASKING
           if (vmask(i,j).gt.0.5) then
 # endif

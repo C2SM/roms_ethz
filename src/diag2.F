@@ -11,13 +11,13 @@
       integer tile
 # include "param.h"
 # include "compute_tile_bounds.h"
-      call bio_diag_tile  (Istr,Iend,Jstr,Jend)
+      call bio_diag_tile  (istr,iend,jstr,jend)
       return
       end
  
-      subroutine bio_diag_tile (Istr,Iend,Jstr,Jend)
+      subroutine bio_diag_tile (istr,iend,jstr,jend)
       implicit none
-      integer Istr,Iend,Jstr,Jend, i,j,k,itrc, iocheck,
+      integer istr,iend,jstr,jend, i,j,k,itrc, iocheck,
      &               k1,k2
 # include "param.h"
       real FC(PRIVATE_2D_SCRATCH_ARRAY,2),
@@ -50,28 +50,28 @@
             k1=k2
             k2=3-k1
             if (k.eq.1) then
-              do j=Jstr,Jend
-                do i=Istr,Iend
+              do j=jstr,jend
+                do i=istr,iend
                   FC(i,j,k1)=0.
                 enddo
               enddo
             endif
             if (k.eq.N) then
-              do j=Jstr,Jend
-                do i=Istr,Iend
+              do j=jstr,jend
+                do i=istr,iend
                   FC(i,j,k2)=0.
                 enddo
               enddo
             else
-              do j=Jstr,Jend
-                do i=Istr,Iend
+              do j=jstr,jend
+                do i=istr,iend
                  FC(i,j,k2)=(t(i,j,k+1,nstp,itrc)-t(i,j,k,nstp,itrc))
      &                                     /(z_r(i,j,k+1)-z_r(i,j,k))
                 enddo
               enddo
             endif
-            do j=Jstr,Jend
-              do i=Istr,Iend+1
+            do j=jstr,jend
+              do i=istr,iend+1
                 FX(i,j)=(t(i,j,k,nstp,itrc)-t(i-1,j,k,nstp,itrc))
      &                                      *0.5*(pm(i,j)+pm(i-1,j))
 # ifdef MASKING
@@ -79,8 +79,8 @@
 # endif
               enddo
             enddo
-            do j=Jstr,Jend+1
-              do i=Istr,Iend
+            do j=jstr,jend+1
+              do i=istr,iend
                 FE(i,j)=(t(i,j,k,nstp,itrc)-t(i,j-1,k,nstp,itrc))
      &                                      *0.5*(pn(i,j)+pn(i,j-1))
 #ifdef MASKING
@@ -88,8 +88,8 @@
 #endif
               enddo
             enddo
-            do j=Jstr,Jend
-              do i=Istr,Iend
+            do j=jstr,jend
+              do i=istr,iend
               my_sum(itrc)=my_sum(itrc)+cff*(FX(i,j)**2+FX(i+1,j)**2
      &                                      +FE(i,j)**2+FE(i,j+1)**2
      &                                  +FC(i,j,k2)**2+FC(i,j,k1)**2)
@@ -109,8 +109,8 @@
           my_sum(2*itrc  )=0.          ! <-- Reset local sums
           my_sum(2*itrc+1)=0.
         enddo
-        do j=Jstr,Jend
-         do i=Istr,Iend
+        do j=jstr,jend
+         do i=istr,iend
 # ifdef MASKING
            cff1=rmask(i,j)/(pm(i,j)*pn(i,j))  ! <-- grid box area
 # else

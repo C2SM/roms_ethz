@@ -23,22 +23,22 @@
         enddo
       enddo
 
-      call init_arrays_tile (Istr,Iend,Jstr,Jend)
+      call init_arrays_tile (istr,iend,jstr,jend)
       return
       end
  
-      subroutine init_arrays_tile (Istr,Iend,Jstr,Jend)
+      subroutine init_arrays_tile (istr,iend,jstr,jend)
 !
 ! Initialize (first touch) globally accessable arrays. Most of them
 ! are assigned to zeros, vertical mixing coefficients are assinged
 ! to their background values. These will remain unchenged if no
 ! vertical mixing scheme is applied. Because of the "first touch"
-! default data dIstribution policy, this operation actually performs
-! dIstribution of the shared arrays accross the cluster, unless
-! another dIstribution policy is specified to override the default.
+! default data distribution policy, this operation actually performs
+! distribution of the shared arrays accross the cluster, unless
+! another distribution policy is specified to override the default.
 !
       implicit none
-      integer Istr,Iend,Jstr,Jend, i,j,k,itrc
+      integer istr,iend,jstr,jend, i,j,k,itrc
       real init    !!!!  0xFFFA5A5A ==> NaN
       parameter (init=0.)
 #define ALL_DATA
@@ -81,10 +81,10 @@
 # else
       i=proc(2)
 # endif
-      write(*,'(I4/2(6x,A6,I3,3x,A6,I3))') i, 'Istr =',Istr,
-     &        'Iend =',Iend,   'Jstr =',Jstr, 'Jend =',Jend
-      write(*,'(4x,2(6x,A6,I3,3x,A6,I3)/)')   'IstrR=',IstrR,
-     &        'IendR=',IendR, 'JstrR=',JstrR, 'JendR=',JendR
+      write(*,'(I4/2(6x,A6,I3,3x,A6,I3))') i, 'istr =',istr,
+     &        'iend =',iend,   'jstr =',jstr, 'jend =',jend
+      write(*,'(4x,2(6x,A6,I3,3x,A6,I3)/)')   'istrR=',istrR,
+     &        'iendR=',iendR, 'jstrR=',jstrR, 'jendR=',jendR
 # ifdef MPI
       if (mynode .lt. NNODES) then
         call MPI_Send (blank, 1, MPI_INTEGER, mynode+1,
@@ -92,8 +92,8 @@
       endif
 # endif
 #endif
-      do j=JstrR,JendR               ! Initialize
-        do i=IstrR,IendR             ! 2-D primitive
+      do j=jstrR,jendR               ! Initialize
+        do i=istrR,iendR             ! 2-D primitive
           zeta(i,j,1)=0. ! init      ! variables.
           zeta(i,j,2)=init
           zeta(i,j,3)=init
@@ -137,8 +137,8 @@
       enddo
 #ifdef SOLVE3D
       do k=1,N                       ! Initialize
-        do j=JstrR,JendR             ! 3-D primitive
-          do i=IstrR,IendR           ! variables.
+        do j=jstrR,jendR             ! 3-D primitive
+          do i=istrR,iendR           ! variables.
             u(i,j,k,1)=init
             u(i,j,k,2)=init
  
@@ -160,8 +160,8 @@
         enddo
       enddo
       do k=0,N
-        do j=JstrR,JendR
-          do i=IstrR,IendR
+        do j=jstrR,jendR
+          do i=istrR,iendR
             W(i,j,k)=init
 # ifdef AVERAGES
             w_avg(i,j,k)=init
@@ -171,8 +171,8 @@
       enddo
       do itrc=1,NT
         do k=1,N
-          do j=JstrR,JendR
-            do i=IstrR,IendR
+          do j=jstrR,jendR
+            do i=istrR,iendR
               t(i,j,k,1,itrc)=init
               t(i,j,k,2,itrc)=init
 # ifdef AVERAGES
@@ -186,8 +186,8 @@
 !
 !  Initialize forcing arrays (see "forces.h").
 !
-      do j=JstrR,JendR
-        do i=IstrR,IendR
+      do j=jstrR,jendR
+        do i=istrR,iendR
           sustr(i,j)=init
           svstr(i,j)=init
 #ifndef ANA_SMFLUX
@@ -200,8 +200,8 @@
       enddo
 #ifdef SOLVE3D
       do itrc=1,NT
-        do j=JstrR,JendR
-          do i=IstrR,IendR
+        do j=jstrR,jendR
+          do i=istrR,iendR
             stflx(i,j,itrc)=init
 # if !defined ANA_STFLUX || !defined ANA_SSFLUX
             stflxg(i,j,1,itrc)=init
@@ -210,8 +210,8 @@
           enddo
         enddo
       enddo
-      do j=JstrR,JendR
-        do i=IstrR,IendR
+      do j=jstrR,jendR
+        do i=istrR,iendR
 # ifdef QCORRECTION
           dqdtg(i,j,1)=init
           sstg (i,j,1)=init
@@ -238,8 +238,8 @@
 ! Initialize climatology arrays (see "climat.h").
 !
 #if defined M2NUDGING && !defined M2_FRC_BRY
-      do j=JstrR,JendR
-        do i=IstrR,IendR
+      do j=jstrR,jendR
+        do i=istrR,iendR
           ssh(i,j)=init
 # ifndef ANA_SSH
           sshg(i,j,1)=init
@@ -251,8 +251,8 @@
 #ifdef SOLVE3D
 # ifdef TCLIMATOLOGY 
       do itrc=1,NT
-        do j=JstrR,JendR
-          do i=IstrR,IendR
+        do j=jstrR,jendR
+          do i=istrR,iendR
             Tnudgcof(i,j,itrc)=init
           enddo
         enddo
@@ -261,8 +261,8 @@
 # if (defined TCLIMATOLOGY || defined TNUDGING) && !defined ANA_TCLIMA
       do itrc=1,NT
         do k=1,N
-          do j=JstrR,JendR
-            do i=IstrR,IendR
+          do j=jstrR,jendR
+            do i=istrR,iendR
               tclm(i,j,k,itrc)=init
               tclima(i,j,k,1,itrc)=init
               tclima(i,j,k,2,itrc)=init
@@ -275,8 +275,8 @@
 
 #ifdef UCLIMATOLOGY
 # ifndef ANA_UCLIMA
-      do j=JstrR,JendR
-        do i=IstrR,IendR
+      do j=jstrR,jendR
+        do i=istrR,iendR
           ubclm(i,j)=init
           vbclm(i,j)=init
           ubclima(i,j,1)=init
@@ -287,8 +287,8 @@
       enddo
 #  ifdef SOLVE3D
       do k=1,N
-        do j=JstrR,JendR
-          do i=IstrR,IendR
+        do j=jstrR,jendR
+          do i=istrR,iendR
             uclm(i,j,k)=init
             vclm(i,j,k)=init
             uclima(i,j,k,1)=init
@@ -306,8 +306,8 @@
 ! coefficients (see "mixing.h") to their background values.
 !
 #ifdef UV_VIS2
-        do j=JstrR,JendR
-          do i=IstrR,IendR
+        do j=jstrR,jendR
+          do i=istrR,iendR
             visc2_r(i,j)=visc2
             visc2_p(i,j)=visc2
           enddo
@@ -316,8 +316,8 @@
 #ifdef SOLVE3D
 # ifdef TS_DIF2
         do itrc=1,NT
-          do j=JstrR,JendR
-            do i=IstrR,IendR
+          do j=jstrR,jendR
+            do i=istrR,iendR
               diff2(i,j,itrc)=tnu2(itrc)
             enddo
           enddo
@@ -330,8 +330,8 @@
 ! values.
 !
       do k=0,N
-        do j=JstrR,JendR
-          do i=IstrR,IendR
+        do j=jstrR,jendR
+          do i=istrR,iendR
 # if !defined LMD_MIXING && !defined BVF_MIXING\
   && !defined MY2_MIXING && !defined MY25_MIXING\
                          && !defined PP_MIXING
@@ -350,8 +350,8 @@
           enddo
         enddo
         do itrc=1,NT
-          do j=JstrR,JendR
-            do i=IstrR,IendR
+          do j=jstrR,jendR
+            do i=istrR,iendR
 # if !defined LMD_MIXING && !defined BVF_MIXING\
   && !defined MY2_MIXING && !defined MY25_MIXING\
                          && !defined PP_MIXING
@@ -368,8 +368,8 @@
  
 # if defined LMD_KPP && defined LMD_NONLOCAL
       do k=1,N
-        do j=JstrR,JendR
-          do i=IstrR,IendR
+        do j=jstrR,jendR
+          do i=istrR,iendR
             ghat(i,j,k)=init
           enddo
         enddo
@@ -379,8 +379,8 @@
 !
 !  Initialize depth of planetary boundary layer.
 !
-      do j=JstrR,JendR
-        do i=IstrR,IendR
+      do j=jstrR,jendR
+        do i=istrR,iendR
           hbls(i,j,1)=0.  ! init
           hbls(i,j,2)=0.
         enddo

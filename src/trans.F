@@ -11,7 +11,7 @@
       character(len=max_length) string, scratch
       character quote
       logical not_end_of_file, lswtch, directive
-      integer line, length, ierr, i,j, Istrt, ir, ig, nwords,
+      integer line, length, ierr, i,j, istrt, ir, ig, nwords,
      &      is(32),ie(32), io,ic
      &   ,case_fold, ibrack
  
@@ -59,12 +59,12 @@
           enddo
           if (.not.directive) length=0
         endif
-        Istrt=1
-        do while (string(Istrt:Istrt).eq.' ' .and. Istrt.lt.length)
-          Istrt=Istrt+1
+        istrt=1
+        do while (string(istrt:istrt).eq.' ' .and. istrt.lt.length)
+          istrt=istrt+1
         enddo
-        if (.not.directive .and. string(Istrt:Istrt).eq.'!') length=0
-        if (Istrt.le.length .and. string(Istrt:Istrt).ne.'#') then
+        if (.not.directive .and. string(istrt:istrt).eq.'!') length=0
+        if (istrt.le.length .and. string(istrt:istrt).ne.'#') then
           i=0
           lswtch=.false.
           do while (i.lt.length)
@@ -86,9 +86,9 @@
 ! of the line "itype" is retained from the previous line, if the
 ! present one is a continuation line.
 !
-          scratch(1:Istrt)=' '
+          scratch(1:istrt)=' '
           ibrack=0
-          do i=Istrt,length
+          do i=istrt,length
             if (string(i:i).eq.'(') then
               scratch(i:i)=' '
               ibrack=ibrack+1
@@ -108,27 +108,27 @@
           scratch(length+1:max_length)=' '
  
           if (string(6:6).eq.' ') then
-            if (scratch(Istrt:Istrt+3).eq.'real') then
+            if (scratch(istrt:istrt+3).eq.'real') then
               itype=1
-              Istrt=Istrt+4
-            elseif (scratch(Istrt:Istrt+6).eq.'integer') then
+              istrt=istrt+4
+            elseif (scratch(istrt:istrt+6).eq.'integer') then
               itype=2
-              Istrt=Istrt+7
-            elseif (scratch(Istrt:Istrt+8).eq.'character') then
+              istrt=istrt+7
+            elseif (scratch(istrt:istrt+8).eq.'character') then
               itype=3
-              Istrt=Istrt+9
-            elseif (scratch(Istrt:Istrt+8).eq.'parameter') then
+              istrt=istrt+9
+            elseif (scratch(istrt:istrt+8).eq.'parameter') then
               itype=-1
-              Istrt=Istrt+9
-            elseif (scratch(Istrt:Istrt+5).eq.'common') then
+              istrt=istrt+9
+            elseif (scratch(istrt:istrt+5).eq.'common') then
               itype=-2
-              Istrt=Istrt+6
+              istrt=istrt+6
             else
               itype=0
             endif
           endif
           if (itype.eq.-2) then
-            do i=Istrt,length
+            do i=istrt,length
               if (scratch(i:i).eq.'/') scratch(i:i)=' '
             enddo
           endif
@@ -147,7 +147,7 @@
 !
           nwords=0
           lswtch=.false.
-          do i=Istrt,length+1
+          do i=istrt,length+1
             if (.not.lswtch .and. scratch(i:i).ge.'a'
      &                  .and. scratch(i:i).le.'z') then
               lswtch=.true.
@@ -211,7 +211,7 @@ c--#define ALLOCATE
 #endif
             endif
           enddo
-        elseif (string(Istrt:Istrt).eq.'#') then
+        elseif (string(istrt:istrt).eq.'#') then
           write(iout,'(A)') string(1:length)
         endif
       enddo

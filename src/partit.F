@@ -13,7 +13,7 @@
 ! Non-partitionable objects of netCDF files, such as scalar variables
 ! and attributes (both global and attributes to variables) are copied
 ! redundantly into the partitioned files, while partitionable array
-! data is subdivided into subdomains and dIstributed among the
+! data is subdivided into subdomains and distributed among the
 ! partitioned files in such a manner that all files contain
 ! individual data without any overlap or redundantly stored data.
 !

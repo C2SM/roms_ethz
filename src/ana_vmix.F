@@ -6,17 +6,17 @@
       integer tile
 # include "param.h"
 # include "compute_tile_bounds.h"
-      call ana_vmix_tile (Istr,Iend,Jstr,Jend)
+      call ana_vmix_tile (istr,iend,jstr,jend)
       return
       end
  
-      subroutine ana_vmix_tile (Istr,Iend,Jstr,Jend)
+      subroutine ana_vmix_tile (istr,iend,jstr,jend)
 !
 ! Set vertical mixing coefficients for momentum "Akv"
 ! and tracers "Akt" [m^2/s] using analytical expressions.
 !
       implicit none
-      integer Istr,Iend,Jstr,Jend, i,j,k
+      integer istr,iend,jstr,jend, i,j,k
       real cff
 # include "param.h"
 # include "grid.h"
@@ -29,8 +29,8 @@
 # if defined CANYON_B
       cff=1./50.                    ! Setup both top and bottom
       do k=1,N-1                    ! boundary layers.
-        do j=Jstr,Jend
-          do i=Istr,Iend
+        do j=jstr,jend
+          do i=istr,iend
             Akv(i,j,k)=0.001+0.0095*(
      &                      exp(cff*(z_w(i,j,k)-z_w(i,j,N)))
      &                     +exp(cff*(z_w(i,j,0)-z_w(i,j,k)))
@@ -42,8 +42,8 @@
 # elif defined UPWELLING || defined IBERIA
       cff=1./150.
       do k=1,N-1
-        do j=Jstr,Jend
-          do i=Istr,Iend
+        do j=jstr,jend
+          do i=istr,iend
             Akv(i,j,k)=0.002+0.008*exp(cff*(z_w(i,j,k)-z_w(i,j,N)))
             Akt(i,j,k,itemp)=Akt_bak(itemp)
 c??
@@ -60,8 +60,8 @@ c??
       enddo
 # else
       do k=1,N-1
-        do j=Jstr,Jend
-          do i=Istr,Iend
+        do j=jstr,jend
+          do i=istr,iend
             Akv(i,j,k)=???
             Akt(i,j,k,itemp)=???
             Akt(i,j,k,isalt)=???
@@ -71,11 +71,11 @@ c??
 # endif /* CANYON_B */
  
 # if defined EW_PERIODIC || defined NS_PERIODIC || defined MPI
-      call exchange_w3d_tile (Istr,Iend,Jstr,Jend, Akv)
-      call exchange_w3d_tile (Istr,Iend,Jstr,Jend,
+      call exchange_w3d_tile (istr,iend,jstr,jend, Akv)
+      call exchange_w3d_tile (istr,iend,jstr,jend,
      &                     Akt(START_2D_ARRAY,0,itemp))
 #  ifdef SALINITY
-      call exchange_w3d_tile (Istr,Iend,Jstr,Jend,
+      call exchange_w3d_tile (istr,iend,jstr,jend,
      &                     Akt(START_2D_ARRAY,0,isalt))
 #  endif
 # endif

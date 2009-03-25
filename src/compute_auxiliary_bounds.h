@@ -3,7 +3,7 @@
 ! Compute derived bounds for the loop indices over a subdomain
 ! "tile". The extended bounds [labelled by suffix R] are designed to
 ! cover also the outer ghost points, if the subdomain "tile" is
-! adjacent to a PHYSICAL boundary. (NOTE: IstrR,IendR,JstrR,JendR
+! adjacent to a PHYSICAL boundary. (NOTE: istrR,iendR,jstrR,jendR
 ! computed by this module DO NOT COVER ghost points associated with
 ! periodic boundaries (if any) or with 2-point computational marhins
 ! of MPI subdomains.
@@ -21,54 +21,54 @@
 ! inside a subroutine, but before the first executable statement.
 ! 
 #ifdef EW_PERIODIC
-# undef IstrU
-# define IstrU Istr
-# undef IstrR
-# define IstrR Istr
-# undef IendR
-# define IendR Iend
+# undef istrU
+# define istrU istr
+# undef istrR
+# define istrR istr
+# undef iendR
+# define iendR iend
 #else
-      integer IstrU, IstrR, IendR
+      integer istrU, istrR, iendR
 #endif
  
 #ifdef NS_PERIODIC
-# undef JstrV
-# define JstrV Jstr
-# undef JstrR
-# define JstrR Jstr
-# undef JendR
-# define JendR Jend
+# undef jstrV
+# define jstrV jstr
+# undef jstrR
+# define jstrR jstr
+# undef jendR
+# define jendR jend
 #else
-      integer JstrV, JstrR, JendR
+      integer jstrV, jstrR, jendR
 #endif
  
 #ifndef EW_PERIODIC
       if (WESTERN_EDGE) then
-        IstrR=Istr-1
-        IstrU=Istr+1
+        istrR=istr-1
+        istrU=istr+1
       else
-        IstrR=Istr
-        IstrU=Istr
+        istrR=istr
+        istrU=istr
       endif
       if (EASTERN_EDGE) then
-        IendR=Iend+1
+        iendR=iend+1
       else
-        IendR=Iend
+        iendR=iend
       endif
 #endif
  
 #ifndef NS_PERIODIC
       if (SOUTHERN_EDGE) then
-        JstrR=Jstr-1
-        JstrV=Jstr+1
+        jstrR=jstr-1
+        jstrV=jstr+1
       else
-        JstrR=Jstr
-        JstrV=Jstr
+        jstrR=jstr
+        jstrV=jstr
       endif
       if (NORTHERN_EDGE) then
-        JendR=Jend+1
+        jendR=jend+1
       else
-        JendR=Jend
+        jendR=jend
       endif
 #endif
  

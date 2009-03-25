@@ -16,21 +16,21 @@
 #ifdef BIO_1ST_USTREAM_TEST
         if (itrc.gt.isalt) then   !<-- biological components only
           if (nrhs.eq.3) then     !<-- compute fluxes during corrector
-            do j=Jstr,Jend        !    stage only
-              do i=Istr,Iend+1
+            do j=jstr,jend        !    stage only
+              do i=istr,iend+1
                 FX(i,j)=t(i-1,j,k,nstp,itrc)*max(FlxU(i,j,k),0.)
      &                 +t(i  ,j,k,nstp,itrc)*min(FlxU(i,j,k),0.)
               enddo
             enddo
-            do j=Jstr,Jend+1
-              do i=Istr,Iend
+            do j=jstr,jend+1
+              do i=istr,iend
                 FE(i,j)=t(i,j-1,k,nstp,itrc)*max(FlxV(i,j,k),0.)
      &                 +t(i,j  ,k,nstp,itrc)*min(FlxV(i,j,k),0.)  
               enddo
             enddo
           else                    ! there is no need to compute
-            do j=Jstr,Jend+1      ! fluxes during predictor stage 
-              do i=Istr,Iend+1    ! because there is no use for 
+            do j=jstr,jend+1      ! fluxes during predictor stage 
+              do i=istr,iend+1    ! because there is no use for 
                 FX(i,j)=0.        ! t(:,:,:,:,n+1/2) in the case 
                 FE(i,j)=0.        ! of 1st-order upsteam (note 
               enddo               ! index "nstp" instead of "nrhs"
@@ -51,21 +51,21 @@ c--# define CONST_TRACERS
 #  define grad WORK
 # endif
 # ifdef EW_PERIODIC
-          imin=Istr-1                  ! Determine extended index
-          imax=Iend+2                  ! range for computation of
+          imin=istr-1                  ! Determine extended index
+          imax=iend+2                  ! range for computation of
 # else
           if (WESTERN_EDGE) then       ! elementary differences:
-            imin=Istr                  ! it needs to be restricted 
+            imin=istr                  ! it needs to be restricted 
           else                         ! because in the vicinity of  
-            imin=Istr-1                ! physical boundary the extra
+            imin=istr-1                ! physical boundary the extra
           endif                        ! point may be not available,
           if (EASTERN_EDGE) then       ! and extrapolation of slope
-            imax=Iend+1                ! is used instead.
+            imax=iend+1                ! is used instead.
           else
-            imax=Iend+2
+            imax=iend+2
           endif
 # endif
-          do j=Jstr,Jend
+          do j=jstr,jend
             do i=imin,imax
               FX(i,j)=(t(i,j,k,nrhs,itrc)-t(i-1,j,k,nrhs,itrc))
 # ifdef MASKING
@@ -75,18 +75,18 @@ c--# define CONST_TRACERS
           enddo            !--> discard imin,imax
 # ifndef EW_PERIODIC
           if (WESTERN_EDGE) then
-            do j=Jstr,Jend
-              FX(Istr-1,j)=FX(Istr,j)
+            do j=jstr,jend
+              FX(istr-1,j)=FX(istr,j)
             enddo
           endif
           if (EASTERN_EDGE) then
-            do j=Jstr,Jend
-              FX(Iend+2,j)=FX(Iend+1,j)
+            do j=jstr,jend
+              FX(iend+2,j)=FX(iend+1,j)
             enddo
           endif
 # endif
-          do j=Jstr,Jend
-            do i=Istr-1,Iend+1
+          do j=jstr,jend
+            do i=istr-1,iend+1
 # if defined UPSTREAM
               curv(i,j)=FX(i+1,j)-FX(i,j)
 # elif defined AKIMA
@@ -101,8 +101,8 @@ c--# define CONST_TRACERS
 # endif
             enddo
           enddo             !--> discard FX
-          do j=Jstr,Jend
-            do i=Istr,Iend+1
+          do j=jstr,jend
+            do i=istr,iend+1
 # ifdef UPSTREAM
               FX(i,j)=0.5*(t(i,j,k,nrhs,itrc)+t(i-1,j,k,nrhs,itrc))
      &                                                  *FlxU(i,j,k)
@@ -121,22 +121,22 @@ c--# define CONST_TRACERS
           enddo
  
 # ifdef NS_PERIODIC
-          jmin=Jstr-1
-          jmax=Jend+2
+          jmin=jstr-1
+          jmax=jend+2
 # else
           if (SOUTHERN_EDGE) then
-            jmin=Jstr
+            jmin=jstr
           else
-            jmin=Jstr-1
+            jmin=jstr-1
           endif
           if (NORTHERN_EDGE) then
-            jmax=Jend+1
+            jmax=jend+1
           else
-            jmax=Jend+2
+            jmax=jend+2
           endif
 # endif
           do j=jmin,jmax
-            do i=Istr,Iend
+            do i=istr,iend
               FE(i,j)=(t(i,j,k,nrhs,itrc)-t(i,j-1,k,nrhs,itrc))
 # ifdef MASKING
      &                                               *vmask(i,j)
@@ -145,18 +145,18 @@ c--# define CONST_TRACERS
           enddo         !--> discard jmin,jmax
 # ifndef NS_PERIODIC
           if (SOUTHERN_EDGE) then
-            do i=Istr,Iend
-              FE(i,Jstr-1)=FE(i,Jstr)
+            do i=istr,iend
+              FE(i,jstr-1)=FE(i,jstr)
             enddo
           endif
           if (NORTHERN_EDGE) then
-            do i=Istr,Iend
-              FE(i,Jend+2)=FE(i,Jend+1)
+            do i=istr,iend
+              FE(i,jend+2)=FE(i,jend+1)
             enddo
           endif
 # endif
-          do j=Jstr-1,Jend+1
-            do i=Istr,Iend
+          do j=jstr-1,jend+1
+            do i=istr,iend
 # if defined UPSTREAM
               curv(i,j)=FE(i,j+1)-FE(i,j)
 # elif defined AKIMA
@@ -172,8 +172,8 @@ c--# define CONST_TRACERS
             enddo
           enddo            !--> discard FE
  
-          do j=Jstr,Jend+1
-            do i=Istr,Iend
+          do j=jstr,jend+1
+            do i=istr,iend
 # ifdef UPSTREAM
               FE(i,j)=0.5*(t(i,j,k,nrhs,itrc)+t(i,j-1,k,nrhs,itrc))
      &                                                  *FlxV(i,j,k)
@@ -196,8 +196,8 @@ c--# define CONST_TRACERS
           do is=1,Nsrc   ! simulate different water properties due
             i=Isrc(is)   ! to river run off.
             j=Jsrc(is)
-            if (Lsrc(is,itrc) .and. Istr.le.i .and. i.le.Iend+1
-     &                   .and. Jstr.le.j .and. j.le.Jend+1) then
+            if (Lsrc(is,itrc) .and. istr.le.i .and. i.le.iend+1
+     &                   .and. jstr.le.j .and. j.le.jend+1) then
               if (Dsrc(is).eq.0) then
                 FX(i,j)=FlxU(i,j,k)*Tsrc(is,k,itrc)
               else
