@@ -119,8 +119,8 @@
 #  ifdef SEDIMENT_BIOLOGY
           do itrc=1,NT_sed
              if (wrtavg(indxSedOrgN+itrc-1)) then
-                do j=JstrR,JendR
-                   do i=IstrR,IendR
+                do j=jstr,jend
+                   do i=istr,iend
                       t_sed_avg(i,j,itrc)=t_sed(i,j,itrc)
                    enddo
                 enddo
@@ -128,8 +128,8 @@
           enddo
 #  endif /* SEDIMENT_BIOLOGY */
 #  if defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC
-          do j=JstrR,JendR
-             do i=IstrR,IendR
+          do j=jstr,jend
+             do i=istr,iend
                 pH_avg(i,j) = pH_hist(i,j)
                 pCO2_avg(i,j) = pCO2sw(i,j)
                 pCO2air_avg(i,j) = pCO2air(i,j)
@@ -175,8 +175,8 @@
           if (wrtavg(indxW)) then
               call Wvlcty (tile, work) 
             do k=1,N
-              do j=JstrR,JendR
-                do i=IstrR,IendR
+              do j=jstr,jend
+                do i=istr,iend
                   w_mean(i,j,k)=work(i,j,k)
                 enddo
               enddo
@@ -297,8 +297,8 @@
 #  ifdef SEDIMENT_BIOLOGY
           do itrc=1,NT_sed
              if (wrtavg(indxSedOrgN+itrc-1)) then
-                do j=JstrR,JendR
-                   do i=IstrR,IendR
+                do j=jstr,jend
+                   do i=istr,iend
                       t_sed_avg(i,j,itrc)=t_sed_avg(i,j,itrc)
      &                     +t_sed(i,j,itrc)
                    enddo
@@ -307,8 +307,8 @@
           enddo
 #  endif /* SEDIMENT_BIOLOGY */
 #  if defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC
-          do j=JstrR,JendR
-             do i=IstrR,IendR
+          do j=jstr,jend
+             do i=istr,iend
                 pH_avg(i,j) = pH_avg(i,j) + pH_hist(i,j)
                 pCO2_avg(i,j) = pCO2_avg(i,j) + pCO2sw(i,j)
                 pCO2air_avg(i,j) = pCO2air_avg(i,j) + pCO2air(i,j)
@@ -354,8 +354,8 @@
           if (wrtavg(indxW)) then
               call Wvlcty (tile, work) 
             do k=1,N
-              do j=JstrR,JendR
-                do i=IstrR,IendR
+              do j=jstr,jend
+                do i=istr,iend
                   w_mean(i,j,k)=w_mean(i,j,k)+work(i,j,k)
                 enddo
               enddo
@@ -480,8 +480,8 @@
 #ifdef SEDIMENT_BIOLOGY
           do itrc=1,NT_sed
              if (wrtavg(indxSedOrgN+itrc-1)) then
-                do j=JstrR,JendR
-                   do i=IstrR,IendR
+                do j=jstr,jend
+                   do i=istr,iend
                       t_sed_avg(i,j,itrc)=cff*( t_sed_avg(i,j,itrc)
      &                     +t_sed(i,j,itrc))
                    enddo
@@ -490,8 +490,8 @@
           enddo
 #endif /* SEDIMENT_BIOLOGY */
 #  if defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC
-          do j=JstrR,JendR
-             do i=IstrR,IendR
+          do j=jstr,jend
+             do i=istr,iend
                 pH_avg(i,j) = cff*( pH_avg(i,j) + pH_hist(i,j) )
                 pCO2_avg(i,j) = cff*( pCO2_avg(i,j) + pCO2sw(i,j) )
                 pCO2air_avg(i,j) = cff*(pCO2air_avg(i,j) + pCO2air(i,j))
@@ -538,8 +538,8 @@
           if (wrtavg(indxW)) then
               call Wvlcty (tile, work) 
             do k=1,N
-              do j=JstrR,JendR
-                do i=IstrR,IendR
+              do j=jstr,jend
+                do i=istr,iend
                   w_mean(i,j,k)=cff*(w_mean(i,j,k)+work(i,j,k))
                 enddo
               enddo

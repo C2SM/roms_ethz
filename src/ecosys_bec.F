@@ -373,25 +373,27 @@
      &    DOP_loc          ! local copy of model DOP
 
        REAL :: 
-     &    PCref,           ! max phyto C-specific growth rate at tref (GD98) (1/sec)
-     &    sp_mort,         ! small phyto non-grazing death rate (1/sec)
-     &    sp_mort2,        ! small phyto quad mort rate, agg (1/sec/((mmol C/m3))
-     &    diat_mort,       ! diatom non-grazing death rate (1/sec)
-     &    diat_mort2,      ! diatom quad mort rate, agg/sinking (1/sec/((mmol C/m3))
-     &    z_ingest,        ! zoo ingestion coefficient (non-dim)
-     &    Q,               ! N/C ratio (mmol N/mmol C) of all phyto and zoopl
-     &    Qp,              ! P/C ratio (mmol P/mmol C) of small phyto, diatoms, zoo
-     &    z_grz_sqr,       ! square of parm_z_grz (mmol C/m^3)^2
-     &    thres_z1,        ! threshold = C_loss_thres for z shallower than this (m) ! HF: used to be in cm
-     &    thres_z2,        ! threshold = 0 for z deeper than this (m) ! HF: used to be in cm
+!JDS: Commented parameters are now declared in param_bec.h
+!     &    PCref,           ! max phyto C-specific growth rate at tref (GD98) (1/sec)
+!     &    sp_mort,         ! small phyto non-grazing death rate (1/sec)
+!     &    sp_mort2,        ! small phyto quad mort rate, agg (1/sec/((mmol C/m3))
+!     &    diat_mort,       ! diatom non-grazing death rate (1/sec)
+!     &    diat_mort2,      ! diatom quad mort rate, agg/sinking (1/sec/((mmol C/m3))
+!     &    z_ingest,        ! zoo ingestion coefficient (non-dim)
+!     &    Q,               ! N/C ratio (mmol N/mmol C) of all phyto and zoopl
+!     &    Qp,              ! P/C ratio (mmol P/mmol C) of small phyto, diatoms, zoo
+     &    z_grz_sqr       ! square of parm_z_grz (mmol C/m^3)^2
+!     &    thres_z1,        ! threshold = C_loss_thres for z shallower than this (m) ! HF: used to be in cm
+!     &    thres_z2,        ! threshold = 0 for z deeper than this (m) ! HF: used to be in cm
 !     &    C_loss_thres,    ! bio-C threshold at which losses go to zero (mmol C/m^3)
-     &    PCrefDiaz,       ! max Diaz C-specific growth rate at tref (GD98) (1/sec)
-     &    Qp_diaz,          ! diazotroph P/C ratio
-     &    diaz_mort,        ! diazotroph non-grazing death rate (1/sec)
-     &    diaz_kPO4,        ! diazotroph half-saturation const. for P uptake
-     &    diaz_kFe,         ! diazotroph half-saturation const. for P uptake
-     &    Qfe_zoo           ! zooplankton fe/C ratio
-
+!     &    PCrefDiaz,       ! max Diaz C-specific growth rate at tref (GD98) (1/sec)
+!     &    Qp_diaz,          ! diazotroph P/C ratio
+!     &    diaz_mort,        ! diazotroph non-grazing death rate (1/sec)
+!     &    diaz_kPO4,        ! diazotroph half-saturation const. for P uptake
+!     &    diaz_kFe,         ! diazotroph half-saturation const. for P uptake
+!     &    Qfe_zoo           ! zooplankton fe/C ratio
+!END JDS
+       
 !MODHF        REAL, DIMENSION(istr:iend,jstr:jend) :: 
         REAL, DIMENSION(istr:iend) :: 
      &    PAR_in,          ! photosynthetically available radiation (W/m^2)
@@ -643,23 +645,26 @@
     !   Set Parameter values not included in namelist
     !---------------------------------------------------------------------------
 
-         PCref      = 3.0 * dps
-         sp_mort    = 0.1 * dps
-         sp_mort2   = 0.009 * dps
-         diat_mort  = 0.1 * dps
-         diat_mort2 = 0.009 * dps
-         z_ingest   = 0.3
-         thres_z1   = 100.0   ! 100 m
-         thres_z2   = 200.0   ! 200 m
+!JDS  Commented parameters are defined in ecosys_bec_init.F and could be
+! initialized by namelist
+
+!         PCref      = 3.0 * dps
+!         sp_mort    = 0.1 * dps
+!         sp_mort2   = 0.009 * dps
+!         diat_mort  = 0.1 * dps
+!         diat_mort2 = 0.009 * dps
+!         z_ingest   = 0.3
+!         thres_z1   = 100.0   ! 100 m
+!         thres_z2   = 200.0   ! 200 m
 !HF         thres_z1   = 100.0e2   ! 100 m
 !HF         thres_z2   = 200.0e2   ! 200 m
     
-         PCrefDiaz  = 0.4 * dps
+!         PCrefDiaz  = 0.4 * dps
 ! HF: changed from "0.18" on Oct 3, 2005, following Keith Moore's changes
-         diaz_mort  = 0.16 * dps
+!         diaz_mort  = 0.16 * dps
 ! HF: changed from "0.008" on Oct 3, 2005, following Keith Moore's changes
-         diaz_kPO4  = 0.005 ! 1.6 * diatom value
-         diaz_kFe   = 0.1e-3
+!         diaz_kPO4  = 0.005 ! 1.6 * diatom value
+!         diaz_kFe   = 0.1e-3
 
     !---------------------------------------------------------------------------
     !   SET FIXED RATIOS for N/C, P/C, SiO3/C, Fe/C
@@ -667,11 +672,12 @@
     !   for diazotrophs a N/P of 45 is assumed based on Letelier & Karl, 1998
     !---------------------------------------------------------------------------
 
-          Q         = 0.137
-         Qp        = 0.00855
+!         Q         = 0.137
+!         Qp        = 0.00855
 ! HF: changed from "0.00304" on Oct 3, 2005, following Keith Moore's changes
-         Qp_diaz   = 0.002735
-         Qfe_zoo   = 2.5e-6
+!         Qp_diaz   = 0.002735
+!         Qfe_zoo   = 2.5e-6
+!END JDS
 
     !---------------------------------------------------------------------------
     !   set local variables, with incoming ratios
