@@ -671,7 +671,7 @@ c--      fname='roms.in.US_West'
      &    , wrthis(indxVb), 'write VBAR ', '2D V-momentum component.'
 #ifdef SOLVE3D
      &    , wrthis(indxU),  'write U    ', '3D U-momentum component.'
-     &    , wrthis(indxU),  'write U    ', '3D U-momentum component.'
+     &    , wrthis(indxV),  'write V    ', '3D V-momentum component.'
           do itrc=1,NT
             if (wrthis(indxT+itrc-1)) wrthis(indxTime)=.true.
             MPI_master_only write(stdout, '(6x,L1,2x,A,I2,A,I2,A)')
