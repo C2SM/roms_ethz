@@ -339,6 +339,9 @@
 # else
             Akv(i,j,k)=init
 # endif
+# ifdef AVERAGES
+            akv_avg(i,j,k)=init
+# endif
 # if defined MIX_EN_TS || defined MIX_EN_UV
             rhosx(i,j,k)=init
             rhose(i,j,k)=init
@@ -361,6 +364,12 @@
 # endif
               Rich(i,j,k)=init
               RichN(i,j,k)=init
+# ifdef AVERAGES
+              akt_avg(i,j,k)=init
+#  ifdef SALINITY
+              aks_avg(i,j,k)=init
+#  endif
+# endif
             enddo
           enddo
         enddo

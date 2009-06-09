@@ -192,6 +192,15 @@
               enddo
             enddo
           endif
+          if (wrtavg(indxAkv)) then
+            do k=0,N
+              do j=jstrR,jendR
+                do i=istrR,iendR
+                  akv_avg(i,j,k)=Akv(i,j,k)
+                enddo
+              enddo
+            enddo
+          endif
           if (wrtavg(indxRich)) then
             do k=0,N
               do j=jstrR,jendR
@@ -367,6 +376,15 @@
               do j=jstrR,jendR
                 do i=istrR,iendR
                   akt_avg(i,j,k)=akt_avg(i,j,k)+Akt(i,j,k,itemp)
+                enddo
+              enddo
+            enddo
+          endif
+          if (wrtavg(indxAkv)) then
+            do k=0,N
+              do j=jstrR,jendR
+                do i=istrR,iendR
+                  akv_avg(i,j,k)=akv_avg(i,j,k)+Akv(i,j,k)
                 enddo
               enddo
             enddo
@@ -551,6 +569,15 @@
               do j=jstrR,jendR
                 do i=istrR,iendR
                   akt_avg(i,j,k)=cff*(akt_avg(i,j,k)+Akt(i,j,k,itemp))
+                enddo
+              enddo
+            enddo
+          endif
+          if (wrtavg(indxAkv)) then
+            do k=0,N
+              do j=jstrR,jendR
+                do i=istrR,iendR
+                  akv_avg(i,j,k)=cff*(akv_avg(i,j,k)+Akv(i,j,k))
                 enddo
               enddo
             enddo

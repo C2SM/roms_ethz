@@ -81,7 +81,7 @@
      &                                            record, r2dvar)
         if (ierr .ne. nf_noerr) then
           lvar=lenstr(vname(1,indxZ))
-          write(stdout,1) vname(1,indxTime)(1:lvar), record, ierr
+          write(stdout,1) vname(1,indxZ)(1:lvar), record, ierr
      &                    MYID
           goto 99                                         !--> ERROR
         endif
@@ -200,6 +200,19 @@ CR      write(*,*) 'wrt_avg:  wrtT_sed  ' MYID
           lvar=lenstr(vname(1,indxW))
           write(stdout,1) vname(1,indxW)(1:lvar), record, ierr
      &                    MYID
+          goto 99                                         !--> ERROR
+        endif
+      endif
+!
+!  Write out vertical eddy viscosity coefficient for momentum.
+!
+      if (wrtavg(indxAkv)) then
+        ierr=nf_fwrite (akv_avg(START_2D_ARRAY,0), ncidavg,
+     &                                avgAkv, record, w3dvar)
+        if (ierr .ne. nf_noerr) then
+          lvar=lenstr(vname(1,indxAkv))
+          write(stdout,1) vname(1,indxAkv)(1:lvar), record, ierr,
+     &                    nf_strerror(ierr) MYID
           goto 99                                         !--> ERROR
         endif
       endif
