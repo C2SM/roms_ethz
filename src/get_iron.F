@@ -28,7 +28,7 @@
       frcname=frcfile(ifrc)
       ierr=nf_noerr
 
-      if (FIRST_TIME_STEP) then
+      if (iic.eq.ntstart) then
         lstr=lenstr(frcname)
         if (ncid.eq.-1) then
           ierr=nf_open(frcname(1:lstr), nf_nowrite, ncidfrc)
