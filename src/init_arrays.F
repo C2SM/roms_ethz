@@ -401,8 +401,8 @@
 !
       do itrc=1,NT_sed
          do k=1,N
-            do j=JstrR,JendR
-               do i=IstrR,IendR
+            do j=jstrR,jendR
+               do i=istrR,iendR
                   t_sed(i,j,itrc) = init
 # ifdef AVERAGES
                   t_sed_avg(i,j,itrc) = init
@@ -416,8 +416,8 @@
 ! Initialize some more arrays (pH, pCO2sw, pCO2air, PAR) for NPZD model:
 !
 # ifdef BIOLOGY_NPZDOC
-      do j=JstrR,JendR
-         do i=IstrR,IendR
+      do j=jstrR,jendR
+         do i=istrR,iendR
            pH_hist(i,j) = 0.0
            pCO2sw(i,j) = 0.0
            pCO2air(i,j) = 0.0
@@ -431,8 +431,8 @@
          end do
       end do
       do k=1,N
-         do j=JstrR,JendR
-           do i=IstrR,IendR
+         do j=jstrR,jendR
+           do i=istrR,iendR
               PAR(i,j,k) = 0.0
 #  ifdef AVERAGES
               PAR_avg(i,j,k) = 0.0
@@ -442,14 +442,14 @@
       end do
 # endif /* BIOLOGY_NPZDOC */
 # if defined BGC_FLUX_ANALYSIS && defined AVERAGES
-      do j=JstrR,JendR
-         do i=IstrR,IendR
+      do j=jstrR,jendR
+         do i=istrR,iendR
            PARinc_flux_avg(i,j) = 0.0
          end do
       end do
       do k=1,N
-         do j=JstrR,JendR
-           do i=IstrR,IendR
+         do j=jstrR,jendR
+           do i=istrR,iendR
               PAR_flux_avg(i,j,k) = 0.0
            end do
          end do

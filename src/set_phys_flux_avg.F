@@ -76,15 +76,15 @@
          if (n_phys_flux_avg .eq. 1 .or. 
      &        mod(iic-nts_phys_flux_avg,n_phys_flux_avg).eq.1) then
             if (ZEROTH_TILE) time_phys_flux_avg=time
-            do j = JstrR, JendR
-               do i = IstrR, IendR
+            do j = jstrR, jendR
+               do i = istrR, iendR
                   zeta_phys_flux_avg(i,j) = zeta(i,j,knew)
                end do
             end do
             do iflux = 1, NT_PFA
                do k = 1, N
-                  do j = JstrR, JendR
-                     do i = IstrR, IendR 
+                  do j = jstrR, jendR
+                     do i = istrR, iendR 
                         HorXAdvFlux_avg(i,j,k,iflux) = 
      &                       HorXAdvFlux(i,j,k,iflux)  
                      end do
@@ -93,8 +93,8 @@
             end do
             do iflux = 1, NT_PFA
                do k = 1, N
-                  do j = JstrR, JendR
-                     do i = IstrR, IendR 
+                  do j = jstrR, jendR
+                     do i = istrR, iendR 
                         HorYAdvFlux_avg(i,j,k,iflux) = 
      &                       HorYAdvFlux(i,j,k,iflux)
                      end do
@@ -103,8 +103,8 @@
             end do
             do iflux = 1, NT_PFA
                do k = 0, N
-                  do j = JstrR, JendR
-                     do i = IstrR, IendR 
+                  do j = jstrR, jendR
+                     do i = istrR, iendR 
                         VertAdvFlux_avg(i,j,k,iflux) = 
      &                       VertAdvFlux(i,j,k,iflux)
                      end do
@@ -114,8 +114,8 @@
 #ifdef VERT_DIFF_ANALYSIS
             do iflux = 1, NT_PFA
                do k = 0, N
-                  do j = JstrR, JendR
-                     do i = IstrR, IendR 
+                  do j = jstrR, jendR
+                     do i = istrR, iendR 
                         VertDiffFlux_avg(i,j,k,iflux) = 
      &                       VertDiffFlux(i,j,k,iflux)
                      end do
@@ -125,15 +125,15 @@
 #endif
 # ifdef FULL_PHYS_FLUX_ANALYSIS
             do iflux = 1, NT_PFA
-               do j = JstrR, JendR
-                  do i = IstrR, IendR 
+               do j = jstrR, jendR
+                  do i = istrR, iendR 
                      TopFlux_avg(i,j,iflux) = TopFlux(i,j,iflux)  
                   end do
                end do
             end do
             do iflux = 1, NT_PFA
-               do j = JstrR, JendR
-                  do i = IstrR, IendR 
+               do j = jstrR, jendR
+                  do i = istrR, iendR 
                      BottomFlux_avg(i,j,iflux) = 
      &                    BottomFlux(i,j,iflux)
                   end do
@@ -141,8 +141,8 @@
             end do
             do iflux = 1, NT_PFA
                do k = 1, N
-                  do j = JstrR, JendR
-                     do i = IstrR, IendR 
+                  do j = jstrR, jendR
+                     do i = istrR, iendR 
                         HorXMixFlux_avg(i,j,k,iflux) = 
      &                       HorXMixFlux(i,j,k,iflux)  
                      end do
@@ -151,8 +151,8 @@
             end do
             do iflux = 1, NT_PFA
                do k = 1, N
-                  do j = JstrR, JendR
-                     do i = IstrR, IendR 
+                  do j = jstrR, jendR
+                     do i = istrR, iendR 
                         HorYMixFlux_avg(i,j,k,iflux) = 
      &                       HorYMixFlux(i,j,k,iflux)
                      end do
@@ -161,8 +161,8 @@
             end do
             do iflux = 1, NT_PFA
                do k = 0, N
-                  do j = JstrR, JendR
-                     do i = IstrR, IendR 
+                  do j = jstrR, jendR
+                     do i = istrR, iendR 
                         VertMixFlux_avg(i,j,k,iflux) = 
      &                       VertMixFlux(i,j,k,iflux)
                      end do
@@ -171,8 +171,8 @@
             end do
             do iflux = 1, NT_PFA
                do k = 1, N
-                  do j = JstrR, JendR
-                     do i = IstrR, IendR 
+                  do j = jstrR, jendR
+                     do i = istrR, iendR 
                         NudgingFlux_avg(i,j,k,iflux) = 
      &                       NudgingFlux(i,j,k,iflux)
                      end do
@@ -183,16 +183,16 @@
          elseif (mod(iic-nts_phys_flux_avg,n_phys_flux_avg).gt.1) then
             if (ZEROTH_TILE) time_phys_flux_avg=
      &           time_phys_flux_avg+time
-            do j = JstrR, JendR
-               do i = IstrR, IendR
+            do j = jstrR, jendR
+               do i = istrR, iendR
                   zeta_phys_flux_avg(i,j) = zeta_phys_flux_avg(i,j) +
      &                 zeta(i,j,knew)
                end do
             end do
             do iflux = 1, NT_PFA
                do k = 1, N
-                  do j = JstrR, JendR
-                     do i = IstrR, IendR 
+                  do j = jstrR, jendR
+                     do i = istrR, iendR 
                         HorXAdvFlux_avg(i,j,k,iflux) = 
      &                       HorXAdvFlux_avg(i,j,k,iflux) +
      &                       HorXAdvFlux(i,j,k,iflux)
@@ -202,8 +202,8 @@
             end do
             do iflux = 1, NT_PFA
                do k = 1, N
-                  do j = JstrR, JendR
-                     do i = IstrR, IendR 
+                  do j = jstrR, jendR
+                     do i = istrR, iendR 
                         HorYAdvFlux_avg(i,j,k,iflux) = 
      &                       HorYAdvFlux_avg(i,j,k,iflux) +
      &                       HorYAdvFlux(i,j,k,iflux)
@@ -213,8 +213,8 @@
             end do
             do iflux = 1, NT_PFA
                do k = 0, N
-                  do j = JstrR, JendR
-                     do i = IstrR, IendR 
+                  do j = jstrR, jendR
+                     do i = istrR, iendR 
                         VertAdvFlux_avg(i,j,k,iflux) = 
      &                       VertAdvFlux_avg(i,j,k,iflux) +
      &                       VertAdvFlux(i,j,k,iflux)
@@ -225,8 +225,8 @@
 #ifdef VERT_DIFF_ANALYSIS
             do iflux = 1, NT_PFA
                do k = 0, N
-                  do j = JstrR, JendR
-                     do i = IstrR, IendR 
+                  do j = jstrR, jendR
+                     do i = istrR, iendR 
                         VertDiffFlux_avg(i,j,k,iflux) = 
      &                       VertDiffFlux_avg(i,j,k,iflux) +
      &                       VertDiffFlux(i,j,k,iflux)
@@ -237,8 +237,8 @@
 #endif
 # ifdef FULL_PHYS_FLUX_ANALYSIS
             do iflux = 1, NT_PFA
-               do j = JstrR, JendR
-                  do i = IstrR, IendR 
+               do j = jstrR, jendR
+                  do i = istrR, iendR 
                      TopFlux_avg(i,j,iflux) = 
      &                    TopFlux_avg(i,j,iflux) + 
      &                    TopFlux(i,j,iflux)
@@ -246,8 +246,8 @@
                end do
             end do
             do iflux = 1, NT_PFA
-               do j = JstrR, JendR
-                  do i = IstrR, IendR 
+               do j = jstrR, jendR
+                  do i = istrR, iendR 
                      BottomFlux_avg(i,j,iflux) = 
      &                    BottomFlux_avg(i,j,iflux) + 
      &                    BottomFlux(i,j,iflux)  
@@ -256,8 +256,8 @@
             end do
             do iflux = 1, NT_PFA
                do k = 1, N
-                  do j = JstrR, JendR
-                     do i = IstrR, IendR 
+                  do j = jstrR, jendR
+                     do i = istrR, iendR 
                         HorXMixFlux_avg(i,j,k,iflux) = 
      &                       HorXMixFlux_avg(i,j,k,iflux) +
      &                       HorXMixFlux(i,j,k,iflux)
@@ -267,8 +267,8 @@
             end do
             do iflux = 1, NT_PFA
                do k = 1, N
-                  do j = JstrR, JendR
-                     do i = IstrR, IendR 
+                  do j = jstrR, jendR
+                     do i = istrR, iendR 
                         HorYMixFlux_avg(i,j,k,iflux) = 
      &                       HorYMixFlux_avg(i,j,k,iflux) +
      &                       HorYMixFlux(i,j,k,iflux)
@@ -278,8 +278,8 @@
             end do
             do iflux = 1, NT_PFA
                do k = 0, N
-                  do j = JstrR, JendR
-                     do i = IstrR, IendR 
+                  do j = jstrR, jendR
+                     do i = istrR, iendR 
                         VertMixFlux_avg(i,j,k,iflux) = 
      &                       VertMixFlux_avg(i,j,k,iflux) +
      &                       VertMixFlux(i,j,k,iflux)
@@ -289,8 +289,8 @@
             end do
             do iflux = 1, NT_PFA
                do k = 1, N
-                  do j = JstrR, JendR
-                     do i = IstrR, IendR 
+                  do j = jstrR, jendR
+                     do i = istrR, iendR 
                         NudgingFlux_avg(i,j,k,iflux) = 
      &                       NudgingFlux_avg(i,j,k,iflux) +
      &                       NudgingFlux(i,j,k,iflux)
@@ -303,8 +303,8 @@
             cff=1./float(n_phys_flux_avg)
             if (ZEROTH_TILE) time_phys_flux_avg=cff*
      &           (time_phys_flux_avg+time)
-            do j = JstrR, JendR
-               do i = IstrR, IendR
+            do j = jstrR, jendR
+               do i = istrR, iendR
                   zeta_phys_flux_avg(i,j) = cff * 
      &                 ( zeta_phys_flux_avg(i,j) + 
      &                 zeta(i,j,knew) )
@@ -312,8 +312,8 @@
             end do
             do iflux = 1, NT_PFA
                do k = 1, N
-                  do j = JstrR, JendR
-                     do i = IstrR, IendR 
+                  do j = jstrR, jendR
+                     do i = istrR, iendR 
                         HorXAdvFlux_avg(i,j,k,iflux) = cff *
      &                       ( HorXAdvFlux_avg(i,j,k,iflux) +
      &                       HorXAdvFlux(i,j,k,iflux) )
@@ -323,8 +323,8 @@
             end do
             do iflux = 1, NT_PFA
                do k = 1, N
-                  do j = JstrR, JendR
-                     do i = IstrR, IendR 
+                  do j = jstrR, jendR
+                     do i = istrR, iendR 
                         HorYAdvFlux_avg(i,j,k,iflux) = cff *
      &                       ( HorYAdvFlux_avg(i,j,k,iflux) +
      &                       HorYAdvFlux(i,j,k,iflux) )
@@ -334,8 +334,8 @@
             end do
             do iflux = 1, NT_PFA
                do k = 0, N
-                  do j = JstrR, JendR
-                     do i = IstrR, IendR 
+                  do j = jstrR, jendR
+                     do i = istrR, iendR 
                         VertAdvFlux_avg(i,j,k,iflux) = cff *
      &                       ( VertAdvFlux_avg(i,j,k,iflux) +
      &                       VertAdvFlux(i,j,k,iflux) )
@@ -346,8 +346,8 @@
 #ifdef VERT_DIFF_ANALYSIS
             do iflux = 1, NT_PFA
                do k = 0, N
-                  do j = JstrR, JendR
-                     do i = IstrR, IendR 
+                  do j = jstrR, jendR
+                     do i = istrR, iendR 
                         VertDiffFlux_avg(i,j,k,iflux) = cff *
      &                       ( VertDiffFlux_avg(i,j,k,iflux) +
      &                       VertDiffFlux(i,j,k,iflux) )
@@ -358,8 +358,8 @@
 #endif
 # ifdef FULL_PHYS_FLUX_ANALYSIS
             do iflux = 1, NT_PFA
-               do j = JstrR, JendR
-                  do i = IstrR, IendR 
+               do j = jstrR, jendR
+                  do i = istrR, iendR 
                      TopFlux_avg(i,j,iflux) = cff *
      &                    ( TopFlux_avg(i,j,iflux) + 
      &                    TopFlux(i,j,iflux) )
@@ -367,8 +367,8 @@
                end do
             end do
             do iflux = 1, NT_PFA
-               do j = JstrR, JendR
-                  do i = IstrR, IendR 
+               do j = jstrR, jendR
+                  do i = istrR, iendR 
                      BottomFlux_avg(i,j,iflux) = cff *
      &                    ( BottomFlux_avg(i,j,iflux) + 
      &                    BottomFlux(i,j,iflux) )
@@ -377,8 +377,8 @@
             end do
             do iflux = 1, NT_PFA
                do k = 1, N
-                  do j = JstrR, JendR
-                     do i = IstrR, IendR 
+                  do j = jstrR, jendR
+                     do i = istrR, iendR 
                         HorXMixFlux_avg(i,j,k,iflux) = cff *
      &                       ( HorXMixFlux_avg(i,j,k,iflux) +
      &                       HorXMixFlux(i,j,k,iflux) )
@@ -388,8 +388,8 @@
             end do
             do iflux = 1, NT_PFA
                do k = 1, N
-                  do j = JstrR, JendR
-                     do i = IstrR, IendR 
+                  do j = jstrR, jendR
+                     do i = istrR, iendR 
                         HorYMixFlux_avg(i,j,k,iflux) = cff *
      &                       ( HorYMixFlux_avg(i,j,k,iflux) +
      &                       HorYMixFlux(i,j,k,iflux) )
@@ -399,8 +399,8 @@
             end do
             do iflux = 1, NT_PFA
                do k = 0, N
-                  do j = JstrR, JendR
-                     do i = IstrR, IendR 
+                  do j = jstrR, jendR
+                     do i = istrR, iendR 
                         VertMixFlux_avg(i,j,k,iflux) = cff *
      &                       ( VertMixFlux_avg(i,j,k,iflux) +
      &                       VertMixFlux(i,j,k,iflux) )
@@ -410,8 +410,8 @@
             end do
             do iflux = 1, NT_PFA
                do k = 1, N
-                  do j = JstrR, JendR
-                     do i = IstrR, IendR 
+                  do j = jstrR, jendR
+                     do i = istrR, iendR 
                         NudgingFlux_avg(i,j,k,iflux) = cff *
      &                       ( NudgingFlux_avg(i,j,k,iflux) +
      &                       NudgingFlux(i,j,k,iflux) )

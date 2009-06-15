@@ -834,8 +834,8 @@ c              goto 99                                     !--> ERROR
 #  define temp cff
 #  define SiO4 cff1
             do k=1,N
-               do j=JstrR,JendR
-                  do i=IstrR,IendR
+               do j=jstrR,jendR
+                  do i=istrR,iendR
                      temp=tclm(i,j,k,itemp)
                      if (temp.lt.8.) then
                         SiO4=30.
@@ -901,8 +901,8 @@ c              goto 99                                     !--> ERROR
 # ifdef BIOLOGY_BEC
         elseif (FIRST_TIME_STEP) then
           do k=1,N
-          do j=JstrR,JendR
-           do i=IstrR,IendR
+          do j=jstrR,jendR
+           do i=istrR,iendR
               if (tclm_tid(iDIC).lt.0) tclm(i,j,k,iDIC)=2200.
               if (tclm_tid(iALK).lt.0) tclm(i,j,k,iALK)=2300.
               if (tclm_tid(iNH4).lt.0) tclm(i,j,k,iNH4)=0.0
