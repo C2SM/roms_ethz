@@ -1,5 +1,7 @@
 #include "cppdefs.h"
 
+#if !defined ANA_BRY && (defined T_FRC_BRY || defined M2_FRC_BRY || \
+                         defined M3_FRC_BRY || defined Z_FRC_BRY )
 
       integer function nf_read_bry_EW (A, ncid, varid, record, type)
 !
@@ -218,3 +220,7 @@ cxx       write(*,*) 'starting nf_read_bry_NS mpi exchange part'
 cxx   write(*,*) 'return from nf_read_bry_NS'
       return
       end
+#else
+      subroutine nf_read_bry_empty
+      end
+#endif
