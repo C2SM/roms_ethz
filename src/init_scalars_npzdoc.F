@@ -50,7 +50,6 @@ C$OMP END PARALLEL
         ierr=ierr+1                                      !--> ERROR
       endif
 !
-      bio_count=0
       do i=0,2*NT+1
         global_sum(i)=QuadZero
       enddo

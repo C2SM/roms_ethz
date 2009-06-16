@@ -126,9 +126,6 @@
       common /ocean_t_sed_avg/t_sed_avg
 # endif /* SEDIMENT_BIOLOGY */
 
-      integer bio_count
-      common /communicators_npzdoc/ bio_count
-
       real*QUAD global_sum(0:2*NT+1)
 #  if defined SALINITY && defined VFLX_CORR
      &     , global_srf_sum(0:NT)

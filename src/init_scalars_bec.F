@@ -14,7 +14,7 @@
 #include "param.h"
 #include "scalars.h"
 #include "ncvars.h"
-#include "bgcflux.h"
+#include "comm_vars.h"
 #include "ncroms_bgcflux.h"
 !
 ! Find out how many threads are created and check whether the number
@@ -50,10 +50,9 @@ C$OMP END PARALLEL
         ierr=ierr+1                                      !--> ERROR
       endif
 !
-!      bio_count=0
-!      do i=0,2*NT+1
-!        global_sum(i)=QuadZero
-!      enddo
+      do i=0,2*NT+1
+        global_sum(i)=QuadZero
+      enddo
 
 !
 ! Define names of variables in NetCDF output files.
