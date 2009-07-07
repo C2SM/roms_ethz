@@ -518,6 +518,7 @@ c--# define OBC_M2ORLANSKI
 #   undef  ANA_SST
 #   undef  ANA_SRFLUX
 #   undef  ANA_STFLUX
+#   define DIURNAL_SRFLUX
 # endif
                       /* Lateral Mixing */
 # undef VIS_GRID
