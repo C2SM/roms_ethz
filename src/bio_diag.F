@@ -23,7 +23,7 @@
 #ifdef MPI
 # include "mpif.h"
       integer size, step, status(MPI_STATUS_SIZE), ierr
-      real*QUAD buff(0:2*NT+1)
+      real*QUAD buff(0:4*NT+3)
       common /xyz/ buff
 #endif
 #include "comm_vars.h"
@@ -200,10 +200,10 @@ C$OMP END CRITICAL (bio_cr_rgn)
       implicit none
 #include "param.h"
 #include "scalars.h"
-#include "comm_vars.h"   
+#include "comm_vars.h"
       integer itrc
       do itrc = 0, NT
-         global_srf_sum(itrc) = 0.Q0
+         global_srf_sum(itrc) = QuadZero
       enddo
 
       return
@@ -239,7 +239,7 @@ C$OMP END CRITICAL (bio_cr_rgn)
       real*QUAD my_srf_sum(0:NT)
 
       do itrc = 0, NT
-         my_srf_sum(itrc) = 0.Q0
+         my_srf_sum(itrc) = QuadZero
       enddo
       do j=Jstr,Jend
          do i=Istr,Iend
@@ -259,18 +259,20 @@ C$OMP END CRITICAL (bio_cr_rgn)
            else
               NSUB=NSUB_X*NSUB_E
            endif
-           
-C$OMP CRITICAL (bio_diag_rgn)
-           do itrc = 0, NT
-              global_srf_sum(itrc) = global_srf_sum(itrc) + 
-     &             my_srf_sum(itrc)
-           enddo
-C$OMP END CRITICAL (bio_diag_rgn)
-        enddo
+         enddo
       enddo
+
+! Summation over OpenMP threads:
+C$OMP CRITICAL (bio_diag_rgn)
+      do itrc = 0, NT
+         global_srf_sum(itrc) = global_srf_sum(itrc) + 
+     &             my_srf_sum(itrc)
+      enddo
+C$OMP END CRITICAL (bio_diag_rgn)
 
       return 
       end
+
 
 ! computes actual concentrations by dividing the total masses by volume
       subroutine scale_global_srf_sum()
@@ -284,13 +286,41 @@ C$OMP END CRITICAL (bio_diag_rgn)
 #include "comm_vars.h"
       integer itrc
       real*QUAD factor
-      if (global_srf_sum(0) .gt. 0) then
-         factor = 1.Q0 / global_srf_sum(0)
-      else
-         ! global_srf_sum(0) may be zero (if the whole MPI domain happens
-         ! to be on the land)
-         factor = 0.0
-      end if
+#ifdef MPI
+# include "mpif.h"
+      integer size, step, status(MPI_STATUS_SIZE), ierr
+      real*QUAD buff(0:2*NT+1)
+#endif
+
+#ifdef MPI
+!DL: at this point, each MPI process has an array global_srf_sum with
+! values for its own tile only. Now we sum over the MPI domains:
+      if (NNODES.gt.1) then
+         size=NNODES
+ 33       step=(size+1)/2
+         if (mynode.ge.step .and. mynode.lt.size) then
+            ! global_srf_sum may be real*16, so the size of the message
+            ! in the following send is doubled:
+            call MPI_Send (global_srf_sum, 2*NT+2, MPI_DOUBLE_PRECISION,
+     &           mynode-step, 18, MPI_COMM_WORLD, ierr)
+         elseif (mynode .lt. size-step) then
+            call MPI_Recv (buff, 2*NT+2 , MPI_DOUBLE_PRECISION,
+     &           mynode+step, 18, MPI_COMM_WORLD, status, ierr)
+            do itrc=0,NT
+               global_srf_sum(itrc)=global_srf_sum(itrc)+buff(itrc)
+            enddo
+         end if   ! <-- mynode.ge.step .and. mynode.lt.size
+         size=step
+         if (size.gt.1) goto 33
+
+         call MPI_Barrier (ocean_grid_comm, ierr)
+         call MPI_Bcast(global_srf_sum, 2*NT+2, MPI_DOUBLE_PRECISION,
+     &               0, ocean_grid_comm, ierr)
+      end if   ! <-- NNODES.gt.1
+#endif
+
+      ! global_srf_sum(0) is now the volume of the whole model domain:
+      factor = 1.0 / global_srf_sum(0)
       do itrc = 1, NT
          global_srf_sum(itrc) = global_srf_sum(itrc) * factor
       enddo

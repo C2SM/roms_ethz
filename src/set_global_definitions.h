@@ -245,9 +245,11 @@ c--#define ALLOW_SINGLE_BLOCK_MODE
 # define QUAD 16
 #  define QuadZero 0.Q0
 /* #  define QuadZero 0.0_16 */
+# define QuadOne 1.Q0
 #else
 # define QUAD 8
 # define QuadZero 0.D0
+# define QuadOne 1.D0
 #endif
  
 c-#ifdef DBLEPREC

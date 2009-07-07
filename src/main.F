@@ -230,6 +230,32 @@ C$OMP END MASTER
 C$OMP BARRIER
 
 
+!DL: give a warning if writing of avg/his files is not synchronized with
+! writing of restart files and ldefhis is set to true:
+#ifdef AVERAGES
+      if (nrpfavg.ne.0 .and. mod(nrecavg, nrpfavg).gt.0 .and. ldefhis) then
+         write (*,*) 
+         write (*,'(a,1x,a,i10,1x,2a)') 'WARNING: first averages record will be',
+     &       'written into record ', mod(nrecavg, nrpfavg)+1,
+     &       'of file ', avgname
+         write (*,'(2a,1x,a)') 'You have chosen to create a NEW ', avgname, 
+     &       'by setting ldefhis to true.'
+         write (*,*) 'Are you sure that this is what you want?'
+         write (*,*)
+      end if
+#endif
+      if (nrpfhis.ne.0 .and. mod(nrechis-1, nrpfhis).gt.0 .and. ldefhis) then
+         write (*,*) 
+         write (*,'(a,1x,a,i10,1x,2a)') 'WARNING: first history record will be',
+     &       'written into record ', mod(nrechis-1, nrpfhis)+1,
+     &       'of file ', hisname
+         write (*,'(2a,1x,a)') 'You have chosen to create a NEW ', hisname, 
+     &       'by setting ldefhis to true.'
+         write (*,*) 'Are you sure that this is what you want?'
+         write (*,*)
+      end if
+!End DL
+
       if (may_day_flag.ne.0) goto 99      !--> ERROR
 CR      write(*,*) ' -5' MYID
                               ! Set initial model clock: at this
@@ -297,7 +323,8 @@ CR      write(*,*) ' -1' MYID
 ! just above.
 !
 
-#if defined SALINITY && (defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC) && defined VFLX_CORR
+#if defined SALINITY && (defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC) \
+    && defined VFLX_CORR && defined USE_GLOBAL_SRF_SUM
         call reset_global_srf_sum()
 ! If the virtual flux correction is used, globally averaged concentrations
 ! for the surface cells must be available for subroutine set_stflux_tile
@@ -307,9 +334,9 @@ C$OMP PARALLEL DO PRIVATE(tile)
            call calc_global_srf_sum(tile)
         enddo
 
-! Keep this routine out of the parallel region        
+! Keep this routine out of the parallel region
         call scale_global_srf_sum()
-#endif /* SALINITY && (BIOLOGY_NPZDOC || BIOLOGY_BEC) && VFLX_CORR */
+#endif /* SALINITY && (BIOLOGY_NPZDOC || BIOLOGY_BEC) && VFLX_CORR ..*/
 
 #ifdef BIOLOGY_NPZDOC
 C$OMP PARALLEL DO PRIVATE(tile)
@@ -463,7 +490,7 @@ C$OMP BARRIER
         call    set_HUV (tile)
         call       diag (tile)
 #if defined BIOLOGY || defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC
-        call   bio_diag (tile)
+!        call   bio_diag (tile)
 #endif
       enddo
 C$OMP BARRIER

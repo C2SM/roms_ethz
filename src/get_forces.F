@@ -119,7 +119,12 @@
 #if defined VFLX_CORR && (defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC)
 # include "comm_vars.h"
 # include "forces.h"
-#endif
+# include "ocean3d.h"
+# include "scalars.h"
+# ifdef MASKING
+#  include "grid.h"
+# endif
+#endif /* VFLX_CORR && (defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC) */
 !
 #include "compute_tile_bounds.h"
 !
@@ -174,18 +179,26 @@ c***              no code here
       call set_stflux_tile (istr,iend,jstr,jend, isalt, ierr)
 #   if defined VFLX_CORR && (defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC)
       ! Flux correction for all biological/chemical tracers
-      if (global_srf_sum(isalt) .gt. 0.0) then
-         cff = 1. / global_srf_sum(isalt)
-      else
-         ! global_srf_sum(isalt) may be zero (if the whole MPI domain
-         ! happens to be on the land)
-         cff = 0.0
-      end if
+#   ifdef USE_GLOBAL_SRF_SUM
+      cff = 1. / global_srf_sum(isalt)
+#   endif
       do itrc=isalt+1,NT
          do j=jstr,jend
             do i=istr,iend
+#   ifdef MASKING
+               if (rmask(i,j) .eq. 1) then
+#   endif
                stflx(i,j,itrc)=stflx(i,j,isalt)*
+#   ifdef USE_GLOBAL_SRF_SUM
      &              global_srf_sum(itrc) * cff
+#   else
+     &         t(i,j,N,nrhs,itrc)/t(i,j,N,nrhs,isalt)
+#   endif
+#   ifdef MASKING
+               else ! rmask(i,j) .eq. 1
+                  stflx(i,j,itrc)=0.0
+               endif
+#   endif
             enddo
          enddo
       enddo
