@@ -25,6 +25,9 @@
 #include "forces.h" 
 !need for surface velocity
 #include "scalars.h" 
+#if defined MPI && defined VARIABLE_ANN_ATM_PCO2
+# include "mpif.h"
+#endif
 !need for dt,nnew
 
          integer::i,j,k,m,nn,ctime
@@ -78,6 +81,14 @@
      &    del_ph = 0.25     ! delta-ph for prev soln
 
 !HF     &    a = 8.6e-9,       ! a = 0.31 cm/hr s^2/m^2 in (s/cm)
+
+!DL: needed for interannual variations of pCO2:
+# ifdef VARIABLE_ANN_ATM_PCO2
+        integer ierr
+        real tdays_pco2, curr_year, atm_co2
+        external get_atmco2
+        real, external:: get_frac_year
+# endif
 
 !------------------------------------------------------------------------
 !Interface for exchanging variables between ROMS and MGM
@@ -217,15 +228,25 @@
              PV = c0
            END WHERE
 
-        ! OCMIP-2 mandated value (278 ppm, dry-air, 1 atm)
+! Set a default value for pCO2 in the air. Will be overwritten if 
+! VARIABLE_ANN_ATM_PCO2 and/or VARIABLE_ATM_PCO2 is defined:
+           XCO2 = 370.0
+! OCMIP-2 mandated value (278 ppm, dry-air, 1 atm)
+!HF           XCO2 = 278.0
+# ifdef VARIABLE_ANN_ATM_PCO2
+           ! Compute number of simulated days since the start of the simulation:
+           tdays_pco2 = time*sec2day
+           ! Compute where in which year we are:
+           curr_year = start_year + get_frac_year(tdays_pco2)
+           ! Determine atm pco2:
+           call get_atmco2(curr_year,futr_scen,atm_co2)
+           XCO2 = atm_co2
+# endif
 # ifdef VARIABLE_ATM_PCO2
       ! the factor deg2rad converts 360d into one full cycle of 2 pi
       ! the subtraction of 30d ensures that the maximum is reached
       ! at the end of April and the minimum at the end of October
-           XCO2 = 370. + 2.9 * sin(deg2rad*(tdays-30.))
-# else /* VARIABLE_ATM_PCO2 */
-           XCO2 = 370.0
-!HF           XCO2 = 278.0
+           XCO2 = XCO2 + 2.9 * sin(deg2rad*(tdays-30.))
 # endif /* VARIABLE_ATM_PCO2 */
            
 

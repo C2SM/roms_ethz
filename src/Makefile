@@ -14,9 +14,8 @@
 #include Makedefs.g95
 #include Makedefs.Fujitsu
 #include Makedefs.Gonzales.ifort
-#include Makedefs.IntelBrutus
-#include Makedefs.IntelBrutus_ompi
-include localMachineMakeDefs
+include Makedefs.IntelBrutus_ompi
+#include Makedefs.PGIBrutus_ompi
 
 
 #                                      All source code files are 
@@ -61,7 +60,7 @@ KRNSRC = main.F		step2D_FB.F	read_inp.F	sta_par.F\
 	ta_iter_SWS.F wrt_bgc_flux_avg.F wrt_bgc_flux_his.F\
 	def_phys_flux.F\
 	set_phys_flux_avg.F wrt_phys_flux_his.F wrt_phys_flux_avg.F\
-	biology.F  bio_diag.F\
+	biology.F  bio_diag.F atm_pco2.F calendar.F\
 \
 	init_scalars_bec.F ecosys_bec.F ecosys_bec_init.F get_dust.F\
 	get_iron.F set_bec_flux_avg.F wrt_bec_flux_avg.F wrt_bec_flux_his.F\

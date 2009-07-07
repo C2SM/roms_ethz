@@ -92,6 +92,9 @@
 #include "forces.h"
 #include "biopar.h"
 #include "bgcflux.h"
+#if defined MPI && defined VARIABLE_ANN_ATM_PCO2
+# include "mpif.h"
+#endif
 
 #ifdef DAILYPAR_PHOTOINHIBITION
       real thisPARdaily
@@ -182,6 +185,14 @@
 #ifdef CARBON
       real CFlux_NewProd, CFlux_RegProd, CFlux_Precip
 #endif /* CARBON */
+!
+!DL: needed for interannual variations of pCO2:
+# ifdef VARIABLE_ANN_ATM_PCO2
+        real tdays_pco2, curr_year
+        integer ierr
+        external get_atmco2
+        real, external:: get_frac_year
+# endif
 
 #include "compute_auxiliary_bounds.h"
 
@@ -192,13 +203,22 @@
 
 
 #ifdef CARBON
+! Set a default value for pCO2 in the air. Will be overwritten if 
+! VARIABLE_ANN_ATM_PCO2 and/or VARIABLE_ATM_PCO2 is defined:
+           pCO2air_loc = 370.0
+# ifdef VARIABLE_ANN_ATM_PCO2
+           ! Compute number of simulated days since the start of the simulation:
+           tdays_pco2 = time*sec2day
+           ! Compute where in which year we are:
+           curr_year = start_year + get_frac_year(tdays_pco2)
+           ! Determine atm pco2:
+           call get_atmco2(curr_year,futr_scen,pCO2air_loc)
+# endif
 # ifdef VARIABLE_ATM_PCO2
       ! the factor deg2rad converts 360d into one full cycle of 2 pi
       ! the subtraction of 30d ensures that the maximum is reached
       ! at the end of April and the minimum at the end of October
-      pCO2air_loc = 370. + 2.9 * sin(deg2rad*(tdays-30.))
-# else /* VARIABLE_ATM_PCO2 */
-      pCO2air_loc = 370.        ! concentration of atmospheric CO2
+      pCO2air_loc = pCO2air_loc + 2.9 * sin(deg2rad*(tdays-30.))
 # endif /* VARIABLE_ATM_PCO2 */
 #endif /* CARBON */
 

@@ -110,6 +110,14 @@ C$OMP THREADPRIVATE(/priv_scalars/)
       common /scalars_main/ tauM3_in,tauM3_out, tauT_in,tauT_out
 # endif
 #endif
+!DL: variables for varying atm pCO2:
+#if defined BIOLOGY_BEC || defined BIOLOGY_NPZDOC
+# ifdef VARIABLE_ANN_ATM_PCO2
+      real start_year
+      character(len=4) futr_scen
+      common /scalars_var_atm_co2/ start_year, futr_scen
+# endif
+#endif
 
 
       integer ntstart, ntimes, ndtfast, nfast, ninfo, may_day_flag,

@@ -28,9 +28,15 @@
       parameter (kwsize=32, testunit=40, input=15)
       character end_signal*3, keyword*32, fname*64
       parameter (end_signal='end')
-      integer ierr, iargc, is,ie,  kwlen, lstr, lenstr
+      integer ierr, iargc, is,ie,  kwlen, lstr, lenstr, i
 #ifdef SOLVE3D
      &                                            , itrc
+#endif
+!DL: variable for varying atm pCO2:
+#if defined BIOLOGY_BEC || defined BIOLOGY_NPZDOC 
+# ifdef VARIABLE_ANN_ATM_PCO2
+      logical futr_scen_valid
+# endif
 #endif
       integer*4 ione      ! This is needed to avoid automatic
       parameter (ione=1)  ! promotion to 8-byte integer by
@@ -281,61 +287,42 @@ c--      fname='roms.in.US_West'
 
         elseif (keyword(1:kwlen).eq.'climatology') then
           call cancel_kwd (keyword(1:kwlen), ierr)
+# ifdef MULT_CLIM_FILES
+          ! Read number of climatology files:
+          read(input,'(i)') nclimfiles
+          if (nclimfiles > 4) then
+             MPI_master_only write (*,'(a,1x,a)') 'ERROR:',
+     &         'at most 4 climatology files are possible.'
+             goto 95
+          end if
+          MPI_master_only write(stdout,'(3x,a,i3)')
+     &      'Number of climatology files: ', nclimfiles
+          ! Read names of clim files (one per line):
+          do i = 1,nclimfiles
+             read(input,'(A)',err=95) fname
+             lstr=lenstr(fname)
+#  if defined MPI && defined PARALLEL_FILES
+             call insert_node (fname, lstr, mynode, NNODES, ierr)
+#  endif
+             open (testunit, file=fname(1:lstr), status='old', err=97)
+             close(testunit)
+             clm_file(i) = fname(1:lstr)
+             MPI_master_only write(stdout,'(3x,A,i3,A,2x,A)')
+     &          'Climatology File ',i,':', clm_file(i)(1:lstr)
+          end do
+# else /* MULT_CLIM_FILES */
           read(input,'(A)',err=95) fname
           lstr=lenstr(fname)
-# if defined MPI && defined PARALLEL_FILES
+#  if defined MPI && defined PARALLEL_FILES
           call insert_node (fname, lstr, mynode, NNODES, ierr)
-# endif
+#  endif
           open (testunit, file=fname(1:lstr), status='old', err=97)
           close(testunit)
           clm_file=fname(1:lstr)
           MPI_master_only write(stdout,'(3x,A,2x,A)')
      &          'Climatology File:', clm_file(1:lstr)
-# if defined TWO_CLIM_FILES || defined THREE_CLIM_FILES || \
-        defined FOUR_CLIM_FILES
-        elseif (keyword(1:kwlen).eq.'clim_file2') then
-          call cancel_kwd (keyword(1:kwlen), ierr)
-          read(input,'(A)',err=95) fname
-          lstr=lenstr(fname)
-#  if defined MPI && defined PARALLEL_FILES
-          call insert_node (fname, lstr, mynode, NNODES, ierr)
-#  endif
-          open (testunit, file=fname(1:lstr), status='old', err=97)
-          close(testunit)
-          clm_file2=fname(1:lstr)
-          MPI_master_only write(stdout,'(3x,A,2x,A)')
-     &          'Climatology File 2:', clm_file2(1:lstr)
-# endif /* TWO_CLIM_FILES || THREE_CLIM_FILES || FOUR_CLIM_FILES */
-# if defined THREE_CLIM_FILES || defined FOUR_CLIM_FILES
-        elseif (keyword(1:kwlen).eq.'clim_file3') then
-          call cancel_kwd (keyword(1:kwlen), ierr)
-          read(input,'(A)',err=95) fname
-          lstr=lenstr(fname)
-#  if defined MPI && defined PARALLEL_FILES
-          call insert_node (fname, lstr, mynode, NNODES, ierr)
-#  endif
-          open (testunit, file=fname(1:lstr), status='old', err=97)
-          close(testunit)
-          clm_file3=fname(1:lstr)
-          MPI_master_only write(stdout,'(3x,A,2x,A)')
-     &          'Climatology File 3:', clm_file3(1:lstr)
-# endif /* THREE_CLIM_FILES || FOUR_CLIM_FILES */
-# ifdef FOUR_CLIM_FILES
-         elseif (keyword(1:kwlen).eq.'clim_file4') then
-          call cancel_kwd (keyword(1:kwlen), ierr)
-          read(input,'(A)',err=95) fname
-          lstr=lenstr(fname)
-#  if defined MPI && defined PARALLEL_FILES
-          call insert_node (fname, lstr, mynode, NNODES, ierr)
-#  endif
-          open (testunit, file=fname(1:lstr), status='old', err=97)
-          close(testunit)
-          clm_file4=fname(1:lstr)
-          MPI_master_only write(stdout,'(3x,A,2x,A)')
-     &          'Climatology File 4:', clm_file4(1:lstr)
-         
-# endif /* FOUR_CLIM_FILES */
-#endif
+# endif /* MULT_CLIM_FILES */
+#endif /* SOLVE3D &&( defined TCLIMATOLOGY... */
 
 #if defined T_FRC_BRY || defined M2_FRC_BRY || \
     defined M3_FRC_BRY || defined Z_FRC_BRY
@@ -1025,6 +1012,43 @@ c--      fname='roms.in.US_West'
      &       tau_obc, 'tau_obc   OBC volume constraint',
      &                              'relaxation period [days]'
           tau_obc=tau_obc*day2sec
+#endif
+!DL: keywords related to interannual variations of atm. pCO2:
+#if defined BIOLOGY_BEC || defined BIOLOGY_NPZDOC
+# ifdef VARIABLE_ANN_ATM_PCO2
+        elseif (keyword(1:kwlen).eq.'start_year') then
+          ! Year at which the simulation starts. This is needed for
+          ! the computation of the atmospheric pCO2. It can be a 
+          ! floating point number, e.g. 2002.5 if the run starts in
+          ! the middle of 2002.
+          call cancel_kwd (keyword(1:kwlen), ierr)
+          read(input,*,err=95) start_year
+          MPI_master_only write(stdout,'(1pe10.3,2x,A,1x,A)')
+     &       start_year, 'start_year   point in time (year) when',
+     &       'simulation starts'
+        elseif (keyword(1:kwlen).eq.'futr_scen') then
+          ! Scenario used for computing future (i.e. past 1990.5) values
+          ! of pCO2. Must be one of the following: S350, S450, S550,
+          ! S650, S750, DS450, or DS550 from Enting et al. (1994), 
+          ! or CIS9 signifying c-IS92A for IPCC (2000) run.
+          call cancel_kwd (keyword(1:kwlen), ierr)
+          read(input,*,err=95) futr_scen
+          ! Test whether futr_scen contains a valid string:
+          futr_scen_valid = .false.
+          if (futr_scen(1:4) .eq. 'S350' .or. futr_scen(1:4) .eq. 'S450' .or.
+     &        futr_scen(1:4) .eq. 'S550' .or. futr_scen(1:4) .eq. 'S650' .or.
+     &        futr_scen(1:4) .eq. 'S750' .or. futr_scen(1:4) .eq. 'DS45' .or.
+     &        futr_scen(1:4) .eq. 'DS55' .or. futr_scen(1:4) .eq. 'CIS9')
+     &          futr_scen_valid = .true.
+          if (.not. futr_scen_valid) then
+             MPI_master_only write(stdout,'(3a)') 'Invalid value of ',
+     &       'futr_scen: ', futr_scen
+             goto 95
+          end if
+          MPI_master_only write(stdout,'(6x,A,2x,A,1x,A)')
+     &      futr_scen , 'futr_scen   scenario for past 1990.5 values',
+     &      'of atm. pCO2'
+# endif
 #endif
         else
           MPI_master_only write(stdout,'(/1x,4A/)') 'WARNING: ',
