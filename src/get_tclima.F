@@ -14,12 +14,14 @@
 # include "netcdf.inc"
       real cff
       integer i,itrc, lstr,lvar,lenstr, ierr, nf_fread
-# if defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC
-      integer lstr2, lstr3, lstr4
+# ifdef MULT_CLIM_FILES
+      integer ncidclm_loc(4), ii
+      logical var_found
+# else
+      integer ncidclm_loc
 # endif
-!# ifdef BIOLOGY_NPZDOC
-!      integer lstr2, lstr3
-!# endif
+      ! Array giving file in which data for each tracer are:
+      character(len=80) clm_file_tr(NT)
 !
 ! Initialization: Check, whether climatological data file is already
 !================ opened, and if not, open it.  Find and save netCDF
@@ -31,519 +33,107 @@
 ! part below.
 !
       ierr=nf_noerr
-      lstr=lenstr(clm_file)
       if (iic.eq.ntstart) then
-        if (ncidclm.eq.-1) then
-          ierr=nf_open (clm_file(1:lstr), nf_nowrite, ncidclm)
+# ifdef MULT_CLIM_FILES
+         if (any(ncidclm.eq.-1)) then
+            do i = 1,nclimfiles
+               lstr=lenstr(clm_file(i))
+               ierr=nf_open (clm_file(i)(1:lstr), nf_nowrite, ncidclm_loc(i))
+               if (ierr .ne. nf_noerr) then
+                  write(stdout,'(/1x,4A/)') 'ERROR ',
+     &            'in get_tclima: can not open netCDF file ''',
+     &            clm_file(i)(1:lstr),   '''.'
+                  goto 99
+               end if
+            end do
+            ! Initialize ncidclm: for each tracer, check all the climatology files.
+            ! If no file contains values for tracer itrc, then set ncidclm(itrc)
+            ! to 0 (and a default value will be used).
+            do itrc=1,NT
+               var_found = .false.
+               lvar=lenstr(vname(1,indxT+itrc-1))
+               do i = 1,nclimfiles
+                  ierr=nf_inq_varid (ncidclm_loc(i),vname(1,indxT+itrc-1),ii)
+                  if (ierr .eq. nf_noerr) then
+                     ! Just to be sure: check also that the data times are there:
+                     ierr=nf_inq_varid (ncidclm_loc(i),tclm_name(itrc),ii)
+                     if (ierr .ne. nf_noerr) then
+                        lstr=lenstr(clm_file(i))
+                        write(stdout,'(/1x,4A/)') 'ERROR ',
+     &                  'in get_tclima: cannot find variable ',tclm_name(itrc),
+     &                  ' in file ',clm_file(i)(1:lstr)
+                        print *, 'corr tracer: ', vname(1,indxT+itrc-1)(1:lvar)
+                        goto 99
+                     end if
+                     var_found = .true.
+                     lstr=lenstr(clm_file(i))
+                     ncidclm(itrc) = ncidclm_loc(i)
+                     clm_file_tr(itrc) = clm_file(i)(1:lstr)
+                     tclm_tid(itrc) = ii
+                     MPI_master_only write(stdout,'(6x,2a,a8,2a)') 
+     &                  'get_tclima: ','found data for ',
+     &                  vname(1,indxT+itrc-1)(1:lvar),
+     &                  ' in file ',clm_file(i)(1:lstr)
+                     exit
+                  end if
+               end do
+               ! If variable has not been found in any clim file, then we set
+               ! ncidclm(itrc) to zero and tclm_tid(itrc) to -1:
+               if (.not.var_found) then
+                  ncidclm(itrc) = 0
+                  clm_file_tr(itrc) = ''
+                  tclm_tid(itrc) = -1
+                  MPI_master_only write(stdout,'(6x,4a)') 
+     &                  'get_tclima: ','NO data found for ',
+     &                  vname(1,indxT+itrc-1)(1:lvar),
+     &                  ' in climatology file(s). Using default value.'
+                  ierr = nf_noerr
+               end if
+            end do ! itrc=1,NT
+         end if  ! any(ncidclm.eq.-1)
+# else /* MULT_CLIM_FILES */
+        lstr=lenstr(clm_file)
+        if (any(ncidclm.eq.-1)) then
+          ierr = nf_open(clm_file(1:lstr), nf_nowrite, ncidclm_loc)
           if (ierr .ne. nf_noerr) then
              write(stdout,'(/1x,4A/)') 'ERROR ',
      &            'in get_tclima: can not open netCDF file ''',
      &            clm_file(1:lstr),   '''.'
              goto 99
           end if
-        endif
-#if defined TWO_CLIM_FILES || defined THREE_CLIM_FILES || defined FOUR_CLIM_FILES
-        if (ncidclm2.eq.-1) then
-           lstr2=lenstr(clm_file2)
-           ierr=nf_open (clm_file2(1:lstr2), nf_nowrite, ncidclm2)
-           if (ierr .ne. nf_noerr) goto 22 !--> ERROR
-        endif
-#elif defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC
-        ncidclm2 = ncidclm
-        clm_file2 = clm_file
-        lstr2 = lstr
-#endif
-#if defined THREE_CLIM_FILES || defined FOUR_CLIM_FILES
-        if (ncidclm3.eq.-1) then
-          lstr3=lenstr(clm_file3)
-          ierr=nf_open (clm_file3(1:lstr3), nf_nowrite, ncidclm3)
-          if (ierr .ne. nf_noerr) goto 33                !--> ERROR
-        endif
-#elif defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC
-        ncidclm3 = ncidclm2
-        clm_file3 = clm_file2
-        lstr3 = lstr2
-#endif
-# ifdef FOUR_CLIM_FILES
-        if (ncidclm4.eq.-1) then
-          lstr4=lenstr(clm_file4)
-          ierr=nf_open (clm_file4(1:lstr4), nf_nowrite, ncidclm4)
-          if (ierr .ne. nf_noerr) goto 44
-        endif
-# else
-#  ifdef BIOLOGY_BEC
-        ncidclm4 = ncidclm3
-        clm_file4 = clm_file3
-        lstr4 = lstr3
-#  endif
-# endif /* FOUR_CLIM_FILES */
+          ! Initialize ncidclm:
+          do itrc=1,NT
+             ncidclm(itrc) = ncidclm_loc
+             clm_file_tr(itrc) = clm_file(1:lstr)
+          end do
+        endif  ! ncidclm.eq.-1
+# endif /* MULT_CLIM_FILES */
+
 
         do itrc=1,NT
-          if (ierr.eq.nf_noerr) then
-            if (itrc.eq.itemp) then
-              ierr=nf_inq_varid (ncidclm,'tclm_time',tclm_tid(itrc))
-              if (ierr .ne. nf_noerr) write(stdout,1) 'tclm_time',
-     &                                         itrc, clm_file(1:lstr)
-# ifdef SALINITY
-            elseif (itrc.eq.isalt) then
-              ierr=nf_inq_varid (ncidclm, 'sclm_time',tclm_tid(itrc))
-              if (ierr .ne. nf_noerr) write(stdout,1) 'sclm_time',
-     &                                         itrc, clm_file(1:lstr)
-# endif
-# ifdef BIOLOGY_NPZDOC
-            elseif (itrc.eq.iNO3_) then
-              ierr=nf_inq_varid (ncidclm2, 'no3_time', tclm_tid(itrc))
-              if (ierr .ne. nf_noerr) then
-                MPI_master_only write(stdout,3) 'no3_time', 
-     &                itrc, clm_file2(1:lstr2)
-                tclm_tid(itrc) = 0
-                ierr = nf_noerr
-              endif
-            elseif (itrc.eq.iNH4_) then
-              ierr=nf_inq_varid (ncidclm2, 'nh4_time', tclm_tid(itrc))
-              if (ierr .ne. nf_noerr) then
-                MPI_master_only write(stdout,3) 'nh4_time', 
-     &                itrc, clm_file2(1:lstr2)
-                tclm_tid(itrc) = 0
-                ierr = nf_noerr
-              endif
-            elseif (itrc.eq.iChla) then
-              ierr=nf_inq_varid (ncidclm2, 'chla_time', tclm_tid(itrc))
-              if (ierr .ne. nf_noerr) then
-                MPI_master_only write(stdout,3) 'chla_time', 
-     &                itrc, clm_file2(1:lstr2)
-                tclm_tid(itrc) = 0
-                ierr = nf_noerr
-            endif
-            elseif (itrc.eq.iPhyt) then
-              ierr=nf_inq_varid (ncidclm2, 'phyto_time', tclm_tid(itrc))
-              if (ierr .ne. nf_noerr) then
-                MPI_master_only write(stdout,3) 'phyto_time', 
-     &                itrc, clm_file2(1:lstr2)
-                tclm_tid(itrc) = 0
-                ierr = nf_noerr
-              endif
-            elseif (itrc.eq.iZoo_) then
-              ierr=nf_inq_varid (ncidclm2, 'zoo_time', tclm_tid(itrc))
-              if (ierr .ne. nf_noerr) then
-                MPI_master_only write(stdout,3) 'zoo_time', 
-     &                itrc, clm_file2(1:lstr2)
-                tclm_tid(itrc) = 0
-                ierr = nf_noerr
-              endif
-            elseif (itrc.eq.iSDet) then
-              ierr=nf_inq_varid (ncidclm2, 'sdet_time', tclm_tid(itrc))
-              if (ierr .ne. nf_noerr) then
-                MPI_master_only write(stdout,3) 'sdet_time', 
-     &                itrc, clm_file2(1:lstr2)
-                tclm_tid(itrc) = 0
-                ierr = nf_noerr
-              endif
-            elseif (itrc.eq.iLDet) then
-              ierr=nf_inq_varid (ncidclm2, 'ldet_time', tclm_tid(itrc))
-              if (ierr .ne. nf_noerr) then
-                MPI_master_only write(stdout,3) 'ldet_time', 
-     &                itrc, clm_file2(1:lstr2)
-                tclm_tid(itrc) = 0
-                ierr = nf_noerr
-              endif
-#  ifdef OXYGEN
-            elseif (itrc.eq.iO2) then
-              ierr=nf_inq_varid (ncidclm3, 'o2_time', tclm_tid(itrc))
-              if (ierr .ne. nf_noerr) then
-                MPI_master_only write(stdout,3) 'o2_time', 
-     &                itrc, clm_file3(1:lstr3)
-                tclm_tid(itrc) = 0
-                ierr = nf_noerr
-              endif
-#   ifdef CARBON
-            elseif (itrc.eq.iDIC) then
-              ierr=nf_inq_varid (ncidclm3, 'dic_time', tclm_tid(itrc))
-              if (ierr .ne. nf_noerr) then
-                MPI_master_only write(stdout,3) 'dic_time', 
-     &                itrc, clm_file3(1:lstr3)
-                tclm_tid(itrc) = 0
-                ierr = nf_noerr
-            endif
-            elseif (itrc.eq.iTALK) then
-              ierr=nf_inq_varid (ncidclm3, 'alk_time', tclm_tid(itrc))
-              if (ierr .ne. nf_noerr) then
-                MPI_master_only write(stdout,3) 'alk_time', 
-     &                itrc, clm_file3(1:lstr3)
-                tclm_tid(itrc) = 0
-                ierr = nf_noerr
-            endif
-            elseif (itrc.eq.iSDetC) then
-              ierr=nf_inq_varid (ncidclm3, 'sdetc_time', tclm_tid(itrc))
-              if (ierr .ne. nf_noerr) then
-                MPI_master_only write(stdout,3) 'sdetc_time', 
-     &                itrc, clm_file3(1:lstr3)
-                tclm_tid(itrc) = 0
-                ierr = nf_noerr
-              endif
-            elseif (itrc.eq.iLDetC) then
-              ierr=nf_inq_varid (ncidclm3, 'ldetc_time', tclm_tid(itrc))
-              if (ierr .ne. nf_noerr) then
-                MPI_master_only write(stdout,3) 'ldetc_time', 
-     &                itrc, clm_file3(1:lstr3)
-                tclm_tid(itrc) = 0
-                ierr = nf_noerr
-              endif
-            elseif (itrc.eq.iCaCO3) then
-              ierr=nf_inq_varid (ncidclm3, 'caco3_time', tclm_tid(itrc))
-              if (ierr .ne. nf_noerr) then
-                MPI_master_only write(stdout,3) 'caco3_time', 
-     &                itrc, clm_file3(1:lstr3)
-                tclm_tid(itrc) = 0
-                ierr = nf_noerr
-              endif
-#   endif /* CARBON */
-#  endif /* OXYGEN */
-# endif /* BIOLOGY_NPZDOC */
-# ifdef BIOLOGY_BEC
-          elseif (itrc.eq.iPO4) then
-            ierr=nf_inq_varid (ncidclm, 'po4_time', tclm_tid(itrc))
-            if (ierr .ne. nf_noerr) then
-              write(stdout,1) 'po4_time', itrc, clm_file(1:lstr)
-            endif
-          elseif (itrc.eq.iNO3) then
-            ierr=nf_inq_varid (ncidclm, 'no3_time', tclm_tid(itrc))
-            if (ierr .ne. nf_noerr) then
-              write(stdout,1) 'no3_time', itrc, clm_file(1:lstr)
-            endif
-          elseif (itrc.eq.iSIO3) then
-            ierr=nf_inq_varid (ncidclm, 'sio3_time', tclm_tid(itrc))
-            if (ierr .ne. nf_noerr) then
-             write(stdout,1) 'sio3_time', itrc, clm_file(1:lstr)
-           endif
-          elseif (itrc.eq.iO2) then
-            ierr=nf_inq_varid (ncidclm, 'o2_time', tclm_tid(itrc))
-            if (ierr .ne. nf_noerr) then
-            write(stdout,1) 'o2_time', itrc, clm_file(1:lstr)
-         endif
-         elseif (itrc.eq.iFE) then
-            ierr=nf_inq_varid (ncidclm2, 'fe_time', tclm_tid(itrc))
-            if (ierr .ne. nf_noerr) then
-              write(stdout,1) 'fe_time', itrc, clm_file2(1:lstr2)
-            endif
-         elseif (itrc.eq.iDIC) then
-             ierr=nf_inq_varid (ncidclm2, 'dic_time', tclm_tid(itrc))
-            if (ierr .ne. nf_noerr) then
-             write(stdout,1) 'dic_time', itrc, clm_file2(1:lstr2)
-            endif
-         elseif (itrc.eq.iALK) then
-             ierr=nf_inq_varid (ncidclm2, 'alk_time', tclm_tid(itrc))
-            if (ierr .ne. nf_noerr) then
-               write(stdout,1) 'alk_time', itrc, clm_file2(1:lstr2)
-            endif
-         elseif (itrc.eq.iNH4) then
-            ierr=nf_inq_varid (ncidclm2, 'nh4_time', tclm_tid(itrc))
-            if (ierr .ne. nf_noerr) then
-                MPI_master_only write(stdout,3) 'nh4_time', 
-     &                itrc, clm_file2(1:lstr2)
-                tclm_tid(itrc) = 0
-                ierr = nf_noerr
-!             write(stdout,1) 'nh4_time', itrc, clm_file2(1:lstr2)
-            endif
-         elseif (itrc.eq.iDOC) then
-            ierr=nf_inq_varid (ncidclm2, 'doc_time', tclm_tid(itrc))
-            if (ierr .ne. nf_noerr) then
-                MPI_master_only write(stdout,3) 'doc_time', 
-     &                itrc, clm_file2(1:lstr2)
-                tclm_tid(itrc) = 0
-                ierr = nf_noerr
-!               write(stdout,1) 'doc_time', itrc, clm_file2(1:lstr2)
-            endif
-         elseif (itrc.eq.iDOP) then
-            ierr=nf_inq_varid (ncidclm2, 'dop_time', tclm_tid(itrc))
-            if (ierr .ne. nf_noerr) then
-                MPI_master_only write(stdout,3) 'dop_time', 
-     &                itrc, clm_file2(1:lstr2)
-                tclm_tid(itrc) = 0
-                ierr = nf_noerr
-!               write(stdout,1) 'dop_time', itrc, clm_file2(1:lstr2)
-c              goto 99                                     !--> ERROR
-            endif
-         elseif (itrc.eq.iDON) then
-            ierr=nf_inq_varid (ncidclm2, 'don_time', tclm_tid(itrc))
-            if (ierr .ne. nf_noerr) then
-                MPI_master_only write(stdout,3) 'don_time', 
-     &                itrc, clm_file2(1:lstr2)
-                tclm_tid(itrc) = 0
-                ierr = nf_noerr
-!                write(stdout,1) 'don_time', itrc, clm_file2(1:lstr2)
-c              goto 99                                     !--> ERROR
-            endif
-         elseif (itrc.eq.iDOFE) then
-            ierr=nf_inq_varid (ncidclm2, 'dofe_time', tclm_tid(itrc))
-            if (ierr .ne. nf_noerr) then
-                MPI_master_only write(stdout,3) 'dofe_time', 
-     &                itrc, clm_file2(1:lstr2)
-                tclm_tid(itrc) = 0
-                ierr = nf_noerr
-!               write(stdout,1) 'dofe_time', itrc, clm_file2(1:lstr2)
-c               goto 99                     !--> ERROR
-            endif
-         elseif (itrc.eq.iSPC) then
-            ierr=nf_inq_varid (ncidclm3, 'spc_time', tclm_tid(itrc))
-            if (ierr .ne. nf_noerr) then
-              write(stdout,1) 'spc_time', itrc, clm_file3(1:lstr3)
-            endif
-         elseif (itrc.eq.iSPCHL) then
-            ierr=nf_inq_varid (ncidclm3, 'spchl_time', tclm_tid(itrc))
-            if (ierr .ne. nf_noerr) then
-               write(stdout,1) 'spchl_time', itrc, clm_file3(1:lstr3)
-c              goto 99                                     !--> ERROR
-            endif
-         elseif (itrc.eq.iSPCACO3) then
-            ierr=nf_inq_varid (ncidclm3, 'spcaco3_time', tclm_tid(itrc))
-            if (ierr .ne. nf_noerr) then
-             write(stdout,1) 'spcaco3_time', itrc, clm_file3(1:lstr3)
-c              goto 99                                     !--> ERROR
-            endif
-         elseif (itrc.eq.iSPFE) then
-            ierr=nf_inq_varid (ncidclm3, 'spfe_time', tclm_tid(itrc))
-            if (ierr .ne. nf_noerr) then
-              write(stdout,1) 'spfe_time', itrc, clm_file3(1:lstr3)
-c              goto 99                                     !--> ERROR
-            endif
-         elseif (itrc.eq.iDIATC) then
-            ierr=nf_inq_varid (ncidclm3, 'diatc_time', tclm_tid(itrc))
-            if (ierr .ne. nf_noerr) then
-               write(stdout,1) 'diatc_time', itrc, clm_file3(1:lstr3)
-c              goto 99                                     !--> ERROR
-            endif
-         elseif (itrc.eq.iDIATCHL) then
-            ierr=nf_inq_varid (ncidclm3, 'diatchl_time', tclm_tid(itrc))
-            if (ierr .ne. nf_noerr) then
-                write(stdout,1) 'diatchl_time', itrc, clm_file3(1:lstr3)
-c              goto 99                                     !--> ERROR
-            endif
-         elseif (itrc.eq.iDIATSI) then
-            ierr=nf_inq_varid (ncidclm3, 'diatsi_time', tclm_tid(itrc))
-            if (ierr .ne. nf_noerr) then
-              write(stdout,1) 'diatsi_time', itrc, clm_file3(1:lstr3)
-c              goto 99                                     !--> ERROR
-            endif
-         elseif (itrc.eq.iDIATFE) then
-            ierr=nf_inq_varid (ncidclm3, 'diatfe_time', tclm_tid(itrc))
-            if (ierr .ne. nf_noerr) then
-              write(stdout,1) 'diatfe_time', itrc, clm_file3(1:lstr3)
-c              goto 99                                     !--> ERROR
-            endif
-         elseif (itrc.eq.iZOOC) then
-            ierr=nf_inq_varid (ncidclm4, 'zooc_time', tclm_tid(itrc))
-            if (ierr .ne. nf_noerr) then
-              write(stdout,1) 'zooc_time', itrc, clm_file4(1:lstr4)
-c              goto 99                                     !--> ERROR
-            endif
-         elseif (itrc.eq.iDIAZC) then
-            ierr=nf_inq_varid (ncidclm4, 'diazc_time', tclm_tid(itrc))
-            if (ierr .ne. nf_noerr) then
-              write(stdout,1) 'diazc_time', itrc, clm_file4(1:lstr4)
-c              goto 99                                     !--> ERROR
-            endif
-         elseif (itrc.eq.iDIAZCHL) then
-            ierr=nf_inq_varid (ncidclm4, 'diazchl_time', tclm_tid(itrc))
-            if (ierr .ne. nf_noerr) then
-              write(stdout,1) 'diazchl_time', itrc, clm_file4(1:lstr4)
-c              goto 99                                     !--> ERROR
-            endif
-         elseif (itrc.eq.iDIAZFE) then
-            ierr=nf_inq_varid (ncidclm4, 'diazfe_time', tclm_tid(itrc))
-            if (ierr .ne. nf_noerr) then
-              write(stdout,1) 'diazfe_time', itrc, clm_file4(1:lstr4)
-c              goto 99                                     !--> ERROR
-            endif
-# endif /* BIOLOGY_BEC */
-# ifdef BIOLOGY
-            elseif (itrc.eq.iNO3_) then
-              ierr=nf_inq_varid (ncidclm, 'no3_time', tclm_tid(itrc))
-              if (ierr .ne. nf_noerr) write(stdout,2) 'no3_time',
-     &                                         itrc, clm_file(1:lstr)
-            elseif (itrc.eq.iNH4_) then
-              ierr=nf_inq_varid (ncidclm, 'nh4_time', tclm_tid(itrc))
-              if (ierr .ne. nf_noerr) write(stdout,2) 'nh4_time',
-     &                                         itrc, clm_file(1:lstr)
-            elseif (itrc.eq.iChla) then
-              ierr=nf_inq_varid (ncidclm, 'chla_time',tclm_tid(itrc))
-              if (ierr .ne. nf_noerr) write(stdout,2)  'chla_time',
-     &                                         itrc, clm_file(1:lstr)
-            elseif (itrc.eq.iPhyt) then
-              ierr=nf_inq_varid (ncidclm,'phyto_time',tclm_tid(itrc))
-              if (ierr .ne. nf_noerr) write(stdout,2) 'phyto_time',
-     &                                         itrc, clm_file(1:lstr)
-            elseif (itrc.eq.iZoo_) then
-              ierr=nf_inq_varid (ncidclm, 'zoo_time', tclm_tid(itrc))
-              if (ierr .ne. nf_noerr) write(stdout,2) 'zoo_time',
-     &                                         itrc, clm_file(1:lstr)
-            elseif (itrc.eq.iSDet) then
-              ierr=nf_inq_varid (ncidclm, 'sdet_time',tclm_tid(itrc))
-              if (ierr .ne. nf_noerr) write(stdout,2) 'sdet_time',
-     &                                         itrc, clm_file(1:lstr)
-            elseif (itrc.eq.iLDet) then
-              ierr=nf_inq_varid (ncidclm, 'ldet_time',tclm_tid(itrc))
-              if (ierr .ne. nf_noerr) write(stdout,2) 'ldet_time',
-     &                                         itrc, clm_file(1:lstr)
-            endif ! if (itrc.eq.itemp) when BIOLOGY is defined
-            if (ierr.ne.nf_noerr .and. itrc.ge.iNO3_) then
-              ierr=nf_noerr
-              tclm_tid(itrc)=-1
-# endif /* BIOLOGY */
-            endif ! if (itrc.eq.itemp) when BIOLOGY is undefined
-
-            if (ierr.eq.nf_noerr .and. tclm_tid(itrc).gt.0) then
+           if (ierr.eq.nf_noerr .and. tclm_tid(itrc).gt.0) then
               lvar=lenstr(vname(1,indxT+itrc-1))
-#if defined TWO_CLIM_FILES
-              if (itrc .ge. iNO3_) then
-                 ierr=nf_inq_varid(ncidclm2,
-     &                vname(1,indxT+itrc-1)(1:lvar),
-     &              tclm_id(itrc))
-                if (ierr .ne. nf_noerr) then
-                  write(stdout,3) vname(1,indxT+itrc-1)(1:lvar),
-     &                 itrc, clm_file2(1:lstr2)
-                  goto 99       !--> ERROR
-                endif
-              else   
-#elif defined THREE_CLIM_FILES
-              if (itrc .ge. iNO3_ .and. itrc .le. iLDet) then
-                 ierr=nf_inq_varid(ncidclm2,
-     &                vname(1,indxT+itrc-1)(1:lvar),
-     &              tclm_id(itrc))
-                if (ierr .ne. nf_noerr) then
-                  write(stdout,3) vname(1,indxT+itrc-1)(1:lvar),
-     &                 itrc, clm_file2(1:lstr2)
-                  goto 99       !--> ERROR
-                endif
-              else if (itrc .gt. iLDet) then
-                 ierr=nf_inq_varid(ncidclm3,
-     &                vname(1,indxT+itrc-1)(1:lvar),
-     &              tclm_id(itrc))
-                if (ierr .ne. nf_noerr) then
-                  write(stdout,3) vname(1,indxT+itrc-1)(1:lvar),
-     &                 itrc, clm_file3(1:lstr3)
-                  goto 99       !--> ERROR
-                endif
-              else
-#endif
-#ifdef BIOLOGY_BEC
-              if (itrc.eq.itemp .or. itrc.eq.isalt
-     &             .or. itrc.eq.ipo4 
-     &            .or. itrc.eq.ino3 .or. itrc.eq.isio3 .or. 
-     &             itrc.eq.io2
-     &             ) then 
-#endif /* BIOLOGY_BEC */
-              ierr=nf_inq_varid (ncidclm, vname(1,indxT+itrc-1)
+              ierr=nf_inq_varid (ncidclm(itrc), vname(1,indxT+itrc-1)
      &                                  (1:lvar), tclm_id(itrc))
-#if defined TWO_CLIM_FILES || defined THREE_CLIM_FILES
-              endif
-#endif
               if (ierr .eq. nf_noerr) then
-#if defined TWO_CLIM_FILES
-                if (itrc .ge. iNO3_) then
-                   call set_cycle (ncidclm2,tclm_tid(itrc),nttclm(itrc),
-     &              tclm_cycle(itrc), tclm_ncycle(itrc), tclm_rec(itrc), 
-     &                  ierr)
-                else
-#elif defined THREE_CLIM_FILES
-                if (itrc .ge. iNO3_ .and. itrc .le. iLDet) then
-                  call set_cycle (ncidclm2,tclm_tid(itrc),nttclm(itrc),
-     &              tclm_cycle(itrc), tclm_ncycle(itrc), tclm_rec(itrc), 
-     &                  ierr)
-                else if (itrc .gt. iLDet) then
-                  call set_cycle (ncidclm3, tclm_tid(itrc),nttclm(itrc),
-     &              tclm_cycle(itrc), tclm_ncycle(itrc), tclm_rec(itrc), 
-     &                  ierr)
-                else
-#endif
-                call set_cycle (ncidclm,tclm_tid(itrc), nttclm(itrc),
+                call set_cycle (ncidclm(itrc),tclm_tid(itrc), nttclm(itrc),
      &                          tclm_cycle(itrc),  tclm_ncycle(itrc),
      &                                         tclm_rec(itrc), ierr)
-#if defined TWO_CLIM_FILES || defined THREE_CLIM_FILES
-                endif
-#endif
 
                 ittclm(itrc)=1
                 tclm_time(1,itrc)=-1.E+20
                 tclm_time(2,itrc)=-1.E+20
               else
+                lstr=lenstr(clm_file_tr(itrc))
                 write(stdout,1) vname(1,indxT+itrc-1)(1:lvar),
-     &                                   itrc, clm_file(1:lstr)
+     &                          itrc, clm_file_tr(itrc)(1:lstr)
               endif
-#if defined BIOLOGY_BEC
-             elseif (itrc.eq.inh4 .or. itrc.eq. ife .or. itrc.eq.idic
-     &            .or. itrc.eq. ialk .or. itrc.eq. idoc .or. 
-     &             itrc.eq.idon .or. itrc.eq. idop .or. 
-     &             itrc.eq.idofe) then
-              ierr=nf_inq_varid (ncidclm2, vname(1,indxT+itrc-1)
-     &                                  (1:lvar), tclm_id(itrc))
-              if (ierr .eq. nf_noerr) then
-                call set_cycle (ncidclm2,tclm_tid(itrc), nttclm(itrc),
-     &                          tclm_cycle(itrc),  tclm_ncycle(itrc),
-     &                                         tclm_rec(itrc), ierr)
-                ittclm(itrc)=1
-                tclm_time(1,itrc)=-1.E+20
-                tclm_time(2,itrc)=-1.E+20
-              else
-                write(stdout,1) vname(1,indxT+itrc-1)(1:lvar),
-     &                                   itrc, clm_file2(1:lstr2)
-              endif
-!              write(stdout,*)"itrc,tclm_rec",mynode,itrc,ncidclm2,
-!     &           tclm_rec(itrc)
-
-             elseif (itrc.eq.ispc .or. itrc.eq. ispchl .or. 
-     &             itrc.eq. ispcaco3 .or. itrc.eq.ispfe .or. 
-     &             itrc.eq. idiatc .or. itrc.eq. idiatchl .or. 
-     &             itrc.eq. idiatsi .or. itrc.eq.idiatfe) then
-              ierr=nf_inq_varid (ncidclm3, vname(1,indxT+itrc-1)
-     &                                  (1:lvar), tclm_id(itrc))
-!              write(stdout,*)"itrc,tclm_rec",mynode,itrc,ncidclm3,
-!     &           tclm_id(itrc),ierr
-
-              if (ierr .eq. nf_noerr) then
-                call set_cycle (ncidclm3,tclm_tid(itrc), nttclm(itrc),
-     &                          tclm_cycle(itrc),  tclm_ncycle(itrc),
-     &                                         tclm_rec(itrc), ierr)
-                ittclm(itrc)=1
-                tclm_time(1,itrc)=-1.E+20
-                tclm_time(2,itrc)=-1.E+20
-              else
-                write(stdout,1) vname(1,indxT+itrc-1)(1:lvar),
-     &                                   itrc, clm_file3(1:lstr3)
-              endif
-           elseif ( itrc .eq.izooc .or. itrc.eq. idiazc .or. 
-     &        itrc.eq. idiazchl .or. itrc.eq. idiazfe
-     &             ) then
-              ierr=nf_inq_varid (ncidclm4, vname(1,indxT+itrc-1)
-     &                                  (1:lvar), tclm_id(itrc))
-              if (ierr .eq. nf_noerr) then
-                call set_cycle (ncidclm4,tclm_tid(itrc), nttclm(itrc),
-     &                          tclm_cycle(itrc),  tclm_ncycle(itrc),
-     &                                         tclm_rec(itrc), ierr)
-                ittclm(itrc)=1
-                tclm_time(1,itrc)=-1.E+20
-                tclm_time(2,itrc)=-1.E+20
-              else
-                write(stdout,1) vname(1,indxT+itrc-1)(1:lvar),
-     &                                   itrc, clm_file4(1:lstr4)
-              endif
-           endif ! if (itrc.eq.itemp .or. itrc.eq.isalt ... itrc.eq.io2)
-#endif /* BIOLOGY_BEC */
-
-            endif ! if (ierr.eq.nf_noerr .and. tclm_tid(itrc).gt.0)
-          endif !if (ierr.eq.nf_noerr)
+           endif ! if (ierr.eq.nf_noerr .and. tclm_tid(itrc).gt.0)
         enddo ! do itrc=1,NT
       endif ! if (iic.eq.ntstart)
+
   1   format(/1x,'ERROR in get_tclima: cannot find variable ''',
      &    A, ''', itrc =',I3/7x, 'in netCDF file ''', A, '''.' /)
-# ifdef BIOLOGY
-  2   format(/1x,'WARNING: get_tclima cannot find variable ''',
-     &    A, ''', itrc =',I3/10x,'in netCDF file ''', A,'''.'/10x,
-     &       'Setting analytical climatology for this variable.')
-# endif
-  3   format(1x,'get_tclima: cannot find variable ''',
-     &    A, ''', itrc =',I3/7x, ' in netCDF file ''', A, 
-     &    '''. Default values will be used for corresponding tracer.' )
 !
 ! Read data from the file:  Check if model time is bounded by past
 !===== ==== ==== === =====  and future data times: if not, increment
@@ -557,121 +147,31 @@ c              goto 99                                     !--> ERROR
             call advance_cycle (tclm_cycle(itrc),  nttclm(itrc),
      &                 tclm_ncycle(itrc), tclm_rec(itrc), ierr)
             if (ierr.eq.nf_noerr) then
-#if defined TWO_CLIM_FILES
-              if (itrc .ge. iNO3_) then
-                ierr=nf_get_var1_FTYPE(ncidclm2, tclm_tid(itrc),
+               ierr=nf_get_var1_FTYPE(ncidclm(itrc), tclm_tid(itrc),
      &            tclm_rec(itrc), cff)
-              else
-#elif defined THREE_CLIM_FILES
-              if (itrc .ge. iNO3_ .and. itrc .le. iLDet) then
-                ierr=nf_get_var1_FTYPE(ncidclm2, tclm_tid(itrc),
-     &            tclm_rec(itrc), cff)
-              else if (itrc .gt. iLDet) then
-                ierr=nf_get_var1_FTYPE(ncidclm3, tclm_tid(itrc),
-     &            tclm_rec(itrc), cff)
-              else
-#endif
-#ifdef BIOLOGY_BEC
-              if (itrc.eq.itemp .or. itrc.eq. isalt
-     &           .or. itrc.eq. ipo4 .or. itrc.eq. ino3 
-     &           .or. itrc.eq. isio3 .or. itrc.eq. io2
-     &         ) then
-#endif
-                ierr=nf_get_var1_FTYPE(ncidclm, tclm_tid(itrc),
-     &            tclm_rec(itrc), cff)
-#if defined TWO_CLIM_FILES || defined THREE_CLIM_FILES
-              end if
-#endif
-#if defined BIOLOGY_BEC
-              elseif (itrc.eq. inh4 .or. itrc.eq. ife .or. 
-     &          itrc.eq. idic .or. itrc.eq.ialk .or. 
-     &           itrc.eq. idoc .or. itrc.eq. idon .or. 
-     &           itrc.eq. idop .or. itrc.eq.idofe) then
-                ierr=nf_get_var1_FTYPE(ncidclm2, tclm_tid(itrc),
-     &                                  tclm_rec(itrc), cff)
-              elseif (itrc.eq.ispc .or. itrc.eq. ispchl .or. 
-     &             itrc.eq. ispcaco3 .or. itrc.eq.ispfe .or. 
-     &             itrc.eq. idiatc .or. itrc.eq. idiatchl .or. 
-     &             itrc.eq. idiatsi .or. itrc.eq.idiatfe) then
-                ierr=nf_get_var1_FTYPE(ncidclm3, tclm_tid(itrc),
-     &                                  tclm_rec(itrc), cff)
-              elseif( itrc .eq.izooc .or. itrc.eq. idiazc .or. 
-     &           itrc.eq. idiazchl .or. itrc.eq.idiazfe) then
-                ierr=nf_get_var1_FTYPE(ncidclm4, tclm_tid(itrc),
-     &                                  tclm_rec(itrc), cff)
-              endif
-#endif /*  BIOLOGY_BEC */
-              if (ierr.eq.nf_noerr) then
-                ittclm(itrc)=min(3-ittclm(itrc),nttclm(itrc))
-                tclm_time(ittclm(itrc),itrc)=cff*day2sec
+               if (ierr.eq.nf_noerr) then
+                  ittclm(itrc)=min(3-ittclm(itrc),nttclm(itrc))
+                  tclm_time(ittclm(itrc),itrc)=cff*day2sec
      &               + tclm_cycle(itrc)*tclm_ncycle(itrc)
 
-#if defined TWO_CLIM_FILES
-                if (itrc .ge. iNO3_) then
-              ierr=nf_fread (tclima(START_2D_ARRAY,1,ittclm(itrc),itrc),
-     &                    ncidclm2, tclm_id(itrc),
-     &                    tclm_rec(itrc), r3dvar)
-                else
-#elif defined THREE_CLIM_FILES
-                if (itrc .ge. iNO3_ .and. itrc .le. iLDet) then
-              ierr=nf_fread (tclima(START_2D_ARRAY,1,ittclm(itrc),itrc),
-     &                    ncidclm2, tclm_id(itrc),
-     &                    tclm_rec(itrc), r3dvar)
-                else if (itrc .gt. iLDet) then
-              ierr=nf_fread (tclima(START_2D_ARRAY,1,ittclm(itrc),itrc),
-     &                    ncidclm3, tclm_id(itrc),
-     &                    tclm_rec(itrc), r3dvar)
-                else
-#endif
-#ifdef BIOLOGY_BEC
-              if (itrc.eq.itemp .or. itrc.eq. isalt
-     &            .or. itrc.eq. ipo4 .or. itrc.eq. ino3 
-     &            .or. itrc.eq. isio3 .or. itrc.eq. io2
-     &               ) then
-#endif
-                ierr=nf_fread (tclima(START_2D_ARRAY,1,ittclm(itrc),
-     &                                itrc), ncidclm, tclm_id(itrc),
-     &                                      tclm_rec(itrc), r3dvar)
-#if defined TWO_CLIM_FILES || defined THREE_CLIM_FILES
-                end if
-#endif
-#if defined BIOLOGY_BEC
-             elseif (itrc.eq.inh4 .or. itrc.eq. ife .or. 
-     &              itrc.eq. idic .or. itrc.eq.ialk .or. 
-     &              itrc.eq. idoc .or. itrc.eq. idon .or. 
-     &              itrc.eq. idop .or. itrc.eq.idofe) then
                   ierr=nf_fread (tclima(START_2D_ARRAY,1,ittclm(itrc),
-     &                                itrc), ncidclm2, tclm_id(itrc),
+     &                                itrc), ncidclm(itrc), tclm_id(itrc),
      &                                      tclm_rec(itrc), r3dvar)
-              elseif (itrc.eq.ispc .or. itrc.eq. ispchl .or. 
-     &              itrc.eq. ispcaco3 .or. itrc.eq.ispfe .or. 
-     &              itrc.eq. idiatc .or. itrc.eq. idiatchl .or. 
-     &              itrc.eq. idiatsi .or. itrc.eq.idiatfe) then
-                  ierr=nf_fread (tclima(START_2D_ARRAY,1,ittclm(itrc),
-     &                                itrc), ncidclm3, tclm_id(itrc),
-     &                                      tclm_rec(itrc), r3dvar)
-              elseif( itrc .eq.izooc .or. itrc.eq. idiazc .or. 
-     &              itrc.eq. idiazchl .or. itrc.eq.idiazfe) then
-                  ierr=nf_fread (tclima(START_2D_ARRAY,1,ittclm(itrc),
-     &                                itrc), ncidclm4, tclm_id(itrc),
-     &                                      tclm_rec(itrc), r3dvar)
-              endif ! if (itrc.eq.itemp .or. itrc.eq. isalt ...)
-#endif
-                if (ierr.eq.nf_noerr) then
-                  MPI_master_only write(stdout,
-     &            '(6x,A,I3,1x,A,F12.4,2(1x,A,I4))')
-     &            'get_tclima -- read climatology for tracer', itrc,
-     &            'tclm_time =', cff,  'rec =', 
-     &            tclm_rec(itrc) MYID
-                  if (nttclm(itrc).eq.1) goto 30
-                else
-                  lvar=lenstr(vname(1,indxT+itrc-1))
-                  write(stdout,4) vname(1,indxT+itrc-1)(1:lvar),
+                  if (ierr.eq.nf_noerr) then
+                    MPI_master_only write(stdout,
+     &              '(6x,A,I3,1x,A,F12.4,2(1x,A,I4))')
+     &              'get_tclima -- read climatology for tracer', itrc,
+     &              'tclm_time =', cff,  'rec =', 
+     &              tclm_rec(itrc) MYID
+                    if (nttclm(itrc).eq.1) goto 30
+                  else
+                    lvar=lenstr(vname(1,indxT+itrc-1))
+                    write(stdout,4) vname(1,indxT+itrc-1)(1:lvar),
      &                                     itrc, tclm_rec(itrc)
-                endif
-              else
-                write(stdout,4) 'Xclm_time', itrc, tclm_rec(itrc)
-              endif
+                  endif
+               else
+                  write(stdout,4) 'Xclm_time', itrc, tclm_rec(itrc)
+               endif
             else
               write(stdout,'(/1x,A,I3,1x,A,I3/7x,3A/7x,2(A,G12.4)/)')
      &       'ERROR in get_tclima: requested time record ',
@@ -692,18 +192,6 @@ c              goto 99                                     !--> ERROR
   5   format(/1x,'ERROR in get_tclima: cannot open file ''',
      &                  A, '''.'/)
 
-#if defined TWO_CLIM_FILES || defined THREE_CLIM_FILES || defined FOUR_CLIM_FILES
- 22   write(stdout,5) clm_file2(1:lstr2)
-      goto 99
-#endif
-#if defined THREE_CLIM_FILES || defined FOUR_CLIM_FILES
- 33   write(stdout,5) clm_file3(1:lstr3)
-      goto 99
-#endif
-#ifdef FOUR_CLIM_FILES
- 44   write(stdout,5) clm_file4(1:lstr4)
-      goto 99
-#endif
 
  99   ierr = nf_noerr + 1
 
@@ -776,61 +264,33 @@ c              goto 99                                     !--> ERROR
      &          tdays, 'TCLM_TEND=',     tclm_time(it2,itrc)*sec2day
             ierr=ierr+1
           endif
-# ifdef BIOLOGY
-#  define temp cff
-#  define SiO4 cff1
-        elseif (itrc.eq.iNO3_) then     ! <-- analytical setup for
-          do k=1,N                      ! climatology for biological
-            do j=jstrR,jendR            ! constituents.
-              do i=istrR,iendR
-                temp=tclm(i,j,k,itemp)
-                if (temp.lt.8.) then
-                  SiO4=30.
-                elseif (temp.ge.8. .and. temp.le.11.) then
-                  SiO4=30.-((temp-8.)*(20./3.))
-                elseif (temp.gt.11. .and. temp.le.13.) then
-                  SiO4=10.-((temp-11.)*(8./2.))
-                elseif (temp.gt.13. .and. temp.le.16.) then
-                  SiO4=2.-((temp-13.)*(2./3.))
-                elseif (temp.gt.16.) then
-                  SiO4=0.
-                endif
- 
-                tclm(i,j,k,iNO3_)=1.67 + SiO4*( 0.5873 + SiO4*(
-     &                                0.0144 + SiO4*0.0003099 ))
-!
-! Cut off surface NO3
-!
-                tclm(i,j,k,iNO3_)=tclm(i,j,k,iNO3_)
-     &               *(1-0.5*(tanh((z_r(i,j,k)+100.)/8.)+1.))
-              enddo
-            enddo
-          enddo
-        elseif (iic.eq.ntstart .and. itrc.eq.iNH4_) then
-          do k=1,N
-            do j=jstrR,jendR
-              do i=istrR,iendR
-                if (tclm_tid(iNH4_).lt.0) tclm(i,j,k,iNH4_)=0.10
-                if (tclm_tid(iChla).lt.0) tclm(i,j,k,iChla)=0.08
-                if (tclm_tid(iPhyt).lt.0) tclm(i,j,k,iPhyt)=0.06
-                if (tclm_tid(iZoo_).lt.0) tclm(i,j,k,iZoo_)=0.04
-                if (tclm_tid(iSDet).lt.0) tclm(i,j,k,iSDet)=0.02
-                if (tclm_tid(iLDet).lt.0) tclm(i,j,k,iLDet)=0.02
-              enddo
-            enddo
-          enddo
-#  undef SiO4
-#  undef temp
-# endif
 
+      else if (FIRST_TIME_STEP) then  ! no data found for tracer itrc
+         if (itrc .eq. itemp) then
+            ! Default value for temperature: mean of WOA2005
+            do k=1,N
+               do j=jstrR,jendR
+                  do i=istrR,iendR
+                     tclm(i,j,k,itemp) = 3.568  ! C
+                  end do
+               end do
+            end do
+         else if (itrc .eq. isalt) then
+            ! Default value for salinity: mean of WOA2005
+            do k=1,N
+               do j=jstrR,jendR
+                  do i=istrR,iendR
+                     tclm(i,j,k,isalt) = 34.72  ! PSU
+                  end do
+               end do
+            end do
 # ifdef BIOLOGY_NPZDOC
-      else if (FIRST_TIME_STEP) then  ! -> got_tclm(itrc) == .false.
 ! hf: Note that the following settings are only provided for cases
 ! where no boundary conditions for the bgc state variables have been
 ! provided, e.g. test runs. In all "serious" model runs, boundary 
 ! conditions should be provided at least for NO3, O2, DIC, and Alk,
 ! and ideally for Chla, Phyto, and Zoo as well.
-         if (itrc .eq. iNO3_) then
+         else if (itrc .eq. iNO3_) then
 #  define temp cff
 #  define SiO4 cff1
             do k=1,N
@@ -894,39 +354,124 @@ c              goto 99                                     !--> ERROR
             tclm(:,:,:,iCaCO3)=0.0
 #   endif /* CARBON */
 #  endif /* OXYGEN */
-         endif
 #  undef SiO4
 #  undef temp
 # endif /* BIOLOGY_NPZDOC */
+
 # ifdef BIOLOGY_BEC
-        elseif (FIRST_TIME_STEP) then
-          do k=1,N
-          do j=jstrR,jendR
-           do i=istrR,iendR
-              if (tclm_tid(iDIC).lt.0) tclm(i,j,k,iDIC)=2200.
-              if (tclm_tid(iALK).lt.0) tclm(i,j,k,iALK)=2300.
-              if (tclm_tid(iNH4).lt.0) tclm(i,j,k,iNH4)=0.0
-              if (tclm_tid(iDOC).lt.0) tclm(i,j,k,iDOC)=0.0 ! 0.001
-              if (tclm_tid(iSPC).lt.0) tclm(i,j,k,iSPC)=0.1
-              if (tclm_tid(iSPCHL).lt.0) tclm(i,j,k,iSPCHL)=0.03
-              if (tclm_tid(iSPCACO3).lt.0) tclm(i,j,k,iSPCACO3)=0.1
-              if (tclm_tid(iDIATC).lt.0) tclm(i,j,k,iDIATC)=0.1
-              if (tclm_tid(iDIATCHL).lt.0) tclm(i,j,k,iDIATCHL)=0.03
-              if (tclm_tid(iZOOC).lt.0) tclm(i,j,k,iZOOC)=0.01
-              if (tclm_tid(iSPFE).lt.0) tclm(i,j,k,iSPFE)=5.47e-7
-              if (tclm_tid(iDIATSI).lt.0) tclm(i,j,k,iDIATSI)=0.02735
-              if (tclm_tid(iDIATFE).lt.0) tclm(i,j,k,iDIATFE)=5.47e-7
-              if (tclm_tid(iDIAZC).lt.0) tclm(i,j,k,iDIAZC)=0.1
-              if (tclm_tid(iDIAZCHL).lt.0) tclm(i,j,k,iDIAZCHL)=0.03
-              if (tclm_tid(iDIAZFE).lt.0) tclm(i,j,k,iDIAZFE)=5.47e-7
-              if (tclm_tid(iDON).lt.0) tclm(i,j,k,iDON)=0.0 ! 1.368e-4
-              if (tclm_tid(iDOFE).lt.0) tclm(i,j,k,iDOFE)=0.0 ! 5.47e-9
-              if (tclm_tid(iDOP).lt.0) tclm(i,j,k,iDOP)=0.0 ! 8.55e-4
-           enddo
-        enddo
-      enddo
+          else if (itrc .eq. iNO3) then
+#  define temp cff
+#  define SiO4 cff1
+             do k=1,N
+               do j=jstrR,jendR
+                 do i=istrR,iendR
+                    temp=tclm(i,j,k,itemp)
+                    if (temp.lt.8.) then
+                       SiO4=30.
+                    elseif (temp.ge.8. .and. temp.le.11.) then
+                       SiO4=30.-((temp-8.)*(20./3.))
+                    elseif (temp.gt.11. .and. temp.le.13.) then
+                       SiO4=10.-((temp-11.)*(8./2.))
+                    elseif (temp.gt.13. .and. temp.le.16.) then
+                       SiO4=2.-((temp-13.)*(2./3.))
+                    elseif (temp.gt.16.) then
+                       SiO4=0.
+                    endif
+                    tclm(i,j,k,iNO3)=1.67+0.5873*SiO4
+     &                   +0.0144*SiO4**2
+     &                   +0.0003099*SiO4**3
+!hf: by default, do not perform the cutoff!
+#ifdef NO3_SFC_CUTOFF 
+!
+!  Cut off surface NO3
+!
+                    tclm(i,j,k,iNO3)=tclm(i,j,k,iNO3)*
+     &                   (1-.5*(tanh((z_r(i,j,k)+100.)/8.)+1))
+#endif /* NO3_SFC_CUTOFF */
+                 end do
+               end do
+             end do
+
+           else if (itrc .eq. iPO4) then
+              ! Set PO4 to NO3/16:
+#  define temp cff
+#  define SiO4 cff1
+              do k=1,N
+                do j=jstrR,jendR
+                  do i=istrR,iendR
+                     temp=tclm(i,j,k,itemp)
+                     if (temp.lt.8.) then
+                        SiO4=30.
+                     elseif (temp.ge.8. .and. temp.le.11.) then
+                        SiO4=30.-((temp-8.)*(20./3.))
+                     elseif (temp.gt.11. .and. temp.le.13.) then
+                        SiO4=10.-((temp-11.)*(8./2.))
+                     elseif (temp.gt.13. .and. temp.le.16.) then
+                        SiO4=2.-((temp-13.)*(2./3.))
+                     elseif (temp.gt.16.) then
+                        SiO4=0.
+                     endif
+                     tclm(i,j,k,itrc)=(1.67+0.5873*SiO4
+     &                    +0.0144*SiO4**2
+     &                    +0.0003099*SiO4**3)/16
+!hf: by default, do not perform the cutoff!
+#ifdef NO3_SFC_CUTOFF 
+!
+!  Cut off surface NO3
+!
+                     tclm(i,j,k,itrc)=tclm(i,j,k,itrc)*
+     &                    (1-.5*(tanh((z_r(i,j,k)+100.)/8.)+1))
+#endif /* NO3_SFC_CUTOFF */
+                  end do
+                end do
+              end do
+           else if (itrc .eq. iSiO3) then
+              tclm(:,:,:,iSiO3)=tclm(:,:,:,iNO3)
+           else if (itrc .eq. iNH4) then
+              tclm(:,:,:,iNH4)=0.0
+           else if (itrc .eq. iFE) then
+              tclm(:,:,:,iFE)=5.395e-4  ! mmol/m3
+           else if (itrc .eq. iO2) then
+              tclm(:,:,:,iO2)=177.9  ! mmol/m3
+           else if (itrc .eq. iDIC) then
+              tclm(:,:,:,iDIC)=2200.
+           else if (itrc .eq. iALK) then
+              tclm(:,:,:,iALK)=2300.
+           else if (itrc .eq. iDOC) then
+              tclm(:,:,:,iDOC)=0.0 ! 0.001
+           else if (itrc .eq. iSPC) then
+              tclm(:,:,:,iSPC)=0.1
+           else if (itrc .eq. iSPCHL) then
+              tclm(:,:,:,iSPCHL)=0.03
+           else if (itrc .eq. iSPCACO3) then
+              tclm(:,:,:,iSPCACO3)=0.1
+           else if (itrc .eq. iDIATC) then
+              tclm(:,:,:,iDIATC)=0.1
+           else if (itrc .eq. iDIATCHL) then
+              tclm(:,:,:,iDIATCHL)=0.03
+           else if (itrc .eq. iZOOC) then
+              tclm(:,:,:,iZOOC)=0.01
+           else if (itrc .eq. iSPFE) then
+              tclm(:,:,:,iSPFE)=5.47e-7
+           else if (itrc .eq. iDIATSI) then
+              tclm(:,:,:,iDIATSI)=0.02735
+           else if (itrc .eq. iDIATFE) then
+              tclm(:,:,:,iDIATFE)=5.47e-7
+           else if (itrc .eq. iDIAZC) then
+              tclm(:,:,:,iDIAZC)=0.1
+           else if (itrc .eq. iDIAZCHL) then
+              tclm(:,:,:,iDIAZCHL)=0.03
+           else if (itrc .eq. iDIAZFE) then
+              tclm(:,:,:,iDIAZFE)=5.47e-7
+           else if (itrc .eq. iDON) then
+              tclm(:,:,:,iDON)=0.0 ! 1.368e-4
+           else if (itrc .eq. iDOFE) then
+              tclm(:,:,:,iDOFE)=0.0 ! 5.47e-9
+           else if (itrc .eq. iDOP) then
+              tclm(:,:,:,iDOP)=0.0 ! 8.55e-4
 # endif /* BIOLOGY_BEC */
-        endif   ! <-- tclm_tid(itrc).gt.0
+      endif   ! <-- itrc .eq. itemp
+      endif   ! <-- tclm_tid(itrc).gt.0
       enddo   ! <-- itrc
       return
       end

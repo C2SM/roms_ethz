@@ -13,6 +13,19 @@
 # include "climat.h"
       real cff
       integer i, lstr, lsvar, lenstr, ierr, nf_fread
+!DL: if MULT_CLIM_FILES is defined, then ncidclm and clm_file are arrays,
+! and we need to pick one element.
+      integer ncidclm_loc
+      character(len=80) clm_file_loc
+
+! The sea surface height is assumed to be in the first climatology 
+! file (like the temperature):
+      ncidclm_loc = ncidclm(itemp)
+# ifdef MULT_CLIM_FILES
+      clm_file_loc = clm_file(1)
+# else
+      clm_file_loc = clm_file
+# endif
 !
 ! Initialization: Check, whether climatology netCDF file is already
 !===============  opened, an if not, open it. Find and save netCDF
@@ -25,22 +38,23 @@
 !
       ierr=nf_noerr
       if (iic.eq.ntstart) then
-        lstr=lenstr(clm_file)
-        if (ncidclm.eq.-1) then
-          ierr=nf_open(clm_file(1:lstr), nf_nowrite, ncidclm)
+        lstr=lenstr(clm_file_loc)
+        if (ncidclm_loc.eq.-1) then
+          ierr=nf_open(clm_file_loc(1:lstr), nf_nowrite, ncidclm_loc)
+          ncidclm(itemp) = ncidclm_loc
           if (ierr.ne.nf_noerr) write(stdout,'(/1x,4A/)') 'ERROR ',
      &                   'in get_ssh: can not open netCDF file ''',
-     &                                       clm_file(1:lstr), '''.'
+     &                                       clm_file_loc(1:lstr), '''.'
         endif
         if (ierr.eq.nf_noerr) then
-          ierr=nf_inq_varid (ncidclm, 'ssh_time', ssh_tid)
+          ierr=nf_inq_varid (ncidclm_loc, 'ssh_time', ssh_tid)
           if (ierr.eq.nf_noerr) then
-            ierr=nf_inq_varid (ncidclm, 'zeta', ssh_id)
+            ierr=nf_inq_varid (ncidclm_loc, 'zeta', ssh_id)
             if (ierr .ne. nf_noerr) then
-              ierr=nf_inq_varid (ncidclm, 'SSH', ssh_id)
+              ierr=nf_inq_varid (ncidclm_loc, 'SSH', ssh_id)
             endif
             if (ierr .eq. nf_noerr) then
-              call set_cycle (ncidclm, ssh_tid, ntssh, ssh_cycle,
+              call set_cycle (ncidclm_loc, ssh_tid, ntssh, ssh_cycle,
      &                                 ssh_ncycle, ssh_rec, ierr)
               itssh=1
               ssh_time(1)=-1.E+20
@@ -48,12 +62,12 @@
             else
               write(*,'(1x,5A/12x,A/)')     '### ERROR: get_ssh :: ',
      &          'Cannot get netCDF ID for variable "zeta" or "SSH" ',
-     &          'from ''', clm_file(1:lstr),'''.', nf_strerror(ierr)
+     &          'from ''', clm_file_loc(1:lstr),'''.', nf_strerror(ierr)
             endif
           else
             write(*,'(1x,5A/12x,A/)')       '### ERROR: get_ssh :: ',
      &        'Cannot get netCDF ID for variable "ssh_time" from ''',
-     &                    clm_file(1:lstr), '''.', nf_strerror(ierr)
+     &                    clm_file_loc(1:lstr), '''.', nf_strerror(ierr)
           endif
         endif
       endif
@@ -67,14 +81,14 @@
         call advance_cycle (ssh_cycle, ntssh, ssh_ncycle,
      &                                     ssh_rec, ierr)
         if (ierr.eq.nf_noerr) then
-          ierr=nf_get_var1_FTYPE(ncidclm, ssh_tid, ssh_rec, cff)
+          ierr=nf_get_var1_FTYPE(ncidclm_loc, ssh_tid, ssh_rec, cff)
           if (ierr.eq.nf_noerr) then
             itssh=min(3-itssh,ntssh)
             ssh_time(itssh)=cff*day2sec+ssh_cycle*ssh_ncycle
-            ierr=nf_fread(sshg(START_2D_ARRAY,itssh), ncidclm,
+            ierr=nf_fread(sshg(START_2D_ARRAY,itssh), ncidclm_loc,
      &                                ssh_id, ssh_rec, r2dvar)
             if (ierr.eq.nf_noerr) then
-              write(stdout,'(6x,A,4x,A,23x,A,F12.4,2(1x,A,I4))')
+              MPI_master_only write(stdout,'(6x,A,4x,A,23x,A,F12.4,2(1x,A,I4))')
      &             'get_ssh', '-- read SSH', 'ssh_time =', cff,
      &             'rec =', ssh_rec MYID
               if (ntssh.eq.1) return
@@ -88,7 +102,7 @@
           write(stdout,'(/1x,A,I4,1x,A,I4/7x,4A/7x,2(A,G12.4)/)')
      &   'ERROR in get_ssh: requested time record ',      ssh_rec,
      &   'exeeds the last record',  ntssh, 'available in netCDF ',
-     &   'file ''',  clm_file(1:lstr),  '''',   'tdays = ',  tdays,
+     &   'file ''',  clm_file_loc(1:lstr),  '''',   'tdays = ',  tdays,
      &   '  but the last available ssh_time =',
      &                                    ssh_time(itssh)*sec2day
         endif

@@ -137,21 +137,6 @@ cc      write(*,*) 'kmp_stacksize =', size
 # endif
 #endif
       ncidclm=-1
-#ifdef BIOLOGY_NPZDOC
-      ncidclm2 = -1
-      ncidclm3 = -1
-# ifndef THREE_CLIM_FILES
-#  ifndef TWO_CLIM_FILES
-      clm_file2 = clm_file
-#  endif
-      clm_file3 = clm_file
-# endif
-#endif /* BIOLOGY_NPZDOC */
-#ifdef BIOLOGY_BEC
-      ncidclm2 = -1
-      ncidclm3 = -1
-      ncidclm4 = -1
-#endif
 #ifndef ANA_BRY
        bry_id=-1
 #endif
@@ -401,6 +386,11 @@ CR      write(stdout,'(1x,A,I3)') 'indxSSS =', indxSSS
       vname(1,indxTIsrf)='tisrf                                     '
       vname(2,indxTIsrf)='temperature of ice surface                '
       vname(3,indxTIsrf)='Kelvin                                    '
+#endif
+
+      tclm_name(itemp) = 'tclm_time'
+#ifdef SALINITY
+      tclm_name(isalt) = 'sclm_time'
 #endif
  
       ierr=0
