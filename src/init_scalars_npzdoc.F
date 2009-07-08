@@ -143,6 +143,8 @@ CR      write(stdout,'(1x,A,I3)') 'indxLDet =',indxLDet
       vname(2,indxPCO2air_rst)='air pCO2                          '
       vname(3,indxPCO2air_rst)='ppm                               '
       vname(4,indxPCO2air_rst)='pCO2air, scalar, series           '
+#   endif /* CARBON */
+#  endif /* OXYGEN */
       vname(1,indxPARinc_rst)='PARinc                                '
       vname(2,indxPARinc_rst)='Incoming photosynth. active radiation '
       vname(3,indxPARinc_rst)='W m-2                                 '
@@ -151,8 +153,6 @@ CR      write(stdout,'(1x,A,I3)') 'indxLDet =',indxLDet
       vname(2,indxPAR_rst)='Photosynthetically active radiation   '
       vname(3,indxPAR_rst)='W m-2                                 '
       vname(4,indxPAR_rst)='PAR, scalar, series                   '
-#   endif /* CARBON */
-#  endif /* OXYGEN */
 #  ifdef SEDIMENT_BIOLOGY
       vname(1,indxSedOrgN)=
      &     'SedOrgN                                  '
@@ -182,6 +182,24 @@ CR      write(stdout,'(1x,A,I3)') 'indxLDet =',indxLDet
      &     'Sedimented CaCO3, scalar, series         '
 #   endif /* CARBON */
 #  endif /* SEDIMENT_BIOLOGY */
+
+      tclm_name(iNO3_) = 'no3_time'
+      tclm_name(iNH4_) = 'nh4_time'
+      tclm_name(iChla) = 'chla_time'
+      tclm_name(iPhyt) = 'phyto_time'
+      tclm_name(iZoo_) = 'zoo_time'
+      tclm_name(iSDet) = 'sdet_time'
+      tclm_name(iLDet) = 'ldet_time'
+#  ifdef OXYGEN
+      tclm_name(iO2)   = 'o2_time'
+#   ifdef CARBON
+      tclm_name(iDIC)  = 'dic_time'
+      tclm_name(iTALK) = 'alk_time'
+      tclm_name(iSDetC) = 'sdetc_time'
+      tclm_name(iLDetC) = 'ldetc_time'
+      tclm_name(iCaCO3) = 'caco3_time'
+#   endif /* CARBON */
+#  endif /* OXYGEN */
 
 
 #endif /* SOLVE3D */

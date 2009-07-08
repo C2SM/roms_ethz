@@ -343,7 +343,8 @@ CR      write(*,*) 'wrt_his:  wrtHBL' MYID
         endif
       endif
 # endif
-# if defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC
+# if defined BIOLOGY_BEC || (defined BIOLOGY_NPZDOC && \
+    defined OXYGEN && defined CARBON)
 !
 ! Write out averaged pH:
 !
@@ -377,6 +378,8 @@ CR      write(*,*) 'wrt_his:  wrtHBL' MYID
      &                  nf_strerror(ierr) MYID
         goto 99                                         !--> ERROR
       endif
+# endif /* BIOLOGY_BEC || (BIOLOGY_NPZDOC && OXYGEN && CARBON) */
+# if defined BIOLOGY_BEC || defined BIOLOGY_NPZDOC
 !
 ! PARinc:
 !
@@ -399,7 +402,7 @@ CR      write(*,*) 'wrt_his:  wrtHBL' MYID
      &                  nf_strerror(ierr) MYID
         goto 99                                         !--> ERROR
       endif
-# endif /* BIOLOGY_NPZDOC || BIOLOGY_BEC */
+# endif /* BIOLOGY_BEC || BIOLOGY_NPZDOC */
 #endif /* SOLVE3D */
   1   format(/1x, 'WRT_HIS ERROR while writing variable ''', A,
      &         ''' into history file.'  /11x, 'Time record:', I6,

@@ -137,10 +137,9 @@
 #  ifdef OXYGEN
       integer indxO2
       parameter (indxO2 = indxLDet + 1)
-#   ifdef CARBON 
+#   ifdef CARBON
       integer indxDIC, indxTALK, indxSDetC, indxLDetC, indxCaCO3
       integer indxPH_rst, indxPCO2_rst, indxPCO2air_rst
-      integer indxPARinc_rst, indxPAR_rst
       parameter (indxDIC = indxO2 + 1)
       parameter (indxTALK = indxDIC + 1)
       parameter (indxSDetC = indxTALK + 1)
@@ -149,26 +148,32 @@
       parameter (indxPH_rst = indxCaCO3 + 1)
       parameter (indxPCO2_rst = indxPH_rst + 1)
       parameter (indxPCO2air_rst = indxPCO2_rst + 1)
-      parameter (indxPARinc_rst = indxPCO2air_rst + 1)
-      parameter (indxPAR_rst = indxPARinc_rst + 1)
 #   endif /* CARBON */
 #  endif /* OXYGEN */
+! PAR and PARinc:
+      integer indxPARinc_rst, indxPAR_rst
+#  ifdef OXYGEN
+#   ifdef CARBON
+      parameter (indxPARinc_rst = indxPCO2air_rst + 1)
+#   else
+      parameter (indxPARinc_rst = indxO2 + 1)
+#   endif /* CARBON */
+#  else
+      parameter (indxPARinc_rst = indxLDet + 1)
+#  endif /* OXYGEN */
+      parameter (indxPAR_rst = indxPARinc_rst + 1)
+! Sediment tracers:
 #  ifdef SEDIMENT_BIOLOGY
       integer indxSedOrgN
-#   ifdef CARBON
       parameter (indxSedOrgN = indxPAR_rst + 1)
+#   ifdef CARBON
       integer indxSedOrgC, indxSedCaCO3
       parameter (indxSedOrgC = indxSedOrgN + 1)
       parameter (indxSedCaCO3 = indxSedOrgC + 1)
-#   else /* CARBON */
-#    ifdef OXYGEN
-      parameter (indxSedOrgN = indxO2 + 1)
-#    else /* OXYGEN */
-      parameter (indxSedOrgN = indxLDet + 1)
-#    endif /* OXYGEN */
 #   endif /* CARBON */
 #  endif /* SEDIMENT_BIOLOGY */
 # endif /* BIOLOGY_NPZDOC */
+
 # ifdef BIOLOGY_BEC
        integer indxPo4,indxNo3,indxSio3,indxNh4,indxFe,indxO2,indxDic,
      &   indxAlk,indxDoc,indxSpc,indxSpchl,indxSpcaco3,indxDiatc,indxDiatchl,
@@ -237,20 +242,15 @@
       integer max_frc_file
       parameter (max_frc_file=4)
       integer max_frc, ncidfrc(max_frc_file), nrst, ncidrst, nrecrst,
-     &      nrrec, nrpfrst, ncidclm, nwrt, ncidhis, nrechis, nrpfhis
-#ifdef BIOLOGY_NPZDOC
-     &     , ncidclm2, ncidclm3
-#endif
+     &      nrrec, nrpfrst, nwrt, ncidhis, nrechis, nrpfhis
+      integer ncidclm(NT)
 #ifdef BIOLOGY_BEC
-     &     , ncidclm2, ncidclm3, ncidclm4, ntdust, ntiron
+     &     , ntdust, ntiron
 #endif
       common /ncvars/       max_frc, ncidfrc, nrst, ncidrst, nrecrst,
      &      nrrec, nrpfrst, ncidclm, nwrt, ncidhis, nrechis, nrpfhis
-#ifdef BIOLOGY_NPZDOC
-     &     , ncidclm2, ncidclm3
-#endif
 #ifdef BIOLOGY_BEC
-     &     , ncidclm2, ncidclm3, ncidclm4, ntdust, ntiron
+     &     , ntdust, ntiron
 #endif
 
 
@@ -430,21 +430,15 @@
       common /cncvars/ avgname
 #endif
 #if (defined TCLIMATOLOGY && !defined ANA_TCLIMA) || !defined ANA_SSH
+# ifdef MULT_CLIM_FILES
+      integer nclimfiles
+      character(len=max_name_size) clm_file(4)
+      common /cncvars/ nclimfiles, clm_file
+# else
       character*(max_name_size) clm_file
-!# ifdef BIOLOGY_NPZDOC
-!     & , clm_file2, clm_file3
-!# endif
-# if defined BIOLOGY_BEC || defined BIOLOGY_NPZDOC
-     & , clm_file2, clm_file3, clm_file4
-# endif
       common /cncvars/ clm_file
-!# ifdef BIOLOGY_NPZDOC
-!     & , clm_file2, clm_file3
-!# endif
-# if defined BIOLOGY_BEC || defined BIOLOGY_NPZDOC
-     & , clm_file2, clm_file3, clm_file4
-# endif
-#endif
+# endif /* MULT_CLIM_FILES */
+#endif /* (defined TCLIMATOLOGY && ... */
 #if defined T_FRC_BRY  || defined M2_FRC_BRY || \
     defined M3_FRC_BRY || defined Z_FRC_BRY
       character*(max_name_size) bry_file 
@@ -461,3 +455,8 @@
 #endif
       character*42  vname(4,40+NT-2)
       common /cncvars/ vname
+
+!DL: array for storing the names of those variables in the climatology
+! files which contain the data times:
+      character(len=40) tclm_name(NT)
+      common /cncvars/ tclm_name

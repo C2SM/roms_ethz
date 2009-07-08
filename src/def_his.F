@@ -673,7 +673,9 @@
      &                                  vname(3,indxHbbl)(1:lvar))
         endif
 # endif /* LMD_BKPP */
-# if defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC
+
+# if defined BIOLOGY_BEC || (defined BIOLOGY_NPZDOC && \
+    defined OXYGEN && defined CARBON)
 !
 ! pH
 !
@@ -737,6 +739,9 @@
         ierr=nf_put_att_FOUT (ncid, vidPCO2air, '_FillValue',
      &                                  NF_FOUT, 1, spv_set)
 #endif
+# endif /* BIOLOGY_BEC || (BIOLOGY_NPZDOC && OXYGEN && CARBON) */
+
+# if defined BIOLOGY_BEC || defined BIOLOGY_NPZDOC
 !
 ! PARinc:
 !
@@ -779,7 +784,7 @@
         ierr=nf_put_att_FOUT (ncid, vidPAR, '_FillValue',
      &                                  NF_FOUT, 1, spv_set)
 #endif
-#endif /* BIOLOGY_NPZDOC || BIOLOGY_BEC */
+#endif /* BIOLOGY_BEC || BIOLOGY_NPZDOC */
 #endif /* SOLVE3D */
 !
 ! Leave definition mode.
@@ -1066,7 +1071,9 @@
           endif
         endif
 # endif
-# if defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC
+
+# if defined BIOLOGY_BEC || (defined BIOLOGY_NPZDOC && \
+    defined OXYGEN && defined CARBON)
 !
 ! pH
 !
@@ -1096,6 +1103,9 @@
      &          ncname(1:lstr)
            goto 99                                       !--> ERROR
         endif
+# endif /* BIOLOGY_BEC || (BIOLOGY_NPZDOC && OXYGEN && CARBON) */
+
+# if defined BIOLOGY_BEC || defined BIOLOGY_NPZDOC
 !
 ! PARinc:
 !
@@ -1116,7 +1126,7 @@
            write(stdout,1) vname(1,indxPAR_rst)(1:lvar), ncname(1:lstr)
            goto 99                                       !--> ERROR
         endif
-# endif /* BIOLOGY_NPZDOC || BIOLOGY_BEC */
+# endif /* BIOLOGY_BEC || BIOLOGY_NPZDOC */
 #endif /* SOLVE3D */
         write(*,'(6x,2A,i4,1x,A,i4)')    'def_his/avg: Opened ',
      &              'existing file from record =',

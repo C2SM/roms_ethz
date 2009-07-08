@@ -205,7 +205,8 @@
         endif
       enddo
 #  endif /* SEDIMENT_BIOLOGY */
-#  if defined BIOLOGY_BEC || defined BIOLOGY_NPZDOC
+#  if defined BIOLOGY_BEC || (defined BIOLOGY_NPZDOC && \
+    defined OXYGEN && defined CARBON)
 !
 ! pH:
 !
@@ -238,6 +239,9 @@
          goto 99                !--> ERROR
       endif
 #  endif /* OUTPUT_PCO2AIR_RST */
+# endif /* BIOLOGY_BEC || (BIOLOGY_NPZDOC && OXYGEN && CARBON) */
+
+# if defined BIOLOGY_BEC || defined BIOLOGY_NPZDOC
 !
 ! PAR:
 !

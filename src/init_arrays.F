@@ -418,14 +418,18 @@
 # ifdef BIOLOGY_NPZDOC
       do j=jstrR,jendR
          do i=istrR,iendR
+#  if defined OXYGEN && defined CARBON
            pH_hist(i,j) = 0.0
            pCO2sw(i,j) = 0.0
            pCO2air(i,j) = 0.0
+#  endif
            PARinc(i,j) = 0.0
 #  ifdef AVERAGES
+#   if defined OXYGEN && defined CARBON
            pH_avg(i,j) = 0.0
            pCO2_avg(i,j) = 0.0
            pCO2air_avg(i,j) = 0.0
+#   endif
            PARinc_avg(i,j) = 0.0
 #  endif
          end do

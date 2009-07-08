@@ -415,7 +415,8 @@
         ierr=nf_put_att_text(ncid,rsttrack,'Content',lvar,
      &                         vinfo(3)(1:lvar))
 #endif /* FLOATS */
-# if defined BIOLOGY_BEC || defined BIOLOGY_NPZDOC
+# if defined BIOLOGY_BEC || (defined BIOLOGY_NPZDOC && \
+    defined OXYGEN && defined CARBON)
 !
 ! pH:
 !
@@ -467,6 +468,9 @@
      &                                                 1, spv_set)
 #endif
 #  endif /* OUTPUT_PCO2AIR_RST */
+# endif /* BIOLOGY_BEC || (BIOLOGY_NPZDOC && OXYGEN && CARBON) */
+
+# if defined BIOLOGY_BEC || defined BIOLOGY_NPZDOC
 !
 ! PAR:
 !
@@ -656,7 +660,8 @@
         enddo
 # endif /* SEDIMENT_BIOLOGY */
 
-# if defined BIOLOGY_BEC || defined BIOLOGY_NPZDOC
+# if defined BIOLOGY_BEC || (defined BIOLOGY_NPZDOC && \
+    defined OXYGEN && defined CARBON)
 !
 ! pH:
 !
@@ -675,6 +680,20 @@
           write(stdout,1) vname(1,indxPCO2_rst)(1:lvar), rstname(1:lstr)
           goto 99                                         !--> ERROR
         endif
+# ifdef OUTPUT_PCO2AIR_RST
+!
+! pCO2air:
+!
+        lvar=lenstr(vname(1,indxPCO2air_rst))
+        ierr=nf_inq_varid (ncid, vname(1,indxPCO2air_rst)(1:lvar), rstPCO2air)
+        if (ierr. ne. nf_noerr) then
+          write(stdout,1) vname(1,indxPCO2air_rst)(1:lvar), rstname(1:lstr)
+          goto 99                                         !--> ERROR
+        endif
+# endif /* OUTPUT_PCO2AIR_RST */
+# endif /* BIOLOGY_BEC || (BIOLOGY_NPZDOC && OXYGEN && CARBON) */
+
+# if defined BIOLOGY_BEC || defined BIOLOGY_NPZDOC
 !
 ! PAR:
 !
@@ -685,17 +704,6 @@
           goto 99                                         !--> ERROR
         endif
 # endif /* BIOLOGY_BEC || BIOLOGY_NPZDOC */
-# ifdef UNNECESSARY_OUTPUT
-!
-! pCO2air:
-!
-        lvar=lenstr(vname(1,indxPCO2air_rst))
-        ierr=nf_inq_varid (ncid, vname(1,indxPCO2air_rst)(1:lvar), rstPCO2air)
-        if (ierr. ne. nf_noerr) then
-          write(stdout,1) vname(1,indxPCO2air_rst)(1:lvar), rstname(1:lstr)
-          goto 99                                         !--> ERROR
-        endif
-# endif /* UNNECESSARY_OUTPUT */
 
 # ifdef LMD_KPP
         lvar=lenstr(vname(1,indxHbl))

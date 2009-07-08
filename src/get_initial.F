@@ -532,7 +532,8 @@ CHF          goto 99                                         !--> ERROR
         endif
       enddo
 # endif /* SEDIMENT_BIOLOGY */
-# if defined BIOLOGY_BEC || defined BIOLOGY_NPZDOC
+# if defined BIOLOGY_BEC || (defined BIOLOGY_NPZDOC && \
+    defined OXYGEN && defined CARBON)
       ! pH and PAR can be treated for both BEC and NPZD.
       ! if pH field is present in the restart file (only recently added), 
       ! these values will be used instead of the zero initialization
@@ -582,7 +583,9 @@ CHF          goto 99                                         !--> ERROR
          MPI_master_only write(stdout,*) 
      &        'PCO2air not in init/rst file, initialize to 0'
       endif
+# endif
 
+# if defined BIOLOGY_BEC || defined BIOLOGY_NPZDOC
       ! Photosynthetically available radiation:
       lvar=lenstr(vname(1,indxPAR_rst))
       ierr=nf_inq_varid (ncid, vname(1,indxPAR_rst)(1:lvar), varid)
