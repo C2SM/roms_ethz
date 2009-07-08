@@ -14,7 +14,10 @@
      &          nf_double = 6, nf_nofill = 256, nf_enameinuse = -42,
      &          nf_max_dims = 100)
 
-#if defined X__IFC || defined PGI
+!DL: prevent the following substitutions if PGI is set, so that the
+! netcdf installation under /opt/netcdf/3.6.2 (on Brutus) can be used:
+!#if defined X__IFC || defined PGI
+#ifdef X__IFC
 # define nf_strerror nf_strerror_
 # define nf_create nf_create_
 # define nf_open nf_open_

@@ -150,6 +150,10 @@ c--# define VECTORIZE
 #endif           /* ! So do 7.x and earlier versions of Intel IFC, */
                     ! but 8.x, 9.x IFORT recognize it as intrinsic.
 
+#ifdef PGI
+      integer iargc
+#endif
+
 #ifdef ZIG_ZAG_OLD
       logical par_region, lnest
       integer ip1,ip2, is1,is2
