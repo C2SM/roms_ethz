@@ -1680,6 +1680,7 @@
      &       DOC_remin - zoo_loss_dic - sp_loss_dic - graze_sp_dic- 
      &       diat_loss_dic - graze_diat_dic - graze_diaz_dic 
      &       - diaz_loss_dic) / parm_Red_P_C_O2)
+     &       - 2.0 * nitrif
        END WHERE
 
 
