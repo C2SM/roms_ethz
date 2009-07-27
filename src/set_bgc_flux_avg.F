@@ -68,65 +68,65 @@
          if (n_bgc_flux_avg .eq. 1 .or. 
      &        mod(iic-1,n_bgc_flux_avg).eq.1) then
             if (ZEROTH_TILE) time_bgc_flux_avg=time
-            do j = JstrR, JendR
-               do i = IstrR, IendR
+            do j = jstrR, jendR
+               do i = istrR, iendR
                   zeta_bgc_flux_avg(i,j) = zeta(i,j,knew)
                end do
             end do
 #   ifdef OXYGEN
 !          if (wrtavg(indxU10)) then
-             do j=JstrR,JendR
-                do i=IstrR,IendR
+             do j=jstrR,jendR
+                do i=istrR,iendR
                    u10_avg(i,j)=u10(i,j)
                 enddo
              enddo
 !          endif
 !          if (wrtavg(indxKvO2)) then
-             do j=JstrR,JendR
-                do i=IstrR,IendR
+             do j=jstrR,jendR
+                do i=istrR,iendR
                    Kv_O2_avg(i,j)=Kv_O2(i,j)
                 enddo
              enddo
 !          endif
 !          if (wrtavg(indxO2sat)) then
-             do j=JstrR,JendR
-                do i=IstrR,IendR
+             do j=jstrR,jendR
+                do i=istrR,iendR
                    O2satu_avg(i,j)=O2satu(i,j)
                 enddo
              enddo
 !          endif
 #    ifdef CARBON
 !          if (wrtavg(indxKvCO2)) then
-             do j=JstrR,JendR
-                do i=IstrR,IendR
+             do j=jstrR,jendR
+                do i=istrR,iendR
                    Kv_CO2_avg(i,j)=Kv_CO2(i,j)
                 enddo
              enddo
 !          endif
 !          if (wrtavg(indxCO2sol)) then
-             do j=JstrR,JendR
-                do i=IstrR,IendR
+             do j=jstrR,jendR
+                do i=istrR,iendR
                    CO2sol_avg(i,j)=CO2sol(i,j)
                 enddo
              enddo
 !          endif
 !          if (wrtavg(indxPCO2)) then
-             do j=JstrR,JendR
-                do i=IstrR,IendR
+             do j=jstrR,jendR
+                do i=istrR,iendR
                    pco2_avg(i,j)=pCO2sw(i,j)
                 enddo
              enddo
 !          endif
 !          if (wrtavg(indxPCO2air)) then
-             do j=JstrR,JendR
-                do i=IstrR,IendR
+             do j=jstrR,jendR
+                do i=istrR,iendR
                    pCO2air_avg(i,j)=pCO2air(i,j)
                 enddo
              enddo
 !          endif
 !          if (wrtavg(indxPH)) then
-             do j=JstrR,JendR
-                do i=IstrR,IendR
+             do j=jstrR,jendR
+                do i=istrR,iendR
                    pH_avg(i,j)=pH_hist(i,j)
                 enddo
              enddo
@@ -135,14 +135,14 @@
 #   endif /* OXYGEN */
 !          if (wrtavg(indxPAR)) then
             do k=1,N
-               do j=JstrR,JendR
-                  do i=IstrR,IendR
+               do j=jstrR,jendR
+                  do i=istrR,iendR
                      PAR_flux_avg(i,j,k)=PAR(i,j,k)
                   enddo
                enddo
             enddo
-            do j=JstrR,JendR
-               do i=IstrR,IendR
+            do j=jstrR,jendR
+               do i=istrR,iendR
                   PARinc_flux_avg(i,j)=PARinc(i,j)
                enddo
             enddo
@@ -150,8 +150,8 @@
 
             do iflux = 1, NumFluxTerms
                do k = 1, N
-                  do j = JstrR, JendR
-                     do i = IstrR, IendR 
+                  do j = jstrR, jendR
+                     do i = istrR, iendR 
                         Flux_avg(i,j,k,iflux) = Flux(i,j,k,iflux)
                      end do
                   end do
@@ -160,8 +160,8 @@
             
 #  ifdef OXYGEN
             do iflux = 1, NumGasExcTerms
-               do j = JstrR, JendR
-                  do i = IstrR, IendR 
+               do j = jstrR, jendR
+                  do i = istrR, iendR 
                      GasExcFlux_avg(i,j,iflux) = 
      &                    GasExcFlux(i,j,iflux)
                   end do
@@ -170,8 +170,8 @@
 #  endif /* OXYGEN */
             do iflux = 1, NumVSinkTerms
                do k = 0, N
-                  do j = JstrR, JendR
-                     do i = IstrR, IendR 
+                  do j = jstrR, jendR
+                     do i = istrR, iendR 
                         VSinkFlux_avg(i,j,k,iflux) = 
      &                       VSinkFlux(i,j,k,iflux)
                      end do
@@ -180,8 +180,8 @@
             end do
 #  ifdef SEDIMENT_BIOLOGY
             do iflux = 1, NumSedFluxTerms
-               do j = JstrR, JendR
-                  do i = IstrR, IendR 
+               do j = jstrR, jendR
+                  do i = istrR, iendR 
                      SedFlux_avg(i,j,iflux) = 
      &                       SedFlux(i,j,iflux)
                   end do
@@ -190,66 +190,66 @@
 #  endif /* SEDIMENT_BIOLOGY */
          elseif (mod(iic-1,n_bgc_flux_avg).gt.1) then
             if (ZEROTH_TILE) time_bgc_flux_avg=time_bgc_flux_avg+time
-            do j = JstrR, JendR
-               do i = IstrR, IendR
+            do j = jstrR, jendR
+               do i = istrR, iendR
                   zeta_bgc_flux_avg(i,j) = zeta_bgc_flux_avg(i,j) +
      &                 zeta(i,j,knew)
                end do
             end do
 #   ifdef OXYGEN
 !          if (wrtavg(indxU10)) then
-             do j=JstrR,JendR
-                do i=IstrR,IendR
+             do j=jstrR,jendR
+                do i=istrR,iendR
                    u10_avg(i,j)=u10_avg(i,j)+u10(i,j)
                 enddo
              enddo
 !          endif
 !          if (wrtavg(indxKvO2)) then
-             do j=JstrR,JendR
-                do i=IstrR,IendR
+             do j=jstrR,jendR
+                do i=istrR,iendR
                    Kv_O2_avg(i,j)=Kv_O2_avg(i,j)+Kv_O2(i,j)
                 enddo
              enddo
 !          endif
 !          if (wrtavg(indxO2sat)) then
-             do j=JstrR,JendR
-                do i=IstrR,IendR
+             do j=jstrR,jendR
+                do i=istrR,iendR
                    O2satu_avg(i,j)=O2satu_avg(i,j)+O2satu(i,j)
                 enddo
              enddo
 !          endif
 #   ifdef CARBON
 !          if (wrtavg(indxKvCO2)) then
-             do j=JstrR,JendR
-                do i=IstrR,IendR
+             do j=jstrR,jendR
+                do i=istrR,iendR
                    Kv_CO2_avg(i,j)=Kv_CO2_avg(i,j)+Kv_CO2(i,j)
                 enddo
              enddo
 !          endif
 !          if (wrtavg(indxCO2sol)) then
-             do j=JstrR,JendR
-                do i=IstrR,IendR
+             do j=jstrR,jendR
+                do i=istrR,iendR
                    CO2sol_avg(i,j)=CO2sol_avg(i,j)+CO2sol(i,j)
                 enddo
              enddo
 !          endif
 !          if (wrtavg(indxPCO2)) then
-             do j=JstrR,JendR
-                do i=IstrR,IendR
+             do j=jstrR,jendR
+                do i=istrR,iendR
                    pco2_avg(i,j)=pco2_avg(i,j)+pCO2sw(i,j)
                 enddo
              enddo
 !          endif
 !          if (wrtavg(indxPCO2air)) then
-             do j=JstrR,JendR
-                do i=IstrR,IendR
+             do j=jstrR,jendR
+                do i=istrR,iendR
                    pCO2air_avg(i,j)=pCO2air_avg(i,j)+pCO2air(i,j)
                 enddo
              enddo
 !          endif
 !          if (wrtavg(indxPH)) then
-             do j=JstrR,JendR
-                do i=IstrR,IendR
+             do j=jstrR,jendR
+                do i=istrR,iendR
                    pH_avg(i,j)=pH_avg(i,j)+pH_hist(i,j)
                 enddo
              enddo
@@ -258,14 +258,14 @@
 #  endif /* OXYGEN */
 !          if (wrtavg(indxPAR)) then
              do k=1,N
-                do j=JstrR,JendR
-                   do i=IstrR,IendR
+                do j=jstrR,jendR
+                   do i=istrR,iendR
                       PAR_flux_avg(i,j,k)=PAR_flux_avg(i,j,k)+PAR(i,j,k)
                    enddo
                 enddo
              enddo
-             do j=JstrR,JendR
-                do i=IstrR,IendR
+             do j=jstrR,jendR
+                do i=istrR,iendR
                    PARinc_flux_avg(i,j)=PARinc_flux_avg(i,j)+PARinc(i,j)
                 enddo
              enddo
@@ -273,8 +273,8 @@
 
             do iflux = 1, NumFluxTerms
                do k = 1, N
-                  do j = JstrR, JendR
-                     do i = IstrR, IendR 
+                  do j = jstrR, jendR
+                     do i = istrR, iendR 
                         Flux_avg(i,j,k,iflux) = Flux_avg(i,j,k,iflux) +
      &                       Flux(i,j,k,iflux)
                      end do
@@ -283,8 +283,8 @@
             end do
 # ifdef OXYGEN
             do iflux = 1, NumGasExcTerms
-               do j = JstrR, JendR
-                  do i = IstrR, IendR 
+               do j = jstrR, jendR
+                  do i = istrR, iendR 
                      GasExcFlux_avg(i,j,iflux) = 
      &                    GasExcFlux_avg(i,j,iflux) +
      &                    GasExcFlux(i,j,iflux)
@@ -294,8 +294,8 @@
 # endif /* OXYGEN */
             do iflux = 1, NumVSinkTerms
                do k = 0, N
-                  do j = JstrR, JendR
-                     do i = IstrR, IendR 
+                  do j = jstrR, jendR
+                     do i = istrR, iendR 
                         VSinkFlux_avg(i,j,k,iflux) = 
      &                       VSinkFlux_avg(i,j,k,iflux) + 
      &                       VSinkFlux(i,j,k,iflux)
@@ -305,8 +305,8 @@
             end do
 # ifdef SEDIMENT_BIOLOGY
             do iflux = 1, NumSedFluxTerms
-               do j = JstrR, JendR
-                  do i = IstrR, IendR 
+               do j = jstrR, jendR
+                  do i = istrR, iendR 
                      SedFlux_avg(i,j,iflux) = 
      &                    SedFlux_avg(i,j,iflux) +
      &                    SedFlux(i,j,iflux)
@@ -318,66 +318,66 @@
             cff=1./float(n_bgc_flux_avg)
             if (ZEROTH_TILE) time_bgc_flux_avg=cff*
      &           (time_bgc_flux_avg + time)
-            do j = JstrR, JendR
-               do i = IstrR, IendR
+            do j = jstrR, jendR
+               do i = istrR, iendR
                   zeta_bgc_flux_avg(i,j) = cff * ( 
      &                 zeta_bgc_flux_avg(i,j) + zeta(i,j,knew) )
                end do
             end do
 #   ifdef OXYGEN
 !          if (wrtavg(indxU10)) then
-             do j=JstrR,JendR
-                do i=IstrR,IendR
+             do j=jstrR,jendR
+                do i=istrR,iendR
                    u10_avg(i,j)=cff*( u10_avg(i,j)+u10(i,j) )
                 enddo
              enddo
 !          endif
 !          if (wrtavg(indxKvO2)) then
-             do j=JstrR,JendR
-                do i=IstrR,IendR
+             do j=jstrR,jendR
+                do i=istrR,iendR
                    Kv_O2_avg(i,j)=cff*( Kv_O2_avg(i,j)+Kv_O2(i,j) )
                 enddo
              enddo
 !          endif
 !          if (wrtavg(indxO2sat)) then
-             do j=JstrR,JendR
-                do i=IstrR,IendR
+             do j=jstrR,jendR
+                do i=istrR,iendR
                    O2satu_avg(i,j)=cff*( O2satu_avg(i,j)+O2satu(i,j) )
                 enddo
              enddo
 !          endif
 #    ifdef CARBON
 !          if (wrtavg(indxKvCO2)) then
-             do j=JstrR,JendR
-                do i=IstrR,IendR
+             do j=jstrR,jendR
+                do i=istrR,iendR
                    Kv_CO2_avg(i,j)=cff*( Kv_CO2_avg(i,j)+Kv_CO2(i,j) )
                 enddo
              enddo
 !          endif
 !          if (wrtavg(indxCO2sol)) then
-             do j=JstrR,JendR
-                do i=IstrR,IendR
+             do j=jstrR,jendR
+                do i=istrR,iendR
                    CO2sol_avg(i,j)=cff*( CO2sol_avg(i,j)+CO2sol(i,j) )
                 enddo
              enddo
 !          endif
 !          if (wrtavg(indxPCO2)) then
-              do j=JstrR,JendR
-                 do i=IstrR,IendR
+              do j=jstrR,jendR
+                 do i=istrR,iendR
                     pco2_avg(i,j)=cff*( pco2_avg(i,j) + pCO2sw(i,j) )
                  enddo
               enddo
 !          endif
 !          if (wrtavg(indxPCO2air)) then
-             do j=JstrR,JendR
-                do i=IstrR,IendR
+             do j=jstrR,jendR
+                do i=istrR,iendR
                    pCO2air_avg(i,j)=cff*(pCO2air_avg(i,j)+pCO2air(i,j))
                 enddo
              enddo
 !          endif
 !          if (wrtavg(indxPH)) then
-              do j=JstrR,JendR
-                 do i=IstrR,IendR
+              do j=jstrR,jendR
+                 do i=istrR,iendR
                     pH_avg(i,j)=cff*( pH_avg(i,j) + pH_hist(i,j) )
                  enddo
               enddo
@@ -386,15 +386,15 @@
 #   endif /* OXYGEN */
 !          if (wrtavg(indxPAR)) then
              do k=1,N
-                do j=JstrR,JendR
-                   do i=IstrR,IendR
+                do j=jstrR,jendR
+                   do i=istrR,iendR
                       PAR_flux_avg(i,j,k)=cff*( PAR_flux_avg(i,j,k) + 
      &                     PAR(i,j,k))
                    enddo
                 enddo
              enddo
-             do j=JstrR,JendR
-                do i=IstrR,IendR
+             do j=jstrR,jendR
+                do i=istrR,iendR
                    PARinc_flux_avg(i,j)=cff*( PARinc_flux_avg(i,j) + 
      &                  PARinc(i,j))
                 enddo
@@ -404,8 +404,8 @@
 
             do iflux = 1, NumFluxTerms
                do k = 1, N
-                  do j = JstrR, JendR
-                     do i = IstrR, IendR 
+                  do j = jstrR, jendR
+                     do i = istrR, iendR 
                         Flux_avg(i,j,k,iflux) = cff * 
      &                       ( Flux_avg(i,j,k,iflux) +
      &                       Flux(i,j,k,iflux) )
@@ -415,8 +415,8 @@
             end do
 # ifdef OXYGEN
             do iflux = 1, NumGasExcTerms
-               do j = JstrR, JendR
-                  do i = IstrR, IendR 
+               do j = jstrR, jendR
+                  do i = istrR, iendR 
                      GasExcFlux_avg(i,j,iflux) = cff *
      &                    ( GasExcFlux_avg(i,j,iflux) +
      &                    GasExcFlux(i,j,iflux) )
@@ -426,8 +426,8 @@
 # endif /* OXYGEN */
             do iflux = 1, NumVSinkTerms
                do k = 0, N
-                  do j = JstrR, JendR
-                     do i = IstrR, IendR 
+                  do j = jstrR, jendR
+                     do i = istrR, iendR 
                         VSinkFlux_avg(i,j,k,iflux) = cff *
      &                       ( VSinkFlux_avg(i,j,k,iflux) + 
      &                       VSinkFlux(i,j,k,iflux) )
@@ -438,8 +438,8 @@
             end do
 # ifdef SEDIMENT_BIOLOGY
             do iflux = 1, NumSedFluxTerms
-               do j = JstrR, JendR
-                  do i = IstrR, IendR 
+               do j = jstrR, jendR
+                  do i = istrR, iendR 
                      SedFlux_avg(i,j,iflux) = cff *
      &                    ( SedFlux_avg(i,j,iflux) +
      &                    SedFlux(i,j,iflux) )
