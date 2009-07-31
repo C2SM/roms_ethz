@@ -111,25 +111,25 @@
              enddo
 !          endif
 !          if (wrtavg(indxPCO2)) then
-             do j=jstrR,jendR
-                do i=istrR,iendR
-                   pco2_avg(i,j)=pCO2sw(i,j)
-                enddo
-             enddo
+!DL             do j=jstrR,jendR
+!DL                do i=istrR,iendR
+!DL                   pco2_avg(i,j)=pCO2sw(i,j)
+!DL                enddo
+!DL             enddo
 !          endif
 !          if (wrtavg(indxPCO2air)) then
-             do j=jstrR,jendR
-                do i=istrR,iendR
-                   pCO2air_avg(i,j)=pCO2air(i,j)
-                enddo
-             enddo
+!DL             do j=jstrR,jendR
+!DL                do i=istrR,iendR
+!DL                   pCO2air_avg(i,j)=pCO2air(i,j)
+!DL                enddo
+!DL             enddo
 !          endif
 !          if (wrtavg(indxPH)) then
-             do j=jstrR,jendR
-                do i=istrR,iendR
-                   pH_avg(i,j)=pH_hist(i,j)
-                enddo
-             enddo
+!DL             do j=jstrR,jendR
+!DL                do i=istrR,iendR
+!DL                   pH_avg(i,j)=pH_hist(i,j)
+!DL                enddo
+!DL             enddo
 !          endif
 #    endif /* CARBON */
 #   endif /* OXYGEN */
@@ -234,25 +234,25 @@
              enddo
 !          endif
 !          if (wrtavg(indxPCO2)) then
-             do j=jstrR,jendR
-                do i=istrR,iendR
-                   pco2_avg(i,j)=pco2_avg(i,j)+pCO2sw(i,j)
-                enddo
-             enddo
+!DL             do j=jstrR,jendR
+!DL                do i=istrR,iendR
+!DL                   pco2_avg(i,j)=pco2_avg(i,j)+pCO2sw(i,j)
+!DL                enddo
+!DL             enddo
 !          endif
 !          if (wrtavg(indxPCO2air)) then
-             do j=jstrR,jendR
-                do i=istrR,iendR
-                   pCO2air_avg(i,j)=pCO2air_avg(i,j)+pCO2air(i,j)
-                enddo
-             enddo
+!DL             do j=jstrR,jendR
+!DL                do i=istrR,iendR
+!DL                   pCO2air_avg(i,j)=pCO2air_avg(i,j)+pCO2air(i,j)
+!DL                enddo
+!DL             enddo
 !          endif
 !          if (wrtavg(indxPH)) then
-             do j=jstrR,jendR
-                do i=istrR,iendR
-                   pH_avg(i,j)=pH_avg(i,j)+pH_hist(i,j)
-                enddo
-             enddo
+!DL             do j=jstrR,jendR
+!DL                do i=istrR,iendR
+!DL                   pH_avg(i,j)=pH_avg(i,j)+pH_hist(i,j)
+!DL                enddo
+!DL             enddo
 !          endif
 #   endif /* CARBON */
 #  endif /* OXYGEN */
@@ -362,25 +362,25 @@
              enddo
 !          endif
 !          if (wrtavg(indxPCO2)) then
-              do j=jstrR,jendR
-                 do i=istrR,iendR
-                    pco2_avg(i,j)=cff*( pco2_avg(i,j) + pCO2sw(i,j) )
-                 enddo
-              enddo
+!DL              do j=jstrR,jendR
+!DL                 do i=istrR,iendR
+!DL                    pco2_avg(i,j)=cff*( pco2_avg(i,j) + pCO2sw(i,j) )
+!DL                 enddo
+!DL              enddo
 !          endif
 !          if (wrtavg(indxPCO2air)) then
-             do j=jstrR,jendR
-                do i=istrR,iendR
-                   pCO2air_avg(i,j)=cff*(pCO2air_avg(i,j)+pCO2air(i,j))
-                enddo
-             enddo
+!DL             do j=jstrR,jendR
+!DL                do i=istrR,iendR
+!DL                   pCO2air_avg(i,j)=cff*(pCO2air_avg(i,j)+pCO2air(i,j))
+!DL                enddo
+!DL             enddo
 !          endif
 !          if (wrtavg(indxPH)) then
-              do j=jstrR,jendR
-                 do i=istrR,iendR
-                    pH_avg(i,j)=cff*( pH_avg(i,j) + pH_hist(i,j) )
-                 enddo
-              enddo
+!DL              do j=jstrR,jendR
+!DL                 do i=istrR,iendR
+!DL                    pH_avg(i,j)=cff*( pH_avg(i,j) + pH_hist(i,j) )
+!DL                 enddo
+!DL              enddo
 !          endif
 #    endif /* CARBON */
 #   endif /* OXYGEN */
