@@ -315,18 +315,6 @@ c??         enddo
       do itrc=1,NT
         call t3dbc_tile (istr,iend,jstr,jend, itrc, WORK)
 
-# if defined BIOLOGY_BEC
-      enddo                                    ! Biogeochemical
-                                               ! Elemental Cycles
-      call ecosys_tile (istr,iend,jstr,jend)   ! (BEC) model 
-
-      do itrc=1,NT  
-# elif defined BIOLOGY || defined BIOLOGY_NPZDOC
-      enddo                                    ! Insert interactive
-      call biology_tile (istr,iend,jstr,jend)  ! part of the
-      do itrc=1,NT                             ! biological model
-# endif
- 
 # if defined MASKING || defined TCLIMATOLOGY
 #  ifdef EW_PERIODIC
 #   define I_RANGE istr,iend
@@ -338,6 +326,19 @@ c??         enddo
 #  else
 #   define J_RANGE jstrR,jendR
 #  endif
+
+# if defined BIOLOGY_BEC
+      enddo                                    ! Biogeochemical
+                                               ! Elemental Cycles
+      call ecosys_tile (I_RANGE,J_RANGE)       ! (BEC) model 
+
+      do itrc=1,NT  
+# elif defined BIOLOGY || defined BIOLOGY_NPZDOC
+      enddo                                    ! Insert interactive
+      call biology_tile (istr,iend,jstr,jend)  ! part of the
+      do itrc=1,NT                             ! biological model
+# endif
+ 
         do k=1,N
           do j=J_RANGE
             do i=I_RANGE
