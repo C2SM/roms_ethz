@@ -629,3 +629,11 @@ c--# define OBC_M2ORLANSKI
 # undef BIO_1ST_USTREAM_TEST
 # undef DAILYPAR_BEC
 #endif
+
+!DL:
+#ifdef BIOLOGY_BEC
+# define BIO_1ST_USTREAM_TEST
+# ifdef DIURNAL_SRFLUX
+#  define DAILYPAR_BEC
+# endif
+#endif /* BIOLOGY_BEC */
