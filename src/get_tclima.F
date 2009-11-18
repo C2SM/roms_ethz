@@ -15,11 +15,12 @@
       real cff
       integer i,itrc, lstr,lvar,lenstr, ierr, nf_fread
 # ifdef MULT_CLIM_FILES
-      integer ncidclm_loc(4), ii
-      logical var_found
+      integer ncidclm_loc(4)
 # else
       integer ncidclm_loc
 # endif
+      integer ii
+      logical var_found
       ! Array giving file in which data for each tracer are:
       character(len=80) clm_file_tr(NT)
 !
@@ -46,7 +47,7 @@
                   goto 99
                end if
             end do
-            ! Initialize ncidclm: for each tracer, check all the climatology files.
+            ! For each tracer, check all the climatology files.
             ! If no file contains values for tracer itrc, then set ncidclm(itrc)
             ! to 0 (and a default value will be used).
             do itrc=1,NT
@@ -62,7 +63,6 @@
                         write(stdout,'(/1x,4A/)') 'ERROR ',
      &                  'in get_tclima: cannot find variable ',tclm_name(itrc),
      &                  ' in file ',clm_file(i)(1:lstr)
-                        print *, 'corr tracer: ', vname(1,indxT+itrc-1)(1:lvar)
                         goto 99
                      end if
                      var_found = .true.
@@ -70,13 +70,13 @@
                      ncidclm(itrc) = ncidclm_loc(i)
                      clm_file_tr(itrc) = clm_file(i)(1:lstr)
                      tclm_tid(itrc) = ii
-                     MPI_master_only write(stdout,'(6x,2a,a8,2a)') 
-     &                  'get_tclima: ','found data for ',
+                     MPI_master_only write(stdout,'(6x,4a)') 
+     &                  'get_tclima -- found data for ',
      &                  vname(1,indxT+itrc-1)(1:lvar),
      &                  ' in file ',clm_file(i)(1:lstr)
                      exit
                   end if
-               end do
+               end do ! i = 1,nclimfiles
                ! If variable has not been found in any clim file, then we set
                ! ncidclm(itrc) to zero and tclm_tid(itrc) to -1:
                if (.not.var_found) then
@@ -84,7 +84,7 @@
                   clm_file_tr(itrc) = ''
                   tclm_tid(itrc) = -1
                   MPI_master_only write(stdout,'(6x,4a)') 
-     &                  'get_tclima: ','NO data found for ',
+     &                  'get_tclima -- ','NO data found for ',
      &                  vname(1,indxT+itrc-1)(1:lvar),
      &                  ' in climatology file(s). Using default value.'
                   ierr = nf_noerr
@@ -92,21 +92,56 @@
             end do ! itrc=1,NT
          end if  ! any(ncidclm.eq.-1)
 # else /* MULT_CLIM_FILES */
-        lstr=lenstr(clm_file)
         if (any(ncidclm.eq.-1)) then
+          lstr=lenstr(clm_file)
           ierr = nf_open(clm_file(1:lstr), nf_nowrite, ncidclm_loc)
           if (ierr .ne. nf_noerr) then
+             lstr=lenstr(clm_file)
              write(stdout,'(/1x,4A/)') 'ERROR ',
      &            'in get_tclima: can not open netCDF file ''',
      &            clm_file(1:lstr),   '''.'
              goto 99
           end if
-          ! Initialize ncidclm:
+          ! For each tracer, we check whether the climatology file contains
+          ! matching data:
           do itrc=1,NT
-             ncidclm(itrc) = ncidclm_loc
-             clm_file_tr(itrc) = clm_file(1:lstr)
-          end do
-        endif  ! ncidclm.eq.-1
+             var_found = .false.
+             lvar=lenstr(vname(1,indxT+itrc-1))
+             ierr=nf_inq_varid (ncidclm_loc,vname(1,indxT+itrc-1),ii)
+             if (ierr .eq. nf_noerr) then
+                ! Just to be sure: check also that the data times are there:
+                ierr=nf_inq_varid (ncidclm_loc,tclm_name(itrc),ii)
+                if (ierr .ne. nf_noerr) then
+                   lstr=lenstr(clm_file)
+                   write(stdout,'(/1x,4A/)') 'ERROR ',
+     &                  'in get_tclima: cannot find variable ',tclm_name(itrc),
+     &                  ' in file ',clm_file(1:lstr)
+                   goto 99
+                end if
+                var_found = .true.
+                lstr=lenstr(clm_file)
+                ncidclm(itrc) = ncidclm_loc
+                clm_file_tr(itrc) = clm_file(1:lstr)
+                tclm_tid(itrc) = ii
+                MPI_master_only write(stdout,'(6x,4a)') 
+     &                  'get_tclima -- found data for ',
+     &                  vname(1,indxT+itrc-1)(1:lvar),
+     &                  ' in file ',clm_file(1:lstr)
+             end if
+             ! If variable has not been found in any clim file, then we set
+             ! ncidclm(itrc) to zero and tclm_tid(itrc) to -1:
+             if (.not.var_found) then
+                ncidclm(itrc) = 0
+                clm_file_tr(itrc) = ''
+                tclm_tid(itrc) = -1
+                MPI_master_only write(stdout,'(6x,4a)') 
+     &             'get_tclima -- ','NO data found for ',
+     &              vname(1,indxT+itrc-1)(1:lvar),
+     &             ' in climatology file. Using default value.'
+                ierr = nf_noerr
+             end if
+          end do ! itrc=1,NT
+        end if  ! any(ncidclm.eq.-1)
 # endif /* MULT_CLIM_FILES */
 
 

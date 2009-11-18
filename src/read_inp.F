@@ -663,7 +663,7 @@ c--      fname='roms.in.US_West'
             if (wrthis(indxT+itrc-1)) wrthis(indxTime)=.true.
             MPI_master_only write(stdout, '(6x,L1,2x,A,I2,A,I2,A)')
      &                       wrthis(indxT+itrc-1), 'write T(', itrc,
-     &                                ')  Tracer of index', itrc,'.'
+     &                                ')  Tracer of index ', itrc,'.'
           enddo
 # ifdef SEDIMENT_BIOLOGY
           do itrc = 1, NT_sed
@@ -755,13 +755,13 @@ c--      fname='roms.in.US_West'
      &    , wrtavg(indxVb), 'write VBAR ', '2D V-momentum component.'
 # ifdef SOLVE3D
      &    , wrtavg(indxU),  'write U    ', '3D U-momentum component.'
-     &    , wrtavg(indxU),  'write U    ', '3D U-momentum component.'
+     &    , wrtavg(indxV),  'write V    ', '3D V-momentum component.'
           do itrc=1,NT
             if (wrtavg(indxT+itrc-1)) wrtavg(indxTime)=.true.
             MPI_master_only write(stdout,
      &                       '(6x,L1,2x,A,I2,A,2x,A,I2,A)')
      &                        wrtavg(indxT+itrc-1), 'write T(',
-     &                        itrc,')', 'Tracer of index', itrc,'.'
+     &                        itrc,')', 'Tracer of index ', itrc,'.'
           enddo
 #  ifdef SEDIMENT_BIOLOGY
           do itrc = 1, NT_sed
