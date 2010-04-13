@@ -137,10 +137,9 @@ C$OMP CRITICAL (bio_cr_rgn)
  
             cff=global_sum(13) + global_sum(15)
  
-            !jds 
-c            write(stdout,2) iic-1,tdays, cff, global_sum(7),
-c     &                    global_sum(9), global_sum(11), proc(2)
-c   2        format(I6, F12.5, 1PE16.9, 3(1PE14.7), I3)
+            write(stdout,2) iic-1,tdays, cff, global_sum(7),
+     &                    global_sum(9), global_sum(11), proc(2)
+   2        format(I6, F12.5, 1PE16.9, 3(1PE14.7), I3)
  
 #ifdef  ETALON_CHECK
             do icheck=1,ncheck

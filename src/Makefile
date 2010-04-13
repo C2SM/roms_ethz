@@ -14,9 +14,8 @@
 #include Makedefs.g95
 #include Makedefs.Fujitsu
 #include Makedefs.Gonzales.ifort
-#include Makedefs.IntelBrutus_ompi
+include Makedefs.IntelBrutus_ompi
 #include Makedefs.PGIBrutus_ompi
-include Makedefs.UP_ETH
 
 
 #                                      All source code files are 

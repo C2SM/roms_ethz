@@ -443,9 +443,8 @@ C$   &                                                   , proc(2)
             do while (i.lt.18 .and. tstring(i:i).eq.' ')
               i=i+1
             enddo
-            !jds comment to decrease written outputs
-c            write(stdout,'(I7,1x,A,1x,A)') iic-1, tstring(i:i+8),
-c     &                                          check_line(1:ie)
+            write(stdout,'(I7,1x,A,1x,A)') iic-1, tstring(i:i+8),
+     &                                          check_line(1:ie)
             call flush(stdout)
 
 #ifdef  ETALON_CHECK
