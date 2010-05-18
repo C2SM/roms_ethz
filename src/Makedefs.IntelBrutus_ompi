@@ -100,8 +100,8 @@ LARGE_MEM_FLAG = -mcmodel=medium -i-dynamic
 
 #   LCDF = -lnetcdf
 # mm ETHZ Gonzales cluster
-LCDF = -L/opt/netcdf/3.6.2/lib -lnetcdf
 # mm ETHZ Brutus cluster
+LCDF = -L/cluster/apps/netcdf/3.6.2/x86_64/intel/lib -lnetcdff -lnetcdf
 #LCDF = -L/panfs/panasas.hpc-net.ethz.ch/uwis/muennicm/intel/lib -lnetcdf
 # mm ETHZ Brutus/ Gonzales cluster Quadrics MPI
 LMPI = -L$(MPI_ROOT)/lib -lmpi
