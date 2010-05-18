@@ -379,73 +379,73 @@ C$OMP CRITICAL (diag_cr_rgn)
             v3bc_max=sqrt(v3bc_max)
 #ifdef SOLVE3D
 # if defined SEAMOUNT || defined PACIFIC || defined ISWAKE
-            if (first_time.eq.0) then
-              first_time=1
-              write(stdout,2) 'STEP', 'time[DAYS]', 'KINETIC_ENRG',
+              if (first_time.eq.0) then
+                first_time=1
+                write(stdout,2) 'STEP', 'time[DAYS]', 'KINETIC_ENRG',
      &                        'BAROTR_ENRG', 'MAX_U3D', 'MAX_UBAR',
      &                        'MAX_UBCL', 'POTEN_ENRG'
 C$   &                                                     , 'trd'
-  2           format(1x,A,2x,A,1x,A,5x,A,4x,A,7x,A,6x,A,6x,A,4x,A)
-            endif
-            write(check_line,3)  avke, avke2b, v3d_max, v2d_max,
+  2             format(1x,A,2x,A,1x,A,5x,A,4x,A,7x,A,6x,A,6x,A,4x,A)
+              endif
+              write(check_line,3)  avke, avke2b, v3d_max, v2d_max,
      &                                             v3bc_max, avpe
 C$   &                                                   , proc(2)
-  3         format(1PE17.11, 1PE16.9, 3(1PE15.8), 1PE16.8,I3)
+  3           format(1PE17.11, 1PE16.9, 3(1PE15.8), 1PE16.8,I3)
 # else
-            if (first_time.eq.0) then
-              first_time=1
-              write(stdout,'(1x,A,2x,A,1x,A,5x,A,4x,A,4x,A,1x,A)')
+              if (first_time.eq.0) then
+                first_time=1
+                write(stdout,'(1x,A,2x,A,1x,A,5x,A,4x,A,4x,A,1x,A)')
      &                 'STEP',       'time[DAYS]', 'KINETIC_ENRG',
      &                 'SURFACE_KE', 'POTEN_ENRG', 'FREE_SURFACE'
 C$   &                                                      ,'trd'
-            endif
-            write(check_line,'(1PE17.11,3(1PE15.8),I3)')
+              endif
+              write(check_line,'(1PE17.11,3(1PE15.8),I3)')
      &                   avke, avkesrf, avpe, avzeta/area
 C$   &                                                   , proc(2)
 # endif
 #else
-            if (first_time.eq.0) then
-              first_time=1
-              write(stdout,'(1x,A,2x,A,1x,A,5x,A,4x,A,9x,A,1x,A)')
+              if (first_time.eq.0) then
+                first_time=1
+                write(stdout,'(1x,A,2x,A,1x,A,5x,A,4x,A,9x,A,1x,A)')
      &                 'STEP',       'time[DAYS]', 'KINETIC_ENRG',
      &                 'POTEN_ENRG', 'KE+PE',   'FREE_SURFACE'
 C$   &                                                      ,'trd'
-            endif
-            write(check_line,'(1PE17.11,3(1PE15.8),I3)')
+              endif
+              write(check_line,'(1PE17.11,3(1PE15.8),I3)')
      &                   avke, avpe, avke+avpe, avzeta/area
 C$   &                                                   , proc(2)
 #endif
-            ie=max_check_line
-            do while (check_line(ie:ie).eq.' ' .and. ie.gt.0)
-              ie=ie-1
-            enddo                                 ! Suppress FORTRAN
-            i=0                                   ! floating point Es
-            do while (i.lt.ie)                    ! to shorten the
-              i=i+1                               ! diagnostic line.
-              if (check_line(i:i).eq.'E' .or.
-     &            check_line(i:i).eq.'e') then
-                check_line(i:ie-1)=check_line(i+1:ie)
-                check_line(ie:ie)=' '
+              ie=max_check_line
+              do while (check_line(ie:ie).eq.' ' .and. ie.gt.0)
                 ie=ie-1
-              elseif (ichar(check_line(i:i)).lt.48 .or.
-     &                ichar(check_line(i:i)).gt.57) then
-                if (check_line(i:i).ne.' ' .and.
+              enddo                                 ! Suppress FORTRAN
+              i=0                                   ! floating point Es
+              do while (i.lt.ie)                    ! to shorten the
+                i=i+1                               ! diagnostic line.
+                if (check_line(i:i).eq.'E' .or.
+     &              check_line(i:i).eq.'e') then
+                  check_line(i:ie-1)=check_line(i+1:ie)
+                  check_line(ie:ie)=' '
+                  ie=ie-1
+                elseif (ichar(check_line(i:i)).lt.48 .or.
+     &                  ichar(check_line(i:i)).gt.57) then
+                  if (check_line(i:i).ne.' ' .and.
      &              check_line(i:i).ne.'+'  .and. ! Set may_day_flag
      &              check_line(i:i).ne.'-'  .and. ! to terminate the
      &              check_line(i:i).ne.'.') then  ! run in the case
-                  may_day_flag=1                  ! of floating point
-                endif                             ! exception
-              endif 
-            enddo
+                    may_day_flag=1                  ! of floating point
+                  endif                             ! exception
+                endif 
+              enddo
 
-            write(tstring,'(F18.8)') tdays
-            i=1
-            do while (i.lt.18 .and. tstring(i:i).eq.' ')
-              i=i+1
-            enddo
-            write(stdout,'(I7,1x,A,1x,A)') iic-1, tstring(i:i+8),
+              write(tstring,'(F18.8)') tdays
+              i=1
+              do while (i.lt.18 .and. tstring(i:i).eq.' ')
+                i=i+1
+              enddo
+              write(stdout,'(I7,1x,A,1x,A)') iic-1, tstring(i:i+8),
      &                                          check_line(1:ie)
-            call flush(stdout)
+              call flush(stdout)
 
 #ifdef  ETALON_CHECK
 # define WRITE_ETALON

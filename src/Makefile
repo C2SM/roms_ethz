@@ -14,8 +14,9 @@
 #include Makedefs.g95
 #include Makedefs.Fujitsu
 #include Makedefs.Gonzales.ifort
-include Makedefs.IntelBrutus_ompi
+#include Makedefs.IntelBrutus_ompi
 #include Makedefs.PGIBrutus_ompi
+include Makedefs.UP_ETH
 
 
 #                                      All source code files are 
@@ -45,7 +46,7 @@ KRNSRC = main.F		step2D_FB.F	read_inp.F	sta_par.F\
 \
 	rho_eos.F	ab_ratio.F	alfabeta.F\
 \
-	lmd_vmix.F      lmd_kpp.F	lmd_swr_frac.F\
+	lmd_vmix.F      lmd_kpp.F	lmd_kpp_init.F	lmd_swr_frac.F\
 	bvf_mix.F\
 \
 	diag.F		wvlcty.F	grid_stiffness.F\

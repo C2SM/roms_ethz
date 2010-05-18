@@ -24,47 +24,57 @@
       filename_biopar_bec_nml = 'biopar_bec.nml'
       filename_biopar_out_bec_nml = 'biopar_out_bec.nml'
 
-        sinking_particle_POC=0.0
-        sinking_particle_P_CaCO3=0.0
-        sinking_particle_P_SiO2=0.0
-        sinking_particle_dust=0.0
-        sinking_particle_P_iron =0.0
+       sinking_particle_POC=0.0
+       sinking_particle_P_CaCO3=0.0
+       sinking_particle_P_SiO2=0.0
+       sinking_particle_dust=0.0
+       sinking_particle_P_iron =0.0
 
        parm_Fe_bioavail    = 0.02
-       parm_prod_dissolve  = 0.67
        parm_o2_min         = 4.0
-       parm_Rain_CaCO3     = 0.07
-       parm_Rain_SiO2      = 0.03
-       parm_kappa_nitrif   = 0.06 * dps       ! (= 1/( days))
+       parm_kappa_nitrif   = 0.06 * dps       ! (= 1/( days)=6.944e-7)
        parm_nitrif_par_lim = 4.0
 ! HF: changed from 6.6e-5 on Oct 3, 2005, following Keith Moore's changes
        parm_POC_flux_ref   = 2.e-3           ! (mmol C/m^2/sec) - WAS 6.6e-3 nmol C/cm^2/sec
-       parm_rest_prod_tau  = 30.0 * dps       ! (= 30 days)
-       parm_rest_prod_z_c  = 75.              ! (m)
-       parm_z_umax_0       = 2.75 * dps
-       parm_diat_umax_0    = 2.07 * dps     
-       parm_z_mort_0       = 0.1 * dps
+
+       parm_z_umax_0       = 2.75 * dps !=2.8356481481481483e-05
+       parm_diat_umax_0    = 2.07 * dps !=2.3958333333333331e-05
+       parm_z_mort_0       = 0.1 * dps !=1.1574074074074074e-06
 ! HF: changed from 0.46 on Oct 3, 2005, following Keith Moore's changes
-       parm_z_mort2_0      = 0.45 * dps
-       parm_sd_remin_0     = 0.01 * dps       ! (= 1/(100 days))
+       parm_z_mort2_0      = 0.45 * dps !5.2083333333333332e-06
+       parm_sd_remin_0     = 0.01 * dps !=1.1574074074074074e-07
+       parm_diaz_umax_0    = 1.2 * dps  !=1.3888888888888888e-05
+
        parm_sp_kNO3        = 0.5
+       parm_sp_kNH4        = 0.006       
+       parm_sp_kPO4        = 0.0005
+       parm_sp_kFe         = 0.06e-3          ! mmol Fe/m3
+ 
+       parm_alphaChl       = 0.3 * dps !3.472222222222222e-06
+       parm_alphaDiaz      = 0.036 * dps !4.1666666666666661e-07
+      
        parm_diat_kNO3      = 2.5
-       parm_sp_kNH4        = 0.006
 ! HF: changed from 0.06 on Oct 3, 2005, following Keith Moore's changes
        parm_diat_kNH4      = 0.08
-       parm_sp_kFe         = 0.06e-3          ! mmol Fe/m3
 ! HF: changed from 0.16e-3 on Oct 3, 2005, following Keith Moore's changes
        parm_diat_kFe       = 0.15e-3          ! mmol Fe/m3
        parm_diat_kSiO3     = 1.0
-       parm_sp_kPO4        = 0.0005
        parm_diat_kPO4      = 0.005
+
        parm_z_grz          = 1.05
 ! HF: changed from "0.25 * dps" on Oct 3, 2005, following Keith Moore's changes
-       parm_alphaChl       = 0.3 * dps
        parm_labile_ratio   = 0.70
+       diat_mort  = 0.1 * dps !=1.1574074074074074e-06
+       diat_mort2 = 0.009 * dps !1.0416666666666665e-07
+       sp_mort    = 0.1 * dps
+       sp_mort2   = 0.009 * dps
+       z_ingest   = 0.3
+       thres_z1   = 100.0   ! 100 m
+       thres_z2   = 200.0   ! 200 m
+
 ! HF: changed from "0.025*dps" on Oct 3, 2005, following Keith Moore's changes
-       parm_alphaDiaz      = 0.036 * dps
-       parm_diaz_umax_0    = 1.2 * dps
+ 
+       
 	gQsi_0        = 0.137
 	gQsi_coef     = 2.5
 	gQsi_max      = 0.685
@@ -81,21 +91,14 @@
 
 
 ! JDS: parameters that were initialized within ecosys_bec.F are now included here:
-	 PCref      = 3.0 * dps
-         sp_mort    = 0.1 * dps
-         sp_mort2   = 0.009 * dps
-         diat_mort  = 0.1 * dps
-         diat_mort2 = 0.009 * dps
-         z_ingest   = 0.3
-         thres_z1   = 100.0   ! 100 m
-         thres_z2   = 200.0   ! 200 m
+	 PCref      = 3.0 * dps !3.4722222222222222e-05
+         PCrefDiaz  = 0.4 * dps !4.6296296296296296e-06
 
-         PCrefDiaz  = 0.4 * dps
 ! HF: changed from "0.18" on Oct 3, 2005, following Keith Moore's changes
-         diaz_mort  = 0.16 * dps
+         diaz_mort  = 0.16 * dps !1.8518518518518519e-06
 ! HF: changed from "0.008" on Oct 3, 2005, following Keith Moore's changes
          diaz_kPO4  = 0.005 ! 1.6 * diatom value
-         diaz_kFe   = 0.1e-3
+         diaz_kFe   = 0.1e-3 
 
     !---------------------------------------------------------------------------
     !   SET FIXED RATIOS for N/C, P/C, SiO3/C, Fe/C
@@ -109,11 +112,19 @@
          Qp_diaz   = 0.002735
          Qfe_zoo   = 2.5e-6
 
+!Parameters concerning particulate terms computation
+         Q10_growth =  2.0
+         Q10_POC   =  1.0
+         parm_diss          =  1.0
+         parm_gamma         =  1.0
+         parm_decay_hard    =  2.5e-5
+         parm_nitrif_o2     =  2.0
+
          where(rmask ==1)
               landmask=.TRUE.
-            elsewhere 
-               landmask=.FALSE.
-            endwhere
+         elsewhere 
+              landmask=.FALSE.
+         endwhere
 
     !------------------------------------------------------------------------
     ! initialize tracers and apply land mask to tracers (suppose done by roms
@@ -228,7 +239,6 @@
        nitrif_hist       = c0
 
 !Jds: writing and reading namelist files to prescribe parameters
-
 
       open(73,file=filename_biopar_bec_nml,status='old',iostat=status)
 ! Since this file is optional, it's okay to proceed if it doesn't exist or

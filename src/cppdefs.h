@@ -20,7 +20,7 @@
 #undef WAVE_RAD        /* A test for wave radiation boundaries */
 #undef ATL360X408    /* Whole Atlantic 360x408 */
 !--> #define ATL50S70N    /* Whole Atlantic 50S x 70N (360x468) */
-
+#undef ONE_DIM /*ONE DIM CONFIGURATION (JDS)*/
 
 /*
     Embedded (nested) grid configuration segment
@@ -594,10 +594,64 @@ c--# define OBC_M2ORLANSKI
 # define M2_FRC_BRY
 
 #endif
+
+#ifdef ONE_DIM
+
+# define SOLVE3D
+# define UV_COR
+# define UV_ADV
+# define CURVGRID
+# define SPHERICAL
+# define MASKING
+# define MASK_LAND_DATA
+
+# define EXACT_RESTART
+# define AVERAGES
+!                       Equation of State
+# define SALINITY
+# define NONLIN_EOS
+# define SPLIT_EOS
+
+# define QCORRECTION
+# define SFLX_CORR
+# define SSS_dQdSST   ! dQdSSSt must be read together with
+                      ! SSS or not (in this case with SST)
+	!                       Lateral Mixing
+# define UV_VIS2
+# define MIX_GP_TS
+# define TS_DIF2
+# define MIX_GP_UV
+	!                       Vertical Mixing
+# define LMD_MIXING
+# define LMD_KPP
+# define LMD_RIMIX
+# define LMD_CONVEC
+# define DIURNAL_SRFLUX
+
+# define EW_PERIODIC
+# define NS_PERIODIC
+# define BIO_1ST_USTREAM_TEST
+# define DAILYPAR_BEC
+# define DIURNAL_SRFLUX
+# define NEW_S_COORD
+! Switches related to biology:
+!#define BIOLOGY_NPZDOC
+# define BIOLOGY_BEC
+! Switches related to bottom restore layer
+! For 1d configurations and when using bec
+# define DBLEPREC
+!#define ANA_VMIX
+!#define FOUR_CLIM_FILES
+!#define BGC_FLUX_ANALYSIS
+!#define PHYS_FLUX_ANALYSIS
+!#define VERT_DIFF_ANALYSIS
+!#define FULL_PHYS_FLUX_ANALYSIS
+!#define PHYS_FLUX_ALL_COMPS
+#define VFLX_CORR
+
+#endif /*ONE_DIM*/
  
 #include "set_global_definitions.h"
-
-
 !#define BIOLOGY_NPZDOC
 !#define BIOLOGY_BEC
 !#define FOUR_CLIM_FILES

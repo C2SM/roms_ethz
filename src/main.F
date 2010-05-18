@@ -200,6 +200,8 @@ CR      write(*,*) ' -6' MYID
       ! pH is initialized to 0 in ecosys_init
       call ecosys_init
 # endif
+      ! Initialisation of lmd parameters (JDS)
+      call lmd_kpp_init
                                      ! Set initial conditions for
 #ifdef ANA_INITIAL
       do tile=my_tile_range          ! model prognostic variables,
@@ -488,7 +490,11 @@ C$OMP BARRIER
 # endif 
         call    rho_eos (tile)
         call    set_HUV (tile)
-        call       diag (tile)
+        !JDS when setting ninfo to 0 we remove any output diagnostic
+        !coming from diag.F
+        if (ninfo .ne. 0) then
+                call diag (tile)
+        endif
 #if defined BIOLOGY || defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC
 !        call   bio_diag (tile)
 #endif

@@ -29,13 +29,16 @@ c     &               LLm=256, MMm=2,   N=64
 c*   &               LLm=98,  MMm=206, N=12
      &               LLm=24,  MMm=34,  N=10
 #elif defined PACIFIC
-     &               LLm=384, MMm=224, N=30
+     &               LLm=2, MMm=2, N=32
+c    &               LLm=384, MMm=224, N=30
 c    &               LLm=392, MMm=288, N=30
 
 c    &               LLm=432, MMm=320, N=32
 c     &               LLm=488, MMm=360, N=32
 
 c    &               LLm=768, MMm=512, N=40
+#elif defined ONE_DIM
+     &               LLm=2, MMm=2, N=32
 #elif defined ATL360X408
      &               LLm=360,  MMm=408,  N=32
 #elif defined ATL50S70N

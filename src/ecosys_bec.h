@@ -11,8 +11,12 @@
 !zt: vert dist from sfc to midpoint of layer
 
        real tracer(GLOBAL_2D_ARRAY,N,ntrc_bio,2)
+! Initial tracers values for the bottom layer of the one dimension configuration (JDS)
+       real INITIAL_TRACER(GLOBAL_2D_ARRAY,ntrc_bio)
+       real initial_temp(GLOBAL_2D_ARRAY)
+       real initial_salt(GLOBAL_2D_ARRAY)
 
-        common /tracers/ tracer
+        common /tracers/ tracer,initial_tracer,initial_temp,initial_salt
 !MODHF        common /vert/ kmt
 !HF        common /dzc/dz
 !HF        common /dzrc/dzr
@@ -208,6 +212,7 @@
 !------------------------------------------------------------------------
 !   restoring climatologies for nutrients
 !------------------------------------------------------------------------
+
 
        logical lrest_po4,lrest_no3,lrest_sio3 
 !     lrest_po4,    restoring on po4 

@@ -80,6 +80,10 @@ LARGE_MEM_FLAG = -mcmodel=medium -i-dynamic
       LDR = $(CFT)
 #      LDR = mpif90 $(OMP_FLAG) -pc80 -tpp7 -axW -xW -w95 -align dcommon -auto -stack_temps
 
+  #trade off compilation options choice between enhance compilation or execution speed
+  #  O1 short compilation but small performances
+  #  O3 longer compilation but more performant executable
+  #
   FFLAGS =  -O1 -IPF_fma -ip $(LARGE_MEM_FLAG)
 #    FFLAGS =  -O2 -mp -fpe0 -fp-model strict
 # -prof_gen
@@ -104,7 +108,8 @@ LARGE_MEM_FLAG = -mcmodel=medium -i-dynamic
 
 #   LCDF = -lnetcdf
 # mm ETHZ Gonzales cluster
-LCDF = -L$(NCDF_ROOT)/lib -lnetcdf
+LCDF = -L$(NCDF_ROOT)/lib -lnetcdff -lnetcdf
+
 # mm ETHZ Brutus cluster
 #LCDF = -L/panfs/panasas.hpc-net.ethz.ch/uwis/muennicm/intel/lib -lnetcdf
 # mm ETHZ Brutus/ Gonzales cluster Quadrics MPI

@@ -22,6 +22,9 @@ c--#define LIMIT_MO_DEPTH
 # include "forces.h"
 # include "mixing.h"
 # include "scalars.h"
+
+#include "param_lmd.h"
+
 # define tind nstp
 
       integer istr,iend,jstr,jend, i,j,k
@@ -68,52 +71,14 @@ c--#define LIMIT_MO_DEPTH
 # ifdef INT_AT_RHO_POINTS
      &                                             , z_up
 # endif
+
 #endif
 
+      real r2,r3,r4
+      parameter (r2=0.5, r3=1./3., r4=0.25)
 
+      Ri_inv=1./Ricr
 
-     
- 
-
-      real nubl, nu0c, Cv, Ricr, Ri_inv, betaT, epssfc, C_Ek, C_MO,
-     &     Cstar, Cg, eps, zeta_m, a_m, c_m,   zeta_s, a_s, c_s,
-     &                                                    r2,r3,r4
-      parameter (
-     &   nubl=0.01,   ! maximum allowed boundary layer
-
-     &   nu0c=0.1,    ! convective adjustment for viscosity
-                      !              and diffusivity [m^2/s].
- 
-     &   Cv=1.8,      ! ratio of interior Brunt-Vaisala frequency
-                      ! "N" to that at the entrainment depth "he".
- 
-     &   Ricr=0.45,   ! Critical bulk Richardson number (0.3).
-
-     &   Ri_inv=1./Ricr,
-
-     &   betaT=-0.2,  ! ratio of entrainment flux to surface
-                      !         buoyancy flux.
- 
-     &   epssfc=0.1,  ! nondimensional extent of the surface layer.
- 
-     &   C_MO=1.,     ! constant for computaion Monin-Obukhov depth.
-
-     &   C_Ek=258.,   ! constant for computating stabilization term 
-                      ! due to Coriolis force (Ekman depth limit).
- 
-     &   Cstar=10.,   ! proportionality coefficient parameterizing
-                      ! nonlocal transport.
-     &   eps=1.E-20,
-
-     &   zeta_m=-0.2, ! Maximum stability parameters "zeta"
-     &   a_m=1.257,   ! value of the 1/3 power law regime of
-     &   c_m=8.360,   ! flux profile for momentum and tracers
-     &   zeta_s=-1.0, ! and coefficients of flux profile for
-     &   a_s=-28.86,  ! momentum and tracers in their 1/3-power
-     &   c_s=98.96,   ! law regime;
-
-     &   r2=0.5, r3=1./3., r4=0.25)
- 
       Cg=Cstar * vonKar * (c_s*vonKar*epssfc)**(1./3.)
       Vtc=Cv * sqrt(-betaT/(c_s*epssfc)) / (Ricr*vonKar**2)
 
@@ -173,6 +138,7 @@ c--#define LIMIT_MO_DEPTH
      &                             J_EXT_RANGE, alpha,beta)
       do j=J_EXT_RANGE
         do i=I_EXT_RANGE
+
           Bo(i,j)=g*( alpha(i,j)*(stflx(i,j,itemp)-srflx(i,j))
 # ifdef SALINITY
      &                              -beta(i,j)*stflx(i,j,isalt)
@@ -284,6 +250,7 @@ c**     &          '### ERROR', k, Cr(i,k), Cr(i,k-1), hbl(i,j)
           hbl(i,j)=z_w(i,j,N)-z_w(i,j,0)+eps
         endif
 
+
 #  ifdef LIMIT_MO_DEPTH
         if (kmo(i).gt.0) then
           k=kmo(i)
@@ -296,15 +263,18 @@ c**     &          '### ERROR', k, Cr(i,k), Cr(i,k-1), hbl(i,j)
 
           hbl(i,j)=min(hbl(i,j), max(h_MO,0.))
         endif
+
 #   undef C_h_MO
 #  endif 
 #  ifdef MASKING
         hbl(i,j)=hbl(i,j)*rmask(i,j)
 #  endif
+!     Modif JDS to optimize MLD with a factor and an offset
+        hbl(i,j)=alpha_hbl*hbl(i,j)
+        if ((hbl(i,j)+(1.-offset_hbl)*30.).gt.0) then
+             hbl(i,j)=hbl(i,j)+(1.-offset_hbl)*30.
+        endif
       enddo
-
-
-
 
 # elif defined INT_AT_RHO_POINTS 
 #  define swdk_r wrk1 
@@ -361,14 +331,16 @@ c fix by Gokhan
         do i=I_EXT_RANGE
           hbl(i,j)=z_w(i,j,N)-z_w(i,j,0) +eps
           if (kbl(i).gt.0) then
-            k=kbl(i)
-            if (k.eq.N) then
-              hbl(i,j)=z_w(i,j,N)-z_r(i,j,N)
-            else
-              hbl(i,j)=z_w(i,j,N)-( z_r(i,j,k)*Cr(i,k+1)
+              k=kbl(i)
+              if (k.eq.N) then
+                hbl(i,j)=z_w(i,j,N)-z_r(i,j,N)
+              else
+                hbl(i,j)=z_w(i,j,N)-( z_r(i,j,k)*Cr(i,k+1)
      &                              -z_r(i,j,k+1)*Cr(i,k)
      &                              )/(Cr(i,k+1)-Cr(i,k))
-            endif
+              endif
+
+
           endif
 #  ifdef LIMIT_MO_DEPTH
           if (kmo(i).gt.0) then
@@ -392,6 +364,12 @@ c fix by Gokhan
 #  ifdef MASKING
           hbl(i,j)=hbl(i,j)*rmask(i,j)
 #  endif
+!     Modif JDS to optimize MLD with a factor and an offset
+          hbl(i,j)=alpha_hbl*hbl(i,j)
+          if ((hbl(i,j)+(1.-offset_hbl)*30.).gt.0) then
+             hbl(i,j)=hbl(i,j)+(1.-offset_hbl)*30.
+          endif
+
         enddo     !--> discard kbl
 
 
@@ -677,10 +655,10 @@ c fix by Gokhan
         do k=1,N-1
           do i=istr,iend
             Akv(i,j,k)=Kv(i,j,k)
-            Akt(i,j,k,itemp)=Kt(i,j,k)
- 
+            !Modif jds to optimize the diffusive coefficient 
+            Akt(i,j,k,itemp)=alpha_temp_diff*Kt(i,j,k) + (1.-offset_temp_diff)*0.0001
 # ifdef SALINITY
-            Akt(i,j,k,isalt)=Ks(i,j,k)
+            Akt(i,j,k,isalt)=alpha_salt_diff*Ks(i,j,k) + (1.-offset_salt_diff)*0.0001
 # endif
           enddo
         enddo

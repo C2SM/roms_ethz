@@ -16,17 +16,12 @@
      &  parm_Red_P_C_O2 = 117.0 / 170.0,
      &  parm_Red_Fe_C   = 3.0e-6)
 
-       REAL::
+       REAL ::
      &  parm_Fe_bioavail,       ! fraction of Fe flux that is bioavailable
-     &  parm_prod_dissolve,     ! frac. of prod -> DOC
      &  parm_o2_min,            ! lower limit of O2 for prod  consumption (mmol/m^3)
-     &  parm_Rain_CaCO3,        ! Rain ratio for CaCO3
-     &  parm_Rain_SiO2,         ! Rain ratio for SiO2
      &  parm_kappa_nitrif,      ! nitrification inverse time constant (1/sec)
      &  parm_nitrif_par_lim,    ! PAR limit for nitrif. (W/m^2)
      &  parm_POC_flux_ref,      ! reference POC flux (mmol C/m^2/sec)
-     &  parm_rest_prod_tau,     ! time-scale for restoring prod (sec)
-     &  parm_rest_prod_z_c,     ! depth-limit for restoring (m)
      &  parm_z_umax_0,          ! max. zoopl growth rate on sphyto at tref (1/sec)
      &  parm_diat_umax_0,       ! max. zoopl growth rate on diatoms at tref (1/sec)
      &  parm_z_mort_0,          ! zoopl linear mort rate (1/sec)
@@ -51,28 +46,32 @@
 ! JDS: parameters that were defined within ecosys_bec.F are now included here:
 
        REAL ::
-     &    PCref,           ! max phyto C-specific growth rate at tref (GD98) (1/sec)
-     &    sp_mort,         ! small phyto non-grazing death rate (1/sec)
-     &    sp_mort2,        ! small phyto quad mort rate, agg (1/sec/((mmol C/m3))
-     &    diat_mort,       ! diatom non-grazing death rate (1/sec)
-     &    diat_mort2,      ! diatom quad mort rate, agg/sinking (1/sec/((mmol C/m3))
-     &    z_ingest,        ! zoo ingestion coefficient (non-dim)
-     &    Q,               ! N/C ratio (mmol N/mmol C) of all phyto and zoopl
-     &    Qp,              ! P/C ratio (mmol P/mmol C) of small phyto, diatoms, zoo
-     &    thres_z1,        ! threshold = C_loss_thres for z shallower than this (m) ! HF: used to be in cm
-     &    thres_z2,        ! threshold = 0 for z deeper than this (m) ! HF: used to be in cm
-     &    PCrefDiaz,       ! max Diaz C-specific growth rate at tref (GD98) (1/sec)
-     &    Qp_diaz,          ! diazotroph P/C ratio
-     &    diaz_mort,        ! diazotroph non-grazing death rate (1/sec)
-     &    diaz_kPO4,        ! diazotroph half-saturation const. for P uptake
-     &    diaz_kFe,         ! diazotroph half-saturation const. for P uptake
-     &    Qfe_zoo           ! zooplankton fe/C ratio
+     &  PCref,           ! max phyto C-specific growth rate at tref (GD98) (1/sec)
+     &  sp_mort,         ! small phyto non-grazing death rate (1/sec)
+     &  sp_mort2,        ! small phyto quad mort rate, agg (1/sec/((mmol C/m3))
+     &  diat_mort,       ! diatom non-grazing death rate (1/sec)
+     &  diat_mort2,      ! diatom quad mort rate, agg/sinking (1/sec/((mmol C/m3))
+     &  z_ingest,        ! zoo ingestion coefficient (non-dim)
+     &  Q,               ! N/C ratio (mmol N/mmol C) of all phyto and zoopl
+     &  Qp,              ! P/C ratio (mmol P/mmol C) of small phyto, diatoms, zoo
+     &  thres_z1,        ! threshold = C_loss_thres for z shallower than this (m) ! HF: used to be in cm
+     &  thres_z2,        ! threshold = 0 for z deeper than this (m) ! HF: used to be in cm
+     &  PCrefDiaz,       ! max Diaz C-specific growth rate at tref (GD98) (1/sec)
+     &  Qp_diaz,          ! diazotroph P/C ratio
+     &  diaz_mort,        ! diazotroph non-grazing death rate (1/sec)
+     &  diaz_kPO4,        ! diazotroph half-saturation const. for P uptake
+     &  diaz_kFe,         ! diazotroph half-saturation const. for P uptake
+     &  Qfe_zoo,           ! zooplankton fe/C ratio
+     &  parm_diss,
+     &  parm_gamma,
+     &  Q10_POC,Q10_growth,
+     &  parm_decay_hard,
+     &  parm_nitrif_o2
 
-
-       common/eco_para/parm_Fe_bioavail, parm_prod_dissolve, 
-     &   parm_o2_min, parm_Rain_CaCO3, parm_Rain_SiO2, 
+       common/eco_para/parm_Fe_bioavail,  
+     &   parm_o2_min,  
      &   parm_kappa_nitrif, parm_nitrif_par_lim, parm_POC_flux_ref, 
-     &   parm_rest_prod_tau, parm_rest_prod_z_c, parm_z_umax_0, 
+     &   parm_z_umax_0, 
      &   parm_diat_umax_0, parm_z_mort_0, parm_z_mort2_0, 
      &   parm_sd_remin_0, parm_sp_kNO3, parm_diat_kNO3,
      &   parm_sp_kNH4, parm_diat_kNH4, parm_sp_kFe, 
@@ -83,12 +82,13 @@
 ! JDS added Parameters
      &   PCref,sp_mort,sp_mort2,diat_mort,diat_mort2,z_ingest,
      &   Q,Qp,thres_z1,thres_z2,PCrefDiaz,Qp_diaz,diaz_mort,
-     &   diaz_kPO4,diaz_kFe,Qfe_zoo 	
+     &   diaz_kPO4,diaz_kFe,Qfe_zoo,parm_diss,parm_gamma,
+     &   Q10_POC,Q10_growth,parm_decay_hard,parm_nitrif_o2	
 
-       namelist/biology_param_bec_nml/parm_Fe_bioavail, parm_prod_dissolve,
-     &   parm_o2_min, parm_Rain_CaCO3, parm_Rain_SiO2,
+       namelist/biology_param_bec_nml/parm_Fe_bioavail, 
+     &   parm_o2_min, 
      &   parm_kappa_nitrif, parm_nitrif_par_lim, parm_POC_flux_ref,
-     &   parm_rest_prod_tau, parm_rest_prod_z_c, parm_z_umax_0,
+     &   parm_z_umax_0,
      &   parm_diat_umax_0, parm_z_mort_0, parm_z_mort2_0,
      &   parm_sd_remin_0, parm_sp_kNO3, parm_diat_kNO3,
      &   parm_sp_kNH4, parm_diat_kNH4, parm_sp_kFe,
@@ -99,5 +99,5 @@
 ! JDS added Parameters
      &   PCref,sp_mort,sp_mort2,diat_mort,diat_mort2,z_ingest,
      &   Q,Qp,thres_z1,thres_z2,PCrefDiaz,Qp_diaz,diaz_mort,
-     &   diaz_kPO4,diaz_kFe,Qfe_zoo
-
+     &   diaz_kPO4,diaz_kFe,Qfe_zoo,parm_diss,parm_gamma,
+     &   Q10_POC,Q10_growth,parm_decay_hard,parm_nitrif_o2

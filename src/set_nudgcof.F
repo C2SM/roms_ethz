@@ -120,7 +120,7 @@ c      enddo
 !
 #  if defined BENGUELA
       isp=8              ! number of points in sponge layer
-#  elif defined PACIFIC
+#  elif defined PACIFIC || defined ONE_DIM
       isp=(LLm+1)/30
 #  elif defined ATL50S70N
 ! mm use about the same number of points as for Pacific
@@ -181,7 +181,7 @@ c      enddo
           visc2_r(i,j)=visc2_r(i,j)+v_sponge*wrk(i,j)
 #   endif
 #   if defined SOLVE3D && defined TS_DIF2
-#    ifdef PACIFIC
+#    ifdef PACIFIC || ONE_DIM
           diff2(i,j,itemp)=diff2(i,j,itemp)+0.5*v_sponge*wrk(i,j)
 #    else
           diff2(i,j,itemp)=diff2(i,j,itemp)+v_sponge*wrk(i,j)

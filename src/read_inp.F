@@ -101,6 +101,8 @@
       fname='roms.in.River'
 #elif defined PACIFIC
       fname='pacific.in'
+#elif defined ONE_DIM
+      fname='one_dim.in'
 #elif defined PACIFIC_2D
       fname='pacific_2D.in'
 #elif defined CANBAS2
