@@ -47,12 +47,8 @@
       character fname(4)*32
       character switch(max_switches)*32
       logical status, state(max_switches)
-      integer count, iocheck, i,k,n
+      integer count, iocheck, i,k,n, nstdpth
       logical end_of_file, comment, word, command, new
-
-      integer nstdpth 
-
-
 
  
       write(*,'(/1x,A,1x,A/)') 'This is CPPCHECK: Creating',
@@ -225,11 +221,11 @@ c**       enddo
                 state(nswtchs)=status
                 line(nswtchs)=count
                 if (example) nexample=nexample+1
-              endif                       !
-            endif                         ! CPP-switches found prior
-          enddo                           ! to the first conditional
-         if (.not.end_of_file) goto 1     ! CPP-command correspond to
-        close(unit=input)                 ! predefined examples.
+              endif
+            endif                        ! CPP-switches found prior
+          enddo                          ! to the first conditional
+         if (.not.end_of_file) goto 1    ! CPP-command correspond to
+        close(unit=input)                ! predefined configurations.
 
         fswtch(ifile+1)=nswtchs+1
       enddo  !<-- ifile
@@ -282,37 +278,29 @@ c**       enddo
         do while(fname(ifile)(ln:ln).eq.' ')
           ln=ln-1 
         enddo
-        write(iout,'(6x,A,1x,3A)')
-     &         'MPI_master_only write(stdout,''(1x,3A)'')',
-     &                     '''<', fname(ifile)(1:ln), '>'''
+        write(iout,'(6x,4A)')   'MPI_master_only write(stdout,',
+     &             '''(1x,A)'') ''<', fname(ifile)(1:ln), '>'''
 
         write(iout,'(6x,A,I2/6x,A/6x,3A/6x,A/6x,A)')
      &       'ie=is +', ln+1, 'if (ie.ge.max_opt_size) goto 99',
-     &       'cpps(is:ie)=''<', fname(ifile)(1:ln), '>''',
+     &       'cpps(is:ie)=''<',    fname(ifile)(1:ln),    '>''',
      &       'cpps(ie+1:ie+1)='' ''', 'is=ie+2'
-
-
-
 
         do i=fswtch(ifile),fswtch(ifile+1)-1 
           ln=size(i)
-
           if (ifile.eq.1) then
             write(iout,'(A,1x,A)') '#ifdef', switch(i)(1:ln)
           endif
 
           if (ifile.eq.1 .or. state(i)) then
-
             if (i.le.nexample) then
               write(iout,'(6x,A)') 'iexample=iexample+1'
             endif
-            write(iout,'(6x,A,1x,3A)')
-     &         'MPI_master_only write(stdout,''(10x,A)'')',
-     &                       '''', switch(i)(1:ln), ''''
-            write(iout,'(6x,A,I2/6x,A/6x,3A/6x,A/6x,A)')
-     &         'ie=is +', ln-1, 'if (ie.ge.max_opt_size) goto 99',
-     &         'cpps(is:ie)=''',  switch(i)(1:ln),  '''',
-     &         'cpps(ie+1:ie+1)='' ''',  'is=ie+2'
+            write(iout,'(6x,A,I2/6x,A/6x,3A/6x,2A/6x,A/6x,A)')
+     &           'ie=is +', ln-1, 'if (ie.ge.max_opt_size) goto 99',
+     &           'cpps(is:ie)=''',      switch(i)(1:ln),       '''',
+     &           'MPI_master_only write(stdout,''(10x,A)'') ',
+     &           'cpps(is:ie)', 'cpps(ie+1:ie+1)='' ''',  'is=ie+2'
           endif
 
           if (ifile.eq.1) then
@@ -327,8 +315,8 @@ c**       enddo
      &   '''ERROR in "cppdefs.h": no configuration is specified.''',
      &     'ierr=ierr+1',  'elseif (iexample.gt.1) then'
       write(iout,'(8x,A/5x,A1,2x,A/5x,A1,14x,A/8x,A/6x,A/6x,A)')
-     &     'MPI_master_only write(stdout,''(/1x,A/12x,A)'')',
-     &     '&', '''*** ERROR: More than one main configurational '',',
+     &     'MPI_master_only write(stdout,''(/1x,A/12x,A)'')', '&',
+     &     '''### ERROR: More than one main configurational '',',
      &     '&',            '''switch is defined in "cppdefs.h".''',
      &     'ierr=ierr+1', 'endif', 'return'
       write(iout,'(2x,A/5x,A1,2x,A,1x,A/5x,A1,2x,A,1x,A)')

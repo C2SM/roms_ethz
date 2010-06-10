@@ -12,6 +12,7 @@
  accordingly. This switch is used for debugging purposes only and
  normally should be undefined.
 */
+
  
 c--#define ALLOW_SINGLE_BLOCK_MODE
 #ifdef ALLOW_SINGLE_BLOCK_MODE
@@ -58,7 +59,7 @@ c--#define ALLOW_SINGLE_BLOCK_MODE
 */
  
 #define MPI
-#undef PARALLEL_FILES
+!mm--> #define PARALLEL_FILES
  
 /* Define standard dimensions for the model arrays (vertical
  dimensions are inserted explicitly in the code, when needed).
@@ -140,6 +141,15 @@ c--#define ALLOW_SINGLE_BLOCK_MODE
 # define EAST_INTER east_inter.and.iend.eq.ieast
 # define SOUTH_INTER south_inter.and.jstr.eq.jsouth
 # define NORTH_INTER north_inter.and.jend.eq.jnorth
+#else
+# ifdef EW_PERIODIC
+#  define WEST_INTER istr.eq.1
+#  define EAST_INTER iend.eq.Lm
+# endif
+# ifdef NS_PERIODIC
+#  define SOUTH_INTER jstr.eq.1
+#  define NORTH_INTER jend.eq.Mm
+# endif
 #endif
 
 /* The following four macros identify position of an MPI-node
@@ -219,10 +229,8 @@ c--#define ALLOW_SINGLE_BLOCK_MODE
 # define FIRST_TIME_STEP iic.eq.ntstart
 #endif
 #ifdef SOLVE3D
-# define fast_indx_out kstp
 # define FIRST_2D_STEP iif.eq.1
 #else
-# define fast_indx_out knew
 # define FIRST_2D_STEP iic.eq.ntstart
 #endif
  
@@ -245,11 +253,9 @@ c--#define ALLOW_SINGLE_BLOCK_MODE
 # define QUAD 16
 #  define QuadZero 0.Q0
 /* #  define QuadZero 0.0_16 */
-# define QuadOne 1.Q0
 #else
 # define QUAD 8
 # define QuadZero 0.D0
-# define QuadOne 1.D0
 #endif
  
 c-#ifdef DBLEPREC

@@ -20,9 +20,10 @@
       if (ncidflt.ne.-1) ierr=nf_close(ncidflt)
 #endif
  
-      write(stdout,'(/1x,2A,I5,4(/8x,A,I5)/)') 'MAIN - '
-     &  ,'number of records written into history  file(s):', nrechis
-     &  ,'number of records written into restart  file(s):', nrecrst
+      MPI_master_only write(stdout,'(/1x,2A,I5,4(/8x,A,I5)/)')
+     &  'MAIN - ',
+     &  'number of records written into restart  file(s):', nrecrst,
+     &  'number of records written into history  file(s):', nrechis
 #ifdef AVERAGES
      &  ,'number of records written into averages file(s):', nrecavg
 #endif
@@ -34,7 +35,7 @@
 #endif
  
       if (may_day_flag.eq.0) then
-        write(stdout,'(/1x,A/)') 'MAIN: DONE'
+        MPI_master_only write(stdout,'(/1x,A/)') 'MAIN: DONE'
       elseif (may_day_flag.eq.1) then
         write(stdout,'(/1x,A/)') 'MAIN: Abnormal termination: BLOWUP'
       elseif (may_day_flag.eq.2) then
@@ -44,18 +45,22 @@
         write(stdout,'(/1x,A/)')
      &              '### ERROR: Cause of termination: netCDF output.'
       elseif (may_day_flag.eq.4) then
-        write(stdout,'(/1x,A/)') '### ERROR: Cannot open netCDF file.'
+          write(stdout,'(/1x,A/)')
+     &                          '### ERROR: Cannot open netCDF file.'
       elseif (may_day_flag.eq.5) then
         write(stdout,'(/1x,A/)')
-     &                     '### ERROR: read_inp: Error in input file.'
+     &                    '### ERROR: read_inp: Error in input file.'
       elseif (may_day_flag.eq.6) then
         write(stdout,'(/1x,A/)')
-     &          '### ERROR: read_inp: An input file is not available.'
+     &         '### ERROR: read_inp: An input file is not available.'
       elseif (may_day_flag.eq.7) then
-        write(stdout,'(/1x,A/)') '### ERROR: KPP algoritm failure.'
+          write(stdout,'(/1x,A/)') '### ERROR: KPP algoritm failure.'
       elseif (may_day_flag.eq.8) then
         write(stdout,'(/1x,A/)') '### ERROR: Wrong choice of tiling.'
       endif
+
+      MPI_master_only call system('echo End time  `date`')
+
       return
       end
  

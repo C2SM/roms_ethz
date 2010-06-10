@@ -40,13 +40,15 @@
 #endif
 
 # define UPSTREAM
-c--# define AKIMA
+cc# define AKIMA
 c--# define CONST_TRACERS
 
 
  
 # ifdef UPSTREAM
 #  define curv WORK
+# elif defined WENO
+#  define weno WORK
 # else
 #  define grad WORK
 # endif
@@ -89,6 +91,8 @@ c--# define CONST_TRACERS
             do i=istr-1,iend+1
 # if defined UPSTREAM
               curv(i,j)=FX(i+1,j)-FX(i,j)
+# elif defined WENO
+              curv(i,j)= weno
 # elif defined AKIMA
               cff=2.*FX(i+1,j)*FX(i,j)
               if (cff.gt.epsil) then
@@ -112,6 +116,8 @@ c--# define CONST_TRACERS
               TruncFX(i,j)=0.0416666666667*(curv(i,j)-curv(i-1,j))
      &                                           *abs(FlxU(i,j,k))
 #  endif
+# elif defined WENO
+              FX(i,j)=  curv(i-1,j)*max(FlxU(i,j,k),0.) + curv(i  ,j)*min(FlxU(i,j,k),0.))
 # else
               FX(i,j)=0.5*( t(i,j,k,nrhs,itrc)+t(i-1,j,k,nrhs,itrc)
      &                      -0.333333333333*( grad(i,j)-grad(i-1,j))

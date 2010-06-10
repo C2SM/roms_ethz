@@ -242,8 +242,10 @@
             Kv(i,j,k)=nuwm + nu0m*nu_sx
             Kt(i,j,k)=nuws + nu0s*nu_sx
 CDL
+#  ifdef KPP_DIAGNOSE
             Rich(i,j,k) = nu0s*nu_sx
             RichN(i,j,k) = Rig(i,j,k)
+#  endif
 CDL
 # else
             Kv(i,j,k)=nuwm                    ! internal waves
