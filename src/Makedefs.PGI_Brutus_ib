@@ -1,0 +1,26 @@
+# Definitions for PGI fortran on Brutus
+# AMD Opteron processor
+# =========== === ===== === ======= ======== == =====
+
+#----------------------------------
+.SUFFIXES:	# Delete the default suffixes
+.SUFFIXES: .o .f .F
+# Use pattern rule to indicate dependency on mpc
+%.f:  mpc %.F 
+	$(CPP) -P $(CPPFLAGS) $*.F | mpc > $@
+.f.o:
+	$(FC) -c $(FFLAGS) $< -o $@
+# clear implicit rule .F.o
+%.o: %.F
+#----------------------------------
+#OPENMP=-mp
+ OPENMP=
+
+CPP = cpp -traditional
+FC = mpif90
+LDR = $(FC)
+
+CPPFLAGS = -DPGI ${MAKEINC} -I /cluster/work/uwis/muennicm/local/netcdf/include
+FFLAGS = -mcmodel=medium -fast -O4 -tp shanghai-64,k8-64e,k8-64 $(OPENMP)
+LCDF =-L/cluster/work/uwis/muennicm/local/netcdf/lib -lnetcdf  -L/cluster/work/uwis/muennicm/local/hdf5/lib -lhdf5_hl -lhdf5  -lz
+

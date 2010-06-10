@@ -4,8 +4,8 @@ c--#define BULK_DIFFERENCE
 c--#define INT_AT_W_POINTS
 #define INT_AT_RHO_POINTS
 
-
-c--#define SMOOTH_HBL
+#define MLCONVEC
+#define SMOOTH_HBL
 #define LIMIT_UNSTABLE_ONLY
 c--#define LIMIT_MO_DEPTH
 
@@ -81,7 +81,7 @@ c--#define LIMIT_MO_DEPTH
       parameter (
      &   nubl=0.01,   ! maximum allowed boundary layer
 
-     &   nu0c=0.1,    ! convective adjustment for viscosity
+     &   nu0c=0.5,    ! convective adjustment for viscosity
                       !              and diffusivity [m^2/s].
  
      &   Cv=1.8,      ! ratio of interior Brunt-Vaisala frequency
@@ -657,6 +657,21 @@ c fix by Gokhan
             endif
 # endif
           enddo
+ccc CHANGE cccccccccccccc
+# ifdef MLCONVEC
+          do k=N-1,kbl(i),-1
+# ifdef LMD_CONVEC
+            if (bvf(i,j,k).lt.0.) then     ! Add convective
+cccc              Kv(i,j,k)=Kv(i,j,k) + nu0c   ! adjustment
+              Kt(i,j,k)=Kt(i,j,k) + nu0c
+#  ifdef SALINITY
+              Ks(i,j,k)=Ks(i,j,k) + nu0c
+#  endif
+            endif
+# endif
+          enddo
+# endif
+ccc CHANGE cccccccccccccc
           do k=kbl(i)-1,1,-1
 # ifdef LMD_NONLOCAL
             ghat(i,j,k)=0.

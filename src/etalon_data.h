@@ -1,1 +1,1 @@
-etalon_data.USWEST
+/home/munnich/Roms/Roms_src_mergestuff/src_eth1.0/etalon_data.USWEST

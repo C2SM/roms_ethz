@@ -1,0 +1,14 @@
+src/nccp
+src/nccpstruct
+src/redefs
+src/checkkwds
+src/cppcheck
+src/cross_matrix
+src/mpc
+src/ncextract
+src/ncjoin
+src/ncrename
+src/partit
+src/roms
+src/srcscheck
+
