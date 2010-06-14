@@ -92,6 +92,10 @@ c*******
 #  ifdef MASKING
      &                                      *rmask(iend+1,j)
 #  endif
+
+cXXXXXXX
+         zeta_new(iend+1,j)=zeta_new(iend,j)
+
         enddo
 #  else
         do j=jstrV-1,jend                             ! Eastern edge

@@ -320,7 +320,8 @@ c          endif
 #    endif
      &                                                        )
 
-
+CXXXXXXXXXX
+          ubar(iend+1,j,knew)=ubar_east(j)
 
 
 

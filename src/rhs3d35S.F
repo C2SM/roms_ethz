@@ -1,6 +1,13 @@
 #include "cppdefs.h"
 #ifdef SOLVE3D
 # define UPSTREAM
+
+#ifndef ETHV10DRAG
+# define NO_SLIP_BOTTOM
+# define IMPLICIT_BOTTOM_DRAG
+#endif
+
+
  
       subroutine rhs3d (tile)
       implicit none
@@ -37,6 +44,9 @@
 # include "coupling.h"
 # include "forces.h"
 # include "scalars.h"
+# ifdef IMPLICIT_BOTTOM_DRAG
+#  include "mixing.h"
+# endif
 !
 # include "compute_auxiliary_bounds.h"
 !
@@ -365,11 +375,24 @@ c**         rd(i,j)=rdrg + rdrg2*cff
 
             rd(i,j)=rdrg + cff*(vonKar/log(Hz(i,j,1)/Zob))**2
 
+
+# if !defined IMPLICIT_BOTTOM_DRAG
+#  if !defined NO_SLIP_BOTTOM
+
             rd(i,j)=min(rd(i,j), Hz(i,j,1)/dt) !<-- stability
+
+# endif
+#endif
+
+c??       if (i.eq.Lm/2 .and. j.eq.Mm/16) then
+c??             write(*,'(1x,A,3F16.10)') 'rd check',
+c??     &   dt*rd(i,j)/Hz(i,j,1), dt*Akv(i,j,1)/(Hz(i,j,1)*Hz(i,j,1))
+c??       endif
+
 # endif
           enddo
         enddo
-# ifdef MPI
+# if defined MPI  || defined EW_PERIODIC 
         if (WEST_INTER) then        ! Save "rd" into shared array 
           imin=istr-1               ! "r_D" for the subsequent use
         else                        ! in barotropic mode. Note that
@@ -383,6 +406,16 @@ c**         rd(i,j)=rdrg + rdrg2*cff
 # else
         imin=istr
         jmin=jstr
+# endif
+# if defined MPI  || defined NS_PERIODIC
+        if (SOUTH_INTER) then
+          jmin=jstr-1                 ! exchange margines so that
+        else                          ! "r_D" can be correctly
+          jmin=jstr                   ! averaged to U- and V-points
+        endif                         ! without exchanging its halo 
+# else
+        jmin=jstr                     ! points by MPI messages.
+
 # endif
         do j=jmin,jend
           do i=imin,iend
@@ -589,6 +622,7 @@ c*        enddo
 ! (here) "rufrc", "rvfrc".
 !
         if (COUPLED_STAGE_ONLY) then
+#ifdef ETHV10DRAG
           do i=istrU,iend
             cff=dm_u(i,j)*dn_u(i,j)
             ru(i,j,1)=ru(i,j,1) -cff*0.5*(rd(i-1,j)+rd(i,j))
@@ -615,6 +649,183 @@ c*        enddo
               enddo
             enddo
           endif
+
+#else /* not ETHV10DRAG */
+#ifdef IMPLICIT_BOTTOM_DRAG
+
+          do i=istrU,iend
+            DC(i,0)=dt*0.25*(pm(i,j)+pm(i-1,j))*(pn(i,j)+pn(i-1,j))
+
+            FC(i,N-1)=dt *2.*(Akv(i,j,N-1)+Akv(i-1,j,N-1))
+     &                        /(  Hz(i,j,N  )+Hz(i-1,j,N  )
+     &                          +Hz(i,j,N-1)+Hz(i-1,j,N-1))
+
+            cff=1./(0.5*(Hz(i,j,N)+Hz(i-1,j,N))+FC(i,N-1))
+
+            CF(i,N-1)=cff*FC(i,N-1)
+
+
+            DC(i,N)=cff*( u(i,j,N,nnew) +DC(i,0)*ru(i,j,N)
+     &                                      +dt*sustr(i,j))
+          enddo
+          do k=N-1,2,-1      !--> forward elimination
+            do i=istrU,iend
+              FC(i,k-1)= dt*2.*(Akv(i,j,k-1)+Akv(i-1,j,k-1))
+     &                          /(  Hz(i,j,k  )+Hz(i-1,j,k  )
+     &                            +Hz(i,j,k-1)+Hz(i-1,j,k-1))
+
+              cff=1./( 0.5*(Hz(i,j,k)+Hz(i-1,j,k)) +FC(i,k-1)
+     &                                   +FC(i,k)*(1.-CF(i,k))
+     &                                                       )
+              CF(i,k-1)=cff*FC(i,k-1)
+              DC(i,k)=cff*( u(i,j,k,nnew) +DC(i,0)*ru(i,j,k)
+     &                                    +FC(i,k)*DC(i,k+1))
+            enddo
+          enddo
+          do i=istrU,iend
+             DC(i,1)=(u(i,j,1,nnew) +DC(i,0)*ru(i,j,1)
+     &                                +FC(i,1)*DC(i,2))
+     &                   /( 0.5*(Hz(i,j,1)+Hz(i-1,j,1))
+# ifdef NO_SLIP_BOTTOM
+     &                    +dt * 0.5*(rd(i,j)+rd(i-1,j))
+# endif
+     &                         +FC(i,1)*(1.-CF(i,1)) )
+          enddo
+          cff=1./dt
+          do k=2,N,+1          !--> backsubstitution
+            do i=istrU,iend
+              DC(i,k)=DC(i,k) +CF(i,k-1)*DC(i,k-1)
+!>
+              FC(i,k-1)=cff*FC(i,k-1)*(DC(i,k)-DC(i,k-1))
+            enddo
+          enddo       !--> now FC is visc. flux
+          do i=istrU,iend
+            DC(i,0)=dm_u(i,j)*dn_u(i,j)
+            ru(i,j,N)=ru(i,j,N) +DC(i,0)*(sustr(i,j)-FC(i,N-1))
+            ru(i,j,1)=ru(i,j,1) +DC(i,0)*( FC(i,1)
+     &                        -0.5*(rd(i-1,j)+rd(i,j))*DC(i,1) )
+
+            rufrc(i,j)=ru(i,j,N)+ru(i,j,1)
+          enddo
+          do k=N-1,2,-1
+            do i=istrU,iend
+              ru(i,j,k)=ru(i,j,k) +DC(i,0)*(FC(i,k)-FC(i,k-1))
+
+              rufrc(i,j)=rufrc(i,j)+ru(i,j,k)
+            enddo
+          enddo
+
+
+
+          if (j.ge.jstrV) then
+            do i=istr,iend
+              DC(i,0)=dt*0.25*(pm(i,j)+pm(i,j-1))*(pn(i,j)+pn(i,j-1))
+
+              FC(i,N-1)=dt *2.*(Akv(i,j,N-1)+Akv(i,j-1,N-1))
+     &                          /(  Hz(i,j,N  )+Hz(i,j-1,N  )
+     &                            +Hz(i,j,N-1)+Hz(i,j-1,N-1))
+
+              cff=1./(0.5*(Hz(i,j,N)+Hz(i,j-1,N))+FC(i,N-1))
+
+              CF(i,N-1)=cff*FC(i,N-1)
+              DC(i,N)=cff*( v(i,j,N,nnew) +DC(i,0)*rv(i,j,N)
+     &                                        +dt*svstr(i,j))
+            enddo
+            do k=N-1,2,-1      !--> forward elimination
+              do i=istr,iend
+                FC(i,k-1)= dt*2.*(Akv(i,j,k-1)+Akv(i,j-1,k-1))
+     &                            /(  Hz(i,j,k  )+Hz(i,j-1,k  )
+     &                              +Hz(i,j,k-1)+Hz(i,j-1,k-1))
+
+                cff=1./( 0.5*(Hz(i,j,k)+Hz(i,j-1,k)) +FC(i,k-1)
+     &                                    +FC(i,k)*(1.-CF(i,k))
+     &                                                        )
+                CF(i,k-1)=cff*FC(i,k-1)
+                DC(i,k)=cff*( v(i,j,k,nnew) +DC(i,0)*rv(i,j,k)
+     &                                      +FC(i,k)*DC(i,k+1))
+              enddo
+            enddo
+            do i=istr,iend
+               DC(i,1)=( v(i,j,1,nnew) +DC(i,0)*rv(i,j,1)
+     &                                   +FC(i,1)*DC(i,2))
+     &                      /( 0.5*(Hz(i,j,1)+Hz(i,j-1,1))
+# ifdef NO_SLIP_BOTTOM
+     &                         +dt*0.5*(rd(i,j)+rd(i,j-1))
+# endif
+     &                            +FC(i,1)*(1.-CF(i,1)) )
+            enddo
+            cff=1./dt
+            do k=2,N,+1          !<-- backsubstitution
+              do i=istr,iend
+                DC(i,k)=DC(i,k) +CF(i,k-1)*DC(i,k-1)
+!>
+                FC(i,k-1)=cff*FC(i,k-1)*(DC(i,k)-DC(i,k-1))
+              enddo
+            enddo        !--> now FC is visc. flux
+
+            do i=istr,iend
+              DC(i,0)=dm_v(i,j)*dn_v(i,j)
+              rv(i,j,N)=rv(i,j,N) +DC(i,0)*(svstr(i,j)-FC(i,N-1))
+              rv(i,j,1)=rv(i,j,1) +DC(i,0)*( FC(i,1)
+     &                          -0.5*(rd(i,j-1)+rd(i,j))*DC(i,1) )
+
+              rvfrc(i,j)=rv(i,j,N)+rv(i,j,1)
+            enddo
+            do k=N-1,2,-1
+              do i=istr,iend
+                rv(i,j,k)=rv(i,j,k) +DC(i,0)*(FC(i,k)-FC(i,k-1))
+
+                rvfrc(i,j)=rvfrc(i,j)+rv(i,j,k)
+              enddo
+            enddo
+          endif
+
+
+#else
+                                             ! Note that in the case
+          do i=istrU,iend                    ! of NO SLIP BOTTOM only
+            cff=dm_u(i,j)*dn_u(i,j)          ! rufrc receives bottom
+            ru(i,j,N)=ru(i,j,N) +cff*sustr(i,j)
+# ifdef NO_SLIP_BOTTOM
+            rufrc(i,j)=ru(i,j,N)+ru(i,j,1)
+     &                          -cff*0.5*(rd(i-1,j)+rd(i,j))
+     &                                        *u(i,j,1,nrhs)
+# else
+            ru(i,j,1)=ru(i,j,1) -cff*0.5*(rd(i-1,j)+rd(i,j))
+     &                                        *u(i,j,1,nrhs)
+            rufrc(i,j)=ru(i,j,N)+ru(i,j,1)
+# endif
+          enddo                              ! stress; 3D part will
+          do k=N-1,2,-1                      ! get in in step3d_uv2
+            do i=istrU,iend                  ! implicitly.
+              rufrc(i,j)=rufrc(i,j)+ru(i,j,k)
+            enddo
+          enddo
+
+          if (j.ge.jstrV) then
+            do i=istr,iend
+              cff=dm_v(i,j)*dn_v(i,j)
+              rv(i,j,N)=rv(i,j,N) +cff*svstr(i,j)
+# ifdef NO_SLIP_BOTTOM
+              rvfrc(i,j)=rv(i,j,N)+rv(i,j,1)
+     &                            -cff*0.5*(rd(i,j-1)+rd(i,j))
+     &                                          *v(i,j,1,nrhs)
+# else
+              rv(i,j,1)=rv(i,j,1) -cff*0.5*(rd(i,j-1)+rd(i,j))
+     &                                          *v(i,j,1,nrhs)
+              rvfrc(i,j)=rv(i,j,N)+rv(i,j,1)
+# endif
+            enddo
+            do k=N-1,2,-1
+              do i=istr,iend
+                rvfrc(i,j)=rvfrc(i,j)+rv(i,j,k)
+              enddo
+            enddo
+          endif
+#endif
+
+
+#endif /* ETHV10DRAG */
         endif
 # undef rd
 

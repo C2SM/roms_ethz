@@ -59,27 +59,36 @@
               found=.true.
               ntime=size
             else
-              write(stdout,'(/1x,4A/18x,A)')         '### ERROR: ',
-     &               'set_cycle :: variable ''',  varname(1:lvar),
-     &               ''' has', 'more than one ''_time'' dimension.'
+              write(*,'(/1x,4A/18x,A)')  '### ERROR: set_cycle :: ',
+     &                    'variable ''',  varname(1:lvar), ''' has',
+     &                         'more than one ''_time'' dimension.'
               ierr=-9999
             endif
           endif
         else
-          write(stdout,'(/1x,4A/10x,A/)')  '### ERROR: set_cycle ',
-     &              ':: Cannot inquire dimensions for variable ''',
-     &               varname(1:lvar),   '''.',   nf_strerror(ierr) 
+          write(*,'(/1x,4A/10x,A/)')      '### ERROR: set_cycle :: ',
+     &                   'Cannot inquire dimensions for variable ''',
+     &                     varname(1:lvar), '''.', nf_strerror(ierr) 
         endif
       enddo
 !
 ! Check, if there is more than one record available in netCDF file:
 ! In the case of multiple records, check whether variable has cycling
 ! attribute, if so, retrieve cycling period (leaving it set to zero
-! means that no recycling will be performed).
+! means that no recycling will be performed).  Also, in the case of
+! cycling,  scan all times available in the file and check whether
+! all of them lie within the declared cycling interval,
+!
+!      time(irec=1)  <  time(irec)  <=  time(irec=1)+cycle_length
+!                         1< irec <= ntime
+!
+! and if not restrict the last record to be read "ntime" to those
+! which are within (this means that all the remaining records in the
+! file will be ignored). 
 !
       if (ierr.eq.nf_noerr) then
-!DL        if (ntime.gt.1) then
-        if (ntime.ge.1) then
+        if (ntime.gt.1) then
+!DL ETHV10:        if (ntime.ge.1) then
           i=0
           do while (i.lt.nvatts .and. ierr.eq.nf_noerr)
             i=i+1
@@ -90,15 +99,39 @@
                 ierr=nf_get_att_FTYPE (ncid, varid, attname(1:latt),
      &                                                 cycle_length)
                 if (ierr.eq.nf_noerr) then
+                  irec=0
+                  do while (irec.lt.ntime) 
+                    irec=irec+1
+                    ierr=nf_get_var1_FTYPE (ncid, varid, irec, tend)
+                    if (ierr.eq.nf_noerr) then
+                      if (irec.eq.1) then
+                        tstart=tend          !<-- initial time
+                      elseif (irec.eq.2) then
+                        tstart=2.*tstart-tend !<-- retard by 1/2-step
+                      elseif (tend .gt. tstart+cycle_length) then
+                        write(*,'(8x,A,2(A,I4,1x),A)')   'WARNING: ',
+     &                 'set_cycle :: Adjusted "ntime" from ', ntime,
+     &                 'to', irec-1,  'restricted by "cycle_length".'
+                        ntime=irec-1
+                      endif
+                    else
+                      write(*,1) varname(1:lvar), irec,
+     &                                nf_strerror(ierr)
+                    endif
+                  enddo
+
+                  irec=1
                   cycle_length=cycle_length*day2sec
                 else
-                  write(stdout,'(/1x,4A/)') 'SET_CYCLE ERROR while ',
-     &                 'reading attribute ''', attname(1:latt), '''.'
+                  write(*,'(/1x,4A/12x,A)')  '### ERROR: set_cycle ',
+     &                ':: Cannot read attribute ''', attname(1:latt),
+     &                                     '''.',  nf_strerror(ierr)
                 endif
-              endif
+              endif   !<-- cycle_length  is/is not present
             else
-              write(stdout,'(/1x,A,1x,3A/)') 'SET_CYCLE ERROR while',
-     &          'inquiring attributes for ''', varname(1:lvar), '''.'
+              write(*,'(/1x,4A/12x,A)')   '### ERROR: set_cycle :: ',
+     &           'Cannot inquire attributes for ''', varname(1:lvar),
+     &                                     '''.',  nf_strerror(ierr)
             endif
           enddo
 !
@@ -157,7 +190,7 @@ c           write(*,*) irec, ntime, icycle, cycle_length, tend
                       found=.true.
                     elseif (itry.gt.ntime) then
 
-         write(stdout,97) '### ERROR: set_cycle :: Cannot find ',
+         write(*,97) '### ERROR: set_cycle :: Cannot find ',
      &  'appropriate record after scanning all records ',
      &  'available:  icycle =', icycle,   'cycle_length =',
      &   cycle_length, ' tstart =', tstart,  'tend =', tend,
@@ -170,7 +203,7 @@ c           write(*,*) irec, ntime, icycle, cycle_length, tend
                       tstart=tend  !--> continue search
                     endif
                   else
-                    write(stdout,1) varname(1:lvar), irec, ierr
+                    write(*,1) varname(1:lvar),irec,nf_strerror(ierr)
                   endif
                 endif
               enddo
@@ -185,7 +218,7 @@ c           write(*,*) irec, ntime, icycle, cycle_length, tend
                     irec=ntime
                     icycle=icycle-1
                   elseif (irec.lt.0) then
-                    write(*,'(/1x,2A/)') '### ERROR: set_cycle :: ',
+                    write(*,'(/1x,2A/)')  '### ERROR: set_cycle :: ',
      &            'run out of time records in non-recycling regime.'
                     ierr=-9999
                   endif
@@ -194,23 +227,23 @@ c           write(*,*) irec, ntime, icycle, cycle_length, tend
             endif
           endif
         else
-          write(stdout,1) varname(1:lvar), irec, ierr
+          write(*,1) varname(1:lvar), irec, nf_strerror(ierr) 
         endif
       else
-        write(stdout,'(/1x,2A,I4/18x,A,I4/)') 'SET_CYCLE ERROR: ',
-     &     'Cannot make general inquiry about variable with ID =',
-     &      varid, 'in input file; netCDF error code =', ierr
+        write(*,'(/1x,2A,I4,1x,A/12x,A/)')   '### ERROR: set_cycle ',
+     &     ':: Cannot make general inquiry about variable with ID =',
+     &             varid, 'in input netCDF file.', nf_strerror(ierr)
       endif
-  1   format(/1x,'### ERROR: set_cycle :: cannot read variable ''',
-     &    A, ''' for record ', I4/10x, 'netCDF error code =', I5/)
+  1   format(/1x,'### ERROR: set_cycle :: Cannot read variable ''',
+     &                             A, ''' for record ', I4/12x,A/)
 
       if (ierr .ne. nf_noerr) then
         i=nf_inq_varname (ncid, varid, testname)
         if (i .eq. nf_noerr) then
           lvar=lenstr(testname)
-          write(*,'(12x,A,I4,2x,3A,2z,A,1PE16.7/)')   'varid =',
-     &      varid, 'variable in question: ''', testname(1:lvar),
-     &      '''.', 'cycle_length=',  cycle_length
+          write(*,'(1x,A,I4,2x,3A,2(1x,A,1PE16.7)/)')      'varid =',
+     &         varid, 'variable in question: ''', testname(1:lvar),
+     &                       '''.', 'cycle_length=',  cycle_length
 
         else
 

@@ -1,11 +1,5 @@
 #include "cppdefs.h"
 #ifdef SOLVE3D
-#ifdef ETHV10DRAG
-# include step3d_uv2_ethv10.F
-#else 
-# define NO_SLIP_BOTTOM
-# define IMPLICIT_BOTTOM_DRAG
-
  
       subroutine step3d_uv2 (tile)
       implicit none
@@ -32,74 +26,12 @@
 # include "ocean2d.h"
 # include "ocean3d.h"
 # include "coupling.h"
-# ifndef IMPLICIT_BOTTOM_DRAG
-#  include "mixing.h"
-# endif
+# include "forces.h"
+# include "mixing.h"
 # include "scalars.h"
 # include "sources.h"
 !
 # include "compute_auxiliary_bounds.h"
-!
-# ifdef IMPLICIT_BOTTOM_DRAG
-
-      do j=jstr,jend
-        do i=istrU,iend                        !--> coupling
-          CF(i,0)=0.5*(Hz(i,j,N)+Hz(i-1,j,N))
-          DC(i,0)=u(i,j,N,nnew)
-          u(i,j,N,nnew)=u(i,j,N,nnew)/CF(i,0)
-        enddo
-        do k=N-1,1,-1
-          do i=istrU,iend
-            cff=0.5*(Hz(i,j,k)+Hz(i-1,j,k))
-            CF(i,0)=CF(i,0) +cff
-            DC(i,0)=DC(i,0) +u(i,j,k,nnew)
-            u(i,j,k,nnew)=u(i,j,k,nnew)/cff
-          enddo
-        enddo
-        do i=istrU,iend
-          DC(i,0)=( DC(i,0)*dn_u(i,j)-DU_avg1(i,j)
-     &                        )/(CF(i,0)*dn_u(i,j))
-        enddo
-        do k=1,N
-          do i=istrU,iend
-            u(i,j,k,nnew)=(u(i,j,k,nnew)-DC(i,0))
-#  ifdef MASKING
-     &                                *umask(i,j)
-#  endif
-          enddo
-        enddo
-        if (j.ge.jstrV) then
-          do i=istr,iend
-            CF(i,0)=0.5*(Hz(i,j,N)+Hz(i,j-1,N))
-            DC(i,0)=v(i,j,N,nnew)
-            v(i,j,N,nnew)=v(i,j,N,nnew)/CF(i,0)
-          enddo
-          do k=N-1,1,-1
-            do i=istr,iend
-              cff=0.5*(Hz(i,j,k)+Hz(i,j-1,k))
-              CF(i,0)=CF(i,0) +cff
-              DC(i,0)=DC(i,0) +v(i,j,k,nnew)
-              v(i,j,k,nnew)=v(i,j,k,nnew)/cff
-            enddo
-          enddo      !--> discard FC, keep DC,CF(:,0)
-          do i=istr,iend
-            DC(i,0)=( DC(i,0)*dm_v(i,j)-DV_avg1(i,j)
-     &                          )/(CF(i,0)*dm_v(i,j))
-          enddo
-          do k=1,N
-            do i=istr,iend
-              v(i,j,k,nnew)=(v(i,j,k,nnew)-DC(i,0))
-#  ifdef MASKING
-     &                                  *vmask(i,j)
-#  endif
-            enddo
-          enddo       !--> discard DC,CF(:,0)
-        endif
-      enddo      ! <-- j
-
-
-
-# else
 !
 ! Apply implicit time step for vertical viscosty term to horizontal
 ! velocity components,
@@ -162,49 +94,14 @@
 !----- ---- -------- -------- -- --- ------------
 !
       do j=jstr,jend
-        do i=istrU,iend
-          FC(i,N-1)=dt *2.*(Akv(i,j,N-1)+Akv(i-1,j,N-1))
-     &                      /(  Hz(i,j,N  )+Hz(i-1,j,N  )
-     &                        +Hz(i,j,N-1)+Hz(i-1,j,N-1))
+        do i=istrU,iend                                 ! Apply wind
+          u(i,j,N,nnew)=u(i,j,N,nnew)+dt*sustr(i,j)     ! forcing and
+c**       u(i,j,1,nnew)=u(i,j,1,nnew)-dt*bustr(i,j)     ! bottom drag
+c**                           already added in rhs3d
 
-          cff=1./(0.5*(Hz(i,j,N)+Hz(i-1,j,N))+FC(i,N-1))
-
-          CF(i,N-1)=cff*FC(i,N-1)
-          DC(i,N)=cff*u(i,j,N,nnew)
-        enddo
-        do k=N-1,2,-1      !--> forward elimination
-          do i=istrU,iend
-            FC(i,k-1)= dt*2.*(Akv(i,j,k-1)+Akv(i-1,j,k-1))
-     &                        /(  Hz(i,j,k  )+Hz(i-1,j,k  )
-     &                          +Hz(i,j,k-1)+Hz(i-1,j,k-1))
-
-            cff=1./( 0.5*(Hz(i,j,k)+Hz(i-1,j,k)) +FC(i,k-1)
-     &                                +FC(i,k)*(1.-CF(i,k))
-     &                                                    )
-            CF(i,k-1)=cff*FC(i,k-1)
-            DC(i,k)=cff*(u(i,j,k,nnew) +FC(i,k)*DC(i,k+1))
-          enddo
-        enddo
-        do i=istrU,iend
-           DC(i,1)=(u(i,j,1,nnew) +FC(i,1)*DC(i,2))
-     &                /( 0.5*(Hz(i,j,1)+Hz(i-1,j,1))
-#  ifdef NO_SLIP_BOTTOM
-     &               +dt * 0.5*(r_D(i,j)+r_D(i-1,j))
-#  endif 
-     &                       +FC(i,1)*(1.-CF(i,1)) )
-        enddo
-        do k=2,N,+1          !<-- backsubstitution
-          do i=istrU,iend
-            DC(i,k)=DC(i,k) +CF(i,k-1)*DC(i,k-1)
-          enddo
-        enddo
-
-
-/* ---->
-        do i=istrU,iend
-          FC(i,1)=2.*dt*(Akv(i,j,1)+Akv(i-1,j,1))
-     &                    /( Hz(i,j,2)+Hz(i-1,j,2)
-     &                     +Hz(i,j,1)+Hz(i-1,j,1))  
+          FC(i,1)=dt*(Akv(i,j,1)+Akv(i-1,j,1))
+     &                     /( z_r(i,j,2)+z_r(i-1,j,2)
+     &                       -z_r(i,j,1)-z_r(i-1,j,1))
 
           cff=1./(0.5*(Hz(i,j,1)+Hz(i-1,j,1))+FC(i,1))
           CF(i,1)=cff*FC(i,1)
@@ -212,10 +109,9 @@
         enddo
         do k=2,N-1,+1                        !--> forward elimination
           do i=istrU,iend
-            FC(i,k)=2.*dt*(Akv(i,j,k)+Akv(i-1,j,k))
-     &                       /( Hz(i,j,k+1)+Hz(i-1,j,k+1)
-     &                         +Hz(i,j,k  )+Hz(i-1,j,k ))
-
+            FC(i,k)=dt*(Akv(i,j,k)+Akv(i-1,j,k))
+     &                       /( z_r(i,j,k+1)+z_r(i-1,j,k+1)
+     &                         -z_r(i,j,k  )-z_r(i-1,j,k ))
 
             cff=1./( 0.5*(Hz(i,j,k)+Hz(i-1,j,k))  +FC(i,k)
      &                          +FC(i,k-1)*(1.-CF(i,k-1)) )
@@ -223,27 +119,18 @@
             DC(i,k)=cff*(u(i,j,k,nnew)+FC(i,k-1)*DC(i,k-1))
           enddo
         enddo
-
         do i=istrU,iend
-          DC(i,N)=(u(i,j,N,nnew) +FC(i,N-1)*DC(i,N-1))
-     &                   /( 0.5*(Hz(i,j,N)+Hz(i-1,j,N))
-     &                      +FC(i,N-1)*(1.-CF(i,N-1)) )
+          DC(i,N)=(u(i,j,N,nnew)+FC(i,N-1)*DC(i,N-1))
+     &                  /( 0.5*(Hz(i,j,N)+Hz(i-1,j,N))
+     &                     +FC(i,N-1)*(1.-CF(i,N-1)) )
+!>
+          CF(i,0)=0.5*(Hz(i,j,N)+Hz(i-1,j,N))
+          DC(i,0)=CF(i,0)*DC(i,N)
         enddo                           !--> discard FC, DC,CF(:,1:N)
         do k=N-1,1,-1                   !             keep DC,CF(:,0)
           do i=istrU,iend
             DC(i,k)=DC(i,k)+CF(i,k)*DC(i,k+1)     !<-- backward sweep
-          enddo
-        enddo
-<----- */
-
-
 !>
-        do i=istrU,iend                        !--> coupling
-          CF(i,0)=0.5*(Hz(i,j,N)+Hz(i-1,j,N))
-          DC(i,0)=CF(i,0)*DC(i,N)
-        enddo
-        do k=N-1,1,-1
-          do i=istrU,iend
             cff=0.5*(Hz(i,j,k)+Hz(i-1,j,k))
             CF(i,0)=CF(i,0)+cff
             DC(i,0)=DC(i,0)+cff*DC(i,k)
@@ -256,9 +143,9 @@
         do k=1,N
           do i=istrU,iend
             u(i,j,k,nnew)=(DC(i,k)-DC(i,0))
-#  ifdef MASKING
+# ifdef MASKING
      &                          *umask(i,j)
-#  endif
+# endif
           enddo
         enddo        !--> discard DC,CF
 !
@@ -267,49 +154,14 @@
 ! (All steps are similar to XI-component above.)
 !
         if (j.ge.jstrV) then
-          do i=istr,iend
-            FC(i,N-1)=dt *2.*(Akv(i,j,N-1)+Akv(i,j-1,N-1))
-     &                        /(  Hz(i,j,N  )+Hz(i,j-1,N  )
-     &                          +Hz(i,j,N-1)+Hz(i,j-1,N-1))
+          do i=istr,iend                                ! Apply wind
+            v(i,j,N,nnew)=v(i,j,N,nnew)+dt*svstr(i,j)   ! forcing and
+c**         v(i,j,1,nnew)=v(i,j,1,nnew)-dt*bvstr(i,j)   ! bottom drag
+c**                  already added in rhs3d
 
-            cff=1./(0.5*(Hz(i,j,N)+Hz(i,j-1,N))+FC(i,N-1))
-
-            CF(i,N-1)=cff*FC(i,N-1)
-            DC(i,N)=cff*v(i,j,N,nnew)
-          enddo
-          do k=N-1,2,-1      !--> forward elimination
-            do i=istr,iend
-              FC(i,k-1)= dt*2.*(Akv(i,j,k-1)+Akv(i,j-1,k-1))
-     &                          /(  Hz(i,j,k  )+Hz(i,j-1,k  )
-     &                            +Hz(i,j,k-1)+Hz(i,j-1,k-1))
-
-              cff=1./( 0.5*(Hz(i,j,k)+Hz(i,j-1,k)) +FC(i,k-1)
-     &                                +FC(i,k)*(1.-CF(i,k))
-     &                                                    )
-              CF(i,k-1)=cff*FC(i,k-1)
-              DC(i,k)=cff*(v(i,j,k,nnew) +FC(i,k)*DC(i,k+1))
-            enddo
-          enddo
-          do i=istr,iend
-             DC(i,1)=(v(i,j,1,nnew) +FC(i,1)*DC(i,2))
-     &                  /( 0.5*(Hz(i,j,1)+Hz(i,j-1,1))
-#  ifdef NO_SLIP_BOTTOM
-     &                 +dt * 0.5*(r_D(i,j)+r_D(i,j-1))
-#  endif
-     &                         +FC(i,1)*(1.-CF(i,1)) )
-          enddo
-          do k=2,N,+1          !<-- backsubstitution
-            do i=istr,iend
-              DC(i,k)=DC(i,k) +CF(i,k-1)*DC(i,k-1)
-            enddo
-          enddo
-
-
-/* --->
-          do i=istr,iend
-            FC(i,1)=2.*dt*(Akv(i,j,1)+Akv(i,j-1,1))
-     &                       /( Hz(i,j,2)+Hz(i,j-1,2)
-     &                         +Hz(i,j,1)+Hz(i,j-1,1))
+            FC(i,1)=dt*(Akv(i,j,1)+Akv(i,j-1,1))
+     &                       /( z_r(i,j,2)+z_r(i,j-1,2)
+     &                         -z_r(i,j,1)-z_r(i,j-1,1))
 
             cff=1./(0.5*(Hz(i,j,1)+Hz(i,j-1,1))+FC(i,1))
             CF(i,1)=cff*FC(i,1)
@@ -317,9 +169,9 @@
           enddo
           do k=2,N-1,+1                      !--> forward elimination
             do i=istr,iend
-              FC(i,k)=2.*dt*(Akv(i,j,k)+Akv(i,j-1,k))
-     &                        /( Hz(i,j,k+1)+Hz(i,j-1,k+1)
-     &                          +Hz(i,j,k  )+Hz(i,j-1,k  ))
+              FC(i,k)=dt*(Akv(i,j,k)+Akv(i,j-1,k))
+     &                        /( z_r(i,j,k+1)+z_r(i,j-1,k+1)
+     &                          -z_r(i,j,k  )-z_r(i,j-1,k  ))
 
               cff=1./( 0.5*(Hz(i,j,k)+Hz(i,j-1,k)) +FC(i,k)
      &                            +FC(i,k-1)*(1.-CF(i,k-1)) )
@@ -327,30 +179,24 @@
               DC(i,k)=cff*(v(i,j,k,nnew)+FC(i,k-1)*DC(i,k-1))
             enddo
           enddo
-
           do i=istr,iend
-            DC(i,N)=(v(i,j,N,nnew) +FC(i,N-1)*DC(i,N-1))
-     &                     /( 0.5*(Hz(i,j,N)+Hz(i,j-1,N))
-     &                        +FC(i,N-1)*(1.-CF(i,N-1)) )
-          enddo
-          do k=N-1,1,-1
-            do i=istr,iend
-              DC(i,k)=DC(i,k)+CF(i,k)*DC(i,k+1)   !<-- backward sweep
-            enddo
-          enddo
-<--- */ 
-
-          do i=istr,iend                       !--> coupling
+            DC(i,N)=(v(i,j,N,nnew)+FC(i,N-1)*DC(i,N-1))
+     &                    /( 0.5*(Hz(i,j,N)+Hz(i,j-1,N))
+     &                       +FC(i,N-1)*(1.-CF(i,N-1)) )
+!>
             CF(i,0)=0.5*(Hz(i,j,N)+Hz(i,j-1,N))
             DC(i,0)=CF(i,0)*DC(i,N)
           enddo
           do k=N-1,1,-1
             do i=istr,iend
+              DC(i,k)=DC(i,k)+CF(i,k)*DC(i,k+1)   !<-- backward sweep
+!>
               cff=0.5*(Hz(i,j,k)+Hz(i,j-1,k))
               CF(i,0)=CF(i,0)+cff
               DC(i,0)=DC(i,0)+cff*DC(i,k)
             enddo
           enddo      !--> discard FC, keep DC,CF(:,0)
+ 
           do i=istr,iend
             DC(i,0)=(DC(i,0)*dm_v(i,j)-DV_avg1(i,j))
      &                           /(CF(i,0)*dm_v(i,j))
@@ -358,14 +204,13 @@
           do k=1,N
             do i=istr,iend
               v(i,j,k,nnew)=(DC(i,k)-DC(i,0))
-#  ifdef MASKING
+# ifdef MASKING
      &                              *vmask(i,j)
-#  endif
+# endif
             enddo
           enddo       !--> discard DC,CF(:,0)
         endif
       enddo      ! <-- j
-# endif
 !
 ! Set PHYSICAL lateral boundary conditions.
 !
@@ -563,6 +408,5 @@ c--# define TR
       subroutine step3d_uv_empty
       return
       end
-#endif /* ETHV10DRAG */
 #endif /* SOLVE3D */
  
