@@ -1,7 +1,7 @@
 #include "cppdefs.h"
 #ifdef MPI
  
-      subroutine mpi_exchange_tile (istr,iend,jstr,jend, A, nmax)
+      subroutine mpi_exchange4_tile (istr,iend,jstr,jend, A, nmax)
       implicit none
 # include "mpif.h"
 # include "param.h"
@@ -125,7 +125,7 @@ c*   &        'jnode=',jnode, 'jmin=',jmin, 'jmax=',jmax
 !
 ! Use synchroneous (Ssend) version of MPI Send, it makes it faster.
 !
-#define MPI_Send MPI_Ssend
+c--#define MPI_Send MPI_Ssend
 
       do iter=0,1
         md_XI=mod(inode+iter,2)
@@ -271,6 +271,6 @@ c*   &        'jnode=',jnode, 'jmin=',jmin, 'jmax=',jmax
       return
       end
 #else
-      subroutine mpi_exchange_empty
+      subroutine mpi_exchange4_empty
       end
 #endif

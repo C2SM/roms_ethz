@@ -384,8 +384,8 @@ CR      write(*,*) '  0' MYID
       if (may_day_flag.ne.0) goto 99     !-->  EXIT
 
 C$OMP MASTER
-        MPI_master_only write(stdout,'(/1x,A/)')
-     &               'MAIN: started time-steping.'
+      MPI_master_only call system (
+     &  'echo; echo MAIN: started time-steping at `date`; echo')
 C$OMP END MASTER
 
       iic=ntstart-1

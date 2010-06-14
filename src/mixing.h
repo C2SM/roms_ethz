@@ -24,8 +24,10 @@ CSDISTRIBUTE_RESHAPE Akv(BLOCK_PATTERN,*) BLOCK_CLAUSE
       real Akt(GLOBAL_2D_ARRAY,0:N,NT)
 CSDISTRIBUTE_RESHAPE Akt(BLOCK_PATTERN,*,*) BLOCK_CLAUSE
       common /mixing_Akv/Akv /mixing_Akt/Akt
+#ifdef KPP_DIAGNOSE
       real Rich(GLOBAL_2D_ARRAY,0:N), RichN(GLOBAL_2D_ARRAY,0:N)
       common Rich, RichN
+#endif
 # if defined BVF_MIXING || defined LMD_MIXING  || defined LMD_KPP \
   || defined MY2_MIXING || defined MY25_MIXING || defined PP_MIXING \
   || defined LMD_BKPP
@@ -69,6 +71,9 @@ CSDISTRIBUTE_RESHAPE q2l(BLOCK_PATTERN,*,*) BLOCK_CLAUSE
 CSDISTRIBUTE_RESHAPE hbls(BLOCK_PATTERN,*) BLOCK_CLAUSE
       common /kpp_hbl/hbls
 
+      real swr_frac(GLOBAL_2D_ARRAY,0:N)
+CSDISTRIBUTE_RESHAPE swr_frac(BLOCK_PATTERN,*) BLOCK_CLAUSE
+      common /kpp_swr_frac/swr_frac
 #  ifdef LMD_NONLOCAL
       real ghat(GLOBAL_2D_ARRAY,0:N)
 CSDISTRIBUTE_RESHAPE ghat(BLOCK_PATTERN,*) BLOCK_CLAUSE

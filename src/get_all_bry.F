@@ -20,6 +20,62 @@
       character*40 vname_bry
       logical bry_set
 # endif
+
+# ifdef OBC_WEST
+      logical west_bry_active
+# endif
+# ifdef OBC_EAST
+      logical east_bry_active
+# endif
+# ifdef OBC_SOUTH
+      logical south_bry_active
+# endif
+# ifdef OBC_NORTH
+      logical north_bry_active
+# endif
+!
+! Determine which side(s) require boundary conditions and check
+! whether it is needed at all.  Note that "itrc" is used here as
+! a trigger variable: it it remains 0, then it means that this
+! MPI subdomain does not have edge adjacent to an open boundary. 
+!
+      itrc=0 
+# ifdef OBC_WEST
+#  ifdef MPI
+      west_bry_active=.not.west_inter
+#  else
+      west_bry_active=.true.
+#  endif
+      if (west_bry_active) itrc=1
+# endif
+# ifdef OBC_EAST
+#  ifdef MPI
+      east_bry_active=.not.east_inter
+#  else
+      east_bry_active=.true.
+#  endif
+      if (east_bry_active) itrc=1
+# endif
+# ifdef OBC_SOUTH
+#  ifdef MPI
+      south_bry_active=.not.south_inter
+#  else
+      south_bry_active=.true.
+#  endif
+      if (south_bry_active) itrc=1
+# endif
+# ifdef OBC_NORTH
+#  ifdef MPI
+      north_bry_active=.not.north_inter
+#  else
+      north_bry_active=.true.
+#  endif
+      if (north_bry_active) itrc=1
+
+# endif
+      if (itrc.eq.0) return  !--> no boundary forcing is needed.
+
+
 !
 ! Initialization: Check, whether boundary forcing file is already
 !---------------- opened, and if not, open it.  Find and save netCDF
@@ -46,36 +102,37 @@
           ierr_all=ierr_all+ierr
 
 # ifdef OBC_WEST
+          if (west_bry_active) then
 #  ifdef Z_FRC_BRY
-          ierr=nf_inq_varid (bry_id, 'zeta_west', zeta_west_id)
-          if (ierr.ne.nf_noerr) write(stdout,1) 'zeta_west'
-          ierr_all=ierr_all+ierr
+            ierr=nf_inq_varid (bry_id, 'zeta_west', zeta_west_id)
+            if (ierr.ne.nf_noerr) write(stdout,1) 'zeta_west'
+            ierr_all=ierr_all+ierr
 #  endif
 #  ifdef M2_FRC_BRY
-          ierr=nf_inq_varid (bry_id, 'ubar_west', ubar_west_id)
-          if (ierr.ne.nf_noerr) write(stdout,1) 'ubar_west'
-          ierr_all=ierr_all+ierr
-          ierr=nf_inq_varid (bry_id, 'vbar_west', vbar_west_id)
-          if (ierr.ne.nf_noerr) write(stdout,1) 'vbar_west'
-          ierr_all=ierr_all+ierr
+            ierr=nf_inq_varid (bry_id, 'ubar_west', ubar_west_id)
+            if (ierr.ne.nf_noerr) write(stdout,1) 'ubar_west'
+            ierr_all=ierr_all+ierr
+            ierr=nf_inq_varid (bry_id, 'vbar_west', vbar_west_id)
+            if (ierr.ne.nf_noerr) write(stdout,1) 'vbar_west'
+            ierr_all=ierr_all+ierr
 #  endif
 #  ifdef SOLVE3D
 #   ifdef M3_FRC_BRY
-          ierr=nf_inq_varid (bry_id,    'u_west', u_west_id)
-          if (ierr.ne.nf_noerr)  write(stdout,1) 'u_west'
-          ierr_all=ierr_all+ierr
-          ierr=nf_inq_varid (bry_id,    'v_west', v_west_id)
-          if (ierr.ne.nf_noerr)  write(stdout,1) 'v_west'
-          ierr_all=ierr_all+ierr
+            ierr=nf_inq_varid (bry_id,    'u_west', u_west_id)
+            if (ierr.ne.nf_noerr)  write(stdout,1) 'u_west'
+            ierr_all=ierr_all+ierr
+            ierr=nf_inq_varid (bry_id,    'v_west', v_west_id)
+            if (ierr.ne.nf_noerr)  write(stdout,1) 'v_west'
+            ierr_all=ierr_all+ierr
 #   endif
 #   ifdef T_FRC_BRY
-          ierr=nf_inq_varid (bry_id, 'temp_west', t_west_id(itemp))
-          if (ierr.ne.nf_noerr) write(stdout,1) 'temp_west'
-          ierr_all=ierr_all+ierr
+            ierr=nf_inq_varid (bry_id, 'temp_west', t_west_id(itemp))
+            if (ierr.ne.nf_noerr) write(stdout,1) 'temp_west'
+            ierr_all=ierr_all+ierr
 #    ifdef SALINITY
-          ierr=nf_inq_varid (bry_id, 'salt_west', t_west_id(isalt))
-          if (ierr.ne.nf_noerr) write(stdout,1) 'salt_west'
-          ierr_all=ierr_all+ierr
+            ierr=nf_inq_varid (bry_id, 'salt_west', t_west_id(isalt))
+            if (ierr.ne.nf_noerr) write(stdout,1) 'salt_west'
+            ierr_all=ierr_all+ierr
 #    endif
 !HF: this includes PASSIVE_TRACER and all biogeochemical tracers
 ! if none of these are defined, the starting index will be higher
@@ -97,39 +154,41 @@
           end do
 #   endif
 #  endif
+          endif
 # endif
 
 # ifdef OBC_EAST
+          if (east_bry_active) then 
 #  ifdef Z_FRC_BRY
-          ierr=nf_inq_varid (bry_id, 'zeta_east', zeta_east_id)
-          if (ierr.ne.nf_noerr) write(stdout,1) 'zeta_east'
-          ierr_all=ierr_all+ierr
+            ierr=nf_inq_varid (bry_id, 'zeta_east', zeta_east_id)
+            if (ierr.ne.nf_noerr) write(stdout,1) 'zeta_east'
+            ierr_all=ierr_all+ierr
 #  endif
 #  ifdef M2_FRC_BRY
-          ierr=nf_inq_varid (bry_id, 'ubar_east', ubar_east_id)
-          if (ierr.ne.nf_noerr) write(stdout,1) 'ubar_east'
-          ierr_all=ierr_all+ierr
-          ierr=nf_inq_varid (bry_id, 'vbar_east', vbar_east_id)
-          if (ierr.ne.nf_noerr) write(stdout,1) 'vbar_east'
-          ierr_all=ierr_all+ierr
+            ierr=nf_inq_varid (bry_id, 'ubar_east', ubar_east_id)
+            if (ierr.ne.nf_noerr) write(stdout,1) 'ubar_east'
+            ierr_all=ierr_all+ierr
+            ierr=nf_inq_varid (bry_id, 'vbar_east', vbar_east_id)
+            if (ierr.ne.nf_noerr) write(stdout,1) 'vbar_east'
+            ierr_all=ierr_all+ierr
 #  endif
 #  ifdef SOLVE3D
 #   ifdef M3_FRC_BRY
-          ierr=nf_inq_varid (bry_id,    'u_east',   u_east_id)
-          if (ierr.ne.nf_noerr)  write(stdout,1)   'u_east'
-          ierr_all=ierr_all+ierr
-          ierr=nf_inq_varid (bry_id,    'v_east',   v_east_id)
-          if (ierr.ne.nf_noerr)  write(stdout,1)   'v_east'
-          ierr_all=ierr_all+ierr
+            ierr=nf_inq_varid (bry_id,    'u_east',   u_east_id)
+            if (ierr.ne.nf_noerr)  write(stdout,1)   'u_east'
+            ierr_all=ierr_all+ierr
+            ierr=nf_inq_varid (bry_id,    'v_east',   v_east_id)
+            if (ierr.ne.nf_noerr)  write(stdout,1)   'v_east'
+            ierr_all=ierr_all+ierr
 #   endif
 #   ifdef T_FRC_BRY
-          ierr=nf_inq_varid (bry_id, 'temp_east', t_east_id(itemp))
-          if (ierr.ne.nf_noerr) write(stdout,1) 'temp_east'
-          ierr_all=ierr_all+ierr
+            ierr=nf_inq_varid (bry_id, 'temp_east', t_east_id(itemp))
+            if (ierr.ne.nf_noerr) write(stdout,1) 'temp_east'
+            ierr_all=ierr_all+ierr
 #    ifdef SALINITY
-          ierr=nf_inq_varid (bry_id, 'salt_east', t_east_id(isalt))
-          if (ierr.ne.nf_noerr) write(stdout,1) 'salt_east'
-          ierr_all=ierr_all+ierr
+            ierr=nf_inq_varid (bry_id, 'salt_east', t_east_id(isalt))
+            if (ierr.ne.nf_noerr) write(stdout,1) 'salt_east'
+            ierr_all=ierr_all+ierr
 #    endif
           do itrc = itemp + ntrc_salt + 1, NT
              lvar=lenstr(vname(1,itrc+indxT-itemp))
@@ -148,39 +207,41 @@
           end do
 #   endif
 #  endif
+          endif
 # endif
 
 # ifdef OBC_SOUTH
+          if (south_bry_active) then
 #  ifdef Z_FRC_BRY
-          ierr=nf_inq_varid (bry_id, 'zeta_south', zeta_south_id)
-          if (ierr.ne.nf_noerr) write(stdout,1) 'zeta_south'
-          ierr_all=ierr_all+ierr
+            ierr=nf_inq_varid (bry_id, 'zeta_south', zeta_south_id)
+            if (ierr.ne.nf_noerr) write(stdout,1) 'zeta_south'
+            ierr_all=ierr_all+ierr
 #  endif
 #  ifdef M2_FRC_BRY
-          ierr=nf_inq_varid (bry_id, 'ubar_south', ubar_south_id)
-          if (ierr.ne.nf_noerr) write(stdout,1) 'ubar_south'
-          ierr_all=ierr_all+ierr
-          ierr=nf_inq_varid (bry_id, 'vbar_south', vbar_south_id)
-          if (ierr.ne.nf_noerr) write(stdout,1) 'vbar_south'
-          ierr_all=ierr_all+ierr
+            ierr=nf_inq_varid (bry_id, 'ubar_south', ubar_south_id)
+            if (ierr.ne.nf_noerr) write(stdout,1) 'ubar_south'
+            ierr_all=ierr_all+ierr
+            ierr=nf_inq_varid (bry_id, 'vbar_south', vbar_south_id)
+            if (ierr.ne.nf_noerr) write(stdout,1) 'vbar_south'
+            ierr_all=ierr_all+ierr
 #  endif
 #  ifdef SOLVE3D
 #   ifdef M3_FRC_BRY
-          ierr=nf_inq_varid (bry_id,    'u_south',  u_south_id)
-          if (ierr.ne.nf_noerr) write(stdout,1)    'u_south'
-          ierr_all=ierr_all+ierr
-          ierr=nf_inq_varid (bry_id,    'v_south',  v_south_id)
-          if (ierr.ne.nf_noerr) write(stdout,1)    'v_south'
-          ierr_all=ierr_all+ierr
+            ierr=nf_inq_varid (bry_id,    'u_south',  u_south_id)
+            if (ierr.ne.nf_noerr) write(stdout,1)    'u_south'
+            ierr_all=ierr_all+ierr
+            ierr=nf_inq_varid (bry_id,    'v_south',  v_south_id)
+            if (ierr.ne.nf_noerr) write(stdout,1)    'v_south'
+            ierr_all=ierr_all+ierr
 #   endif
 #   ifdef T_FRC_BRY
-          ierr=nf_inq_varid (bry_id, 'temp_south', t_south_id(itemp))
-          if (ierr.ne.nf_noerr) write(stdout,1) 'temp_south'
-          ierr_all=ierr_all+ierr
+            ierr=nf_inq_varid (bry_id,'temp_south',t_south_id(itemp))
+            if (ierr.ne.nf_noerr) write(stdout,1) 'temp_south'
+            ierr_all=ierr_all+ierr
 #    ifdef SALINITY
-          ierr=nf_inq_varid (bry_id, 'salt_south', t_south_id(isalt))
-          if (ierr.ne.nf_noerr) write(stdout,1) 'salt_south'
-          ierr_all=ierr_all+ierr
+            ierr=nf_inq_varid (bry_id,'salt_south',t_south_id(isalt))
+            if (ierr.ne.nf_noerr) write(stdout,1) 'salt_south'
+            ierr_all=ierr_all+ierr
 #    endif
           do itrc = itemp + ntrc_salt + 1, NT
              lvar=lenstr(vname(1,itrc+indxT-itemp))
@@ -199,39 +260,41 @@
           end do
 #   endif
 #  endif
+          endif
 # endif
 
 # ifdef OBC_NORTH
+          if (north_bry_active) then
 #  ifdef Z_FRC_BRY
-          ierr=nf_inq_varid (bry_id, 'zeta_north', zeta_north_id)
-          if (ierr.ne.nf_noerr) write(stdout,1) 'zeta_north'
-          ierr_all=ierr_all+ierr
+            ierr=nf_inq_varid (bry_id, 'zeta_north', zeta_north_id)
+            if (ierr.ne.nf_noerr) write(stdout,1) 'zeta_north'
+            ierr_all=ierr_all+ierr
 #  endif
 #  ifdef M2_FRC_BRY
-          ierr=nf_inq_varid (bry_id, 'ubar_north', ubar_north_id)
-          if (ierr.ne.nf_noerr) write(stdout,1) 'ubar_north'
-          ierr_all=ierr_all+ierr
-          ierr=nf_inq_varid (bry_id, 'vbar_north', vbar_north_id)
-          if (ierr.ne.nf_noerr) write(stdout,1) 'vbar_north'
-          ierr_all=ierr_all+ierr
+            ierr=nf_inq_varid (bry_id, 'ubar_north', ubar_north_id)
+            if (ierr.ne.nf_noerr) write(stdout,1) 'ubar_north'
+            ierr_all=ierr_all+ierr
+            ierr=nf_inq_varid (bry_id, 'vbar_north', vbar_north_id)
+            if (ierr.ne.nf_noerr) write(stdout,1) 'vbar_north'
+            ierr_all=ierr_all+ierr
 #  endif
 #  ifdef SOLVE3D
 #   ifdef M3_FRC_BRY
-          ierr=nf_inq_varid (bry_id,    'u_north',  u_north_id)
-          if (ierr.ne.nf_noerr) write(stdout,1)    'u_north'
-          ierr_all=ierr_all+ierr
-          ierr=nf_inq_varid (bry_id,    'v_north',  v_north_id)
-          if (ierr.ne.nf_noerr)   write(stdout,1)  'v_north'
-          ierr_all=ierr_all+ierr
+            ierr=nf_inq_varid (bry_id,    'u_north',  u_north_id)
+            if (ierr.ne.nf_noerr) write(stdout,1)    'u_north'
+            ierr_all=ierr_all+ierr
+            ierr=nf_inq_varid (bry_id,    'v_north',  v_north_id)
+            if (ierr.ne.nf_noerr)   write(stdout,1)  'v_north'
+            ierr_all=ierr_all+ierr
 #   endif
 #   ifdef T_FRC_BRY
-          ierr=nf_inq_varid (bry_id, 'temp_north', t_north_id(itemp))
-          if (ierr.ne.nf_noerr) write(stdout,1) 'temp_north'
-          ierr_all=ierr_all+ierr
+            ierr=nf_inq_varid (bry_id,'temp_north',t_north_id(itemp))
+            if (ierr.ne.nf_noerr) write(stdout,1) 'temp_north'
+            ierr_all=ierr_all+ierr
 #    ifdef SALINITY
-          ierr=nf_inq_varid (bry_id, 'salt_north', t_north_id(isalt))
-          if (ierr.ne.nf_noerr) write(stdout,1) 'salt_north'
-          ierr_all=ierr_all+ierr
+            ierr=nf_inq_varid (bry_id,'salt_north',t_north_id(isalt))
+            if (ierr.ne.nf_noerr) write(stdout,1) 'salt_north'
+            ierr_all=ierr_all+ierr
 #    endif
           do itrc = itemp + ntrc_salt + 1, NT
              lvar=lenstr(vname(1,itrc+indxT-itemp))
@@ -251,6 +314,7 @@
           end do
 #   endif
 #  endif
+          endif
 # endif
           ierr=ierr_all
           if (ierr.eq.nf_noerr) then
@@ -260,8 +324,9 @@
             bry_time(1)=-1.E+20
             bry_time(2)=-1.E+20
           else
-            write(stdout,'(8x,4A)') 'ERROR(s) occur while examining',
-     &          ' content of netCDF file ''', bry_file(1:lstr), '''.'
+            write(stdout,'(8x,4A)') '### ERROR(s) occur while ',
+     &                   'examining content of netCDF file ''',
+     &                    bry_file(1:lstr), '''.'
           endif
         endif
       endif
@@ -283,40 +348,41 @@
             bry_time(itbry)=cff*day2sec + bry_cycle*bry_ncycle
             ierr_all=0
 #ifdef OBC_WEST
+            if (west_bry_active) then
 #  ifdef Z_FRC_BRY
-            ierr=nf_read_bry_EW (zeta_west_dt(0,itbry), bry_id,
-     &                           zeta_west_id, bry_rec, r2dvar)
-            if (ierr.ne.nf_noerr) write(stdout,2) 'zeta_west'
-            ierr_all=ierr_all+ierr
+              ierr=nf_read_bry_EW (zeta_west_dt(0,itbry), bry_id,
+     &                             zeta_west_id, bry_rec, r2dvar)
+              if (ierr.ne.nf_noerr) write(stdout,2) 'zeta_west'
+              ierr_all=ierr_all+ierr
 #  endif
 #  ifdef M2_FRC_BRY
-            ierr=nf_read_bry_EW (ubar_west_dt(0,itbry), bry_id,
+              ierr=nf_read_bry_EW (ubar_west_dt(0,itbry), bry_id,
      &                           ubar_west_id, bry_rec, u2dvar)
-            if (ierr.ne.nf_noerr) write(stdout,2) 'ubar_west'
-            ierr_all=ierr_all+ierr
-            ierr=nf_read_bry_EW (vbar_west_dt(0,itbry), bry_id,
+              if (ierr.ne.nf_noerr) write(stdout,2) 'ubar_west'
+              ierr_all=ierr_all+ierr
+              ierr=nf_read_bry_EW (vbar_west_dt(0,itbry), bry_id,
      &                           vbar_west_id, bry_rec, v2dvar)
-            if (ierr.ne.nf_noerr) write(stdout,2) 'vbar_west'
-            ierr_all=ierr_all+ierr
+              if (ierr.ne.nf_noerr) write(stdout,2) 'vbar_west'
+              ierr_all=ierr_all+ierr
 #  endif
 #  ifdef SOLVE3D
 #   ifdef M3_FRC_BRY
-            ierr=nf_read_bry_EW (u_west_dt(0,1,itbry), bry_id,
+              ierr=nf_read_bry_EW (u_west_dt(0,1,itbry), bry_id,
      &                           u_west_id,  bry_rec,  u3dvar)
-            if (ierr.ne.nf_noerr)  write(stdout,2)  'u_west'
-            ierr_all=ierr_all+ierr
-            ierr=nf_read_bry_EW (v_west_dt(0,1,itbry), bry_id,
+              if (ierr.ne.nf_noerr)  write(stdout,2)  'u_west'
+              ierr_all=ierr_all+ierr
+              ierr=nf_read_bry_EW (v_west_dt(0,1,itbry), bry_id,
      &                           v_west_id,  bry_rec,  v3dvar)
-            if (ierr.ne.nf_noerr)  write(stdout,2)  'v_west'
-            ierr_all=ierr_all+ierr
+              if (ierr.ne.nf_noerr)  write(stdout,2)  'v_west'
+              ierr_all=ierr_all+ierr
 #   endif
 #   ifdef T_FRC_BRY
-            do itrc=1,NT
+              do itrc=1,NT
                bry_set = .false.
                lvar=lenstr(vname(1,indxT+itrc-1))
                vname_bry=vname(1,indxT+itrc-1)(1:lvar)//'_west'
                if (t_west_id(itrc) .gt. 0) then
-                  ierr=nf_read_bry_EW (t_west_dt(0,1,itbry,itrc), 
+                ierr=nf_read_bry_EW (t_west_dt(0,1,itbry,itrc),
      &                 bry_id, t_west_id(itrc),  bry_rec, r3dvar)
                   if (ierr.ne.nf_noerr)  then
                      if (itrc .le. 1 + ntrc_salt) then
@@ -427,7 +493,7 @@
                         t_west_dt(:,:,itbry,itrc) = 0.0
                      else if (itrc .eq. iCaCO3) then
                         t_west_dt(:,:,itbry,itrc) = 0.0
-#      endif
+#   endif
 #     endif /* OXYGEN */
                      end if  ! itrc .eq. iNO3_
 !DL                  end if
@@ -532,35 +598,37 @@
             enddo
 #   endif /* T_FRC_BRY */
 #  endif /* SOLVE3D */
+      endif ! east_bry_active
 # endif /* OBC_WEST */
 
 # ifdef OBC_EAST
+            if (east_bry_active) then
 #  ifdef Z_FRC_BRY
-            ierr=nf_read_bry_EW (zeta_east_dt(0,itbry), bry_id,
-     &                           zeta_east_id, bry_rec, r2dvar)
-            if (ierr.ne.nf_noerr) write(stdout,2) 'zeta_east'
-            ierr_all=ierr_all+ierr
+              ierr=nf_read_bry_EW (zeta_east_dt(0,itbry), bry_id,
+     &                             zeta_east_id, bry_rec, r2dvar)
+              if (ierr.ne.nf_noerr) write(stdout,2) 'zeta_east'
+              ierr_all=ierr_all+ierr
 #  endif
 #  ifdef M2_FRC_BRY
-            ierr=nf_read_bry_EW (ubar_east_dt(0,itbry), bry_id,
-     &                           ubar_east_id, bry_rec, u2dvar)
-            if (ierr.ne.nf_noerr) write(stdout,2) 'ubar_east'
-            ierr_all=ierr_all+ierr
-            ierr=nf_read_bry_EW (vbar_east_dt(0,itbry), bry_id,
-     &                           vbar_east_id, bry_rec, v2dvar)
-            if (ierr.ne.nf_noerr) write(stdout,2) 'vbar_east'
-            ierr_all=ierr_all+ierr
+              ierr=nf_read_bry_EW (ubar_east_dt(0,itbry), bry_id,
+     &                             ubar_east_id, bry_rec, u2dvar)
+              if (ierr.ne.nf_noerr) write(stdout,2) 'ubar_east'
+              ierr_all=ierr_all+ierr
+              ierr=nf_read_bry_EW (vbar_east_dt(0,itbry), bry_id,
+     &                             vbar_east_id, bry_rec, v2dvar)
+              if (ierr.ne.nf_noerr) write(stdout,2) 'vbar_east'
+              ierr_all=ierr_all+ierr
 #  endif
 #  ifdef SOLVE3D
 #   ifdef M3_FRC_BRY
-            ierr=nf_read_bry_EW (u_east_dt(0,1,itbry), bry_id,
-     &                           u_east_id,  bry_rec,  u3dvar)
-            if (ierr.ne.nf_noerr)  write(stdout,2)  'u_east'
-            ierr_all=ierr_all+ierr
-            ierr=nf_read_bry_EW (v_east_dt(0,1,itbry), bry_id, 
-     &                           v_east_id,  bry_rec,  v3dvar)
-            if (ierr.ne.nf_noerr)  write(stdout,2)  'v_east'
-            ierr_all=ierr_all+ierr
+              ierr=nf_read_bry_EW (u_east_dt(0,1,itbry), bry_id,
+     &                             u_east_id,  bry_rec,  u3dvar)
+              if (ierr.ne.nf_noerr)  write(stdout,2)  'u_east'
+              ierr_all=ierr_all+ierr
+              ierr=nf_read_bry_EW (v_east_dt(0,1,itbry), bry_id, 
+     &                             v_east_id,  bry_rec,  v3dvar)
+              if (ierr.ne.nf_noerr)  write(stdout,2)  'v_east'
+              ierr_all=ierr_all+ierr
 #   endif
 #   ifdef T_FRC_BRY
             do itrc=1,NT
@@ -784,37 +852,39 @@
             enddo
 #   endif /* T_FRC_BRY */
 #  endif /* SOLVE3D */
+       endif ! east_bry_active
 # endif /* OBC_EAST */
 
 
 # ifdef OBC_SOUTH
+            if (south_bry_active) then
 #  ifdef Z_FRC_BRY
-            ierr=nf_read_bry_NS (zeta_south_dt(0,itbry), bry_id,
-     &                          zeta_south_id, bry_rec,  r2dvar)
-            if (ierr.ne.nf_noerr) write(stdout,2) 'zeta_south'
-            ierr_all=ierr_all+ierr
+              ierr=nf_read_bry_NS (zeta_south_dt(0,itbry), bry_id,
+     &                            zeta_south_id, bry_rec,  r2dvar)
+              if (ierr.ne.nf_noerr) write(stdout,2) 'zeta_south'
+              ierr_all=ierr_all+ierr
 #  endif
 #  ifdef M2_FRC_BRY
-            ierr=nf_read_bry_NS (ubar_south_dt(0,itbry), bry_id,
-     &                           ubar_south_id, bry_rec, u2dvar)
-            if (ierr.ne.nf_noerr) write(stdout,2) 'ubar_south'
-            ierr_all=ierr_all+ierr
-            ierr=nf_read_bry_NS (vbar_south_dt(0,itbry), bry_id,
-     &                           vbar_south_id, bry_rec, v2dvar)
-            if (ierr.ne.nf_noerr) write(stdout,2) 'vbar_south'
-            ierr_all=ierr_all+ierr
+              ierr=nf_read_bry_NS (ubar_south_dt(0,itbry), bry_id,
+     &                             ubar_south_id, bry_rec, u2dvar)
+              if (ierr.ne.nf_noerr) write(stdout,2) 'ubar_south'
+              ierr_all=ierr_all+ierr
+              ierr=nf_read_bry_NS (vbar_south_dt(0,itbry), bry_id,
+     &                             vbar_south_id, bry_rec, v2dvar)
+              if (ierr.ne.nf_noerr) write(stdout,2) 'vbar_south'
+              ierr_all=ierr_all+ierr
 #  endif
 #  ifdef SOLVE3D
 #   ifdef M3_FRC_BRY
-            ierr=nf_read_bry_NS (u_south_dt(0,1,itbry), bry_id,
-     &                           u_south_id,  bry_rec,  u3dvar)
-            if (ierr.ne.nf_noerr)  write(stdout,2)  'u_south'
-            ierr_all=ierr_all+ierr
+              ierr=nf_read_bry_NS (u_south_dt(0,1,itbry), bry_id,
+     &                             u_south_id,  bry_rec,  u3dvar)
+              if (ierr.ne.nf_noerr)  write(stdout,2)  'u_south'
+              ierr_all=ierr_all+ierr
 
-            ierr=nf_read_bry_NS (v_south_dt(0,1,itbry), bry_id,
-     &                           v_south_id,  bry_rec,  v3dvar)
-            if (ierr.ne.nf_noerr)  write(stdout,2)  'v_south'
-            ierr_all=ierr_all+ierr
+              ierr=nf_read_bry_NS (v_south_dt(0,1,itbry), bry_id,
+     &                             v_south_id,  bry_rec,  v3dvar)
+              if (ierr.ne.nf_noerr)  write(stdout,2)  'v_south'
+              ierr_all=ierr_all+ierr
 #   endif
 #   ifdef T_FRC_BRY
             do itrc=1,NT
@@ -1038,35 +1108,37 @@
             enddo
 #   endif /* T_FRC_BRY */
 #  endif /* SOLVE3D */
+        endif ! south_bry_active
 # endif /* OBC_SOUTH */
 
 # ifdef OBC_NORTH
+            if (north_bry_active) then
 #  ifdef Z_FRC_BRY
-            ierr=nf_read_bry_NS (zeta_north_dt(0,itbry), bry_id,
-     &                           zeta_north_id, bry_rec, r2dvar)
-            if (ierr.ne.nf_noerr) write(stdout,2) 'zeta_north'
-            ierr_all=ierr_all+ierr
+              ierr=nf_read_bry_NS (zeta_north_dt(0,itbry), bry_id,
+     &                             zeta_north_id, bry_rec, r2dvar)
+              if (ierr.ne.nf_noerr) write(stdout,2) 'zeta_north'
+              ierr_all=ierr_all+ierr
 #  endif
 #  ifdef M2_FRC_BRY
-            ierr=nf_read_bry_NS (ubar_north_dt(0,itbry), bry_id,
-     &                           ubar_north_id, bry_rec, u2dvar)
-            if (ierr.ne.nf_noerr) write(stdout,2) 'ubar_north'
-            ierr_all=ierr_all+ierr
-            ierr=nf_read_bry_NS (vbar_north_dt(0,itbry), bry_id, 
-     &                           vbar_north_id, bry_rec, v2dvar)
-            if (ierr.ne.nf_noerr) write(stdout,2) 'vbar_north'
-            ierr_all=ierr_all+ierr
+              ierr=nf_read_bry_NS (ubar_north_dt(0,itbry), bry_id,
+     &                             ubar_north_id, bry_rec, u2dvar)
+              if (ierr.ne.nf_noerr) write(stdout,2) 'ubar_north'
+              ierr_all=ierr_all+ierr
+              ierr=nf_read_bry_NS (vbar_north_dt(0,itbry), bry_id, 
+     &                             vbar_north_id, bry_rec, v2dvar)
+              if (ierr.ne.nf_noerr) write(stdout,2) 'vbar_north'
+              ierr_all=ierr_all+ierr
 #  endif
 #  ifdef SOLVE3D
 #   ifdef M3_FRC_BRY
-            ierr=nf_read_bry_NS (u_north_dt(0,1,itbry), bry_id,
-     &                           u_north_id,  bry_rec,  u3dvar)
-            if (ierr.ne.nf_noerr)  write(stdout,2)  'u_north'
-            ierr_all=ierr_all+ierr
-            ierr=nf_read_bry_NS (v_north_dt(0,1,itbry), bry_id,
-     &                           v_north_id,  bry_rec,  v3dvar)
-            if (ierr.ne.nf_noerr)  write(stdout,2)  'v_north'
-            ierr_all=ierr_all+ierr
+              ierr=nf_read_bry_NS (u_north_dt(0,1,itbry), bry_id,
+     &                             u_north_id,  bry_rec,  u3dvar)
+              if (ierr.ne.nf_noerr)  write(stdout,2)  'u_north'
+              ierr_all=ierr_all+ierr
+              ierr=nf_read_bry_NS (v_north_dt(0,1,itbry), bry_id,
+     &                             v_north_id,  bry_rec,  v3dvar)
+              if (ierr.ne.nf_noerr)  write(stdout,2)  'v_north'
+              ierr_all=ierr_all+ierr
 #   endif
 #   ifdef T_FRC_BRY
             do itrc=1,NT
@@ -1290,6 +1362,7 @@
             enddo
 #   endif /* T_FRC_BRY */
 #  endif /* SOLVE3D */
+        endif ! north_bry_active
 # endif /* OBC_NORTH */
 
             ierr=ierr_all
@@ -1299,7 +1372,7 @@
      &            'bry_time =', cff, 'rec =', bry_rec MYID
             else
               write(stdout,'(1x,2A,I4/8x,3A)')
-     &            'ERROR(s) occur while trying to read record ',
+     &           '### ERROR(s) occur while trying to read record ',
      &             bry_rec,  'in file ''',bry_file(1:lstr),'''.'
             endif 
           else
@@ -1314,11 +1387,13 @@
      &                                   bry_time(itbry)*sec2day
         endif
       enddo
-  2   format(' ERROR in get_bry_all: cannot read variable ''',A,'''')
- 3    format('  NOTE in get_bry_all: cannot read variable ''',A,'''/',
-     &     ' - using default values')
+  2   format(/1x,'### ERROR in get_bry_all: Cannot read variable ''',
+     &                                                     A, '''.')
+ 3    format('###  NOTE in get_bry_all: cannot read variable ''',
+     &                           A,'''/',' - using default values')
       return
       end 
+
 
 
 
@@ -1327,7 +1402,6 @@
       integer istr,iend,jstr,jend, ierr, imin,imax,jmin,jmax,
      &                                   i,j,k, it1,it2, itrc
       real cff, cff1,cff2
-
 # include "param.h"
 # include "scalars.h"
 # include  "boundary.h"
@@ -1373,6 +1447,20 @@
       endif
 
 
+      it1=0
+# ifdef OBC_WEST
+      if (WESTERN_EDGE) it1=1 
+# endif
+# ifdef OBC_EAST
+      if (EASTERN_EDGE) it1=1
+# endif
+# ifdef OBC_SOUTH
+      if (SOUTHERN_EDGE) it1=1
+# endif
+# ifdef OBC_NORTH
+      if (NORTHERN_EDGE) it1=1 
+# endif
+      if (it1.eq.0) return
 
 
 

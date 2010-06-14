@@ -105,7 +105,7 @@ CSDISTRIBUTE_RESHAPE A(BLOCK_PATTERN) BLOCK_CLAUSE
 #endif
 #ifdef MPI
       i=1
-      call mpi_exchange_tile (istr,iend,jstr,jend,  A, i)
+      call mpi_exchange8_tile (istr,iend,jstr,jend,  A, i)
 #endif
       return
       end

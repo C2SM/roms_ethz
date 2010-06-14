@@ -76,6 +76,15 @@ c     &               LLm=768, MMm=256, N=1
 c     &                LLm=60,  MMm=240,  N=24
 #elif defined UPWELLING
      &               LLm=20,  MMm=80,  N=16
+#elif defined CANBAS2
+     &                LLm=1200, MMm=1800, N=42      ! UNPR
+#elif defined SPIRAL
+     &                LLm=694, MMm=972, N=84      ! SPIRAL
+#elif defined PACBIG
+     &                LLm=1840, MMm=960, N=32      ! PAC_big
+#elif defined ATLSMA
+     &                LLm= 420, MMm= 560, N=42      ! ATLSMA
+
 #elif defined HUMBOLDT
      &               LLm=384, MMm=800, N=30       ! SAWC 8 km
 #elif defined USWEST
@@ -117,6 +126,14 @@ c     &               LLm=248, MMm=504, N=32   ! new 5km config
       integer NSUB_X, NSUB_E
 #ifdef MPI
       integer NP_XI, NP_ETA, NNODES
+cc      parameter (NP_XI=4, NP_ETA=8, NSUB_X=3, NSUB_E=5)
+cc      parameter (NP_XI=4, NP_ETA=48, NSUB_X=1, NSUB_E=1) ! SPIRAL
+cc      parameter (NP_XI=4, NP_ETA=48, NSUB_X=1, NSUB_E=1) ! UNPR newcluster
+cc      parameter (NP_XI=6, NP_ETA=32, NSUB_X=1, NSUB_E=1) ! PACBIG newcluster
+# ifdef ATLSMA
+!mm uclaatlsma        parameter (NP_XI=2, NP_ETA=16, NSUB_X=1, NSUB_E=1) ! ATLSMA newcluster
+        parameter (NP_XI=4, NP_ETA=16, NSUB_X=1, NSUB_E=1) ! ATLSMA newcluster
+# endif
 # ifdef HUMBOLDT
       parameter (NP_XI=2, NP_ETA=16, NSUB_X=1, NSUB_E=1)
 # elif defined USWC_CENTRAL

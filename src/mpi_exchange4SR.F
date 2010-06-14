@@ -1,7 +1,7 @@
 #include "cppdefs.h"
 #ifdef MPI
  
-      subroutine mpi_exchange_tile (istr,iend,jstr,jend, A, nmax)
+      subroutine mpi_exchange4_tile (istr,iend,jstr,jend, A, nmax)
       implicit none
 # include "mpif.h"
 # include "param.h"
@@ -81,13 +81,13 @@ c*    write(*,'(2(6x,A,I2,2x,A,I3,2x,A,I3))')
 c*   &        'inode=',inode, 'imin=',imin, 'imax=',imax,
 c*   &        'jnode=',jnode, 'jmin=',jmin, 'jmax=',jmax
 !
-#define write !
+c--#define write !
 
       do iter=0,1
         md_ETA=mod(jnode+iter,2)
         if (md_ETA.eq.0) then
           if (SOUTH_INTER .and. jtag.eq.0) then
-            write(*,*) 'mpi_exchange: 1.3', mynode
+            write(*,*) 'mpi_exchange4SR: 1.3', mynode
             do k=1,nmax
               kshft=2*(k-1)*ishft
               do i=imin,imax
@@ -113,7 +113,7 @@ c*   &        'jnode=',jnode, 'jmin=',jmin, 'jmax=',jmax
           endif
         else
           if (NORTH_INTER .and. jtag.eq.NSUB_E-1) then
-            write(*,*) 'mpi_exchange: 1.4', mynode
+            write(*,*) 'mpi_exchange4SR: 1.4', mynode
             do k=1,nmax
               kshft=2*(k-1)*ishft
               do i=imin,imax
@@ -143,7 +143,7 @@ c*   &        'jnode=',jnode, 'jmin=',jmin, 'jmax=',jmax
         md_XI=mod(inode+iter,2)
         if (md_XI.eq.0) then
           if (WEST_INTER .and. itag.eq.0) then
-            write(*,*) 'mpi_exchange: 1.1', mynode
+            write(*,*) 'mpi_exchange4SR: 1.1', mynode
             do k=1,nmax
               kshft=2*(k-1)*jshft
               do j=jmin,jmax
@@ -168,7 +168,7 @@ c*   &        'jnode=',jnode, 'jmin=',jmin, 'jmax=',jmax
           endif
         else
           if (EAST_INTER .and. itag.eq.NSUB_X-1) then
-            write(*,*) 'mpi_exchange: 1.2', mynode
+            write(*,*) 'mpi_exchange4SR: 1.2', mynode
             do k=1,nmax
               kshft=2*(k-1)*jshft
               do j=jmin,jmax
@@ -193,7 +193,7 @@ c*   &        'jnode=',jnode, 'jmin=',jmin, 'jmax=',jmax
         endif
       enddo
 
-!>      write(*,*) 'mpi_exchange out', mynode
+      write(*,*) 'mpi_exchange4SR out', mynode
       return
       end
 #else

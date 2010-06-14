@@ -122,7 +122,7 @@ CSDISTRIBUTE_RESHAPE A(BLOCK_PATTERN,*) BLOCK_CLAUSE
 #endif
 #ifdef MPI
       k=N-KSTART+1
-      call mpi_exchange_tile (istr,iend,jstr,jend,  A,k)
+      call mpi_exchange8_tile (istr,iend,jstr,jend,  A,k)
 #endif
       return
       end

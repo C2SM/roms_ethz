@@ -104,7 +104,15 @@
 #elif defined PACIFIC_2D
       fname='pacific_2D.in'
 #elif defined CANBAS2
-      fname='canBas2.in'
+c--      fname='canBas2.in'
+      fname='unpr.in'
+c--      fname='cblanco.in'
+#elif defined SPIRAL
+      fname='spiral.in'
+#elif defined PACBIG
+      fname='pacbig.in'
+#elif defined ATLSMA
+      fname='atlsma.in'
 #elif defined USWEST
       fname='mb_l1_safe.in'
 c--      fname='roms.in.USW20'

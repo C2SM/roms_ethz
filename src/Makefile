@@ -3,7 +3,8 @@
 # Set machine dependent definitions and rules.
 
 #include Makedefs.Intel
-#include Makedefs.IntelEM64T
+#mm include Makedefs.IntelEM64T
+include Makedefs.PGI_Brutus_ib
 #include Makedefs.Intel_MPI
 #include  Makedefs.CMPI
 #include  Makedefs.Tungsten
@@ -50,7 +51,7 @@ KRNSRC = main.F		step2D_FB.F	read_inp.F	sta_par.F\
 \
 	diag.F		wvlcty.F	grid_stiffness.F\
 \
-	exchange.F	mpi_setup.F	mpi_exchange8WA.F\
+	exchange.F	mpi_setup.F	mpi_exchange8WA1.F\
 \
 	lenstr.F	get_date.F\
 \
@@ -106,7 +107,6 @@ FLTSRC = init_floats.F	init_arrays_floats.F	get_initial_floats.F\
 #
 $(SBIN): $(OBJS)
 	$(LDR) $(FFLAGS) $(LDFLAGS) -o $@ $(OBJS) $(LCDF) $(LMPI)
-#mm	mv a.out $(SBIN)
 2level: $(OBJS) $(LROMS2)
 	$(LDR) $(FFLAGS) $(LDFLAGS) -o a.out $(OBJS) $(LROMS2) $(LCDF) $(LMPI)
 	mv a.out $(SBIN)
