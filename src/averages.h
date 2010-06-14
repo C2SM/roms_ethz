@@ -29,9 +29,11 @@ CSDISTRIBUTE_RESHAPE w_avg(BLOCK_PATTERN,*) BLOCK_CLAUSE
       real akt_avg(GLOBAL_2D_ARRAY,0:N)
 CSDISTRIBUTE_RESHAPE akt_avg(BLOCK_PATTERN,*) BLOCK_CLAUSE
       common /avg_akv/akv_avg /avg_akt/akt_avg
+#ifdef KPP_DIAGNOSE
       real rich_avg(GLOBAL_2D_ARRAY,0:N), richN_avg(GLOBAL_2D_ARRAY,0:N)
 CSDISTRIBUTE_RESHAPE rich_avg(BLOCK_PATTERN,*) BLOCK_CLAUSE
       common /rich_akt/rich_avg, richN_avg
+#endif
 #  ifdef SALINITY
       real aks_avg(GLOBAL_2D_ARRAY,0:N)
 CSDISTRIBUTE_RESHAPE aks_avg(BLOCK_PATTERN,*) BLOCK_CLAUSE

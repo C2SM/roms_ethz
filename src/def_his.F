@@ -1,5 +1,7 @@
 #ifndef AVRH
 # include "cppdefs.h"
+#define NETCDF4
+!#--> define NCCOMPRESS
  
       subroutine def_his (ncid, total_rec, ierr)
 #else
@@ -33,6 +35,11 @@
 #endif
       character*60 text
       integer my_nf_def_dim, ifour
+#ifdef NCCOMPRESS
+      integer ncshuff, ncdefl, nclev, ncctg, ncchnk2(3), ncchnk3(4)
+      data ncshuff, ncdefl, nclev, ncctg / 0, 1, 1, 0 /
+#endif
+
       parameter (ifour=4)
 #include "param.h"
 #include "scalars.h"
@@ -50,6 +57,17 @@
 # endif
 #endif
 
+#ifdef NCCOMPRESS
+c  Chunk Size (atomic access size)
+c  for netcdf4 (HDF5) 2 and 3d fields in output
+      ncchnk2(1)=Mm
+      ncchnk2(2)=Lm
+      ncchnk2(1)=1
+      ncchnk3(1)=Mm
+      ncchnk3(2)=Lm
+      ncchnk3(3)=1
+      ncchnk3(4)=1
+#endif
 
 #ifndef AVRH
 # define ncname hisname
@@ -68,8 +86,10 @@
 # define vidW hisW
 # define vidAkv hisAkv
 # define vidAkt hisAkt
-# define vidRich hisRich
-# define vidRichN hisRichN
+# ifdef KPP_DIAGNOSE
+#  define vidRich hisRich
+#  define vidRichN hisRichN
+# endif
 # define vidAks hisAks
 # define vidHbl hisHbl
 # define vidHbbl hisHbbl
@@ -100,8 +120,10 @@
 # define vidW avgW
 # define vidAkv avgAkv
 # define vidAkt avgAkt
-# define vidRich avgRich
-# define vidRichN avgRichN
+# ifdef KPP_DIAGNOSE
+#  define vidRich avgRich
+#  define vidRichN avgRichN
+# endif
 # define vidAks avgAks
 # define vidHbl avgHbl
 # define vidHbbl avgHbbl
@@ -172,14 +194,10 @@
 ! ====== === ======= ======== =====    and define all variables.
 !
   10  if (create_new_file) then
-#if defined AVRH && defined LARGE_AVG_FILES
-        ierr=nf_create(ncname(1:lstr), or(nf_clobber,nf_64bit_offset),
-     &       ncid)
-#elif !defined AVRH && defined LARGE_HIS_FILES
-        ierr=nf_create(ncname(1:lstr), or(nf_clobber,nf_64bit_offset),
-     &       ncid)
+#ifdef NETCDF4
+        ierr=nf_create(ncname(1:lstr), or(nf_clobber),nf_netcdf4), ncid)
 #else
-        ierr=nf_create(ncname(1:lstr), nf_clobber, ncid)
+        ierr=nf_create(ncname(1:lstr), or(nf_clobber,nf_64bit_offset), ncid)
 #endif
         if (ierr .ne. nf_noerr) then
           write(stdout,'(/1x,4A/)') 'ERROR in def_his/avg: Can not ',
@@ -259,7 +277,7 @@
 ! Time.
 !
         lvar=lenstr(vname(1,indxTime))
-        ierr=nf_def_var (ncid, vname(1,indxTime)(1:lvar), NF_DOUBLE,
+        ierr=nf_def_var (ncid, vname(1,indxTime)(1:lvar), NF_FOUT,
      &                                        1, timedim, vidTime)
 #ifdef AVRH
         text='averaged '/ /vname(2,indxTime)
@@ -294,6 +312,10 @@
           ierr=nf_put_att_FOUT (ncid, vidZ, '_FillValue',
      &                                   NF_FOUT, 1, spv_set)
 #endif
+#ifdef NCCOMPRESS
+          ierr=nf_def_var_deflate(ncid, vidZ, ncshuff, ncdefl, nclev)
+          ierr=nf_def_var_chunking(ncid, vidZ, ncctg, ncchnk2) 
+#endif
 
         endif
 !
@@ -318,6 +340,10 @@
           ierr=nf_put_att_FOUT (ncid, vidUb, '_FillValue',
      &                                   NF_FOUT, 1, spv_set)
 #endif
+#ifdef NCCOMPRESS
+          ierr=nf_def_var_deflate(ncid, vidUb, ncshuff, ncdefl, nclev)
+          ierr=nf_def_var_chunking(ncid, vidUb, ncctg, ncchnk2) 
+#endif
         endif
  
         if (wrt(indxVb)) then
@@ -340,6 +366,10 @@
      &                                      NF_FOUT, 1, spv_set)
 #endif
         endif
+#ifdef NCCOMPRESS
+          ierr=nf_def_var_deflate(ncid, vidVb, ncshuff, ncdefl, nclev)
+          ierr=nf_def_var_chunking(ncid, vidVb, ncctg, ncchnk2) 
+#endif
 #ifdef SOLVE3D
 !
 ! 3D momenta in XI- and ETA-directions.
@@ -363,6 +393,10 @@
           ierr=nf_put_att_FOUT (ncid, vidU, '_FillValue',
      &                                   NF_FOUT, 1, spv_set)
 #endif
+#ifdef NCCOMPRESS
+          ierr=nf_def_var_deflate(ncid, vidU, ncshuff, ncdefl, nclev )
+          ierr=nf_def_var_chunking(ncid, vidU, ncctg, ncchnk3) 
+#endif
 
         endif
  
@@ -384,6 +418,10 @@
 #ifdef MASK_LAND_DATA
           ierr=nf_put_att_FOUT (ncid, vidV, '_FillValue',
      &                                   NF_FOUT, 1, spv_set)
+#endif
+#ifdef NCCOMPRESS
+          ierr=nf_def_var_deflate(ncid, vidV, ncshuff, ncdefl, nclev )
+          ierr=nf_def_var_chunking(ncid, vidV, ncctg, ncchnk3) 
 #endif
         endif
 !
@@ -409,6 +447,10 @@
             ierr=nf_put_att_FOUT (ncid, vidT(itrc), '_FillValue',
      &                                       NF_FOUT, 1, spv_set)
 #endif
+#ifdef NCCOMPRESS
+          ierr=nf_def_var_deflate(ncid, vidT, ncshuff, ncdefl, nclev )
+          ierr=nf_def_var_chunking(ncid, vidT, ncctg, ncchnk3)
+#endif 
           endif
         enddo
 # ifdef SEDIMENT_BIOLOGY
@@ -462,6 +504,10 @@
           ierr=nf_put_att_FOUT (ncid, vidR, '_FillValue',
      &                                   NF_FOUT, 1, spv_set)
 #endif
+#ifdef NCCOMPRESS
+          ierr=nf_def_var_deflate(ncid, vidR, ncshuff, ncdefl, nclev )
+          ierr=nf_def_var_chunking(ncid, vidR, ncctg, ncchnk3) 
+#endif
         endif
 !
 ! S-coordinate "omega" vertical velocity.
@@ -484,6 +530,10 @@
 #ifdef MASK_LAND_DATA 
           ierr=nf_put_att_FOUT (ncid, vidO, '_FillValue',
      &                                   NF_FOUT, 1, spv_set)
+#endif
+#ifdef NCCOMPRESS
+          ierr=nf_def_var_deflate(ncid, vidO, ncshuff, ncdefl, nclev )
+          ierr=nf_def_var_chunking(ncid, vidO, ncctg, ncchnk3) 
 #endif
         endif
 !
@@ -508,6 +558,10 @@
           ierr=nf_put_att_FOUT (ncid, vidW, '_FillValue',
      &                                   NF_FOUT, 1, spv_set)
 #endif
+#ifdef NCCOMPRESS
+          ierr=nf_def_var_deflate(ncid, vidW, ncshuff, ncdefl, nclev )
+          ierr=nf_def_var_chunking(ncid, vidW, ncctg, ncchnk3) 
+#endif
         endif
 !
 ! Vertical viscosity coefficient.
@@ -530,6 +584,10 @@
 #ifdef MASK_LAND_DATA 
           ierr=nf_put_att_FOUT (ncid, vidAkv, '_FillValue',
      &                                   NF_FOUT, 1, spv_set)
+#endif
+#ifdef NCCOMPRESS
+          ierr=nf_def_var_deflate(ncid, vidAkv, ncshuff, ncdefl, nclev)
+          ierr=nf_def_var_chunking(ncid, vidAkv, ncctg, ncchnk3) 
 #endif
         endif
 !
@@ -554,7 +612,11 @@
           ierr=nf_put_att_FOUT (ncid, vidAkt, '_FillValue',
      &                                   NF_FOUT, 1, spv_set)
 #endif
+#ifdef NCCOMPRESS
+          ierr=nf_def_var_deflate(ncid, vidAkt, ncshuff, ncdefl, nclev)
+          ierr=nf_def_var_chunking(ncid, vidAkt, ncctg, ncchnk3) 
         endif
+#endif
 !
 ! Diffusivity due to vertical velocity shear:
 !
@@ -624,6 +686,10 @@
           ierr=nf_put_att_FOUT (ncid, vidAks, '_FillValue',
      &                                   NF_FOUT, 1, spv_set)
 #endif
+#ifdef NCCOMPRESS
+          ierr=nf_def_var_deflate(ncid, vidAks, ncshuff, ncdefl, nclev)
+          ierr=nf_def_var_chunking(ncid, vidAks, ncctg, ncchnk3) 
+#endif
         endif
 # endif /* SALINITY */
 # ifdef LMD_KPP
@@ -648,6 +714,10 @@
 #ifdef MASK_LAND_DATA 
           ierr=nf_put_att_FOUT (ncid, vidHbl, '_FillValue',
      &                                   NF_FOUT, 1, spv_set)
+#endif
+#ifdef NCCOMPRESS
+          ierr=nf_def_var_deflate(ncid, vidHbl, ncshuff, ncdefl, nclev)
+          ierr=nf_def_var_chunking(ncid, vidHbl, ncctg, ncchnk2) 
 #endif
         endif
 # endif /* LMD_KPP */
@@ -792,8 +862,7 @@
 !
         ierr=nf_enddef(ncid)
         write(stdout,'(6x,5A,i4)')     'def_his/avg: Created new ',
-     &               'netCDF file ''', ncname(1:lstr), 
-     &               '''.' MYID
+     &  'netCDF file ''', ncname(1:lstr), '''.' MYID
 !
 ! Open existing file and prepare for appending data:   Inquire about
 ! ==== ======== ==== === ======= === ========= ====    dimensions and
@@ -1129,20 +1198,17 @@
 # endif /* BIOLOGY_BEC || BIOLOGY_NPZDOC */
 #endif /* SOLVE3D */
         write(*,'(6x,2A,i4,1x,A,i4)')    'def_his/avg: Opened ',
-     &              'existing file from record =',
-     &              rec MYID
+     &              'existing file from record =', rec MYID
  
 #if defined MPI && !defined PARALLEL_FILES
       else
         ierr=nf_open (ncname(1:lstr), nf_write, ncid)
         if (ierr .eq. nf_noerr) then
-          write(stdout,'(1x,4A,I3,A,i4)')        'def_his/avg: Opened ',
-     &      'existing file ''', ncname(1:lstr), ''' ncid =', 
-     &          ncid  MYID
+          write(stdout,'(1x,4A,I3)')        'def_his/avg: Opened ',
+     &      'existing file ''', ncname(1:lstr), ''' ncid =', ncid
         else
           write(stdout,'(/1x,5A,I4/)')   '### ERROR: def_his/avg: ',
-     &      'Cannot open file ''', ncname(1:lstr), '''.' 
-     &      MYID
+     &      'Cannot open file ''', ncname(1:lstr), '''.' MYID
           goto 99                                         !--> ERROR
         endif
 #endif

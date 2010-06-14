@@ -16,11 +16,12 @@
 #undef RIVER          /* River runoff test problem */
 #undef UPWELLING       /* Upwelling Example */
 #undef USWEST          /* US West Coast Application */
+#undef PACBIG         /* Pacific Medium 12.5km Grid*/
+#undef ATLSMA        /* Atlantic Small 25 km Grid*/
+#undef CANBAS2
+#undef SPIRAL
 #define USWC_CENTRAL
 #undef WAVE_RAD        /* A test for wave radiation boundaries */
-#undef ATL360X408    /* Whole Atlantic 360x408 */
-!--> #define ATL50S70N    /* Whole Atlantic 50S x 70N (360x468) */
-
 
 /*
     Embedded (nested) grid configuration segment
@@ -35,10 +36,6 @@ c--#endif
 /*
    Main switch starts here: model configuration choice.
 */
-
-#if defined ATL50S70N || defined ATL360X408
-# define ATLANTIC
-#endif
 
 #if defined BASIN    /* Big Bad Basin Configuration */
 # define SOLVE3D
@@ -205,7 +202,7 @@ c--# define OBC_TORLANSKI
 # define ANA_STFLUX
 
 
-#elif defined PACIFIC || defined ATLANTIC /* North-Equatorial Pacific Configuration */
+#elif defined PACIFIC   /* North-Equatorial Pacific Configuration */
 # define SOLVE3D
 # define UV_COR
 # define UV_ADV
@@ -256,20 +253,11 @@ c>>># define TNUDGING
 c>>># define TCLIMATOLOGY
 c>>># define UCLIMATOLOGY
 
-c--mm:
-# ifdef ATLANTIC
-#   define TNUDGING
-#   define TCLIMATOLOGY
-#   define UCLIMATOLOGY
 
-#   define OBC_SOUTH
-#   define OBC_EAST
-#   define OBC_NORTH
-#   undef OBC_WEST
-!   mm new switch STFLX_LIM, (implicit with PACIFIC switch)
-!   Shut off surface flux if SST<-2C  (ice formation)
-#   define STFLX_LIM   
-# endif
+# define OBC_SOUTH
+# define OBC_EAST
+# define OBC_NORTH
+# undef OBC_WEST
 
 c--DL:
 # ifdef PACIFIC
@@ -493,16 +481,199 @@ c--# define OBC_M2ORLANSKI
 # define ANA_SRFLUX
 # define ANA_VMIX
  
-#elif defined USWC_CENTRAL   /* US West Coast Configuration */
+
+
+#elif defined CANBAS2   /* Canary Basin model */
+
 # define SOLVE3D
-# define UV_COR
 # define UV_ADV
-!                       Equation of State
+# define UV_COR
+
 # define NONLIN_EOS
 # define SPLIT_EOS
 # define SALINITY
 
-!                       Forcing and Climatology
+# define EXACT_RESTART
+# define AVERAGES
+
+# define UV_VIS2
+# define MIX_GP_UV
+# define TS_DIF2
+# define MIX_GP_TS
+
+# define QCORRECTION
+
+# define LMD_MIXING
+# define LMD_KPP
+# define LMD_RIMIX
+# define LMD_CONVEC
+# define LMD_NONLOCAL
+
+# define CURVGRID
+# define SPHERICAL
+# define MASKING
+
+# define OBC_WEST
+c# define OBC_EAST
+# define OBC_NORTH
+# define OBC_SOUTH
+
+# define OBC_M2FLATHER
+# define OBC_M3ORLANSKI
+# define OBC_TORLANSKI
+
+# define Z_FRC_BRY
+# define M2_FRC_BRY
+# define M3_FRC_BRY
+# define T_FRC_BRY
+# define SPONGE
+
+#elif defined SPIRAL   /* Spiral Eddy Zoom */
+
+# define SOLVE3D
+# define UV_ADV
+# define UV_COR
+
+# define NONLIN_EOS
+# define SPLIT_EOS
+# define SALINITY
+
+# define EXACT_RESTART
+# define AVERAGES
+
+# define UV_VIS2
+# define MIX_GP_UV
+# define TS_DIF2
+# define MIX_GP_TS
+
+# define QCORRECTION
+
+# define LMD_MIXING
+# define LMD_KPP
+# define LMD_RIMIX
+# define LMD_CONVEC
+# define LMD_NONLOCAL
+
+# define CURVGRID
+# define SPHERICAL
+# define MASKING
+
+# define OBC_WEST
+# define OBC_EAST
+# define OBC_NORTH
+# define OBC_SOUTH
+
+# define OBC_M2FLATHER
+# define OBC_M3ORLANSKI
+# define OBC_TORLANSKI
+
+# define Z_FRC_BRY
+# define M2_FRC_BRY
+# define M3_FRC_BRY
+# define T_FRC_BRY
+# define SPONGE
+
+#elif defined PACBIG   /* Pacific big Resolution 12.5km Config. */
+
+# define SOLVE3D
+# define UV_ADV
+# define UV_COR
+
+# define NONLIN_EOS
+# define SPLIT_EOS
+# define SALINITY
+
+# define EXACT_RESTART
+# define AVERAGES
+
+# define UV_VIS2
+# define MIX_GP_UV
+# define TS_DIF2
+# define MIX_GP_TS
+
+# define QCORRECTION
+
+# define LMD_MIXING
+# define LMD_KPP
+# define LMD_RIMIX
+# define LMD_CONVEC
+# define LMD_NONLOCAL
+
+# define CURVGRID
+# define SPHERICAL
+# define MASKING
+
+# define OBC_WEST
+# define OBC_SOUTH
+
+# define OBC_M2FLATHER
+# define OBC_M3ORLANSKI
+# define OBC_TORLANSKI
+
+# define Z_FRC_BRY
+# define M2_FRC_BRY
+# define M3_FRC_BRY
+# define T_FRC_BRY
+# define SPONGE
+
+#elif defined ATLSMA   /* Atlantic 25 km Config. */
+
+# define SOLVE3D
+# define UV_ADV
+# define UV_COR
+
+# define NONLIN_EOS
+# define SPLIT_EOS
+# define SALINITY
+
+# define EXACT_RESTART
+# define AVERAGES
+
+# define UV_VIS2
+# define MIX_GP_UV
+# define TS_DIF2
+# define MIX_GP_TS
+
+# define QCORRECTION
+
+# define LMD_MIXING
+# define LMD_KPP
+# define LMD_RIMIX
+# define LMD_CONVEC
+# define LMD_NONLOCAL
+
+# define CURVGRID
+# define SPHERICAL
+# define MASKING
+
+# define OBC_EAST
+# define OBC_NORTH
+# define OBC_SOUTH
+
+# define OBC_M2FLATHER
+# define OBC_M3ORLANSKI
+# define OBC_TORLANSKI
+
+# define Z_FRC_BRY
+# define M2_FRC_BRY
+# define M3_FRC_BRY
+# define T_FRC_BRY
+# define SPONGE
+
+!mm
+# define STFLX_LIM
+# define DIURNAL_SRFLUX
+
+#elif defined USWC_CENTRAL   /* US West Coast Configuration */
+# define SOLVE3D
+# define UV_COR
+# define UV_ADV
+                       /* Equation of State */
+# define NONLIN_EOS
+# define SPLIT_EOS
+# define SALINITY
+
+                       /* Forcing and Climatology */
 # ifdef SOLVE3D
 #   define QCORRECTION
 #   define TCLIMATOLOGY
@@ -561,7 +732,8 @@ c--# define OBC_M2ORLANSKI
 # undef OBC_TSPECIFIED
 # undef OBC_M2SPECIFIED
 # undef OBC_M3SPECIFIED
-!
+
+# define EXACT_RESTART
 # define AVERAGES
 !                       Biology
 # undef BIOLOGY

@@ -91,12 +91,8 @@
 !======= === ======= =====    and define all variables.
 !
   10  if (create_new_file) then
-#ifdef LARGE_RST_FILES
         ierr=nf_create(rstname(1:lstr), or(nf_clobber,nf_64bit_offset),
      &        ncid)
-#else
-        ierr=nf_create(rstname(1:lstr), nf_clobber, ncid)
-#endif
         if (ierr.ne.nf_noerr) then
           write(stdout,'(/1x,4A/12x,A/)')  '### ERROR: def_rst :: ',
      &      'Cannot create restart NetCDF file ''', rstname(1:lstr),
