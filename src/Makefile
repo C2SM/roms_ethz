@@ -219,5 +219,7 @@ clobber: clean
 #
 # Include automatically generated dependency list:
 #
+ifneq ($(wildcard Make.depend),)
 include Make.depend
+endif
 
