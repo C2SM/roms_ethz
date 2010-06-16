@@ -18,6 +18,9 @@
       integer ncsrc, nctarg, ndims, nvars, ngatts, unlimdimid,
      &        varid, vardims, vartype, varatts, size, i,j, ierr,
      &        nargs, lsrc, ltarg, lvar, lenstr
+#if defined AIX || PGI 
+      integer iargc
+#endif
 
 #include "netcdf.inc"
 

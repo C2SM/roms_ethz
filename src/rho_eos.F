@@ -86,7 +86,7 @@
 ! in computation of pressure gradient within prsgrd32ACx-family
 ! schemes.]
 !
-! If so prescribed compute the Brunt-V�is�la frequency [1/s^2] at
+! If so prescribed compute the buoyancy frequency [1/s^2] at
 ! horizontal RHO-points and vertical W-points,
 !
 !                          g    d rho  |

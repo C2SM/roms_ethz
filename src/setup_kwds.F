@@ -24,9 +24,17 @@
 #endif
 #ifdef FLOATS
 #endif
+#ifdef BGC_FLUX_ANALYSIS
+#endif
+#ifdef PHYS_FLUX_ANALYSIS
+#endif
 #ifdef MPI
 #endif
 #ifdef SOLVE3D
+#endif
+#if defined BIOLOGY_BEC || defined BIOLOGY_NPZDOC
+# ifdef VARIABLE_ANN_ATM_PCO2
+# endif
 #endif
 #ifdef SOLVE3D
 # ifdef LMD_KPP
@@ -47,6 +55,7 @@
 #elif defined PACBIG
 #elif defined ATLSMA
 #elif defined USWEST
+#elif defined USWC_CENTRAL
 #elif defined DAMEE_B
 #else
 #endif
@@ -114,9 +123,14 @@
       kwds(is:ie)='climatology'
       kwds(ie+1:ie+1)=' '
       is=ie+2
-# if defined MPI && defined PARALLEL_FILES
-# endif
-#endif
+# ifdef MULT_CLIM_FILES
+#  if defined MPI && defined PARALLEL_FILES
+#  endif
+# else /* MULT_CLIM_FILES */
+#  if defined MPI && defined PARALLEL_FILES
+#  endif
+# endif /* MULT_CLIM_FILES */
+#endif /* SOLVE3D &&( defined TCLIMATOLOGY... */
 #if defined T_FRC_BRY || defined M2_FRC_BRY || \
     defined M3_FRC_BRY || defined Z_FRC_BRY
 # ifndef ANA_BRY
@@ -128,7 +142,7 @@
 #  if defined MPI && defined PARALLEL_FILES
 #  endif
 # endif
-#endif
+#endif /* SOLVED3D && TCLIMATOLOGY etc. */
       ie=is + 7
       if (ie.ge.max_opt_size) goto 99
       kwds(is:ie)='restart'
@@ -152,7 +166,7 @@
 # if defined MPI && defined PARALLEL_FILES
 # endif
 #endif
-#ifdef MOORE_BEC
+#ifdef BIOLOGY_BEC_NOMORE
       ie=is +11
       if (ie.ge.max_opt_size) goto 99
       kwds(is:ie)='mgm_history'
@@ -167,30 +181,43 @@
       is=ie+2
 # if defined MPI && defined PARALLEL_FILES
 # endif
-# ifdef MULT_CLIM_FILE
-      ie=is +10
+#endif   /* BIOLOGY_BEC_NOMORE */
+#ifdef BGC_FLUX_ANALYSIS
+      ie=is +18
       if (ie.ge.max_opt_size) goto 99
-      kwds(is:ie)='clim_file2'
+      kwds(is:ie)='bgc_flux_histories'
+      kwds(ie+1:ie+1)=' '
+      is=ie+2
+# if defined MPI && defined PARALLEL_FILES
+# endif
+# ifdef AVERAGES
+      ie=is +17
+      if (ie.ge.max_opt_size) goto 99
+      kwds(is:ie)='bgc_flux_averages'
       kwds(ie+1:ie+1)=' '
       is=ie+2
 #  if defined MPI && defined PARALLEL_FILES
 #  endif
-      ie=is +10
+# endif /* AVERAGES */
+#endif /* BGC_FLUX_ANALYSIS */
+#ifdef PHYS_FLUX_ANALYSIS
+      ie=is +19
       if (ie.ge.max_opt_size) goto 99
-      kwds(is:ie)='clim_file3'
+      kwds(is:ie)='phys_flux_histories'
+      kwds(ie+1:ie+1)=' '
+      is=ie+2
+# if defined MPI && defined PARALLEL_FILES
+# endif
+# ifdef AVERAGES
+      ie=is +18
+      if (ie.ge.max_opt_size) goto 99
+      kwds(is:ie)='phys_flux_averages'
       kwds(ie+1:ie+1)=' '
       is=ie+2
 #  if defined MPI && defined PARALLEL_FILES
 #  endif
-      ie=is +10
-      if (ie.ge.max_opt_size) goto 99
-      kwds(is:ie)='clim_file4'
-      kwds(ie+1:ie+1)=' '
-      is=ie+2
-#  if defined MPI && defined PARALLEL_FILES
-#  endif
-# endif /* MULT_CLIM_FILE */
-#endif   /* MOORE_BEC */
+# endif /* AVERAGES */
+#endif /* PHYS_FLUX_ANALYSIS */
 #ifdef STATIONS
       ie=is + 8
       if (ie.ge.max_opt_size) goto 99
@@ -229,10 +256,14 @@
       kwds(ie+1:ie+1)=' '
       is=ie+2
 #ifdef SOLVE3D
+# ifdef SEDIMENT_BIOLOGY
+# endif /* SEDIMENT_BIOLOGY */
 #endif
 #ifdef SOLVE3D
 #endif
 #ifdef SOLVE3D
+# ifdef SEDIMENT_BIOLOGY
+# endif /* SEDIMENT_BIOLOGY */
       ie=is +24
       if (ie.ge.max_opt_size) goto 99
       kwds(is:ie)='auxiliary_history_fields'
@@ -241,14 +272,20 @@
 # ifdef SALINITY
 #  ifdef LMD_KPP
 #  endif
+# ifdef LMD_BKPP
+# endif
 # endif
 # ifdef SALINITY
 #  ifdef LMD_KPP
 #  endif
+# ifdef LMD_BKPP
+# endif
 # endif
 # ifdef SALINITY
-#  ifdef LMD_KPP
-#  endif
+# endif
+# ifdef LMD_KPP
+# endif
+# ifdef LMD_BKPP
 # endif
 #endif /* SOLVE3D */
 #ifdef AVERAGES
@@ -258,26 +295,36 @@
       kwds(ie+1:ie+1)=' '
       is=ie+2
 # ifdef SOLVE3D
+#  ifdef SEDIMENT_BIOLOGY
+#  endif /* SEDIMENT_BIOLOGY */
 # endif
 # ifdef SOLVE3D
 # endif
 # ifdef SOLVE3D
+#  ifdef SEDIMENT_BIOLOGY
+#  endif /* SEDIMENT_BIOLOGY */
       ie=is +18
       if (ie.ge.max_opt_size) goto 99
       kwds(is:ie)='auxiliary_averages'
       kwds(ie+1:ie+1)=' '
       is=ie+2
 #  ifdef SALINITY
-#   ifdef LMD_KPP
-#   endif
+#  endif
+#  ifdef LMD_KPP
+#  endif
+#  ifdef LMD_BKPP
 #  endif
 #  ifdef SALINITY
-#   ifdef LMD_KPP
-#   endif
+#  endif
+#  ifdef LMD_KPP
+#  endif
+#  ifdef LMD_BKPP
 #  endif
 #  ifdef SALINITY
-#   ifdef LMD_KPP
-#   endif
+#  endif
+#  ifdef LMD_KPP
+#  endif
+#  ifdef LMD_BKPP
 #  endif
 # endif /* SOLVE3D */
 #endif /* AVERAGES */
@@ -344,12 +391,12 @@
 # endif
 #endif /* SOLVE3D */
 #ifdef SPONGE
-      ie=is + 8
+      ie=is + 6
       if (ie.ge.max_opt_size) goto 99
-      kwds(is:ie)='v_sponge'
+      kwds(is:ie)='sponge'
       kwds(ie+1:ie+1)=' '
       is=ie+2
-#endif
+# endif
 #if  defined T_FRC_BRY || defined M2_FRC_BRY || defined TNUDGING \
   || defined Z_FRC_BRY || defined M3_FRC_BRY || defined M2NUDGING \
                                              || defined M3NUDGING
@@ -371,6 +418,20 @@
       kwds(is:ie)='tau_obc'
       kwds(ie+1:ie+1)=' '
       is=ie+2
+#endif
+#if defined BIOLOGY_BEC || defined BIOLOGY_NPZDOC
+# ifdef VARIABLE_ANN_ATM_PCO2
+      ie=is +10
+      if (ie.ge.max_opt_size) goto 99
+      kwds(is:ie)='start_year'
+      kwds(ie+1:ie+1)=' '
+      is=ie+2
+      ie=is + 9
+      if (ie.ge.max_opt_size) goto 99
+      kwds(is:ie)='futr_scen'
+      kwds(ie+1:ie+1)=' '
+      is=ie+2
+# endif
 #endif
 #ifdef STATIONS
 #endif

@@ -103,7 +103,7 @@ c>>  &               LLm=72,   MMm=240, N=32    ! PEC2 of Xavier
 c**  &               LLm=62,   MMm=126, N=40    ! SCB L0 grid 
 c**  &               LLm=83,   MMm=168, N=20    ! MB_L1
 c**  &               LLm=126,  MMm=254, N=20    ! USWEST grid 16 
-     &		     LLm=62,   MMm=126, N=20    ! USWEST grid 15 (20 km)
+     &               LLm=62,   MMm=126, N=20    ! USWEST grid 15 (20 km)
 !HF     &               LLm=312,  MMm=512, N=32    ! USW8 - lev0, 8km
 
 # endif /* GRID_LEVEL */

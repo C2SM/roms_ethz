@@ -268,6 +268,7 @@ CR      write(*,*) 'wrt_his:  wrtAkv' MYID
         endif
 CR      write(*,*) 'wrt_his:  wrtAkt' MYID
       endif
+# ifdef KPP_DIAGNOSE
 !
 ! Write out diffusion coefficient due to vertical velocity shear:
 !
@@ -296,6 +297,7 @@ CR      write(*,*) 'wrt_his:  wrtRich' MYID
         endif
 CR      write(*,*) 'wrt_his:  wrtRichN' MYID
       endif
+# endif /* KPP_DIAGNOSE */
 # ifdef SALINITY
 !
 !  Write out vertical diffusion coefficient for salinity.

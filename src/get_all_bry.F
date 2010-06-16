@@ -139,7 +139,7 @@
 ! than NT and the loop will not run
           do itrc = itemp + ntrc_salt + 1, NT
              lvar=lenstr(vname(1,itrc+indxT-itemp))
-             vname_bry = vname(1,itrc+indxT-itemp)(1:lvar)//'_west'
+             vname_bry = vname(1,itrc+indxT-itemp)(1:lvar)/ /'_west'
 
              ierr=nf_inq_varid (bry_id, vname_bry,
      &            t_west_id(itrc))
@@ -192,7 +192,7 @@
 #    endif
           do itrc = itemp + ntrc_salt + 1, NT
              lvar=lenstr(vname(1,itrc+indxT-itemp))
-             vname_bry = vname(1,itrc+indxT-itemp)(1:lvar)//'_east'
+             vname_bry = vname(1,itrc+indxT-itemp)(1:lvar)/ /'_east'
 
              ierr=nf_inq_varid (bry_id, vname_bry,
      &            t_east_id(itrc))
@@ -245,7 +245,7 @@
 #    endif
           do itrc = itemp + ntrc_salt + 1, NT
              lvar=lenstr(vname(1,itrc+indxT-itemp))
-             vname_bry = vname(1,itrc+indxT-itemp)(1:lvar)//'_south'
+             vname_bry = vname(1,itrc+indxT-itemp)(1:lvar)/ /'_south'
 
              ierr=nf_inq_varid (bry_id, vname_bry,
      &            t_south_id(itrc))
@@ -298,7 +298,7 @@
 #    endif
           do itrc = itemp + ntrc_salt + 1, NT
              lvar=lenstr(vname(1,itrc+indxT-itemp))
-             vname_bry = vname(1,itrc+indxT-itemp)(1:lvar)//'_north'
+             vname_bry = vname(1,itrc+indxT-itemp)(1:lvar)/ /'_north'
 
              ierr=nf_inq_varid (bry_id, vname_bry,
      &            t_north_id(itrc))
@@ -380,7 +380,7 @@
               do itrc=1,NT
                bry_set = .false.
                lvar=lenstr(vname(1,indxT+itrc-1))
-               vname_bry=vname(1,indxT+itrc-1)(1:lvar)//'_west'
+               vname_bry=vname(1,indxT+itrc-1)(1:lvar)/ /'_west'
                if (t_west_id(itrc) .gt. 0) then
                 ierr=nf_read_bry_EW (t_west_dt(0,1,itbry,itrc),
      &                 bry_id, t_west_id(itrc),  bry_rec, r3dvar)
@@ -634,7 +634,7 @@
             do itrc=1,NT
                bry_set = .false.
                lvar=lenstr(vname(1,indxT+itrc-1))
-               vname_bry = vname(1,indxT+itrc-1)(1:lvar)//'_east'
+               vname_bry = vname(1,indxT+itrc-1)(1:lvar)/ /'_east'
                if (t_east_id(itrc) .gt. 0) then
                   ierr=nf_read_bry_EW (t_east_dt(0,1,itbry,itrc),
      &                 bry_id, t_east_id(itrc),  bry_rec, r3dvar)
@@ -890,7 +890,7 @@
             do itrc=1,NT
                bry_set = .false.
                lvar=lenstr(vname(1,indxT+itrc-1))
-               vname_bry = vname(1,indxT+itrc-1)(1:lvar)//'_south'
+               vname_bry = vname(1,indxT+itrc-1)(1:lvar)/ /'_south'
                if (t_south_id(itrc) .gt. 0) then
                   ierr=nf_read_bry_NS (t_south_dt(0,1,itbry,itrc),
      &                 bry_id, t_south_id(itrc),  bry_rec, r3dvar)
@@ -1144,7 +1144,7 @@
             do itrc=1,NT
                bry_set = .false.
                lvar=lenstr(vname(1,indxT+itrc-1))
-               vname_bry = vname(1,indxT+itrc-1)(1:lvar)//'_north'
+               vname_bry = vname(1,indxT+itrc-1)(1:lvar)/ /'_north'
                if (t_north_id(itrc) .gt. 0) then
                   ierr=nf_read_bry_NS (t_north_dt(0,1,itbry,itrc),
      &                 bry_id, t_north_id(itrc),  bry_rec, r3dvar)

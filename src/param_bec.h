@@ -83,7 +83,7 @@
 ! JDS added Parameters
      &   PCref,sp_mort,sp_mort2,diat_mort,diat_mort2,z_ingest,
      &   Q,Qp,thres_z1,thres_z2,PCrefDiaz,Qp_diaz,diaz_mort,
-     &   diaz_kPO4,diaz_kFe,Qfe_zoo 	
+     &   diaz_kPO4,diaz_kFe,Qfe_zoo 
 
        namelist/biology_param_bec_nml/parm_Fe_bioavail, parm_prod_dissolve,
      &   parm_o2_min, parm_Rain_CaCO3, parm_Rain_SiO2,

@@ -15,7 +15,7 @@ include Makedefs.PGI_Brutus_ib
 #include Makedefs.g95
 #include Makedefs.Fujitsu
 #include Makedefs.Gonzales.ifort
-include Makedefs.IntelBrutus_ompi
+#include Makedefs.IntelBrutus_ompi
 #include Makedefs.PGIBrutus_ompi
 
 

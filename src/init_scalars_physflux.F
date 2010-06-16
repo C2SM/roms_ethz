@@ -73,16 +73,16 @@ C$OMP END PARALLEL
          lvar = lenstr(vname(1,indxT+itrc-1))
 ! horizontal advective fluxes in xi direction
          vname_phys(1,indxHorXAdvFlux+itrc-1) = 
-     &        'HorXAdvFlux_'//vname(1,indxT+itrc-1)(1:lvar)
+     &        'HorXAdvFlux_'/ /vname(1,indxT+itrc-1)(1:lvar)
          vname_phys(4,indxHorXAdvFlux+itrc-1) = 
-     &        'HorXAdvFlux_'//vname(1,indxT+itrc-1)(1:lvar)//
+     &        'HorXAdvFlux_'/ /vname(1,indxT+itrc-1)(1:lvar)/ /
      &        ', scalar, series'
          if (itrc .eq. 1) then
             vname_phys(2,indxHorXAdvFlux+itrc-1) = 
      &           'Horizontal (xi) advective flux of heat'
          else
             vname_phys(2,indxHorXAdvFlux+itrc-1) = 
-     &           'Horizontal (xi) advective flux of '//
+     &           'Horizontal (xi) advective flux of '/ /
      &           vname(1,indxT+itrc-1)(1:lvar)
          end if
          if (itrc .eq. 1) then
@@ -119,16 +119,16 @@ C$OMP END PARALLEL
 
 ! horizontal advective fluxes in eta direction
          vname_phys(1,indxHorYAdvFlux+itrc-1) = 
-     &        'HorYAdvFlux_'//vname(1,indxT+itrc-1)(1:lvar)
+     &        'HorYAdvFlux_'/ /vname(1,indxT+itrc-1)(1:lvar)
          vname_phys(4,indxHorYAdvFlux+itrc-1) = 
-     &        'HorYAdvFlux_'//vname(1,indxT+itrc-1)(1:lvar)//
+     &        'HorYAdvFlux_'/ /vname(1,indxT+itrc-1)(1:lvar)/ /
      &        ', scalar, series'
          if (itrc .eq. 1) then
             vname_phys(2,indxHorYAdvFlux+itrc-1) = 
      &           'Horizontal (eta) advective flux of heat'
          else
             vname_phys(2,indxHorYAdvFlux+itrc-1) = 
-     &           'Horizontal (eta) advective flux of '//
+     &           'Horizontal (eta) advective flux of '/ /
      &           vname(1,indxT+itrc-1)(1:lvar)
          end if
          vname_phys(3,indxHorYAdvFlux+itrc-1) = 
@@ -136,16 +136,16 @@ C$OMP END PARALLEL
 
 ! vertical advective fluxes
          vname_phys(1,indxVertAdvFlux+itrc-1) = 
-     &        'VertAdvFlux_'//vname(1,indxT+itrc-1)(1:lvar)
+     &        'VertAdvFlux_'/ /vname(1,indxT+itrc-1)(1:lvar)
          vname_phys(4,indxVertAdvFlux+itrc-1) = 
-     &        'VertAdvFlux_'//vname(1,indxT+itrc-1)(1:lvar)//
+     &        'VertAdvFlux_'/ /vname(1,indxT+itrc-1)(1:lvar)/ /
      &        ', scalar, series'
          if (itrc .eq. 1) then
             vname_phys(2,indxVertAdvFlux+itrc-1) = 
      &           'Vertical advective flux of heat'
          else
             vname_phys(2,indxVertAdvFlux+itrc-1) = 
-     &           'Vertical advective flux of '//
+     &           'Vertical advective flux of '/ /
      &           vname(1,indxT+itrc-1)(1:lvar)
          end if
          if (itrc .eq. 1) then
@@ -183,16 +183,16 @@ C$OMP END PARALLEL
 #ifdef VERT_DIFF_ANALYSIS
 ! vertical diffusive fluxes
          vname_phys(1,indxVertDiffFlux+itrc-1) = 
-     &        'VertDiffFlux_'//vname(1,indxT+itrc-1)(1:lvar)
+     &        'VertDiffFlux_'/ /vname(1,indxT+itrc-1)(1:lvar)
          vname_phys(4,indxVertDiffFlux+itrc-1) = 
-     &        'VertDiffFlux_'//vname(1,indxT+itrc-1)(1:lvar)//
+     &        'VertDiffFlux_'/ /vname(1,indxT+itrc-1)(1:lvar)/ /
      &        ', scalar, series'
          if (itrc .eq. 1) then
             vname_phys(2,indxVertDiffFlux+itrc-1) = 
      &           'Vertical diffusive flux of heat'
          else
             vname_phys(2,indxVertDiffFlux+itrc-1) = 
-     &           'Vertical diffusive flux of '//
+     &           'Vertical diffusive flux of '/ /
      &           vname(1,indxT+itrc-1)(1:lvar)
          end if
          vname_phys(3,indxVertDiffFlux+itrc-1) = 
@@ -202,16 +202,16 @@ C$OMP END PARALLEL
 # if defined FULL_PHYS_FLUX_ANALYSIS || defined TOP_FLUX_ANALYSIS
 ! top fluxes
          vname_phys(1,indxTopFlux+itrc-1) = 
-     &        'TopFlux_'//vname(1,indxT+itrc-1)(1:lvar)
+     &        'TopFlux_'/ /vname(1,indxT+itrc-1)(1:lvar)
          vname_phys(4,indxTopFlux+itrc-1) = 
-     &        'TopFlux_'//vname(1,indxT+itrc-1)(1:lvar)//
+     &        'TopFlux_'/ /vname(1,indxT+itrc-1)(1:lvar)/ /
      &        ', scalar, series'
          if (itrc .eq. 1) then
             vname_phys(2,indxTopFlux+itrc-1) = 
      &           'Top flux of heat'
          else
             vname_phys(2,indxTopFlux+itrc-1) = 
-     &           'Top flux of '//
+     &           'Top flux of '/ /
      &           vname(1,indxT+itrc-1)(1:lvar)
          end if
          vname_phys(3,indxTopFlux+itrc-1) = 
@@ -220,16 +220,16 @@ C$OMP END PARALLEL
 # ifdef FULL_PHYS_FLUX_ANALYSIS
 ! bottom fluxes
          vname_phys(1,indxBottomFlux+itrc-1) = 
-     &        'BottomFlux_'//vname(1,indxT+itrc-1)(1:lvar)
+     &        'BottomFlux_'/ /vname(1,indxT+itrc-1)(1:lvar)
          vname_phys(4,indxBottomFlux+itrc-1) = 
-     &        'BottomFlux_'//vname(1,indxT+itrc-1)(1:lvar)//
+     &        'BottomFlux_'/ /vname(1,indxT+itrc-1)(1:lvar)/ /
      &        ', scalar, series'
          if (itrc .eq. 1) then
             vname_phys(2,indxBottomFlux+itrc-1) = 
      &           'Bottom flux of heat'
          else
             vname_phys(2,indxBottomFlux+itrc-1) = 
-     &           'Bottom flux of '//
+     &           'Bottom flux of '/ /
      &           vname(1,indxT+itrc-1)(1:lvar)
          end if
          vname_phys(3,indxBottomFlux+itrc-1) = 
@@ -237,16 +237,16 @@ C$OMP END PARALLEL
 
 ! horizontal mixing fluxes in xi direction
          vname_phys(1,indxHorXMixFlux+itrc-1) = 
-     &        'HorXMixFlux_'//vname(1,indxT+itrc-1)(1:lvar)
+     &        'HorXMixFlux_'/ /vname(1,indxT+itrc-1)(1:lvar)
          vname_phys(4,indxHorXMixFlux+itrc-1) = 
-     &        'HorXMixFlux_'//vname(1,indxT+itrc-1)(1:lvar)//
+     &        'HorXMixFlux_'/ /vname(1,indxT+itrc-1)(1:lvar)/ /
      &        ', scalar, series'
          if (itrc .eq. 1) then
             vname_phys(2,indxHorXMixFlux+itrc-1) = 
      &           'Horizontal (xi) mixing flux of heat'
          else
             vname_phys(2,indxHorXMixFlux+itrc-1) = 
-     &           'Horizontal (xi) mixing flux of '//
+     &           'Horizontal (xi) mixing flux of '/ /
      &           vname(1,indxT+itrc-1)(1:lvar)
          end if
          vname_phys(3,indxHorXMixFlux+itrc-1) = 
@@ -254,16 +254,16 @@ C$OMP END PARALLEL
 
 ! horizontal mixing fluxes in eta direction
          vname_phys(1,indxHorYMixFlux+itrc-1) = 
-     &        'HorYMixFlux_'//vname(1,indxT+itrc-1)(1:lvar)
+     &        'HorYMixFlux_'/ /vname(1,indxT+itrc-1)(1:lvar)
          vname_phys(4,indxHorYMixFlux+itrc-1) = 
-     &        'HorYMixFlux_'//vname(1,indxT+itrc-1)(1:lvar)//
+     &        'HorYMixFlux_'/ /vname(1,indxT+itrc-1)(1:lvar)/ /
      &        ', scalar, series'
          if (itrc .eq. 1) then
             vname_phys(2,indxHorYMixFlux+itrc-1) = 
      &           'Horizontal (eta) mixing flux of heat'
          else
             vname_phys(2,indxHorYMixFlux+itrc-1) = 
-     &           'Horizontal (eta) mixing flux of '//
+     &           'Horizontal (eta) mixing flux of '/ /
      &           vname(1,indxT+itrc-1)(1:lvar)
          end if
          vname_phys(3,indxHorYMixFlux+itrc-1) = 
@@ -271,16 +271,16 @@ C$OMP END PARALLEL
 
 ! vertical mixing fluxes
          vname_phys(1,indxVertMixFlux+itrc-1) = 
-     &        'VertMixFlux_'//vname(1,indxT+itrc-1)(1:lvar)
+     &        'VertMixFlux_'/ /vname(1,indxT+itrc-1)(1:lvar)
          vname_phys(4,indxVertMixFlux+itrc-1) = 
-     &        'VertMixFlux_'//vname(1,indxT+itrc-1)(1:lvar)//
+     &        'VertMixFlux_'/ /vname(1,indxT+itrc-1)(1:lvar)/ /
      &        ', scalar, series'
          if (itrc .eq. 1) then
             vname_phys(2,indxVertMixFlux+itrc-1) = 
      &           'Vertical mixing flux of heat'
          else
             vname_phys(2,indxVertMixFlux+itrc-1) = 
-     &           'Vertical mixing flux of '//
+     &           'Vertical mixing flux of '/ /
      &           vname(1,indxT+itrc-1)(1:lvar)
          end if
          vname_phys(3,indxVertMixFlux+itrc-1) = 
@@ -288,16 +288,16 @@ C$OMP END PARALLEL
 
 ! nudging fluxes
          vname_phys(1,indxNudgingFlux+itrc-1) = 
-     &        'NudgingFlux_'//vname(1,indxT+itrc-1)(1:lvar)
+     &        'NudgingFlux_'/ /vname(1,indxT+itrc-1)(1:lvar)
          vname_phys(4,indxNudgingFlux+itrc-1) = 
-     &        'NudgingFlux_'//vname(1,indxT+itrc-1)(1:lvar)//
+     &        'NudgingFlux_'/ /vname(1,indxT+itrc-1)(1:lvar)/ /
      &        ', scalar, series'
          if (itrc .eq. 1) then
             vname_phys(2,indxNudgingFlux+itrc-1) = 
      &           'Nudging divergence of heat'
          else
             vname_phys(2,indxNudgingFlux+itrc-1) = 
-     &           'Nudging divergence of '//
+     &           'Nudging divergence of '/ /
      &           vname(1,indxT+itrc-1)(1:lvar)
          end if
          if (itrc .eq. 1) then

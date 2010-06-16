@@ -1,6 +1,6 @@
 #ifndef AVRH
 # include "cppdefs.h"
-#define NETCDF4
+!#--> define NETCDF4
 !#--> define NCCOMPRESS
  
       subroutine def_his (ncid, total_rec, ierr)
@@ -194,6 +194,7 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
 ! ====== === ======= ======== =====    and define all variables.
 !
   10  if (create_new_file) then
+!  10  continue
 #ifdef NETCDF4
         ierr=nf_create(ncname(1:lstr), or(nf_clobber),nf_netcdf4), ncid)
 #else
@@ -615,8 +616,10 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
 #ifdef NCCOMPRESS
           ierr=nf_def_var_deflate(ncid, vidAkt, ncshuff, ncdefl, nclev)
           ierr=nf_def_var_chunking(ncid, vidAkt, ncctg, ncchnk3) 
-        endif
 #endif
+        endif
+# if 0
+# ifdef KPP_DIAGNOSE
 !
 ! Diffusivity due to vertical velocity shear:
 !
@@ -663,6 +666,8 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
      &                                   NF_FOUT, 1, spv_set)
 #endif
         endif
+# endif /* KPP_DIAGNOSE */
+#endif /* 0 */
 # ifdef SALINITY
 !
 ! Vertical diffusion coefficient for salinity.
@@ -1079,6 +1084,7 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
             goto 99                                       !--> ERROR
           endif
         endif
+# ifdef KPP_DIAGNOSE
 !
 ! Diffusivity due to vertical velocity shear:
 !
@@ -1101,6 +1107,7 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
             goto 99                                       !--> ERROR
           endif
         endif
+# endif /* KPP_DIAGNOSE */
 # ifdef SALINITY
 !
 ! Vertical diffusion coefficient for salinity.

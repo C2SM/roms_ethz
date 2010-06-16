@@ -211,8 +211,8 @@ CR      write(stdout,'(1x,A,I3)') 'indxS = ',indxS
          else
             write (c_indx, '(i3)') itrc-indxT-ntrc_salt
          end if
-         vname(1,itrc) = 'tpas'//trim(c_indx)
-         vname(2,itrc) = 'passive tracer '//c_indx
+         vname(1,itrc) = 'tpas'/ /trim(c_indx)
+         vname(2,itrc) = 'passive tracer '/ /c_indx
          vname(3,itrc)='no unit'
          vname(4,itrc)='passive tracer, scalar, series'
       end do

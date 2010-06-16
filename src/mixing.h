@@ -85,7 +85,7 @@ CSDISTRIBUTE_RESHAPE ghat(BLOCK_PATTERN,*) BLOCK_CLAUSE
 CSDISTRIBUTE_RESHAPE hbbl(BLOCK_PATTERN,*) BLOCK_CLAUSE
       common /kpp_hbbl/hbbls
 # endif /* LMD_BKPP */
-# if defined LMD_KPP || defined LMD_BKPP
+# if !defined LMD_KPP || defined LMD_BKPP
       real swr_frac(GLOBAL_2D_ARRAY,0:N)
 CSDISTRIBUTE_RESHAPE swr_frac(BLOCK_PATTERN,*) BLOCK_CLAUSE
       common /kpp_swr_frac/swr_frac

@@ -201,6 +201,7 @@
               enddo
             enddo
           endif
+#  ifdef KPP_DIAGNOSE
           if (wrtavg(indxRich)) then
             do k=0,N
               do j=jstrR,jendR
@@ -219,6 +220,7 @@
               enddo
             enddo
           endif
+#  endif /* KPP_DIAGNOSE */
 #  ifdef SALINITY
           if (wrtavg(indxAks)) then
             do k=0,N
@@ -389,6 +391,7 @@
               enddo
             enddo
           endif
+#  ifdef KPP_DIAGNOSE
           if (wrtavg(indxRich)) then
             do k=0,N
               do j=jstrR,jendR
@@ -407,6 +410,7 @@
               enddo
             enddo
           endif
+#  endif /* KPP_DIAGNOSE */
 #  ifdef SALINITY
           if (wrtavg(indxAks)) then
             do k=0,N
@@ -582,6 +586,7 @@
               enddo
             enddo
           endif
+#  ifdef KPP_DIAGNOSE
           if (wrtavg(indxRich)) then
             do k=0,N
               do j=jstrR,jendR
@@ -600,6 +605,7 @@
               enddo
             enddo
           endif
+#  endif /* KPP_DIAGNOSE */
 #  ifdef SALINITY
           if (wrtavg(indxAks)) then
             do k=0,N

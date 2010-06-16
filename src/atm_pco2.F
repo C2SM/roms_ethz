@@ -52,36 +52,36 @@ c
 c-----------------------------------------------------------------------
 c     local variables
 c-----------------------------------------------------------------------
-c	
+c
       integer maxrec
       parameter (maxrec=1200)
       
-      real, intent(in)	:: pert_time
+      real, intent(in) :: pert_time
       character*4, intent(in):: futr_scen
-      real, intent(out)	:: atmco2_out
+      real, intent(out) :: atmco2_out
       
-      integer, save		:: nrec_co2
-      real, save	:: year_co2(maxrec), atmco2(maxrec)
+      integer, save :: nrec_co2
+      real, save :: year_co2(maxrec), atmco2(maxrec)
   
       integer :: n
 
 !DL: the following change is necessary due to mpc, the version with
 !DL two colons is not handled correctly.
-!DL      real	:: yr
-!DL      real	:: x
+!DL      real :: yr
+!DL      real :: x
       real x, yr
 
-      integer, save	:: ientry = 0
+      integer, save :: ientry = 0
 
-      real, parameter	:: yrco2min = 1765.0
-      real, parameter	:: yrco2max = 2300.5
+      real, parameter :: yrco2min = 1765.0
+      real, parameter :: yrco2max = 2300.5
 c
 c-----------------------------------------------------------------------
 c     Counter "ientry" for number of entries in this SUBROUTINE
 c     (Read atmospheric records on 1st entry ONLY)
 c     use CIS9 scenario
 c-----------------------------------------------------------------------
-c	
+c 
       ientry = ientry + 1
 
       if (ientry .eq. 1) then
@@ -92,7 +92,7 @@ c
 c-----------------------------------------------------------------------
 c     assign perturbation time (real years e.g. 1935.67)
 c-----------------------------------------------------------------------
-c	
+c 
       if (pert_time .lt. yrco2min) then 
          yr = yrco2min
       else if((pert_time .ge. yrco2min)  .and.  
@@ -105,13 +105,13 @@ c
 c-----------------------------------------------------------------------
 c     Find relative POSITION n for pert_time in CO2 record
 c-----------------------------------------------------------------------
-c	
+c 
       call locate(year_co2,nrec_co2, yr, n)
 c
 c-----------------------------------------------------------------------
 c     Determine linear interpolation factor "x"
 c-----------------------------------------------------------------------
-c	
+c 
       x = (yr - year_co2(n)) / (year_co2(n+1) - year_co2(n))
 c
 c-----------------------------------------------------------------------
@@ -200,11 +200,11 @@ c
       integer maxrec, nmxr
       parameter (maxrec=1200, nmxr=700)
       
-      character(len=4), intent(in)	:: futr_scen
-      integer , intent(out)		:: nco2rec
-      real, intent(out)	:: yrco2rec(maxrec), atmco2rec(maxrec)
+      character(len=4), intent(in) :: futr_scen
+      integer , intent(out)  :: nco2rec
+      real, intent(out) :: yrco2rec(maxrec), atmco2rec(maxrec)
       
-      integer	:: lun(3), irec
+      integer :: lun(3), irec
       integer is, ifuture, ireadf
       integer nsipl, nstab
       
@@ -216,7 +216,7 @@ c
 c     note that the 1st 7 future scenarios are in file "stab.dat";
 c     the last scenario "cis9" is short for "cis92a" (see "cis92a.dat").
       
-      data ipcc_scen/'S350', 'S450', 'S550', 'S650', 'S750',		
+      data ipcc_scen/'S350', 'S450', 'S550', 'S650', 'S750',  
      *               'DS45', 'DS55', 'CIS9'/
       
 c
@@ -241,15 +241,15 @@ c     check to be sure that chosen scenario is from allowed ipcc list
 c-----------------------------------------------------------------------
 c
       if (ifuture .eq. 0) then
-         write(*,*) 'improper 1st argument for read_co2atm.F: '	
+         write(*,*) 'improper 1st argument for read_co2atm.F: ' 
      *        , futr_scen(1:4)
-         write(*,'(a,7(1x,a))') 'you must chose from '		
+         write(*,'(a,7(1x,a))') 'you must chose from '  
      *        , (ipcc_scen(is), is=1,8)
-         write(*,*)							
+         write(*,*)
      *        ' for ocmip-2, s650 and cis9 are the only accetable choices'
          stop
       else
-         write(*,'(2a)') 'read_co2atm: you have chosen ipcc scenario '		
+         write(*,'(2a)') 'read_co2atm: you have chosen ipcc scenario '
      *        , ipcc_scen(ifuture)
       end if 
 c
@@ -311,7 +311,7 @@ c-----------------------------------------------------------------------
 c
          else if (ireadf .eq. 1) then
             
-            read(lun(2),*,err=222,end=222) yrco2rec(irec)		
+            read(lun(2),*,err=222,end=222) yrco2rec(irec)
      *           , (futco2(irec-nsipl,is), is=1,7)
             atmco2rec(irec) = futco2(irec-nsipl,ifuture)
             nstab = nstab + 1
@@ -321,7 +321,7 @@ c     read from cis92a
 c-----------------------------------------------------------------------
 c
          else if (ireadf .eq. 2) then 
-            read(lun(3),*,err=222,end=222) yrco2rec(irec)		
+            read(lun(3),*,err=222,end=222) yrco2rec(irec)
      *           , futco2(irec-nsipl,8), dummy
             atmco2rec(irec) = futco2(irec-nsipl,8)
             nstab = nstab + 1
@@ -446,38 +446,38 @@ c
 c =====================================================================
 c
 
-	subroutine locate(xx,n,x,j) !{
+      subroutine locate(xx,n,x,j) !{
 c
 c-----------------------------------------------------------------------
 c     local variables
 c-----------------------------------------------------------------------
-c	
-	integer, intent(in)	:: n
-	real, intent(in)	:: x
-	real, dimension(n), intent(in)	:: xx
-	integer, intent(out)	:: j
+c       
+      integer, intent(in) :: n
+      real, intent(in) :: x
+      real, dimension(n), intent(in) :: xx
+      integer, intent(out) :: j
 c
 c =====================================================================
 c     begin of executable code
 c =====================================================================
-c	
-	jl = 0
-	ju = n+1
- 10	continue
-	if (ju - jl .gt. 1) then
-	   jm = (ju + jl) / 2
-	   if ((xx(n) .gt. xx(1)) .eqv. (x .gt. xx(jm))) then
-	      jl = jm
-	   else
-	      ju = jm
-	   endif
-	   go to 10
-	endif
-	j = jl
+c      
+      jl = 0
+      ju = n+1
+ 10   continue
+        if (ju - jl .gt. 1) then
+          jm = (ju + jl) / 2
+          if ((xx(n) .gt. xx(1)) .eqv. (x .gt. xx(jm))) then
+            jl = jm
+          else
+            ju = jm
+          endif
+          go to 10
+        endif
+      j = jl
 c     
 c-----------------------------------------------------------------------
 c     end of subroutine
 c-----------------------------------------------------------------------
 c
-	return
-	end subroutine  locate  !}
+      return
+      end subroutine  locate  !}

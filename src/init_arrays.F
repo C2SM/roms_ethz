@@ -362,8 +362,10 @@
 # else
               Akt(i,j,k,itrc)=init
 # endif
+# ifdef KPP_DIAGNOSE
               Rich(i,j,k)=init
               RichN(i,j,k)=init
+# endif
 # ifdef AVERAGES
               akt_avg(i,j,k)=init
 #  ifdef SALINITY

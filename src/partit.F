@@ -75,7 +75,7 @@ c--#define VERBOSE
 
 
                     ! Function "iargc" is viewed as intrinsic by
-#ifdef AIX       /* ! most modern compilers and does not need to  */
+#if defined AIX || defined PGI      /* ! most modern compilers and does not need to  */
       integer iargc ! be declared. IBM xlf95 is a notable exclusion.
 #endif           /* ! So do 7.x and earlier versions of Intel IFC, */
                     ! but 8.x, 9.x IFORT recognize it as intrinsic.
