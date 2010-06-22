@@ -138,8 +138,8 @@ cc      parameter (NP_XI=6, NP_ETA=32, NSUB_X=1, NSUB_E=1) ! PACBIG newcluster
       parameter (NP_XI=2, NP_ETA=16, NSUB_X=1, NSUB_E=1)
 # elif defined USWC_CENTRAL
       parameter (NP_XI=1, NP_ETA=24, NSUB_X=1, NSUB_E=1)
-# else
-      parameter (NP_XI=4, NP_ETA=8, NSUB_X=1, NSUB_E=1)
+!# else
+!      parameter (NP_XI=4, NP_ETA=8, NSUB_X=1, NSUB_E=1)
 # endif
       parameter (NNODES=NP_XI*NP_ETA)
 #else
