@@ -65,9 +65,9 @@
 ! HF: changed from "0.025*dps" on Oct 3, 2005, following Keith Moore's changes
        parm_alphaDiaz      = 0.036 * dps
        parm_diaz_umax_0    = 1.2 * dps
-	gQsi_0        = 0.137
-	gQsi_coef     = 2.5
-	gQsi_max      = 0.685
+       gQsi_0        = 0.137
+       gQsi_coef     = 2.5
+       gQsi_max      = 0.685
          
         lrest_po4      = .FALSE.
         lrest_no3      = .FALSE.
@@ -81,7 +81,7 @@
 
 
 ! JDS: parameters that were initialized within ecosys_bec.F are now included here:
-	 PCref      = 3.0 * dps
+         PCref      = 3.0 * dps
          sp_mort    = 0.1 * dps
          sp_mort2   = 0.009 * dps
          diat_mort  = 0.1 * dps
@@ -215,13 +215,13 @@
        diaz_Fe_lim_HIST     = c0    
        diaz_light_lim_HIST  = c0    
        Fe_scavenge_rate_HIST = c0   
-       DON_prod_HIST	 = c0	 
-       DON_remin_HIST	 = c0    
-       DOFe_prod_HIST	 = c0	 
-       DOFe_remin_HIST	 = c0    
-       DOP_prod_HIST	 = c0	 
-       DOP_remin_HIST	 = c0    
-       bSi_form_HIST	 = c0    
+       DON_prod_HIST        = c0
+       DON_remin_HIST       = c0    
+       DOFe_prod_HIST       = c0
+       DOFe_remin_HIST      = c0    
+       DOP_prod_HIST        = c0
+       DOP_remin_HIST       = c0    
+       bSi_form_HIST        = c0    
        photoFe_diat_HIST    = c0    
        photoFe_diaz_HIST    = c0    
        photoFe_sp_HIST      = c0

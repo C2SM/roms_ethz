@@ -246,7 +246,7 @@ c
          write(*,'(a,7(1x,a))') 'you must chose from '  
      *        , (ipcc_scen(is), is=1,8)
          write(*,*)
-     *        ' for ocmip-2, s650 and cis9 are the only accetable choices'
+     *      ' for ocmip-2, s650 and cis9 are the only accetable choices'
          stop
       else
          write(*,'(2a)') 'read_co2atm: you have chosen ipcc scenario '
@@ -263,9 +263,12 @@ c
       lun(1) = 10
       lun(2) = 11
       lun(3) = 12
-      open(lun(1),file='splco2.dat',status='old',form='formatted',access='sequential',position='rewind',err=219)
-      open(lun(2),file='stab.dat',status='old',form='formatted',access='sequential',position='rewind',err=219)
-      open(lun(3),file='cis92a.dat',status='old',form='formatted',access='sequential',position='rewind',err=219)
+      open(lun(1),file='splco2.dat',status='old',form='formatted',
+     &                access='sequential',position='rewind',err=219)
+      open(lun(2),file='stab.dat',status='old',form='formatted',
+     &                access='sequential',position='rewind',err=219)
+      open(lun(3),file='cis92a.dat',status='old',form='formatted',
+     &                access='sequential',position='rewind',err=219)
 c
 c-----------------------------------------------------------------------
 c     give info
@@ -282,7 +285,7 @@ c-----------------------------------------------------------------------
 c     skip first lines in historical data
 c-----------------------------------------------------------------------
 c      
-      read(lun(1),'(////)')
+      read(lun(1),'(4/)')
       ireadf = 0
       nsipl = 0
       nstab = 0
@@ -302,7 +305,8 @@ c     read from splco2.dat (historical emissions)
 c-----------------------------------------------------------------------
 c
          if (ireadf .eq. 0) then
-            read(lun(1),*,err=220,end=220) yrco2rec(irec), atmco2rec(irec)
+            read(lun(1),*,err=220,end=220) yrco2rec(irec), 
+     &                                     atmco2rec(irec)
             nsipl = nsipl + 1
 c
 c-----------------------------------------------------------------------
@@ -345,7 +349,7 @@ c     in future file that is repeated from siple recorddetermine index
 c     for future scenario
 c-----------------------------------------------------------------------
 c           
-            read (lun(2),'(/////)')
+            read (lun(2),'(4/)')
             go to 210
          elseif (ifuture .eq. 8) then
             ireadf = 2
@@ -390,7 +394,7 @@ c      write(0,*) 'number records in future (stab.dat or cis92a.dat):', nstab
 c      write(0,*) 'sum                          ', nstab + nsiplc     
 c-----------------------------------------------------------------------
 c                 
-!DL      write(*,*) 'atm. co2:  no. of entries for 1-box atmosphere =',	
+!DL      write(*,*) 'atm. co2:  no. of entries for 1-box atmosphere =',
 !     *     nco2rec
 c
 c-----------------------------------------------------------------------

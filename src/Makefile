@@ -101,6 +101,14 @@ FLTSRC = init_floats.F	init_arrays_floats.F	get_initial_floats.F\
  LROMS2 = 2/$(LROMS)
  LROMS3 = 2/$(LROMS) 3/$(LROMS)
  LROMS4 = 2/$(LROMS) 3/$(LROMS) 4/$(LROMS)
+ifeq ($(wildcard Make.depend),) 
+Make.depend: check_switches1.F setup_kwds.F cross_matrix
+	./cross_matrix *.F
+	@echo  -----------------------------------------
+	@echo  Missing prerequisite Make.depend created. 
+	@echo  Please rerun make!                
+	@echo  -----------------------------------------
+endif
 #
 # Eecutable file.
 #========== =====
@@ -186,8 +194,9 @@ check_srcs.F: srcscheck Makefile
 setup_kwds.F: checkkwds read_inp.F
 	./checkkwds
 
-depend: checkdefs cross_matrix
-	./cross_matrix *.F
+#depend: checkdefs cross_matrix
+depend: check_switches1.F setup_kwds.F cross_matrix
+	./cross_matrix *.F 
 
 avr: avr.F lenstr.o
 	$(LDR) $(FFLAGS) $(LDFLAGS) -o avr avr.F lenstr.o $(LCDF)
@@ -215,11 +224,11 @@ allclean: clean
 clobber: clean
 	/bin/rm -f check_switches1.F setup_kwds.F check_srcs.F
 	/bin/rm -f $(SBIN) $(TOOLS)
-	/bin/rm -f core core.*
+	/bin/rm -f core core.* Make.depend
 #
 # Include automatically generated dependency list:
 #
-ifneq ($(wildcard Make.depend),)
+ifneq ($(wildcard Make.depend),) 
 include Make.depend
 endif
 

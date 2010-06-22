@@ -36,7 +36,7 @@ C$OMP END PARALLEL
 # define NUMPROC NNODES
 #else
 # define NUMPROC 1
-#endif	
+#endif
       if (numthreads.gt.NUMPROC) then
         MPI_master_only write(stdout,'(/1x,A,I3/)')
      &    'ERROR: Requested number of threads exceeds setting: ',NUMPROC

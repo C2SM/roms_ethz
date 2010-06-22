@@ -555,7 +555,7 @@
 
 !MODHF         REAL, DIMENSION(istr:iend,jstr:jend) ::  ! max of 39 continuation lines
          REAL, DIMENSION(istr:iend) ::  ! max of 39 continuation lines
-     &   DON_prod,	   ! production of dissolved organic N
+     &   DON_prod,        ! production of dissolved organic N
      &   DOFe_prod,        ! produciton of dissolved organic Fe
      &   DOP_prod,         ! production of dissolved organic P
 !zhc zt is 3d
@@ -720,7 +720,7 @@
     
         gQsi = gQsi_0
         gQfe_diat = 6.0e-6
-        gQfe_sp	= 6.0e-6
+        gQfe_sp = 6.0e-6
 ! HF: changed from "48.0e-6" on Oct 3, 2005, following Keith Moore's changes
         gQfe_diaz = 42.0e-6
 
@@ -738,7 +738,7 @@
 ! HF: modified on Nov 2, 2005, following Keith Moore's changes,
 ! subtracted number was 0.274
          gQsi = MIN(((gQsi*gQsi_coef*c2*parm_diat_kfe/Fe_loc)
-     &	   - (gQsi_coef-c1)*gQsi_0), 0.685)
+     &    - (gQsi_coef-c1)*gQsi_0), 0.685)
        END WHERE
 
        where (Fe_loc == c0)
@@ -747,12 +747,12 @@
 
        WHERE (Fe_loc .LT. c2 * parm_sp_kfe)
          gQfe_sp = MAX((gQfe_sp*Fe_loc/(c2 * parm_sp_kfe)), 
-     &	   2.5e-6)
+     &    2.5e-6)
         END WHERE
     
        WHERE (Fe_loc .LT. c2 * diaz_kFe)
-	   gQfe_diaz = MAX((gQfe_diaz*Fe_loc/(c2 * diaz_kFe)), 
-     &	   		14.0e-6)
+         gQfe_diaz = MAX((gQfe_diaz*Fe_loc/(c2 * diaz_kFe)), 
+     &      14.0e-6)
          END WHERE
     
 
@@ -762,7 +762,7 @@
 
         WHERE (SiO3_loc .LT. (c2 * parm_diat_kSiO3))
          gQsi = MAX((gQsi*SiO3_loc/(c2 * parm_diat_kSiO3)), 
-     & 			0.0685)
+     &    0.0685)
         END WHERE
 
 
@@ -804,7 +804,7 @@
      &        PAR_in = c0
 
         KPARdz = (0.03 * (spChl_loc + diatChl_loc + 
-     &     	diazChl_loc) + 0.04) * Hz(istr:iend,j,k)
+     &      diazChl_loc) + 0.04) * Hz(istr:iend,j,k)
          PAR_out = PAR_in * EXP(-KPARdz)
          PAR_lay = PAR_in * (c1 - EXP(-KPARdz)) / KPARdz
 
@@ -816,7 +816,7 @@
     !---------------------------------------------------------------------------
 
 !         Tfunc = 2.0**(((temp + T0_Kelvin)-(30.0 + T0_Kelvin)) 
-!     &    		/ 10.0)
+!     &      / 10.0)
          Tfunc = 2.0**(0.1 * temp - 3.0)
     !---------------------------------------------------------------------------
     !   modify growth mort rates by Tfunc
@@ -1149,7 +1149,7 @@
 ! with a different value on Oct 3, 2005, following Keith Moore's changes
         spc_poc_fac = 0.22
         graze_sp_poc = graze_sp * MAX((0.4 * QCaCO3), 
-     &   	MIN((0.18 * Pprime),spc_poc_fac)) 
+     &    MIN((0.18 * Pprime),spc_poc_fac)) 
     
          graze_sp_doc = 0.34 * graze_sp - graze_sp_poc
          graze_sp_dic = 0.36 * graze_sp
@@ -1278,7 +1278,7 @@
     !--------------------------------------------------------------------------
 
         remaining_diazP =  ((graze_diaz + diaz_loss) * Qp_diaz)- 
-     &    	     ((graze_diaz_poc+graze_diaz_zoo) * Qp)
+     &          ((graze_diaz_poc+graze_diaz_zoo) * Qp)
         diaz_loss_dop = (c1 - parm_labile_ratio) * remaining_diazP
         diaz_loss_dip = parm_labile_ratio * remaining_diazP
 
@@ -1335,16 +1335,16 @@
     !---------------------------------------------------------------------------
          DOC_prod = sp_loss_doc + graze_sp_doc + zoo_loss_doc 
      &       + diat_loss_doc 
-     &	     + graze_diat_doc + diaz_loss_doc + graze_diaz_doc
-    		
+     &      + graze_diat_doc + diaz_loss_doc + graze_diaz_doc
+      
          DON_prod = (DOC_prod * Q) + diaz_Nexcrete
          DOP_prod = (sp_loss_doc + graze_sp_doc + zoo_loss_doc 
      &       + diat_loss_doc 
-     &		+ graze_diat_doc) * Qp + diaz_loss_dop
+     &       + graze_diat_doc) * Qp + diaz_loss_dop
          DOFe_prod = (zoo_loss_doc * Qfe_zoo) 
-     &	+ (Qfe_sp * (graze_sp_doc + sp_loss_doc)) 
-     &	+ (Qfe_diat * (graze_diat_doc + diat_loss_doc)) 
-     &	+ (Qfe_diaz * (graze_diaz_doc + diaz_loss_doc))
+     &       + (Qfe_sp * (graze_sp_doc + sp_loss_doc)) 
+     &       + (Qfe_diat * (graze_diat_doc + diat_loss_doc)) 
+     &       + (Qfe_diaz * (graze_diaz_doc + diaz_loss_doc))
 
         DOC_remin = DOC_loc * DOM_remin
         DON_remin = DON_loc * DOM_remin
@@ -1385,14 +1385,14 @@
     !   Compute iron scavenging :
     !   1) compute in terms of loss per year per unit iron (%/year/fe)
     !   2) scale by sinking POC/Dust flux & a scaled total POC concentration,
-    !	   the POC scale factor to convert to ~sink units, 
-    ! 	   this estimate ignores remineralization of POC,
+    !    the POC scale factor to convert to ~sink units, 
+    !     this estimate ignores remineralization of POC,
     !      so is an overestimate, accounting for adsorption onto non-POC stuff
     !      assumes 1gDust > 1molPOC, accounts for non-C parts of biomass/volume
     !   3) set min. scavenging rate in upper water column
     !   4) increase scavenging at higher iron (>0.6e-3mmol/m3)
     !        loss per year per Fe equal to 4.0 at Fe=2e-3mmol/m3
-    !	5) decrease scavenging rates at low iron (<0.35e-3mmol/m3)
+    !   5) decrease scavenging rates at low iron (<0.35e-3mmol/m3)
     !   6) convert to net loss per second
     !---------------------------------------------------------------------------
 
@@ -1407,17 +1407,17 @@
 
          Fe_scavenge_rate = Fe_scavenge_rate
      &    *MIN(((sinking_particle_POC(4,istr:iend,j) + 
-     &	   sinking_particle_POC(5,istr:iend,j)+
+     &    sinking_particle_POC(5,istr:iend,j)+
      &       ((sinking_particle_dust(4,istr:iend,j)
      &    + sinking_particle_dust(5,istr:iend,j)) * 8.33e4) )
      &     / parm_POC_flux_ref), fe_max_scale1)
 
 ! HF removed 2nd to last line of Fe_scavenge_rate equation on Oct 3, 2005 (JKM change):
-! &	+ ((spC_loc+diatC_loc+zooC_loc+diazC_loc) * 2.e-6)) 
+! & + ((spC_loc+diatC_loc+zooC_loc+diazC_loc) * 2.e-6)) 
 
          WHERE (Fe_loc > 0.6e-3) 
      &      Fe_scavenge_rate = Fe_scavenge_rate + (Fe_loc - 0.6e-3) 
-     &    	* (6.0 / (1.4e-3))   	
+     &     * (6.0 / (1.4e-3))    
 
 ! HF: this value used to be hard-coded (0.4e-3), introduced the variable
 ! with a different value on Oct 3, 2005, following Keith Moore's changes
@@ -1432,8 +1432,8 @@
      &          ((sp_agg + graze_sp_poc
      &       + sp_loss_poc) * Qfe_sp) 
      &      + (zoo_loss * f_zoo_detr * Qfe_zoo) 
-     &	  + ((diat_agg + graze_diat_poc + diat_loss_poc) * Qfe_diat) 
-     &	+ (graze_diaz_poc * Qfe_diaz) + (0.1 * Fe_scavenge)
+     &   + ((diat_agg + graze_diat_poc + diat_loss_poc) * Qfe_diat) 
+     & + (graze_diaz_poc * Qfe_diaz) + (0.1 * Fe_scavenge)
 
 
 ! HF: changed on Oct 3, 2005, pass temp instead of Tfunc, 
@@ -1497,7 +1497,7 @@
      &     + (Qfe_diat * (diat_loss_dic + graze_diat_dic)) 
      &     + (Qfe_diaz * (diaz_loss_dic + graze_diaz_dic)) 
      &     - photoFe_sp - photoFe_diat 
-     &	  + graze_diaz_zoo *(Qfe_diaz-Qfe_zoo) 
+     &     + graze_diaz_zoo *(Qfe_diaz-Qfe_zoo) 
      &     + graze_diat_zoo *(Qfe_diat-Qfe_zoo) 
      &     + graze_sp_zoo * (Qfe_sp-Qfe_zoo)
 
@@ -1582,7 +1582,7 @@
 
        TRACER(istr:iend,j,K,zooC_ind,curtime) = graze_sp_zoo 
      &  + graze_diat_zoo 
-     &	+ graze_diaz_zoo - zoo_loss
+     &  + graze_diaz_zoo - zoo_loss
 
     !---------------------------------------------------------------------------
     !   dissolved organic Matter
@@ -1605,21 +1605,21 @@
     !---------------------------------------------------------------------------
 
        TRACER(istr:iend,j,K,spFe_ind,curtime) =  photoFe_sp 
-     &	  - (Qfe_sp * (graze_sp+sp_loss+sp_agg))  
-    	
+     &  - (Qfe_sp * (graze_sp+sp_loss+sp_agg))  
+    
     !---------------------------------------------------------------------------
     !   Diatom Fe
     !---------------------------------------------------------------------------
 
        TRACER(istr:iend,j,K,diatFe_ind,curtime) =  photoFe_diat 
-     &	- (Qfe_diat * (graze_diat+diat_loss+diat_agg))
-    	
+     &  - (Qfe_diat * (graze_diat+diat_loss+diat_agg))
+
     !---------------------------------------------------------------------------
     !   Diatom Si
     !---------------------------------------------------------------------------
 
        TRACER(istr:iend,j,K,diatSi_ind,curtime) =  photoSi_diat 
-     & 	- (Qsi * (graze_diat+diat_loss+diat_agg))
+     &  - (Qsi * (graze_diat+diat_loss+diat_agg))
 
     !---------------------------------------------------------------------------
     !   Diazotroph C
@@ -1627,7 +1627,7 @@
 
        TRACER(istr:iend,j,K,diazC_ind,curtime) =  photoC_diaz - 
      &      graze_diaz - diaz_loss
-    	
+
     !---------------------------------------------------------------------------
     !   diazotroph Chlorophyll
     !---------------------------------------------------------------------------
@@ -1640,9 +1640,9 @@
     !---------------------------------------------------------------------------
 
         TRACER(istr:iend,j,K,diazFe_ind,curtime) =  photoFe_diaz
-     &   	- (Qfe_diaz * (graze_diaz + diaz_loss))
+     &    - (Qfe_diaz * (graze_diaz + diaz_loss))
 
- 		
+
     !---------------------------------------------------------------------------
     !   dissolved inorganic Carbon
     !---------------------------------------------------------------------------
@@ -1671,7 +1671,7 @@
 
         TRACER(istr:iend,j,K,o2_ind,curtime) = 
      &      (photoC_sp + photoC_diat + photoC_diaz) 
-     &  	/ parm_Red_D_C_O2
+     &   / parm_Red_D_C_O2
 
        WHERE (O2_loc > parm_o2_min)
           TRACER(istr:iend,j,K,o2_ind,curtime) = 
@@ -1690,7 +1690,7 @@
         PAR(ISTR:IEND,J,K)                  = PAR_lay
         graze_sp_HIST(ISTR:IEND,J,K)        = graze_sp
         graze_diat_HIST(ISTR:IEND,J,K)      = graze_diat
-        graze_diaz_HIST(ISTR:IEND,J,K)	 = graze_diaz
+        graze_diaz_HIST(ISTR:IEND,J,K)      = graze_diaz
         graze_tot_HIST(ISTR:IEND,J,K)       = graze_sp 
      &                        + graze_diat + graze_diaz
         sp_loss_HIST(ISTR:IEND,J,K)         = sp_loss
@@ -1915,12 +1915,12 @@
     !   remineralization is adjusted.
     !   Note: all the sinking iron is in the P_iron%sflux pool, hflux Fe not 
     !      explicitly tracked, it is assumed that total iron remin is 
-    !	     proportional to total POC remin.
+    !     proportional to total POC remin.
     !
     !   Based upon Armstrong et al. 2000
     !
     !   July 2002, added temperature effect on remin length scale of 
-    !	excess POC (all soft POM& Iron) and on SiO2.
+    !   excess POC (all soft POM& Iron) and on SiO2.
     !   new variable passed into ballast, Tfunc, main Temperature function
     !   computed in ecosystem routine.  scaling factor for dissolution
     !   of excess POC, Fe, and Bsi now varies with location (f(temperature)).
@@ -1930,10 +1930,10 @@
     !       this value too high, using 2 umolFe/m2/day here
     !
     !   Allow hard fraction of ballast to remin with long length scale 40,000m
-    !	  thus ~ 10 of hard ballast remins over 4000m water column.
+    !   thus ~ 10 of hard ballast remins over 4000m water column.
     !
     !   Sinking dust flux is decreased by assumed instant solubility/dissolution
-    !	  at ocean surface from the parm_fe_bioavail.
+    !   at ocean surface from the parm_fe_bioavail.
     !---------------------------------------------------------------------------
     !---------------------------------------------------------------------------
     !   arguments
@@ -1947,7 +1947,7 @@
 
 !MODHF          REAL, DIMENSION(istr:iend,jstr:jend), INTENT(IN) :: 
           REAL, DIMENSION(istr:iend), INTENT(IN) :: 
-     &        temp  	 ! temperature (used for scaling) from ecosystem routine
+     &        temp   ! temperature (used for scaling) from ecosystem routine
          
 
     !---------------------------------------------------------------------------
@@ -1960,7 +1960,7 @@
      &    decay_dust,          ! scaling factor for dissolution of dust
      &    decay_POC_E,         ! scaling factor for dissolution of excess POC
      &    decay_SiO2,          ! scaling factor for dissolution of SiO2
-     &    decay_Hard,	      ! scaling factor for dissolution of Hard Ballast
+     &    decay_Hard,          ! scaling factor for dissolution of Hard Ballast
      &    POC_prod_avail,      ! POC production available for excess POC flux
      &    new_QA_dust_def       ! outgoing deficit in the QA(dust) POC flux
 
@@ -2021,10 +2021,10 @@
              Tfunc_POC = 1.12 ** (0.1 * temp(i) - 3.0)
              Tfunc_SiO2 = 4.0 ** (0.1 * temp(i) - 3.0)
 
-    	     decay_POC_E = EXP(-Hz(i,j,k) / diss(1) * Tfunc_POC)
-    	     decay_SiO2  = EXP(-Hz(i,j,k) / diss(3) * Tfunc_SiO2)
-!HF    	     decay_POC_E = EXP(-dz(i,j,k) / (diss(1) / Tfunc(i,j)))
-!HF    	     decay_SiO2  = EXP(-dz(i,j,k) / (diss(3) / Tfunc(i,j)))
+             decay_POC_E = EXP(-Hz(i,j,k) / diss(1) * Tfunc_POC)
+             decay_SiO2  = EXP(-Hz(i,j,k) / diss(3) * Tfunc_SiO2)
+!HF          decay_POC_E = EXP(-dz(i,j,k) / (diss(1) / Tfunc(i,j)))
+!HF          decay_SiO2  = EXP(-dz(i,j,k) / (diss(3) / Tfunc(i,j)))
 
              decay_CaCO3 = EXP(-Hz(i,j,k) / Diss(2))
              decay_dust  = EXP(-Hz(i,j,k) / diss(4))
@@ -2080,7 +2080,7 @@
              !------------------------------------------------------------------
              !   Check for POC production bounds violations
              !------------------------------------------------------------------
-            	     
+                  
               IF (POC_prod_avail < c0) THEN
                print *,"subroutine compute_particulate_terms:mass 
      &            ratio of ballast production exceeds POC production"
@@ -2211,13 +2211,13 @@
      &               (c1 - gamma(5)) * sinking_particle_p_iron(3,i,j)
              END IF
              
-	     !----------------------------------------------------------------
-	     !  Compute iron release from dust remin/dissolution
-	     !
+      !----------------------------------------------------------------
+      !  Compute iron release from dust remin/dissolution
+      !
              !   dust remin 1kg Dust = 35 / 55.847   * 1.0e3 = 626.712 mmolFe
-             !			       gFe  molFe/gFe mmolFe/molFe
+             !          gFe  molFe/gFe mmolFe/molFe
 !HF             !   dust remin gDust = 0.035 / 55.847 * 1.0e9 = 626712.0 nmolFe
-!HF             !			    gFe     molFe     nmolFe
+!HF             !       gFe     molFe     nmolFe
              !----------------------------------------------------------------
 
              
@@ -2310,8 +2310,8 @@
              IF (-z_r(i,j,k) < 1100.) THEN
                sinking_particle_p_iron(6,i,j) = 
      &             sinking_particle_p_iron(6,i,j) + 
-     &        	    (2.3148e-8 / Hz(i,j,k))
-!HF     &        	    (2.3148e-6 * dzr(i,j,k))
+     &             (2.3148e-8 / Hz(i,j,k))
+!HF     &             (2.3148e-6 * dzr(i,j,k))
              ENDIF
             
            END IF

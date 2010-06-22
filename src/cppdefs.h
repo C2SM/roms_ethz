@@ -17,10 +17,10 @@
 #undef UPWELLING       /* Upwelling Example */
 #undef USWEST          /* US West Coast Application */
 #undef PACBIG         /* Pacific Medium 12.5km Grid*/
-#undef ATLSMA        /* Atlantic Small 25 km Grid*/
+#define ATLSMA        /* Atlantic Small 25 km Grid*/
 #undef CANBAS2
 #undef SPIRAL
-#define USWC_CENTRAL
+#undef USWC_CENTRAL
 #undef WAVE_RAD        /* A test for wave radiation boundaries */
 
 /*

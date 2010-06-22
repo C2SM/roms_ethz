@@ -16,7 +16,7 @@
      &     bt,st,ft,sit,pt,dic,ta)
       implicit none
 !
-!	File taken from Numerical Recipes. Modified  R.M.Key 4/94
+! File taken from Numerical Recipes. Modified  R.M.Key 4/94
 !
 
       real k12,k12p,k123p
@@ -52,7 +52,7 @@
      &     bt,st,ft,sit,pt,dic,ta)
       DO J=1,MAXIT
         IF(((DRTSAFE-XH)*DF-F)*((DRTSAFE-XL)*DF-F) .GE. 0.0 .OR.
-     &	      ABS(2.0*F) .GT. ABS(DXOLD*DF)) THEN
+     &       ABS(2.0*F) .GT. ABS(DXOLD*DF)) THEN
           DXOLD=DX
           DX=0.5*(XH-XL)
           DRTSAFE=XL+DX
@@ -63,7 +63,7 @@
           TEMP=DRTSAFE
           DRTSAFE=DRTSAFE-DX
           IF(TEMP .EQ. DRTSAFE)RETURN
-	END IF
+      END IF
         IF(ABS(DX) .LT. XACC)RETURN
         CALL FUNCD(DRTSAFE,F,DF,
      &     k0,k1,k2,kw,kb,ks,kf,k1p,k2p,k3p,ksi,ff,htotal,

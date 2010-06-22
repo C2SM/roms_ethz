@@ -70,7 +70,7 @@
 ! SUBROUTINE CO2CALC
 !
 ! PURPOSE
-!	Calculate delta co2* from total alkalinity and total CO2 at
+! Calculate delta co2* from total alkalinity and total CO2 at
 ! temperature (t), salinity (s) and "atmpres" atmosphere total pressure. 
 !
 ! USAGE
@@ -79,18 +79,18 @@
 !    &                  ,co2star,dco2star,pCO2surf,dpco2)
 !
 ! INPUT
-!	dic_in = total inorganic carbon (mol/m^3) 
+! dic_in = total inorganic carbon (mol/m^3) 
 !                where 1 T = 1 metric ton = 1000 kg
-!	ta_in  = total alkalinity (eq/m^3) 
-!	pt_in  = inorganic phosphate (mol/m^3) 
-!	sit_in = inorganic silicate (mol/m^3) 
-!	t      = temperature (degrees C)
-!	s      = salinity (PSU)
-!	phlo   = lower limit of pH range
-!	phhi   = upper limit of pH range
-!	xco2_in=atmospheric mole fraction CO2 in dry air (ppmv) 
+! ta_in  = total alkalinity (eq/m^3) 
+! pt_in  = inorganic phosphate (mol/m^3) 
+! sit_in = inorganic silicate (mol/m^3) 
+! t      = temperature (degrees C)
+! s      = salinity (PSU)
+! phlo   = lower limit of pH range
+! phhi   = upper limit of pH range
+! xco2_in=atmospheric mole fraction CO2 in dry air (ppmv) 
 ! hf:   rhosw  = surface water density [kg/m^3 seawater]
-!	atmpres= atmospheric pressure in atmospheres (1 atm==1013.25mbar)
+! atmpres= atmospheric pressure in atmospheres (1 atm==1013.25mbar)
 !
 !       Note: arguments dic_in, ta_in, pt_in, sit_in, and xco2_in are 
 !             used to initialize variables dic, ta, pt, sit, and xco2.
@@ -101,8 +101,8 @@
 !               than those without.
 
 ! OUTPUT
-!	co2star  = CO2*water (mol/m^3)
-!	dco2star = delta CO2 (mol/m^3)
+! co2star  = CO2*water (mol/m^3)
+! dco2star = delta CO2 (mol/m^3)
 !       pco2surf = oceanic pCO2 (ppmv)
 !       dpco2    = Delta pCO2, i.e, pCO2ocn - pCO2atm (ppmv)
 !
@@ -117,8 +117,8 @@
 !       are likewise in mol/m^3.
 
 ! FILES and PROGRAMS NEEDED
-!	drtsafe
-!	ta_iter_1
+! drtsafe
+! ta_iter_1
 !
 !--------------------------------------------------------------------------
 !
@@ -145,20 +145,20 @@
 !       Note: mol/kg are actually what the body of this routine uses 
 !       for calculations.  
 !       ---------------------------------------------------------------------
-	permil = 1.0 / rhosw
+         permil = 1.0 / rhosw
 !       To convert input in mol/m^3 -> mol/kg 
-	pt=pt_in*permil
-	sit=sit_in*permil
-	ta=ta_in*permil
-	dic=dic_in*permil
+        pt=pt_in*permil
+        sit=sit_in*permil
+        ta=ta_in*permil
+        dic=dic_in*permil
 
 !       ---------------------------------------------------------------------
 !       Change units from uatm to atm. That is, atm is what the body of 
 !       this routine uses for calculations.
 !       ---------------------------------------------------------------------
-	permeg=1.e-6
+        permeg=1.e-6
 !       To convert input in uatm -> atm
-	xco2=xco2_in*permeg
+        xco2=xco2_in*permeg
 !       ---------------------------------------------------------------------
 !
 !*************************************************************************
@@ -172,18 +172,18 @@
 !
 ! Derive simple terms used more than once
 !
-	tk = 273.15 + t
+        tk = 273.15 + t
         tk100 = 0.01 * tk
         inv_tk100 = 1. / tk100
         log_tk100 = log(tk100)
-	tk1002=tk100*tk100
-	invtk=1.0/tk
-	dlogtk=log(tk)
-	is=19.924*s/(1000.-1.005*s)
-	is2=is*is
-	sqrtis=sqrt(is)
-	s2=s*s
-	sqrts=sqrt(s)
+        tk1002=tk100*tk100
+        invtk=1.0/tk
+        dlogtk=log(tk)
+        is=19.924*s/(1000.-1.005*s)
+        is2=is*is
+        sqrtis=sqrt(is)
+        s2=s*s
+        sqrts=sqrt(s)
         s15=s*sqrts
         scl=0.55354128*s
 !-----------------------------------------------------------------------
@@ -202,15 +202,15 @@
 !
 ! Weiss & Price (1980, Mar. Chem., 8, 347-359; Eq 13 with table 6 values)
 !
-	ff = exp(-162.8301 + 218.2968*inv_tk100  +
-     &		90.9241*log_tk100 - 1.47696*tk1002 +
-     &		s * (.025695 - .025225*tk100 + 
-     &		0.0049867*tk1002))
+        ff = exp(-162.8301 + 218.2968*inv_tk100  +
+     &        90.9241*log_tk100 - 1.47696*tk1002 +
+     &        s * (.025695 - .025225*tk100 + 
+     &        0.0049867*tk1002))
 !
 ! K0 from Weiss 1974
 !
-	k0 = exp(93.4517*inv_tk100 - 60.2409 + 23.3585 * log_tk100 +
-     &		s * (.023517 - 0.023656 * tk100 + 0.0047036 * tk1002))
+        k0 = exp(93.4517*inv_tk100 - 60.2409 + 23.3585 * log_tk100 +
+     &        s * (.023517 - 0.023656 * tk100 + 0.0047036 * tk1002))
 
 !
 ! k1 = [H][HCO3]/[H2CO3]
@@ -219,37 +219,37 @@
 ! Millero p.664 (1995) using Mehrbach et al. data on seawater scale 
 ! (Original reference: Dickson and Millero, DSR, 1987)
 !
-	k1=10.**(-1.*(3670.7*invtk - 62.008 + 9.7944*dlogtk -
-     &		0.0118 * s + 0.000116*s2))
+        k1=10.**(-1.*(3670.7*invtk - 62.008 + 9.7944*dlogtk -
+     &        0.0118 * s + 0.000116*s2))
 !
-	k2=10.**(-1.*(1394.7*invtk + 4.777 - 
-     &		0.0184*s + 0.000118*s2))
+        k2=10.**(-1.*(1394.7*invtk + 4.777 - 
+     &        0.0184*s + 0.000118*s2))
 !
 ! k1p = [H][H2PO4]/[H3PO4] on hSWS
 !
 ! Millero p.670 (1995)
 !
-	k1p = exp(-4576.752*invtk + 115.540 - 18.453 * dlogtk +
-     &		(-106.736*invtk + 0.69171) * sqrts +
-     &		(-0.65643*invtk - 0.01844) * s)
+        k1p = exp(-4576.752*invtk + 115.540 - 18.453 * dlogtk +
+     &        (-106.736*invtk + 0.69171) * sqrts +
+     &        (-0.65643*invtk - 0.01844) * s)
 !
 ! k2p = [H][HPO4]/[H2PO4] on hSWS
 !
 ! Millero p.670 (1995)
 
 !
-	k2p = exp(-8814.715*invtk + 172.1033 - 27.927 * dlogtk +
-     &		(-160.340*invtk + 1.3566) * sqrts +
-     &		(0.37335*invtk - 0.05778) * s)
+        k2p = exp(-8814.715*invtk + 172.1033 - 27.927 * dlogtk +
+     &        (-160.340*invtk + 1.3566) * sqrts +
+     &        (0.37335*invtk - 0.05778) * s)
 !
 !------------------------------------------------------------------------
 ! k3p = [H][PO4]/[HPO4] on hSWS
 !
 ! Millero p.670 (1995)
 !
-	k3p = exp(-3070.75*invtk - 18.126 + 
-     &		(17.27039*invtk + 2.81197) *
-     &		sqrts + (-44.99486*invtk - 0.09984) * s)
+        k3p = exp(-3070.75*invtk - 18.126 + 
+     &        (17.27039*invtk + 2.81197) *
+     &        sqrts + (-44.99486*invtk - 0.09984) * s)
 !
 !------------------------------------------------------------------------
 ! ksi = [H][SiO(OH)3]/[Si(OH)4] on hSWS
@@ -257,20 +257,20 @@
 ! Millero p.671 (1995) using data from Yao and Millero (1995)
 !
         cff = log(1.0-0.001005*s)
-	ksi = exp(-8904.2*invtk + 117.400 - 19.334 * dlogtk +
-     &		(-458.79*invtk + 3.5913) * sqrtis +
-     &		(188.74*invtk - 1.5998) * is +
-     &		(-12.1652*invtk + 0.07871) * is2 +
-     &		cff)
+        ksi = exp(-8904.2*invtk + 117.400 - 19.334 * dlogtk +
+     &        (-458.79*invtk + 3.5913) * sqrtis +
+     &        (188.74*invtk - 1.5998) * is +
+     &        (-12.1652*invtk + 0.07871) * is2 +
+     &        cff)
 !
 !------------------------------------------------------------------------
 ! kw = [H][OH] on hSWS
 !
 ! Millero p.670 (1995) using composite data
 !
-	kw = exp(-13847.26*invtk + 148.9802 - 23.6521 * dlogtk +
-     &		(118.67*invtk - 5.977 + 1.0495 * dlogtk) *
-     &		sqrts - 0.01615 * s)
+        kw = exp(-13847.26*invtk + 148.9802 - 23.6521 * dlogtk +
+     &        (118.67*invtk - 5.977 + 1.0495 * dlogtk) *
+     &        sqrts - 0.01615 * s)
 !
 !------------------------------------------------------------------------
 ! ks = [H][SO4]/[HSO4] on free H scale
@@ -278,11 +278,11 @@
 ! Dickson (1990, J. chem. Thermodynamics 22, 113)
 ! change to (mol/ kg soln)
 !
-	ks=exp(-4276.1*invtk + 141.328 - 23.093*dlogtk +
-     &		(-13856.*invtk + 324.57 - 47.986*dlogtk) * sqrtis +
-     &		(35474.*invtk - 771.54 + 114.723*dlogtk) * is -
-     &		2698.*invtk*is**1.5 + 1776.*invtk*is2 +
-     &		cff)
+        ks=exp(-4276.1*invtk + 141.328 - 23.093*dlogtk +
+     &        (-13856.*invtk + 324.57 - 47.986*dlogtk) * sqrtis +
+     &        (35474.*invtk - 771.54 + 114.723*dlogtk) * is -
+     &        2698.*invtk*is**1.5 + 1776.*invtk*is2 +
+     &        cff)
 !
 !------------------------------------------------------------------------
 ! kf = [H][F]/[HF] on free H scale
@@ -290,8 +290,8 @@
 ! Dickson and Riley (1979)
 ! change to (mol/ kg soln)
 !
-	kf=exp(1590.2*invtk - 12.641 + 1.525*sqrtis +
-     &		cff)
+        kf=exp(1590.2*invtk - 12.641 + 1.525*sqrtis +
+     &        cff)
 !
 ! kb = [H][BO2]/[HBO2] on hSWS
 !
@@ -299,11 +299,11 @@
 ! change from htotal to hSWS
 !
         st_ks_p1 = 1. + st/ks
-	kb=exp((-8966.90 - 2890.53*sqrts - 77.942*s +
-     &		1.728*s15 - 0.0996*s2)*invtk +
-     &		(148.0248 + 137.1942*sqrts + 1.62142*s) +
-     &		(-24.4344 - 25.085*sqrts - 0.2474*s) *
-     &		dlogtk + 0.053105*sqrts*tk +
+        kb=exp((-8966.90 - 2890.53*sqrts - 77.942*s +
+     &        1.728*s15 - 0.0996*s2)*invtk +
+     &        (148.0248 + 137.1942*sqrts + 1.62142*s) +
+     &        (-24.4344 - 25.085*sqrts - 0.2474*s) *
+     &        dlogtk + 0.053105*sqrts*tk +
      &          log((st_ks_p1+(ft/kf))/st_ks_p1) )
 !
 !*************************************************************************
@@ -329,21 +329,21 @@
 !
 ! Parentheses added around negative exponents (Keith Lindsay)
 !
-	x1 = 10.0**(-phhi)
-	x2 = 10.0**(-phlo)
-	xacc = 1.e-10
-	hSWS = drtsafe(ta_iter_SWS,x1,x2,xacc,
+        x1 = 10.0**(-phhi)
+        x2 = 10.0**(-phlo)
+        xacc = 1.e-10
+        hSWS = drtsafe(ta_iter_SWS,x1,x2,xacc,
      &       k0,k1,k2,kw,kb,ks,kf,k1p,k2p,k3p,ksi,ff,hSWS,
      &       bt,st,ft,sit,pt,dic,ta)
 !
 ! Calculate [CO2*] as defined in DOE Methods Handbook 1994 Ver.2, 
 ! ORNL/CDIAC-74, Dickson and Goyet, eds. (Ch 2 p 10, Eq A.49)
 !
-	hSWS2=hSWS*hSWS
-	co2star=dic*hSWS2/(hSWS2 + k1*hSWS + k1*k2)
-	co2starair=xco2*ff*atmpres
-	dco2star=co2starair-co2star
-	ph=-log10(hSWS)
+        hSWS2=hSWS*hSWS
+        co2star=dic*hSWS2/(hSWS2 + k1*hSWS + k1*k2)
+        co2starair=xco2*ff*atmpres
+        dco2star=co2starair-co2star
+        ph=-log10(hSWS)
 !
 !       ---------------------------------------------------------------
 !       Add two output arguments for storing pCO2surf

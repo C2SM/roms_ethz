@@ -740,7 +740,7 @@
 !       TYPO!!!: p. 51, eq. 95: the term .1700t should be .0800t
 !       these two are necessary to match the values given in Table 43.24
 !       Millero, 1979:
-!	Millero, F. J., The thermodynamics of the carbon dioxide system
+!       Millero, F. J., The thermodynamics of the carbon dioxide system
 !       in seawater, Geochemica et Cosmochemica Acta 43:1651-1661, 1979.
 !       See table 5 and eqs. 7, 7a, 7b on pp. 1656-1657.
 !       Takahashi et al, in GEOSECS Pacific Expedition, v. 3, 1982.
@@ -987,7 +987,7 @@
       enddo
 !     KS [K(5)] and KF [K(6)] remain on the free pH scale
       do i=7,10
-	 K(i) = K(i) * pHfactor
+        K(i) = K(i) * pHfactor
       enddo
 !
 !     The constants should all be on the chosen pH scale at pressure.
