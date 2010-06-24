@@ -12,4 +12,11 @@ src/partit
 src/roms
 src/srcscheck
 src/mpc.for
+src/check_srcs.F
+src/check_switches1.F
+src/roms.tar
+src/setup_kwds.F
+src/Make.depend
+scripts/
+
 

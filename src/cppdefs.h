@@ -663,6 +663,8 @@ c# define OBC_EAST
 !mm
 # define STFLX_LIM
 # define DIURNAL_SRFLUX
+# define OLD_SPONGE_DEFAULT
+# define  NEW_S_COORD
 
 #elif defined USWC_CENTRAL   /* US West Coast Configuration */
 # define SOLVE3D

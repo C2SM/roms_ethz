@@ -48,8 +48,10 @@
      &           indxPhyt=indxNO3+3, indxZoo=indxNO3+4,
      &           indxSDet=indxNO3+5, indxLDet=indxNO3+6)
 # endif /* BIOLOGY */
-      integer indxO, indxW, indxR, indxAkv, indxAkt, indxRich
-      integer indxRichN
+      integer indxO, indxW, indxR, indxAkv, indxAkt
+# ifdef KPP_DIAGNOSE
+     & , indxRich, indxRichN
+# endif
       parameter (indxO=indxT+NT
 # if defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC
       /* Create space for pH, pCO2, pCO2air, PARinc, and PAR: */
@@ -60,7 +62,10 @@
 # endif /* BIOLOGY_NPZDOC || BIOLOGY_BEC */
      &     )
       parameter (indxW=indxO+1, indxR=indxO+2,
-     &     indxAkv=indxR+1, indxRich=indxAkv+1, indxRichN=indxAkv+2,
+     &     indxAkv=indxR+1, 
+# ifdef KPP_DIAGNOSSE
+     & indxRich=indxAkv+1, indxRichN=indxAkv+2,
+# endif
      &     indxAkt=indxAkv+3)
 # ifdef SALINITY
       integer indxAks
@@ -279,8 +284,10 @@
      &        hisTime, hisTstep,      hisZ,   hisUb,  hisVb
 #ifdef SOLVE3D
       integer rstU, rstV, rstT(NT+1), hisO,   hisW,   hisR,
-     &        hisU, hisV, hisT(NT+1), hisAkv, hisAkt, hisAks, 
-     &        hisRich, hisRichN
+     &        hisU, hisV, hisT(NT+1), hisAkv, hisAkt, hisAks 
+#ifdef KPP_DIAGNOSE
+     &        , hisRich, hisRichN
+#endif
 # if defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC
      &      , rstPH, rstPCO2, rstPCO2air, rstPAR
      &      , hisPH, hisPCO2, hisPCO2air, hisPARinc, hisPAR
@@ -294,8 +301,10 @@
 # endif /* SEDIMENT_BIOLOGY */
       common /ncvars/
      &        rstU, rstV, rstT,       hisO,   hisW,   hisR,
-     &        hisU, hisV, hisT,       hisAkv, hisAkt, hisAks, 
-     &        hisRich, hisRichN
+     &        hisU, hisV, hisT,       hisAkv, hisAkt, hisAks
+# ifdef KPP_DIAGNOSE
+     &        , hisRich, hisRichN
+# endif
 # if defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC
      &      , rstPH, rstPCO2, rstPCO2air, rstPAR
      &      , hisPH, hisPCO2, hisPCO2air, hisPARinc, hisPAR
@@ -325,14 +334,18 @@
      &        avgTime, avgTstep, avgZ,    avgUb, avgVb
 # ifdef SOLVE3D
       integer avgU,  avgV,  avgT(NT+1), avgR,
-     &        avgO,  avgW,  avgAkv,     avgAkt,  avgAks,
-     &        avgRich, avgRichN
+     &        avgO,  avgW,  avgAkv,     avgAkt,  avgAks
+# ifdef KPP_DIAGNOSE
+     &        , avgRich, avgRichN
+# endif
 #  ifdef SEDIMENT_BIOLOGY
      &      , avgTsed(NT_sed)
 #  endif /* SEDIMENT_BIOLOGY */
       common /ncvars/ avgU, avgV,       avgT,    avgR, 
-     &        avgO,  avgW,  avgAkv,     avgAkt,  avgAks,
-     &        avgRich, avgRichN
+     &        avgO,  avgW,  avgAkv,     avgAkt,  avgAks
+# ifdef KPP_DIAGNOSE
+     &        , avgRich, avgRichN
+# endif
 #  ifdef SEDIMENT_BIOLOGY
      &      , avgTsed
 #  endif /* SEDIMENT_BIOLOGY */

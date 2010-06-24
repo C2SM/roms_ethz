@@ -265,6 +265,7 @@ CR      write(stdout,'(1x,A,I3)') 'indxAkv =',indxAkv
       vname(2,indxAkv)='vertical viscosity coefficient            '
       vname(3,indxAkv)='meter2 second-1                           '
 
+# ifdef KPP_DIAGNOS
 CR      write(stdout,'(1x,A,I3)') 'indxRich =',indxRich
       vname(1,indxRich)='Rich                                      '
       vname(2,indxRich)='Diffusivity due to vert. shear instability'
@@ -273,6 +274,7 @@ CR      write(stdout,'(1x,A,I3)') 'indxRich =',indxRich
       vname(1,indxRichN)='RichN                                    '
       vname(2,indxRichN)='Local gradient Richardson number          '
       vname(3,indxRichN)='                                          '
+# endif
 
 CR      write(stdout,'(1x,A,I3)') 'indxAkt =',indxAkt
       vname(1,indxAkt)='AKt                                       '

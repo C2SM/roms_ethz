@@ -686,7 +686,9 @@ c--      fname='roms.in.US_West'
           call cancel_kwd (keyword(1:kwlen), ierr)
           read(input,*,err=95) wrthis(indxR), wrthis(indxO)
      &          ,  wrthis(indxW),  wrthis(indxAkv),  wrthis(indxAkt)
+# ifdef KPP_DIAGNOSE
      &          ,  wrthis(indxRich), wrthis(indxRichN)
+# endif
 # ifdef SALINITY
      &                                            ,  wrthis(indxAks)
 #  ifdef LMD_KPP
@@ -698,7 +700,9 @@ c--      fname='roms.in.US_West'
 # endif
           if ( wrthis(indxR) .or. wrthis(indxO) .or. wrthis(indxW)
      &                     .or. wrthis(indxAkv) .or. wrthis(indxAkt)
+# ifdef KPP_DIAGNOSE
      &                     .or. wrthis(indxRich) .or. wrthis(indxRichN)
+# endif
 # ifdef SALINITY
      &                                          .or. wrthis(indxAks)
 #  ifdef LMD_KPP
@@ -717,10 +721,12 @@ c--      fname='roms.in.US_West'
      &    , wrthis(indxAkv),'write Akv  ', 'Vertical viscosity'
      &    , wrthis(indxAkt),'write Akt  ',
      &                        'Vertical diffusivity for temperature.'
+# ifdef KPP_DIAGNOSE
      &    , wrthis(indxRich), 'write Rich ', 
      &               'Diffusivity due to vertical velocity shear'
      &    , wrthis(indxRichN), 'write RichN', 
      &               'Local gradient Richardson number'
+# endif
 # ifdef SALINITY
      &    , wrthis(indxAks),'write Aks  ',
      &                           'Vertical diffusivity for salinity.'
@@ -784,7 +790,9 @@ c--      fname='roms.in.US_West'
           call cancel_kwd (keyword(1:kwlen), ierr)
           read(input,*,err=95) wrtavg(indxR), wrtavg(indxO)
      &          ,  wrtavg(indxW),  wrtavg(indxAkv),  wrtavg(indxAkt)
+#  ifdef KPP_DIAGNOSE
      &          ,  wrtavg(indxRich), wrtavg(indxRichN)
+#  endif
 #  ifdef SALINITY
      &                                            ,  wrtavg(indxAks)
 #  endif
@@ -796,7 +804,9 @@ c--      fname='roms.in.US_West'
 #  endif
           if ( wrtavg(indxR) .or. wrtavg(indxO) .or. wrtavg(indxW)
      &                  .or. wrtavg(indxAkv) .or. wrtavg(indxAkt)
+#  ifdef KPP_DIAGNOSE
      &                  .or. wrtavg(indxRich) .or. wrtavg(indxRichN)
+#  endif
 #  ifdef SALINITY
      &                                          .or. wrtavg(indxAks)
 #  endif
@@ -815,10 +825,12 @@ c--      fname='roms.in.US_West'
      &    , wrtavg(indxAkv),'write Akv  ', 'Vertical viscosity'
      &    , wrtavg(indxAkt),'write Akt  ',
      &                        'Vertical diffusivity for temperature.'
+#  ifdef KPP_DIAGNOSE
      &    , wrtavg(indxRich), 'write Rich ', 
      &                'Diffusivity due to vertical velocity shear'
      &    , wrtavg(indxRichN), 'write RichN', 
      &               'Local gradient Richardson number'
+#  endif
 #  ifdef SALINITY
      &    , wrtavg(indxAks),'write Aks  ',
      &                           'Vertical diffusivity for salinity.'
@@ -955,11 +967,17 @@ c--      fname='roms.in.US_West'
 !
 ! Parameters for the sponge layers
 !
+#if defined OLD_SPONGE_DEFAULT || defined BENGUELA || PACIFIC
+         elseif (keyword(1:kwlen).eq.'v_sponge') then
+           call cancel_kwd (keyword(1:kwlen), ierr)
+           read(input,*,err=95) v_sponge
+#else
          elseif (keyword(1:kwlen).eq.'sponge') then
            call cancel_kwd (keyword(1:kwlen), ierr)
            read(input,*,err=95) x_sponge,v_sponge
            MPI_master_only write(stdout,'(1pe10.2,2x,A)')
      &       x_sponge,'x_sponge Thickness of sponge layer (m)'
+#endif
            MPI_master_only write(stdout,'(f10.2,2x,A)')
      &       v_sponge,'v_sponge Viscosity in sponge layer (m2/s)'
 # endif
