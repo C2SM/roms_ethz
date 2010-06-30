@@ -160,6 +160,11 @@
 !!HF         ph_hist=0.0            !zhc:initial ph with zero
 !!HF      endif
 
+# if defined CH_CARBON_DEPTH
+       HCO3_HIST            = c0
+       CO3_HIST             = c0
+# endif /* CH_CARBON_DEPTH */
+
        WS_HIST              = c0   
        XKW_HIST             = c0    
        AP_HIST              = c0    

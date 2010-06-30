@@ -197,6 +197,20 @@ CR      write(stdout,'(1x,A,I3)') 'indxNH4 =',indxNH4
 
 CDL: pH is treated here for rst files;
 CDL: and in init_scalars_becflux for flux files:
+# if defined CH_CARBON_DEPTH
+      vname(1,indxHCO3_rst)='HCO3'
+      vname(2,indxHCO3_rst)='HCO3'
+      vname(3,indxHCO3_rst)='mMol C m-3'
+      vname(4,indxHCO3_rst)=' '    
+      vname(1,indxCO3_rst)='CO3'
+      vname(2,indxCO3_rst)='CO3'
+      vname(3,indxCO3_rst)='mMol C m-3'
+      vname(4,indxCO3_rst)=' '  
+      vname(1,indxCO2STAR_rst)='CO2STAR'
+      vname(2,indxCO2STAR_rst)='CO2*'
+      vname(3,indxCO2STAR_rst)='mMol C m-3'
+      vname(4,indxCO2STAR_rst)=' '
+# endif /* CH_CARBON_DEPTH */
       vname(1,indxPH_rst)='PH'
       vname(2,indxPH_rst)='pH value'
       vname(3,indxPH_rst)=' '

@@ -20,7 +20,7 @@
 #undef WAVE_RAD        /* A test for wave radiation boundaries */
 #undef ATL360X408    /* Whole Atlantic 360x408 */
 !--> #define ATL50S70N    /* Whole Atlantic 50S x 70N (360x468) */
-#undef ONE_DIM /*ONE DIM CONFIGURATION (JDS)*/
+# undef ONE_DIM /*ONE DIM CONFIGURATION (JDS)*/
 
 /*
     Embedded (nested) grid configuration segment
@@ -566,6 +566,14 @@ c--# define OBC_M2ORLANSKI
 !                       Biology
 # undef BIOLOGY
 # define BIOLOGY_BEC
+! Switch to calculate carbonsystem
+# define CH_CARBON_DEPTH
+
+# define MULT_CLIM_FILES
+# define NEW_S_COORD
+# define DIURNAL_SRFLUX
+# define VFLX_CORR
+
 # undef FLOATS
 # ifdef FLOATS
 #   undef FLOATS_GLOBAL_ATTRIBUTES
@@ -637,6 +645,7 @@ c--# define OBC_M2ORLANSKI
 ! Switches related to biology:
 !#define BIOLOGY_NPZDOC
 # define BIOLOGY_BEC
+# define CH_CARBON_DEPTH
 ! Switches related to bottom restore layer
 ! For 1d configurations and when using bec
 # define DBLEPREC

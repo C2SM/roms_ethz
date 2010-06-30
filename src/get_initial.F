@@ -534,9 +534,106 @@ CHF          goto 99                                         !--> ERROR
 # endif /* SEDIMENT_BIOLOGY */
 # if defined BIOLOGY_BEC || (defined BIOLOGY_NPZDOC && \
     defined OXYGEN && defined CARBON)
+#  if defined CH_CARBON_DEPTH
+      !
+      !HCO3
+      !
+      lvar=lenstr(vname(1,indxHCO3_rst))
+      ierr=nf_inq_varid (ncid, vname(1,indxHCO3_rst)(1:lvar), varid)
+      if (ierr .eq. nf_noerr) then
+         ierr=nf_fread (HCO3_hist(START_2D_ARRAY,1), ncid,  varid,
+     &                                               record, r3dvar)
+         if (ierr .ne. nf_noerr) then
+            write(stdout,2) vname(1,indxHCO3_rst)(1:lvar), record,
+     &           ininame(1:lstr)
+            goto 99             !--> ERROR
+         endif
+      else
+         MPI_master_only write(stdout,*)
+     &        'HCO3 field not in init/rst file, initialize to 0'
+      endif
+
+      !
+      !CO3
+      !
+      lvar=lenstr(vname(1,indxCO3_rst))
+      ierr=nf_inq_varid (ncid, vname(1,indxCO3_rst)(1:lvar), varid)
+      if (ierr .eq. nf_noerr) then
+         ierr=nf_fread (CO3_hist(START_2D_ARRAY,1), ncid,  varid,
+     &                                               record, r3dvar)
+         if (ierr .ne. nf_noerr) then
+            write(stdout,2) vname(1,indxCO3_rst)(1:lvar), record,
+     &           ininame(1:lstr)
+            goto 99             !--> ERROR
+         endif
+      else
+         MPI_master_only write(stdout,*)
+     &        'CO3 field not in init/rst file, initialize to 0'
+      endif
+
+
+      !
+      !CO2STAR
+      !
+      lvar=lenstr(vname(1,indxCO2STAR_rst))
+      ierr=nf_inq_varid (ncid, vname(1,indxCO2STAR_rst)(1:lvar), varid)
+      if (ierr .eq. nf_noerr) then
+         ierr=nf_fread (CO2STAR_hist(START_2D_ARRAY,1), ncid,  varid,
+     &                                               record, r3dvar)
+         if (ierr .ne. nf_noerr) then
+            write(stdout,2) vname(1,indxCO2STAR_rst)(1:lvar), record,
+     &           ininame(1:lstr)
+            goto 99             !--> ERROR
+         endif
+      else
+         MPI_master_only write(stdout,*)
+     &        'CO2STAR field not in init/rst file, initialize to 0'
+      endif
+      !
+      !pH
+      !
+      lvar=lenstr(vname(1,indxPH_rst))
+      ierr=nf_inq_varid (ncid, vname(1,indxPH_rst)(1:lvar), varid)
+      if (ierr .eq. nf_noerr) then
+         ierr=nf_fread (ph_hist(START_2D_ARRAY,1), ncid,  varid,
+     &                                               record, r3dvar)
+         if (ierr .ne. nf_noerr) then
+            write(stdout,2) vname(1,indxPH_rst)(1:lvar), record,
+     &           ininame(1:lstr)
+            goto 99             !--> ERROR
+         endif
+      else
+         MPI_master_only write(stdout,*)
+     &        'pH field not in init/rst file, initialize to 0'
+      endif
+
+      !
+      ! pCO2:
+      !
+      lvar=lenstr(vname(1,indxPCO2_rst))
+      ierr=nf_inq_varid (ncid, vname(1,indxPCO2_rst)(1:lvar), varid)
+      if (ierr .eq. nf_noerr) then
+         ierr=nf_fread (pCO2sw(START_2D_ARRAY,1), ncid,  varid,
+     &                                               record, r3dvar)
+         if (ierr .ne. nf_noerr) then
+            write(stdout,2) vname(1,indxPCO2_rst)(1:lvar), record,
+     &           ininame(1:lstr)
+            goto 99             !--> ERROR
+         endif
+      else
+         MPI_master_only write(stdout,*)
+     &        'PCO2 not in init/rst file, initialize to 0'
+      endif
+
+
+#else 
+
       ! pH and PAR can be treated for both BEC and NPZD.
       ! if pH field is present in the restart file (only recently added), 
       ! these values will be used instead of the zero initialization
+      !
+      !pH
+      !
       lvar=lenstr(vname(1,indxPH_rst))
       ierr=nf_inq_varid (ncid, vname(1,indxPH_rst)(1:lvar), varid)
       if (ierr .eq. nf_noerr) then
@@ -548,11 +645,13 @@ CHF          goto 99                                         !--> ERROR
             goto 99             !--> ERROR
          endif
       else
-         MPI_master_only write(stdout,*) 
+         MPI_master_only write(stdout,*)
      &        'pH field not in init/rst file, initialize to 0'
       endif
 
+      !
       ! pCO2:
+      !
       lvar=lenstr(vname(1,indxPCO2_rst))
       ierr=nf_inq_varid (ncid, vname(1,indxPCO2_rst)(1:lvar), varid)
       if (ierr .eq. nf_noerr) then
@@ -567,6 +666,8 @@ CHF          goto 99                                         !--> ERROR
          MPI_master_only write(stdout,*) 
      &        'PCO2 not in init/rst file, initialize to 0'
       endif
+
+#   endif /* CH_CARBON_DEPTH */
 
       ! pCO2 in the air:
       lvar=lenstr(vname(1,indxPCO2air_rst))

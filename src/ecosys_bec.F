@@ -28,7 +28,7 @@
 #include "param_bec.h"
 #include "ecosys_bec.h"
 #include "ocean3d.h" 
- !need for tracer (t in roms)
+!need for tracer (t in roms)
 #include "forces.h" 
 !need for surface velocity
 #include "scalars.h" 
@@ -49,6 +49,11 @@
          real,dimension(istr:iend,jstr:jend,N)::temp 
 !         common /sflux/QA_dust_def, PAR_out
 
+#ifdef CH_CARBON_DEPTH
+         real,dimension(istr:iend,jstr:jend,N)::sal_ch !to calculate sal and press
+                                                       !dependent diss. const.
+         real,dimension(istr:iend,jstr:jend,N)::press_ch !in [Pa]
+#endif /*CH_CARBON_DEPTH*/
 
          real,dimension(istr:iend,jstr:jend)::
      &      FICE_USED,   ! used ice fraction (non-dimensional)
@@ -78,6 +83,16 @@
      &    phlo_init = 5.0,  ! low bound for ph for no prev soln
      &    phhi_init = 9.0,  ! high bound for ph for no prev soln
      &    del_ph = 0.25     ! delta-ph for prev soln
+
+
+#ifdef CH_CARBON_DEPTH
+        real, PARAMETER ::
+     &    p0 = 101325.0       ! avg. sea level pressure [Pa]
+
+        real,dimension(istr:iend)::
+     &    HCO3_ROW,     ! HCO3 from solver
+     &    CO3_ROW       ! CO3 from solver
+#endif /*CH_CARBON_DEPTH*/
 
 
 !DL: needed for interannual variations of pCO2:
@@ -116,6 +131,14 @@
             temp(istr:iend,jstr:jend,k)=
      &         t(istr:iend,jstr:jend,k,nnew,1)
          enddo
+
+#ifdef CH_CARBON_DEPTH
+         do k=1,N
+            sal_ch(istr:iend,jstr:jend,k)=
+     &         t(istr:iend,jstr:jend,k,nnew,2) 
+         enddo
+#endif /*CH_CARBON_DEPTH*/
+
          do j=jstr,jend
             do i=istr,iend
              if (.NOT. landmask(i,j))  then
@@ -234,6 +257,49 @@
            XCO2 = XCO2 + 2.9 * sin(deg2rad*(tdays-30.))
 # endif /* VARIABLE_ATM_PCO2 */
 
+
+#  ifdef CH_CARBON_DEPTH
+!           g    - grav. const. [m/s²]
+!           p0   - avg sea level pressure [Pa]
+!           z_r  - depth [m]
+!           rho0 - in situ density [kg/m³]
+           press_ch = (g*rho0*(-z_r))+p0  !hydrostatic pressure in [Pa]  
+        DO k = 1,N 
+         DO j = jstr,jend
+          WHERE (PH_HIST(istr:iend,j,k) /= c0) 
+             PHLO = PH_HIST(istr:iend,j,k) - del_ph 
+             PHHI = PH_HIST(istr:iend,j,k) + del_ph  
+          ELSEWHERE
+             PHLO = phlo_init
+             PHHI = phhi_init
+          END WHERE
+
+          CALL co2calc_row(LANDMASK(istr,j),
+     &        temp(istr,j,k), sal_ch(istr,j,k),
+     &        press_ch(istr,j,k),
+     &         tracer(istr,j,k,dic_ind,ctime),
+     &         tracer(istr,j,k,alk_ind,ctime),
+     &         tracer(istr,j,k,po4_ind,ctime),
+     &         tracer(istr,j,k,sio3_ind,ctime),
+     &          PHLO, PHHI, PH_NEW, XCO2,
+     &          AP_USED(istr,j), CO2STAR_ROW,
+     &          DCO2STAR_ROW, pCO2SURF_ROW,
+     &           DpCO2_ROW, HCO3_ROW, CO3_ROW, istr,iend)
+
+           pH_hist(istr:iend,j,k) = PH_NEW 
+           CO2STAR_HIST(istr:iend,j,k) = CO2STAR_ROW 
+           DCO2STAR_HIST(istr:iend,j) = DCO2STAR_ROW
+           HCO3_HIST(istr:iend,j,k) = HCO3_ROW
+           CO3_HIST(istr:iend,j,k) = CO3_ROW 
+           pCO2sw(istr:iend,j,k) = pCO2SURF_ROW
+           pCO2air(istr:iend,j)  = pCO2SURF_ROW - DpCO2_ROW
+
+           FLUX(istr:iend,j) = PV(istr:iend,j) * DCO2STAR_ROW
+         END DO
+        END DO
+ 
+#  else
+
          DO j = jstr,jend
           WHERE (PH_HIST(istr:iend,j) /= c0)
              PHLO = PH_HIST(istr:iend,j) - del_ph
@@ -263,6 +329,8 @@
 
            FLUX(istr:iend,j) = PV(istr:iend,j) * DCO2STAR_ROW
          END DO
+
+#  endif /* CH_CARBON_DEPTH */
 
          STF(istr:iend,jstr:jend,dic_ind) = 
      &              STF(istr:iend,jstr:jend,dic_ind) + FLUX
@@ -890,11 +958,9 @@
     !   Diatom carbon fixation and photoadapt.
     !   determine diatom nutrient limitation factor for carbon fixation
     !---------------------------------------------------------------------------
-
           f_nut = MIN(VNtot_diat, VFeC_diat)
           f_nut = MIN(f_nut, VSiO3_diat)
           f_nut = MIN(f_nut, VPO4_diat)
-
     !---------------------------------------------------------------------------
     !   get diatom photosynth. rate, phyto C biomass change, photoadapt
     !---------------------------------------------------------------------------
@@ -2596,13 +2662,18 @@
 
 !-------------------------------------------------------------------------
 !
-!     ************   SUBROUTINE CO2CALC_ROW   ****************************
-!
+!     ************   SUBROUTINE CO2CALC_ROW   ***************************
 !-------------------------------------------------------------------------
 
-       SUBROUTINE co2calc_row(mask, t, s, dic_in, ta_in, pt_in, 
-     &    sit_in, phlo, phhi, ph, xco2_in, atmpres, co2star, 
-     &    dco2star, pCO2surf, dpco2,istr,iend)
+# ifdef CH_CARBON_DEPTH
+       SUBROUTINE co2calc_row(mask, t, s, p, dic_in, ta_in, pt_in,
+     &    sit_in, phlo, phhi, ph, xco2_in, atmpres, co2star,
+     &    dco2star, pCO2surf, dpco2, hco3, co3, istr,iend)
+# else
+       SUBROUTINE co2calc_row(mask, t, s, dic_in, ta_in, pt_in,
+     &    sit_in, phlo, phhi, ph, xco2_in, atmpres, co2star,
+     &    dco2star, pCO2surf, dpco2, istr,iend)
+# endif /* CH_CARBON_DEPTH */
 
     !---------------------------------------------------------------------------
     !   SUBROUTINE CO2CALC
@@ -2641,6 +2712,12 @@
      &    xco2_in,   ! atmospheric mole fraction CO2 in dry air (ppmv)
      &    atmpres     ! atmospheric pressure (atmosphere)
 
+#ifdef CH_CARBON_DEPTH
+         REAL, DIMENSION(istr:iend), INTENT(IN) ::
+     &    p         ! hydrostatic pressure (Pa)
+#endif /*CH_CARBON_DEPTH*/
+
+
     !---------------------------------------------------------------------------
     !   output arguments
     !---------------------------------------------------------------------------
@@ -2651,6 +2728,12 @@
      &    dco2star,  ! delta CO2 (mmol/m^3)
      &    pco2surf,  ! oceanic pCO2 (ppmv)
      &    dpco2       ! Delta pCO2, i.e, pCO2ocn - pCO2atm (ppmv)
+
+# if defined CH_CARBON_DEPTH
+       REAL, DIMENSION(istr:iend), INTENT(OUT) ::
+     &    hco3,         ! bicarbonate (mmol/m^3)
+     &    co3          ! carbonate (mmol/m^3)
+# endif /* CH_CARBON_DEPTH */
 
     !---------------------------------------------------------------------------
     !   local variable declarations
@@ -2667,6 +2750,15 @@
      &    co2starair,    ! co2star saturation
      &    tk100, tk1002, invtk, dlogtk, is2, sqrtis, 
      &    s2, sqrts, s15, htotal2
+
+
+#if  defined CH_CARBON_DEPTH
+      !   Declaration of variables used to calculate pressure dependent k1,k2,kb,kw,ks,kf,k1p,k2p,k3p
+        REAL ::
+     &    pdbar, rt, saltrat,
+     &    dvf, dkf, dv, dk, putponk1_mi, putponk2_mi, putponkb_mi, putponkw_mi,
+     &    putponks_mi, putponkf_mi, putponk1p_mi, putponk2p_mi, putponk3p_mi
+# endif /*CH_CARBON_DEPTH*/
 
         REAL, DIMENSION(istr:iend) :: 
      &    xco2,          ! atmospheric CO2 (atm)
@@ -2686,6 +2778,14 @@
          dpCO2       = c0
        RETURN
       END IF
+
+#if  defined CH_CARBON_DEPTH
+       IF (COUNT(mask) == 0) THEN
+         hco3        = c0
+         co3         = c0
+       RETURN
+      END IF
+# endif /*CH_CARBON_DEPTH*/
 
     !---------------------------------------------------------------------------
     !   set unit conversion factors
@@ -2748,7 +2848,7 @@
           !---------------------------------------------------------------------
 
             k0(i) = EXP(93.4517/tk100 - 60.2409 + 23.3585*LOG(tk100) + 
-     &          s(i)*(.023517 - 0.023656 * tk100 + 0.0047036 * tk1002))
+     &          s(i)*(0.023517 - 0.023656 * tk100 + 0.0047036 * tk1002))
 
           !---------------------------------------------------------------------
           !   k1 = [H][HCO3]/[H2CO3]
@@ -2761,7 +2861,7 @@
 
           k2(i) = 10**(-1*(1394.7*invtk + 4.777 - 
      &           0.0184*s(i) + 0.000118*s2))
-
+ 
           !---------------------------------------------------------------------
           !   kb = [H][BO2]/[HBO2]
           !   Millero p.669 (1995) using data from Dickson (1990)
@@ -2855,6 +2955,119 @@
           x1(i) = c10 ** (-phhi(i))
           x2(i) = c10 ** (-phlo(i))
 
+
+#if  defined CH_CARBON_DEPTH
+
+          !----------------------------------------------------------------------
+          !   Pressure effect on K's (Millero, 95), not dependent on salinity
+          !   taken from calc_saturate_roms.F (provided by Gian-Kasper Plattner 
+          !   (note that mistakes that were found in Millero 95 are corrected here!
+          !----------------------------------------------------------------------
+
+           pdbar=p(i)/100000.0            !pdbar = from pressure in Pa to bar
+           rt=(273.15+t(i))*83.145        !RT in cm^3 bar mole^-1
+
+          !---------------------------------------------------------------------
+          !   pressure dependence on k1
+          !---------------------------------------------------------------------
+
+           dv  = -25.5 + (0.1271 *t(i)) + (0.0 *t(i)*t(i))
+           dk  = -3.08e-3  +(( 0.0877e-3 *t(i)) + (0.0 *t(i)*t(i)))
+           putponk1_mi  =dexp((-dv*pdbar /rt) + (0.5*dk*pdbar**2.0/rt))
+
+           k1(i) = k1(i)*putponk1_mi
+
+          !---------------------------------------------------------------------
+          !   pressure dependence on k2
+          !---------------------------------------------------------------------
+
+           dv  = -15.82 + (-0.0219 *t(i)) + (0.0 *t(i)*t(i))
+           dk  =  1.13e-3 +((-0.1475e-3 *t(i)) + (0.0 *t(i)*t(i)))
+           putponk2_mi  =dexp((-dv*pdbar /rt) + (0.5*dk*pdbar**2.0/rt))
+
+           k2(i) = k2(i)*putponk2_mi
+
+
+          !---------------------------------------------------------------------
+          !   pressure dependence on kb
+          !---------------------------------------------------------------------
+
+           dv  = -29.48 + (0.1622 *t(i)) + (2.608e-3 *t(i)*t(i))
+           dk  = -2.84e-3  +((0.0 *t(i)) + (0.0 *t(i)*t(i)))
+           putponkb_mi  =dexp((-dv*pdbar /rt) + (0.5*dk*pdbar**2.0/rt))
+
+           kb(i) = kb(i)*putponkb_mi
+
+
+          !---------------------------------------------------------------------
+          !   pressure dependence on kw
+          !---------------------------------------------------------------------
+
+           dv  = -25.6 + (0.2324 *t(i)) + (-3.6246e-3 *t(i)*t(i))
+           dk  = -5.13e-3 +((0.0794e-3 *t(i)) + (0.0 *t(i)*t(i)))
+           putponkw_mi  =dexp((-dv*pdbar /rt) + (0.5*dk*pdbar**2.0/rt))
+
+           kw(i) = kw(i)*putponkw_mi
+
+
+          !---------------------------------------------------------------------
+          !   pressure dependence on ks
+          !---------------------------------------------------------------------
+
+           dv  = -18.03 + (0.0466 *t(i)) + (0.316e-3 *t(i)*t(i))
+           dk  = -4.53e-3 +((0.09e-3 *t(i)) + (0.0 *t(i)*t(i)))
+           putponks_mi  =dexp((-dv*pdbar /rt) + (0.5*dk*pdbar**2.0/rt))
+
+           ks(i) = ks(i)*putponks_mi
+
+
+          !---------------------------------------------------------------------
+          !   pressure dependence on kf
+          !---------------------------------------------------------------------
+
+           dv  = -9.78 + (-0.0090 *t(i)) + (-0.942e-3 *t(i)*t(i))
+           dk  = -3.91e-3 +((0.054e-3 *t(i)) + (0.0 *t(i)*t(i)))
+           putponkf_mi  =dexp((-dv*pdbar /rt) + (0.5*dk*pdbar**2.0/rt))
+
+           kf(i) = kf(i)*putponkf_mi
+
+
+          !---------------------------------------------------------------------
+          !   pressure dependence on k1p
+          !---------------------------------------------------------------------
+
+           dv  = -14.51 + (0.1211 *t(i)) + (-0.321e-3 *t(i)*t(i))
+           dk  = -2.67e-3 +((0.0427e-3 *t(i)) + (0.0 *t(i)*t(i)))
+           putponk1p_mi  =dexp((-dv*pdbar /rt) + (0.5*dk*pdbar**2.0/rt))
+
+           k1p(i) = k1p(i)*putponk1p_mi
+
+
+          !---------------------------------------------------------------------
+          !   pressure dependence on k2p
+          !---------------------------------------------------------------------
+
+           dv  = -23.12 + (0.1758 *t(i)) + (-2.647e-3 *t(i)*t(i))
+           dk  = -5.15e-3 +((0.09e-3 *t(i)) + (0.0 *t(i)*t(i)))
+           putponk2p_mi  =dexp((-dv*pdbar /rt) + (0.5*dk*pdbar**2.0/rt))
+
+           k2p(i) = k2p(i)*putponk2p_mi
+
+
+          !---------------------------------------------------------------------
+          !   pressure dependence on k3p
+          !---------------------------------------------------------------------
+
+           dv  = -26.57 + (0.2020 *t(i)) + (-3.042e-3 *t(i)*t(i))
+           dk  = -4.08e-3 +((0.0714e-3 *t(i)) + (0.0 *t(i)*t(i)))
+           putponk3p_mi  =dexp((-dv*pdbar /rt) + (0.5*dk*pdbar**2.0/rt))
+
+           k3p(i) = k3p(i)*putponk3p_mi
+
+
+#endif /* CH_CARBON_DEPTH */
+
+
         END IF ! if mask
 
        END DO ! i loop
@@ -2921,10 +3134,28 @@
           pCO2surf(i) = c0
           dpCO2(i)    = c0
 
+
         END IF ! if mask
        END DO ! i loop
 
-       END SUBROUTINE co2calc_row
+# if defined CH_CARBON_DEPTH
+        DO i = istr,iend
+          IF (mask(i)) THEN
+
+          hco3(i) = k1(i) * co2star(i) / htotal(i)
+          co3(i) = k2(i) * hco3(i) / htotal(i)
+
+
+        ELSE ! if mask
+
+          hco3(i)     = c0
+          co3(i)      = c0
+
+        END IF ! if mask
+       END DO ! i loop
+# endif /* CH_CARBON_DEPTH */
+
+      END SUBROUTINE co2calc_row
 
 !-------------------------------------------------------------------------
 !
