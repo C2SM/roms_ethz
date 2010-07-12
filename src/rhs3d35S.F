@@ -379,7 +379,10 @@ c**         rd(i,j)=rdrg + rdrg2*cff
 # if !defined IMPLICIT_BOTTOM_DRAG
 #  if !defined NO_SLIP_BOTTOM
 
+#ifdef ETHV10DRAG
+cmm  This was commented out in ATLSMA version
             rd(i,j)=min(rd(i,j), Hz(i,j,1)/dt) !<-- stability
+#endif
 
 # endif
 #endif
@@ -392,27 +395,21 @@ c??       endif
 # endif
           enddo
         enddo
-# if defined MPI  || defined EW_PERIODIC 
-        if (WEST_INTER) then        ! Save "rd" into shared array 
-          imin=istr-1               ! "r_D" for the subsequent use
-        else                        ! in barotropic mode. Note that
-          imin=istr                 ! in the case of MPI code the 
-        endif                       ! range of indices is extended
-        if (SOUTH_INTER) then       ! into one row of points in MPI
-          jmin=jstr-1               ! margines so that "r_D" can be
-        else                        ! correctly averaged to U- and
-          jmin=jstr                 ! V-points without exchanging
-        endif                       ! "r_D" by messages.
+# if defined MPI  || defined EW_PERIODIC
+        if (WEST_INTER) then          ! Save "rd" into shared array
+          imin=istr-1                 ! "r_D" for the subsequent use
+        else                          ! in barotropic mode. Note that
+          imin=istr                   ! in the case of MPI code the
+        endif                         ! range of indices is extended
 # else
-        imin=istr
-        jmin=jstr
+        imin=istr                     ! into one row of points in MPI
 # endif
 # if defined MPI  || defined NS_PERIODIC
         if (SOUTH_INTER) then
           jmin=jstr-1                 ! exchange margines so that
         else                          ! "r_D" can be correctly
           jmin=jstr                   ! averaged to U- and V-points
-        endif                         ! without exchanging its halo 
+        endif                         ! without exchanging its halo
 # else
         jmin=jstr                     ! points by MPI messages.
 
