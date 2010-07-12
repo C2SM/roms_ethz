@@ -20,6 +20,7 @@ CPP = cpp -traditional
 FC = mpif90
 LDR = $(FC)
 
+CPPFLAGS = -DPGI ${MAKEINC} -I /cluster/work/uwis/muennicm/local/netcdf/include -I /cluster/apps/openmpi/1.4.2/x86_64/pgi_10.6/include
 CPPFLAGS = -DPGI ${MAKEINC} -I /cluster/work/uwis/muennicm/local/netcdf/include
 FFLAGS = -mcmodel=medium -fast -O4 -tp shanghai-64,k8-64e,k8-64 $(OPENMP)
 LCDF =-L/cluster/work/uwis/muennicm/local/netcdf/lib -lnetcdf  -L/cluster/work/uwis/muennicm/local/hdf5/lib -lhdf5_hl -lhdf5  -lz

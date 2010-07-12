@@ -618,6 +618,8 @@ c# define OBC_EAST
 
 #elif defined ATLSMA   /* Atlantic 25 km Config. */
 
+# define LINEAR_SPONGE_PROFILE 
+
 # define SOLVE3D
 # define UV_ADV
 # define UV_COR
