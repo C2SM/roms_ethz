@@ -55,7 +55,7 @@
       end
 
 
-# ifdef NEW_S_COORD && LEGACY_S_COORD
+# if defined NEW_S_COORD && defined LEGACY_S_COORD
 
       function CSF (sc, theta_s,theta_b)          ! Legacy
       real*8 CSF, sc, theta_s,theta_b             ! S-coordinate
