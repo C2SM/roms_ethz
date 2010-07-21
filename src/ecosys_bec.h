@@ -36,13 +36,15 @@
      &   HCO3_HIST(GLOBAL_2D_ARRAY,N),
      &   CO3_HIST(GLOBAL_2D_ARRAY,N),
      &   CO2STAR_HIST(GLOBAL_2D_ARRAY,N),
-     &   pCO2sw(GLOBAL_2D_ARRAY,N)
+     &   pCO2sw(GLOBAL_2D_ARRAY,N),
+     &   DCO2STAR_HIST(GLOBAL_2D_ARRAY,N)
 
        common /time_averaging1/HCO3_HIST, CO3_HIST
 # else
        real PH_HIST(GLOBAL_2D_ARRAY),
      &   CO2STAR_HIST(GLOBAL_2D_ARRAY),
-     &   pCO2sw(GLOBAL_2D_ARRAY)
+     &   pCO2sw(GLOBAL_2D_ARRAY),
+     &   DCO2STAR(GLOBAL_2D_ARRAY)
 # endif /* CH_CARBON_DEPTH */
 
        real WS_HIST(GLOBAL_2D_ARRAY), 
@@ -54,7 +56,7 @@
      &    SCHMIDT_CO2_HIST(GLOBAL_2D_ARRAY), 
 !ch     &   PH_HIST(GLOBAL_2D_ARRAY), 
 !ch     &   CO2STAR_HIST(GLOBAL_2D_ARRAY),  
-     &   DCO2STAR_HIST(GLOBAL_2D_ARRAY), 
+!ch     &   DCO2STAR_HIST(GLOBAL_2D_ARRAY), 
 !ch     &   pCO2sw(GLOBAL_2D_ARRAY), 
 !hf     &   DpCO2(GLOBAL_2D_ARRAY), 
      &   pCO2air(GLOBAL_2D_ARRAY), 

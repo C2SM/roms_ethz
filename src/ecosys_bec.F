@@ -288,10 +288,10 @@
 
            pH_hist(istr:iend,j,k) = PH_NEW 
            CO2STAR_HIST(istr:iend,j,k) = CO2STAR_ROW 
-           DCO2STAR_HIST(istr:iend,j) = DCO2STAR_ROW
+           DCO2STAR_HIST(istr:iend,j,N) = DCO2STAR_ROW !is used to calculate air-sea flux
            HCO3_HIST(istr:iend,j,k) = HCO3_ROW
            CO3_HIST(istr:iend,j,k) = CO3_ROW 
-           pCO2sw(istr:iend,j,k) = pCO2SURF_ROW
+           pCO2sw(istr:iend,j,N) = pCO2SURF_ROW !it is only at surface!!!
            pCO2air(istr:iend,j)  = pCO2SURF_ROW - DpCO2_ROW
 
            FLUX(istr:iend,j) = PV(istr:iend,j) * DCO2STAR_ROW
@@ -2726,7 +2726,7 @@
      &    ph,        ! computed ph values, for initial guess on next time step
      &    co2star,   ! CO2*water (mmol/m^3)
      &    dco2star,  ! delta CO2 (mmol/m^3)
-     &    pco2surf,  ! oceanic pCO2 (ppmv)
+     &    pCO2surf,  ! oceanic pCO2 (ppmv)
      &    dpco2       ! Delta pCO2, i.e, pCO2ocn - pCO2atm (ppmv)
 
 # if defined CH_CARBON_DEPTH
