@@ -143,9 +143,12 @@ c      enddo
 #   ifdef OBC_WEST
           ibnd=min(ibnd,i + iSW_corn)
 #   endif
+! mm: Cludge: this is set off in ATLSMA not sure why.
+#  ifndef ATLSMA 
 #   ifdef OBC_EAST
           ibnd=min(ibnd,LLm+1 - i-iSW_corn)
 #   endif
+#  endif
 #   ifdef OBC_SOUTH
           ibnd=min(ibnd,j + jSW_corn)
 #   endif
