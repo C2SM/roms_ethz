@@ -143,8 +143,9 @@ c      enddo
 #   ifdef OBC_WEST
           ibnd=min(ibnd,i + iSW_corn)
 #   endif
-! mm: Cludge: this is set off in ATLSMA not sure why.
-#  ifndef ATLSMA 
+#  ifndef ATLSMA  
+! ATLSMA does not use a sponge in the EAST 
+! i.e., Baltic, Mediterranean 
 #   ifdef OBC_EAST
           ibnd=min(ibnd,LLm+1 - i-iSW_corn)
 #   endif
