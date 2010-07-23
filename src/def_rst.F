@@ -483,7 +483,8 @@
         ierr=nf_put_att_FTYPE (ncid, rstPH, '_FillValue', NF_FTYPE,
      &                                                 1, spv_set)
 #endif
-#endif /*CH_CARBON_DEPTH*/
+
+#else /*CH_CARBON_DEPTH*/
 !
 ! pH:
 !
@@ -500,6 +501,9 @@
         ierr=nf_put_att_FTYPE (ncid, rstPH, '_FillValue', NF_FTYPE,
      &                                                 1, spv_set)
 #endif
+
+#endif /*CH_CARBON_DEPTH*/
+
 !
 ! pCO2:
 !
