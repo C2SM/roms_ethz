@@ -483,7 +483,7 @@
         ierr=nf_put_att_FTYPE (ncid, rstPH, '_FillValue', NF_FTYPE,
      &                                                 1, spv_set)
 #endif
-#endif /*CH_CARBON_DEPTH*/
+#else /*CH_CARBON_DEPTH*/
 !
 ! pH:
 !
@@ -500,6 +500,7 @@
         ierr=nf_put_att_FTYPE (ncid, rstPH, '_FillValue', NF_FTYPE,
      &                                                 1, spv_set)
 #endif
+#endif /*CH_CARBON_DEPTH*/
 !
 ! pCO2:
 !
@@ -757,7 +758,7 @@
           write(stdout,1) vname(1,indxCO2STAR_rst)(1:lvar), rstname(1:lstr)
           goto 99                                         !--> ERROR
         endif
-#endif /*CH_CARBON_DEPTH*/
+!#endif /*CH_CARBON_DEPTH*/
 !
 ! PH
 !
@@ -767,6 +768,17 @@
           write(stdout,1) vname(1,indxPH_rst)(1:lvar), rstname(1:lstr)
           goto 99                                         !--> ERROR
         endif
+#else
+!
+! PH
+!
+        lvar=lenstr(vname(1,indxPH_rst))
+        ierr=nf_inq_varid (ncid, vname(1,indxPH_rst)(1:lvar), rstPH)
+        if (ierr. ne. nf_noerr) then
+          write(stdout,1) vname(1,indxPH_rst)(1:lvar), rstname(1:lstr)
+          goto 99                                         !--> ERROR
+        endif
+#endif /*CH_CARBON_DEPTH*/
 !
 ! pCO2:
 !
@@ -847,6 +859,7 @@
 #endif
   99  return                                              !--> ERROR
       end
+
 !
 ! The following is just a instrumented wrapped-around of nf_def_dim
 ! designed to print out an error message, if something goes wrong.
