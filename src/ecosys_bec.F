@@ -90,8 +90,10 @@
      &    p0 = 101325.0       ! avg. sea level pressure [Pa]
 
         real,dimension(istr:iend)::
-     &    HCO3_ROW,     ! HCO3 from solver
-     &    CO3_ROW       ! CO3 from solver
+     &    HCO3d_ROW,     ! HCO3 from solver
+     &    CO3d_ROW,      ! CO3 from solver
+     &    PHd_ROW,      ! PHDEPTH from solver
+     &    CO2STARd_ROW   ! CO2STAR depth from solver
 #endif /*CH_CARBON_DEPTH*/
 
 
@@ -257,49 +259,6 @@
            XCO2 = XCO2 + 2.9 * sin(deg2rad*(tdays-30.))
 # endif /* VARIABLE_ATM_PCO2 */
 
-
-#  ifdef CH_CARBON_DEPTH
-!           g    - grav. const. [m/s²]
-!           p0   - avg sea level pressure [Pa]
-!           z_r  - depth [m]
-!           rho0 - in situ density [kg/m³]
-           press_ch = (g*rho0*(-z_r))+p0  !hydrostatic pressure in [Pa]  
-        DO k = 1,N 
-         DO j = jstr,jend
-          WHERE (PH_HIST(istr:iend,j,k) /= c0) 
-             PHLO = PH_HIST(istr:iend,j,k) - del_ph 
-             PHHI = PH_HIST(istr:iend,j,k) + del_ph  
-          ELSEWHERE
-             PHLO = phlo_init
-             PHHI = phhi_init
-          END WHERE
-
-          CALL co2calc_row(LANDMASK(istr,j),
-     &        temp(istr,j,k), sal_ch(istr,j,k),
-     &        press_ch(istr,j,k),
-     &         tracer(istr,j,k,dic_ind,ctime),
-     &         tracer(istr,j,k,alk_ind,ctime),
-     &         tracer(istr,j,k,po4_ind,ctime),
-     &         tracer(istr,j,k,sio3_ind,ctime),
-     &          PHLO, PHHI, PH_NEW, XCO2,
-     &          AP_USED(istr,j), CO2STAR_ROW,
-     &          DCO2STAR_ROW, pCO2SURF_ROW,
-     &           DpCO2_ROW, HCO3_ROW, CO3_ROW, istr,iend)
-
-           pH_hist(istr:iend,j,k) = PH_NEW 
-           CO2STAR_HIST(istr:iend,j,k) = CO2STAR_ROW 
-           DCO2STAR_HIST(istr:iend,j,N) = DCO2STAR_ROW !is used to calculate air-sea flux
-           HCO3_HIST(istr:iend,j,k) = HCO3_ROW
-           CO3_HIST(istr:iend,j,k) = CO3_ROW 
-           pCO2sw(istr:iend,j,N) = pCO2SURF_ROW !it is only at surface!!!
-           pCO2air(istr:iend,j)  = pCO2SURF_ROW - DpCO2_ROW
-
-           FLUX(istr:iend,j) = PV(istr:iend,j) * DCO2STAR_ROW
-         END DO
-        END DO
- 
-#  else
-
          DO j = jstr,jend
           WHERE (PH_HIST(istr:iend,j) /= c0)
              PHLO = PH_HIST(istr:iend,j) - del_ph
@@ -309,15 +268,15 @@
              PHHI = phhi_init
           END WHERE
 
-          CALL co2calc_row(LANDMASK(istr,j), 
-     &        SSTT(istr,j), SSSS(istr,j), 
+          CALL co2calc_row(LANDMASK(istr,j),
+     &        SSTT(istr,j), SSSS(istr,j),
      &         tracer(istr,j,N,dic_ind,ctime),
      &         tracer(istr,j,N,alk_ind,ctime),
      &         tracer(istr,j,N,po4_ind,ctime),
      &         tracer(istr,j,N,sio3_ind,ctime),
-     &          PHLO, PHHI, PH_NEW, XCO2, 
-     &          AP_USED(istr,j), CO2STAR_ROW, 
-     &          DCO2STAR_ROW, pCO2SURF_ROW, 
+     &          PHLO, PHHI, PH_NEW, XCO2,
+     &          AP_USED(istr,j), CO2STAR_ROW,
+     &          DCO2STAR_ROW, pCO2SURF_ROW,
      &           DpCO2_ROW,istr,iend)
 
            pH_hist(istr:iend,j) = PH_NEW
@@ -329,6 +288,43 @@
 
            FLUX(istr:iend,j) = PV(istr:iend,j) * DCO2STAR_ROW
          END DO
+
+#  ifdef CH_CARBON_DEPTH
+!           g    - grav. const. [m/s²]
+!           p0   - avg sea level pressure [Pa]
+!           z_r  - depth [m]
+!           rho0 - in situ density [kg/m³]
+           press_ch = (g*rho0*(-z_r))+p0  !hydrostatic pressure in [Pa]  
+        DO k = 1,N 
+         DO j = jstr,jend
+          WHERE (PHd_HIST(istr:iend,j,k) /= c0)
+             PHHI = PHd_HIST(istr:iend,j,k) - del_ph
+             PHHI = PHd_HIST(istr:iend,j,k) + del_ph
+          ELSEWHERE
+             PHLO = phlo_init
+             PHHI = phhi_init
+          END WHERE
+
+
+          CALL co2calc_depth_row(LANDMASK(istr,j),
+     &        temp(istr,j,k), sal_ch(istr,j,k),
+     &        press_ch(istr,j,k),
+     &         tracer(istr,j,k,dic_ind,ctime),
+     &         tracer(istr,j,k,alk_ind,ctime),
+     &         tracer(istr,j,k,po4_ind,ctime),
+     &         tracer(istr,j,k,sio3_ind,ctime),
+     &          PHLO, PHHI,
+     &          CO2STARd_ROW,
+     &          HCO3d_ROW, CO3d_ROW, 
+     &          PHd_ROW, istr,iend)
+
+           CO2STARd_HIST(istr:iend,j,k) = CO2STARd_ROW 
+           HCO3d_HIST(istr:iend,j,k) = HCO3d_ROW
+           CO3d_HIST(istr:iend,j,k) = CO3d_ROW 
+           PHd_HIST(istr:iend,j,k) = PHd_ROW
+
+         END DO
+        END DO
 
 #  endif /* CH_CARBON_DEPTH */
 
@@ -2665,15 +2661,10 @@
 !     ************   SUBROUTINE CO2CALC_ROW   ***************************
 !-------------------------------------------------------------------------
 
-# ifdef CH_CARBON_DEPTH
-       SUBROUTINE co2calc_row(mask, t, s, p, dic_in, ta_in, pt_in,
-     &    sit_in, phlo, phhi, ph, xco2_in, atmpres, co2star,
-     &    dco2star, pCO2surf, dpco2, hco3, co3, istr,iend)
-# else
        SUBROUTINE co2calc_row(mask, t, s, dic_in, ta_in, pt_in,
      &    sit_in, phlo, phhi, ph, xco2_in, atmpres, co2star,
      &    dco2star, pCO2surf, dpco2, istr,iend)
-# endif /* CH_CARBON_DEPTH */
+
 
     !---------------------------------------------------------------------------
     !   SUBROUTINE CO2CALC
@@ -2712,11 +2703,6 @@
      &    xco2_in,   ! atmospheric mole fraction CO2 in dry air (ppmv)
      &    atmpres     ! atmospheric pressure (atmosphere)
 
-#ifdef CH_CARBON_DEPTH
-         REAL, DIMENSION(istr:iend), INTENT(IN) ::
-     &    p         ! hydrostatic pressure (Pa)
-#endif /*CH_CARBON_DEPTH*/
-
 
     !---------------------------------------------------------------------------
     !   output arguments
@@ -2729,11 +2715,6 @@
      &    pCO2surf,  ! oceanic pCO2 (ppmv)
      &    dpco2       ! Delta pCO2, i.e, pCO2ocn - pCO2atm (ppmv)
 
-# if defined CH_CARBON_DEPTH
-       REAL, DIMENSION(istr:iend), INTENT(OUT) ::
-     &    hco3,         ! bicarbonate (mmol/m^3)
-     &    co3          ! carbonate (mmol/m^3)
-# endif /* CH_CARBON_DEPTH */
 
     !---------------------------------------------------------------------------
     !   local variable declarations
@@ -2752,13 +2733,6 @@
      &    s2, sqrts, s15, htotal2
 
 
-#if  defined CH_CARBON_DEPTH
-      !   Declaration of variables used to calculate pressure dependent k1,k2,kb,kw,ks,kf,k1p,k2p,k3p
-        REAL ::
-     &    pdbar, rt, saltrat,
-     &    dvf, dkf, dv, dk, putponk1_mi, putponk2_mi, putponkb_mi, putponkw_mi,
-     &    putponks_mi, putponkf_mi, putponk1p_mi, putponk2p_mi, putponk3p_mi
-# endif /*CH_CARBON_DEPTH*/
 
         REAL, DIMENSION(istr:iend) :: 
      &    xco2,          ! atmospheric CO2 (atm)
@@ -2779,13 +2753,6 @@
        RETURN
       END IF
 
-#if  defined CH_CARBON_DEPTH
-       IF (COUNT(mask) == 0) THEN
-         hco3        = c0
-         co3         = c0
-       RETURN
-      END IF
-# endif /*CH_CARBON_DEPTH*/
 
     !---------------------------------------------------------------------------
     !   set unit conversion factors
@@ -2955,12 +2922,346 @@
           x1(i) = c10 ** (-phhi(i))
           x2(i) = c10 ** (-phlo(i))
 
+        END IF ! if mask
 
-#if  defined CH_CARBON_DEPTH
+       END DO ! i loop
+
+
+    !---------------------------------------------------------------------------
+    !   If DIC and TA are known then either a root finding or iterative
+    !   method must be used to calculate htotal. In this case we use
+    !   the Newton-Raphson "safe" method taken from "Numerical Recipes"
+    !   (function "rtsafe.f" with error trapping removed).
+    !
+    !   As currently set, this procedure iterates about 12 times. The
+    !   x1 and x2 values set below will accomodate ANY oceanographic
+    !   values. If an initial guess of the pH is known, then the
+    !   number of iterations can be reduced to about 5 by narrowing
+    !   the gap between x1 and x2. It is recommended that the first
+    !   few time steps be run with x1 and x2 set as below. After that,
+    !   set x1 and x2 to the previous value of the pH +/- ~0.5.
+    !---------------------------------------------------------------------------
+
+        CALL drtsafe_row(mask, x1, x2, xacc, htotal,istr,
+     &    iend, k0, k1, k2, 
+     &   kw, kb, ks, kf, k1p, k2p, k3p, ksi, 
+     &    ff, bt, st, ft, dic, ta, pt, sit)
+    !---------------------------------------------------------------------------
+    !   Calculate [CO2*] as defined in DOE Methods Handbook 1994 Ver.2,
+    !   ORNL/CDIAC-74, Dickson and Goyet, eds. (Ch 2 p 10, Eq A.49)
+    !---------------------------------------------------------------------------
+
+        DO i = istr,iend
+          IF (mask(i)) THEN
+
+          htotal2 = htotal(i) ** 2
+          co2star(i) = dic(i) * htotal2 / 
+     &          (htotal2 + k1(i)*htotal(i) + k1(i)*k2(i))
+          co2starair = xco2(i) * ff(i) * atmpres(i)
+          dco2star(i) = co2starair - co2star(i)
+          ph(i) = -LOG10(htotal(i))
+
+          !---------------------------------------------------------------------
+          !   Add two output arguments for storing pCO2surf
+          !   Should we be using K0 or ff for the solubility here?
+          !---------------------------------------------------------------------
+
+          pCO2surf(i) = co2star(i) / ff(i)
+          dpCO2(i)    = pCO2surf(i) - xco2(i) * atmpres(i)
+
+          !---------------------------------------------------------------------
+          !   Convert units of output arguments
+          !   Note: pCO2surf and dpCO2 are calculated in atm above.
+          !---------------------------------------------------------------------
+
+          co2star(i)  = co2star(i) * mass_to_vol
+          dco2star(i) = dco2star(i) * mass_to_vol
+
+          pCO2surf(i) = pCO2surf(i) * 1e6
+          dpCO2(i)    = dpCO2(i) * 1e6
+
+        ELSE ! if mask
+
+          ph(i)       = c0
+          co2star(i)  = c0
+          dco2star(i) = c0
+          pCO2surf(i) = c0
+          dpCO2(i)    = c0
+
+
+        END IF ! if mask
+       END DO ! i loop
+
+
+      END SUBROUTINE co2calc_row
+
+#if defined CH_CARBON_DEPTH
+       SUBROUTINE co2calc_depth_row(mask, t, s, p, dic_in, ta_in, pt_in,
+     &    sit_in, phlo, phhi, co2stard,
+     &    hco3d, co3d, phd, istr,iend)
+
+    !---------------------------------------------------------------------------
+    !   SUBROUTINE CO2CALC_DEPTH
+    !
+    !   CO2CALC_DEPTH is a copy of CO2CALC_DEPTH. co2*, pH, hco3, co3
+    !   are additionally calculated over all depths.   
+    !
+    !   PURPOSE : Calculate co2*, pH, hco3, co3 from total alkalinity, total CO2,
+    !             temp, salinity (s), etc. for all depths
+    !---------------------------------------------------------------------------
+        implicit none
+       real,parameter::c0=0.0, c1=1.0, c10=10.0,
+     &   c1000=1000.0, T0_Kelvin=273.16,rho_sw=4.1/3.996
+       integer::istr,iend
+    !---------------------------------------------------------------------------
+    !   input arguments
+    !---------------------------------------------------------------------------
+       REAL, PARAMETER :: xacc = 1e-10
+       INTEGER, PARAMETER :: maxit = 100
+
+  !-----------------------------------------------------------------------------
+  !   declarations for function coefficients & species concentrations
+  !-----------------------------------------------------------------------------
+
+        REAL, DIMENSION(istr:iend) ::
+     &  k0, k1, k2, kw, kb, ks, kf, k1p, k2p, k3p, ksi, ff,
+     &  bt, st, ft, dic, ta, pt, sit
+
+         LOGICAL, DIMENSION(istr:iend), INTENT(IN) :: mask
+         REAL, DIMENSION(istr:iend), INTENT(IN) ::
+     &    t,         ! temperature (degrees C)
+     &    s,         ! salinity (PSU)
+     &    dic_in,    ! total inorganic carbon (mmol/m^3)
+     &    ta_in,     ! total alkalinity (meq/m^3)
+     &    pt_in,     ! inorganic phosphate (mmol/m^3)
+     &    sit_in,    ! inorganic silicate (mmol/m^3)
+     &    phlo,      ! lower limit of pH range
+     &    phhi       ! upper limit of pH range
+
+         REAL, DIMENSION(istr:iend), INTENT(IN) ::
+     &   p         ! hydrostatic pressure (Pa)
+
+
+
+    !---------------------------------------------------------------------------
+    !   output arguments
+    !---------------------------------------------------------------------------
+
+       REAL, DIMENSION(istr:iend), INTENT(OUT) ::
+     &    hco3d,         ! bicarbonate (mmol/m^3)
+     &    co3d,          ! carbonate (mmol/m^3)
+     &    phd,           ! ph over all depths
+     &    co2stard       ! co2star over all depths (mmol/m^3)
+
+    !---------------------------------------------------------------------------
+    !   local variable declarations
+    !---------------------------------------------------------------------------
+
+       INTEGER :: i
+
+        REAL ::
+     &    mass_to_vol,   ! (mol/kg) -> (mmol/m^3)
+     &    vol_to_mass,   ! (mmol/m^3) -> (mol/kg)
+     &    tk,            ! temperature (K)
+     &    is,            ! ionic strength
+     &    scl,           ! chlorinity
+     &    tk100, tk1002, invtk, dlogtk, is2, sqrtis,
+     &    s2, sqrts, s15, htotal2
+
+
+      !   Declaration of variables used to calculate pressure dependent k1,k2,kb,kw,ks,kf,k1p,k2p,k3p
+        REAL ::
+     &    pdbar, rt, saltrat,
+     &    dvf, dkf, dv, dk, putponk1_mi, putponk2_mi, putponkb_mi, putponkw_mi,
+     &    putponks_mi, putponkf_mi, putponk1p_mi, putponk2p_mi, putponk3p_mi
+
+        REAL, DIMENSION(istr:iend) ::
+     &    htotal,        ! free concentration of H ion
+     &    x1, x2          ! bounds on htotal for solver
+
+    !---------------------------------------------------------------------------
+    !   check for existence of ocean points
+    !---------------------------------------------------------------------------
+
+
+       IF (COUNT(mask) == 0) THEN
+         hco3d          = c0
+         co3d           = c0
+         phd            = c0
+         co2stard       = c0
+       RETURN
+      END IF
+
+    !---------------------------------------------------------------------------
+    !   set unit conversion factors
+    !---------------------------------------------------------------------------
+
+       mass_to_vol = 1e6 * rho_sw
+       vol_to_mass = c1 / mass_to_vol
+
+    !---------------------------------------------------------------------------
+    !   convert tracer units to per mass 
+    !---------------------------------------------------------------------------
+
+        DO i = istr,iend
+          IF (mask(i)) THEN
+            dic(i)  = dic_in(i)  * vol_to_mass
+            ta(i)   = ta_in(i)   * vol_to_mass
+            pt(i)   = pt_in(i)   * vol_to_mass
+            sit(i)  = sit_in(i)  * vol_to_mass
+
+          !---------------------------------------------------------------------
+          !   Calculate all constants needed to convert between various
+          !   measured carbon species. References for each equation are
+          !   noted in the code.  Once calculated, the constants are stored
+          !   and passed in the common block "const". The original version
+          !   of this code was based on the code by Dickson in Version 2 of
+          !   "Handbook of Methods for the Analysis of the Various Parameters
+          !   of the Carbon Dioxide System in Seawater", DOE, 1994 (SOP No. 3,
+          !   p25-26).
+          !   Derive simple terms used more than once
+          !---------------------------------------------------------------------
+
+            tk       = T0_Kelvin + t(i)
+            tk100    = tk * 1e-2
+            tk1002   = tk100 * tk100
+            invtk    = c1 / tk
+            dlogtk   = LOG(tk)
+
+            is       = 19.924 * s(i) / (c1000 - 1.005 * s(i))
+            is2      = is * is
+            sqrtis   = SQRT(is)
+            sqrts    = SQRT(s(i))
+            s15      = s(i) ** 1.5
+            s2       = s(i) ** 2
+            scl      = s(i) / 1.80655
+
+          !---------------------------------------------------------------------
+          !   f = k0(1-pH2O)*correction term for non-ideality
+          !   Weiss  Price (1980, Mar. Chem., 8, 347-359;
+          !                 Eq 13 with table 6 values)
+          !---------------------------------------------------------------------
+
+            ff(i) = EXP(-162.8301 + 218.2968/tk100 +
+     &          90.9241*LOG(tk100) -
+     &          1.47696*tk1002 + s(i)*(.025695 - .025225*tk100 +
+     &          0.0049867*tk1002))
+
+          !---------------------------------------------------------------------
+          !   K0 from Weiss 1974
+          !---------------------------------------------------------------------
+
+            k0(i) = EXP(93.4517/tk100 - 60.2409 + 23.3585*LOG(tk100) +
+     &          s(i)*(0.023517 - 0.023656 * tk100 + 0.0047036 * tk1002))
+
+          !---------------------------------------------------------------------
+          !   k1 = [H][HCO3]/[H2CO3]
+          !   k2 = [H][CO3]/[HCO3]
+          !   Millero p.664 (1995) using Mehrbach et al. data on seawater scale
+          !---------------------------------------------------------------------
+
+          k1(i) = 10**(-1*(3670.7*invtk - 62.008 + 9.7944*dlogtk -
+     &         0.0118*s(i) + 0.000116*s2))
+
+          k2(i) = 10**(-1*(1394.7*invtk + 4.777 -
+     &           0.0184*s(i) + 0.000118*s2))
+
+          !---------------------------------------------------------------------
+          !   kb = [H][BO2]/[HBO2]
+          !   Millero p.669 (1995) using data from Dickson (1990)
+          !---------------------------------------------------------------------
+
+          kb(i) = EXP((-8966.90 - 2890.53*sqrts - 77.942*s(i) +
+     &          1.728*s15 - 0.0996*s2)*invtk +
+     &          (148.0248 + 137.1942*sqrts + 1.62142*s(i)) +
+     &          (-24.4344 - 25.085*sqrts - 0.2474*s(i)) *
+     &          dlogtk + 0.053105*sqrts*tk)
+
+          !---------------------------------------------------------------------
+          !   k1p = [H][H2PO4]/[H3PO4]
+          !   DOE(1994) eq 7.2.20 with footnote using data from Millero (1974)
+          !---------------------------------------------------------------------
+
+          k1p(i) = EXP(-4576.752*invtk + 115.525 - 18.453 * dlogtk +
+     &         (-106.736*invtk + 0.69171) * sqrts +
+     &          (-0.65643*invtk - 0.01844) * s(i))
+
+          !---------------------------------------------------------------------
+          !   k2p = [H][HPO4]/[H2PO4]
+          !   DOE(1994) eq 7.2.23 with footnote using data from Millero (1974))
+          !---------------------------------------------------------------------
+
+          k2p(i) = EXP(-8814.715*invtk + 172.0883 - 27.927 * dlogtk +
+     &          (-160.340*invtk + 1.3566) * sqrts +
+     &          (0.37335*invtk - 0.05778) * s(i))
+
+          !---------------------------------------------------------------------
+          !   k3p = [H][PO4]/[HPO4]
+          !   DOE(1994) eq 7.2.26 with footnote using data from Millero (1974)
+          !---------------------------------------------------------------------
+
+          k3p(i) = EXP(-3070.75*invtk - 18.141 +
+     &          (17.27039*invtk + 2.81197) * sqrts +
+     &          (-44.99486*invtk - 0.09984) * s(i))
+
+          !---------------------------------------------------------------------
+          !   ksi = [H][SiO(OH)3]/[Si(OH)4]
+          !   Millero p.671 (1995) using data from Yao and Millero (1995)
+          !---------------------------------------------------------------------
+          ksi(i) = EXP(-8904.2*invtk + 117.385 - 19.334 * dlogtk +
+     &         (-458.79*invtk + 3.5913) * sqrtis +
+     &         (188.74*invtk - 1.5998) * is +
+     &          (-12.1652*invtk + 0.07871) * is2 +
+     &          LOG(1.0-0.001005*s(i)))
+
+          !---------------------------------------------------------------------
+          !   kw = [H][OH]
+          !   Millero p.670 (1995) using composite data
+          !---------------------------------------------------------------------
+
+          kw(i) = EXP(-13847.26*invtk + 148.9652 - 23.6521 * dlogtk +
+     &        (118.67*invtk - 5.977 + 1.0495 * dlogtk) *
+     &         sqrts - 0.01615 * s(i))
+
+          !---------------------------------------------------------------------
+          !   ks = [H][SO4]/[HSO4]
+          !   Dickson (1990, J. chem. Thermodynamics 22, 113)
+          !---------------------------------------------------------------------
+
+          ks(i) = EXP(-4276.1*invtk + 141.328 - 23.093*dlogtk +
+     &          (-13856*invtk + 324.57 - 47.986*dlogtk) *
+     &          sqrtis +
+     &          (35474*invtk - 771.54 + 114.723*dlogtk) * is -
+     &          2698*invtk*is**1.5 + 1776*invtk*is2 +
+     &          LOG(1.0 - 0.001005*s(i)))
+
+          !---------------------------------------------------------------------
+          !   kf = [H][F]/[HF]
+          !   Dickson and Riley (1979) -- change pH scale to total
+          !---------------------------------------------------------------------
+
+          kf(i) = EXP(1590.2*invtk - 12.641 + 1.525*sqrtis +
+     &         LOG(1.0 - 0.001005*s(i)) +
+     &          LOG(1.0 + (0.1400/96.062)*(scl)/ks(i)))
+
+          !---------------------------------------------------------------------
+          !   Calculate concentrations for borate, sulfate, and fluoride
+          !   bt : Uppstrom (1974)
+          !   st : Morris  Riley (1966)
+          !   ft : Riley (1965)
+          !---------------------------------------------------------------------
+
+          bt(i) = 0.000232 * scl/10.811
+          st(i) = 0.14 * scl/96.062
+          ft(i) = 0.000067 * scl/18.9984
+
+          x1(i) = c10 ** (-phhi(i))
+          x2(i) = c10 ** (-phlo(i))
+
 
           !----------------------------------------------------------------------
           !   Pressure effect on K's (Millero, 95), not dependent on salinity
-          !   taken from calc_saturate_roms.F (provided by Gian-Kasper Plattner 
+          !   taken from calc_saturate_roms.F (provided by Gian-Kasper Plattner
           !   (note that mistakes that were found in Millero 95 are corrected here!
           !----------------------------------------------------------------------
 
@@ -3053,7 +3354,6 @@
 
            k2p(i) = k2p(i)*putponk2p_mi
 
-
           !---------------------------------------------------------------------
           !   pressure dependence on k3p
           !---------------------------------------------------------------------
@@ -3064,14 +3364,9 @@
 
            k3p(i) = k3p(i)*putponk3p_mi
 
-
-#endif /* CH_CARBON_DEPTH */
-
-
         END IF ! if mask
 
        END DO ! i loop
-
 
     !---------------------------------------------------------------------------
     !   If DIC and TA are known then either a root finding or iterative
@@ -3089,8 +3384,8 @@
     !---------------------------------------------------------------------------
 
         CALL drtsafe_row(mask, x1, x2, xacc, htotal,istr,
-     &    iend, k0, k1, k2, 
-     &   kw, kb, ks, kf, k1p, k2p, k3p, ksi, 
+     &    iend, k0, k1, k2,
+     &   kw, kb, ks, kf, k1p, k2p, k3p, ksi,
      &    ff, bt, st, ft, dic, ta, pt, sit)
     !---------------------------------------------------------------------------
     !   Calculate [CO2*] as defined in DOE Methods Handbook 1994 Ver.2,
@@ -3101,61 +3396,35 @@
           IF (mask(i)) THEN
 
           htotal2 = htotal(i) ** 2
-          co2star(i) = dic(i) * htotal2 / 
+          co2stard(i) = dic(i) * htotal2 /
      &          (htotal2 + k1(i)*htotal(i) + k1(i)*k2(i))
-          co2starair = xco2(i) * ff(i) * atmpres(i)
-          dco2star(i) = co2starair - co2star(i)
-          ph(i) = -LOG10(htotal(i))
-
-          !---------------------------------------------------------------------
-          !   Add two output arguments for storing pCO2surf
-          !   Should we be using K0 or ff for the solubility here?
-          !---------------------------------------------------------------------
-
-          pCO2surf(i) = co2star(i) / ff(i)
-          dpCO2(i)    = pCO2surf(i) - xco2(i) * atmpres(i)
+          phd(i) = -LOG10(htotal(i))
+          hco3d(i) = k1(i) * co2stard(i) / htotal(i)
+          co3d(i) = k2(i) * hco3d(i) / htotal(i)
 
           !---------------------------------------------------------------------
           !   Convert units of output arguments
           !   Note: pCO2surf and dpCO2 are calculated in atm above.
           !---------------------------------------------------------------------
 
-          co2star(i)  = co2star(i) * mass_to_vol
-          dco2star(i) = dco2star(i) * mass_to_vol
-
-          pCO2surf(i) = pCO2surf(i) * 1e6
-          dpCO2(i)    = dpCO2(i) * 1e6
+          co2stard(i)        = co2stard(i) * mass_to_vol
+          co3d(i)            = co3d(i) * mass_to_vol
+          hco3d(i)           = hco3d(i) * mass_to_vol
 
         ELSE ! if mask
 
-          ph(i)       = c0
-          co2star(i)  = c0
-          dco2star(i) = c0
-          pCO2surf(i) = c0
-          dpCO2(i)    = c0
-
+          phd(i)       = c0
+          co2stard(i)  = c0
+          hco3d(i)     = c0
+          co3d(i)      = c0
 
         END IF ! if mask
        END DO ! i loop
 
-# if defined CH_CARBON_DEPTH
-        DO i = istr,iend
-          IF (mask(i)) THEN
 
-          hco3(i) = k1(i) * co2star(i) / htotal(i)
-          co3(i) = k2(i) * hco3(i) / htotal(i)
+      END SUBROUTINE co2calc_depth_row
+#endif /*CH_CARBON_DEPTH*/
 
-
-        ELSE ! if mask
-
-          hco3(i)     = c0
-          co3(i)      = c0
-
-        END IF ! if mask
-       END DO ! i loop
-# endif /* CH_CARBON_DEPTH */
-
-      END SUBROUTINE co2calc_row
 
 !-------------------------------------------------------------------------
 !

@@ -304,67 +304,56 @@ CR      write(*,*) 'wrt_avg:  wrtT_sed  ' MYID
 #  if defined CH_CARBON_DEPTH
 
 !
-! Write out averaged CO2STAR:
+! Write out averaged CO2STAR_DEPTH:
 !
-      ierr=nf_fwrite (CO2STAR_avg(START_2D_ARRAY,1), ncidavg,
-     &                              avgCO2STAR, record, r3dvar)
+      ierr=nf_fwrite (CO2STARd_avg(START_2D_ARRAY,1), ncidavg,
+     &                              avgCO2STARd, record, r3dvar)
       write(*,*) 'ierr=' , ierr
       if (ierr .ne. nf_noerr) then
-        lvar=lenstr(vname(1,indxCO2STAR_rst))
-        write(stdout,1) vname(1,indxCO2STAR_rst)(1:lvar), record, ierr,
+        lvar=lenstr(vname(1,indxCO2STARd_rst))
+        write(stdout,1) vname(1,indxCO2STARd_rst)(1:lvar), record, ierr,
      &                  nf_strerror(ierr) MYID
         goto 99                                         !--> ERROR
       endif
 
 !
-! Write out averaged HCO3:
+! Write out averaged HCO3_DEPTH:
 !
-      ierr=nf_fwrite (HCO3_avg(START_2D_ARRAY,1), ncidavg,
-     &                              avgHCO3, record, r3dvar) 
+      ierr=nf_fwrite (HCO3d_avg(START_2D_ARRAY,1), ncidavg,
+     &                              avgHCO3d, record, r3dvar) 
       if (ierr .ne. nf_noerr) then
-        lvar=lenstr(vname(1,indxHCO3_rst))
-        write(stdout,1) vname(1,indxHCO3_rst)(1:lvar), record, ierr,
+        lvar=lenstr(vname(1,indxHCO3d_rst))
+        write(stdout,1) vname(1,indxHCO3d_rst)(1:lvar), record, ierr,
      &                  nf_strerror(ierr) MYID
         goto 99                                         !--> ERROR
       endif
 
 !
-! Write out averaged CO3:
+! Write out averaged CO3_DEPTH:
 !
-      ierr=nf_fwrite (CO3_avg(START_2D_ARRAY,1), ncidavg,
-     &                              avgCO3, record, r3dvar)
+      ierr=nf_fwrite (CO3d_avg(START_2D_ARRAY,1), ncidavg,
+     &                              avgCO3d, record, r3dvar)
       if (ierr .ne. nf_noerr) then
-        lvar=lenstr(vname(1,indxCO3_rst))
-        write(stdout,1) vname(1,indxCO3_rst)(1:lvar), record, ierr,
+        lvar=lenstr(vname(1,indxCO3d_rst))
+        write(stdout,1) vname(1,indxCO3d_rst)(1:lvar), record, ierr,
      &                  nf_strerror(ierr) MYID
         goto 99                                         !--> ERROR
       endif
 
 
 !
-! Write out averaged pH:
+! Write out averaged PH_DEPTH:
 !
-      ierr=nf_fwrite (pH_avg(START_2D_ARRAY,1), ncidavg,
-     &                              avgPH, record, r3dvar)
+      ierr=nf_fwrite (PHd_avg(START_2D_ARRAY,1), ncidavg,
+     &                              avgPHd, record, r3dvar)
       if (ierr .ne. nf_noerr) then
-        lvar=lenstr(vname(1,indxPH_rst))
-        write(stdout,1) vname(1,indxPH_rst)(1:lvar), record, ierr,
-     &                  nf_strerror(ierr) MYID
-        goto 99                                         !--> ERROR
-      endif
-!
-! Write out averaged pCO2:
-!
-      ierr=nf_fwrite (pCO2_avg(START_2D_ARRAY,1), ncidavg,
-     &                              avgPCO2, record, r3dvar)
-      if (ierr .ne. nf_noerr) then
-        lvar=lenstr(vname(1,indxPCO2_rst))
-        write(stdout,1) vname(1,indxPCO2_rst)(1:lvar), record, ierr,
+        lvar=lenstr(vname(1,indxPHd_rst))
+        write(stdout,1) vname(1,indxPHd_rst)(1:lvar), record, ierr,
      &                  nf_strerror(ierr) MYID
         goto 99                                         !--> ERROR
       endif
 
-#  else
+#  endif /* CH_CARBON_DEPTH */
 
 !
 ! Write out averaged pH:
@@ -388,8 +377,6 @@ CR      write(*,*) 'wrt_avg:  wrtT_sed  ' MYID
      &                  nf_strerror(ierr) MYID
         goto 99                                         !--> ERROR
       endif
-
-#  endif /* CH_CARBON_DEPTH */
 
 !
 ! Write out averaged pCO2air:

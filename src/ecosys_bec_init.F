@@ -161,8 +161,10 @@
 !!HF      endif
 
 # if defined CH_CARBON_DEPTH
-       HCO3_HIST            = c0
-       CO3_HIST             = c0
+       HCO3d_HIST            = c0
+       CO3d_HIST             = c0
+       CO2STARd_HIST         = c0
+       PHd_HIST              = c0
 # endif /* CH_CARBON_DEPTH */
 
        WS_HIST              = c0   
