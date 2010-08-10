@@ -298,7 +298,7 @@
         DO k = 1,N 
          DO j = jstr,jend
           WHERE (PHd_HIST(istr:iend,j,k) /= c0)
-             PHHI = PHd_HIST(istr:iend,j,k) - del_ph
+             PHLO = PHd_HIST(istr:iend,j,k) - del_ph
              PHHI = PHd_HIST(istr:iend,j,k) + del_ph
           ELSEWHERE
              PHLO = phlo_init
@@ -316,13 +316,12 @@
      &          PHLO, PHHI,
      &          CO2STARd_ROW,
      &          HCO3d_ROW, CO3d_ROW, 
-     &          PHd_ROW, istr,iend)
+     &          PHd_ROW,istr,iend)
 
            CO2STARd_HIST(istr:iend,j,k) = CO2STARd_ROW 
            HCO3d_HIST(istr:iend,j,k) = HCO3d_ROW
            CO3d_HIST(istr:iend,j,k) = CO3d_ROW 
            PHd_HIST(istr:iend,j,k) = PHd_ROW
-
          END DO
         END DO
 
@@ -3265,7 +3264,7 @@
           !   (note that mistakes that were found in Millero 95 are corrected here!
           !----------------------------------------------------------------------
 
-           pdbar=p(i)/100000.0            !pdbar = from pressure in Pa to bar
+           pdbar=p(i)*1.0e-5            !pdbar = from pressure in Pa to bar
            rt=(273.15+t(i))*83.145        !RT in cm^3 bar mole^-1
 
           !---------------------------------------------------------------------
@@ -3401,7 +3400,6 @@
           phd(i) = -LOG10(htotal(i))
           hco3d(i) = k1(i) * co2stard(i) / htotal(i)
           co3d(i) = k2(i) * hco3d(i) / htotal(i)
-
           !---------------------------------------------------------------------
           !   Convert units of output arguments
           !   Note: pCO2surf and dpCO2 are calculated in atm above.
