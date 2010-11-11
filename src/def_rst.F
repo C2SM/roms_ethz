@@ -500,7 +500,7 @@
         ierr=nf_put_att_FTYPE (ncid, rstPH, '_FillValue', NF_FTYPE,
      &                                                 1, spv_set)
 #endif
-#endif /*CH_CARBON_DEPTH*/
+
 !
 ! pCO2:
 !
@@ -517,6 +517,8 @@
         ierr=nf_put_att_FTYPE (ncid, rstPCO2, '_FillValue', NF_FTYPE,
      &                                                 1, spv_set)
 #endif
+
+#endif /*CH_CARBON_DEPTH*/
 
 #  ifdef OUTPUT_PCO2AIR_RST
 !
@@ -730,6 +732,7 @@
 
 # if defined BIOLOGY_BEC || (defined BIOLOGY_NPZDOC && \
     defined OXYGEN && defined CARBON)
+
 #ifdef CH_CARBON_DEPTH
 !
 ! HCO3:
@@ -758,7 +761,6 @@
           write(stdout,1) vname(1,indxCO2STAR_rst)(1:lvar), rstname(1:lstr)
           goto 99                                         !--> ERROR
         endif
-!#endif /*CH_CARBON_DEPTH*/
 !
 ! PH
 !
@@ -778,7 +780,6 @@
           write(stdout,1) vname(1,indxPH_rst)(1:lvar), rstname(1:lstr)
           goto 99                                         !--> ERROR
         endif
-#endif /*CH_CARBON_DEPTH*/
 !
 ! pCO2:
 !
@@ -788,6 +789,8 @@
           write(stdout,1) vname(1,indxPCO2_rst)(1:lvar), rstname(1:lstr)
           goto 99                                         !--> ERROR
         endif
+#endif /*CH_CARBON_DEPTH*/
+
 # ifdef OUTPUT_PCO2AIR_RST
 !
 ! pCO2air:

@@ -57,7 +57,7 @@ CPPFLAGS = -D__IFC -I$(MPI_ROOT)/include
 
 # OMP_FLAG = -fpp2 -openmp
 
-LARGE_MEM_FLAG = -mcmodel=medium -i-dynamic
+LARGE_MEM_FLAG = -mcmodel=large -i-dynamic
 
 #     CFT = ifc   $(OMP_FLAG) -pc80 -tpp7 -axW -xW
 #      CFT = ifort $(OMP_FLAG) -pc80 -tpp7 -axW -xW -auto -stack_temps

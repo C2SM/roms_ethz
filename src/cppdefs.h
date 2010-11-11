@@ -16,7 +16,10 @@
 #undef RIVER          /* River runoff test problem */
 #undef UPWELLING       /* Upwelling Example */
 #undef USWEST          /* US West Coast Application */
-#define USWC_CENTRAL
+#undef USWC_CENTRAL
+#undef HBCS60           /* Humboldt Current System Application */
+#undef HBCS5
+#define SAWC          /* South American West Coast, 7.5km HBCS */
 #undef WAVE_RAD        /* A test for wave radiation boundaries */
 #undef ATL360X408    /* Whole Atlantic 360x408 */
 !--> #define ATL50S70N    /* Whole Atlantic 50S x 70N (360x468) */
@@ -493,8 +496,8 @@ c--# define OBC_M2ORLANSKI
 # define ANA_SRFLUX
 # define ANA_VMIX
  
-#elif defined USWC_CENTRAL   /* US West Coast Configuration */
-# define SOLVE3D
+#elif defined SAWC   /* US West Coast Configuration */
+# define SOLVE3D                     /* or Humboldt Current System */
 # define UV_COR
 # define UV_ADV
 !                       Equation of State
@@ -563,12 +566,21 @@ c--# define OBC_M2ORLANSKI
 # undef OBC_M3SPECIFIED
 !
 # define AVERAGES
-!                       Biology
-# undef BIOLOGY
-# define BIOLOGY_BEC
-! Switch to calculate carbonsystem
-# define CH_CARBON_DEPTH
+# define LARGE_PHYS_FILES
+# define LARGE_AVG_FILES
+# define LARGE_HIS_FILES
+# define LARGE_RST_FILES
+# define EXACT_RESTART
 
+!                       Biology
+# define BIOLOGY_NPZDOC
+# define CARBON
+# define OXYGEN
+! Switch to calculate carbonsystem
+# define CH_CARBON_DEP
+# define BGC_FLUX_ANALYSIS
+# define PHYS_FLUX_ANALYSIS
+# undef FULL_PHYS_FLUX_ANALYSIS
 # define MULT_CLIM_FILES
 # define NEW_S_COORD
 # define DIURNAL_SRFLUX

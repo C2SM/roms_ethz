@@ -205,6 +205,10 @@
 #ifdef CARBON
 ! Set a default value for pCO2 in the air. Will be overwritten if 
 ! VARIABLE_ANN_ATM_PCO2 and/or VARIABLE_ATM_PCO2 is defined:
+
+! For 2050
+!          pCO2air_loc = 550.0 
+! For present day
            pCO2air_loc = 370.0
 # ifdef VARIABLE_ANN_ATM_PCO2
            ! Compute number of simulated days since the start of the simulation:

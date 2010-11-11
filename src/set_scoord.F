@@ -10,6 +10,9 @@
       integer k                       ! Compute vertical stretching
       real ds,sc, cff,cff1,cff2       ! curves at W- and RHO-points,
                                        
+! Modified Nov. 2010 by L. Kropuenske to reflect a third coordinate
+! system which is used in the SAWC simulations
+
 # ifndef NEW_S_COORD
       if (hc.le.hmin) then            !    -1 < Cs_r,Cs_w < 0, 
 # endif
@@ -20,18 +23,30 @@
           Cs_w(N)=0.D0                   ! and half-way over slope.
           do k=N-1,1,-1
             sc=ds*dble(k-N)
+# ifndef SAWC 
             Cs_w(k)=(1.D0-theta_b)*cff1*sinh(theta_s*sc)
      &        +theta_b*(cff2*tanh(theta_s*(sc+0.5D0))-0.5D0)
+# endif
+# ifdef SAWC
+            Cs_w(k)=(1.D0-cosh(theta_s*sc))/(cosh(theta_s)-1.D0)
+#endif
           enddo
           Cs_w(0)=-1.D0
 
           do k=1,N
             sc=ds*(dble(k-N)-0.5D0)
+
+# ifndef SAWC            
             Cs_r(k)=(1.D0-theta_b)*cff1*sinh(theta_s*sc)
      &         +theta_b*(cff2*tanh(theta_s*(sc+0.5D0))-0.5D0)
+#endif
+# ifdef SAWC 
+            Cs_r(k)=(1.D0-cosh(theta_s*sc))/(cosh(theta_s)-1.D0)
+#endif
           enddo
+
         else
-                                    ! When theta_s=0, set up
+                                         ! When theta_s=0, set up
           Cs_w(N)=0.D0                   ! a uniformly-spaced sigma
           do k=N-1,1,-1                  ! coordinate in vertical
             Cs_w(k)=ds*dble(k-N)        ! direction.

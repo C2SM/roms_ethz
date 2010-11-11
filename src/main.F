@@ -456,6 +456,7 @@ C$OMP END MASTER
       iic=iic+1 
       time=start_time+dt*float(iic-ntstart)
       tdays=time*sec2day
+   
 #ifdef SOLVE3D
       nstp=1+mod(iic-ntstart,2)
       nrhs=nstp

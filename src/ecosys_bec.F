@@ -375,14 +375,24 @@
      &          ,dt,ctime,dust(istr:iend,j))
            end do set_interior
         end do
-  
+        
 !tracer value write back to roms
         do k=1,n
            do m=1,ntrc_bio
               t(istr:iend,jstr:jend,k,nnew,1+ntrc_salt+ntrc_pas+m)=
      &             tracer(istr:iend,jstr:jend,k,m,ctime)
+
+c           IF (j == 50) THEN
+c              IF (k == 30) THEN
+c        print *,'j: ',j,' k: ',k,' m: ',m,' nnew: ',nnew,' iic: ',iic
+c        print *,'iic: ',iic,' PO4: ',t(200,50,30,1,ctime)
+c        print *,'iic: ',iic,' NO3: ',tracer(200,50,30,2,ctime)  
+c              ENDIF
+c           ENDIF
+
            enddo 
         enddo
+
       return 
        end
 
@@ -818,6 +828,7 @@
     !   min. relative uptake rate modifies C fixation in the manner
     !   that the min. cell quota does in GD98.
     !---------------------------------------------------------------------------
+        
 
         VNO3_sp = (NO3_loc / parm_sp_kNO3) / 
      &    (c1 + (NO3_loc / parm_sp_kNO3) + (NH4_loc / parm_sp_kNH4))
@@ -828,6 +839,11 @@
         VNtot_sp = VNO3_sp + VNH4_sp
         sp_N_lim_HIST(ISTR:IEND,J,K) = VNtot_sp
 
+
+c        WHERE (VNtot_sp > 0)
+c        print *,'iic: ',iic,' j: ',j,' k: ',k
+c        print *,'VNtot_sp(200,j,k): ',VNtot_sp(200,j,k)
+c        END WHERE
 
     !---------------------------------------------------------------------------
     !   get relative Fe uptake by phytoplankton

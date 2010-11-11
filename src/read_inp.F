@@ -113,6 +113,12 @@ c--      fname='roms.in.USW20'
 c--      fname='roms.in.US_West'
 #elif defined USWC_CENTRAL
       fname='usw.in'
+#elif defined HBCS60
+      fname='hbcs.in'
+#elif defined HBCS5
+      fname='hbcs5.in'
+#elif defined SAWC
+      fname='sawc.in'
 #elif defined DAMEE_B
       fname='roms.in.Atl4'
 #else

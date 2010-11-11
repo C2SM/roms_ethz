@@ -259,7 +259,6 @@
      &        ierr, nf_strerror(ierr) MYID
          goto 99                !--> ERROR
       endif
-#endif /*CH_CARBON_DEPTH*/
 !
 ! pCO2:
 !
@@ -270,6 +269,7 @@
      &        ierr, nf_strerror(ierr) MYID
          goto 99                !--> ERROR
       endif
+#endif /*CH_CARBON_DEPTH*/
 #  ifdef OUTPUT_PCO2AIR_RST
 !
 ! pCO2air:
