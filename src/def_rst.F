@@ -413,6 +413,73 @@
 #endif /* FLOATS */
 # if defined BIOLOGY_BEC || (defined BIOLOGY_NPZDOC && \
     defined OXYGEN && defined CARBON)
+
+#ifdef CH_CARBON_DEPTH
+!
+! HCO3
+!
+        lvar = lenstr(vname(1,indxHCO3_rst))
+        ierr=nf_def_var (ncid, vname(1,indxHCO3_rst)(1:lvar),
+     &       NF_FTYPE, 3, r3dgrd, rstHCO3)
+        lvar=lenstr(vname(2,indxHCO3_rst))
+        ierr=nf_put_att_text (ncid, rstHCO3, 'long_name',
+     &       lvar, vname(2,indxHCO3_rst)(1:lvar))
+        lvar=lenstr(vname(3,indxHCO3_rst))
+        ierr=nf_put_att_text (ncid, rstHCO3, 'units', lvar,
+     &       vname(3,indxHCO3_rst)(1:lvar))
+#ifdef MASK_LAND_DATA
+        ierr=nf_put_att_FTYPE (ncid, rstHCO3, '_FillValue', NF_FTYPE,
+     &                                                 1, spv_set)
+#endif
+!
+! CO3:
+!
+        lvar = lenstr(vname(1,indxCO3_rst))
+        ierr=nf_def_var (ncid, vname(1,indxCO3_rst)(1:lvar),
+     &       NF_FTYPE, 3, r3dgrd, rstCO3)
+        lvar=lenstr(vname(2,indxCO3_rst))
+        ierr=nf_put_att_text (ncid, rstCO3, 'long_name',
+     &       lvar, vname(2,indxCO3_rst)(1:lvar))
+        lvar=lenstr(vname(3,indxCO3_rst))
+        ierr=nf_put_att_text (ncid, rstCO3, 'units', lvar,
+     &       vname(3,indxCO3_rst)(1:lvar))
+#ifdef MASK_LAND_DATA
+        ierr=nf_put_att_FTYPE (ncid, rstCO3, '_FillValue', NF_FTYPE,
+     &                                                 1, spv_set)
+#endif
+!
+! CO2STAR:
+!
+        lvar = lenstr(vname(1,indxCO2STAR_rst))
+        ierr=nf_def_var (ncid, vname(1,indxCO2STAR_rst)(1:lvar),
+     &       NF_FTYPE, 3, r3dgrd, rstCO2STAR)
+        lvar=lenstr(vname(2,indxCO2STAR_rst))
+        ierr=nf_put_att_text (ncid, rstCO2STAR, 'long_name',
+     &       lvar, vname(2,indxCO2STAR_rst)(1:lvar))
+        lvar=lenstr(vname(3,indxCO2STAR_rst))
+        ierr=nf_put_att_text (ncid, rstCO2STAR, 'units', lvar,
+     &       vname(3,indxCO2STAR_rst)(1:lvar))
+#ifdef MASK_LAND_DATA
+        ierr=nf_put_att_FTYPE (ncid, rstCO2STAR, '_FillValue', NF_FTYPE,
+     &                                               1, spv_set)
+#endif
+!
+! pH:
+!
+        lvar = lenstr(vname(1,indxPH_rst))
+        ierr=nf_def_var (ncid, vname(1,indxPH_rst)(1:lvar),
+     &       NF_FTYPE, 3, r3dgrd, rstPH)
+        lvar=lenstr(vname(2,indxPH_rst))
+        ierr=nf_put_att_text (ncid, rstPH, 'long_name',
+     &       lvar, vname(2,indxPH_rst)(1:lvar))
+        lvar=lenstr(vname(3,indxPH_rst))
+        ierr=nf_put_att_text (ncid, rstPH, 'units', lvar,
+     &       vname(3,indxPH_rst)(1:lvar))
+#ifdef MASK_LAND_DATA
+        ierr=nf_put_att_FTYPE (ncid, rstPH, '_FillValue', NF_FTYPE,
+     &                                                 1, spv_set)
+#endif
+#else /*CH_CARBON_DEPTH*/
 !
 ! pH:
 !
@@ -429,6 +496,7 @@
         ierr=nf_put_att_FTYPE (ncid, rstPH, '_FillValue', NF_FTYPE,
      &                                                 1, spv_set)
 #endif
+
 !
 ! pCO2:
 !
@@ -445,6 +513,8 @@
         ierr=nf_put_att_FTYPE (ncid, rstPCO2, '_FillValue', NF_FTYPE,
      &                                                 1, spv_set)
 #endif
+
+#endif /*CH_CARBON_DEPTH*/
 
 #  ifdef OUTPUT_PCO2AIR_RST
 !
@@ -658,8 +728,47 @@
 
 # if defined BIOLOGY_BEC || (defined BIOLOGY_NPZDOC && \
     defined OXYGEN && defined CARBON)
+
+#ifdef CH_CARBON_DEPTH
 !
-! pH:
+! HCO3:
+!
+        lvar=lenstr(vname(1,indxHCO3_rst))
+        ierr=nf_inq_varid (ncid, vname(1,indxHCO3_rst)(1:lvar), rstHCO3)
+        if (ierr. ne. nf_noerr) then
+          write(stdout,1) vname(1,indxHCO3_rst)(1:lvar), rstname(1:lstr)
+          goto 99                                         !--> ERROR
+        endif
+!
+! CO3:
+!
+        lvar=lenstr(vname(1,indxCO3_rst))
+        ierr=nf_inq_varid (ncid, vname(1,indxCO3_rst)(1:lvar), rstCO3)
+        if (ierr. ne. nf_noerr) then
+          write(stdout,1) vname(1,indxCO3_rst)(1:lvar), rstname(1:lstr)
+          goto 99                                         !--> ERROR
+        endif
+!
+! CO2STAR:
+!
+        lvar=lenstr(vname(1,indxCO2STAR_rst))
+        ierr=nf_inq_varid (ncid, vname(1,indxCO2STAR_rst)(1:lvar), rstCO2STAR)
+        if (ierr. ne. nf_noerr) then
+          write(stdout,1) vname(1,indxCO2STAR_rst)(1:lvar), rstname(1:lstr)
+          goto 99                                         !--> ERROR
+        endif
+!
+! PH
+!
+        lvar=lenstr(vname(1,indxPH_rst))
+        ierr=nf_inq_varid (ncid, vname(1,indxPH_rst)(1:lvar), rstPH)
+        if (ierr. ne. nf_noerr) then
+          write(stdout,1) vname(1,indxPH_rst)(1:lvar), rstname(1:lstr)
+          goto 99                                         !--> ERROR
+        endif
+#else
+!
+! PH
 !
         lvar=lenstr(vname(1,indxPH_rst))
         ierr=nf_inq_varid (ncid, vname(1,indxPH_rst)(1:lvar), rstPH)
@@ -676,6 +785,8 @@
           write(stdout,1) vname(1,indxPCO2_rst)(1:lvar), rstname(1:lstr)
           goto 99                                         !--> ERROR
         endif
+#endif /*CH_CARBON_DEPTH*/
+
 # ifdef OUTPUT_PCO2AIR_RST
 !
 ! pCO2air:
@@ -747,6 +858,7 @@
 #endif
   99  return                                              !--> ERROR
       end
+
 !
 ! The following is just a instrumented wrapped-around of nf_def_dim
 ! designed to print out an error message, if something goes wrong.

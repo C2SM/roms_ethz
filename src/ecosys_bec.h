@@ -11,8 +11,12 @@
 !zt: vert dist from sfc to midpoint of layer
 
        real tracer(GLOBAL_2D_ARRAY,N,ntrc_bio,2)
+! Initial tracers values for the bottom layer of the one dimension configuration (JDS)
+       real INITIAL_TRACER(GLOBAL_2D_ARRAY,ntrc_bio)
+       real initial_temp(GLOBAL_2D_ARRAY)
+       real initial_salt(GLOBAL_2D_ARRAY)
 
-        common /tracers/ tracer
+        common /tracers/ tracer,initial_tracer,initial_temp,initial_salt
 !MODHF        common /vert/ kmt
 !HF        common /dzc/dz
 !HF        common /dzrc/dzr
@@ -27,6 +31,21 @@
 !--------------------------------------------------------------------------
 !   variables used for time-averaging
 !--------------------------------------------------------------------------
+# ifdef CH_CARBON_DEPTH
+       real PH_HIST(GLOBAL_2D_ARRAY,N),
+     &   HCO3_HIST(GLOBAL_2D_ARRAY,N),
+     &   CO3_HIST(GLOBAL_2D_ARRAY,N),
+     &   CO2STAR_HIST(GLOBAL_2D_ARRAY,N),
+     &   pCO2sw(GLOBAL_2D_ARRAY,N),
+     &   DCO2STAR_HIST(GLOBAL_2D_ARRAY,N)
+
+       common /time_averaging1/HCO3_HIST, CO3_HIST
+# else
+       real PH_HIST(GLOBAL_2D_ARRAY),
+     &   CO2STAR_HIST(GLOBAL_2D_ARRAY),
+     &   pCO2sw(GLOBAL_2D_ARRAY),
+     &   DCO2STAR(GLOBAL_2D_ARRAY)
+# endif /* CH_CARBON_DEPTH */
 
        real WS_HIST(GLOBAL_2D_ARRAY), 
      &   XKW_HIST(GLOBAL_2D_ARRAY), 
@@ -35,10 +54,10 @@
      &   O2SAT_HIST(GLOBAL_2D_ARRAY), 
      &   FG_O2_HIST(GLOBAL_2D_ARRAY), 
      &    SCHMIDT_CO2_HIST(GLOBAL_2D_ARRAY), 
-     &   PH_HIST(GLOBAL_2D_ARRAY), 
-     &   CO2STAR_HIST(GLOBAL_2D_ARRAY),  
-     &   DCO2STAR_HIST(GLOBAL_2D_ARRAY), 
-     &   pCO2sw(GLOBAL_2D_ARRAY), 
+!ch     &   PH_HIST(GLOBAL_2D_ARRAY), 
+!ch     &   CO2STAR_HIST(GLOBAL_2D_ARRAY),  
+!ch     &   DCO2STAR_HIST(GLOBAL_2D_ARRAY), 
+!ch     &   pCO2sw(GLOBAL_2D_ARRAY), 
 !hf     &   DpCO2(GLOBAL_2D_ARRAY), 
      &   pCO2air(GLOBAL_2D_ARRAY), 
      &    FG_CO2_HIST(GLOBAL_2D_ARRAY), 
@@ -208,6 +227,7 @@
 !------------------------------------------------------------------------
 !   restoring climatologies for nutrients
 !------------------------------------------------------------------------
+
 
        logical lrest_po4,lrest_no3,lrest_sio3 
 !     lrest_po4,    restoring on po4 

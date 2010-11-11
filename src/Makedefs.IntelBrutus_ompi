@@ -57,7 +57,7 @@ CPPFLAGS = -D__IFC -I$(MPI_ROOT)/include
 
 # OMP_FLAG = -fpp2 -openmp
 
-LARGE_MEM_FLAG = -mcmodel=medium -i-dynamic
+LARGE_MEM_FLAG = -mcmodel=large -i-dynamic
 
 #     CFT = ifc   $(OMP_FLAG) -pc80 -tpp7 -axW -xW
 #      CFT = ifort $(OMP_FLAG) -pc80 -tpp7 -axW -xW -auto -stack_temps
@@ -100,8 +100,8 @@ LARGE_MEM_FLAG = -mcmodel=medium -i-dynamic
 
 #   LCDF = -lnetcdf
 # mm ETHZ Gonzales cluster
-LCDF = -L/opt/netcdf/3.6.2/lib -lnetcdf
 # mm ETHZ Brutus cluster
+LCDF = -L/cluster/apps/netcdf/3.6.2/x86_64/intel/lib -lnetcdff -lnetcdf
 #LCDF = -L/panfs/panasas.hpc-net.ethz.ch/uwis/muennicm/intel/lib -lnetcdf
 # mm ETHZ Brutus/ Gonzales cluster Quadrics MPI
 LMPI = -L$(MPI_ROOT)/lib -lmpi

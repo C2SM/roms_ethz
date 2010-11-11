@@ -207,6 +207,48 @@
 #  endif /* SEDIMENT_BIOLOGY */
 #  if defined BIOLOGY_BEC || (defined BIOLOGY_NPZDOC && \
     defined OXYGEN && defined CARBON)
+#if defined CH_CARBON_DEPTH
+!
+! HCO3:
+!
+      ierr=nf_fwrite (hco3_hist, ncidrst, rstHCO3, record, r3dvar)
+      if (ierr .ne. nf_noerr) then
+         lvar=lenstr(vname(1,indxHCO3_rst))
+         write(stdout,1) vname(1,indxHCO3_rst)(1:lvar), record,
+     &        ierr, nf_strerror(ierr) MYID
+         goto 99                !--> ERROR
+      endif
+!
+! CO3:
+!
+      ierr=nf_fwrite (co3_hist, ncidrst, rstCO3, record, r3dvar)
+      if (ierr .ne. nf_noerr) then
+         lvar=lenstr(vname(1,indxCO3_rst))
+         write(stdout,1) vname(1,indxCO3_rst)(1:lvar), record,
+     &        ierr, nf_strerror(ierr) MYID
+         goto 99                !--> ERROR
+      endif
+!
+! CO2STAR:
+!
+      ierr=nf_fwrite (co2star_hist, ncidrst, rstCO2STAR, record, r3dvar)
+      if (ierr .ne. nf_noerr) then
+         lvar=lenstr(vname(1,indxCO2STAR_rst))
+         write(stdout,1) vname(1,indxCO2STAR_rst)(1:lvar), record,
+     &        ierr, nf_strerror(ierr) MYID
+         goto 99                !--> ERROR
+      endif
+!
+! pH:
+!
+      ierr=nf_fwrite (ph_hist, ncidrst, rstPH, record, r3dvar)
+      if (ierr .ne. nf_noerr) then
+         lvar=lenstr(vname(1,indxPH_rst))
+         write(stdout,1) vname(1,indxPH_rst)(1:lvar), record,
+     &        ierr, nf_strerror(ierr) MYID
+         goto 99                !--> ERROR
+      endif
+#else
 !
 ! pH:
 !
@@ -227,6 +269,7 @@
      &        ierr, nf_strerror(ierr) MYID
          goto 99                !--> ERROR
       endif
+#endif /*CH_CARBON_DEPTH*/
 #  ifdef OUTPUT_PCO2AIR_RST
 !
 ! pCO2air:

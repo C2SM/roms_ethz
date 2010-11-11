@@ -54,8 +54,14 @@
 # endif
       parameter (indxO=indxT+NT
 # if defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC
-      /* Create space for pH, pCO2, pCO2air, PARinc, and PAR: */
+#  if defined CH_CARBON_DEPTH
+      /* Create space for CO3, HCO3, CO2STAR, pH, pCO2, pCO2air, PARinc, and PAR: */
+     &     + 8
+# else
+      /* Create space for pH, pCO2, pCO2air, PARinc, PAR: */
      &     + 5
+#  endif /* CH_CARBON_DEPTH */
+
 #  ifdef SEDIMENT_BIOLOGY
      &     + NT_sed
 #  endif
@@ -180,6 +186,36 @@
 # endif /* BIOLOGY_NPZDOC */
 
 # ifdef BIOLOGY_BEC
+#  if defined CH_CARBON_DEPTH
+       integer indxPo4,indxNo3,indxSio3,indxNh4,indxFe,indxO2,indxDic,
+     &   indxAlk,indxDoc,indxSpc,indxSpchl,indxSpcaco3,indxDiatc,indxDiatchl,
+     & indxZooc,indxSpfe,indxDiatsi,indxDiatfe,indxDiazc,indxDiazchl,
+     & indxDiazfe,indxDon,indxDofe,indxDop,indxPH_rst,
+     & indxPCO2_rst, indxPCO2air_rst, indxPARinc_rst, indxPAR_rst,
+     & indxCO2STAR_rst, indxHCO3_rst, indxCO3_rst
+       parameter ( indxPO4=indxT+ntrc_salt+ntrc_pas+1,
+     &           indxNo3 =indxPO4+1, indxSio3=indxPO4+2,
+     &           indxNh4 =indxPO4+3, indxFe=indxPO4+4,
+     &           indxO2 =indxPO4+5, indxDic=indxPO4+6,
+     &           indxAlk =indxPO4+7, indxDoc=indxPO4+8,
+     &           indxSpc =indxPO4+9, indxSpchl=indxPO4+10,
+     &           indxSpcaco3 =indxPO4+11, indxDiatc=indxPO4+12,
+     &           indxDiatchl =indxPO4+13, indxZooc=indxPO4+14,
+     &           indxSpfe =indxPO4+15, indxDiatsi=indxPO4+16,
+     &           indxDiatfe =indxPO4+17, indxDiazc=indxPO4+18,
+     &           indxDiazchl =indxPO4+19, indxDiazfe=indxPO4+20,
+     &           indxDon =indxPO4+21, indxDofe=indxPO4+22,
+     &           indxDop =indxPO4+23)
+       parameter(indxPH_rst = indxDOP+1
+     &      )
+       parameter(indxPCO2_rst = indxPH_rst+1,
+     &      indxPCO2air_rst = indxPCO2_rst+1,
+     &      indxPARinc_rst = indxPCO2air_rst+1,
+     &      indxCO2STAR_rst = indxPARinc_rst+1,
+     &      indxHCO3_rst = indxCO2STAR_rst+1,
+     &      indxCO3_rst = indxHCO3_rst+1,
+     &      indxPAR_rst = indxCO3_rst+1)
+# else
        integer indxPo4,indxNo3,indxSio3,indxNh4,indxFe,indxO2,indxDic,
      &   indxAlk,indxDoc,indxSpc,indxSpchl,indxSpcaco3,indxDiatc,indxDiatchl,
      & indxZooc,indxSpfe,indxDiatsi,indxDiatfe,indxDiazc,indxDiazchl,
@@ -198,12 +234,13 @@
      &           indxDiazchl =indxPO4+19, indxDiazfe=indxPO4+20,
      &           indxDon =indxPO4+21, indxDofe=indxPO4+22,
      &           indxDop =indxPO4+23)
-       parameter (indxPH_rst = indxDOP+1
+       parameter(indxPH_rst = indxDOP+1
      &      )
        parameter(indxPCO2_rst = indxPH_rst+1,
      &      indxPCO2air_rst = indxPCO2_rst+1,
      &      indxPARinc_rst = indxPCO2air_rst+1,
      &      indxPAR_rst = indxPARinc_rst+1)
+#  endif /* CH_CARBON_DEPTH */
 # endif /* BIOLOGY_BEC */
 #endif /* SOLVE3D */
 
@@ -289,9 +326,15 @@
      &        , hisRich, hisRichN
 #endif
 # if defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC
+#  if defined CH_CARBON_DEPTH
+     &      , rstHCO3, rstCO3, rstCO2STAR, rstPH, rstPCO2, rstPCO2air, rstPAR
+     &      , hisHCO3, hisCO3, hisCO2STAR, hisPH, hisPCO2, hisPCO2air, hisPARinc, hisPAR
+     &      , avgHCO3, avgCO3, avgCO2STAR, avgPH, avgPCO2, avgPCO2air, avgPARinc, avgPAR
+# else
      &      , rstPH, rstPCO2, rstPCO2air, rstPAR
      &      , hisPH, hisPCO2, hisPCO2air, hisPARinc, hisPAR
      &      , avgPH, avgPCO2, avgPCO2air, avgPARinc, avgPAR
+#  endif /* CH_CARBON_DEPTH */
 # endif /* BIOLOGY_NPZDOC || BIOLOGY_BEC */
 #if defined BGC_FLUX_ANALYSIS || defined PHYS_FLUX_ANALYSIS
      &      , rstTstepFA
@@ -306,9 +349,15 @@
      &        , hisRich, hisRichN
 # endif
 # if defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC
+#  if defined CH_CARBON_DEPTH
+     &      , rstHCO3, rstCO3, rstCO2STAR, rstPH, rstPCO2, rstPCO2air, rstPAR
+     &      , hisHCO3, hisCO3, hisCO2STAR, hisPH, hisPCO2, hisPCO2air, hisPARinc, hisPAR
+     &      , avgHCO3, avgCO3, avgCO2STAR, avgPH, avgPCO2, avgPCO2air, avgPARinc, avgPAR
+# else
      &      , rstPH, rstPCO2, rstPCO2air, rstPAR
      &      , hisPH, hisPCO2, hisPCO2air, hisPARinc, hisPAR
      &      , avgPH, avgPCO2, avgPCO2air, avgPARinc, avgPAR
+#  endif /* CH_CARBON_DEPTH */
 # endif /* BIOLOGY_NPZDOC || BIOLOGY_BEC */
 #if defined BGC_FLUX_ANALYSIS || defined PHYS_FLUX_ANALYSIS
      &      , rstTstepFA

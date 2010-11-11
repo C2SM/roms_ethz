@@ -128,13 +128,32 @@
           enddo
 #  endif /* SEDIMENT_BIOLOGY */
 #  if defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC
+#   if defined CH_CARBON_DEPTH
+         do k=1,N
+          do j=jstrR,jendR
+             do i=istrR,iendR
+                HCO3_avg(i,j,k) = HCO3_hist(i,j,k)
+                CO3_avg(i,j,k) = CO3_hist(i,j,k)
+                CO2STAR_avg(i,j,k) = CO2STAR_hist(i,j,k)
+                pH_avg(i,j,k) = pH_hist(i,j,k)
+                pCO2_avg(i,j,k) = pCO2sw(i,j,k)
+             end do
+           end do
+         end do
+# else
           do j=jstrR,jendR
              do i=istrR,iendR
                 pH_avg(i,j) = pH_hist(i,j)
                 pCO2_avg(i,j) = pCO2sw(i,j)
+             end do
+          end do
+#   endif /* CH_CARBON_DEPTH */
+          do j=jstrR,jendR
+             do i=istrR,iendR
                 pCO2air_avg(i,j) = pCO2air(i,j)
              end do
           end do
+
           do j=jstrR,jendR
              do i=istrR,iendR
                 PARinc_avg(i,j) = PARinc(i,j)
@@ -318,13 +337,32 @@
           enddo
 #  endif /* SEDIMENT_BIOLOGY */
 #  if defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC
+#   if defined CH_CARBON_DEPTH
+        do k=1,N
+          do j=jstrR,jendR
+             do i=istrR,iendR
+                HCO3_avg(i,j,k) = HCO3_avg(i,j,k) + HCO3_hist(i,j,k)
+                CO3_avg(i,j,k) = CO3_avg(i,j,k) + CO3_hist(i,j,k)
+                CO2STAR_avg(i,j,k) = CO2STAR_avg(i,j,k) + CO2STAR_hist(i,j,k)
+                pH_avg(i,j,k) = pH_avg(i,j,k) + pH_hist(i,j,k)
+                pCO2_avg(i,j,k) = pCO2_avg(i,j,k) + pCO2sw(i,j,k)
+             end do
+          end do
+        end do
+# else
           do j=jstrR,jendR
              do i=istrR,iendR
                 pH_avg(i,j) = pH_avg(i,j) + pH_hist(i,j)
                 pCO2_avg(i,j) = pCO2_avg(i,j) + pCO2sw(i,j)
+             end do
+          end do
+#   endif /* CH_CARBON_DEPTH */
+          do j=jstrR,jendR
+             do i=istrR,iendR
                 pCO2air_avg(i,j) = pCO2air_avg(i,j) + pCO2air(i,j)
              end do
           end do
+
           do j=jstrR,jendR
              do i=istrR,iendR
                 PARinc_avg(i,j) = PARinc_avg(i,j) + PARinc(i,j)
@@ -512,10 +550,29 @@
           enddo
 #endif /* SEDIMENT_BIOLOGY */
 #  if defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC
+#   if defined CH_CARBON_DEPTH
+       do k=1,N
+          do j=jstrR,jendR
+             do i=istrR,iendR
+                HCO3_avg(i,j,k) = cff*( HCO3_avg(i,j,k) + HCO3_hist(i,j,k) )
+                CO3_avg(i,j,k) = cff*( CO3_avg(i,j,k) + CO3_hist(i,j,k) )
+                CO2STAR_avg(i,j,k) = cff*( CO2STAR_avg(i,j,k) + CO2STAR_hist(i,j,k) )
+                pH_avg(i,j,k) = cff*( pH_avg(i,j,k) + pH_hist(i,j,k) )
+                pCO2_avg(i,j,k) = cff*( pCO2_avg(i,j,k) + pCO2sw(i,j,k) )
+             end do
+          end do
+       end do
+# else
           do j=jstrR,jendR
              do i=istrR,iendR
                 pH_avg(i,j) = cff*( pH_avg(i,j) + pH_hist(i,j) )
                 pCO2_avg(i,j) = cff*( pCO2_avg(i,j) + pCO2sw(i,j) )
+             end do
+          end do
+#   endif /* CH_CARBON_DEPTH */
+
+          do j=jstrR,jendR
+             do i=istrR,iendR
                 pCO2air_avg(i,j) = cff*(pCO2air_avg(i,j) + pCO2air(i,j))
              end do
           end do

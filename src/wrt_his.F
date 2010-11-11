@@ -347,6 +347,70 @@ CR      write(*,*) 'wrt_his:  wrtHBL' MYID
 # endif
 # if defined BIOLOGY_BEC || (defined BIOLOGY_NPZDOC && \
     defined OXYGEN && defined CARBON)
+#  if defined CH_CARBON_DEPTH
+
+!
+! Write out averaged HCO3:
+!
+      ierr=nf_fwrite (HCO3_hist(START_2D_ARRAY,1), ncidhis,
+     &                              hisHCO3, record, r3dvar)
+      if (ierr .ne. nf_noerr) then
+        lvar=lenstr(vname(1,indxHCO3_rst))
+        write(stdout,1) vname(1,indxHCO3_rst)(1:lvar), record, ierr,
+     &                  nf_strerror(ierr) MYID
+        goto 99                                         !--> ERROR
+      endif
+
+!
+! Write out averaged CO3:
+!
+      ierr=nf_fwrite (CO3_hist(START_2D_ARRAY,1), ncidhis,
+     &                              hisCO3, record, r3dvar)
+      if (ierr .ne. nf_noerr) then
+        lvar=lenstr(vname(1,indxCO3_rst))
+        write(stdout,1) vname(1,indxCO3_rst)(1:lvar), record, ierr,
+     &                  nf_strerror(ierr) MYID
+        goto 99                                         !--> ERROR
+      endif
+
+!
+! Write out averaged CO2STAR:
+!
+      ierr=nf_fwrite (CO2STAR_hist(START_2D_ARRAY,1), ncidhis,
+     &                              hisCO2STAR, record, r3dvar)
+      if (ierr .ne. nf_noerr) then
+        lvar=lenstr(vname(1,indxCO2STAR_rst))
+        write(stdout,1) vname(1,indxCO2STAR_rst)(1:lvar), record, ierr,
+     &                  nf_strerror(ierr) MYID
+        goto 99                                         !--> ERROR
+      endif
+
+
+!
+! Write out averaged pH:
+!
+      ierr=nf_fwrite (pH_hist(START_2D_ARRAY,1), ncidhis,
+     &                              hisPH, record, r3dvar)
+      if (ierr .ne. nf_noerr) then
+        lvar=lenstr(vname(1,indxPH_rst))
+        write(stdout,1) vname(1,indxPH_rst)(1:lvar), record, ierr,
+     &                  nf_strerror(ierr) MYID
+        goto 99                                         !--> ERROR
+      endif
+!
+! Write out averaged pCO2:
+!
+      ierr=nf_fwrite (pCO2sw(START_2D_ARRAY,1), ncidhis,
+     &                              hisPCO2, record, r3dvar)
+      if (ierr .ne. nf_noerr) then
+        lvar=lenstr(vname(1,indxPCO2_rst))
+        write(stdout,1) vname(1,indxPCO2_rst)(1:lvar), record, ierr,
+     &                  nf_strerror(ierr) MYID
+        goto 99                                         !--> ERROR
+      endif
+
+#  else
+ 
 !
 ! Write out averaged pH:
 !
@@ -369,6 +433,8 @@ CR      write(*,*) 'wrt_his:  wrtHBL' MYID
      &                  nf_strerror(ierr) MYID
         goto 99                                         !--> ERROR
       endif
+
+#  endif /* CH_CARBON_DEPTH */
 !
 ! Write out averaged pCO2air:
 !

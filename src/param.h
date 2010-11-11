@@ -29,13 +29,16 @@ c     &               LLm=256, MMm=2,   N=64
 c*   &               LLm=98,  MMm=206, N=12
      &               LLm=24,  MMm=34,  N=10
 #elif defined PACIFIC
-     &               LLm=384, MMm=224, N=30
+     &               LLm=2, MMm=2, N=32
+c    &               LLm=384, MMm=224, N=30
 c    &               LLm=392, MMm=288, N=30
 
 c    &               LLm=432, MMm=320, N=32
 c     &               LLm=488, MMm=360, N=32
 
 c    &               LLm=768, MMm=512, N=40
+#elif defined ONE_DIM
+     &               LLm=2, MMm=2, N=32
 #elif defined ATL360X408
      &               LLm=360,  MMm=408,  N=32
 #elif defined ATL50S70N
@@ -87,6 +90,12 @@ c     &                LLm=60,  MMm=240,  N=24
 
 #elif defined HUMBOLDT
      &               LLm=384, MMm=800, N=30       ! SAWC 8 km
+#elif defined HBCS60
+     &               LLm=119, MMm=215, N=20       ! 25km test setup
+#elif defined HBCS5
+     &               LLm=399, MMm=616, N=32       ! 5km setup
+#elif defined SAWC                                
+     &               LLm=384, MMm=800, N=30       ! HBCS 7.5km setup
 #elif defined USWEST
 # ifdef GRID_LEVEL
 #  if GRID_LEVEL == 1
@@ -108,7 +117,8 @@ c**  &               LLm=126,  MMm=254, N=20    ! USWEST grid 16
 
 # endif /* GRID_LEVEL */
 #elif defined USWC_CENTRAL
-     &               LLm=83, MMm=168, N=20
+     &               LLm=20, MMm=40, N=32      !60km config
+c     &               LLm=83, MMm=168, N=20
 c     &               LLm=248, MMm=504, N=32   ! new 5km config
 #elif defined WAVE_RAD
      &              LLm=384,  MMm=384, N=1
@@ -136,10 +146,16 @@ cc      parameter (NP_XI=6, NP_ETA=32, NSUB_X=1, NSUB_E=1) ! PACBIG newcluster
 # endif
 # ifdef HUMBOLDT
       parameter (NP_XI=2, NP_ETA=16, NSUB_X=1, NSUB_E=1)
+# elif defined HBCS60
+      parameter (NP_XI=8, NP_ETA=8, NSUB_X=1, NSUB_E=1)
+# elif defined HBCS5
+      parameter (NP_XI=8, NP_ETA=8, NSUB_X=1, NSUB_E=1)    
+# elif defined SAWC
+      parameter (NP_XI=4, NP_ETA=16, NSUB_X=1, NSUB_E=1)
 # elif defined USWC_CENTRAL
-      parameter (NP_XI=1, NP_ETA=24, NSUB_X=1, NSUB_E=1)
-!# else
-!      parameter (NP_XI=4, NP_ETA=8, NSUB_X=1, NSUB_E=1)
+      parameter (NP_XI=1, NP_ETA=4, NSUB_X=1, NSUB_E=1)
+# else
+      parameter (NP_XI=4, NP_ETA=8, NSUB_X=1, NSUB_E=1)
 # endif
       parameter (NNODES=NP_XI*NP_ETA)
 #else
