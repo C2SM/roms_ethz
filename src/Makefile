@@ -4,7 +4,7 @@
 
 #include Makedefs.Intel
 #mm include Makedefs.IntelEM64T
-include Makedefs.PGI_Brutus_ib
+#include Makedefs.PGI_Brutus_ib
 #include Makedefs.Intel_MPI
 #include  Makedefs.CMPI
 #include  Makedefs.Tungsten
@@ -15,7 +15,7 @@ include Makedefs.PGI_Brutus_ib
 #include Makedefs.g95
 #include Makedefs.Fujitsu
 #include Makedefs.Gonzales.ifort
-#include Makedefs.IntelBrutus_ompi
+include Makedefs.IntelBrutus_ompi
 #include Makedefs.PGIBrutus_ompi
 #include Makedefs.UP_ETH
 

@@ -49,6 +49,11 @@ CSDISTRIBUTE_RESHAPE hbl_avg(BLOCK_PATTERN,*) BLOCK_CLAUSE
 CSDISTRIBUTE_RESHAPE hbbl_avg(BLOCK_PATTERN,*) BLOCK_CLAUSE
       common /avg_hbbl/hbbl_avg
 #  endif
+#  ifdef WRITE_DEPTHS
+      real z_r_avg(GLOBAL_2D_ARRAY,N)
+      real z_w_avg(GLOBAL_2D_ARRAY,0:N), Hz_avg(GLOBAL_2D_ARRAY,N)
+      common /avg_depth/z_r_avg, z_w_avg, Hz_avg
+#  endif /* WRITE_DEPTHS
 # endif /* SOLVE3D */
 #endif /* AVERAGES */
  

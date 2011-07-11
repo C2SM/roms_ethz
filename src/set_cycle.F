@@ -113,6 +113,7 @@
      &                 'set_cycle :: Adjusted "ntime" from ', ntime,
      &                 'to', irec-1,  'restricted by "cycle_length".'
                         ntime=irec-1
+                        write(*,1) varname(1:lvar)
                       endif
                     else
                       write(*,1) varname(1:lvar), irec,

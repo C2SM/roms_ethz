@@ -52,6 +52,9 @@
 # ifdef KPP_DIAGNOSE
      & , indxRich, indxRichN
 # endif
+# ifdef WRITE_DEPTHS
+      integer indxz_r, indxz_w, indxHz
+# endif /* WRITE_DEPTHS */
       parameter (indxO=indxT+NT
 # if defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC
 #  if defined CH_CARBON_DEPTH
@@ -65,6 +68,9 @@
 #  ifdef SEDIMENT_BIOLOGY
      &     + NT_sed
 #  endif
+# ifdef WRITE_DEPTHS
+     &     + 3
+# endif /* WRITE_DEPTHS */
 # endif /* BIOLOGY_NPZDOC || BIOLOGY_BEC */
      &     )
       parameter (indxW=indxO+1, indxR=indxO+2,
@@ -183,6 +189,10 @@
       parameter (indxSedCaCO3 = indxSedOrgC + 1)
 #   endif /* CARBON */
 #  endif /* SEDIMENT_BIOLOGY */
+#  ifdef WRITE_DEPTHS
+       parameter(indxz_r=indxPAR_rst+NT_sed+1, indxz_w=indxz_r+1,
+     &           indxHz=indxz_w+1)
+#  endif /* WRITE_DEPTHS */
 # endif /* BIOLOGY_NPZDOC */
 
 # ifdef BIOLOGY_BEC
@@ -241,11 +251,20 @@
      &      indxPARinc_rst = indxPCO2air_rst+1,
      &      indxPAR_rst = indxPARinc_rst+1)
 #  endif /* CH_CARBON_DEPTH */
+#  ifdef WRITE_DEPTHS
+       parameter(indxz_r=indxPAR_rst+1, indxz_w=indxz_r+1,
+     &           indxHz=indxz_w+1)
+#  endif /* WRITE_DEPTHS */
 # endif /* BIOLOGY_BEC */
+
+# if !defined BIOLOGY_NPZDOC && !defined BIOLOGY_BEC
+#  ifdef WRITE_DEPTHS
+       parameter(indxz_r=indxT+ntrc_salt+ntrc_pas+1, indxz_w=indxz_r+1,
+     &           indxHz=indxz_w+1)
+#  endif /* WRITE_DEPTHS */
+# endif /* !defined BIOLOGY_NPZD && !defined BIOLOGY_BEC */
+
 #endif /* SOLVE3D */
-
-
-
 
 !
 ! Naming conventions for indices, variable IDs, etc...
@@ -336,6 +355,12 @@
      &      , avgPH, avgPCO2, avgPCO2air, avgPARinc, avgPAR
 #  endif /* CH_CARBON_DEPTH */
 # endif /* BIOLOGY_NPZDOC || BIOLOGY_BEC */
+# ifdef WRITE_DEPTHS
+     &      , hisz_r, hisz_w, hisHz
+#  ifdef AVERAGES
+     &      , avgz_r, avgz_w, avgHz
+#  endif
+# endif /* WRITE_DEPTHS */
 #if defined BGC_FLUX_ANALYSIS || defined PHYS_FLUX_ANALYSIS
      &      , rstTstepFA
 #endif
@@ -359,6 +384,12 @@
      &      , avgPH, avgPCO2, avgPCO2air, avgPARinc, avgPAR
 #  endif /* CH_CARBON_DEPTH */
 # endif /* BIOLOGY_NPZDOC || BIOLOGY_BEC */
+# ifdef WRITE_DEPTHS
+     &      , hisz_r, hisz_w, hisHz
+#  ifdef AVERAGES
+     &      , avgz_r, avgz_w, avgHz
+#  endif
+# endif /* WRITE_DEPTHS */
 #if defined BGC_FLUX_ANALYSIS || defined PHYS_FLUX_ANALYSIS
      &      , rstTstepFA
 #endif

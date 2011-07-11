@@ -461,6 +461,23 @@
          end do
       end do
 # endif /* BGC_FLUX_ANALYSIS && AVERAGES */
+# if defined WRITE_DEPTHS && defined AVERAGES
+      do k=1,N
+         do j=jstrR,jendR
+           do i=istrR,iendR
+              z_r_avg(i,j,k) = 0.0
+              Hz_avg(i,j,k) = 0.0
+           end do
+         end do
+      end do
+      do k=0,N
+         do j=jstrR,jendR
+           do i=istrR,iendR
+              z_w_avg(i,j,k) = 0.0
+           end do
+         end do
+      end do
+# endif /* WRITE_DEPTHS && AVERAGES */
 #endif /* SOLVE3D */
 
       return

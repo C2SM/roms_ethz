@@ -17,17 +17,15 @@
 #undef UPWELLING       /* Upwelling Example */
 #undef USWEST          /* US West Coast Application */
 #undef PACBIG         /* Pacific Medium 12.5km Grid*/
-!---> #define ATLSMA        /* Atlantic Small 25 km Grid*/
+!---> #undef ATLSMA        /* Atlantic Small 25 km Grid*/
 #undef CANBAS2
 #undef SPIRAL
 #undef USWC_CENTRAL
 #undef HBCS60           /* Humboldt Current System Application */
 #undef HBCS5
 #define SAWC          /* South American West Coast, 7.5km HBCS */
-#undef WAVE_RAD        /* A test for wave radiation boundaries */
 #undef ATL360X408    /* Whole Atlantic 360x408 */
-!--> #define ATL50S70N    /* Whole Atlantic 50S x 70N (360x468) */
-# undef ONE_DIM /*ONE DIM CONFIGURATION (JDS)*/
+!--> #undef ATL50S70N    /* Whole Atlantic 50S x 70N (360x468) */
 
 /*
     Embedded (nested) grid configuration segment
@@ -487,8 +485,6 @@ c--# define OBC_M2ORLANSKI
 # define ANA_SRFLUX
 # define ANA_VMIX
  
-
-
 #elif defined CANBAS2   /* Canary Basin model */
 
 # define SOLVE3D
@@ -675,7 +671,8 @@ c# define OBC_EAST
 # define  NEW_S_COORD
 
 !-----> #elif defined USWC_CENTRAL   /* US West Coast Configuration */
-#elif defined SAWC   /* US West Coast Configuration */
+
+#elif defined SAWC  /* US West Coast Configuration */
 # define SOLVE3D                     /* or Humboldt Current System */
 # define UV_COR
 # define UV_ADV
@@ -683,7 +680,6 @@ c# define OBC_EAST
 # define NONLIN_EOS
 # define SPLIT_EOS
 # define SALINITY
-
                        /* Forcing and Climatology */
 # ifdef SOLVE3D
 #   define QCORRECTION
@@ -730,16 +726,16 @@ c# define OBC_EAST
                       /* Open Boundary Conditions */
 # undef OBC_EAST
 # define OBC_WEST
-# define OBC_NORTH
+# undef OBC_NORTH
 # define OBC_SOUTH
-c--> # define OBC_VOLCONS
-c--> # define OBC_FLUX_CORR
+c--> # undefine OBC_VOLCONS
+c--> # undefine OBC_FLUX_CORR
  
 # define OBC_TORLANSKI
-c--# define OBC_M2ORLANSKI
+c--# undefine OBC_M2ORLANSKI
 #define OBC_M2FLATHER
 # define OBC_M3ORLANSKI
-!
+
 # undef OBC_TSPECIFIED
 # undef OBC_M2SPECIFIED
 # undef OBC_M3SPECIFIED
@@ -753,14 +749,18 @@ c--# define OBC_M2ORLANSKI
 # define EXACT_RESTART
 
 !                       Biology
-# define BIOLOGY_NPZDOC
+#define BIOLOGY_NPZDOC
+#ifdef BIOLOGY_NPZDOC
 # define CARBON
 # define OXYGEN
+# undef OXYLIM
+#endif
 ! Switch to calculate carbonsystem
-# define CH_CARBON_DEP
-# define BGC_FLUX_ANALYSIS
-# define PHYS_FLUX_ANALYSIS
-# undef FULL_PHYS_FLUX_ANALYSIS
+# undef CH_CARBON_DEP
+# undef BIOLOGY_BEC
+# define WRITE_DEPTHS
+# undef BGC_FLUX_ANALYSIS
+# undef PHYS_FLUX_ANALYSIS
 # define MULT_CLIM_FILES
 # define NEW_S_COORD
 # define DIURNAL_SRFLUX
@@ -770,114 +770,40 @@ c--# define OBC_M2ORLANSKI
 # ifdef FLOATS
 #   undef FLOATS_GLOBAL_ATTRIBUTES
 #   undef RANDOM_WALK
-
 # endif
 
-#elif defined WAVE_RAD
-# undef  SOLVE3D
-# define UV_COR
-# define UV_ADV
-# undef UV_VIS2
-
-# define ANA_GRID
-# define ANA_INITIAL
-# define ANA_SMFLUX
-
-# define OBC_WEST
-# define OBC_EAST
-# define OBC_NORTH
-# define OBC_SOUTH
-c--# define OBC_M2ORLANSKI
-# define OBC_M2FLATHER
-# define ANA_BRY
-# define Z_FRC_BRY
-# define M2_FRC_BRY
-
-#endif
-
-#ifdef ONE_DIM
-
-# define SOLVE3D
-# define UV_COR
-# define UV_ADV
-# define CURVGRID
-# define SPHERICAL
-# define MASKING
-# define MASK_LAND_DATA
-
-# define EXACT_RESTART
-# define AVERAGES
-!                       Equation of State
-# define SALINITY
-# define NONLIN_EOS
-# define SPLIT_EOS
-
-# define QCORRECTION
-# define SFLX_CORR
-# define SSS_dQdSST   ! dQdSSSt must be read together with
-                      ! SSS or not (in this case with SST)
-	!                       Lateral Mixing
-# define UV_VIS2
-# define MIX_GP_TS
-# define TS_DIF2
-# define MIX_GP_UV
-	!                       Vertical Mixing
-# define LMD_MIXING
-# define LMD_KPP
-# define LMD_RIMIX
-# define LMD_CONVEC
-# define DIURNAL_SRFLUX
-
-# define EW_PERIODIC
-# define NS_PERIODIC
-# define BIO_1ST_USTREAM_TEST
-# define DAILYPAR_BEC
-# define DIURNAL_SRFLUX
-# define NEW_S_COORD
-! Switches related to biology:
-!#define BIOLOGY_NPZDOC
-# define BIOLOGY_BEC
-# define CH_CARBON_DEPTH
-! Switches related to bottom restore layer
-! For 1d configurations and when using bec
-# define DBLEPREC
-!#define ANA_VMIX
-!#define FOUR_CLIM_FILES
-!#define BGC_FLUX_ANALYSIS
-!#define PHYS_FLUX_ANALYSIS
-!#define VERT_DIFF_ANALYSIS
-!#define FULL_PHYS_FLUX_ANALYSIS
-!#define PHYS_FLUX_ALL_COMPS
-#define VFLX_CORR
-
-#endif /*ONE_DIM*/
+#endif /* End Model Configurations Section */
  
 #include "set_global_definitions.h"
-!#define BIOLOGY_NPZDOC
-!#define BIOLOGY_BEC
-!#define FOUR_CLIM_FILES
-!#define BGC_FLUX_ANALYSIS
 
 #ifdef BIOLOGY_NPZDOC
 ! HF:
 #define VFLX_CORR
-!#define TWO_CLIM_FILES
-!#define THREE_CLIM_FILES
 #define DAILYPAR_PHOTOINHIBITION
 #define OXYGEN
 #define OCMIP_OXYGENSAT
 #define OCMIP_OXYGEN_SC
 #define CARBON
 #define OCMIP_CARBON
-#define VARIABLE_ATM_PCO2
+#undef VARIABLE_ATM_PCO2
 #define CALC_CARBON_ONCE
 #define USE_PH_SAVED
 #define SEDIMENT_BIOLOGY
-!HF#define BGC_FLUX_ANALYSIS
-!#define BGC_FLUX_EXT_HIS_OUTPUT
-!HF#define PHYS_FLUX_ANALYSIS
-!!#define VERT_DIFF_ANALYSIS
-!#define FULL_PHYS_FLUX_ANALYSIS
+# ifdef SEDIMENT_BIOLOGY
+#  undef OXYLIM_SED
+# endif
+#endif
+
+#ifdef PHYS_FLUX_ANALYSIS
+#  define WRITE_DEPTHS
+#  define PHYS_FLUX_ALL_COMPS
+#  define VERT_DIFF_ANALYSIS
+#  define FULL_PHYS_FLUX_ANALYSIS
+#endif
+
+#ifdef BGC_FLUX_ANALYSIS
+#  define WRITE_DEPTHS
+#  define BGC_FLUX_EXT_HIS_OUTPUT
 #endif
 
 #ifndef BIOLOGY_BEC

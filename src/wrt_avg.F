@@ -427,6 +427,42 @@ CR      write(*,*) 'wrt_avg:  wrtT_sed  ' MYID
         goto 99                                         !--> ERROR
       endif
 # endif /* BIOLOGY_NPZDOC || BIOLOGY_BEC */
+!DL:
+# ifdef WRITE_DEPTHS
+!
+! depths of rho points:
+!
+      ierr=nf_fwrite (z_r_avg(START_2D_ARRAY,1), ncidavg,
+     &                              avgz_r, record, r3dvar)
+      if (ierr .ne. nf_noerr) then
+        lvar=lenstr(vname(1,indxz_r))
+        write(stdout,1) vname(1,indxz_r)(1:lvar), record, ierr,
+     &                  nf_strerror(ierr) MYID
+        goto 99                                         !--> ERROR
+      endif
+!
+! depths at w points:
+!
+      ierr=nf_fwrite (z_w_avg(START_2D_ARRAY,1), ncidavg,
+     &                              avgz_w, record, w3dvar)
+      if (ierr .ne. nf_noerr) then
+        lvar=lenstr(vname(1,indxz_w))
+        write(stdout,1) vname(1,indxz_w)(1:lvar), record, ierr,
+     &                  nf_strerror(ierr) MYID
+        goto 99                                         !--> ERROR
+      endif
+!
+! thicknesses of sigma layers:
+!
+      ierr=nf_fwrite (Hz_avg(START_2D_ARRAY,1), ncidavg,
+     &                              avgHz, record, r3dvar)
+      if (ierr .ne. nf_noerr) then
+        lvar=lenstr(vname(1,indxHz))
+        write(stdout,1) vname(1,indxHz)(1:lvar), record, ierr,
+     &                  nf_strerror(ierr) MYID
+        goto 99                                         !--> ERROR
+      endif
+# endif /* WRITE_DEPTHS */
 # endif /* SOLVE3D */
   1   format(/' WRT_AVG - ERROR while writing variable(',1x,a,1x,
      &               ')into averages file.',/,11x,'Time record:',

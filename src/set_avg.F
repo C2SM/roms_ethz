@@ -269,6 +269,24 @@
           enddo
         endif
 #  endif
+!DL:
+# ifdef WRITE_DEPTHS
+            do k=1,N
+              do j=jstrR,jendR
+                do i=istrR,iendR
+                  z_r_avg(i,j,k)=z_r(i,j,k)
+                  Hz_avg(i,j,k)=Hz(i,j,k)
+                enddo
+              enddo
+            enddo
+            do k=0,N
+              do j=jstrR,jendR
+                do i=istrR,iendR
+                  z_w_avg(i,j,k)=z_w(i,j,k)
+                enddo
+              enddo
+            enddo
+# endif /* WRITE_DEPTHS */
 # endif /* SOLVE3D */
         elseif (mod(iic-ntsavg,navg).gt.1) then
           if (ZEROTH_TILE) time_avg=time_avg+time
@@ -478,6 +496,23 @@
           enddo
         endif
 #  endif
+# ifdef WRITE_DEPTHS
+            do k=1,N
+              do j=jstrR,jendR
+                do i=istrR,iendR
+                  z_r_avg(i,j,k)=z_r_avg(i,j,k)+z_r(i,j,k)
+                  Hz_avg(i,j,k)=Hz_avg(i,j,k)+Hz(i,j,k)
+                enddo
+              enddo
+            enddo
+            do k=0,N
+              do j=jstrR,jendR
+                do i=istrR,iendR
+                  z_w_avg(i,j,k)=z_w_avg(i,j,k)+z_w(i,j,k)
+                enddo
+              enddo
+            enddo
+# endif /* WRITE_DEPTHS */
 # endif /* SOLVE3D */
         elseif (mod(iic-ntsavg,navg).eq.0) then
           cff=1./float(navg)
@@ -692,6 +727,24 @@
           enddo
         endif
 #  endif
+!DL:
+# ifdef WRITE_DEPTHS
+            do k=1,N
+              do j=jstrR,jendR
+                do i=istrR,iendR
+                  z_r_avg(i,j,k)=cff*(z_r_avg(i,j,k)+z_r(i,j,k))
+                  Hz_avg(i,j,k)=cff*(Hz_avg(i,j,k)+Hz(i,j,k))
+                enddo
+              enddo
+            enddo
+            do k=0,N
+              do j=jstrR,jendR
+                do i=istrR,iendR
+                  z_w_avg(i,j,k)=cff*(z_w_avg(i,j,k)+z_w(i,j,k))
+                enddo
+              enddo
+            enddo
+# endif /* WRITE_DEPTHS */
 # endif /* SOLVE3D */
         endif
       endif       !<-- iic.gt.ntsavg

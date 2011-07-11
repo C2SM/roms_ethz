@@ -252,7 +252,18 @@ CR      write(stdout,'(1x,A,I3)') 'indxPARinc =',indxPARinc
      &     'mmol N m-3 s-1                            '
       vname_bgcflux(4,indxFlux+NFlux_Nitrif-1)=
      &     'NFlux_Nitrif, scalar, series              '
+#  ifdef OXYLIM
 
+      vname_bgcflux(1,indxFlux+NFlux_Denitr-1)=
+     &     'NFlux_Denitr                              '
+      vname_bgcflux(2,indxFlux+NFlux_Denitr-1)=
+     &     'Flux of N due to denitrification of NO3   '
+      vname_bgcflux(3,indxFlux+NFlux_Denitr-1)=
+     &     'mmol N m-3 s-1                            '
+      vname_bgcflux(4,indxFlux+NFlux_Denitr-1)=
+     &     'NFlux_Denitr, scalar, series              '
+
+#  endif
 #  ifdef CARBON
       vname_bgcflux(1,indxFlux+CFlux_Zresp-1)=
      &     'CFlux_Zresp                                '
@@ -389,6 +400,34 @@ CR      write(stdout,'(1x,A,I3)') 'indxPARinc =',indxPARinc
       vname_bgcflux(4,indxSedFlux)=
      &     'NFlux_ReminSed, scalar, series             '
 #   ifdef CARBON
+#   ifdef OXYLIM_SED
+      vname_bgcflux(1,indxSedFlux+1)=
+     &     'NFlux_DenitrSed                             '
+      vname_bgcflux(2,indxSedFlux+1)=
+     &     'Flux of NO3 due to benthic denitrification  '
+      vname_bgcflux(3,indxSedFlux+1)=
+     &     'mmol N m-2 s-1                              '
+      vname_bgcflux(4,indxSedFlux+1)=
+     &     'NFlux_DenitrSed, scalar, series             '
+
+      vname_bgcflux(1,indxSedFlux+2)=
+     &     'CFlux_ReminSed                             '
+      vname_bgcflux(2,indxSedFlux+2)=
+     &     'Flux of C due to remin. of sedimented mat. '
+      vname_bgcflux(3,indxSedFlux+2)=
+     &     'mmol C m-2 s-1                             '
+      vname_bgcflux(4,indxSedFlux+2)=
+     &     'CFlux_ReminSed, scalar, series             '
+
+      vname_bgcflux(1,indxSedFlux+3)=
+     &     'CFlux_DissolvSed                           '
+      vname_bgcflux(2,indxSedFlux+3)=
+     &     'Flux of C due to diss. of sedimented CaCO3 '
+      vname_bgcflux(3,indxSedFlux+3)=
+     &     'mmol C m-2 s-1                             '
+      vname_bgcflux(4,indxSedFlux+3)=
+     &     'CFlux_DissolvSed, scalar, series           '
+#  else /* OXYLIM_SED */
       vname_bgcflux(1,indxSedFlux+1)=
      &     'CFlux_ReminSed                             '
       vname_bgcflux(2,indxSedFlux+1)=
@@ -406,6 +445,7 @@ CR      write(stdout,'(1x,A,I3)') 'indxPARinc =',indxPARinc
      &     'mmol C m-2 s-1                             '
       vname_bgcflux(4,indxSedFlux+2)=
      &     'CFlux_DissolvSed, scalar, series           '
+# endif /* OXYLIM_SED */
 #   endif /* CARBON */
 #  endif /* SEDIMENT_BIOLOGY */
       return

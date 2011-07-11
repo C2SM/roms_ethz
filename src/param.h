@@ -32,10 +32,8 @@ c*   &               LLm=98,  MMm=206, N=12
      &               LLm=2, MMm=2, N=32
 c    &               LLm=384, MMm=224, N=30
 c    &               LLm=392, MMm=288, N=30
-
 c    &               LLm=432, MMm=320, N=32
 c     &               LLm=488, MMm=360, N=32
-
 c    &               LLm=768, MMm=512, N=40
 #elif defined ONE_DIM
      &               LLm=2, MMm=2, N=32
@@ -87,7 +85,6 @@ c     &                LLm=60,  MMm=240,  N=24
      &                LLm=1840, MMm=960, N=32      ! PAC_big
 #elif defined ATLSMA
      &                LLm= 420, MMm= 560, N=42      ! ATLSMA
-
 #elif defined HUMBOLDT
      &               LLm=384, MMm=800, N=30       ! SAWC 8 km
 #elif defined HBCS60
@@ -95,7 +92,10 @@ c     &                LLm=60,  MMm=240,  N=24
 #elif defined HBCS5
      &               LLm=399, MMm=616, N=32       ! 5km setup
 #elif defined SAWC                                
-     &               LLm=384, MMm=800, N=30       ! HBCS 7.5km setup
+c     &               LLm=384, MMm=800, N=32       ! HBCS 7.5km setup
+     &                LLm=191, MMm=399, N=32       ! HBCS 15km setup
+c     &                LLm=90, MMm=198, N=32        !HBCS 30km setup
+c     &                LLm=46, MMm=98, N=32         !HBCS 60km setup
 #elif defined USWEST
 # ifdef GRID_LEVEL
 #  if GRID_LEVEL == 1
@@ -125,7 +125,7 @@ c     &               LLm=248, MMm=504, N=32   ! new 5km config
 #else
      &                LLm=??, MMm=??, N=??
 #endif
-     &                                      )
+     &                                     )
 !
 ! Domain subdivision parameters:
 !------- ----------- -----------
@@ -151,7 +151,9 @@ cc      parameter (NP_XI=6, NP_ETA=32, NSUB_X=1, NSUB_E=1) ! PACBIG newcluster
 # elif defined HBCS5
       parameter (NP_XI=8, NP_ETA=8, NSUB_X=1, NSUB_E=1)    
 # elif defined SAWC
-      parameter (NP_XI=4, NP_ETA=16, NSUB_X=1, NSUB_E=1)
+c      parameter (NP_XI=4, NP_ETA=16, NSUB_X=1, NSUB_E=1)
+      parameter (NP_XI=2, NP_ETA=8, NSUB_X=1, NSUB_E=1)
+c      parameter (NP_XI=1, NP_ETA=4, NSUB_X=1, NSUB_E=1)
 # elif defined USWC_CENTRAL
       parameter (NP_XI=1, NP_ETA=4, NSUB_X=1, NSUB_E=1)
 # else

@@ -52,7 +52,7 @@
 
             if (ierr .ne. nf_noerr) then 
                write(stdout,'(/1x,4A/)') 'ERROR ',
-     &                   'in set_sco: can not open netCDF file ''',
+     &                   'in set_scoord.F: can not open netCDF file ''',
      &                                       clm_file_loc(1:lstr), '''.'
             endif
  
@@ -72,8 +72,9 @@
         if (ierr .eq. nf_noerr) then
            ierr=ths_val - theta_s
            if (ierr .ne. nf_noerr) then
-            MPI_master_only print *,'Warning!! Theta_s values' 
-            MPI_master_only print *,'differ between clim and .in files!' 
+            MPI_master_only print *,'Warning!! Theta_s values differ between' 
+            MPI_master_only print *,'clim:',ths_val 
+            MPI_master_only print *,'and .in files !',theta_s 
            endif 
        else
           print *, 'Error! Cannot retrieve theta_s value'
