@@ -3,8 +3,8 @@
 # Set machine dependent definitions and rules.
 
 #include Makedefs.Intel
-#mm include Makedefs.IntelEM64T
-include Makedefs.PGI_Brutus_ib
+#include Makedefs.IntelEM64T
+#mm include Makedefs.PGI_Brutus_ib
 #include Makedefs.Intel_MPI
 #include  Makedefs.CMPI
 #include  Makedefs.Tungsten
@@ -17,7 +17,7 @@ include Makedefs.PGI_Brutus_ib
 #include Makedefs.Gonzales.ifort
 #include Makedefs.IntelBrutus_ompi
 #include Makedefs.PGIBrutus_ompi
-#include Makedefs.UP_ETH
+include Makedefs.UP_ETH
 
 
 #                                     All source code files are 

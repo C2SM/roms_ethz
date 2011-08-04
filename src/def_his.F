@@ -993,7 +993,9 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
 ! Leave definition mode.
 ! ----- ---------- -----
 !
-        ierr=nf_enddef(ncid)
+        ! ierr=nf_enddef(ncid)
+        !  Pad header section (20kB) to allow faster adding of new variables
+        ierr=nf_enddef(ncid,20000,8,20000,8)
         write(stdout,'(6x,5A,i4)')     'def_his/avg: Created new ',
      &  'netCDF file ''', ncname(1:lstr), '''.' MYID
 !

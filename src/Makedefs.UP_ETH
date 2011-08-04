@@ -18,7 +18,7 @@
 
 # Settings for UP workstations:
 MPI_ROOT = /usr/local/app/mpich2/mpich2-1.0.7_py25
-NCDF_ROOT = /usr/local/app/netcdf/3.6.2
+# NCDF_ROOT = /usr/local/app/netcdf/3.6.2
 
 #
 # C-preprocessor from Intel compiler package. Note: in this case
@@ -108,7 +108,8 @@ LARGE_MEM_FLAG = -mcmodel=large -i-dynamic
 
 #   LCDF = -lnetcdf
 # mm ETHZ Gonzales cluster
-LCDF = -L$(NCDF_ROOT)/lib -lnetcdff -lnetcdf
+# LCDF = -L$(NCDF_ROOT)/lib -lnetcdff -lnetcdf
+LCDF = -L/usr/local/lib -lnetcdff -lnetcdf
 
 # mm ETHZ Brutus cluster
 #LCDF = -L/panfs/panasas.hpc-net.ethz.ch/uwis/muennicm/intel/lib -lnetcdf
