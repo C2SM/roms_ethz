@@ -53,9 +53,8 @@
       parameter (indxO=indxT+NT
 # if defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC
 #  if defined CH_CARBON_DEPTH
-      
-     /* Create space for PHd, CO3d, HCO3d, CO2STARd, pH, pCO2, pCO2air, PARinc, and PAR: */
-     &     + 9
+      /* Create space for CO3, HCO3, CO2STAR, pH, pCO2, pCO2air, PARinc, and PAR: */
+     &     + 8
 # else
       /* Create space for pH, pCO2, pCO2air, PARinc, PAR: */
      &     + 5
@@ -188,7 +187,7 @@
      & indxZooc,indxSpfe,indxDiatsi,indxDiatfe,indxDiazc,indxDiazchl,
      & indxDiazfe,indxDon,indxDofe,indxDop,indxPH_rst,
      & indxPCO2_rst, indxPCO2air_rst, indxPARinc_rst, indxPAR_rst,
-     & indxCO2STARd_rst, indxHCO3d_rst, indxCO3d_rst, indxPHd_rst
+     & indxCO2STAR_rst, indxHCO3_rst, indxCO3_rst
        parameter ( indxPO4=indxT+ntrc_salt+ntrc_pas+1,
      &           indxNo3 =indxPO4+1, indxSio3=indxPO4+2,
      &           indxNh4 =indxPO4+3, indxFe=indxPO4+4,
@@ -207,11 +206,10 @@
        parameter(indxPCO2_rst = indxPH_rst+1,
      &      indxPCO2air_rst = indxPCO2_rst+1,
      &      indxPARinc_rst = indxPCO2air_rst+1,
-     &      indxCO2STARd_rst = indxPARinc_rst+1,
-     &      indxHCO3d_rst = indxCO2STARd_rst+1,
-     &      indxCO3d_rst = indxHCO3d_rst+1,
-     &      indxPHd_rst = indxCO3d_rst+1,
-     &      indxPAR_rst = indxPHd_rst+1)
+     &      indxCO2STAR_rst = indxPARinc_rst+1,
+     &      indxHCO3_rst = indxCO2STAR_rst+1,
+     &      indxCO3_rst = indxHCO3_rst+1,
+     &      indxPAR_rst = indxCO3_rst+1)
 # else
        integer indxPo4,indxNo3,indxSio3,indxNh4,indxFe,indxO2,indxDic,
      &   indxAlk,indxDoc,indxSpc,indxSpchl,indxSpcaco3,indxDiatc,indxDiatchl,
@@ -322,9 +320,9 @@
      &        hisRich, hisRichN
 # if defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC
 #  if defined CH_CARBON_DEPTH
-     &      , rstPHd, rstHCO3d, rstCO3d, rstCO2STARd, rstPH, rstPCO2, rstPCO2air, rstPAR
-     &      , hisPHd, hisHCO3d, hisCO3d, hisCO2STARd, hisPH, hisPCO2, hisPCO2air, hisPARinc, hisPAR
-     &      , avgPHd, avgHCO3d, avgCO3d, avgCO2STARd, avgPH, avgPCO2, avgPCO2air, avgPARinc, avgPAR
+     &      , rstHCO3, rstCO3, rstCO2STAR, rstPH, rstPCO2, rstPCO2air, rstPAR
+     &      , hisHCO3, hisCO3, hisCO2STAR, hisPH, hisPCO2, hisPCO2air, hisPARinc, hisPAR
+     &      , avgHCO3, avgCO3, avgCO2STAR, avgPH, avgPCO2, avgPCO2air, avgPARinc, avgPAR
 # else
      &      , rstPH, rstPCO2, rstPCO2air, rstPAR
      &      , hisPH, hisPCO2, hisPCO2air, hisPARinc, hisPAR
@@ -343,9 +341,9 @@
      &        hisRich, hisRichN
 # if defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC
 #  if defined CH_CARBON_DEPTH
-     &      , rstPHd, rstHCO3d, rstCO3d, rstCO2STARd, rstPH, rstPCO2, rstPCO2air, rstPAR
-     &      , hisPHd, hisHCO3d, hisCO3d, hisCO2STARd, hisPH, hisPCO2, hisPCO2air, hisPARinc, hisPAR
-     &      , avgPHd, avgHCO3d, avgCO3d, avgCO2STARd, avgPH, avgPCO2, avgPCO2air, avgPARinc, avgPAR
+     &      , rstHCO3, rstCO3, rstCO2STAR, rstPH, rstPCO2, rstPCO2air, rstPAR
+     &      , hisHCO3, hisCO3, hisCO2STAR, hisPH, hisPCO2, hisPCO2air, hisPARinc, hisPAR
+     &      , avgHCO3, avgCO3, avgCO2STAR, avgPH, avgPCO2, avgPCO2air, avgPARinc, avgPAR
 # else
      &      , rstPH, rstPCO2, rstPCO2air, rstPAR
      &      , hisPH, hisPCO2, hisPCO2air, hisPARinc, hisPAR
@@ -420,6 +418,11 @@
 #  endif
 # endif /* SOLVE3D */
 #endif /* STATIONS */
+
+#if defined PASSIVE_TRACER && defined AGE_DYE_TRACER
+      integer ncid_ad(ntrc_pas), ad_tid(ntrc_pas), bcVal_id(ntrc_pas)
+      common /ncvars/ ncid_ad, ad_tid,  bcVal_id
+#endif /* PASSIVE_TRACER && AGE_DYE_TRACER */
 
 #ifdef SOLVE3D
 # define NWRTHIS 100+NT

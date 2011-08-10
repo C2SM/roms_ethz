@@ -73,6 +73,10 @@
       if (ierr.eq.0) call get_bsedim (ierr)
 # endif
 #endif
+! DL:
+#if defined PASSIVE_TRACER && defined AGE_DYE_TRACER
+      if (ierr.eq.0) call get_agedye(ierr)
+#endif
       if (ierr.ne.0) may_day_flag=2
       return
       end
@@ -237,6 +241,11 @@ c>>>      if (ierr.ne.0) may_day_flag=2
 #ifdef ANA_PSOURCE
       if (ZEROTH_TILE) call ana_psource
 #endif
+
+! DL:
+#if defined PASSIVE_TRACER && defined AGE_DYE_TRACER
+      if (ierr.eq.0) call set_agedye_tile (istr,iend,jstr,jend,ierr)
+#endif
+
       return
       end
- 
