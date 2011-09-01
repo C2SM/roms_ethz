@@ -5,6 +5,9 @@
 .SUFFIXES:	# Delete the default suffixes
 .SUFFIXES: .o .f .F
 
+# Uncomment to make .f stick around:
+.PRECIOUS: %.f
+
 # Use pattern rule to indicate dependency on mpc
 %.f:  mpc %.F 
 	$(CPP) -P $(CPPFLAGS) $*.F | mpc > $@

@@ -182,8 +182,17 @@ c--#define LIMIT_MO_DEPTH
 # undef beta
 # undef alpha
 
+# ifdef MASKING
+          ustar(i,j)=sqrt(sqrt( 
+     &            ( (sustr(i,j)*umask(i,j)+sustr(i+1,j)*umask(i+1,j))
+     &                         *(1.0-0.5*umask(i,j)*umask(i+1,j)) )**2
+     &           +( (svstr(i,j)*vmask(i,j)+svstr(i,j+1)*vmask(i,j+1))
+     &                         *(1.0-0.5*vmask(i,j)*vmask(i,j+1)) )**2 
+     &                                                        ))
+#  else
           ustar(i,j)=sqrt(0.5*sqrt( (sustr(i,j)+sustr(i+1,j))**2
      &                             +(svstr(i,j)+svstr(i,j+1))**2))
+#  endif
 
           hbl(i,j)=hbls(i,j,tind) !<-- use old value as initial guess
 
