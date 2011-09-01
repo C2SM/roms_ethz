@@ -216,7 +216,13 @@ CR      write(stdout,'(1x,A,I3)') 'indxS = ',indxS
          vname(3,itrc)='no unit'
          vname(4,itrc)='passive tracer, scalar, series'
       end do
-# endif
+#  ifdef AGE_DYE_TRACER
+      N_agedye = 0
+      do itrc=1,ntrc_pas
+         ncid_ad(itrc) = -1
+      enddo
+#  endif
+# endif /* PASSIVE_TRACER */
 
 # ifdef BIOLOGY
 CR      write(stdout,'(1x,A,I3)') 'indxNO3 =',indxNO3

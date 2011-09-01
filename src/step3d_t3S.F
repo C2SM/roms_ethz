@@ -39,10 +39,19 @@ c--#define CONST_TRACERS
 #ifdef PHYS_FLUX_ANALYSIS
 # include "physflux.h"
 #endif
+! DL:
+#if defined PASSIVE_TRACER && defined AGE_DYE_TRACER
+# include "ncvars.h"
+#endif
 #ifdef PHYS_FLUX_ANALYSIS
 ! temporary variable for calculation of vertical diffusive flux
       real ThisVDF(PRIVATE_2D_SCRATCH_ARRAY,0:N)
 # endif /* PHYS_FLUX_ANALYSIS */
+! DL:
+#if defined PASSIVE_TRACER && defined AGE_DYE_TRACER
+      integer is
+      logical source_active
+#endif
 !
 # include "compute_auxiliary_bounds.h"
 !
@@ -114,9 +123,17 @@ c--#define CONST_TRACERS
 !
 ! Add surface and bottom fluxes
 !
+# if defined PASSIVE_TRACER && defined AGE_DYE_TRACER
+!DL: do this except for age tracers. Age tracers are dealt with in pre_step3d
+          if (itrc.le.indxT+ntrc_salt .or. itrc.gt.indxT+ntrc_salt+ntrc_pas 
+     &        .or. .not.Age(itrc-(indxT+ntrc_salt))) then
+# endif
           do i=istr,iend
             t(i,j,N,nnew,itrc)=t(i,j,N,nnew,itrc)+dt*stflx(i,j,itrc)
           enddo
+# if defined PASSIVE_TRACER && defined AGE_DYE_TRACER
+          endif ! itrc.le.indxT+ntrc_salt .or. ...
+# endif
 # ifdef FULL_PHYS_FLUX_ANALYSIS
           if (itrc .le. NT_PFA) then
 ! separate do loops (for better efficiency) to store the fluxes
@@ -308,6 +325,101 @@ c??         enddo
 #endif
         enddo      ! <-- itrc
       enddo      ! <-- j
+
+!DL:
+# if defined PASSIVE_TRACER && defined AGE_DYE_TRACER
+      do itrc=itemp+ntrc_salt+1,itemp+ntrc_salt+N_agedye ! loop over age/dye tracers
+         is=itrc-(itemp+ntrc_salt) ! is = number of age/dye tracer
+         if (.not.Age(is).and..not.Restore_ad(is)) then
+            do l=1,Nsrc_ad(is)     ! loop over sources of tracer is
+               ! Get i, j, k indices of this source:
+               i = Isrc_ad(is,l)
+               j = Jsrc_ad(is,l)
+               k = Ksrc_ad(is,l)
+               ! Check whether this source is still active:
+               source_active = .false.
+               if (switch_is_days_ad(is) .and.
+     &             time*sec2day.ge.Switch_on_src_ad(is,l) .and.
+     &             time*sec2day.lt.Switch_off_src_ad(is,l)) then
+                  source_active = .true.
+               endif
+               if (.not.switch_is_days_ad(is) .and.
+     &             iic.ge.Switch_on_src_ad(is,l) .and.
+     &             iic.lt.Switch_off_src_ad(is,l)) then
+                  source_active = .true.
+               endif
+               if (source_active) then
+                  ! Now add source term:
+                  t(i,j,k,nnew,itrc) = t(i,j,k,nnew,itrc) + dt*Ssrc_ad(is,l)
+               endif
+            enddo
+         endif
+         if (.not.Age(is).and.Restore_ad(is)) then
+            ! apply restoring bc
+            do l=1,Nsrc_ad(is)  ! loop over sources of tracer is
+               i = Isrc_ad(is,l)
+               j = Jsrc_ad(is,l)
+               k = Ksrc_ad(is,l)
+               ! Check whether this source is still active:
+               source_active = .false.
+               if (switch_is_days_ad(is) .and.
+     &             time*sec2day.ge.Switch_on_src_ad(is,l) .and.
+     &             time*sec2day.lt.Switch_off_src_ad(is,l)) then
+                  source_active = .true.
+               endif
+               if (.not.switch_is_days_ad(is) .and.
+     &             iic.ge.Switch_on_src_ad(is,l) .and.
+     &             iic.lt.Switch_off_src_ad(is,l)) then
+                  source_active = .true.
+               endif
+               if (source_active) then
+                  t(i,j,k,nnew,itrc) = Ssrc_ad(is,l)
+               endif
+            enddo
+         endif ! .not.Age(is).and.Restore_ad(is)
+         if (Age(is)) then
+            do k=1,N-1          ! exclude surface k=N
+               do j=jstrR,jendR
+                  do i=istrR,iendR
+                     t(i,j,k,nnew,itrc) = t(i,j,k,nnew,itrc) 
+#  ifdef USE_REAL_YEAR
+     &                    + dt/(day2sec*365)
+#  else
+     &                    + dt/(day2sec*360)
+#  endif
+                  enddo
+               enddo
+            enddo ! k=1,N-1
+         endif ! Age(is)
+      enddo ! itrc
+# endif /* PASSIVE_TRACER && AGE_DYE_TRACER */
+
+!
+!DL: Set surface fluxes for age tracers such that the new surface tracer
+! concentration is zero:
+!
+# if defined PASSIVE_TRACER && defined AGE_DYE_TRACER
+      do is=1,N_agedye
+         itrc = itemp+ntrc_salt+is
+         if (Age(is)) then
+            do i=istrR,iendR
+               do j=jstrR,jendR
+                 stflx(i,j,itrc) = -t(i,j,N,nnew,itrc)/dt
+#  ifdef MASKING
+     &                               * rmask(i,j)
+#  endif
+               enddo
+            enddo
+            do i=istrR,iendR
+               do j=jstrR,jendR
+                 t(i,j,N,nnew,itrc) = 0.0
+               enddo
+            enddo
+         endif ! Age(is)
+      enddo ! is=1,N_agedye
+# endif /* PASSIVE_TRACER && AGE_DYE_TRACER */
+
+
 !
 ! Set lateral boundary conditions; nudge toward tracer climatology;
 ! apply land-sea mask and exchange periodic boundary conditions.
@@ -326,6 +438,7 @@ c??         enddo
 #  else
 #   define J_RANGE jstrR,jendR
 #  endif
+# endif
 
 # if defined BIOLOGY_BEC
       enddo                                    ! Biogeochemical
@@ -338,7 +451,8 @@ c??         enddo
       call biology_tile (istr,iend,jstr,jend)  ! part of the
       do itrc=1,NT                             ! biological model
 # endif
- 
+
+# if defined MASKING || defined TCLIMATOLOGY
         do k=1,N
           do j=J_RANGE
             do i=I_RANGE
@@ -365,6 +479,7 @@ c??         enddo
 #  undef I_RANGE
 #  undef J_RANGE
 # endif
+
       enddo  ! <-- itrc
 !
 ! Exchange computational margines and/or periodic boundaries:

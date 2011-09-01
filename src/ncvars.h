@@ -432,6 +432,11 @@
 # endif /* SOLVE3D */
 #endif /* STATIONS */
 
+#if defined PASSIVE_TRACER && defined AGE_DYE_TRACER
+      integer ncid_ad(ntrc_pas), ad_tid(ntrc_pas), bcVal_id(ntrc_pas)
+      common /ncvars/ ncid_ad, ad_tid,  bcVal_id
+#endif /* PASSIVE_TRACER && AGE_DYE_TRACER */
+
 #ifdef SOLVE3D
 # define NWRTHIS 100+NT
 #else
