@@ -17,7 +17,8 @@
 #include Makedefs.Gonzales.ifort
 #include Makedefs.IntelBrutus_ompi
 #include Makedefs.PGIBrutus_ompi
-include Makedefs.UP_ETH
+#include Makedefs.UP_ETH
+include Makedefs
 
 
 #                                     All source code files are 
