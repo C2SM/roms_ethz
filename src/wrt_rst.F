@@ -220,7 +220,7 @@
          goto 99                !--> ERROR
       endif
 
-#endif /*CH_CARBON_DEPTH*/
+#else /*CH_CARBON_DEPTH*/
 
 !
 ! pH:
