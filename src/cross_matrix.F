@@ -55,7 +55,7 @@ c--#define VERBOSE
       implicit none
       integer max_name_size, max_string_size, max_names,
      &        max_modules, stdout, iin, iout, test
-      parameter (max_name_size=32, max_names=256, max_modules=128,
+      parameter (max_name_size=32, max_names=384, max_modules=128,
      &     max_string_size=72, stdout=6, iin=11, iout=12, test=13)
       character*(max_name_size) testword, fname(max_names),
      &                                    mod_name(max_modules)

@@ -290,10 +290,10 @@
          END DO
 
 #  ifdef CH_CARBON_DEPTH
-!           g    - grav. const. [m/s²]
+!           g    - grav. const. [m/s^2]
 !           p0   - avg sea level pressure [Pa]
 !           z_r  - depth [m]
-!           rho0 - in situ density [kg/m³]
+!           rho0 - in situ density [kg/m^3]
            press_ch = (g*rho0*(-z_r))+p0  !hydrostatic pressure in [Pa]  
         DO k = 1,N 
          DO j = jstr,jend
@@ -804,7 +804,7 @@ c           ENDIF
     !---------------------------------------------------------------------------
 
 !         Tfunc = 2.0**(((temp + T0_Kelvin)-(30.0 + T0_Kelvin)) 
-!     &    		/ 10.0)
+!     &                  / 10.0)
          Tfunc = Q10_growth**(0.1 * temp - 3.0)
     !---------------------------------------------------------------------------
     !   modify growth mort rates by Tfunc
@@ -2038,8 +2038,8 @@ c        END WHERE
              Tfunc_POC=(Q10_POC*1.12)**(0.1*temp(i)-3.0)
              Tfunc_SiO2=(Q10_POC*4.0)**(0.1*temp(i)-3.0)
 
-    	     decay_POC_E = EXP(-Hz(i,j,k) / diss(1) * Tfunc_POC)
-    	     decay_SiO2  = EXP(-Hz(i,j,k) / diss(3) * Tfunc_SiO2)
+             decay_POC_E = EXP(-Hz(i,j,k) / diss(1) * Tfunc_POC)
+             decay_SiO2  = EXP(-Hz(i,j,k) / diss(3) * Tfunc_SiO2)
              decay_CaCO3 = EXP(-Hz(i,j,k) / diss(2))
              decay_dust  = EXP(-Hz(i,j,k) / diss(4))
              decay_Hard  = EXP(-Hz(i,j,k) * parm_decay_hard)

@@ -37,7 +37,7 @@
            if (Age(is)) cycle
            ! construct forcing file name for this tracer:
            write(tnum,'(i3.3)') is
-           fname='ad_tracer_'//trim(tnum)//'.nc'
+           fname='ad_tracer_'/ /trim(tnum)/ /'.nc'
            lstr=lenstr(fname)
            ! If not opened yet, open NetCDF file related to a/d tracer is for reading.
            ! Find and save IDs for relevant variables.
