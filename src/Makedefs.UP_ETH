@@ -75,6 +75,7 @@ LARGE_MEM_FLAG = -mcmodel=large -i-dynamic
       # Brutus  mpich2: CFT = mpif90 -f90=ifort $(OMP_FLAG) -pc80 -axW -xW -auto -stack_temps
 #      CFT =/opt/hpmpi/bin/mpif90 $(OMP_FLAG) -pc80 -axW -xW -auto -stack_temps
      CFT = $(MPI_ROOT)/bin/mpif90 $(OMP_FLAG) -pc80 -axW -xW -auto -stack_temps
+CFT = ifort
 
 #      CFT =mpif90 
 
