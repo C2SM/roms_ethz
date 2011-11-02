@@ -1,6 +1,6 @@
 #ifndef AVRH
 # include "cppdefs.h"
-!#--> define NETCDF4
+#define NETCDF4
 !#--> define NCCOMPRESS
  
       subroutine def_his (ncid, total_rec, ierr)
@@ -208,9 +208,11 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
   10  if (create_new_file) then
 !  10  continue
 #ifdef NETCDF4
-        ierr=nf_create(ncname(1:lstr), or(nf_clobber),nf_netcdf4), ncid)
+        ierr=nf_create(ncname(1:lstr), 
+     &                 or(nf_clobber,nf_netcdf4), ncid)
 #else
-        ierr=nf_create(ncname(1:lstr), or(nf_clobber,nf_64bit_offset), ncid)
+        ierr=nf_create(ncname(1:lstr), 
+     &                 or(nf_clobber,nf_64bit_offset), ncid)
 #endif
         if (ierr .ne. nf_noerr) then
           write(stdout,'(/1x,4A/)') 'ERROR in def_his/avg: Can not ',
