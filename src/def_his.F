@@ -88,8 +88,13 @@
 #  ifdef SEDIMENT_BIOLOGY
 #   define vidTsed hisTsed
 #  endif
-# endif /* BIOLOGY_NPZDOC || BIOLOGY_BEC*/
-#else
+# endif /* BIOLOGY_NPZDOC || BIOLOGY_BEC */
+# ifdef WRITE_DEPTHS
+#  define vidz_r hisz_r
+#  define vidz_w hisz_w
+#  define vidHz hisHz
+# endif /* WRITE_DEPTHS */
+#else /* AVRH */
 # define ncname avgname
 # define rec_per_file nrpfavg
 # define wrt wrtavg
@@ -127,7 +132,12 @@
 #    define vidTsed avgTsed
 #  endif
 # endif /* BIOLOGY_NPZDOC || BIOLOGY_BEC */
-#endif
+# ifdef WRITE_DEPTHS
+#  define vidz_r avgz_r
+#  define vidz_w avgz_w
+#  define vidHz avgHz
+# endif /* WRITE_DEPTHS */
+#endif /* AVRH */
 !
 ! Put time record index into file name. In  the case when model
 ! output is to be arranged into sequence of named files, the naming
@@ -893,6 +903,73 @@
      &                                  NF_FOUT, 1, spv_set)
 #endif
 #endif /* BIOLOGY_BEC || BIOLOGY_NPZDOC */
+
+!DL:
+# ifdef WRITE_DEPTHS
+!
+! depths of rho points:
+!
+        lvar=lenstr(vname(1,indxz_r))
+        ierr=nf_def_var (ncid, vname(1,indxz_r)(1:lvar), NF_FOUT,
+     &                                           4, r3dgrd, vidz_r)
+#  ifdef AVRH
+        text='averaged '/ /vname(2,indxz_r)
+#  else
+        text=vname(2,indxz_r)
+#  endif
+        lvar=lenstr(text)
+        ierr=nf_put_att_text (ncid, vidz_r, 'long_name', lvar,
+     &                                              text(1:lvar))
+        lvar=lenstr(vname(3,indxz_r))
+        ierr=nf_put_att_text (ncid, vidz_r, 'units',     lvar,
+     &                                  vname(3,indxz_r)(1:lvar))
+#  ifdef MASK_LAND_DATA 
+        ierr=nf_put_att_FOUT (ncid, vidz_r, '_FillValue',
+     &                                  NF_FOUT, 1, spv_set)
+#  endif
+!
+! depths at w points:
+!
+        lvar=lenstr(vname(1,indxz_w))
+        ierr=nf_def_var (ncid, vname(1,indxz_w)(1:lvar), NF_FOUT,
+     &                                           4, w3dgrd, vidz_w)
+#  ifdef AVRH
+        text='averaged '/ /vname(2,indxz_w)
+#  else
+        text=vname(2,indxz_w)
+#  endif
+        lvar=lenstr(text)
+        ierr=nf_put_att_text (ncid, vidz_w, 'long_name', lvar,
+     &                                              text(1:lvar))
+        lvar=lenstr(vname(3,indxz_w))
+        ierr=nf_put_att_text (ncid, vidz_w, 'units',     lvar,
+     &                                  vname(3,indxz_w)(1:lvar))
+#  ifdef MASK_LAND_DATA 
+        ierr=nf_put_att_FOUT (ncid, vidz_w, '_FillValue',
+     &                                  NF_FOUT, 1, spv_set)
+#  endif
+!
+! thicknesses of sigma layers:
+!
+        lvar=lenstr(vname(1,indxHz))
+        ierr=nf_def_var (ncid, vname(1,indxHz)(1:lvar), NF_FOUT,
+     &                                           4, r3dgrd, vidHz)
+#  ifdef AVRH
+        text='averaged '/ /vname(2,indxHz)
+#  else
+        text=vname(2,indxHz)
+#  endif
+        lvar=lenstr(text)
+        ierr=nf_put_att_text (ncid, vidHz, 'long_name', lvar,
+     &                                              text(1:lvar))
+        lvar=lenstr(vname(3,indxHz))
+        ierr=nf_put_att_text (ncid, vidHz, 'units',     lvar,
+     &                                  vname(3,indxHz)(1:lvar))
+#  ifdef MASK_LAND_DATA 
+        ierr=nf_put_att_FOUT (ncid, vidHz, '_FillValue',
+     &                                  NF_FOUT, 1, spv_set)
+#  endif
+# endif /* WRITE_DEPTHS */
 #endif /* SOLVE3D */
 !
 ! Leave definition mode.
@@ -1279,6 +1356,36 @@
            goto 99                                       !--> ERROR
         endif
 # endif /* BIOLOGY_BEC || BIOLOGY_NPZDOC */
+!DL:
+# ifdef WRITE_DEPTHS
+!
+! depths of rho points:
+!
+        lvar=lenstr(vname(1,indxz_r))
+        ierr=nf_inq_varid (ncid,vname(1,indxz_r)(1:lvar), vidz_r)
+        if (ierr .ne. nf_noerr) then
+           write(stdout,1) vname(1,indxz_r)(1:lvar), ncname(1:lstr)
+           goto 99                                       !--> ERROR
+        endif
+!
+! depths at w points:
+!
+        lvar=lenstr(vname(1,indxz_w))
+        ierr=nf_inq_varid (ncid,vname(1,indxz_w)(1:lvar), vidz_w)
+        if (ierr .ne. nf_noerr) then
+           write(stdout,1) vname(1,indxz_w)(1:lvar), ncname(1:lstr)
+           goto 99                                       !--> ERROR
+        endif
+!
+! thicknesses of sigma layers:
+!
+        lvar=lenstr(vname(1,indxHz))
+        ierr=nf_inq_varid (ncid,vname(1,indxHz)(1:lvar), vidHz)
+        if (ierr .ne. nf_noerr) then
+           write(stdout,1) vname(1,indxHz)(1:lvar), ncname(1:lstr)
+           goto 99                                       !--> ERROR
+        endif
+# endif /* WRITE_DEPTHS */
 #endif /* SOLVE3D */
         write(*,'(6x,2A,i4,1x,A,i4)')    'def_his/avg: Opened ',
      &              'existing file from record =',
@@ -1346,6 +1453,11 @@
 #   undef vidTsed
 #  endif
 #endif /* BIOLOGY_NPZDOC || BIOLOGY_BEC */
+# ifdef WRITE_DEPTHS
+#  undef vidz_r
+#  undef vidz_w
+#  undef vidHz
+# endif /* WRITE_DEPTHS */
 
 #undef vidR
 #undef vidO

@@ -393,6 +393,18 @@ CR      write(stdout,'(1x,A,I3)') 'indxSSS =', indxSSS
       vname(2,indxTIsrf)='temperature of ice surface                '
       vname(3,indxTIsrf)='Kelvin                                    '
 #endif
+!DL:
+#ifdef WRITE_DEPTHS
+      vname(1,indxz_r)='z_r                                       '
+      vname(2,indxz_r)='depths of rho points                      '
+      vname(3,indxz_r)='meter                                     '
+      vname(1,indxz_w)='z_w                                       '
+      vname(2,indxz_w)='depths of w points                        '
+      vname(3,indxz_w)='meter                                     '
+      vname(1,indxHz)='Hz                                        '
+      vname(2,indxHz)='thicknesses of sigma layers               '
+      vname(3,indxHz)='meter                                     '
+#endif /* WRITE_DEPTHS */
 
       tclm_name(itemp) = 'tclm_time'
 #ifdef SALINITY
