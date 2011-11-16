@@ -942,11 +942,12 @@
         end do k_loop10
 #ifdef BGC_FLUX_ANALYSIS 
 ! Transfer fluxes to global arrays at the end of each biological time step
-! for computational efficiency, divide now by dtsec to get the correct units 
+! for computational efficiency, divide now by dtsec to get the correct units
+!DL: also multiply by box height Hz(i,j,k)
         do iflux = 1, NumFluxTerms
            do k = 1, N
               Flux(i,j,k,iflux) = ( Flux(i,j,k,iflux) +
-     &             ThisFlux(k, iflux) / dt )
+     &             Hz(i,j,k) * ThisFlux(k, iflux) / dt )
 # ifdef MASKING
      &             * rmask(i,j)
 # endif /* MASKING */

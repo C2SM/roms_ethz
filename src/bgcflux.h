@@ -8,7 +8,7 @@
 
 ! Fluxes: all bgc fluxes are defined in a way that they will be positive under
 ! normal circumstances
-      ! fluxes of Nitrogen [mmol N m^-2]
+      ! fluxes of Nitrogen [mmol N m^-2 s^-1]
       integer NFlux_NewProd, NFlux_RegProd, NFlux_Grazing
       integer NFlux_SlopFeed, NFlux_Zfecp, NFlux_Pmort, NFlux_Zmetab
       integer NFlux_Zexcr, NFlux_ZmortS, NFlux_ZmortL, NFlux_DetCoagP
@@ -35,7 +35,7 @@
       integer CFlux_Zresp
       integer CFlux_DetCoagD, CFlux_ReminS, CFlux_ReminL, CFlux_Dissolv
       integer NumFluxTermsC
-      ! fluxes of and changes in carbon [mmol C m^-2]
+      ! fluxes of and changes in carbon [mmol C m^-2 s^-1]
       parameter(CFlux_Zresp = NFlux_Nitrif + 1)      ! Zoopl. respiration (Zoo. -> DIC)
       parameter(CFlux_DetCoagD = CFlux_Zresp + 1)! Coagul. of det. (SDetC -> LDetC)
       parameter(CFlux_ReminS = CFlux_DetCoagD + 1)  ! Remineralization (SDetC -> NH4)

@@ -123,7 +123,7 @@ CR      write(stdout,'(1x,A,I3)') 'indxPARinc =',indxPARinc
       vname_bgcflux(2,indxFlux+NFlux_NewProd-1)=
      &     'Flux of N due to new production           '
       vname_bgcflux(3,indxFlux+NFlux_NewProd-1)=
-     &     'mmol N m-3 s-1                            '
+     &     'mmol N m-2 s-1                            '
       vname_bgcflux(4,indxFlux+NFlux_NewProd-1)=
      &     'NFlux_NewProd, scalar, series             '
 
@@ -132,7 +132,7 @@ CR      write(stdout,'(1x,A,I3)') 'indxPARinc =',indxPARinc
       vname_bgcflux(2,indxFlux+NFlux_RegProd-1)=
      &     'Flux of N due to regenerated production   '
       vname_bgcflux(3,indxFlux+NFlux_RegProd-1)=
-     &     'mmol N m-3 s-1                            '
+     &     'mmol N m-2 s-1                            '
       vname_bgcflux(4,indxFlux+NFlux_RegProd-1)=
      &     'NFlux_RegProd, scalar, series             '
 
@@ -141,7 +141,7 @@ CR      write(stdout,'(1x,A,I3)') 'indxPARinc =',indxPARinc
       vname_bgcflux(2,indxFlux+NFlux_Grazing-1)=
      &     'Flux of N due to grazing                  '
       vname_bgcflux(3,indxFlux+NFlux_Grazing-1)=
-     &     'mmol N m-3 s-1                            '
+     &     'mmol N m-2 s-1                            '
       vname_bgcflux(4,indxFlux+NFlux_Grazing-1)=
      &     'NFlux_Grazing, scalar, series             '
 
@@ -150,7 +150,7 @@ CR      write(stdout,'(1x,A,I3)') 'indxPARinc =',indxPARinc
       vname_bgcflux(2,indxFlux+NFlux_SlopFeed-1)=
      &     'Flux of N due to sloppy feeding           '
       vname_bgcflux(3,indxFlux+NFlux_SlopFeed-1)=
-     &     'mmol N m-3 s-1                            '
+     &     'mmol N m-2 s-1                            '
       vname_bgcflux(4,indxFlux+NFlux_SlopFeed-1)=
      &     'NFlux_SlopFeed, scalar, series            '
 
@@ -159,7 +159,7 @@ CR      write(stdout,'(1x,A,I3)') 'indxPARinc =',indxPARinc
       vname_bgcflux(2,indxFlux+NFlux_Zfecp-1)=
      &     'Flux of N due to fecal pellet production  '
       vname_bgcflux(3,indxFlux+NFlux_Zfecp-1)=
-     &     'mmol N m-3 s-1                            '
+     &     'mmol N m-2 s-1                            '
       vname_bgcflux(4,indxFlux+NFlux_Zfecp-1)=
      &     'NFlux_Zfecp, scalar, series               '
 
@@ -168,7 +168,7 @@ CR      write(stdout,'(1x,A,I3)') 'indxPARinc =',indxPARinc
       vname_bgcflux(2,indxFlux+NFlux_Pmort-1)=
      &     'Flux of N due to phytoplankton mortality  '
       vname_bgcflux(3,indxFlux+NFlux_Pmort-1)=
-     &     'mmol N m-3 s-1                            '
+     &     'mmol N m-2 s-1                            '
       vname_bgcflux(4,indxFlux+NFlux_Pmort-1)=
      &     'NFlux_Pmort, scalar, series               '
 
@@ -177,7 +177,7 @@ CR      write(stdout,'(1x,A,I3)') 'indxPARinc =',indxPARinc
       vname_bgcflux(2,indxFlux+NFlux_Zmetab-1)=
      &     'Flux of N due to zooplankton metabolism   '
       vname_bgcflux(3,indxFlux+NFlux_Zmetab-1)=
-     &     'mmol N m-3 s-1                            '
+     &     'mmol N m-2 s-1                            '
       vname_bgcflux(4,indxFlux+NFlux_Zmetab-1)=
      &     'NFlux_Zmetab, scalar, series              '
 
@@ -186,7 +186,7 @@ CR      write(stdout,'(1x,A,I3)') 'indxPARinc =',indxPARinc
       vname_bgcflux(2,indxFlux+NFlux_Zexcr-1)=
      &     'Flux of N due to zooplankton excretion    '
       vname_bgcflux(3,indxFlux+NFlux_Zexcr-1)=
-     &     'mmol N m-3 s-1                            '
+     &     'mmol N m-2 s-1                            '
       vname_bgcflux(4,indxFlux+NFlux_Zexcr-1)=
      &     'NFlux_Zexcr, scalar, series               '
 
@@ -195,7 +195,7 @@ CR      write(stdout,'(1x,A,I3)') 'indxPARinc =',indxPARinc
       vname_bgcflux(2,indxFlux+NFlux_ZmortS-1)=
      &     'Flux of N due to zooplankton mort. to SDet'
       vname_bgcflux(3,indxFlux+NFlux_ZmortS-1)=
-     &     'mmol N m-3 s-1                            '
+     &     'mmol N m-2 s-1                            '
       vname_bgcflux(4,indxFlux+NFlux_ZmortS-1)=
      &     'NFlux_ZmortS, scalar, series              '
 
@@ -204,7 +204,7 @@ CR      write(stdout,'(1x,A,I3)') 'indxPARinc =',indxPARinc
       vname_bgcflux(2,indxFlux+NFlux_ZmortL-1)=
      &     'Flux of N due to zooplankton mort. to LDet'
       vname_bgcflux(3,indxFlux+NFlux_ZmortL-1)=
-     &     'mmol N m-3 s-1                            '
+     &     'mmol N m-2 s-1                            '
       vname_bgcflux(4,indxFlux+NFlux_ZmortL-1)=
      &     'NFlux_ZmortL, scalar, series              '
 
@@ -213,7 +213,7 @@ CR      write(stdout,'(1x,A,I3)') 'indxPARinc =',indxPARinc
       vname_bgcflux(2,indxFlux+NFlux_DetCoagP-1)=
      &     'Flux of N due to coagulation of phytopl.  '
       vname_bgcflux(3,indxFlux+NFlux_DetCoagP-1)=
-     &     'mmol N m-3 s-1                            '
+     &     'mmol N m-2 s-1                            '
       vname_bgcflux(4,indxFlux+NFlux_DetCoagP-1)=
      &     'NFlux_DetCoagP, scalar, series            '
 
@@ -222,7 +222,7 @@ CR      write(stdout,'(1x,A,I3)') 'indxPARinc =',indxPARinc
       vname_bgcflux(2,indxFlux+NFlux_DetCoagD-1)=
      &     'Flux of N due to coagulation of small det.'
       vname_bgcflux(3,indxFlux+NFlux_DetCoagD-1)=
-     &     'mmol N m-3 s-1                            '
+     &     'mmol N m-2 s-1                            '
       vname_bgcflux(4,indxFlux+NFlux_DetCoagD-1)=
      &     'NFlux_DetCoagD, scalar, series            '
 
@@ -231,7 +231,7 @@ CR      write(stdout,'(1x,A,I3)') 'indxPARinc =',indxPARinc
       vname_bgcflux(2,indxFlux+NFlux_ReminS-1)=
      &     'Flux of N due to remin. of small detritus '
       vname_bgcflux(3,indxFlux+NFlux_ReminS-1)=
-     &     'mmol N m-3 s-1                            '
+     &     'mmol N m-2 s-1                            '
       vname_bgcflux(4,indxFlux+NFlux_ReminS-1)=
      &     'NFlux_ReminS, scalar, series              '
 
@@ -240,7 +240,7 @@ CR      write(stdout,'(1x,A,I3)') 'indxPARinc =',indxPARinc
       vname_bgcflux(2,indxFlux+NFlux_ReminL-1)=
      &     'Flux of N due to remin. of large detritus '
       vname_bgcflux(3,indxFlux+NFlux_ReminL-1)=
-     &     'mmol N m-3 s-1                            '
+     &     'mmol N m-2 s-1                            '
       vname_bgcflux(4,indxFlux+NFlux_ReminL-1)=
      &     'NFlux_ReminL, scalar, series              '
 
@@ -249,7 +249,7 @@ CR      write(stdout,'(1x,A,I3)') 'indxPARinc =',indxPARinc
       vname_bgcflux(2,indxFlux+NFlux_Nitrif-1)=
      &     'Flux of N due to nitrification of NH4     '
       vname_bgcflux(3,indxFlux+NFlux_Nitrif-1)=
-     &     'mmol N m-3 s-1                            '
+     &     'mmol N m-2 s-1                            '
       vname_bgcflux(4,indxFlux+NFlux_Nitrif-1)=
      &     'NFlux_Nitrif, scalar, series              '
 
@@ -259,7 +259,7 @@ CR      write(stdout,'(1x,A,I3)') 'indxPARinc =',indxPARinc
       vname_bgcflux(2,indxFlux+CFlux_Zresp-1)=
      &     'Flux of C due to zooplankton respiration   '
       vname_bgcflux(3,indxFlux+CFlux_Zresp-1)=
-     &     'mmol C m-3 s-1                             '
+     &     'mmol C m-2 s-1                             '
       vname_bgcflux(4,indxFlux+CFlux_Zresp-1)=
      &     'CFlux_Zresp, scalar, series                '
       
@@ -268,7 +268,7 @@ CR      write(stdout,'(1x,A,I3)') 'indxPARinc =',indxPARinc
       vname_bgcflux(2,indxFlux+CFlux_DetCoagD-1)=
      &     'Flux of C due to coagulation of small det. '
       vname_bgcflux(3,indxFlux+CFlux_DetCoagD-1)=
-     &     'mmol C m-3 s-1                             '
+     &     'mmol C m-2 s-1                             '
       vname_bgcflux(4,indxFlux+CFlux_DetCoagD-1)=
      &     'CFlux_DetCoagD, scalar, series             '
       
@@ -277,7 +277,7 @@ CR      write(stdout,'(1x,A,I3)') 'indxPARinc =',indxPARinc
       vname_bgcflux(2,indxFlux+CFlux_ReminS-1)=
      &     'Flux of C due to remin. of small detritus  '
       vname_bgcflux(3,indxFlux+CFlux_ReminS-1)=
-     &     'mmol C m-3 s-1                             '
+     &     'mmol C m-2 s-1                             '
       vname_bgcflux(4,indxFlux+CFlux_ReminS-1)=
      &     'CFlux_ReminS, scalar, series               '
       
@@ -286,7 +286,7 @@ CR      write(stdout,'(1x,A,I3)') 'indxPARinc =',indxPARinc
       vname_bgcflux(2,indxFlux+CFlux_ReminL-1)=
      &     'Flux of C due to remin. of large detritus  '
       vname_bgcflux(3,indxFlux+CFlux_ReminL-1)=
-     &     'mmol C m-3 s-1                             '
+     &     'mmol C m-2 s-1                             '
       vname_bgcflux(4,indxFlux+CFlux_ReminL-1)=
      &     'CFlux_ReminL, scalar, series               '
 
@@ -295,7 +295,7 @@ CR      write(stdout,'(1x,A,I3)') 'indxPARinc =',indxPARinc
       vname_bgcflux(2,indxFlux+CFlux_Dissolv-1)=
      &     'Flux of C due to CaCO3 dissolution         '
       vname_bgcflux(3,indxFlux+CFlux_Dissolv-1)=
-     &     'mmol C m-3 s-1                             '
+     &     'mmol C m-2 s-1                             '
       vname_bgcflux(4,indxFlux+CFlux_Dissolv-1)=
      &     'CFlux_Dissolv, scalar, series              '
 #   endif /* CARBON */
