@@ -83,7 +83,7 @@
      &   PCref,sp_mort,sp_mort2,diat_mort,diat_mort2,z_ingest,
      &   Q,Qp,thres_z1,thres_z2,PCrefDiaz,Qp_diaz,diaz_mort,
      &   diaz_kPO4,diaz_kFe,Qfe_zoo,parm_diss,parm_gamma,
-     &   Q10_POC,Q10_growth,parm_decay_hard,parm_nitrif_o2	
+     &   Q10_POC,Q10_growth,parm_decay_hard,parm_nitrif_o2
 
        namelist/biology_param_bec_nml/parm_Fe_bioavail, 
      &   parm_o2_min, 

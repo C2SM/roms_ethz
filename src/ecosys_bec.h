@@ -44,8 +44,8 @@
        real PH_HIST(GLOBAL_2D_ARRAY),
      &   CO2STAR_HIST(GLOBAL_2D_ARRAY),
      &   pCO2sw(GLOBAL_2D_ARRAY),
-     &   DCO2STAR(GLOBAL_2D_ARRAY),
      &   DCO2STAR_HIST(GLOBAL_2D_ARRAY)
+
 # endif /* CH_CARBON_DEPTH */
 
        real WS_HIST(GLOBAL_2D_ARRAY), 
@@ -132,7 +132,10 @@
      &    photoFe_sp_HIST(GLOBAL_2D_ARRAY,N),
      &    nitrif_HIST(GLOBAL_2D_ARRAY,N)
 
-
+#ifdef OXYLIM_BEC
+          real denitr_DOC_HIST(GLOBAL_2D_ARRAY,N),
+     &    denitr_POC_HIST(GLOBAL_2D_ARRAY,N)
+#endif
 
        common /time_averaging1/WS_HIST, XKW_HIST, 
      &   AP_HIST, SCHMIDT_O2_HIST, O2SAT_HIST, FG_O2_HIST, 
@@ -167,7 +170,11 @@
      &    DOFe_remin_HIST, DOP_prod_HIST, 
      &    DOP_remin_HIST, bSI_form_HIST, 
      &    photoFe_diaz_HIST, photoFe_diat_HIST, photoFe_sp_HIST,
+#ifdef OXYLIM_BEC
+     &    nitrif_HIST, denitr_DOC_HIST, denitr_POC_HIST
+#else
      &    nitrif_HIST
+#endif
  
 
 !--------------------------------------------------------------------------

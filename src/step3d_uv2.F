@@ -559,10 +559,12 @@ c--# define TR
 # endif
       return
       end
-#else
+#endif /* ETHV10DRAG */
+
+#ifdef ETHV10DRAG
       subroutine step3d_uv_empty
       return
       end
 #endif /* ETHV10DRAG */
-#endif /* SOLVE3D */
+#endif /* SOLVE4D */
  

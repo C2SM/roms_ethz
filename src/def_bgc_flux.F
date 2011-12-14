@@ -1,4 +1,4 @@
-!   $Log: def_bgc_flux.F,v $
+!   $Log: def_bgc_flux.F $
 !   Revision 1.2  2002/04/19 00:45:49  frenzel
 !   Added code for biogeochemical flux history files.
 !
@@ -87,6 +87,7 @@
 # define vidCNP hisCNP
 # define vidCNZ hisCNZ
 # define vidrCaCO3orgC hisrCaCO3orgC
+# define vidNCDET hisNCDET
 #else /* AVRH */
 # define ncname bgc_flux_avg_name
 # define rec_per_file nrpf_bgc_flux_avg
@@ -112,6 +113,7 @@
 # define vidCNP avgCNP
 # define vidCNZ avgCNZ
 # define vidrCaCO3orgC avgrCaCO3orgC
+# define vidNCDET avgNCDET
 #endif /* AVRH */
 
 ! This check is not performed in def_his.F, but very useful:
@@ -313,6 +315,17 @@
         lvar = lenstr(text)
         ierr=nf_put_att_text(ncid,nf_global,'bgc_note21',lvar,text)
 #endif /* CARBON */
+#ifdef OXYLIM
+        text = 
+     &  'NFlux_DenitrS = N_CDET * CFlux_ReminS'
+        lvar = lenstr(text)
+        ierr=nf_put_att_text(ncid,nf_global,'bgc_note22',lvar,text)
+!
+        text = 
+     &  'NFlux_DenitrL = N_CDET * CFlux_ReminL'
+        lvar = lenstr(text)
+        ierr=nf_put_att_text(ncid,nf_global,'bgc_note23',lvar,text)
+#endif / *OXYLIM */
 !
 
 !
@@ -417,6 +430,14 @@
         ierr = nf_put_att_text(ncid, vidrCaCO3orgC, 'long_name', 
      &          lvar, text(1:lvar))
 #endif /* CARBON */
+#ifdef OXYLIM
+        ierr = nf_def_var(ncid, 'N_CDET', NF_FOUT, 0, 0, vidNCDET)
+        text =
+     &  'Ratio of NO3 flux to DIC flux for denitrification'
+        lvar = lenstr(text)
+        ierr = nf_put_att_text(ncid, vidNCDET, 'long_name',
+     &         lvar, text(1:lvar))
+#endif /* OXYLIM */
 !
 ! Define evolving model variables.
 ! ------ -------- ----- ----------
@@ -899,6 +920,9 @@
       ierr = nf_put_var1_FTYPE(ncid, vidCNZ, 1, CN_Z)
       ierr = nf_put_var1_FTYPE(ncid, vidrCaCO3orgC, 1, r_CaCO3_orgC)
 #endif /* CARBON */
+#ifdef OXYLIM
+      ierr = nf_put_var1_FTYPE(ncid, vidNCDET, 1, N_CDET)
+#endif /* OXYLIM */
         write(stdout,'(6x,4A,1x,A,i4)') 
 #ifdef AVRH
      &       'DEF_BGC_FLUX_AVG - Created ',
@@ -1280,6 +1304,7 @@
 #undef vidCNP
 #undef vidCNZ
 #undef vidrCaCO3orgC
+#undef vidNCDET
 # ifndef AVRH
 #  ifdef AVERAGES      
 #   define AVRH

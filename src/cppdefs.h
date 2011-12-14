@@ -709,7 +709,7 @@ c# define OBC_EAST
 #   define MIX_GP_UV
 #   undef TS_DIF4
 #   ifdef TCLIMATOLOGY
-#     define CLIMAT_TS_MIXH
+#     undef CLIMAT_TS_MIXH
 #   endif
 # endif
                       /* Vertical Mixing */
@@ -733,7 +733,7 @@ c--> # undefine OBC_FLUX_CORR
  
 # define OBC_TORLANSKI
 c--# undefine OBC_M2ORLANSKI
-#define OBC_M2FLATHER
+# define OBC_M2FLATHER
 # define OBC_M3ORLANSKI
 
 # undef OBC_TSPECIFIED
@@ -749,15 +749,19 @@ c--# undefine OBC_M2ORLANSKI
 # define EXACT_RESTART
 
 !                       Biology
-#define BIOLOGY_NPZDOC
+#undef BIOLOGY_NPZDOC
 #ifdef BIOLOGY_NPZDOC
 # define CARBON
 # define OXYGEN
-# undef OXYLIM
+# define OXYLIM
 #endif
 ! Switch to calculate carbonsystem
-# undef CH_CARBON_DEP
-# undef BIOLOGY_BEC
+#undef CH_CARBON_DEP
+#define BIOLOGY_BEC
+#ifdef BIOLOGY_BEC
+# define OXYLIM_BEC /*should make OXYLIM_BEC*/
+#endif
+
 # define WRITE_DEPTHS
 # undef BGC_FLUX_ANALYSIS
 # undef PHYS_FLUX_ANALYSIS

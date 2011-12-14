@@ -92,8 +92,8 @@ c     &                LLm=60,  MMm=240,  N=24
 #elif defined HBCS5
      &               LLm=399, MMm=616, N=32       ! 5km setup
 #elif defined SAWC                                
-c     &               LLm=384, MMm=800, N=32       ! HBCS 7.5km setup
-     &                LLm=191, MMm=399, N=32       ! HBCS 15km setup
+     &               LLm=384, MMm=800, N=32       ! HBCS 7.5km setup
+c     &                LLm=191, MMm=399, N=32       ! HBCS 15km setup
 c     &                LLm=90, MMm=198, N=32        !HBCS 30km setup
 c     &                LLm=46, MMm=98, N=32         !HBCS 60km setup
 #elif defined USWEST
@@ -151,8 +151,8 @@ cc      parameter (NP_XI=6, NP_ETA=32, NSUB_X=1, NSUB_E=1) ! PACBIG newcluster
 # elif defined HBCS5
       parameter (NP_XI=8, NP_ETA=8, NSUB_X=1, NSUB_E=1)    
 # elif defined SAWC
-c      parameter (NP_XI=4, NP_ETA=16, NSUB_X=1, NSUB_E=1)
-      parameter (NP_XI=2, NP_ETA=8, NSUB_X=1, NSUB_E=1)
+      parameter (NP_XI=4, NP_ETA=16,NSUB_X=1, NSUB_E=1)
+c      parameter (NP_XI=2, NP_ETA=8, NSUB_X=1, NSUB_E=1)
 c      parameter (NP_XI=1, NP_ETA=4, NSUB_X=1, NSUB_E=1)
 # elif defined USWC_CENTRAL
       parameter (NP_XI=1, NP_ETA=4, NSUB_X=1, NSUB_E=1)

@@ -50,6 +50,9 @@
       ON_NO3 = 9.375
       ON_NH4 = 7.375
 #endif /* OXYGEN */
+#ifdef OXYLIM
+      N_CDET = 0.8
+#endif /* OXYLIM */
       wSDet   = 1.0
       wLDet   = 10.0
       wPhyt   = 0.5

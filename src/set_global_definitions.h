@@ -283,7 +283,7 @@ c-#endif
  precision of the code.
 */
  
-#define HIS_DOUBLE 
+#undef HIS_DOUBLE 
 #define PUT_GRID_INTO_RESTART
 #define PUT_GRID_INTO_HISTORY
 #define PUT_GRID_INTO_AVERAGES

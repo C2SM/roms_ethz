@@ -8,7 +8,7 @@
 
 ! Fluxes: all bgc fluxes are defined in a way that they will be positive under
 ! normal circumstances
-      ! fluxes of Nitrogen [mmol N m^-2]
+      ! fluxes of Nitrogen [mmol N m^-2 s^-1]
       integer NFlux_NewProd, NFlux_RegProd, NFlux_Grazing
       integer NFlux_SlopFeed, NFlux_Zfecp, NFlux_Pmort, NFlux_Zmetab
       integer NFlux_Zexcr, NFlux_ZmortS, NFlux_ZmortL, NFlux_DetCoagP
@@ -31,9 +31,10 @@
       parameter(NFlux_ReminL = 14)   ! Remineralization (LDetN -> NH4)
       parameter(NFlux_Nitrif = 15)   ! Nitrification (NH4 -> NO3)
 # ifdef OXYLIM
-      integer NFlux_Denitr
-      parameter(NFlux_Denitr = 16)   ! Denitrification (NO3 -> N2)
-      parameter(NumFluxTermsN = NFlux_Denitr)
+      integer NFlux_DenitrS, NFlux_DenitrL
+      parameter(NFlux_DenitrS = 16)  ! Denitrification (SdetC -> DIC, consuming DIC)
+      parameter(NFlux_DenitrL = 17)
+      parameter(NumFluxTermsN = NFlux_DenitrL)
 # else
       parameter(NumFluxTermsN = NFlux_Nitrif)
 # endif /* OXYLIM */
@@ -41,9 +42,9 @@
       integer CFlux_Zresp
       integer CFlux_DetCoagD, CFlux_ReminS, CFlux_ReminL, CFlux_Dissolv
       integer NumFluxTermsC
-      ! fluxes of and changes in carbon [mmol C m^-2]
+      ! fluxes of and changes in carbon [mmol C m^-2 s^-1]
 #ifdef OXYLIM
-      parameter(CFlux_Zresp = NFlux_Denitr + 1)      ! Zoopl. respiration (Zoo. -> DIC)
+      parameter(CFlux_Zresp = NFlux_DenitrL + 1)      ! Zoopl. respiration (Zoo. -> DIC)
 #else
       parameter(CFlux_Zresp = NFlux_Nitrif + 1)      ! Zoopl. respiration (Zoo. -> DIC)
 #endif /* OXYLIM */

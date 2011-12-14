@@ -86,8 +86,8 @@
       ! at the end of April and the minimum at the end of October
       pCO2air_loc = 370. + 2.9 * sin(deg2rad*(tdays-30.))
 # else /* VARIABLE_ATM_PCO2 */
-       pCO2air_loc = 550.        ! concentration of atmospheric CO2 2050
-!      pCO2air_loc = 370.        ! concentration of atmospheric CO2
+!       pCO2air_loc = 550.        ! concentration of atmospheric CO2 2050
+      pCO2air_loc = 370.        ! concentration of atmospheric CO2
 !       pCO2air_loc = 278.
 # endif /* VARIABLE_ATM_PCO2 */
 #endif

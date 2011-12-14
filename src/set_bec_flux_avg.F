@@ -185,6 +185,12 @@
      &                  photoFe_sp_hist(istrR:iendR,jstrR:jendR,:)
             nitrif_AVG(istrR:iendR,jstrR:jendR,:) =  
      &                  nitrif_hist(istrR:iendR,jstrR:jendR,:)
+#ifdef OXYLIM_BEC
+            denitr_DOC_AVG(istrR:iendR,jstrR:jendR,:) =
+     &                  denitr_DOC_hist(istrR:iendR,jstrR:jendR,:)
+            denitr_POC_AVG(istrR:iendR,jstrR:jendR,:) =
+     &                  denitr_POC_hist(istrR:iendR,jstrR:jendR,:)
+#endif
 
          elseif (mod(iic-1,n_bgc_flux_avg).gt.1) then
             if (ZEROTH_TILE) time_bgc_flux_avg=time_bgc_flux_avg+time
@@ -412,7 +418,14 @@
             nitrif_AVG(istrR:iendR,jstrR:jendR,:) =  
      &          nitrif_AVG(istrR:iendR,jstrR:jendR,:) 
      &          + nitrif_hist(istrR:iendR,jstrR:jendR,:)
-
+#ifdef OXYLIM_BEC
+            denitr_DOC_AVG(istrR:iendR,jstrR:jendR,:) =
+     &          denitr_DOC_AVG(istrR:iendR,jstrR:jendR,:)
+     &          + denitr_DOC_hist(istrR:iendR,jstrR:jendR,:)
+            denitr_POC_AVG(istrR:iendR,jstrR:jendR,:) =
+     &          denitr_POC_AVG(istrR:iendR,jstrR:jendR,:)
+     &          + denitr_POC_hist(istrR:iendR,jstrR:jendR,:)
+#endif 
          elseif (mod(iic-1,n_bgc_flux_avg).eq.0) then
             cff=1./float(n_bgc_flux_avg)
             if (ZEROTH_TILE) then
@@ -644,6 +657,14 @@
             nitrif_AVG(istrR:iendR,jstrR:jendR,:) =  
      &          cff*( nitrif_AVG(istrR:iendR,jstrR:jendR,:) 
      &          + nitrif_hist(istrR:iendR,jstrR:jendR,:) )
+#ifdef OXYLIM_BEC
+            denitr_DOC_AVG(istrR:iendR,jstrR:jendR,:) =  
+     &          cff*( denitr_DOC_AVG(istrR:iendR,jstrR:jendR,:) 
+     &          + denitr_DOC_hist(istrR:iendR,jstrR:jendR,:) )
+            denitr_POC_AVG(istrR:iendR,jstrR:jendR,:) =  
+     &          cff*( denitr_POC_AVG(istrR:iendR,jstrR:jendR,:) 
+     &          + denitr_POC_hist(istrR:iendR,jstrR:jendR,:) )
+#endif
          end if
          end if ! iic.gt.nts_bgc_flux_avg
 
