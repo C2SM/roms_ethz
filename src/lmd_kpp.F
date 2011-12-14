@@ -4,7 +4,7 @@ c--#define BULK_DIFFERENCE
 c--#define INT_AT_W_POINTS
 #define INT_AT_RHO_POINTS
 
-#define MLCONVEC
+c--mm ucla atlsma turned on #define MLCONVEC 
 #define SMOOTH_HBL
 #define LIMIT_UNSTABLE_ONLY
 c--#define LIMIT_MO_DEPTH
@@ -81,7 +81,8 @@ c--#define LIMIT_MO_DEPTH
       parameter (
      &   nubl=0.01,   ! maximum allowed boundary layer
 
-     &   nu0c=0.5,    ! convective adjustment for viscosity
+! ucla atlsma     &   nu0c=0.5,    ! convective adjustment for viscosity
+     &   nu0c=0.1,    ! convective adjustment for viscosity
                       !              and diffusivity [m^2/s].
  
      &   Cv=1.8,      ! ratio of interior Brunt-Vaisala frequency
