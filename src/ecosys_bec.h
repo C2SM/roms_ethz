@@ -32,19 +32,26 @@
 !   variables used for time-averaging
 !--------------------------------------------------------------------------
 # ifdef CH_CARBON_DEPTH
-       real PH_HIST(GLOBAL_2D_ARRAY,N),
-     &   HCO3_HIST(GLOBAL_2D_ARRAY,N),
-     &   CO3_HIST(GLOBAL_2D_ARRAY,N),
-     &   CO2STAR_HIST(GLOBAL_2D_ARRAY,N),
-     &   pCO2sw(GLOBAL_2D_ARRAY,N),
-     &   DCO2STAR_HIST(GLOBAL_2D_ARRAY,N)
+!ethsigma3_old       real PH_HIST(GLOBAL_2D_ARRAY,N),
+!ethsigma3_old     &   HCO3_HIST(GLOBAL_2D_ARRAY,N),
+!ethsigma3_old     &   CO3_HIST(GLOBAL_2D_ARRAY,N),
+!ethsigma3_old     &   CO2STAR_HIST(GLOBAL_2D_ARRAY,N),
+!ethsigma3_old     &   pCO2sw(GLOBAL_2D_ARRAY,N),
+!ethsigma3_old     &   DCO2STAR_HIST(GLOBAL_2D_ARRAY,N)
+!ethsigma3_old
+!ethsigma3_old       common /time_averaging1/HCO3_HIST, CO3_HIST
+!ethsigma3_old# else
+!ethsigma3_old       real PH_HIST(GLOBAL_2D_ARRAY),
+!ethsigma3_old     &   CO2STAR_HIST(GLOBAL_2D_ARRAY),
+!ethsigma3_old     &   pCO2sw(GLOBAL_2D_ARRAY),
+!ethsigma3_old     &   DCO2STAR_HIST(GLOBAL_2D_ARRAY)
+       real PHd_HIST(GLOBAL_2D_ARRAY,N),
+     &   HCO3d_HIST(GLOBAL_2D_ARRAY,N),
+     &   CO3d_HIST(GLOBAL_2D_ARRAY,N),
+     &   CO2STARd_HIST(GLOBAL_2D_ARRAY,N)
 
-       common /time_averaging1/HCO3_HIST, CO3_HIST
-# else
-       real PH_HIST(GLOBAL_2D_ARRAY),
-     &   CO2STAR_HIST(GLOBAL_2D_ARRAY),
-     &   pCO2sw(GLOBAL_2D_ARRAY),
-     &   DCO2STAR_HIST(GLOBAL_2D_ARRAY)
+       common /time_averaging1/PHd_HIST, HCO3d_HIST, 
+     &   CO3d_HIST, CO2STARd_HIST
 
 # endif /* CH_CARBON_DEPTH */
 
@@ -55,10 +62,10 @@
      &   O2SAT_HIST(GLOBAL_2D_ARRAY), 
      &   FG_O2_HIST(GLOBAL_2D_ARRAY), 
      &    SCHMIDT_CO2_HIST(GLOBAL_2D_ARRAY), 
-!ch     &   PH_HIST(GLOBAL_2D_ARRAY), 
-!ch     &   CO2STAR_HIST(GLOBAL_2D_ARRAY),  
-!ch     &   DCO2STAR_HIST(GLOBAL_2D_ARRAY), 
-!ch     &   pCO2sw(GLOBAL_2D_ARRAY), 
+     &   PH_HIST(GLOBAL_2D_ARRAY), 
+     &   CO2STAR_HIST(GLOBAL_2D_ARRAY),  
+     &   DCO2STAR_HIST(GLOBAL_2D_ARRAY), 
+     &   pCO2sw(GLOBAL_2D_ARRAY), 
 !hf     &   DpCO2(GLOBAL_2D_ARRAY), 
      &   pCO2air(GLOBAL_2D_ARRAY), 
      &    FG_CO2_HIST(GLOBAL_2D_ARRAY), 

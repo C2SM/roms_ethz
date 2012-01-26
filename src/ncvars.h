@@ -256,6 +256,18 @@
      &           indxHz=indxz_w+1)
 #  endif /* WRITE_DEPTHS */
 # endif /* BIOLOGY_BEC */
+<<<<<<< HEAD
+=======
+
+# if !defined BIOLOGY_NPZDOC && !defined BIOLOGY_BEC
+#  ifdef WRITE_DEPTHS
+       parameter(indxz_r=indxT+ntrc_salt+ntrc_pas+1, indxz_w=indxz_r+1,
+     &           indxHz=indxz_w+1)
+#  endif /* WRITE_DEPTHS */
+# endif /* !defined BIOLOGY_NPZD && !defined BIOLOGY_BEC */
+#endif /* SOLVE3D */
+
+>>>>>>> a46e3246ac6457d2cd7acb47d5652066e83abeb1
 
 # if !defined BIOLOGY_NPZDOC && !defined BIOLOGY_BEC
 #  ifdef WRITE_DEPTHS
@@ -462,6 +474,11 @@
 #  endif
 # endif /* SOLVE3D */
 #endif /* STATIONS */
+
+#if defined PASSIVE_TRACER && defined AGE_DYE_TRACER
+      integer ncid_ad(ntrc_pas), ad_tid(ntrc_pas), bcVal_id(ntrc_pas)
+      common /ncvars/ ncid_ad, ad_tid,  bcVal_id
+#endif /* PASSIVE_TRACER && AGE_DYE_TRACER */
 
 #ifdef SOLVE3D
 # define NWRTHIS 100+NT

@@ -89,7 +89,7 @@ C$OMP END MASTER
 C$    integer omp_get_thread_num, omp_get_num_threads
 # include "param.h"
 # include "scalars.h"
-
+# include "sources.h"
 # include "ncvars.h"
 #ifdef FLOATS
 ! grid.h is needed so that lonr and latr are readily available
@@ -231,6 +231,15 @@ C$OMP END MASTER
 #endif
 C$OMP BARRIER
 
+!DL:initialize data structures related to age/dye tracers specified via
+! Netcdf files, if necessary:
+#if defined PASSIVE_TRACER && defined AGE_DYE_TRACER
+      do tile=my_tile_range
+         call init_agedye(tile)
+      enddo
+C$OMP BARRIER
+      if (may_day_flag.ne.0) goto 99      !--> ERROR
+#endif
 
 !DL: give a warning if writing of avg/his files is not synchronized with
 ! writing of restart files and ldefhis is set to true:

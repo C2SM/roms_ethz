@@ -1,19 +1,19 @@
        real,dimension(GLOBAL_2D_ARRAY):: WS_AVG, XKW_AVG, 
      &     AP_AVG, SCHMIDT_O2_AVG, O2SAT_AVG, FG_O2_AVG, 
-!     &     PH_AVG, pCO2_AVG, 
+     &     PH_AVG, pCO2_AVG, 
      &     pCO2air_AVG, 
      &     SCHMIDT_CO2_AVG, DCO2STAR_AVG, 
-!     &     CO2STAR_AVG, 
+     &     CO2STAR_AVG, 
      &     FG_CO2_AVG, IRON_FLUX_AVG, PARinc_avg,
      &     PARinc_flux_avg, zeta_bgc_flux_avg
 
 #ifdef CH_CARBON_DEPTH
-       real,dimension(GLOBAL_2D_ARRAY,N):: HCO3_AVG, CO3_AVG, CO2STAR_AVG,
-     &     pCO2_AVG, PH_AVG
-#else
-       real,dimension(GLOBAL_2D_ARRAY):: CO2STAR_AVG, pCO2_AVG, 
-     &     PH_AVG
-#endif
+       real,dimension(GLOBAL_2D_ARRAY,N):: HCO3d_AVG, CO3d_AVG, CO2STARd_AVG,
+     &     PHd_AVG
+
+       common /time_avg1/
+     &    HCO3d_AVG, CO3d_AVG, CO2STARd_AVG, PHd_AVG
+#endif /*CH_CARBON_DEPTH*/
 
         real,dimension(GLOBAL_2D_ARRAY,N)::  
      &    PAR_avg,
@@ -55,7 +55,7 @@
      &    PH_AVG, pCO2_AVG, pCO2air_AVG, 
      &    SCHMIDT_CO2_AVG, CO2STAR_AVG, DCO2STAR_AVG, 
      &    FG_CO2_AVG, IRON_FLUX_AVG, PARinc_avg, 
-     %    PARinc_flux_avg, zeta_bgc_flux_avg, PAR_avg,
+     &    PARinc_flux_avg, zeta_bgc_flux_avg, PAR_avg,
      &    PO4_RESTORE_AVG, NO3_RESTORE_AVG, 
      &    SiO3_RESTORE_AVG, PAR_flux_avg, PO4STAR_AVG, 
      &    POC_FLUX_IN_AVG, POC_PROD_AVG, POC_REMIN_AVG, 
@@ -67,10 +67,6 @@
      &    graze_sp_AVG, graze_diat_AVG, graze_tot_AVG, 
      &    sp_loss_AVG, diat_loss_AVG, zoo_loss_AVG 
 
-# if defined CH_CARBON_DEPTH
-       common /time_avg1/
-     &    HCO3_AVG, CO3_AVG
-# endif /* CH_CARBON_SEPTH */
 
        common /time_avg2/
      &    sp_agg_AVG, diat_agg_AVG, 

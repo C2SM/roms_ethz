@@ -241,6 +241,9 @@
       implicit none
       integer istr,iend,jstr,jend, ierr, itrc,i,j,k, it1,it2
       real cff, cff1, cff2
+# if defined PASSIVE_TRACER && defined AGE_DYE_TRACER
+      integer is
+# endif
 # define TCLIMA_DATA
 # include "param.h"
 # include "climat.h"
@@ -250,6 +253,10 @@
       real CN_avg
 # include "biopar.h"
 # endif /* BIOLOGY_NPZDOC */
+# if defined PASSIVE_TRACER && defined AGE_DYE_TRACER
+#  include "ncvars.h"
+#  include "sources.h"
+# endif
 !
 # include "compute_extended_bounds.h"
 !
@@ -505,6 +512,27 @@
            else if (itrc .eq. iDOP) then
               tclm(:,:,:,iDOP)=0.0 ! 8.55e-4
 # endif /* BIOLOGY_BEC */
+!DL:
+# if defined PASSIVE_TRACER && defined AGE_DYE_TRACER
+           else if (itrc.gt.itemp+ntrc_salt .and. itrc.le.itemp+ntrc_salt+N_agedye) then
+              is = itrc - (itemp+ntrc_salt)
+              if (.not. Age(is)) then
+                 ! Dye tracer:
+                 tclm(:,:,:,itrc) = 0.0
+              else
+                 ! Age tracers: set age to time elapsed since start of simulation,
+                 ! except at the surface:
+                 do k = 1,N-1
+                    tclm(:,:,k,itrc) = time*sec2day
+#  ifdef USE_REAL_YEAR
+     &                  / 365
+#  else
+     &                  / 360
+#  endif
+                 enddo
+                 tclm(:,:,N,itrc) = 0.0
+              endif ! .not. Age(is)
+# endif /* PASSIVE_TRACER && AGE_DYE_TRACER */
       endif   ! <-- itrc .eq. itemp
       endif   ! <-- tclm_tid(itrc).gt.0
       enddo   ! <-- itrc

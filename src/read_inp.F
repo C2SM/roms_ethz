@@ -24,6 +24,10 @@
 #ifdef MPI
 # include "mpif.h"
 #endif
+#if defined PASSIVE_TRACER && defined AGE_DYE_TRACER
+# include "sources.h"
+      integer N_agedye_files
+#endif
       integer kwsize, testunit, input
       parameter (kwsize=32, testunit=40, input=15)
       character end_signal*3, keyword*32, fname*64
@@ -414,39 +418,6 @@ c--      fname='roms.in.US_West'
      &     'Averages File:', avgname(1:lstr),
      &     'rec/file =', nrpfavg
 #endif
-
-#ifdef BIOLOGY_BEC_NOMORE
-        elseif (keyword(1:kwlen).eq.'mgm_history') then
-          call cancel_kwd (keyword(1:kwlen), ierr)
-          read(input,*,err=95) nwrtmgm,  nprfmgm
-          read(input,'(A)',err=95) fname
-          lstr=lenstr(fname)
-# if defined MPI && defined PARALLEL_FILES
-          call insert_node (fname, lstr, mynode, NNODES, ierr)
-# endif
-          mgmfname=fname(1:lstr)
-          MPI_master_only write(stdout,
-     &               '(7x,A,2x,A,2x,A,2x,A,I6,A,I3)')
-     &         'MGM History File:', mgmfname(1:lstr),  'Create new:',
-     &          'nwrt =', nwrtmgm, 'rec/file =', nprfmgm
-
-
-        elseif (keyword(1:kwlen).eq.'mgm_avg') then
-          call cancel_kwd (keyword(1:kwlen), ierr)
-          read(input,*,err=95) nwrtmgmavg,  nprfmgmavg
-          read(input,'(A)',err=95) fname
-          lstr=lenstr(fname)
-# if defined MPI && defined PARALLEL_FILES
-          call insert_node (fname, lstr, mynode, NNODES, ierr)
-# endif
-          mgmavgfname=fname(1:lstr)
-          MPI_master_only write(stdout,
-     &               '(7x,A,2x,A,2x,A,2x,A,I6,A,I3)')
-     &         'MGM History File:', mgmavgfname(1:lstr),  'Create new:',
-     &          'nwrt =', nwrtmgmavg, 'rec/file =', nprfmgmavg
-#endif   /* BIOLOGY_BEC_NOMORE */
-
-
 
 #ifdef BGC_FLUX_ANALYSIS
 !
@@ -1084,6 +1055,21 @@ c--      fname='roms.in.US_West'
      &      'of atm. pCO2'
 # endif
 #endif
+!DL: age/dye tracers:
+#if defined PASSIVE_TRACER && defined AGE_DYE_TRACER
+        elseif (keyword(1:kwlen).eq.'age_dye') then
+           call cancel_kwd (keyword(1:kwlen), ierr)
+           ! Read number of age/dye tracers:
+           read(input,*,err=95) N_agedye
+           if (N_agedye .gt. ntrc_pas) then
+              MPI_master_only write(stdout,'(3a,i6)') 'ERROR: ',
+     &        'too many age/dye tracers. Set parameter ntrc_pas ',
+     &        'in param.h to a value >= ', N_agedye
+              goto 95
+           end if
+           MPI_master_only write(stdout,'(6x,i2,A)')
+     &          N_agedye, ' Number of age/dye tracers'
+#endif /* PASSIVE_TRACER && AGE_DYE_TRACER */
         else
           MPI_master_only write(stdout,'(/1x,4A/)') 'WARNING: ',
      &                'Unrecognized keyword ''', keyword(1:kwlen),

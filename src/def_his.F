@@ -95,9 +95,10 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
 # define vidHbbl hisHbbl
 # if defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC
 #  if defined CH_CARBON_DEPTH
-#   define vidCO2STAR hisCO2STAR
-#   define vidHCO3 hisHCO3
-#   define vidCO3 hisCO3
+#   define vidPHd hisPHd
+#   define vidCO2STARd hisCO2STARd
+#   define vidHCO3d hisHCO3d
+#   define vidCO3d hisCO3d
 #  endif /* CH_CARBON_DEPTH */
 #  define vidPH hisPH
 #  define vidPCO2 hisPCO2
@@ -107,13 +108,13 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
 #  ifdef SEDIMENT_BIOLOGY
 #   define vidTsed hisTsed
 #  endif
-# endif /* BIOLOGY_NPZDOC || BIOLOGY_BEC*/
+# endif /* BIOLOGY_NPZDOC || BIOLOGY_BEC */
 # ifdef WRITE_DEPTHS
 #  define vidz_r hisz_r
 #  define vidz_w hisz_w
 #  define vidHz hisHz
 # endif /* WRITE_DEPTHS */
-#else
+#else /* AVRH */
 # define ncname avgname
 # define rec_per_file nrpfavg
 # define wrt wrtavg
@@ -139,9 +140,10 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
 # define vidHbbl avgHbbl
 # if defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC
 #  if defined CH_CARBON_DEPTH
-#   define vidCO2STAR avgCO2STAR
-#   define vidHCO3 avgHCO3
-#   define vidCO3 avgCO3
+#   define vidPHd avgPHd
+#   define vidCO2STARd avgCO2STARd
+#   define vidHCO3d avgHCO3d
+#   define vidCO3d avgCO3d
 #  endif /* CH_CARBON_DEPTH */
 #  define vidPH avgPH
 #  define vidPCO2 avgPCO2
@@ -157,7 +159,7 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
 #  define vidz_w avgz_w
 #  define vidHz avgHz
 # endif /* WRITE_DEPTHS */
-#endif
+#endif /* AVRH */
 !
 ! Put time record index into file name. In  the case when model
 ! output is to be arranged into sequence of named files, the naming
@@ -774,120 +776,100 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
 #  if defined CH_CARBON_DEPTH
 
 !
-! HCO3
+! HCO3_depth
 !
-        lvar=lenstr(vname(1,indxHCO3_rst))
-        ierr=nf_def_var (ncid, vname(1,indxHCO3_rst)(1:lvar), NF_FOUT,
-     &                                           4, r3dgrd, vidHCO3)
+        lvar=lenstr(vname(1,indxHCO3d_rst))
+        ierr=nf_def_var (ncid, vname(1,indxHCO3d_rst)(1:lvar), NF_FOUT,
+     &                                           4, r3dgrd, vidHCO3d)
 #  ifdef AVRH
-        text='averaged '/ /vname(2,indxHCO3_rst)
+        text='averaged '/ /vname(2,indxHCO3d_rst)
 #  else
-        text=vname(2,indxHCO3_rst)
+        text=vname(2,indxHCO3d_rst)
 #  endif
         lvar=lenstr(text)
-        ierr=nf_put_att_text (ncid, vidHCO3, 'long_name', lvar,
+        ierr=nf_put_att_text (ncid, vidHCO3d, 'long_name', lvar,
      &                                              text(1:lvar))
-        lvar=lenstr(vname(3,indxHCO3_rst))
-        ierr=nf_put_att_text (ncid, vidHCO3, 'units',     lvar,
-     &                                  vname(3,indxHCO3_rst)(1:lvar))
+        lvar=lenstr(vname(3,indxHCO3d_rst))
+        ierr=nf_put_att_text (ncid, vidHCO3d, 'units',     lvar,
+     &                                  vname(3,indxHCO3d_rst)(1:lvar))
 #ifdef MASK_LAND_DATA
-        ierr=nf_put_att_FOUT (ncid, vidHCO3, '_FillValue',
+        ierr=nf_put_att_FOUT (ncid, vidHCO3d, '_FillValue',
      &                                  NF_FOUT, 1, spv_set)
 #endif
 
 !
-! CO3
+! CO3_depth
 !
-        lvar=lenstr(vname(1,indxCO3_rst))
-        ierr=nf_def_var (ncid, vname(1,indxCO3_rst)(1:lvar), NF_FOUT,
-     &                                           4, r3dgrd, vidCO3)
+        lvar=lenstr(vname(1,indxCO3d_rst))
+        ierr=nf_def_var (ncid, vname(1,indxCO3d_rst)(1:lvar), NF_FOUT,
+     &                                           4, r3dgrd, vidCO3d)
 #  ifdef AVRH
-        text='averaged '/ /vname(2,indxCO3_rst)
+        text='averaged '/ /vname(2,indxCO3d_rst)
 #  else
-        text=vname(2,indxCO3_rst)
+        text=vname(2,indxCO3d_rst)
 #  endif
         lvar=lenstr(text)
-        ierr=nf_put_att_text (ncid, vidCO3, 'long_name', lvar,
+        ierr=nf_put_att_text (ncid, vidCO3d, 'long_name', lvar,
      &                                              text(1:lvar))
-        lvar=lenstr(vname(3,indxCO3_rst))
-        ierr=nf_put_att_text (ncid, vidCO3, 'units',     lvar,
-     &                                  vname(3,indxCO3_rst)(1:lvar))
+        lvar=lenstr(vname(3,indxCO3d_rst))
+        ierr=nf_put_att_text (ncid, vidCO3d, 'units',     lvar,
+     &                                  vname(3,indxCO3d_rst)(1:lvar))
 #ifdef MASK_LAND_DATA
-        ierr=nf_put_att_FOUT (ncid, vidCO3, '_FillValue',
+        ierr=nf_put_att_FOUT (ncid, vidCO3d, '_FillValue',
      &                                  NF_FOUT, 1, spv_set)
 #endif
 
 
 !
-! CO2STAR
+! CO2STAR_DEPTH
 !
-        lvar=lenstr(vname(1,indxCO2STAR_rst))
-        ierr=nf_def_var (ncid, vname(1,indxCO2STAR_rst)(1:lvar), NF_FOUT,
-     &                                           4, r3dgrd, vidCO2STAR)
+        lvar=lenstr(vname(1,indxCO2STARd_rst))
+        ierr=nf_def_var (ncid, vname(1,indxCO2STARd_rst)(1:lvar), NF_FOUT,
+     &                                           4, r3dgrd, vidCO2STARd)
 #  ifdef AVRH
-        text='averaged '/ /vname(2,indxCO2STAR_rst)
+        text='averaged '/ /vname(2,indxCO2STARd_rst)
 #  else
-        text=vname(2,indxCO2STAR_rst)
+        text=vname(2,indxCO2STARd_rst)
 #  endif
         lvar=lenstr(text)
-        ierr=nf_put_att_text (ncid, vidCO2STAR, 'long_name', lvar,
+        ierr=nf_put_att_text (ncid, vidCO2STARd, 'long_name', lvar,
      &                                              text(1:lvar))
-        lvar=lenstr(vname(3,indxCO2STAR_rst))
-        ierr=nf_put_att_text (ncid, vidCO2STAR, 'units',     lvar,
-     &                                  vname(3,indxCO2STAR_rst)(1:lvar))
+        lvar=lenstr(vname(3,indxCO2STARd_rst))
+        ierr=nf_put_att_text (ncid, vidCO2STARd, 'units',     lvar,
+     &                                  vname(3,indxCO2STARd_rst)(1:lvar))
 #ifdef MASK_LAND_DATA
-        ierr=nf_put_att_FOUT (ncid, vidCO2STAR, '_FillValue',
+        ierr=nf_put_att_FOUT (ncid, vidCO2STARd, '_FillValue',
      &                                  NF_FOUT, 1, spv_set)
 #endif
+
+!
+! PH_DEPTH
+!         
+         lvar=lenstr(vname(1,indxPHd_rst))
+        ierr=nf_def_var (ncid, vname(1,indxPHd_rst)(1:lvar), NF_FOUT,
+     &                                           4, r3dgrd, vidPHd)
+#  ifdef AVRH
+        text='averaged '/ /vname(2,indxPHd_rst)
+#  else
+        text=vname(2,indxPHd_rst)
+#  endif
+        lvar=lenstr(text)
+        ierr=nf_put_att_text (ncid, vidPHd, 'long_name', lvar,
+     &                                              text(1:lvar))
+        lvar=lenstr(vname(3,indxPHd_rst))
+        ierr=nf_put_att_text (ncid, vidPHd, 'units',     lvar,
+     &                                  vname(3,indxPHd_rst)(1:lvar))
+#ifdef MASK_LAND_DATA
+        ierr=nf_put_att_FOUT (ncid, vidPHd, '_FillValue',
+     &                                  NF_FOUT, 1, spv_set)
+#endif
+
+#endif /*CH_CARBON_DEPTH*/
 
 !
 ! pH
-!         lvar=lenstr(vname(1,indxPH_rst))
-        ierr=nf_def_var (ncid, vname(1,indxPH_rst)(1:lvar), NF_FOUT,
-     &                                           4, r3dgrd, vidPH)
-#  ifdef AVRH
-        text='averaged '/ /vname(2,indxPH_rst)
-#  else
-        text=vname(2,indxPH_rst)
-#  endif
-        lvar=lenstr(text)
-        ierr=nf_put_att_text (ncid, vidPH, 'long_name', lvar,
-     &                                              text(1:lvar))
-        lvar=lenstr(vname(3,indxPH_rst))
-        ierr=nf_put_att_text (ncid, vidPH, 'units',     lvar,
-     &                                  vname(3,indxPH_rst)(1:lvar))
-#ifdef MASK_LAND_DATA
-        ierr=nf_put_att_FOUT (ncid, vidPH, '_FillValue',
-     &                                  NF_FOUT, 1, spv_set)
-#endif
-
 !
-! pCO2:
-!
-        lvar=lenstr(vname(1,indxPCO2_rst))
-        ierr=nf_def_var (ncid, vname(1,indxPCO2_rst)(1:lvar), NF_FOUT,
-     &                                           4, r3dgrd, vidPCO2)
-#  ifdef AVRH
-        text='averaged '/ /vname(2,indxPCO2_rst)
-#  else
-        text=vname(2,indxPCO2_rst)
-#  endif
-        lvar=lenstr(text)
-        ierr=nf_put_att_text (ncid, vidPCO2, 'long_name', lvar,
-     &                                              text(1:lvar))
-        lvar=lenstr(vname(3,indxPCO2_rst))
-        ierr=nf_put_att_text (ncid, vidPCO2, 'units',     lvar,
-     &                                  vname(3,indxPCO2_rst)(1:lvar))
-#ifdef MASK_LAND_DATA
-        ierr=nf_put_att_FOUT (ncid, vidPCO2, '_FillValue',
-     &                                  NF_FOUT, 1, spv_set)
-#endif
-
-#  else
-
-!
-! pH
-!         lvar=lenstr(vname(1,indxPH_rst))
+         lvar=lenstr(vname(1,indxPH_rst))
         ierr=nf_def_var (ncid, vname(1,indxPH_rst)(1:lvar), NF_FOUT,
      &                                           3, r2dgrd, vidPH)
 #  ifdef AVRH
@@ -926,8 +908,6 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
         ierr=nf_put_att_FOUT (ncid, vidPCO2, '_FillValue',
      &                                  NF_FOUT, 1, spv_set)
 #endif
-
-#  endif /* CH_CARBON_DEPTH */
 
 !
 ! pCO2air:
@@ -998,6 +978,7 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
      &                                  NF_FOUT, 1, spv_set)
 #endif
 #endif /* BIOLOGY_BEC || BIOLOGY_NPZDOC */
+
 !DL:
 # ifdef WRITE_DEPTHS
 !
@@ -1357,34 +1338,46 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
 #  if defined CH_CARBON_DEPTH
 
 !
-! HCO3
+! HCO3_DEPTH
 !
-        lvar=lenstr(vname(1,indxHCO3_rst))
-        ierr=nf_inq_varid (ncid,vname(1,indxHCO3_rst)(1:lvar), vidHCO3)
+        lvar=lenstr(vname(1,indxHCO3d_rst))
+        ierr=nf_inq_varid (ncid,vname(1,indxHCO3d_rst)(1:lvar), vidHCO3d)
         if (ierr .ne. nf_noerr) then
-           write(stdout,1) vname(1,indxHCO3_rst)(1:lvar), ncname(1:lstr)
+           write(stdout,1) vname(1,indxHCO3d_rst)(1:lvar), ncname(1:lstr)
            goto 99                                       !--> ERROR
         endif
 
 !
-! CO3
+! CO3_DEPTH
 !
-        lvar=lenstr(vname(1,indxCO3_rst))
-        ierr=nf_inq_varid (ncid,vname(1,indxCO3_rst)(1:lvar), vidCO3)
+        lvar=lenstr(vname(1,indxCO3d_rst))
+        ierr=nf_inq_varid (ncid,vname(1,indxCO3d_rst)(1:lvar), vidCO3d)
         if (ierr .ne. nf_noerr) then
-           write(stdout,1) vname(1,indxCO3_rst)(1:lvar), ncname(1:lstr)
+           write(stdout,1) vname(1,indxCO3d_rst)(1:lvar), ncname(1:lstr)
            goto 99                                       !--> ERROR
         endif
 
 !
-! Co2STAR
+! Co2STAR_DEPTH
 !
-        lvar=lenstr(vname(1,indxCO2STAR_rst))
-        ierr=nf_inq_varid (ncid,vname(1,indxCO2STAR_rst)(1:lvar), vidCO2STAR)
+        lvar=lenstr(vname(1,indxCO2STARd_rst))
+        ierr=nf_inq_varid (ncid,vname(1,indxCO2STARd_rst)(1:lvar), vidCO2STARd)
         if (ierr .ne. nf_noerr) then
-           write(stdout,1) vname(1,indxCO2STAR_rst)(1:lvar), ncname(1:lstr)
+           write(stdout,1) vname(1,indxCO2STARd_rst)(1:lvar), ncname(1:lstr)
            goto 99                                       !--> ERROR
         endif
+
+!
+! PH_DEPTH
+!
+        lvar=lenstr(vname(1,indxPHd_rst))
+        ierr=nf_inq_varid (ncid,vname(1,indxPHd_rst)(1:lvar), vidPHd)
+        if (ierr .ne. nf_noerr) then
+           write(stdout,1) vname(1,indxPHd_rst)(1:lvar), ncname(1:lstr)
+           goto 99                                       !--> ERROR
+        endif
+
+
 #  endif /* CH_CARBON_DEPTH */
 !
 ! pH
@@ -1519,6 +1512,7 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
 #undef vidT
 #if defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC
 # if defined CH_CARBON_DEPTH
+#  undef vidPHDEPTH
 #  undef vidCO2STAR
 #  undef vidHCO3
 #  undef vidCO3
