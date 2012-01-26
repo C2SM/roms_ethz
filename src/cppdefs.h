@@ -756,10 +756,10 @@ c--# undefine OBC_M2ORLANSKI
 # define OXYLIM
 #endif
 ! Switch to calculate carbonsystem
-#undef CH_CARBON_DEP
+#define CH_CARBON_DEPTH
 #define BIOLOGY_BEC
 #ifdef BIOLOGY_BEC
-# define OXYLIM_BEC /*should make OXYLIM_BEC*/
+# undef OXYLIM_BEC /*should make OXYLIM_BEC*/
 #endif
 
 # define WRITE_DEPTHS
