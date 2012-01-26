@@ -1513,9 +1513,10 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
 #if defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC
 # if defined CH_CARBON_DEPTH
 #  undef vidPHDEPTH
-#  undef vidCO2STAR
-#  undef vidHCO3
-#  undef vidCO3
+#  undef vidCO2STARd
+#  undef vidHCO3d
+#  undef vidCO3d
+#  undef vidPHd
 # endif /* CH_CARBON_DEPTH */
 # undef vidPH
 # undef vidPCO2
