@@ -473,7 +473,7 @@ CR      write(*,*) 'wrt_his:  wrtHBL' MYID
 !
 ! depths at w points:
 !
-      ierr=nf_fwrite (z_w(START_2D_ARRAY,1), ncidhis,
+      ierr=nf_fwrite (z_w(START_2D_ARRAY,0), ncidhis,
      &                              hisz_w, record, w3dvar)
       if (ierr .ne. nf_noerr) then
         lvar=lenstr(vname(1,indxz_w))
