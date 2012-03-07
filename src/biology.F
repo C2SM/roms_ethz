@@ -155,7 +155,8 @@
 !
 #ifdef OXYGEN
       real O2(N)
-      real u10_loc,Sc_O2,O2satu_loc,Kv_O2_loc,su_i2,sv_j2
+      real u10_loc,Sc_O2,O2satu_loc,Kv_O2_loc
+      integer su_i2,sv_j2
 #  ifdef OCMIP_OXYGENSAT
       real o2sato   ! OCMIP function, calculates O2 saturation
 #  else /* OCMIP_OXYGENSAT */
