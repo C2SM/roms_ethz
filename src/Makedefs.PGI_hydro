@@ -23,8 +23,8 @@ CPP = cpp -traditional
 FC = mpif90
 LDR = $(FC)
 
-CPPFLAGS = -DPGI 
+CPPFLAGS = -DPGI  -I${MPI_ROOT}/include
 FFLAGS = -mcmodel=medium -fast -O4 -I${NETCDF}/include
-#LCDF = -L${LIBRARY_PATH} -lnetcdf -lhdf5_hl -lhdf5  -lz
-LCDF = -L${LIBRARY_PATH} -lnetcdf 
+LCDF = -L${NETCDF}/lib -lnetcdf -lhdf5_hl -lhdf5  -lz -lcurl
+#LCDF = -L${LIBRARY_PATH} -lnetcdf 
 
