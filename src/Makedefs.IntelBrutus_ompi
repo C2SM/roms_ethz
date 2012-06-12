@@ -4,11 +4,11 @@
 
 .SUFFIXES:	# Delete the default suffixes
 .SUFFIXES: .o .f .F
+.PRECIOUS: %.f
 
 # Use pattern rule to indicate dependency on mpc
 %.f:  mpc %.F 
 	$(CPP) -P $(CPPFLAGS) $*.F | mpc > $@
-#	/bin/rm -f $*.for
 
 .f.o:
 	$(CFT) -c $(FFLAGS) $< -o $@
@@ -68,12 +68,15 @@ LARGE_MEM_FLAG = -mcmodel=large -i-dynamic
       # Brutus  mpich2: CFT = mpif90 -f90=ifort $(OMP_FLAG) -pc80 -axW -xW -auto -stack_temps
 #      CFT =/opt/hpmpi/bin/mpif90 $(OMP_FLAG) -pc80 -axW -xW -auto -stack_temps
      CFT =mpif90 $(OMP_FLAG) -pc80 -axW -xW -auto -stack_temps
+     CFT =mpif90 $(OMP_FLAG) -fast -pc80 -msse2 -auto -stack_temps
+     CFT =mpif90 $(OMP_FLAG) -pc80 -msse2 -auto -stack_temps
 
 #      CFT =mpif90 
 
 # -warn unused   
 
       LDR = $(CFT)
+      LDR =mpif90 $(OMP_FLAG) -pc80 -msse2 -auto -stack_temps
 #      LDR = mpif90 $(OMP_FLAG) -pc80 -tpp7 -axW -xW -w95 -align dcommon -auto -stack_temps
 
   FFLAGS =  -O3 -IPF_fma -ip $(LARGE_MEM_FLAG)

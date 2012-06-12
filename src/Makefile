@@ -203,6 +203,8 @@ depend: check_switches1.F setup_kwds.F cross_matrix
 avr: avr.F lenstr.o
 	$(LDR) $(FFLAGS) $(LDFLAGS) -o avr avr.F lenstr.o $(LCDF)
 
+transp_nodes: transp_nodes.o
+	$(LDR) -o transp_nodes transp_nodes.o 
 plotter: plotter.o
 	$(LDR) -o plotter plotter.o $(LIBNCAR)
 #
