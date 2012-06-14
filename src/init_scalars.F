@@ -25,11 +25,6 @@
 #include "boundary.h"
 
 c      integer size, kmp_get_stacksize_s
-
-#ifndef ABE
-      call system('uname -nmr')
-#endif
-
 c      size=kmp_get_stacksize_s()
       
 

@@ -20,16 +20,20 @@ C$    end
 # include "ncvars.h"
 # include "mpif.h"
 C$    integer nthrds
+      character(len=64) cmmnd
+
 
       ocean_grid_comm=MPI_COMM_WORLD
       call MPI_Comm_size (ocean_grid_comm, nsize,  ierr)
       call MPI_Comm_rank (ocean_grid_comm, mynode, ierr)
 
+#ifdef VERBOSE
       MPI_master_only call system('echo Starting mpi_setup at `date`')
-c**   write(*,*) 'Starting mpi_setup, node ', mynode,' out of', nsize
-
-
-
+      write(*,*) 'Starting mpi_setup, node ', mynode,' out of', nsize
+#endif
+      write(cmmnd,'(A,I5,1x,A)')
+     &   'echo "MPI rank', mynode, 'running on `hostname -s`"'
+      call system (cmmnd)
                                          ! Determine number of
 C$    if (mynode.eq.0) then              ! threads on the zeroth MPI
 C$OMP PARALLEL SHARED(nthrds)            ! node and broadcast it, so
@@ -206,7 +210,7 @@ c#endif
         ierr=0
       else
         MPI_master_only write(stdout,'(/1x,A,I4,1x,A,I3,A/)')
-     &   '### ERROR: mpi_setup: number of MPI-nodes should be',
+     & '### ERROR: mpi_setup :: number of MPI-nodes should be',
      &                         NNODES, 'instead of', nsize, '.'
         ierr=99
       endif
