@@ -45,6 +45,10 @@
 # include "mpif.h"
       integer size, step, status(MPI_STATUS_SIZE)
       real*QUAD buff(16)
+# ifdef  COMPUTE_SPEED_DIAGNOSE
+     &      , wtime0, wtime1, wtime2
+      save wtime0, wtime1
+# endif
       common /xyz/ buff
 #endif
 #include "grid.h"
@@ -367,6 +371,13 @@ C$OMP CRITICAL (diag_cr_rgn)
             if (size.gt.1) goto 1
           endif
           if (mynode.eq.0) then
+# ifdef  COMPUTE_SPEED_DIAGNOSE
+              wtime2=MPI_Wtime()
+            if (first_time.eq.0) then
+              wtime0=wtime2
+              wtime1=wtime2
+            endif
+# endif
 #endif
             avke=avke/(volume+avzeta)       ! Compute and print out
             avpe=avpe/(volume+avzeta)       ! global diagnostics
@@ -379,35 +390,62 @@ C$OMP CRITICAL (diag_cr_rgn)
             v3bc_max=sqrt(v3bc_max)
 #ifdef SOLVE3D
 # if defined SEAMOUNT || defined PACIFIC || defined ISWAKE
-              if (first_time.eq.0) then
-                first_time=1
-                write(stdout,2) 'STEP', 'time[DAYS]', 'KINETIC_ENRG',
+            if (first_time.eq.0) then
+              first_time=1
+              write(stdout,2) 'STEP', 'time[DAYS]', 'KINETIC_ENRG',
      &                        'BAROTR_ENRG', 'MAX_U3D', 'MAX_UBAR',
      &                        'MAX_UBCL', 'POTEN_ENRG'
+#  ifdef COMPUTE_SPEED_DIAGNOSE
+     &               , ' WALL_CLOCK[s]', ' DELTA_WALL_CLOCK[ms]'
+#  endif
 C$   &                                                     , 'trd'
-  2             format(1x,A,2x,A,1x,A,5x,A,4x,A,7x,A,6x,A,6x,A,4x,A)
-              endif
-              write(check_line,3)  avke, avke2b, v3d_max, v2d_max,
-     &                                             v3bc_max, avpe
-C$   &                                                   , proc(2)
-  3           format(1PE17.11, 1PE16.9, 3(1PE15.8), 1PE16.8,I3)
+# ifdef COMPUTE_SPEED_DIAGNOSE
+  2           format(1x,A,2x,A,1x,A,5x,A,4x,A,7x,A,6x,A,6x,A,3(4x,A))
 # else
-              if (first_time.eq.0) then
-                first_time=1
-                write(stdout,'(1x,A,2x,A,1x,A,5x,A,4x,A,4x,A,1x,A)')
+  2           format(1x,A,2x,A,1x,A,5x,A,4x,A,7x,A,6x,A,6x,A,4x,A)
+# endif
+            endif
+            write(check_line,3)  avke, avke2b, v3d_max, v2d_max,
+     &                                             v3bc_max, avpe
+# ifdef COMPUTE_SPEED_DIAGNOSE
+     &            , int(wtime2-wtime0), int(1000*(wtime2-wtime1))
+# endif
+C$   &                                                   , proc(2)
+  3         format(1PE17.11, 1PE16.9, 3(1PE15.8), 1PE16.8,I3
+# ifdef COMPUTE_SPEED_DIAGNOSE
+                ,2(I7)
+# endif
+     $                )
+# else
+            if (first_time.eq.0) then
+              first_time=1
+              write(stdout,'(1x,A,2x,A,1x,A,5x,A,4x,A,4x,A,1x,3A)')
      &                 'STEP',       'time[DAYS]', 'KINETIC_ENRG',
      &                 'SURFACE_KE', 'POTEN_ENRG', 'FREE_SURFACE'
+# ifdef COMPUTE_SPEED_DIAGNOSE
+     &               , ' WALL_CLOCK[s]', ' DELTA_WALL_CLOCK[ms]'
+# endif
 C$   &                                                      ,'trd'
-              endif
-              write(check_line,'(1PE17.11,3(1PE15.8),I3)')
+            endif
+            write(check_line,'(1PE17.11,3(1PE15.8),
+# ifdef COMPUTE_SPEED_DIAGNOSE
+     &                                             I8,I6,
+# endif
+     &                                                   I3)')
      &                   avke, avkesrf, avpe, avzeta/area
+# ifdef COMPUTE_SPEED_DIAGNOSE
+     &            , int(wtime2-wtime0), int(1000*(wtime2-wtime1))
+# endif
 C$   &                                                   , proc(2)
 # endif
 #else
-              if (first_time.eq.0) then
-                first_time=1
-                write(stdout,'(1x,A,2x,A,1x,A,5x,A,4x,A,9x,A,1x,A)')
-     &                 'STEP',       'time[DAYS]', 'KINETIC_ENRG',
+            if (first_time.eq.0) then
+              first_time=1
+              write(stdout,'(1x,A,2x,A,1x,A,5x,A,4x,A,9x,A,1x,A)')
+     &                 'STEP',       'time[DAYS]'
+# ifdef COMPUTE_SPEED_DIAGNOSE
+     &               , 'WALLCLOCK', 'TIME', 'KINETIC_ENRG',
+# endif
      &                 'POTEN_ENRG', 'KE+PE',   'FREE_SURFACE'
 C$   &                                                      ,'trd'
               endif
@@ -445,6 +483,7 @@ C$   &                                                   , proc(2)
               enddo
               write(stdout,'(I7,1x,A,1x,A)') iic-1, tstring(i:i+8),
      &                                          check_line(1:ie)
+            wtime1=wtime2
               call flush(stdout)
 
 #ifdef  ETALON_CHECK
