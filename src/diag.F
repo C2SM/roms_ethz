@@ -427,11 +427,11 @@ C$   &                                                   , proc(2)
 # endif
 C$   &                                                      ,'trd'
             endif
-            write(check_line,'(1PE17.11,3(1PE15.8),
 # ifdef COMPUTE_SPEED_DIAGNOSE
-     &                                             I8,I6,
+            write(check_line,'(1PE17.11,3(1PE15.8), I8,I6, I3)')
+# else
+            write(check_line,'(1PE17.11,3(1PE15.8), I3)')
 # endif
-     &                                                   I3)')
      &                   avke, avkesrf, avpe, avzeta/area
 # ifdef COMPUTE_SPEED_DIAGNOSE
      &            , int(wtime2-wtime0), int(1000*(wtime2-wtime1))
@@ -483,7 +483,9 @@ C$   &                                                   , proc(2)
               enddo
               write(stdout,'(I7,1x,A,1x,A)') iic-1, tstring(i:i+8),
      &                                          check_line(1:ie)
+#ifdef COMPUTE_SPEED_DIAGNOSE
             wtime1=wtime2
+#endif
               call flush(stdout)
 
 #ifdef  ETALON_CHECK
