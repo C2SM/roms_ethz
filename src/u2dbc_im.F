@@ -320,8 +320,10 @@ c          endif
 #    endif
      &                                                        )
 
+#    if defined ATLSMA && M2_FRC_BRY /* fix ubar in Mediterranean */
 CXXXXXXXXXX
           ubar(iend+1,j,knew)=ubar_east(j)
+#    endif
 
 
 
