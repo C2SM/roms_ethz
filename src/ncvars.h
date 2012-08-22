@@ -406,6 +406,10 @@
       integer avgHbbl
       common /ncvars/ avgHbbl
 #  endif
+#  ifdef SLICE_OUTPUT
+      integer kslice, avgUslice, avgVslice, avgTslice(NT+1)
+      common /ncvars/ kslice, avgUslice, avgVslice, avgTslice
+#  endif
 # endif /* SOLVE3D */
 #endif /* AVERAGES */
 

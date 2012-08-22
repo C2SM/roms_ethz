@@ -116,6 +116,31 @@
              enddo
            endif
           enddo
+#  ifdef SLICE_AVG
+          if (wrtslice(indxU)) then
+              do j=jstrR,jendR
+                do i=istrR,iendR
+                  uslice_avg(i,j)=u(i,j,kslice,nstp)
+                enddo
+              enddo
+          endif
+          if (wrtslice(indxV)) then
+              do j=jstrR,jendR
+                do i=istrR,iendR
+                  vslice_avg(i,j)=v(i,j,kslice,nstp)
+                enddo
+              enddo
+          endif
+          do itrc=1,NT
+           if (wrtslice(indxT+itrc-1)) then
+               do j=jstrR,jendR
+                 do i=istrR,iendR
+                   tslice_avg(i,j,itrc)=t(i,j,kslice,nstp,itrc)
+                 enddo
+               enddo
+           endif
+          enddo
+#  endif
 #  ifdef SEDIMENT_BIOLOGY
           do itrc=1,NT_sed
              if (wrtavg(indxSedOrgN+itrc-1)) then
@@ -318,6 +343,32 @@
               enddo
             endif
           enddo
+#  ifdef SLICE_AVG
+          if (wrtslice(indxU)) then
+              do j=jstrR,jendR
+                do i=istrR,iendR
+                  uslice_avg(i,j)=uslice_avg(i,j)+u(i,j,kslice,nstp)
+                enddo
+              enddo
+          endif
+          if (wrtslice(indxV)) then
+              do j=jstrR,jendR
+                do i=istrR,iendR
+                  vslice_avg(i,j)=vslice_avg(i,j)+v(i,j,kslice,nstp)
+                enddo
+              enddo
+          endif
+          do itrc=1,NT
+           if (wrtslice(indxT+itrc-1)) then
+               do j=jstrR,jendR
+                 do i=istrR,iendR
+                   tslice_avg(i,j,itrc)=tslice_avg(i,j,itrc)+
+     &                                  t(i,j,kslice,nstp,itrc)
+                 enddo
+               enddo
+           endif
+          enddo
+#  endif
 #  ifdef SEDIMENT_BIOLOGY
           do itrc=1,NT_sed
              if (wrtavg(indxSedOrgN+itrc-1)) then
@@ -495,7 +546,11 @@
             enddo
           endif
 # ifdef SOLVE3D
-          if (wrtavg(indxU)) then
+          if (wrtavg(indxU))
+#   ifdef LONGTERM_AVERAGES
+     &       .and. (mod(iic-ntsavg,navg*lavg).eq.0)
+#   endif
+     &    then
             do k=1,N
               do j=jstrR,jendR
                 do i=istrR,iendR
@@ -504,7 +559,11 @@
               enddo
             enddo
           endif
-          if (wrtavg(indxV)) then
+          if (wrtavg(indxV))
+#   ifdef LONGTERM_AVERAGES
+     &       .and. (mod(iic-ntsavg,navg*lavg).eq.0)
+#   endif
+     &    then
             do k=1,N
               do j=jstrR,jendR
                 do i=istrR,iendR
@@ -514,7 +573,11 @@
             enddo
           endif
           do itrc=1,NT
-            if (wrtavg(indxT+itrc-1)) then
+            if (wrtavg(indxT+itrc-1))
+#   ifdef LONGTERM_AVERAGES
+     &       .and. (mod(iic-ntsavg,navg*lavg).eq.0)
+#   endif
+     &    then
               do k=1,N
                 do j=jstrR,jendR
                   do i=istrR,iendR
@@ -572,7 +635,11 @@
             end do
           end do
 #  endif /* BIOLOGY_NPZDOC */
-          if (wrtavg(indxR)) then
+          if (wrtavg(indxR))
+#   ifdef LONGTERM_AVERAGES
+     &       .and. (mod(iic-ntsavg,navg*lavg).eq.0)
+#   endif
+     &    then
             do k=1,N
               do j=jstrR,jendR
                 do i=istrR,iendR
@@ -586,7 +653,11 @@
               enddo
             enddo
           endif
-          if (wrtavg(indxO)) then
+          if (wrtavg(indxO))
+#   ifdef LONGTERM_AVERAGES
+     &       .and. (mod(iic-ntsavg,navg*lavg).eq.0)
+#   endif
+     &    then
             do k=1,N
               do j=jstrR,jendR
                 do i=istrR,iendR
@@ -597,7 +668,11 @@
             enddo
           endif
 ! --T.Nagai to put true vertical velocity 6/29/2006
-          if (wrtavg(indxW)) then
+          if (wrtavg(indxW))
+#   ifdef LONGTERM_AVERAGES
+     &       .and. (mod(iic-ntsavg,navg*lavg).eq.0)
+#   endif
+     &    then
               call Wvlcty (tile, work) 
             do k=1,N
               do j=jstrR,jendR
@@ -608,7 +683,11 @@
             enddo
           endif
 ! --T.Nagai to put true vertical velocity 6/29/2006
-          if (wrtavg(indxAkt)) then
+          if (wrtavg(indxAkt))
+#   ifdef LONGTERM_AVERAGES
+     &       .and. (mod(iic-ntsavg,navg*lavg).eq.0)
+#   endif
+     &    then
             do k=0,N
               do j=jstrR,jendR
                 do i=istrR,iendR
@@ -617,7 +696,11 @@
               enddo
             enddo
           endif
-          if (wrtavg(indxAkv)) then
+          if (wrtavg(indxAkv))
+#   ifdef LONGTERM_AVERAGES
+     &       .and. (mod(iic-ntsavg,navg*lavg).eq.0)
+#   endif
+     &    then
             do k=0,N
               do j=jstrR,jendR
                 do i=istrR,iendR
@@ -627,7 +710,11 @@
             enddo
           endif
 #  ifdef KPP_DIAGNOSE
-          if (wrtavg(indxRich)) then
+          if (wrtavg(indxRich))
+#   ifdef LONGTERM_AVERAGES
+     &       .and. (mod(iic-ntsavg,navg*lavg).eq.0)
+#   endif
+     &    then
             do k=0,N
               do j=jstrR,jendR
                 do i=istrR,iendR
@@ -636,7 +723,11 @@
               enddo
             enddo
           endif
-          if (wrtavg(indxRichN)) then
+          if (wrtavg(indxRichN))
+#   ifdef LONGTERM_AVERAGES
+     &       .and. (mod(iic-ntsavg,navg*lavg).eq.0)
+#   endif
+     &    then
             do k=0,N
               do j=jstrR,jendR
                 do i=istrR,iendR
@@ -647,7 +738,11 @@
           endif
 #  endif /* KPP_DIAGNOSE */
 #  ifdef SALINITY
-          if (wrtavg(indxAks)) then
+          if (wrtavg(indxAks))
+#   ifdef LONGTERM_AVERAGES
+     &       .and. (mod(iic-ntsavg,navg*lavg).eq.0)
+#   endif
+     &    then
             do k=0,N
               do j=jstrR,jendR
                 do i=istrR,iendR
@@ -658,7 +753,11 @@
           endif
 #  endif
 #  ifdef LMD_KPP
-          if (wrtavg(indxHbl)) then
+          if (wrtavg(indxHbl))
+#   ifdef LONGTERM_AVERAGES
+     &       .and. (mod(iic-ntsavg,navg*lavg).eq.0)
+#   endif
+     &    then
             do j=jstrR,jendR
               do i=istrR,iendR
                 hbl_avg(i,j)=cff*(hbl_avg(i,j)+hbls(i,j,nstp))
@@ -667,7 +766,11 @@
           endif
 #  endif
 #  ifdef LMD_BKPP
-        if (wrtavg(indxHbbl)) then
+        if (wrtavg(indxHbbl))
+#   ifdef LONGTERM_AVERAGES
+     &       .and. (mod(iic-ntsavg,navg*lavg).eq.0)
+#   endif
+     &    then
           do j=jstrR,jendR
             do i=istrR,iendR
               hbbl_avg(i,j)=cff*(hbbl_avg(i,j)+hbbls(i,j,nstp))
