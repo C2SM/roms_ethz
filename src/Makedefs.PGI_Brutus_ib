@@ -26,5 +26,5 @@ CPPFLAGS = -DPGI ${MAKEINC} -I /cluster/work/uwis/muennicm/local/netcdf/include
 FFLAGS = -mcmodel=medium -fast -O4 -tp shanghai-64,k8-64e,k8-64 $(OPENMP)
 # 4.0.1 LCDF =-L/cluster/work/uwis/muennicm/local/netcdf/lib -lnetcdf  -L/cluster/work/uwis/muennicm/local/hdf5/lib -lhdf5_hl -lhdf5  -lz
 # 4.1.3 + parallel HDF5
-LCDF =-L/cluster/home/uwis/muennicm/local/netcdf/4.1.3/lib -L/cluster/home/uwis/muennicm/local/hdf5/1.8.6/lib -lhdf5_hl -lhdf5 -lz -lnetcdff -lnetcdf -lhdf5_hl -lhdf5 -lm -lcurl
-
+LCDF =-L/cluster/home/uwis/muennicm/local/netcdf/4.1.3/lib -L/cluster/home/uwis/muennicm/local/hdf5/1.8.6/lib -lhdf5_hl -lhdf5 -lz -lnetcdff -lnetcdf -lhdf5_hl -lhdf5 -lm /usr/lib64/libcurl.so.4
+#-lcurl
