@@ -1,11 +1,16 @@
 #ifndef AVRH
 # include "cppdefs.h"
-#define NETCDF4
-!#--> define NCCOMPRESS
- 
+# define NETCDF4
+# define NCCOMPRESS
       subroutine def_his (ncid, total_rec, ierr)
 #else
+# ifndef AVRH2
       subroutine def_avg (ncid, total_rec, ierr)
+# else
+#  ifdef HFREQ_2D_AVERAGES
+      subroutine def_avg2 (ncid, total_rec, ierr)
+#  endif
+# endif
 #endif
 !
 ! Create/open averages/history netCDF file. In the case when a new
@@ -36,7 +41,9 @@
       character*60 text
       integer my_nf_def_dim, ifour
 #ifdef NCCOMPRESS
-      integer ncshuff, ncdefl, nclev, ncctg, ncchnk2(3), ncchnk3(4)
+      integer ncshuff, ncdefl, nclev, ncctg
+     &        , ncrchnk2(3), ncuchnk2(3), ncvchnk2(3)
+     &        , ncrchnk3(4), ncuchnk3(4), ncvchnk3(4)
       data ncshuff, ncdefl, nclev, ncctg / 0, 1, 1, 0 /
 #endif
 
@@ -60,13 +67,27 @@
 #ifdef NCCOMPRESS
 c  Chunk Size (atomic access size)
 c  for netcdf4 (HDF5) 2 and 3d fields in output
-      ncchnk2(1)=Mm
-      ncchnk2(2)=Lm
-      ncchnk2(1)=1
-      ncchnk3(1)=Mm
-      ncchnk3(2)=Lm
-      ncchnk3(3)=1
-      ncchnk3(4)=1
+      ncrchnk2(1)=xi_rho
+      ncrchnk2(2)=eta_rho
+      ncrchnk2(3)=1
+      ncuchnk2(1)=xi_u
+      ncuchnk2(2)=eta_rho
+      ncuchnk2(3)=1
+      ncvchnk2(1)=xi_rho
+      ncvchnk2(2)=eta_v
+      ncvchnk2(3)=1
+      ncrchnk3(1)=xi_rho
+      ncrchnk3(2)=eta_rho
+      ncrchnk3(3)=1
+      ncrchnk3(4)=1
+      ncuchnk3(1)=xi_u
+      ncuchnk3(2)=eta_rho
+      ncuchnk3(3)=1
+      ncuchnk3(4)=1
+      ncvchnk3(1)=xi_rho
+      ncvchnk3(2)=eta_v
+      ncvchnk3(3)=1
+      ncvchnk3(4)=1
 #endif
 
 #ifndef AVRH
@@ -110,6 +131,7 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
 #  endif
 # endif /* BIOLOGY_NPZDOC || BIOLOGY_BEC*/
 #else
+# ifndef AVRH2
 # define ncname avgname
 # define rec_per_file nrpfavg
 # define wrt wrtavg
@@ -149,7 +171,48 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
 #    define vidTsed avgTsed
 #  endif
 # endif /* BIOLOGY_NPZDOC || BIOLOGY_BEC */
-#endif
+# else /* AVRH2 is defined */
+#  define ncname avg2name
+#  define rec_per_file nrpfavg2
+#  define wrt wrtavg2
+#  define vidTime avg2Time
+#  define vidTstep avg2Tstep
+#  define vidZ avg2Z
+#  define vidUb avg2Ub
+#  define vidVb avg2Vb
+#  define vidU avg2Us
+#  define vidV avg2Vs
+#  define vidT avg2Ts
+#  define vidR avg2Rs
+#  define vidO avg2Os
+#  define vidW avg2Ws
+#  define vidAkv avg2Akvs
+#  define vidAkt avg2Akts
+#  ifdef KPP_DIAGNOSE
+#   define vidRich avg2Richs
+#   define vidRichN avg2RichNs
+#  endif
+#  define vidAks avg2Akss
+#  define vidHbl avg2Hbl
+#  define vidHbbl avg2Hbbl
+#  if defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC
+#   if defined CH_CARBON_DEPTH
+#    define vidPHd avg2PHds
+#    define vidCO2STARd avg2CO2STARds
+#    define vidHCO3d avg2HCO3ds
+#    define vidCO3d avg2CO3ds
+#   endif /* CH_CARBON_DEPTH */
+#   define vidPH avg2PHs
+#   define vidPCO2 avg2PCO2
+#   define vidPCO2air avg2PCO2air
+#   define vidPARinc avg2PARinc
+#   define vidPAR avg2PAR
+#   ifdef SEDIMENT_BIOLOGY
+#     define vidTsed avg2Tsed
+#   endif
+#  endif /* BIOLOGY_NPZDOC || BIOLOGY_BEC */
+# endif /* AVRH2 */
+#endif /* AVRH */
 !
 ! Put time record index into file name. In  the case when model
 ! output is to be arranged into sequence of named files, the naming
@@ -234,8 +297,14 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
         ierr=my_nf_def_dim (ncid, 'eta_rho', eta_rho, r2dgrd(2))
         ierr=my_nf_def_dim (ncid, 'eta_v',   eta_v,   v2dgrd(2))
 #ifdef SOLVE3D
+# if defined HFREQ_2D_AVERAGES && defined AVRH2
+!       Only 2D slices of 3d vars
+        ierr=my_nf_def_dim (ncid, 's_rho',   1,       r3dgrd(3))
+        ierr=my_nf_def_dim (ncid, 's_w',     1,     w3dgrd(3))
+# else
         ierr=my_nf_def_dim (ncid, 's_rho',   N,       r3dgrd(3))
         ierr=my_nf_def_dim (ncid, 's_w',     N+1,     w3dgrd(3))
+# endif
 #endif
         ierr=my_nf_def_dim (ncid, 'time', nf_unlimited, timedim)
         ierr=my_nf_def_dim (ncid, 'auxil',   ifour,    auxil(1))
@@ -329,7 +398,7 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
 #endif
 #ifdef NCCOMPRESS
           ierr=nf_def_var_deflate(ncid, vidZ, ncshuff, ncdefl, nclev)
-          ierr=nf_def_var_chunking(ncid, vidZ, ncctg, ncchnk2) 
+          ierr=nf_def_var_chunking(ncid, vidZ, ncctg, ncrchnk2)
 #endif
 
         endif
@@ -357,7 +426,7 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
 #endif
 #ifdef NCCOMPRESS
           ierr=nf_def_var_deflate(ncid, vidUb, ncshuff, ncdefl, nclev)
-          ierr=nf_def_var_chunking(ncid, vidUb, ncctg, ncchnk2) 
+          ierr=nf_def_var_chunking(ncid, vidUb, ncctg, ncuchnk2)
 #endif
         endif
  
@@ -383,7 +452,7 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
         endif
 #ifdef NCCOMPRESS
           ierr=nf_def_var_deflate(ncid, vidVb, ncshuff, ncdefl, nclev)
-          ierr=nf_def_var_chunking(ncid, vidVb, ncctg, ncchnk2) 
+          ierr=nf_def_var_chunking(ncid, vidVb, ncctg, ncvchnk2)
 #endif
 #ifdef SOLVE3D
 !
@@ -410,7 +479,7 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
 #endif
 #ifdef NCCOMPRESS
           ierr=nf_def_var_deflate(ncid, vidU, ncshuff, ncdefl, nclev )
-          ierr=nf_def_var_chunking(ncid, vidU, ncctg, ncchnk3) 
+          ierr=nf_def_var_chunking(ncid, vidU, ncctg, ncuchnk3)
 #endif
 
         endif
@@ -420,9 +489,9 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
           ierr=nf_def_var (ncid, vname(1,indxV)(1:lvar), NF_FOUT,
      &                                           4, v3dgrd, vidV)
 # ifdef AVRH
-          text='averaged '/ /vname(2,indxV)
+          text='2d-slice of averaged '/ /vname(2,indxV)
 # else
-          text=vname(2,indxV)
+          text='2d-slice of '/ /vname(2,indxV)
 # endif
           lvar=lenstr(text)
           ierr=nf_put_att_text (ncid, vidV, 'long_name', lvar,
@@ -430,14 +499,18 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
           lvar=lenstr(vname(3,indxV))
           ierr=nf_put_att_text (ncid, vidV, 'units',     lvar,
      &                                  vname(3,indxV)(1:lvar))
-#ifdef MASK_LAND_DATA
+# ifdef MASK_LAND_DATA
           ierr=nf_put_att_FOUT (ncid, vidV, '_FillValue',
      &                                   NF_FOUT, 1, spv_set)
-#endif
-#ifdef NCCOMPRESS
+# endif
+# ifdef NCCOMPRESS
           ierr=nf_def_var_deflate(ncid, vidV, ncshuff, ncdefl, nclev )
-          ierr=nf_def_var_chunking(ncid, vidV, ncctg, ncchnk3) 
-#endif
+          ierr=nf_def_var_chunking(ncid, vidV, ncctg, ncvchnk3)
+# endif
+# ifdef HFREQ_2D_AVERAGES
+            ierr=nf_put_att_text (ncid, vidT(itrc), 'sigma-level',
+     &                                          lvar, 'top')
+# endif
         endif
 !
 ! Tracer variables.
@@ -458,14 +531,18 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
             lvar=lenstr(vname(3,indxT+itrc-1))
             ierr=nf_put_att_text (ncid, vidT(itrc), 'units', lvar,
      &                               vname(3,indxT+itrc-1)(1:lvar))
-#ifdef MASK_LAND_DATA
+# ifdef MASK_LAND_DATA
             ierr=nf_put_att_FOUT (ncid, vidT(itrc), '_FillValue',
      &                                       NF_FOUT, 1, spv_set)
-#endif
-#ifdef NCCOMPRESS
+# endif
+# ifdef NCCOMPRESS
           ierr=nf_def_var_deflate(ncid, vidT, ncshuff, ncdefl, nclev )
-          ierr=nf_def_var_chunking(ncid, vidT, ncctg, ncchnk3)
-#endif 
+          ierr=nf_def_var_chunking(ncid, vidT, ncctg, ncrchnk3)
+# endif
+# ifdef HFREQ_2D_AVERAGES
+            ierr=nf_put_att_text (ncid, vidT(itrc), 'sigma-level',
+     &                                          lvar, 'top')
+# endif
           endif
         enddo
 # ifdef SEDIMENT_BIOLOGY
@@ -521,7 +598,7 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
 #endif
 #ifdef NCCOMPRESS
           ierr=nf_def_var_deflate(ncid, vidR, ncshuff, ncdefl, nclev )
-          ierr=nf_def_var_chunking(ncid, vidR, ncctg, ncchnk3) 
+          ierr=nf_def_var_chunking(ncid, vidR, ncctg, ncrchnk3)
 #endif
         endif
 !
@@ -548,7 +625,7 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
 #endif
 #ifdef NCCOMPRESS
           ierr=nf_def_var_deflate(ncid, vidO, ncshuff, ncdefl, nclev )
-          ierr=nf_def_var_chunking(ncid, vidO, ncctg, ncchnk3) 
+          ierr=nf_def_var_chunking(ncid, vidO, ncctg, ncrchnk3)
 #endif
         endif
 !
@@ -575,7 +652,7 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
 #endif
 #ifdef NCCOMPRESS
           ierr=nf_def_var_deflate(ncid, vidW, ncshuff, ncdefl, nclev )
-          ierr=nf_def_var_chunking(ncid, vidW, ncctg, ncchnk3) 
+          ierr=nf_def_var_chunking(ncid, vidW, ncctg, ncrchnk3)
 #endif
         endif
 !
@@ -602,7 +679,7 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
 #endif
 #ifdef NCCOMPRESS
           ierr=nf_def_var_deflate(ncid, vidAkv, ncshuff, ncdefl, nclev)
-          ierr=nf_def_var_chunking(ncid, vidAkv, ncctg, ncchnk3) 
+          ierr=nf_def_var_chunking(ncid, vidAkv, ncctg, ncrchnk3)
 #endif
         endif
 !
@@ -629,7 +706,7 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
 #endif
 #ifdef NCCOMPRESS
           ierr=nf_def_var_deflate(ncid, vidAkt, ncshuff, ncdefl, nclev)
-          ierr=nf_def_var_chunking(ncid, vidAkt, ncctg, ncchnk3) 
+          ierr=nf_def_var_chunking(ncid, vidAkt, ncctg, ncrchnk3)
 #endif
         endif
 # if 0
@@ -707,7 +784,7 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
 #endif
 #ifdef NCCOMPRESS
           ierr=nf_def_var_deflate(ncid, vidAks, ncshuff, ncdefl, nclev)
-          ierr=nf_def_var_chunking(ncid, vidAks, ncctg, ncchnk3) 
+          ierr=nf_def_var_chunking(ncid, vidAks, ncctg, ncrchnk3)
 #endif
         endif
 # endif /* SALINITY */
@@ -736,7 +813,7 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
 #endif
 #ifdef NCCOMPRESS
           ierr=nf_def_var_deflate(ncid, vidHbl, ncshuff, ncdefl, nclev)
-          ierr=nf_def_var_chunking(ncid, vidHbl, ncctg, ncchnk2) 
+          ierr=nf_def_var_chunking(ncid, vidHbl, ncctg, ncrchnk2)
 #endif
         endif
 # endif /* LMD_KPP */
@@ -1439,5 +1516,12 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
 # define AVRH
 # ifdef AVERAGES
 #  include "def_his.F"
+# endif
+#else
+# ifndef AVRH2
+#  define AVRH2
+#  ifdef HFREQ_2D_AVERAGES
+#   include "def_his.F"
+#  endif
 # endif
 #endif
