@@ -30,12 +30,20 @@
 ! netCDF internal memory limitation associated with simultaneous
 ! opening too many files.
 
+#define NETCDF4
+#define NCCOMPRESS
+#define VERBOSE
 
 
 #define FAST_MODE
 c--#define KEEP_CLOSED
 c--#define VERBOSE
 #define AUTORENICE
+#ifdef NETCDF4
+# define NCFILEFORMAT nf_netcdf4
+#else
+# define NCFILEFORMAT nf_64bit_offset
+#endif
 
 
       implicit none
@@ -75,6 +83,13 @@ c--#define VERBOSE
      &                    count, start1,   part_type, series,
      &   western_edge, eastern_edge, southern_edge, northern_edge
 
+
+#ifdef NCCOMPRESS
+      integer ncshuff, ncdefl, nclev, ncctg
+     &        , ncrchnk2(3), ncuchnk2(3), ncvchnk2(3)
+     &        , ncrchnk3(4), ncuchnk3(4), ncvchnk3(4)
+      data ncshuff, ncdefl, nclev, ncctg / 0, 1, 2, 0 /
+#endif
 
 #ifdef FAST_MODE
       integer count1(maxdims)
@@ -636,6 +651,35 @@ c   &              ',', j, ' which already defined in another file.'
             endif
           enddo ! <-- i loop over dimensions
 
+#ifdef NCCOMPRESS
+c  Chunk Size (atomic access size)
+c  for netcdf4 (HDF5) 2 and 3d fields in output
+      ncrchnk2(1)=xi_rho
+      ncrchnk2(2)=eta_rho
+      ncrchnk2(3)=1
+      ncuchnk2(1)=xi_rho-1
+      ncuchnk2(2)=eta_rho
+      ncuchnk2(3)=1
+      ncvchnk2(1)=xi_rho
+      ncvchnk2(2)=eta_rho-1
+      ncvchnk2(3)=1
+      ncrchnk3(1)=xi_rho
+      ncrchnk3(2)=eta_rho
+      ncrchnk3(3)=1
+      ncrchnk3(4)=1
+      ncuchnk3(1)=xi_rho-1
+      ncuchnk3(2)=eta_rho
+      ncuchnk3(3)=1
+      ncuchnk3(4)=1
+      ncvchnk3(1)=xi_rho
+      ncvchnk3(2)=eta_rho-1
+      ncvchnk3(3)=1
+      ncvchnk3(4)=1
+# ifdef VERBOSE
+          print*,' rho-3D chunking: ', ncrchnk3
+# endif
+#endif
+
 
 #ifdef VERBOSE
           write(*,*) 'Identifying presense of boundary edges:'
@@ -711,7 +755,8 @@ c   &              ',', j, ' which already defined in another file.'
           lstr=lenstr(ncname0)
 c**       ierr=nf_create (ncname0(1:lstr), nf_clobber, nctarg)
 
-          ierr=nf_create (ncname0(1:lstr), nf_64bit_offset, nctarg)
+cmm          ierr=nf_create (ncname0(1:lstr), nf_64bit_offset, nctarg)
+          ierr=nf_create(ncname(1:lstr),NCFILEFORMAT, nctarg)
 
           if (ierr .eq. nf_noerr) then
             write(*,'(1x,3A)')  'Created netCDF file ''',
@@ -824,6 +869,11 @@ c**       ierr=nf_create (ncname0(1:lstr), nf_clobber, nctarg)
                 write(*,'(8x,3A,2x,A,8I3)') '''', varname(i)(1:lvar),
      &              ''',', 'dimids =', (dimids(j,i), j=1,vardims(i))
 # endif
+#ifdef NCCOMPRESS
+                ierr=nf_def_var_deflate(ncid, varid(i), ncshuff
+     &                                 , ncdefl, nclev)
+!          ierr=nf_def_var_chunking(ncid, varid(i), ncctg, ncrchnk2)
+#endif
                 do j=1,varatts
                   ierr=nf_inq_attname (ncid(0), varid(i), j, string)
                   if (ierr .eq. nf_noerr) then
@@ -878,6 +928,79 @@ c**       ierr=nf_create (ncname0(1:lstr), nf_clobber, nctarg)
                 series(i)=.true.
               endif
             enddo
+#ifdef NCCOMPRESS
+              if (dimids(1,i).eq.id_xi_rho) then
+                if (dimids(2,i).eq.id_eta_rho) then
+                  if (vardims(i).eq.3) then
+                    ierr=nf_def_var_deflate(ncid, varid(i), ncshuff
+     &                                 , ncdefl, nclev)
+                    ierr=nf_def_var_chunking(ncid, varid(i), ncctg
+     &                                        , ncrchnk2)
+# ifdef VERBOSE
+                    lvar=lenstr(varname(i))
+                    write(*,'(8x,2A)') 'Rho-2D grid chunking: '
+     &               , varname(i)(1:lvar)
+                    print*,'Chunking: ',ncrchnk2
+# endif
+                  elseif (vardims(i).eq.4) then
+                    ierr=nf_def_var_deflate(ncid, varid(i), ncshuff
+     &                                 , ncdefl, nclev)
+                    ierr=nf_def_var_chunking(ncid, varid(i), ncctg
+     &                                        , ncrchnk3)
+# ifdef VERBOSE
+                    lvar=lenstr(varname(i))
+                    write(*,'(8x,2A)') 'Rho-3D grid chunking: '
+     &               , varname(i)(1:lvar)
+                    print*,'Chunking: ',ncrchnk3
+# endif
+                  endif
+                elseif (dimids(2,i).eq.id_eta_v) then
+                  if (vardims(i) .eq.3) then
+                    ierr=nf_def_var_deflate(ncid, varid(i), ncshuff
+     &                                 , ncdefl, nclev)
+                    ierr=nf_def_var_chunking(ncid, varid(i), ncctg
+     &                                        , ncvchnk2)
+# ifdef VERBOSE
+                    lvar=lenstr(varname(i))
+                    write(*,'(8x,2A)') 'V-2D grid chunking: '
+     &               , varname(i)(1:lvar)
+# endif
+                  elseif (vardims(i).eq.4) then
+                    ierr=nf_def_var_deflate(ncid, varid(i), ncshuff
+     &                                 , ncdefl, nclev)
+                    ierr=nf_def_var_chunking(ncid, varid(i), ncctg
+     &                                        , ncvchnk3)
+# ifdef VERBOSE
+                    lvar=lenstr(varname(i))
+                    write(*,'(8x,2A)') 'V-3D grid chunking: '
+     &               , varname(i)(1:lvar)
+# endif
+                  endif
+                endif
+              elseif(dimids(1,i).eq.id_xi_u) then
+                  if (vardims(i).eq.3) then
+                    ierr=nf_def_var_deflate(ncid, varid(i), ncshuff
+     &                                 , ncdefl, nclev)
+                    ierr=nf_def_var_chunking(ncid, varid(i), ncctg
+     &                                        , ncuchnk2)
+# ifdef VERBOSE
+                    lvar=lenstr(varname(i))
+                    write(*,'(8x,2A)') 'U-2D grid chunking: '
+     &               , varname(i)(1:lvar)
+# endif
+                  elseif (vardims(i).eq.4) then
+                    ierr=nf_def_var_deflate(ncid, varid(i), ncshuff
+     &                                 , ncdefl, nclev)
+                    ierr=nf_def_var_chunking(ncid, varid(i), ncctg
+     &                                        , ncuchnk3)
+# ifdef VERBOSE
+                    lvar=lenstr(varname(i))
+                    write(*,'(8x,2A)') 'U-3D grid chunking: '
+     &               , varname(i)(1:lvar)
+# endif
+                  endif
+              endif
+#endif
           enddo       ! <-- i, variable ID.
 
 !
