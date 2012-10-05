@@ -133,7 +133,9 @@ c      enddo
 !  and/or increase horizontal mixing in the sponge areas.
 !--------------------------------------------------------------------
 !
-      isp=int(x_sponge*pm(1,1)) ! number of points in layer
+      ! Old version (breaks arbitrary tiling )
+      ! isp=int(x_sponge*pm(1,1)) ! number of points in layer
+      isp=n_sponge ! number of points in layer
 #  endif
  
       do j=max(-1,jstrR-1),jendR
