@@ -4,11 +4,11 @@
 
 .SUFFIXES:	# Delete the default suffixes
 .SUFFIXES: .o .f .F
-.PRECIOUS: %.f
 
 # Use pattern rule to indicate dependency on mpc
 %.f:  mpc %.F 
 	$(CPP) -P $(CPPFLAGS) $*.F | mpc > $@
+#	/bin/rm -f $*.for
 
 .f.o:
 	$(CFT) -c $(FFLAGS) $< -o $@
@@ -68,15 +68,12 @@ LARGE_MEM_FLAG = -mcmodel=large -i-dynamic
       # Brutus  mpich2: CFT = mpif90 -f90=ifort $(OMP_FLAG) -pc80 -axW -xW -auto -stack_temps
 #      CFT =/opt/hpmpi/bin/mpif90 $(OMP_FLAG) -pc80 -axW -xW -auto -stack_temps
      CFT =mpif90 $(OMP_FLAG) -pc80 -axW -xW -auto -stack_temps
-     CFT =mpif90 $(OMP_FLAG) -fast -pc80 -msse2 -auto -stack_temps
-     CFT =mpif90 $(OMP_FLAG) -pc80 -msse2 -auto -stack_temps
 
 #      CFT =mpif90 
 
 # -warn unused   
 
       LDR = $(CFT)
-      LDR =mpif90 $(OMP_FLAG) -pc80 -msse2 -auto -stack_temps
 #      LDR = mpif90 $(OMP_FLAG) -pc80 -tpp7 -axW -xW -w95 -align dcommon -auto -stack_temps
 
   FFLAGS =  -O3 -IPF_fma -ip $(LARGE_MEM_FLAG)
@@ -104,8 +101,9 @@ LARGE_MEM_FLAG = -mcmodel=large -i-dynamic
 #   LCDF = -lnetcdf
 # mm ETHZ Gonzales cluster
 # mm ETHZ Brutus cluster
-LCDF = -L/cluster/apps/netcdf/3.6.2/x86_64/intel/lib -lnetcdff -lnetcdf
+#LCDF = -L/cluster/apps/netcdf/3.6.2/x86_64/intel/lib -lnetcdff -lnetcdf
 #LCDF = -L/panfs/panasas.hpc-net.ethz.ch/uwis/muennicm/intel/lib -lnetcdf
+LCDF = -L/panfs/n-panasas.hpc-net.ethz.ch/uwis/muennicm/intel/lib -lnetcdf
 # mm ETHZ Brutus/ Gonzales cluster Quadrics MPI
 LMPI = -L$(MPI_ROOT)/lib -lmpi
 # mm A look at mpif90 made this the likely libraries to link against
