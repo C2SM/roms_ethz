@@ -486,7 +486,7 @@
 #endif
 
       integer max_name_size
-      parameter (max_name_size=64)
+      parameter (max_name_size=150)
       character date_str*44, title*80
       character*(max_name_size) ininame, grdname,
      &                 hisname, rstname, frcfile(max_frc_file)

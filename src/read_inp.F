@@ -30,7 +30,7 @@
 #endif
       integer kwsize, testunit, input
       parameter (kwsize=32, testunit=40, input=15)
-      character end_signal*3, keyword*32, fname*64
+      character end_signal*3, keyword*32, fname*150
       parameter (end_signal='end')
       integer ierr, iargc, is,ie,  kwlen, lstr, lenstr, i
 #ifdef SOLVE3D
@@ -138,7 +138,7 @@ c--      fname='roms.in.US_West'
 #endif
 #ifdef MPI
       if (mynode.eq.0 .and. iargc().eq.1) call getarg(ione,fname)
-      call MPI_Bcast(fname,64,MPI_BYTE, 0, ocean_grid_comm, ierr)
+      call MPI_Bcast(fname,150,MPI_BYTE, 0, ocean_grid_comm, ierr)
 #else
       if (iargc().eq.1) call getarg(ione,fname)
 #endif
@@ -1031,28 +1031,28 @@ c--      fname='roms.in.US_West'
           MPI_master_only write(stdout,'(1pe10.3,2x,A,1x,A)')
      &       start_year, 'start_year   point in time (year) when',
      &       'simulation starts'
-        elseif (keyword(1:kwlen).eq.'futr_scen') then
-          ! Scenario used for computing future (i.e. past 1990.5) values
-          ! of pCO2. Must be one of the following: S350, S450, S550,
-          ! S650, S750, DS450, or DS550 from Enting et al. (1994), 
-          ! or CIS9 signifying c-IS92A for IPCC (2000) run.
-          call cancel_kwd (keyword(1:kwlen), ierr)
-          read(input,*,err=95) futr_scen
-          ! Test whether futr_scen contains a valid string:
-          futr_scen_valid = .false.
-          if (futr_scen(1:4) .eq. 'S350' .or. futr_scen(1:4) .eq. 'S450' .or.
-     &        futr_scen(1:4) .eq. 'S550' .or. futr_scen(1:4) .eq. 'S650' .or.
-     &        futr_scen(1:4) .eq. 'S750' .or. futr_scen(1:4) .eq. 'DS45' .or.
-     &        futr_scen(1:4) .eq. 'DS55' .or. futr_scen(1:4) .eq. 'CIS9')
-     &          futr_scen_valid = .true.
-          if (.not. futr_scen_valid) then
-             MPI_master_only write(stdout,'(3a)') 'Invalid value of ',
-     &       'futr_scen: ', futr_scen
-             goto 95
-          end if
-          MPI_master_only write(stdout,'(6x,A,2x,A,1x,A)')
-     &      futr_scen , 'futr_scen   scenario for past 1990.5 values',
-     &      'of atm. pCO2'
+!        elseif (keyword(1:kwlen).eq.'futr_scen') then
+!          ! Scenario used for computing future (i.e. past 1990.5) values
+!          ! of pCO2. Must be one of the following: S350, S450, S550,
+!          ! S650, S750, DS450, or DS550 from Enting et al. (1994), 
+!          ! or CIS9 signifying c-IS92A for IPCC (2000) run.
+!          call cancel_kwd (keyword(1:kwlen), ierr)
+!          read(input,*,err=95) futr_scen
+!          ! Test whether futr_scen contains a valid string:
+!          futr_scen_valid = .false.
+!          if (futr_scen(1:4) .eq. 'S350' .or. futr_scen(1:4) .eq. 'S450' .or.
+!     &        futr_scen(1:4) .eq. 'S550' .or. futr_scen(1:4) .eq. 'S650' .or.
+!     &        futr_scen(1:4) .eq. 'S750' .or. futr_scen(1:4) .eq. 'DS45' .or.
+!     &        futr_scen(1:4) .eq. 'DS55' .or. futr_scen(1:4) .eq. 'CIS9')
+!     &          futr_scen_valid = .true.
+!          if (.not. futr_scen_valid) then
+!             MPI_master_only write(stdout,'(3a)') 'Invalid value of ',
+!     &       'futr_scen: ', futr_scen
+!             goto 95
+!          end if
+!          MPI_master_only write(stdout,'(6x,A,2x,A,1x,A)')
+!     &      futr_scen , 'futr_scen   scenario for past 1990.5 values',
+!     &      'of atm. pCO2'
 # endif
 #endif
 !DL: age/dye tracers:
