@@ -409,6 +409,9 @@ c--      fname='roms.in.US_West'
           call insert_node (fname, lstr, mynode, NNODES, ierr)
 # endif
           avgname=fname(1:lstr)
+# ifdef SLICE_AVG
+          slavgname=fname(1:lstr-2)//'_2D_slices.nc'
+# endif
           MPI_master_only write(stdout,
      &           '(2(I10,2x,A,1x,A/32x,A/),6x,A,2x,A,1x,A,I3)')
      &      ntsavg, 'ntsavg      Starting timestep for the',
@@ -764,6 +767,68 @@ c--      fname='roms.in.US_West'
      &           itrc,')  Sediment tracer of index ', itrc,'.' 
           end do
 #  endif /* SEDIMENT_BIOLOGY */
+
+#  ifdef SLICE_AVG 
+!
+! Switches for fields to be saved into 2D slice averages file.
+!
+        elseif (keyword(1:kwlen).eq.'primary_slice_avg') then
+          call cancel_kwd (keyword(1:kwlen), ierr)
+          read(input,*,err=95) wrtslavg(indxZ),  wrtslavg(indxUb)
+     &                                         ,  wrtslavg(indxVb)
+     &                      ,  wrtslavg(indxU),  wrtslavg(indxV)
+     &                      , (wrtslavg(itrc), itrc=indxT,indxT+NT-1)
+#  ifdef SEDIMENT_BIOLOGY
+     &                      , (wrtslavg(itrc), 
+     &                         itrc=indxSedOrgN,indxSedOrgN+NT_sed-1)
+#  endif /* SEDIMENT_BIOLOGY */
+         do itrc = 1,NT+5 
+#  ifdef SEDIMENT_BIOLOGY
+     &                 + NT_sed
+#  endif
+!          We need to make sure that regular averages and slice averages
+!          are not written a variable exept  U,V and tracers fields.
+!          If this is requested we do not write regular averages but
+!          only the higher-frequent slice averages.
+           if (  (itrc .ne. indxU) .and. (itrc .ne. indxV) .and.
+     &           ( (itrc .lt. indxT) .or. (itrc .ge. indxT+NT) ) .and.
+     &           wrtslavg(itrc) .and.  wrtavg(itrc)  ) then
+              wrtavg(itrc) = .false.
+            MPI_master_only write(stdout, *) 
+     &       'Warning: Averages for field number ',itrc
+     &       , ' requested for both standard  averages file '
+     &       , ' and slice averages file.  This is not possible.'
+     &       , ' Field ',itrc,' is only saved in the slice average file.'
+           endif
+         enddo
+          if ( wrtslavg(indxZ) .or. wrtslavg(indxUb) .or. wrtslavg(indxVb)
+     &                          .or. wrtslavg(indxU) .or. wrtslavg(indxV)
+     &       ) wrtslavg(indxTime)=.true.
+          
+ 
+          MPI_master_only write(stdout,'(/1x,A,5(/6x,l1,2x,A,1x,A))')
+     &    'Fields to be saved in averages file: (T/F)'
+     &    , wrtslavg(indxZ),  'write zeta ', 'free-surface.'
+     &    , wrtslavg(indxUb), 'write UBAR ', '2D U-momentum component.'
+     &    , wrtslavg(indxVb), 'write VBAR ', '2D V-momentum component.'
+     &    , wrtslavg(indxU),  'write U    ', '3D U-momentum component.'
+     &    , wrtslavg(indxV),  'write V    ', '3D V-momentum component.'
+          do itrc=1,NT
+            if (wrtslavg(indxT+itrc-1)) wrtslavg(indxTime)=.true.
+            MPI_master_only write(stdout,
+     &                       '(6x,L1,2x,A,I2,A,2x,A,I2,A)')
+     &                        wrtslavg(indxT+itrc-1), 'write T(',
+     &                        itrc,')', 'Tracer of index ', itrc,'.'
+          enddo
+#  ifdef SEDIMENT_BIOLOGY
+          do itrc = 1, NT_sed
+            if (wrtslavg(indxSedOrgN+itrc-1)) wrtslavg(indxTime)=.true.
+            MPI_master_only write(stdout, '(6x,L1,2x,A,I2,A,I2,A)')
+     &           wrtslavg(indxSedOrgN+itrc-1), 'write T_sed(', 
+     &           itrc,')  Sediment tracer of index ', itrc,'.' 
+          end do
+#  endif /* SEDIMENT_BIOLOGY */
+#  endif /*  SLICE_AVG  */
  
         elseif (keyword(1:kwlen).eq.'auxiliary_averages') then
           call cancel_kwd (keyword(1:kwlen), ierr)

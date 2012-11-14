@@ -301,6 +301,10 @@
 #ifdef AVERAGES
       integer ntsavg,  navg
       common /ncvars/ ntsavg,  navg
+# ifdef SLICE_AVG
+      integer ntsslavg,  nslavg
+      common /ncvars/ ntsslavg,  nslavg
+# endif
 #endif
 #ifdef STATIONS
       integer nsta
@@ -377,24 +381,26 @@
 #endif /* SOLVE3D */
 
 #ifdef AVERAGES
+!--> # ifndef SLICE_AVR
       integer ncidavg, nrecavg,  nrpfavg,
      &        avgTime, avgTstep, avgZ,    avgUb, avgVb
       common /ncvars/  ncidavg,  nrecavg, nrpfavg,
      &        avgTime, avgTstep, avgZ,    avgUb, avgVb
-# ifdef SOLVE3D
+#  ifdef SOLVE3D
       integer avgU,  avgV,  avgT(NT+1), avgR,
      &        avgO,  avgW,  avgAkv,     avgAkt,  avgAks
-# ifdef KPP_DIAGNOSE
+#  ifdef KPP_DIAGNOSE
      &        , avgRich, avgRichN
-# endif
-#  ifdef SEDIMENT_BIOLOGY
+#  endif
+#   ifdef SEDIMENT_BIOLOGY
      &      , avgTsed(NT_sed)
-#  endif /* SEDIMENT_BIOLOGY */
+#   endif /* SEDIMENT_BIOLOGY */
       common /ncvars/ avgU, avgV,       avgT,    avgR, 
      &        avgO,  avgW,  avgAkv,     avgAkt,  avgAks
-# ifdef KPP_DIAGNOSE
+#  ifdef KPP_DIAGNOSE
      &        , avgRich, avgRichN
-# endif
+#  endif
+!--> # endif
 #  ifdef SEDIMENT_BIOLOGY
      &      , avgTsed
 #  endif /* SEDIMENT_BIOLOGY */
@@ -406,9 +412,21 @@
       integer avgHbbl
       common /ncvars/ avgHbbl
 #  endif
-#  ifdef SLICE_OUTPUT
-      integer kslice, avgUslice, avgVslice, avgTslice(NT+1)
-      common /ncvars/ kslice, avgUslice, avgVslice, avgTslice
+#  ifdef SLICE_AVG
+      integer ncidslavg, nrecslavg,  nrpfslavg,
+     &        slavgTime, slavgTstep
+      common /ncvars/  ncidslavg,  nrecslavg, nrpfslavg,
+     &        slavgTime, slavgTstep
+      integer k2d, slavgU, slavgV, slavgT(NT+1), slavgR
+     &      , slavgO, slavgW, slavgAkv, slavgAkt, slavgAks
+# ifdef KPP_DIAGNOSE
+     &        , slavgRich, slavgRichN
+# endif
+      common /ncvars/ k2d, slavgU, slavgV, slavgT, slavgR
+     &      , slavgO, slavgW, slavgAkv, slavgAkt, slavgAks
+# ifdef KPP_DIAGNOSE
+     &        , slavgRich, slavgRichN
+# endif
 #  endif
 # endif /* SOLVE3D */
 #endif /* AVERAGES */
@@ -451,6 +469,10 @@
 #ifdef AVERAGES
       logical wrtavg(NWRTHIS)
       common /ncvars/ wrtavg
+# ifdef SLICE_AVG
+      logical wrtslavg(NWRTHIS)
+      common /ncvars/ wrtslavg
+# endif
 #endif
 #ifdef FLOATS
       logical ldefflt
@@ -499,10 +521,14 @@
 #ifdef AVERAGES
       character*(max_name_size) avgname
       common /cncvars/ avgname
+# ifdef SLICE_AVG
+      character*(max_name_size) slavgname
+      common /cncvars/ slavgname
+# endif
 #endif
 #if (defined TCLIMATOLOGY && !defined ANA_TCLIMA) || !defined ANA_SSH
 # ifdef MULT_CLIM_FILES
-      integer nclimfiles
+      integer*2 nclimfiles
       character(len=max_name_size) clm_file(4)
       common /cncvars/ nclimfiles, clm_file
 # else

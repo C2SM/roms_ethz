@@ -1,7 +1,29 @@
 #include "cppdefs.h"
 #ifdef AVERAGES
+# ifndef SLICE_AVR
+#  define START_3D_ARRAY_K0 START_2D_ARRAY,0
+#  define START_3D_ARRAY_K1 START_2D_ARRAY,1
+! Defining strings for regular avg
+#  define wrt_avr wrt_avg
+#  define def_avr def_avg
+#  define u_avr u_avg
+#  define v_avr v_avg
+#  define rho_avr rho_avg
+#  define t_avr t_avg
+# else
+!  We are playing the same redefinition CPP game as in def_his.F here...
+#  define START_3D_ARRAY_K0 START_2D_ARRAY
+#  define START_3D_ARRAY_K1 START_2D_ARRAY
+! Redefining strings for slices
+#  define wrt_avr wrt_slice_avg
+#  define def_avr def_slavg
+#  define u_avr u_slavg
+#  define v_avr v_slavg
+#  define rho_avr rho_slavg
+#  define t_avr t_slavg
+# endif /* ifndef SLICE_AVG */
                                      ! Write time-averaged
-      subroutine wrt_avg             ! fields into averages
+      subroutine wrt_avr             ! fields into averages
                                      ! netCDF file.
       implicit none
       integer ierr, record, lstr, lvar, lenstr
@@ -113,7 +135,7 @@
 ! 3D momentum components in XI- and ETA-directions.
 !
       if (wrtavg(indxU)) then
-        ierr=nf_fwrite (u_avg(START_2D_ARRAY,1), ncidavg, avgU,
+        ierr=nf_fwrite (u_avr(START_3D_ARRAY_K1), ncidavg, avgU,
      &                                           record, u3dvar)
         if (ierr .ne. nf_noerr) then
           lvar=lenstr(vname(1,indxU))
@@ -124,7 +146,7 @@
       endif
  
       if (wrtavg(indxV)) then
-        ierr=nf_fwrite (v_avg(START_2D_ARRAY,1), ncidavg, avgV,
+        ierr=nf_fwrite (v_avr(START_3D_ARRAY_K1), ncidavg, avgV,
      &                                           record, v3dvar)
         if (ierr .ne. nf_noerr) then
         lvar=lenstr(vname(1,indxV))
@@ -138,7 +160,7 @@
 !
       do itrc=1,NT
         if (wrtavg(indxT+itrc-1)) then
-          ierr=nf_fwrite (t_avg(START_2D_ARRAY,1,itrc), ncidavg,
+          ierr=nf_fwrite (t_avr(START_3D_ARRAY_K1,itrc), ncidavg,
      &                              avgT(itrc), record, r3dvar)
           if (ierr .ne. nf_noerr) then
             lvar=lenstr(vname(1,indxT+itrc-1))
@@ -170,7 +192,7 @@ CR      write(*,*) 'wrt_avg:  wrtT_sed  ' MYID
 ! Density anomaly.
 !
       if (wrtavg(indxR)) then
-        ierr=nf_fwrite (rho_avg(START_2D_ARRAY,1), ncidavg, avgR,
+        ierr=nf_fwrite (rho_avr(START_3D_ARRAY_K1), ncidavg, avgR,
      &                                             record, r3dvar)
         if (ierr .ne. nf_noerr) then
           lvar=lenstr(vname(1,indxR))
@@ -455,6 +477,20 @@ CR      write(*,*) 'wrt_avg:  wrtT_sed  ' MYID
 # endif
       return
       end
+# ifndef SLICE_AVR
+#  undef START_3D_ARRAY_K0 START_2D_ARRAY,0
+#  undef START_3D_ARRAY_K1 START_2D_ARRAY,1
+#  undef wrt_avr
+#  undef def_avr
+#  undef u_avr
+#  undef v_avr
+#  undef rho_avr
+#  undef t_avr
+#  if defined  SLICE_AVG && !defined SLICE_AVR /* also create wrt_slice_avg */
+#   define SLICE_AVR
+#   include "wrt_avg.F"
+#  endif
+# endif
 #else
       subroutine wrt_avg_empty
       end

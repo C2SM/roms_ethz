@@ -4,14 +4,13 @@
 
 .SUFFIXES:	# Delete the default suffixes
 .SUFFIXES: .o .f .F
-
+.PRECIOUS: %.f
 # Use pattern rule to indicate dependency on mpc
 %.f:  mpc %.F 
-	$(CPP) -P $(CPPFLAGS) $*.F | mpc > $@
-#	/bin/rm -f $*.for
-
+	$(CPP) -P $(CPPFLAGS) $*.F | cat > $@
+#	$(CPP) -P $(CPPFLAGS) $*.F | mpc > $@
 .f.o:
-	$(CFT) -c $(FFLAGS) $< -o $@
+	$(FC) -c $(FFLAGS) $< -o $@
 
 # clear implicit rule .F.o
 %.o: %.F
@@ -23,14 +22,8 @@
 #
 #     CPP = fpp
 
-      CPP = /lib/cpp -traditional
- CPPFLAGS = -D__IFC
-#mm ETHZ Gonzales or Brutus Quadrrics MPI
-CPPFLAGS = -D__IFC -I$(MPI_ROOT)/include
-
-#mm Brutus Quadrics MPI
-# CPPFLAGS = -D__IFC -I /usr/include/mpi
-# CPPFLAGS = -D__IFC -I/cluster/admin/mpich2/include
+CPP = /lib/cpp -traditional
+CPPFLAGS = -D__IFC -I$(MPI_ROOT)/include -I$(NETCDF)/include 
 
 
 #
@@ -53,58 +46,24 @@ CPPFLAGS = -D__IFC -I$(MPI_ROOT)/include
 # 2 GBytes of memory: both -mcmodel (sets size of addressing pointers)
 # and -i-dynamic (ensures proper linking with Intel dynamic libraries
 # must be specified.
+# LARGE_MEM_FLAG = -mcmodel=medium -i-dynamic
+LARGE_MEM_FLAG= -mcmodel=small -shared-intel
+OMP_FLAG = # -fpp2 -openmp
 
 
-# OMP_FLAG = -fpp2 -openmp
+FC =mpif90 
+LDR = $(FC)
 
-LARGE_MEM_FLAG = -mcmodel=medium -i-dynamic
-
-#     CFT = ifc   $(OMP_FLAG) -pc80 -tpp7 -axW -xW
-#      CFT = ifort $(OMP_FLAG) -pc80 -tpp7 -axW -xW -auto -stack_temps
-#      CFT = ifort $(OMP_FLAG) -pc80 -tpp7 -axN -xN -align dcommon -auto -stack_temps
-      #mm CFT = ifort $(OMP_FLAG) -pc80  -mtune=core2 -axT -xT -w95 -align dcommon -auto -stack_temps
-                            # -xW
-#      CFT = ifort $(OMP_FLAG) -pc80 -axW -xW -auto -stack_temps
-      # Brutus  mpich2: CFT = mpif90 -f90=ifort $(OMP_FLAG) -pc80 -axW -xW -auto -stack_temps
-#      CFT =/opt/hpmpi/bin/mpif90 $(OMP_FLAG) -pc80 -axW -xW -auto -stack_temps
-     CFT =mpif90 -f90=ifort $(OMP_FLAG) -pc80 -axW -xW -auto -stack_temps
-
-#      CFT =mpif90 
-
-# -warn unused   
-
-      LDR = $(CFT)
-#      LDR = mpif90 $(OMP_FLAG) -pc80 -tpp7 -axW -xW -w95 -align dcommon -auto -stack_temps
-
-  FFLAGS =  -O3 -IPF_fma -ip $(LARGE_MEM_FLAG)
-#    FFLAGS =  -O2 -mp -fpe0 -fp-model strict
-# -prof_gen
-#
+FFLAGS =  $(OMP_FLAG) -pc80 -msse2 -auto -stack_temps      -O3 -IPF_fma -ip $(LARGE_MEM_FLAG) # -assume 2underscores
+# Some usefule debugging options 
 #   FFLAGS = -g -check all -CA -CB -CS
-#  FFLAGS = $(CPPFLAGS) -O0
+
+# File to include in make clean
+COMP_FILES = work.pc work.pcl ifort*
 
 
+LCDF = -L$(NETCDF)/lib -lnetcdff -lnetcdf
+#LCDF = -L/opt/netcdf/3.6.2/lib -lnetcdf
+#LCDF =-L/cluster/home/uwis/muennicm/local/netcdf/4.1.3/lib -L/cluster/home/uwis/muennicm/local/hdf5/1.8.6/lib -lhdf5_hl -lhdf5 -lz -lnetcdff -lnetcdf -lhdf5_hl -lhdf5 -lm /usr/lib64/libcurl.so.4 
 
- COMP_FILES = work.pc work.pcl ifort*
-
-#   LCDF = -lnetcdf
-#   LCDF =/usr/local/lib/libnetcdf.a
-#  LCDF =/home/alex/netcdf/netcdf-3.6.2-beta3/libsrc/.libs/libnetcdf.a
-
-#    LMPI = /opt/mpich-1.2.7p1/lib/libmpich.a
-
- LIBNCAR = -L/opt/ncarg-fce81/lib -L/usr/X11R6/lib -lncarg -lncarg_gks -lncarg_c -lX11 -lm
-
-
-#LCDF = /home/alex/netcdf/netcdf-3.6.1-beta3/src/libsrc/libnetcdf.a
-
-#   LCDF = -lnetcdf
-# mm ETHZ Gonzales cluster
-LCDF = -L/opt/netcdf/3.6.2/lib -lnetcdf
-# mm ETHZ Brutus cluster
-#LCDF = -L/panfs/panasas.hpc-net.ethz.ch/uwis/muennicm/intel/lib -lnetcdf
-# mm ETHZ Brutus/ Gonzales cluster Quadrics MPI
-LMPI = -L$(MPI_ROOT)/lib -lmpifarg -lmpi -lelan
-# mm A look at mpif90 made this the likely libraries to link against
-# mm Brutus OK:  LMPI = -L/cluster/admin/mpich2/lib -lmpich  -lpmpich -lpthread   -lrt
 

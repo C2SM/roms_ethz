@@ -1,15 +1,13 @@
 #ifndef AVRH
 # include "cppdefs.h"
-# define NETCDF4
-# define NCCOMPRESS
+!--> # define NETCDF4
+!--> # define NCCOMPRESS
       subroutine def_his (ncid, total_rec, ierr)
 #else
-# ifndef AVRH2
+# ifndef AVR2DH
       subroutine def_avg (ncid, total_rec, ierr)
 # else
-#  ifdef HFREQ_2D_AVERAGES
-      subroutine def_avg2 (ncid, total_rec, ierr)
-#  endif
+      subroutine def_slavg (ncid, total_rec, ierr)
 # endif
 #endif
 !
@@ -131,7 +129,7 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
 #  endif
 # endif /* BIOLOGY_NPZDOC || BIOLOGY_BEC*/
 #else
-# ifndef AVRH2
+# ifndef AVR2DH
 # define ncname avgname
 # define rec_per_file nrpfavg
 # define wrt wrtavg
@@ -171,47 +169,47 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
 #    define vidTsed avgTsed
 #  endif
 # endif /* BIOLOGY_NPZDOC || BIOLOGY_BEC */
-# else /* AVRH2 is defined */
-#  define ncname avg2name
-#  define rec_per_file nrpfavg2
-#  define wrt wrtavg2
-#  define vidTime avg2Time
-#  define vidTstep avg2Tstep
-#  define vidZ avg2Z
-#  define vidUb avg2Ub
-#  define vidVb avg2Vb
-#  define vidU avg2Us
-#  define vidV avg2Vs
-#  define vidT avg2Ts
-#  define vidR avg2Rs
-#  define vidO avg2Os
-#  define vidW avg2Ws
-#  define vidAkv avg2Akvs
-#  define vidAkt avg2Akts
+# else /* AVR2DH is defined */
+#  define ncname slavgname
+#  define rec_per_file nrpfslavg
+#  define wrt wrtslavg
+#  define vidTime slavgTime
+#  define vidTstep slavgTstep
+#  define vidZ avgZ
+#  define vidUb avgUb
+#  define vidVb avgVb
+#  define vidU slavgU
+#  define vidV slavgV
+#  define vidT slavgT
+#  define vidR slavgR
+#  define vidO slavgO
+#  define vidW slavgW
+#  define vidAkv slavgAkv
+#  define vidAkt slavgAkt
 #  ifdef KPP_DIAGNOSE
-#   define vidRich avg2Richs
-#   define vidRichN avg2RichNs
+#   define vidRich slavgRich
+#   define vidRichN slavgRichN
 #  endif
-#  define vidAks avg2Akss
-#  define vidHbl avg2Hbl
-#  define vidHbbl avg2Hbbl
+#  define vidAks slavgAks
+#  define vidHbl avgHbl
+#  define vidHbbl avgHbbl
 #  if defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC
 #   if defined CH_CARBON_DEPTH
-#    define vidPHd avg2PHds
-#    define vidCO2STARd avg2CO2STARds
-#    define vidHCO3d avg2HCO3ds
-#    define vidCO3d avg2CO3ds
+#    define vidPHd slavgPHd
+#    define vidCO2STARd slavgCO2STARd
+#    define vidHCO3d slavgHCO3d
+#    define vidCO3d slavgCO3d
 #   endif /* CH_CARBON_DEPTH */
-#   define vidPH avg2PHs
-#   define vidPCO2 avg2PCO2
-#   define vidPCO2air avg2PCO2air
-#   define vidPARinc avg2PARinc
-#   define vidPAR avg2PAR
+#   define vidPH avgPH
+#   define vidPCO2 avgPCO2
+#   define vidPCO2air avgPCO2air
+#   define vidPARinc avgPARinc
+#   define vidPAR avgPAR
 #   ifdef SEDIMENT_BIOLOGY
-#     define vidTsed avg2Tsed
+#     define vidTsed avgTsed
 #   endif
 #  endif /* BIOLOGY_NPZDOC || BIOLOGY_BEC */
-# endif /* AVRH2 */
+# endif /* AVR2DH */
 #endif /* AVRH */
 !
 ! Put time record index into file name. In  the case when model
@@ -297,7 +295,7 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
         ierr=my_nf_def_dim (ncid, 'eta_rho', eta_rho, r2dgrd(2))
         ierr=my_nf_def_dim (ncid, 'eta_v',   eta_v,   v2dgrd(2))
 #ifdef SOLVE3D
-# if defined HFREQ_2D_AVERAGES && defined AVRH2
+# ifdef AVR2DH
 !       Only 2D slices of 3d vars
         ierr=my_nf_def_dim (ncid, 's_rho',   1,       r3dgrd(3))
         ierr=my_nf_def_dim (ncid, 's_w',     1,     w3dgrd(3))
@@ -507,7 +505,7 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
           ierr=nf_def_var_deflate(ncid, vidV, ncshuff, ncdefl, nclev )
           ierr=nf_def_var_chunking(ncid, vidV, ncctg, ncvchnk3)
 # endif
-# ifdef HFREQ_2D_AVERAGES
+# ifdef  AVR2DH 
             ierr=nf_put_att_text (ncid, vidT(itrc), 'sigma-level',
      &                                          lvar, 'top')
 # endif
@@ -1463,7 +1461,8 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
    1  format(/1x,'### ERROR: def_his/avg: Cannot find variable ''',
      &                       A, ''' in netCDF file ''', A, '''.'/)
 #if (defined PUT_GRID_INTO_HISTORY && !defined AVRH)\
- || (defined PUT_GRID_INTO_AVERAGES && defined AVRH)
+ || ( defined PUT_GRID_INTO_AVERAGES \
+ &&   (defined AVRH || defined AVR2DH) )
 !
 ! Write grid variables.
 !------ ---- ----------
@@ -1518,10 +1517,9 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
 #  include "def_his.F"
 # endif
 #else
-# ifndef AVRH2
-#  define AVRH2
-#  ifdef HFREQ_2D_AVERAGES
-#   include "def_his.F"
-#  endif
+# if defined  SLICE_AVG && !defined AVR2DH
+!--> # ifndef AVR2DH
+#  define AVR2DH
+#  include "def_his.F"
 # endif
 #endif

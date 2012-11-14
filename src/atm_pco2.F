@@ -822,7 +822,7 @@ c
       return
       end subroutine  locate  !}
 #else
-      subroutine get_atmco2_empty
+      subroutine get_atmco2
       print*,'You should decide between HINDCAST and FUTURE_SCENARIO!'
-      end subroutine get_atmco2_empty
+      end subroutine get_atmco2
 #endif

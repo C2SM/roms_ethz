@@ -117,25 +117,25 @@
            endif
           enddo
 #  ifdef SLICE_AVG
-          if (wrtslice(indxU)) then
+          if (wrtslavg(indxU)) then
               do j=jstrR,jendR
                 do i=istrR,iendR
-                  uslice_avg(i,j)=u(i,j,kslice,nstp)
+                  u_slavg(i,j)=u(i,j,k2d,nstp)
                 enddo
               enddo
           endif
-          if (wrtslice(indxV)) then
+          if (wrtslavg(indxV)) then
               do j=jstrR,jendR
                 do i=istrR,iendR
-                  vslice_avg(i,j)=v(i,j,kslice,nstp)
+                  v_slavg(i,j)=v(i,j,k2d,nstp)
                 enddo
               enddo
           endif
           do itrc=1,NT
-           if (wrtslice(indxT+itrc-1)) then
+           if (wrtslavg(indxT+itrc-1)) then
                do j=jstrR,jendR
                  do i=istrR,iendR
-                   tslice_avg(i,j,itrc)=t(i,j,kslice,nstp,itrc)
+                   t_slavg(i,j,itrc)=t(i,j,k2d,nstp,itrc)
                  enddo
                enddo
            endif
@@ -344,26 +344,26 @@
             endif
           enddo
 #  ifdef SLICE_AVG
-          if (wrtslice(indxU)) then
+          if (wrtslavg(indxU)) then
               do j=jstrR,jendR
                 do i=istrR,iendR
-                  uslice_avg(i,j)=uslice_avg(i,j)+u(i,j,kslice,nstp)
+                  u_slavg(i,j)=u_slavg(i,j)+u(i,j,k2d,nstp)
                 enddo
               enddo
           endif
-          if (wrtslice(indxV)) then
+          if (wrtslavg(indxV)) then
               do j=jstrR,jendR
                 do i=istrR,iendR
-                  vslice_avg(i,j)=vslice_avg(i,j)+v(i,j,kslice,nstp)
+                  v_slavg(i,j)=v_slavg(i,j)+v(i,j,k2d,nstp)
                 enddo
               enddo
           endif
           do itrc=1,NT
-           if (wrtslice(indxT+itrc-1)) then
+           if (wrtslavg(indxT+itrc-1)) then
                do j=jstrR,jendR
                  do i=istrR,iendR
-                   tslice_avg(i,j,itrc)=tslice_avg(i,j,itrc)+
-     &                                  t(i,j,kslice,nstp,itrc)
+                   t_slavg(i,j,itrc)=t_slavg(i,j,itrc)+
+     &                                  t(i,j,k2d,nstp,itrc)
                  enddo
                enddo
            endif

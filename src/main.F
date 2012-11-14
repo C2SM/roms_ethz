@@ -650,6 +650,10 @@ C$OMP MASTER
 #ifdef AVERAGES
         if (mod(iic-ntsavg,navg) .eq.0 .and. wrtavg(indxTime))
      &      call wrt_avg
+# ifdef SLICE_AVG
+        if (mod(iic-ntsslavg,nslavg) .eq.0 .and. wrtslavg(indxTime))
+     &      call wrt_slice_avg
+# endif
 #endif
 #ifdef STATIONS
         if (mod(iic-ntstart,nsta).eq.0 .and. nstation.gt.0)
