@@ -44,8 +44,11 @@
           ierr=nf_inq_varid (ncid, vname(1,indxSSS)(1:lvar), sss_id)
           if (ierr .eq. nf_noerr) then
             sss_file_id=ifrc
-            write(*,*) 'Found ''', vname(1,indxSSS)(1:lvar),
+# ifdef DEBUG
+            MPI_master_only write(*,*) 'Found ''', 
+     &        vname(1,indxSSS)(1:lvar),
      &        ''' in ''', frcname(1:lfrc), ''', ifrc =', ifrc
+# endif
 
             ierr=nf_inq_varid (ncid, 'sss_time', sss_tid)
             if (ierr .eq. nf_noerr) then

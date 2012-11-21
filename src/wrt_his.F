@@ -484,9 +484,11 @@ CR      write(*,*) 'wrt_his:  wrtHBL' MYID
       endif
 #endif
       if (ierr .eq. nf_noerr) then
-        write(stdout,'(6x,2A,I4,1x,A,I4,1x,A,I3)')  'WRT_HIS -- ',
+        MPI_master_only write(stdout,
+     &               '(6x,2A,I4,1x,A,I4,1x,A,I3)')  'WRT_HIS -- ',
      &               'wrote history fields into record =', record,
-     &               '/', nrechis MYID
+     &               '/', nrechis
+CR     &                MYID
       else
         write(stdout,'(/1x,2A/)') 'ERROR in wrt_his: Can not ',
      &                 'synchronize/close history netCDF file.'

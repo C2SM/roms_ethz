@@ -5,6 +5,9 @@
       implicit none
 # define SST_DATA
 # include "param.h"
+# ifdef MPI
+#  include "mpif.h"
+# endif
 # include "forces.h"
 # include "scalars.h"
 # include "netcdf.inc"
@@ -44,7 +47,8 @@
           ierr=nf_inq_varid (ncid,vname(1, indxdQdSST), dqdt_id)
           if (ierr .eq. nf_noerr) then
             dqdt_file_id=ifrc
-            write(*,*) 'Found ''', vname(1,indxdQdSST)(1:lvar),
+            MPI_master_only write(*,*) 'Found ''', 
+     &         vname(1,indxdQdSST)(1:lvar),
      &         ''' in ''', frcname(1:lfrc), ''', ifrc =', ifrc
 
 !
@@ -59,12 +63,14 @@
             if (ierr .ne. nf_noerr) then
               ierr=nf_inq_varid (ncid, 'sss_time', dqdt_tid)
               if (ierr .eq. nf_noerr) then
-                write(*,*) 'WARNING: ', vname(1,indxdQdSST)(1:lvar),
+                MPI_master_only write(*,*) 'WARNING: ', 
+     &                            vname(1,indxdQdSST)(1:lvar),
      &                            ' timing is slaved to SSS timing.' 
               else
                 ierr=nf_inq_varid (ncid, 'sst_time', dqdt_tid)
                 if (ierr .eq. nf_noerr) then
-                  write(*,*) 'WARNING: ',vname(1,indxdQdSST)(1:lvar),
+                  MPI_master_only write(*,*) 'WARNING: ',
+     &                             vname(1,indxdQdSST)(1:lvar),
      &                             ' timing is slaved to SST timing.'
                 endif
               endif

@@ -44,7 +44,8 @@
           ierr=nf_inq_varid (ncid, vname(1,indxSWRad), srf_id)
           if (ierr .eq. nf_noerr) then
             srf_file_id=ifrc
-            write(*,*) 'Found ''', vname(1,indxSWRad)(1:lvar),
+            MPI_master_only write(*,*) 'Found ''', 
+     &           vname(1,indxSWRad)(1:lvar),
      &           ''' in ''', frcname(1:lfrc), ''', ifrc =', ifrc
 
             ierr=nf_inq_varid (ncid, 'srf_time', srf_tid)

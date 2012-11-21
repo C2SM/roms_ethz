@@ -419,7 +419,11 @@ C$   &                                                   , proc(2)
 # else
             if (first_time.eq.0) then
               first_time=1
-              write(stdout,'(1x,A,2x,A,1x,A,5x,A,4x,A,4x,A,1x,3A)')
+              print '(2/3A)'
+     &          ,'------------------------------'
+     &          ,' Time-stepping  Diagnostics '
+     &          ,'------------------------------'
+              write(stdout,'(/1x,A,2x,A,1x,A,5x,A,4x,A,4x,A,1x,3A)')
      &                 'STEP',       'time[DAYS]', 'KINETIC_ENRG',
      &                 'SURFACE_KE', 'POTEN_ENRG', 'FREE_SURFACE'
 # ifdef COMPUTE_SPEED_DIAGNOSE

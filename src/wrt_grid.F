@@ -208,9 +208,11 @@
       endif
       if (ierr .ne. nf_noerr)  goto 99                     !--> ERROR
 #endif
-      write(stdout,'(6x,4A,2x,A,I4)') 'WRT_GRID -- wrote grid ',
+
+      MPI_master_only write(stdout,'(6x,4A,2x,A,I4)') 
+     &                 'WRT_GRID -- wrote grid ',
      &                 'data into file ''', ncname(1:lstr), '''.'
-     &                  MYID
+CR     &                  MYID
       return
  99   may_day_flag=3
       return

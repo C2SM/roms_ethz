@@ -5,6 +5,9 @@
       implicit none                  ! time from forcing netCDF file
 # define SMFLUX_DATA
 # include "param.h"
+# ifdef MPI
+#  include "mpif.h"
+# endif
 # include "scalars.h"
 # include "forces.h"
 # include "ncvars.h"
@@ -43,8 +46,9 @@
           ierr=nf_inq_varid (ncid, vname(1,indxSUSTR)(1:lvar), susid)
           if (ierr .eq. nf_noerr) then
             sms_file_id=ifrc
-            write(*,*) 'Found ''', vname(1,indxSUSTR)(1:lvar), 
-     &        ''' in ''', frcname(1:lfrc), ''', ifrc =', ifrc
+CR            MPI_master_only write(*,*) 'Found ''', 
+CR     &        vname(1,indxSUSTR)(1:lvar), 
+CR     &        ''' in ''', frcname(1:lfrc), ''', ifrc =', ifrc
             lvar=lenstr(vname(1,indxSVSTR))
             ierr=nf_inq_varid (ncid,vname(1,indxSVSTR)(1:lvar),svsid)
             if (ierr .eq. nf_noerr) then

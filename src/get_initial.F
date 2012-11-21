@@ -235,8 +235,8 @@
           goto 99                                         !--> ERROR
         endif
       else
-        write(*,1) vname(1,indxTime)(1:lvar), ininame(1:lstr),
-     &                                      nf_strerror(ierr)
+        MPI_master_only write(*,1) vname(1,indxTime)(1:lvar), 
+     &                        ininame(1:lstr)! , nf_strerror(ierr)
         goto 99                                           !--> ERROR
       endif
  
@@ -314,7 +314,8 @@ c**      start_time=start_time - 20.*360. *day2sec
 #ifdef AVERAGES
         nrecavg=0
 #endif
-        write(*,'(6x,2A,F12.4,1x,A,I4)')  'get_initial: Processing ',
+        MPI_master_only write(*,'(6x,2A,F12.4,1x,A,I4)')  
+     &     'get_initial: Processing ',
      &    'data for time =', start_time*sec2day, 'record =', record 
       endif
 #ifdef EXACT_RESTART
@@ -482,8 +483,9 @@ c**      start_time=start_time - 20.*360. *day2sec
             goto 99                                       !--> ERROR
           endif
         else
-          write(*,1) vname(1,indxT+itrc-1)(1:lvar), ininame(1:lstr),
-     &                                            nf_strerror(ierr)
+          MPI_master_only write(*,1) vname(1,indxT+itrc-1)(1:lvar), 
+     &                           ininame(1:lstr)!, nf_strerror(ierr)
+     &            ,' => Initialized to 0.' 
 # ifdef PASSIVE_TRACER
 ! HF: assume a special case: if number of passive tracers equals number
 ! of sigma levels, use each passive tracer to track advection/diffusion
@@ -498,8 +500,8 @@ c**      start_time=start_time - 20.*360. *day2sec
 # endif
 CDL Don't stop if no initial conditions are found. Start with 0 conc.
 CDL instead:
-             write(stdout,'(3a)') 'Start with zero concentration for ',
-     &            'variable ', vname(1,indxT+itrc-1)(1:lvar)
+!             MPI_master_only write(stdout,'(2a)') 
+!     &            '        Starting with 0 concentration.'
 CDL          goto 99                                         !--> ERROR
 # ifdef PASSIVE_TRACER
           end if
@@ -523,11 +525,14 @@ CDL          goto 99                                         !--> ERROR
             goto 99                                       !--> ERROR
           endif
         else
-          write(stdout,1) vname(1,indxSedOrgN+itrc-1)(1:lvar),
+          MPI_master_only write(stdout,1) 
+     &                         vname(1,indxSedOrgN+itrc-1)(1:lvar),
      &                                    ininame(1:lstr)
-          write(stdout,'(a,a)') 'Note: Previous versions of ROMS did ',
-     &         'not include sediment biology.'
-          write(stdout,'(a)') 'Start with 0 concentration.'
+     &            ,' => Initialized to 0.' 
+!          MPI_master_only write(stdout,'(1x,2a/1x,a)') 
+!     &         'Note: Previous versions of ROMS did ',
+!     &         'not include sediment biology.'
+!     &         'Starting with 0 concentration.'
 CHF          goto 99                                         !--> ERROR
         endif
       enddo
@@ -643,9 +648,10 @@ CHF          goto 99                                         !--> ERROR
           goto 99                                        !--> ERROR
         endif
       else
-        write(*,'(1x,5A)')        'WARNING: netCDF variable ''',
+        MPI_master_only write(*,'(1x,5A)')   
+     &     ' ### WARNING: netCDF variable ''',
      &     vname(1,indxHbl)(1:lvar),       ''' not found in ''',
-     &     ininame(1:lstr), ''' ==> initialized to zero state.' 
+     &     ininame(1:lstr), ''' => initialized to 0.' 
 
       endif
 
@@ -667,13 +673,13 @@ CHF          goto 99                                         !--> ERROR
       endif
 # endif
 #endif /* SOLVE3D */
-  1   format(/1x,'### NOTE: get_initial :: Cannot find variable ''',
-     &               A,'''' /12x, 'in netCDF file ''', A, ''''/12x,A)
+  1   format(1x,'### NOTE: get_initial :: netCDF variable ''',
+     &               A,'''' , ' not found in file ''', A, ''''1x,A)
   2   format(/1x,'### ERROR: get_initial :: Cannot read variable ''',
      &             A,'''' /12x, 'from netCDF file ''', A, ''''/12x,A)
   3   format(/1x,'### WARNING: get_initial :: Cannot find variable ''',
      &             A,'''' /12x, ' from netCDF file ''',A, '''' /12x,
-     &             ' ==> initialized to zero state.')
+     &             ' => initialized to 0.')
 !
 !  Close input NetCDF file.
 !

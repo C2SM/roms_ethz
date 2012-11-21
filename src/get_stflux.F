@@ -6,6 +6,9 @@
       implicit none                       ! netCDF file.
 # define STFLUX_DATA
 # include "param.h"
+# ifdef MPI
+#  include "mpif.h"
+# endif
 # include "forces.h"
 # include "scalars.h"
 # include "ncvars.h"
@@ -45,7 +48,8 @@
      &                                              stf_id(itrc))
           if (ierr .eq. nf_noerr) then
             stf_file_id(itrc)=ifrc
-            write(*,*) 'Found ''', vname(1,indxSHFl+itrc-1)(1:lvar), 
+            MPI_master_only write(*,*) 'Found ''', 
+     &              vname(1,indxSHFl+itrc-1)(1:lvar), 
      &              ''' in ''', frcname(1:lfrc), ''', ifrc =', ifrc 
             if (itrc.eq.itemp) then
               ierr=nf_inq_varid (ncid, 'shf_time', stf_tid(itrc))

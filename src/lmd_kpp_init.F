@@ -1,7 +1,12 @@
+#include "cppdefs.h"
         subroutine lmd_kpp_init()
         implicit none
 
 #include "param_lmd.h"
+#include "param.h"
+#ifdef MPI
+# include "mpif.h"
+#endif
 
         character*100 filename_lmd_nml,filename_lmd_out_nml
         integer status
@@ -67,10 +72,12 @@
         if (status .eq. 0) then
            read(75,NML=param_lmd_nml,iostat=status)
            if (status .ne. 0) then
-               print *, 'Could not read the turbulence (lmd_kpp) ',
+               MPI_master_only print *, 
+     &             'Could not read the turbulence (lmd_kpp) ',
      &             'parameter namelist!'
            else
-               print *, 'Turbulence (lmd_kpp) parameters were read from',
+               MPI_master_only print *, 
+     &               'Turbulence (lmd_kpp) parameters read from ',
      &               filename_lmd_nml
            end if
            close(75)

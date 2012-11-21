@@ -3,6 +3,10 @@
       subroutine init_biopar
       implicit none
 #include "biopar.h"
+#include "param.h" /* We need param.h for 'mynode' mpif.h for MPI_master_only */
+#ifdef MPI
+# include "mpif.h"
+#endif
       integer status
       character*100 filename_biopar_nml, filename_biopar_out_nml
 
@@ -65,9 +69,11 @@
       if (status .eq. 0) then
          read(71,NML=biology_param_nml,iostat=status)
          if (status .ne. 0) then
-            print *, 'Could not read the biology parameter namelist!'
+            MPI_master_only print *, 
+     &           'Could not read the biology parameter namelist!'
          else
-            print *, 'Biology parameters were read from ', 
+            MPI_master_only print *, 
+     &           'Biology parameters were read from ', 
      &           filename_biopar_nml
          end if
          close(71)
