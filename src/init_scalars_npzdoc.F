@@ -32,11 +32,11 @@ C$OMP END PARALLEL
       MPI_master_only write(stdout,'(1x,A,3(1x,A,I3),A)') 'NUMBER',
      &    'OF THREADS:',numthreads,'BLOCKING:',NSUB_X,'x',NSUB_E,'.'
 
-#ifdef MPI
+!--> #ifdef MPI
 # define NUMPROC NNODES
-#else
-# define NUMPROC 1
-#endif
+!--> #else
+!--> # define NUMPROC 1
+!--> #endif
 
       if (numthreads.gt.NUMPROC) then
         MPI_master_only write(stdout,'(/1x,A,I3/)')
