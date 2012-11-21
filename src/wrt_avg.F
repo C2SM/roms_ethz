@@ -6,10 +6,36 @@
 ! Defining strings for regular avg
 #  define wrt_avr wrt_avg
 #  define def_avr def_avg
+#  define avrTstep avgTstep 
+#  define avrTime avgTime 
 #  define u_avr u_avg
+#  define avrU avgU
 #  define v_avr v_avg
+#  define avrV avgV
 #  define rho_avr rho_avg
+#  define avrR avgR
 #  define t_avr t_avg
+#  define avrT avgT
+#  define w_avr w_avg
+#  define avrO avgO
+#  define avrW avgW
+#  define Akv_avr Akv_avg
+#  define Akt_avr Akt_avg
+#  define Aks_avr Aks_avg
+#  define avrAkv avgAkv
+#  define avrAkt avgAkt
+#  define avrAks avgAks
+#  define rich_avr rich_avg
+#  define avrRich avgRich
+#  define richN_avr richN_avg
+#  define avrRichN avgRichN
+#  define ncidavr ncidavg
+#  define ncrecavr ncrecavg 
+#  define nrpfavr nrpfavg 
+#  define nrecavr nrecavg 
+#  define avrname avgname
+#  define wrtavr wrtavg
+#  define SWRT_AVR 'WRT_AVG'
 # else
 !  We are playing the same redefinition CPP game as in def_his.F here...
 #  define START_3D_ARRAY_K0 START_2D_ARRAY
@@ -17,10 +43,40 @@
 ! Redefining strings for slices
 #  define wrt_avr wrt_slice_avg
 #  define def_avr def_slavg
+#  define avrTstep slavgTstep 
+#  define avrTime slavgTime 
 #  define u_avr u_slavg
+#  define avrU slavgU
 #  define v_avr v_slavg
+#  define avrV slavgV
 #  define rho_avr rho_slavg
+#  define avrR slavgR
 #  define t_avr t_slavg
+#  define avrT slavgT
+#  define w_avr w_slavg
+#  define avrO slavgO
+#  define avrW slavgW
+#  define Akv_avr Akv_slavg
+#  define Akt_avr Akt_slavg
+#  define Aks_avr Aks_slavg
+#  define avrAkv slavgAkv
+#  define avrAkt slavgAkt
+#  define avrAks slavgAks
+#  define rich_avr rich_slavg
+#  define avrRich slavgRich
+#  define richN_avr richN_slavg
+#  define avrRichN slavgRichN
+#  define ncidavr ncidslavg
+#  define ncrecavr ncrecslavg 
+#  define nrpfavr nrpfslavg 
+#  define nrecavr nrecslavg 
+#  define avrname slavgname
+#  define wrtavr wrtslavg
+#  define R3DVAR r2dvar
+#  define U3DVAR u2dvar
+#  define V3DVAR v2dvar
+#  define W3DVAR r2dvar
+#  define SWRT_AVR 'WRT_SLAVG'
 # endif /* ifndef SLICE_AVG */
                                      ! Write time-averaged
       subroutine wrt_avr             ! fields into averages
@@ -51,18 +107,19 @@
      &                 3, ocean_grid_comm, status, ierr)
       endif
 # endif
+CR      MPI_master_only print *, '--- NOTE: Executing ', SWRT_AVR
 !
 ! Create/open averages file; write grid arrays, if so needed,
 ! check for errors, then set record within the file "record".
 !
-      call def_avg (ncidavg, nrecavg, ierr)
-      lstr=lenstr(avgname)
+      call def_avr (ncidavr, nrecavr, ierr)
+      lstr=lenstr(avrname)
       if (ierr .ne. nf_noerr) goto 99       !!! WARNING: Here it is
-      nrecavg=max(nrecavg,1)                !!! assumed that global
-      if (nrpfavg.eq.0) then                !!! averages record index
-        record=nrecavg                      !!! "nrecavg" is already
+      nrecavr=max(nrecavr,1)                !!! assumed that global
+      if (nrpfavr.eq.0) then                !!! averages record index
+        record=nrecavr                      !!! "nrecavg" is already
       else                                  !!! advanced by main.
-        record=1+mod(nrecavg-1, nrpfavg)
+        record=1+mod(nrecavr-1, nrpfavr)
       endif
 !
 ! Write out time-averaged variables:
@@ -73,13 +130,13 @@
       ibuff(1)=iic
       ibuff(2)=nrecrst
       ibuff(3)=nrechis
-      ibuff(4)=nrecavg
+      ibuff(4)=nrecavr
  
       start(1)=1
       start(2)=record
       count(1)=4
       count(2)=1
-      ierr=nf_put_vara_int (ncidavg, avgTstep, start, count, ibuff)
+      ierr=nf_put_vara_int (ncidavr, avrTstep, start, count, ibuff)
       if (ierr .ne. nf_noerr) then
         write(stdout,1) 'time_step', record,ierr MYID
         goto 99                                           !--> ERROR
@@ -87,7 +144,7 @@
 !
 ! Averaged time
 !
-      ierr=nf_put_var1_FTYPE (ncidavg, avgTime, record, time_avg)
+      ierr=nf_put_var1_FTYPE (ncidavr, avrTime, record, time_avg)
       if (ierr .ne. nf_noerr) then
         lvar=lenstr(vname(1,indxTime))
         write(stdout,1) vname(1,indxTime)(1:lvar), record, ierr
@@ -98,8 +155,8 @@
 ! Barotropic mode variables: free-surface and 2D momentum
 ! components in XI-,ETA-directions.
 !
-      if (wrtavg(indxZ)) then
-        ierr=nf_fwrite (zeta_avg(START_2D_ARRAY), ncidavg, avgZ,
+      if (wrtavr(indxZ)) then
+        ierr=nf_fwrite (zeta_avg(START_2D_ARRAY), ncidavr, avgZ,
      &                                            record, r2dvar)
         if (ierr .ne. nf_noerr) then
           lvar=lenstr(vname(1,indxZ))
@@ -109,8 +166,8 @@
         endif
       endif
  
-      if (wrtavg(indxUb)) then
-        ierr=nf_fwrite (ubar_avg(START_2D_ARRAY), ncidavg, avgUb,
+      if (wrtavr(indxUb)) then
+        ierr=nf_fwrite (ubar_avg(START_2D_ARRAY), ncidavr, avgUb,
      &                                            record, u2dvar)
         if (ierr .ne. nf_noerr) then
           lvar=lenstr(vname(1,indxUb))
@@ -120,8 +177,8 @@
         endif
       endif
  
-      if (wrtavg(indxVb)) then
-        ierr=nf_fwrite (vbar_avg(START_2D_ARRAY), ncidavg, avgVb,
+      if (wrtavr(indxVb)) then
+        ierr=nf_fwrite (vbar_avg(START_2D_ARRAY), ncidavr, avgVb,
      &                                            record, v2dvar)
         if (ierr .ne. nf_noerr) then
           lvar=lenstr(vname(1,indxVb))
@@ -134,9 +191,9 @@
 !
 ! 3D momentum components in XI- and ETA-directions.
 !
-      if (wrtavg(indxU)) then
-        ierr=nf_fwrite (u_avr(START_3D_ARRAY_K1), ncidavg, avgU,
-     &                                           record, u3dvar)
+      if (wrtavr(indxU)) then
+        ierr=nf_fwrite (u_avr(START_3D_ARRAY_K1), ncidavr, avrU,
+     &                                           record, U3DVAR)
         if (ierr .ne. nf_noerr) then
           lvar=lenstr(vname(1,indxU))
           write(stdout,1) vname(1,indxU)(1:lvar), record, ierr
@@ -145,9 +202,9 @@
         endif
       endif
  
-      if (wrtavg(indxV)) then
-        ierr=nf_fwrite (v_avr(START_3D_ARRAY_K1), ncidavg, avgV,
-     &                                           record, v3dvar)
+      if (wrtavr(indxV)) then
+        ierr=nf_fwrite (v_avr(START_3D_ARRAY_K1), ncidavr, avrV,
+     &                                           record, V3DVAR)
         if (ierr .ne. nf_noerr) then
         lvar=lenstr(vname(1,indxV))
           write(stdout,1) vname(1,indxV)(1:lvar), record, ierr
@@ -159,9 +216,9 @@
 ! Tracer variables.
 !
       do itrc=1,NT
-        if (wrtavg(indxT+itrc-1)) then
-          ierr=nf_fwrite (t_avr(START_3D_ARRAY_K1,itrc), ncidavg,
-     &                              avgT(itrc), record, r3dvar)
+        if (wrtavr(indxT+itrc-1)) then
+          ierr=nf_fwrite (t_avr(START_3D_ARRAY_K1,itrc), ncidavr,
+     &                              avrT(itrc), record, R3DVAR)
           if (ierr .ne. nf_noerr) then
             lvar=lenstr(vname(1,indxT+itrc-1))
             write(stdout,1) vname(1,indxT+itrc-1)(1:lvar),
@@ -175,8 +232,8 @@
 ! Sediment concentrations
 !
       do itrc=1,NT_sed
-        if (wrtavg(indxSedOrgN+itrc-1)) then
-          ierr=nf_fwrite (t_sed_avg(START_2D_ARRAY,itrc), ncidavg,
+        if (wrtavr(indxSedOrgN+itrc-1)) then
+          ierr=nf_fwrite (t_sed_avg(START_2D_ARRAY,itrc), ncidavr,
      &                                avgTsed(itrc), record, r2dvar)
           if (ierr .ne. nf_noerr) then
             lvar=lenstr(vname(1,indxSedOrgN+itrc-1))
@@ -184,16 +241,16 @@
      &                      ierr, nf_strerror(ierr) MYID
             goto 99                                       !--> ERROR
           endif
-CR      write(*,*) 'wrt_avg:  wrtT_sed  ' MYID
+CR      write(*,*) 'wrt_avr:  wrtT_sed  ' MYID
         endif
       enddo
 #endif /* SEDIMENT_BIOLOGY */
 !
 ! Density anomaly.
 !
-      if (wrtavg(indxR)) then
-        ierr=nf_fwrite (rho_avr(START_3D_ARRAY_K1), ncidavg, avgR,
-     &                                             record, r3dvar)
+      if (wrtavr(indxR)) then
+        ierr=nf_fwrite (rho_avr(START_3D_ARRAY_K1), ncidavr, avrR,
+     &                                             record, R3DVAR)
         if (ierr .ne. nf_noerr) then
           lvar=lenstr(vname(1,indxR))
           write(stdout,1) vname(1,indxR)(1:lvar), record, ierr
@@ -204,8 +261,8 @@ CR      write(*,*) 'wrt_avg:  wrtT_sed  ' MYID
 !
 !  Write out S-coordinate omega vertical velocity (m/s).
 !
-      if (wrtavg(indxO)) then
-        ierr=nf_fwrite (w_avg, ncidavg, avgO, record, w3dvar)
+      if (wrtavr(indxO)) then
+        ierr=nf_fwrite (w_avr, ncidavr, avrO, record, W3DVAR)
         if (ierr .ne. nf_noerr) then
           lvar=lenstr(vname(1,indxO))
           write(stdout,1) vname(1,indxO)(1:lvar), record, ierr
@@ -216,8 +273,8 @@ CR      write(*,*) 'wrt_avg:  wrtT_sed  ' MYID
 !
 ! Write out true vertical velocity (m/s).
 !
-      if (wrtavg(indxW)) then
-        ierr=nf_fwrite(w_mean, ncidavg, avgW, record, r3dvar)
+      if (wrtavr(indxW)) then
+        ierr=nf_fwrite(w_mean, ncidavr, avrW, record, R3DVAR)
         if (ierr .ne. nf_noerr) then
           lvar=lenstr(vname(1,indxW))
           write(stdout,1) vname(1,indxW)(1:lvar), record, ierr
@@ -228,9 +285,9 @@ CR      write(*,*) 'wrt_avg:  wrtT_sed  ' MYID
 !
 !  Write out vertical eddy viscosity coefficient for momentum.
 !
-      if (wrtavg(indxAkv)) then
-        ierr=nf_fwrite (akv_avg(START_2D_ARRAY,0), ncidavg,
-     &                                avgAkv, record, w3dvar)
+      if (wrtavr(indxAkv)) then
+        ierr=nf_fwrite (Akv_avr(START_3D_ARRAY_K0), ncidavr,
+     &                                avrAkv, record, W3DVAR)
         if (ierr .ne. nf_noerr) then
           lvar=lenstr(vname(1,indxAkv))
           write(stdout,1) vname(1,indxAkv)(1:lvar), record, ierr,
@@ -241,9 +298,9 @@ CR      write(*,*) 'wrt_avg:  wrtT_sed  ' MYID
 !
 !  Write out vertical diffusion coefficient for potential temperature.
 !
-      if (wrtavg(indxAkt)) then
-        ierr=nf_fwrite (akt_avg(START_2D_ARRAY,0), ncidavg,
-     &                                avgAkt, record, w3dvar)
+      if (wrtavr(indxAkt)) then
+        ierr=nf_fwrite (Akt_avr(START_3D_ARRAY_K0), ncidavr,
+     &                                avrAkt, record, W3DVAR)
         if (ierr .ne. nf_noerr) then
           lvar=lenstr(vname(1,indxAkt))
           write(stdout,1) vname(1,indxAkt)(1:lvar), record, ierr,
@@ -255,9 +312,9 @@ CR      write(*,*) 'wrt_avg:  wrtT_sed  ' MYID
 !
 ! Write out diffusion coefficient due to vertical velocity shear:
 !
-      if (wrtavg(indxRich)) then
-        ierr=nf_fwrite (rich_avg(START_2D_ARRAY,0), ncidavg,
-     &                                avgRich, record, w3dvar)
+      if (wrtavr(indxRich)) then
+        ierr=nf_fwrite (rich_avr(START_2D_ARRAY,0), ncidavr,
+     &                                avrRich, record, W3DVAR)
         if (ierr .ne. nf_noerr) then
           lvar=lenstr(vname(1,indxRich))
           write(stdout,1) vname(1,indxRich)(1:lvar), record, ierr,
@@ -268,9 +325,9 @@ CR      write(*,*) 'wrt_avg:  wrtT_sed  ' MYID
 !
 ! Write out local gradient Richardson number:
 !
-      if (wrtavg(indxRichN)) then
-        ierr=nf_fwrite (richN_avg(START_2D_ARRAY,0), ncidavg,
-     &                                avgRichN, record, w3dvar)
+      if (wrtavr(indxRichN)) then
+        ierr=nf_fwrite (richN_avr(START_2D_ARRAY,0), ncidavr,
+     &                                avrRichN, record, W3DVAR)
         if (ierr .ne. nf_noerr) then
           lvar=lenstr(vname(1,indxRichN))
           write(stdout,1) vname(1,indxRichN)(1:lvar), record, ierr,
@@ -283,9 +340,9 @@ CR      write(*,*) 'wrt_avg:  wrtT_sed  ' MYID
 !
 !  Write out vertical diffusion coefficient for salinity.
 !
-      if (wrtavg(indxAks)) then
-        ierr=nf_fwrite (aks_avg(START_2D_ARRAY,0), ncidavg,
-     &                                avgAks, record, w3dvar)
+      if (wrtavr(indxAks)) then
+        ierr=nf_fwrite (Aks_avr(START_3D_ARRAY_K0), ncidavr,
+     &                                avrAks, record, W3DVAR)
         if (ierr .ne. nf_noerr) then
           lvar=lenstr(vname(1,indxAks))
           write(stdout,1) vname(1,indxAks)(1:lvar), record, ierr,
@@ -298,8 +355,8 @@ CR      write(*,*) 'wrt_avg:  wrtT_sed  ' MYID
 !
 !  Write out depth of planetary boundary layer (m).
 !
-      if (wrtavg(indxHbl)) then
-        ierr=nf_fwrite (hbl_avg(START_2D_ARRAY), ncidavg,
+      if (wrtavr(indxHbl)) then
+        ierr=nf_fwrite (hbl_avg(START_2D_ARRAY), ncidavr,
      &                              avgHbl, record, r2dvar)
         if (ierr .ne. nf_noerr) then
           lvar=lenstr(vname(1,indxHbl))
@@ -313,8 +370,8 @@ CR      write(*,*) 'wrt_avg:  wrtT_sed  ' MYID
 !
 !  Write out depth of bottom boundary layer (m).
 !
-      if (wrtavg(indxHbbl)) then
-        ierr=nf_fwrite (hbbl_avg(START_2D_ARRAY), ncidavg,
+      if (wrtavr(indxHbbl)) then
+        ierr=nf_fwrite (hbbl_avg(START_2D_ARRAY), ncidavr,
      &                              avgHbbl, record, r2dvar)
         if (ierr .ne. nf_noerr) then
           lvar=lenstr(vname(1,indxHbbl))
@@ -330,7 +387,7 @@ CR      write(*,*) 'wrt_avg:  wrtT_sed  ' MYID
 !
 ! Write out averaged CO2STAR_DEPTH:
 !
-      ierr=nf_fwrite (CO2STARd_avg(START_2D_ARRAY,1), ncidavg,
+      ierr=nf_fwrite (CO2STARd_avg(START_2D_ARRAY,1), ncidavr,
      &                              avgCO2STARd, record, r3dvar)
       write(*,*) 'ierr=' , ierr
       if (ierr .ne. nf_noerr) then
@@ -343,7 +400,7 @@ CR      write(*,*) 'wrt_avg:  wrtT_sed  ' MYID
 !
 ! Write out averaged HCO3_DEPTH:
 !
-      ierr=nf_fwrite (HCO3d_avg(START_2D_ARRAY,1), ncidavg,
+      ierr=nf_fwrite (HCO3d_avg(START_2D_ARRAY,1), ncidavr,
      &                              avgHCO3d, record, r3dvar) 
       if (ierr .ne. nf_noerr) then
         lvar=lenstr(vname(1,indxHCO3d_rst))
@@ -355,7 +412,7 @@ CR      write(*,*) 'wrt_avg:  wrtT_sed  ' MYID
 !
 ! Write out averaged CO3_DEPTH:
 !
-      ierr=nf_fwrite (CO3d_avg(START_2D_ARRAY,1), ncidavg,
+      ierr=nf_fwrite (CO3d_avg(START_2D_ARRAY,1), ncidavr,
      &                              avgCO3d, record, r3dvar)
       if (ierr .ne. nf_noerr) then
         lvar=lenstr(vname(1,indxCO3d_rst))
@@ -368,7 +425,7 @@ CR      write(*,*) 'wrt_avg:  wrtT_sed  ' MYID
 !
 ! Write out averaged PH_DEPTH:
 !
-      ierr=nf_fwrite (PHd_avg(START_2D_ARRAY,1), ncidavg,
+      ierr=nf_fwrite (PHd_avg(START_2D_ARRAY,1), ncidavr,
      &                              avgPHd, record, r3dvar)
       if (ierr .ne. nf_noerr) then
         lvar=lenstr(vname(1,indxPHd_rst))
@@ -382,7 +439,7 @@ CR      write(*,*) 'wrt_avg:  wrtT_sed  ' MYID
 !
 ! Write out averaged pH:
 !
-      ierr=nf_fwrite (pH_avg(START_2D_ARRAY), ncidavg,
+      ierr=nf_fwrite (pH_avg(START_2D_ARRAY), ncidavr,
      &                              avgPH, record, r2dvar)
       if (ierr .ne. nf_noerr) then
         lvar=lenstr(vname(1,indxPH_rst))
@@ -393,7 +450,7 @@ CR      write(*,*) 'wrt_avg:  wrtT_sed  ' MYID
 !
 ! Write out averaged pCO2:
 !
-      ierr=nf_fwrite (pCO2_avg(START_2D_ARRAY), ncidavg,
+      ierr=nf_fwrite (pCO2_avg(START_2D_ARRAY), ncidavr,
      &                              avgPCO2, record, r2dvar)
       if (ierr .ne. nf_noerr) then
         lvar=lenstr(vname(1,indxPCO2_rst))
@@ -405,7 +462,7 @@ CR      write(*,*) 'wrt_avg:  wrtT_sed  ' MYID
 !
 ! Write out averaged pCO2air:
 !
-      ierr=nf_fwrite (pCO2air_avg(START_2D_ARRAY), ncidavg,
+      ierr=nf_fwrite (pCO2air_avg(START_2D_ARRAY), ncidavr,
      &                              avgPCO2air, record, r2dvar)
       if (ierr .ne. nf_noerr) then
         lvar=lenstr(vname(1,indxPCO2air_rst))
@@ -416,7 +473,7 @@ CR      write(*,*) 'wrt_avg:  wrtT_sed  ' MYID
 !
 ! PAR:
 !
-      ierr=nf_fwrite (PARinc_avg(START_2D_ARRAY), ncidavg,
+      ierr=nf_fwrite (PARinc_avg(START_2D_ARRAY), ncidavr,
      &                              avgPARinc, record, r2dvar)
       if (ierr .ne. nf_noerr) then
         lvar=lenstr(vname(1,indxPARinc_rst))
@@ -427,7 +484,7 @@ CR      write(*,*) 'wrt_avg:  wrtT_sed  ' MYID
 !
 ! PAR:
 !
-      ierr=nf_fwrite (PAR_avg(START_2D_ARRAY,1), ncidavg,
+      ierr=nf_fwrite (PAR_avg(START_2D_ARRAY,1), ncidavr,
      &                              avgPAR, record, r3dvar)
       if (ierr .ne. nf_noerr) then
         lvar=lenstr(vname(1,indxPAR_rst))
@@ -437,7 +494,7 @@ CR      write(*,*) 'wrt_avg:  wrtT_sed  ' MYID
       endif
 # endif /* BIOLOGY_NPZDOC || BIOLOGY_BEC */
 # endif /* SOLVE3D */
-  1   format(/' WRT_AVG - ERROR while writing variable(',1x,a,1x,
+  1   format(/SWRT_AVR,' - ERROR while writing variable(',1x,a,1x,
      &               ')into averages file.',/,11x,'Time record:',
      &                      i6,3x,'netCDF error code',i4,3x,a,i4)
       goto 100
@@ -448,25 +505,34 @@ CR      write(*,*) 'wrt_avg:  wrtT_sed  ' MYID
 ! processes to access data immediately after it is written.
 !
 # if defined MPI && !defined PARALLEL_FILES
-      ierr=nf_close(ncidavg)
-      if (nrpfavg.gt.0 .and. record.ge.nrpfavg) ncidavg=-1
+      ierr=nf_close(ncidavr)
+      if (nrpfavr.gt.0 .and. record.ge.nrpfavr) ncidavr=-1
 # else
-      if (nrpfavg.gt.0 .and. record.ge.nrpfavg) then
-        ierr=nf_close(ncidavg)
-        ncidavg=-1
+      if (nrpfavr.gt.0 .and. record.ge.nrpfavr) then
+        ierr=nf_close(ncidavr)
+        ncidavr=-1
       else
-        ierr=nf_sync(ncidavg)
+        ierr=nf_sync(ncidavr)
       endif
 # endif
       if (ierr .eq. nf_noerr) then
-        !JDS for very long steady states simulations record is written
-        !in I10 format instead of I4      
-        !write(stdout,'(6x,A,2(A,I4,1x),A,I3)') 'WRT_AVG -- wrote ',
-        write(stdout,'(6x,A,2(A,I10,1x),A,I3)') 'WRT_AVG -- wrote ',
-     &            'averaged fields into time record =', record, '/',
-     &             nrecavg  MYID
+        if (nrecavr .lt.10000) then
+             MPI_master_only write(stdout,
+     &                '(I8,1x,A,2(A,I4,1x),A,I3)') iic-1, 
+     &          SWRT_AVR
+     &            ,': output fields written to record ='
+     &            , record, '/', nrecavr  
+CR     &              MYID
+        else
+             MPI_master_only write(stdout,
+     &          '(I8,1x,A,2(A,I10,1x),A,I3)') iic-1, 
+     &          SWRT_AVR
+     &            ,': output fields written to record ='
+     &            , record, '/', nrecavr  
+CR     &              MYID
+        endif
       else
-        write(stdout,'(/1x,2A/)') 'WRT_AVG ERROR: Cannot ',
+        write(stdout,'(/1x,3A/)') SWRT_AVR, ' ERROR: Cannot ',
      &             'synchronize/close averages netCDF file.'
         may_day_flag=3
       endif
@@ -478,14 +544,44 @@ CR      write(*,*) 'wrt_avg:  wrtT_sed  ' MYID
       return
       end
 # ifndef SLICE_AVR
-#  undef START_3D_ARRAY_K0 START_2D_ARRAY,0
-#  undef START_3D_ARRAY_K1 START_2D_ARRAY,1
+#  undef START_3D_ARRAY_K0
+#  undef START_3D_ARRAY_K1
 #  undef wrt_avr
 #  undef def_avr
+#  undef avrTstep
+#  undef avrTime
 #  undef u_avr
+#  undef avrU
 #  undef v_avr
+#  undef avrV
+#  undef avrO
+#  undef w_avr
+#  undef avrW
 #  undef rho_avr
+#  undef avrR
 #  undef t_avr
+#  undef avrT
+#  undef w_avr
+#  undef avrW
+#  undef avrO
+#  undef Akv_avr
+#  undef Akt_avr
+#  undef Aks_avr
+#  undef avrAkv
+#  undef avrAkt
+#  undef avrAks
+#  undef rich_avr
+#  undef avrRich
+#  undef richN_avr
+#  undef avrRichN
+#  undef ncidavr
+#  undef ncrecavr
+#  undef nrpfavr
+#  undef nrecavr
+#  undef ncidavr
+#  undef avrname
+#  undef wrtavr
+#  undef WRTROUTINE
 #  if defined  SLICE_AVG && !defined SLICE_AVR /* also create wrt_slice_avg */
 #   define SLICE_AVR
 #   include "wrt_avg.F"

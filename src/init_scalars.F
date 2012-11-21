@@ -105,6 +105,10 @@ cc      write(*,*) 'kmp_stacksize =', size
 #ifdef AVERAGES
       ncidavg=-1                     ! Also reset record counters for
       nrecavg=0                      ! restart, history, average, and
+# ifdef SLICE_AVG
+      ncidslavg=-1                     ! Also reset record counters for
+      nrecslavg=0                      ! restart, history, average, and
+# endif
 #endif
 #ifdef STATIONS
       ncidsta=-1                     ! stations netCDF output files.

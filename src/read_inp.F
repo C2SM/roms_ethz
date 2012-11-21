@@ -405,12 +405,9 @@ c--      fname='roms.in.US_West'
           read(input,*,err=95) ntsavg, navg, nrpfavg
           read(input,'(A)',err=95) fname
           lstr=lenstr(fname)
+          avgname=fname(1:lstr)
 # if defined MPI && defined PARALLEL_FILES
           call insert_node (fname, lstr, mynode, NNODES, ierr)
-# endif
-          avgname=fname(1:lstr)
-# ifdef SLICE_AVG
-          slavgname=fname(1:lstr-2)//'_2D_slices.nc'
 # endif
           MPI_master_only write(stdout,
      &           '(2(I10,2x,A,1x,A/32x,A/),6x,A,2x,A,1x,A,I3)')
@@ -420,6 +417,30 @@ c--      fname='roms.in.US_West'
      &     'writing of time-averaged','data into averages file.',
      &     'Averages File:', avgname(1:lstr),
      &     'rec/file =', nrpfavg
+#endif
+#ifdef SLICE_AVG
+!
+! Slice averages file name.
+!
+        elseif (keyword(1:kwlen).eq.'slice_averages') then
+          call cancel_kwd (keyword(1:kwlen), ierr)
+          read(input,*,err=95) k2d, ntsslavg, nslavg, nrpfslavg
+          read(input,'(A)',err=95) fname
+          lstr=lenstr(fname)
+          slavgname=fname(1:lstr)
+# if defined MPI && defined PARALLEL_FILES
+          call insert_node (fname, lstr, mynode, NNODES, ierr)
+# endif
+          slavgname=fname(1:lstr)
+          MPI_master_only write(stdout,
+     &          '(I4,2x,A/2(I10,2x,A,1x,A/32x,A/),6x,A,2x,A,1x,A,I3)')
+     &      k2d,      'k2d         Sigma level to average.',
+     &      ntsslavg, 'ntsslavg      Starting timestep for the.',
+     &           'accumulation of output', 'time-averaged data.',
+     &      nslavg,   'nslavg        Number of timesteps between',
+     &     'writing of time-averaged','data into averages file.',
+     &     'Slice averages file:  ', slavgname(1:lstr),
+     &     'rec/file =', nrpfslavg
 #endif
 
 #ifdef BGC_FLUX_ANALYSIS
@@ -750,6 +771,7 @@ c--      fname='roms.in.US_West'
      &    , wrtavg(indxUb), 'write UBAR ', '2D U-momentum component.'
      &    , wrtavg(indxVb), 'write VBAR ', '2D V-momentum component.'
 # ifdef SOLVE3D
+#  ifndef SLICE_AVG 
      &    , wrtavg(indxU),  'write U    ', '3D U-momentum component.'
      &    , wrtavg(indxV),  'write V    ', '3D V-momentum component.'
           do itrc=1,NT
@@ -768,7 +790,7 @@ c--      fname='roms.in.US_West'
           end do
 #  endif /* SEDIMENT_BIOLOGY */
 
-#  ifdef SLICE_AVG 
+#  else /* case SLICE_AVG defined */
 !
 ! Switches for fields to be saved into 2D slice averages file.
 !
@@ -794,11 +816,10 @@ c--      fname='roms.in.US_West'
      &           ( (itrc .lt. indxT) .or. (itrc .ge. indxT+NT) ) .and.
      &           wrtslavg(itrc) .and.  wrtavg(itrc)  ) then
               wrtavg(itrc) = .false.
-            MPI_master_only write(stdout, *) 
-     &       'Warning: Averages for field number ',itrc
-     &       , ' requested for both standard  averages file '
-     &       , ' and slice averages file.  This is not possible.'
-     &       , ' Field ',itrc,' is only saved in the slice average file.'
+            MPI_master_only write(stdout, '(1x,2A,I2,A)') 
+     &       'WARNING: Averages/slice averages missmatch: '
+     &       , ' A 2D field is requested in both outputs.  Field #'
+     &       , itrc, ' will only saved in the slice averages file.'
            endif
          enddo
           if ( wrtslavg(indxZ) .or. wrtslavg(indxUb) .or. wrtslavg(indxVb)
@@ -806,19 +827,24 @@ c--      fname='roms.in.US_West'
      &       ) wrtslavg(indxTime)=.true.
           
  
-          MPI_master_only write(stdout,'(/1x,A,5(/6x,l1,2x,A,1x,A))')
-     &    'Fields to be saved in averages file: (T/F)'
-     &    , wrtslavg(indxZ),  'write zeta ', 'free-surface.'
-     &    , wrtslavg(indxUb), 'write UBAR ', '2D U-momentum component.'
-     &    , wrtslavg(indxVb), 'write VBAR ', '2D V-momentum component.'
-     &    , wrtslavg(indxU),  'write U    ', '3D U-momentum component.'
-     &    , wrtslavg(indxV),  'write V    ', '3D V-momentum component.'
+          MPI_master_only write(stdout,'(/1x,A,5(/6x,L1,A,L1,2x,A,1x,A))')
+     &    'Fields to be saved in averages, slice averages file: (T/F)'
+     &    , wrtavg(indxZ),', ',  wrtslavg(indxZ)
+     &    ,  'write zeta ', 'free-surface.'
+     &    , wrtavg(indxUb),', ', wrtslavg(indxUb)
+     &    , 'write UBAR ', '2D U-momentum component.'
+     &    , wrtavg(indxVb),', ', wrtslavg(indxVb)
+     &    , 'write VBAR ', '2D V-momentum component.'
+     &    , wrtavg(indxU),', ',  wrtslavg(indxU)
+     &    ,  'write U    ', '3D U-momentum component.'
+     &    , wrtavg(indxV),', ',  wrtslavg(indxV)
+     &    ,  'write V    ', '3D V-momentum component.'
           do itrc=1,NT
             if (wrtslavg(indxT+itrc-1)) wrtslavg(indxTime)=.true.
             MPI_master_only write(stdout,
-     &                       '(6x,L1,2x,A,I2,A,2x,A,I2,A)')
-     &                        wrtslavg(indxT+itrc-1), 'write T(',
-     &                        itrc,')', 'Tracer of index ', itrc,'.'
+     &                       '(6x,L1,A,L1,2x,A,I2,A,2x,A,I2,A)')
+     &          wrtavg(indxT+itrc-1),', ', wrtslavg(indxT+itrc-1)
+     &          , 'write T(', itrc,')', 'Tracer of index ', itrc,'.'
           enddo
 #  ifdef SEDIMENT_BIOLOGY
           do itrc = 1, NT_sed

@@ -614,6 +614,10 @@ C$OMP BARRIER
      &   .or. (mod(iic-ntstart,nwrt).eq.0 .and. wrthis(indxTime))
 #ifdef AVERAGES
      &   .or. (mod(iic-ntsavg,navg).eq.0  .and. wrtavg(indxTime))
+# idef SLICE_AVG
+     &   .or. ( mod(iic-ntsslavg,nslavg).eq.0  
+     &           .and. wrtslavg(indxTime) )
+# endif
 #endif
 #ifdef STATIONS
      &   .or. (mod(iic-ntstart,nsta).eq.0 .and. nstation.gt.0)
@@ -631,6 +635,9 @@ C$OMP MASTER
         if (mod(iic-ntstart,nwrt).eq.0) nrechis=nrechis+1
 #ifdef AVERAGES
         if (mod(iic-ntsavg,navg) .eq.0) nrecavg=nrecavg+1
+# ifdef SLICE_AVG
+        if (mod(iic-ntsslavg,nslavg) .eq.0) nrecslavg=nrecslavg+1
+# endif
 #endif
 
 
@@ -648,12 +655,12 @@ C$OMP MASTER
         if (mod(iic-ntstart,nwrt).eq.0 .and. wrthis(indxTime))
      &      call wrt_his
 #ifdef AVERAGES
-        if (mod(iic-ntsavg,navg) .eq.0 .and. wrtavg(indxTime))
-     &      call wrt_avg
 # ifdef SLICE_AVG
         if (mod(iic-ntsslavg,nslavg) .eq.0 .and. wrtslavg(indxTime))
      &      call wrt_slice_avg
 # endif
+        if (mod(iic-ntsavg,navg) .eq.0 .and. wrtavg(indxTime))
+     &      call wrt_avg
 #endif
 #ifdef STATIONS
         if (mod(iic-ntstart,nsta).eq.0 .and. nstation.gt.0)
