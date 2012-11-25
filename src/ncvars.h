@@ -417,12 +417,12 @@
      &        slavgTime, slavgTstep
       common /ncvars/  ncidslavg,  nrecslavg, nrpfslavg,
      &        slavgTime, slavgTstep
-      integer k2d, slavgU, slavgV, slavgT(NT+1), slavgR
+      integer ksl, slavgU, slavgV, slavgT(NT+1), slavgR
      &      , slavgO, slavgW, slavgAkv, slavgAkt, slavgAks
 # ifdef KPP_DIAGNOSE
      &        , slavgRich, slavgRichN
 # endif
-      common /ncvars/ k2d, slavgU, slavgV, slavgT, slavgR
+      common /ncvars/ ksl, slavgU, slavgV, slavgT, slavgR
      &      , slavgO, slavgW, slavgAkv, slavgAkt, slavgAks
 # ifdef KPP_DIAGNOSE
      &        , slavgRich, slavgRichN

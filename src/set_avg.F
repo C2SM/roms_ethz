@@ -50,7 +50,7 @@
 #  define akv_AVR(i,j,k) akv_slavg(i,j)
 #  define KLOOP(s)  
 #  define ENDKLOOP  
-#  define KLEVEL   k2d
+#  define KLEVEL   ksl
 # endif
 
  

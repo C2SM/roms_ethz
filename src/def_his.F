@@ -327,7 +327,7 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
 # else
         ierr=nf_put_att_int (ncid, nf_global, 
      &              'Sigma_level_of_slices',
-     &                 NF_INT, 1, k2d)
+     &                 NF_INT, 1, ksl)
         ierr=nf_put_att_int (ncid, nf_global, 
      &                    'Total_number_of_sigma_levels',
      &                 NF_INT, 1, N)
@@ -536,7 +536,7 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
 # endif
 # ifdef  AVR2DH 
             ierr=nf_put_att_int (ncid, vidT(itrc), 'sigma-level',
-     &                                          lvar, k2d)
+     &                                          lvar, ksl)
 # endif
         endif
 !

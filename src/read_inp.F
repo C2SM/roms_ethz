@@ -424,7 +424,7 @@ c--      fname='roms.in.US_West'
 !
         elseif (keyword(1:kwlen).eq.'slice_averages') then
           call cancel_kwd (keyword(1:kwlen), ierr)
-          read(input,*,err=95) k2d, ntsslavg, nslavg, nrpfslavg
+          read(input,*,err=95) ksl, ntsslavg, nslavg, nrpfslavg
           read(input,'(A)',err=95) fname
           lstr=lenstr(fname)
           slavgname=fname(1:lstr)
@@ -434,7 +434,7 @@ c--      fname='roms.in.US_West'
           slavgname=fname(1:lstr)
           MPI_master_only write(stdout,
      &          '(I4,2x,A/2(I10,2x,A,1x,A/32x,A/),6x,A,2x,A,1x,A,I3)')
-     &      k2d,      'k2d         Sigma level to average.',
+     &      ksl,      'ksl         Sigma level to average.',
      &      ntsslavg, 'ntsslavg      Starting timestep for the.',
      &           'accumulation of output', 'time-averaged data.',
      &      nslavg,   'nslavg        Number of timesteps between',
