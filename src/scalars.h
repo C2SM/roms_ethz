@@ -81,6 +81,10 @@ C$OMP THREADPRIVATE(/priv_scalars/)
      &                                           visc2, gamma2
       common /scalars_main/ start_time, dt, dtfast, time_avg,
      &                       xl,el, rdrg, rdrg2, visc2, gamma2
+#ifdef SLICE_AVG
+      real time_slavg
+      common /scalars_main/ time_slavg
+#endif
 #ifdef SOLVE3D
       real rho0, tnu2(NT)
       common /scalars_main/ rho0, tnu2

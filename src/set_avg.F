@@ -1,16 +1,69 @@
 #include "cppdefs.h"
 #ifdef AVERAGES
+!
+! We are using CPP to produce 2 similar routines for regular 3 and 2D averages
+! (set_avg) and slice averages (set_slavg) out of a common source files.
+!
+# ifndef AVRSLICE
+#  define set_AVR set_avg
+#  define set_AVR_tile set_avg_tile
+#  define wrtAVR wrtavg
+#  define time_AVR time_avg
+#  define ntsAVR ntsavg
+#  define nAVR navg
+#  define ntsAVR ntsavg
+#  define zeta_AVR zeta_avg
+#  define ubar_AVR ubar_avg
+#  define vbar_AVR vbar_avg
+#  define u_AVR(i,j,k) u_avg(i,j,k)
+#  define v_AVR(i,j,k) v_avg(i,j,k)
+#  define w_AVR(i,j,k) w_avg(i,j,k)
+#  define t_AVR(i,j,k,itrc) t_avg(i,j,k,itrc)
+#  define hbl_AVR hbl_avg
+#  define hbbl_AVR hbbl_avg
+#  define rho_AVR(i,j,k) rho_avg(i,j,k)
+#  define aks_AVR(i,j,k) aks_avg(i,j,k)
+#  define akt_AVR(i,j,k) akt_avg(i,j,k)
+#  define akv_AVR(i,j,k) akv_avg(i,j,k)
+#  define KLOOP(s)  do k=s,N
+#  define ENDKLOOP  enddo
+#  define KLEVEL   k
+# else  /* AVRSLICE */
+#  define set_AVR set_slavg
+#  define set_AVR_tile set_slavg_tile
+#  define wrtAVR wrtslavg
+#  define time_AVR time_slavg
+#  define ntsAVR ntsslavg
+#  define nAVR nslavg
+#  define zeta_AVR zeta_slavg
+#  define ubar_AVR ubar_slavg
+#  define vbar_AVR vbar_slavg
+#  define u_AVR(i,j,k) u_slavg(i,j)
+#  define v_AVR(i,j,k) v_slavg(i,j)
+#  define w_AVR(i,j,k) w_slavg(i,j)
+#  define t_AVR(i,j,k,itrc) t_slavg(i,j,itrc)
+#  define hbl_AVR hbl_slavg
+#  define hbbl_AVR hbbl_slavg
+#  define rho_AVR(i,j,k) rho_slavg(i,j)
+#  define aks_AVR(i,j,k) aks_slavg(i,j)
+#  define akt_AVR(i,j,k) akt_slavg(i,j)
+#  define akv_AVR(i,j,k) akv_slavg(i,j)
+#  define KLOOP(s)  
+#  define ENDKLOOP  
+#  define KLEVEL   k2d
+# endif
+
  
-      subroutine set_avg (tile)
+      subroutine set_AVR (tile)
       implicit none
       integer tile
 # include "param.h"
 # include "compute_tile_bounds.h"
-      call set_avg_tile (istr,iend,jstr,jend,tile)
+      call set_AVR_tile (istr,iend,jstr,jend,tile)
       return
       end
  
-      subroutine set_avg_tile (istr,iend,jstr,jend,tile)
+      subroutine set_AVR_tile (istr,iend,jstr,jend,tile)
 !
 ! Compute time-averaged fields within a tile.
 ! ------- ------------- ------ ------ - -----
@@ -59,94 +112,69 @@
 !
 #include "compute_auxiliary_bounds.h"
 !
-      if (iic.gt.ntsavg) then
-        if (navg .eq. 1 .or. mod(iic-ntsavg,navg).eq.1) then
+      if (iic.gt.ntsAVR) then
+        if (nAVR .eq. 1 .or. mod(iic-ntsAVR,nAVR).eq.1) then
           if (ZEROTH_TILE) then
-            time_avg=time
-!      MPI_master_only write(*,*) 'started averaging',iic,ntsavg,navg
+            time_AVR=time
+!      MPI_master_only write(*,*) 'started averaging',iic,ntsAVR,nAVR
           endif
-          if (wrtavg(indxZ)) then
+          if (wrtAVR(indxZ)) then
             do j=jstrR,jendR
               do i=istrR,iendR
-                zeta_avg(i,j)=zeta(i,j,knew)
+                zeta_AVR(i,j)=zeta(i,j,knew)
               enddo
             enddo
           endif
-          if (wrtavg(indxUb)) then
+          if (wrtAVR(indxUb)) then
             do j=jstrR,jendR
               do i=istrR,iendR
-                ubar_avg(i,j)=ubar(i,j,knew)
+                ubar_AVR(i,j)=ubar(i,j,knew)
               enddo
             enddo
           endif
-          if (wrtavg(indxVb)) then
+          if (wrtAVR(indxVb)) then
             do j=jstrR,jendR
               do i=istrR,iendR
-                vbar_avg(i,j)=vbar(i,j,knew)
+                vbar_AVR(i,j)=vbar(i,j,knew)
               enddo
             enddo
           endif
 # ifdef SOLVE3D
-          if (wrtavg(indxU)) then
-            do k=1,N
+          if (wrtAVR(indxU)) then
+            KLOOP(1)
               do j=jstrR,jendR
                 do i=istrR,iendR
-                  u_avg(i,j,k)=u(i,j,k,nstp)
+                  u_AVR(i,j,k)=u(i,j,KLEVEL,nstp)
                 enddo
               enddo
-            enddo
+            ENDKLOOP
           endif
-          if (wrtavg(indxV)) then
-            do k=1,N
+          if (wrtAVR(indxV)) then
+            KLOOP(1)
               do j=jstrR,jendR
                 do i=istrR,iendR
-                  v_avg(i,j,k)=v(i,j,k,nstp)
+                  v_AVR(i,j,k)=v(i,j,KLEVEL,nstp)
                 enddo
               enddo
-            enddo
-          endif
-          do itrc=1,NT
-           if (wrtavg(indxT+itrc-1)) then
-             do k=1,N
-               do j=jstrR,jendR
-                 do i=istrR,iendR
-                   t_avg(i,j,k,itrc)=t(i,j,k,nstp,itrc)
-                 enddo
-               enddo
-             enddo
-           endif
-          enddo
-#  ifdef SLICE_AVG
-          if (wrtslavg(indxU)) then
-              do j=jstrR,jendR
-                do i=istrR,iendR
-                  u_slavg(i,j)=u(i,j,k2d,nstp)
-                enddo
-              enddo
-          endif
-          if (wrtslavg(indxV)) then
-              do j=jstrR,jendR
-                do i=istrR,iendR
-                  v_slavg(i,j)=v(i,j,k2d,nstp)
-                enddo
-              enddo
+            ENDKLOOP
           endif
           do itrc=1,NT
-           if (wrtslavg(indxT+itrc-1)) then
+           if (wrtAVR(indxT+itrc-1)) then
+             KLOOP(1)
                do j=jstrR,jendR
                  do i=istrR,iendR
-                   t_slavg(i,j,itrc)=t(i,j,k2d,nstp,itrc)
+                   t_AVR(i,j,k,itrc)=t(i,j,KLEVEL,nstp,itrc)
                  enddo
                enddo
+            ENDKLOOP
            endif
           enddo
-#  endif
 #  ifdef SEDIMENT_BIOLOGY
           do itrc=1,NT_sed
-             if (wrtavg(indxSedOrgN+itrc-1)) then
+             if (wrtAVR(indxSedOrgN+itrc-1)) then
                 do j=jstrR,jendR
                    do i=istrR,iendR
-                      t_sed_avg(i,j,itrc)=t_sed(i,j,itrc)
+                      t_sed_AVR(i,j,itrc)=t_sed(i,j,itrc)
                    enddo
                 enddo
              endif
@@ -154,227 +182,201 @@
 #  endif /* SEDIMENT_BIOLOGY */
 #  if defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC
 #   if defined CH_CARBON_DEPTH
-         do k=1,N
+         KLOOP(1)
           do j=jstrR,jendR
              do i=istrR,iendR
-                HCO3d_avg(i,j,k) = HCO3d_hist(i,j,k)
-                CO3d_avg(i,j,k) = CO3d_hist(i,j,k)
-                CO2STARd_avg(i,j,k) = CO2STARd_hist(i,j,k)
-                PHd_avg(i,j,k) = PHd_hist(i,j,k)
+                HCO3d_AVR(i,j,k) = HCO3d_hist(i,j,KLEVEL)
+                CO3d_AVR(i,j,k) = CO3d_hist(i,j,KLEVEL)
+                CO2STARd_AVR(i,j,k) = CO2STARd_hist(i,j,KLEVEL)
+                PHd_AVR(i,j,k) = PHd_hist(i,j,KLEVEL)
              end do
            end do
-         end do
+         ENDKLOOP
 #   endif /* CH_CARBON_DEPTH */
           do j=jstrR,jendR
              do i=istrR,iendR
-                pH_avg(i,j) = pH_hist(i,j)
-                pCO2_avg(i,j) = pCO2sw(i,j)
-                pCO2air_avg(i,j) = pCO2air(i,j)
+                pH_AVR(i,j) = pH_hist(i,j)
+                pCO2_AVR(i,j) = pCO2sw(i,j)
+                pCO2air_AVR(i,j) = pCO2air(i,j)
              end do
           end do
 
           do j=jstrR,jendR
              do i=istrR,iendR
-                PARinc_avg(i,j) = PARinc(i,j)
+                PARinc_AVR(i,j) = PARinc(i,j)
              end do
           end do
-          do k=1,N
+          KLOOP(1)
             do j=jstrR,jendR
                do i=istrR,iendR
-                  PAR_avg(i,j,k) = PAR(i,j,k)
+                  PAR_AVR(i,j,k) = PAR(i,j,KLEVEL)
                end do
             end do
-          end do
+         ENDKLOOP
 #  endif /* BIOLOGY_NPZDOC || BIOLOGY_BEC */
-          if (wrtavg(indxR)) then
-            do k=1,N
+          if (wrtAVR(indxR)) then
+            KLOOP(1)
               do j=jstrR,jendR
                 do i=istrR,iendR
 #  ifdef SPLIT_EOS
-                  rho_avg(i,j,k)=rho1(i,j,k)+qp1(i,j,k)
-     &                          *(z_w(i,j,N)-z_r(i,j,k))
+                  rho_AVR(i,j,k)=rho1(i,j,KLEVEL)+qp1(i,j,KLEVEL)
+     &                          *(z_w(i,j,N)-z_r(i,j,KLEVEL))
 #  else
-                  rho_avg(i,j,k)=rho(i,j,k)
+                  rho_AVR(i,j,k)=rho(i,j,KLEVEL)
 #  endif
                 enddo
               enddo
-            enddo
+            ENDKLOOP
           endif
-          if (wrtavg(indxO)) then
-            do k=1,N
+          if (wrtAVR(indxO)) then
+            KLOOP(1)
               do j=jstrR,jendR
                 do i=istrR,iendR
-                  w_avg(i,j,k)=w(i,j,k)
+                  w_AVR(i,j,k)=w(i,j,KLEVEL)
                 enddo
               enddo
-            enddo
+            ENDKLOOP
           endif
 ! --T.Nagai to put true vertical velocity 6/29/2006
-          if (wrtavg(indxW)) then
+          if (wrtAVR(indxW)) then
               call Wvlcty (tile, work) 
-            do k=1,N
+            KLOOP(1)
               do j=jstrR,jendR
                 do i=istrR,iendR
-                  w_mean(i,j,k)=work(i,j,k)
+                  w_mean(i,j,k)=work(i,j,KLEVEL)
                 enddo
               enddo
-            enddo
+            ENDKLOOP
           endif
 ! --T.Nagai to put true vertical velocity 6/29/2006
-          if (wrtavg(indxAkt)) then
-            do k=0,N
+          if (wrtAVR(indxAkt)) then
+            KLOOP(0)
               do j=jstrR,jendR
                 do i=istrR,iendR
-                  akt_avg(i,j,k)=Akt(i,j,k,itemp)
+                  akt_AVR(i,j,k)=Akt(i,j,KLEVEL,itemp)
                 enddo
               enddo
-            enddo
+            ENDKLOOP
           endif
-          if (wrtavg(indxAkv)) then
-            do k=0,N
+          if (wrtAVR(indxAkv)) then
+            KLOOP(0)
               do j=jstrR,jendR
                 do i=istrR,iendR
-                  akv_avg(i,j,k)=Akv(i,j,k)
+                  akv_AVR(i,j,k)=Akv(i,j,KLEVEL)
                 enddo
               enddo
-            enddo
+            ENDKLOOP
           endif
 #  ifdef KPP_DIAGNOSE
-          if (wrtavg(indxRich)) then
-            do k=0,N
+          if (wrtAVR(indxRich)) then
+            KLOOP(0)
               do j=jstrR,jendR
                 do i=istrR,iendR
-                  rich_avg(i,j,k)=Rich(i,j,k)
+                  rich_AVR(i,j,k)=Rich(i,j,KLEVEL)
                 enddo
               enddo
-            enddo
+            ENDKLOOP
           endif
-          if (wrtavg(indxRichN)) then
-            do k=0,N
+          if (wrtAVR(indxRichN)) then
+            KLOOP(0)
               do j=jstrR,jendR
                 do i=istrR,iendR
-                  richN_avg(i,j,k)=RichN(i,j,k)
+                  richN_AVR(i,j,k)=RichN(i,j,KLEVEL)
                 enddo
               enddo
-            enddo
+            ENDKLOOP
           endif
 #  endif /* KPP_DIAGNOSE */
 #  ifdef SALINITY
-          if (wrtavg(indxAks)) then
-            do k=0,N
+          if (wrtAVR(indxAks)) then
+            KLOOP(0)
               do j=jstrR,jendR
                 do i=istrR,iendR
-                  aks_avg(i,j,k)=Akt(i,j,k,isalt)
+                  aks_AVR(i,j,k)=Akt(i,j,KLEVEL,isalt)
                 enddo
               enddo
-            enddo
+            ENDKLOOP
           endif
 #  endif
 #  ifdef LMD_KPP
-          if (wrtavg(indxHbl)) then
+          if (wrtAVR(indxHbl)) then
             do j=jstrR,jendR
               do i=istrR,iendR
-                hbl_avg(i,j)=hbls(i,j,nstp)
+                hbl_AVR(i,j)=hbls(i,j,nstp)
               enddo
             enddo
           endif
 #  endif
 #  ifdef LMD_BKPP
-        if (wrtavg(indxHbbl)) then
+        if (wrtAVR(indxHbbl)) then
           do j=jstrR,jendR
             do i=istrR,iendR
-              hbbl_avg(i,j)=hbbls(i,j,nstp)
+              hbbl_AVR(i,j)=hbbls(i,j,nstp)
             enddo
           enddo
         endif
 #  endif
 # endif /* SOLVE3D */
-        elseif (mod(iic-ntsavg,navg).gt.1) then
-          if (ZEROTH_TILE) time_avg=time_avg+time
-          if (wrtavg(indxZ)) then
+        elseif (mod(iic-ntsAVR,nAVR).gt.1) then
+          if (ZEROTH_TILE) time_AVR=time_AVR+time
+          if (wrtAVR(indxZ)) then
             do j=jstrR,jendR
               do i=istrR,iendR
-                zeta_avg(i,j)=zeta_avg(i,j)+zeta(i,j,knew)
+                zeta_AVR(i,j)=zeta_AVR(i,j)+zeta(i,j,knew)
               enddo
             enddo
           endif
-          if (wrtavg(indxUb)) then
+          if (wrtAVR(indxUb)) then
             do j=jstrR,jendR
               do i=istrR,iendR
-                ubar_avg(i,j)=ubar_avg(i,j)+ubar(i,j,knew)
+                ubar_AVR(i,j)=ubar_AVR(i,j)+ubar(i,j,knew)
               enddo
             enddo
           endif
-          if (wrtavg(indxVb)) then
+          if (wrtAVR(indxVb)) then
             do j=jstrR,jendR
               do i=istrR,iendR
-                vbar_avg(i,j)=vbar_avg(i,j)+vbar(i,j,knew)
+                vbar_AVR(i,j)=vbar_AVR(i,j)+vbar(i,j,knew)
               enddo
             enddo
           endif
 # ifdef SOLVE3D
-          if (wrtavg(indxU)) then
-            do k=1,N
+          if (wrtAVR(indxU)) then
+            KLOOP(1)
               do j=jstrR,jendR
                 do i=istrR,iendR
-                  u_avg(i,j,k)=u_avg(i,j,k)+u(i,j,k,nstp)
+                  u_AVR(i,j,k)=u_AVR(i,j,k)+u(i,j,KLEVEL,nstp)
                 enddo
               enddo
-            enddo
+            ENDKLOOP
           endif
-          if (wrtavg(indxV)) then
-            do k=1,N
+          if (wrtAVR(indxV)) then
+            KLOOP(1)
               do j=jstrR,jendR
                 do i=istrR,iendR
-                  v_avg(i,j,k)=v_avg(i,j,k)+v(i,j,k,nstp)
+                  v_AVR(i,j,k)=v_AVR(i,j,k)+v(i,j,KLEVEL,nstp)
                 enddo
               enddo
-            enddo
+            ENDKLOOP
           endif
           do itrc=1,NT
-            if (wrtavg(indxT+itrc-1)) then
-              do k=1,N
+            if (wrtAVR(indxT+itrc-1)) then
+              KLOOP(1)
                 do j=jstrR,jendR
                   do i=istrR,iendR
-                    t_avg(i,j,k,itrc)=t_avg(i,j,k,itrc)
-     &                              +t(i,j,k,nstp,itrc)
+                    t_AVR(i,j,k,itrc)=t_AVR(i,j,k,itrc)
+     &                              +t(i,j,KLEVEL,nstp,itrc)
                   enddo
                 enddo
-              enddo
+              ENDKLOOP
             endif
           enddo
-#  ifdef SLICE_AVG
-          if (wrtslavg(indxU)) then
-              do j=jstrR,jendR
-                do i=istrR,iendR
-                  u_slavg(i,j)=u_slavg(i,j)+u(i,j,k2d,nstp)
-                enddo
-              enddo
-          endif
-          if (wrtslavg(indxV)) then
-              do j=jstrR,jendR
-                do i=istrR,iendR
-                  v_slavg(i,j)=v_slavg(i,j)+v(i,j,k2d,nstp)
-                enddo
-              enddo
-          endif
-          do itrc=1,NT
-           if (wrtslavg(indxT+itrc-1)) then
-               do j=jstrR,jendR
-                 do i=istrR,iendR
-                   t_slavg(i,j,itrc)=t_slavg(i,j,itrc)+
-     &                                  t(i,j,k2d,nstp,itrc)
-                 enddo
-               enddo
-           endif
-          enddo
-#  endif
 #  ifdef SEDIMENT_BIOLOGY
           do itrc=1,NT_sed
-             if (wrtavg(indxSedOrgN+itrc-1)) then
+             if (wrtAVR(indxSedOrgN+itrc-1)) then
                 do j=jstrR,jendR
                    do i=istrR,iendR
-                      t_sed_avg(i,j,itrc)=t_sed_avg(i,j,itrc)
+                      t_sed_AVR(i,j,itrc)=t_sed_AVR(i,j,itrc)
      &                     +t_sed(i,j,itrc)
                    enddo
                 enddo
@@ -383,217 +385,208 @@
 #  endif /* SEDIMENT_BIOLOGY */
 #  if defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC
 #   if defined CH_CARBON_DEPTH
-        do k=1,N
+        KLOOP(1)
           do j=jstrR,jendR
              do i=istrR,iendR
-                HCO3d_avg(i,j,k) = HCO3d_avg(i,j,k) + HCO3d_hist(i,j,k)
-                CO3d_avg(i,j,k) = CO3d_avg(i,j,k) + CO3d_hist(i,j,k)
-                CO2STARd_avg(i,j,k) = CO2STARd_avg(i,j,k) + CO2STARd_hist(i,j,k)
-                PHd_avg(i,j,k) = PHd_avg(i,j,k) + PHd_hist(i,j,k)
+                HCO3d_AVR(i,j,k) = HCO3d_AVR(i,j,k) + HCO3d_hist(i,j,KLEVEL)
+                CO3d_AVR(i,j,k) = CO3d_AVR(i,j,k) + CO3d_hist(i,j,KLEVEL)
+                CO2STARd_AVR(i,j,k) = CO2STARd_AVR(i,j,k) + CO2STARd_hist(i,j,KLEVEL)
+                PHd_AVR(i,j,k) = PHd_AVR(i,j,k) + PHd_hist(i,j,KLEVEL)
              end do
           end do
-        end do
+        ENDKLOOP
 #   endif /* CH_CARBON_DEPTH */
           do j=jstrR,jendR
              do i=istrR,iendR
-                pCO2air_avg(i,j) = pCO2air_avg(i,j) + pCO2air(i,j)
-                pH_avg(i,j) = pH_avg(i,j) + pH_hist(i,j)
-                pCO2_avg(i,j) = pCO2_avg(i,j) + pCO2sw(i,j)
+                pCO2air_AVR(i,j) = pCO2air_AVR(i,j) + pCO2air(i,j)
+                pH_AVR(i,j) = pH_AVR(i,j) + pH_hist(i,j)
+                pCO2_AVR(i,j) = pCO2_AVR(i,j) + pCO2sw(i,j)
              end do
           end do
 
           do j=jstrR,jendR
              do i=istrR,iendR
-                PARinc_avg(i,j) = PARinc_avg(i,j) + PARinc(i,j)
+                PARinc_AVR(i,j) = PARinc_AVR(i,j) + PARinc(i,j)
              end do
           end do
-          do k=1,N
+          KLOOP(1)
             do j=jstrR,jendR
                do i=istrR,iendR
-                  PAR_avg(i,j,k) = PAR_avg(i,j,k) + PAR(i,j,k)
+                  PAR_AVR(i,j,k) = PAR_AVR(i,j,k) + PAR(i,j,KLEVEL)
                end do
             end do
-          end do
+          ENDKLOOP
 #  endif /* BIOLOGY_NPZDOC || BIOLOGY_BEC */
-          if (wrtavg(indxR)) then
-            do k=1,N
+          if (wrtAVR(indxR)) then
+            KLOOP(1)
               do j=jstrR,jendR
                 do i=istrR,iendR
 #  ifdef SPLIT_EOS
-                  rho_avg(i,j,k)=rho_avg(i,j,k) + rho1(i,j,k)
-     &                     +qp1(i,j,k)*(z_w(i,j,N)-z_r(i,j,k))
+                  rho_AVR(i,j,k)=rho_AVR(i,j,KLEVEL) + rho1(i,j,KLEVEL)
+     &                     +qp1(i,j,KLEVEL)*(z_w(i,j,N)-z_r(i,j,KLEVEL))
 #  else
-                  rho_avg(i,j,k)=rho_avg(i,j,k)+rho(i,j,k)
+                  rho_AVR(i,j,k)=rho_AVR(i,j,k)+rho(i,j,KLEVEL)
 #  endif
                 enddo
               enddo
-            enddo
+            ENDKLOOP
           endif
-          if (wrtavg(indxO)) then
-            do k=1,N
+          if (wrtAVR(indxO)) then
+            KLOOP(1)
               do j=jstrR,jendR
                 do i=istrR,iendR
-                  w_avg(i,j,k)=w_avg(i,j,k)+w(i,j,k)
+                  w_AVR(i,j,k)=w_AVR(i,j,k)+w(i,j,KLEVEL)
                 enddo
               enddo
-            enddo
+            ENDKLOOP
           endif
 ! --T.Nagai to put true vertical velocity 6/29/2006
-          if (wrtavg(indxW)) then
+          if (wrtAVR(indxW)) then
               call Wvlcty (tile, work) 
-            do k=1,N
+            KLOOP(1)
               do j=jstrR,jendR
                 do i=istrR,iendR
-                  w_mean(i,j,k)=w_mean(i,j,k)+work(i,j,k)
+                  w_mean(i,j,k)=w_mean(i,j,k)+work(i,j,KLEVEL)
                 enddo
               enddo
-            enddo
+            ENDKLOOP
           endif
 ! --T.Nagai to put true vertical velocity 6/29/2006
-          if (wrtavg(indxAkt)) then
-            do k=0,N
+          if (wrtAVR(indxAkt)) then
+            KLOOP(0)
               do j=jstrR,jendR
                 do i=istrR,iendR
-                  akt_avg(i,j,k)=akt_avg(i,j,k)+Akt(i,j,k,itemp)
+                  akt_AVR(i,j,k)=akt_AVR(i,j,k)+Akt(i,j,KLEVEL,itemp)
                 enddo
               enddo
-            enddo
+            ENDKLOOP
           endif
-          if (wrtavg(indxAkv)) then
-            do k=0,N
+          if (wrtAVR(indxAkv)) then
+            KLOOP(0)
               do j=jstrR,jendR
                 do i=istrR,iendR
-                  akv_avg(i,j,k)=akv_avg(i,j,k)+Akv(i,j,k)
+                  akv_AVR(i,j,k)=akv_AVR(i,j,k)+Akv(i,j,KLEVEL)
                 enddo
               enddo
-            enddo
+            ENDKLOOP
           endif
 #  ifdef KPP_DIAGNOSE
-          if (wrtavg(indxRich)) then
-            do k=0,N
+          if (wrtAVR(indxRich)) then
+            KLOOP(0)
               do j=jstrR,jendR
                 do i=istrR,iendR
-                  rich_avg(i,j,k)=rich_avg(i,j,k)+Rich(i,j,k)
+                  rich_AVR(i,j,k)=rich_AVR(i,j,k)+Rich(i,j,KLEVEL)
                 enddo
               enddo
-            enddo
+            ENDKLOOP
           endif
-          if (wrtavg(indxRichN)) then
-            do k=0,N
+          if (wrtAVR(indxRichN)) then
+            KLOOP(0)
               do j=jstrR,jendR
                 do i=istrR,iendR
-                  richN_avg(i,j,k)=richN_avg(i,j,k)+RichN(i,j,k)
+                  richN_AVR(i,j,k)=richN_AVR(i,j,k)+RichN(i,j,KLEVEL)
                 enddo
               enddo
-            enddo
+            ENDKLOOP
           endif
 #  endif /* KPP_DIAGNOSE */
 #  ifdef SALINITY
-          if (wrtavg(indxAks)) then
-            do k=0,N
+          if (wrtAVR(indxAks)) then
+            KLOOP(0)
               do j=jstrR,jendR
                 do i=istrR,iendR
-                  aks_avg(i,j,k)=aks_avg(i,j,k)+Akt(i,j,k,isalt)
+                  aks_AVR(i,j,k)=aks_AVR(i,j,k)+Akt(i,j,KLEVEL,isalt)
                 enddo
               enddo
-            enddo
+            ENDKLOOP
           endif
 #  endif
 #  ifdef LMD_KPP
-          if (wrtavg(indxHbl)) then
+          if (wrtAVR(indxHbl)) then
             do j=jstrR,jendR
               do i=istrR,iendR
-                hbl_avg(i,j)=hbl_avg(i,j)+hbls(i,j,nstp)
+                hbl_AVR(i,j)=hbl_AVR(i,j)+hbls(i,j,nstp)
               enddo
             enddo
           endif
 #  endif
 #  ifdef LMD_BKPP
-        if (wrtavg(indxHbbl)) then
+        if (wrtAVR(indxHbbl)) then
           do j=jstrR,jendR
             do i=istrR,iendR
-              hbbl_avg(i,j)=hbbl_avg(i,j)+hbbls(i,j,nstp)
+              hbbl_AVR(i,j)=hbbl_AVR(i,j)+hbbls(i,j,nstp)
             enddo
           enddo
         endif
 #  endif
 # endif /* SOLVE3D */
-        elseif (mod(iic-ntsavg,navg).eq.0) then
-          cff=1./float(navg)
+        elseif (mod(iic-ntsAVR,nAVR).eq.0) then
+          cff=1./float(nAVR)
           if (ZEROTH_TILE) then
-             time_avg=cff*(time_avg+time)
-!      MPI_master_only write(*,*) 'finish averaging',iic,ntsavg,navg
+             time_AVR=cff*(time_AVR+time)
+!      MPI_master_only write(*,*) 'finish averaging',iic,ntsAVR,nAVR
           endif
-          if (wrtavg(indxZ)) then
+          if (wrtAVR(indxZ)) then
             do j=jstrR,jendR
               do i=istrR,iendR
-                zeta_avg(i,j)=cff*( zeta_avg(i,j)+zeta(i,j,knew))
+                zeta_AVR(i,j)=cff*( zeta_AVR(i,j)+zeta(i,j,knew))
               enddo
             enddo
           endif
-          if (wrtavg(indxUb)) then
+          if (wrtAVR(indxUb)) then
             do j=jstrR,jendR
               do i=istrR,iendR
-                ubar_avg(i,j)=cff*( ubar_avg(i,j)+ubar(i,j,knew))
+                ubar_AVR(i,j)=cff*( ubar_AVR(i,j)+ubar(i,j,knew))
               enddo
             enddo
           endif
-          if (wrtavg(indxVb)) then
+          if (wrtAVR(indxVb)) then
             do j=jstrR,jendR
               do i=istrR,iendR
-                vbar_avg(i,j)=cff*( vbar_avg(i,j)+vbar(i,j,knew))
+                vbar_AVR(i,j)=cff*( vbar_AVR(i,j)+vbar(i,j,knew))
               enddo
             enddo
           endif
 # ifdef SOLVE3D
-          if (wrtavg(indxU))
-#   ifdef LONGTERM_AVERAGES
-     &       .and. (mod(iic-ntsavg,navg*lavg).eq.0)
-#   endif
+          if (wrtAVR(indxU))
      &    then
-            do k=1,N
+            KLOOP(1)
               do j=jstrR,jendR
                 do i=istrR,iendR
-                  u_avg(i,j,k)=cff*(u_avg(i,j,k)+u(i,j,k,nstp))
+                  u_AVR(i,j,k)=cff*(u_AVR(i,j,k)+u(i,j,KLEVEL,nstp))
                 enddo
               enddo
-            enddo
+            ENDKLOOP
           endif
-          if (wrtavg(indxV))
-#   ifdef LONGTERM_AVERAGES
-     &       .and. (mod(iic-ntsavg,navg*lavg).eq.0)
-#   endif
+          if (wrtAVR(indxV))
      &    then
-            do k=1,N
+            KLOOP(1)
               do j=jstrR,jendR
                 do i=istrR,iendR
-                  v_avg(i,j,k)=cff*(v_avg(i,j,k)+v(i,j,k,nstp))
+                  v_AVR(i,j,k)=cff*(v_AVR(i,j,k)+v(i,j,KLEVEL,nstp))
                 enddo
               enddo
-            enddo
+            ENDKLOOP
           endif
           do itrc=1,NT
-            if (wrtavg(indxT+itrc-1))
-#   ifdef LONGTERM_AVERAGES
-     &       .and. (mod(iic-ntsavg,navg*lavg).eq.0)
-#   endif
+            if (wrtAVR(indxT+itrc-1))
      &    then
-              do k=1,N
+              KLOOP(1)
                 do j=jstrR,jendR
                   do i=istrR,iendR
-                    t_avg(i,j,k,itrc)=cff*( t_avg(i,j,k,itrc)
-     &                                    +t(i,j,k,nstp,itrc))
+                    t_AVR(i,j,k,itrc)=cff*( t_AVR(i,j,KLEVEL,itrc)
+     &                                    +t(i,j,KLEVEL,nstp,itrc))
                   enddo
                 enddo
-              enddo
+              ENDKLOOP
             endif
           enddo
 #ifdef SEDIMENT_BIOLOGY
           do itrc=1,NT_sed
-             if (wrtavg(indxSedOrgN+itrc-1)) then
+             if (wrtAVR(indxSedOrgN+itrc-1)) then
                 do j=jstrR,jendR
                    do i=istrR,iendR
-                      t_sed_avg(i,j,itrc)=cff*( t_sed_avg(i,j,itrc)
+                      t_sed_AVR(i,j,itrc)=cff*( t_sed_AVR(i,j,itrc)
      &                     +t_sed(i,j,itrc))
                    enddo
                 enddo
@@ -602,188 +595,187 @@
 #endif /* SEDIMENT_BIOLOGY */
 #  if defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC
 #   if defined CH_CARBON_DEPTH
-       do k=1,N
+       KLOOP(1)
           do j=jstrR,jendR
              do i=istrR,iendR
-                HCO3d_avg(i,j,k) = cff*( HCO3d_avg(i,j,k) + HCO3d_hist(i,j,k) )
-                CO3d_avg(i,j,k) = cff*( CO3d_avg(i,j,k) + CO3d_hist(i,j,k) )
-                CO2STARd_avg(i,j,k) = cff*( CO2STARd_avg(i,j,k) + CO2STARd_hist(i,j,k) )
-                PHd_avg(i,j,k) = cff*( PHd_avg(i,j,k) + PHd_hist(i,j,k) )
+                HCO3d_AVR(i,j,k) = cff*( HCO3d_AVR(i,j,k) + HCO3d_hist(i,j,KLEVEL) )
+                CO3d_AVR(i,j,k) = cff*( CO3d_AVR(i,j,k) + CO3d_hist(i,j,KLEVEL) )
+                CO2STARd_AVR(i,j,k) = cff*( CO2STARd_AVR(i,j,k) + CO2STARd_hist(i,j,KLEVEL) )
+                PHd_AVR(i,j,k) = cff*( PHd_AVR(i,j,k) + PHd_hist(i,j,KLEVEL) )
              end do
           end do
-       end do
+       ENDKLOOP
 
 #   endif /* CH_CARBON_DEPTH */
           do j=jstrR,jendR
              do i=istrR,iendR
-                pH_avg(i,j) = cff*( pH_avg(i,j) + pH_hist(i,j) )
-                pCO2_avg(i,j) = cff*( pCO2_avg(i,j) + pCO2sw(i,j) )
-                pCO2air_avg(i,j) = cff*(pCO2air_avg(i,j) + pCO2air(i,j))
+                pH_AVR(i,j) = cff*( pH_AVR(i,j) + pH_hist(i,j) )
+                pCO2_AVR(i,j) = cff*( pCO2_AVR(i,j) + pCO2sw(i,j) )
+                pCO2air_AVR(i,j) = cff*(pCO2air_AVR(i,j) + pCO2air(i,j))
              end do
           end do
 
           do j=jstrR,jendR
              do i=istrR,iendR
-                PARinc_avg(i,j) = cff*( PARinc_avg(i,j) + PARinc(i,j) )
+                PARinc_AVR(i,j) = cff*( PARinc_AVR(i,j) + PARinc(i,j) )
              end do
           end do
-          do k=1,N
+          KLOOP(1)
             do j=jstrR,jendR
                do i=istrR,iendR
-                  PAR_avg(i,j,k) = cff*( PAR_avg(i,j,k) + PAR(i,j,k) )
+                  PAR_AVR(i,j,k) = cff*( PAR_AVR(i,j,k) + PAR(i,j,KLEVEL) )
                end do
             end do
-          end do
+          ENDKLOOP
 #  endif /* BIOLOGY_NPZDOC */
-          if (wrtavg(indxR))
-#   ifdef LONGTERM_AVERAGES
-     &       .and. (mod(iic-ntsavg,navg*lavg).eq.0)
-#   endif
+          if (wrtAVR(indxR))
      &    then
-            do k=1,N
+            KLOOP(1)
               do j=jstrR,jendR
                 do i=istrR,iendR
 #  ifdef SPLIT_EOS
-                  rho_avg(i,j,k)=cff*( rho_avg(i,j,k) + rho1(i,j,k)
-     &                          +qp1(i,j,k)*(z_w(i,j,N)-z_r(i,j,k)))
+                  rho_AVR(i,j,k)=cff*( rho_AVR(i,j,KLEVEL) + rho1(i,j,KLEVEL)
+     &                          +qp1(i,j,KLEVEL)*(z_w(i,j,N)-z_r(i,j,KLEVEL)))
 #  else
-                  rho_avg(i,j,k)=cff*(rho_avg(i,j,k)+rho(i,j,k))
+                  rho_AVR(i,j,k)=cff*(rho_AVR(i,j,k)+rho(i,j,KLEVEL))
 #  endif
                 enddo
               enddo
-            enddo
+            ENDKLOOP
           endif
-          if (wrtavg(indxO))
-#   ifdef LONGTERM_AVERAGES
-     &       .and. (mod(iic-ntsavg,navg*lavg).eq.0)
-#   endif
+          if (wrtAVR(indxO))
      &    then
-            do k=1,N
+            KLOOP(1)
               do j=jstrR,jendR
                 do i=istrR,iendR
-                  w_avg(i,j,k)=cff*pm(i,j)*pn(i,j)*( w_avg(i,j,k)
-     &                                                  +w(i,j,k))
+                  w_AVR(i,j,k)=cff*pm(i,j)*pn(i,j)*( w_AVR(i,j,k)
+     &                                                  +w(i,j,KLEVEL))
                 enddo
               enddo
-            enddo
+            ENDKLOOP
           endif
 ! --T.Nagai to put true vertical velocity 6/29/2006
-          if (wrtavg(indxW))
-#   ifdef LONGTERM_AVERAGES
-     &       .and. (mod(iic-ntsavg,navg*lavg).eq.0)
-#   endif
+          if (wrtAVR(indxW))
      &    then
               call Wvlcty (tile, work) 
-            do k=1,N
+            KLOOP(1)
               do j=jstrR,jendR
                 do i=istrR,iendR
-                  w_mean(i,j,k)=cff*(w_mean(i,j,k)+work(i,j,k))
+                  w_mean(i,j,k)=cff*(w_mean(i,j,k)+work(i,j,KLEVEL))
                 enddo
               enddo
-            enddo
+            ENDKLOOP
           endif
 ! --T.Nagai to put true vertical velocity 6/29/2006
-          if (wrtavg(indxAkt))
-#   ifdef LONGTERM_AVERAGES
-     &       .and. (mod(iic-ntsavg,navg*lavg).eq.0)
-#   endif
+          if (wrtAVR(indxAkt))
      &    then
-            do k=0,N
+            KLOOP(0)
               do j=jstrR,jendR
                 do i=istrR,iendR
-                  akt_avg(i,j,k)=cff*(akt_avg(i,j,k)+Akt(i,j,k,itemp))
+                  akt_AVR(i,j,k)=cff*(akt_AVR(i,j,k)+Akt(i,j,KLEVEL,itemp))
                 enddo
               enddo
-            enddo
+            ENDKLOOP
           endif
-          if (wrtavg(indxAkv))
-#   ifdef LONGTERM_AVERAGES
-     &       .and. (mod(iic-ntsavg,navg*lavg).eq.0)
-#   endif
+          if (wrtAVR(indxAkv))
      &    then
-            do k=0,N
+            KLOOP(0)
               do j=jstrR,jendR
                 do i=istrR,iendR
-                  akv_avg(i,j,k)=cff*(akv_avg(i,j,k)+Akv(i,j,k))
+                  akv_AVR(i,j,k)=cff*(akv_AVR(i,j,k)+Akv(i,j,KLEVEL))
                 enddo
               enddo
-            enddo
+            ENDKLOOP
           endif
 #  ifdef KPP_DIAGNOSE
-          if (wrtavg(indxRich))
-#   ifdef LONGTERM_AVERAGES
-     &       .and. (mod(iic-ntsavg,navg*lavg).eq.0)
-#   endif
+          if (wrtAVR(indxRich))
      &    then
-            do k=0,N
+            KLOOP(0)
               do j=jstrR,jendR
                 do i=istrR,iendR
-                  rich_avg(i,j,k)=cff*(rich_avg(i,j,k)+Rich(i,j,k))
+                  rich_AVR(i,j,k)=cff*(rich_AVR(i,j,k)+Rich(i,j,KLEVEL))
                 enddo
               enddo
-            enddo
+            ENDKLOOP
           endif
-          if (wrtavg(indxRichN))
-#   ifdef LONGTERM_AVERAGES
-     &       .and. (mod(iic-ntsavg,navg*lavg).eq.0)
-#   endif
+          if (wrtAVR(indxRichN))
      &    then
-            do k=0,N
+            KLOOP(0)
               do j=jstrR,jendR
                 do i=istrR,iendR
-                  richN_avg(i,j,k)=cff*(richN_avg(i,j,k)+RichN(i,j,k))
+                  richN_AVR(i,j,k)=cff*(richN_AVR(i,j,k)+RichN(i,j,KLEVEL))
                 enddo
               enddo
-            enddo
+            ENDKLOOP
           endif
 #  endif /* KPP_DIAGNOSE */
 #  ifdef SALINITY
-          if (wrtavg(indxAks))
-#   ifdef LONGTERM_AVERAGES
-     &       .and. (mod(iic-ntsavg,navg*lavg).eq.0)
-#   endif
+          if (wrtAVR(indxAks))
      &    then
-            do k=0,N
+            KLOOP(0)
               do j=jstrR,jendR
                 do i=istrR,iendR
-                  aks_avg(i,j,k)=cff*(aks_avg(i,j,k)+Akt(i,j,k,isalt))
+                  aks_AVR(i,j,k)=cff*(aks_AVR(i,j,k)+Akt(i,j,KLEVEL,isalt))
                 enddo
               enddo
-            enddo
+            ENDKLOOP
           endif
 #  endif
 #  ifdef LMD_KPP
-          if (wrtavg(indxHbl))
-#   ifdef LONGTERM_AVERAGES
-     &       .and. (mod(iic-ntsavg,navg*lavg).eq.0)
-#   endif
+          if (wrtAVR(indxHbl))
      &    then
             do j=jstrR,jendR
               do i=istrR,iendR
-                hbl_avg(i,j)=cff*(hbl_avg(i,j)+hbls(i,j,nstp))
+                hbl_AVR(i,j)=cff*(hbl_AVR(i,j)+hbls(i,j,nstp))
               enddo
             enddo
           endif
 #  endif
 #  ifdef LMD_BKPP
-        if (wrtavg(indxHbbl))
-#   ifdef LONGTERM_AVERAGES
-     &       .and. (mod(iic-ntsavg,navg*lavg).eq.0)
-#   endif
+        if (wrtAVR(indxHbbl))
      &    then
           do j=jstrR,jendR
             do i=istrR,iendR
-              hbbl_avg(i,j)=cff*(hbbl_avg(i,j)+hbbls(i,j,nstp))
+              hbbl_AVR(i,j)=cff*(hbbl_AVR(i,j)+hbbls(i,j,nstp))
             enddo
           enddo
         endif
 #  endif
 # endif /* SOLVE3D */
         endif
-      endif       !<-- iic.gt.ntsavg
+      endif       !<-- iic.gt.ntsAVR
       return
       end
-#else
-      subroutine set_avg_empty
+# undef set_AVR
+# undef set_AVR_tile
+# undef wrtAVR
+# undef time_AVR
+# undef ntsAVR
+# undef nAVR
+# undef ntsAVR
+# undef zeta_AVR
+# undef ubar_AVR
+# undef vbar_AVR
+# undef u_AVR
+# undef v_AVR
+# undef w_AVR
+# undef t_AVR
+# undef hbl_AVR
+# undef hbbl_AVR
+# undef rho_AVR
+# undef aks_AVR
+# undef akt_AVR
+# undef akv_AVR
+# undef KLOOP
+# undef ENDKLOOP
+# undef KLEVEL
+# ifdef SLICE_AVG
+#  ifndef AVRSLICE
+#   define AVRSLICE
+#   include "set_avg.F"
+#  endif
+# endif
+#else /* AVERAGES not defined */
+      subroutine set_AVR_empty
       end
 #endif /* AVERAGES */

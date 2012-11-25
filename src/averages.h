@@ -10,6 +10,16 @@ CSDISTRIBUTE_RESHAPE  ubar_avg(BLOCK_PATTERN) BLOCK_CLAUSE
 CSDISTRIBUTE_RESHAPE  vbar_avg(BLOCK_PATTERN) BLOCK_CLAUSE
       common /avg_zeta/zeta_avg /avg_ubar/ubar_avg
      &                          /avg_vbar/vbar_avg
+# ifdef SLICE_AVG
+      real zeta_slavg(GLOBAL_2D_ARRAY)
+CSDISTRIBUTE_RESHAPE zeta_avg(BLOCK_PATTERN) BLOCK_CLAUSE
+      real ubar_slavg(GLOBAL_2D_ARRAY)
+CSDISTRIBUTE_RESHAPE  ubar_avg(BLOCK_PATTERN) BLOCK_CLAUSE
+      real vbar_slavg(GLOBAL_2D_ARRAY)
+CSDISTRIBUTE_RESHAPE  vbar_avg(BLOCK_PATTERN) BLOCK_CLAUSE
+      common /slavg_zeta/zeta_slavg /slavg_ubar/ubar_slavg
+     &                          /slavg_vbar/vbar_slavg
+# endif
 # ifdef SOLVE3D
       real u_avg(GLOBAL_2D_ARRAY,N)
 CSDISTRIBUTE_RESHAPE u_avg(BLOCK_PATTERN,*) BLOCK_CLAUSE
@@ -74,11 +84,21 @@ CSDISTRIBUTE_RESHAPE aks_avg(BLOCK_PATTERN) BLOCK_CLAUSE
       real hbl_avg(GLOBAL_2D_ARRAY)
 CSDISTRIBUTE_RESHAPE hbl_avg(BLOCK_PATTERN,*) BLOCK_CLAUSE
       common /avg_hbl/hbl_avg
+#   ifdef SLICE_AVG
+      real hbl_slavg(GLOBAL_2D_ARRAY)
+CSDISTRIBUTE_RESHAPE hbl_slavg(BLOCK_PATTERN,*) BLOCK_CLAUSE
+      common /slavg_hbl/hbl_slavg
+#   endif
 #  endif
 #  ifdef LMD_BKPP
       real hbbl_avg(GLOBAL_2D_ARRAY)
 CSDISTRIBUTE_RESHAPE hbbl_avg(BLOCK_PATTERN,*) BLOCK_CLAUSE
       common /avg_hbbl/hbbl_avg
+#   ifdef SLICE_AVG
+      real hbbl_slavg(GLOBAL_2D_ARRAY)
+CSDISTRIBUTE_RESHAPE hbbl_slavg(BLOCK_PATTERN,*) BLOCK_CLAUSE
+      common /slavg_hbbl/hbbl_slavg
+#   endif
 #  endif
 # endif /* SOLVE3D */
 #endif /* AVERAGES */

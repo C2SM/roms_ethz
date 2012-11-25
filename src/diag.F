@@ -432,9 +432,9 @@ C$   &                                                   , proc(2)
 C$   &                                                      ,'trd'
             endif
 # ifdef COMPUTE_SPEED_DIAGNOSE
-            write(check_line,'(1PE17.11,3(1PE15.8), I8,I6, I3)')
+            write(check_line,'(1PE18.11,3(1PE15.8), I8,I6, I3)')
 # else
-            write(check_line,'(1PE17.11,3(1PE15.8), I3)')
+            write(check_line,'(1PE18.11,3(1PE15.8), I3)')
 # endif
      &                   avke, avkesrf, avpe, avzeta/area
 # ifdef COMPUTE_SPEED_DIAGNOSE

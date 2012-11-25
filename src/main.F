@@ -537,6 +537,9 @@ C$OMP BARRIER
 # endif
 # ifdef AVERAGES
         call    set_avg (tile)
+#  ifdef SLICE_AVG
+        call    set_slavg (tile)
+#  endif
 #  ifdef BGC_FLUX_ANALYSIS
 #   ifdef BIOLOGY_NPZDOC
         call set_bgc_flux_avg(tile)
@@ -614,7 +617,7 @@ C$OMP BARRIER
      &   .or. (mod(iic-ntstart,nwrt).eq.0 .and. wrthis(indxTime))
 #ifdef AVERAGES
      &   .or. (mod(iic-ntsavg,navg).eq.0  .and. wrtavg(indxTime))
-# idef SLICE_AVG
+# ifdef SLICE_AVG
      &   .or. ( mod(iic-ntsslavg,nslavg).eq.0  
      &           .and. wrtslavg(indxTime) )
 # endif

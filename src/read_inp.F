@@ -808,19 +808,6 @@ c--      fname='roms.in.US_West'
 #  ifdef SEDIMENT_BIOLOGY
      &                 + NT_sed
 #  endif
-!          We need to make sure that regular averages and slice averages
-!          are not written a variable exept  U,V and tracers fields.
-!          If this is requested we do not write regular averages but
-!          only the higher-frequent slice averages.
-           if (  (itrc .ne. indxU) .and. (itrc .ne. indxV) .and.
-     &           ( (itrc .lt. indxT) .or. (itrc .ge. indxT+NT) ) .and.
-     &           wrtslavg(itrc) .and.  wrtavg(itrc)  ) then
-              wrtavg(itrc) = .false.
-            MPI_master_only write(stdout, '(1x,2A,I2,A)') 
-     &       'WARNING: Averages/slice averages missmatch: '
-     &       , ' A 2D field is requested in both outputs.  Field #'
-     &       , itrc, ' will only saved in the slice averages file.'
-           endif
          enddo
           if ( wrtslavg(indxZ) .or. wrtslavg(indxUb) .or. wrtslavg(indxVb)
      &                          .or. wrtslavg(indxU) .or. wrtslavg(indxV)

@@ -7,6 +7,7 @@
 #  define wrt_avr wrt_avg
 #  define def_avr def_avg
 #  define avrTstep avgTstep 
+#  define time_avr time_avg
 #  define avrTime avgTime 
 #  define u_avr u_avg
 #  define avrU avgU
@@ -44,6 +45,7 @@
 #  define wrt_avr wrt_slice_avg
 #  define def_avr def_slavg
 #  define avrTstep slavgTstep 
+#  define time_avr time_slavg
 #  define avrTime slavgTime 
 #  define u_avr u_slavg
 #  define avrU slavgU
@@ -144,7 +146,7 @@ CR      MPI_master_only print *, '--- NOTE: Executing ', SWRT_AVR
 !
 ! Averaged time
 !
-      ierr=nf_put_var1_FTYPE (ncidavr, avrTime, record, time_avg)
+      ierr=nf_put_var1_FTYPE (ncidavr, avrTime, record, time_avr)
       if (ierr .ne. nf_noerr) then
         lvar=lenstr(vname(1,indxTime))
         write(stdout,1) vname(1,indxTime)(1:lvar), record, ierr
@@ -549,6 +551,7 @@ CR     &              MYID
 #  undef wrt_avr
 #  undef def_avr
 #  undef avrTstep
+#  undef time_avr
 #  undef avrTime
 #  undef u_avr
 #  undef avrU
@@ -581,6 +584,7 @@ CR     &              MYID
 #  undef ncidavr
 #  undef avrname
 #  undef wrtavr
+#  undef SWRT_AVR
 #  undef WRTROUTINE
 #  if defined  SLICE_AVG && !defined SLICE_AVR /* also create wrt_slice_avg */
 #   define SLICE_AVR
