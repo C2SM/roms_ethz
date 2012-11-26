@@ -18,6 +18,7 @@
 #  define t_avr t_avg
 #  define avrT avgT
 #  define w_avr w_avg
+#  define wt_avr wt_avg
 #  define avrO avgO
 #  define avrW avgW
 #  define Akv_avr Akv_avg
@@ -56,6 +57,7 @@
 #  define t_avr t_slavg
 #  define avrT slavgT
 #  define w_avr w_slavg
+#  define wt_avr wt_slavg
 #  define avrO slavgO
 #  define avrW slavgW
 #  define Akv_avr Akv_slavg
@@ -276,7 +278,7 @@ CR      write(*,*) 'wrt_avr:  wrtT_sed  ' MYID
 ! Write out true vertical velocity (m/s).
 !
       if (wrtavr(indxW)) then
-        ierr=nf_fwrite(w_mean, ncidavr, avrW, record, R3DVAR)
+        ierr=nf_fwrite(wt_avr, ncidavr, avrW, record, R3DVAR)
         if (ierr .ne. nf_noerr) then
           lvar=lenstr(vname(1,indxW))
           write(stdout,1) vname(1,indxW)(1:lvar), record, ierr

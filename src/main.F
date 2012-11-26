@@ -244,24 +244,28 @@ C$OMP BARRIER
 !DL: give a warning if writing of avg/his files is not synchronized with
 ! writing of restart files and ldefhis is set to true:
 #ifdef AVERAGES
-      if (nrpfavg.ne.0 .and. mod(nrecavg, nrpfavg).gt.0 .and. ldefhis) then
+      if (nrpfavg.ne.0 .and. mod(nrecavg, nrpfavg).gt.0 
+     &   .and. ldefhis) then
          write (*,*) 
-         write (*,'(a,1x,a,i10,1x,2a)') 'WARNING: first averages record will be',
+         write (*,'(a,1x,a,i10,1x,2a)') 
+     &       'WARNING: first averages record will be',
      &       'written into record ', mod(nrecavg, nrpfavg)+1,
      &       'of file ', avgname
-         write (*,'(2a,1x,a)') 'You have chosen to create a NEW ', avgname, 
-     &       'by setting ldefhis to true.'
+         write (*,'(2a,1x,a)') 'You have chosen to create a NEW ', 
+     &        avgname, 'by setting ldefhis to true.'
          write (*,*) 'Are you sure that this is what you want?'
          write (*,*)
       end if
 #endif
-      if (nrpfhis.ne.0 .and. mod(nrechis-1, nrpfhis).gt.0 .and. ldefhis) then
+      if ( nrpfhis.ne.0 .and. mod(nrechis-1, nrpfhis).gt.0 
+     &     .and. ldefhis ) then
          write (*,*) 
-         write (*,'(a,1x,a,i10,1x,2a)') 'WARNING: first history record will be',
+         write (*,'(a,1x,a,i10,1x,2a)') 
+     &       'WARNING: first history record will be',
      &       'written into record ', mod(nrechis-1, nrpfhis)+1,
      &       'of file ', hisname
-         write (*,'(2a,1x,a)') 'You have chosen to create a NEW ', hisname, 
-     &       'by setting ldefhis to true.'
+         write (*,'(2a,1x,a)') 'You have chosen to create a NEW ', 
+     &       hisname, 'by setting ldefhis to true.'
          write (*,*) 'Are you sure that this is what you want?'
          write (*,*)
       end if

@@ -763,17 +763,17 @@ c--      fname='roms.in.US_West'
 # endif
           if ( wrtavg(indxZ) .or. wrtavg(indxUb) .or. wrtavg(indxVb)
 # ifdef SOLVE3D
-     &                          .or. wrtavg(indxU) .or. wrtavg(indxV)
+     &                         .or. wrtavg(indxU) .or. wrtavg(indxV)
 # endif
      &       ) wrtavg(indxTime)=.true.
  
+# ifdef SOLVE3D
+#  ifndef SLICE_AVG 
           MPI_master_only write(stdout,'(/1x,A,5(/6x,l1,2x,A,1x,A))')
      &    'Fields to be saved in averages file: (T/F)'
      &    , wrtavg(indxZ),  'write zeta ', 'free-surface.'
      &    , wrtavg(indxUb), 'write UBAR ', '2D U-momentum component.'
      &    , wrtavg(indxVb), 'write VBAR ', '2D V-momentum component.'
-# ifdef SOLVE3D
-#  ifndef SLICE_AVG 
      &    , wrtavg(indxU),  'write U    ', '3D U-momentum component.'
      &    , wrtavg(indxV),  'write V    ', '3D V-momentum component.'
           do itrc=1,NT
@@ -811,12 +811,13 @@ c--      fname='roms.in.US_West'
      &                 + NT_sed
 #  endif
          enddo
-          if ( wrtslavg(indxZ) .or. wrtslavg(indxUb) .or. wrtslavg(indxVb)
-     &                          .or. wrtslavg(indxU) .or. wrtslavg(indxV)
+          if ( wrtslavg(indxZ) .or. wrtslavg(indxUb) .or. 
+     &       wrtslavg(indxVb) .or. wrtslavg(indxU) .or. wrtslavg(indxV)
      &       ) wrtslavg(indxTime)=.true.
           
  
-          MPI_master_only write(stdout,'(/1x,A,5(/6x,L1,A,L1,2x,A,1x,A))')
+          MPI_master_only write(stdout,
+     &                   '(/1x,A,5(/6x,L1,A,L1,2x,A,1x,A))')
      &    'Fields to be saved in averages, slice averages file: (T/F)'
      &    , wrtavg(indxZ),', ',  wrtslavg(indxZ)
      &    ,  'write zeta ', 'free-surface.'
@@ -877,6 +878,7 @@ c--      fname='roms.in.US_West'
 #  endif
      &       ) wrtavg(indxTime)=.true.
  
+#  ifndef SLICE_AVG
           MPI_master_only write(stdout,'(7(/6x,l1,2x,A,1x,A))')
      &      wrtavg(indxR),  'write RHO  ', 'Density anomaly'
      &    , wrtavg(indxO),  'write Omega', 'Omega vertical velocity.'
@@ -902,6 +904,70 @@ c--      fname='roms.in.US_West'
      &    , wrtavg(indxHbbl),'write Hbbl ',
      &                            'Depth of BOTTOM-KPP boundary layer'
 #  endif
+#  else /* SLICE_AVG defined */
+        elseif (keyword(1:kwlen).eq.'auxiliary_slice_avg') then
+          call cancel_kwd (keyword(1:kwlen), ierr)
+          read(input,*,err=95) wrtslavg(indxR), wrtslavg(indxO)
+     &         , wrtslavg(indxW), wrtslavg(indxAkv), wrtslavg(indxAkt)
+#  ifdef KPP_DIAGNOSE
+     &          ,  wrtslavg(indxRich), wrtslavg(indxRichN)
+#  endif
+#  ifdef SALINITY
+     &                                            ,  wrtslavg(indxAks)
+#  endif
+#  ifdef LMD_KPP
+     &                                            ,  wrtslavg(indxHbl)
+#  endif
+#  ifdef LMD_BKPP
+     &                                            ,  wrtslavg(indxHbbl)
+#  endif
+         if ( wrtslavg(indxR) .or. wrtslavg(indxO) .or. wrtslavg(indxW)
+     &                .or. wrtslavg(indxAkv) .or. wrtslavg(indxAkt)
+#  ifdef KPP_DIAGNOSE
+     &                .or. wrtslavg(indxRich) .or. wrtslavg(indxRichN)
+#  endif
+#  ifdef SALINITY
+     &                                          .or. wrtslavg(indxAks)
+#  endif
+#  ifdef LMD_KPP
+     &                                          .or. wrtslavg(indxHbl)
+#  endif
+#  ifdef LMD_BKPP
+     &                                          .or. wrtslavg(indxHbbl)
+#  endif
+     &       ) wrtslavg(indxTime)=.true.
+ 
+          MPI_master_only write(stdout,'(A,7(/6x,l1,1x,l1,2x,A,1x,A))')
+     &    'Fields to be saved in averages, slice averages file: (T/F)'
+     &      , wrtavg(indxR), wrtslavg(indxR)
+     &      , 'write RHO  ', 'Density anomaly'
+     &      , wrtavg(indxO), wrtslavg(indxO)
+     &      ,  'write Omega', 'Omega vertical velocity.'
+     &      , wrtavg(indxW), wrtslavg(indxW)
+     &      ,  'write W    ', 'True vertical velocity.'
+     &      , wrtavg(indxAkv), wrtslavg(indxAkv)
+     &      ,'write Akv  ', 'Vertical viscosity'
+     &      , wrtavg(indxAkt), wrtslavg(indxAkt)
+     &      ,'write Akt  ', 'Vertical diffusivity for temperature.'
+#  ifdef KPP_DIAGNOSE
+     &      , wrtavg(indxRich), wrtslavg(indxRich)
+     &      , 'write Rich ', 'Diffusivity due to vertical shear'
+     &      , wrtavg(indxRichN), wrtslavg(indxRichN)
+     &      , 'write RichN', 'Local gradient Richardson number'
+#  endif
+#  ifdef SALINITY
+     &      , wrtavg(indxAks), wrtslavg(indxAks)
+     &      , 'write Aks  ', 'Vertical diffusivity for salinity.'
+#  endif
+#  ifdef LMD_KPP
+     &      , wrtavg(indxHbl), wrtslavg(indxHbl)
+     &      , 'write Hbl  ', 'Depth of KPP-model boundary layer'
+#  endif
+#  ifdef LMD_BKPP
+     &      , wrtavg(indxHbbl), wrtslavg(indxHbbl)
+     &      , 'write Hbbl ', 'Depth of BOTTOM-KPP boundary layer'
+#  endif
+#  endif /* SLICE_AVG */
 # endif /* SOLVE3D */
 #endif /* AVERAGES */
 

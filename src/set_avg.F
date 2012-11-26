@@ -18,6 +18,7 @@
 #  define u_AVR(i,j,k) u_avg(i,j,k)
 #  define v_AVR(i,j,k) v_avg(i,j,k)
 #  define w_AVR(i,j,k) w_avg(i,j,k)
+#  define wt_AVR(i,j,k) wt_avg(i,j,k)
 #  define t_AVR(i,j,k,itrc) t_avg(i,j,k,itrc)
 #  define hbl_AVR hbl_avg
 #  define hbbl_AVR hbbl_avg
@@ -28,6 +29,16 @@
 #  define KLOOP(s)  do k=s,N
 #  define ENDKLOOP  enddo
 #  define KLEVEL   k
+#  ifdef BIOLOGY_NPZDOC
+#   define PAR_AVR PAR_avg
+#   ifdef OXYGEN 
+#    define pH_AVR pH_avg
+#    define pCO2_AVR pCO2_avg
+#    define pCO2air_AVR pCO2air_avg
+#    define PARinc_AVR PARinc_avg
+#    define t_sed_AVR t_sed_avg
+#   endif
+#  endif
 # else  /* AVRSLICE */
 #  define set_AVR set_slavg
 #  define set_AVR_tile set_slavg_tile
@@ -41,6 +52,7 @@
 #  define u_AVR(i,j,k) u_slavg(i,j)
 #  define v_AVR(i,j,k) v_slavg(i,j)
 #  define w_AVR(i,j,k) w_slavg(i,j)
+#  define wt_AVR(i,j,k) wt_slavg(i,j)
 #  define t_AVR(i,j,k,itrc) t_slavg(i,j,itrc)
 #  define hbl_AVR hbl_slavg
 #  define hbbl_AVR hbbl_slavg
@@ -51,6 +63,16 @@
 #  define KLOOP(s)  
 #  define ENDKLOOP  
 #  define KLEVEL   ksl
+#  ifdef BIOLOGY_NPZDOC
+#   define PAR_AVR PAR_slavg
+#   ifdef OXYGEN 
+#    define pH_AVR pH_slavg
+#    define pCO2_AVR pCO2_slavg
+#    define pCO2air_AVR pCO2air_slavg
+#    define PARinc_AVR PARinc_slavg
+#    define t_sed_AVR t_sed_slavg
+#   endif
+#  endif
 # endif
 
  
@@ -243,7 +265,7 @@
             KLOOP(1)
               do j=jstrR,jendR
                 do i=istrR,iendR
-                  w_mean(i,j,k)=work(i,j,KLEVEL)
+                  wt_AVR(i,j,k)=work(i,j,KLEVEL)
                 enddo
               enddo
             ENDKLOOP
@@ -446,7 +468,7 @@
             KLOOP(1)
               do j=jstrR,jendR
                 do i=istrR,iendR
-                  w_mean(i,j,k)=w_mean(i,j,k)+work(i,j,KLEVEL)
+                  wt_AVR(i,j,k)=wt_AVR(i,j,k)+work(i,j,KLEVEL)
                 enddo
               enddo
             ENDKLOOP
@@ -661,7 +683,7 @@
             KLOOP(1)
               do j=jstrR,jendR
                 do i=istrR,iendR
-                  w_mean(i,j,k)=cff*(w_mean(i,j,k)+work(i,j,KLEVEL))
+                  wt_AVR(i,j,k)=cff*(wt_AVR(i,j,k)+work(i,j,KLEVEL))
                 enddo
               enddo
             ENDKLOOP
@@ -746,6 +768,7 @@
       endif       !<-- iic.gt.ntsAVR
       return
       end
+
 # undef set_AVR
 # undef set_AVR_tile
 # undef wrtAVR
@@ -769,6 +792,16 @@
 # undef KLOOP
 # undef ENDKLOOP
 # undef KLEVEL
+# ifdef BIOLOGY_NPZDOC
+#  undef PAR_AVR
+#  ifdef OXYGEN 
+#   undef pH_AVR
+#   undef pCO2_AVR
+#   undef pCO2air_AVR
+#   undef PARinc_AVR
+#   undef t_sed_AVR
+#  endif
+# endif
 # ifdef SLICE_AVG
 #  ifndef AVRSLICE
 #   define AVRSLICE
