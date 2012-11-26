@@ -36,7 +36,7 @@ C$OMP END PARALLEL
 #ifdef MPI
 # define NUMPROC NNODES
 #else
-# define NUMPROC 1
+# define NUMPROC 48
 #endif
 
       if (numthreads.gt.NUMPROC) then
