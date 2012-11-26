@@ -146,6 +146,8 @@ c--      fname='roms.in.US_West'
 #ifdef AVERAGES
       wrtavg(indxTime)=.false.
 #endif
+      MPI_master_only print '(/3A)', '------------------'
+     &  , ' Reading input parameters ', '------------------'
 !
 ! Read in keyword: keep trying, until keyword is found.
 ! ==== == ======== ==== ======= ===== ======= == ======
@@ -1186,6 +1188,8 @@ c--      fname='roms.in.US_West'
 #ifdef MPI
       call MPI_Barrier (ocean_grid_comm, ierr)
 #endif
+      MPI_master_only print '(/3A)', '------------'
+     &    , ' Finished reading input parameters ', '------------'
       return
       end
 

@@ -82,8 +82,8 @@
            end if
            close(75)
         else
-           print *, 'lmd parameter namelist file was not found'
-           print *, 'Default values will be used.'
+CR           print *, 'lmd parameter namelist file was not found'
+CR           print *, 'Default values will be used.'
         end if
 
         open(76,file=filename_lmd_out_nml,status='unknown',iostat=status)

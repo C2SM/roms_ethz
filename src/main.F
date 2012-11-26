@@ -138,7 +138,7 @@ C$OMP BARRIER
       enddo                      ! just set to to zero).
 C$OMP BARRIER
  
-#define CR
+!--> #define CR
 CR      write(*,*) '-11' MYID
  
  

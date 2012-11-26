@@ -47,9 +47,9 @@
           ierr=nf_inq_varid (ncid,vname(1, indxdQdSST), dqdt_id)
           if (ierr .eq. nf_noerr) then
             dqdt_file_id=ifrc
-            MPI_master_only write(*,*) 'Found ''', 
-     &         vname(1,indxdQdSST)(1:lvar),
-     &         ''' in ''', frcname(1:lfrc), ''', ifrc =', ifrc
+CR            MPI_master_only write(*,*) 'Found ''', 
+CR     &         vname(1,indxdQdSST)(1:lvar),
+CR     &         ''' in ''', frcname(1:lfrc), ''', ifrc =', ifrc
 
 !
 ! WARNING: Here dQdSST is presumed to have its own time variable,
@@ -63,7 +63,7 @@
             if (ierr .ne. nf_noerr) then
               ierr=nf_inq_varid (ncid, 'sss_time', dqdt_tid)
               if (ierr .eq. nf_noerr) then
-                MPI_master_only write(*,*) 'WARNING: ', 
+                MPI_master_only write(*,*) '     NOTE: ', 
      &                            vname(1,indxdQdSST)(1:lvar),
      &                            ' timing is slaved to SSS timing.' 
               else

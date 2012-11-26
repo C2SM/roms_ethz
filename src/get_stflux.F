@@ -48,9 +48,9 @@
      &                                              stf_id(itrc))
           if (ierr .eq. nf_noerr) then
             stf_file_id(itrc)=ifrc
-            MPI_master_only write(*,*) 'Found ''', 
-     &              vname(1,indxSHFl+itrc-1)(1:lvar), 
-     &              ''' in ''', frcname(1:lfrc), ''', ifrc =', ifrc 
+CR            MPI_master_only write(*,*) 'Found ''', 
+CR     &              vname(1,indxSHFl+itrc-1)(1:lvar), 
+CR     &              ''' in ''', frcname(1:lfrc), ''', ifrc =', ifrc 
             if (itrc.eq.itemp) then
               ierr=nf_inq_varid (ncid, 'shf_time', stf_tid(itrc))
 # ifdef SALINITY
