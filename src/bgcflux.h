@@ -124,6 +124,10 @@
       common /ocean_t_sed/t_sed
       real t_sed_avg(GLOBAL_2D_ARRAY,NT_sed)
       common /ocean_t_sed_avg/t_sed_avg
+#  ifdef SLICE_AVG
+      real t_sed_slavg(GLOBAL_2D_ARRAY,NT_sed)
+      common /ocean_t_sed_slavg/t_sed_slavg
+#  endif
 # endif /* SEDIMENT_BIOLOGY */
 
       real*QUAD global_sum(0:2*NT+1)
@@ -160,6 +164,11 @@
       real PAR_avg(GLOBAL_2D_ARRAY,N)
       real PARinc_avg(GLOBAL_2D_ARRAY)
       common /avg_par/ PAR_avg,PARinc_avg
+#  ifdef SLICE_AVG
+      real PAR_slavg(GLOBAL_2D_ARRAY,N)
+      real PARinc_slavg(GLOBAL_2D_ARRAY)
+      common /slavg_par/ PAR_slavg,PARinc_slavg
+#  endif
 
 #  ifdef BGC_FLUX_ANALYSIS
       real PAR_flux_avg(GLOBAL_2D_ARRAY,N)
@@ -183,6 +192,15 @@
       real pH_avg(GLOBAL_2D_ARRAY)
       common /gasexc_co2_avg/ Kv_CO2_avg, CO2sol_avg, pco2_avg, 
      &     pCO2air_avg, pH_avg
+#    ifdef SLICE_AVG
+      real Kv_CO2_slavg(GLOBAL_2D_ARRAY)
+      real CO2sol_slavg(GLOBAL_2D_ARRAY)
+      real pco2_slavg(GLOBAL_2D_ARRAY)
+      real pCO2air_slavg(GLOBAL_2D_ARRAY)
+      real pH_slavg(GLOBAL_2D_ARRAY)
+      common /gasexc_co2_slavg/ Kv_CO2_slavg, CO2sol_slavg, 
+     &        pco2_slavg, pCO2air_slavg, pH_slavg
+#    endif /* SLICE_AVG */
 #   endif /* CARBON */
 #  endif /* OXYGEN */
 
