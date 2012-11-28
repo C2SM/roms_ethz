@@ -196,9 +196,9 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
 #  define wrt wrtslavg
 #  define vidTime slavgTime
 #  define vidTstep slavgTstep
-#  define vidZ avgZ
-#  define vidUb avgUb
-#  define vidVb avgVb
+#  define vidZ slavgZ
+#  define vidUb slavgUb
+#  define vidVb slavgVb
 #  define vidU slavgU
 #  define vidV slavgV
 #  define vidT slavgT
@@ -217,8 +217,8 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
 #   define vidRichN slavgRichN
 #  endif
 #  define vidAks slavgAks
-#  define vidHbl avgHbl
-#  define vidHbbl avgHbbl
+#  define vidHbl slavgHbl
+#  define vidHbbl slavgHbbl
 #  if defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC
 #   if defined CH_CARBON_DEPTH
 #    define vidPHd slavgPHd
@@ -226,13 +226,13 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
 #    define vidHCO3d slavgHCO3d
 #    define vidCO3d slavgCO3d
 #   endif /* CH_CARBON_DEPTH */
-#   define vidPH avgPH
-#   define vidPCO2 avgPCO2
-#   define vidPCO2air avgPCO2air
-#   define vidPARinc avgPARinc
-#   define vidPAR avgPAR
+#   define vidPH slavgPH
+#   define vidPCO2 slavgPCO2
+#   define vidPCO2air slavgPCO2air
+#   define vidPARinc slavgPARinc
+#   define vidPAR slavgPAR
 #   ifdef SEDIMENT_BIOLOGY
-#     define vidTsed avgTsed
+#     define vidTsed slavgTsed
 #   endif
 #  endif /* BIOLOGY_NPZDOC || BIOLOGY_BEC */
 # endif /* AVR2DH */

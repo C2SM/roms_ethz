@@ -41,12 +41,12 @@ CSDISTRIBUTE_RESHAPE aks_avg(BLOCK_PATTERN,*) BLOCK_CLAUSE
 #  endif
 #  ifdef LMD_KPP
       real hbl_avg(GLOBAL_2D_ARRAY)
-CSDISTRIBUTE_RESHAPE hbl_avg(BLOCK_PATTERN,*) BLOCK_CLAUSE
+CSDISTRIBUTE_RESHAPE hbl_avg(BLOCK_PATTERN) BLOCK_CLAUSE
       common /avg_hbl/hbl_avg
 #  endif
 #  ifdef LMD_BKPP
       real hbbl_avg(GLOBAL_2D_ARRAY)
-CSDISTRIBUTE_RESHAPE hbbl_avg(BLOCK_PATTERN,*) BLOCK_CLAUSE
+CSDISTRIBUTE_RESHAPE hbbl_avg(BLOCK_PATTERN) BLOCK_CLAUSE
       common /avg_hbbl/hbbl_avg
 #  endif
 # endif /* SOLVE3D */

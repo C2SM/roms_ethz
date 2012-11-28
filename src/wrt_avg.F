@@ -9,6 +9,16 @@
 #  define avrTstep avgTstep 
 #  define time_avr time_avg
 #  define avrTime avgTime 
+#  define zeta_avr zeta_avg
+#  define avrZ avgZ
+#  define ubar_avr ubar_avg
+#  define avrUb avgUb
+#  define vbar_avr vbar_avg
+#  define avrVb avgVb
+#  define hbl_avr hbl_avg
+#  define avrHbbl  avgHbbl 
+#  define hbbl_avr hbbl_avg
+#  define avrHbl  avgHbl 
 #  define u_avr u_avg
 #  define avrU avgU
 #  define v_avr v_avg
@@ -31,6 +41,7 @@
 #  define avrRich avgRich
 #  define richN_avr richN_avg
 #  define avrRichN avgRichN
+#  define t_sed_avr t_sed_avg
 #  define ncidavr ncidavg
 #  define ncrecavr ncrecavg 
 #  define nrpfavr nrpfavg 
@@ -39,7 +50,7 @@
 #  define wrtavr wrtavg
 #  define SWRT_AVR 'WRT_AVG'
 # else
-!  We are playing the same redefinition CPP game as in def_his.F here...
+!  We are playing the same redefinition preprocessor game as in def_his.F here...
 #  define START_3D_ARRAY_K0 START_2D_ARRAY
 #  define START_3D_ARRAY_K1 START_2D_ARRAY
 ! Redefining strings for slices
@@ -48,6 +59,16 @@
 #  define avrTstep slavgTstep 
 #  define time_avr time_slavg
 #  define avrTime slavgTime 
+#  define zeta_avr zeta_slavg
+#  define avrZ slavgZ
+#  define ubar_avr ubar_slavg
+#  define avrUb slavgUb
+#  define vbar_avr vbar_slavg
+#  define avrVb slavgVb
+#  define hbl_avr hbl_slavg
+#  define avrHbbl  slavgHbbl 
+#  define hbbl_avr hbbl_slavg
+#  define avrHbl  slavgHbl 
 #  define u_avr u_slavg
 #  define avrU slavgU
 #  define v_avr v_slavg
@@ -70,6 +91,7 @@
 #  define avrRich slavgRich
 #  define richN_avr richN_slavg
 #  define avrRichN slavgRichN
+#  define t_sed_avr t_sed_avg
 #  define ncidavr ncidslavg
 #  define ncrecavr ncrecslavg 
 #  define nrpfavr nrpfslavg 
@@ -160,7 +182,7 @@ CR      MPI_master_only print *, '--- NOTE: Executing ', SWRT_AVR
 ! components in XI-,ETA-directions.
 !
       if (wrtavr(indxZ)) then
-        ierr=nf_fwrite (zeta_avg(START_2D_ARRAY), ncidavr, avgZ,
+        ierr=nf_fwrite (zeta_avr(START_2D_ARRAY), ncidavr, avrZ,
      &                                            record, r2dvar)
         if (ierr .ne. nf_noerr) then
           lvar=lenstr(vname(1,indxZ))
@@ -171,7 +193,7 @@ CR      MPI_master_only print *, '--- NOTE: Executing ', SWRT_AVR
       endif
  
       if (wrtavr(indxUb)) then
-        ierr=nf_fwrite (ubar_avg(START_2D_ARRAY), ncidavr, avgUb,
+        ierr=nf_fwrite (ubar_avr(START_2D_ARRAY), ncidavr, avrUb,
      &                                            record, u2dvar)
         if (ierr .ne. nf_noerr) then
           lvar=lenstr(vname(1,indxUb))
@@ -182,7 +204,7 @@ CR      MPI_master_only print *, '--- NOTE: Executing ', SWRT_AVR
       endif
  
       if (wrtavr(indxVb)) then
-        ierr=nf_fwrite (vbar_avg(START_2D_ARRAY), ncidavr, avgVb,
+        ierr=nf_fwrite (vbar_avr(START_2D_ARRAY), ncidavr, avrVb,
      &                                            record, v2dvar)
         if (ierr .ne. nf_noerr) then
           lvar=lenstr(vname(1,indxVb))
@@ -237,8 +259,8 @@ CR      MPI_master_only print *, '--- NOTE: Executing ', SWRT_AVR
 !
       do itrc=1,NT_sed
         if (wrtavr(indxSedOrgN+itrc-1)) then
-          ierr=nf_fwrite (t_sed_avg(START_2D_ARRAY,itrc), ncidavr,
-     &                                avgTsed(itrc), record, r2dvar)
+          ierr=nf_fwrite (t_sed_avr(START_2D_ARRAY,itrc), ncidavr,
+     &                                avrTsed(itrc), record, r2dvar)
           if (ierr .ne. nf_noerr) then
             lvar=lenstr(vname(1,indxSedOrgN+itrc-1))
             write(stdout,1) vname(1,indxSedOrgN+itrc-1)(1:lvar), record,
@@ -360,8 +382,8 @@ CR      write(*,*) 'wrt_avr:  wrtT_sed  ' MYID
 !  Write out depth of planetary boundary layer (m).
 !
       if (wrtavr(indxHbl)) then
-        ierr=nf_fwrite (hbl_avg(START_2D_ARRAY), ncidavr,
-     &                              avgHbl, record, r2dvar)
+        ierr=nf_fwrite (hbl_avr(START_2D_ARRAY), ncidavr,
+     &                              avrHbl, record, r2dvar)
         if (ierr .ne. nf_noerr) then
           lvar=lenstr(vname(1,indxHbl))
           write(stdout,1) vname(1,indxHbl)(1:lvar), record, ierr,
@@ -375,8 +397,8 @@ CR      write(*,*) 'wrt_avr:  wrtT_sed  ' MYID
 !  Write out depth of bottom boundary layer (m).
 !
       if (wrtavr(indxHbbl)) then
-        ierr=nf_fwrite (hbbl_avg(START_2D_ARRAY), ncidavr,
-     &                              avgHbbl, record, r2dvar)
+        ierr=nf_fwrite (hbbl_avr(START_2D_ARRAY), ncidavr,
+     &                              avrHbbl, record, r2dvar)
         if (ierr .ne. nf_noerr) then
           lvar=lenstr(vname(1,indxHbbl))
           write(stdout,1) vname(1,indxHbbl)(1:lvar), record, ierr,
@@ -391,8 +413,8 @@ CR      write(*,*) 'wrt_avr:  wrtT_sed  ' MYID
 !
 ! Write out averaged CO2STAR_DEPTH:
 !
-      ierr=nf_fwrite (CO2STARd_avg(START_2D_ARRAY,1), ncidavr,
-     &                              avgCO2STARd, record, r3dvar)
+      ierr=nf_fwrite (CO2STARd_avr(START_2D_ARRAY,1), ncidavr,
+     &                              avrCO2STARd, record, r3dvar)
       write(*,*) 'ierr=' , ierr
       if (ierr .ne. nf_noerr) then
         lvar=lenstr(vname(1,indxCO2STARd_rst))
@@ -404,8 +426,8 @@ CR      write(*,*) 'wrt_avr:  wrtT_sed  ' MYID
 !
 ! Write out averaged HCO3_DEPTH:
 !
-      ierr=nf_fwrite (HCO3d_avg(START_2D_ARRAY,1), ncidavr,
-     &                              avgHCO3d, record, r3dvar) 
+      ierr=nf_fwrite (HCO3d_avr(START_2D_ARRAY,1), ncidavr,
+     &                              avrHCO3d, record, r3dvar) 
       if (ierr .ne. nf_noerr) then
         lvar=lenstr(vname(1,indxHCO3d_rst))
         write(stdout,1) vname(1,indxHCO3d_rst)(1:lvar), record, ierr,
@@ -416,8 +438,8 @@ CR      write(*,*) 'wrt_avr:  wrtT_sed  ' MYID
 !
 ! Write out averaged CO3_DEPTH:
 !
-      ierr=nf_fwrite (CO3d_avg(START_2D_ARRAY,1), ncidavr,
-     &                              avgCO3d, record, r3dvar)
+      ierr=nf_fwrite (CO3d_avr(START_2D_ARRAY,1), ncidavr,
+     &                              avrCO3d, record, r3dvar)
       if (ierr .ne. nf_noerr) then
         lvar=lenstr(vname(1,indxCO3d_rst))
         write(stdout,1) vname(1,indxCO3d_rst)(1:lvar), record, ierr,
@@ -429,8 +451,8 @@ CR      write(*,*) 'wrt_avr:  wrtT_sed  ' MYID
 !
 ! Write out averaged PH_DEPTH:
 !
-      ierr=nf_fwrite (PHd_avg(START_2D_ARRAY,1), ncidavr,
-     &                              avgPHd, record, r3dvar)
+      ierr=nf_fwrite (PHd_avr(START_2D_ARRAY,1), ncidavr,
+     &                              avrPHd, record, r3dvar)
       if (ierr .ne. nf_noerr) then
         lvar=lenstr(vname(1,indxPHd_rst))
         write(stdout,1) vname(1,indxPHd_rst)(1:lvar), record, ierr,
@@ -443,8 +465,8 @@ CR      write(*,*) 'wrt_avr:  wrtT_sed  ' MYID
 !
 ! Write out averaged pH:
 !
-      ierr=nf_fwrite (pH_avg(START_2D_ARRAY), ncidavr,
-     &                              avgPH, record, r2dvar)
+      ierr=nf_fwrite (pH_avr(START_2D_ARRAY), ncidavr,
+     &                              avrPH, record, r2dvar)
       if (ierr .ne. nf_noerr) then
         lvar=lenstr(vname(1,indxPH_rst))
         write(stdout,1) vname(1,indxPH_rst)(1:lvar), record, ierr,
@@ -454,8 +476,8 @@ CR      write(*,*) 'wrt_avr:  wrtT_sed  ' MYID
 !
 ! Write out averaged pCO2:
 !
-      ierr=nf_fwrite (pCO2_avg(START_2D_ARRAY), ncidavr,
-     &                              avgPCO2, record, r2dvar)
+      ierr=nf_fwrite (pCO2_avr(START_2D_ARRAY), ncidavr,
+     &                              avrPCO2, record, r2dvar)
       if (ierr .ne. nf_noerr) then
         lvar=lenstr(vname(1,indxPCO2_rst))
         write(stdout,1) vname(1,indxPCO2_rst)(1:lvar), record, ierr,
@@ -466,8 +488,8 @@ CR      write(*,*) 'wrt_avr:  wrtT_sed  ' MYID
 !
 ! Write out averaged pCO2air:
 !
-      ierr=nf_fwrite (pCO2air_avg(START_2D_ARRAY), ncidavr,
-     &                              avgPCO2air, record, r2dvar)
+      ierr=nf_fwrite (pCO2air_avr(START_2D_ARRAY), ncidavr,
+     &                              avrPCO2air, record, r2dvar)
       if (ierr .ne. nf_noerr) then
         lvar=lenstr(vname(1,indxPCO2air_rst))
         write(stdout,1) vname(1,indxPCO2air_rst)(1:lvar), record, ierr,
@@ -477,8 +499,8 @@ CR      write(*,*) 'wrt_avr:  wrtT_sed  ' MYID
 !
 ! PAR:
 !
-      ierr=nf_fwrite (PARinc_avg(START_2D_ARRAY), ncidavr,
-     &                              avgPARinc, record, r2dvar)
+      ierr=nf_fwrite (PARinc_avr(START_2D_ARRAY), ncidavr,
+     &                              avrPARinc, record, r2dvar)
       if (ierr .ne. nf_noerr) then
         lvar=lenstr(vname(1,indxPARinc_rst))
         write(stdout,1) vname(1,indxPARinc_rst)(1:lvar), record, ierr,
@@ -488,8 +510,8 @@ CR      write(*,*) 'wrt_avr:  wrtT_sed  ' MYID
 !
 ! PAR:
 !
-      ierr=nf_fwrite (PAR_avg(START_2D_ARRAY,1), ncidavr,
-     &                              avgPAR, record, r3dvar)
+      ierr=nf_fwrite (PAR_avr(START_2D_ARRAY,1), ncidavr,
+     &                              avrPAR, record, r3dvar)
       if (ierr .ne. nf_noerr) then
         lvar=lenstr(vname(1,indxPAR_rst))
         write(stdout,1) vname(1,indxPAR_rst)(1:lvar), record, ierr,
@@ -498,9 +520,9 @@ CR      write(*,*) 'wrt_avr:  wrtT_sed  ' MYID
       endif
 # endif /* BIOLOGY_NPZDOC || BIOLOGY_BEC */
 # endif /* SOLVE3D */
-  1   format(/SWRT_AVR,' - ERROR while writing variable(',1x,a,1x,
-     &               ')into averages file.',/,11x,'Time record:',
-     &                      i6,3x,'netCDF error code',i4,3x,a,i4)
+  1   format(/SWRT_AVR,' - ERROR while writing variable ('
+     &    ,1x,a,1x, ') into averages file.',/,11x,'Time record:',
+     &                    i6,3x,'netCDF error code',i4,3x,a,i4)
       goto 100
   99  may_day_flag=3
  100  continue
@@ -555,6 +577,14 @@ CR     &              MYID
 #  undef avrTstep
 #  undef time_avr
 #  undef avrTime
+#  undef ubar_avr
+#  undef vbar_avr
+#  undef zeta_avr
+#  undef hbl_avr
+#  undef avrZ
+#  undef avrUb
+#  undef avrVb
+#  undef avrHbl
 #  undef u_avr
 #  undef avrU
 #  undef v_avr
@@ -567,6 +597,7 @@ CR     &              MYID
 #  undef t_avr
 #  undef avrT
 #  undef w_avr
+#  undef wt_avr
 #  undef avrW
 #  undef avrO
 #  undef Akv_avr

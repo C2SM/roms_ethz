@@ -381,7 +381,6 @@
 #endif /* SOLVE3D */
 
 #ifdef AVERAGES
-!--> # ifndef SLICE_AVR
       integer ncidavg, nrecavg,  nrpfavg,
      &        avgTime, avgTstep, avgZ,    avgUb, avgVb
       common /ncvars/  ncidavg,  nrecavg, nrpfavg,
@@ -400,7 +399,6 @@
 #  ifdef KPP_DIAGNOSE
      &        , avgRich, avgRichN
 #  endif
-!--> # endif
 #  ifdef SEDIMENT_BIOLOGY
      &      , avgTsed
 #  endif /* SEDIMENT_BIOLOGY */
@@ -414,19 +412,33 @@
 #  endif
 #  ifdef SLICE_AVG
       integer ncidslavg, nrecslavg,  nrpfslavg,
-     &        slavgTime, slavgTstep
+     &    slavgTime, slavgTstep, slavgZ, slavgUb, slavgVb
       common /ncvars/  ncidslavg,  nrecslavg, nrpfslavg,
-     &        slavgTime, slavgTstep
+     &    slavgTime, slavgTstep, slavgZ, slavgUb, slavgVb
       integer ksl, slavgU, slavgV, slavgT(NT+1), slavgR
      &      , slavgO, slavgW, slavgAkv, slavgAkt, slavgAks
 # ifdef KPP_DIAGNOSE
      &        , slavgRich, slavgRichN
 # endif
+#   ifdef SEDIMENT_BIOLOGY
+     &      , slavgTsed(NT_sed)
+#   endif /* SEDIMENT_BIOLOGY */
       common /ncvars/ ksl, slavgU, slavgV, slavgT, slavgR
      &      , slavgO, slavgW, slavgAkv, slavgAkt, slavgAks
 # ifdef KPP_DIAGNOSE
      &        , slavgRich, slavgRichN
 # endif
+#  ifdef SEDIMENT_BIOLOGY
+     &      , slavgTsed
+#  endif /* SEDIMENT_BIOLOGY */
+#  ifdef LMD_KPP
+      integer slavgHbl
+      common /ncvars/ slavgHbl
+#  endif
+#  ifdef LMD_BKPP
+      integer slavgHbbl
+      common /ncvars/ slavgHbbl
+#  endif
 #  endif
 # endif /* SOLVE3D */
 #endif /* AVERAGES */

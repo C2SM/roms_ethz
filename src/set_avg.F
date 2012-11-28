@@ -30,7 +30,7 @@
 #  define ENDKLOOP  enddo
 #  define KLEVEL   k
 #  ifdef BIOLOGY_NPZDOC
-#   define PAR_AVR PAR_avg
+#   define PAR_AVR(i,j,k) PAR_avg(i,j,k)
 #   ifdef OXYGEN 
 #    define pH_AVR pH_avg
 #    define pCO2_AVR pCO2_avg
@@ -64,7 +64,7 @@
 #  define ENDKLOOP  
 #  define KLEVEL   ksl
 #  ifdef BIOLOGY_NPZDOC
-#   define PAR_AVR PAR_slavg
+#   define PAR_AVR(i,j,k) PAR_slavg(i,j)
 #   ifdef OXYGEN 
 #    define pH_AVR pH_slavg
 #    define pCO2_AVR pCO2_slavg
@@ -410,9 +410,12 @@
         KLOOP(1)
           do j=jstrR,jendR
              do i=istrR,iendR
-                HCO3d_AVR(i,j,k) = HCO3d_AVR(i,j,k) + HCO3d_hist(i,j,KLEVEL)
-                CO3d_AVR(i,j,k) = CO3d_AVR(i,j,k) + CO3d_hist(i,j,KLEVEL)
-                CO2STARd_AVR(i,j,k) = CO2STARd_AVR(i,j,k) + CO2STARd_hist(i,j,KLEVEL)
+                HCO3d_AVR(i,j,k) = HCO3d_AVR(i,j,k) + 
+     &                             HCO3d_hist(i,j,KLEVEL)
+                CO3d_AVR(i,j,k) = CO3d_AVR(i,j,k) + 
+     &                            CO3d_hist(i,j,KLEVEL)
+                CO2STARd_AVR(i,j,k) = CO2STARd_AVR(i,j,k) + 
+     &                                CO2STARd_hist(i,j,KLEVEL)
                 PHd_AVR(i,j,k) = PHd_AVR(i,j,k) + PHd_hist(i,j,KLEVEL)
              end do
           end do
@@ -570,8 +573,7 @@
             enddo
           endif
 # ifdef SOLVE3D
-          if (wrtAVR(indxU))
-     &    then
+          if (wrtAVR(indxU)) then
             KLOOP(1)
               do j=jstrR,jendR
                 do i=istrR,iendR
@@ -580,8 +582,7 @@
               enddo
             ENDKLOOP
           endif
-          if (wrtAVR(indxV))
-     &    then
+          if (wrtAVR(indxV)) then
             KLOOP(1)
               do j=jstrR,jendR
                 do i=istrR,iendR
@@ -591,8 +592,7 @@
             ENDKLOOP
           endif
           do itrc=1,NT
-            if (wrtAVR(indxT+itrc-1))
-     &    then
+            if (wrtAVR(indxT+itrc-1)) then
               KLOOP(1)
                 do j=jstrR,jendR
                   do i=istrR,iendR
@@ -650,14 +650,15 @@
             end do
           ENDKLOOP
 #  endif /* BIOLOGY_NPZDOC */
-          if (wrtAVR(indxR))
-     &    then
+          if (wrtAVR(indxR)) then
             KLOOP(1)
               do j=jstrR,jendR
                 do i=istrR,iendR
 #  ifdef SPLIT_EOS
-                  rho_AVR(i,j,k)=cff*( rho_AVR(i,j,KLEVEL) + rho1(i,j,KLEVEL)
-     &                          +qp1(i,j,KLEVEL)*(z_w(i,j,N)-z_r(i,j,KLEVEL)))
+                  rho_AVR(i,j,k)=cff*( rho_AVR(i,j,KLEVEL) 
+     &                          + rho1(i,j,KLEVEL)
+     &                          +qp1(i,j,KLEVEL)*(z_w(i,j,N)
+     &                          -z_r(i,j,KLEVEL)) )
 #  else
                   rho_AVR(i,j,k)=cff*(rho_AVR(i,j,k)+rho(i,j,KLEVEL))
 #  endif
@@ -665,8 +666,7 @@
               enddo
             ENDKLOOP
           endif
-          if (wrtAVR(indxO))
-     &    then
+          if (wrtAVR(indxO)) then
             KLOOP(1)
               do j=jstrR,jendR
                 do i=istrR,iendR
@@ -677,8 +677,7 @@
             ENDKLOOP
           endif
 ! --T.Nagai to put true vertical velocity 6/29/2006
-          if (wrtAVR(indxW))
-     &    then
+          if (wrtAVR(indxW)) then
               call Wvlcty (tile, work) 
             KLOOP(1)
               do j=jstrR,jendR
@@ -689,18 +688,17 @@
             ENDKLOOP
           endif
 ! --T.Nagai to put true vertical velocity 6/29/2006
-          if (wrtAVR(indxAkt))
-     &    then
+          if (wrtAVR(indxAkt)) then
             KLOOP(0)
               do j=jstrR,jendR
                 do i=istrR,iendR
-                  akt_AVR(i,j,k)=cff*(akt_AVR(i,j,k)+Akt(i,j,KLEVEL,itemp))
+                  akt_AVR(i,j,k)=cff*(akt_AVR(i,j,k)+
+     &                                Akt(i,j,KLEVEL,itemp))
                 enddo
               enddo
             ENDKLOOP
           endif
-          if (wrtAVR(indxAkv))
-     &    then
+          if (wrtAVR(indxAkv)) then
             KLOOP(0)
               do j=jstrR,jendR
                 do i=istrR,iendR
@@ -710,8 +708,7 @@
             ENDKLOOP
           endif
 #  ifdef KPP_DIAGNOSE
-          if (wrtAVR(indxRich))
-     &    then
+          if (wrtAVR(indxRich)) then
             KLOOP(0)
               do j=jstrR,jendR
                 do i=istrR,iendR
@@ -720,32 +717,31 @@
               enddo
             ENDKLOOP
           endif
-          if (wrtAVR(indxRichN))
-     &    then
+          if (wrtAVR(indxRichN)) then
             KLOOP(0)
               do j=jstrR,jendR
                 do i=istrR,iendR
-                  richN_AVR(i,j,k)=cff*(richN_AVR(i,j,k)+RichN(i,j,KLEVEL))
+                  richN_AVR(i,j,k)=cff*(richN_AVR(i,j,k)+
+     &                                  RichN(i,j,KLEVEL))
                 enddo
               enddo
             ENDKLOOP
           endif
 #  endif /* KPP_DIAGNOSE */
 #  ifdef SALINITY
-          if (wrtAVR(indxAks))
-     &    then
+          if (wrtAVR(indxAks)) then
             KLOOP(0)
               do j=jstrR,jendR
                 do i=istrR,iendR
-                  aks_AVR(i,j,k)=cff*(aks_AVR(i,j,k)+Akt(i,j,KLEVEL,isalt))
+                  aks_AVR(i,j,k)=cff*(aks_AVR(i,j,k)+
+     &                           Akt(i,j,KLEVEL,isalt))
                 enddo
               enddo
             ENDKLOOP
           endif
 #  endif
 #  ifdef LMD_KPP
-          if (wrtAVR(indxHbl))
-     &    then
+          if (wrtAVR(indxHbl)) then
             do j=jstrR,jendR
               do i=istrR,iendR
                 hbl_AVR(i,j)=cff*(hbl_AVR(i,j)+hbls(i,j,nstp))
@@ -754,8 +750,7 @@
           endif
 #  endif
 #  ifdef LMD_BKPP
-        if (wrtAVR(indxHbbl))
-     &    then
+        if (wrtAVR(indxHbbl)) then
           do j=jstrR,jendR
             do i=istrR,iendR
               hbbl_AVR(i,j)=cff*(hbbl_AVR(i,j)+hbbls(i,j,nstp))

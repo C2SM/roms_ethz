@@ -165,7 +165,7 @@
       real PARinc_avg(GLOBAL_2D_ARRAY)
       common /avg_par/ PAR_avg,PARinc_avg
 #  ifdef SLICE_AVG
-      real PAR_slavg(GLOBAL_2D_ARRAY,N)
+      real PAR_slavg(GLOBAL_2D_ARRAY)
       real PARinc_slavg(GLOBAL_2D_ARRAY)
       common /slavg_par/ PAR_slavg,PARinc_slavg
 #  endif
