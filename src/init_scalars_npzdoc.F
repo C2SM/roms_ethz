@@ -129,10 +129,10 @@ CR      write(stdout,'(1x,A,I3)') 'indxLDet =',indxLDet
       vname(4,indxCaCO3)='CaCO3, scalar, series                    '
 !DL: pH treated here for avg/his/rst files;
 !DL: and in init_scalars_bgcflux for flux files:
-      vname(1,indxPH_rst)='PH'
-      vname(2,indxPH_rst)='pH value'
-      vname(3,indxPH_rst)=' '
-      vname(4,indxPH_rst)=' '
+      vname(1,indxPH_rst)='PH                                       '
+      vname(2,indxPH_rst)='pH value                                 '
+      vname(3,indxPH_rst)='-                                        '
+      vname(4,indxPH_rst)='pH, scalar, series                       '
 !DL: some more variables which have been moved from the flux files to
 !DL: averages/histrory/restart files:
       vname(1,indxPCO2_rst)='pCO2                                 '

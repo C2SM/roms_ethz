@@ -421,7 +421,7 @@ C$   &                                                   , proc(2)
               first_time=1
               print '(2/3A)'
      &          ,'------------------------------'
-     &          ,' Time-stepping  Diagnostics '
+     &          ,' Time-stepping Diagnostics '
      &          ,'------------------------------'
               write(stdout,'(/1x,A,2x,A,1x,A,5x,A,4x,A,4x,A,1x,3A)')
      &                 'STEP',       'time[DAYS]', 'KINETIC_ENRG',
