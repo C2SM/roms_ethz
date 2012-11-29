@@ -338,6 +338,9 @@
      &      , rstPH, rstPCO2, rstPCO2air, rstPAR
      &      , hisPH, hisPCO2, hisPCO2air, hisPARinc, hisPAR
      &      , avgPH, avgPCO2, avgPCO2air, avgPARinc, avgPAR
+#  ifdef SLICE_AVG
+     &      , slavgPH, slavgPCO2, slavgPCO2air, slavgPARinc, slavgPAR
+#  endif
 #  endif /* CH_CARBON_DEPTH */
 # endif /* BIOLOGY_NPZDOC || BIOLOGY_BEC */
 #if defined BGC_FLUX_ANALYSIS || defined PHYS_FLUX_ANALYSIS

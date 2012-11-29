@@ -40,7 +40,7 @@ C$OMP END PARALLEL
 
       if (numthreads.gt.NUMPROC) then
         MPI_master_only write(stdout,'(/1x,A,I3/)')
-     &    'ERROR: Requested number of threads exceeds setting: ', NUMPROC
+     &   'ERROR: Requested number of threads exceeds setting: ', NUMPROC
         ierr=ierr+1                                      !--> ERROR
       elseif (mod(NSUB_X*NSUB_E,numthreads).ne.0) then
         MPI_master_only write(stdout,

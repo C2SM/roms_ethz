@@ -8,40 +8,51 @@
 #  define def_avr def_avg
 #  define avrTstep avgTstep 
 #  define time_avr time_avg
-#  define avrTime avgTime 
 #  define zeta_avr zeta_avg
-#  define avrZ avgZ
 #  define ubar_avr ubar_avg
-#  define avrUb avgUb
 #  define vbar_avr vbar_avg
-#  define avrVb avgVb
 #  define hbl_avr hbl_avg
-#  define avrHbbl  avgHbbl 
 #  define hbbl_avr hbbl_avg
-#  define avrHbl  avgHbl 
 #  define u_avr u_avg
-#  define avrU avgU
 #  define v_avr v_avg
-#  define avrV avgV
-#  define rho_avr rho_avg
-#  define avrR avgR
 #  define t_avr t_avg
-#  define avrT avgT
+#  define rho_avr rho_avg
 #  define w_avr w_avg
 #  define wt_avr wt_avg
-#  define avrO avgO
-#  define avrW avgW
 #  define Akv_avr Akv_avg
 #  define Akt_avr Akt_avg
 #  define Aks_avr Aks_avg
+#  define rich_avr rich_avg
+#  define richN_avr richN_avg
+#  define t_sed_avr t_sed_avg
+#  define pH_avr pH_avg 
+#  define pCO2_avr pCO2_avg 
+#  define pCO2air_avr pCO2air_avg
+#  define PAR_avr PAR_avg 
+#  define PARinc_avr PARinc_avg 
+#  define avrTime avgTime 
+#  define avrZ avgZ
+#  define avrUb avgUb
+#  define avrVb avgVb
+#  define avrHbbl  avgHbbl 
+#  define avrHbl  avgHbl 
+#  define avrU avgU
+#  define avrV avgV
+#  define avrR avgR
+#  define avrT avgT
+#  define avrO avgO
+#  define avrW avgW
 #  define avrAkv avgAkv
 #  define avrAkt avgAkt
 #  define avrAks avgAks
-#  define rich_avr rich_avg
 #  define avrRich avgRich
-#  define richN_avr richN_avg
 #  define avrRichN avgRichN
-#  define t_sed_avr t_sed_avg
+#  define avrTsed avgTsed
+#  define avrPH avgPH 
+#  define avrPCO2 avgPCO2 
+#  define avrPCO2air avgPCO2air
+#  define avrPARinc avgPARinc
+#  define avrPAR avgPAR
 #  define ncidavr ncidavg
 #  define ncrecavr ncrecavg 
 #  define nrpfavr nrpfavg 
@@ -58,40 +69,50 @@
 #  define def_avr def_slavg
 #  define avrTstep slavgTstep 
 #  define time_avr time_slavg
-#  define avrTime slavgTime 
 #  define zeta_avr zeta_slavg
-#  define avrZ slavgZ
 #  define ubar_avr ubar_slavg
-#  define avrUb slavgUb
 #  define vbar_avr vbar_slavg
-#  define avrVb slavgVb
 #  define hbl_avr hbl_slavg
-#  define avrHbbl  slavgHbbl 
-#  define hbbl_avr hbbl_slavg
-#  define avrHbl  slavgHbl 
 #  define u_avr u_slavg
-#  define avrU slavgU
 #  define v_avr v_slavg
-#  define avrV slavgV
-#  define rho_avr rho_slavg
-#  define avrR slavgR
 #  define t_avr t_slavg
-#  define avrT slavgT
+#  define rho_avr rho_slavg
 #  define w_avr w_slavg
 #  define wt_avr wt_slavg
-#  define avrO slavgO
-#  define avrW slavgW
 #  define Akv_avr Akv_slavg
 #  define Akt_avr Akt_slavg
 #  define Aks_avr Aks_slavg
+#  define rich_avr rich_slavg
+#  define richN_avr richN_slavg
+#  define t_sed_avr t_sed_slavg
+#  define pH_avr pH_slavg
+#  define pCO2_avr pCO2_slavg
+#  define pCO2air_avr pCO2air_slavg
+#  define PAR_avr PAR_slavg
+#  define PARinc_avr PARinc_slavg
+#  define avrTime slavgTime 
+#  define avrZ slavgZ
+#  define avrUb slavgUb
+#  define avrVb slavgVb
+#  define avrHbbl  slavgHbbl 
+#  define avrHbl  slavgHbl 
+#  define avrU slavgU
+#  define avrV slavgV
+#  define avrR slavgR
+#  define avrT slavgT
+#  define avrO slavgO
+#  define avrW slavgW
 #  define avrAkv slavgAkv
 #  define avrAkt slavgAkt
 #  define avrAks slavgAks
-#  define rich_avr rich_slavg
 #  define avrRich slavgRich
-#  define richN_avr richN_slavg
 #  define avrRichN slavgRichN
-#  define t_sed_avr t_sed_avg
+#  define avrTsed slavgTsed
+#  define avrPH slavgPH 
+#  define avrPCO2 slavgPCO2 
+#  define avrPCO2air slavgPCO2air
+#  define avrPARinc slavgPARinc
+#  define avrPAR slavgPAR
 #  define ncidavr ncidslavg
 #  define ncrecavr ncrecslavg 
 #  define nrpfavr nrpfslavg 
@@ -510,7 +531,7 @@ CR      write(*,*) 'wrt_avr:  wrtT_sed  ' MYID
 !
 ! PAR:
 !
-      ierr=nf_fwrite (PAR_avr(START_2D_ARRAY,1), ncidavr,
+      ierr=nf_fwrite (PAR_avr(START_3D_ARRAY_K1), ncidavr,
      &                              avrPAR, record, r3dvar)
       if (ierr .ne. nf_noerr) then
         lvar=lenstr(vname(1,indxPAR_rst))
@@ -603,6 +624,12 @@ CR     &              MYID
 #  undef Akv_avr
 #  undef Akt_avr
 #  undef Aks_avr
+#  undef t_sed_avr
+#  undef pH_avr
+#  undef pCO2_avr
+#  undef pCO2air_avr
+#  undef PAR_avr
+#  undef PARinc_avr
 #  undef avrAkv
 #  undef avrAkt
 #  undef avrAks
@@ -610,6 +637,14 @@ CR     &              MYID
 #  undef avrRich
 #  undef richN_avr
 #  undef avrRichN
+#  undef avrHbl
+#  undef avrHbbl
+#  undef avrTsed
+#  undef avrPCO2
+#  undef avrPCO2air
+#  undef avrPARinc
+#  undef avrPAR
+#  undef avrPH
 #  undef ncidavr
 #  undef ncrecavr
 #  undef nrpfavr
