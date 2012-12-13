@@ -45,11 +45,12 @@
 # include "mpif.h"
       integer size, step, status(MPI_STATUS_SIZE)
       real*QUAD buff(16)
-# ifdef  COMPUTE_SPEED_DIAGNOSE
-     &      , wtime0, wtime1, wtime2
-      save wtime0, wtime1
-# endif
       common /xyz/ buff
+#endif
+#ifdef  COMPUTE_SPEED_DIAGNOSE
+C$    real*8 omp_get_wtime  
+      real*8      wtime0, wtime1, wtime2
+      save wtime0, wtime1
 #endif
 #include "grid.h"
 #ifdef SOLVE3D
@@ -371,13 +372,17 @@ C$OMP CRITICAL (diag_cr_rgn)
             if (size.gt.1) goto 1
           endif
           if (mynode.eq.0) then
-# ifdef  COMPUTE_SPEED_DIAGNOSE
+#endif
+#ifdef  COMPUTE_SPEED_DIAGNOSE
+# ifdef MPI
               wtime2=MPI_Wtime()
+# else
+C$           wtime2=omp_get_wtime()
+# endif
             if (first_time.eq.0) then
               wtime0=wtime2
               wtime1=wtime2
             endif
-# endif
 #endif
             avke=avke/(volume+avzeta)       ! Compute and print out
             avpe=avpe/(volume+avzeta)       ! global diagnostics
