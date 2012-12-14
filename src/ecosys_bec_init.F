@@ -249,7 +249,11 @@
        photoFe_diat_HIST    = c0    
        photoFe_diaz_HIST    = c0    
        photoFe_sp_HIST      = c0
-       nitrif_hist       = c0
+       nitrif_HIST          = c0
+#ifdef OXYLIM_BEC
+       denitr_DOC_HIST      = c0
+       denitr_POC_HIST      = c0
+#endif
 
 !Jds: writing and reading namelist files to prescribe parameters
 

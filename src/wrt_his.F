@@ -136,7 +136,7 @@ CR      write(*,*) 'wrt_his: wrtVBAR' MYID
      &                    nf_strerror(ierr) MYID
           goto 99                                         !--> ERROR
         endif
-CR      write(*,*) 'wrt_his:  wrtU  ' MYID
+
       endif
       if (wrthis(indxV)) then
         ierr=nf_fwrite (v(START_2D_ARRAY,1,nstp), ncidhis,
@@ -459,6 +459,42 @@ CR      write(*,*) 'wrt_his:  wrtHBL' MYID
         goto 99                                         !--> ERROR
       endif
 # endif /* BIOLOGY_BEC || BIOLOGY_NPZDOC */
+!DL:
+# ifdef WRITE_DEPTHS
+!
+! depths of rho points:
+!
+      ierr=nf_fwrite (z_r(START_2D_ARRAY,1), ncidhis,
+     &                              hisz_r, record, r3dvar)
+      if (ierr .ne. nf_noerr) then
+        lvar=lenstr(vname(1,indxz_r))
+        write(stdout,1) vname(1,indxz_r)(1:lvar), record, ierr,
+     &                  nf_strerror(ierr) MYID
+        goto 99                                         !--> ERROR
+      endif
+!
+! depths at w points:
+!
+      ierr=nf_fwrite (z_w(START_2D_ARRAY,1), ncidhis,
+     &                              hisz_w, record, w3dvar)
+      if (ierr .ne. nf_noerr) then
+        lvar=lenstr(vname(1,indxz_w))
+        write(stdout,1) vname(1,indxz_w)(1:lvar), record, ierr,
+     &                  nf_strerror(ierr) MYID
+        goto 99                                         !--> ERROR
+      endif
+!
+! thicknesses of sigma layers:
+!
+      ierr=nf_fwrite (Hz(START_2D_ARRAY,1), ncidhis,
+     &                              hisHz, record, r3dvar)
+      if (ierr .ne. nf_noerr) then
+        lvar=lenstr(vname(1,indxHz))
+        write(stdout,1) vname(1,indxHz)(1:lvar), record, ierr,
+     &                  nf_strerror(ierr) MYID
+        goto 99                                         !--> ERROR
+      endif
+# endif /* WRITE_DEPTHS */
 #endif /* SOLVE3D */
   1   format(/1x, 'WRT_HIS ERROR while writing variable ''', A,
      &         ''' into history file.'  /11x, 'Time record:', I6,

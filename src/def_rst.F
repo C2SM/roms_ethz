@@ -411,9 +411,7 @@
         ierr=nf_put_att_text(ncid,rsttrack,'Content',lvar,
      &                         vinfo(3)(1:lvar))
 #endif /* FLOATS */
-# if defined BIOLOGY_BEC || (defined BIOLOGY_NPZDOC && \
-    defined OXYGEN && defined CARBON)
-
+# if defined BIOLOGY_BEC 
 #  if defined CH_CARBON_DEPTH
 
 !
@@ -432,7 +430,9 @@
         ierr=nf_put_att_FTYPE (ncid, rstPHd, '_FillValue', NF_FTYPE,
      &                                                 1, spv_set)
 #endif
-#else /*CH_CARBON_DEPTH*/
+#endif /*CH_CARBON_DEPTH*/
+
+
 !
 ! pH:
 !
@@ -467,8 +467,6 @@
      &                                                 1, spv_set)
 #endif
 
-#endif /*CH_CARBON_DEPTH*/
-
 #  ifdef OUTPUT_PCO2AIR_RST
 !
 ! pCO2air:
@@ -487,9 +485,6 @@
      &                                                 1, spv_set)
 #endif
 #  endif /* OUTPUT_PCO2AIR_RST */
-# endif /* BIOLOGY_BEC || (BIOLOGY_NPZDOC && OXYGEN && CARBON) */
-
-# if defined BIOLOGY_BEC || defined BIOLOGY_NPZDOC
 !
 ! PAR:
 !
@@ -679,28 +674,28 @@
         enddo
 # endif /* SEDIMENT_BIOLOGY */
 
-# if defined BIOLOGY_BEC || (defined BIOLOGY_NPZDOC && \
-    defined OXYGEN && defined CARBON)
-
-#ifdef CH_CARBON_DEPTH
+# if defined BIOLOGY_BEC 
+!#ifdef CH_CARBON_DEPTH
 !
 ! HCO3:
 !
-        lvar=lenstr(vname(1,indxHCO3_rst))
-        ierr=nf_inq_varid (ncid, vname(1,indxHCO3_rst)(1:lvar), rstHCO3)
-        if (ierr. ne. nf_noerr) then
-          write(stdout,1) vname(1,indxHCO3_rst)(1:lvar), rstname(1:lstr)
-          goto 99                                         !--> ERROR
-        endif
+!        lvar=lenstr(vname(1,indxHCO3_rst))
+!        ierr=nf_inq_varid (ncid, vname(1,indxHCO3_rst)(1:lvar), rstHCO3)
+!        if (ierr. ne. nf_noerr) then
+!          write(stdout,1) vname(1,indxHCO3_rst)(1:lvar), rstname(1:lstr)
+!          goto 99                                         !--> ERROR
+!        endif
 !
 ! CO3:
 !
-        lvar=lenstr(vname(1,indxCO3_rst))
-        ierr=nf_inq_varid (ncid, vname(1,indxCO3_rst)(1:lvar), rstCO3)
-        if (ierr. ne. nf_noerr) then
-          write(stdout,1) vname(1,indxCO3_rst)(1:lvar), rstname(1:lstr)
-          goto 99                                         !--> ERROR
-        endif
+!        lvar=lenstr(vname(1,indxCO3_rst))
+!        ierr=nf_inq_varid (ncid, vname(1,indxCO3_rst)(1:lvar), rstCO3)
+!        if (ierr. ne. nf_noerr) then
+!          write(stdout,1) vname(1,indxCO3_rst)(1:lvar), rstname(1:lstr)
+!          goto 99                                         !--> ERROR
+!        endif
+
+# if defined CH_CARBON_DEPTH
 !
 ! PH_DEPTH
 !
@@ -713,13 +708,16 @@
 !
 ! PH
 !
-        lvar=lenstr(vname(1,indxPH_rst))
-        ierr=nf_inq_varid (ncid, vname(1,indxPH_rst)(1:lvar), rstPH)
-        if (ierr. ne. nf_noerr) then
-          write(stdout,1) vname(1,indxPH_rst)(1:lvar), rstname(1:lstr)
-          goto 99                                         !--> ERROR
-        endif
-#else
+!        lvar=lenstr(vname(1,indxPH_rst))
+!        ierr=nf_inq_varid (ncid, vname(1,indxPH_rst)(1:lvar), rstPH)
+!        if (ierr. ne. nf_noerr) then
+!          write(stdout,1) vname(1,indxPH_rst)(1:lvar), rstname(1:lstr)
+!          goto 99                                         !--> ERROR
+!        endif
+!#else
+
+#endif CH_CARBON_DEPTH
+
 !
 ! PH
 !
@@ -738,7 +736,6 @@
           write(stdout,1) vname(1,indxPCO2_rst)(1:lvar), rstname(1:lstr)
           goto 99                                         !--> ERROR
         endif
-#endif /*CH_CARBON_DEPTH*/
 
 # ifdef OUTPUT_PCO2AIR_RST
 !

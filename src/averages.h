@@ -29,11 +29,11 @@ CSDISTRIBUTE_RESHAPE w_avg(BLOCK_PATTERN,*) BLOCK_CLAUSE
       real akt_avg(GLOBAL_2D_ARRAY,0:N)
 CSDISTRIBUTE_RESHAPE akt_avg(BLOCK_PATTERN,*) BLOCK_CLAUSE
       common /avg_akv/akv_avg /avg_akt/akt_avg
-#ifdef KPP_DIAGNOSE
+#  ifdef KPP_DIAGNOSE
       real rich_avg(GLOBAL_2D_ARRAY,0:N), richN_avg(GLOBAL_2D_ARRAY,0:N)
 CSDISTRIBUTE_RESHAPE rich_avg(BLOCK_PATTERN,*) BLOCK_CLAUSE
       common /rich_akt/rich_avg, richN_avg
-#endif
+#  endif
 #  ifdef SALINITY
       real aks_avg(GLOBAL_2D_ARRAY,0:N)
 CSDISTRIBUTE_RESHAPE aks_avg(BLOCK_PATTERN,*) BLOCK_CLAUSE
@@ -49,6 +49,12 @@ CSDISTRIBUTE_RESHAPE hbl_avg(BLOCK_PATTERN) BLOCK_CLAUSE
 CSDISTRIBUTE_RESHAPE hbbl_avg(BLOCK_PATTERN) BLOCK_CLAUSE
       common /avg_hbbl/hbbl_avg
 #  endif
+!DL:
+#  ifdef WRITE_DEPTHS
+      real z_r_avg(GLOBAL_2D_ARRAY,N)
+      real z_w_avg(GLOBAL_2D_ARRAY,0:N), Hz_avg(GLOBAL_2D_ARRAY,N)
+      common /avg_depth/z_r_avg, z_w_avg, Hz_avg
+#  endif /* WRITE_DEPTHS */
 # endif /* SOLVE3D */
 !--> #endif /* AVERAGES */
  

@@ -805,8 +805,26 @@
      &                      ierr MYID
             goto 99                                       !--> ERROR
           endif
-
-
+#ifdef OXYLIM_BEC
+          itrc=itrc+1
+          ierr=nf_fwrite(denitr_DOC_hist(START_2D_ARRAY,1), 
+     &         ncid_bgc_flux_his,vid_bec_flux_his(itrc), record, r3dvar)
+          if (ierr .ne. nf_noerr) then
+            lvar=lenstr(vname_bgcflux(1,itrc))
+            write(stdout,1) vname_bgcflux(1,itrc)(1:lvar), record,
+     &                      ierr MYID
+            goto 99                                       !--> ERROR
+          endif
+          itrc=itrc+1
+          ierr=nf_fwrite(denitr_POC_hist(START_2D_ARRAY,1), 
+     &         ncid_bgc_flux_his,vid_bec_flux_his(itrc), record, r3dvar)
+          if (ierr .ne. nf_noerr) then
+            lvar=lenstr(vname_bgcflux(1,itrc))
+            write(stdout,1) vname_bgcflux(1,itrc)(1:lvar), record,
+     &                      ierr MYID
+            goto 99                                       !--> ERROR
+          endif
+#endif
   1   format(/1x,'WRT_BEC_FLUX_HIS ERROR while writing variable ''', A,
      &          ''' into history file.', /11x, 'Time record:',
      &                   I6,3x,'netCDF error code',i4,3x,a,i4)

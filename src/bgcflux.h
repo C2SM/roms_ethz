@@ -8,7 +8,7 @@
 
 ! Fluxes: all bgc fluxes are defined in a way that they will be positive under
 ! normal circumstances
-      ! fluxes of Nitrogen [mmol N m^-2]
+      ! fluxes of Nitrogen [mmol N m^-2 s^-1]
       integer NFlux_NewProd, NFlux_RegProd, NFlux_Grazing
       integer NFlux_SlopFeed, NFlux_Zfecp, NFlux_Pmort, NFlux_Zmetab
       integer NFlux_Zexcr, NFlux_ZmortS, NFlux_ZmortL, NFlux_DetCoagP
@@ -30,13 +30,24 @@
       parameter(NFlux_ReminS = 13)   ! Remineralization (SDetN -> NH4)
       parameter(NFlux_ReminL = 14)   ! Remineralization (LDetN -> NH4)
       parameter(NFlux_Nitrif = 15)   ! Nitrification (NH4 -> NO3)
+# ifdef OXYLIM
+      integer NFlux_DenitrS, NFlux_DenitrL
+      parameter(NFlux_DenitrS = 16)  ! Denitrification (SdetC -> DIC, consuming DIC)
+      parameter(NFlux_DenitrL = 17)
+      parameter(NumFluxTermsN = NFlux_DenitrL)
+# else
       parameter(NumFluxTermsN = NFlux_Nitrif)
+# endif /* OXYLIM */
 #   ifdef CARBON
       integer CFlux_Zresp
       integer CFlux_DetCoagD, CFlux_ReminS, CFlux_ReminL, CFlux_Dissolv
       integer NumFluxTermsC
-      ! fluxes of and changes in carbon [mmol C m^-2]
+      ! fluxes of and changes in carbon [mmol C m^-2 s^-1]
+#ifdef OXYLIM
+      parameter(CFlux_Zresp = NFlux_DenitrL + 1)      ! Zoopl. respiration (Zoo. -> DIC)
+#else
       parameter(CFlux_Zresp = NFlux_Nitrif + 1)      ! Zoopl. respiration (Zoo. -> DIC)
+#endif /* OXYLIM */
       parameter(CFlux_DetCoagD = CFlux_Zresp + 1)! Coagul. of det. (SDetC -> LDetC)
       parameter(CFlux_ReminS = CFlux_DetCoagD + 1)  ! Remineralization (SDetC -> NH4)
       parameter(CFlux_ReminL = CFlux_ReminS + 1)    ! Remineralization (LDetC -> NH4)
@@ -81,12 +92,20 @@
 #   ifdef SEDIMENT_BIOLOGY
       integer NFlux_ReminSed, NumSedFluxTerms
       parameter(NFlux_ReminSed = 1) ! Remineralization (Sed. OrgN -> NH4)
-#     ifdef CARBON
+#   ifdef CARBON
+#   ifdef OXYLIM_SED
+      integer NFlux_DenitrSed
+      parameter(NFlux_DenitrSed = NFlux_ReminSed + 1) ! NO3 consumption during benthic denitr
+#   endif /* OXYLIM_SED */
       integer CFlux_ReminSed, CFlux_DissolvSed
+#   ifdef OXYLIM_SED
+      parameter(CFlux_ReminSed = NFlux_DenitrSed + 1) ! Remineralization (Sed. OrgC -> DIC)
+#   else /* OXYLIM_SED */
       parameter(CFlux_ReminSed = NFlux_ReminSed + 1) ! Remineralization (Sed. OrgC -> DIC)
+#   endif /* OXYLIM_SED */
       parameter(CFlux_DissolvSed = CFlux_ReminSed + 1) ! Dissolution of SedCaCO3
       parameter(NumSedFluxTerms = CFlux_DissolvSed)
-#     else /* CARBON */
+#   else /* CARBON */
       parameter(NumSedFluxTerms = NFlux_ReminSed)
 #    endif /* CARBON */
 #   endif /* SEDIMENT_BIOLOGY */

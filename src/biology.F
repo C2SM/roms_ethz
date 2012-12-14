@@ -133,6 +133,11 @@
 # ifdef CARBON
       real SedOrgC, SedCaCO3
 # endif /* CARBON */
+# ifdef OXYGEN
+# ifdef OXYLIM_SED
+      real O2_req, NO3_req, Flc, den
+# endif /* OXYLIM_SED */
+# endif /* OXYGEN */
 #endif /* SEDIMENT_BIOLOGY */
 !
       integer nsink
@@ -202,7 +207,6 @@
       dtsec = dt / float(ITERMAX)           ! time step in seconds
 #endif /* OXYGEN || BGC_FLUX_ANALYSIS */
 
-
 #ifdef CARBON
 ! Set a default value for pCO2 in the air. Will be overwritten if 
 ! VARIABLE_ANN_ATM_PCO2 and/or VARIABLE_ATM_PCO2 is defined:
@@ -211,6 +215,8 @@
 !          pCO2air_loc = 550.0 
 ! For present day
            pCO2air_loc = 370.0
+! For preindustrial
+!          pCO2air_loc = 278.0
 # ifdef VARIABLE_ANN_ATM_PCO2
            ! Compute number of simulated days since the start of the simulation:
            tdays_pco2 = time*sec2day
@@ -540,10 +546,20 @@
 #endif /* DAILYPAR_PHOTOINHIBITION */
           cff2=1.-max(0.,cff1)
           cff=dtdays*t_nitri*cff2  ! linear with a light inhibition term
+
+#ifdef OXYLIM
+! Test to see if water is close to anoxic, if so, then no nitrification
+          if (O2(k) < 4.0) then
+             ThisFlux(k, NFlux_Nitrif) = 0.0
+          else
+#endif /* OXYLIM */
           NH4(k)=NH4(k)/(1.+cff)
           ThisFlux(k, NFlux_Nitrif) = cff*NH4(k)
           NO3(k) = NO3(k) + ThisFlux(k, NFlux_Nitrif)
 !
+#ifdef OXYLIM
+          endif
+#endif /* OXYLIM */
 #ifdef OXYGEN
           ! nitrification term for O2 variable [NH4==>NO3]
           O2(k) = O2(k) - 2. * ThisFlux(k, NFlux_Nitrif)
@@ -618,7 +634,7 @@
 #ifdef CARBON
 !         Zoo respiration of CO2 (rate t_Zbmet + R_C)
           DIC(k) = DIC(k) + ThisFlux(k, NFlux_Zmetab) * CN_Z + 
-     &ThisFlux(k, CFlux_Zresp)
+     &         ThisFlux(k, CFlux_Zresp)
 #endif /* CARBON */
 !
 !         Coagulation of Phyt+SDetN to LDetN
@@ -639,33 +655,68 @@
 #endif /* CARBON */
 !
 !         SDetN recycling to NH4 (remineralization)
+#ifdef OXYLIM
+          if (O2(k) < 4.0) then
+             cff1=dtdays*t_SDremin*0.5
+             ThisFlux(k, NFlux_DenitrS) = 0
+          else
+             cff1=dtdays*t_SDremin
+             ThisFlux(k, NFlux_DenitrS) = 0
+          endif
+#else
           cff1=dtdays*t_SDremin
+#endif /* OXYLIM */
           SDetN(k)=SDetN(k)/(1.+cff1)
           ThisFlux(k, NFlux_ReminS) = SDetN(k) * cff1
           NH4(k) = NH4(k) + ThisFlux(k, NFlux_ReminS)
 !
-#ifdef OXYGEN
-!         Loss of O2 in SDetN/SDetC remineralization
-          O2(k) = O2(k) - ON_NH4 * ThisFlux(k, NFlux_ReminS)
-#endif /* OXYGEN */
-!
 #ifdef CARBON
 !         breakdown of SDetC/SDetN to CO2 from remineralization
+! We might want to modify the max rate of remin if denitrification
+! occurs instead of oxygenic remin - add OXYLIM condition to 
+! cff1 calculated just above -- Sept 2011 LRK - This has been enabled
+! now if O2 is limiting reminerialization rate of C and N is 50% the
+! oxygenic value 
+
           SDetC(k)=SDetC(k)/(1.+cff1)
           ThisFlux(k, CFlux_ReminS) = SDetC(k) * cff1
           DIC(k) = DIC(k) + ThisFlux(k, CFlux_ReminS)
 #endif /* CARBON */
 !
+#ifdef OXYGEN
+# ifdef OXYLIM
+          if (O2(k) < 4.0) then
+             ThisFlux(k, NFlux_DenitrS)=N_CDET*ThisFlux(k, CFlux_ReminS)
+             NO3(k) = NO3(k) - N_CDET * ThisFlux(k, CFlux_ReminS)
+! Account for NO3 consumption via denitrification on alkalinity
+             TALK(k) = TALK(k) + ThisFlux(k, NFlux_DenitrS)
+          else
+!             Loss of O2 in SDetN/SDetC remineralization
+             O2(k) = O2(k) - ON_NH4 * ThisFlux(k, NFlux_ReminS)
+          endif
+# else /* OXYLIM */
+!            Loss of O2 in SDetN/SDetC remineralization
+             O2(k) = O2(k) - ON_NH4 * ThisFlux(k, NFlux_ReminS)
+# endif /* OXYLIM */
+#endif /* OXYGEN */
+
+!
 !         LDetN recycling to NH4 (remineralization)
+
+#ifdef OXYLIM
+          if (O2(k) < 4.0) then
+             cff1=dtdays*(t_LDremin*0.5)
+             ThisFlux(k, NFlux_DenitrL) = 0
+          else
+             cff1=dtdays*t_LDremin
+             ThisFlux(k, NFlux_DenitrL) = 0
+          endif
+#else
           cff1=dtdays*t_LDremin
+#endif /* OXYLIM */
           LDetN(k)=LDetN(k)/(1.+cff1)
           ThisFlux(k, NFlux_ReminL) = LDetN(k) * cff1
           NH4(k) = NH4(k) + ThisFlux(k, NFlux_ReminL)
-!
-#ifdef OXYGEN
-!         Loss of O2 in LDetC/LDetN remineralization
-          O2(k) = O2(k) - ON_NH4 * ThisFlux(k, NFlux_ReminL)
-#endif /* OXYGEN */
 !
 #ifdef CARBON
 !         LDetC breakdown of LDetC to CO2 from remineralization
@@ -679,6 +730,23 @@
           ThisFlux(k, CFlux_Dissolv) = CaCO3(k) * cff1
           DIC(k) = DIC(k) + ThisFlux(k, CFlux_Dissolv)
           TALK(k) = TALK(k) + 2. * ThisFlux(k, CFlux_Dissolv)
+
+#ifdef OXYGEN
+# ifdef OXYLIM
+          if (O2(k) < 4.0) then
+             ThisFlux(k, NFlux_DenitrL)=N_CDET*ThisFlux(k, CFlux_ReminL)
+             NO3(k) = NO3(k) - N_CDET * ThisFlux(k, CFlux_ReminL)
+!            Account for NO3 consumption via denitr on alkalinity 
+             TALK(k) = TALK(k) + ThisFlux(k, NFlux_DenitrL)
+          else
+!            Loss of O2 in SDetN/SDetC remineralization        
+             O2(k) = O2(k) - ON_NH4 * ThisFlux(k, NFlux_ReminL)
+          endif
+# else /* OXYLIM */
+!            Loss of O2 in LDetC/LDetN remineralization
+             O2(k) = O2(k) - ON_NH4 * ThisFlux(k, NFlux_ReminL)
+# endif /* OXYLIM */
+#endif /* OXYGEN */
 #endif /* CARBON */
 !
         end do k_loop3 ! go to the next depth/level
@@ -947,11 +1015,12 @@
         end do k_loop10
 #ifdef BGC_FLUX_ANALYSIS 
 ! Transfer fluxes to global arrays at the end of each biological time step
-! for computational efficiency, divide now by dtsec to get the correct units 
+! for computational efficiency, divide now by dtsec to get the correct units
+!DL: also multiply by box height Hz(i,j,k)
         do iflux = 1, NumFluxTerms
            do k = 1, N
               Flux(i,j,k,iflux) = ( Flux(i,j,k,iflux) +
-     &             ThisFlux(k, iflux) / dt )
+     &             Hz(i,j,k) * ThisFlux(k, iflux) / dt )
 # ifdef MASKING
      &             * rmask(i,j)
 # endif /* MASKING */
@@ -966,7 +1035,7 @@
      &          ThisGasExcFlux(iflux) / float(ITERMAX) )
 # ifdef MASKING
      &          * rmask(i,j)
-# endif /* MASKING */
+# endif
         end do
 #endif /* OXYGEN && BGC_FLUX_ANALYSIS */
 
@@ -1033,9 +1102,46 @@
 !         the sediment concentration is in mmol m-2
           ThisSedFlux(NFlux_ReminSed) = SedOrgN * cff1
           NH4(1) = NH4(1) + ThisSedFlux(NFlux_ReminSed) / Hz(i,j,1)
+
 # ifdef OXYGEN
+# ifdef OXYLIM_SED
+!         Include loss of NO3 from denitrification in the sediments
+!         when O2 is low. Middleburg 1996 parameterization
+          
+          O2_req = ON_NH4*ThisSedFlux(NFlux_ReminSed) / Hz(i,j,1)
+
+          if (O2(1) .lt. O2_req) then
+
+!          Put organic sediment flux into units of umol C cm-2 s-1
+           Flc = ThisSedFlux(NFlux_ReminSed) * (CN_P * 8640)
+
+!         More complicated Middleburg parameterization
+!          den=-2.2567-0.185 * log(Flc)- 0.221 * log(Flc) * 
+!     &         log(Flc) - 0.3995 * log(NO3(1)) * log(O2(1)) + 
+!     &         1.25 * log(NO3(1)) + 0.4721 * log(O2(1)) - 
+!     &         0.0996 * log(h) + o.4256 * log(Flc) * log(O2(1))
+
+          den = -0.9543 + 0.7662 * log(Flc) - 0.235 * log(Flc)*log(Flc)
+
+!         Convert back to mmol N m-2 d-1
+          NO3_req = (exp(den) / CN_P * 10) / Hz(i,j,1)
+
+            if (NO3(1) .ge. NO3_req) then
+               ThisSedFlux(NFlux_DenitrSed) = exp(den) / (CN_P * 8640)
+               NO3(1) = NO3(1) - ThisSedFlux(NFlux_DenitrSed) / Hz(i,j,1)
+            else
+               ThisSedFlux(NFlux_DenitrSed) = 0
+            end if
+          else
+             ThisSedFlux(NFlux_DenitrSed) = 0
+# endif /* OXYLIM_SED */
 !         Loss of O2 in LDetC/LDetN remineralization
           O2(1) = O2(1) - ON_NH4*ThisSedFlux(NFlux_ReminSed) / Hz(i,j,1)
+
+# ifdef OXYLIM_SED
+          end if
+# endif /* OXYLIM_SED */
+
 # endif /* OXYGEN */
 # ifdef CARBON
           SedOrgC=SedOrgC/(1.+cff1)

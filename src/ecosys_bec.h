@@ -32,6 +32,19 @@
 !   variables used for time-averaging
 !--------------------------------------------------------------------------
 # ifdef CH_CARBON_DEPTH
+!ethsigma3_old       real PH_HIST(GLOBAL_2D_ARRAY,N),
+!ethsigma3_old     &   HCO3_HIST(GLOBAL_2D_ARRAY,N),
+!ethsigma3_old     &   CO3_HIST(GLOBAL_2D_ARRAY,N),
+!ethsigma3_old     &   CO2STAR_HIST(GLOBAL_2D_ARRAY,N),
+!ethsigma3_old     &   pCO2sw(GLOBAL_2D_ARRAY,N),
+!ethsigma3_old     &   DCO2STAR_HIST(GLOBAL_2D_ARRAY,N)
+!ethsigma3_old
+!ethsigma3_old       common /time_averaging1/HCO3_HIST, CO3_HIST
+!ethsigma3_old# else
+!ethsigma3_old       real PH_HIST(GLOBAL_2D_ARRAY),
+!ethsigma3_old     &   CO2STAR_HIST(GLOBAL_2D_ARRAY),
+!ethsigma3_old     &   pCO2sw(GLOBAL_2D_ARRAY),
+!ethsigma3_old     &   DCO2STAR_HIST(GLOBAL_2D_ARRAY)
        real PHd_HIST(GLOBAL_2D_ARRAY,N),
      &   HCO3d_HIST(GLOBAL_2D_ARRAY,N),
      &   CO3d_HIST(GLOBAL_2D_ARRAY,N),
@@ -126,7 +139,10 @@
      &    photoFe_sp_HIST(GLOBAL_2D_ARRAY,N),
      &    nitrif_HIST(GLOBAL_2D_ARRAY,N)
 
-
+#ifdef OXYLIM_BEC
+          real denitr_DOC_HIST(GLOBAL_2D_ARRAY,N),
+     &    denitr_POC_HIST(GLOBAL_2D_ARRAY,N)
+#endif
 
        common /time_averaging1/WS_HIST, XKW_HIST, 
      &   AP_HIST, SCHMIDT_O2_HIST, O2SAT_HIST, FG_O2_HIST, 
@@ -161,7 +177,11 @@
      &    DOFe_remin_HIST, DOP_prod_HIST, 
      &    DOP_remin_HIST, bSI_form_HIST, 
      &    photoFe_diaz_HIST, photoFe_diat_HIST, photoFe_sp_HIST,
+#ifdef OXYLIM_BEC
+     &    nitrif_HIST, denitr_DOC_HIST, denitr_POC_HIST
+#else
      &    nitrif_HIST
+#endif
  
 
 !--------------------------------------------------------------------------

@@ -69,6 +69,10 @@
                      ! [mol-O2 (mol-N)-1]
       real ON_NH4    ! O2:N ratio for uptake of ammonium
                      ! [mol-O2 (mol-N)-1]
+#ifdef OXYLIM
+      real N_CDET    ! NO3:DIC ratio for denitrification 
+#endif /*OXYLIM*/
+
 #endif /* OXYGEN */
       real wSDet     !*Sinking velocity for SDetN 
                      ! range:(0. <==> ?);           [m d-1]
@@ -99,6 +103,9 @@
 #if defined OXYGEN
      &     , ON_NO3, ON_NH4
 #endif /* OXYGEN */
+#ifdef OXYLIM
+     &     , N_CDET
+#endif /* OXYLIM */
      &     , wSDet, wLDet, wPhyt
 #ifdef CARBON
      &     , wCaCO3, pHeps
@@ -123,6 +130,9 @@
      &     , t_coag, t_nitri, I_thNH4, D_p5NH4
 #if defined OXYGEN
      &     , ON_NO3, ON_NH4
+#ifdef OXLIM
+     &     , N_CDET
+#endif /* OXYLIM */
 #endif /* OXYGEN */
      &     , wSDet, wLDet, wPhyt
 #ifdef CARBON

@@ -43,7 +43,12 @@
      &    DOFe_remin_AVG, DOP_prod_AVG, 
      &    DOP_remin_AVG, bSI_form_AVG, 
      &    photoFe_diaz_AVG, photoFe_diat_AVG, 
+#ifdef OXYLIM_BEC
+     &    photoFe_sp_AVG, nitrif_AVG, denitr_DOC_AVG,
+     &    denitr_POC_AVG
+#else
      &    photoFe_sp_AVG,nitrif_AVG
+#endif
 
        common /time_avg1/WS_AVG, XKW_AVG, 
      &    AP_AVG, SCHMIDT_O2_AVG, O2SAT_AVG, FG_O2_AVG, 
@@ -79,5 +84,9 @@
      &    DOFe_remin_AVG, DOP_prod_AVG, 
      &    DOP_remin_AVG, bSI_form_AVG, 
      &    photoFe_diaz_AVG, photoFe_diat_AVG, 
+#ifdef OXYLIM_BEC
+     &    photoFe_sp_AVG, nitrif_AVG, denitr_DOC_AVG,
+     &    denitr_POC_AVG
+#else
      &    photoFe_sp_AVG, nitrif_AVG
- 
+#endif

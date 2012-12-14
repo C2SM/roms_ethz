@@ -86,6 +86,9 @@
 #  ifdef OXYGEN
      &     , hisONNO3, hisONNH4
      &     , hisU10, hisKvO2, hisO2sat
+#  ifdef OXYLIM
+     &     , hisNCDET
+#  endif /* OXYLIM */
 #   ifdef CARBON
      &     , hisCNP, hisCNZ, hisrCaCO3orgC
      &     , hisKvCO2, hisCO2sol
@@ -106,6 +109,9 @@
 #  ifdef OXYGEN
      &     , hisONNO3, hisONNH4
      &     , hisU10, hisKvO2, hisO2sat
+#  ifdef OXYLIM
+     &     , hisNCDET
+#  endif /* OXYLIM */
 #   ifdef CARBON
      &     , hisCNP, hisCNZ, hisrCaCO3orgC
      &     , hisKvCO2, hisCO2sol
@@ -145,6 +151,9 @@
 #  ifdef OXYGEN
      &     , avgONNO3, avgONNH4
      &     , avgU10, avgKvO2, avgO2sat
+#  ifdef OXYLIM
+     &     , avgNCDET
+#  endif /* OXYLIM */
 #   ifdef CARBON
      &     , avgCNP, avgCNZ, avgrCaCO3orgC
      &     , avgKvCO2, avgCO2sol
@@ -165,6 +174,9 @@
 #  ifdef OXYGEN
      &     , avgONNO3, avgONNH4
      &     , avgU10, avgKvO2, avgO2sat
+#  ifdef OXYLIM
+     &     , avgNCDET
+#  endif
 #   ifdef CARBON
      &     , avgCNP, avgCNZ, avgrCaCO3orgC
      &     , avgKvCO2, avgCO2sol

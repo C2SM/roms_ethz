@@ -338,6 +338,24 @@
           enddo
         endif
 #  endif
+!DL:
+# ifdef WRITE_DEPTHS
+            do k=1,N
+              do j=jstrR,jendR
+                do i=istrR,iendR
+                  z_r_avg(i,j,k)=z_r(i,j,k)
+                  Hz_avg(i,j,k)=Hz(i,j,k)
+                enddo
+              enddo
+            enddo
+            do k=0,N
+              do j=jstrR,jendR
+                do i=istrR,iendR
+                  z_w_avg(i,j,k)=z_w(i,j,k)
+                enddo
+              enddo
+            enddo
+# endif /* WRITE_DEPTHS */
 # endif /* SOLVE3D */
         elseif (mod(iic-ntsAVR,nAVR).gt.1) then
           if (ZEROTH_TILE) time_AVR=time_AVR+time
@@ -544,6 +562,24 @@
           enddo
         endif
 #  endif
+!DL:
+# ifdef WRITE_DEPTHS
+            do k=1,N
+              do j=jstrR,jendR
+                do i=istrR,iendR
+                  z_r_avg(i,j,k)=z_r_avg(i,j,k)+z_r(i,j,k)
+                  Hz_avg(i,j,k)=Hz_avg(i,j,k)+Hz(i,j,k)
+                enddo
+              enddo
+            enddo
+            do k=0,N
+              do j=jstrR,jendR
+                do i=istrR,iendR
+                  z_w_avg(i,j,k)=z_w_avg(i,j,k)+z_w(i,j,k)
+                enddo
+              enddo
+            enddo
+# endif /* WRITE_DEPTHS */
 # endif /* SOLVE3D */
         elseif (mod(iic-ntsAVR,nAVR).eq.0) then
           cff=1./float(nAVR)
@@ -758,6 +794,24 @@
           enddo
         endif
 #  endif
+!DL:
+# ifdef WRITE_DEPTHS
+            do k=1,N
+              do j=jstrR,jendR
+                do i=istrR,iendR
+                  z_r_avg(i,j,k)=cff*(z_r_avg(i,j,k)+z_r(i,j,k))
+                  Hz_avg(i,j,k)=cff*(Hz_avg(i,j,k)+Hz(i,j,k))
+                enddo
+              enddo
+            enddo
+            do k=0,N
+              do j=jstrR,jendR
+                do i=istrR,iendR
+                  z_w_avg(i,j,k)=cff*(z_w_avg(i,j,k)+z_w(i,j,k))
+                enddo
+              enddo
+            enddo
+# endif /* WRITE_DEPTHS */
 # endif /* SOLVE3D */
         endif
       endif       !<-- iic.gt.ntsAVR
