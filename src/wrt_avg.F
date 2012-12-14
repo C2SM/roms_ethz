@@ -556,7 +556,7 @@ CR      write(*,*) 'wrt_avr:  wrtT_sed  ' MYID
 !
 ! depths at w points:
 !
-      ierr=nf_fwrite (z_w_avg(START_2D_ARRAY,1), ncidavg,
+      ierr=nf_fwrite (z_w_avg(START_2D_ARRAY,0), ncidavg,
      &                              avgz_w, record, w3dvar)
       if (ierr .ne. nf_noerr) then
         lvar=lenstr(vname(1,indxz_w))

@@ -187,7 +187,7 @@ c      enddo
           visc2_r(i,j)=visc2_r(i,j)+v_sponge*wrk(i,j)
 #   endif
 #   if defined SOLVE3D && defined TS_DIF2
-#    ifdef PACIFIC || ONE_DIM
+#    if defined PACIFIC || defined ONE_DIM
           diff2(i,j,itemp)=diff2(i,j,itemp)+0.5*v_sponge*wrk(i,j)
 #    else
           diff2(i,j,itemp)=diff2(i,j,itemp)+v_sponge*wrk(i,j)
