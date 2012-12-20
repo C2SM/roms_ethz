@@ -47,14 +47,14 @@ CPPFLAGS = -D__IFC -I$(MPI_ROOT)/include -I$(NETCDF)/include
 # and -i-dynamic (ensures proper linking with Intel dynamic libraries
 # must be specified.
 # LARGE_MEM_FLAG = -mcmodel=medium -i-dynamic
-LARGE_MEM_FLAG= -mcmodel=small -shared-intel
+LARGE_MEM_FLAG=  -mcmodel=small  -shared-intel
 OMP_FLAG = # -fpp2 -openmp
 
 
 FC =mpif90 
 LDR = $(FC)
 
-FFLAGS =  $(OMP_FLAG) -pc80 -msse2 -auto -stack_temps      -O3 -IPF_fma -ip $(LARGE_MEM_FLAG) # -assume 2underscores
+FFLAGS =  $(OMP_FLAG) -pc80 -132 -msse2 -auto -stack_temps      -O3 -IPF_fma -ip $(LARGE_MEM_FLAG) # -assume 2underscores
 # Some usefule debugging options 
 #   FFLAGS = -g -check all -CA -CB -CS
 
@@ -62,8 +62,8 @@ FFLAGS =  $(OMP_FLAG) -pc80 -msse2 -auto -stack_temps      -O3 -IPF_fma -ip $(LA
 COMP_FILES = work.pc work.pcl ifort*
 
 
-LCDF = -L$(NETCDF)/lib -lnetcdff -lnetcdf
-#LCDF = -L/opt/netcdf/3.6.2/lib -lnetcdf
+#LCDF = -L$(NETCDF)/lib -lnetcdff -lnetcdf
+LCDF = -L/opt/netcdf/3.6.2/lib -lnetcdf
 #LCDF =-L/cluster/home/uwis/muennicm/local/netcdf/4.1.3/lib -L/cluster/home/uwis/muennicm/local/hdf5/1.8.6/lib -lhdf5_hl -lhdf5 -lz -lnetcdff -lnetcdf -lhdf5_hl -lhdf5 -lm /usr/lib64/libcurl.so.4 
 
 
