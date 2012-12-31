@@ -407,13 +407,13 @@ c--      fname='roms.in.US_West'
           read(input,*,err=95) ntsavg, navg, nrpfavg
           read(input,'(A)',err=95) fname
           lstr=lenstr(fname)
-          avgname=fname(1:lstr)
 # if defined MPI && defined PARALLEL_FILES
           call insert_node (fname, lstr, mynode, NNODES, ierr)
 # endif
+          avgname=fname(1:lstr)
           MPI_master_only write(stdout,
      &           '(2(I10,2x,A,1x,A/32x,A/),6x,A,2x,A,1x,A,I3)')
-     &      ntsavg, 'ntsavg      Starting timestep for the',
+     &      ntsavg, 'ntsavg      Starting timestep for the ',
      &           'accumulation of output', 'time-averaged data.',
      &      navg,   'navg        Number of timesteps between',
      &     'writing of time-averaged','data into averages file.',
@@ -429,7 +429,6 @@ c--      fname='roms.in.US_West'
           read(input,*,err=95) ksl, ntsslavg, nslavg, nrpfslavg
           read(input,'(A)',err=95) fname
           lstr=lenstr(fname)
-          slavgname=fname(1:lstr)
 # if defined MPI && defined PARALLEL_FILES
           call insert_node (fname, lstr, mynode, NNODES, ierr)
 # endif
@@ -437,8 +436,8 @@ c--      fname='roms.in.US_West'
           MPI_master_only write(stdout,
      &          '(I4,2x,A/2(I10,2x,A,1x,A/32x,A/),6x,A,2x,A,1x,A,I3)')
      &      ksl,      'ksl         Sigma level to average.',
-     &      ntsslavg, 'ntsslavg      Starting timestep for the.',
-     &           'accumulation of output', 'time-averaged data.',
+     &      ntsslavg, 'ntsslavg      Starting timestep for the ',
+     &          'accumulation of output', 'time-averaged slice data.',
      &      nslavg,   'nslavg        Number of timesteps between',
      &     'writing of time-averaged','data into averages file.',
      &     'Slice averages file:  ', slavgname(1:lstr),
