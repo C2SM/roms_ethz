@@ -46,7 +46,7 @@
 #else
      &                                        , node,  nnodes
 #endif
-      parameter (digits=6)
+      parameter (digits=5)
       logical leading_dots
       ndots=0                            ! Determine how many dots
       leading_dots=.true.                ! are present in the string.
