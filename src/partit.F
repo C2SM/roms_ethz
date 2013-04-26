@@ -5,10 +5,13 @@
 ! data corresponding to different subdomains. These files can be
 ! then read in parallel by different MPI processes.
 !
-! Usage:  partit NP_XI NP_ETA ncname1 ... ncnameN
+! Usage:  partit [-s minrec] [-m maxrec] NP_XI NP_ETA ncname1 ... ncnameN
 ! ------  where NP_XI  number of subdomains along XI-direction
 !               NP_ETA number of subdomains along ETA-direction
 !               ncname1 ... ncnameN  names of netCDF files
+!               minrec: 1st record in partioned output
+!               maxrec: last record in partioned output
+!               
 !
 ! Non-partitionable objects of netCDF files, such as scalar variables
 ! and attributes (both global and attributes to variables) are copied
@@ -39,6 +42,16 @@
 ! partial files.
 !
 
+#define NETCDF4
+#define NCCOMPRESS
+
+#ifdef NETCDF4
+# define NCFILEFORMAT nf_netcdf4
+#else
+# define NCFILEFORMAT nf_64bit_offset
+#endif
+
+
 c--#define VERBOSE
 
       implicit none
@@ -54,6 +67,7 @@ c--#define VERBOSE
      &        ierr,    eta_v,   id_eta_v,   id_eta_u,
      &        ndims, nvars,  ngatts, tsize,   unlimdimid, varatts,
      &        i,j,k, ncsrc,  lvar,   size,  rec, lstr, lsrc,  lenstr
+     &        , minrec, maxrec, karg
 
       character(len=80), allocatable, dimension(:) :: ncname
       integer, allocatable, dimension(:) :: ncid, xi_start, xi_size,
@@ -73,6 +87,12 @@ c--#define VERBOSE
 
       real*8, allocatable, dimension(:) ::  buff
 
+#ifdef NCCOMPRESS
+      ! If compressed file set compression level
+      integer ncshuff, ncdefl, nclev, ncctg
+      data ncshuff, ncdefl, nclev, ncctg / 1, 1, 1, 0 /
+#endif
+
 
                     ! Function "iargc" is viewed as intrinsic by
 #if defined AIX || defined PGI      /* ! most modern compilers and does not need to  */
@@ -86,13 +106,41 @@ c--#define VERBOSE
 ! arguments.
 !
       narg=iargc()
+      karg = 1
       if (narg .lt. 3) then
         write(*,'(/1x,A/32x,A/)')      'Usage of partit should be:',
      &                       'partit NP_X NP_E ncname1 ... ncnameN'
         stop
       endif
  
-      call getarg(1,string)
+!
+! mm: let the user specify start and end of records to put into 
+!      the partitioned files
+!
+
+      minrec = 1
+      maxrec = -1
+ 1    continue
+        call getarg(karg,string)
+        karg = karg + 1
+        if (index(string,'-s') == 1) then
+          call getarg(karg,string)
+          karg = karg +1
+          string = adjustl(string)
+          print'(3A)','s-string: >',string,'<'
+          read(string,*) minrec
+          go to 1
+        endif
+        if ( index(string,'-m') == 1) then
+          call getarg(karg,string)
+          karg = karg +1
+          string = adjustl(string)
+          print'(3A)','m-string: >',string,'<'
+          read(string,*) maxrec
+          go to 1
+        endif
+      print *, 'minrec = ',minrec, ', maxrec = ',maxrec
+
       lvar=lenstr(string)
       NP_XI=0
       do i=1,lvar
@@ -106,7 +154,8 @@ c--#define VERBOSE
         endif
       enddo
  
-      call getarg(2,string)
+      call getarg(karg,string)
+      karg = karg + 1
       lvar=lenstr(string)
       NP_ETA=0
       do i=1,lvar
@@ -144,7 +193,7 @@ c--#define VERBOSE
 ! about error if it already partitioned, or if number of
 ! variables and/or dimensions exceeds specified limits.
 !
-      do arg=3,narg
+      do arg=karg,narg
         call getarg(arg,src_name)
         lsrc=lenstr(src_name)
         ierr=nf_open (src_name(1:lsrc), nf_nowrite, ncsrc)
@@ -311,7 +360,7 @@ c--#define VERBOSE
           call insert_node (ncname(node), lstr, node, nnodes, ierr)
 
           if (ierr. eq. 0) then 
-            ierr=nf_create (ncname(node)(1:lstr), nf_64bit_offset,
+            ierr=nf_create (ncname(node)(1:lstr), NCFILEFORMAT,
 c**                                          nf_clobber,
      &                                            ncid(node))
             if (ierr .eq. nf_noerr) then
@@ -495,6 +544,11 @@ c**         write(*,*) 'new_dimids:',    (ibuff(j),j=1,vardims(i))
             do node=0,nnodes-1
               ierr=nf_def_var (ncid(node), varname(i)(1:lvar),
      &                vartype(i), vardims(i), ibuff, varid(i))
+#ifdef NCCOMPRESS
+              ierr=nf_def_var_deflate(ncid(node), varid(i), ncshuff
+     &                                 , ncdefl, nclev)
+#endif
+
 #ifdef VERBOSE
               if (ierr.eq.nf_noerr) then
                 write(*,'(I3,3A,T36,2(A,I3,1x),2(1x,A,L1),1x,A,I4)')
@@ -535,7 +589,12 @@ c          ierr=nf_set_fill (ncid(node), nf_nofill, i)
 !
 ! Transfer variables into newly created files.
 !
-        do rec=1,max(tsize,1)
+        if (maxrec < 0) then
+          maxrec = max(tsize,1)
+        else
+          maxrec = min(max(tsize,1),maxrec)
+        endif
+        do rec=minrec,maxrec
           if (tsize.gt.1) write(*,'(8x,2(1x,A,I5))')
      &      'Processing record', rec, 'out of', tsize
           do i=1,nvars
@@ -605,9 +664,11 @@ c          ierr=nf_set_fill (ncid(node), nf_nofill, i)
                 do j=1,vardims(i)
                   if (dimids(j,i).eq.unlimdimid) then
                     start(j)=rec
+                    start1(j)=rec-minrec+1
                     count(j)=1
                   else
                     start(j)=1
+                    start1(j)=1
                     count(j)=dimsize(dimids(j,i))
                   endif
                   size=size*count(j)
@@ -652,16 +713,16 @@ c          ierr=nf_set_fill (ncid(node), nf_nofill, i)
                   do node=0,nnodes-1
                     if (vartype(i) .eq. nf_char) then
                       ierr=nf_put_vara_text   (ncid(node), varid(i),
-     &                                           start, count, buff)
+     &                                           start1, count, buff)
                     elseif (vartype(i) .eq. nf_int) then
                       ierr=nf_put_vara_int    (ncid(node), varid(i),
-     &                                           start, count, buff)
+     &                                           start1, count, buff)
                     elseif (vartype(i) .eq. nf_float) then
                       ierr=nf_put_vara_real   (ncid(node), varid(i),
-     &                                           start, count, buff)
+     &                                           start1, count, buff)
                     elseif (vartype(i) .eq. nf_double) then
                       ierr=nf_put_vara_double (ncid(node), varid(i),
-     &                                           start, count, buff)
+     &                                           start1, count, buff)
                     endif
                     if (ierr .ne. nf_noerr) then
                       lvar=lenstr(varname(i))
@@ -742,7 +803,7 @@ c          ierr=nf_set_fill (ncid(node), nf_nofill, i)
                     elseif (dimids(j,i).eq.unlimdimid) then
                       start(j)=rec
                       count(j)=1
-                      start1(j)=rec
+                      start1(j)=rec-minrec+1
                     else
                       start(j)=1
                       count(j)=dimsize(dimids(j,i))
