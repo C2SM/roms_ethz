@@ -526,9 +526,11 @@ CR      write(*,*) 'wrt_his:  wrtHBL' MYID
      &               '/', nrechis
 CR     &                MYID
       else
-        write(stdout,'(/1x,2A/)') 'ERROR in wrt_his: Can not ',
+!mm        write(stdout,'(/1x,2A/)') 'ERROR in wrt_his: Can not ',
+!mm     &                 'synchronize/close history netCDF file.'
+        write(stdout,'(/1x,2A/)') 'WARNING in wrt_his: Could not ',
      &                 'synchronize/close history netCDF file.'
-        may_day_flag=3
+!mm         may_day_flag=3
       endif
 #if defined MPI && !defined PARALLEL_FILES
       if (mynode .lt. NNODES-1) call MPI_Send (blank, 1, MPI_INTEGER,
