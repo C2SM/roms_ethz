@@ -416,6 +416,11 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
         lvar=lenstr(vname(3,indxTime))
         ierr=nf_put_att_text (ncid, vidTime, 'units',  lvar,
      &                                vname(3,indxTime)(1:lvar))
+#ifdef CALENDAR
+        lvar=lenstr(CALENDAR)
+        ierr=nf_put_att_text (ncid, vidTime, 'calendar',  lvar,
+     &                      CALENDAR)
+#endif
 !
 ! Free-surface.
 !
