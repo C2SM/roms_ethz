@@ -246,28 +246,26 @@ C$OMP BARRIER
 #ifdef AVERAGES
       if (nrpfavg.ne.0 .and. mod(nrecavg, nrpfavg).gt.0 
      &   .and. ldefhis) then
-         write (*,*) 
-         write (*,'(a,1x,a,i10,1x,2a)') 
-     &       'WARNING: first averages record will be',
+         MPI_master_only write (stdout,'(2a,i10,2a/)') 
+     &       'WARNING: first averages record will be ',
      &       'written into record ', mod(nrecavg, nrpfavg)+1,
-     &       'of file ', avgname
-         write (*,'(2a,1x,a)') 'You have chosen to create a NEW ', 
-     &        avgname, 'by setting ldefhis to true.'
-         write (*,*) 'Are you sure that this is what you want?'
-         write (*,*)
+     &       ' of average file ', avgname
+         MPI_master_only write (*,'(a,2(a/))') 
+     &   'You have chosen to create a NEW ', 
+     &   'average file by setting ldefhis to true.  ',
+     &   'Are you sure that this is what you want?'
       end if
 #endif
       if ( nrpfhis.ne.0 .and. mod(nrechis-1, nrpfhis).gt.0 
      &     .and. ldefhis ) then
-         write (*,*) 
-         write (*,'(a,1x,a,i10,1x,2a)') 
+         MPI_master_only write (stdout,'(2a,i10,2a/)') 
      &       'WARNING: first history record will be',
      &       'written into record ', mod(nrechis-1, nrpfhis)+1,
-     &       'of file ', hisname
-         write (*,'(2a,1x,a)') 'You have chosen to create a NEW ', 
-     &       hisname, 'by setting ldefhis to true.'
-         write (*,*) 'Are you sure that this is what you want?'
-         write (*,*)
+     &       'of history file ', hisname
+         MPI_master_only write (*,'(a,2(a/))') 
+     &    'You have chosen to create a NEW ', 
+     &    'history file by setting ldefhis to true.  ',
+     &    'Are you sure that this is what you want?'
       end if
 !End DL
 
