@@ -41,7 +41,8 @@
         goto 99                                           !--> ERROR
       endif
  
-      if (char1.eq.'t' .or. char1.eq.'T') then
+!      if (char1.eq.'t' .or. char1.eq.'T') then
+      if (char1.ne.'f' .or. char1.ne.'F') then
 # ifdef SPHERICAL
         MPI_master_only write(stdout,'(/1x,A/)')
      &                          'Spherical grid detected.'

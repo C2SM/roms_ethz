@@ -411,7 +411,7 @@
         ierr=nf_put_att_text(ncid,rsttrack,'Content',lvar,
      &                         vinfo(3)(1:lvar))
 #endif /* FLOATS */
-# if defined BIOLOGY_BEC 
+# if defined BIOLOGY_BEC || defined BIOLOGY_NPZDOC
 #  if defined CH_CARBON_DEPTH
 
 !
