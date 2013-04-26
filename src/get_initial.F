@@ -161,6 +161,9 @@
       if (ierr .ne. nf_noerr) then
         ierr=nf_inq_varid (ncid, 'scrum_time', varid)
       endif
+      if (ierr .ne. nf_noerr) then
+        ierr=nf_inq_varid (ncid, 'ocean_time', varid)
+      endif
 
       if (ierr .eq. nf_noerr) then
         ierr=nf_get_var1_FTYPE (ncid, varid, record, start_time)

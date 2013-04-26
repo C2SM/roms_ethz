@@ -155,9 +155,14 @@ cc      write(*,*) 'kmp_stacksize =', size
 !
 c--#define CR
 CR      write(stdout,'(1x,A,I3)') 'indxTime =',indxTime
+#ifdef CALENDAR
+      vname(1,indxTime)='time                                      '
+      vname(3,indxTime)='second since 0001-01-01 00:00:00          '
+#else
       vname(1,indxTime)='ocean_time                                '
-      vname(2,indxTime)='time since initialization                 '
       vname(3,indxTime)='second                                    '
+#endif
+      vname(2,indxTime)='time since initialization                 '
  
 CR      write(stdout,'(1x,A,I3)') 'indxZ =',indxZ
       vname(1,indxZ)='zeta                                      '
