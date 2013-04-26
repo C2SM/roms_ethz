@@ -98,6 +98,7 @@
                 ierr=nf_get_att_FTYPE (ncid, varid, attname(1:latt),
      &                                                 cycle_length)
                 if (ierr.eq.nf_noerr) then
+                 if (cycle_length>0) then
                   irec=0
                   do while (irec.lt.ntime) 
                     irec=irec+1
@@ -121,6 +122,7 @@
 
                   irec=1
                   cycle_length=cycle_length*day2sec
+                 endif
                 else
                   write(*,'(/1x,4A/12x,A)')  '### ERROR: set_cycle ',
      &                ':: Cannot read attribute ''', attname(1:latt),
