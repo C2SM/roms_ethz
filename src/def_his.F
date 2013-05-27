@@ -420,6 +420,10 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
         lvar=lenstr(CALENDAR)
         ierr=nf_put_att_text (ncid, vidTime, 'calendar',  lvar,
      &                      CALENDAR)
+#else
+        lvar=lenstr('360_day')
+        ierr=nf_put_att_text (ncid, vidTime, 'calendar',  lvar,
+     &                       '360_day')
 #endif
 !
 ! Free-surface.
