@@ -32,7 +32,7 @@
 
 #define NETCDF4
 #define NCCOMPRESS
-#define VERBOSE
+!--> #define VERBOSE
 
 
 #define FAST_MODE
@@ -628,7 +628,18 @@ c   &              ',', j, ' which already defined in another file.'
               dimsize(i,nnodes)=dimsize(i,0)
               do node=1,nnodes-1
                 if (dimsize(i,0).ne.dimsize(i,node)) then
-                  write(*,'(/1x,A,I3,3A,I4,1x,A/12x,4A/12x,3A,I4/)')
+                  if (i .eq. unlimdimid) then
+
+                    write(*,'(/1x,A,I3,3A,I4,1x,A/12x,4A/12x,3A,I4/)')
+     &                '### WARNING: Nonpartitioned dimension #',   i,
+     &                ', named ''', dimname(i)(1:lvar), ''', size =',
+     &                 dimsize(i,node),    'in ',   'netCDF file ''',
+     &                 ncname(node)(1:lstr),     ''' has different ',
+     &                'size than similar',  'dimension from file ''',
+     &                 ncname(0)(1:lstr),     ''', which has size =',
+     &                                                  dimsize(i,0)
+                  else
+                    write(*,'(/1x,A,I3,3A,I4,1x,A/12x,4A/12x,3A,I4/)')
      &                '### ERROR: Nonpartitioned dimension #',     i,
      &                ', named ''', dimname(i)(1:lvar), ''', size =',
      &                 dimsize(i,node),    'in ',   'netCDF file ''',
@@ -636,7 +647,8 @@ c   &              ',', j, ' which already defined in another file.'
      &                'size than similar',  'dimension from file ''',
      &                 ncname(0)(1:lstr),     ''', which has size =',
      &                                                  dimsize(i,0)
-                  goto 97
+                    goto 97
+                  endif
                 endif
               enddo
               if (lvar.eq.5 .and. dimname(i)(1:lvar).eq.'s_rho') then
@@ -1259,7 +1271,7 @@ c?                  endif
 #endif
 
 # ifdef VERBOSE
-                      write(*,'(3x,A,I3,1x,A,3(I6,1x,A),$)')  
+                      write(*,'(3x,A,I5,1x,A,3(I6,1x,A),$)')  
      &               'node =',node,
      &               'ncid=',ncid(node), 'xi_start =',xi_start(node),
      &                  'eta_start =',eta_start(node),  'reading...'

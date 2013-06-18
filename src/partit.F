@@ -596,7 +596,7 @@ c          ierr=nf_set_fill (ncid(node), nf_nofill, i)
         endif
         do rec=minrec,maxrec
           if (tsize.gt.1) write(*,'(8x,2(1x,A,I5))')
-     &      'Processing record', rec, 'out of', tsize
+     &      'Processing record', rec, 'out of ', tsize
           do i=1,nvars
 #ifdef VERBOSE
             if (tsize.eq.1) then
