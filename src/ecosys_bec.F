@@ -249,7 +249,7 @@
            ! Compute where in which year we are:
            curr_year = start_year + get_frac_year(tdays_pco2)
            ! Determine atm pco2:
-           call get_atmco2(curr_year,futr_scen,atm_co2)
+           call get_atmco2(curr_year,atm_co2)
            XCO2 = atm_co2           
 # endif
 # ifdef VARIABLE_ATM_PCO2
