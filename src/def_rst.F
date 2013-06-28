@@ -411,7 +411,8 @@
         ierr=nf_put_att_text(ncid,rsttrack,'Content',lvar,
      &                         vinfo(3)(1:lvar))
 #endif /* FLOATS */
-# if defined BIOLOGY_BEC 
+# if defined BIOLOGY_BEC || (defined BIOLOGY_NPZDOC && \
+    defined OXYGEN && defined CARBON)
 #  if defined CH_CARBON_DEPTH
 
 !
@@ -674,7 +675,8 @@
         enddo
 # endif /* SEDIMENT_BIOLOGY */
 
-# if defined BIOLOGY_BEC 
+# if defined BIOLOGY_BEC || (defined BIOLOGY_NPZDOC && \
+    defined OXYGEN && defined CARBON)
 !#ifdef CH_CARBON_DEPTH
 !
 ! HCO3:
@@ -716,7 +718,7 @@
 !        endif
 !#else
 
-#endif CH_CARBON_DEPTH
+#endif /* CH_CARBON_DEPTH */
 
 !
 ! PH
