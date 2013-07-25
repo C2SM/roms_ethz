@@ -1,0 +1,28 @@
+#!/bin/bash
+# Create or move output tree for ROMS
+# USAGE $0 tree_root [tree_root]
+
+subdirs="rst his avg slavg bgc_flux phys_flux floats"
+
+if (( $# > 1 )) ; then
+   #echo moving tree
+   for d in $subdirs ; do
+      if [ -d $1/$d ] ; then
+         if [ ! -d $2/$d ] ; then
+            mkdir -p $2/$d
+         fi
+         mv $1/$d/* $2/$d 2>/dev/null
+         rmdir $1/$d
+      fi
+   done
+   if [ -d $1 ] ; then
+      rmdir $1
+   fi
+else
+   #echo making tree
+   for d in $subdirs ; do
+      if [ ! -d $1/$d ] ; then
+         mkdir -p $1/$d
+      fi
+   done
+fi
