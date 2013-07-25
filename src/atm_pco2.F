@@ -52,37 +52,37 @@ c
 c-----------------------------------------------------------------------
 c     local variables
 c-----------------------------------------------------------------------
-c	
+c    
       integer maxrec
       parameter (maxrec=1200)
       
-      real, intent(in)	:: pert_time
+      real, intent(in)    :: pert_time
 c      character*4, intent(in):: futr_scen
-      real, intent(out)	:: atmco2_out
+      real, intent(out)    :: atmco2_out
       
-      integer, save		:: nrec_co2
-      real, save	:: year_co2(maxrec), atmco2(maxrec)
+      integer, save    :: nrec_co2
+      real, save    :: year_co2(maxrec), atmco2(maxrec)
   
       integer :: n
 
 !DL: the following change is necessary due to mpc, the version with
 !DL two colons is not handled correctly.
-!DL      real	:: yr
-!DL      real	:: x
+!DL      real    :: yr
+!DL      real    :: x
       real x, yr
 
-      integer, save	:: ientry = 0
+      integer, save    :: ientry = 0
 
       real yrco2min, yrco2max
-c      real, parameter	:: yrco2min = 1765.0
-c      real, parameter	:: yrco2max = 2300.5
+c      real, parameter    :: yrco2min = 1765.0
+c      real, parameter    :: yrco2max = 2300.5
 c
 c-----------------------------------------------------------------------
 c     Counter "ientry" for number of entries in this SUBROUTINE
 c     (Read atmospheric records on 1st entry ONLY)
 c     use CIS9 scenario
 c-----------------------------------------------------------------------
-c	
+c
       ientry = ientry + 1
 
       if (ientry .eq. 1) then
@@ -93,7 +93,7 @@ c
 c-----------------------------------------------------------------------
 c     assign perturbation time (real years e.g. 1935.67)
 c-----------------------------------------------------------------------
-c	
+c
       yrco2min = year_co2(1)
       yrco2max = year_co2(nrec_co2)
       if (pert_time .lt. yrco2min) then 
@@ -108,20 +108,20 @@ c
 c-----------------------------------------------------------------------
 c     Find relative POSITION n for pert_time in CO2 record
 c-----------------------------------------------------------------------
-c	
+c
       call locate(year_co2,nrec_co2, yr, n)
 c
 c-----------------------------------------------------------------------
 c     Determine linear interpolation factor "x"
 c-----------------------------------------------------------------------
-c	
+c
       x = (yr - year_co2(n)) / (year_co2(n+1) - year_co2(n))
 c
 c-----------------------------------------------------------------------
 c     Perform temporal interpolation for atmospheric CO2, subtract
 c      pre-industrial concentration to get perturbation CO2
 c-----------------------------------------------------------------------
-c    
+c
 !DL      pert_atmco2 = (atmco2(n) * (1. - x) + atmco2(n+1) * x) -
 !     *     atmco2(1)
       atmco2_out = atmco2(n) * (1. - x) + atmco2(n+1) * x
@@ -203,11 +203,11 @@ c
       integer maxrec
       parameter (maxrec=1200)
       
-      integer , intent(out)		:: nco2rec
-      real, intent(out)	:: yrco2rec(maxrec), atmco2rec(maxrec)
+      integer , intent(out)    :: nco2rec
+      real, intent(out)    :: yrco2rec(maxrec), atmco2rec(maxrec)
       integer irec
       
-c      integer	:: lun(3), irec
+c      integer    :: lun(3), irec
 c      integer is, ifuture, ireadf
 c      integer nsipl, nstab
       
@@ -230,7 +230,7 @@ c
 c-----------------------------------------------------------------------
 c     give info
 c-----------------------------------------------------------------------
-c      
+c
 !      write(*,*) '  '
 !      write(*,'(a)') 'File atm_pco2.dat opened.'      
 c
@@ -297,38 +297,38 @@ c
 c =====================================================================
 c
 
-	subroutine locate(xx,n,x,j) !{
+      subroutine locate(xx,n,x,j) !{
 c
 c-----------------------------------------------------------------------
 c     local variables
 c-----------------------------------------------------------------------
-c	
-	integer, intent(in)	:: n
-	real, intent(in)	:: x
-	real, dimension(n), intent(in)	:: xx
-	integer, intent(out)	:: j
+c
+      integer, intent(in)      :: n
+      real, intent(in)      :: x
+      real, dimension(n), intent(in)      :: xx
+      integer, intent(out)      :: j
 c
 c =====================================================================
 c     begin of executable code
 c =====================================================================
-c	
-	jl = 0
-	ju = n+1
- 10	continue
-	if (ju - jl .gt. 1) then
-	   jm = (ju + jl) / 2
-	   if ((xx(n) .gt. xx(1)) .eqv. (x .gt. xx(jm))) then
-	      jl = jm
-	   else
-	      ju = jm
-	   endif
-	   go to 10
-	endif
-	j = jl
+c
+      jl = 0
+      ju = n+1
+ 10   continue
+      if (ju - jl .gt. 1) then
+         jm = (ju + jl) / 2
+      if ((xx(n) .gt. xx(1)) .eqv. (x .gt. xx(jm))) then
+         jl = jm
+      else
+         ju = jm
+      endif
+      go to 10
+      endif
+      j = jl
 c     
 c-----------------------------------------------------------------------
 c     end of subroutine
 c-----------------------------------------------------------------------
 c
-	return
-	end subroutine  locate  !}
+      return
+      end subroutine  locate  !}
