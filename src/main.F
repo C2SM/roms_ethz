@@ -8,6 +8,9 @@
 # include "param.h"
 # ifdef MPI
 #  include "mpif.h"
+#ifdef SCRATCH_DIR
+      character*256 scr_cmd, outdir
+#endif
 
       ierr=1 
 C$    req_lev=MPI_THREAD_MULTIPLE
@@ -17,6 +20,12 @@ C$    ierr=0
       if (ierr.eq.1) call MPI_Init (ierr)
 
       call mpi_setup (ierr)
+#ifdef SCRATCH_DIR
+      call getenv('TMPDIR',outdir)
+      write(scr_cmd,'(2A)') 'make_tree ', trim(outdir)
+      call system(scr_cmd)
+      MPI_master_only print'(a/a)','Executed system command: ',scr_cmd
+#endif
       tstart=MPI_Wtime()
 c**   call MPI_Test
       if (ierr.ne.0) goto 100
@@ -48,6 +57,14 @@ C$OMP END PARALLEL
  100  continue
 # ifdef MPI
       call MPI_Barrier(ocean_grid_comm, ierr)
+#  ifdef SCRATCH_DIR
+      write(scr_cmd,'(3A)') 'move_tree ', trim(outdir), ' .'
+      call system(scr_cmd)
+      MPI_master_only print'(a/a)','Executed system command: ',scr_cmd
+      write(scr_cmd,'(A,I4.4,A)') 'rm  out_', mynode, ' 2>/dev/null'
+      call system(scr_cmd)
+      MPI_master_only print'(a/a)','Executed system command: ',scr_cmd
+#  endif
       tend=MPI_Wtime()
       MPI_master_only write(*,*) 'run_time =', tend-tstart
       call MPI_Finalize (ierr)
