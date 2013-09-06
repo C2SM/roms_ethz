@@ -1,3 +1,5 @@
+#include "cppdefs.h"
+
 #ifdef HINDCAST
 c =====================================================================
 c
@@ -333,7 +335,7 @@ c-----------------------------------------------------------------------
 c
        return
        end subroutine  locate  !}
-#elif FUTURE_SCENARIO
+#elif defined FUTURE_SCENARIO
 c =====================================================================
 c
 c     SUBROUTINE get_atmco2

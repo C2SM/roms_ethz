@@ -223,8 +223,12 @@
            ! Compute where in which year we are:
            curr_year = start_year + get_frac_year(tdays_pco2)
            ! Determine atm pco2:
+#  ifdef HINDCAST
+           call get_atmco2(curr_year,pCO2air_loc)
+#  elif defined FUTURE_SCENARIO
            call get_atmco2(curr_year,futr_scen,pCO2air_loc)
-# endif
+#  endif /* HINDCAST */
+# endif /* VARIABLE_ANN_ATM_PCO2 */
 # ifdef VARIABLE_ATM_PCO2
       ! the factor deg2rad converts 360d into one full cycle of 2 pi
       ! the subtraction of 30d ensures that the maximum is reached
