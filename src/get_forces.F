@@ -61,6 +61,9 @@
         if (ierr.eq.0)  call get_dust(ierr)
         if (ierr.eq.0)  call get_iron(ierr)
 # endif
+# ifdef PCO2AIR_FORCING
+        if (ierr.eq.0)  call get_pCO2air(ierr)
+# endif
 # if (defined LMD_KPP || defined LMD_BKPP) && !defined ANA_SRFLUX
       if (ierr.eq.0) call get_srflux (ierr)
 # endif

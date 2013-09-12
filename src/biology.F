@@ -306,6 +306,12 @@
 # ifdef MASKING
         rmask_if: if (rmask(i,j) .eq. 1) then
 # endif /* MASKING */
+# ifdef PCO2AIR_FORCING
+!
+!     pCO2air is a input forcing field 
+! 
+      pCO2air_loc = pCO2air(i,j)
+# endif
 !
 ! Extract biological variables from tracer arrays; place them into
 ! scratch variables; restrict their values to be positive definite.

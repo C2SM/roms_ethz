@@ -130,9 +130,12 @@
       !real pHsw(GLOBAL_2D_ARRAY)
       real pH_hist(GLOBAL_2D_ARRAY)
       real pCO2sw(GLOBAL_2D_ARRAY)
-      real pCO2air(GLOBAL_2D_ARRAY)
       !common /gasexc_co2/Kv_CO2, CO2sol, pHsw, pCO2sw, pCO2air
-      common /gasexc_co2/Kv_CO2, CO2sol, pH_hist, pCO2sw, pCO2air
+      common /gasexc_co2/Kv_CO2, CO2sol, pH_hist, pCO2sw !, pCO2air
+#   ifndef PCO2AIR_FORCING
+      real pCO2air(GLOBAL_2D_ARRAY)
+      common /gasexc_co2/ pCO2air
+#   endif
 #  endif /* CARBON */
 #endif /* OXYGEN */
 

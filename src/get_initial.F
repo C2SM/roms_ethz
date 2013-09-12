@@ -605,6 +605,8 @@ CHF          goto 99                                         !--> ERROR
      &        'PCO2 not in init/rst file, initialize to 0'
       endif
 
+#  ifndef PCO2AIR_FORCING /* if pCO2air is not a 2D forcing field *?
+
       ! pCO2 in the air:
       lvar=lenstr(vname(1,indxPCO2air_rst))
       ierr=nf_inq_varid (ncid, vname(1,indxPCO2air_rst)(1:lvar), varid)
@@ -620,6 +622,7 @@ CHF          goto 99                                         !--> ERROR
          MPI_master_only write(stdout,*) 
      &        'PCO2air not in init/rst file, initialize to 0'
       endif
+#  endif
 # endif
 
 # if defined BIOLOGY_BEC || defined BIOLOGY_NPZDOC
