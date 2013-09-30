@@ -209,6 +209,10 @@
       TC = TC * 1.d-3
       TP = TP * 1.d-3
       TSi = TSi * 1.d-3
+#   ifndef PCO2AIR_FORCING
+      pCO2air_loc=pCO2air(i,j)
+#   endif
+ 
       call co2calc_SWS(Tem(N),Sal(N),TC,TA,TP,TSi,pHLo,pHHi,pHsw_loc,
      &     pCO2air_loc, den(N),atmpres, CO2star, dCO2star, pCO2sw_loc,  
      &     dpCO2, CO2sol_loc)
@@ -228,7 +232,9 @@
       CO2sol(i,j) = CO2sol_loc
 #  ifdef OCMIP_CARBON
       pH_hist(i,j) = pHsw_loc
+#   ifndef PCO2AIR_FORCING
       pCO2air(i,j) = pCO2air_loc
+#   endif
       Kv_CO2(i,j) = Kv_CO2_loc
 #  endif /* OCMIP_CARBON */
 #endif /* CARBON */

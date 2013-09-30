@@ -157,7 +157,11 @@ c--#define CR
 CR      write(stdout,'(1x,A,I3)') 'indxTime =',indxTime
 #ifdef CALENDAR
       vname(1,indxTime)='time                                      '
+# ifdef STARTDATE
+      vname(3,indxTime)='second since '/ /STARTDATE/ /' 00:00:00'
+# else
       vname(3,indxTime)='second since 0001-01-01 00:00:00          '
+# endif
 #else
       vname(1,indxTime)='ocean_time                                '
       vname(3,indxTime)='second                                    '

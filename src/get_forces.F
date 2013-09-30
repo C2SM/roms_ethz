@@ -216,6 +216,9 @@ c***              no code here
       call set_iron_tile (Istr,Iend,Jstr,Jend,ierr) 
       call set_dust_tile (Istr,Iend,Jstr,Jend,ierr) 
 # endif
+# if defined CARBON && defined PCO2AIR_FORCING
+      call set_pCO2air_tile (Istr,Iend,Jstr,Jend,ierr) 
+# endif
 # if (defined LMD_KPP || defined LMD_BKPP)
 #  ifdef ANA_SRFLUX
       call ana_srflux_tile (istr,iend,jstr,jend)

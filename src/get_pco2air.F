@@ -11,6 +11,7 @@
       real cff
       integer i,ierr, lstr,lvar,lenstr, nf_fread, ifrc, ncid
       character*(max_name_size) frcname
+      save ncid 
 
 !
 ! Initialization: Check, whether forcing netCDF file is already
@@ -23,33 +24,41 @@
 ! large negative artificial values, so that it will trigger logic in
 ! reading part below.
 !
-      ifrc=1
- 100  ncid=ncidfrc(ifrc)
-      frcname=frcfile(ifrc)
-      ierr=nf_noerr
-
       if (iic.eq.ntstart) then
+        ifrc=1
+ 100    ncid=ncidfrc(ifrc)
+        frcname=frcfile(ifrc)
+        ierr=nf_noerr
+
         lstr=lenstr(frcname)
         if (ncid.eq.-1) then
-          ierr=nf_open(frcname(1:lstr), nf_nowrite, ncidfrc)
+          ierr=nf_open(frcname(1:lstr), nf_nowrite, ncid)
           if (ierr.eq.nf_noerr) then
             ncidfrc(ifrc)=ncid
+            MPI_master_only print*
+     &            , 'get_pCO2air: Opened forcing data file "'
+     &            , frcname(1:lstr),'"'
           else
-            write(stdout,'(/1x,4A/)') '### ERROR ',
-     &                   'in get_pCO2air: can not open netCDF file ''',
-     &                                       frcname(1:lstr), '''.'
+            MPI_master_only print*, '### ERROR: '
+     &            , 'get_pCO2air: Cannot open forcing data file "'
+     &            , frcname(1:lstr),'"', ', netCDF error no = ',ierr
           endif
         endif
         if (ierr .eq. nf_noerr) then
-          ierr=nf_inq_varid (ncid, 'pco2air_time', pCO2air_tid)
+          ierr=nf_inq_varid (ncid, 'pco2_time', pCO2air_tid)
           if (ierr .ne. nf_noerr) then 
-            ierr=nf_inq_varid (ncid, 'pCO2air_time', pCO2air_tid)
+            MPI_master_only 
+     &      print*, 'get_pco2air: Error getting ID of pco2_time'
+     &             , frcname(1:lstr),', nc error no = ',ierr
+          else
+            MPI_master_only
+     &      print*,  'get_pco2air: got var-id of pco2_time in '
+     &             , frcname(1:lstr)
           endif
-          ierr=nf_inq_varid (ncid, 'pco2air_time', pCO2air_tid)
           if (ierr .eq. nf_noerr) then
-            lvar=lenstr(vname(1,indxpCO2air_rst))
-            ierr=nf_inq_varid (ncid, vname(1,indxpCO2air_rst)(1:lvar),
-     &                                                   pCO2air_id)
+            !mm lvar=lenstr(vname(1,indxpCO2air_rst))
+            !ierr=nf_inq_varid (ncid, vname(1,indxpCO2air_rst)(1:lvar),
+            ierr=nf_inq_varid (ncid, 'pco2_air', pCO2air_id)
             if (ierr .eq. nf_noerr) then
               call set_cycle (ncid, pCO2air_tid, ntpCO2air, 
      &           pCO2air_cycle, pCO2air_ncycle, pCO2air_rec, ierr)
@@ -57,11 +66,17 @@
               pCO2air_time(1)=-1.E+20
               pCO2air_time(2)=-1.E+20
             else
-              write(stdout,1) vname(1,indxSST)(1:lvar),
-     &                                  frcname(1:lstr)
+              MPI_master_only print*,'At 1st WARNING in get_pco2air'
+              MPI_master_only
+     &        write(stdout,1) 'pco2air', frcname(1:lstr)
+              print*,' 1st WARNING: ierr = ',ierr
             endif
           else
-            write(stdout,1) 'pCO2air_time', frcname(1:lstr)
+            MPI_master_only
+     &        print*,'At 2nd WARNING in get_pco2air'
+            MPI_master_only
+     &      write(stdout,1) 'pco2_time', frcname(1:lstr)
+            MPI_master_only print*,' 2nd WARNING: ierr = ',ierr
             if (ifrc .lt. max_frc_file) then
               ifrc=ifrc+1
               goto 100
@@ -89,6 +104,10 @@
             itpCO2air=3-itpCO2air
             pCO2air_time(itpCO2air)=cff*day2sec 
      &                              + pCO2air_cycle*pCO2air_ncycle
+            ! print*, 'get_pco2 calling nf_read: ncid=' , ncid
+!     &            , ', pCO2air_id=', pCO2air_id
+!     &            , ', pCO2air_rec=',pCO2air_rec
+!     &            , ', r2dvar=', r2dvar
             ierr=nf_fread (pCO2airg(START_2D_ARRAY,itpCO2air), ncid,
      &                              pCO2air_id, pCO2air_rec, r2dvar)
             if (ierr .eq. nf_noerr) then
@@ -97,13 +116,14 @@
      &                 ' read pCO2air                     for time =',
      &                   cff MYID
             else
-              write(stdout,2) 'pCO2air', pCO2air_rec
+              MPI_master_only write(stdout,2) 'pco2_air', pCO2air_rec
             endif
           else
-            write(stdout,2) 'pCO2air_time', pCO2air_rec
+            MPI_master_only write(stdout,2) 'pco2_time', pCO2air_rec
           endif
         else
-          write(stdout,'(/1x,A,I4,1x,A,I4/7x,4A/7x,2(A,G12.4)/)')
+          MPI_master_only
+     &    write(stdout,'(/1x,A,I4,1x,A,I4/7x,4A/7x,2(A,G12.4)/)')
      &   'ERROR in get_pCO2air: requested time record ', pCO2air_rec,
      &   'exeeds the last record', ntpCO2air, 'available in forcing ',
      &   'netCDF file ''',   frcname(1:lstr),   '''',  'tdays = ',
@@ -151,18 +171,24 @@
       if (cff1.ge.0. .and. cff2.ge.0. ) then
 
         cff=1./(cff1+cff2)
-        cff1=cff1*cff                ! Interpolate SST and dQdSST
-        cff2=cff2*cff                ! data to model time.  Convert
-                                     ! units of dQdSST from
+        cff1=cff1*cff             
+        cff2=cff2*cff
 
-        do j=jstrR,jendR             !
+        ! Interpolate to model time
+        do j=jstrR,jendR
           do i=istrR,iendR
               pCO2air(i,j)=(cff1*pCO2airg(i,j,it1)
      &                     + cff2*pCO2airg(i,j,it2))
           enddo
         enddo
+#ifdef DEBUG
+        MPI_master_only
+     &  print*,'Midpoint pCO2air='
+     &     , pCO2air((iendR+istrR)/2,(jendR+jstrR)/2)
+#endif
       elseif (ZEROTH_TILE) then
-        write(stdout,'(/1x,2A/3(1x,A,F16.10)/)')
+        MPI_master_only
+     &  write(stdout,'(/1x,2A/3(1x,A,F16.10)/)')
      &       'SET_PCO2AIR_TILE - current model time is outside bounds ',
      &       'of ''pco2air_time''.', 'PCO2AIR_TSTART=',
      &       pCO2air_time(it1)*sec2day,
