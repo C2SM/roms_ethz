@@ -37,6 +37,7 @@
 #    define pCO2air_AVR pCO2air_avg
 #    define PARinc_AVR PARinc_avg
 #    define t_sed_AVR t_sed_avg
+#    define GasExcFlux_AVR GasExcFlux_avg
 #   endif
 #  endif
 # else  /* AVRSLICE */
@@ -71,6 +72,7 @@
 #    define pCO2air_AVR pCO2air_slavg
 #    define PARinc_AVR PARinc_slavg
 #    define t_sed_AVR t_sed_slavg
+#    define GasExcFlux_AVR GasExcFlux_slavg
 #   endif
 #  endif
 # endif
@@ -125,6 +127,7 @@
 # include "averages.h"
 # ifdef BIOLOGY_NPZDOC
 #  include "bgcflux.h"
+#  include "gasexc.h"
 # endif
 # ifdef BIOLOGY_BEC
 #  include "ecosys_bec.h"
@@ -356,6 +359,15 @@
               enddo
             enddo
 # endif /* WRITE_DEPTHS */
+# ifdef BIOLOGY_NPZDOC
+          do k=1,NumGasExcTerms
+             do j=jstrR,jendR
+                do i=istrR,iendR
+                   GasExcFlux_AVR(i,j,k) = GasExcFlux(i,j,k)
+                end do
+             end do
+          end do
+# endif /* BIOLOGY_NPZDOC */
 # endif /* SOLVE3D */
         elseif (mod(iic-ntsAVR,nAVR).gt.1) then
           if (ZEROTH_TILE) time_AVR=time_AVR+time
@@ -580,6 +592,16 @@
               enddo
             enddo
 # endif /* WRITE_DEPTHS */
+# ifdef BIOLOGY_NPZDOC
+          do k=1,NumGasExcTerms
+             do j=jstrR,jendR
+                do i=istrR,iendR
+                   GasExcFlux_AVR(i,j,k) = GasExcFlux_AVR(i,j,k)+GasExcFlux(i,j,k)
+                end do
+             end do
+          end do
+# endif /* BIOLOGY_NPZDOC */
+
 # endif /* SOLVE3D */
         elseif (mod(iic-ntsAVR,nAVR).eq.0) then
           cff=1./float(nAVR)
@@ -812,6 +834,15 @@
               enddo
             enddo
 # endif /* WRITE_DEPTHS */
+# ifdef BIOLOGY_NPZDOC
+          do k=1,NumGasExcTerms
+             do j=jstrR,jendR
+                do i=istrR,iendR
+                   GasExcFlux_AVR(i,j,k) = cff*(GasExcFlux_AVR(i,j,k)+GasExcFlux(i,j,k))
+                end do
+             end do
+          end do
+# endif /* BIOLOGY_NPZDOC */
 # endif /* SOLVE3D */
         endif
       endif       !<-- iic.gt.ntsAVR
@@ -849,6 +880,7 @@
 #   undef pCO2air_AVR
 #   undef PARinc_AVR
 #   undef t_sed_AVR
+#   undef GasExcFlux_AVR
 #  endif
 # endif
 # ifdef SLICE_AVG

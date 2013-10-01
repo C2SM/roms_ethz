@@ -16,6 +16,7 @@
 #include "ncvars.h"
 #include "bgcflux.h"
 #include "ncroms_bgcflux.h"
+#include "gasexc.h"
 !
 ! Find out how many threads are created and check whether the number
 ! of threads exceeds maximum allowed, as well as check if the number
@@ -201,6 +202,28 @@ CR      write(stdout,'(1x,A,I3)') 'indxLDet =',indxLDet
 #   endif /* CARBON */
 #  endif /* OXYGEN */
 
+! gas exchange terms
+#   ifdef OXYGEN
+      vname_GasExcFlux(1,1)=
+     &     'GasExchangeO2                              '
+      vname_GasExcFlux(2,1)=
+     &     'Gas exchange of oxygen at the surface      '
+      vname_GasExcFlux(3,1)=
+     &     'mmol O2 m-2 s-1                            '
+      vname_GasExcFlux(4,1)=
+     &     'GasExchangeO2, scalar, series              '
+#  endif /* OXYGEN */
+
+# ifdef CARBON
+      vname_GasExcFlux(1,2)=
+     &     'GasExchangeCO2                             '
+      vname_GasExcFlux(2,2)=
+     &     'Gas exchange of CO2 at the surface         '
+      vname_GasExcFlux(3,2)=
+     &     'mmol C m-2 s-1                             '
+      vname_GasExcFlux(4,2)=
+     &     'GasExchangeCO2, scalar, series             '
+#  endif /* CARBON */
 
 #endif /* SOLVE3D */
       return

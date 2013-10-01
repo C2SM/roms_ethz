@@ -59,21 +59,22 @@
       parameter(NumFluxTerms = NumFluxTermsN)
 #   endif /* CARBON */
 
-      integer NumGasExcTerms 
-#   ifdef OXYGEN
-      ! gas exchange fluxes
-      integer OFlux_GasExc
-      parameter(OFlux_GasExc = 1)
-#    ifdef CARBON
-      integer CFlux_GasExc
-      parameter(CFlux_GasExc = 2)
-      parameter(NumGasExcTerms = 2)
-#    else /* CARBON */
-      parameter(NumGasExcTerms = 1)
-#    endif /* CARBON */
-#   else /* OXYGEN */
-      parameter(NumGasExcTerms = 0)
-#   endif /* OXYGEN */  
+!DL: moved since the gas exchange fluxes are always output
+!      integer NumGasExcTerms 
+!#   ifdef OXYGEN
+!      ! gas exchange fluxes
+!      integer OFlux_GasExc
+!      parameter(OFlux_GasExc = 1)
+!#    ifdef CARBON
+!      integer CFlux_GasExc
+!      parameter(CFlux_GasExc = 2)
+!      parameter(NumGasExcTerms = 2)
+!#    else /* CARBON */
+!      parameter(NumGasExcTerms = 1)
+!#    endif /* CARBON */
+!#   else /* OXYGEN */
+!      parameter(NumGasExcTerms = 0)
+!#   endif /* OXYGEN */  
 
       ! vertical sinking fluxes
       integer PFlux_VSink, SDNFlux_VSink, LDNFlux_VSink, NumVSinkTerms
@@ -167,10 +168,11 @@
       real Flux(GLOBAL_2D_ARRAY,N,NumFluxTerms)
       common /ocean_bgc_flux/Flux
 
-#  ifdef OXYGEN
-      real GasExcFlux(GLOBAL_2D_ARRAY,NumGasExcTerms)
-      common /ocean_bgc_gasexcflux/GasExcFlux
-#  endif /* OXYGEN */
+!DL: is always output to avg and his tracer files:
+!#  ifdef OXYGEN
+!      real GasExcFlux(GLOBAL_2D_ARRAY,NumGasExcTerms)
+!      common /ocean_bgc_gasexcflux/GasExcFlux
+!#  endif /* OXYGEN */
 
       real VSinkFlux(GLOBAL_2D_ARRAY,0:N,NumVSinkTerms)
       common /ocean_bgc_vsinkflux/VSinkFlux
@@ -232,10 +234,11 @@
       real Flux_avg(GLOBAL_2D_ARRAY,N,NumFluxTerms)
       common /bgc_flux_avg/Flux_avg
 
-#   ifdef OXYGEN
-      real GasExcFlux_avg(GLOBAL_2D_ARRAY,NumGasExcTerms)
-      common /bgc_gasexcflux_avg/GasExcFlux_avg
-#   endif /* OXYGEN */
+!DL:
+!#   ifdef OXYGEN
+!      real GasExcFlux_avg(GLOBAL_2D_ARRAY,NumGasExcTerms)
+!      common /bgc_gasexcflux_avg/GasExcFlux_avg
+!#   endif /* OXYGEN */
 
       real VSinkFlux_avg(GLOBAL_2D_ARRAY,0:N,NumVSinkTerms)
       common /bgc_vsinkflux_avg/VSinkFlux_avg

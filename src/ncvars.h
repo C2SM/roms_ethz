@@ -448,6 +448,7 @@
       integer avgHbbl
       common /ncvars/ avgHbbl
 #  endif
+
 #  ifdef SLICE_AVG
       integer ncidslavg, nrecslavg,  nrpfslavg,
      &    slavgTime, slavgTstep, slavgZ, slavgUb, slavgVb

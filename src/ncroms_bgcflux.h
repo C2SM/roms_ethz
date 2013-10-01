@@ -28,9 +28,10 @@
 # ifdef BIOLOGY_NPZDOC
       integer, parameter :: num_bgcflux = 20
      &     + NumFluxTerms + NumVSinkTerms
-#   ifdef OXYGEN
-     &     + NumGasExcTerms 
-#   endif /* OXYGEN */
+!DL: gas exchange fluxes are always computed and output:
+!#   ifdef OXYGEN
+!     &     + NumGasExcTerms 
+!#   endif /* OXYGEN */
 #   ifdef SEDIMENT_BIOLOGY
      &     + NumSedFluxTerms
 #   endif /* SEDIMENT_BIOLOGY */
@@ -71,13 +72,13 @@
       integer, parameter :: indxVSinkFlux = indxFlux + NumFluxTerms 
 #  ifdef OXYGEN
 ! first gas exchange flux
-      integer, parameter :: indxGasExcFlux = 
-     &     indxFlux + NumFluxTerms + NumVSinkTerms 
+!      integer, parameter :: indxGasExcFlux = 
+!     &     indxFlux + NumFluxTerms + NumVSinkTerms 
 #  endif
 #  ifdef SEDIMENT_BIOLOGY
 ! first sediment-related flux
       integer, parameter :: indxSedFlux = indxFlux + NumFluxTerms + 
-     &     NumVSinkTerms + NumGasExcTerms     
+     &     NumVSinkTerms
 #  endif /* SEDIMENT_BIOLOGY */
 
       integer hisPAR_flux, hisPARinc_flux
@@ -94,9 +95,9 @@
      &     , hisKvCO2, hisCO2sol
 #   endif /* CARBON */
 #  endif /* OXYGEN */
-#   ifdef OXYGEN
-     &     , hisGasExcFlux(NumGasExcTerms) 
-#   endif /* OXYGEN */
+!#   ifdef OXYGEN
+!     &     , hisGasExcFlux(NumGasExcTerms) 
+!#   endif /* OXYGEN */
 #   ifdef SEDIMENT_BIOLOGY
      &     , hisSedFlux(NumSedFluxTerms)
 #   endif /* SEDIMENT_BIOLOGY */
@@ -117,9 +118,9 @@
      &     , hisKvCO2, hisCO2sol
 #   endif /* CARBON */
 #  endif /* OXYGEN */
-#   ifdef OXYGEN
-     &     , hisGasExcFlux
-#   endif /* OXYGEN */
+!#   ifdef OXYGEN
+!     &     , hisGasExcFlux
+!#   endif /* OXYGEN */
 #   ifdef SEDIMENT_BIOLOGY
      &     , hisSedFlux
 #   endif /* SEDIMENT_BIOLOGY */
@@ -159,9 +160,9 @@
      &     , avgKvCO2, avgCO2sol
 #   endif /* CARBON */
 #  endif /* OXYGEN */
-#   ifdef OXYGEN
-     &     , avgGasExcFlux(NumGasExcTerms) 
-#   endif /* OXYGEN */
+!#   ifdef OXYGEN
+!     &     , avgGasExcFlux(NumGasExcTerms) 
+!#   endif /* OXYGEN */
 #   ifdef SEDIMENT_BIOLOGY
      &     , avgSedFlux(NumSedFluxTerms)
 #   endif /* SEDIMENT_BIOLOGY */
@@ -182,9 +183,9 @@
      &     , avgKvCO2, avgCO2sol
 #   endif /* CARBON */
 #  endif /* OXYGEN */
-#   ifdef OXYGEN
-     &     , avgGasExcFlux
-#   endif /* OXYGEN */
+!#   ifdef OXYGEN
+!     &     , avgGasExcFlux
+!#   endif /* OXYGEN */
 #   ifdef SEDIMENT_BIOLOGY
      &     , avgSedFlux
 #   endif /* SEDIMENT_BIOLOGY */

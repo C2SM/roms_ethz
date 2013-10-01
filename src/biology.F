@@ -95,6 +95,7 @@
 #if defined MPI && defined VARIABLE_ANN_ATM_PCO2
 # include "mpif.h"
 #endif
+#include "gasexc.h"
 
 #ifdef DAILYPAR_PHOTOINHIBITION
       real thisPARdaily
@@ -293,15 +294,13 @@
         else
            su_i2 = i-1
         end if
+        GasExcFlux(i,j,:) = 0.0
 #endif /* OXYGEN */
 #ifdef BGC_FLUX_ANALYSIS
 ! Reset the biogeochemical fluxes (use array notation).
 ! This is necessary because the biological routine uses multiple 
 ! time steps for each physical time step.
         Flux(i,j,:,:) = 0.0
-# ifdef OXYGEN
-        GasExcFlux(i,j,:) = 0.0
-# endif
         VSinkFlux(i,j,:,:) = 0.0
 # ifdef SEDIMENT_BIOLOGY
         SedFlux(i,j,:) = 0.0
@@ -1032,8 +1031,8 @@
         end do
 #endif /* BGC_FLUX_ANALYSIS */
 
-#if defined OXYGEN && defined BGC_FLUX_ANALYSIS
-! ThisGasExcFlux is already in the correct units [mmol m^-2 s^-1]        
+#if defined OXYGEN
+! ThisGasExcFlux is already in the correct units [mmol m^-2 s^-1]
         do iflux = 1, NumGasExcTerms
            GasExcFlux(i,j,iflux) = ( GasExcFlux(i,j,iflux) +
      &          ThisGasExcFlux(iflux) / float(ITERMAX) )
@@ -1041,7 +1040,7 @@
      &          * rmask(i,j)
 # endif
         end do
-#endif /* OXYGEN && BGC_FLUX_ANALYSIS */
+#endif /* OXYGEN */
 
 #if defined SEDIMENT_BIOLOGY || defined BGC_FLUX_ANALYSIS 
         iflux_loop: do iflux = 1, NumVSinkTerms

@@ -56,6 +56,10 @@
 #include "scalars.h"
 #include "ncvars.h"
 #include "netcdf.inc"
+!DL: for gas exchange fluxes:
+#if defined BIOLOGY_NPZDOC && defined OXYGEN
+# include "gasexc.h"
+#endif /* BIOLOGY_NPZDOC && OXYGEN */
 
 
 #ifdef MASK_LAND_DATA
@@ -147,6 +151,9 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
 #  define vidz_w hisz_w
 #  define vidHz hisHz
 # endif /* WRITE_DEPTHS */
+# if defined BIOLOGY_NPZDOC && defined OXYGEN
+#  define vidGasExcFlux hisGasExcFlux
+# endif /* BIOLOGY_NPZDOC && OXYGEN */
 #else
 # ifndef AVR2DH
 # define SDEF_FOUT 'DEF_AVG'
@@ -199,6 +206,9 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
 #  define vidz_w avgz_w
 #  define vidHz avgHz
 # endif /* WRITE_DEPTHS */
+# if defined BIOLOGY_NPZDOC && defined OXYGEN
+#  define vidGasExcFlux avgGasExcFlux
+# endif /* BIOLOGY_NPZDOC && OXYGEN */
 # else /* AVR2DH is defined */
 #  define SDEF_FOUT 'DEF_SLAVG'
 #  define ncname slavgname
@@ -245,6 +255,9 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
 #     define vidTsed slavgTsed
 #   endif
 #  endif /* BIOLOGY_NPZDOC || BIOLOGY_BEC */
+#  if defined BIOLOGY_NPZDOC && defined OXYGEN
+#    define vidGasExcFlux slavgGasExcFlux
+#  endif /* BIOLOGY_NPZDOC && OXYGEN */
 # endif /* AVR2DH */
 # ifdef WRITE_DEPTHS
 #  define vidz_r slavgz_r
@@ -1165,6 +1178,31 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
      &                                  NF_FOUT, 1, spv_set)
 #  endif
 # endif /* WRITE_DEPTHS */
+!
+! Gas exchange fluxes:
+!
+# if defined BIOLOGY_NPZDOC && defined OXYGEN
+        do itrc = 1, NumGasExcTerms
+           lvar=lenstr(vname_GasExcFlux(1,itrc))
+           ierr=nf_def_var (ncid, vname_GasExcFlux(1,itrc)(1:lvar), NF_FOUT,
+     &                      3, r2dgrd, vidGasExcFlux(itrc))
+#  ifdef AVRH
+           text='averaged '/ /vname_GasExcFlux(2,itrc)
+#  else
+           text=vname_GasExcFlux(2,itrc)
+#  endif
+           lvar=lenstr(text)
+           ierr=nf_put_att_text (ncid, vidGasExcFlux(itrc), 'long_name', lvar,
+     &                                              text(1:lvar))
+           lvar=lenstr(vname_GasExcFlux(3,itrc))
+           ierr=nf_put_att_text (ncid, vidGasExcFlux(itrc), 'units',     lvar,
+     &                                  vname_GasExcFlux(3,itrc)(1:lvar))
+#  ifdef MASK_LAND_DATA 
+           ierr=nf_put_att_FOUT (ncid, vidGasExcFlux(itrc), '_FillValue',
+     &                                  NF_FOUT, 1, spv_set)
+#  endif
+        end do
+# endif /* BIOLOGY_NPZDOC && OXYGEN */
 #endif /* SOLVE3D */
 !
 ! Leave definition mode.
@@ -1586,6 +1624,23 @@ CR     &                   MYID
            goto 99                                       !--> ERROR
         endif
 # endif /* WRITE_DEPTHS */
+!
+! gas exchange fluxes:
+!
+# if defined BIOLOGY_NPZDOC && defined OXYGEN
+        do itrc = 1, NumGasExcTerms
+           lvar=lenstr(vname_GasExcFlux(1,itrc))
+           ierr=nf_inq_varid (ncid, 
+     &          vname_GasExcFlux(1,itrc)(1:lvar),
+     &          vidGasExcFlux(itrc))
+           if (ierr .ne. nf_noerr) then
+              write(stdout,1) 
+     &             vname_GasExcFlux(1,itrc)(1:lvar), 
+     &             ncname(1:lstr)
+              goto 99           !--> ERROR
+           endif
+        end do
+# endif /* BIOLOGY_NPZDOC && OXYGEN */
 #endif /* SOLVE3D */
         MPI_master_only write(*,'(6x,3A,i4,1x,A,i4)') 
      &              SDEF_FOUT,  ': Opened ',
@@ -1659,6 +1714,7 @@ CR     &      'existing file ''', ncname(1:lstr), ''' ncid =', ncid
 #  undef vidz_w
 #  undef vidHz
 # endif /* WRITE_DEPTHS */
+#undef vidGasExcFlux
 
 #undef vidR
 #undef vidO

@@ -157,17 +157,18 @@
                   end do
                end do
             end do
-            
-#  ifdef OXYGEN
-            do iflux = 1, NumGasExcTerms
-               do j = jstrR, jendR
-                  do i = istrR, iendR 
-                     GasExcFlux_avg(i,j,iflux) = 
-     &                    GasExcFlux(i,j,iflux)
-                  end do
-               end do
-            end do
-#  endif /* OXYGEN */
+
+!DL: moved to set_avg.F           
+!#  ifdef OXYGEN
+!            do iflux = 1, NumGasExcTerms
+!               do j = jstrR, jendR
+!                  do i = istrR, iendR 
+!                     GasExcFlux_avg(i,j,iflux) = 
+!     &                    GasExcFlux(i,j,iflux)
+!                  end do
+!               end do
+!            end do
+!#  endif /* OXYGEN */
             do iflux = 1, NumVSinkTerms
                do k = 0, N
                   do j = jstrR, jendR
@@ -281,17 +282,17 @@
                   end do
                end do
             end do
-# ifdef OXYGEN
-            do iflux = 1, NumGasExcTerms
-               do j = jstrR, jendR
-                  do i = istrR, iendR 
-                     GasExcFlux_avg(i,j,iflux) = 
-     &                    GasExcFlux_avg(i,j,iflux) +
-     &                    GasExcFlux(i,j,iflux)
-                  end do
-               end do
-            end do
-# endif /* OXYGEN */
+!# ifdef OXYGEN
+!            do iflux = 1, NumGasExcTerms
+!               do j = jstrR, jendR
+!                  do i = istrR, iendR 
+!                     GasExcFlux_avg(i,j,iflux) = 
+!     &                    GasExcFlux_avg(i,j,iflux) +
+!     &                    GasExcFlux(i,j,iflux)
+!                  end do
+!               end do
+!            end do
+!# endif /* OXYGEN */
             do iflux = 1, NumVSinkTerms
                do k = 0, N
                   do j = jstrR, jendR
@@ -413,17 +414,17 @@
                   end do
                end do
             end do
-# ifdef OXYGEN
-            do iflux = 1, NumGasExcTerms
-               do j = jstrR, jendR
-                  do i = istrR, iendR 
-                     GasExcFlux_avg(i,j,iflux) = cff *
-     &                    ( GasExcFlux_avg(i,j,iflux) +
-     &                    GasExcFlux(i,j,iflux) )
-                  end do
-               end do
-            end do
-# endif /* OXYGEN */
+!# ifdef OXYGEN
+!            do iflux = 1, NumGasExcTerms
+!               do j = jstrR, jendR
+!                  do i = istrR, iendR 
+!                     GasExcFlux_avg(i,j,iflux) = cff *
+!     &                    ( GasExcFlux_avg(i,j,iflux) +
+!     &                    GasExcFlux(i,j,iflux) )
+!                  end do
+!               end do
+!            end do
+!# endif /* OXYGEN */
             do iflux = 1, NumVSinkTerms
                do k = 0, N
                   do j = jstrR, jendR

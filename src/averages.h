@@ -55,6 +55,12 @@ CSDISTRIBUTE_RESHAPE hbbl_avg(BLOCK_PATTERN) BLOCK_CLAUSE
       real z_w_avg(GLOBAL_2D_ARRAY,0:N), Hz_avg(GLOBAL_2D_ARRAY,N)
       common /avg_depth/z_r_avg, z_w_avg, Hz_avg
 #  endif /* WRITE_DEPTHS */
+
+#  if defined BIOLOGY_NPZDOC && defined OXYGEN
+      real GasExcFlux_avg(GLOBAL_2D_ARRAY,NumGasExcTerms)
+      common /bgc_gasexcflux_avg/GasExcFlux_avg
+#  endif /* BIOLOGY_NPZDOC && OXYGEN */
+
 # endif /* SOLVE3D */
 !--> #endif /* AVERAGES */
  
@@ -106,6 +112,12 @@ CSDISTRIBUTE_RESHAPE hbl_slavg(BLOCK_PATTERN) BLOCK_CLAUSE
 CSDISTRIBUTE_RESHAPE hbbl_slavg(BLOCK_PATTERN) BLOCK_CLAUSE
       common /slavg_hbbl/hbbl_slavg
 #  endif
+
+#  if defined BIOLOGY_NPZDOC && defined OXYGEN
+      real GasExcFlux_slavg(GLOBAL_2D_ARRAY,NumGasExcTerms)
+      common /bgc_gasexcflux_avg/GasExcFlux_slavg
+#  endif /* BIOLOGY_NPZDOC && OXYGEN */
+
 # endif /* SOLVE3D */
 # endif /* SLICE_AVG */
 #endif /* AVERAGES */
