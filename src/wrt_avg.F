@@ -30,6 +30,7 @@
 #  define pCO2air_avr pCO2air_avg
 #  define PAR_avr PAR_avg 
 #  define PARinc_avr PARinc_avg 
+#  define GasExcFlux_avr GasExcFlux_avg
 #  define avrTime avgTime 
 #  define avrZ avgZ
 #  define avrUb avgUb
@@ -53,6 +54,7 @@
 #  define avrPCO2air avgPCO2air
 #  define avrPARinc avgPARinc
 #  define avrPAR avgPAR
+#  define avrGasExcFlux avgGasExcFlux
 #  define ncidavr ncidavg
 #  define ncrecavr ncrecavg 
 #  define nrpfavr nrpfavg 
@@ -90,6 +92,7 @@
 #  define pCO2air_avr pCO2air_slavg
 #  define PAR_avr PAR_slavg
 #  define PARinc_avr PARinc_slavg
+#  define GasExcFlux_avr GasExcFlux_slavg
 #  define avrTime slavgTime 
 #  define avrZ slavgZ
 #  define avrUb slavgUb
@@ -124,6 +127,7 @@
 #  define V3DVAR v2dvar
 #  define W3DVAR r2dvar
 #  define SWRT_AVR 'WRT_SLAVG'
+#  define avrGasExcFlux slavgGasExcFlux
 # endif /* ifndef SLICE_AVG */
                                      ! Write time-averaged
       subroutine wrt_avr             ! fields into averages
@@ -145,6 +149,10 @@
 #ifdef BIOLOGY_BEC
 # include "ecosys_bec.h"
 # include "bec_avg.h"
+#endif
+!DL: for gas exchange fluxes:
+#if defined BIOLOGY_NPZDOC
+# include "gasexc.h"
 #endif
 # if defined MPI && !defined PARALLEL_FILES
 #  include "mpif.h"
@@ -576,6 +584,23 @@ CR      write(*,*) 'wrt_avr:  wrtT_sed  ' MYID
         goto 99                                         !--> ERROR
       endif
 # endif /* WRITE_DEPTHS */
+!
+! Gas exchange fluxes:
+!
+# if defined BIOLOGY_NPZDOC && defined OXYGEN
+      do itrc = 1, NumGasExcTerms
+         ierr = nf_fwrite(GasExcFlux_avr(START_2D_ARRAY,itrc), 
+     &        ncidavr, avrGasExcFlux(itrc), 
+     &        record, r2dvar)
+         if (ierr .ne. nf_noerr) then
+            lvar=lenstr(vname_GasExcFlux(1,itrc))
+            write(stdout,1) 
+     &           vname_GasExcFlux(1,itrc)(1:lvar), 
+     &           record, ierr, nf_strerror(ierr) MYID 
+            goto 99
+         end if
+      end do
+# endif /* BIOLOGY_NPZDOC && OXYGEN */
 # endif /* SOLVE3D */
   1   format(/SWRT_AVR,' - ERROR while writing variable ('
      &    ,1x,a,1x, ') into averages file.',/,11x,'Time record:',
@@ -681,6 +706,7 @@ CR     &              MYID
 #  undef avrPARinc
 #  undef avrPAR
 #  undef avrPH
+#  undef avrGasExcFlux
 #  undef ncidavr
 #  undef ncrecavr
 #  undef nrpfavr

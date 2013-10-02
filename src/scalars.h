@@ -124,6 +124,23 @@ C$OMP THREADPRIVATE(/priv_scalars/)
 # endif
 #endif
 
+!DL: gas exchange fluxes:
+# ifdef BIOLOGY_NPZDOC
+      integer NumGasExcTerms
+#  ifdef OXYGEN
+      integer OFlux_GasExc
+      parameter(OFlux_GasExc = 1)
+#   ifdef CARBON
+      integer CFlux_GasExc
+      parameter(CFlux_GasExc = 2)
+      parameter(NumGasExcTerms = 2)
+#   else /* CARBON */
+      parameter(NumGasExcTerms = 1)
+#   endif /* CARBON */
+#  else /* OXYGEN */
+      parameter(NumGasExcTerms = 0)
+#  endif /* OXYGEN */
+# endif /* BIOLOGY_NPZDOC */
 
       integer ntstart, ntimes, ndtfast, nfast, ninfo, may_day_flag,
      &                                                barr_count(16)

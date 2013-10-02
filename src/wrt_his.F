@@ -24,6 +24,9 @@
 #ifdef BIOLOGY_BEC
 # include "ecosys_bec.h"
 #endif
+#ifdef BIOLOGY_NPZDOC
+# include "gasexc.h"
+#endif
 #ifdef SOLVE3D
       integer tile, itrc,i,j,k
 # include "work.h"
@@ -499,6 +502,24 @@ CR      write(*,*) 'wrt_his:  wrtHBL' MYID
         goto 99                                         !--> ERROR
       endif
 # endif /* WRITE_DEPTHS */
+!
+! gas exchange fluxes:
+!
+# if defined BIOLOGY_NPZDOC && defined OXYGEN
+      do itrc = 1, NumGasExcTerms
+         ierr = nf_fwrite(GasExcFlux(START_2D_ARRAY,itrc), 
+     &        ncidhis, hisGasExcFlux(itrc), 
+     &        record, r2dvar)
+         if (ierr .ne. nf_noerr) then
+            lvar=lenstr(vname_GasExcFlux(1,itrc))
+            write(stdout,1) 
+     &           vname_GasExcFlux(1,itrc)(1:lvar), 
+     &           record, ierr, nf_strerror(ierr) MYID 
+            goto 99
+         end if
+      end do
+# endif /* BIOLOGY_NPZDOC && OXYGEN */
+
 #endif /* SOLVE3D */
   1   format(/1x, 'WRT_HIS ERROR while writing variable ''', A,
      &         ''' into history file.'  /11x, 'Time record:', I6,

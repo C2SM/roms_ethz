@@ -79,7 +79,7 @@
 # define vidPAR hisPAR_flux
 # define vidPARinc hisPARinc_flux
 # define vidFlux hisFlux
-# define vidGasExcFlux hisGasExcFlux
+!# define vidGasExcFlux hisGasExcFlux
 # define vidVSinkFlux hisVSinkFlux
 # define vidSedFlux hisSedFlux
 # define vidONNO3 hisONNO3
@@ -105,7 +105,7 @@
 # define vidPAR avgPAR_flux
 # define vidPARinc avgPARinc_flux
 # define vidFlux avgFlux
-# define vidGasExcFlux avgGasExcFlux
+!# define vidGasExcFlux avgGasExcFlux
 # define vidVSinkFlux avgVSinkFlux
 # define vidSedFlux avgSedFlux
 # define vidONNO3 avgONNO3
@@ -811,37 +811,38 @@
      &           NF_FOUT, 1, spv_set)
 #  endif
         end do
-#  ifdef OXYGEN
-! gas exchange fluxes
-        do iflux = 1, NumGasExcTerms
-           lvar=lenstr(vname_bgcflux(1,indxGasExcFlux+iflux-1))
-           ierr=nf_def_var (ncid, 
-     &          vname_bgcflux(1,indxGasExcFlux+iflux-1)(1:lvar),
-     &          NF_FOUT, 3, r2dgrd, vidGasExcFlux(iflux))
-#  ifndef AVRH
-           lvar=lenstr(vname_bgcflux(2,indxGasExcFlux+iflux-1))
-           ierr=nf_put_att_text (ncid, vidGasExcFlux(iflux), 
-     &          'long_name', 
-     &          lvar, vname_bgcflux(2,indxGasExcFlux+iflux-1)(1:lvar))
-#  else
-           text='averaged '/ /vname_bgcflux(2,indxGasExcFlux+iflux-1)
-           lvar=lenstr(text)
-           ierr=nf_put_att_text (ncid, vidGasExcFlux(iflux), 
-     &          'long_name', 
-     &          lvar, text(1:lvar))
-#  endif
-           lvar=lenstr(vname_bgcflux(3,indxGasExcFlux+iflux-1))
-           ierr=nf_put_att_text (ncid, vidGasExcFlux(iflux), 'units',
-     &          lvar, vname_bgcflux(3,indxGasExcFlux+iflux-1)(1:lvar))
-!           lvar=lenstr(vname_bgcflux(4,indxGasExcFlux+iflux-1))
-!           ierr=nf_put_att_text (ncid, vidGasExcFlux(iflux), 'field',
-!     &          lvar, vname_bgcflux(4,indxGasExcFlux+iflux-1)(1:lvar))
-#  ifdef MASK_LAND_DATA
-           ierr=nf_put_att_FOUT(ncid, vidGasExcFlux(iflux),'_FillValue',
-     &           NF_FOUT, 1, spv_set)
-#  endif
-        end do
-#  endif /* OXYGEN */
+!DL: moved to def_his.F:
+!#  ifdef OXYGEN
+!! gas exchange fluxes
+!        do iflux = 1, NumGasExcTerms
+!           lvar=lenstr(vname_bgcflux(1,indxGasExcFlux+iflux-1))
+!           ierr=nf_def_var (ncid, 
+!     &          vname_bgcflux(1,indxGasExcFlux+iflux-1)(1:lvar),
+!     &          NF_FOUT, 3, r2dgrd, vidGasExcFlux(iflux))
+!#  ifndef AVRH
+!           lvar=lenstr(vname_bgcflux(2,indxGasExcFlux+iflux-1))
+!           ierr=nf_put_att_text (ncid, vidGasExcFlux(iflux), 
+!     &          'long_name', 
+!     &          lvar, vname_bgcflux(2,indxGasExcFlux+iflux-1)(1:lvar))
+!#  else
+!           text='averaged '/ /vname_bgcflux(2,indxGasExcFlux+iflux-1)
+!           lvar=lenstr(text)
+!           ierr=nf_put_att_text (ncid, vidGasExcFlux(iflux), 
+!     &          'long_name', 
+!     &          lvar, text(1:lvar))
+!#  endif
+!           lvar=lenstr(vname_bgcflux(3,indxGasExcFlux+iflux-1))
+!           ierr=nf_put_att_text (ncid, vidGasExcFlux(iflux), 'units',
+!     &          lvar, vname_bgcflux(3,indxGasExcFlux+iflux-1)(1:lvar))
+!!           lvar=lenstr(vname_bgcflux(4,indxGasExcFlux+iflux-1))
+!!           ierr=nf_put_att_text (ncid, vidGasExcFlux(iflux), 'field',
+!!     &          lvar, vname_bgcflux(4,indxGasExcFlux+iflux-1)(1:lvar))
+!#  ifdef MASK_LAND_DATA
+!           ierr=nf_put_att_FOUT(ncid, vidGasExcFlux(iflux),'_FillValue',
+!     &           NF_FOUT, 1, spv_set)
+!#  endif
+!        end do
+!#  endif /* OXYGEN */
 #  if defined AVRH || defined BGC_FLUX_EXT_HIS_OUTPUT 
 ! vertical sinking fluxes
         do iflux = 1, NumVSinkTerms
@@ -1181,21 +1182,21 @@
               goto 99           !--> ERROR
         endif
         end do
-#  ifdef OXYGEN
+!#  ifdef OXYGEN
 ! gas exchange fluxes
-        do iflux = 1, NumGasExcTerms
-           lvar=lenstr(vname_bgcflux(1,indxGasExcFlux+iflux-1))
-           ierr=nf_inq_varid (ncid, 
-     &          vname_bgcflux(1,indxGasExcFlux+iflux-1)(1:lvar),
-     &          vidGasExcFlux(iflux))
-           if (ierr .ne. nf_noerr) then
-              write(stdout,1) 
-     &             vname_bgcflux(1,indxGasExcFlux+iflux-1)(1:lvar), 
-     &             ncname(1:lstr)
-              goto 99           !--> ERROR
-        endif
-        end do
-#  endif /* OXYGEN */
+!        do iflux = 1, NumGasExcTerms
+!           lvar=lenstr(vname_bgcflux(1,indxGasExcFlux+iflux-1))
+!           ierr=nf_inq_varid (ncid, 
+!     &          vname_bgcflux(1,indxGasExcFlux+iflux-1)(1:lvar),
+!     &          vidGasExcFlux(iflux))
+!           if (ierr .ne. nf_noerr) then
+!              write(stdout,1) 
+!     &             vname_bgcflux(1,indxGasExcFlux+iflux-1)(1:lvar), 
+!     &             ncname(1:lstr)
+!              goto 99           !--> ERROR
+!        endif
+!        end do
+!#  endif /* OXYGEN */
 #  if defined AVRH || defined BGC_FLUX_EXT_HIS_OUTPUT 
 ! vertical sinking fluxes
         do iflux = 1, NumVSinkTerms
@@ -1296,7 +1297,7 @@
 #undef vidPAR
 #undef vidPARinc
 #undef vidFlux
-#undef vidGasExcFlux
+!#undef vidGasExcFlux
 #undef vidVSinkFlux
 #undef vidSedFlux
 #undef vidONNO3
