@@ -124,6 +124,18 @@
 #  define V3DVAR v2dvar
 #  define W3DVAR r2dvar
 #  define SWRT_AVR 'WRT_SLAVG'
+#  ifdef __IFC
+!
+!        BRUTUS CLUSTER CLUTCH
+!  With the Intel compiler slice averages of PAR are
+!  contain INF and other weired values.  It appears to be
+!  a tiling/optimisation problem.  Other output appears 
+!  not to be affected. It is a bit unnerving but as it's 
+!  just a further diagnostic output we just to not output
+!  PAR in slice averages when using the Intel compiler.
+!
+#   define NOPARWRT
+#  endif
 # endif /* ifndef SLICE_AVG */
                                      ! Write time-averaged
       subroutine wrt_avr             ! fields into averages
@@ -528,6 +540,7 @@ CR      write(*,*) 'wrt_avr:  wrtT_sed  ' MYID
      &                  nf_strerror(ierr) MYID
         goto 99                                         !--> ERROR
       endif
+#  ifndef NOPARWRT
 !
 ! PAR:
 !
@@ -539,6 +552,7 @@ CR      write(*,*) 'wrt_avr:  wrtT_sed  ' MYID
      &                  nf_strerror(ierr) MYID
         goto 99                                         !--> ERROR
       endif
+#  endif
 # endif /* BIOLOGY_NPZDOC || BIOLOGY_BEC */
 !DL:
 # ifdef WRITE_DEPTHS
@@ -690,6 +704,7 @@ CR     &              MYID
 #  undef wrtavr
 #  undef SWRT_AVR
 #  undef WRTROUTINE
+#  undef NOPARWRT
 #  if defined  SLICE_AVG && !defined SLICE_AVR /* also create wrt_slice_avg */
 #   define SLICE_AVR
 #   include "wrt_avg.F"
