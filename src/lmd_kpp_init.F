@@ -87,7 +87,9 @@ CR           print *, 'Default values will be used.'
         end if
 
         !DL: write biopar file only by the master process:
+#ifdef MPI
         if (mynode.eq.0) then
+#endif
            open(76,file=filename_lmd_out_nml,status='unknown'
      &          ,iostat=status)
 
@@ -102,7 +104,9 @@ CR           print *, 'Default values will be used.'
                print *, 'Could not create lmd param output file ',
      &                     filename_lmd_out_nml
            end if 
+#ifdef MPI
         end if ! (mynode.eq.0
+#endif
 
         return
 !End of the function
