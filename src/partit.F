@@ -42,8 +42,8 @@
 ! partial files.
 !
 
-#define NETCDF4
-#define NCCOMPRESS
+!--> #define NETCDF4
+!--> #define NCCOMPRESS
 
 #ifdef NETCDF4
 # define NCFILEFORMAT nf_netcdf4
