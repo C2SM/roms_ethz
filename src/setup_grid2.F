@@ -1,43 +1,56 @@
 #include "cppdefs.h"
- 
+#define SUM_BY_PAIRS
+
       subroutine setup_grid2 (tile)
       implicit none
       integer tile
 #include "param.h"
 #include "private_scratch.h"
 #include "compute_tile_bounds.h"
-      call setup_grid2_tile (istr,iend,jstr,jend, A2d(1,1))
-      return
+      call setup_grid2_tile (istr,iend,jstr,jend, A2d(1,1),A2d(1,3))
       end
- 
-      subroutine setup_grid2_tile (istr,iend,jstr,jend, dA)
-!
+
+      subroutine setup_grid2_tile (istr,iend,jstr,jend, dA,dV)
+
 ! Find minimum and maximum depth of model topography; minimum and
 ! maximum horizontal XI- and ETA-grid intervals around h-points;
 ! Check minimum and maximum values of Courant number for barotropic
-! mode (based on surface gravity wave speed, barortopic time step
+! mode (based on surface gravity wave speed, barotropic time step
 ! and local grid intervals); combined crossection of all open
 ! boundaries.
-!
+
       implicit none
-      integer istr,iend,jstr,jend, i,j, nsub, inc,jnc
-      real*QUAD dA(2,PRIVATE_2D_SCRATCH_ARRAY),
-     &          my_area,  my_volume,  my_crss
+      integer istr,iend,jstr,jend, i,j, nsub
+      real(kind=QUAD), dimension(PRIVATE_2D_SCRATCH_ARRAY) :: dA,dV
+      real(kind=QUAD)  my_area,  my_volume,  my_crss
       real my_hmax, my_grdmax, my_Cu_max, cff,
      &     my_hmin, my_grdmin, my_Cu_min, my_Cu_Cor
-      logical lsumX, lsumY
+#ifdef SUM_BY_PAIRS
+      integer is,isize,itg, js,jsize,jtg
+# if defined OBC_WEST || defined OBC_EAST
+     &                    , jnc
+# endif
+# if defined OBC_SOUTH || defined OBC_NORTH
+     &                    , inc
+# endif
+#endif
 #include "param.h"
 #include "scalars.h"
 #include "comm_vars.h"
 #include "grid.h"
 #ifdef MPI
 # include "mpif.h"
-      integer size, step, status(MPI_STATUS_SIZE), ierr
+# if QUAD==16
+#  define MPI_BUFF_TYPE MPI_REAL16
+# else
+#  define MPI_BUFF_TYPE MPI_REAL8
+# endif
+      integer size, step, itag, status(MPI_STATUS_SIZE), ierr
       real*QUAD buff(16)
 #endif
-!
+
 #include "compute_auxiliary_bounds.h"
-!
+
       my_hmin=+1.E+20              ! Here two-dimensional Courant
       my_hmax=-1.E+20              ! number is defined as
       my_grdmin=+1.E+20            !
@@ -49,217 +62,278 @@
       do j=jstrR,jendR             ! in each direction.
         do i=istrR,iendR
 #ifdef MASKING
-          if (rmask(i,j) .gt. 0.5) then
+          if (rmask(i,j) > 0.5) then
 #endif
-            my_hmin=min(my_hmin,  h(i,j))
-            my_hmax=max(my_hmax,  h(i,j))
- 
+            my_hmin=min(my_hmin, h(i,j))
+            my_hmax=max(my_hmax, h(i,j))
+
             cff=1./sqrt(pm(i,j)*pn(i,j))
 #if defined VIS_GRID || defined DIF_GRID
             grdscl(i,j)=cff
 #endif
             my_grdmin=min(my_grdmin, cff)
             my_grdmax=max(my_grdmax, cff)
- 
-            cff=dtfast*sqrt( g*h(i,j)*( pm(i,j)*pm(i,j)
-     &                                 +pn(i,j)*pn(i,j) ))
+
+            cff=dtfast*sqrt(g*h(i,j)*(pm(i,j)*pm(i,j)+pn(i,j)*pn(i,j)))
             my_Cu_min=min(my_Cu_min, cff)
             my_Cu_max=max(my_Cu_max, cff)
- 
+
             cff=dt*abs(f(i,j))
             my_Cu_Cor=max(my_Cu_Cor, cff)
 #ifdef MASKING
           endif
 #endif
-        enddo                      ! Compute unmasked total area
-      enddo                        ! and unperturbed volume of model
-                                   ! grid (assuming zero free-surface
-      do j=jstr,jend               ! disturbance everywhere.
-        do i=istr,iend             !
-#ifdef MASKING
-          dA(1,i,j)=rmask(i,j)/(pm(i,j)*pn(i,j))
-#else
-          dA(1,i,j)=1./(pm(i,j)*pn(i,j))
-#endif
-          dA(2,i,j)=dA(1,i,j)*h(i,j)
         enddo
-      enddo                        ! The following segment computes
-                                   ! sums of dA within the subdomain
-      lsumX=.true.                 ! tile using split-directional
-      lsumY=.true.                 ! reduction-by-pairs algorithm, to
-      inc=1                        ! avoid accumulation of roundoff
-      jnc=1                        ! errors.
- 
-      do while (lsumX .or. lsumY)
-        if (istr.le.iend-inc) then
-          do j=jstr,jend
-            do i=istr,iend-inc,2*inc
-              dA(1,i,j) = dA(1,i,j) + dA(1,i+inc,j)
-              dA(2,i,j) = dA(2,i,j) + dA(2,i+inc,j)
+      enddo                        ! Compute unmasked total area and
+                                   ! unperturbed volume of model grid
+      do j=jstr,jend               ! (assuming zero free-surface).
+        do i=istr,iend
+#ifdef MASKING
+          dA(i,j)=rmask(i,j)/(pm(i,j)*pn(i,j))
+#else
+          dA(i,j)=1./(pm(i,j)*pn(i,j))
+#endif
+          dV(i,j)=dA(i,j)*h(i,j)
+        enddo
+      enddo
+
+#ifdef SUM_BY_PAIRS
+! Perform summation of all dA within the tile using split-directional
+! reduction-by-pairs algorithm to avoid accumulation of roundoff errors.
+
+      isize=iend-istr  ; jsize=jend-jstr
+
+      do while (isize>0 .or. jsize>0)
+        if (jsize>0) then
+          js=(jsize+1)/2-1
+          do j=0,js
+            jtg=jstr+j
+            do i=istr,istr+isize
+              dA(i,jtg)=dA(i,jtg+j)+dA(i,jtg+j+1)
+              dV(i,jtg)=dV(i,jtg+j)+dV(i,jtg+j+1)
             enddo
           enddo
-          inc=2*inc
-        else
-          lsumX=.false.
+          if (2*js+1 < jsize) then
+            js=js+1
+            jtg=jstr+js
+            do i=istr,istr+isize
+              dA(i,jtg)=dA(i,jtg+js)
+              dV(i,jtg)=dV(i,jtg+js)
+            enddo
+          endif
+          jsize=js
         endif
-        if (jstr.le.jend-jnc) then
-          do j=jstr,jend-jnc,2*jnc
-            do i=istr,iend
-              dA(1,i,j) = dA(1,i,j) + dA(1,i,j+jnc)
-              dA(2,i,j) = dA(2,i,j) + dA(2,i,j+jnc)
+
+        if (isize>0) then
+          is=(isize+1)/2-1
+          do j=jstr,jstr+jsize
+            do i=0,is
+              itg=istr+i
+              dA(itg,j)=dA(itg+i,j)+dA(itg+i+1,j)
+              dV(itg,j)=dV(itg+i,j)+dV(itg+i+1,j)
             enddo
           enddo
-          jnc=2*jnc
-        else
-          lsumY=.false.
+          if (2*is+1 < isize) then
+            is=is+1
+            itg=istr+is
+            do j=jstr,jstr+jsize
+              dA(itg,j)=dA(itg+is,j)
+              dV(itg,j)=dV(itg+is,j)
+            enddo
+          endif
+          isize=is
         endif
       enddo
- 
-      my_area   = dA(1,istr,jstr)
-      my_volume = dA(2,istr,jstr)
- 
-c**   my_area=QuadZero             ! Straight summation: this code
-c**   my_volume=QuadZero           ! produces result which differs
-c**   do j=jstr,jend               ! above only by roundoff errors.
-c**     do i=istr,iend
-c**       my_area   = my_area   + dA(1,i,j)
-c**       my_volume = my_volume + dA(2,i,j)
-c**     enddo
-c**   enddo
-                                   ! Compute integral crossection
-      my_crss=QuadZero             ! of all open boundaries...
+
+      my_area  =dA(istr,jstr)
+      my_volume=dV(istr,jstr)
+
+#else
+      my_area=QuadZero                  ! Straightforward summation:
+      my_volume=QuadZero                ! this should produce the same
+      do j=jstr,jend                    ! result as the above with the
+        do i=istr,iend                  ! only difference is due to
+          my_area  =my_area  +dA(i,j)   ! roundoff errors.
+          my_volume=my_volume+dV(i,j)
+        enddo
+      enddo
+#endif
+                                        ! Compute integral crossection
+      my_crss=QuadZero                  ! of all open boundaries...
 #ifdef OBC_WEST
       if (WESTERN_EDGE) then
         do j=jstr,jend
-          dA(1,istr,j)=0.5*(h(istr-1,j)+h(istr,j))*dn_u(istr,j)
+          dA(istr,j)=0.5*(h(istr-1,j)+h(istr,j))*dn_u(istr,j)
 # ifdef MASKING
-     &                                            *umask(istr,j)
+     &                                          *umask(istr,j)
+# endif
+# ifndef SUM_BY_PAIRS
+          my_crss=my_crss + dA(istr,j)
 # endif
         enddo
+# ifdef SUM_BY_PAIRS
         jnc=1
-        do while(jstr.le.jend-jnc)
-          do j=jstr,jend-jnc,2*jnc
-            dA(1,istr,j) = dA(1,istr,j) + dA(1,istr,j+jnc)
+        do while(jstr<=jend-jnc)
+          js=2*jnc
+          do j=jstr,jend-jnc,js
+            dA(istr,j) = dA(istr,j) + dA(istr,j+jnc)
           enddo
-          jnc=2*jnc
+          jnc=js
         enddo
-        my_crss=my_crss + dA(1,istr,jstr)
+        my_crss=my_crss + dA(istr,jstr)
+# endif
       endif
 #endif
 #ifdef OBC_EAST
       if (EASTERN_EDGE) then
         do j=jstr,jend
-          dA(1,iend,j)=0.5*(h(iend,j)+h(iend+1,j))*dn_u(iend+1,j)
+          dA(iend,j)=0.5*(h(iend,j)+h(iend+1,j))*dn_u(iend+1,j)
 # ifdef MASKING
-     &                                            *umask(iend+1,j)
+     &                                         *umask(iend+1,j)
+# endif
+# ifndef SUM_BY_PAIRS
+          my_crss=my_crss + dA(iend,j)
 # endif
         enddo
+# ifdef SUM_BY_PAIRS
         jnc=1
-        do while(jstr.le.jend-jnc)
-          do j=jstr,jend-jnc,2*jnc
-            dA(1,iend,j) = dA(1,iend,j) + dA(1,iend,j+jnc)
+        do while(jstr<=jend-jnc)
+          js=2*jnc
+          do j=jstr,jend-jnc,js
+            dA(iend,j) = dA(iend,j) + dA(iend,j+jnc)
           enddo
-          jnc=2*jnc
+          jnc=js
         enddo
-        my_crss=my_crss + dA(1,iend,jstr)
+        my_crss=my_crss + dA(iend,jstr)
+# endif
       endif
 #endif
 #ifdef OBC_SOUTH
       if (SOUTHERN_EDGE) then
         do i=istr,iend
-          dA(1,i,jstr)=0.5*(h(i,jstr)+h(i,jstr-1))*dm_v(i,jstr)
+          dA(i,jstr)=0.5*(h(i,jstr)+h(i,jstr-1))*dm_v(i,jstr)
 # ifdef MASKING
-     &                                            *vmask(i,jstr)
+     &                                         *vmask(i,jstr)
+# endif
+# ifndef SUM_BY_PAIRS
+          my_crss=my_crss + dA(i,jstr)
 # endif
         enddo
+# ifdef SUM_BY_PAIRS
         inc=1
-        do while(istr.le.iend-inc)
-          do i=istr,iend-inc,2*inc
-            dA(1,i,jstr) = dA(1,i,jstr) + dA(1,i+inc,jstr)
+        do while(istr<=iend-inc)
+          is=2*inc
+          do i=istr,iend-inc,is
+            dA(i,jstr) = dA(i,jstr) + dA(i+inc,jstr)
           enddo
-          inc=2*inc
+          inc=is
         enddo
-        my_crss=my_crss + dA(1,istr,jstr)
+        my_crss=my_crss + dA(istr,jstr)
+# endif
       endif
 #endif
 #ifdef OBC_NORTH
       if (NORTHERN_EDGE) then
         do i=istr,iend
-          dA(1,i,jend)=0.5*(h(i,jend)+h(i,jend+1))*dm_v(i,jend+1)
+          dA(i,jend)=0.5*(h(i,jend)+h(i,jend+1))*dm_v(i,jend+1)
 # ifdef MASKING
-     &                                            *vmask(i,jend+1)
+     &                                         *vmask(i,jend+1)
+# endif
+# ifndef SUM_BY_PAIRS
+          my_crss=my_crss + dA(i,jend)
 # endif
         enddo
+# ifdef SUM_BY_PAIRS
         inc=1
-        do while(istr.le.iend-inc)
-          do i=istr,iend-inc,2*inc
-            dA(1,i,jend) = dA(1,i,jend) + dA(1,i+inc,jend)
+        do while(istr<=iend-inc)
+          is=2*inc
+          do i=istr,iend-inc,is
+            dA(i,jend) = dA(i,jend) + dA(i+inc,jend)
           enddo
-          inc=2*inc
+          inc=is
         enddo
-        my_crss=my_crss + dA(1,istr,jend)
+        my_crss=my_crss + dA(istr,jend)
+# endif
       endif
 #endif
-!
+
 ! Thus far everything has ben computed within the tile. Next: combine
-! the results to get global min/max and summations. This needs to be
+! the results to get global min/max and summations.  This needs to be
 ! done in two stages, first among all tiles which belong to the same
 ! shared memory group (MPI-node); within each MPI-node, then across
 ! MPI nodes (Reduce--Broadcast sequence).
-!
+
       if (SINGLE_TILE_MODE) then
         nsub=1
       else
         nsub=NSUB_X*NSUB_E
       endif
- 
+
 C$OMP CRITICAL (grd2_cr_rgn)
-        hmin=min(hmin, my_hmin)       ! Global MIN/MAX operations
-        hmax=max(hmax, my_hmax)       ! within each shared memory
-        grdmin=min(grdmin, my_grdmin) ! group (an MPI-node).
-        grdmax=max(grdmax, my_grdmax) ! Counter tile_count identifies
-        Cu_min=min(Cu_min, my_Cu_min) ! the last thread (within each
-        Cu_max=max(Cu_max, my_Cu_max)
-        Cu_Cor=max(Cu_Cor, my_Cu_Cor)
-        area=area+my_area
-        volume=volume+my_volume
-        bc_crss=bc_crss+my_crss       ! MPI-process) leaving critical
-                                      ! region. This thread (which is
-        tile_count=tile_count+1       ! not necessarily master thread
-        if (tile_count.eq.nsub) then  ! within its MPI-process) is
-          tile_count=0                ! responsible for communication
-# ifdef MPI
+        if (tile_count==0) then       ! Global min, max, and sum
+          hmin=my_hmin                  ! operations within each shared
+          hmax=my_hmax                  ! memory group (an MPI-node).
+          grdmin=my_grdmin              ! Counter "tile_count" is to
+          grdmax=my_grdmax              ! identify the first thread
+          Cg_min=my_Cu_min              ! entering the critical region
+          Cg_max=my_Cu_max              ! and the last one to leave
+          Cu_Cor=my_Cu_Cor              ! (neither one is necessarily
+          area=my_area                  ! the master thread within its
+          volume=my_volume              ! MPI-process). In the case of
+          bc_crss=my_crss               ! MPI code the last thread is
+        else                            ! responsible for communication
+          hmin=min(hmin, my_hmin)       ! between MPI nodes to finalize
+          hmax=max(hmax, my_hmax)       ! the global operations.
+          grdmin=min(grdmin, my_grdmin)
+          grdmax=max(grdmax, my_grdmax)
+          Cg_min=min(Cg_min, my_Cu_min)
+          Cg_max=max(Cg_max, my_Cu_max)
+          Cu_Cor=max(Cu_Cor, my_Cu_Cor)
+          area=area+my_area
+          volume=volume+my_volume
+          bc_crss=bc_crss+my_crss
+        endif
+
+        tile_count=tile_count+1
+
+        if (tile_count==nsub) then
+          tile_count=0
+#ifdef MPI
           size=NNODES
-  1        step=(size+1)/2
-            if (mynode.ge.step .and. mynode.lt.size) then
+          do while (size>1)
+           step=(size+1)/2
+            if (mynode>=step .and. mynode<size) then
               buff(1)=hmin
-              buff(2)=hmax             ! This is similar MPI_Reduce
-              buff(3)=grdmin           ! MIN or MAX operation, except
-              buff(4)=grdmax           ! that MIN/MAX and QUAD
-              buff(5)=Cu_min           ! summations come together.
-              buff(6)=Cu_max
+              buff(2)=hmax               ! This is similar MPI_Reduce
+              buff(3)=grdmin             ! MIN or MAX operation, except
+              buff(4)=grdmax             ! that MIN/MAX and QUAD
+              buff(5)=Cg_min             ! summations come together.
+              buff(6)=Cg_max
               buff(7)=Cu_Cor
               buff(8)=area
               buff(9)=volume
               buff(10)=bc_crss
-              call MPI_Send (buff,  20, MPI_DOUBLE_PRECISION,
-     &             mynode-step, 17, ocean_grid_comm,      ierr)
-            elseif (mynode .lt. size-step) then
-              call MPI_Recv (buff,  20, MPI_DOUBLE_PRECISION,
-     &             mynode+step, 17, ocean_grid_comm, status, ierr)
- 
+
+              itag=mynode+300
+              call MPI_Send (buff, 10, MPI_BUFF_TYPE, mynode-step,
+     &                       itag, ocean_grid_comm,          ierr)
+            elseif (mynode < size-step) then
+              itag=mynode+step+300
+              call MPI_Recv (buff, 10, MPI_BUFF_TYPE, mynode+step,
+     &                       itag, ocean_grid_comm,  status, ierr)
               cff=buff(1)
               hmin=  min(hmin,   cff)
-              cff=buff(2)                 ! Copying buff() into cff
-              hmax=  max(hmax,   cff)     ! is needed here to strip
-              cff=buff(3)                 ! down QUAD precision in
-              grdmin=min(grdmin, cff)     ! case is some compiler
+              cff=buff(2)                 ! Copying buff() into
+              hmax=  max(hmax,   cff)     ! "cff" is needed here
+              cff=buff(3)                 ! to strip down QUAD
+              grdmin=min(grdmin, cff)     ! precision in case if
               cff=buff(4)                 ! intrinsic min/max
-              grdmax=max(grdmax, cff)     ! operations cannot
-              cff=buff(5)                 ! handle QUADs.
-              Cu_min=min(Cu_min, cff)
+              grdmax=max(grdmax, cff)     ! operations in some
+              cff=buff(5)                 ! compilers cannot
+              Cg_min=min(Cg_min, cff)     ! handle QUADs.
+
               cff=buff(6)
-              Cu_max=max(Cu_max, cff)
+              Cg_max=max(Cg_max, cff)
               cff= buff(7)
               Cu_Cor=max(Cu_Cor, cff)
               area=area + buff(8)
@@ -267,64 +341,50 @@ C$OMP CRITICAL (grd2_cr_rgn)
               bc_crss=bc_crss + buff(10)
             endif
            size=step
-          if (size.gt.1) goto 1
- 
+          enddo      !<--  while(size>1)
+
           buff(1)=hmin
           buff(2)=hmax
           buff(3)=grdmin
           buff(4)=grdmax
-          buff(5)=Cu_min
-          buff(6)=Cu_max
+          buff(5)=Cg_min
+          buff(6)=Cg_max
           buff(7)=Cu_Cor
           buff(8)=area
           buff(9)=volume
           buff(10)=bc_crss
-          call MPI_Bcast(buff, 20, MPI_DOUBLE_PRECISION,
-     &                          0, ocean_grid_comm, ierr)
+
+          call MPI_Bcast(buff, 10, MPI_BUFF_TYPE, 0,
+     &                       ocean_grid_comm, ierr)
           hmin=  buff(1)
           hmax=  buff(2)
           grdmin=buff(3)
           grdmax=buff(4)
-          Cu_min=buff(5)
-          Cu_max=buff(6)
+          Cg_min=buff(5)
+          Cg_max=buff(6)
           Cu_Cor=buff(7)
           area=buff(8)
           volume=buff(9)
           bc_crss=buff(10)
-# endif
-# ifdef MPI
-          if (mynode.eq.0) then
-# endif
-            write(stdout,'(1x,A,F12.6,3x,A,1PE14.7,5x,A,1PE23.16)')
+
+          if (mynode==0) then
+#endif
+            write(*,'(1x,A,F12.6,3x,A,ES14.7,5x,A,ES23.16)')
      &       'hmin =' ,hmin,  'grdmin =', grdmin, 'area =',   area
-            write(stdout,'(1x,A,F12.6,3x,A,1PE14.7,3x,A,1PE23.16)')
+            write(*,'(1x,A,F12.6,3x,A,ES14.7,3x,A,ES23.16)')
      &       'hmax =' ,hmax,  'grdmax =', grdmax, 'volume =', volume
-            write(stdout,'(43x,A,1PE23.16)') 'open_cross =', bc_crss
-            write(stdout,'(1x,A,F10.7,3x,A,F10.7,3x,A,F10.7)')
-     &       'Cu_min =',Cu_min, 'Cu_max =',Cu_max, 'Cu_Cor =',Cu_Cor
- 
-# ifdef USWEST
-            my_area = area     - 2.9359806235808631E+12
-            my_volume = volume - 1.1257583746469292E+16
-            my_crss = bc_crss  - 2.1590394137797680E+10
- 
-            write(*,'(/1x,2A,3(/20x,A,2(1PE20.12))/)') 'Checking ',
-     &         'accuracy:', 'errArea =',  my_area, my_area/area,
-     &                      ' errVol =',my_volume, my_volume/volume,
-     &                      'errOpen =',  my_crss,  my_crss/bc_crss
-# endif
-# ifdef MPI
+            write(*,'(43x,A,ES23.16)')        'open_cross =', bc_crss
+            write(*,'(1x,A,F10.7,3x,A,F10.7,3x,A,F10.7)')
+     &       'Cg_max =',Cg_max, 'Cg_min =',Cg_min, 'Cu_Cor =',Cu_Cor
+#ifdef MPI
           endif
-# endif
+#endif
         endif
 C$OMP END CRITICAL (grd2_cr_rgn)
- 
+
 #if defined VIS_GRID || defined DIF_GRID
-# if defined EW_PERIODIC || defined NS_PERIODIC || defined MPI
-      call exchange_r2d_tile (istr,iend,jstr,jend,  grdscl)
+# ifdef EXCHANGE
+      call exchange2d_tile (istr,iend,jstr,jend,  grdscl)
 # endif
 #endif
-      return
       end
- 
- 

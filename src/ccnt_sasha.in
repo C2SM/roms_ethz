@@ -36,10 +36,10 @@ ivinc:jvinc:  1 1  vector grid sampling in X- and Y-directions
      vintrp:  0    vertical interpolation, 0=linear, 1=cubic splines
 
      npage: 31   number of plots per page
-postscript:  F   postscript/gmeta (T/F) switch
+    pstype: 2   0,1,2 for gmeta, postscript, or PDF 
   wrtclock:  T   write out the plot header titles.
   wrtfield:  T   write out field name below the plot
-   wrtrang:  T   write out data range values and CI
+  wrtrange:  T   write out data range values and CI
    wrtfile:  F   write out input primary filename
    wrtdate:  F   write out current date
        cst:  T   read and plot coastlines and islands.

@@ -17,7 +17,7 @@ icnt:  0      draw contours between color bands: 0=no, 1=yes
 isoval: 0.    iso-surface value to process (see below)
 
 iref:   1       secondary or reference field option (see below)
-idover:  3    overlay field identification (for IREF=1,2 only)
+fldover:  3    overlay field identification (for IREF=1,2 only)
 levover: 0    level of the overlay field (set to 0 if same as current FLDLEV)
 rmin:     0.
 rmax:    50.
@@ -39,20 +39,20 @@ ivinc:jvinc:  1 1  vector grid sampling in X- and Y-directions
       lmask:  0    flag to color mask land: [0] no, [1] yes
      vintrp:  0    vertical interpolation, 0=linear, 1=cubic splines
 
+    pstype: 0   0,1,2 for gmeta, PostScript, or PDF
      npage: 11   number of plots per page
-postscript:  T   postscript/gmeta (T/F) switch
-  wrtclock:  F   write out model time clock 
+  wrtclock:  F   write out model time clock
   wrtfield:  T   write out field name below the plot
-   wrtrang:  T   write out data range values and CI.
+  wrtrange:  T   write out data range values and CI.
    wrtfile:  F   write out input primary filename.
    wrtdate:  F   write out current date.
        cst:  T   read and plot coastlines and islands.
 
    varid_file: /u/ac/shchepet/Data/varid.dat
- palette_file: /u/ac/shchepet/Palettes/black_pat.pal 
+ palette_file: /u/ac/shchepet/Palettes/black_pat.pal
 defaults_file: /u/ac/shchepet/Data/default.cnt
-   first_file:  usw15_his_Y2M4.nc.2 
-  second_file:  none 
+   first_file:  usw15_his_Y2M4.nc.2
+  second_file:  none
     grid_file:  usw15_his_Y2M4.nc.2
    coast_file: /u/ac/pmarches/plot/Data/usw_coast.dat
   cities_file: US_West_Cities.dat

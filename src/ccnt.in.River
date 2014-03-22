@@ -5,15 +5,15 @@ nfields:  3    number of fields to plot.
   fldid:  18 20 21  91, 13,18,91,11,12
 nlevels: 1
  fldlev: -2
-  
+
 
    pmax: +0. 14.0 36.
-   pmin: -0. 11.0 28. 
+   pmin: -0. 11.0 28.
    cint:  0.
    icnt:  0
 
    iref:  1    secondary or reference field option (see below)
- idover: 13 3 3    overlay field identification (for IREF=1,2 only)
+ fldover: 13 3 3    overlay field identification (for IREF=1,2 only)
 levover:   1  level of the overlay field (set to 0 if same as current FLDLEV)
 !   rmax:  30.
 !   rmin:  0.3
@@ -22,12 +22,12 @@ levover:   1  level of the overlay field (set to 0 if same as current FLDLEV)
   vec_scl: 6. vector length scale (1.0 for default)
 ivinc:jvinc: 1 1 vector grid sampling in X- and Y-directions
 
+    pstype: 0   0,1,2 for gmeta, PostScript, or PDF
      npage: 31  number of plots per page
 row_column:  T
-postscript:  F  postscript/gmeta switch
-  wrtclock:  T  write out model time clock 
+  wrtclock:  T  write out model time clock
   wrtfield:  T  write out field name below the plot.
-   wrtrang:  T  write out data range values and CI.
+  wrtrange:  T  write out data range values and CI.
    wrtfnam:  T  write out input primary filename.
    wrtdate:  T  write out current date.
 

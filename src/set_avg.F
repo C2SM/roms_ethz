@@ -1,44 +1,54 @@
 #include "cppdefs.h"
 #ifdef AVERAGES
- 
+
       subroutine set_avg (tile)
       implicit none
       integer tile
 # include "param.h"
+# ifdef SOLVE3D
+#  include "ncvars.h"
+#  include "work.h"
+#  include "private_scratch.h"
+# endif
 # include "compute_tile_bounds.h"
+# ifdef SOLVE3D
+      if (wrtavg(indxW)) then
+        call wvlcty_tile (istr,iend,jstr,jend, work, A2d(1,1),
+     &                                   A2d(1,2), A2d(1,3))
+      endif
+# endif
       call set_avg_tile (istr,iend,jstr,jend)
       return
       end
- 
+
       subroutine set_avg_tile (istr,iend,jstr,jend)
-!
+
 ! Compute time-averaged fields within a tile.
 ! ------- ------------- ------ ------ - -----
-! Because of syncronization issues, the delayed mode averaging
-! procedure is used. This procedure implies that all fields to be
-! averaged are sampled during the next time step, rather than at
-! the end of the time step when they were computed.
+! Because of the syncronization issues, a delayed-mode procedure is
+! used for averaging.  This implies that all fields to be averaged are
+! sampled during the next time step, rather than at the end of the time
+! step when they are computed.
 !
-! Thought this algorithm results in somewhat ackwad controlling
-! logic it has the advantage that that all fields to be sampled
-! correspond to exactly the same time, which is time step "n".
-! Particularly, this is done this way because vertical velocity
-! corresponding to the newly computed horizontal velocities
-! becomes available only during the following time step.
-! The same applies to the density field.
+! Although this algorithm results in somewhat awkward controlling logic
+! it has the advantage that that all fields to be sampled correspond to
+! exactly the same time, which is time step "n".  Particularly, this is
+! done this way because vertical velocity corresponding to the newly
+! computed horizontal velocities becomes available only during the
+! following time step. The same applies to the density field.
 !
 ! The algorithm consists of three logical blocks: (1) initialization
-! of the averages arrays: when mod(iic-1,navg).eq.1 the target arrays
-! are set to the first contribution; (2) accumulation of averaged
-! data, when mod(iic-1,navg).gt.1; and (3) adding the last
-! contribution and scaling.
-!
+! of the average arrays: when  mod(iic-1,navg)==1  the target arrays
+! are set to the first contribution; (2) accumulation of averaged data,
+! when mod(iic-1,navg)>1; and (3) adding the last contribution and
+! scaling.
+
       implicit none
       integer istr,iend,jstr,jend, i,j
 # ifdef SOLVE3D
      &                       , itrc, k
 # endif
-      real cff
+      real cff,cff1
 # include "param.h"
 # include "scalars.h"
 # include "ncvars.h"
@@ -48,311 +58,187 @@
 # include "eos_vars.h"
 # include "mixing.h"
 # include "averages.h"
-!
-#include "compute_auxiliary_bounds.h"
-!
-      if (iic.gt.ntsavg) then
-        if (mod(iic-ntsavg,navg).eq.1) then
-          if (ZEROTH_TILE) then
-            time_avg=time
-      MPI_master_only write(*,*) 'started averaging',iic,ntsavg,navg
-          endif
-          if (wrtavg(indxZ)) then
-            do j=jstrR,jendR
-              do i=istrR,iendR
-                zeta_avg(i,j)=zeta(i,j,knew)
-              enddo
-            enddo
-          endif
-          if (wrtavg(indxUb)) then
-            do j=jstrR,jendR
-              do i=istrR,iendR
-                ubar_avg(i,j)=ubar(i,j,knew)
-              enddo
-            enddo
-          endif
-          if (wrtavg(indxVb)) then
-            do j=jstrR,jendR
-              do i=istrR,iendR
-                vbar_avg(i,j)=vbar(i,j,knew)
-              enddo
-            enddo
-          endif
 # ifdef SOLVE3D
-          if (wrtavg(indxU)) then
-            do k=1,N
-              do j=jstrR,jendR
-                do i=istrR,iendR
-                  u_avg(i,j,k)=u(i,j,k,nstp)
-                enddo
-              enddo
-            enddo
-          endif
-          if (wrtavg(indxV)) then
-            do k=1,N
-              do j=jstrR,jendR
-                do i=istrR,iendR
-                  v_avg(i,j,k)=v(i,j,k,nstp)
-                enddo
-              enddo
-            enddo
-          endif
-          do itrc=1,NT
-           if (wrtavg(indxT+itrc-1)) then
-             do k=1,N
-               do j=jstrR,jendR
-                 do i=istrR,iendR
-                   t_avg(i,j,k,itrc)=t(i,j,k,nstp,itrc)
-                 enddo
-               enddo
-             enddo
-           endif
-          enddo
-          if (wrtavg(indxR)) then
-            do k=1,N
-              do j=jstrR,jendR
-                do i=istrR,iendR
-#  ifdef SPLIT_EOS
-                  rho_avg(i,j,k)=rho1(i,j,k)+qp1(i,j,k)
-     &                          *(z_w(i,j,N)-z_r(i,j,k))
-#  else
-                  rho_avg(i,j,k)=rho(i,j,k)
-#  endif
-                enddo
-              enddo
-            enddo
-          endif
-          if (wrtavg(indxO)) then
-            do k=1,N
-              do j=jstrR,jendR
-                do i=istrR,iendR
-                  w_avg(i,j,k)=w(i,j,k)
-                enddo
-              enddo
-            enddo
-          endif
+#  include "work.h"
 # endif
-        elseif (mod(iic-ntsavg,navg).gt.1) then
-          if (ZEROTH_TILE) time_avg=time_avg+time
-          if (wrtavg(indxZ)) then
-            do j=jstrR,jendR
-              do i=istrR,iendR
-                zeta_avg(i,j)=zeta_avg(i,j)+zeta(i,j,knew)
-              enddo
-            enddo
-          endif
-          if (wrtavg(indxUb)) then
-            do j=jstrR,jendR
-              do i=istrR,iendR
-                ubar_avg(i,j)=ubar_avg(i,j)+ubar(i,j,knew)
-              enddo
-            enddo
-          endif
-          if (wrtavg(indxVb)) then
-            do j=jstrR,jendR
-              do i=istrR,iendR
-                vbar_avg(i,j)=vbar_avg(i,j)+vbar(i,j,knew)
-              enddo
-            enddo
-          endif
-# ifdef SOLVE3D
-          if (wrtavg(indxU)) then
-            do k=1,N
-              do j=jstrR,jendR
-                do i=istrR,iendR
-                  u_avg(i,j,k)=u_avg(i,j,k)+u(i,j,k,nstp)
-                enddo
-              enddo
-            enddo
-          endif
-          if (wrtavg(indxV)) then
-            do k=1,N
-              do j=jstrR,jendR
-                do i=istrR,iendR
-                  v_avg(i,j,k)=v_avg(i,j,k)+v(i,j,k,nstp)
-                enddo
-              enddo
-            enddo
-          endif
-          do itrc=1,NT
-            if (wrtavg(indxT+itrc-1)) then
-              do k=1,N
-                do j=jstrR,jendR
-                  do i=istrR,iendR
-                    t_avg(i,j,k,itrc)=t_avg(i,j,k,itrc)
-     &                              +t(i,j,k,nstp,itrc)
-                  enddo
-                enddo
-              enddo
-            endif
-          enddo
-          if (wrtavg(indxR)) then
-            do k=1,N
-              do j=jstrR,jendR
-                do i=istrR,iendR
-#  ifdef SPLIT_EOS
-                  rho_avg(i,j,k)=rho_avg(i,j,k) + rho1(i,j,k)
-     &                     +qp1(i,j,k)*(z_w(i,j,N)-z_r(i,j,k))
-#  else
-                  rho_avg(i,j,k)=rho_avg(i,j,k)+rho(i,j,k)
-#  endif
-                enddo
-              enddo
-            enddo
-          endif
-          if (wrtavg(indxO)) then
-            do k=1,N
-              do j=jstrR,jendR
-                do i=istrR,iendR
-                  w_avg(i,j,k)=w_avg(i,j,k)+w(i,j,k)
-                enddo
-              enddo
-            enddo
-          endif
-          if (wrtavg(indxAkt)) then
-            do k=0,N
-              do j=jstrR,jendR
-                do i=istrR,iendR
-                  akt_avg(i,j,k)=akt_avg(i,j,k)+Akt(i,j,k,itemp)
-                enddo
-              enddo
-            enddo
-          endif
-#  ifdef SALINITY
-          if (wrtavg(indxAks)) then
-            do k=0,N
-              do j=jstrR,jendR
-                do i=istrR,iendR
-                  aks_avg(i,j,k)=aks_avg(i,j,k)+Akt(i,j,k,isalt)
-                enddo
-              enddo
-            enddo
-          endif
-#  endif
-#  ifdef LMD_KPP
-          if (wrtavg(indxHbl)) then
-            do j=jstrR,jendR
-              do i=istrR,iendR
-                hbl_avg(i,j)=hbl_avg(i,j)+hbls(i,j,nstp)
-              enddo
-            enddo
-          endif
-#  endif
-# endif /* SOLVE3D */
-        elseif (mod(iic-ntsavg,navg).eq.0) then
-          cff=1./float(navg)
+
+# include "compute_auxiliary_bounds.h"
+
+      if (iic>ntsavg) then
+        cff=1./dble(navg) !<-- scaling
+        if (mod(iic-ntsavg,navg)==1) then
           if (ZEROTH_TILE) then
-             time_avg=cff*(time_avg+time)
-      MPI_master_only write(*,*) 'finish averaging',iic,ntsavg,navg
+            mpi_master_only write(*,'(7x,A,I8,2x,A,I8,2x,A,I5)')
+     &               'set_avg :: started averaging at iic=', iic,
+     &                          'ntsavg=', ntsavg, 'navg=', navg
           endif
-          if (wrtavg(indxZ)) then
-            do j=jstrR,jendR
-              do i=istrR,iendR
-                zeta_avg(i,j)=cff*( zeta_avg(i,j)+zeta(i,j,knew))
-              enddo
+          cff1=0.   !--> initialize
+        else
+          cff1=1.   !--> keep adding
+        endif
+
+        if (ZEROTH_TILE) time_avg=cff1*time_avg + cff*time
+
+        if (wrtavg(indxZ)) then
+          do j=jstrR,jendR
+            do i=istrR,iendR
+              zeta_avg(i,j)=cff1*zeta_avg(i,j) + cff*zeta(i,j,knew)
             enddo
-          endif
-          if (wrtavg(indxUb)) then
-            do j=jstrR,jendR
-              do i=istrR,iendR
-                ubar_avg(i,j)=cff*( ubar_avg(i,j)+ubar(i,j,knew))
-              enddo
-            enddo
-          endif
-          if (wrtavg(indxVb)) then
-            do j=jstrR,jendR
-              do i=istrR,iendR
-                vbar_avg(i,j)=cff*( vbar_avg(i,j)+vbar(i,j,knew))
-              enddo
-            enddo
-          endif
-# ifdef SOLVE3D
-          if (wrtavg(indxU)) then
-            do k=1,N
-              do j=jstrR,jendR
-                do i=istrR,iendR
-                  u_avg(i,j,k)=cff*(u_avg(i,j,k)+u(i,j,k,nstp))
-                enddo
-              enddo
-            enddo
-          endif
-          if (wrtavg(indxV)) then
-            do k=1,N
-              do j=jstrR,jendR
-                do i=istrR,iendR
-                  v_avg(i,j,k)=cff*(v_avg(i,j,k)+v(i,j,k,nstp))
-                enddo
-              enddo
-            enddo
-          endif
-          do itrc=1,NT
-            if (wrtavg(indxT+itrc-1)) then
-              do k=1,N
-                do j=jstrR,jendR
-                  do i=istrR,iendR
-                    t_avg(i,j,k,itrc)=cff*( t_avg(i,j,k,itrc)
-     &                                    +t(i,j,k,nstp,itrc))
-                  enddo
-                enddo
-              enddo
-            endif
           enddo
-          if (wrtavg(indxR)) then
+        endif
+        if (wrtavg(indxUb)) then
+          do j=jstrR,jendR
+            do i=istrR,iendR
+              ubar_avg(i,j)=cff1*ubar_avg(i,j) + cff*ubar(i,j,knew)
+            enddo
+          enddo
+        endif
+        if (wrtavg(indxVb)) then
+          do j=jstrR,jendR
+            do i=istrR,iendR
+              vbar_avg(i,j)=cff1*vbar_avg(i,j) +cff*vbar(i,j,knew)
+            enddo
+          enddo
+        endif
+# ifdef SOLVE3D
+        if (wrtavg(indxU)) then
+          do k=1,N
+            do j=jstrR,jendR
+              do i=istrR,iendR
+                u_avg(i,j,k)=cff1*u_avg(i,j,k) +cff*u(i,j,k,nstp)
+              enddo
+            enddo
+          enddo
+        endif
+        if (wrtavg(indxV)) then
+          do k=1,N
+            do j=jstrR,jendR
+              do i=istrR,iendR
+                v_avg(i,j,k)=cff1*v_avg(i,j,k) + cff*v(i,j,k,nstp)
+              enddo
+            enddo
+          enddo
+        endif
+        do itrc=1,NT
+          if (wrtavg(indxT+itrc-1)) then
             do k=1,N
               do j=jstrR,jendR
                 do i=istrR,iendR
+                  t_avg(i,j,k,itrc)=cff1*t_avg(i,j,k,itrc)
+     &                              +cff*t(i,j,k,nstp,itrc)
+                enddo
+              enddo
+            enddo
+          endif
+        enddo
+        if (wrtavg(indxR)) then
+          do k=1,N
+            do j=jstrR,jendR
+              do i=istrR,iendR
 #  ifdef SPLIT_EOS
-                  rho_avg(i,j,k)=cff*( rho_avg(i,j,k) + rho1(i,j,k)
-     &                          +qp1(i,j,k)*(z_w(i,j,N)-z_r(i,j,k)))
+                rho_avg(i,j,k)=cff1*rho_avg(i,j,k) +cff*( rho1(i,j,k)
+     &                                        -qp1(i,j,k)*z_r(i,j,k) )
 #  else
-                  rho_avg(i,j,k)=cff*(rho_avg(i,j,k)+rho(i,j,k))
+                rho_avg(i,j,k)=cff1*rho_avg(i,j,k) +cff*rho(i,j,k)
 #  endif
-                enddo
               enddo
             enddo
-          endif
-          if (wrtavg(indxO)) then
-            do k=1,N
-              do j=jstrR,jendR
-                do i=istrR,iendR
-                  w_avg(i,j,k)=cff*pm(i,j)*pn(i,j)*( w_avg(i,j,k)
-     &                                                  +w(i,j,k))
-                enddo
-              enddo
-            enddo
-          endif
-          if (wrtavg(indxAkt)) then
+          enddo
+        endif
+        if (wrtavg(indxO)) then
+          if (mod(iic-ntsavg,navg)==1) then
             do k=0,N
               do j=jstrR,jendR
                 do i=istrR,iendR
-                  akt_avg(i,j,k)=cff*(akt_avg(i,j,k)+Akt(i,j,k,itemp))
+                  w_avg(i,j,k)=We(i,j,k)+Wi(i,j,k)
+                enddo
+              enddo
+            enddo
+          elseif (mod(iic-ntsavg,navg)>1) then
+            do k=0,N
+              do j=jstrR,jendR
+                do i=istrR,iendR
+                  w_avg(i,j,k)=w_avg(i,j,k) +We(i,j,k)+Wi(i,j,k)
+                enddo
+              enddo
+            enddo
+          elseif (mod(iic-ntsavg,navg)==0) then
+            do k=0,N
+              do j=jstrR,jendR
+                do i=istrR,iendR
+                  w_avg(i,j,k)=cff*( w_avg(i,j,k)+We(i,j,k)+Wi(i,j,k)
+     &                                              )*pm(i,j)*pn(i,j)
                 enddo
               enddo
             enddo
           endif
+        endif
+        if (wrtavg(indxW)) then
+          do k=1,N
+            do j=jstrR,jendR
+              do i=istrR,iendR
+                wvl_avg(i,j,k)=cff1*wvl_avg(i,j,k) +cff*work(i,j,k)
+              enddo
+            enddo
+          enddo
+        endif
+        if (wrtavg(indxAkv)) then
+          do k=0,N
+            do j=jstrR,jendR
+              do i=istrR,iendR
+                akv_avg(i,j,k)=cff1*akv_avg(i,j,k) +cff*Akv(i,j,k)
+              enddo
+            enddo
+          enddo
+        endif
+        if (wrtavg(indxAkt)) then
+          do k=0,N
+            do j=jstrR,jendR
+              do i=istrR,iendR
+                akt_avg(i,j,k)=cff1*akt_avg(i,j,k)+cff*Akt(i,j,k,itemp)
+              enddo
+            enddo
+          enddo
+        endif
 #  ifdef SALINITY
-          if (wrtavg(indxAks)) then
-            do k=0,N
-              do j=jstrR,jendR
-                do i=istrR,iendR
-                  aks_avg(i,j,k)=cff*(aks_avg(i,j,k)+Akt(i,j,k,isalt))
-                enddo
+        if (wrtavg(indxAks)) then
+          do k=0,N
+            do j=jstrR,jendR
+              do i=istrR,iendR
+                aks_avg(i,j,k)=cff1*aks_avg(i,j,k)+cff*Akt(i,j,k,isalt)
               enddo
             enddo
-          endif
+          enddo
+        endif
 #  endif
 #  ifdef LMD_KPP
-          if (wrtavg(indxHbl)) then
-            do j=jstrR,jendR
-              do i=istrR,iendR
-                hbl_avg(i,j)=cff*(hbl_avg(i,j)+hbls(i,j,nstp))
-              enddo
+        if (wrtavg(indxHbls)) then
+          do j=jstrR,jendR
+            do i=istrR,iendR
+              hbl_avg(i,j)=cff1*hbl_avg(i,j) +cff*hbls(i,j,nstp)
             enddo
-          endif
+          enddo
+        endif
+#  endif
+#  ifdef LMD_BKPP
+        if (wrtavg(indxHbbl)) then
+          do j=jstrR,jendR
+            do i=istrR,iendR
+              hbbl_avg(i,j)=cff1*hbbl_avg(i,j) +cff*hbbls(i,j,nstp)
+            enddo
+          enddo
+        endif
 #  endif
 # endif /* SOLVE3D */
+
+        if (mod(iic-ntsavg,navg)==0) then
+          if (ZEROTH_TILE) then
+            mpi_master_only write(*,'(7x,A,I8,2x,A,I8,2x,A,I5)')
+     &              'set_avg :: finished averaging at iic=', iic,
+     &                         'ntsavg=', ntsavg,  'navg=', navg
+          endif
         endif
-      endif       !<-- iic.gt.ntsavg
+      endif       !<-- iic>ntsavg
       return
       end
 #else

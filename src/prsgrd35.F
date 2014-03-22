@@ -11,7 +11,6 @@
      &                                        A3d(1,3), A3d(1,4),
      &                    A2d(1,1), A2d(1,2), A2d(1,3), A2d(1,4),
      &                    A2d(1,5), A2d(1,6), A2d(1,7), A2d(1,8))
-      return
       end
  
       subroutine prsgrd_tile (istr,iend,jstr,jend, ru,rv,
@@ -20,29 +19,21 @@
       implicit none
       integer istr,iend,jstr,jend, i,j,k
 # include "param.h"
-      real ru(PRIVATE_2D_SCRATCH_ARRAY,N),
-     &     rv(PRIVATE_2D_SCRATCH_ARRAY,N),
-     &     gradZ(PRIVATE_2D_SCRATCH_ARRAY,0:N),
-     &     gradR(PRIVATE_2D_SCRATCH_ARRAY,0:N),
-     &      grdZ(PRIVATE_1D_SCRATCH_ARRAY,0:N), cff,
-     &      avgZ(PRIVATE_1D_SCRATCH_ARRAY,0:N), dCF,
-     &      grdR(PRIVATE_1D_SCRATCH_ARRAY,0:N),
-     &      avgR(PRIVATE_1D_SCRATCH_ARRAY,0:N),
-     &     grdR1(PRIVATE_1D_SCRATCH_ARRAY,0:N),
-     &     avgR1(PRIVATE_1D_SCRATCH_ARRAY,0:N),
-     &       dHz(PRIVATE_1D_SCRATCH_ARRAY,0:N),
-     &        CF(PRIVATE_1D_SCRATCH_ARRAY,0:N)
- 
+      real, dimension(PRIVATE_2D_SCRATCH_ARRAY,N) :: ru,rv
+      real, dimension(PRIVATE_2D_SCRATCH_ARRAY,0:N) :: gradZ,gradR
+      real, dimension(PRIVATE_1D_SCRATCH_ARRAY,0:N) :: grdZ,avgZ,
+     &                           grdR,avgR,  grdR1,avgR1, dHz, CF
+      real  cff,dCF
  
 # include "grid.h"
 # include "ocean3d.h"
+# include "eos_vars.h"
 # include "scalars.h"
-!
+
 # include "compute_auxiliary_bounds.h"
-!                                               Compute XI-component
-!                                               ======= == =========
-      do j=jstr,jend
-        do k=0,N
+
+      do j=jstr,jend                          ! Compute XI-component
+        do k=0,N                              ! ------- -- ----------
           do i=istrU,iend
             gradZ(i,j,k)=(z_w(i,j,k)-z_w(i-1,j,k))
 # ifdef MASKING
@@ -258,6 +249,5 @@ c?     &             +0.0625*(gradR(i,j-1,k)-gradR(i,j+1,k))
 #else
       subroutine prsgrd_empty
 #endif /* SOLVE3D */
-      return
       end
  

@@ -1,9 +1,10 @@
 ! Auxiliary module "compute_extended_bounds.h":
 !---------- ------ ----------------------------
-! Bounds which cover interior points of an array together with
-! ghost points of PHYSICAL side boundaries and halo points associated
-! with computational margins of MPI-subdomains.
-!
+! Bounds which cover the interior points of an array together
+! with BOTH the ghost points due to PHYSICAL lateral boundaries
+! AND computational margins due to periodicity in either
+! direction or halo points around MPI-subdomains.
+
 #ifdef istrR
 # undef istrR
 #endif
@@ -23,16 +24,13 @@
 # define jnorth Mm
 #endif
 
-
-
-
       integer istrR,iendR,jstrR,jendR
-      if (istr.eq.iwest) then
+      if (istr==iwest) then
 # ifdef EW_PERIODIC
         istrR=istr-2
 # else
 #  ifdef MPI
-        if (WEST_INTER) then
+        if (WEST_EXCHNG) then
           istrR=istr-2
         else
           istrR=istr-1
@@ -44,13 +42,13 @@
       else
         istrR=istr
       endif
- 
-      if (iend.eq.ieast) then
+
+      if (iend==ieast) then
 # ifdef EW_PERIODIC
         iendR=iend+2
 # else
 #  ifdef MPI
-        if (EAST_INTER) then
+        if (EAST_EXCHNG) then
           iendR=iend+2
         else
           iendR=iend+1
@@ -62,13 +60,13 @@
       else
         iendR=iend
       endif
- 
-      if (jstr.eq.jsouth) then
+
+      if (jstr==jsouth) then
 # ifdef NS_PERIODIC
         jstrR=jstr-2
 # else
 #  ifdef MPI
-        if (SOUTH_INTER) then
+        if (SOUTH_EXCHNG) then
           jstrR=jstr-2
         else
           jstrR=jstr-1
@@ -80,13 +78,13 @@
       else
         jstrR=jstr
       endif
- 
-      if (jend.eq.jnorth) then
+
+      if (jend==jnorth) then
 # ifdef NS_PERIODIC
         jendR=jend+2
 # else
 #  ifdef MPI
-        if (NORTH_INTER) then
+        if (NORTH_EXCHNG) then
           jendR=jend+2
         else
           jendR=jend+1
@@ -105,5 +103,3 @@
 # undef jsouth
 # undef jnorth
 #endif
- 
- 

@@ -1,6 +1,6 @@
 #include "cppdefs.h"
 #ifdef SOLVE3D
- 
+
       subroutine prsgrd (tile)
       implicit none
       integer tile
@@ -9,23 +9,23 @@
 # include "compute_tile_bounds.h"
       call prsgrd30A_tile (istr,iend,jstr,jend, A3d(1,1), A3d(1,2),
      &                                          A3d(1,3), A2d(1,1))
-      return
       end
- 
+
       subroutine prsgrd30A_tile (istr,iend,jstr,jend, ru,rv, d,RX)
       implicit none
       integer istr,iend,jstr,jend, i,j,k
 # include "param.h"
-      real ru(PRIVATE_2D_SCRATCH_ARRAY,N),
-     &     rv(PRIVATE_2D_SCRATCH_ARRAY,N),
-     &      d(PRIVATE_2D_SCRATCH_ARRAY,0:N), dz,
-     &     RX(PRIVATE_1D_SCRATCH_ARRAY,N),  cff
+      real, dimension(PRIVATE_2D_SCRATCH_ARRAY,N) :: ru,rv
+      real, dimension(PRIVATE_2D_SCRATCH_ARRAY,0:N) :: d
+      real, dimension(PRIVATE_1D_SCRATCH_ARRAY,N) :: RX
+      real dz,cff
 # include "grid.h"
 # include "ocean3d.h"
+# include "eos_vars.h"
 # include "scalars.h"
-!
+
 # include "compute_auxiliary_bounds.h"
-!
+
       do j=jstrV-1,jend
         do k=1,N-1
           do i=istrU-1,iend
@@ -37,8 +37,8 @@
           d(i,j,N)=d(i,j,N-1)
           d(i,j,0)=d(i,j,  1)
         enddo
- 
-        if (j.ge.jstr) then
+
+        if (j>=jstr) then
           do k=1,N
             do i=istrU,iend
               dz=0.5*(z_r(i,j,k)-z_r(i-1,j,k))
@@ -52,7 +52,7 @@
      &                   +d(i-1,j,N)*(z_w(i-1,j,N)-z_r(i-1,j,N))
      &                   +d(i  ,j,N)*(z_w(i  ,j,N)-z_r(i  ,j,N))
      &                            ))*(z_w(i-1,j,N)-z_w(i  ,j,N))
- 
+
      &                 +0.5*RX(i,N)*( z_w(i  ,j,N)+z_w(i-1,j,N)
      &                               -z_r(i  ,j,N)-z_r(i-1,j,N))
           enddo
@@ -71,8 +71,8 @@
             enddo
           enddo
         endif
- 
-        if (j.ge.jstrV) then
+
+        if (j>=jstrV) then
           do k=1,N
             do i=istr,iend
               dz=0.5*(z_r(i,j,k)-z_r(i,j-1,k))
@@ -86,7 +86,7 @@
      &                   +d(i,j-1,N)*(z_w(i,j-1,N)-z_r(i,j-1,N))
      &                   +d(i  ,j,N)*(z_w(i,j  ,N)-z_r(i,j  ,N))
      &                            ))*(z_w(i,j-1,N)-z_w(i,j  ,N))
- 
+
      &                 +0.5*RX(i,N)*( z_w(i  ,j,N)+z_w(i,j-1,N)
      &                               -z_r(i  ,j,N)-z_r(i,j-1,N))
           enddo
@@ -106,10 +106,8 @@
           enddo
         endif
       enddo  !<-- j
-      return
       end
 #else
       subroutine prsgrd_empty
       end
 #endif /* SOLVE3D */
- 

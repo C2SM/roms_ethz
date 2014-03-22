@@ -1,8 +1,8 @@
 !title: Flow Around Isolated Seamount
 
-! frstd:lastd:dskip:  30 1000 1000 180 2 
+! frstd:lastd:dskip:  30 1000 1000 180 2
 
-nfields: 1 
+nfields: 1
   fldid: 16 20  13,18,3,20
    pmax: +0.05 2.4  3.025 1.104, 4.00, +3.2E-3, 4.0,   1.124
    pmin: -0.05 0.8  0.025  1.092, 0.05, -8.E-4,  0.05 , 1.102
@@ -14,7 +14,7 @@ nlevels: 1      number of depths/levels/isopycnals to plot
    icnt:  0   draw contours between color bands (1=yes/0=no)
 
    iref: 1   secondary or reference field option
- idover: 3    overlay field identification (for IREF=1,2 only).
+ fldover: 3    overlay field identification (for IREF=1,2 only).
    rmax: +25., 0.,0.,0.
    rmin: +0.25 ,0.,0.,0.
 
@@ -33,11 +33,11 @@ xsec2:ysec2: 51 97  ending   X,Y-position of section
 vintrp: 1 vertical interpolation, 0=linear, 1=cubic splines
 
 
-!     npage: 22  number of plots per page
-postscript:  F  postscript/gmeta switch
-  wrtclock:  T  write out model time clock 
+    pstype: 0   0,1,2 for gmeta, PostScript, or PDF
+!    npage: 22  number of plots per page
+  wrtclock:  T  write out model time clock
   wrtfield:  T  write out field name below the plot
-   wrtrang:  T  switch to write out data range values and CI.
+  wrtrange:  T  switch to write out data range values and CI.
    wrtfile:  F  switch to write out input primary filename.
    wrtdate:  F  switch to write out current date.
        cst:  F  switch to read and plot coastlines and islands.

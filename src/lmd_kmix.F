@@ -17,7 +17,7 @@
 
       subroutine lmd_kmix_tile (istr,iend,jstr,jend, alpha,beta,
      &                             Hz_inv, uc,vc,du,dv, dr,dRdz,
-     &                             Bfsfc, FC, Cr, Kv,Kt,Ks, A) 
+     &                             Bfsfc, FC, Cr, Kv,Kt,Ks, A)
 
       implicit none
 # include "param.h"
@@ -34,10 +34,10 @@
 
      &    Hz_inv(PRIVATE_1D_SCRATCH_ARRAY,0:N),  grho0,   rref,
      &        uc(PRIVATE_1D_SCRATCH_ARRAY,0:N),  grho0Ri, strat,
-     &        vc(PRIVATE_1D_SCRATCH_ARRAY,0:N),           Vterm, 
-     &        du(PRIVATE_1D_SCRATCH_ARRAY,0:N),  dpth, 
-     &        dv(PRIVATE_1D_SCRATCH_ARRAY,0:N),  hbld,    patch,    
-     &        dr(PRIVATE_1D_SCRATCH_ARRAY,0:N),  hbl_inv, 
+     &        vc(PRIVATE_1D_SCRATCH_ARRAY,0:N),           Vterm,
+     &        du(PRIVATE_1D_SCRATCH_ARRAY,0:N),  dpth,
+     &        dv(PRIVATE_1D_SCRATCH_ARRAY,0:N),  hbld,    patch,
+     &        dr(PRIVATE_1D_SCRATCH_ARRAY,0:N),  hbl_inv,
      &      dRdz(PRIVATE_1D_SCRATCH_ARRAY,0:N),  sigma,
      &     Bfsfc(PRIVATE_1D_SCRATCH_ARRAY,0:N),           f1,
      &        FC(PRIVATE_1D_SCRATCH_ARRAY,0:N),  cff_up,  Av_bl,
@@ -65,7 +65,7 @@
 # ifdef LMD_CONVEC
      &                      , nu0c
 # endif
-      parameter (epssfc=0.1,  ! fraction of surface layer within 
+      parameter (epssfc=0.1,  ! fraction of surface layer within
                               ! boundary layer.
      &   Ricr=0.3D0,     ! critical bulk Richardson number (=0.3)
 
@@ -81,14 +81,14 @@
                          ! parameterizing nonlocal transport.
 
      &   nuwm=1.0e-4,    ! viscosity and diffusivity due to
-     &   nuws=0.1e-4,    ! internal wave breaking, [m^2/s]         
-# ifdef LMD_RIMIX 
+     &   nuws=0.1e-4,    ! internal wave breaking, [m^2/s]
+# ifdef LMD_RIMIX
      &   Ri0=0.7,
      &   nu0m=50.e-4,
      &   nu0s=50.e-4,
 # endif
 # ifdef LMD_CONVEC
-     &   nu0c=0.1,       ! convective adjustment  
+     &   nu0c=0.1,       ! convective adjustment
 # endif
      &   eps=1.E-20 )    ! just a small number
 
@@ -96,10 +96,10 @@
 
 
 !
-! Parameters and variables associated with "wscale" computations. 
+! Parameters and variables associated with "wscale" computations.
 !
       real zetam, am,cm, zetas, as,cs, zt,pwr, wm,ws
-      parameter (zetam=-0.2, am=1.257,  cm=8.360, 
+      parameter (zetam=-0.2, am=1.257,  cm=8.360,
      &           zetas=-1.0, as=-28.86, cs=98.96)
 
 
@@ -130,8 +130,8 @@
       Cg=Cstar * vonKar * (cs*vonKar*epssfc)**(1./3.)
       Vtc=Cv * sqrt(-betaT/(cs*epssfc)) / (Ricr*vonKar**2)
 
-       
-      
+
+
 
 
 
@@ -169,9 +169,9 @@
           do i=istr,iend
             cff=(dr(i,k)*Hz_inv(i,k)+dr(i,k-1)*Hz_inv(i,k-1))
      &                              /(Hz_inv(i,k)+Hz_inv(i,k-1))
-            if (dr(i,k).gt.0.D0  .and.  dr(i,k-1).gt.0.D0) then
+            if (dr(i,k)>0.D0  .and.  dr(i,k-1)>0.D0) then
               dRdz(i,k)=min(cff, 2.D0*min(dr(i,k),dr(i,k-1)))
-            elseif (dr(i,k).lt.0.D0 .and. dr(i,k-1).lt.0.D0) then
+            elseif (dr(i,k)<0.D0 .and. dr(i,k-1)<0.D0) then
               dRdz(i,k)=max(cff, 2.D0*max(dr(i,k),dr(i,k-1)))
             else
               dRdz(i,k)=0.D0
@@ -194,11 +194,11 @@
 ! velocity scales ws and wm; surface boyancy flux "Bfsfc(:,N)" due
 ! to latent (i.e., excluding short-wave radiation component, which
 ! is saved separately as "Bosol"). Also initialize various auxiliary
-! variables 
+! variables
 !
         grho0=g/rho0
         grho0Ri=g/(rho0*Ricr)
-        cff1=C_MO/vonKar 
+        cff1=C_MO/vonKar
 
         do i=istr,iend
           A(i,srf_dpth)=hbl(i,j)*epssfc
@@ -219,7 +219,7 @@
           vc(i,N)=1.D0-r1(jwt)
 
           Cr(i,N)=0.D0
-          FC(i,N)=0.D0 
+          FC(i,N)=0.D0
           A(i,kmo)=-1.D0
           A(i,kbl)=-1.D0
           A(i,h_MO)=cff1*A(i,ustar)**3  !<-- temporal value
@@ -229,8 +229,8 @@
 ! Attenuate short-wave radiation from surface downward using two
 ! solar wavelength band model, (Paulson and impson, 1977; here "jwt"
 ! is Jerlov water type index; "mu1,2" reciprocal of the absorption
-! coefficient of each band). Also, in order to save computational  
-! cost, exponential function below is replaced with its Pade fit: 
+! coefficient of each band). Also, in order to save computational
+! cost, exponential function below is replaced with its Pade fit:
 !
         cff1=1.D0/mu1(jwt)     !                1 - (1/3)x
         cff2=1.D0/mu2(jwt)     ! exp(-x) = -----------------------
@@ -276,10 +276,10 @@ c**
             zt=0.5*(Bfsfc(i,k)+Bfsfc(i,k-1))*min(A(i,srf_dpth),dpth)
      &                                                  * A(i,uscl3)
 
-            if (zt .ge. 0.D0) then           !--> stable regime
+            if (zt >= 0.D0) then           !--> stable regime
               ws=1.+5.*zt
               pwr=-1.D0
-            elseif (zt .gt. zetas) then      !--> unstable regime
+            elseif (zt > zetas) then      !--> unstable regime
               ws=1.-16.*zt
               pwr=0.5D0
             else                             !--> convective regime
@@ -296,13 +296,13 @@ c**
           enddo
 
           do i=istr,iend
-            if (A(i,kbl).lt.2. .and. Rib(i,k).gt.Ricr) then
+            if (A(i,kbl)<2. .and. Rib(i,k)>Ricr) then
               A(i,zbl)=        ( z_r(i,j,k+1)*(Rib(i,k)-Ricr)
      &                           +z_r(i,j,k)*(Ricr-Rib(i,k+1))
      &                                 )/(Rib(i,k)-Rib(i,k+1))
               A(i,kbl)=float(k)+eps
             endif
-          enddo   
+          enddo
         enddo
 
 
@@ -313,7 +313,7 @@ c**
 
 
         do i=istr,iend
-          if (A(i,Bfsfc_bl).gt.0.) then
+          if (A(i,Bfsfc_bl)>0.) then
             hekman=cekman*A(i,ustar)/max(abs(f(i,j)),eps)
             hmonob=cmonob*A(i,ustar)**3/(vonKar*A(i,Bfsfc_bl))
 
@@ -325,7 +325,7 @@ c**
                                  ! Find new boundary
         do k=N-1,1,-1            ! layer index "kbl".
           do i=istr,iend
-            if (z_w(i,j,k) .gt. A(i,zbl)) A(i,kbl)=float(k)+eps
+            if (z_w(i,j,k) > A(i,zbl)) A(i,kbl)=float(k)+eps
           enddo
         enddo
 
@@ -363,17 +363,17 @@ c**
      &                   +du(i,k-1)**2  +dv(i,k)**2+dv(i,k-1)**2)
      &             +0.25D0*(du(i,k)*du(i,k-1)+dv(i,k)*dv(i,k-1)))
 
-            if (Bfsfc(i,k-1) .gt. 0.D0) then
+            if (Bfsfc(i,k-1) > 0.D0) then
 c              FC(i,k-1)=FC(i,k-1) - Hz(i,j,k)*A(i,Ekm)
             endif
 */
             dpth=z_w(i,j,N)-z_w(i,j,k-1)
             zt=Bfsfc(i,k-1) * min(A(i,srf_dpth),dpth) * A(i,uscl3)
 
-            if (zt .ge. 0.D0) then           !--> stable regime
+            if (zt >= 0.D0) then           !--> stable regime
               ws=1.+5.*zt
               pwr=-1.D0
-            elseif (zt .gt. zetas) then      !--> unstable regime
+            elseif (zt > zetas) then      !--> unstable regime
               ws=1.-16.*zt
               pwr=0.5D0
             else                             !--> convective regime
@@ -382,7 +382,7 @@ c              FC(i,k-1)=FC(i,k-1) - Hz(i,j,k)*A(i,Ekm)
             endif
             ws=vonKar*A(i,ustar) * ws**pwr
 /*
-            if (k.gt.1) then
+            if (k>1) then
               rref=0.5D0*Hz_inv(i,k-1)*( Hz(i,j,k-1)*rho1(i,j,k)
      &                                   +Hz(i,j,k)*rho1(i,j,k-1))
      &                           -0.0625D0*(dRdz(i,k)-dRdz(i,k-1))
@@ -390,7 +390,7 @@ c              FC(i,k-1)=FC(i,k-1) - Hz(i,j,k)*A(i,Ekm)
 
               Vterm=1.5D0*dr(i,k-1)-0.25D0*(dRdz(i,k)+dRdz(i,k-1))
             else
-              rref=rho1(i,j,1)  
+              rref=rho1(i,j,1)
               Vterm=0.D0
             endif
 */
@@ -423,9 +423,9 @@ c**
             Vterm=Vtc*ws*sqrt( max( 0.D0, -grho0*Vterm ))
             Cr(i,k-1)=FC(i,k-1)+Vterm - strat
 
-            if (A(i,kbl).lt.0.D0 .and. Cr(i,k-1).lt.0.D0)  A(i,kbl)=k
-            if (A(i,kmo).lt.0.D0 .and. dpth*Bfsfc(i,k-1)
-     &                                    .gt. A(i,h_MO))  A(i,kmo)=k
+            if (A(i,kbl)<0.D0 .and. Cr(i,k-1)<0.D0)  A(i,kbl)=k
+            if (A(i,kmo)<0.D0 .and. dpth*Bfsfc(i,k-1)
+     &                                    > A(i,h_MO))  A(i,kmo)=k
           enddo
         enddo
 
@@ -434,12 +434,12 @@ c**
 !
         do i=istr,iend
           k=int(A(i,kbl)+0.5D0)
-          if (k.gt.0) then
+          if (k>0) then
             A(i,zbl)=(z_w(i,j,k)*Cr(i,k-1)-z_w(i,j,k-1)*Cr(i,k))
      &                                       /(Cr(i,k-1)-Cr(i,k))
 
 
-            if (Cr(i,k-1)*Cr(i,k) .gt. 0.) write(*,*) k 
+            if (Cr(i,k-1)*Cr(i,k) > 0.) write(*,*) k
 
           else
             A(i,zbl)=z_w(i,j,0)
@@ -451,7 +451,7 @@ c**
 !                                             vonKar*Bfsfc(z)
         do i=istr,iend
           k=int(A(i,kmo)+0.5D0)
-          if (k.gt.0) then
+          if (k>0) then
             cff=A(i,h_MO)
             cff1=max(0.D0, Bfsfc(i,k-1))
             cff2=max(0.D0, Bfsfc(i,k  ))
@@ -459,7 +459,7 @@ c**
      &          - cff*(cff2*z_w(i,j,k)-cff1*z_w(i,j,k-1))
      &              /( cff1*cff2*(z_w(i,j,k)-z_w(i,j,k-1))
      &                                 + cff*(cff1-cff2) )
-            if (A(i,zbl) .lt. A(i,h_MO)) then
+            if (A(i,zbl) < A(i,h_MO)) then
 
 c          write(*,*) A(i,zbl), A(i,h_MO)
 
@@ -553,7 +553,7 @@ c     &                                      +dv(i,k)**2, eps)
 
 
 !
-!------------  
+!------------
 !
         do i=istr,iend
           k=int(A(i,kbl)+0.5D0)
@@ -567,10 +567,10 @@ c     &                                      +dv(i,k)**2, eps)
 
           zt=A(i,Bfsfc_bl) * A(i,srf_dpth) * A(i,uscl3)
 
-          if (zt .ge. 0.D0) then           !--> stable regime
+          if (zt >= 0.D0) then           !--> stable regime
             wm=1.+5.*zt
             pwr=-1.D0
-          elseif (zt .gt. zetam) then      !--> unstable regime
+          elseif (zt > zetam) then      !--> unstable regime
             wm=1.-16.*zt
             pwr=0.25D0
           else
@@ -579,10 +579,10 @@ c     &                                      +dv(i,k)**2, eps)
           endif
           wm=vonKar*ustar * wm**pwr
 
-          if (zt .ge. 0.D0) then           !--> stable regime
+          if (zt >= 0.D0) then           !--> stable regime
             ws=1.+5.*zt
             pwr=-1.D0
-          elseif (zt .gt. zetas) then      !--> unstable regime
+          elseif (zt > zetas) then      !--> unstable regime
             ws=1.-16.*zt
             pwr=0.5D0
           else                             !--> convective regime
@@ -590,7 +590,7 @@ c     &                                      +dv(i,k)**2, eps)
             pwr=0.333333333333D0
           endif
           ws=vonKar*A(i,ustar) * ws**pwr
-        
+
           f1=5.D0*vonKar * A(i,Bfsfc_bl)/(A(i,ustar)**4)
 
           Av_bl=cff_up*Kv(i,k)+cff_dn*Kv(i,k-1)
@@ -616,18 +616,18 @@ c     &                                      +dv(i,k)**2, eps)
 
 
         do i=istr,iend
-          km=int(A(i,kbl)+0.5D0) 
+          km=int(A(i,kbl)+0.5D0)
           hbld=z_w(i,j,N)-A(i,zbl)
           hbl_inv=1.D0/hbld
-          
+
           do k=N-1,km,-1
             dpth=z_w(i,j,N)-z_w(i,j,k)
             zt=A(i,Bfsfc_bl) * min(A(i,srf_dpth),dpth) * A(i,uscl3)
 
-            if (zt .ge. 0.D0) then           !--> stable regime
+            if (zt >= 0.D0) then           !--> stable regime
               wm=1.+5.*zt
               pwr=-1.D0
-            elseif (zt .gt. zetam) then      !--> unstable regime
+            elseif (zt > zetam) then      !--> unstable regime
               wm=1.-16.*zt
               pwr=0.25D0
             else
@@ -635,11 +635,11 @@ c     &                                      +dv(i,k)**2, eps)
               pwr=0.333333333333D0
             endif
             wm=vonKar*ustar * wm**pwr
- 
-            if (zt .ge. 0.D0) then           !--> stable regime
+
+            if (zt >= 0.D0) then           !--> stable regime
               ws=1.+5.*zt
               pwr=-1.D0
-            elseif (zt .gt. zetas) then      !--> unstable regime
+            elseif (zt > zetas) then      !--> unstable regime
               ws=1.-16.*zt
               pwr=0.5D0
             else                             !--> convective regime
@@ -653,7 +653,7 @@ c     &                                      +dv(i,k)**2, eps)
             a2=3.-2.*sigma
             a3=sigma-1.
 
-            if (sigma.lt.0.07D0) then
+            if (sigma<0.07D0) then
               patch=0.5*(sigma-0.07D0)**2/0.07D0
             else
               patch=0.D0
@@ -672,7 +672,7 @@ c     &                                      +dv(i,k)**2, eps)
 ! Compute boundary layer nonlocal transport [m/s^2]
 !
 # ifdef LMD_NONLOCAL
-            if (A(i,Bfsfc_bl) .lt. 0.D0) then
+            if (A(i,Bfsfc_bl) < 0.D0) then
               ghat(i,j,k)=Cg/max(ws*hbld, eps)
             endif
 # endif
@@ -682,13 +682,13 @@ c     &                                      +dv(i,k)**2, eps)
 
 # ifdef LMD_CONVEC
         do k=1,N-1
-          do i=istr,iend 
-            if (dr(i,k).lt.0.D0 .and. z_w(i,j,k).lt.A(i,zbl)) then
+          do i=istr,iend
+            if (dr(i,k)<0.D0 .and. z_w(i,j,k)<A(i,zbl)) then
               Kv(i,k)=Kv(i,k) +nu0c
               Kt(i,k)=Kt(i,k) +nu0c
 #  ifdef SALINITY
               Ks(i,k)=Ks(i,k) +nu0c
-#  endif 
+#  endif
             endif
           enddo
         enddo
@@ -714,4 +714,4 @@ c     &                                      +dv(i,k)**2, eps)
       subroutine lmd_kmix_empty
       end
 #endif
-       
+

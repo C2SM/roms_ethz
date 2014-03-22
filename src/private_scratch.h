@@ -9,17 +9,17 @@
 !
 ! Note that "sse-ssz" below are to make N2d=size_XI*max(size_ETA,N+1)
 ! without using "max" function inside parameter statement.
-!  
-      integer N2d,N3d, size_XI,size_ETA, sse,ssz
+  
 #ifdef ALLOW_SINGLE_BLOCK_MODE
-      parameter (size_XI=6+Lm, size_ETA=6+Mm)
+      integer, parameter :: size_XI=6+Lm, size_ETA=6+Mm,
 #else
-      parameter (size_XI=7+(Lm+NSUB_X-1)/NSUB_X,
-     &           size_ETA=7+(Mm+NSUB_E-1)/NSUB_E)
+      integer, parameter :: size_XI=7+(Lm+NSUB_X-1)/NSUB_X,
+     &                      size_ETA=7+(Mm+NSUB_E-1)/NSUB_E,
 #endif
-      parameter (sse=size_ETA/(N+1), ssz=(N+1)/size_ETA)
-      parameter (N2d=size_XI*(sse*size_ETA+ssz*(N+1))/(sse+ssz),
-     &                              N3d=size_XI*size_ETA*(N+1))
+     &         sse=size_ETA/(N+1),  ssz=(N+1)/size_ETA,
+     &         N2d=size_XI*(sse*size_ETA+ssz*(N+1))/(sse+ssz),
+     &         N3d=size_XI*size_ETA*(N+1)
+
       real A2d(N2d,32)
 #ifdef SOLVE3D
       real A3d(N3d,6)

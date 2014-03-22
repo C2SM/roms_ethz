@@ -1,22 +1,20 @@
 #include "cppdefs.h"
 #ifdef SOLVE3D
-                                   ! This routine just sets rhs
-      subroutine prsgrd (tile)     ! arrays for 3D momentum equations
-      implicit none                ! to zero. It is only useful for
-      integer tile                 ! debugging purposes.
+                                  ! This routine just initialised rhs
+      subroutine prsgrd (tile)    ! arrays for 3D momentum equations to
+      implicit none               ! zero. It is only useful for testing
+      integer tile                ! or debugging purposes.
 # include "param.h"
 # include "private_scratch.h"
 # include "compute_tile_bounds.h"
       call prsgrd00_tile (istr,iend,jstr,jend, A3d(1,1),A3d(1,2))
-      return
       end
  
       subroutine prsgrd00_tile (istr,iend,jstr,jend, ru,rv)
       implicit none
       integer istr,iend,jstr,jend, i,j,k
 # include "param.h"
-      real ru(PRIVATE_2D_SCRATCH_ARRAY,N),
-     &     rv(PRIVATE_2D_SCRATCH_ARRAY,N)
+      real, dimension(PRIVATE_2D_SCRATCH_ARRAY,N) :: ru,rv
       do k=1,N
         do j=jstr,jend
           do i=istr,iend
@@ -25,7 +23,6 @@
           enddo
         enddo
       enddo
-      return
       end
 #else
       subroutine prsgrd_empty

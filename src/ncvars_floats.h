@@ -9,50 +9,40 @@
 ! indxfltRho      Density at float location
 ! indxfltVel      Averaged velocity module
 !
-      integer indxfltGrd, indxfltTemp, indxfltSalt,
-     & indxfltRho, indxfltVel
-      parameter (     indxfltGrd=1, indxfltTemp=2,
-     & indxfltSalt=3, indxfltRho=4,  indxfltVel=5)
-      integer fltfield
-      parameter(fltfield=5)
+      integer, parameter ::  fltfield=5, indxfltGrd=1, indxfltTemp=2,
+     &                    indxfltSalt=3, indxfltRho=4,  indxfltVel=5
 
-      integer ncidflt,    nrecflt,    nrpfflt,  fltGlevel
-     &      , fltTstep,   fltTime,    fltXgrd,  fltYgrd
-     &      , fltZgrd,    fltVel
-     &      , rstnfloats, rstTinfo,   rstfltgrd
-     &      , rsttrack
+      integer ncidflt,  nrecflt,    nrpfflt,  fltGlevel,
+     &        fltTstep, fltTime,    fltXgrd,  fltYgrd,   fltZgrd,
+     &        fltVel,   rstnfloats, rstTinfo, rstfltgrd, rsttrack
 #ifdef SPHERICAL
-     &      , fltLon,     fltLat
+     &      , fltLon,   fltLat
 #else
-     &      , fltX,       fltY
+     &      , fltX,     fltY
 #endif
 #ifdef SOLVE3D
-     &      , fltDepth,   fltDen,     fltTemp
+     &      , fltDepth, fltDen,     fltTemp
 # ifdef SALINITY
-     &                          ,     fltSal
+     &                        ,     fltSal
 # endif
 #endif
       logical wrtflt(fltfield)
 
-      common/incvars_floats/
-     &        ncidflt,    nrecflt,    nrpfflt,  fltGlevel
-     &      , fltTstep,   fltTime,    fltXgrd,  fltYgrd
-     &      , fltZgrd,    fltVel
-     &      , rstnfloats, rstTinfo,   rstfltgrd
-     &      , rsttrack
+      common/incvars_floats/ ncidflt, nrecflt, nrpfflt, fltGlevel,
+     &        fltTstep, fltTime,    fltXgrd,  fltYgrd,   fltZgrd, 
+     &        fltVel,   rstnfloats, rstTinfo, rstfltgrd, rsttrack
 #ifdef SPHERICAL
-     &      , fltLon,     fltLat
+     &      , fltLon,   fltLat
 #else
-     &      , fltX,       fltY
+     &      , fltX,     fltY
 #endif
 #ifdef SOLVE3D
-     &      , fltDepth,   fltDen,     fltTemp
+     &      , fltDepth, fltDen,     fltTemp
 # ifdef SALINITY
-     &                          ,     fltSal
+     &                        ,     fltSal
 # endif
 #endif
      &      , wrtflt
-
 
       character*80  fltname,   fposnam
       common /cncvars_floats/ fltname,   fposnam

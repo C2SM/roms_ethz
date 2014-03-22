@@ -1,45 +1,45 @@
-! 
 ! This is startup file for Equatorial Rossby Soliton Test Problem
-! The soliton should move to the west without changing shape, and
-! practically without dissiparion. This example works for any choice
-! of boundary conditions:  EW_RERIODIC, double periodic or radiation. 
+! The Soliton should move to the west without changing shape, and
+! practically without dissipation. This example works for any choice
+! of boundary conditions:  EW_RERIODIC, double periodic or radiation.
 ! this problem typically used to test radiation boundaries.
-!
+
 title:
          Equatorial Rossby Soliton
 
-! time_stepping: NTIMES   dt  NDTFAST  NINFO
-                1025    0.10d0    1      1   LF_AM3,96x32
+! time_stepping: ntimes  dt[sec] ndtfast  ninfo  FB,96x32
+                2400    0.115    1      128  .118 stable, .119 not
 
-! time_stepping: NTIMES   dt[sec]  NDTFAST  NINFO
-               1300       0.11086d0    1      1
+! time_stepping: ntimes  dt[sec]  ndtfast  ninfo  FB,192x64
+                2400    0.105      1      128  .107 stable, .108 not
 
-! time_stepping: NTIMES   dt[sec]  NDTFAST  NINFO
-               2400       0.05    1      1   LF_AM3,192x64
+ time_stepping: ntimes  dt[sec] ndtfast ninfo  FB,384x128
+               4800      0.060     1      128   .061 stable, .062 not 
 
-! time_stepping: NTIMES   dt[sec]  NDTFAST  NINFO
-               2400       0.055     1       1  FB,384x128
+! time_stepping: ntimes  dt[sec]  ndtfast ninfo  FB,576x192
+               7200     0.040     1     128   .040 stable, .041 not
 
+! time_stepping: ntimes  dt[sec]  ndtfast  ninfo  FB,768x256
+                9600    0.030      1      128  .030 stable, .031 not
 
-! time_stepping: NTIMES   dt[sec]  NDTFAST  NINFO
-               1600       0.0958  1      1      LF_AM3,384x128
+! time_stepping: ntimes   dt[sec]  ndtfast  ninfo
+               6400       0.015      1      128  FB,1536x512
 
-
- time_stepping: NTIMES   dt[sec]  NDTFAST  NINFO
-               7200       0.037     1       1  FB,576x192
-
-
-! time_stepping: NTIMES   dt[sec]  NDTFAST  NINFO
-                9600       0.028      1      1  FB,768x256
-
-! time_stepping: NTIMES   dt[sec]  NDTFAST  NINFO
-               6400       0.015      1      1  FB,1536x512
-
-! time_stepping: NTIMES   dt[sec]  NDTFAST  NINFO
-               6400       0.007      1      1  FB,3072x1024
+! time_stepping: ntimes   dt[sec]  ndtfast  ninfo
+               6400       0.007      1      128  FB,3072x1024
 
 
-!
+! time_stepping: ntimes  dt  ndtfast  ninfo
+                1025    0.10d0    1      128   LF_AM3,96x32
+
+! time_stepping: ntimes  dt[sec]  ndtfast  ninfo
+               2400       0.05       1      128   LF_AM3,192x64
+
+! time_stepping: ntimes  dt[sec]  ndtfast  ninfo
+               1600       0.0958  1          128      LF_AM3,384x128
+
+
+
 ! Stability limits are: Resolution 384x128
 !--------------------------------------------
 !  LF_TR (no forw-back feedback)   0.0601
@@ -51,23 +51,24 @@ title:
 
 
 
-initial: NRREC [/filename] 
+initial: nrrec [/filename]
            0
+              restart.nc
 
 
-restart:  NRST, NRPFRST / filename
-          80000    -1
+restart:  nrst, nrpfrst / filename
+          8000     -2
                   restart.nc
 
-history: LDEFHIS, NWRT, NRPFHIS / filename 
-           T       10000   0 
+history: ldefhis, nwrt, nrpfhis / filename
+            T       10000   0
                  history.nc
 
-primary_history_fields:   zeta UBAR VBAR
-                            T    T   T
+primary_history_fields: zeta ubar vbar
+                          T    T    T
 
-bottom_drag:     RDRG(m/s),      RDRG2
-                  0.d0           0.d0
+bottom_drag: rdrg[m/s]   rdrg2
+               0.d0       0.d0
 gamma2:
         1.d0
 

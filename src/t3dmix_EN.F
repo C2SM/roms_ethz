@@ -1,5 +1,5 @@
 #include "cppdefs.h"
- 
+
       subroutine t3dmix (tile)
       implicit none
       integer tile, itrc
@@ -12,15 +12,12 @@
      &                          A2d(1,3), A2d(1, 5), A2d(1, 7),
      &                          A2d(1,9), A2d(1,11), A2d(1,13))
       enddo
-      return
       end
- 
+
       subroutine t3dmix_tile (istr,iend,jstr,jend, itrc, LapT, FX,FE,
      &                                  FC,dTdr, dTdx,dTde,dRdx,dRde)
 !
-!--------------------------------------------------------------------
 !  Compute isopycnic horizontal mixing terms for tracer equations.
-!--------------------------------------------------------------------
 !
       implicit none
 #include "param.h"
@@ -50,16 +47,16 @@
 #ifdef SPLIT_EOS
 # define rho rho1
 #endif
- 
- 
+
+
 c--#define rho z_r
 c--#define MAX min
 c--#define MIN max
- 
+
 #define EPS 0.5
 c-#define MAX_SLOPE 1.E+4
 c-#define MIN_STRAT  0.1
- 
+
 #ifdef TS_DIF2
 !
 ! Compute and add in horizontal Laplacian     !!! WARNING: RECURSIVE
@@ -70,8 +67,8 @@ c-#define MIN_STRAT  0.1
       do k=0,N,+1   !  of fields:  dTdx,dTde(:,:,k1) k     pho-points
        k1=k2        !                dTdr,FC(:,:,k1) k-1/2   W-points
        k2=3-k1
- 
-        if (k.lt.N) then
+
+        if (k<N) then
           do j=jstr,jend
             do i=istr,iend+1
               cff=0.5*(pm(i,j)+pm(i-1,j)) SWITCH umask(i,j)
@@ -97,8 +94,8 @@ c-#define MIN_STRAT  0.1
             enddo
           enddo
         endif
- 
-        if (k.eq.0 .or. k.eq.N) then
+
+        if (k==0 .or. k==N) then
           do j=jstr-1,jend+1
             do i=istr-1,iend+1
               dTdr(i,j,k2)=0.0     ! Set no-flux bottom or
@@ -134,8 +131,8 @@ c-#define MIN_STRAT  0.1
             enddo
           enddo
         endif
- 
-        if (k.gt.0) then
+
+        if (k>0) then
           do j=jstr,jend
             do i=istr,iend+1
               FX(i,j)=0.25*(diff2(i,j,itrc)+diff2(i-1,j,itrc))
@@ -156,7 +153,7 @@ c-#define MIN_STRAT  0.1
      &                                                            ))
             enddo
           enddo
-          if (k.lt.N) then
+          if (k<N) then
             do j=jstr,jend
               do i=istr,iend
 c                cff1=MAX(dRdx(i,j,k1)+dRdx(i+1,j,k2),0.)
@@ -175,31 +172,31 @@ c
 c     &                           -cff3*(dTde(i,j,k1)+dTde(i,j+1,k2))
 c     &                           -cff4*(dTde(i,j,k2)+dTde(i,j+1,k1))
 c     &                                                             )
- 
+
                 cff1=MAX(dRdx(i  ,j,k1),0.)
                 cff2=MAX(dRdx(i+1,j,k2),0.)
- 
+
                 cff3=MIN(dRdx(i  ,j,k2),0.)
                 cff4=MIN(dRdx(i+1,j,k1),0.)
- 
+
                 cff=    cff1*(cff1*dTdr(i,j,k2)-dTdx(i  ,j,k1))
      &                 +cff2*(cff2*dTdr(i,j,k2)-dTdx(i+1,j,k2))
- 
+
      &                 +cff3*(cff3*dTdr(i,j,k2)-dTdx(i  ,j,k2))
      &                 +cff4*(cff4*dTdr(i,j,k2)-dTdx(i+1,j,k1))
- 
+
                 cff1=MAX(dRde(i,j  ,k1),0.)
                 cff2=MAX(dRde(i,j+1,k2),0.)
- 
+
                 cff3=MIN(dRde(i,j  ,k2),0.)
                 cff4=MIN(dRde(i,j+1,k1),0.)
- 
+
                 cff=cff+cff1*(cff1*dTdr(i,j,k2)-dTde(i,j  ,k1))
      &                 +cff2*(cff2*dTdr(i,j,k2)-dTde(i,j+1,k2))
- 
+
      &                 +cff3*(cff3*dTdr(i,j,k2)-dTde(i,j  ,k2))
      &                 +cff4*(cff4*dTdr(i,j,k2)-dTde(i,j+1,k1))
- 
+
                 FC(i,j,k2)=0.5*cff*diff2(i,j,itrc)*FC(i,j,k2)
               enddo
             enddo
@@ -212,11 +209,11 @@ c     &                                                             )
      &                  +FC(i,j,k2)-FC(i,j,k1)    )/Hz(i,j,k)
             enddo
           enddo
-        endif  ! <-- k.gt.0
+        endif  ! <-- k>0
       enddo   ! --> k
 #endif /* T_DIF2 */
- 
- 
+
+
 #ifdef TS_DIF4
 # ifdef EW_PERIODIC
 #  define I_EXT_RANGE istr-1,iend+1
@@ -241,7 +238,7 @@ c     &                                                             )
       do k=0,N,+1   !  of fields:  dTdx,dTde(:,:,k1) k     pho-points
        k1=k2        !                dTdr,FC(:,:,k1) k-1/2   W-points
        k2=3-k1
-        if (k.lt.N) then
+        if (k<N) then
           do j=J_EXT_RANGE
             do i=I_EXT_RANGE+1
               cff=0.5*(pm(i,j)+pm(i-1,j)) SWITCH umask(i,j)
@@ -259,8 +256,8 @@ c     &                                                             )
             enddo
           enddo
         endif
- 
-        if (k.eq.0 .or. k.eq.N) then
+
+        if (k==0 .or. k==N) then
           do j=-1+J_EXT_RANGE+1
             do i=-1+I_EXT_RANGE+1
               FC(i,j,k2)=0.0
@@ -286,15 +283,15 @@ c     &                                                             )
 #elif defined EPS
               cff1=-1.0/MAX( rho(i,j,k)-rho(i,j,k+1), EPS )
 #endif
- 
+
               FC(i,j,k2)=cff1*(z_r(i,j,k+1)-z_r(i,j,k))
               dTdr(i,j,k2)=cff1*(t(i,j,k+1,nrhs,itrc)
      &                             -t(i,j,k,nrhs,itrc))
             enddo
           enddo
         endif
- 
-        if (k.gt.0) then
+
+        if (k>0) then
           do j=J_EXT_RANGE
             do i=I_EXT_RANGE+1
               FX(i,j)=0.5*(Hz(i,j,k)+Hz(i-1,j,k))*dn_u(i,j)*(
@@ -304,7 +301,7 @@ c     &                                                             )
      &                                                             ))
             enddo
           enddo
- 
+
 # ifdef EW_PERIODIC
           if (WESTERN_EDGE) then
             do j=J_EXT_RANGE
@@ -317,7 +314,7 @@ c     &                                                             )
             enddo
           endif
 # endif
- 
+
           do j=J_EXT_RANGE+1
             do i=I_EXT_RANGE
               FE(i,j)=0.5*(Hz(i,j,k)+Hz(i,j-1,k))*dm_v(i,j)*(
@@ -339,8 +336,8 @@ c     &                                                             )
             enddo
           endif
 # endif
- 
-          if (k.lt.N) then
+
+          if (k<N) then
             do j=J_EXT_RANGE
               do i=I_EXT_RANGE
 c                cff1=MAX(dRdx(i,j,k1)+dRdx(i+1,j,k2),0.)
@@ -358,32 +355,32 @@ c
 c     &                           -cff3*(dTde(i,j,k1)+dTde(i,j+1,k2))
 c     &                           -cff4*(dTde(i,j,k2)+dTde(i,j+1,k1))
 c     &                                                             )
- 
- 
+
+
                 cff1=MAX(dRdx(i  ,j,k1),0.)
                 cff2=MAX(dRdx(i+1,j,k2),0.)
- 
+
                 cff3=MIN(dRdx(i  ,j,k2),0.)
                 cff4=MIN(dRdx(i+1,j,k1),0.)
- 
+
                 cff=    cff1*(cff1*dTdr(i,j,k2)-dTdx(i  ,j,k1))
      &                 +cff2*(cff2*dTdr(i,j,k2)-dTdx(i+1,j,k2))
- 
+
      &                 +cff3*(cff3*dTdr(i,j,k2)-dTdx(i  ,j,k2))
      &                 +cff4*(cff4*dTdr(i,j,k2)-dTdx(i+1,j,k1))
- 
+
                 cff1=MAX(dRde(i,j  ,k1),0.)
                 cff2=MAX(dRde(i,j+1,k2),0.)
- 
+
                 cff3=MIN(dRde(i,j  ,k2),0.)
                 cff4=MIN(dRde(i,j+1,k1),0.)
- 
+
                 cff=cff+cff1*(cff1*dTdr(i,j,k2)-dTde(i,j  ,k1))
      &                 +cff2*(cff2*dTdr(i,j,k2)-dTde(i,j+1,k2))
- 
+
      &                 +cff3*(cff3*dTdr(i,j,k2)-dTde(i,j  ,k2))
      &                 +cff4*(cff4*dTdr(i,j,k2)-dTde(i,j+1,k1))
- 
+
                 FC(i,j,k2)=0.5*cff*FC(i,j,k2)
               enddo
             enddo
@@ -395,7 +392,7 @@ c     &                                                             )
      &                     +FC(i,j,k2)-FC(i,j,k1)    )/Hz(i,j,k)
             enddo
           enddo
-        endif   ! <-- k.gt.0
+        endif   ! <-- k>0
       enddo   ! --> k
 !
 !  Apply boundary conditions to the Laplacian
@@ -459,8 +456,8 @@ c     &                                                             )
       do k=0,N,+1   !  of fields:  dTdx,dTde(:,:,k1) k     pho-points
        k1=k2        !                dTdr,FC(:,:,k1) k-1/2   W-points
        k2=3-k1
- 
-        if (k.lt.N) then
+
+        if (k<N) then
           do j=jstr,jend
             do i=istr,iend+1
               cff=0.5*(pm(i,j)+pm(i-1,j)) SWITCH umask(i,j)
@@ -476,8 +473,8 @@ c     &                                                             )
             enddo
           enddo
         endif
- 
-        if (k.eq.0 .or. k.eq.N) then
+
+        if (k==0 .or. k==N) then
           do j=jstr-1,jend+1
             do i=istr-1,iend+1
               FC(i,j,k2)=0.0
@@ -503,14 +500,14 @@ c     &                                                             )
 #elif defined EPS
               cff1=-1.0/MAX( rho(i,j,k)-rho(i,j,k+1), EPS )
 #endif
- 
+
               FC(i,j,k2)=cff1*(z_r(i,j,k+1)-z_r(i,j,k))
               dTdr(i,j,k2)=cff1*(LapT(i,j,k+1)-LapT(i,j,k))
             enddo
           enddo
         endif
- 
-        if (k.gt.0) then
+
+        if (k>0) then
           do j=jstr,jend
             do i=istr,iend+1
               FX(i,j)=-0.25*(diff4(i,j,itrc)+diff4(i-1,j,itrc))
@@ -531,7 +528,7 @@ c     &                                                             )
      &                                                             ))
             enddo
           enddo
-          if (k.lt.N) then
+          if (k<N) then
             do j=jstr,jend
               do i=istr,iend
 c                cff1=MAX(dRdx(i,j,k1)+dRdx(i+1,j,k2),0.)
@@ -550,31 +547,31 @@ c
 c     &                           -cff3*(dTde(i,j,k1)+dTde(i,j+1,k2))
 c     &                           -cff4*(dTde(i,j,k2)+dTde(i,j+1,k1))
 c     &                                                             )
- 
+
                 cff1=MAX(dRdx(i  ,j,k1),0.)
                 cff2=MAX(dRdx(i+1,j,k2),0.)
- 
+
                 cff3=MIN(dRdx(i  ,j,k2),0.)
                 cff4=MIN(dRdx(i+1,j,k1),0.)
- 
+
                 cff=    cff1*(cff1*dTdr(i,j,k2)-dTdx(i  ,j,k1))
      &                 +cff2*(cff2*dTdr(i,j,k2)-dTdx(i+1,j,k2))
- 
+
      &                 +cff3*(cff3*dTdr(i,j,k2)-dTdx(i  ,j,k2))
      &                 +cff4*(cff4*dTdr(i,j,k2)-dTdx(i+1,j,k1))
- 
+
                 cff1=MAX(dRde(i,j  ,k1),0.)
                 cff2=MAX(dRde(i,j+1,k2),0.)
- 
+
                 cff3=MIN(dRde(i,j  ,k2),0.)
                 cff4=MIN(dRde(i,j+1,k1),0.)
- 
+
                 cff=cff+cff1*(cff1*dTdr(i,j,k2)-dTde(i,j  ,k1))
      &                 +cff2*(cff2*dTdr(i,j,k2)-dTde(i,j+1,k2))
- 
+
      &                 +cff3*(cff3*dTdr(i,j,k2)-dTde(i,j  ,k2))
      &                 +cff4*(cff4*dTdr(i,j,k2)-dTde(i,j+1,k1))
- 
+
                 FC(i,j,k2)=-0.5*cff*diff4(i,j,itrc)*FC(i,j,k2)
               enddo
             enddo
@@ -587,15 +584,13 @@ c     &                                                             )
      &                  +FC(i,j,k2)-FC(i,j,k1)    )/Hz(i,j,k)
             enddo
           enddo
-        endif  ! <-- k.gt.0
+        endif  ! <-- k>0
       enddo   ! --> k
 #  endif /* T_DIF4 */
 
-# if defined EW_PERIODIC || defined NS_PERIODIC || defined MPI
-        call exchange_r3d_tile (istr,iend,jstr,jend,
-     &                          t(START_2D_ARRAY,1,nnew,itrc))
+# ifdef EXCHANGE
+        call exchange_tile (istr,iend,jstr,jend,
+     &                      t(START_2D_ARRAY,1,nnew,itrc),N)
 # endif
-
-      return
       end
- 
+

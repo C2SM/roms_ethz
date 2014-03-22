@@ -1,7 +1,7 @@
 #include "cppdefs.h"
-                                !
+
       subroutine closecdf       ! Close output netCDF files.
-      implicit none             !
+      implicit none
       integer ierr
 #include "param.h"
 #include "scalars.h"
@@ -10,52 +10,55 @@
 #ifdef FLOATS
 # include "ncvars_floats.h"
 #endif
- 
-      if (ncidrst.ne.-1) ierr=nf_close(ncidrst)
-      if (ncidhis.ne.-1) ierr=nf_close(ncidhis)
+
+      if (ncidrst/=-1) ierr=nf_close(ncidrst)
+      if (ncidhis/=-1) ierr=nf_close(ncidhis)
 #ifdef AVERAGES
-      if (ncidavg.ne.-1) ierr=nf_close(ncidavg)
+      if (ncidavg/=-1) ierr=nf_close(ncidavg)
 #endif
 #ifdef FLOATS
-      if (ncidflt.ne.-1) ierr=nf_close(ncidflt)
+      if (ncidflt/=-1) ierr=nf_close(ncidflt)
 #endif
- 
-      write(stdout,'(/1x,2A,I5,4(/8x,A,I5)/)') 'MAIN - '
-     &  ,'number of records written into history  file(s):', nrechis
-     &  ,'number of records written into restart  file(s):', nrecrst
+# ifdef MPI_SILENT_MODE
+      if (mynode==0) then
+# endif
+        write(*,'(/1x,A,6(1x,A,I5)/)') 'MAIN: DONE - Records written:',
+     &                     'history:', nrechis ,  'restart:', nrecrst
 #ifdef AVERAGES
-     &  ,'number of records written into averages file(s):', nrecavg
+     &                                         ,  'averages:', nrecavg
 #endif
 #ifdef FLOATS
-     &  ,'number of records written into floats file(s):', nrecflt
+     &                                         ,   'floats:', nrecflt
 #endif
 #ifdef STATIONS
-     &  ,'number of records written into averages file(s):', nrecsta
+     &                                         ,  'stations:', nrecstn
 #endif
- 
-      if (may_day_flag.eq.0) then
-        write(stdout,'(/1x,A/)') 'MAIN: DONE'
-      elseif (may_day_flag.eq.1) then
-        write(stdout,'(/1x,A/)') 'MAIN: Abnormal termination: BLOWUP'
-      elseif (may_day_flag.eq.2) then
-        write(stdout,'(/1x,A/)')
-     &               '### ERROR: Cause of termination: netCDF input.'
-      elseif (may_day_flag.eq.3) then
-        write(stdout,'(/1x,A/)')
-     &              '### ERROR: Cause of termination: netCDF output.'
-      elseif (may_day_flag.eq.4) then
-        write(stdout,'(/1x,A/)') '### ERROR: Cannot open netCDF file.'
-      elseif (may_day_flag.eq.5) then
-        write(stdout,'(/1x,A/)')
-     &                     '### ERROR: read_inp: Error in input file.'
-      elseif (may_day_flag.eq.6) then
-        write(stdout,'(/1x,A/)')
-     &          '### ERROR: read_inp: An input file is not available.'
-      elseif (may_day_flag.eq.7) then
-        write(stdout,'(/1x,A/)') '### ERROR: KPP algoritm failure.'
-      elseif (may_day_flag.eq.8) then
-        write(stdout,'(/1x,A/)') '### ERROR: Wrong choice of tiling.'
+     &                                             MYID
+
+        if (may_day_flag==1) then
+          write(*,'(/1x,A/)') 'MAIN: Abnormal termination: BLOWUP'
+        elseif (may_day_flag==2) then
+          write(*,'(/1x,2A/)')  '### ERROR: Cause of termination: ',
+     &                                            'netCDF input.'
+        elseif (may_day_flag==3) then
+          write(*,'(/1x,2A/)')  '### ERROR: Cause of termination: ',
+     &                                           'netCDF output.'
+        elseif (may_day_flag==4) then
+          write(*,'(/1x,A/)') '### ERROR: Cannot open netCDF file.'
+        elseif (may_day_flag==5) then
+          write(*,'(/1x,A/)') '### ERROR: Error in input script.'
+        elseif (may_day_flag==6) then
+          write(*,'(/1x,2A/)') '### ERROR: read_inp :: An input ',
+     &                                   'file is not available.'
+        elseif (may_day_flag==7) then
+          write(*,'(/1x,A/)') '### ERROR: KPP algoritm failure.'
+        elseif (may_day_flag==8) then
+          write(*,'(/1x,A/)') '### ERROR: Wrong choice of tiling.'
+        elseif (may_day_flag==9) then
+          write(*,'(/1x,2A/)') '### ERROR: Wrong choice of ',
+     &                               'S-coordinate parameters.'
+        endif
+# ifdef MPI_SILENT_MODE
       endif
-      return
+# endif
       end
- 

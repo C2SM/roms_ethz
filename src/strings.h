@@ -1,10 +1,9 @@
-! Two long character strings to hold names of activated cpp-switches
-! and list of soarse-code file names. Basically it is used to keep
-! track of cpp-switches/sourse-names by placing them together and
-! writing and global attribute into history file.
-!
-      integer max_opt_size
-      parameter (max_opt_size=2048)
+! Character strings to hold names of activated cpp-switches and list
+! of source-code filenames to keep track which ones are activated/used.
+! Basically the names are pasted together consecutively into long
+! strings and written as global attributes into output netCDF files.
+
+      integer, parameter :: max_opt_size=2048
       character*(max_opt_size) cpps, srcs, kwds
       common /strings/ cpps, srcs, kwds
  

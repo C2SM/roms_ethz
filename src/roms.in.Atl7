@@ -1,19 +1,19 @@
 title:
            North Atlantic Damee #7, 0.375 resolution
 
-time_stepping: NTIMES   dt[sec]  NDTFAST  NINFO
+time_stepping: ntimes   dt[sec]  ndtfast  ninfo
                70000     5400      61      1
 
-initial: NRREC  filename
-          1 
+initial: nrrec  filename
+          1
          damee7_levfeb_a.nc
 
-restart:  NRST, NRPFRST / filename
-           2880     1 
+restart:  nrst, nrpfrst / filename
+           2880     1
            restart.nc
 
-history: LDEFHIS, NWRT, NRPFHIS / filename
-            F     480     36 
+history: ldefhis, nwrt, nrpfhis / filename
+            F     480     36
             history.nc
 
 S-coord: theta_s  theta_b  Tcline (m)
@@ -39,7 +39,7 @@ averages: ntsavg navg nrpfavg / filename
 primary_averages: zeta UBAR VBAR  U  V   wrtT(1:NT)
                     T    T    T   T  T    T T
 auxiliary_averages: rho Omega  W  Akv  Akt  Aks  HBL
-                     F    F    F   F    F    F    F 
+                     F    F    F   F    F    F    F
 
 rho0:
       1025.d0

@@ -109,7 +109,6 @@
      &                  (1.0+0.1*Tz(i,j)/a3d(i,j,k)) - rho0
  
       write(*,*) dena(i,j,k)
-      return
       end
  
  

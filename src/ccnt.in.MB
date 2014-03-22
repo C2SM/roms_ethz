@@ -13,7 +13,7 @@ nlevels:  1     number of levels and/or depths to plot.
  isoval: 0.0   iso-surface value to process
 
    iref: 0  secondary or reference field option (see below)
- idover: 3 3  overlay field identification (for IREF=1,2 only)
+ fldover: 3 3  overlay field identification (for IREF=1,2 only)
 levover: 0  level of the overlay field (0 means same as current fldlev)
    rmax: 25.0   overlay field minimum value (0.0 for default)
    rmin:  2.5   overlay field maximum value (0.0 for default)
@@ -39,12 +39,12 @@ xsec1:ysec1: -30 -30  starting X,Y-position of section
         kms:  40       number of refiment levels between sztop and szbot.
       ifill:   0     filling under bottom: 0 => gray; >0 => pattern of dots
 
+    pstype: 0   0,1,2 for gmeta, PostScript, or PDF
      npage: 1  number of plots per page
-! postscript: T  postscript/gmeta switch
   magscale:  1.
-  wrtclock:  T  write out model time clock 
-  wrtfield:  T  write out field name below the plot 
-   wrtrang:  T  write out data range values and CI.
+  wrtclock:  T  write out model time clock
+  wrtfield:  T  write out field name below the plot
+  wrtrange:  T  write out data range values and CI.
    wrtfile:  F  write out input primary filename.
    wrtdate:  F  write out current date.
      lview:  F
@@ -52,7 +52,7 @@ xsec1:ysec1: -30 -30  starting X,Y-position of section
     lwater:  F
   earthdat:  Earth..1  NCAR Graphics library Earth dataset "Earth..1" or 2
 
-  varids: /home/alex/Data/varid.dat  
+  varids: /home/alex/Data/varid.dat
 defaults: /home/alex/Data/default.cnt
 ! palette:   /home/alex/Palettes/vel.pal
 

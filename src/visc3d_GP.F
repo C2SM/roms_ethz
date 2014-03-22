@@ -1,27 +1,26 @@
 #include "cppdefs.h"
 #if defined SOLVE3D && defined UV_VIS2
- 
+
       subroutine visc3d (tile)
       implicit none
       integer tile
 #include "param.h"
 #include "private_scratch.h"
 #include "compute_tile_bounds.h"
- 
+
       call visc3d_tile (istr,iend,jstr,jend,
      &                    A2d(1,1),  A2d(1, 2), A2d(1, 3), A2d(1,4),
      &                    A2d(1, 5), A2d(1, 7), A2d(1, 9), A2d(1,11),
      &                    A2d(1,13), A2d(1,15), A2d(1,17), A2d(1,19),
      &                    A2d(1,21), A2d(1,23), A2d(1,25), A2d(1,27))
-      return
       end
- 
+
       subroutine visc3d_tile (istr,iend,jstr,jend, UFx, UFe,
      &                              VFx,VFe, UFs,VFs, dnUdx,  dmUde,
      &                              dUdz,    dnVdx,   dmVde,  dVdz,
      &                              dZdx_r,  dZdx_p,  dZde_r, dZde_p)
 
-!
+
 ! Compute horizontal (along geopotential surfaces) viscous terms as
 ! divergence of symmetric stress tensor.
 !
@@ -51,26 +50,17 @@
 !       with a Smagorinsky-like viscosity for use in large-scale
 !       eddy-permitting ocean models, Monthly Weather Rev.,v. 128,
 !       No. 8, pp. 2935-2946.
-!
+
       implicit none
       integer istr,iend,jstr,jend, i,j,k, k1,k2, indx
-      real UFe(PRIVATE_2D_SCRATCH_ARRAY),
-     &     VFe(PRIVATE_2D_SCRATCH_ARRAY),     cff,
-     &     UFx(PRIVATE_2D_SCRATCH_ARRAY),     cff1,
-     &     VFx(PRIVATE_2D_SCRATCH_ARRAY),     cff2,
-     &     UFs(PRIVATE_2D_SCRATCH_ARRAY,2),   cff3,
-     &     VFs(PRIVATE_2D_SCRATCH_ARRAY,2),   cff4,
-     &   dmUde(PRIVATE_2D_SCRATCH_ARRAY,2),   cff5,
-     &   dmVde(PRIVATE_2D_SCRATCH_ARRAY,2),   cff6,
-     &   dnUdx(PRIVATE_2D_SCRATCH_ARRAY,2),   cff7,
-     &   dnVdx(PRIVATE_2D_SCRATCH_ARRAY,2),   cff8,
-     &    dUdz(PRIVATE_2D_SCRATCH_ARRAY,2),
-     &    dVdz(PRIVATE_2D_SCRATCH_ARRAY,2),   dmUdz,
-     &  dZde_p(PRIVATE_2D_SCRATCH_ARRAY,2),   dnUdz,
-     &  dZde_r(PRIVATE_2D_SCRATCH_ARRAY,2),   dmVdz,
-     &  dZdx_p(PRIVATE_2D_SCRATCH_ARRAY,2),   dnVdz,
-     &  dZdx_r(PRIVATE_2D_SCRATCH_ARRAY,2)
- 
+      real, dimension(PRIVATE_2D_SCRATCH_ARRAY) :: UFx,UFe,VFe,VFx
+      real, dimension(PRIVATE_2D_SCRATCH_ARRAY,2) :: UFs,VFs,
+     &                          dmUde,dmVde,dnUdx,dnVdx, dUdz,dVdz,
+     &                                 dZde_p,dZde_r,dZdx_p,dZdx_r
+
+      real cff, cff1,cff2,cff3,cff4, cff5,cff6,cff7,cff8,
+     &                           dmUdz,dnUdz,dmVdz,dnVdz
+
 # include "param.h"
 # include "scalars.h"
 # include "grid.h"
@@ -80,10 +70,10 @@
 # ifdef DIAGNOSTICS_UV
 #  include "diagnostics.h"
 # endif
-!
+
 # include "compute_auxiliary_bounds.h"
       indx=3-nstp    !--> time index for target arrays;
-!
+
 ! Compute horizontal harmonic viscosity along geopotential surfaces.
 !--------------------------------------------------------------------
 !
@@ -101,12 +91,12 @@
 !
 ! Compute sigma-slopes (nondimensional) at RHO- and PSI-points.
 ! Compute momentum horizontal (1/m/s) and vertical (1/s) gradients.
-!
+
       k2=1
       do k=0,N,+1  !--> irreversible
         k1=k2
         k2=3-k1
-        if (k.lt.N) then
+        if (k<N) then
           do j=jstr-1,jend+1
             do i=istrU-1,iend+1
               UFx(i,j)=0.5*(z_r(i,j,k+1)-z_r(i-1,j,k+1))
@@ -164,8 +154,8 @@
             enddo
           enddo          !--> discard UFx,VFe, keep all others
         endif
- 
- 
+
+
 c        do j=jstrV-1,jend+1       ! This
 c          do i=istrU-1,iend+1
 c            dZdx_r(i,j,k2)=0.
@@ -174,10 +164,10 @@ c            dZdx_p(i,j,k2)=0.
 c            dZde_p(i,j,k2)=0.
 c          enddo
 c        enddo
- 
- 
- 
-        if (k.eq.0 .or. k.eq.N) then
+
+
+
+        if (k==0 .or. k==N) then
           do j=jstr-1,jend+1
             do i=istrU-1,iend+1
               dUdz(i,j,k2)=0.
@@ -206,11 +196,11 @@ c        enddo
             enddo
           enddo
         endif
-!
+
 ! Compute components of the rotated viscous flux [m5/s2] along
 ! geopotential surfaces in the XI- and ETA-directions.
-!
-        if (k.gt.0) then
+
+        if (k>0) then
           do j=jstrV-1,jend
             do i=istrU-1,iend
               cff=visc2_r(i,j)*Hz(i,j,k)*(
@@ -237,7 +227,7 @@ c        enddo
      &                                       +pn(i,j-1)+pn(i-1,j-1))
      &        *( min(dZdx_p(i,j,k1),0.)*(dVdz(i-1,j,k1)+dVdz(i,j,k2))
      &          +max(dZdx_p(i,j,k1),0.)*(dVdz(i-1,j,k2)+dVdz(i,j,k1))
- 
+
      &     )) + dm_p(i,j)*( dmUde(i,j,k1)-0.125*( pm(i,j)+pm(i-1,j)
      &                                       +pm(i,j-1)+pm(i-1,j-1))
      &        *( min(dZde_p(i,j,k1),0.)*(dUdz(i,j-1,k1)+dUdz(i,j,k2))
@@ -250,11 +240,11 @@ c        enddo
               VFx(i,j)=dn_p(i,j)*dn_p(i,j)*cff
             enddo
           enddo
-!
+
 ! Compute vertical flux [m^2/s^2] due to sloping terrain-following
 ! surfaces.
-!
-          if (k.lt.N) then
+
+          if (k<N) then
             do j=jstr,jend
               do i=istrU,iend
                 cff1=0.5*(pn(i-1,j)+pn(i,j))
@@ -265,7 +255,7 @@ c        enddo
                 dmUdz=cff2*dUdz(i,j,k2)
                 dnVdz=cff1*cff
                 dmVdz=cff2*cff
- 
+
                 cff1=min(dZdx_r(i-1,j,k1),0.)
                 cff2=min(dZdx_r(i  ,j,k2),0.)
                 cff3=max(dZdx_r(i-1,j,k2),0.)
@@ -274,7 +264,7 @@ c        enddo
                 cff6=min(dZde_r(i  ,j,k2),0.)
                 cff7=max(dZde_r(i-1,j,k2),0.)
                 cff8=max(dZde_r(i  ,j,k1),0.)
- 
+
                 cff=dn_u(i,j)*( cff1*(cff1*dnUdz-dnUdx(i-1,j,k1))
      &                         +cff2*(cff2*dnUdz-dnUdx(i  ,j,k2))
      &                         +cff3*(cff3*dnUdz-dnUdx(i-1,j,k2))
@@ -293,7 +283,7 @@ c        enddo
                 cff6=min(dZdx_p(i,j+1,k2),0.)
                 cff7=max(dZdx_p(i,j  ,k2),0.)
                 cff8=max(dZdx_p(i,j+1,k1),0.)
- 
+
                 cff=cff + dm_u(i,j)*(
      &                          cff1*(cff1*dmUdz-dmUde(i,j  ,k1))
      &                         +cff2*(cff2*dmUdz-dmUde(i,j+1,k2))
@@ -305,11 +295,11 @@ c        enddo
      &                         +cff3*(cff7*dnVdz-dnVdx(i,j  ,k2))
      &                         +cff4*(cff8*dnVdz-dnVdx(i,j+1,k1))
      &                                                          )
- 
+
                 UFs(i,j,k2)=0.25*(visc2_r(i-1,j)+visc2_r(i,j))*cff
               enddo
             enddo
- 
+
             do j=jstrV,jend
               do i=istr,iend
                 cff1=0.5*(pn(i,j-1)+pn(i,j))
@@ -320,7 +310,7 @@ c        enddo
                 dmUdz=cff2*cff
                 dnVdz=cff1*dVdz(i,j,k2)
                 dmVdz=cff2*dVdz(i,j,k2)
- 
+
                 cff1=min(dZdx_p(i  ,j,k1),0.)
                 cff2=min(dZdx_p(i+1,j,k2),0.)
                 cff3=max(dZdx_p(i  ,j,k2),0.)
@@ -329,7 +319,7 @@ c        enddo
                 cff6=min(dZde_p(i+1,j,k2),0.)
                 cff7=max(dZde_p(i  ,j,k2),0.)
                 cff8=max(dZde_p(i+1,j,k1),0.)
- 
+
                 cff=dn_v(i,j)*( cff1*(cff1*dnVdz-dnVdx(i  ,j,k1))
      &                         +cff2*(cff2*dnVdz-dnVdx(i+1,j,k2))
      &                         +cff3*(cff3*dnVdz-dnVdx(i  ,j,k2))
@@ -348,7 +338,7 @@ c        enddo
                 cff6=min(dZdx_r(i,j  ,k2),0.)
                 cff7=max(dZdx_r(i,j-1,k2),0.)
                 cff8=max(dZdx_r(i,j  ,k1),0.)
- 
+
                 cff=cff+dm_v(i,j)*(
      &                          cff1*(cff1*dmVdz-dmVde(i,j-1,k1))
      &                         +cff2*(cff2*dmVdz-dmVde(i,j  ,k2))
@@ -360,17 +350,17 @@ c        enddo
      &                         +cff3*(cff7*dnUdz-dnUdx(i,j-1,k2))
      &                         +cff4*(cff8*dnUdz-dnUdx(i,j  ,k1))
      &                                                          )
- 
+
                 VFs(i,j,k2)=0.25*(visc2_r(i,j-1)+visc2_r(i,j))*cff
               enddo
             enddo
           endif
-!
+
 ! Apply viscous terms. Note that at this stage arrays u,v(...,3-nstp)
 ! contain Hz*U and Hz*V with units of [m2/s].   Also compute vertical
 ! integral of viscous terms and add it into coupling terms for the
 ! barotropic mode
-!
+
           do j=jstr,jend
             do i=istrU,iend
               cff=0.125*(pm(i-1,j)+pm(i,j))*(pn(i-1,j) +pn(i,j))
@@ -403,10 +393,8 @@ c        enddo
           enddo
         endif
       enddo
-      return
       end
 #else
       subroutine visc3d_empty
       end
 #endif
- 

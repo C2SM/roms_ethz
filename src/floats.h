@@ -44,21 +44,14 @@
 **********************************************************************
 */
 
-      integer NFT,               NFV,               NDIAGS,
-     &        igrd,              itstr,
-     &        ixgrd,             iygrd,             izgrd,
-     &        iflon,             iflat,             ifdpt,
-     &        ixrhs,             iyrhs,             izrhs,
-     &        iftem,             ifsal,             ifden, 
-     &        ifvel
-      parameter (NFT=3,          NFV=6  ,           NDIAGS=10,
-     &        igrd=-1,           itstr=0,  
-     &        ixgrd=1,           iygrd=2,           izgrd=3, ! for track 
-                                                             ! & trackaux
-     &        ixrhs=4,           iyrhs=5,           izrhs=6, ! for track
-     &        iflon=4,           iflat=5,           ifdpt=6, ! for trackaux
-     &        iftem=7,           ifsal=8,           ifden=9, 
-     &        ifvel=10                                       ) 
+      integer, parameter :: NFT=3,   NFV=6, NDIAGS=10,
+     &         igrd=-1,     itstr=0,
+     &         ixgrd=1,     iygrd=2,     izgrd=3,   ! for track 
+     &         ixrhs=4,     iyrhs=5,     izrhs=6,   ! for track
+
+     &         iflon=4,     iflat=5,     ifdpt=6,   ! for trackaux
+     &         iftem=7,     ifsal=8,     ifden=9, 
+     &         ifvel=10
 
       logical bounded(Mfloats), diagfloats
       common /lfloats/ bounded
@@ -72,14 +65,12 @@
       real spval, deltap2c, deltac2p
       common /floats_scalars/ spval, deltap2c, deltac2p
 # ifdef AGRIF
-      integer maxgrids
-      parameter (maxgrids=10)
+      integer, parameter :: maxgrids=10
       integer floattindex(0:maxgrids)
 # endif
-      real track(1:NFV,0:NFT,Mfloats),trackaux(1:NDIAGS,Mfloats)
-      common /floats_track/ track,trackaux,fltgrd
+      real track(1:NFV,0:NFT,Mfloats), trackaux(1:NDIAGS,Mfloats)
+      common /floats_track/ track, trackaux, fltgrd
 # ifdef AGRIF
-     & ,floattindex
+     &                     , floattindex
 # endif
-
 #endif /*FLOATS*/

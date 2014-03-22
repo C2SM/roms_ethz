@@ -1,158 +1,140 @@
 #include "cppdefs.h"
 #ifdef MPI
+# define TRANSPOSED_MPI_NODE_ORDER
+# define PRINT_HOSTNAME
 
 C$    subroutine master_num_threads (nthrds)
 C$    implicit none
 C$    integer nthrds, trd, omp_get_num_threads, omp_get_thread_num
 C$    trd=omp_get_thread_num()
-C$    if (trd.eq.0) nthrds=omp_get_num_threads()
-C$    return
-C$    end 
+C$    if (trd==0) nthrds=omp_get_num_threads()
+C$    end
 
 
 
- 
       subroutine mpi_setup (ierr)
       implicit none
-      integer ierr, nsize, i_W, i_E, j_S, j_N, off_XI, off_ETA
+      integer ierr
 # include "param.h"
 # include "hidden_mpi_vars.h"
 # include "ncvars.h"
 # include "mpif.h"
 C$    integer nthrds
- 
+      integer nsize, off_xi,off_eta, conv_ijnode_to_rank
+# ifdef PRINT_HOSTNAME
+      integer status(MPI_STATUS_SIZE), blank
+      character(len=38) msg1 ! <-- greeting message to print
+      character(len=23) msg2 
+# endif
+
       ocean_grid_comm=MPI_COMM_WORLD
       call MPI_Comm_size (ocean_grid_comm, nsize,  ierr)
       call MPI_Comm_rank (ocean_grid_comm, mynode, ierr)
 
-      write(*,*) 'etner mpi_setup, node ', mynode, ' out of', nsize  
-
-                                         ! Determine number of
-C$    if (mynode.eq.0) then              ! threads on the zeroth MPI
-C$OMP PARALLEL SHARED(nthrds)            ! node and broadcast it, so
-C$      call master_num_threads (nthrds) ! that all other nodes can
-C$OMP END PARALLEL                       ! set it to be the same.
+      exc_call_count=0
+                                         ! Determine number of threads
+C$    if (mynode==0) then                ! on MPI node rank=0, then
+C$OMP PARALLEL SHARED(nthrds)            ! broadcast it, so all others
+C$      call master_num_threads (nthrds) ! can set the same number of
+C$OMP END PARALLEL                       ! threads as the rank=0 node.
 C$    endif
 C$    call MPI_Bcast(nthrds, 1, MPI_INTEGER, 0, ocean_grid_comm, ierr)
-C$    if (mynode.gt.0) then
+C$    if (mynode>0) then
 C$      call omp_set_num_threads (nthrds)
 C$    endif
-
-                                ! Check whether the number of nodes
-      if (nsize.eq.NNODES) then ! specified as -np argument to mpirun
-        inode=mod(mynode,NP_XI) ! command is consistent with the code
-        jnode=mynode/NP_XI      ! parameter settings, and if so, find
-        irc=1-2*mod(jnode,2)
-                                ! indices inode,jnode identifying
-        if (NP_XI.eq.1) then    ! placement of the subdomain to be
-          west_inter=.false.    ! belonging to MPI process with rank
-          east_inter=.false.    ! mynode on the "processor grid".
-        else                    ! Depending on this location find
+                                    ! Check whether the number of
+      if (nsize==NNODES) then       ! nodes specified by -np argument
+# ifdef TRANSPOSED_MPI_NODE_ORDER
+        inode=mynode/NP_ETA         ! of mpiexec matches the parameter
+        jnode=mynode-inode*NP_ETA   ! settings in the code, and find
+# else
+        jnode=mynode/NP_XI          ! indices inode,jnode identifying
+        inode=mynode-jnode*NP_XI    ! the location of current subdomain
+# endif
+                                    ! on the "processor grid".
+        if (NP_XI>1) then
 # ifdef EW_PERIODIC
-          west_inter=.true.     ! whether this subdomain has
-          east_inter=.true.     ! neighbours on the four sides around
+          west_msg_exch=.true.      ! Determine whether the subdomain
+          east_msg_exch=.true.      ! has neighbors on the four sides
 # else
-          if (inode.eq.0) then  ! and set corresponding logical
-            west_inter=.false.  ! flags. Here WEST_INTER.eqv..true.
-          else                  ! means that I [MPI process with rank
-            west_inter=.true.   ! mynode] have neighbor on west side,
-          endif                       ! so I have to send message to
-          if (inode.eq.NP_XI-1) then  ! him and expect incoming
-            east_inter=.false.        ! messages from him. Meaning
-          else                  ! of the three others, EAST_, SOUTH_,
-            east_inter=.true.   ! and NORTH- _INTER is the same, except
-          endif                 ! they refer to the different sides.
+          west_msg_exch=inode>0          ! around it and set the
+          east_msg_exch=inode<NP_XI-1    ! corresponding logical
 # endif
-        endif                   ! Note: periodic boundary conditions
-                                ! are treated exclussively via
-/*
-        if (NP_ETA.eq.1) then   ! exchange of computational margins,
-          south_inter=.false.   ! so that communication takes place
-          north_inter=.false.   ! even is the subdomain is located
-        else                    ! on the side of the grid.
+        else                        ! flags: e.g. est_msg_exch==.true.
+          west_msg_exch=.false.     ! means that there is a neighbor on
+          east_msg_exch=.false.     ! the west side, so this subdomain
+        endif                       ! must send and and expects to
+# ifndef EW_PERIODIC
+        west_exchng=west_msg_exch   ! receive incoming  messages
+        east_exchng=east_msg_exch   ! to/from the neighbor.
+# endif
+                                    ! Note that periodic boundaries
+        if (NP_ETA>1) then          ! (if any) are treated exclusively
 # ifdef NS_PERIODIC
-          south_inter=.true.
-          north_inter=.true.
+          south_msg_exch=.true.     ! via exchange of computational
+          north_msg_exch=.true.     ! margins, so that in this case
 # else
-          if (jnode.eq.0) then
-            south_inter=.false.
-          else
-            south_inter=.true.
-          endif
-          if (jnode.eq.NP_ETA-1) then
-            north_inter=.false.
-          else
-            north_inter=.true.
-          endif
+          south_msg_exch=jnode>0         ! communications take place
+          north_msg_exch=jnode<NP_ETA-1  ! even if the subdomain is
 # endif
-*/
-          
-        south_inter=.false.
-        north_inter=.false.
-        if (NP_ETA.gt.1) then
-# ifdef NS_PERIODIC
-          south_inter=.true.
-          north_inter=.true.
-# else
-          if (jnode.gt.0) then
-            south_inter=.true.
-          endif
-          if (jnode.lt.NP_ETA-1) then
-            north_inter=.true.
-          endif
-# endif
+        else                        ! located near the edge of
+          south_msg_exch=.false.    ! the grid.
+          north_msg_exch=.false.
         endif
- 
-        i_W=mod(inode-1+NP_XI,NP_XI)
-        i_E=mod(inode+1       ,NP_XI)
-        j_S=mod(jnode-1+NP_ETA,NP_ETA)
-        j_N=mod(jnode+1       ,NP_ETA)
- 
-        p_W=i_W +NP_XI*jnode   ! Determine MPI-ranks of my neighbors
-        p_E=i_E +NP_XI*jnode   ! from the sides and corners, which
-        p_S=inode+NP_XI*j_S    ! will later be used to designate
-        p_N=inode+NP_XI*j_N    ! sources of incoming and targets for
-                               ! outgoing messages. Here they are
-        p_NW=i_W+NP_XI*j_N     ! set as for double-periodic grid
-        p_SW=i_W+NP_XI*j_S     ! regardless of the actual boundary
-        p_NE=i_E+NP_XI*j_N     ! conditions. There is no ambiguity,
-        p_SE=i_E+NP_XI*j_S     ! since WEST_INTER...etc logic blocks
-                               ! the annecessary messages.
+# ifndef NS_PERIODIC
+        south_exchng=south_msg_exch
+        north_exchng=north_msg_exch
+# endif
 
+! Determine MPI-ranks of the MPI subdomains adjacent from the sides
+! and corners. These are needed to designate MPI ranks for sources of
+! incoming and targets for outgoing messages.
 
-        off_XI=NP_XI*Lm-LLm
-        iSW_corn=inode*Lm-off_XI/2
-        if (inode.eq.0) then
-          iwest=1+off_XI/2
+         p_E=conv_ijnode_to_rank(inode+1,jnode  , NP_XI,NP_ETA)
+        p_NE=conv_ijnode_to_rank(inode+1,jnode+1, NP_XI,NP_ETA)
+        p_N =conv_ijnode_to_rank(inode  ,jnode+1, NP_XI,NP_ETA)
+        p_NW=conv_ijnode_to_rank(inode-1,jnode+1, NP_XI,NP_ETA)
+         p_W=conv_ijnode_to_rank(inode-1,jnode  , NP_XI,NP_ETA)
+        p_SW=conv_ijnode_to_rank(inode-1,jnode-1, NP_XI,NP_ETA)
+        p_S =conv_ijnode_to_rank(inode  ,jnode-1, NP_XI,NP_ETA)
+        p_SE=conv_ijnode_to_rank(inode+1,jnode-1, NP_XI,NP_ETA)
+
+! Determine bounds of the usable portion of model arrays:
+
+        off_xi=NP_XI*Lm-LLm
+        iSW_corn=inode*Lm-off_xi/2
+        if (inode==0) then
+          iwest=1+off_xi/2
         else
           iwest=1
         endif
-        if (inode.lt.NP_XI-1) then
+        if (inode<NP_XI-1) then
           ieast=Lm
         else
-          ieast=Lm -(off_XI+1)/2
+          ieast=Lm -(off_xi+1)/2
         endif
 
-        off_ETA=NP_ETA*Mm-MMm
-        jSW_corn=jnode*Mm-off_ETA/2
-        if (jnode.eq.0) then
-          jsouth=1+off_ETA/2
+        off_eta=NP_ETA*Mm-MMm
+        jSW_corn=jnode*Mm-off_eta/2
+        if (jnode==0) then
+          jsouth=1+off_eta/2
         else
           jsouth=1
         endif
-        if (jnode.lt.NP_ETA-1) then
+        if (jnode<NP_ETA-1) then
           jnorth=Mm
         else
-          jnorth=Mm -(off_ETA+1)/2
+          jnorth=Mm -(off_eta+1)/2
         endif
 
+#ifdef VERBOSE
+      write(*,'(A,7I5,1x,A,I4)') 'XI:', LLm, off_xi, iSW_corn, Lm,
+     & ieast-iwest+1, iwest+iSW_corn,ieast+iSW_corn, 'node=', mynode
+      write(*,'(A,7I5,1x,A,I4)') 'ETA:',MMm, off_eta, jSW_corn, Mm,
+     & jnorth-jsouth+1,jsouth+jSW_corn,jnorth+jSW_corn,'node=',mynode
+#endif
 
-c      write(*,'(A,7I5,1x,A,I4)') 'XI:', LLm, off_XI, iSW_corn, Lm,
-c    & ieast-iwest+1, iwest+iSW_corn,ieast+iSW_corn, 'node=', mynode
-c      write(*,'(A,7I5,1x,A,I4)') 'ETA:',MMm, off_ETA, jSW_corn, Mm,
-c    & jnorth-jsouth+1,jsouth+jSW_corn,jnorth+jSW_corn,'node=',mynode
 
-        
 
 # ifdef PARALLEL_FILES
          xi_rho=ieast-iwest+1
@@ -177,167 +159,74 @@ c    & jnorth-jsouth+1,jsouth+jSW_corn,jnorth+jSW_corn,'node=',mynode
            eta_v=eta_rho
          endif
 # endif
+! Print hostnames for each rank = 0 to NNODES-1 in the sequence.
+# ifdef PRINT_HOSTNAME
+        call MPI_Barrier(ocean_grid_comm, ierr)
+        if (mynode>0) call MPI_Recv (blank, 1, MPI_INTEGER, mynode-1,1,
+     &                                   ocean_grid_comm, status, ierr)
 
+        write(msg1,'(A,I5,1x,A,I5,1x,A,2x)') 'MPI rank', mynode,
+     &                              'out of', nsize, 'running on' 
+        write(msg2,'(2x,A,2I4)') 'inode,jnode =', inode,jnode
 
-c#ifdef PARALLEL_FILES
-c# ifndef EW_PERIODIC
-c        xi_rho=Lm
-c        xi_u=xi_rho
-c        if (inode.eq.0) xi_rho=xi_rho+1
-c        if (inode.eq.NP_XI-1) then
-c          xi_rho=xi_rho+1
-c          xi_u=xi_u+1
-c        endif
-c# endif
-c# ifndef NS_PERIODIC
-c        eta_rho=Mm
-c        eta_v=eta_rho
-c        if (jnode.eq.0) eta_rho=eta_rho+1
-c        if (jnode.eq.NP_ETA-1) then
-c          eta_rho=eta_rho+1
-c          eta_v=eta_v+1
-c        endif
-c# endif
-c#endif
+        call system('echo "'/ /msg1/ /'`hostname -s`'/ /msg2/ /'"')
+        if (mynode < NNODES-1) call MPI_Send (blank, 1, MPI_INTEGER,
+     &                              mynode+1, 1, ocean_grid_comm, ierr)
+        call MPI_Barrier(ocean_grid_comm, ierr)
+# endif
 
         ierr=0
       else
-        MPI_master_only write(stdout,'(/1x,A,I4,1x,A,I3,A/)')
+        mpi_master_only write(*,'(/1x,A,I4,1x,A,I3,A/)')
      &   '### ERROR: mpi_setup: number of MPI-nodes should be',
      &                         NNODES, 'instead of', nsize, '.'
         ierr=99
       endif
-      return
       end
- 
- 
- 
-c---#define CHECK_MPI
-# ifdef CHECK_MPI
- 
-      subroutine MPI_Test
+
+
+! Convert processor-grid indices i,jnode into MPI rank. Check whether
+! the indices are within the bounds of processor grid. Return them back
+! into periodicity domain, if there is periodicity in either direction,
+! but only if the number of subdomains is greater than one (hence
+! periodicity must go through message passing).
+
+      function conv_ijnode_to_rank(ii,jj, np_xi,np_eta)
       implicit none
-#  include "param.h"
-      integer tile
-      do tile=0,NSUB_X*NSUB_E-1
-        call MPI_Test1 (tile)
-      enddo
-      return
+      integer conv_ijnode_to_rank, ii,jj, np_xi,np_eta, i,j
+      i=ii ; j=jj
+# ifdef EW_PERIODIC
+      if (np_xi>1) then
+        if (i<0) then
+          i=i+np_xi
+        elseif (i>np_xi-1) then
+          i=i-np_xi
+        endif
+      endif
+# endif
+# ifdef NS_PERIODIC
+      if (np_eta>1) then
+        if (j<0) then
+          j=j+np_eta
+        elseif (j>np_eta-1) then
+          j=j-np_eta
+        endif
+      endif
+# endif
+      if (0<=i .and. i<np_xi .and. 0<=j .and. j<np_eta) then
+# ifdef TRANSPOSED_MPI_NODE_ORDER
+        conv_ijnode_to_rank=j + i*np_eta
+# else
+        conv_ijnode_to_rank=i + j*np_xi
+# endif
+      else
+        conv_ijnode_to_rank=-1 !<- meaning that the rank does not exist
+      endif
       end
- 
-      subroutine MPI_Test1 (tile)
-      implicit none
-      integer tile
-#  include "param.h"
-#  include "compute_tile_bounds.h"
-      call MPI_Test1_tile  (istr,iend,jstr,jend)
-      return
-      end
- 
-      subroutine MPI_Test1_tile (istr,iend,jstr,jend)
-      implicit none
-      integer istr,iend,jstr,jend
-#  include "param.h"
-#  include "scalars.h"
-#  include "mpif.h"
- 
-      integer i,j,k,ierr
-      real temp2D(GLOBAL_2D_ARRAY),
-     &     temp3D(GLOBAL_2D_ARRAY,0:N)
-      common /MPI_Test_Arr/ temp2D,temp3D
-      character string(128)
-!
-#  include "compute_extended_bounds.h"
-!
-      do j=jstrR,jendR
-        do i=istrR,iendR
-c          temp2D(i,j)=1.*mynode+0.5
-           temp2D(i,j)=-1.*(mynode+1)
-        enddo
-      enddo
-      do j=jstr,jend
-        do i=istr,iend
-          temp2D(i,j)=1.*mynode+1.
-c          temp2D(i,j)=i+inode*Lm
-c          temp2D(i,j)=j+jnode*Mm
-        enddo
-      enddo
- 
- 
-      call mpi_exchange_tile (istr,iend,jstr,jend, temp2D, 1)
- 
-      do i=mynode,NNODES
-        call MPI_Barrier (ocean_grid_comm, ierr)
-      enddo
-      write(*,*)
-      write(*,*)
-      write(*,'(A5,I3,2I4)') 'node=',mynode, inode,jnode
-      write(*,*)
-      do j=jendR,jstrR,-1
-       write(string,'(I3,3x,20F4.1)') j, (temp2D(i,j), i=istrR,iendR)
-        do i=7,6+4*(iendR-istrR+1)
-         if (string(i-1).eq.'.' .and. string(i).eq.'0') string(i)=' '
-        enddo
-       write(*,'(128A1)') (string(i), i=1,6+4*(iendR-istrR+1))
-      enddo
-      write(*,*)
-        write(*,'(5x,20I4)') (i,i=istrR,iendR)
-      write(*,*)
-      write(*,*)
-      do i=0,mynode
-        call MPI_Barrier (ocean_grid_comm, ierr)
-      enddo
- 
- 
-c      return
- 
- 
-      do k=0,N
-        do j=jstrR,jendR
-          do i=istrR,iendR
-            temp3D(i,j,k)=-1.*(mynode+1)
-          enddo
-        enddo
-        do j=jstr,jend
-          do i=istr,iend
-            temp3D(i,j,k)=1.*mynode+1.
-             temp3D(i,j,k)=0.1*( float(j-1+(jend-jstr+1)*mynode) )
-          enddo
-        enddo
-      enddo
- 
-      call mpi_exchange_tile (istr,iend,jstr,jend, temp3D,N+1)
- 
-      do k=0,N
-        write(*,*) 'k=',k
-        do i=mynode,NNODES
-          call MPI_Barrier (ocean_grid_comm, ierr)
-        enddo
-        write(*,*)
-        write(*,*)
-        write(*,'(A5,I3,2I4)') 'node=',mynode, inode,jnode
-        write(*,*)
-        do j=jendR,jstrR,-1
-        write(string,'(I3,3x,20F4.1)')j,(temp3D(i,j,k),i=istrR,iendR)
-         do i=7,6+4*(iendR-istrR+1)
-          if (string(i-1).eq.'.'.and.string(i).eq.'0') string(i)=' '
-         enddo
-        write(*,'(128A1)') (string(i), i=1,6+4*(iendR-istrR+1))
-        enddo
-        write(*,*)
-        write(*,'(5x,20I4)') (i,i=istrR,iendR)
-        write(*,*)
-        write(*,*)
-        do i=0,mynode
-          call MPI_Barrier (ocean_grid_comm, ierr)
-        enddo
-      enddo
-      return
-      end
-# endif        /* CHECK_MPI */
+
 #else
-      subroutine MPI_Setup_empty
+      subroutine mpi_setup_empty
       end
 #endif    /* MPI */
- 
- 
+
+

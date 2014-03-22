@@ -1,4 +1,4 @@
-!title: Internal Tide Generation on SeaRidge 
+!title: Internal Tide Generation on SeaRidge
 
 ! frstd:lastd:dskip:  20 20 100
 
@@ -11,7 +11,7 @@ nfields: 2  number of fields to plot.
    icnt:  0   draw contours between color bands (1=yes/0=no)
 
    iref: 0   secondary or reference field option
- idover: 2,1,20,16    overlay field identification (for IREF=1,2 only).
+ fldover: 2,1,20,16    overlay field identification (for IREF=1,2 only).
    rmin: 0.,0.,0.,0.
    rmax: 0.,0.,0.,0.
 
@@ -30,11 +30,11 @@ xsec2:ysec2: 130 3     ending   X,Y-position of section
 vintrp: 1 vertical interpolation, 0=linear, 1=cubic splines
 
 
+    pstype:  0   0,1,2 for gmeta, PostScript, or PDF
      npage: 18  number of plots per page
-postscript:  T  postscript/gmeta switch
    readgrd:  F  read in positions from grid NetCDF file.
   wrtfield:  T  write out field name below the plot
-   wrtrang:  T  write out data range values and CI.
+  wrtrange:  T  write out data range values and CI.
    wrtfile:  F  write out input primary filename.
    wrtdate:  F  write out current date.
        cst:  F  read and plot coastlines and islands.
@@ -42,6 +42,6 @@ postscript:  T  postscript/gmeta switch
   defaults: /home/alex/Data/default.cnt
     varids: /home/alex/Data/varid.dat
 !  palette: /home/alex/Palettes/black_pat.pal
-!   history: /taniwha/historyscsf1.0000.nc 
+!   history: /taniwha/historyscsf1.0000.nc
      history: history.nc
  reference:  none

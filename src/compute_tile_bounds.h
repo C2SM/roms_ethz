@@ -9,30 +9,30 @@
 !                treated as a single block.
 ! outputs: istr,iend -- starting and ending indices of subdomain
 !          jstr,jend    tile in XI- and ETA-directions.
-!
-      integer istr,iend, jstr,jend, i_X,j_E,
-     &        size_X,margin_X, size_E,margin_E
-#ifdef MPI 
+
+      integer istr,iend, jstr,jend, i_X,j_E
+#ifdef MPI
 # include "hidden_mpi_vars.h"
+      integer size_X, margin_X, size_E, margin_E
 #else
-      parameter (size_X=(Lm+NSUB_X-1)/NSUB_X,
-     &           margin_X=(NSUB_X*size_X-Lm)/2,
-     &           size_E=(Mm+NSUB_E-1)/NSUB_E,
-     &           margin_E=(NSUB_E*size_E-Mm)/2)
+      integer, parameter :: size_X=(Lm+NSUB_X-1)/NSUB_X,
+     &                    margin_X=(NSUB_X*size_X-Lm)/2,
+     &                      size_E=(Mm+NSUB_E-1)/NSUB_E,
+     &                    margin_E=(NSUB_E*size_E-Mm)/2
 #endif
 
 
 #ifdef ALLOW_SINGLE_BLOCK_MODE
 C$    integer trd, omp_get_thread_num
-      if (tile.eq.NSUB_X*NSUB_E) then
+      if (tile==NSUB_X*NSUB_E) then
 C$      trd=omp_get_thread_num()
-C$      if (trd.gt.0) return !--> just return, if not master thread
-# ifdef MPI    
+C$      if (trd>0) return !--> just return, if not master thread
+# ifdef MPI
         istr=iwest      ! MONOBLOCK VERSION:
         iend=ieast      ! Do not divide grid
         jstr=jsouth     ! into tiles.
-        jend=jnorth 
-  else
+        jend=jnorth
+# else
         istr=1
         iend=Lm
         jstr=1
@@ -40,17 +40,17 @@ C$      if (trd.gt.0) return !--> just return, if not master thread
       else
 # endif
 #endif
- 
+
         j_E=tile/NSUB_X
         i_X=tile-j_E*NSUB_X
-        if (mod(j_E,2).eq.1) i_X=NSUB_X-1 -i_X
+        if (mod(j_E,2)==1) i_X=NSUB_X-1 -i_X   !<-- sweep reversal
 
 #ifdef MPI
-        if (mod(inode,2).gt.0) then
-          i_X=NSUB_X-1 -i_X
-        endif
-        if (mod(jnode,2).gt.0) then
-          j_E=NSUB_E-1 -j_E
+        if (mod(inode,2)>0) then               ! make mirror-image
+          i_X=NSUB_X-1 -i_X                    ! symmetry for sweep
+        endif                                  ! trajectories of MPI
+        if (mod(jnode,2)>0) then               ! subdomains adjacent
+          j_E=NSUB_E-1 -j_E                    ! in both directions
         endif
 
         size_X=(ieast-iwest+NSUB_X)/NSUB_X
@@ -77,8 +77,8 @@ C$      if (trd.gt.0) return !--> just return, if not master thread
         jstr=max(jstr,1)
 #endif
 
- 
+
 #ifdef ALLOW_SINGLE_BLOCK_MODE
       endif
 #endif
- 
+

@@ -1,23 +1,22 @@
 #include "cppdefs.h"
- 
+
       subroutine zetabc_tile (istr,iend,jstr,jend, zeta_new)
-!
+
 ! Set boundary conditions for free surface zeta_new
-!
+
       implicit none
       integer istr,iend,jstr,jend, i,j
-      real zeta_new(PRIVATE_2D_SCRATCH_ARRAY),
-     &                     cff,cx,dft,dfx, eps
-      parameter (eps=1.D-20)
+      real zeta_new(PRIVATE_2D_SCRATCH_ARRAY), cx, cff,dft,dfx
+      real, parameter :: eps=1.E-33
 #include "param.h"
 #include "grid.h"
 #include "ocean2d.h"
 #include "scalars.h"
 #include "boundary.h"
 #include "climat.h"
-!
+
 #include "compute_auxiliary_bounds.h"
-!
+
 #ifndef EW_PERIODIC
 
       if (WESTERN_EDGE) then
@@ -25,15 +24,15 @@
         do j=jstrV-1,jend                             ! Western edge
           dft=zeta(istr,j,kstp)-zeta_new(istr,j)      ! Radiation BC
           dfx=zeta_new(istr,j)-zeta_new(istr+1,j)
- 
-          if (dfx*dft .lt. 0.) dft=0.     ! <--  SUPPRESS INFLOW
- 
+
+          if (dfx*dft < 0.) dft=0.     ! <--  SUPPRESS INFLOW
+
           cx=dft*dfx
           cff=max(dfx*dfx, eps)
- 
+
           zeta_new(istr-1,j)=( cff*zeta(istr-1,j,kstp)
      &                  +cx*zeta_new(istr,j) )/(cff+cx)
-           
+
 #  ifdef MASKING
      &                                 *rmask(istr-1,j)
 #  endif
@@ -59,24 +58,24 @@
 
 c*******
 c*******
-#ifdef ISWAKE
-#define OBC_Z2ORLANSKI
-#endif
+# ifdef ISWAKE
+#  define OBC_Z2ORLANSKI
+# endif
 c*******
 c*******
 
       if (EASTERN_EDGE) then
-#  if defined OBC_EAST && defined OBC_Z2ORLANSKI
+# if defined OBC_EAST && defined OBC_Z2ORLANSKI
 
         do j=jstrV-1,jend                             ! Eastern edge
           dft=zeta(iend,j,kstp)-zeta_new(iend,j)      ! Radiation BC
           dfx=zeta_new(iend,j)-zeta_new(iend-1,j)
- 
-          if (dfx*dft .lt. 0.) dft=0.     ! <--  SUPPRESS INFLOW
- 
+
+          if (dfx*dft < 0.) dft=0.     ! <--  SUPPRESS INFLOW
+
           cx=dft*dfx
           cff=max(dfx*dfx, eps)
- 
+
           zeta_new(iend+1,j)=( cff*zeta(iend+1,j,kstp)
      &                  +cx*zeta_new(iend,j) )/(cff+cx)
 #  ifdef MASKING
@@ -93,7 +92,7 @@ c*******
      &                                      *rmask(iend+1,j)
 #  endif
         enddo
-#  else
+# else
         do j=jstrV-1,jend                             ! Eastern edge
           zeta_new(iend+1,j)=zeta_new(iend,j)         ! gradient BC
 #  ifdef MASKING
@@ -104,7 +103,7 @@ c*******
       endif
 #endif        /* !EW_PERIODIC */
 
- 
+
 #ifndef NS_PERIODIC
       if (SOUTHERN_EDGE) then
 # if defined OBC_SOUTH && defined OBC_M2FLATHER
@@ -116,7 +115,7 @@ c*******
      &                                      *rmask(i,jstr-1)
 #  endif
         enddo
-#  else
+# else
         do i=istrU-1,iend                            ! Southern edge
           zeta_new(i,jstr-1)=zeta_new(i,jstr)        ! gradient BC
 #  ifdef MASKING
@@ -147,9 +146,9 @@ c*******
 # endif   /* OBC_NORTH */
       endif
 #endif       /* !NS_PERIODIC */
-!
+
 ! Corners between adjacent open boundaries
-!
+
 #ifndef EW_PERIODIC
 # ifndef NS_PERIODIC
       if (SOUTHERN_EDGE .and. WESTERN_EDGE) then
@@ -170,6 +169,5 @@ c*******
       endif
 # endif
 #endif
-      return
       end
- 
+

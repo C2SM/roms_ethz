@@ -1,5 +1,5 @@
 #include "cppdefs.h"
- 
+
       subroutine put_global_atts (ncid, ierr)
       implicit none
       integer ncid, ierr, nf_ftype, lvar,lenstr
@@ -18,20 +18,12 @@
 #ifndef NONLIN_EOS
 # include "eos_vars.h"
 #endif
- 
+
 #if defined MPI && defined PARALLEL_FILES
-      integer*4 ibuff(4), npart 
-!
+      integer*4 ibuff(4), npart
+
 ! Put global attribute 'partition' which identifies subdomain
 ! within the processor grid individually for each file.
-!
-c**    ibuff(1)=inode
-c**    ibuff(2)=jnode
-c**    ibuff(3)=NP_XI
-c**    ibuff(4)=NP_ETA
-c**    ibuff(5)=iSW_corn
-c**    ibuff(6)=jSW_corn
-
 
       npart=4
       ibuff(1)=mynode
@@ -46,46 +38,45 @@ c**    ibuff(6)=jSW_corn
       else
         ibuff(4)=jSW_corn+jsouth+1
       endif
-      
 
       ierr=nf_put_att_int (ncid, nf_global, 'partition',
      &                             nf_int, npart, ibuff)
 #endif
-!
+
 ! Decide about output file type and precision for floating point
 ! variables (restart file always has the same precision as in the
 ! code, typically double precision, while all others can be made
 ! single precision.
-!
-      if (ncid.eq.ncidrst) then
+
+      if (ncid==ncidrst) then
         nf_ftype=NF_FTYPE
       else
         nf_ftype=NF_FOUT
       endif
- 
-      if (ncid .eq. ncidrst) then
+
+      if (ncid == ncidrst) then
         ierr=nf_put_att_text (ncid, nf_global, 'type',  17,
      &                                 'ROMS restart file')
-      elseif (ncid .eq. ncidhis) then
+      elseif (ncid == ncidhis) then
         ierr=nf_put_att_text (ncid, nf_global, 'type',  17,
      &                                 'ROMS history file')
 #ifdef AVERAGES
-      elseif (ncid .eq. ncidavg) then
+      elseif (ncid == ncidavg) then
         ierr=nf_put_att_text (ncid, nf_global, 'type',  18,
      &                                'ROMS averages file')
 #endif
 #ifdef STATIONS
-      elseif (ncid .eq. ncidsta) then
+      elseif (ncid == ncidstn) then
         ierr=nf_put_att_text(ncid,  nf_global, 'type', 18,
      &                                'ROMS stations file')
 #endif
 #ifdef FLOATS
-      elseif (ncid .eq. ncidflt) then
+      elseif (ncid == ncidflt) then
         ierr=nf_put_att_text(ncid,  nf_global, 'type', 24,
      &                          'ROMS floats history file')
 #endif
       endif
- 
+
       lvar=lenstr(title)
       ierr=nf_put_att_text(ncid, nf_global, 'title',   lvar,
      &                                         title(1:lvar))
@@ -119,7 +110,7 @@ c     &                                       fltname(1:lvar))
 c      lvar=lenstr(fposnam)
 c      ierr=nf_put_att_text(ncid, nf_global, 'fpos_file',lvar,
 c     &                                       fposnam(1:lvar))
-      if (ncid.eq.ncidflt) then
+      if (ncid==ncidflt) then
 # ifdef FLOATS_GLOBAL_ATTRIBUTES
         do i=1,i_floats
           tempreal(i)=Ft0(i)
@@ -188,12 +179,12 @@ c     &                                       fposnam(1:lvar))
 #ifndef ANA_GRID
       lvar=lenstr(grdname)
       ierr=nf_put_att_text(ncid, nf_global, 'grid_file',lvar,
-     &                                        grdname(1:lvar))
+     &                                       grdname(1:lvar))
 #endif
 #ifndef ANA_INITIAL
       lvar=lenstr(ininame)
       ierr=nf_put_att_text(ncid, nf_global, 'init_file',lvar,
-     &                                        ininame(1:lvar))
+     &                                       ininame(1:lvar))
 #endif
 #if !defined ANA_SMFLUX || !defined ANA_STFLUX \
  || (defined SG_BBL96 && !defined ANA_BSEDIM)  \
@@ -213,51 +204,78 @@ c      ierr=nf_put_att_text(ncid, nf_global,'apar_file',lvar,
 c     &                                       aparnam(1:lvar))
 #endif
 
-#ifdef SOLVE3D
-!
-! S-coordinate control parameters "theta_s", "theta_b", and "hc",
-! and stretching curves "Cs_w", "Cs_r" at W- and RHO-points.
-!
-
-# ifdef  NEW_S_COORD
-      ierr=nf_put_att_text (ncid, nf_global, 'VertCoordType',3,'NEW')
-# endif
-      ierr=nf_put_att_FTYPE (ncid, nf_global, 'theta_s', nf_ftype, 1,
-     &                                                       theta_s)
-      ierr=nf_put_att_FTYPE (ncid, nf_global, 'theta_b', nf_ftype, 1,
-     &                                                       theta_b)
-      ierr=nf_put_att_FTYPE(ncid, nf_global, 'hc',nf_ftype, 1, hc)
-
-      ierr=nf_put_att_FTYPE(ncid,nf_global, 'Cs_w',nf_ftype,N+1,Cs_w)
-
-      ierr=nf_put_att_FTYPE(ncid,nf_global, 'Cs_r', nf_ftype, N,Cs_r)
-#endif
-!
 ! Time stepping parameters.
-!
-      ierr=nf_put_att_int(ncid,nf_global,'ntimes',  nf_int,1,ntimes)
-      ierr=nf_put_att_int(ncid,nf_global,'ndtfast', nf_int,1,ndtfast)
-      ierr=nf_put_att_FTYPE(ncid,nf_global,'dt',    nf_ftype, 1,  dt)
-      ierr=nf_put_att_FTYPE(ncid,nf_global,'dtfast',nf_ftype, 1,
-     &                                                        dtfast)
-      ierr=nf_put_att_int  (ncid,nf_global,'nwrt',  nf_int,  1, nwrt)
+
+      ierr=nf_put_att_int(ncid, nf_global, 'ntimes',  nf_int, 1,ntimes)
+      ierr=nf_put_att_int(ncid, nf_global, 'ndtfast', nf_int,1,ndtfast)
+      ierr=nf_put_att_FTYPE(ncid, nf_global, 'dt',    nf_ftype, 1,  dt)
+      ierr=nf_put_att_FTYPE(ncid, nf_global, 'dtfast',nf_ftype,  1,
+     &                                                          dtfast)
+      ierr=nf_put_att_int (ncid, nf_global, 'nwrt',  nf_int, 1, nwrt)
 #ifdef AVERAGES
-      ierr=nf_put_att_int  (ncid,nf_global,'ntsavg',nf_int, 1,ntsavg)
+      ierr=nf_put_att_int (ncid, nf_global, 'ntsavg',nf_int, 1, ntsavg)
 
-
- 
-      ierr=nf_put_att_int  (ncid,nf_global,'navg',  nf_int, 1,  navg)
+      ierr=nf_put_att_int (ncid, nf_global, 'navg',  nf_int, 1,   navg)
 #endif
 #ifdef STATIONS
-      ierr=nf_put_att_int  (ncid,nf_global,'nsta',  nf_int, 1,  nsta)
+      ierr=nf_put_att_int (ncid, nf_global, 'nsta',  nf_int, 1,  nsta)
 #endif
-!
+
+
+#ifdef SOLVE3D
+# ifdef VERT_COORD_TYPE_SM09
+      ierr=nf_put_att_text(ncid, nf_global, 'VertCoordType', 4, 'SM09')
+# elif defined VERT_COORD_TYPE_SH94
+      ierr=nf_put_att_text(ncid, nf_global, 'VertCoordType', 4, 'SH94')
+# endif
+
+! S-coordinate type, control parameters "theta_s", "theta_b", and
+! "hc", and stretching curves "Cs_w", "Cs_r" at W- and RHO-points.
+
+      ierr=nf_put_att_FTYPE(ncid, nf_global, 'theta_s', nf_ftype, 1,
+     &                                                        theta_s)
+      ierr=nf_put_att_FTYPE(ncid, nf_global, 'theta_b', nf_ftype, 1,
+     &                                                        theta_b)
+      ierr=nf_put_att_FTYPE(ncid, nf_global, 'hc', nf_ftype, 1, hc)
+
+      ierr=nf_put_att_FTYPE(ncid, nf_global, 'Cs_w',nf_ftype,N+1,Cs_w)
+
+      ierr=nf_put_att_FTYPE(ncid, nf_global, 'Cs_r',nf_ftype, N,Cs_r)
+
+! Boussinesq reference density and EOS coefficients.
+
+      ierr=nf_put_att_FTYPE(ncid, nf_global, 'rho0', nf_ftype, 1, rho0)
+      ierr=nf_put_att_text (ncid, nf_global, 'rho0_units', 16,
+     &                                              'kilogram meter-3')
+# ifndef NONLIN_EOS
+      ierr=nf_put_att_FTYPE(ncid, nf_global,'Tcoef',nf_ftype, 1, Tcoef)
+      ierr=nf_put_att_text (ncid, nf_global,'Tcoef_units', 13,
+     &                                                 'deg Celsius-1')
+
+      ierr=nf_put_att_FTYPE(ncid, nf_global, 'T0',  nf_ftype, 1, T0)
+      ierr=nf_put_att_text (ncid, nf_global, 'T0_units', 11,
+     &                                                 'deg Celsius')
+
+#  ifdef SALINITY
+      ierr=nf_put_att_FTYPE(ncid, nf_global, 'Scoef',nf_ftype, 1,Scoef)
+      ierr=nf_put_att_text (ncid, nf_global, 'Scoef_units', 5, 'PSU-1')
+
+      ierr=nf_put_att_FTYPE(ncid, nf_global, 'S0',  nf_ftype, 1, S0)
+      ierr=nf_put_att_text (ncid, nf_global, 'S0_units',     3, 'PSU')
+#  endif
+# endif
+#endif /* SOLVE3D */
+
 ! Horizontal viscosity and mixing coefficients.
-!
+
 #ifdef UV_VIS2
-      ierr=nf_put_att_FTYPE(ncid,nf_global,'visc2',nf_ftype,1,visc2)
-      ierr=nf_put_att_text (ncid,nf_global,'visc2_units',15,
-     &                                             'meter2 second-1')
+      ierr=nf_put_att_FTYPE(ncid,nf_global, 'visc2',nf_ftype,1,visc2)
+      ierr=nf_put_att_text (ncid,nf_global, 'visc2_units',15,
+     &                                            'meter2 second-1')
+! Lateral slipperiness parameter
+
+      ierr=nf_put_att_FTYPE(ncid, nf_global, 'gamma2', nf_ftype, 1,
+     &                                                       gamma2)
 #endif
 #ifdef SOLVE3D
 # ifdef TS_DIF2
@@ -277,83 +295,62 @@ c     &                                       aparnam(1:lvar))
      &                                             'meter4 second-1')
 #  endif
 # endif
-# if !defined LMD_MIXING && !defined BVF_MIXING\
-  && !defined MY2_MIXING && !defined MY25_MIXING\
-                         && !defined PP_MIXING
-!
+# if !defined LMD_MIXING && !defined BVF_MIXING && !defined PP_MIXING\
+                         && !defined MY2_MIXING && !defined MY25_MIXING
+
 ! Background vertical viscosity and tracer mixing coefficients.
-!
-      ierr=nf_put_att_FTYPE(ncid,nf_global,'Akv_bak',nf_ftype, 1,
-     &                                                      Akv_bak)
-      ierr=nf_put_att_text (ncid,nf_global,'Akv_bak',51,
-     &         'background vertical mixing coefficient for momentum')
-      ierr=nf_put_att_text (ncid,nf_global,'Akv_bak_units',15,
+
+      ierr=nf_put_att_FTYPE(ncid, nf_global, 'Akv_bak', nf_ftype, 1,
+     &                                                       Akv_bak)
+      ierr=nf_put_att_text (ncid, nf_global, 'Akv_bak_units', 15,
      &                                             'meter2 second-1')
- 
-      ierr=nf_put_att_FTYPE(ncid,nf_global,'Akt_bak',nf_ftype, NT,
+
+      ierr=nf_put_att_FTYPE(ncid, nf_global, 'Akt_bak',nf_ftype, NT,
      &                                                       Akt_bak)
-      ierr=nf_put_att_text (ncid,nf_global,'Akt_bak_units', 15,
+      ierr=nf_put_att_text (ncid, nf_global, 'Akt_bak_units', 15,
      &                                             'meter2 second-1')
 # endif
 # ifdef MY25_MIXING
-      ierr=nf_put_att_FTYPE(ncid,nf_global,'Akq_bak',nf_ftype,
-     &                    1,Akq_bak)
-      ierr=nf_put_att_text (ncid,nf_global,'Akq_bak_units',15,
+      ierr=nf_put_att_FTYPE(ncid, nf_global, 'Akq_bak',nf_ftype, 1,
+     &                                                       Akq_bak)
+      ierr=nf_put_att_text (ncid, nf_global, 'Akq_bak_units', 15,
      &                                             'meter2 second-1')
 # endif
 #endif
-!
-! Bottom drag coefficients.
-!
-      ierr=nf_put_att_FTYPE(ncid,nf_global,'rdrg',nf_ftype,1,rdrg)
-      ierr=nf_put_att_text (ncid,nf_global,'rdrg_units',14,
+
+! Bottom drag parameters.
+
+      ierr=nf_put_att_FTYPE(ncid, nf_global, 'rdrg', nf_ftype,1, rdrg)
+      ierr=nf_put_att_text (ncid, nf_global, 'rdrg_units', 14,
      &                                              'meter second-1')
-      ierr=nf_put_att_FTYPE(ncid,nf_global,'rdrg2',nf_ftype,1,rdrg2)
-      ierr=nf_put_att_text (ncid,nf_global,'rdrg2_units',14,
+      ierr=nf_put_att_FTYPE(ncid, nf_global, 'rdrg2',nf_ftype,1,rdrg2)
+      ierr=nf_put_att_text (ncid, nf_global, 'rdrg2_units', 14,
      &                                              'nondimensional')
 #ifdef SOLVE3D
-!
-! Equation of State parameters.
-!
-      ierr=nf_put_att_FTYPE(ncid,nf_global, 'rho0',nf_ftype, 1,rho0)
-      ierr=nf_put_att_text (ncid,nf_global, 'rho0_units', 16,
-     &                                            'kilogram meter-3')
-# ifndef NONLIN_EOS
-      ierr=nf_put_att_FTYPE(ncid,nf_global, 'R0',  nf_ftype, 1, R0)
-      ierr=nf_put_att_text (ncid,nf_global, 'R0_units', 16,
-     &                                            'kilogram meter-3')
+      ierr=nf_put_att_FTYPE(ncid, nf_global, 'Zob',  nf_ftype, 1, Zob)
+      ierr=nf_put_att_text (ncid, nf_global, 'Zob_units',  5, 'meter')
+#endif
 
-      ierr=nf_put_att_FTYPE(ncid,nf_global, 'T0',  nf_ftype, 1, T0)
-      ierr=nf_put_att_text (ncid,nf_global, 'T0_units', 11,
-     &                                                 'deg Celsius')
+#ifdef WKB_WWAVE
 
-      ierr=nf_put_att_FTYPE(ncid,nf_global,'Tcoef',nf_ftype, 1,Tcoef)
-      ierr=nf_put_att_text (ncid,nf_global,'Tcoef_units', 13,
-     &                                               'deg Celsius-1')
+! breaking parameters for Thornton & Guza (1986), Church and Thornton (1993)
 
-#  ifdef SALINITY
-      ierr=nf_put_att_FTYPE(ncid,nf_global, 'S0',  nf_ftype, 1, S0)
-      ierr=nf_put_att_text (ncid,nf_global, 'S0_units',     3, 'PSU')
- 
-      ierr=nf_put_att_FTYPE(ncid,nf_global,'Scoef',nf_ftype, 1,Scoef)
-      ierr=nf_put_att_text (ncid,nf_global,'Scoef_units', 5, 'PSU-1')
-#  endif
+      ierr=nf_put_att_FTYPE(ncid,nf_global,'wkb_amp',nf_ftype,1,wkb_amp)
+      ierr=nf_put_att_FTYPE(ncid,nf_global,'wkb_prd',nf_ftype,1,wkb_prd)
+      ierr=nf_put_att_FTYPE(ncid,nf_global,'wkb_ang',nf_ftype,1,wkb_ang)
+      ierr=nf_put_att_FTYPE(ncid,nf_global,'wkb_btg',nf_ftype,1,wkb_btg)
+      ierr=nf_put_att_FTYPE(ncid,nf_global,'wkb_gam',nf_ftype,1,wkb_gam)
+# ifdef SURFACE_ROLLER
+      ierr=nf_put_att_FTYPE(ncid,nf_global,'wkb_rsb',nf_ftype,1,wkb_rsb)
+      ierr=nf_put_att_FTYPE(ncid,nf_global,'wkb_roller',
+     &                                            nf_ftype,1,wkb_roller)
 # endif
-#endif /* SOLVE3D */
-!
-! Slipperiness parameters.
-!
-      ierr=nf_put_att_FTYPE(ncid,nf_global,'gamma2',nf_ftype, 1,
-     &                                                      gamma2)
-!
-! List of Source Codes and Activated CPP-switches
-!
+#endif
+
+! List of source-code file names and activated CPP-switches
+
       lvar=lenstr(srcs)
-      ierr=nf_put_att_text (ncid,nf_global, 'SRCS', lvar,
-     &                                       srcs(1:lvar))
+      ierr=nf_put_att_text (ncid, nf_global, 'SRCS', lvar,srcs(1:lvar))
       lvar=lenstr(cpps)
-      ierr=nf_put_att_text (ncid,nf_global, 'CPPS', lvar,
-     &                                       cpps(1:lvar))
-      return
+      ierr=nf_put_att_text (ncid, nf_global, 'CPPS', lvar,cpps(1:lvar))
       end
- 

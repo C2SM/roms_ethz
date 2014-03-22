@@ -1,7 +1,7 @@
 This part is extracted from "mpc.F". It is kept for reference
 purposes only and is considered obsolete, since a better
 performing version is present in mpc under
- 
+
 #ifdef DOUBLE_CONST_ALT
 !
 ! Recognize numerical constants of real type in the text of the
@@ -18,8 +18,8 @@ performing version is present in mpc under
 !        between quotes and turns ond back again, when exiting];
 !
 !    (2) scan this list in order to recognize fortran logical
-!        relation operators, such as .eq., .ne., .or., .gt., .lt.,
-!        .ge., .le., .ne., .and., .not.; exclude the dots bounding
+!        relation operators, such as ==, /=, .or., >, <,
+!        >=, <=, /=, .and., .not.; exclude the dots bounding
 !        these expressions from the list of indices. Here setting of
 !        indx(j,j+1)=0 signals that the associated dots should be
 !        ignored during the subsequent processing; Note that it is
@@ -100,52 +100,52 @@ performing version is present in mpc under
         ndots=0                                          ! Step (1)
         m=1
         do i=7,length
-          if (symbol(i).eq.quote) m=-m
-          if (m.gt.0 .and. symbol(i).eq.'.') then
+          if (symbol(i)==quote) m=-m
+          if (m>0 .and. symbol(i)=='.') then
             ndots=ndots+1
             indx(ndots)=i
           endif
         enddo
         do j=1,ndots                                     ! Step (2)
          i=indx(j)
-          if (i.gt.0) then
-            if (symbol(i+3).eq.'.') then
-              if (symbol(i+2).eq.'r' .or. symbol(i+2).eq.'R') then
-                if (symbol(i+1).eq.'o' .or. symbol(i+1).eq.'O') then
+          if (i>0) then
+            if (symbol(i+3)=='.') then
+              if (symbol(i+2)=='r' .or. symbol(i+2)=='R') then
+                if (symbol(i+1)=='o' .or. symbol(i+1)=='O') then
                   indx(j)=0
                   indx(j+1)=0
                 endif
-              elseif(symbol(i+2).eq.'q' .or. symbol(i+2).eq.'Q') then
-                if ( symbol(i+1).eq.'e' .or. symbol(i+1).eq.'E') then
+              elseif(symbol(i+2)=='q' .or. symbol(i+2)=='Q') then
+                if ( symbol(i+1)=='e' .or. symbol(i+1)=='E') then
                   indx(j)=0
                   indx(j+1)=0
                 endif
-              elseif(symbol(i+2).eq.'t' .or. symbol(i+2).eq.'T') then
-                if ( symbol(i+1).eq.'g' .or. symbol(i+1).eq.'G' .or.
-     &               symbol(i+1).eq.'l' .or. symbol(i+1).eq.'L') then
+              elseif(symbol(i+2)=='t' .or. symbol(i+2)=='T') then
+                if ( symbol(i+1)=='g' .or. symbol(i+1)=='G' .or.
+     &               symbol(i+1)=='l' .or. symbol(i+1)=='L') then
                   indx(j)=0
                   indx(j+1)=0
                 endif
-              elseif(symbol(i+2).eq.'e' .or. symbol(i+2).eq.'E') then
-                if ( symbol(i+1).eq.'g' .or. symbol(i+1).eq.'G' .or.
-     &               symbol(i+1).eq.'l' .or. symbol(i+1).eq.'L' .or.
-     &               symbol(i+1).eq.'n' .or. symbol(i+1).eq.'N') then
+              elseif(symbol(i+2)=='e' .or. symbol(i+2)=='E') then
+                if ( symbol(i+1)=='g' .or. symbol(i+1)=='G' .or.
+     &               symbol(i+1)=='l' .or. symbol(i+1)=='L' .or.
+     &               symbol(i+1)=='n' .or. symbol(i+1)=='N') then
                   indx(j)=0
                   indx(j+1)=0
                 endif
               endif
-            elseif (symbol(i+4).eq.'.') then
-              if (symbol(i+1).eq.'a' .or. symbol(i+1).eq.'A') then
-                if (symbol(i+2).eq.'n' .or.symbol(i+2).eq.'N') then
-                  if (symbol(i+3).eq.'d'.or.symbol(i+3).eq.'D') then
+            elseif (symbol(i+4)=='.') then
+              if (symbol(i+1)=='a' .or. symbol(i+1)=='A') then
+                if (symbol(i+2)=='n' .or.symbol(i+2)=='N') then
+                  if (symbol(i+3)=='d'.or.symbol(i+3)=='D') then
                     indx(j)=0
                     indx(j+1)=0
                   endif
                 endif
               endif
-              if (symbol(i+1).eq.'n' .or. symbol(i+1).eq.'N') then
-                if (symbol(i+2).eq.'o'.or. symbol(i+2).eq.'O') then
-                  if (symbol(i+3).eq.'t'.or.symbol(i+3).eq.'T') then
+              if (symbol(i+1)=='n' .or. symbol(i+1)=='N') then
+                if (symbol(i+2)=='o'.or. symbol(i+2)=='O') then
+                  if (symbol(i+3)=='t'.or.symbol(i+3)=='T') then
                     indx(j)=0
                     indx(j+1)=0
                   endif
@@ -154,48 +154,48 @@ performing version is present in mpc under
             endif
           endif
         enddo
- 
+
         do j=1,ndots                                     ! Step (3)
          i=indx(j)
-          if (i.gt.0) then
+          if (i>0) then
             m=ichar(symbol(i-1))
             k=ichar(symbol(i+1))
-            if ((m.lt.48 .or. m.gt.57) .and.
-     &          (k.lt.48 .or. k.gt.57)) then
+            if ((m<48 .or. m>57) .and.
+     &          (k<48 .or. k>57)) then
               indx(j)=0
             endif
           endif
         enddo
- 
+
         do j=ndots,1,-1   !<-- REVERSED !!!              ! Step (4)
-          if (indx(j).gt.0) then
+          if (indx(j)>0) then
             m=ichar(symbol(i-1))
             k=ichar(symbol(i+1))
-            if ((m.ge.48 .and. m.le.57) .or.
-     &          (k.ge.48 .and. k.le.57)) then
+            if ((m>=48 .and. m<=57) .or.
+     &          (k>=48 .and. k<=57)) then
               m=indx(j)
   8            m=m-1
-                if (symbol(m).eq.' ') go to 8
+                if (symbol(m)==' ') go to 8
                k=ichar(symbol(m))
-               if (k.ge.48 .and. k.le.57) then
-                 if (m.gt.7) goto 8
+               if (k>=48 .and. k<=57) then
+                 if (m>7) goto 8
                endif
-              if (k.lt.65 .or. (k.gt.90. and. k.lt.97) .or.
-     &                                        k.gt.122) then
+              if (k<65 .or. (k>90. and. k<97) .or.
+     &                                        k>122) then
                 m=indx(j)
   9              m=m+1
-                  if (symbol(m).eq.' ') go to 9
+                  if (symbol(m)==' ') go to 9
                  k=ichar(symbol(m))
-                if (k.ge.48 .and. k.le.57) then
-                   if (m.le.length)  goto 9
+                if (k>=48 .and. k<=57) then
+                   if (m<=length)  goto 9
                 endif
-                if (symbol(m).eq.'e' .or. symbol(m).eq.'E') then
+                if (symbol(m)=='e' .or. symbol(m)=='E') then
                   symbol(m)='D'
-                elseif (symbol(m).eq.'d' .or. symbol(m).eq.'D') then
+                elseif (symbol(m)=='d' .or. symbol(m)=='D') then
                   symbol(m)='D'
                 else
   91              m=m-1
-                   if (symbol(m).eq.' ') goto 91
+                   if (symbol(m)==' ') goto 91
                   m=m+1
                   do k=length,m,-1
                     symbol(k+2)=symbol(k)
@@ -212,5 +212,5 @@ performing version is present in mpc under
           endif
         enddo
 #endif
- 
- 
+
+

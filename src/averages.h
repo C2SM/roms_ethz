@@ -23,9 +23,14 @@ CSDISTRIBUTE_RESHAPE rho_avg(BLOCK_PATTERN,*) BLOCK_CLAUSE
 CSDISTRIBUTE_RESHAPE w_avg(BLOCK_PATTERN,*) BLOCK_CLAUSE
       common /avg_u/u_avg /avg_v/v_avg /avg_t/t_avg
      &                /avg_rho/rho_avg /avg_w/w_avg
+      real wvl_avg(GLOBAL_2D_ARRAY,0:N)
+CSDISTRIBUTE_RESHAPE wvl_avg(BLOCK_PATTERN,*) BLOCK_CLAUSE
+      common /avg_wvl/wvl_avg
+      real akv_avg(GLOBAL_2D_ARRAY,0:N)
+CSDISTRIBUTE_RESHAPE akv_avg(BLOCK_PATTERN,*) BLOCK_CLAUSE
       real akt_avg(GLOBAL_2D_ARRAY,0:N)
 CSDISTRIBUTE_RESHAPE akt_avg(BLOCK_PATTERN,*) BLOCK_CLAUSE
-      common /avg_akt/akt_avg
+      common /avg_akv/akv_avg /avg_akt/akt_avg
 #  ifdef SALINITY
       real aks_avg(GLOBAL_2D_ARRAY,0:N)
 CSDISTRIBUTE_RESHAPE aks_avg(BLOCK_PATTERN,*) BLOCK_CLAUSE
@@ -33,8 +38,13 @@ CSDISTRIBUTE_RESHAPE aks_avg(BLOCK_PATTERN,*) BLOCK_CLAUSE
 #  endif
 #  ifdef LMD_KPP
       real hbl_avg(GLOBAL_2D_ARRAY)
-CSDISTRIBUTE_RESHAPE hbl_avg(BLOCK_PATTERN,*) BLOCK_CLAUSE
+CSDISTRIBUTE_RESHAPE hbl_avg(BLOCK_PATTERN) BLOCK_CLAUSE
       common /avg_hbl/hbl_avg
+#  endif
+#  ifdef LMD_BKPP
+      real hbbl_avg(GLOBAL_2D_ARRAY)
+CSDISTRIBUTE_RESHAPE hbbl_avg(BLOCK_PATTERN,*) BLOCK_CLAUSE
+      common /avg_hbbl/hbbl_avg
 #  endif
 # endif
 #endif /* AVERAGES */

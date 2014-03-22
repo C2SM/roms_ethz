@@ -32,7 +32,7 @@
 ! array index must always start from 1, while Fortran does not);
 ! Fortran array dimension padding; and stripping
 ! periodic/computational margins.
-! 
+!
       integer imin,imax,jmin,jmax,  vert_type, horiz_type,
      &                              start(4), count(4)
 
@@ -48,40 +48,8 @@
       enddo             ! (2D-fields); 4 is for time record only
 
 #ifdef MPI
-c# ifdef PARALLEL_FILES
-c#  ifdef EW_PERIODIC
-c      imin=iwest            !<-- regardless
-c      imax=ieast            !<-- of grid type
-c#  else
-c      if (WESTERN_MPI_EDGE) then
-c        imin=imin + iwest-1  !<-- to account for grid type
-c      else
-c        imin=iwest
-c      endif
-c      if (EASTERN_MPI_EDGE) then
-c        imax=ieast+1
-c      else
-c        imax=ieast
-c      endif
-c#  endif
-c#  ifdef NS_PERIODIC
-c      jmin=jsouth
-c      jmax=jnorth
-c#  else
-c      if (SOUTHERN_MPI_EDGE) then
-c        jmin=jmin + jsouth-1
-c      else
-c        jmin=jsouth
-c      endif
-c      if (NORTHERN_MPI_EDGE) then
-c        jmax=jnorth+1
-c      else
-c        jmax=jnorth
-c      endif
-c#  endif
-c# else
       if (WESTERN_MPI_EDGE) then
-        imin=imin + iwest-1   !<-- to account for grid type
+        imin=imin + iwest-1       !<-- to account for grid type
       else
 # ifndef PARALLEL_FILES
         start(1)=1+iSW_corn + 1-imin
@@ -106,13 +74,6 @@ c# else
       else
         jmax=jnorth
       endif
-c# endif
-
-
-
-
-
-
 #else            /* non-MPI --> */
       imax=Lm+1
       jmax=Mm+1
@@ -120,12 +81,12 @@ c# endif
       count(1)=imax-imin+1
       count(2)=jmax-jmin+1
 
-      if (vert_type.eq.0) then           ! Sort out vertical grids:
+      if (vert_type==0) then             ! Sort out vertical grids:
         start(3)=record                  !<-- 2D field variables
-      elseif (vert_type.eq.1) then
+      elseif (vert_type==1) then
         count(3)=N                       !<-- 3D RHO-grid
         start(4)=record
-      elseif (vert_type.eq.2) then
+      elseif (vert_type==2) then
         count(3)=N+1                     !<-- 3D W-grid
         start(4)=record
       else

@@ -1,31 +1,31 @@
 title:
-           Pacific, 0.5 degree resolution, 30 levels
+       Pacific Ocean, 0.5 degree resolution
 
 
 time_stepping: NTIMES   dt[sec]  NDTFAST  NINFO
-                128     4800.    71      1 
+                12800     4800.    71      1 
 
 
 S-coord: THETA_S,   THETA_B,    hc (m)
            6.0D0      0.0D0     250.D0
 
 grid:  filename
-             /work/pac44/pacific_grid_488x360.nc 
+             /woossee/pac44/pacific_grid_488x360.nc 
 
 
 initial: NRREC  filename
           2 
         rst.0000.nc
-         /work/pac44/roms_ini.nc
+         /woossee/pac44/roms_ini.nc
 
 
 forcing: filename
-          /work/pac44/ncep_heat.nc
-          /work/pac44/ncep_winds.nc
+          /woossee/pac44/ncep_heat.nc
+          /woossee/pac44/ncep_winds.nc
 
 
 boundary: filename
-         /work/pac44/bry_frc_file.nc
+         /woossee/pac44/bry_frc_file.nc
 
 
 restart:          NRST, NRPFRST / filename
@@ -41,19 +41,18 @@ history: LDEFHIS, NWRT, NRPFHIS / filename
 averages: NTSAVG, NAVG, NRPFAVG / filename
             1      180    18 
                  avg.nc
-                          /work/Pcfc/avg.nc
 
 primary_history_fields: zeta U,VBAR  U,V   wrtT(1:NT)
                           T   T T    T T   T T
 
-auxiliary_history_fields: rho Omega  W  Akv  Akt  Aks  HBL
-                           F   F     T   F    T    F    T 
+auxiliary_history_fields: rho Omega W  Akv Akt Aks  HBL HBBL
+                           F   F    T   F   T   F    T   F
 
 primary_averages: zeta U,VBAR  U,V   wrtT(1:NT)
                     T    T T   T T      T T
 
-auxiliary_averages: rho Omega  W  Akv  Akt  Aks  HBL
-                     F    T    F   F    T    F    T
+auxiliary_averages: rho Omega W  Akv Akt Aks  HBL HBBL
+                     F    T   F   F   T   F    T   F
 
 rho0:
       1027.8

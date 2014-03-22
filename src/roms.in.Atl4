@@ -1,22 +1,22 @@
 !
 ! This is "scrum.in.Atl4": keyword-based startup file for
-! North Atlantic configuration. 
+! North Atlantic configuration.
 !
 title:
            North Atlantic Damee #4, 0.75 resolution
 
-time_stepping: NTIMES   dt[sec]  NDTFAST  NINFO
+time_stepping: ntimes   dt[sec]  ndtfast  ninfo
                 1024     8640     60      1
 
-initial: NRREC  filename
-          1 
+initial: nrrec  filename
+          1
         ../Damee/damee4_levfeb_a.nc
 
-restart:  NRST, NRPFRST / filename
-           3000     1 
+restart:  nrst, nrpfrst / filename
+           3000     1
             restart.nc
 
-history: LDEFHIS, NWRT, NRPFHIS / filename
+history: ldefhis, nwrt, nrpfhis / filename
             T     3000     0
             history.nc
         /work/alex/MP/history.nc.30.nonlinEOS
@@ -51,7 +51,7 @@ averages: ntsavg navg nrpfavg / filename
 primary_averages: zeta UBAR VBAR  U  V   wrtT(1:NT)
                     T    T    T   T  T    T T
 auxiliary_averages: rho Omega  W  Akv  Akt  Aks  HBL
-                     F    F    F   F    F    F    F 
+                     F    F    F   F    F    F    F
 
 
 rho0:
@@ -64,7 +64,7 @@ gamma2:
 
 !
 ! Nudging is set up analytically in this case, so these values are
-! actually not used anywhere inside the code. 
+! actually not used anywhere inside the code.
 !
 nudg_cof:   TauM_in TauM_out TauT_in TauT_out [days for all]
                 0.       0.      0.       0.
@@ -74,11 +74,11 @@ nudg_cof:   TauM_in TauM_out TauT_in TauT_out [days for all]
 ! The following three keywords are used only for rest state test
 ! problem to check for pressure gradient error.
 !
-lin_EOS_cff: R0[kg/m^3]  T0[deg C] TCOEF    S0[PSU] SCOEF
+lin_EOS_cff: R0[kg/m^3]  T0[deg C] tcoef    S0[PSU] scoef
               0.d0         0.d0    0.28d0    0.d0    0.8d0
 vertical_mixing: Akv_bak Akt_bak(1:NT)  [m^2/sec for all]
                  1.0d-3   0.d0    0.0d0
-lateral_visc: VISC2
+lateral_visc: visc2
                500.
 
 
