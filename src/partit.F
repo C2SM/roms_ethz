@@ -5,12 +5,13 @@
 ! data corresponding to different subdomains. These files can be
 ! then read in parallel by different MPI processes.
 !
-! Usage:  partit [-s minrec] [-m maxrec] NP_XI NP_ETA ncname1 ... ncnameN
+! Usage:  partit [-s minrec] [-m maxrec -d out_dir] NP_XI NP_ETA ncname1 ... ncnameN
 ! ------  where NP_XI  number of subdomains along XI-direction
 !               NP_ETA number of subdomains along ETA-direction
 !               ncname1 ... ncnameN  names of netCDF files
 !               minrec: 1st record in partioned output
 !               maxrec: last record in partioned output
+!               out_dir: output directory
 !               
 !
 ! Non-partitionable objects of netCDF files, such as scalar variables
@@ -42,8 +43,8 @@
 ! partial files.
 !
 
-#define NETCDF4
-#define NCCOMPRESS
+!--> #define NETCDF4
+!--> #define NCCOMPRESS
 
 #ifdef NETCDF4
 # define NCFILEFORMAT nf_netcdf4
@@ -58,7 +59,7 @@ c--#define VERBOSE
 #include "netcdf.inc"
       integer maxdims, maxvars
       parameter (maxdims=32, maxvars=128)
-      character src_name*80,  string*80
+      character src_name*255,  string*255
       character dimname(maxdims)*32, varname(maxvars)*32
 
       integer narg,  NP_XI,  nnodes, xi_rho,  id_xi_rho,  id_xi_psi,
@@ -69,7 +70,8 @@ c--#define VERBOSE
      &        i,j,k, ncsrc,  lvar,   size,  rec, lstr, lsrc,  lenstr
      &        , minrec, maxrec, karg
 
-      character(len=80), allocatable, dimension(:) :: ncname
+      character(len=255) :: out_dir
+      character(len=255), allocatable, dimension(:) :: ncname
       integer, allocatable, dimension(:) :: ncid, xi_start, xi_size,
      &                                           eta_start, eta_size
       logical, allocatable, dimension(:) ::  western_edge,
@@ -108,8 +110,9 @@ c--#define VERBOSE
       narg=iargc()
       karg = 1
       if (narg .lt. 3) then
-        write(*,'(/1x,A/32x,A/)')      'Usage of partit should be:',
-     &                       'partit NP_X NP_E ncname1 ... ncnameN'
+        write(*,'(/1x,A/32x,2A/)')      'Usage of partit should be:',
+     &     'partit [-s <minrec> -m <maxrec> -d <out_dir>]',
+     &     ' NP_X NP_E ncname1 ... ncnameN'
         stop
       endif
  
@@ -120,9 +123,24 @@ c--#define VERBOSE
 
       minrec = 1
       maxrec = -1
+      do i=1,255
+      out_dir(i:i) = ' '
+      enddo
+      !out_dir(1:2) = './'
+      lstr=lenstr(out_dir)
  1    continue
         call getarg(karg,string)
         karg = karg + 1
+        if (index(string,'-d') == 1) then
+          call getarg(karg,out_dir)
+          lstr=lenstr(out_dir)
+          if (out_dir(lstr:lstr) .ne. '/') then
+            out_dir(lstr+1:lstr+1) = '/'
+          endif
+          karg = karg +1
+          string = adjustl(string)
+          go to 1
+        endif
         if (index(string,'-s') == 1) then
           call getarg(karg,string)
           karg = karg +1
@@ -139,7 +157,9 @@ c--#define VERBOSE
           read(string,*) maxrec
           go to 1
         endif
-      print *, 'minrec = ',minrec, ', maxrec = ',maxrec
+      if ( minrec /= 1 .or. maxrec /= -1 ) then
+         print *, 'minrec = ',minrec, ', maxrec = ',maxrec
+      endif
 
       lvar=lenstr(string)
       NP_XI=0
@@ -171,6 +191,9 @@ c--#define VERBOSE
       nnodes=NP_XI*NP_ETA
       write(*,'(/1x,2(4x,A,I3)/)') 'NP_XI =',  NP_XI,
      &                             'NP_ETA =', NP_ETA
+      if ( lenstr(out_dir) > 0 ) then
+         print'(3A)','Output directory: ',trim(out_dir)
+      endif
 
       allocate(ncid(0:nnodes-1))
       allocate(ncname(0:nnodes-1))
@@ -358,6 +381,8 @@ c--#define VERBOSE
           lstr=lsrc
           ierr=0
           call insert_node (ncname(node), lstr, node, nnodes, ierr)
+          ncname(node)=trim(out_dir)/ /trim(ncname(node))
+          lstr=lenstr(ncname(node))
 
           if (ierr. eq. 0) then 
             ierr=nf_create (ncname(node)(1:lstr), NCFILEFORMAT,

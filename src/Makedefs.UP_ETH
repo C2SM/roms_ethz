@@ -1,124 +1,79 @@
-# Definitions for extended memory EMT64 Intel FORTRAN compiler
-# with settings for AMD Opteron processor
-# =========== === ===== === ======= ======== == =====
+# 
+# Unified definitions for PGI and Intel Compiler
+#
 
 .SUFFIXES:	# Delete the default suffixes
 .SUFFIXES: .o .f .F
-
-# Uncomment to make .f stick around:
 .PRECIOUS: %.f
-
 # Use pattern rule to indicate dependency on mpc
 %.f:  mpc %.F 
-	$(CPP) -P $(CPPFLAGS) $*.F | mpc > $@
-#	/bin/rm -f $*.for
-
+	$(CPP) $(CPPFLAGS) $*.F | mpc > $@
 .f.o:
-	$(CFT) -c $(FFLAGS) $< -o $@
-
-# clear implicit rule .F.o
+	$(MPIFC) -c $(FFLAGS) $< -o $@
+# clear implicit rule .F.o:
 %.o: %.F
 
-# Settings for UP workstations:
-MPI_ROOT = /usr/local/app/mpich2/mpich2-1.0.7_py25
-# NCDF_ROOT = /usr/local/app/netcdf/3.6.2
-
+CPP = /lib/cpp 
+#CPP = /lib/cpp -traditional-cpp
+CPPFLAGS += -P -traditional-cpp -I$(NETCDF)/include -I${MPI_ROOT}/include
+LCDF =-L$(NETCDF)/lib -lnetcdff -lnetcdf 
+MPIFC = mpif90
+LDR = $(MPIFC)
 #
-# C-preprocessor from Intel compiler package. Note: in this case
-# __IFC is a pre-defined macro, so there is no need to include it
-# into CPPFLAGS.
-#
-#     CPP = fpp
 
-      CPP = /lib/cpp -traditional
- CPPFLAGS = -D__IFC
-#mm ETHZ Gonzales or Brutus Quadrrics MPI
-CPPFLAGS = -D__IFC -I$(MPI_ROOT)/include
+ifeq ($(notdir $(FC)),pgf90) 
+   #  ============= PGI compiler settings =============
+   OPENMP= # -mp
+   CPPFLAGS += -DPGI 
+   FFLAGS = -mcmodel=medium -fast -O4 $(OPENMP)
+else 
+   #  ============= Assuming Intel Ifort =============
+   OPENMP = # -fpp2 -openmp
+   CPPFLAGS += -D__IFC
 
-#mm Brutus Quadrics MPI
-# CPPFLAGS = -D__IFC -I /usr/include/mpi
-# CPPFLAGS = -D__IFC -I/cluster/admin/mpich2/include
+   # Compiler 
+   LARGE_MEM_FLAG=  -mcmodel=small 
+   LARGE_MEM_FLAG=  -mcmodel=medium  -shared-intel
+   FFLAGS = $(OPENMP) -pc80 -132 -msse2 -auto -O2 -ip -xHost -no-prec-div $(LARGE_MEM_FLAG) -p
+   FFLAGS = $(OPENMP) -pc80 -132 -msse2 -auto -O2 -ip -xHost -no-prec-div $(LARGE_MEM_FLAG)
+   #FFLAGS = $(OPENMP) -pc80 -132 -msse2 -O2 -ip -no-prec-div $(LARGE_MEM_FLAG)
+   #FFLAGS = $(OPENMP) -pc80 -132 -msse2 -O3 $(LARGE_MEM_FLAG)
+   # File to include in make clean
+   COMP_FILES = work.pc work.pcl ifort*
 
+   # ------ Comments ------ 
+   #
+   # C-preprocessor from Intel compiler package. Note: in this case
+   # __IFC is a pre-defined macro, so there is no need to include it
+   # into CPPFLAGS.
+   #
+   #     CPP = fpp
+   #
+   #
+   # Compiler settings:  -fpp2 is required only if -openmp is present.
+   # Not having -fpp2 here just causes compiler warning (-fpp is set to
+   # level 2 by -openmp), but other than that has no effect.
+   #
+   # Switch -pc80 increases precision of floating point operation to
+   # 64 bits (vs. 53 bits double precision default).
+   #
+   # -qp  compiles and links for function profiling with  gprof(1);
+   #      this is the same as specifying -p or -pg.
+   #
+   # Setting  FFLAGS = -O2 -mp (or lower optimization level) is needed
+   # to pass ETALON_CHECK: -O3 causes roundoff-level differences from
+   # the length of innermost i-loop (the results still pass ETALON_CHECK
+   # if  NP_XI = NSUB_X = 1, regardless of partition in ETA-direction). 
 
-#
-# Compiler settings:  -fpp2 is required only if -openmp is present.
-# Not having -fpp2 here just causes compiler warning (-fpp is set to
-# level 2 by -openmp), but other than that has no effect.
-
-# Switch -pc80 increases precision of floating point operation to
-# 64 bits (vs. 53 bits double precision default).
-#
-# -qp  compiles and links for function profiling with  gprof(1);
-#      this is the same as specifying -p or -pg.
-#
-# Setting  FFLAGS = -O2 -mp (or lower optimization level) is needed
-# to pass ETALON_CHECK: -O3 causes roundoff-level differences from
-# the length of innermost i-loop (the results still pass ETALON_CHECK
-# if  NP_XI = NSUB_X = 1, regardless of partition in ETA-direction). 
-
-# Flags collected under LARGE_MEM_FLAG are needed only if exceeding 
-# 2 GBytes of memory: both -mcmodel (sets size of addressing pointers)
-# and -i-dynamic (ensures proper linking with Intel dynamic libraries
-# must be specified.
-
-
-# OMP_FLAG = -fpp2 -openmp
-
-LARGE_MEM_FLAG = -mcmodel=large -i-dynamic
-
-#     CFT = ifc   $(OMP_FLAG) -pc80 -tpp7 -axW -xW
-#      CFT = ifort $(OMP_FLAG) -pc80 -tpp7 -axW -xW -auto -stack_temps
-#      CFT = ifort $(OMP_FLAG) -pc80 -tpp7 -axN -xN -align dcommon -auto -stack_temps
-      #mm CFT = ifort $(OMP_FLAG) -pc80  -mtune=core2 -axT -xT -w95 -align dcommon -auto -stack_temps
-                            # -xW
-#      CFT = ifort $(OMP_FLAG) -pc80 -axW -xW -auto -stack_temps
-      # Brutus  mpich2: CFT = mpif90 -f90=ifort $(OMP_FLAG) -pc80 -axW -xW -auto -stack_temps
-#      CFT =/opt/hpmpi/bin/mpif90 $(OMP_FLAG) -pc80 -axW -xW -auto -stack_temps
-     CFT = $(MPI_ROOT)/bin/mpif90 $(OMP_FLAG) -pc80 -axW -xW -auto -stack_temps
-CFT = ifort
-
-#      CFT =mpif90 
-
-# -warn unused   
-
-      LDR = $(CFT)
-#      LDR = mpif90 $(OMP_FLAG) -pc80 -tpp7 -axW -xW -w95 -align dcommon -auto -stack_temps
-
-  #trade off compilation options choice between enhance compilation or execution speed
-  #  O1 short compilation but small performances
-  #  O3 longer compilation but more performant executable
-  #
-  FFLAGS =  -O1 -IPF_fma -ip $(LARGE_MEM_FLAG)
-#    FFLAGS =  -O2 -mp -fpe0 -fp-model strict
-# -prof_gen
-#
-#   FFLAGS = -g -check all -CA -CB -CS
-#  FFLAGS = $(CPPFLAGS) -O0
+   # Flags collected under LARGE_MEM_FLAG are needed only if exceeding 
+   # 2 GBytes of memory: both -mcmodel (sets size of addressing pointers)
+   # and -i-dynamic (ensures proper linking with Intel dynamic libraries
+   # must be specified.
+   # LARGE_MEM_FLAG = -mcmodel=medium 
+   #
+   # Some usefule debugging options 
+   #   FFLAGS = -pc80 -132 -g -check all -CA -CB -CS $(LART_MEM_FLAG)
+endif
 
 
-
- COMP_FILES = work.pc work.pcl ifort*
-
-#   LCDF = -lnetcdf
-#   LCDF =/usr/local/lib/libnetcdf.a
-#  LCDF =/home/alex/netcdf/netcdf-3.6.2-beta3/libsrc/.libs/libnetcdf.a
-
-#    LMPI = /opt/mpich-1.2.7p1/lib/libmpich.a
-
- LIBNCAR = -L/opt/ncarg-fce81/lib -L/usr/X11R6/lib -lncarg -lncarg_gks -lncarg_c -lX11 -lm
-
-
-#LCDF = /home/alex/netcdf/netcdf-3.6.1-beta3/src/libsrc/libnetcdf.a
-
-#   LCDF = -lnetcdf
-# mm ETHZ Gonzales cluster
-# LCDF = -L$(NCDF_ROOT)/lib -lnetcdff -lnetcdf
-LCDF = -L/usr/local/lib -lnetcdff -lnetcdf
-
-# mm ETHZ Brutus cluster
-#LCDF = -L/panfs/panasas.hpc-net.ethz.ch/uwis/muennicm/intel/lib -lnetcdf
-# mm ETHZ Brutus/ Gonzales cluster Quadrics MPI
-LMPI = -L$(MPI_ROOT)/lib -lmpich
-# mm A look at mpif90 made this the likely libraries to link against
-# mm Brutus OK:  LMPI = -L/cluster/admin/mpich2/lib -lmpich  -lpmpich -lpthread   -lrt
 

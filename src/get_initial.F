@@ -605,7 +605,7 @@ CHF          goto 99                                         !--> ERROR
      &        'PCO2 not in init/rst file, initialize to 0'
       endif
 
-#  ifndef PCO2AIR_FORCING /* if pCO2air is not a 2D forcing field *?
+#  ifndef PCO2AIR_FORCING /* if pCO2air is not a 2D forcing field */
 
       ! pCO2 in the air:
       lvar=lenstr(vname(1,indxPCO2air_rst))

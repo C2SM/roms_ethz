@@ -325,7 +325,7 @@
      &  'NFlux_DenitrL = N_CDET * CFlux_ReminL'
         lvar = lenstr(text)
         ierr=nf_put_att_text(ncid,nf_global,'bgc_note23',lvar,text)
-#endif / *OXYLIM */
+#endif /* OXYLIM */
 !
 
 !
