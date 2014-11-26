@@ -105,6 +105,24 @@ CSDISTRIBUTE_RESHAPE  sssg(BLOCK_PATTERN,*) BLOCK_CLAUSE
 #  endif /* SST_DATA */
 # endif /* QCORRECTION && !ANA_SST */
 
+#ifdef PCO2AIR_FORCING
+! pCO2air  concentration
+
+      real pCO2air(GLOBAL_2D_ARRAY) 
+CSDISTRIBUTE_RESHAPE  pCO2air(BLOCK_PATTERN,*) BLOCK_CLAUSE
+      real pCO2airg(GLOBAL_2D_ARRAY,2)
+CSDISTRIBUTE_RESHAPE  pCO2airg(BLOCK_PATTERN,*) BLOCK_CLAUSE
+      common /forces_pCO2air/ pCO2air
+      common /pCO2airdat_pCO2airg/ pCO2airg
+
+      real pCO2air_time(2),pCO2air_cycle
+      integer itpCO2air, ntpCO2air, pCO2air_id, pCO2air_ncycle,
+     &        pCO2air_rec,pCO2air_tid
+      common/pCO2airdat/ itpCO2air, ntpCO2air, pCO2air_id,
+     &      pCO2air_ncycle,pCO2air_rec,pCO2air_tid
+      common/pCO2airdat1/ pCO2air_time,pCO2air_cycle
+#endif
+
 #ifdef BIOLOGY_BEC
 ! dust flux
 

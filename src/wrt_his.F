@@ -17,6 +17,10 @@
 #ifdef SEDIMENT_BIOLOGY
 # include "bgcflux.h"
 #endif
+#ifdef PCO2AIR_FORCING
+!  pCO2air is in here
+# include "forces.h"
+#endif
 #ifdef BIOLOGY_BEC
 # include "ecosys_bec.h"
 #endif

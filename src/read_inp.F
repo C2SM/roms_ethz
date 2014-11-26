@@ -30,7 +30,10 @@
 #endif
       integer kwsize, testunit, input
       parameter (kwsize=32, testunit=40, input=15)
-      character end_signal*3, keyword*32, fname*150
+      character end_signal*3, keyword*32, fname*256
+#ifdef SCRATCH_DIR
+     &          , scr_dir*256, sys_cmd*256
+#endif
       parameter (end_signal='end')
       integer ierr, iargc, is,ie,  kwlen, lstr, lenstr, i
 #ifdef SOLVE3D
@@ -145,6 +148,13 @@ c--      fname='roms.in.US_West'
       wrthis(indxTime)=.false.
 #ifdef AVERAGES
       wrtavg(indxTime)=.false.
+#endif
+#ifdef SCRATCH_DIR
+      call getenv('TMPDIR',scr_dir)
+      write(sys_cmd,'(3A,i4.4)') 'ln -s ', trim(scr_dir),
+     &               ' out_',mynode
+      call system(sys_cmd)
+      write(scr_dir,'(a,i4.4,a)') 'out_',mynode,'/'
 #endif
       MPI_master_only print '(/3A)', '------------------'
      &  , ' Reading input parameters ', '------------------'
@@ -373,6 +383,11 @@ c--      fname='roms.in.US_West'
           call cancel_kwd (keyword(1:kwlen), ierr)
           read(input,*,err=95) nrst, nrpfrst
           read(input,'(A)',err=95)  fname
+#  ifdef SCRATCH_DIR
+          ! print*,'rstname read: ',trim(fname)
+          fname=trim(scr_dir)/ /trim(fname)
+          ! print*,'rstname set: ',trim(fname)
+#  endif
           lstr=lenstr(fname)
 # if defined MPI && defined PARALLEL_FILES
           call insert_node (fname, lstr, mynode, NNODES, ierr)
@@ -389,6 +404,9 @@ c--      fname='roms.in.US_West'
           call cancel_kwd (keyword(1:kwlen), ierr)
           read(input,*,err=95) ldefhis, nwrt, nrpfhis
           read(input,'(A)',err=95) fname
+#  ifdef SCRATCH_DIR
+          fname=trim(scr_dir)/ /trim(fname)
+#  endif
           lstr=lenstr(fname)
 # if defined MPI && defined PARALLEL_FILES
           call insert_node (fname, lstr, mynode, NNODES, ierr)
@@ -406,6 +424,9 @@ c--      fname='roms.in.US_West'
           call cancel_kwd (keyword(1:kwlen), ierr)
           read(input,*,err=95) ntsavg, navg, nrpfavg
           read(input,'(A)',err=95) fname
+#  ifdef SCRATCH_DIR
+          fname=trim(scr_dir)/ /trim(fname)
+#  endif
           lstr=lenstr(fname)
 # if defined MPI && defined PARALLEL_FILES
           call insert_node (fname, lstr, mynode, NNODES, ierr)
@@ -428,6 +449,9 @@ c--      fname='roms.in.US_West'
           call cancel_kwd (keyword(1:kwlen), ierr)
           read(input,*,err=95) ksl, ntsslavg, nslavg, nrpfslavg
           read(input,'(A)',err=95) fname
+#  ifdef SCRATCH_DIR
+          fname=trim(scr_dir)/ /trim(fname)
+#  endif
           lstr=lenstr(fname)
 # if defined MPI && defined PARALLEL_FILES
           call insert_node (fname, lstr, mynode, NNODES, ierr)
@@ -453,6 +477,9 @@ c--      fname='roms.in.US_West'
           read(input,*,err=95) new_bgc_flux_his,
      &         n_bgc_flux_his, nrpf_bgc_flux_his
           read(input,'(A)',err=95) fname
+#  ifdef SCRATCH_DIR
+          fname=trim(scr_dir)/ /trim(fname)
+#  endif
           lstr=lenstr(fname)
 # if defined MPI && defined PARALLEL_FILES
           call insert_node (fname, lstr, mynode, NNODES, ierr)
@@ -477,6 +504,9 @@ c--      fname='roms.in.US_West'
           read(input,*,err=95) new_bgc_flux_avg,
      &         nts_bgc_flux_avg, n_bgc_flux_avg, nrpf_bgc_flux_avg
           read(input,'(A)',err=95) fname
+#  ifdef SCRATCH_DIR
+          fname=trim(scr_dir)/ /trim(fname)
+#  endif
           lstr=lenstr(fname)
 #  if defined MPI && defined PARALLEL_FILES
           call insert_node (fname, lstr, mynode, NNODES, ierr)
@@ -506,6 +536,9 @@ c--      fname='roms.in.US_West'
           read(input,*,err=95) new_phys_flux_his,
      &         n_phys_flux_his, nrpf_phys_flux_his
           read(input,'(A)',err=95) fname
+#  ifdef SCRATCH_DIR
+          fname=trim(scr_dir)/ /trim(fname)
+#  endif
           lstr=lenstr(fname)
 # if defined MPI && defined PARALLEL_FILES
           call insert_node (fname, lstr, mynode, NNODES, ierr)
@@ -531,6 +564,9 @@ c--      fname='roms.in.US_West'
      &         nts_phys_flux_avg, n_phys_flux_avg,
      &         nrpf_phys_flux_avg
           read(input,'(A)',err=95) fname
+#  ifdef SCRATCH_DIR
+          fname=trim(scr_dir)/ /trim(fname)
+#  endif
           lstr=lenstr(fname)
 #  if defined MPI && defined PARALLEL_FILES
           call insert_node (fname, lstr, mynode, NNODES, ierr)
@@ -590,6 +626,9 @@ c--      fname='roms.in.US_West'
           read(input,'(A)',err=95) fposnam
           read(input,'(A)',err=95) fname
           lstr=lenstr(fname)
+#  ifdef SCRATCH_DIR
+          fname=trim(scr_dir)/ /trim(fname)
+#  endif
 # if defined MPI && defined PARALLEL_FILES
           call insert_node (fposname, lstr, mynode, NNODES, ierr)
 # endif

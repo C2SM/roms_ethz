@@ -127,6 +127,10 @@
 # include "averages.h"
 # ifdef BIOLOGY_NPZDOC
 #  include "bgcflux.h"
+#  ifdef PCO2AIR_FORCING
+      ! pCO2air is here:
+#   include "forces.h"
+#  endif
 #  include "gasexc.h"
 # endif
 # ifdef BIOLOGY_BEC

@@ -67,8 +67,8 @@ KRNSRC = main.F		step2D_FB.F	read_inp.F	sta_par.F\
 \
 	init_scalars_bec.F ecosys_bec.F ecosys_bec_init.F get_dust.F\
 	get_iron.F set_bec_flux_avg.F wrt_bec_flux_avg.F wrt_bec_flux_his.F\
-	init_scalars_becflux.F def_bec_flux.F
-# get_pco2air.F
+	init_scalars_becflux.F def_bec_flux.F # get_pco2air.F
+	init_scalars_becflux.F def_bec_flux.F get_pco2air.F
 
 
 IOSRC = nf_fread.F	nf_read_bry.F	set_cycle.F	checkdims.F\

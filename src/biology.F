@@ -209,8 +209,10 @@
 #endif /* OXYGEN || BGC_FLUX_ANALYSIS */
 
 #ifdef CARBON
+# ifndef PCO2AIR_FORCING
 ! Set a default value for pCO2 in the air. Will be overwritten if 
 ! VARIABLE_ANN_ATM_PCO2 and/or VARIABLE_ATM_PCO2 is defined:
+! 
 
 ! For 2050
 !          pCO2air_loc = 550.0 
@@ -236,6 +238,7 @@
       ! at the end of April and the minimum at the end of October
       pCO2air_loc = pCO2air_loc + 2.9 * sin(deg2rad*(tdays-30.))
 # endif /* VARIABLE_ATM_PCO2 */
+#endif /* PCO2AIR_FORCING */
 #endif /* CARBON */
 
 !
@@ -354,6 +357,13 @@
 #  ifdef CARBON
       SedOrgC = t_sed(i,j,iSedOrgC)
       SedCaCO3 = t_sed(i,j,iSedCaCO3)
+#  ifdef PCO2AIR_FORCING
+!
+!     pCO2air is an input forcing field 
+!     Overwriting any previous value (default/VARIABLE_*_PCO2)
+! 
+      pCO2air_loc = pCO2air(i,j)
+#  endif
 #  endif /* CARBON */
 # endif /* SEDIMENT_BIOLOGY */
 
@@ -1207,7 +1217,9 @@
           CO2sol(i,j) = CO2sol_loc
 #  ifdef OCMIP_CARBON
           ph_hist(i,j) = pHsw_loc
+#   ifndef PCO2AIR_FORCING
           pCO2air(i,j) = pCO2air_loc
+#   endif
           Kv_CO2(i,j) = Kv_CO2_loc
 #  endif /* OCMIP_CARBON */
 #endif /* CARBON */

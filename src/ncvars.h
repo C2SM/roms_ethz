@@ -302,7 +302,7 @@
 ! vname    character array for variable names and attributes;
 !
       integer max_frc_file
-      parameter (max_frc_file=6)
+      parameter (max_frc_file=2)
       integer max_frc, ncidfrc(max_frc_file), nrst, ncidrst, nrecrst,
      &      nrrec, nrpfrst, nwrt, ncidhis, nrechis, nrpfhis
       integer ncidclm(NT)
