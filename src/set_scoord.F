@@ -7,6 +7,7 @@
 # include "scoord.h"
 # include "scalars.h"
 # include "comm_vars.h"
+# ifndef NO_SCOORD_CHECK
 # include "grid.h"
 # include "ncvars.h"
 # include "netcdf.inc"
@@ -22,7 +23,7 @@
 ! (like the temperature).
  
       integer ncidclm_loc, Csr_id, scr_id, ths_id, thb_id
-      character(len=80) clm_file_loc
+      character(len=180) clm_file_loc
       integer k, ierr, ncid, varid, lstr, lenstr, checkdims, nf_fread
             
       integer start
@@ -48,6 +49,10 @@
 
          if (ncidclm_loc .eq. -1) then
             ierr=nf_open(clm_file_loc(1:lstr), nf_nowrite, ncidclm_loc)
+            if (ierr .ne. nf_noerr) then 
+              clm_file_loc = bry_file
+              ierr=nf_open(clm_file_loc(1:lstr), nf_nowrite, ncidclm_loc)
+            endif
             ncidclm(itemp) = ncidclm_loc
 
             if (ierr .ne. nf_noerr) then 
@@ -124,9 +129,11 @@
       endif
                                      ! Compute vertical stretching
                                      ! curves at W- and RHO-points,
+# endif /* NO_SCOORD_CHECK */
 # ifdef LEGACY_S_COORD
       if (hc.le.hmin) then           !    -1 < Cs_r,Cs_w < 0, 
 # endif
+# ifndef NO_SCOORD_CHECK 
         ds=1.D0/dble(N)              ! then print z-coordinates 
         Cs_w(N)=0.D0                 ! of vertical S-levels over
         do k=N-1,1,-1                ! depths: minumum, maximum
@@ -163,6 +170,7 @@ c          sc2=(dble(k-N)-0.5D0)/dble(N)
      &                         'Vertical S-coordinate System:',
      &                         'level   S-coord     Cs-curve',
      &                         'at_hc  over_slope     at_hmax'
+# endif /* NO_SCOORD_CHECK */
         do k=N,0,-1
 # ifdef NEW_S_COORD
           sc=ds*dble(k-N)
@@ -190,7 +198,7 @@ c          sc2=(dble(k-N)-0.5D0)/dble(N)
       end
 
 
-# if defined LEGACY_S_COORD && NEW_S_COORDD
+# if defined LEGACY_S_COORD && defined NEW_S_COORD
 
       function CSF (sc, theta_s,theta_b)          ! Legacy
       real*8 CSF, sc, theta_s,theta_b             ! S-coordinate
