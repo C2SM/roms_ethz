@@ -68,6 +68,7 @@ KRNSRC = main.F		step2D_FB.F	read_inp.F	sta_par.F\
 	init_scalars_bec.F ecosys_bec.F ecosys_bec_init.F get_dust.F\
 	get_iron.F set_bec_flux_avg.F wrt_bec_flux_avg.F wrt_bec_flux_his.F\
 	init_scalars_becflux.F def_bec_flux.F
+# get_pco2air.F
 
 
 IOSRC = nf_fread.F	nf_read_bry.F	set_cycle.F	checkdims.F\
@@ -199,6 +200,9 @@ setup_kwds.F: checkkwds read_inp.F
 #depend: checkdefs cross_matrix
 depend: check_switches1.F setup_kwds.F cross_matrix
 	./cross_matrix *.F 
+
+zslice: zslice.F lenstr.o
+	$(LDR) $(FFLAGS) $(LDFLAGS) -o zslice zslice.o lenstr.o $(LCDF)
 
 avr: avr.F lenstr.o
 	$(LDR) $(FFLAGS) $(LDFLAGS) -o avr avr.F lenstr.o $(LCDF)
