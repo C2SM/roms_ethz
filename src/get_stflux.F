@@ -150,7 +150,8 @@ CR     &              ''' in ''', frcname(1:lfrc), ''', ifrc =', ifrc
 # include "scalars.h"
 # include "ocean3d.h"
 # include "forces.h"
-# if defined PACIFIC || defined STFLX_LIM
+!# if defined PACIFIC || defined STFLX_LIM
+# if !defined ICE_MODEL
 #  include "mixing.h"
 # endif
 !
@@ -261,19 +262,22 @@ c**      dSdt=0.
      &                                                    ))
 
 !
-! Restrict stflx to prevent surface temperature to go below -2
-! degrees C.
+! Restrict stflx to prevent surface temperature to go below
+! freezing point (degrees C) when not using the sea ice model
 !
-#  if defined PACIFIC || defined STFLX_LIM
+!#  if defined PACIFIC || defined STFLX_LIM
+#  if !defined ICE_MODEL
               stflx(i,j,itemp)=max( stflx(i,j,itemp),
 #   ifdef LMD_KPP
      &                          max(hbls(i,j,nstp), Hz(i,j,N))
 #   else
      &                                               Hz(i,j,N)
 #   endif
-     &                         *(-2.D0-t(i,j,N,nrhs,itemp))/dt
+!     &                         *(-2.D0-t(i,j,N,nrhs,itemp))/dt )
+! Steele et al. 1989 surface freezing temp: t_freez=-0.0543*salinity
+     &             *(-0.0543*t(i,j,N,nrhs,isalt)-t(i,j,N,nrhs,itemp))/dt
      &                                                       )
-#  endif
+#  endif  /* ICE_MODEL */
 # endif
 
             enddo
@@ -294,21 +298,26 @@ c**      dSdt=0.
      &                     cff1*stflxg(i,j,it1,isalt)
      &                    +cff2*stflxg(i,j,it2,isalt)
      &                                             )
-
-
 !
 ! Add relaxation of surface salinity back to climatological value
 ! to avoid long-term drift
 !
-     &                 -dSdt*Hz(i,j,N)*( t(i,j,N,nrhs,isalt)
-c**  &                                         -tclm(i,j,N,isalt)
 # if defined QCORRECTION && !defined ANA_SST
-     &                   -(cff7*sssg(i,j,it7)+cff8*sssg(i,j,it8))
+#  ifdef SALINITY_MASK
+!   Use climatological  salinity < 0 as indicator to not relax
+     &                  -dSdt*Hz(i,j,N)* (
+     &                   (cff7*( t(i,j,N,nrhs,isalt) - sssg(i,j,it7) )
+     &                  *(0.5+sign(0.5,sssg(i,j,it7)))) ! Heaviside function
+     &                  +(cff8*( t(i,j,N,nrhs,isalt) - sssg(i,j,it8) )
+     &                  *(0.5+sign(0.5,sssg(i,j,it8))))
+     &                                                             )
+#  else
+      &                 -dSdt*Hz(i,j,N)*( t(i,j,N,nrhs,isalt)
+c**   &                                         -tclm(i,j,N,isalt)
+      &                   -(cff7*sssg(i,j,it7)+cff8*sssg(i,j,it8))
+      &                                                          )
+#  endif
 #endif
-     &                                                          )
-
-
-
             enddo
           enddo
 # endif
