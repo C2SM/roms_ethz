@@ -55,37 +55,37 @@ c
 c-----------------------------------------------------------------------
 c     local variables
 c-----------------------------------------------------------------------
-c    
+c
       integer maxrec
       parameter (maxrec=1200)
       
-      real, intent(in)    :: pert_time
+      real, intent(in)       :: pert_time
 c      character*4, intent(in):: futr_scen
-      real, intent(out)    :: atmco2_out
+      real, intent(out)       :: atmco2_out
       
-      integer, save    :: nrec_co2
-      real, save    :: year_co2(maxrec), atmco2(maxrec)
+      integer, save  :: nrec_co2
+      real, save :: year_co2(maxrec), atmco2(maxrec)
   
       integer :: n
 
 !DL: the following change is necessary due to mpc, the version with
 !DL two colons is not handled correctly.
-!DL      real    :: yr
-!DL      real    :: x
+!DL      real :: yr
+!DL      real :: x
       real x, yr
 
-      integer, save    :: ientry = 0
+      integer, save :: ientry = 0
 
       real yrco2min, yrco2max
-c      real, parameter    :: yrco2min = 1765.0
-c      real, parameter    :: yrco2max = 2300.5
+c      real, parameter :: yrco2min = 1765.0
+c      real, parameter :: yrco2max = 2300.5
 c
 c-----------------------------------------------------------------------
 c     Counter "ientry" for number of entries in this SUBROUTINE
 c     (Read atmospheric records on 1st entry ONLY)
 c     use CIS9 scenario
 c-----------------------------------------------------------------------
-c
+c 
       ientry = ientry + 1
 
       if (ientry .eq. 1) then
@@ -96,7 +96,7 @@ c
 c-----------------------------------------------------------------------
 c     assign perturbation time (real years e.g. 1935.67)
 c-----------------------------------------------------------------------
-c
+c 
       yrco2min = year_co2(1)
       yrco2max = year_co2(nrec_co2)
       if (pert_time .lt. yrco2min) then 
@@ -111,20 +111,20 @@ c
 c-----------------------------------------------------------------------
 c     Find relative POSITION n for pert_time in CO2 record
 c-----------------------------------------------------------------------
-c
+c 
       call locate(year_co2,nrec_co2, yr, n)
 c
 c-----------------------------------------------------------------------
 c     Determine linear interpolation factor "x"
 c-----------------------------------------------------------------------
-c
+c 
       x = (yr - year_co2(n)) / (year_co2(n+1) - year_co2(n))
 c
 c-----------------------------------------------------------------------
 c     Perform temporal interpolation for atmospheric CO2, subtract
 c      pre-industrial concentration to get perturbation CO2
 c-----------------------------------------------------------------------
-c
+c    
 !DL      pert_atmco2 = (atmco2(n) * (1. - x) + atmco2(n+1) * x) -
 !     *     atmco2(1)
       atmco2_out = atmco2(n) * (1. - x) + atmco2(n+1) * x
@@ -206,11 +206,11 @@ c
       integer maxrec
       parameter (maxrec=1200)
       
-      integer , intent(out)    :: nco2rec
-      real, intent(out)    :: yrco2rec(maxrec), atmco2rec(maxrec)
+      integer , intent(out)  :: nco2rec
+      real, intent(out) :: yrco2rec(maxrec), atmco2rec(maxrec)
       integer irec
       
-c      integer    :: lun(3), irec
+c      integer :: lun(3), irec
 c      integer is, ifuture, ireadf
 c      integer nsipl, nstab
       
@@ -233,7 +233,7 @@ c
 c-----------------------------------------------------------------------
 c     give info
 c-----------------------------------------------------------------------
-c
+c      
 !      write(*,*) '  '
 !      write(*,'(a)') 'File atm_pco2.dat opened.'      
 c
@@ -487,7 +487,7 @@ c     [cs]  futr_scen  = IPCC future scenario: either S350, S450, S550,
 c                        S650, S750, DS450, or DS550 from Enting et al.
 c                        (1994), or CIS9 signifying c-IS92A for
 c                        IPCC (2000) run.  From 1765-1990.5, it 
-c                        does not matter which scenario you use, i.e., 
+c                        doesn't matter which scenario you use, i.e., 
 c                        atmospheric CO2 will be the same (from a
 c                        spline fit to Siple Ice core and Mauna Loa
 c                        data.  Subsequently, atmospheric CO2 is 
@@ -535,27 +535,286 @@ c-----------------------------------------------------------------------
 c     local variables
 c-----------------------------------------------------------------------
 c
-      integer, intent(in)      :: n
-      real, intent(in)      :: x
-      real, dimension(n), intent(in)      :: xx
-      integer, intent(out)      :: j
+      integer maxrec, nmxr
+      parameter (maxrec=1200, nmxr=700)
+      
+      character(len=4), intent(in) :: futr_scen
+      integer , intent(out)  :: nco2rec
+      real, intent(out) :: yrco2rec(maxrec), atmco2rec(maxrec)
+      
+      integer :: lun(3), irec
+      integer is, ifuture, ireadf
+      integer nsipl, nstab
+      
+      real futco2(nmxr,8)
+      real dummy
+      
+      character*4 ipcc_scen(8)
+      
+c     note that the 1st 7 future scenarios are in file "stab.dat";
+c     the last scenario "cis9" is short for "cis92a" (see "cis92a.dat").
+      
+      data ipcc_scen/'S350', 'S450', 'S550', 'S650', 'S750',  
+     *               'DS45', 'DS55', 'CIS9'/
+      
 c
 c =====================================================================
 c     begin of executable code
 c =====================================================================
 c
+c
+c-----------------------------------------------------------------------
+c     determine index for future scenario
+c-----------------------------------------------------------------------
+c
+      ifuture = 0
+      do is=1,8
+         if (futr_scen(1:4) .eq. ipcc_scen(is))then
+            ifuture = is
+         endif
+      end do
+c
+c-----------------------------------------------------------------------
+c     check to be sure that chosen scenario is from allowed ipcc list
+c-----------------------------------------------------------------------
+c
+      if (ifuture .eq. 0) then
+         write(*,*) 'improper 1st argument for read_co2atm.F: ' 
+     *        , futr_scen(1:4)
+         write(*,'(a,7(1x,a))') 'you must chose from '  
+     *        , (ipcc_scen(is), is=1,8)
+         write(*,*)
+     *      ' for ocmip-2, s650 and cis9 are the only accetable choices'
+         stop
+      else
+         write(*,'(2a)') 'read_co2atm: you have chosen ipcc scenario '
+     *        , ipcc_scen(ifuture)
+      end if 
+c
+c-----------------------------------------------------------------------
+c     open file
+c-----------------------------------------------------------------------
+c
+!      call getunit (lun(1), 'splco2.dat', 'formatted sequential rewind')
+!      call getunit (lun(2), 'stab.dat',   'formatted sequential rewind')
+!      call getunit (lun(3), 'cis92a.dat', 'formatted sequential rewind')
+      lun(1) = 10
+      lun(2) = 11
+      lun(3) = 12
+      open(lun(1),file='splco2.dat',status='old',form='formatted',
+     &                access='sequential',position='rewind',err=219)
+      open(lun(2),file='stab.dat',status='old',form='formatted',
+     &                access='sequential',position='rewind',err=219)
+      open(lun(3),file='cis92a.dat',status='old',form='formatted',
+     &                access='sequential',position='rewind',err=219)
+c
+c-----------------------------------------------------------------------
+c     give info
+c-----------------------------------------------------------------------
+c      
+      write(*,*) '  '
+      write(*,*) '--------------------------------------------------'
+      write(*,*) 'atm. co2 from spline fit to siple-mauna loa record'
+      write(*,*) ' and ipcc scenario ', futr_scen(1:4)
+      write(*,*) '--------------------------------------------------'
+      
+c
+c-----------------------------------------------------------------------
+c     skip first lines in historical data
+c-----------------------------------------------------------------------
+c      
+      read(lun(1),'(4/)')
+      ireadf = 0
+      nsipl = 0
+      nstab = 0
+      do irec=1,maxrec
+ 210     continue
+c
+c--------------------------------------------------------------
+c     read either historical or future co2 concentrations, depending
+c     upon the value of ireadf, which is enabled (set to 1) during
+c     the read operation, at the end of the historical file (if
+c     ifuture > 0)
+c --------------------------------------------------------------
+c
+c
+c-----------------------------------------------------------------------
+c     read from splco2.dat (historical emissions)
+c-----------------------------------------------------------------------
+c
+         if (ireadf .eq. 0) then
+            read(lun(1),*,err=220,end=220) yrco2rec(irec), 
+     &                                     atmco2rec(irec)
+            nsipl = nsipl + 1
+c
+c-----------------------------------------------------------------------
+c     read from stab.dat (future atm co2 scenario)
+c-----------------------------------------------------------------------
+c
+         else if (ireadf .eq. 1) then
+            
+            read(lun(2),*,err=222,end=222) yrco2rec(irec)
+     *           , (futco2(irec-nsipl,is), is=1,7)
+            atmco2rec(irec) = futco2(irec-nsipl,ifuture)
+            nstab = nstab + 1
+c
+c-----------------------------------------------------------------------
+c     read from cis92a
+c-----------------------------------------------------------------------
+c
+         else if (ireadf .eq. 2) then 
+            read(lun(3),*,err=222,end=222) yrco2rec(irec)
+     *           , futco2(irec-nsipl,8), dummy
+            atmco2rec(irec) = futco2(irec-nsipl,8)
+            nstab = nstab + 1
+         endif
+         
+         go to 221
+c
+c-----------------------------------------------------------------------
+c     when end of historical co2 reached, turn on read ability
+c     (ireadf>0) for future file, go back to read one or the other, 
+c     then continue reading chosen future file until it endsc     
+c-----------------------------------------------------------------------
+c         
+ 220     continue
+         if (ifuture .gt. 0 .and. ifuture .le. 7) then
+            ireadf = 1
+c
+c-----------------------------------------------------------------------
+c     read over 1st 5 lines of description + 1st line of data
+c     in future file that is repeated from siple recorddetermine index 
+c     for future scenario
+c-----------------------------------------------------------------------
+c           
+            read (lun(2),'(4/)')
+            go to 210
+         elseif (ifuture .eq. 8) then
+            ireadf = 2
+c
+c-----------------------------------------------------------------------
+c       read over 1 header line in future file cis92a.dat
+c       note that 
+c         - 1st line is 1990 (not identical to historical run)
+c         - records are yearly, not every 6 months as for 
+c           1 <= ifuture <=7      
+c       read first line of data (same year as last line in splco2.dat)
+c     then for cis92a only, replace that with 
+c-----------------------------------------------------------------------
+c                                
+            read(lun(3),'(1x)')
+c
+c-----------------------------------------------------------------------
+c     then for cis92a only, replace that with 
+c-----------------------------------------------------------------------
+c                                
+            write (*,*) 'replace: nsipl = ', nsipl
+            read(lun(3),*)yrco2rec(nsipl), atmco2rec(nsipl), dummy
+            write(*,*)yrco2rec(nsipl), atmco2rec(nsipl), dummy
+            go to 210
+         else
+            go to 222
+         endif
+c 221    nco2rec = nsipl + nstab
+ 221     continue
+         nco2rec = irec
+      end do
+      go to 222
+      
+ 219  write (*,'(a,1x,a)') 'File(s) with atmospheric pCO2 data could',
+     &   'not be opened!'
+      stop
+ 222  continue
+c
+c-----------------------------------------------------------------------
+c      write(0,*) 'number records in splco2.dat:', nsipl
+c      write(0,*) 'number records in future (stab.dat or cis92a.dat):', nstab
+c      write(0,*) 'sum                          ', nstab + nsiplc     
+c-----------------------------------------------------------------------
+c                 
+!DL      write(*,*) 'atm. co2:  no. of entries for 1-box atmosphere =',
+!     *     nco2rec
+c
+c-----------------------------------------------------------------------
+c     release units
+c-----------------------------------------------------------------------
+c
+!DL      call relunit(lun(1))
+!      call relunit(lun(2))
+!      call relunit(lun(3))
+      close(lun(1))
+      close(lun(2))
+      close(lun(3))
+c
+c-----------------------------------------------------------------------
+c     end of subroutine
+c-----------------------------------------------------------------------
+c
+      return
+      end subroutine  read_co2atm
+
+
+
+
+c =====================================================================
+c
+c     SUBROUTINE locate
+c
+c     PURPOSE: From Numerical recipes
+c              Given an array XX of length N, and a given value of X, returns a
+c              value of J such that X is between XX(J) and XX(J+1).  XX must be
+c              monotonic, either increasing or decreasing. J=0 or J=N is
+c              returned to indicate that X is out of range.
+c
+c
+c     VARIABLES:
+c 
+c     IN:  xx  : array
+c          n   : length of array
+c          x   : value for which index is sought
+c
+c     OUT: j   : index so that xx(j) < x < xx(j+1)
+c
+c     AUTHOR:  Numerical recipes
+c
+c     VERSION: MOM3
+c
+c     REVISIONS:
+c
+c     date     author   remarks
+c     
+c     08.01.00  ng      adapted from Rick Slater
+c      
+c =====================================================================
+c
+
+      subroutine locate(xx,n,x,j) !{
+c
+c-----------------------------------------------------------------------
+c     local variables
+c-----------------------------------------------------------------------
+c       
+      integer, intent(in) :: n
+      real, intent(in) :: x
+      real, dimension(n), intent(in) :: xx
+      integer, intent(out) :: j
+c
+c =====================================================================
+c     begin of executable code
+c =====================================================================
+c      
       jl = 0
       ju = n+1
  10   continue
-      if (ju - jl .gt. 1) then
-         jm = (ju + jl) / 2
-      if ((xx(n) .gt. xx(1)) .eqv. (x .gt. xx(jm))) then
-         jl = jm
-      else
-         ju = jm
-      endif
-      go to 10
-      endif
+        if (ju - jl .gt. 1) then
+          jm = (ju + jl) / 2
+          if ((xx(n) .gt. xx(1)) .eqv. (x .gt. xx(jm))) then
+            jl = jm
+          else
+            ju = jm
+          endif
+          go to 10
+        endif
       j = jl
 c     
 c-----------------------------------------------------------------------
@@ -564,3 +823,8 @@ c-----------------------------------------------------------------------
 c
       return
       end subroutine  locate  !}
+#else
+      subroutine get_atmco2
+      print*,'You should decide between HINDCAST and FUTURE_SCENARIO!'
+      end subroutine get_atmco2
+#endif
