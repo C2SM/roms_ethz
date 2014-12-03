@@ -89,6 +89,9 @@ c**    ibuff(6)=jSW_corn
       lvar=lenstr(title)
       ierr=nf_put_att_text(ncid, nf_global, 'title',   lvar,
      &                                         title(1:lvar))
+      lvar=lenstr('Conventions')
+      ierr=nf_put_att_text(ncid, nc_global,'Conventions',
+     &                       lvar, 'CF-1.6')
 
 c      lvar=lenstr(date_str)
 c      ierr=nf_put_att_text(ncid, nf_global, 'date',    lvar,
