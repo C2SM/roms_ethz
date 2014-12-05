@@ -49,10 +49,13 @@
 
          if (ncidclm_loc .eq. -1) then
             ierr=nf_open(clm_file_loc(1:lstr), nf_nowrite, ncidclm_loc)
+# if defined T_FRC_BRY  || defined M2_FRC_BRY || \
+     defined M3_FRC_BRY || defined Z_FRC_BRY
             if (ierr .ne. nf_noerr) then 
               clm_file_loc = bry_file
               ierr=nf_open(clm_file_loc(1:lstr), nf_nowrite, ncidclm_loc)
             endif
+# endif
             ncidclm(itemp) = ncidclm_loc
 
             if (ierr .ne. nf_noerr) then 

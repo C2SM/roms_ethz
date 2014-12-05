@@ -310,13 +310,13 @@ c**      dSdt=0.
      &                  *(0.5+sign(0.5,sssg(i,j,it7)))) ! Heaviside function
      &                  +(cff8*( t(i,j,N,nrhs,isalt) - sssg(i,j,it8) )
      &                  *(0.5+sign(0.5,sssg(i,j,it8))))
-     &                                                             )
 #  else
-      &                 -dSdt*Hz(i,j,N)*( t(i,j,N,nrhs,isalt)
+     &                 -dSdt*Hz(i,j,N)*( t(i,j,N,nrhs,isalt)
 c**   &                                         -tclm(i,j,N,isalt)
-      &                   -(cff7*sssg(i,j,it7)+cff8*sssg(i,j,it8))
-      &                                                          )
+     &                   -(cff7*sssg(i,j,it7)+cff8*sssg(i,j,it8))
+     &                   -(cff7*sssg(i,j,it7)+cff8*sssg(i,j,it8))
 #  endif
+     &                                                             )
 #endif
             enddo
           enddo
