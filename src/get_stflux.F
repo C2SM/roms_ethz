@@ -314,7 +314,6 @@ c**      dSdt=0.
      &                 -dSdt*Hz(i,j,N)*( t(i,j,N,nrhs,isalt)
 c**   &                                         -tclm(i,j,N,isalt)
      &                   -(cff7*sssg(i,j,it7)+cff8*sssg(i,j,it8))
-     &                   -(cff7*sssg(i,j,it7)+cff8*sssg(i,j,it8))
 #  endif
      &                                                             )
 #endif
