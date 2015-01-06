@@ -60,7 +60,9 @@
 #if defined BIOLOGY_NPZDOC && defined OXYGEN
 # include "gasexc.h"
 #endif /* BIOLOGY_NPZDOC && OXYGEN */
-
+#if defined BIOLOGY_BEC2 && defined BEC2_DIAG
+# include "ecosys_bec2.h"
+#endif
 
 #ifdef MASK_LAND_DATA
 # ifdef HIS_DOUBLE
@@ -145,7 +147,7 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
 #  ifdef SEDIMENT_BIOLOGY
 #   define vidTsed hisTsed
 #  endif
-# endif /* BIOLOGY_NPZDOC || BIOLOGY_BEC*/
+# endif /* BIOLOGY_NPZDOC || BIOLOGY_BEC */
 # ifdef WRITE_DEPTHS
 #  define vidz_r hisz_r
 #  define vidz_w hisz_w
@@ -154,7 +156,10 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
 # if defined BIOLOGY_NPZDOC && defined OXYGEN
 #  define vidGasExcFlux hisGasExcFlux
 # endif /* BIOLOGY_NPZDOC && OXYGEN */
-#else
+# if defined BIOLOGY_BEC2 && defined BEC2_DIAG
+#  define vidT_bec2 hisT_bec2_diag
+# endif
+#else /* AVRH is defined */
 # ifndef AVR2DH
 # define SDEF_FOUT 'DEF_AVG'
 # define ncname avgname
@@ -209,6 +214,9 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
 # if defined BIOLOGY_NPZDOC && defined OXYGEN
 #  define vidGasExcFlux avgGasExcFlux
 # endif /* BIOLOGY_NPZDOC && OXYGEN */
+# if defined BIOLOGY_BEC2 && defined BEC2_DIAG
+#  define vidT_bec2 avgT_bec2_diag
+# endif
 # else /* AVR2DH is defined */
 #  define SDEF_FOUT 'DEF_SLAVG'
 #  define ncname slavgname
@@ -258,12 +266,15 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
 #  if defined BIOLOGY_NPZDOC && defined OXYGEN
 #    define vidGasExcFlux slavgGasExcFlux
 #  endif /* BIOLOGY_NPZDOC && OXYGEN */
-# endif /* AVR2DH */
 # ifdef WRITE_DEPTHS
 #  define vidz_r slavgz_r
 #  define vidz_w slavgz_w
 #  define vidHz slavgHz
 # endif /* WRITE_DEPTHS */
+# if defined BIOLOGY_BEC2 && defined BEC2_DIAG
+#  define vidT_bec2 slavgT_bec2_diag
+# endif
+# endif /* AVR2DH */
 #endif /* AVRH */
 !
 ! Put time record index into file name. In  the case when model
@@ -582,7 +593,7 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
           ierr=nf_def_var_chunking(ncid, vidV, ncctg, ncvchnk3)
 # endif
 # ifdef  AVR2DH 
-            ierr=nf_put_att_int (ncid, vidT(itrc), 'sigma-level',
+            ierr=nf_put_att_int (ncid, vidV, 'sigma-level',
      &                                          lvar, ksl)
 # endif
         endif
@@ -1080,8 +1091,73 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
      &                                  NF_FOUT, 1, spv_set)
 #endif
 
-
 # endif /* BIOLOGY_BEC || (BIOLOGY_NPZDOC && OXYGEN && CARBON) */
+
+#if defined BIOLOGY_BEC2 && defined BEC2_DIAG
+!
+! 2d diagnostics:
+!
+        do itrc=1,nr_bec2_diag_2d
+           lvar=lenstr(vname_bec2_diag_2d(1,itrc))
+           ierr=nf_def_var (ncid, vname_bec2_diag_2d(1,itrc)(1:lvar), NF_FOUT,
+     &                                           3, r2dgrd, vidT_bec2(itrc))
+# ifdef AVRH
+            text='averaged '/ /vname_bec2_diag_2d(2,itrc)
+# else
+            text=vname_bec2_diag_2d(2,itrc)
+# endif
+            lvar=lenstr(text)
+            ierr=nf_put_att_text (ncid, vidT_bec2(itrc), 'long_name',
+     &                                          lvar, text(1:lvar))
+            lvar=lenstr(vname_bec2_diag_2d(3,itrc))
+            ierr=nf_put_att_text (ncid, vidT_bec2(itrc), 'units', lvar,
+     &                               vname_bec2_diag_2d(3,itrc)(1:lvar))
+# ifdef MASK_LAND_DATA
+            ierr=nf_put_att_FOUT (ncid, vidT_bec2(itrc), '_FillValue',
+     &                                       NF_FOUT, 1, spv_set)
+# endif
+# ifdef NCCOMPRESS
+          ierr=nf_def_var_deflate(ncid, vidT_bec2(itrc), ncshuff, ncdefl, nclev )
+          ierr=nf_def_var_chunking(ncid, vidT_bec2(itrc), ncctg, ncrchnk3)
+# endif
+# ifdef HFREQ_2D_AVERAGES
+            ierr=nf_put_att_text (ncid, vidT_bec2(itrc), 'sigma-level',
+     &                                          lvar, 'top')
+# endif
+        enddo
+!
+! 3d diagnostics:
+!
+        do itrc=1,nr_bec2_diag_3d
+           lvar=lenstr(vname_bec2_diag_3d(1,itrc))
+           ierr=nf_def_var (ncid, vname_bec2_diag_3d(1,itrc)(1:lvar), NF_FOUT,
+     &                                           NVDIM, RGRD, vidT_bec2(nr_bec2_diag_2d+itrc))
+# ifdef AVRH
+            text='averaged '/ /vname_bec2_diag_3d(2,itrc)
+# else
+            text=vname_bec2_diag_3d(2,itrc)
+# endif
+            lvar=lenstr(text)
+            ierr=nf_put_att_text (ncid, vidT_bec2(nr_bec2_diag_2d+itrc), 'long_name',
+     &                                          lvar, text(1:lvar))
+            lvar=lenstr(vname_bec2_diag_3d(3,itrc))
+            ierr=nf_put_att_text (ncid, vidT_bec2(nr_bec2_diag_2d+itrc), 'units', lvar,
+     &                               vname_bec2_diag_3d(3,itrc)(1:lvar))
+# ifdef MASK_LAND_DATA
+            ierr=nf_put_att_FOUT (ncid, vidT_bec2(nr_bec2_diag_2d+itrc), '_FillValue',
+     &                                       NF_FOUT, 1, spv_set)
+# endif
+# ifdef NCCOMPRESS
+          ierr=nf_def_var_deflate(ncid, vidT_bec2(nr_bec2_diag_2d+itrc), ncshuff, ncdefl, nclev )
+          ierr=nf_def_var_chunking(ncid, vidT_bec2(nr_bec2_diag_2d+itrc), ncctg, ncrchnk3)
+# endif
+# ifdef HFREQ_2D_AVERAGES
+            ierr=nf_put_att_text (ncid, vidT_bec2(nr_bec2_diag_2d+itrc), 'sigma-level',
+     &                                          lvar, 'top')
+# endif
+        enddo
+#endif /* BIOLOGY_BEC2 && BEC2_DIAG */
+
 
 # if defined BIOLOGY_BEC || defined BIOLOGY_NPZDOC
 !
@@ -1588,6 +1664,35 @@ CR     &                   MYID
         endif
 # endif /* BIOLOGY_BEC || (BIOLOGY_NPZDOC && OXYGEN && CARBON) */
 
+# if defined BIOLOGY_BEC2 && defined BEC2_DIAG
+!
+! 2d diagnostics:
+!
+        do itrc=1,nr_bec2_diag_2d
+           lvar=lenstr(vname_bec2_diag_2d(1,itrc))
+           ierr=nf_inq_varid (ncid,vname_bec2_diag_2d(1,itrc)(1:lvar), 
+     &                        vidT_bec2(itrc))
+           if (ierr .ne. nf_noerr) then
+              write(stdout,1) vname_bec2_diag_2d(1,itrc)(1:lvar), 
+     &             ncname(1:lstr)
+              goto 99                                       !--> ERROR
+           endif
+        end do
+!
+! 3d diagnostics:
+!
+        do itrc=1,nr_bec2_diag_3d
+           lvar=lenstr(vname_bec2_diag_3d(1,itrc))
+           ierr=nf_inq_varid (ncid,vname_bec2_diag_3d(1,itrc)(1:lvar), 
+     &                        vidT_bec2(nr_bec2_diag_2d+itrc))
+           if (ierr .ne. nf_noerr) then
+              write(stdout,1) vname_bec2_diag_3d(1,itrc)(1:lvar), 
+     &             ncname(1:lstr)
+              goto 99                                       !--> ERROR
+           endif
+        end do
+# endif /* BIOLOGY_BEC2 && defined BEC2_DIAG */
+
 # if defined BIOLOGY_BEC || defined BIOLOGY_NPZDOC
 !
 ! PARinc:
@@ -1731,6 +1836,9 @@ CR     &      'existing file ''', ncname(1:lstr), ''' ncid =', ncid
 #  undef vidHz
 # endif /* WRITE_DEPTHS */
 #undef vidGasExcFlux
+# if defined BIOLOGY_BEC2 && defined BEC2_DIAG
+#  undef vidT_bec2
+# endif
 
 #undef vidR
 #undef vidO

@@ -62,6 +62,11 @@
 #  define avrname avgname
 #  define wrtavr wrtavg
 #  define SWRT_AVR 'WRT_AVG'
+#  if defined BIOLOGY_BEC2 && defined BEC2_DIAG
+#   define bec2_diag_2d_avr bec2_diag_2d_avg
+#   define bec2_diag_3d_avr bec2_diag_3d_avg
+#   define avrT_bec2_diag avgT_bec2_diag
+#  endif
 # else
 !  We are playing the same redefinition preprocessor game as in def_his.F here...
 #  define START_3D_ARRAY_K0 START_2D_ARRAY
@@ -140,6 +145,11 @@
 !
 #   define NOPARWRT
 #  endif
+#  if defined BIOLOGY_BEC2 && defined BEC2_DIAG
+#   define bec2_diag_2d_avr bec2_diag_2d_slavg
+#   define bec2_diag_3d_avr bec2_diag_3d_slavg
+#   define avrT_bec2_diag slavgT_bec2_diag
+#  endif
 # endif /* ifndef SLICE_AVG */
                                      ! Write time-averaged
       subroutine wrt_avr             ! fields into averages
@@ -161,6 +171,10 @@
 #ifdef BIOLOGY_BEC
 # include "ecosys_bec.h"
 # include "bec_avg.h"
+#endif
+#if defined BIOLOGY_BEC2 && defined BEC2_DIAG
+# include "ecosys_bec2.h"
+!!# include "bec2_avg.h"
 #endif
 !DL: for gas exchange fluxes:
 #if defined BIOLOGY_NPZDOC
@@ -553,7 +567,7 @@ CR      write(*,*) 'wrt_avr:  wrtT_sed  ' MYID
 ! PAR:
 !
       ierr=nf_fwrite (PAR_avr(START_3D_ARRAY_K1), ncidavr,
-     &                              avrPAR, record, r3dvar)
+     &                              avrPAR, record, R3DVAR)
       if (ierr .ne. nf_noerr) then
         lvar=lenstr(vname(1,indxPAR_rst))
         write(stdout,1) vname(1,indxPAR_rst)(1:lvar), record, ierr,
@@ -562,6 +576,34 @@ CR      write(*,*) 'wrt_avr:  wrtT_sed  ' MYID
       endif
 #  endif
 # endif /* BIOLOGY_NPZDOC || BIOLOGY_BEC */
+# if defined BIOLOGY_BEC2 && defined BEC2_DIAG
+!
+! 2d diagnostics:
+!
+      do itrc=1,nr_bec2_diag_2d
+         ierr=nf_fwrite (bec2_diag_2d_avr(START_2D_ARRAY,itrc), ncidavr,
+     &                                avrT_bec2_diag(itrc), record, r2dvar)
+         if (ierr .ne. nf_noerr) then
+            lvar=lenstr(vname_bec2_diag_2d(1,itrc))
+            write(stdout,1) vname_bec2_diag_2d(1,itrc)(1:lvar),
+     &                      record, ierr MYID
+            goto 99                                       !--> ERROR
+         endif
+      enddo
+!
+! 3d diagnostics:
+!
+      do itrc=1,nr_bec2_diag_3d
+         ierr=nf_fwrite (bec2_diag_3d_avr(START_3D_ARRAY_K1,itrc), ncidavr,
+     &                                avrT_bec2_diag(nr_bec2_diag_2d+itrc), record, R3DVAR)
+         if (ierr .ne. nf_noerr) then
+            lvar=lenstr(vname_bec2_diag_3d(1,itrc))
+            write(stdout,1) vname_bec2_diag_3d(1,itrc)(1:lvar),
+     &                      record, ierr MYID
+            goto 99                                       !--> ERROR
+         endif
+      enddo
+# endif /* BIOLOGY_BEC2 */
 !DL:
 # ifdef WRITE_DEPTHS
 !

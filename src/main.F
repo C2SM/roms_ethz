@@ -46,6 +46,10 @@ c**   call MPI_Test
       call init_scalars_bec(ierr)
       if (ierr.ne.0) goto 100
 # endif
+# ifdef BIOLOGY_BEC2
+      call init_scalars_bec2(ierr)
+      if (ierr.ne.0) goto 100
+# endif
 # ifdef PHYS_FLUX_ANALYSIS
       call init_scalars_physflux(ierr)
       if (ierr.ne.0) goto 100 
@@ -217,6 +221,10 @@ CR      write(*,*) ' -6' MYID
       ! pH is initialized to 0 in ecosys_init
       call ecosys_init
 # endif
+# ifdef BIOLOGY_BEC2
+      ! pH is initialized to 0 in ecosys_init
+      call ecosys2_init
+# endif
       ! Initialisation of lmd parameters (JDS)
       call lmd_kpp_init
                                      ! Set initial conditions for
@@ -353,7 +361,7 @@ CR      write(*,*) ' -1' MYID
 ! just above.
 !
 
-#if defined SALINITY && (defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC) \
+#if defined SALINITY && (defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC || defined BIOLOGY_BEC2) \
     && defined VFLX_CORR && defined USE_GLOBAL_SRF_SUM
         call reset_global_srf_sum()
 ! If the virtual flux correction is used, globally averaged concentrations
@@ -366,7 +374,7 @@ C$OMP PARALLEL DO PRIVATE(tile)
 
 ! Keep this routine out of the parallel region
         call scale_global_srf_sum()
-#endif /* SALINITY && (BIOLOGY_NPZDOC || BIOLOGY_BEC) && VFLX_CORR ..*/
+#endif /* SALINITY && (BIOLOGY_NPZDOC || BIOLOGY_BEC || BIOLOGY_BEC2) && VFLX_CORR ..*/
 
 #ifdef BIOLOGY_NPZDOC
 C$OMP PARALLEL DO PRIVATE(tile)

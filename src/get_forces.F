@@ -57,7 +57,7 @@
       if (ierr.eq.0) call get_sss (ierr)
 
 # endif
-# ifdef BIOLOGY_BEC
+# if defined BIOLOGY_BEC || defined BIOLOGY_BEC2
         if (ierr.eq.0)  call get_dust(ierr)
         if (ierr.eq.0)  call get_iron(ierr)
 # endif
@@ -77,6 +77,11 @@
 # endif
 #endif
 ! DL:
+!#ifdef BIOLOGY_BEC2
+!      if (ierr.eq.0) call get_nox(ierr)
+!      if (ierr.eq.0) call get_nhy(ierr)
+!      if (ierr.eq.0) call get_din_river(ierr)
+!#endif
 #if defined PASSIVE_TRACER && defined AGE_DYE_TRACER
       if (ierr.eq.0) call get_agedye(ierr)
 #endif
@@ -123,7 +128,7 @@
       integer tile, ierr, itrc, i, j
       real cff
 #include "param.h"
-#if defined VFLX_CORR && (defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC)
+#if defined VFLX_CORR && (defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC || defined BIOLOGY_BEC2)
 # include "comm_vars.h"
 # include "forces.h"
 # include "ocean3d.h"
@@ -131,7 +136,7 @@
 # ifdef MASKING
 #  include "grid.h"
 # endif
-#endif /* VFLX_CORR && (defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC) */
+#endif /* VFLX_CORR && (BIOLOGY_NPZDOC || BIOLOGY_BEC || BIOLOGY_BEC2) */
 !
 #include "compute_tile_bounds.h"
 !
@@ -184,7 +189,7 @@ c***              no code here
       call ana_stflux_tile (istr,iend,jstr,jend, isalt)
 #  else
       call set_stflux_tile (istr,iend,jstr,jend, isalt, ierr)
-#   if defined VFLX_CORR && (defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC)
+#   if defined VFLX_CORR && (defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC || defined BIOLOGY_BEC2)
       ! Flux correction for all biological/chemical tracers
 #   ifdef USE_GLOBAL_SRF_SUM
       cff = 1. / global_srf_sum(isalt)
@@ -209,10 +214,10 @@ c***              no code here
             enddo
          enddo
       enddo
-#   endif /* VFLX_CORR && (BIOLOGY_NPZDOC || BIOLOGY_BEC) */
+#   endif /* VFLX_CORR && (BIOLOGY_NPZDOC || BIOLOGY_BEC || BIOLOGY_BEC2) */
 #  endif /* ANA_SSFLUX */
 # endif /* SALINITY */
-# ifdef BIOLOGY_BEC
+# if defined BIOLOGY_BEC || defined BIOLOGY_BEC2
       call set_iron_tile (Istr,Iend,Jstr,Jend,ierr) 
       call set_dust_tile (Istr,Iend,Jstr,Jend,ierr) 
 # endif
@@ -249,6 +254,11 @@ c>>>      if (ierr.ne.0) may_day_flag=2
 #endif
 
 ! DL:
+!#ifdef BIOLOGY_BEC2
+!      if (ierr.eq.0) call set_nox_tile (istr,iend,jstr,jend,ierr)
+!      if (ierr.eq.0) call set_nhy_tile (istr,iend,jstr,jend,ierr)
+!      if (ierr.eq.0) call set_din_river_tile (istr,iend,jstr,jend,ierr)
+!#endif
 #if defined PASSIVE_TRACER && defined AGE_DYE_TRACER
       if (ierr.eq.0) call set_agedye_tile (istr,iend,jstr,jend,ierr)
 #endif

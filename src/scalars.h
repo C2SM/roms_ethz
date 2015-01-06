@@ -116,7 +116,7 @@ C$OMP THREADPRIVATE(/priv_scalars/)
 # endif
 #endif
 !DL: variables for varying atm pCO2:
-#if defined BIOLOGY_BEC || defined BIOLOGY_NPZDOC
+#if defined BIOLOGY_BEC || defined BIOLOGY_BEC2 || defined BIOLOGY_NPZDOC
 # ifdef VARIABLE_ANN_ATM_PCO2
       real start_year
       character(len=4) futr_scen
@@ -166,7 +166,7 @@ C$OMP THREADPRIVATE(/priv_scalars/)
 #else
       parameter (g=9.81) ! m/s^2
 #endif
-#ifdef BIOLOGY_BEC
+#if defined BIOLOGY_BEC || defined BIOLOGY_BEC2
       real nmol_cm2_to_mmol_m2
       parameter (nmol_cm2_to_mmol_m2 = 0.01)
 #endif

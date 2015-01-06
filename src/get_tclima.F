@@ -400,7 +400,7 @@
 #  undef temp
 # endif /* BIOLOGY_NPZDOC */
 
-# ifdef BIOLOGY_BEC
+# if defined BIOLOGY_BEC || defined BIOLOGY_BEC2
           else if (itrc .eq. iNO3) then
 #  define temp cff
 #  define SiO4 cff1
@@ -511,7 +511,14 @@
               tclm(:,:,:,iDOFE)=0.0 ! 5.47e-9
            else if (itrc .eq. iDOP) then
               tclm(:,:,:,iDOP)=0.0 ! 8.55e-4
-# endif /* BIOLOGY_BEC */
+# endif /* BIOLOGY_BEC || BIOLOGY_BEC2 */
+! Provide default values for additional tracers in the later version of BEC:
+# ifdef BIOLOGY_BEC2
+           else if (itrc .eq. iDOPR) then
+              tclm(:,:,:,iDOPR)=0.0
+           else if (itrc .eq. iDONR) then
+              tclm(:,:,:,iDONR)=0.0
+# endif
 !DL:
 # if defined PASSIVE_TRACER && defined AGE_DYE_TRACER
            else if (itrc.gt.itemp+ntrc_salt .and. itrc.le.itemp+ntrc_salt+N_agedye) then

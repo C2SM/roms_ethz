@@ -500,7 +500,7 @@
                end if  ! .not. bry_set .and. itrc .ge. iNO3_ ...
 #    endif /* BIOLOGY_NPZDOC */
 
-#    ifdef BIOLOGY_BEC
+#    if defined BIOLOGY_BEC || defined BIOLOGY_BEC2
 ! do not provide defaults for selected biogeochemical variables
                if (.not. bry_set .and. itrc .ge. iPO4 .and. 
      &              itrc .le. iPO4 + ntrc_bio - 1) then
@@ -594,7 +594,7 @@
                      end if
 !DL                  end if
                end if
-#    endif /* BIOLOGY_BEC */
+#    endif /* BIOLOGY_BEC || BIOLOGY_BEC2 */
             enddo
 #   endif /* T_FRC_BRY */
 #  endif /* SOLVE3D */
@@ -754,7 +754,7 @@
                end if  ! .not. bry_set .and. itrc .ge. iNO3_ ...
 #    endif /* BIOLOGY_NPZDOC */
 
-#    ifdef BIOLOGY_BEC
+#    if defined BIOLOGY_BEC || defined BIOLOGY_BEC2
 ! do not provide defaults for selected biogeochemical variables
                if (.not. bry_set .and. itrc .ge. iPO4 .and. 
      &              itrc .le. iPO4 + ntrc_bio - 1) then
@@ -848,7 +848,7 @@
                      end if
 !DL                  end if
                end if
-#    endif /* BIOLOGY_BEC */
+#    endif /* BIOLOGY_BEC || BIOLOGY_BEC2 */
             enddo
 #   endif /* T_FRC_BRY */
 #  endif /* SOLVE3D */
@@ -1010,7 +1010,7 @@
                end if  ! .not. bry_set .and. itrc .ge. iNO3_ ...
 #    endif /* BIOLOGY_NPZDOC */
 
-#    ifdef BIOLOGY_BEC
+#    if defined BIOLOGY_BEC || defined BIOLOGY_BEC2
 ! do not provide defaults for selected biogeochemical variables
                if (.not. bry_set .and. itrc .ge. iPO4 .and. 
      &              itrc .le. iPO4 + ntrc_bio - 1) then
@@ -1104,7 +1104,7 @@
                      end if
 !DL                  end if
                end if
-#    endif /* BIOLOGY_BEC */
+#    endif /* BIOLOGY_BEC || BIOLOGY_BEC2 */
             enddo
 #   endif /* T_FRC_BRY */
 #  endif /* SOLVE3D */
@@ -1264,7 +1264,7 @@
                end if ! .not. bry_set .and. itrc .ge. iNO3_ ...
 #    endif /* BIOLOGY_NPZDOC */
 
-#    ifdef BIOLOGY_BEC
+#    if defined BIOLOGY_BEC || defined BIOLOGY_BEC2
 ! do not provide defaults for selected biogeochemical variables
                if (.not. bry_set .and. itrc .ge. iPO4 .and. 
      &              itrc .le. iPO4 + ntrc_bio - 1) then
@@ -1358,7 +1358,7 @@
                      end if
 !DL                  end if
                end if
-#    endif /* BIOLOGY_BEC */
+#    endif /* BIOLOGY_BEC || BIOLOGY_BEC2 */
             enddo
 #   endif /* T_FRC_BRY */
 #  endif /* SOLVE3D */

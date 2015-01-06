@@ -39,7 +39,18 @@
 #    define t_sed_AVR t_sed_avg
 #    define GasExcFlux_AVR GasExcFlux_avg
 #   endif
-#  endif
+#  endif /* BIOLOGY_NPZDOC */
+#  ifdef BIOLOGY_BEC
+#   define PAR_AVR PAR_avg
+#   define pH_AVR pH_avg
+#   define pCO2_AVR pCO2_avg
+#   define pCO2air_AVR pCO2air_avg
+#   define PARinc_AVR PARinc_avg
+#  endif /* BIOLOGY_BEC */
+#  if defined BIOLOGY_BEC2 && defined BEC2_DIAG
+#   define bec2_diag_2d_AVR bec2_diag_2d_avg
+#   define bec2_diag_3d_AVR(i,j,k,itrc) bec2_diag_3d_avg(i,j,k,itrc)
+#  endif /* BIOLOGY_BEC2 && BEC2_DIAG */
 # else  /* AVRSLICE */
 #  define set_AVR set_slavg
 #  define set_AVR_tile set_slavg_tile
@@ -74,7 +85,18 @@
 #    define t_sed_AVR t_sed_slavg
 #    define GasExcFlux_AVR GasExcFlux_slavg
 #   endif
-#  endif
+#  endif /* BIOLOGY_NPZDOC */
+#  ifdef BIOLOGY_BEC
+#   define PAR_AVR PAR_slavg
+#   define pH_AVR pH_slavg
+#   define pCO2_AVR pCO2_slavg
+#   define pCO2air_AVR pCO2air_slavg
+#   define PARinc_AVR PARinc_slavg
+#  endif /* BIOLOGY_BEC */
+#  if defined BIOLOGY_BEC2 && defined BEC2_DIAG
+#   define bec2_diag_2d_AVR bec2_diag_2d_slavg
+#   define bec2_diag_3d_AVR(i,j,k,itrc) bec2_diag_3d_slavg(i,j,itrc)
+#  endif /* BIOLOGY_BEC2 && BEC2_DIAG */
 # endif
 
  
@@ -137,6 +159,9 @@
 #  include "ecosys_bec.h"
 #  include "bec_avg.h"
 # endif
+#if defined BIOLOGY_BEC2 && defined BEC2_DIAG
+# include "ecosys_bec2.h"
+#endif
 # include "work.h"
 !
 #include "compute_auxiliary_bounds.h"
@@ -243,6 +268,24 @@
             end do
          ENDKLOOP
 #  endif /* BIOLOGY_NPZDOC || BIOLOGY_BEC */
+#  if defined BIOLOGY_BEC2 && defined BEC2_DIAG
+          do itrc=1,nr_bec2_diag_2d
+             do j=jstrR,jendR
+                do i=istrR,iendR
+                   bec2_diag_2d_AVR(i,j,itrc) = bec2_diag_2d(i,j,itrc)
+                end do
+             end do
+          end do
+          do itrc=1,nr_bec2_diag_3d
+             KLOOP(1)
+             do j=jstrR,jendR
+                do i=istrR,iendR
+                   bec2_diag_3d_AVR(i,j,k,itrc) = bec2_diag_3d(i,j,KLEVEL,itrc)
+                end do
+             end do
+             ENDKLOOP
+          end do
+#  endif /* BIOLOGY_BEC2 && BEC2_DIAG */
           if (wrtAVR(indxR)) then
             KLOOP(1)
               do j=jstrR,jendR
@@ -476,6 +519,24 @@
             end do
           ENDKLOOP
 #  endif /* BIOLOGY_NPZDOC || BIOLOGY_BEC */
+#  if defined BIOLOGY_BEC2 && defined BEC2_DIAG
+          do itrc=1,nr_bec2_diag_2d
+             do j=jstrR,jendR
+                do i=istrR,iendR
+                   bec2_diag_2d_AVR(i,j,itrc) = bec2_diag_2d_AVR(i,j,itrc) + bec2_diag_2d(i,j,itrc)
+                end do
+             end do
+          end do
+          do itrc=1,nr_bec2_diag_3d
+             KLOOP(1)
+             do j=jstrR,jendR
+                do i=istrR,iendR
+                   bec2_diag_3d_AVR(i,j,k,itrc) = bec2_diag_3d_AVR(i,j,KLEVEL,itrc) + bec2_diag_3d(i,j,KLEVEL,itrc)
+                end do
+             end do
+             ENDKLOOP
+          end do
+#  endif /* BIOLOGY_BEC2 && BEC2_DIAG */
           if (wrtAVR(indxR)) then
             KLOOP(1)
               do j=jstrR,jendR
@@ -712,6 +773,24 @@
             end do
           ENDKLOOP
 #  endif /* BIOLOGY_NPZDOC */
+#  if defined BIOLOGY_BEC2 && defined BEC2_DIAG
+          do itrc=1,nr_bec2_diag_2d
+             do j=jstrR,jendR
+                do i=istrR,iendR
+                   bec2_diag_2d_AVR(i,j,itrc) = cff*(bec2_diag_2d_AVR(i,j,itrc) + bec2_diag_2d(i,j,itrc))
+                end do
+             end do
+          end do
+          do itrc=1,nr_bec2_diag_3d
+             KLOOP(1)
+             do j=jstrR,jendR
+                do i=istrR,iendR
+                   bec2_diag_3d_AVR(i,j,k,itrc) = cff*(bec2_diag_3d_AVR(i,j,KLEVEL,itrc) + bec2_diag_3d(i,j,KLEVEL,itrc))
+                end do
+             end do
+             ENDKLOOP
+          end do
+#  endif /* BIOLOGY_BEC2 && BEC2_DIAG */
           if (wrtAVR(indxR)) then
             KLOOP(1)
               do j=jstrR,jendR
