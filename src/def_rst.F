@@ -11,6 +11,9 @@
 #ifdef BIOLOGY_BEC
 # include "ecosys_bec.h"
 #endif
+#if defined BIOLOGY_BEC2 && defined BEC2_DIAG
+# include "ecosys_bec2.h"
+#endif
 #ifdef FLOATS
 # include "floats.h"
 # include "ncvars_floats.h"
@@ -411,8 +414,7 @@
         ierr=nf_put_att_text(ncid,rsttrack,'Content',lvar,
      &                         vinfo(3)(1:lvar))
 #endif /* FLOATS */
-# if defined BIOLOGY_BEC || (defined BIOLOGY_NPZDOC && \
-    defined OXYGEN && defined CARBON)
+# if defined BIOLOGY_BEC || defined BIOLOGY_NPZDOC
 #  if defined CH_CARBON_DEPTH
 
 !
@@ -504,6 +506,45 @@
 #endif
 
 # endif /* BIOLOGY_BEC || BIOLOGY_NPZDOC */
+
+# if defined BIOLOGY_BEC2 && defined BEC2_DIAG
+!
+! 2d diagnostics:
+!
+        do itrc=1,nr_bec2_diag_2d
+           lvar = lenstr(vname_bec2_diag_2d(1,itrc))
+           ierr=nf_def_var (ncid, vname_bec2_diag_2d(1,itrc)(1:lvar),
+     &          NF_FTYPE, 3, r2dgrd, rstT_bec2_diag(itrc))
+           lvar=lenstr(vname_bec2_diag_2d(2,itrc))
+           ierr=nf_put_att_text (ncid, rstT_bec2_diag(itrc), 'long_name',
+     &          lvar, vname_bec2_diag_2d(2,itrc)(1:lvar))
+           lvar=lenstr(vname_bec2_diag_2d(3,itrc))
+           ierr=nf_put_att_text (ncid, rstT_bec2_diag(itrc), 'units', lvar,
+     &          vname_bec2_diag_2d(3,itrc)(1:lvar))
+#ifdef MASK_LAND_DATA
+           ierr=nf_put_att_FTYPE (ncid, rstT_bec2_diag(itrc), '_FillValue', NF_FTYPE,
+     &                                                 1, spv_set)
+#endif
+        end do
+!
+! 3d diagnostics:
+!
+        do itrc=1,nr_bec2_diag_3d
+           lvar = lenstr(vname_bec2_diag_3d(1,itrc))
+           ierr=nf_def_var (ncid, vname_bec2_diag_3d(1,itrc)(1:lvar),
+     &          NF_FTYPE, 4, r3dgrd, rstT_bec2_diag(nr_bec2_diag_2d+itrc))
+           lvar=lenstr(vname_bec2_diag_3d(2,itrc))
+           ierr=nf_put_att_text (ncid, rstT_bec2_diag(nr_bec2_diag_2d+itrc), 'long_name',
+     &          lvar, vname_bec2_diag_3d(2,itrc)(1:lvar))
+           lvar=lenstr(vname_bec2_diag_3d(3,itrc))
+           ierr=nf_put_att_text (ncid, rstT_bec2_diag(nr_bec2_diag_2d+itrc), 'units', lvar,
+     &          vname_bec2_diag_3d(3,itrc)(1:lvar))
+#ifdef MASK_LAND_DATA
+           ierr=nf_put_att_FTYPE (ncid, rstT_bec2_diag(nr_bec2_diag_2d+itrc), '_FillValue', NF_FTYPE,
+     &                                                 1, spv_set)
+#endif
+        end do
+# endif /* BIOLOGY_BEC2 && BEC2_DIAG */
 
 !
 ! Leave definition mode.                  Also initialize record
@@ -675,8 +716,7 @@
         enddo
 # endif /* SEDIMENT_BIOLOGY */
 
-# if defined BIOLOGY_BEC || (defined BIOLOGY_NPZDOC && \
-    defined OXYGEN && defined CARBON)
+# if defined BIOLOGY_BEC 
 !#ifdef CH_CARBON_DEPTH
 !
 ! HCO3:
@@ -718,7 +758,7 @@
 !        endif
 !#else
 
-#endif /* CH_CARBON_DEPTH */
+#endif CH_CARBON_DEPTH
 
 !
 ! PH
@@ -750,7 +790,36 @@
           goto 99                                         !--> ERROR
         endif
 # endif /* OUTPUT_PCO2AIR_RST */
-# endif /* BIOLOGY_BEC || (BIOLOGY_NPZDOC && OXYGEN && CARBON) */
+# endif /* BIOLOGY_BEC */
+
+# if defined BIOLOGY_BEC2 && defined BEC2_DIAG
+!
+! 2d diagnostics:
+!
+        do itrc=1,nr_bec2_diag_2d
+           lvar=lenstr(vname_bec2_diag_2d(1,itrc))
+           ierr=nf_inq_varid (ncid, vname_bec2_diag_2d(1,itrc)(1:lvar),
+     &                        rstT_bec2_diag(itrc))
+           if (ierr. ne. nf_noerr) then
+              write(stdout,1) vname_bec2_diag_2d(1,itrc)(1:lvar),
+     &                                           rstname(1:lstr)
+              goto 99                                       !--> ERROR
+           endif
+        enddo
+!
+! 3d diagnostics:
+!
+        do itrc=1,nr_bec2_diag_3d
+           lvar=lenstr(vname_bec2_diag_3d(1,itrc))
+           ierr=nf_inq_varid (ncid, vname_bec2_diag_3d(1,itrc)(1:lvar),
+     &                        rstT_bec2_diag(nr_bec2_diag_2d+itrc))
+           if (ierr. ne. nf_noerr) then
+              write(stdout,1) vname_bec2_diag_3d(1,itrc)(1:lvar),
+     &                                           rstname(1:lstr)
+              goto 99                                       !--> ERROR
+           endif
+        enddo
+# endif /* BIOLOGY_BEC2 && BEC2_DIAG */
 
 # if defined BIOLOGY_BEC || defined BIOLOGY_NPZDOC
 !
@@ -837,4 +906,3 @@
       return
       end
 
- 

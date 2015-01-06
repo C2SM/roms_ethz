@@ -116,7 +116,7 @@ C$OMP THREADPRIVATE(/priv_scalars/)
 # endif
 #endif
 !DL: variables for varying atm pCO2:
-#if defined BIOLOGY_BEC || defined BIOLOGY_NPZDOC
+#if defined BIOLOGY_BEC || defined BIOLOGY_BEC2 || defined BIOLOGY_NPZDOC
 # ifdef VARIABLE_ANN_ATM_PCO2
       real start_year
       character(len=4) futr_scen
@@ -124,6 +124,23 @@ C$OMP THREADPRIVATE(/priv_scalars/)
 # endif
 #endif
 
+!DL: gas exchange fluxes:
+# ifdef BIOLOGY_NPZDOC
+      integer NumGasExcTerms
+#  ifdef OXYGEN
+      integer OFlux_GasExc
+      parameter(OFlux_GasExc = 1)
+#   ifdef CARBON
+      integer CFlux_GasExc
+      parameter(CFlux_GasExc = 2)
+      parameter(NumGasExcTerms = 2)
+#   else /* CARBON */
+      parameter(NumGasExcTerms = 1)
+#   endif /* CARBON */
+#  else /* OXYGEN */
+      parameter(NumGasExcTerms = 0)
+#  endif /* OXYGEN */
+# endif /* BIOLOGY_NPZDOC */
 
       integer ntstart, ntimes, ndtfast, nfast, ninfo, may_day_flag,
      &                                                barr_count(16)
@@ -149,7 +166,7 @@ C$OMP THREADPRIVATE(/priv_scalars/)
 #else
       parameter (g=9.81) ! m/s^2
 #endif
-#ifdef BIOLOGY_BEC
+#if defined BIOLOGY_BEC || defined BIOLOGY_BEC2
       real nmol_cm2_to_mmol_m2
       parameter (nmol_cm2_to_mmol_m2 = 0.01)
 #endif

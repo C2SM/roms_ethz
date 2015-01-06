@@ -105,11 +105,11 @@ CSDISTRIBUTE_RESHAPE  sssg(BLOCK_PATTERN,*) BLOCK_CLAUSE
 #  endif /* SST_DATA */
 # endif /* QCORRECTION && !ANA_SST */
 
-#ifdef BIOLOGY_BEC
+#if defined BIOLOGY_BEC || defined BIOLOGY_BEC2
 ! dust flux
 
          real dust(GLOBAL_2D_ARRAY) 
-CSDISTRIBUTE_RESHAPE  dust(BLOCK_PATTERN,*) BLOCK_CLAUSE
+CSDISTRIBUTE_RESHAPE  dust(BLOCK_PATTERN) BLOCK_CLAUSE
            common /forces_dust/dust
        real dustg(GLOBAL_2D_ARRAY,2)
 CSDISTRIBUTE_RESHAPE  dustg(BLOCK_PATTERN,*) BLOCK_CLAUSE
@@ -125,7 +125,7 @@ CSDISTRIBUTE_RESHAPE  dustg(BLOCK_PATTERN,*) BLOCK_CLAUSE
 
 ! iron flux
        real iron(GLOBAL_2D_ARRAY)
-CSDISTRIBUTE_RESHAPE  iron(BLOCK_PATTERN,*) BLOCK_CLAUSE
+CSDISTRIBUTE_RESHAPE  iron(BLOCK_PATTERN) BLOCK_CLAUSE
        common /forces_iron/iron
        real irong(GLOBAL_2D_ARRAY,2)
 CSDISTRIBUTE_RESHAPE irong(BLOCK_PATTERN,*) BLOCK_CLAUSE
@@ -140,7 +140,37 @@ CSDISTRIBUTE_RESHAPE irong(BLOCK_PATTERN,*) BLOCK_CLAUSE
      &  iron_ncycle,iron_rec,iron_tid
 
 #endif
-
+!
+! Atmospheric deposition and river input:
+!
+#ifdef BIOLOGY_BEC2
+       real nox(GLOBAL_2D_ARRAY)
+CSDISTRIBUTE_RESHAPE  nox(BLOCK_PATTERN) BLOCK_CLAUSE
+       real noxg(GLOBAL_2D_ARRAY,2)
+CSDISTRIBUTE_RESHAPE  noxg(BLOCK_PATTERN,*) BLOCK_CLAUSE
+       real nhy(GLOBAL_2D_ARRAY)
+CSDISTRIBUTE_RESHAPE  nhy(BLOCK_PATTERN) BLOCK_CLAUSE
+       real nhyg(GLOBAL_2D_ARRAY,2)
+CSDISTRIBUTE_RESHAPE  nhyg(BLOCK_PATTERN,*) BLOCK_CLAUSE
+       real din_river(GLOBAL_2D_ARRAY)
+CSDISTRIBUTE_RESHAPE  din_river(BLOCK_PATTERN) BLOCK_CLAUSE
+       real din_riverg(GLOBAL_2D_ARRAY,2)
+CSDISTRIBUTE_RESHAPE  din_riverg(BLOCK_PATTERN,*) BLOCK_CLAUSE
+       common /bec2_atm_depos1/ nox, noxg, nhy, nhyg
+       real nox_time(2),nhy_time(2),nox_cycle,nhy_cycle
+       integer itnox,nox_id,nox_ncycle,
+     &  nox_rec,nox_tid,itnhy,nhy_id,nhy_ncycle,nhy_rec,nhy_tid
+       common /bec2_atm_depos2/ nox_time, nox_cycle,
+     &  itnox,nox_id,nox_ncycle,nox_rec,nox_tid,
+     &  nhy_time, nhy_cycle,
+     &  itnhy,nhy_id,nhy_ncycle,nhy_rec,nhy_tid
+       common /bec2_atm_depos1/ din_river, din_riverg
+       real din_river_time(2),din_river_cycle
+       integer itdin_river,din_river_id,din_river_ncycle,
+     &  din_river_rec,din_river_tid
+       common /bec2_atm_depos2/ din_river_time, din_river_cycle,
+     &  itdin_river,din_river_id,din_river_ncycle,din_river_rec,din_river_tid
+#endif
 
 !
 ! Solar short-wave radiation flux:

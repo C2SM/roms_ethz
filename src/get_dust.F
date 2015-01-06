@@ -1,5 +1,5 @@
 #include "cppdefs.h"
-#ifdef BIOLOGY_BEC
+#if defined BIOLOGY_BEC || defined BIOLOGY_BEC2
 
       subroutine get_dust(ierr)
       implicit none
@@ -163,7 +163,7 @@
       endif
       return
       end
-#else /* BIOLOGY_BEC */
+#else /* BIOLOGY_BEC || BIOLOGY_BEC2 */
       subroutine get_dust_empty
       end
-#endif /* BIOLOGY_BEC */
+#endif /* BIOLOGY_BEC  || BIOLOGY_BEC2 */

@@ -37,10 +37,9 @@
      &                                            , itrc
 #endif
 !DL: variable for varying atm pCO2:
-#if defined BIOLOGY_BEC || defined BIOLOGY_NPZDOC 
-# ifdef VARIABLE_ANN_ATM_PCO2
+#if (defined BIOLOGY_BEC || defined BIOLOGY_BEC2 || defined BIOLOGY_NPZDOC)\
+    && defined VARIABLE_ANN_ATM_PCO2
       logical futr_scen_valid
-# endif
 #endif
       integer*4 ione      ! This is needed to avoid automatic
       parameter (ione=1)  ! promotion to 8-byte integer by
@@ -1164,8 +1163,8 @@ c--      fname='roms.in.US_West'
           tau_obc=tau_obc*day2sec
 #endif
 !DL: keywords related to interannual variations of atm. pCO2:
-#if defined BIOLOGY_BEC || defined BIOLOGY_NPZDOC
-# ifdef VARIABLE_ANN_ATM_PCO2
+#if (defined BIOLOGY_BEC || defined BIOLOGY_BEC2 || defined BIOLOGY_NPZDOC)\
+    && defined VARIABLE_ANN_ATM_PCO2
         elseif (keyword(1:kwlen).eq.'start_year') then
           ! Year at which the simulation starts. This is needed for
           ! the computation of the atmospheric pCO2. It can be a 
@@ -1198,8 +1197,7 @@ c--      fname='roms.in.US_West'
 !          MPI_master_only write(stdout,'(6x,A,2x,A,1x,A)')
 !     &      futr_scen , 'futr_scen   scenario for past 1990.5 values',
 !     &      'of atm. pCO2'
-# endif
-#endif
+#endif /* BIOLOGY_BEC || BIOLOGY_BEC2 || BIOLOGY_NPZDOC) && VARIABLE_ANN_ATM_PCO2
 !DL: age/dye tracers:
 #if defined PASSIVE_TRACER && defined AGE_DYE_TRACER
         elseif (keyword(1:kwlen).eq.'age_dye') then

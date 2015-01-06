@@ -30,6 +30,7 @@
 #  define pCO2air_avr pCO2air_avg
 #  define PAR_avr PAR_avg 
 #  define PARinc_avr PARinc_avg 
+#  define GasExcFlux_avr GasExcFlux_avg
 #  define avrTime avgTime 
 #  define avrZ avgZ
 #  define avrUb avgUb
@@ -53,6 +54,7 @@
 #  define avrPCO2air avgPCO2air
 #  define avrPARinc avgPARinc
 #  define avrPAR avgPAR
+#  define avrGasExcFlux avgGasExcFlux
 #  define ncidavr ncidavg
 #  define ncrecavr ncrecavg 
 #  define nrpfavr nrpfavg 
@@ -60,6 +62,11 @@
 #  define avrname avgname
 #  define wrtavr wrtavg
 #  define SWRT_AVR 'WRT_AVG'
+#  if defined BIOLOGY_BEC2 && defined BEC2_DIAG
+#   define bec2_diag_2d_avr bec2_diag_2d_avg
+#   define bec2_diag_3d_avr bec2_diag_3d_avg
+#   define avrT_bec2_diag avgT_bec2_diag
+#  endif
 # else
 !  We are playing the same redefinition preprocessor game as in def_his.F here...
 #  define START_3D_ARRAY_K0 START_2D_ARRAY
@@ -90,6 +97,7 @@
 #  define pCO2air_avr pCO2air_slavg
 #  define PAR_avr PAR_slavg
 #  define PARinc_avr PARinc_slavg
+#  define GasExcFlux_avr GasExcFlux_slavg
 #  define avrTime slavgTime 
 #  define avrZ slavgZ
 #  define avrUb slavgUb
@@ -124,6 +132,12 @@
 #  define V3DVAR v2dvar
 #  define W3DVAR r2dvar
 #  define SWRT_AVR 'WRT_SLAVG'
+#  define avrGasExcFlux slavgGasExcFlux
+#  if defined BIOLOGY_BEC2 && defined BEC2_DIAG
+#   define bec2_diag_2d_avr bec2_diag_2d_slavg
+#   define bec2_diag_3d_avr bec2_diag_3d_slavg
+#   define avrT_bec2_diag slavgT_bec2_diag
+#  endif
 # endif /* ifndef SLICE_AVG */
                                      ! Write time-averaged
       subroutine wrt_avr             ! fields into averages
@@ -145,6 +159,14 @@
 #ifdef BIOLOGY_BEC
 # include "ecosys_bec.h"
 # include "bec_avg.h"
+#endif
+#if defined BIOLOGY_BEC2 && defined BEC2_DIAG
+# include "ecosys_bec2.h"
+!!# include "bec2_avg.h"
+#endif
+!DL: for gas exchange fluxes:
+#if defined BIOLOGY_NPZDOC
+# include "gasexc.h"
 #endif
 # if defined MPI && !defined PARALLEL_FILES
 #  include "mpif.h"
@@ -532,7 +554,7 @@ CR      write(*,*) 'wrt_avr:  wrtT_sed  ' MYID
 ! PAR:
 !
       ierr=nf_fwrite (PAR_avr(START_3D_ARRAY_K1), ncidavr,
-     &                              avrPAR, record, r3dvar)
+     &                              avrPAR, record, R3DVAR)
       if (ierr .ne. nf_noerr) then
         lvar=lenstr(vname(1,indxPAR_rst))
         write(stdout,1) vname(1,indxPAR_rst)(1:lvar), record, ierr,
@@ -540,6 +562,34 @@ CR      write(*,*) 'wrt_avr:  wrtT_sed  ' MYID
         goto 99                                         !--> ERROR
       endif
 # endif /* BIOLOGY_NPZDOC || BIOLOGY_BEC */
+# if defined BIOLOGY_BEC2 && defined BEC2_DIAG
+!
+! 2d diagnostics:
+!
+      do itrc=1,nr_bec2_diag_2d
+         ierr=nf_fwrite (bec2_diag_2d_avr(START_2D_ARRAY,itrc), ncidavr,
+     &                                avrT_bec2_diag(itrc), record, r2dvar)
+         if (ierr .ne. nf_noerr) then
+            lvar=lenstr(vname_bec2_diag_2d(1,itrc))
+            write(stdout,1) vname_bec2_diag_2d(1,itrc)(1:lvar),
+     &                      record, ierr MYID
+            goto 99                                       !--> ERROR
+         endif
+      enddo
+!
+! 3d diagnostics:
+!
+      do itrc=1,nr_bec2_diag_3d
+         ierr=nf_fwrite (bec2_diag_3d_avr(START_3D_ARRAY_K1,itrc), ncidavr,
+     &                                avrT_bec2_diag(nr_bec2_diag_2d+itrc), record, R3DVAR)
+         if (ierr .ne. nf_noerr) then
+            lvar=lenstr(vname_bec2_diag_3d(1,itrc))
+            write(stdout,1) vname_bec2_diag_3d(1,itrc)(1:lvar),
+     &                      record, ierr MYID
+            goto 99                                       !--> ERROR
+         endif
+      enddo
+# endif /* BIOLOGY_BEC2 */
 !DL:
 # ifdef WRITE_DEPTHS
 !
@@ -576,6 +626,23 @@ CR      write(*,*) 'wrt_avr:  wrtT_sed  ' MYID
         goto 99                                         !--> ERROR
       endif
 # endif /* WRITE_DEPTHS */
+!
+! Gas exchange fluxes:
+!
+# if defined BIOLOGY_NPZDOC && defined OXYGEN
+      do itrc = 1, NumGasExcTerms
+         ierr = nf_fwrite(GasExcFlux_avr(START_2D_ARRAY,itrc), 
+     &        ncidavr, avrGasExcFlux(itrc), 
+     &        record, r2dvar)
+         if (ierr .ne. nf_noerr) then
+            lvar=lenstr(vname_GasExcFlux(1,itrc))
+            write(stdout,1) 
+     &           vname_GasExcFlux(1,itrc)(1:lvar), 
+     &           record, ierr, nf_strerror(ierr) MYID 
+            goto 99
+         end if
+      end do
+# endif /* BIOLOGY_NPZDOC && OXYGEN */
 # endif /* SOLVE3D */
   1   format(/SWRT_AVR,' - ERROR while writing variable ('
      &    ,1x,a,1x, ') into averages file.',/,11x,'Time record:',
@@ -681,6 +748,7 @@ CR     &              MYID
 #  undef avrPARinc
 #  undef avrPAR
 #  undef avrPH
+#  undef avrGasExcFlux
 #  undef ncidavr
 #  undef ncrecavr
 #  undef nrpfavr

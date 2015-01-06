@@ -26,6 +26,9 @@
 !HF not needed, only for debugging:
 # include "param_bec.h"
 #endif
+#if defined BIOLOGY_BEC2 && defined BEC2_DIAG
+# include "ecosys_bec2.h"
+#endif
 #ifdef PHYS_FLUX_ANALYSIS
 #  include "physflux.h"
 #  include "ncroms_physflux.h"
@@ -620,7 +623,48 @@ CHF          goto 99                                         !--> ERROR
          MPI_master_only write(stdout,*) 
      &        'PCO2air not in init/rst file, initialize to 0'
       endif
-# endif
+# endif /* BIOLOGY_BEC || (BIOLOGY_NPZDOC && OXYGEN && CARBON) */
+# if defined BIOLOGY_BEC2 && defined BEC2_DIAG
+      ! Read in 2d diagnostic variables:
+      do itrc=1,nr_bec2_diag_2d
+         lvar=lenstr(vname_bec2_diag_2d(1,itrc))
+      end do
+      do itrc=1,nr_bec2_diag_2d
+         lvar=lenstr(vname_bec2_diag_2d(1,itrc))
+         ierr=nf_inq_varid (ncid, vname_bec2_diag_2d(1,itrc)(1:lvar), varid)
+         if (ierr .eq. nf_noerr) then
+            ierr=nf_fread (bec2_diag_2d(START_2D_ARRAY,itrc), ncid,  varid,
+     &                                               record, r2dvar)
+            if (ierr .ne. nf_noerr) then
+               write(stdout,2) vname_bec2_diag_2d(1,itrc)(1:lvar), record,
+     &              ininame(1:lstr)
+               goto 99             !--> ERROR
+            endif
+         else
+            MPI_master_only write(*,1) vname_bec2_diag_2d(1,itrc)(1:lvar), 
+     &                           ininame(1:lstr)
+     &            ,' => Initialized to 0.'
+         endif
+      end do
+      ! Read in 3d diagnostic variables:
+      do itrc=1,nr_bec2_diag_3d
+         lvar=lenstr(vname_bec2_diag_3d(1,itrc))
+         ierr=nf_inq_varid (ncid, vname_bec2_diag_3d(1,itrc)(1:lvar), varid)
+         if (ierr .eq. nf_noerr) then
+            ierr=nf_fread (bec2_diag_3d(START_2D_ARRAY,1,itrc), ncid,  varid,
+     &                                               record, r3dvar)
+            if (ierr .ne. nf_noerr) then
+               write(stdout,2) vname_bec2_diag_3d(1,itrc)(1:lvar), record,
+     &              ininame(1:lstr)
+               goto 99             !--> ERROR
+            endif
+         else
+            MPI_master_only write(*,1) vname_bec2_diag_3d(1,itrc)(1:lvar), 
+     &                           ininame(1:lstr)
+     &            ,' => Initialized to 0.'
+         endif
+      end do
+# endif /* BIOLOGY_BEC2 && BEC2_DIAG */
 
 # if defined BIOLOGY_BEC || defined BIOLOGY_NPZDOC
       ! Photosynthetically available radiation:

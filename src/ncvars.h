@@ -56,11 +56,11 @@
       integer indxz_r, indxz_w, indxHz
 # endif /* WRITE_DEPTHS */
       parameter (indxO=indxT+NT
-# if defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC
+# if defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC || defined BIOLOGY_BEC2
 #  if defined CH_CARBON_DEPTH
       /* Create space for CO3d, HCO3d, CO2STARd, pHd, pH, pCO2, pCO2air, PARinc, and PAR: */
      &     + 9
-# else
+#  else
       /* Create space for pH, pCO2, pCO2air, PARinc, PAR: */
      &     + 5
 #  endif /* CH_CARBON_DEPTH */
@@ -68,10 +68,10 @@
 #  ifdef SEDIMENT_BIOLOGY
      &     + NT_sed
 #  endif
-# ifdef WRITE_DEPTHS
+#  ifdef WRITE_DEPTHS
      &     + 3
-# endif /* WRITE_DEPTHS */
-# endif /* BIOLOGY_NPZDOC || BIOLOGY_BEC */
+#  endif /* WRITE_DEPTHS */
+# endif /* BIOLOGY_NPZDOC || BIOLOGY_BEC || BIOLOGY_BEC2 */
      &     )
       parameter (indxW=indxO+1, indxR=indxO+2,
      &     indxAkv=indxR+1, 
@@ -121,12 +121,13 @@
       integer indxSST, indxdQdSST, indxSSS
       parameter (indxSST=indxSWRad+1, indxdQdSST=indxSST+1,
      &                                   indxSSS=indxSST+2)
-# ifdef BIOLOGY_BEC
+# if defined BIOLOGY_BEC || defined BIOLOGY_BEC2
+     ! Dust and iron flux:
       integer indxdust
       parameter (indxdust=indxSST+3)
       integer indxiron
       parameter (indxiron=indxSST+4)
-# endif
+# endif /* BIOLOGY_BEC || BIOLOGY_BEC2 */
 # ifdef SG_BBL96
 #  ifndef ANA_WWAVE
       integer indxWWA,indxWWD,indxWWP
@@ -226,7 +227,7 @@
      &      indxCO3d_rst = indxHCO3d_rst+1,
      &      indxPHd_rst = indxCO3d_rst+1,
      &      indxPAR_rst = indxPHd_rst+1)
-# else
+#  else
        integer indxPo4,indxNo3,indxSio3,indxNh4,indxFe,indxO2,indxDic,
      &   indxAlk,indxDoc,indxSpc,indxSpchl,indxSpcaco3,indxDiatc,indxDiatchl,
      & indxZooc,indxSpfe,indxDiatsi,indxDiatfe,indxDiazc,indxDiazchl,
@@ -257,13 +258,83 @@
      &           indxHz=indxz_w+1)
 #  endif /* WRITE_DEPTHS */
 # endif /* BIOLOGY_BEC */
+# ifdef BIOLOGY_BEC2
+       integer indxPo4,indxNo3,indxSio3,indxNh4,indxFe,indxO2,indxDic,
+     &   indxAlk,indxDoc,indxDon,indxDofe,indxDop,indxDopr,indxDonr,indxZooc,
+     &   indxSpchl,indxSpc,indxSpfe,indxSpcaco3,indxDiatchl,indxDiatc,
+     &   indxDiatfe,indxDiatsi,indxDiazchl,indxDiazc,indxDiazfe
+       parameter (indxPo4=indxT+ntrc_salt+ntrc_pas+1,
+     &            indxNo3=indxPO4+1, indxSio3=indxPO4+2,
+     &            indxNh4=indxPO4+3, indxFe=indxPO4+4,
+     &            indxO2=indxPO4+5,  indxDic=indxPO4+6,
+     &            indxAlk=indxPO4+7, indxDoc=indxPO4+8,
+     &            indxDon=indxPO4+9, indxDofe=indxPO4+10,
+     &            indxDop=indxPO4+11, indxDopr=indxPO4+12,
+     &            indxDonr=indxPO4+13, indxZooc=indxPO4+14,
+     &            indxSpchl=indxPO4+15, indxSpc=indxPO4+16,
+     &            indxSpfe=indxPO4+17, indxSpcaco3=indxPO4+18,
+     &            indxDiatchl=indxPO4+19, indxDiatc=indxPO4+20,
+     &            indxDiatfe=indxPO4+21, indxDiatsi=indxPO4+22,
+     &            indxDiazchl=indxPO4+23, indxDiazc=indxPO4+24,
+     &            indxDiazfe=indxPO4+25)
+#  ifdef WRITE_DEPTHS
+       parameter(indxz_r=indxDiazfe+1, indxz_w=indxz_r+1,
+     &           indxHz=indxz_w+1)
+#  endif /* WRITE_DEPTHS */
+#  ifdef BEC2_DIAG
+       ! Indices to be used in vname_bec2_diag_2d:
+       integer indxPH,indxPCO2,indxPCO2air,indxPARinc,indxWS10m,indxXKW,
+     &    indxFGO2,indxFGCO2,indxATMPRESS,indxSCHMIDTO2,indxO2SAT,indxSCHMIDTCO2,
+     &    indxPVO2,indxPVCO2,indxCO2STAR,indxDCO2STAR,indxIRONFLUX,indxSEDDENITRIF
+       parameter( indxPH=1,indxPCO2=indxPH+1,indxPCO2air=indxPH+2,indxPARinc=indxPH+3,
+     &            indxFGO2=indxPH+4,indxFGCO2=indxPH+5,indxWS10m=indxPH+6,
+     &            indxXKW=indxPH+7,indxATMPRESS=indxPH+8,indxSCHMIDTO2=indxPH+9,
+     &            indxO2SAT=indxPH+10,indxSCHMIDTCO2=indxPH+11,indxPVO2=indxPH+12,
+     &            indxPVCO2=indxPH+13,indxCO2STAR=indxPH+14,indxDCO2STAR=indxPH+15,
+     &            indxIRONFLUX=indxPH+16,indxSEDDENITRIF=indxPH+17 )
+       ! Indices to be used in vname_bec2_diag_3d:
+       integer indxPAR,indxPOCFLUXIN,indxPOCPROD,indxPOCREMIN,indxCACO3FLUXIN,indxPCACO3PROD,
+     &    indxCACO3REMIN,indxSIO2FLUXIN,indxSIO2PROD,indxSIO2REMIN,indxDUSTFLUXIN,
+     &    indxDUSTREMIN,indxPIRONFLUXIN,indxPIRONPROD,indxPIRONREMIN,indxGRAZESP,
+     &    indxGRAZEDIAT,indxGRAZEDIAZ,indxSPLOSS,indxDIATLOSS,indxZOOLOSS,indxSPAGG,
+     &    indxDIATAGG,indxPHOTOCSP,indxPHOTOCDIAT,indxTOTPROD,indxDOCPROD,indxDOCREMIN,
+     &    indxFESCAVENGE,indxSPNLIM,indxSPFEUPTAKE,indxSPPO4UPTAKE,indxSPLIGHTLIM,
+     &    indxDIATNLIM,indxDIATFEUPTAKE,indxDIATPO4UPTAKE,indxDIATSIO3UPTAKE,
+     &    indxDIATLIGHTLIM,indxCACO3PROD,indxDIAZNFIX,indxDIAZLOSS,indxPHOTOCDIAZ,
+     &    indxDIAZPO4UPTAKE,indxDIAZFEUPTAKE,indxDIAZLIGHTLIM,indxFESCAVENGERATE,
+     &    indxDONPROD,indxDONREMIN,indxDOFEPROD,indxDOFEREMIN,indxDOPPROD,indxDOPREMIN,
+     &    indxDIATSIUPTAKE,indxIRONUPTAKESP,indxIRONUPTAKEDIAT,indxIRONUPTAKEDIAZ,indxNITRIF,
+     &    indxDENITRIF,indxSPNUPTAKE,indxDIATNUPTAKE,indxDIAZNUPTAKE
+       parameter( indxPAR=1,indxPOCFLUXIN=indxPAR+1,indxPOCPROD=indxPAR+2,
+     &            indxPOCREMIN=indxPAR+3,indxCACO3FLUXIN=indxPAR+4,indxPCACO3PROD=indxPAR+5,
+     &            indxCACO3REMIN=indxPAR+6,indxSIO2FLUXIN=indxPAR+7,indxSIO2PROD=indxPAR+8,
+     &            indxSIO2REMIN=indxPAR+9,indxDUSTFLUXIN=indxPAR+10,indxDUSTREMIN=indxPAR+11,
+     &            indxPIRONFLUXIN=indxPAR+12,indxPIRONPROD=indxPAR+13,indxPIRONREMIN=indxPAR+14,
+     &            indxGRAZESP=indxPAR+15,indxGRAZEDIAT=indxPAR+16,indxGRAZEDIAZ=indxPAR+17,
+     &            indxSPLOSS=indxPAR+18,indxDIATLOSS=indxPAR+19,indxZOOLOSS=indxPAR+20,
+     &            indxSPAGG=indxPAR+21,indxDIATAGG=indxPAR+22,indxPHOTOCSP=indxPAR+23,
+     &            indxPHOTOCDIAT=indxPAR+24,indxTOTPROD=indxPAR+25,indxDOCPROD=indxPAR+26,
+     &            indxDOCREMIN=indxPAR+27,indxFESCAVENGE=indxPAR+28,indxSPNLIM=indxPAR+29,
+     &            indxSPFEUPTAKE=indxPAR+30,indxSPPO4UPTAKE=indxPAR+31,indxSPLIGHTLIM=indxPAR+32,
+     &            indxDIATNLIM=indxPAR+33,indxDIATFEUPTAKE=indxPAR+34,indxDIATPO4UPTAKE=indxPAR+35,
+     &            indxDIATSIO3UPTAKE=indxPAR+36,indxDIATLIGHTLIM=indxPAR+37,indxCACO3PROD=indxPAR+38,
+     &            indxDIAZNFIX=indxPAR+39,indxDIAZLOSS=indxPAR+40,indxPHOTOCDIAZ=indxPAR+41,
+     &            indxDIAZPO4UPTAKE=indxPAR+42,indxDIAZFEUPTAKE=indxPAR+43,indxDIAZLIGHTLIM=indxPAR+44,
+     &            indxFESCAVENGERATE=indxPAR+45,indxDONPROD=indxPAR+46,indxDONREMIN=indxPAR+47,
+     &            indxDOFEPROD=indxPAR+48,indxDOFEREMIN=indxPAR+49,indxDOPPROD=indxPAR+50,
+     &            indxDOPREMIN=indxPAR+51,indxDIATSIUPTAKE=indxPAR+52,indxIRONUPTAKESP=indxPAR+53,
+     &            indxIRONUPTAKEDIAT=indxPAR+54,indxIRONUPTAKEDIAZ=indxPAR+55,indxNITRIF=indxPAR+56,
+     &            indxDENITRIF=indxPAR+57,indxSPNUPTAKE=indxPAR+58,indxDIATNUPTAKE=indxPAR+59,
+     &            indxDIAZNUPTAKE=indxPAR+60 )
+#  endif /* BEC2_DIAG */
+# endif /* BIOLOGY_BEC2 */
 
-# if !defined BIOLOGY_NPZDOC && !defined BIOLOGY_BEC
+# if !defined BIOLOGY_NPZDOC && !defined BIOLOGY_BEC && !defined BIOLOGY_BEC2
 #  ifdef WRITE_DEPTHS
        parameter(indxz_r=indxT+ntrc_salt+ntrc_pas+1, indxz_w=indxz_r+1,
      &           indxHz=indxz_w+1)
 #  endif /* WRITE_DEPTHS */
-# endif /* !defined BIOLOGY_NPZD && !defined BIOLOGY_BEC */
+# endif /* !BIOLOGY_NPZD && !BIOLOGY_BEC && !BIOLOGY_BEC2 */
 
 #endif /* SOLVE3D */
 
@@ -306,13 +377,17 @@
       integer max_frc, ncidfrc(max_frc_file), nrst, ncidrst, nrecrst,
      &      nrrec, nrpfrst, nwrt, ncidhis, nrechis, nrpfhis
       integer ncidclm(NT)
-#ifdef BIOLOGY_BEC
+#if defined BIOLOGY_BEC || defined BIOLOGY_BEC2
      &     , ntdust, ntiron
 #endif
       common /ncvars/       max_frc, ncidfrc, nrst, ncidrst, nrecrst,
      &      nrrec, nrpfrst, ncidclm, nwrt, ncidhis, nrechis, nrpfhis
-#ifdef BIOLOGY_BEC
+#if defined BIOLOGY_BEC || defined BIOLOGY_BEC2
      &     , ntdust, ntiron
+#endif
+#ifdef BIOLOGY_BEC2
+      integer ntnox, ntnhy, ntdin_river
+      common /ncvars/ ntnox, ntnhy, ntdin_river
 #endif
 
 
@@ -363,6 +438,7 @@
 #  endif
 #  endif /* CH_CARBON_DEPTH */
 # endif /* BIOLOGY_NPZDOC || BIOLOGY_BEC */
+
 # ifdef WRITE_DEPTHS
      &      , hisz_r, hisz_w, hisHz
 #  ifdef AVERAGES
@@ -395,6 +471,7 @@
 #  endif
 #  endif /* CH_CARBON_DEPTH */
 # endif /* BIOLOGY_NPZDOC || BIOLOGY_BEC */
+
 # ifdef WRITE_DEPTHS
      &      , hisz_r, hisz_w, hisHz
 #  ifdef AVERAGES
@@ -448,6 +525,7 @@
       integer avgHbbl
       common /ncvars/ avgHbbl
 #  endif
+
 #  ifdef SLICE_AVG
       integer ncidslavg, nrecslavg,  nrpfslavg,
      &    slavgTime, slavgTstep, slavgZ, slavgUb, slavgVb
