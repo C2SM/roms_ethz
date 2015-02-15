@@ -148,7 +148,7 @@
      &     cu, aL, aR, t_PPmax, FC(0:N),
      &     cff,cff1,cff2,cff3,cff4,cff6,
      &     SB(N,nsink),dSB(0:N,nsink),wSB(nsink)
-#ifdef BIO_SWR_FRAC
+#if defined BIO_SWR_FRAC && defined TIME_VAR_SWR_FRAC
      &     ,cffi
 #endif
 
@@ -377,7 +377,6 @@
       PARinc(i,j) = srflx(i,j)*rho0*Cp*0.43
 # endif /* PAR_DIRECT_INPUT */
 
-
 ! all of the right-hand side values in the following equations
 ! do not change from one iteration to the next, so they will be computed
 ! outside of the iteration loop
@@ -422,7 +421,7 @@
       iter_loop: do ITER=1,ITERMAX   !--> Start internal iterations to achieve
                                      !    nonlinear backward-implicit solution.
       thisPAR = PARinc(i,j) 
-#ifdef BIO_SWR_FRAC
+#if defined BIO_SWR_FRAC && defined TIME_VAR_SWR_FRAC
       cffi=1./thisPAR   ! to avoid division in k-loop
       swr_frac(i,j,N) = 1.
 #endif
@@ -518,7 +517,7 @@
 !
 !           attenuate the light to the bottom of the grid cell
             thisPAR=thisPAR*attn
-#ifdef BIO_SWR_FRAC
+#if defined BIO_SWR_FRAC && defined TIME_VAR_SWR_FRAC
 !           Solar radiation fraction reaching the next level:
             swr_frac(i,j,k-1) = cffi*thisPAR ! cffi = 1./PARinc(i,j)
 #endif

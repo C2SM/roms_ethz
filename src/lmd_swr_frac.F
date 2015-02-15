@@ -28,12 +28,25 @@
 !
       implicit none
       integer istr,iend,jstr,jend,     i,j,k, Jwt
+# ifdef BIO_SWR_FRAC
+      real attn
+# else
       real  swdk1(istr:iend), swdk2(istr:iend)
       real mu1(5),mu2(5), r1(5), attn1, attn2, xi1,xi2
+# endif
 # include "param.h"
 # include "ocean3d.h"
 # include "mixing.h"
+# ifdef BIO_SWR_FRAC
+#  include "biopar.h" /* for kwater, kChla */
+# endif
  
+# ifndef BIO_SWR_FRAC
+      if (ntstart > 1 ) then
+      MPI_master_only print*,
+     &   '*** WARNING Restart not working for BIO_SWR_FRAC!'
+      endif
+# else /* Not BIO_SWR_FRAC */
       mu1(1)=0.35    ! reciprocal of the absorption coefficient
       mu1(2)=0.6     ! for each of the two solar wavelength bands
       mu1(3)=1.0     ! as a function of Jerlov water type (Paulson
@@ -56,15 +69,28 @@
  
       attn1=-1./mu1(Jwt)
       attn2=-1./mu2(Jwt) 
+# endif
 
       do j=jstr,jend                     ! Algorithm: set fractions
         do i=istr,iend                   ! for each spectral band at
+# ifndef BIO_SWR_FRAC
           swdk1(i)=r1(Jwt)               ! surface, then attenuate
           swdk2(i)=1.-swdk1(i)           ! them separately throughout
+# endif
+
           swr_frac(i,j,N)=1.             ! the water column.
         enddo
         do k=N,1,-1
           do i=istr,iend
+
+# ifdef BIO_SWR_FRAC
+! copied from biology.F 
+!           attenuate the light to the center of the grid cell
+            !attn=exp(-0.5*(kwater+kChla*chla(i,j,k))*
+            attn=exp(-0.5*(kwater+kChla*max(t(i,j,k,nnew,iChla),0.))*
+     &              (z_w(i,j,k)-z_w(i,j,k-1)))
+            swr_frac(i,j,k-1) = attn**2
+# else /* Not BIO_SWR_FRAC
             xi1=attn1*Hz(i,j,k)
             if (xi1 .gt. -20.) then        ! this logic to avoid
               swdk1(i)=swdk1(i)*exp(xi1)   ! computing exponent for
@@ -80,6 +106,8 @@
             endif
 
             swr_frac(i,j,k-1)=swdk1(i)+swdk2(i)
+# endif
+
           enddo
         enddo
       enddo

@@ -206,7 +206,9 @@ CR      write(*,*) ' -7' MYID
       do tile=my_tile_range          ! Create three-dimensional
         call set_depth (tile)        ! S-coordinate system, which
 #ifdef LMD_KPP
+# ifndef BIO_SWR_FRAC
         call swr_frac (tile)
+# endif
 #endif
       enddo                          ! may be needed by ana_initial.
 C$OMP BARRIER                        ! Here it is assumed that free
@@ -255,6 +257,13 @@ C$OMP END MASTER
       endif    !<-- nrrec.gt.0
 #endif
 C$OMP BARRIER
+
+#ifdef LMD_KPP
+# ifdef BIO_SWR_FRAC
+      ! Moved here as we need current chlorophyl to set swr_frac
+      call swr_frac (tile)
+# endif
+#endif
 
 !DL:initialize data structures related to age/dye tracers specified via
 ! Netcdf files, if necessary:
@@ -423,7 +432,7 @@ CR      write(*,*) '  0' MYID
 
 C$OMP MASTER
       MPI_master_only call system (
-     &  'echo; echo MAIN: started time-steping at `date`; echo')
+     &  'echo; echo MAIN: started time-stepping at `date`; echo')
 C$OMP END MASTER
 
       iic=ntstart-1
