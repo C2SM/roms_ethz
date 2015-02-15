@@ -42,11 +42,6 @@
 # endif
  
 # ifndef BIO_SWR_FRAC
-      if (ntstart > 1 ) then
-      MPI_master_only print*,
-     &   '*** WARNING Restart not working for BIO_SWR_FRAC!'
-      endif
-# else /* Not BIO_SWR_FRAC */
       mu1(1)=0.35    ! reciprocal of the absorption coefficient
       mu1(2)=0.6     ! for each of the two solar wavelength bands
       mu1(3)=1.0     ! as a function of Jerlov water type (Paulson
@@ -90,7 +85,7 @@
             attn=exp(-0.5*(kwater+kChla*max(t(i,j,k,nnew,iChla),0.))*
      &              (z_w(i,j,k)-z_w(i,j,k-1)))
             swr_frac(i,j,k-1) = attn**2
-# else /* Not BIO_SWR_FRAC
+# else /* Not BIO_SWR_FRAC */
             xi1=attn1*Hz(i,j,k)
             if (xi1 .gt. -20.) then        ! this logic to avoid
               swdk1(i)=swdk1(i)*exp(xi1)   ! computing exponent for
