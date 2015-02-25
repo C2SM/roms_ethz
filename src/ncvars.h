@@ -75,7 +75,7 @@
      &     )
       parameter (indxW=indxO+1, indxR=indxO+2,
      &     indxAkv=indxR+1, 
-# ifdef KPP_DIAGNOSSE
+# ifdef KPP_DIAGNOSE
      & indxRich=indxAkv+1, indxRichN=indxAkv+2,
 # endif
      &     indxAkt=indxAkv+3)

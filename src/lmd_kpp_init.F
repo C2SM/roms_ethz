@@ -86,10 +86,11 @@ CR           print *, 'lmd parameter namelist file was not found'
 CR           print *, 'Default values will be used.'
         end if
 
+#ifdef WRITE_KPP_PAR
         !DL: write biopar file only by the master process:
-#ifdef MPI
+# ifdef MPI
         if (mynode.eq.0) then
-#endif
+# endif
            open(76,file=filename_lmd_out_nml,status='unknown'
      &          ,iostat=status)
 
@@ -104,8 +105,9 @@ CR           print *, 'Default values will be used.'
                print *, 'Could not create lmd param output file ',
      &                     filename_lmd_out_nml
            end if 
-#ifdef MPI
+# ifdef MPI
         end if ! (mynode.eq.0
+# endif
 #endif
 
         return

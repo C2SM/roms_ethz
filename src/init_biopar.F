@@ -85,6 +85,7 @@
          print *, 'Default values will be used.'
       end if
 
+#ifdef WRITE_BIOPAR
       !DL: write biopar file only by the master process:
       if (mynode.eq.0) then
          open(72,file=filename_biopar_out_nml,status='unknown',
@@ -92,7 +93,7 @@
          if (status .eq. 0) then
             write(72,NML=biology_param_nml,iostat=status)
             if (status .ne. 0) then
-               print *, 'Could not write the biology parameter namelist!'
+               print *,'Could not write the biology parameter namelist!'
             end if
             close(72)
          else
@@ -100,6 +101,7 @@
      &           filename_biopar_out_nml
          end if
       end if ! mynode.eq.0
+#endif
 
       return
       end
