@@ -85,7 +85,7 @@
 ! Interpolate/extrapolate wind stress to rho grid:
 !
        do j=J_RANGE
-          if (j == JstrR) then
+          if (j == J_MIN) then
              sv_j1 = j+1
           else
              sv_j1 = j
@@ -96,7 +96,7 @@
              sv_j2 = j-1
           end if
           do i=I_RANGE
-             if (i == IstrR) then
+             if (i == I_MIN) then
                 su_i1 = i+1
              else
                 su_i1 = i
@@ -121,15 +121,18 @@
        do m=1,ntrc_bio
           do k=1,N
              tracer(istrR:iendR,jstrR:jendR,k,m) =
-     &             p5 * ( t(istrR:iendR,jstrR:jendR,k,nnew,1+ntrc_salt+ntrc_pas+m)
-     &                  + t(istrR:iendR,jstrR:jendR,k,nstp,1+ntrc_salt+ntrc_pas+m))
+     &              t(istr:iend,jstr:jend,k,nnew,1+ntrc_salt+ntrc_pas+m)
+!     &             p5 * ( t(istrR:iendR,jstrR:jendR,k,nnew,1+ntrc_salt+ntrc_pas+m)
+!     &                  + t(istrR:iendR,jstrR:jendR,k,nstp,1+ntrc_salt+ntrc_pas+m))
              
           enddo 
        enddo
-       sstt(istrR:iendR,jstrR:jendR) = p5 * (t(istrR:iendR,jstrR:jendR,N,nnew,1)
-     &                                  + t(istrR:iendR,jstrR:jendR,N,nstp,1))
-       ssss(istrR:iendR,jstrR:jendR)= p5 * (t(istrR:iendR,jstrR:jendR,N,nnew,2)
-     &                                  + t(istrR:iendR,jstrR:jendR,N,nstp,2))
+!       sstt(istrR:iendR,jstrR:jendR) = p5 * (t(istrR:iendR,jstrR:jendR,N,nnew,1)
+!     &                                  + t(istrR:iendR,jstrR:jendR,N,nstp,1))
+!       ssss(istrR:iendR,jstrR:jendR)= p5 * (t(istrR:iendR,jstrR:jendR,N,nnew,2)
+!     &                                  + t(istrR:iendR,jstrR:jendR,N,nstp,2))
+       sstt(istrR:iendR,jstrR:jendR) = t(istrR:iendR,jstrR:jendR,N,nnew,1)
+       ssss(istrR:iendR,jstrR:jendR) = t(istrR:iendR,jstrR:jendR,N,nnew,2)
 !
 ! Get short wave radiation:
 !
@@ -375,6 +378,12 @@ c$$$     &         *dt/Hz(istrR:iendR,jstrR:jendR,N)
     ! biological tracer values.
     !---------------------------------------------------------------------
 
+!       if (mynode==15) then
+!          print *, 'NO3 conc old: ', tracer(15,11,32,2)
+!          print *, 'change rate/m^3: ', DTRACER_MODULE(15,11,32,2)
+!          print *, 'change/m^3: ', dt*DTRACER_MODULE(15,11,32,2)
+!          print *, 'change = ', dt*DTRACER_MODULE(15,11,32,2)*Hz(15,11,32)/(pm(15,11)*pn(15,11))
+!       endif
        do k=1,n
           do m=1,ntrc_bio
              t(istrR:iendR,jstrR:jendR,k,nnew,1+ntrc_salt+ntrc_pas+m) =
@@ -382,6 +391,9 @@ c$$$     &         *dt/Hz(istrR:iendR,jstrR:jendR,N)
      &             + dt * DTRACER_MODULE(istrR:iendR,jstrR:jendR,k,m)
           enddo 
        enddo
+!       if (mynode==15) then
+!          print *, 'NO3 conc new: ', t(15,11,32,nnew,1+ntrc_salt+ntrc_pas+2)
+!       endif
 
        end subroutine ecosys_bec2_tile
 
@@ -807,7 +819,6 @@ c$$$     &         *dt/Hz(istrR:iendR,jstrR:jendR,N)
              bec2_diag_3d(istrR:iendR,j,k,diatlightlim_idx_t) = light_lim
           else
              ! Diazotrophs:
-             bec2_diag_3d(istrR:iendR,j,k,photocdiaz_idx_t) = photoC(istrR:iendR,auto_ind)
              bec2_diag_3d(istrR:iendR,j,k,diazlightlim_idx_t) = light_lim
           end if
 # endif
@@ -1013,13 +1024,20 @@ c$$$     &         *dt/Hz(istrR:iendR,jstrR:jendR,N)
        bec2_diag_3d(istrR:iendR,j,k,diatagg_idx_t) = auto_agg(istrR:iendR,diat_ind)
        bec2_diag_3d(istrR:iendR,j,k,photocsp_idx_t) = photoC(istrR:iendR,sp_ind)
        bec2_diag_3d(istrR:iendR,j,k,photocdiat_idx_t) = photoC(istrR:iendR,diat_ind)
+       bec2_diag_3d(istrR:iendR,j,k,photocdiaz_idx_t) = photoC(istrR:iendR,diaz_ind)
        bec2_diag_3d(istrR:iendR,j,k,totprod_idx_t) = sum(photoC,dim=2)
        bec2_diag_3d(istrR:iendR,j,k,spnlim_idx_t) = VNtot(istrR:iendR,sp_ind)
        bec2_diag_3d(istrR:iendR,j,k,diatnlim_idx_t) = VNtot(istrR:iendR,diat_ind)
        bec2_diag_3d(istrR:iendR,j,k,diazloss_idx_t) = auto_loss(istrR:iendR,diaz_ind)
-       bec2_diag_3d(istrR:iendR,j,k,spnuptake_idx_t) = NO3_V(istrR:iendR,sp_ind)
-       bec2_diag_3d(istrR:iendR,j,k,diatnuptake_idx_t) = NO3_V(istrR:iendR,diat_ind)
-       bec2_diag_3d(istrR:iendR,j,k,diaznuptake_idx_t) = NO3_V(istrR:iendR,diaz_ind)
+       bec2_diag_3d(istrR:iendR,j,k,spno3uptake_idx_t) = NO3_V(istrR:iendR,sp_ind)
+       bec2_diag_3d(istrR:iendR,j,k,diatno3uptake_idx_t) = NO3_V(istrR:iendR,diat_ind)
+       bec2_diag_3d(istrR:iendR,j,k,diazno3uptake_idx_t) = NO3_V(istrR:iendR,diaz_ind)
+       bec2_diag_3d(istrR:iendR,j,k,spnh4uptake_idx_t) = NH4_V(istrR:iendR,sp_ind)
+       bec2_diag_3d(istrR:iendR,j,k,diatnh4uptake_idx_t) = NH4_V(istrR:iendR,diat_ind)
+       bec2_diag_3d(istrR:iendR,j,k,diaznh4uptake_idx_t) = NH4_V(istrR:iendR,diaz_ind)
+!       if (mynode==15 .and. j==11 .and. k==32) then
+!          print *, 'NO3 uptake rate(15,11) = ', NO3_V(15,sp_ind)+NO3_V(15,diat_ind)+NO3_V(15,diaz_ind)
+!       endif
 # endif
 
 
@@ -1232,6 +1250,9 @@ c$$$     &         *dt/Hz(istrR:iendR,jstrR:jendR,N)
 
        DTRACER_MODULE(istrR:iendR,j,k,no3_ind_t) = NITRIF - DENITRIF - 
      &                                 SED_DENITRIF - sum(NO3_V, dim=2)
+!       if (mynode==15 .and. j==11 .and. k==32) then
+!          print *, 'DTRACER_MODULE(15,11,NO3) = ', DTRACER_MODULE(15,j,k,no3_ind_t)
+!       endif
 
        DTRACER_MODULE(istrR:iendR,j,k,nh4_ind_t) = -sum(NH4_V, dim=2) - NITRIF + DON_remin + DONr_remin
      &     + Q * (zoo_loss_dic + sum(auto_loss_dic, dim=2) + sum(auto_graze_dic, dim=2)

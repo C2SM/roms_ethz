@@ -304,7 +304,8 @@
      &    indxDIAZPO4UPTAKE,indxDIAZFEUPTAKE,indxDIAZLIGHTLIM,indxFESCAVENGERATE,
      &    indxDONPROD,indxDONREMIN,indxDOFEPROD,indxDOFEREMIN,indxDOPPROD,indxDOPREMIN,
      &    indxDIATSIUPTAKE,indxIRONUPTAKESP,indxIRONUPTAKEDIAT,indxIRONUPTAKEDIAZ,indxNITRIF,
-     &    indxDENITRIF,indxSPNUPTAKE,indxDIATNUPTAKE,indxDIAZNUPTAKE
+     &    indxDENITRIF,indxSPNO3UPTAKE,indxDIATNO3UPTAKE,indxDIAZNO3UPTAKE,indxSPNH4UPTAKE,
+     &    indxDIATNH4UPTAKE,indxDIAZNH4UPTAKE
        parameter( indxPAR=1,indxPOCFLUXIN=indxPAR+1,indxPOCPROD=indxPAR+2,
      &            indxPOCREMIN=indxPAR+3,indxCACO3FLUXIN=indxPAR+4,indxPCACO3PROD=indxPAR+5,
      &            indxCACO3REMIN=indxPAR+6,indxSIO2FLUXIN=indxPAR+7,indxSIO2PROD=indxPAR+8,
@@ -324,8 +325,9 @@
      &            indxDOFEPROD=indxPAR+48,indxDOFEREMIN=indxPAR+49,indxDOPPROD=indxPAR+50,
      &            indxDOPREMIN=indxPAR+51,indxDIATSIUPTAKE=indxPAR+52,indxIRONUPTAKESP=indxPAR+53,
      &            indxIRONUPTAKEDIAT=indxPAR+54,indxIRONUPTAKEDIAZ=indxPAR+55,indxNITRIF=indxPAR+56,
-     &            indxDENITRIF=indxPAR+57,indxSPNUPTAKE=indxPAR+58,indxDIATNUPTAKE=indxPAR+59,
-     &            indxDIAZNUPTAKE=indxPAR+60 )
+     &            indxDENITRIF=indxPAR+57,indxSPNO3UPTAKE=indxPAR+58,indxDIATNO3UPTAKE=indxPAR+59,
+     &            indxDIAZNO3UPTAKE=indxPAR+60,indxSPNH4UPTAKE=indxPAR+61,indxDIATNH4UPTAKE=indxPAR+62,
+     &            indxDIAZNH4UPTAKE=indxPAR+63 )
 #  endif /* BEC2_DIAG */
 # endif /* BIOLOGY_BEC2 */
 

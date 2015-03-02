@@ -11,7 +11,7 @@
 ! Diagnostic variables appearing in average and history files:
 !
       integer nr_bec2_diag_2d, nr_bec2_diag_3d, nr_bec2_diag
-      parameter( nr_bec2_diag_3d=61, nr_bec2_diag_2d=18 )
+      parameter( nr_bec2_diag_3d=64, nr_bec2_diag_2d=18 )
       parameter( nr_bec2_diag=nr_bec2_diag_2d+nr_bec2_diag_3d )
       real bec2_diag_3d(GLOBAL_2D_ARRAY,N,nr_bec2_diag_3d)
       real bec2_diag_2d(GLOBAL_2D_ARRAY,nr_bec2_diag_2d)
@@ -31,8 +31,8 @@
      &        diazloss_idx_t,photocdiaz_idx_t,diazpo4uptake_idx_t,diazfeuptake_idx_t,diazlightlim_idx_t,
      &        fescavengerate_idx_t,donprod_idx_t,donremin_idx_t,dofeprod_idx_t,doferemin_idx_t,
      &        dopprod_idx_t,dopremin_idx_t,diatsiuptake_idx_t,ironuptakesp_idx_t,ironuptakediat_idx_t,
-     &        ironuptakediaz_idx_t,nitrif_idx_t,denitrif_idx_t,spnuptake_idx_t,diatnuptake_idx_t,
-     &        diaznuptake_idx_t
+     &        ironuptakediaz_idx_t,nitrif_idx_t,denitrif_idx_t,spno3uptake_idx_t,diatno3uptake_idx_t,
+     &        diazno3uptake_idx_t,spnh4uptake_idx_t,diatnh4uptake_idx_t,diaznh4uptake_idx_t
       parameter( par_idx_t=1,pocfluxin_idx_t=par_idx_t+1,
      &   pocprod_idx_t=par_idx_t+2,pocremin_idx_t=par_idx_t+3,caco3fluxin_idx_t=par_idx_t+4,
      &   pcaco3prod_idx_t=par_idx_t+5,caco3remin_idx_t=par_idx_t+6,sio2fluxin_idx_t=par_idx_t+7,
@@ -52,8 +52,9 @@
      &   donremin_idx_t=par_idx_t+47,dofeprod_idx_t=par_idx_t+48,doferemin_idx_t=par_idx_t+49,
      &   dopprod_idx_t=par_idx_t+50,dopremin_idx_t=par_idx_t+51,diatsiuptake_idx_t=par_idx_t+52,
      &   ironuptakesp_idx_t=par_idx_t+53,ironuptakediat_idx_t=par_idx_t+54,ironuptakediaz_idx_t=par_idx_t+55,
-     &   nitrif_idx_t=par_idx_t+56,denitrif_idx_t=par_idx_t+57,spnuptake_idx_t=par_idx_t+58,
-     &   diatnuptake_idx_t=par_idx_t+59,diaznuptake_idx_t=par_idx_t+60 )
+     &   nitrif_idx_t=par_idx_t+56,denitrif_idx_t=par_idx_t+57,spno3uptake_idx_t=par_idx_t+58,
+     &   diatno3uptake_idx_t=par_idx_t+59,diazno3uptake_idx_t=par_idx_t+60,spnh4uptake_idx_t=par_idx_t+61,
+     &   diatnh4uptake_idx_t=par_idx_t+62,diaznh4uptake_idx_t=par_idx_t+63 )
       ! Indices to be used in bec2_diag_2d:
       integer ph_idx_t, pco2ws_idx_t, pco2air_idx_t, parinc_idx_t,
      &        fgo2_idx_t, fgco2_idx_t,ws10m_idx_t,xkw_idx_t,atmpress_idx_t,
