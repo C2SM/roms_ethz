@@ -307,6 +307,20 @@ CR      write(*,*) 'wrt_his:  wrtRich' MYID
         endif
 CR      write(*,*) 'wrt_his:  wrtRichN' MYID
       endif
+!
+! Write out solar fraction reaching level:
+!
+      if (wrthis(indxSwrF)) then
+        ierr=nf_fwrite (swr_frac(START_2D_ARRAY,0), ncidhis,
+     &                                hisSwrF, record, w3dvar)
+        if (ierr .ne. nf_noerr) then
+          lvar=lenstr(vname(1,indxSwrF))
+          write(stdout,1) vname(1,indxSwrF)(1:lvar), record, ierr,
+     &                    nf_strerror(ierr) MYID
+          goto 99                                         !--> ERROR
+        endif
+CR      write(*,*) 'wrt_his:  wrtSwrF' MYID
+      endif
 # endif /* KPP_DIAGNOSE */
 # ifdef SALINITY
 !

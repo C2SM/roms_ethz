@@ -50,7 +50,7 @@
 # endif /* BIOLOGY */
       integer indxO, indxW, indxR, indxAkv, indxAkt
 # ifdef KPP_DIAGNOSE
-     & , indxRich, indxRichN
+     & , indxRich, indxRichN, indxSwrF
 # endif
 # ifdef WRITE_DEPTHS
       integer indxz_r, indxz_w, indxHz
@@ -76,7 +76,7 @@
       parameter (indxW=indxO+1, indxR=indxO+2,
      &     indxAkv=indxR+1, 
 # ifdef KPP_DIAGNOSE
-     & indxRich=indxAkv+1, indxRichN=indxAkv+2,
+     & indxRich=indxAkv+1, indxRichN=indxAkv+2, indxSwrF=indxAkv+3,
 # endif
      &     indxAkt=indxAkv+3)
 # ifdef SALINITY
@@ -424,7 +424,7 @@
       integer rstU, rstV, rstT(NT+1), hisO,   hisW,   hisR,
      &        hisU, hisV, hisT(NT+1), hisAkv, hisAkt, hisAks 
 #ifdef KPP_DIAGNOSE
-     &        , hisRich, hisRichN
+     &        , hisRich, hisRichN, hisSwrF
 #endif
 # if defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC
 #  if defined CH_CARBON_DEPTH
@@ -457,7 +457,7 @@
      &        rstU, rstV, rstT,       hisO,   hisW,   hisR,
      &        hisU, hisV, hisT,       hisAkv, hisAkt, hisAks
 # ifdef KPP_DIAGNOSE
-     &        , hisRich, hisRichN
+     &        , hisRich, hisRichN, hisSwrF
 # endif
 # if defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC
 #  if defined CH_CARBON_DEPTH
@@ -506,7 +506,7 @@
       integer avgU,  avgV,  avgT(NT+1), avgR,
      &        avgO,  avgW,  avgAkv,     avgAkt,  avgAks
 #  ifdef KPP_DIAGNOSE
-     &        , avgRich, avgRichN
+     &        , avgRich, avgRichN, avgSwrF
 #  endif
 #   ifdef SEDIMENT_BIOLOGY
      &      , avgTsed(NT_sed)
@@ -514,7 +514,7 @@
       common /ncvars/ avgU, avgV,       avgT,    avgR, 
      &        avgO,  avgW,  avgAkv,     avgAkt,  avgAks
 #  ifdef KPP_DIAGNOSE
-     &        , avgRich, avgRichN
+     &        , avgRich, avgRichN, avgSwrF
 #  endif
 #  ifdef SEDIMENT_BIOLOGY
      &      , avgTsed
@@ -536,7 +536,7 @@
       integer ksl, slavgU, slavgV, slavgT(NT+1), slavgR
      &      , slavgO, slavgW, slavgAkv, slavgAkt, slavgAks
 # ifdef KPP_DIAGNOSE
-     &        , slavgRich, slavgRichN
+     &        , slavgRich, slavgRichN, slavgSwrF
 # endif
 #   ifdef SEDIMENT_BIOLOGY
      &      , slavgTsed(NT_sed)
@@ -544,7 +544,7 @@
       common /ncvars/ ksl, slavgU, slavgV, slavgT, slavgR
      &      , slavgO, slavgW, slavgAkv, slavgAkt, slavgAks
 # ifdef KPP_DIAGNOSE
-     &        , slavgRich, slavgRichN
+     &        , slavgRich, slavgRichN, slavgSwrF
 # endif
 #  ifdef SEDIMENT_BIOLOGY
      &      , slavgTsed

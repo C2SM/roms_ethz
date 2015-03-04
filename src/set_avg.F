@@ -26,6 +26,9 @@
 #  define aks_AVR(i,j,k) aks_avg(i,j,k)
 #  define akt_AVR(i,j,k) akt_avg(i,j,k)
 #  define akv_AVR(i,j,k) akv_avg(i,j,k)
+#  define rich_AVR(i,j,k) rich_avg(i,j,k)
+#  define richN_AVR(i,j,k) richN_avg(i,j,k)
+#  define swr_frac_AVR(i,j,k) swr_frac_avg(i,j,k)
 #  define KLOOP(s)  do k=s,N
 #  define ENDKLOOP  enddo
 #  define KLEVEL   k
@@ -72,6 +75,9 @@
 #  define aks_AVR(i,j,k) aks_slavg(i,j)
 #  define akt_AVR(i,j,k) akt_slavg(i,j)
 #  define akv_AVR(i,j,k) akv_slavg(i,j)
+#  define rich_AVR(i,j,k) rich_slavg(i,j)
+#  define richN_AVR(i,j,k) richN_slavg(i,j)
+#  define swr_frac_AVR(i,j,k) swr_frac_slavg(i,j)
 #  define KLOOP(s)  
 #  define ENDKLOOP  
 #  define KLEVEL   ksl
@@ -358,6 +364,15 @@
               enddo
             ENDKLOOP
           endif
+          if (wrtAVR(indxSwrF)) then
+            KLOOP(0)
+              do j=jstrR,jendR
+                do i=istrR,iendR
+                  swr_frac_AVR(i,j,k)=swr_frac(i,j,KLEVEL)
+                enddo
+              enddo
+            ENDKLOOP
+          endif
 #  endif /* KPP_DIAGNOSE */
 #  ifdef SALINITY
           if (wrtAVR(indxAks)) then
@@ -605,6 +620,16 @@
               do j=jstrR,jendR
                 do i=istrR,iendR
                   richN_AVR(i,j,k)=richN_AVR(i,j,k)+RichN(i,j,KLEVEL)
+                enddo
+              enddo
+            ENDKLOOP
+          endif
+          if (wrtAVR(indxSwrF)) then
+            KLOOP(0)
+              do j=jstrR,jendR
+                do i=istrR,iendR
+                  swr_frac_AVR(i,j,k)=swr_frac_AVR(i,j,k)
+     &                                +swr_frac(i,j,KLEVEL)
                 enddo
               enddo
             ENDKLOOP
@@ -868,6 +893,16 @@
               enddo
             ENDKLOOP
           endif
+          if (wrtAVR(indxSwrF)) then
+            KLOOP(0)
+              do j=jstrR,jendR
+                do i=istrR,iendR
+                  swr_frac_AVR(i,j,k)=cff*(swr_frac_AVR(i,j,k)+
+     &                                  swr_frac(i,j,KLEVEL))
+                enddo
+              enddo
+            ENDKLOOP
+          endif
 #  endif /* KPP_DIAGNOSE */
 #  ifdef SALINITY
           if (wrtAVR(indxAks)) then
@@ -951,6 +986,9 @@
 # undef rho_AVR
 # undef aks_AVR
 # undef akt_AVR
+# undef rich_AVR
+# undef richN_AVR
+# undef swr_frac_AVR
 # undef akv_AVR
 # undef KLOOP
 # undef ENDKLOOP

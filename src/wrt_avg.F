@@ -24,6 +24,7 @@
 #  define Aks_avr Aks_avg
 #  define rich_avr rich_avg
 #  define richN_avr richN_avg
+#  define swr_frac_avr swr_frac_avg
 #  define t_sed_avr t_sed_avg
 #  define pH_avr pH_avg 
 #  define pCO2_avr pCO2_avg 
@@ -48,6 +49,7 @@
 #  define avrAks avgAks
 #  define avrRich avgRich
 #  define avrRichN avgRichN
+#  define avrSwrF avgSwrF
 #  define avrTsed avgTsed
 #  define avrPH avgPH 
 #  define avrPCO2 avgPCO2 
@@ -91,6 +93,7 @@
 #  define Aks_avr Aks_slavg
 #  define rich_avr rich_slavg
 #  define richN_avr richN_slavg
+#  define swr_frac_avr swr_frac_slavg
 #  define t_sed_avr t_sed_slavg
 #  define pH_avr pH_slavg
 #  define pCO2_avr pCO2_slavg
@@ -115,6 +118,7 @@
 #  define avrAks slavgAks
 #  define avrRich slavgRich
 #  define avrRichN slavgRichN
+#  define avrSwrF slavgSwrF
 #  define avrTsed slavgTsed
 #  define avrPH slavgPH 
 #  define avrPCO2 slavgPCO2 
@@ -394,7 +398,7 @@ CR      write(*,*) 'wrt_avr:  wrtT_sed  ' MYID
 ! Write out diffusion coefficient due to vertical velocity shear:
 !
       if (wrtavr(indxRich)) then
-        ierr=nf_fwrite (rich_avr(START_2D_ARRAY,0), ncidavr,
+        ierr=nf_fwrite (rich_avr(START_3D_ARRAY_K0), ncidavr,
      &                                avrRich, record, W3DVAR)
         if (ierr .ne. nf_noerr) then
           lvar=lenstr(vname(1,indxRich))
@@ -407,11 +411,24 @@ CR      write(*,*) 'wrt_avr:  wrtT_sed  ' MYID
 ! Write out local gradient Richardson number:
 !
       if (wrtavr(indxRichN)) then
-        ierr=nf_fwrite (richN_avr(START_2D_ARRAY,0), ncidavr,
+        ierr=nf_fwrite (richN_avr(START_3D_ARRAY_K0), ncidavr,
      &                                avrRichN, record, W3DVAR)
         if (ierr .ne. nf_noerr) then
           lvar=lenstr(vname(1,indxRichN))
           write(stdout,1) vname(1,indxRichN)(1:lvar), record, ierr,
+     &                    nf_strerror(ierr) MYID
+          goto 99                                         !--> ERROR
+        endif
+      endif
+!
+! Write out solar fraction reaching level:
+!
+      if (wrtavr(indxSwrF)) then
+        ierr=nf_fwrite (swr_frac_avr(START_3D_ARRAY_K0), ncidavr,
+     &                                avrSwrF, record, W3DVAR)
+        if (ierr .ne. nf_noerr) then
+          lvar=lenstr(vname(1,indxSwrF))
+          write(stdout,1) vname(1,indxSwrF)(1:lvar), record, ierr,
      &                    nf_strerror(ierr) MYID
           goto 99                                         !--> ERROR
         endif
@@ -753,6 +770,7 @@ CR     &              MYID
 #  undef rich_avr
 #  undef avrRich
 #  undef richN_avr
+#  undef swr_frac_avr
 #  undef avrRichN
 #  undef avrHbl
 #  undef avrHbbl

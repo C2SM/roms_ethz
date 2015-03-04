@@ -239,7 +239,7 @@ c--      fname='roms.in.US_West'
 #endif
             read(input,'(A)',err=95) fname
             lstr=lenstr(fname)
-#if defined MPI && defined PARALLEL_FILES
+#if defined MPI && defined PARALLEL_FILES && !defined JOINED_INI
             call insert_node (fname, lstr, mynode, NNODES, ierr)
 #endif
             ininame=fname(1:lstr)
@@ -256,7 +256,7 @@ c--      fname='roms.in.US_West'
           call cancel_kwd (keyword(1:kwlen), ierr)
           read(input,'(A)',err=95) fname
           lstr=lenstr(fname)
-# if defined MPI && defined PARALLEL_FILES
+# if defined MPI && defined PARALLEL_FILES && !defined JOINED_GRD
           call insert_node (fname, lstr, mynode, NNODES, ierr)
 # endif
           open(testunit,file=fname(1:lstr), status='old', err=97)
@@ -286,7 +286,7 @@ c--      fname='roms.in.US_West'
             read(input,'(A)',err=95) fname
             lstr=lenstr(fname)
             if (lstr.gt.0) then
-#if defined MPI && defined PARALLEL_FILES
+#if defined MPI && defined PARALLEL_FILES && !defined JOINED_FRC
               call insert_node (fname, lstr, mynode, NNODES, ierr)
 #endif
               open (testunit,file=fname(1:lstr),status='old',err=97)
@@ -332,7 +332,7 @@ c--      fname='roms.in.US_West'
           do i = 1,nclimfiles
              read(input,'(A)',err=95) fname
              lstr=lenstr(fname)
-#  if defined MPI && defined PARALLEL_FILES
+#  if defined MPI && defined PARALLEL_FILES && !defined JOINED_CLM
              call insert_node (fname, lstr, mynode, NNODES, ierr)
 #  endif
              open (testunit, file=fname(1:lstr), status='old', err=97)
@@ -344,7 +344,7 @@ c--      fname='roms.in.US_West'
 # else /* MULT_CLIM_FILES */
           read(input,'(A)',err=95) fname
           lstr=lenstr(fname)
-#  if defined MPI && defined PARALLEL_FILES
+#  if defined MPI && defined PARALLEL_FILES && !defined JOINED_CLM
           call insert_node (fname, lstr, mynode, NNODES, ierr)
 #  endif
           open (testunit, file=fname(1:lstr), status='old', err=97)
@@ -365,7 +365,7 @@ c--      fname='roms.in.US_West'
           call cancel_kwd (keyword(1:kwlen), ierr)
           read(input,'(A)',err=95) fname
           lstr=lenstr(fname)
-#  if defined MPI && defined PARALLEL_FILES
+#  if defined MPI && defined PARALLEL_FILES && !defined JOINED_BRY
           call insert_node (fname, lstr, mynode, NNODES, ierr)
 #  endif
           open (testunit, file=fname(1:lstr), status='old', err=97)
@@ -388,7 +388,7 @@ c--      fname='roms.in.US_West'
           ! print*,'rstname set: ',trim(fname)
 #  endif
           lstr=lenstr(fname)
-# if defined MPI && defined PARALLEL_FILES
+# if defined MPI && defined PARALLEL_FILES && !defined JOINED_RST
           call insert_node (fname, lstr, mynode, NNODES, ierr)
 # endif
           rstname=fname(1:lstr)
@@ -407,7 +407,7 @@ c--      fname='roms.in.US_West'
           fname=trim(scr_dir)/ /trim(fname)
 #  endif
           lstr=lenstr(fname)
-# if defined MPI && defined PARALLEL_FILES
+# if defined MPI && defined PARALLEL_FILES && !defined JOINED_HIS
           call insert_node (fname, lstr, mynode, NNODES, ierr)
 # endif
           hisname=fname(1:lstr)
@@ -427,7 +427,7 @@ c--      fname='roms.in.US_West'
           fname=trim(scr_dir)/ /trim(fname)
 #  endif
           lstr=lenstr(fname)
-# if defined MPI && defined PARALLEL_FILES
+# if defined MPI && defined PARALLEL_FILES && !defined JOINED_AVG
           call insert_node (fname, lstr, mynode, NNODES, ierr)
 # endif
           avgname=fname(1:lstr)
@@ -452,7 +452,7 @@ c--      fname='roms.in.US_West'
           fname=trim(scr_dir)/ /trim(fname)
 #  endif
           lstr=lenstr(fname)
-# if defined MPI && defined PARALLEL_FILES
+# if defined MPI && defined PARALLEL_FILES && !defined JOINED_SLAVG
           call insert_node (fname, lstr, mynode, NNODES, ierr)
 # endif
           slavgname=fname(1:lstr)
@@ -480,7 +480,7 @@ c--      fname='roms.in.US_West'
           fname=trim(scr_dir)/ /trim(fname)
 #  endif
           lstr=lenstr(fname)
-# if defined MPI && defined PARALLEL_FILES
+# if defined MPI && defined PARALLEL_FILES && !defined JOINED_BGC_FLUX_HIS
           call insert_node (fname, lstr, mynode, NNODES, ierr)
 # endif
           bgc_flux_his_name=fname(1:lstr)
@@ -507,7 +507,7 @@ c--      fname='roms.in.US_West'
           fname=trim(scr_dir)/ /trim(fname)
 #  endif
           lstr=lenstr(fname)
-#  if defined MPI && defined PARALLEL_FILES
+#  if defined MPI && defined PARALLEL_FILES && !defined JOINED_BGC_FLUX_AVG
           call insert_node (fname, lstr, mynode, NNODES, ierr)
 #  endif
           bgc_flux_avg_name=fname(1:lstr)
@@ -539,7 +539,7 @@ c--      fname='roms.in.US_West'
           fname=trim(scr_dir)/ /trim(fname)
 #  endif
           lstr=lenstr(fname)
-# if defined MPI && defined PARALLEL_FILES
+# if defined MPI && defined PARALLEL_FILES && !defined PHYS_FLUX_HIS
           call insert_node (fname, lstr, mynode, NNODES, ierr)
 # endif
           phys_flux_his_name=fname(1:lstr)
@@ -567,7 +567,7 @@ c--      fname='roms.in.US_West'
           fname=trim(scr_dir)/ /trim(fname)
 #  endif
           lstr=lenstr(fname)
-#  if defined MPI && defined PARALLEL_FILES
+#  if defined MPI && defined PARALLEL_FILES && !defined PHYS_FLUX_AVG
           call insert_node (fname, lstr, mynode, NNODES, ierr)
 #  endif
           phys_flux_avg_name=fname(1:lstr)
@@ -628,7 +628,7 @@ c--      fname='roms.in.US_West'
 #  ifdef SCRATCH_DIR
           fname=trim(scr_dir)/ /trim(fname)
 #  endif
-# if defined MPI && defined PARALLEL_FILES
+# if defined MPI && defined PARALLEL_FILES && !defined JOINED_FLOATS
           call insert_node (fposname, lstr, mynode, NNODES, ierr)
 # endif
           fltname=fname(1:lstr)

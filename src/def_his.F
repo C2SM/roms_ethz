@@ -128,6 +128,7 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
 # ifdef KPP_DIAGNOSE
 #  define vidRich hisRich
 #  define vidRichN hisRichN
+#  define vidSwrF hisSwrF
 # endif
 # define vidAks hisAks
 # define vidHbl hisHbl
@@ -186,6 +187,7 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
 # ifdef KPP_DIAGNOSE
 #  define vidRich avgRich
 #  define vidRichN avgRichN
+#  define vidSwrF avgSwrF
 # endif
 # define vidAks avgAks
 # define vidHbl avgHbl
@@ -243,6 +245,7 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
 #  ifdef KPP_DIAGNOSE
 #   define vidRich slavgRich
 #   define vidRichN slavgRichN
+#   define vidSwrF slavgSwrF
 #  endif
 #  define vidAks slavgAks
 #  define vidHbl slavgHbl
@@ -800,7 +803,6 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
           ierr=nf_def_var_chunking(ncid, vidAkt, ncctg, ncrchnk3)
 #endif
         endif
-# if 0
 # ifdef KPP_DIAGNOSE
 !
 ! Diffusivity due to vertical velocity shear:
@@ -823,6 +825,10 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
 #ifdef MASK_LAND_DATA 
           ierr=nf_put_att_FOUT (ncid, vidRich, '_FillValue',
      &                                   NF_FOUT, 1, spv_set)
+#endif
+#ifdef NCCOMPRESS
+          ierr=nf_def_var_deflate(ncid, vidRich, ncshuff, ncdefl, nclev)
+          ierr=nf_def_var_chunking(ncid, vidRich, ncctg, ncrchnk3)
 #endif
         endif
 !
@@ -847,9 +853,40 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
           ierr=nf_put_att_FOUT (ncid, vidRichN, '_FillValue',
      &                                   NF_FOUT, 1, spv_set)
 #endif
+#ifdef NCCOMPRESS
+          ierr=nf_def_var_deflate(ncid, vidRichN, 
+     &                             ncshuff, ncdefl, nclev)
+          ierr=nf_def_var_chunking(ncid, vidRichN, ncctg, ncrchnk3)
+#endif
+        endif
+!
+! Solar Radiation Fraction reaching the level (swr_frac)
+!
+        if (wrt(indxSwrF)) then
+          lvar=lenstr(vname(1,indxSwrF))
+          ierr=nf_def_var (ncid, vname(1,indxSwrF)(1:lvar), NF_FOUT,
+     &                                           NVDIM, WGRD, vidSwrF)
+# ifdef AVRH
+          text='averaged '/ /vname(2,indxSwrF)
+# else
+          text=vname(2,indxSwrF)
+# endif
+          lvar=lenstr(text)
+          ierr=nf_put_att_text (ncid, vidSwrF, 'long_name', lvar,
+     &                                              text(1:lvar))
+          lvar=lenstr(vname(3,indxSwrF))
+          ierr=nf_put_att_text (ncid, vidSwrF, 'units',     lvar,
+     &                                  vname(3,indxSwrF)(1:lvar))
+#ifdef MASK_LAND_DATA 
+          ierr=nf_put_att_FOUT (ncid, vidSwrF, '_FillValue',
+     &                                   NF_FOUT, 1, spv_set)
+#endif
+#ifdef NCCOMPRESS
+          ierr=nf_def_var_deflate(ncid, vidSwrF, ncshuff, ncdefl, nclev)
+          ierr=nf_def_var_chunking(ncid, vidSwrF, ncctg, ncrchnk3)
+#endif
         endif
 # endif /* KPP_DIAGNOSE */
-#endif /* 0 */
 # ifdef SALINITY
 !
 ! Vertical diffusion coefficient for salinity.
@@ -1546,6 +1583,17 @@ CR     &                   MYID
             goto 99                                       !--> ERROR
           endif
         endif
+!
+! Solar radiation fraction reaching the level:
+!
+        if (wrt(indxSwrF)) then
+          lvar=lenstr(vname(1,indxSwrF))
+          ierr=nf_inq_varid (ncid,vname(1,indxSwrF)(1:lvar), vidSwrF)
+          if (ierr .ne. nf_noerr) then
+            write(stdout,1) vname(1,indxSwrF)(1:lvar), ncname(1:lstr)
+            goto 99                                       !--> ERROR
+          endif
+        endif
 # endif /* KPP_DIAGNOSE */
 # ifdef SALINITY
 !
@@ -1847,6 +1895,7 @@ CR     &      'existing file ''', ncname(1:lstr), ''' ncid =', ncid
 #undef vidAkt
 #undef vidRich
 #undef vidRichN
+#undef vidSwrF
 #undef vidAks
 #undef vidHbl
 #undef vidHbbl

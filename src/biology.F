@@ -96,6 +96,9 @@
 # include "mpif.h"
 #endif
 #include "gasexc.h"
+#if defined BIO_SWR_FRAC && defined TIME_VAR_SWR_FRAC
+# include "mixing.h"
+#endif
 
 #ifdef DAILYPAR_PHOTOINHIBITION
       real thisPARdaily
@@ -422,7 +425,7 @@
                                      !    nonlinear backward-implicit solution.
       thisPAR = PARinc(i,j) 
 #if defined BIO_SWR_FRAC && defined TIME_VAR_SWR_FRAC
-      cffi=1./thisPAR   ! to avoid division in k-loop
+      cffi=1./max(thisPAR,1D-30)     ! avoid division in k-loop below
       swr_frac(i,j,N) = 1.
 #endif
 

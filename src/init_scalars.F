@@ -286,8 +286,12 @@ CR      write(stdout,'(1x,A,I3)') 'indxRich =',indxRich
       vname(3,indxRich)='meter2 second-1                           '
 
       vname(1,indxRichN)='RichN                                    '
-      vname(2,indxRichN)='Local gradient Richardson number          '
-      vname(3,indxRichN)='                                          '
+      vname(2,indxRichN)='Local gradient Richardson number         '
+      vname(3,indxRichN)='                                         '
+
+      vname(1,indxSwrF) ='swrfrac                                  '
+      vname(2,indxSwrF)='Solar fraction reaching the level        '
+      vname(3,indxSwrF)='                                         '
 # endif
 
 CR      write(stdout,'(1x,A,I3)') 'indxAkt =',indxAkt

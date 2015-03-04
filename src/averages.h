@@ -30,9 +30,13 @@ CSDISTRIBUTE_RESHAPE w_avg(BLOCK_PATTERN,*) BLOCK_CLAUSE
 CSDISTRIBUTE_RESHAPE akt_avg(BLOCK_PATTERN,*) BLOCK_CLAUSE
       common /avg_akv/akv_avg /avg_akt/akt_avg
 #  ifdef KPP_DIAGNOSE
-      real rich_avg(GLOBAL_2D_ARRAY,0:N), richN_avg(GLOBAL_2D_ARRAY,0:N)
+      real rich_avg(GLOBAL_2D_ARRAY,0:N)
 CSDISTRIBUTE_RESHAPE rich_avg(BLOCK_PATTERN,*) BLOCK_CLAUSE
-      common /rich_akt/rich_avg, richN_avg
+      real richN_avg(GLOBAL_2D_ARRAY,0:N)
+CSDISTRIBUTE_RESHAPE richN_avg(BLOCK_PATTERN,*) BLOCK_CLAUSE
+      real swr_frac_avg(GLOBAL_2D_ARRAY,0:N)
+CSDISTRIBUTE_RESHAPE swr_frac_avg(BLOCK_PATTERN,*) BLOCK_CLAUSE
+      common /rich_akt/rich_avg, richN_avg, swr_frac_avg
 #  endif
 #  ifdef SALINITY
       real aks_avg(GLOBAL_2D_ARRAY,0:N)
@@ -93,9 +97,13 @@ CSDISTRIBUTE_RESHAPE w_slavg(BLOCK_PATTERN) BLOCK_CLAUSE
 CSDISTRIBUTE_RESHAPE akt_slavg(BLOCK_PATTERN) BLOCK_CLAUSE
       common /slavg_akv/akv_slavg /slavg_akt/akt_slavg
 #ifdef KPP_DIAGNOSE
-      real rich_slavg(GLOBAL_2D_ARRAY,0:N), richN_slavg(GLOBAL_2D_ARRAY,0:N)
+      real rich_slavg(GLOBAL_2D_ARRAY)
 CSDISTRIBUTE_RESHAPE rich_slavg(BLOCK_PATTERN) BLOCK_CLAUSE
-      common /rich_akt/rich_slavg, richN_slavg
+      real richN_slavg(GLOBAL_2D_ARRAY)
+CSDISTRIBUTE_RESHAPE richN_slavg(BLOCK_PATTERN) BLOCK_CLAUSE
+      real swr_frac_slavg(GLOBAL_2D_ARRAY)
+CSDISTRIBUTE_RESHAPE swr_frac_slavg(BLOCK_PATTERN) BLOCK_CLAUSE
+      common /rich_akt/rich_slavg, richN_slavg, swr_frac_slavg
 #endif
 #  ifdef SALINITY
       real aks_slavg(GLOBAL_2D_ARRAY)
