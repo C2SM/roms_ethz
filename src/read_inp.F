@@ -730,6 +730,7 @@ c--      fname='roms.in.US_West'
      &          ,  wrthis(indxW),  wrthis(indxAkv),  wrthis(indxAkt)
 # ifdef KPP_DIAGNOSE
      &          ,  wrthis(indxRich), wrthis(indxRichN)
+     &          ,  wrthis(indxSwrF)
 # endif
 # ifdef SALINITY
      &                                            ,  wrthis(indxAks)
@@ -744,6 +745,7 @@ c--      fname='roms.in.US_West'
      &                     .or. wrthis(indxAkv) .or. wrthis(indxAkt)
 # ifdef KPP_DIAGNOSE
      &                     .or. wrthis(indxRich) .or. wrthis(indxRichN)
+     &                     .or. wrthis(indxSwrF)
 # endif
 # ifdef SALINITY
      &                                          .or. wrthis(indxAks)
@@ -756,7 +758,8 @@ c--      fname='roms.in.US_West'
 # endif
      &       ) wrthis(indxTime)=.true.
  
-          MPI_master_only write(stdout,'(7(/6x,l1,2x,A,1x,A))')
+          MPI_master_only write
+     &      (stdout,'(10(/6x,l1,2x,A,1x,A))')
      &      wrthis(indxR),  'write RHO  ', 'Density anomaly'
      &    , wrthis(indxO),  'write Omega', 'Omega vertical velocity.'
      &    , wrthis(indxW),  'write W    ', 'True vertical velocity.'
@@ -768,6 +771,8 @@ c--      fname='roms.in.US_West'
      &               'Diffusivity due to vertical velocity shear'
      &    , wrthis(indxRichN), 'write RichN', 
      &               'Local gradient Richardson number'
+     &    , wrthis(indxSwrF), 'write swr_frac', 
+     &               'Solar fraction reaching the level'
 # endif
 # ifdef SALINITY
      &    , wrthis(indxAks),'write Aks  ',
@@ -889,6 +894,7 @@ c--      fname='roms.in.US_West'
      &          ,  wrtavg(indxW),  wrtavg(indxAkv),  wrtavg(indxAkt)
 #  ifdef KPP_DIAGNOSE
      &          ,  wrtavg(indxRich), wrtavg(indxRichN)
+     &          ,  wrtavg(indxSwrF)
 #  endif
 #  ifdef SALINITY
      &                                            ,  wrtavg(indxAks)
@@ -903,6 +909,7 @@ c--      fname='roms.in.US_West'
      &                  .or. wrtavg(indxAkv) .or. wrtavg(indxAkt)
 #  ifdef KPP_DIAGNOSE
      &                  .or. wrtavg(indxRich) .or. wrtavg(indxRichN)
+     &                  .or. wrtavg(indxSwrF)
 #  endif
 #  ifdef SALINITY
      &                                          .or. wrtavg(indxAks)
@@ -916,7 +923,8 @@ c--      fname='roms.in.US_West'
      &       ) wrtavg(indxTime)=.true.
  
 #  ifndef SLICE_AVG
-          MPI_master_only write(stdout,'(7(/6x,l1,2x,A,1x,A))')
+          MPI_master_only write
+     &      (stdout,'(10(/6x,l1,2x,A,1x,A))')
      &      wrtavg(indxR),  'write RHO  ', 'Density anomaly'
      &    , wrtavg(indxO),  'write Omega', 'Omega vertical velocity.'
      &    , wrtavg(indxW),  'write W    ', 'True vertical velocity.'
@@ -928,6 +936,8 @@ c--      fname='roms.in.US_West'
      &                'Diffusivity due to vertical velocity shear'
      &    , wrtavg(indxRichN), 'write RichN', 
      &               'Local gradient Richardson number'
+     &    , wrthis(indxSwrF), 'write swr_frac', 
+     &               'Solar fraction reaching the level'
 #  endif
 #  ifdef SALINITY
      &    , wrtavg(indxAks),'write Aks  ',
@@ -948,6 +958,7 @@ c--      fname='roms.in.US_West'
      &         , wrtslavg(indxW), wrtslavg(indxAkv), wrtslavg(indxAkt)
 #  ifdef KPP_DIAGNOSE
      &          ,  wrtslavg(indxRich), wrtslavg(indxRichN)
+     &          ,  wrtslavg(indxSwrF)
 #  endif
 #  ifdef SALINITY
      &                                            ,  wrtslavg(indxAks)
@@ -962,6 +973,7 @@ c--      fname='roms.in.US_West'
      &                .or. wrtslavg(indxAkv) .or. wrtslavg(indxAkt)
 #  ifdef KPP_DIAGNOSE
      &                .or. wrtslavg(indxRich) .or. wrtslavg(indxRichN)
+     &                .or. wrtslavg(indxSwrF)
 #  endif
 #  ifdef SALINITY
      &                                          .or. wrtslavg(indxAks)
@@ -974,7 +986,8 @@ c--      fname='roms.in.US_West'
 #  endif
      &       ) wrtslavg(indxTime)=.true.
  
-          MPI_master_only write(stdout,'(A,7(/6x,l1,1x,l1,2x,A,1x,A))')
+          MPI_master_only write
+     &     (stdout,'(A,10(/6x,l1,1x,l1,2x,A,1x,A))')
      &    'Fields to be saved in averages, slice averages file: (T/F)'
      &      , wrtavg(indxR), wrtslavg(indxR)
      &      , 'write RHO  ', 'Density anomaly'
@@ -991,6 +1004,8 @@ c--      fname='roms.in.US_West'
      &      , 'write Rich ', 'Diffusivity due to vertical shear'
      &      , wrtavg(indxRichN), wrtslavg(indxRichN)
      &      , 'write RichN', 'Local gradient Richardson number'
+     &      , wrthis(indxSwrF), 'write swr_frac', 
+     &               'Solar fraction reaching the level'
 #  endif
 #  ifdef SALINITY
      &      , wrtavg(indxAks), wrtslavg(indxAks)

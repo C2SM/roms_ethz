@@ -78,7 +78,7 @@
 # ifdef KPP_DIAGNOSE
      & indxRich=indxAkv+1, indxRichN=indxAkv+2, indxSwrF=indxAkv+3,
 # endif
-     &     indxAkt=indxAkv+3)
+     &     indxAkt=indxAkv+4)
 # ifdef SALINITY
       integer indxAks
       parameter (indxAks=indxAkt+1)
