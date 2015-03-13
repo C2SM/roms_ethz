@@ -104,14 +104,14 @@
 
       integer indxSUSTR, indxSVSTR
 #ifdef SOLVE3D
-      parameter (indxSUSTR=indxAkt+4, indxSVSTR=indxAkt+5)
+      parameter (indxSUSTR=indxAkt+3, indxSVSTR=indxAkt+4)
 #else
       parameter (indxSUSTR=indxVb+1,  indxSVSTR=indxSUSTR+1)
 #endif
 
 #ifdef SOLVE3D
       integer indxSHFl, indxSWRad
-      parameter (indxSHFl=indxAkt+6)
+      parameter (indxSHFl=indxAkt+5)
 # ifdef SALINITY
       integer indxSSFl
       parameter (indxSSFl=indxSHFl+1, indxSWRad=indxSHFl+2)
