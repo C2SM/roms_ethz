@@ -1,5 +1,7 @@
 # Ignore sources and binaries generated during compilation
 *.f
+*.o
+*~
 check_srcs.F
 check_switches1.F
 checkkwds
