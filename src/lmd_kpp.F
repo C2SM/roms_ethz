@@ -10,7 +10,7 @@ c--# define LIMIT_MO_DEPTH
 
 c--# define MLCONVEC
 
-! The following CPP-switch forces both "hbl" and "hbbl" to be set to
+! The following CPP-switch forces both "hbl" and "bbl" to be set to
 ! the total depth in the case when it is detected that the surface and
 ! bottom mixed layers overlap. Both LMD_KPP and LMD_BKPP must be
 ! defined for this to take effect.
@@ -18,16 +18,16 @@ c--# define MERGE_OVERLAP
 
 
       subroutine lmd_kpp_tile (istr,iend,jstr,jend,       Kv,Kt,Ks,
-     &                         ustar, Bo,Bosol, hbl,hbbl, FX,FE,FE1,
+     &                         ustar, Bo,Bosol, hbl,bbl, FX,FE,FE1,
      &                         Cr,FC, wrk1,wrk2,
      &                         Gm1,dGm1dS,  Gt1,dGt1dS,  Gs1,dGs1dS,
-     &                                                     kbl,kmo)
+     &                                                   kbls, kmo)
       implicit none
 # include "param.h"
       integer istr,iend,jstr,jend, i,j,k
       real, dimension(PRIVATE_2D_SCRATCH_ARRAY,0:N) :: Kv, Kt, Ks
       real, dimension(PRIVATE_2D_SCRATCH_ARRAY) :: ustar, Bo, Bosol
-     &                                                  , hbl, hbbl
+     &                                                  , hbl, bbl
 # ifdef SMOOTH_HBL
      &                                              , FX, FE, FE1
 # else
@@ -36,45 +36,48 @@ c--# define MERGE_OVERLAP
       real, dimension(PRIVATE_1D_SCRATCH_ARRAY,0:N) :: Cr,FC, wrk1,wrk2
       real, dimension(PRIVATE_1D_SCRATCH_ARRAY) ::  Bfsfc_bl,
      &                               Gm1,dGm1dS, Gt1,dGt1dS, Gs1,dGs1dS
-      integer, dimension(PRIVATE_1D_SCRATCH_ARRAY) :: kbl, kmo
+      integer, dimension(PRIVATE_1D_SCRATCH_ARRAY) :: kbls, kmo
+# ifdef LMD_BKPP
+     &                                                    , kbbl     
+# endif
 
       real, parameter ::
-     &   Ricr=0.45,   ! Critical bulk Richardson number (0.3)
+     &   Ricr=0.45,     ! Critical bulk Richardson number (0.3)
      &   Ri_inv=1./Ricr,
-     &   epssfc=0.1,  ! nondimensional extent of the surface layer
-     &   betaT=-0.2,  ! ratio of entrainment flux to surface buoyancy
-                      !      forcing flux (the "20% convectin rule")
-     &   nubl=0.01,   ! maximum allowed boundary layer
-     &   nu0c=0.1,    ! convective adjustment for viscosity and
-                      !                      diffusivity [m^2/s]
-     &   Cv=1.8,      ! ratio of interior Brunt-Vaisala frequency
-                      ! "N" to that at the entrainment depth "he".
-     &   C_MO=1.,     ! constant for computaion Monin-Obukhov depth.
-     &   C_Ek=258.,   ! constant for computating stabilization term
-                      !    due to Coriolis force (Ekman depth limit)
-     &   Cstar=10.,   ! proportionality coefficient parameterizing
-                      !                         nonlocal transport
-     &   zeta_m=-0.2, ! Maximum stability parameters "zeta"
-     &   a_m=1.257,   ! value of the 1/3 power law regime of
-     &   c_m=8.360,   ! flux profile for momentum and tracers
-     &   zeta_s=-1.0, ! and coefficients of flux profile for
-     &   a_s=-28.86,  ! momentum and tracers in their 1/3-power
-     &   c_s=98.96    ! law regime;
+     &   epssfc=0.1,    ! nondimensional extent of the surface layer
+     &   betaT=-0.2,    ! ratio of entrainment flux to surface buoyancy
+                        !      forcing flux (the "20% convectin rule")
+     &   nubl=0.01,     ! maximum allowed boundary layer
+     &   nu0c=0.1,      ! convective adjustment for viscosity and
+                        !                      diffusivity [m^2/s]
+     &   Cv=1.8,        ! ratio of interior Brunt-Vaisala frequency
+                        ! "N" to that at the entrainment depth "he".
+     &   C_MO=1.,       ! constant for computaion Monin-Obukhov depth.
+     &   C_Ek=258.,     ! constant for computating stabilization term
+                        !    due to Coriolis force (Ekman depth limit)
+     &   Cstar=10.,     ! proportionality coefficient parameterizing
+                        !                         nonlocal transport
+     &   zeta_m=-0.2,   ! Maximum stability parameters "zeta"
+     &   a_m=1.257,     ! value of the 1/3 power law regime of
+     &   c_m=8.360,     ! flux profile for momentum and tracers
+     &   zeta_s=-1.0,   ! and coefficients of flux profile for
+     &   a_s=-28.86,    ! momentum and tracers in their 1/3-power
+     &   c_s=98.96      ! law regime;
 
-      real, parameter :: eps=1.E-20,  r2=0.5, r3=1./3., r4=0.25
+      real, parameter :: r2=0.5, r3=1./3., r4=0.25, EPS=1.E-20
 
 
       real Cg, ustar3, Bfsfc, zscale, zetahat, ws,wm, Kern, Vtc,Vtsq,
-     &  sigma, z_bl, Av_bl,dAv_bl, At_bl,dAt_bl,  As_bl,dAs_bl,
-     &                       f1,a1,a2,a3,  cff,cff1, cff_up,cff_dn
+     &         ssgm, z_bl, Av_bl,dAv_bl, At_bl,dAt_bl,  As_bl,dAs_bl,
+     &                         f1,a1,a2,a3,  cff,cff1, cff_up,cff_dn
 # ifdef LIMIT_MO_DEPTH
-     &                                             , h_MO
+     &                                               , h_MO
 #  ifdef INT_AT_RHO_POINTS
-     &                                             , z_up
+     &                                               , z_up
 #  endif
 # endif
 # ifdef LMD_BKPP
-      real   Kv0, Kt0, Ks0
+      real Kv0, Kt0, Ks0, wmb,wsb, sgmb
 # endif
 
 
@@ -144,7 +147,7 @@ c--# define MERGE_OVERLAP
 ! time step (this is needed to estimate turbulent velocity scale in
 ! computation of "Vterm" in "Cr", before new hbl is found).  Also
 ! compute turbulent  friction velocity "ustar" from wind stress at
-! RHO-points. Initialize boundary layer depth "hbl" and index "kbl"
+! RHO-points. Initialize boundary layer depth "hbl" and index "kbls"
 ! to the maximum (bottomed out) values.
 
 # ifdef LMD_KPP
@@ -181,9 +184,13 @@ c*          ustar(i,j)=sqrt(0.5*sqrt( (sustr(i,j)+sustr(i+1,j))**2
 c*     &                             +(svstr(i,j)+svstr(i,j+1))**2))
 #  endif
 
-          hbl(i,j)=hbls(i,j,tind) !<-- use old value as initial guess
-
-          kbl(i)=0
+#  ifdef LMD_KPP
+          hbl(i,j)=hbls(i,j,tind)     ! use old values as
+#  endif
+#  ifdef LMD_BKPP
+          bbl(i,j)=hbbl(i,j,tind)     ! the initial guess
+#  endif
+          kbls(i)=0
 #  ifdef LIMIT_MO_DEPTH
 #   define C_h_MO Gm1
           kmo(i)=0
@@ -201,103 +208,112 @@ c*     &                             +(svstr(i,j)+svstr(i,j+1))**2))
 
 # elif defined INT_AT_W_POINTS
 
-!/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\
-!\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
-!/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\
-!\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+!/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\
+!\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+!/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\
+!\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 
 #  define du wrk1
 #  define dv wrk2
 
-      do k=1,N-1
-        do i=I_EXT_RANGE
-          cff=1./(Hz(i,j,k)+Hz(i,j,k+1))
-          du(i,k)=cff*( u(i,j,k+1,tind)+u(i+1,j,k+1,tind)
-     &                 -u(i,j,k  ,tind)-u(i+1,j,k  ,tind))
-          dv(i,k)=cff*( v(i,j,k+1,tind)+v(i,j+1,k+1,tind)
+        do k=1,N-1
+          do i=I_EXT_RANGE
+            cff=1./(Hz(i,j,k)+Hz(i,j,k+1))
+            du(i,k)=cff*( u(i,j,k+1,tind)+u(i+1,j,k+1,tind)
+     &                   -u(i,j,k  ,tind)-u(i+1,j,k  ,tind))
+            dv(i,k)=cff*( v(i,j,k+1,tind)+v(i,j+1,k+1,tind)
      &                 -v(i,j,k  ,tind)-v(i,j+1,k  ,tind))
+          enddo
         enddo
-      enddo
-      do i=I_EXT_RANGE
-        du(i,N)=du(i,N-1)
-        dv(i,N)=dv(i,N-1)
-        du(i,0)=du(i,  1)
-        dv(i,0)=dv(i,  1)
-      enddo
-
-      do k=N,1,-1
         do i=I_EXT_RANGE
-          zscale=z_w(i,j,N)-z_w(i,j,k-1)
-          Kern=zscale/(zscale+epssfc*hbl(i,j))
-          Bfsfc=Bo(i,j) +Bosol(i,j)*(1.-swr_frac(i,j,k-1))
+          du(i,N)=du(i,N-1)
+          dv(i,N)=dv(i,N-1)
+          du(i,0)=du(i,  1)
+          dv(i,0)=dv(i,  1)
+        enddo
+
+        do k=N,1,-1
+          do i=I_EXT_RANGE
+#  if defined LMD_KPP && defined LMD_BKPP
+            cff=(z_w(i,j,N)-z_w(i,j,k-1))**2
+            cff1=(z_w(i,j,k-1)-z_w(i,j,0))**2
+            Kern=cff*cff1/( (cff +(epssfc*hbl(i,j))**2)
+     &                    *(cff1 +(epssfc*bbl(i,j))**2) )
+#  elif defined LMD_KPP 
+            cff=(z_w(i,j,N)-z_w(i,j,k-1))**2
+            Kern=cff/(cff +(epssfc*hbl(i,j))**2)
+#  elif defined LMD_BKPP 
+            cff1=(z_w(i,j,k-1)-z_w(i,j,0))**2
+            Kern=cff1/(cff1 +(epssfc*bbl(i,j))**2)
+#  endif
+
+            zscale=z_w(i,j,N)-z_w(i,j,k-1)
+            Bfsfc=Bo(i,j) +Bosol(i,j)*(1.-swr_frac(i,j,k-1))
 
 #  include "lmd_wscale_ws_only.h"
 
-          cff=bvf(i,j,k)*bvf(i,j,k-1)
-          if (cff>0.D0) then
-            cff=cff/(bvf(i,j,k)+bvf(i,j,k-1))
-          else
-            cff=0.D0
-          endif
+            cff=bvf(i,j,k)*bvf(i,j,k-1)
+            if (cff > 0.D0) then
+              cff=cff/(bvf(i,j,k)+bvf(i,j,k-1))
+            else
+              cff=0.D0
+            endif
 
-          FC(i,k-1)=FC(i,k) + Kern*Hz(i,j,k)*( 0.375*( du(i,k)**2
-     &                     +du(i,k-1)**2+dv(i,k)**2 +dv(i,k-1)**2 )
-     &                 +0.25 *(du(i,k-1)*du(i,k)+dv(i,k-1)*dv(i,k))
+            FC(i,k-1)=FC(i,k) + Kern*Hz(i,j,k)*( 0.375*( du(i,k)**2
+     &                       +du(i,k-1)**2+dv(i,k)**2 +dv(i,k-1)**2 )
+     &                   +0.25 *(du(i,k-1)*du(i,k)+dv(i,k-1)*dv(i,k))
 
-     &              -Ri_inv*( cff + 0.25*(bvf(i,j,k)+bvf(i,j,k-1)))
+     &                -Ri_inv*( cff + 0.25*(bvf(i,j,k)+bvf(i,j,k-1)))
 
-     &                                        -C_Ek*f(i,j)*f(i,j) )
+     &                                          -C_Ek*f(i,j)*f(i,j) )
 
-          Vtsq=Vtc*ws*sqrt(max(0., bvf(i,j,k-1)))
-          Cr(i,k-1)=FC(i,k-1) +Vtsq
+            Vtsq=Vtc*ws*sqrt(max(0., bvf(i,j,k-1)))
+            Cr(i,k-1)=FC(i,k-1) +Vtsq
 
-          if (kbl(i)==0 .and.  Cr(i,k-1)<0.) kbl(i)=k
+            if (kbls(i) == 0 .and.  Cr(i,k-1) < 0.) kbls(i)=k
 
 #  ifdef LIMIT_MO_DEPTH
-          if ( kmo(i)==0 .and. Bfsfc*(z_w(i,j,N)-z_w(i,j,k-1))
+            if ( kmo(i)==0 .and. Bfsfc*(z_w(i,j,N)-z_w(i,j,k-1))
      &                                 > C_h_MO(i) ) kmo(i)=k
 #  endif
+          enddo
         enddo
-      enddo
 #  undef dv
 #  undef du
 
 
-      do i=I_EXT_RANGE
-c??     if (kbl(i)==N) then
-c??       hbl(i,j)=z_w(i,j,N)-z_w(i,j,N-1)
+        do i=I_EXT_RANGE
+          if (kbls(i) > 0) then
+            k=kbls(i)
+            hbl(i,j)=z_w(i,j,N)-( z_w(i,j,k-1)*Cr(i,k)
+     &                            -z_w(i,j,k)*Cr(i,k-1)
+     &                            )/(Cr(i,k)-Cr(i,k-1))
 
-        if (kbl(i)>0) then
-          k=kbl(i)
-          hbl(i,j)=z_w(i,j,N)-( z_w(i,j,k-1)*Cr(i,k)
-     &                         -z_w(i,j,k)*Cr(i,k-1)
-     &                         )/(Cr(i,k)-Cr(i,k-1))
+c**          if (Cr(i,k)*Cr(i,k-1) > 0.D0 ) write(*,*) '### ERROR',
+c**     &                          k, Cr(i,k), Cr(i,k-1), hbl(i,j)
 
-c**          if (Cr(i,k)*Cr(i,k-1)>0.D0 ) write(*,*)
-c**     &          '### ERROR', k, Cr(i,k), Cr(i,k-1), hbl(i,j)
-
-        else
-          hbl(i,j)=z_w(i,j,N)-z_w(i,j,0)+eps
-        endif
+          else
+            hbl(i,j)=z_w(i,j,N)-z_w(i,j,0)
+          endif
 
 #  ifdef LIMIT_MO_DEPTH
-        if (kmo(i)>0) then
-          k=kmo(i)
-          cff_up=max(0., Bo(i,j)+Bosol(i,j)*(1.-swr_frac(i,j,k  )) )
-          cff_dn=max(0., Bo(i,j)+Bosol(i,j)*(1.-swr_frac(i,j,k-1)) )
+          if (kmo(i) > 0) then
+            k=kmo(i)
+            cff_up=max(0., Bo(i,j)+Bosol(i,j)*(1.-swr_frac(i,j,k  )) )
+            cff_dn=max(0., Bo(i,j)+Bosol(i,j)*(1.-swr_frac(i,j,k-1)) )
 
-          h_MO=C_h_MO(i)*(cff_up*z_w(i,j,k) -cff_dn*z_w(i,j,k-1))
+            h_MO=C_h_MO(i)*(cff_up*z_w(i,j,k) -cff_dn*z_w(i,j,k-1))
      &                    /( cff_dn*cff_up*(z_w(i,j,k)-z_w(i,j,k-1))
      &                                 + C_h_MO(i)*(cff_dn-cff_up) )
 
-          hbl(i,j)=min(hbl(i,j), max(h_MO,0.))
-        endif
+            hbl(i,j)=min(hbl(i,j), max(h_MO,0.))
+          endif
 #   undef C_h_MO
 #  endif
 #  ifdef MASKING
-        hbl(i,j)=hbl(i,j)*rmask(i,j)
+          hbl(i,j)=hbl(i,j)*rmask(i,j)
 #  endif
-      enddo
+        enddo
 
 
 
@@ -311,17 +327,23 @@ c**     &          '### ERROR', k, Cr(i,k), Cr(i,k-1), hbl(i,j)
 
         do k=N-1,1,-1
           do i=I_EXT_RANGE
-#  ifdef LMD_KPP
-            zscale=z_w(i,j,N)-z_r(i,j,k)
-            Kern=zscale/(zscale+epssfc*hbl(i,j))
-#  else
-            Kern=1.D0
+#  if defined LMD_KPP && defined LMD_BKPP
+            cff_up=(z_w(i,j,N)-z_w(i,j,k))**2
+            cff_dn=(z_w(i,j,k)-z_w(i,j,0))**2
+            Kern=cff_up*cff_dn/( (cff_up +(epssfc*hbl(i,j))**2)
+     &                          *(cff_dn +(epssfc*bbl(i,j))**2) )
+#  elif defined LMD_KPP
+            cff_up=(z_w(i,j,N)-z_w(i,j,k))**2
+            Kern=cff_up/(cff_up +(epssfc*hbl(i,j))**2)
+#  elif defined LMD_BKPP
+            cff_dn=(z_w(i,j,k)-z_w(i,j,0))**2
+            Kern=cff_dn/(cff_dn +(epssfc*bbl(i,j))**2)
 #  endif
             FC(i,k)=FC(i,k+1) + Kern*(
-     &                 0.5*( ( u(i  ,j,k+1,tind)-u(i  ,j,k,tind)
-     &                        +u(i+1,j,k+1,tind)-u(i+1,j,k,tind) )**2
-     &                      +( v(i,j  ,k+1,tind)-v(i,j  ,k,tind)
-     &                        +v(i,j+1,k+1,tind)-v(i,j+1,k,tind) )**2
+     &                0.5*( ( u(i,j,k+1,tind)+u(i+1,j,k+1,tind)
+     &                       -u(i,j,k  ,tind)-u(i+1,j,k  ,tind) )**2
+     &                     +( v(i,j,k+1,tind)+v(i,j+1,k+1,tind)
+     &                       -v(i,j,k  ,tind)-v(i,j+1,k  ,tind) )**2
      &                      )/(Hz(i,j,k)+Hz(i,j,k+1))
 
      &               -0.5*(Hz(i,j,k)+Hz(i,j,k+1))*( Ri_inv*bvf(i,j,k)
@@ -329,6 +351,30 @@ c**     &          '### ERROR', k, Cr(i,k), Cr(i,k-1), hbl(i,j)
      &                                            +C_Ek*f(i,j)*f(i,j)
      &                                                             ))
           enddo
+        enddo
+
+
+        do i=I_EXT_RANGE
+          z_bl=z_w(i,j,0)+0.25*Hz(i,j,1)
+#  if defined LMD_KPP && defined LMD_BKPP
+          cff_up=(z_w(i,j,N)-z_bl)**2
+          cff_dn=(z_bl-z_w(i,j,0))**2
+          Kern=cff_up*cff_dn/( (cff_up +(epssfc*hbl(i,j))**2)
+     &                        *(cff_dn +(epssfc*bbl(i,j))**2) )
+#  elif defined LMD_KPP 
+          cff_up=(z_w(i,j,N)-z_bl)**2
+          Kern=cff_up/(cff_up +(epssfc*hbl(i,j))**2)
+#  elif defined LMD_BKPP
+          cff_dn=(z_bl-z_w(i,j,0))**2
+          Kern=cff_dn/(cff_dn +(epssfc*bbl(i,j))**2)
+#  endif
+            FC(i,0)=FC(i,1) + Kern*(
+     &                   0.5*( (u(i,j,1,tind)+u(i+1,j,1,tind))**2
+     &                        +(v(i,j,1,tind)+v(i,j+1,1,tind))**2
+     &                       )/Hz(i,j,1)
+     &                  -0.5*Hz(i,j,1)*( Ri_inv*bvf(i,j,1)
+     &                                  +C_Ek*f(i,j)*f(i,j)
+     &                                                       ))
         enddo
 
 #  ifdef LMD_KPP
@@ -348,28 +394,29 @@ c--         Vtsq=Vtc*ws*sqrt(max(0., 0.5*(bvf(i,j,k)+bvf(i,j,k-1)) ))
 
             Cr(i,k)=FC(i,k)+Vtsq
 
-            if (kbl(i)==0 .and. Cr(i,k)<0.) kbl(i)=k
+            if (kbls(i) == 0 .and. Cr(i,k) < 0.) kbls(i)=k
 #   ifdef LIMIT_MO_DEPTH
-            if (kmo(i)==0 .and. Bfsfc*(z_w(i,j,N)-z_r(i,j,k))
-     &                               > C_h_MO(i) ) kmo(i)=k
+            if (kmo(i) == 0 .and. Bfsfc*(z_w(i,j,N)-z_r(i,j,k))
+     &                                   > C_h_MO(i) ) kmo(i)=k
 #   endif
           enddo
         enddo
 
         do i=I_EXT_RANGE
-          hbl(i,j)=z_w(i,j,N)-z_w(i,j,0) +eps
-          if (kbl(i)>0) then
-            k=kbl(i)
-            if (k==N) then
+          if (kbls(i) > 0) then
+            k=kbls(i)
+            if (k == N) then
               hbl(i,j)=z_w(i,j,N)-z_r(i,j,N)
             else
               hbl(i,j)=z_w(i,j,N)-( z_r(i,j,k)*Cr(i,k+1)
      &                              -z_r(i,j,k+1)*Cr(i,k)
      &                              )/(Cr(i,k+1)-Cr(i,k))
             endif
+          else
+            hbl(i,j)=z_w(i,j,N)-z_w(i,j,0)
           endif
 #   ifdef LIMIT_MO_DEPTH
-          if (kmo(i)>0) then
+          if (kmo(i) > 0) then
             k=kmo(i)
             if (k==N) then
               z_up=z_w(i,j,N)
@@ -395,43 +442,43 @@ c--         Vtsq=Vtc*ws*sqrt(max(0., 0.5*(bvf(i,j,k)+bvf(i,j,k-1)) ))
 #  endif   /* LMD_KPP */
 #  ifdef LMD_BKPP
         do i=I_EXT_RANGE
-          kbl(i)=0       ! reset Cr at bottom and kbl for BKPP
+          kbbl(i)=0       ! reset Cr at bottom and kbls for BKPP
           Cr(i,0)=0.D0
-          FC(i,0)=1.5D0*FC(i,1)-0.5D0*FC(i,2)  ! linear extrapolation
         enddo
         do k=1,N,+1
           do i=I_EXT_RANGE
             Cr(i,k)=FC(i,k)-FC(i,0)
-            if (kbl(i)==0 .and. Cr(i,k)>0.) kbl(i)=k
+            if (kbbl(i) == 0 .and. Cr(i,k) > 0.) kbbl(i)=k
           enddo
         enddo
         do i=I_EXT_RANGE
-          hbbl(i,j)=z_w(i,j,N)-z_w(i,j,0) !+eps ! todal depth
-          if (kbl(i)>0) then
-            k=kbl(i)
-            if (k==1) then
-              hbbl(i,j)=z_r(i,j,1)-z_w(i,j,0)   ! no BBL
+          if (kbbl(i) > 0) then
+            k=kbbl(i)
+            if (k == 1) then
+              bbl(i,j)=z_r(i,j,1)-z_w(i,j,0)   ! no BBL
             else
-              hbbl(i,j)=( z_r(i,j,k-1)*Cr(i,k)-z_r(i,j,k)*Cr(i,k-1)
+              bbl(i,j)=( z_r(i,j,k-1)*Cr(i,k)-z_r(i,j,k)*Cr(i,k-1)
      &                            )/(Cr(i,k)-Cr(i,k-1)) -z_w(i,j,0)
             endif
+          else
+            bbl(i,j)=z_w(i,j,N)-z_w(i,j,0) ! todal depth
           endif
 #   ifdef MASKING
-          hbbl(i,j)=hbbl(i,j)*rmask(i,j)
+          bbl(i,j)=bbl(i,j)*rmask(i,j)
 #   endif
-        enddo     !--> discard FC, Cr and kbl
+        enddo     !--> discard FC, Cr and kbbl
 #  endif   /* LMD_BKPP */
 # else
       ERROR: Algorithm for Bulk Richardson number is not specified.
 # endif
 
-!/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\
-!\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
-!/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\
-!\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+!/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\
+!\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+!/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\
+!\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 
 # ifdef SMOOTH_HBL
-      enddo  !<-- break j-loop if smoothing of hbl or hbbl takes place
+      enddo  !<-- break j-loop if smoothing of hbl or bbl takes place
 
 #  ifdef LMD_KPP
 #   define wrk hbl
@@ -439,7 +486,7 @@ c--         Vtsq=Vtc*ws*sqrt(max(0., 0.5*(bvf(i,j,k)+bvf(i,j,k-1)) ))
 #   undef wrk
 #  endif
 #  ifdef LMD_BKPP
-#   define wrk hbbl
+#   define wrk bbl
 #   include "lmd_kpp_smooth_hbl.h"
 #   undef wrk
 #  endif
@@ -455,21 +502,21 @@ c--         Vtsq=Vtc*ws*sqrt(max(0., 0.5*(bvf(i,j,k)+bvf(i,j,k-1)) ))
 
 # if defined MERGE_OVERLAP && defined LMD_KPP && defined LMD_BKPP
         do i=istr,iend
-          cff=z_w(i,j,N)-z_w(i,j,0)           ! if surface and bottom
-          if (hbl(i,j)+hbbl(i,j)>cff) then ! boundary layers
-            hbl(i,j)  = cff                   ! overlap, set both of
-            hbbl(i,j) = cff                   ! them to the total depth
-          endif                               ! of water column.
+          cff=z_w(i,j,N)-z_w(i,j,0)          ! if surface and bottom
+          if (hbl(i,j)+bbl(i,j) > cff) then  ! boundary layers overlap
+            hbl(i,j) = cff                   ! set both of them to the
+            bbl(i,j) = cff                   ! total depth of water
+          endif                              ! column.
         enddo
 # endif
 
 # ifdef LMD_KPP
         do i=istr,iend
-          kbl(i)=N          ! initialize search, then find
-        enddo               ! new boundary layer index "kbl"
+          kbls(i)=N          ! initialize search, then find
+        enddo                ! new boundary layer index "kbls"
         do k=N-1,1,-1
           do i=istr,iend
-            if (z_w(i,j,k) > z_w(i,j,N)-hbl(i,j)) kbl(i)=k
+            if (z_w(i,j,k) > z_w(i,j,N)-hbl(i,j)) kbls(i)=k
           enddo
         enddo
 
@@ -478,10 +525,10 @@ c--         Vtsq=Vtc*ws*sqrt(max(0., 0.5*(bvf(i,j,k)+bvf(i,j,k-1)) ))
 
 #  ifdef LIMIT_EKMAN_OLD_WAY
         do i=istr,iend
-          k=kbl(i)
+          k=kbls(i)
           z_bl=z_w(i,j,N)-hbl(i,j)
 
-          if (swr_frac(i,j,k-1)> 0.) then
+          if (swr_frac(i,j,k-1) > 0.) then
             Bfsfc=Bo(i,j) +Bosol(i,j)*( 1. -swr_frac(i,j,k-1)
      &              *swr_frac(i,j,k)*(z_w(i,j,k)-z_w(i,j,k-1))
      &               /( swr_frac(i,j,k  )*(z_w(i,j,k)   -z_bl)
@@ -491,35 +538,35 @@ c--         Vtsq=Vtc*ws*sqrt(max(0., 0.5*(bvf(i,j,k)+bvf(i,j,k-1)) ))
             Bfsfc=Bo(i,j)+Bosol(i,j)
           endif
 
-          if (Bfsfc>0.) hbl(i,j)=min( hbl(i,j),
-     &              cekman*ustar(i,j)/max(abs(f(i,j)),eps)
-     &                                                   )
-          kbl(i)=N
-        enddo               ! re-initialize search, then find
-        do k=N-1,1,-1       ! new boundary layer index again
+          if (Bfsfc > 0. .and. abs(f(i,j) > 0) then
+     &      hbl(i,j)=min( hbl(i,j), cekman*ustar(i,j)/abs(f(i,j)) )
+          endif
+
+          kbls(i)=N         ! re-initialize search, then find
+        enddo               ! boundary layer index again as it
+        do k=N-1,1,-1       ! may be restricted by the above.
           do i=istr,iend
-            if (z_w(i,j,k) > z_w(i,j,N)-hbl(i,j)) kbl(i)=k
+            if (z_w(i,j,k) > z_w(i,j,N)-hbl(i,j)) kbls(i)=k
           enddo
         enddo
 #  endif
 
-! Find buoyancy forcing for final "hbl" values, and compute
-! tubulent velocity scales (wm,ws) at "hbl".
-! Then compute nondimensional shape function coefficients Gx( ) by
-! matching values and vertical derivatives of  interior mixing
-! coefficients at hbl (sigma=1).
+! Find buoyancy forcing for final "hbl" values, and compute tubulent
+! velocity scales (wm,ws) at "hbl".  Then compute nondimensional shape
+! function coefficients Gx( ) by matching values and vertical
+! derivatives of  interior mixing coefficients at hbl (ssgm=1).
 
         do i=istr,iend
-          k=kbl(i)
+          k=kbls(i)
           z_bl=z_w(i,j,N)-hbl(i,j)
           zscale=hbl(i,j)
 
-          if (swr_frac(i,j,k-1)> 0.) then
+          if (swr_frac(i,j,k-1) > 0.) then
             Bfsfc=Bo(i,j) +Bosol(i,j)*( 1. -swr_frac(i,j,k-1)
      &              *swr_frac(i,j,k)*(z_w(i,j,k)-z_w(i,j,k-1))
      &               /( swr_frac(i,j,k  )*(z_w(i,j,k)   -z_bl)
      &                 +swr_frac(i,j,k-1)*(z_bl -z_w(i,j,k-1))
-     &                                                      ))
+     &                                                     ) )
           else
             Bfsfc=Bo(i,j)+Bosol(i,j)
           endif
@@ -527,7 +574,7 @@ c--         Vtsq=Vtc*ws*sqrt(max(0., 0.5*(bvf(i,j,k)+bvf(i,j,k-1)) ))
 #  include "lmd_wscale_wm_and_ws.h"
 
 #  ifdef LIMIT_UNSTABLE_ONLY
-          f1=5.0 * max(0., Bfsfc) * vonKar/(ustar(i,j)**4+eps)
+          f1=5.0 * max(0., Bfsfc) * vonKar/(ustar(i,j)**4+EPS)
 #  else
           f1=0.
 #  endif
@@ -537,19 +584,19 @@ c--         Vtsq=Vtc*ws*sqrt(max(0., 0.5*(bvf(i,j,k)+bvf(i,j,k-1)) ))
 
           Av_bl=cff_up*Kv(i,j,k)+cff_dn*Kv(i,j,k-1)
           dAv_bl=cff * (Kv(i,j,k)  -   Kv(i,j,k-1))
-          Gm1(i)=Av_bl/(hbl(i,j)*wm+eps)
-          dGm1dS(i)=min(0., Av_bl*f1-dAv_bl/(wm+eps))
+          Gm1(i)=Av_bl/(hbl(i,j)*wm+EPS)
+          dGm1dS(i)=min(0., Av_bl*f1-dAv_bl/(wm+EPS))
 
           At_bl=cff_up*Kt(i,j,k)+cff_dn*Kt(i,j,k-1)
           dAt_bl=cff * (Kt(i,j,k)  -   Kt(i,j,k-1))
-          Gt1(i)=At_bl/(hbl(i,j)*ws+eps)
-          dGt1dS(i)=min(0., At_bl*f1-dAt_bl/(ws+eps))
+          Gt1(i)=At_bl/(hbl(i,j)*ws+EPS)
+          dGt1dS(i)=min(0., At_bl*f1-dAt_bl/(ws+EPS))
 
 #  ifdef SALINITY
           As_bl=cff_up*Ks(i,j,k)+cff_dn*Ks(i,j,k-1)
           dAs_bl=cff * (Ks(i,j,k)  -   Ks(i,j,k-1))
-          Gs1(i)=As_bl/(hbl(i,j)*ws+eps)
-          dGs1dS(i)=min(0., As_bl*f1-dAs_bl/(ws+eps))
+          Gs1(i)=As_bl/(hbl(i,j)*ws+EPS)
+          dGs1dS(i)=min(0., As_bl*f1-dAs_bl/(ws+EPS))
 #  endif
           Bfsfc_bl(i)=Bfsfc
         enddo
@@ -559,7 +606,7 @@ c--         Vtsq=Vtc*ws*sqrt(max(0., 0.5*(bvf(i,j,k)+bvf(i,j,k-1)) ))
 ! Compute turbulent velocity scales at vertical W-points.
 
         do i=istr,iend
-          do k=N-1,kbl(i),-1
+          do k=N,0,-1
             Bfsfc=Bfsfc_bl(i)
             zscale=z_w(i,j,N)-z_w(i,j,k)
 
@@ -567,149 +614,175 @@ c--         Vtsq=Vtc*ws*sqrt(max(0., 0.5*(bvf(i,j,k)+bvf(i,j,k-1)) ))
 
 ! Compute vertical mixing coefficients
 
-            sigma=(z_w(i,j,N)-z_w(i,j,k))/max(hbl(i,j),eps)
+            ssgm=(z_w(i,j,N)-z_w(i,j,k))/max(hbl(i,j),EPS)
 
-            a1=sigma-2.
-            a2=3.-2.*sigma
-            a3=sigma-1.
+            if (ssgm < 1.) then
+              if (ssgm<0.07D0) then
+                cff=0.5*(ssgm-0.07D0)**2/0.07D0
+              else
+                cff=0.D0
+              endif
+/* ===>
+              a1=ssgm-2.
+              a2=3.-2.*ssgma
+              a3=ssgm-1.
 
-            if (sigma<0.07D0) then
-              cff=0.5*(sigma-0.07D0)**2/0.07D0
-            else
-              cff=0.D0
-            endif
+              Kv(i,j,k)=wm*hbl(i,j)*( cff + ssgm*( 1.+ssgm*(
+     &                          a1+a2*Gm1(i)+a3*dGm1dS(i) )))
 
-            Kv(i,j,k)=wm*hbl(i,j)*( cff + sigma*( 1.+sigma*(
-     &                           a1+a2*Gm1(i)+a3*dGm1dS(i) )))
-
-            Kt(i,j,k)=ws*hbl(i,j)*( cff + sigma*( 1.+sigma*(
-     &                           a1+a2*Gt1(i)+a3*dGt1dS(i) )))
+              Kt(i,j,k)=ws*hbl(i,j)*( cff + ssgm*( 1.+ssgm*(
+     &                          a1+a2*Gt1(i)+a3*dGt1dS(i) )))
 #  ifdef SALINITY
-            Ks(i,j,k)=ws*hbl(i,j)*( cff + sigma*( 1.+sigma*(
-     &                           a1+a2*Gs1(i)+a3*dGs1dS(i) )))
+              Ks(i,j,k)=ws*hbl(i,j)*( cff + ssgm*( 1.+ssgm*(
+     &                          a1+a2*Gs1(i)+a3*dGs1dS(i) )))
 #  endif
+===> */
+              cff=cff + ssgm*(1.-ssgm)**2
+              Kv(i,j,k)=Kv(i,j,k) + wm*hbl(i,j)*cff
+              Kt(i,j,k)=Kt(i,j,k) + ws*hbl(i,j)*cff
+#  ifdef SALINITY
+              Ks(i,j,k)=Ks(i,j,k) + ws*hbl(i,j)*cff
+#  endif
+
 #  ifdef LMD_NONLOCAL
-            if (Bfsfc < 0.) then
-              ghat(i,j,k)=Cg * sigma*(1.-sigma)**2
+              if (Bfsfc < 0.) then
+                ghat(i,j,k)=Cg * ssgm*(1.-ssgm)**2
+              else
+                ghat(i,j,k)=0.
+              endif
+#  endif
             else
-              ghat(i,j,k)=0.
-            endif
-#  endif
-          enddo
-          do k=kbl(i)-1,1,-1
 #  ifdef LMD_NONLOCAL
-            ghat(i,j,k)=0.
+              ghat(i,j,k)=0.
 #  endif
 #  ifdef LMD_CONVEC
-            if (bvf(i,j,k)<0.) then     ! Add convective
-              Kv(i,j,k)=Kv(i,j,k) + nu0c   ! adjustment
-              Kt(i,j,k)=Kt(i,j,k) + nu0c
+              if (bvf(i,j,k) < 0.) then      ! Add convective
+                Kv(i,j,k)=Kv(i,j,k) + nu0c   ! adjustment
+                Kt(i,j,k)=Kt(i,j,k) + nu0c
 #   ifdef SALINITY
-              Ks(i,j,k)=Ks(i,j,k) + nu0c
+                Ks(i,j,k)=Ks(i,j,k) + nu0c
 #   endif
-            endif
+              endif
 #  endif
+            endif
           enddo
         enddo
 # endif   /* LMD_KPP */
 # ifdef LMD_BKPP
         do i=istr,iend
-          kbl(i)=N          !<-- initialize search
+          kbbl(i)=N          !<-- initialize search
         enddo
-        do k=N-1,1,-1       ! find new boundary layer index "kbl"
+        do k=N-1,1,-1       ! find new boundary layer index "kbls"
           do i=istr,iend
-            if (z_r(i,j,k)-z_w(i,j,0)>hbbl(i,j)) kbl(i)=k
+            if (z_w(i,j,k) > z_w(i,j,0)+bbl(i,j)) kbbl(i)=k
           enddo
         enddo
 
-! Compute nondimensional shape function coefficients Gx( ) by
-! matching values and vertical derivatives of interior mixing
-! coefficients at hbbl (sigma=1).
-! Below wm,ws are turbulent velocity scales associated with bottom
-! drag, assuming no buoyancy forcing effects.
+! Compute nondimensional shape function coefficients Gx( ) by matching
+! values and vertical derivatives of interior mixing coefficients at
+! bbl (sgmb=1).  Below wm,ws are turbulent velocity scales associated
+! with bottom drag, assuming no buoyancy forcing effects.
 
 
         do i=istr,iend
-c*        wm=vonKar*sqrt( r_D(i,j)*sqrt( 0.25*(
-c*   &                  (u(i,j,1,tind)+u(i+1,j,1,tind))**2
-c*   &                 +(v(i,j,1,tind)+v(i,j+1,1,tind))**2
+c*        wmb=vonKar*sqrt( r_D(i,j)*sqrt( 0.25*(
+c*   &                   (u(i,j,1,tind)+u(i+1,j,1,tind))**2
+c*   &                  +(v(i,j,1,tind)+v(i,j+1,1,tind))**2
 c*   &                                                ) ) )
 
 
-          wm=vonKar*sqrt( r_D(i,j)*sqrt( 0.333333333333*(
-     &                u(i,j,1,tind)**2 +u(i+1,j,1,tind)**2
-     &                       +u(i,j,1,tind)*u(i+1,j,1,tind)
-     &               +v(i,j,1,tind)**2 +v(i,j+1,1,tind)**2
-     &                       +v(i,j,1,tind)*v(i,j+1,1,tind)
+          wmb=vonKar*sqrt( r_D(i,j)*sqrt( 0.333333333333*(
+     &                  u(i,j,1,tind)**2 +u(i+1,j,1,tind)**2
+     &                        +u(i,j,1,tind)*u(i+1,j,1,tind)
+     &                 +v(i,j,1,tind)**2 +v(i,j+1,1,tind)**2
+     &                        +v(i,j,1,tind)*v(i,j+1,1,tind)
      &                                                ) ) )
-          ws=wm
-          k=kbl(i)
-          z_bl=z_w(i,j,0)+hbbl(i,j)
-          if (z_bl<z_w(i,j,k-1)) k=k-1
+          wsb=wmb
+          k=kbbl(i)
+          z_bl=z_w(i,j,0)+bbl(i,j)
 
           cff=1./(z_w(i,j,k)-z_w(i,j,k-1))
-          cff_up=cff*(z_bl -z_w(i,j,k-1))
-          cff_dn=cff*(z_w(i,j,k)   -z_bl)
+          cff_up=cff*(z_bl - z_w(i,j,k-1))
+          cff_dn=cff*(z_w(i,j,k)   - z_bl)
 
           Av_bl=cff_up*Kv(i,j,k)+cff_dn*Kv(i,j,k-1)
           dAv_bl=cff * (Kv(i,j,k)  -   Kv(i,j,k-1))
-          Gm1(i)=Av_bl/(hbbl(i,j)*wm+eps)
-          dGm1dS(i)=min(0., -dAv_bl/(wm+eps))
+          Gm1(i)=Av_bl/(bbl(i,j)*wmb+EPS)
+          dGm1dS(i)=min(0., -dAv_bl/(wmb+EPS))
 
           At_bl=cff_up*Kt(i,j,k)+cff_dn*Kt(i,j,k-1)
           dAt_bl=cff * (Kt(i,j,k)  -   Kt(i,j,k-1))
-          Gt1(i)=At_bl/(hbbl(i,j)*ws+eps)
-          dGt1dS(i)=min(0., -dAt_bl/(ws+eps))
+          Gt1(i)=At_bl/(bbl(i,j)*wsb+EPS)
+          dGt1dS(i)=min(0., -dAt_bl/(wsb+EPS))
 
 #  ifdef SALINITY
           As_bl=cff_up*Ks(i,j,k)+cff_dn*Ks(i,j,k-1)
           dAs_bl=cff * (Ks(i,j,k)  -   Ks(i,j,k-1))
-          Gs1(i)=As_bl/(hbbl(i,j)*ws+eps)
-          dGs1dS(i)=min(0., -dAs_bl/(ws+eps))
+          Gs1(i)=As_bl/(bbl(i,j)*wsb+EPS)
+          dGs1dS(i)=min(0., -dAs_bl/(wsb+EPS))
 #  endif
 
 ! Compute boundary layer mixing coefficients.
 !--------- -------- ----- ------ -------------
 ! Compute turbulent velocity scales at vertical W-points.
 
-          do k=1,N
-            if (k<kbl(i)) then
-              sigma=min((z_w(i,j,k)-z_w(i,j,0)+Zob)/(hbbl(i,j)+Zob),1.)
-              a1=sigma-2.
-              a2=3.-2.*sigma
-              a3=sigma-1.
-              Kv0=wm*hbbl(i,j)*( sigma*( 1.+sigma*(
-     &                            a1+a2*Gm1(i)+a3*dGm1dS(i) )))
-              Kt0=ws*hbbl(i,j)*( sigma*( 1.+sigma*(
-     &                            a1+a2*Gt1(i)+a3*dGt1dS(i) )))
+          do k=0,N
+            sgmb=(z_w(i,j,k)-z_w(i,j,0)+Zob)/(bbl(i,j)+Zob)
+            if (sgmb < 1.) then
+
+              cff1=sgmb*(1.-sgmb)**2
+
+c              Kv(i,j,k)=Kv(i,j,k) + wmb*bbl(i,j)*cff1
+c              Kt(i,j,k)=Kt(i,j,k) + wsb*bbl(i,j)*cff1
 #  ifdef SALINITY
-              Ks0=ws*hbbl(i,j)*( sigma*( 1.+sigma*(
-     &                            a1+a2*Gs1(i)+a3*dGs1dS(i) )))
+c              Ks(i,j,k)=Ks(i,j,k) + wsb*bbl(i,j)*cff1
 #  endif
-#  ifdef LMD_KPP
+
+              Kv(i,j,k)=sqrt( Kv(i,j,k)**2 + (wmb*bbl(i,j)*cff1)**2 )
+              Kt(i,j,k)=sqrt( Kt(i,j,k)**2 + (wsb*bbl(i,j)*cff1)**2 )
+#  ifdef SALINITY
+              Ks(i,j,k)=sqrt( Ks(i,j,k)**2 + (wsb*bbl(i,j)*cff1)**2 )
+#  endif
+
+
+#  ifdef OLD_AND_MESSY_WAY
+              a1=sgmb-2.
+              a2=3.-2.*sgmb
+              a3=sgmb-1.
+              Kv0=wmb*bbl(i,j)*( sgmb*( 1.+sgmb*( a1+a2*Gm1(i)
+     &                                        +a3*dGm1dS(i) )))
+              Kt0=wsb*bbl(i,j)*( sgmb*( 1.+sgmb*( a1+a2*Gt1(i)
+     &                                        +a3*dGt1dS(i) )))
+#   ifdef SALINITY
+              Ks0=wsb*bbl(i,j)*( sgmb*( 1.+sgmb*( a1+a2*Gs1(i)
+     &                                        +a3*dGs1dS(i) )))
+#   endif
+#   ifdef LMD_KPP
 
 ! If BBL reaches into SBL, take the max of surface and bottom values.
 
               z_bl=z_w(i,j,N)-hbl(i,j)
-              if (z_w(i,j,k)>z_bl) then
+              if (z_w(i,j,k) > z_bl) then
                 Kv0=max(Kv(i,j,k),Kv0)
                 Kt0=max(Kt(i,j,k),Kt0)
-#   ifdef SALINITY
+#    ifdef SALINITY
                 Ks0=max(Ks(i,j,k),Ks0)
-#   endif
+#    endif
               endif
-#  endif   /* LMD_KPP */
+#   endif
               Kv(i,j,k)=Kv0
               Kt(i,j,k)=Kt0
-#  ifdef SALINITY
+#   ifdef SALINITY
               Ks(i,j,k)=Ks0
-#  endif
+#   endif
+#  endif /* OLD_AND_MESSY_WAY */
+
 #  ifdef LMD_CONVEC
-            else  !<-- k > kbl(i)
-              if (bvf(i,j,k)<0.) then
+            else
+              if (bvf(i,j,k) < 0.) then
 #   ifdef LMD_KPP
                 z_bl=z_w(i,j,N)-hbl(i,j)
-                if (z_w(i,j,k)<z_bl) then
+                if (z_w(i,j,k) < z_bl) then
 #   endif
                   Kv(i,j,k)=Kv(i,j,k) + nu0c   ! Add convective
                   Kt(i,j,k)=Kt(i,j,k) + nu0c   ! adjustment outside
@@ -721,7 +794,7 @@ c*   &                                                ) ) )
 #   endif
               endif
 #  endif
-            endif      !<-- k < kbl(i)
+            endif
           enddo      !<-- k
         enddo      !<-- i
 # endif   /* LMD_BKPP */
@@ -729,18 +802,18 @@ c*   &                                                ) ) )
 
         do i=istr,iend
 # ifdef MASKING
-          if (rmask(i,j)>0.5) then
+          if (rmask(i,j) > 0.5) then
 # endif
-            do k=1,N
+            do k=0,N
               Akv(i,j,k)=Kv(i,j,k)
               Akt(i,j,k,itemp)=Kt(i,j,k)
-#  ifdef SALINITY
+# ifdef SALINITY
               Akt(i,j,k,isalt)=Ks(i,j,k)
-#  endif
+# endif
             enddo
 # ifdef MASKING
           else
-            do k=1,N
+            do k=0,N
               Akv(i,j,k)=0.
               Akt(i,j,k,itemp)=0.
 #  ifdef SALINITY
@@ -748,14 +821,15 @@ c*   &                                                ) ) )
 #  endif
             enddo
           endif
-#  endif
+# endif
         enddo
       enddo
 
 # ifdef LMD_KPP
-      do j=jstr,jend                 ! Copy "hbl" into its shared
-        do i=istr,iend               ! array and pad out ghost points
-          hbls(i,j,3-nstp)=hbl(i,j)  ! at lateral-sideboundaries.
+      do j=jstr,jend                   ! Copy "hbl" into shared array
+        do i=istr,iend                 ! and padd lateral ghost points
+c         hbls(i,j,3-nstp)=hbl(i,j)
+          hbls(i,j,3-nstp)=0.5*(hbls(i,j,nstp)+hbl(i,j))
         enddo
       enddo
 #  ifndef EW_PERIODIC
@@ -798,61 +872,74 @@ c*   &                                                ) ) )
 #  endif
 # endif   /* LMD_KPP */
 # ifdef LMD_BKPP
-      do j=jstr,jend                   ! Copy "hbbl" into its shared
-        do i=istr,iend                 ! array and pad out ghost points
-          hbbls(i,j,3-nstp)=hbbl(i,j)  ! at lateral-sideboundaries.
+      do j=jstr,jend                   ! Copy "bbl" into shared array
+        do i=istr,iend                 ! and padd lateral ghost points
+c**       hbbl(i,j,3-nstp)=bbl(i,j)
+          hbbl(i,j,3-nstp)=0.5*(hbbl(i,j,nstp)+bbl(i,j))
         enddo
       enddo
 #  ifndef EW_PERIODIC
       if (WESTERN_EDGE) then
         do j=jstr,jend
-          hbbls(istr-1,j,3-nstp)=hbbls(istr,j,3-nstp)
+          hbbl(istr-1,j,3-nstp)=hbbl(istr,j,3-nstp)
         enddo
       endif
       if (EASTERN_EDGE) then
         do j=jstr,jend
-          hbbls(iend+1,j,3-nstp)=hbbls(iend,j,3-nstp)
+          hbbl(iend+1,j,3-nstp)=hbbl(iend,j,3-nstp)
         enddo
       endif
 #  endif
 #  ifndef NS_PERIODIC
       if (SOUTHERN_EDGE) then
         do i=istr,iend
-          hbbls(i,jstr-1,3-nstp)=hbbls(i,jstr,3-nstp)
+          hbbl(i,jstr-1,3-nstp)=hbbl(i,jstr,3-nstp)
         enddo
       endif
       if (NORTHERN_EDGE) then
         do i=istr,iend
-          hbbls(i,jend+1,3-nstp)=hbbls(i,jend,3-nstp)
+          hbbl(i,jend+1,3-nstp)=hbbl(i,jend,3-nstp)
         enddo
       endif
 #   ifndef EW_PERIODIC
       if (WESTERN_EDGE .and. SOUTHERN_EDGE) then
-        hbbls(istr-1,jstr-1,3-nstp)=hbbls(istr,jstr,3-nstp)
+        hbbl(istr-1,jstr-1,3-nstp)=hbbl(istr,jstr,3-nstp)
       endif
       if (WESTERN_EDGE .and. NORTHERN_EDGE) then
-        hbbls(istr-1,jend+1,3-nstp)=hbbls(istr,jend,3-nstp)
+        hbbl(istr-1,jend+1,3-nstp)=hbbl(istr,jend,3-nstp)
       endif
       if (EASTERN_EDGE .and. SOUTHERN_EDGE) then
-        hbbls(iend+1,jstr-1,3-nstp)=hbbls(iend,jstr,3-nstp)
+        hbbl(iend+1,jstr-1,3-nstp)=hbbl(iend,jstr,3-nstp)
       endif
       if (EASTERN_EDGE .and. NORTHERN_EDGE) then
-        hbbls(iend+1,jend+1,3-nstp)=hbbls(iend,jend,3-nstp)
+        hbbl(iend+1,jend+1,3-nstp)=hbbl(iend,jend,3-nstp)
       endif
 #   endif
 #  endif
 # endif   /* LMD_KPP */
 
 # ifdef EXCHANGE
-#  ifdef SALINITY
-      call exchange_4_tile ( istr,iend,jstr,jend,
-     &                 Akt(START_2D_ARRAY,0,isalt), N+1,
+#  ifdef LMD_KPP
+#   ifdef LMD_BKPP
+      call exchange_3_tile( istr,iend,jstr,jend, Akv, N+1,
+     &                      hbls(START_2D_ARRAY,3-nstp),1,
+     &                      hbbl(START_2D_ARRAY,3-nstp),1)
+#   else
+      call exchange_2_tile( istr,iend,jstr,jend, Akv, N+1,
+     &                      hbls(START_2D_ARRAY,3-nstp),1)
+#   endif
 #  else
-      call exchange_3_tile ( istr,iend,jstr,jend,
+      call exchange_2_tile( istr,iend,jstr,jend, Akv, N+1,
+     &                      hbbl(START_2D_ARRAY,3-nstp),1)
 #  endif
-     &       Akv, N+1,  Akt(START_2D_ARRAY,0,itemp), N+1,
-     &                    hbls(START_2D_ARRAY,3-nstp), 1
-     &                                                 )
+#  ifdef SALINITY
+      call exchange_2_tile( istr,iend,jstr,jend, 
+     &                   Akt(START_2D_ARRAY,0,itemp), N+1,
+     &                   Akt(START_2D_ARRAY,0,isalt), N+1)
+#  else
+     call exchange_tile( istr,iend,jstr,jend, 
+     &                   Akt(START_2D_ARRAY,0,itemp), N+1)
+#  endif
 # endif
       end
 
@@ -870,56 +957,47 @@ c*   &                                                ) ) )
 # include "param.h"
 # include "strings.h"
       ie=lenstr(cpps)
-      is=ie+2
-      ie=is+10
-      if (ie>max_opt_size) goto 99
+      is=ie+2 ; ie=is+10
+      if (ie > max_opt_size) goto 99
       cpps(is:ie)='<lmd_kpp.F>'
 # ifdef BULK_DIFFERENCE
-      is=ie+2
-      ie=is+14
-      if (ie>max_opt_size) goto 99
+      is=ie+2 ; ie=is+14
+      if (ie > max_opt_size) goto 99
       cpps(is:ie)='BULK_DIFFERENCE'
 # endif
 # ifdef INT_AT_W_POINTS
-      is=ie+2
-      ie=is+14
-      if (ie>max_opt_size) goto 99
+      is=ie+2 ; ie=is+14
+      if (ie > max_opt_size) goto 99
       cpps(is:ie)='INT_AT_W_POINTS'
 # endif
 # ifdef INT_AT_RHO_POINTS
-      is=ie+2
-      ie=is+16
-      if (ie>max_opt_size) goto 99
+      is=ie+2 ; ie=is+16
+      if (ie > max_opt_size) goto 99
       cpps(is:ie)='INT_AT_RHO_POINTS'
 # endif
 # ifdef SMOOTH_HBL
-      is=ie+2
-      ie=is+9
-      if (ie>max_opt_size) goto 99
+      is=ie+2 ; ie=is+9
+      if (ie > max_opt_size) goto 99
       cpps(is:ie)='SMOOTH_HBL'
 # endif
 # ifdef LIMIT_UNSTABLE_ONLY
-      is=ie+2
-      ie=is+18
-      if (ie>max_opt_size) goto 99
+      is=ie+2 ; ie=is+18
+      if (ie > max_opt_size) goto 99
       cpps(is:ie)='LIMIT_UNSTABLE_ONLY'
 # endif
 # ifdef LIMIT_MO_DEPTH
-      is=ie+2
-      ie=is+13
-      if (ie>max_opt_size) goto 99
+      is=ie+2 ; ie=is+13
+      if (ie > max_opt_size) goto 99
       cpps(is:ie)='LIMIT_MO_DEPTH'
 # endif
 # ifdef MLCONVEC
-      is=ie+2
-      ie=is+7
-      if (ie>max_opt_size) goto 99
+      is=ie+2 ; ie=is+7
+      if (ie > max_opt_size) goto 99
       cpps(is:ie)='MLCONVEC'
 # endif
 # ifdef MERGE_OVERLAP
-      is=ie+2
-      ie=is+13
-      if (ie>max_opt_size) goto 99
+      is=ie+2 ; ie=is+13
+      if (ie > max_opt_size) goto 99
       cpps(is:ie)='MERGE_OVERLAP'
 # endif
       return
@@ -927,7 +1005,6 @@ c*   &                                                ) ) )
      &  'Insufficient length of string "cpps" in file "strings.h".',
      &        'Increase parameter "max_opt_size" it and recompile.'
       ierr=ierr+1
-      return
       end
 #else
       subroutine lmd_kpp_empty

@@ -15,14 +15,14 @@ C$    req_lev=MPI_THREAD_MULTIPLE
 C$    call MPI_Init_thread(req_lev, level, ierr)
 C$ !!   write(*,*) 'MPI thread support levels =', req_lev,level
 C$    ierr=0
-      if (ierr==1) call MPI_Init(ierr)
+      if (ierr == 1) call MPI_Init(ierr)
 
       call mpi_setup(ierr)
       tstart=MPI_Wtime()
-      if (ierr==0) then
+      if (ierr == 0) then
 # endif
         call init_scalars(ierr)          ! Initialize global scalars,
-        if (ierr==0) then                ! model tunable parameters,
+        if (ierr == 0) then              ! model tunable parameters,
 C$        call omp_set_dynamic(.false.)
 C$OMP PARALLEL                           ! fast-time averaging weights
           call roms_thread               ! for barotropic mode, and
@@ -50,7 +50,7 @@ C$OMP END PARALLEL                       ! launch the model in OpenMP
       do iic=ntstart,ntstart+ntimes      ! all, exiting is deferred
         diag_sync=.false.                ! until "may_day_flag" is
         call roms_step
-        if (diag_sync .and. may_day_flag/=0) goto 99
+        if (diag_sync .and. may_day_flag /= 0) goto 99
       enddo
   99  call stop_timers()                 ! summarized among all nodes
 C$OMP BARRIER                            ! and broadcasted by "diag"
@@ -375,24 +375,24 @@ C$OMP END MASTER
 #endif
 
 #ifdef FLOATS
-      nfp1=mod(nfp1+1,NFT+1)          ! rotate time
-      nf  =mod(nf  +1,NFT+1)          ! indices for
-      nfm1=mod(nfm1+1,NFT+1)          ! floats
+      nfp1=mod(nfp1+1,NFT+1)           ! rotate time
+      nf  =mod(nf  +1,NFT+1)           ! indices for
+      nfm1=mod(nfm1+1,NFT+1)           ! floats
       nfm2=mod(nfm2+1,NFT+1)
       nfm3=mod(nfm3+1,NFT+1)
 C$OMP MASTER
       flt_str=0
 C$OMP END MASTER
 #endif
-                                      ! read forcing and climatology
-      if (synchro_flag) then          ! data. Note: this operation may
-        synchro_flag=.false.          ! raise "may_day_flag" in the
-C$OMP MASTER                          ! case of IO errors, however the
-        call get_forces               ! error condition may occur on
-C$OMP END MASTER                      ! some nodes, but not on all at
-C$OMP BARRIER                         ! the same time, so the exit is
-      endif                           ! deferred until after broadcast
-                                      ! of "may_day_flag" inside diag
+                                       ! Read forcing and climatology
+      if (synchro_flag) then           ! data. This operation may raise
+        synchro_flag=.false.           ! "may_day_flag" in the case of
+C$OMP MASTER                           ! I/O errors which may occur on
+        call get_forces                ! some nodes, but not on all at 
+C$OMP END MASTER                       ! the same time.  Therefore to
+C$OMP BARRIER                          ! avoid MPI deadlock the exit is
+      endif                            ! deferred until after broadcast
+                                       ! of "may_day_flag" by diag.
 #ifdef SOLVE3D
       do tile=my_tile_range                 ! interpolate forcing
         call set_forces(tile)               ! data to model time and
@@ -538,8 +538,8 @@ C$OMP BARRIER
 #ifdef FORW_BAK
         kstp=knew                      ! This might look a bit silly,
         knew=kstp+1                    ! because both branches of this
-        if (knew>4) knew=1             ! "if" statement are identical.
-        if (mod(knew,2)==0) then       ! Nevertheless, it makes sense,
+        if (knew > 4) knew=1           ! "if" statement are identical.
+        if (mod(knew,2) == 0) then     ! Nevertheless, it makes sense,
           do tile=my_tile_range        ! since mpc will reverse one of
 # ifndef SOLVE3D
             call set_forces(tile)      ! these loops to make zig-zag
@@ -576,8 +576,8 @@ C$OMP BARRIER
       enddo    ! <-- iif
 
 # ifdef PRED_COUPLED_MODE
-      do tile=my_tile_range            ! This code segment is for
-        call set_HUV1(tile)            ! predictor-coupled version.
+      do tile=my_tile_range              ! This code segment is for
+        call set_HUV1(tile)              ! predictor-coupled version.
       enddo
 C$OMP BARRIER
 
@@ -596,11 +596,11 @@ C$OMP BARRIER
 C$OMP BARRIER
 # endif
 
-      do tile=my_tile_range            ! Continue solution of the
-        call step3d_uv2(tile)          ! three-dimensional equations:
-      enddo                            ! finalize time step for
-C$OMP BARRIER                          ! momenta and tracers
-      do tile=my_tile_range
+      do tile=my_tile_range              ! Continue solution of
+        call step3d_uv2(tile)            ! the three-dimensional
+      enddo                              ! equations: finalize
+C$OMP BARRIER                            ! time step for momenta
+      do tile=my_tile_range              ! and tracers.
         call omega(tile)
         call step3d_t (tile)
 # if defined TS_DIF2 || defined TS_DIF4
@@ -636,6 +636,5 @@ c**    call step_floats(1,nfloats)    ! serial version for debugging
       enddo
 # endif
 #endif
-
   99  return
       end

@@ -95,7 +95,7 @@
 !                    ___R     density anomaly
 ! or                 ___O     omega vertical velocity
 !                    ___W     true vertical velocity
-!  parameter indices 
+!  parameter indices
 !  if combined with  ___Akv   vertical viscosity coefficient
 !  prefix "indx"     ___Akt   vertical T-diffusion coefficient
 !  (see above).      ___Aks   vertical S-diffusion coefficient
@@ -105,13 +105,13 @@
 ! vname    character array for variable names and attributes;
 
       integer, parameter :: max_frc_file=8
-      integer max_frc, ncidfrc(max_frc_file), nrst, ncidrst, nrecrst,
-     &      nrrec, nrpfrst, ncidclm, nwrt, ncidhis, nrechis, nrpfhis
-      common /ncvars/       max_frc, ncidfrc, nrst, ncidrst, nrecrst,
-     &      nrrec, nrpfrst, ncidclm, nwrt, ncidhis, nrechis, nrpfhis
+      integer max_frc, ncfrc(max_frc_file), nrst,  ncrst,   nrecrst,
+     &      nrrec, nrpfrst, ncidclm, nwrt,  nchis, nrechis, nrpfhis
+      common /ncvars/       max_frc, ncfrc, nrst,  ncrst,   nrecrst,
+     &      nrrec, nrpfrst, ncidclm, nwrt,  nchis, nrechis, nrpfhis
 #ifdef AVERAGES
       integer ntsavg,  navg
-      common /ncvars/ ntsavg,  navg
+      common /ncvars/ ntsavg, navg
 #endif
 #ifdef STATIONS
       integer nsta
@@ -121,8 +121,8 @@
       integer nflt
       common /ncvars/ nflt
 #endif
-      
-! NetCFD ids for model variables 
+
+! NetCFD ids for model variables
 
       integer rstTime, rstTstep,      rstZ,   rstUb,  rstVb,
      &        hisTime, hisTstep,      hisZ,   hisUb,  hisVb
@@ -151,14 +151,14 @@
 #endif
 
 #ifdef AVERAGES
-      integer ncidavg, nrecavg, nrpfavg, avgTime, avgZ, avgUb, avgVb
-      common /ncvars/  ncidavg, nrecavg, nrpfavg,
-     &                                   avgTime, avgZ, avgUb, avgVb
+      integer ncavg, nrecavg, nrpfavg,  avgTime, avgZ, avgUb, avgVb
+      common /ncvars/  ncavg, nrecavg,  nrpfavg,
+     &                                  avgTime, avgZ, avgUb, avgVb
 # ifdef SOLVE3D
-      integer avgU,  avgV,  avgT(NT+1),  avgR,    avgO,    avgW,
-     &                                   avgAkv,  avgAkt,  avgAks
-      common /ncvars/ avgU, avgV, avgT,  avgR,    avgO,    avgW,
-     &                                   avgAkv,  avgAkt,  avgAks
+      integer avgU,  avgV,  avgT(NT+1), avgR,    avgO,    avgW,
+     &                                  avgAkv,  avgAkt,  avgAks
+      common /ncvars/ avgU, avgV, avgT, avgR,    avgO,    avgW,
+     &                                  avgAkv,  avgAkt,  avgAks
 #  ifdef LMD_KPP
       integer avgHbls
       common /ncvars/ avgHbls
@@ -181,12 +181,12 @@
       common /ncvars/ stnU, stnV, stnT,  stnR,    stnO,    stnW,
      &                                   stnAkv,  stnAkt,  stnAks
 #  ifdef LMD_KPP
-      integer stnHbls 
-      common /ncvars/ stnHbls 
+      integer stnHbls
+      common /ncvars/ stnHbls
 #  endif
 #  ifdef LMD_BKPP
-      integer stnHbbl 
-      common /ncvars/ stnHbbl 
+      integer stnHbbl
+      common /ncvars/ stnHbbl
 #  endif
 # endif
 #endif
@@ -194,7 +194,7 @@
 #ifdef SOLVE3D
 # define NWRTHIS 16+NT-2
 #else
-# define NWRTHIS 14      
+# define NWRTHIS 14
 #endif
       logical ldefhis, wrthis(NWRTHIS)
       common /ncvars/ ldefhis, wrthis
@@ -224,16 +224,16 @@
       integer, parameter :: r2dvar=0, u2dvar=1, v2dvar=2, p2dvar=3,
      &            r3dvar=4, u3dvar=5, v3dvar=6, p3dvar=7, w3dvar=8
 
-!            Horizontal array dimensions in netCDF files. In the case 
+!            Horizontal array dimensions in netCDF files. In the case
 ! xi_rho     of MPI code with PARALLEL_FILES activated these dimensions
 ! xi_u       depend on the corresponding sizes of individual subdomains
-! eta_rho    rather than the whole physical grid, therefore they become 
+! eta_rho    rather than the whole physical grid, therefore they become
 ! eta_v      live variables placed in common block and assigned values
 !            in "mpi_setup" rather tnan be parameters defined here.
 
 #if defined MPI && defined PARALLEL_FILES
-      integer xi_rho, xi_u,   eta_rho, eta_v
-      common /ncvars/ xi_rho, xi_u,   eta_rho, eta_v
+      integer xi_rho, xi_u, eta_rho, eta_v
+      common /ncvars/ xi_rho, xi_u, eta_rho, eta_v
 #else
       integer, parameter :: xi_rho=LLm+2, eta_rho=MMm+2,
      &                     xi_u=xi_rho-1, eta_v=eta_rho-1
@@ -241,30 +241,30 @@
 
       integer, parameter :: max_name_size=64
       character date_str*44, title*80
-      character*(max_name_size) ininame, grdname,
+      character(len=max_name_size) ininame, grdname,
      &                 hisname, rstname, frcfile(max_frc_file)
       common /cncvars/ date_str, title,  ininame,
      &        grdname, hisname, rstname, frcfile
 #ifdef AVERAGES
-      character*(max_name_size) avgname
+      character(len=max_name_size) avgname
       common /cncvars/ avgname
 #endif
 #if (defined TCLIMATOLOGY && !defined ANA_TCLIMA) || !defined ANA_SSH
-      character*(max_name_size) clm_file
+      character(len=max_name_size) clm_file
       common /cncvars/ clm_file
 #endif
 #if defined T_FRC_BRY  || defined M2_FRC_BRY || \
     defined M3_FRC_BRY || defined Z_FRC_BRY
-      character*(max_name_size) bry_file 
+      character(len=max_name_size) bry_file
       common /cncvars/ bry_file
 #endif
 
 #ifdef STATIONS
-      character*(max_name_size) staname
+      character(len=max_name_size) staname
       common /cncvars/ staname
 #endif
 #ifdef ASSIMILATION
-      character*(max_name_size) aparnam, assname
+      character(len=max_name_size) aparnam, assname
       common /cncvars/ aparnam, assname
 #endif
       character*42  vname(3,

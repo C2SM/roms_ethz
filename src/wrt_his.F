@@ -65,7 +65,7 @@ CR      write(*,*) 'wrt_his: Entry  ' MYID
       start(2)=record
       count(1)=iaux
       count(2)=1
-      ierr=nf_put_vara_int (ncidhis, hisTstep, start, count, ibuff)
+      ierr=nf_put_vara_int (nchis, hisTstep, start, count, ibuff)
       if (ierr /= nf_noerr) then
         write(*,'(/1x,3A,i6/11x,A,3x,A,i4/)') '### ERROR: wrt_his :: ',
      &       'Cannot write variable ''time_step'' into history file, ',
@@ -75,7 +75,7 @@ CR      write(*,*) 'wrt_his: Entry  ' MYID
 
 ! Time
 
-      ierr=nf_put_var1_FTYPE (ncidhis, hisTime, record, time)
+      ierr=nf_put_var1_FTYPE (nchis, hisTime, record, time)
       if (ierr /= nf_noerr) then
         lvar=lenstr(vname(1,indxTime))
         write(*,'(/1x,4A,i6/11x,A,3x,A,i4/)') '### ERROR: wrt_his :: ',
@@ -90,7 +90,7 @@ CR      write(*,*) 'wrt_his:  time  ' MYID
 ! components in XI-,ETA-directions.
 
       if (wrthis(indxZ)) then
-        ierr=nf_fwrite (zeta(START_2D_ARRAY,knew), ncidhis, hisZ,
+        ierr=nf_fwrite (zeta(START_2D_ARRAY,knew), nchis, hisZ,
      &                                              record, r2dvar)
         if (ierr /= nf_noerr) then
           lvar=lenstr(vname(1,indxZ))
@@ -100,7 +100,7 @@ CR      write(*,*) 'wrt_his:  time  ' MYID
 CR      write(*,*) 'wrt_his:  wrtZ  ' MYID
       endif
       if (wrthis(indxUb)) then
-        ierr=nf_fwrite (ubar(START_2D_ARRAY,knew), ncidhis, hisUb,
+        ierr=nf_fwrite (ubar(START_2D_ARRAY,knew), nchis, hisUb,
      &                                              record, u2dvar)
         if (ierr /= nf_noerr) then
           lvar=lenstr(vname(1,indxUb))
@@ -110,7 +110,7 @@ CR      write(*,*) 'wrt_his:  wrtZ  ' MYID
 CR      write(*,*) 'wrt_his: wrtUBAR' MYID
       endif
       if (wrthis(indxVb)) then
-        ierr=nf_fwrite (vbar(START_2D_ARRAY,knew), ncidhis, hisVb,
+        ierr=nf_fwrite (vbar(START_2D_ARRAY,knew), nchis, hisVb,
      &                                            record, v2dvar)
         if (ierr /= nf_noerr) then
           lvar=lenstr(vname(1,indxVb))
@@ -125,7 +125,7 @@ CR      write(*,*) 'wrt_his: wrtVBAR' MYID
 ! 3D momentum components in XI- and ETA-directions.
 
       if (wrthis(indxU)) then
-        ierr=nf_fwrite (u(START_2D_ARRAY,1,nstp), ncidhis,
+        ierr=nf_fwrite (u(START_2D_ARRAY,1,nstp), nchis,
      &                             hisU,  record,  u3dvar)
         if (ierr /= nf_noerr) then
           lvar=lenstr(vname(1,indxU))
@@ -135,7 +135,7 @@ CR      write(*,*) 'wrt_his: wrtVBAR' MYID
 CR      write(*,*) 'wrt_his:  wrtU  ' MYID
       endif
       if (wrthis(indxV)) then
-        ierr=nf_fwrite (v(START_2D_ARRAY,1,nstp), ncidhis,
+        ierr=nf_fwrite (v(START_2D_ARRAY,1,nstp), nchis,
      &                             hisV,  record,  v3dvar)
         if (ierr /= nf_noerr) then
           lvar=lenstr(vname(1,indxV))
@@ -149,15 +149,15 @@ CR      write(*,*) 'wrt_his:  wrtV  ' MYID
 
       do itrc=1,NT
         if (wrthis(indxT+itrc-1)) then
-          ierr=nf_fwrite (t(START_2D_ARRAY,1,nstp,itrc), ncidhis,
+          ierr=nf_fwrite (t(START_2D_ARRAY,1,nstp,itrc), nchis,
      &                                hisT(itrc), record, r3dvar)
 
 
 c          write(*,*) 'Replacing T,S with rho1,qp1.'
 c          if (itrc==1) then
-c            ierr=nf_fwrite (rho1, ncidhis, hisT(itrc), record,r3dvar)
+c            ierr=nf_fwrite (rho1, nchis, hisT(itrc), record,r3dvar)
 c          elseif (itrc==2) then
-c            ierr=nf_fwrite  (qp1, ncidhis, hisT(itrc), record,r3dvar)
+c            ierr=nf_fwrite  (qp1, nchis, hisT(itrc), record,r3dvar)
 c          endif
 
           if (ierr /= nf_noerr) then
@@ -177,9 +177,9 @@ CR      write(*,*) 'wrt_his:  wrtT  ' MYID
 cxxxxxxxxxx
 cxxxxxxxxxx
 cxxxxxxxxxx
-        ierr=nf_fwrite (rho1, ncidhis, hisR, record, r3dvar)
+        ierr=nf_fwrite (rho1, nchis, hisR, record, r3dvar)
 # else
-        ierr=nf_fwrite (rho, ncidhis, hisR, record, r3dvar)
+        ierr=nf_fwrite (rho, nchis, hisR, record, r3dvar)
 # endif
         if (ierr /= nf_noerr) then
           lvar=lenstr(vname(1,indxR))
@@ -199,7 +199,7 @@ CR      write(*,*) 'wrt_his:  wrtRHO' MYID
             enddo
           enddo
         enddo
-        ierr=nf_fwrite (work, ncidhis, hisO, record, w3dvar)
+        ierr=nf_fwrite (work, nchis, hisO, record, w3dvar)
         if (ierr /= nf_noerr) then
           lvar=lenstr(vname(1,indxO))
           write(*,1) vname(1,indxO)(1:lvar), record MYID
@@ -214,7 +214,7 @@ CR      write(*,*) 'wrt_his:  wrtO  ' MYID
         do tile=0,NSUB_X*NSUB_E-1
           call wvlcty (tile, work)
         enddo
-        ierr=nf_fwrite (work, ncidhis, hisW, record, r3dvar)
+        ierr=nf_fwrite (work, nchis, hisW, record, r3dvar)
         if (ierr /= nf_noerr) then
           lvar=lenstr(vname(1,indxW))
           write(*,1) vname(1,indxW)(1:lvar), record MYID
@@ -226,7 +226,7 @@ CR      write(*,*) 'wrt_his:  wrtW  ' MYID
 ! Vertical viscosity coefficient.
 
       if (wrthis(indxAkv)) then
-        ierr=nf_fwrite (Akv, ncidhis, hisAkv, record, w3dvar)
+        ierr=nf_fwrite (Akv, nchis, hisAkv, record, w3dvar)
         if (ierr /= nf_noerr) then
           lvar=lenstr(vname(1,indxAkv))
           write(*,1) vname(1,indxAkv)(1:lvar), record MYID
@@ -238,7 +238,7 @@ CR      write(*,*) 'wrt_his:  wrtAkv' MYID
 ! Vertical diffusion coefficient for potential temperature.
 
       if (wrthis(indxAkt)) then
-        ierr=nf_fwrite (Akt(START_2D_ARRAY,0,itemp), ncidhis,
+        ierr=nf_fwrite (Akt(START_2D_ARRAY,0,itemp), nchis,
      &                                hisAkt, record, w3dvar)
         if (ierr /= nf_noerr) then
           lvar=lenstr(vname(1,indxAkt))
@@ -252,7 +252,7 @@ CR      write(*,*) 'wrt_his:  wrtAkt' MYID
 ! Vertical diffusion coefficient for salinity.
 
       if (wrthis(indxAks)) then
-        ierr=nf_fwrite (Akt(START_2D_ARRAY,0,isalt), ncidhis,
+        ierr=nf_fwrite (Akt(START_2D_ARRAY,0,isalt), nchis,
      &                                hisAks, record, w3dvar)
         if (ierr /= nf_noerr) then
           lvar=lenstr(vname(1,indxAks))
@@ -266,7 +266,7 @@ CR      write(*,*) 'wrt_his:  wrtAks' MYID
 ! Depth of planetary boundary layer [m].
 
       if (wrthis(indxHbls)) then
-        ierr=nf_fwrite (hbls(START_2D_ARRAY,nstp), ncidhis,
+        ierr=nf_fwrite (hbls(START_2D_ARRAY,nstp), nchis,
      &                             hisHbls, record, r2dvar)
         if (ierr /= nf_noerr) then
           lvar=lenstr(vname(1,indxHbls))
@@ -280,7 +280,7 @@ CR      write(*,*) 'wrt_his:  wrtHBL' MYID
 ! Thickness of KPP bottom boundary layer [m].
 
       if (wrthis(indxHbbl)) then
-        ierr=nf_fwrite (hbbls(START_2D_ARRAY,nstp), ncidhis,
+        ierr=nf_fwrite (hbbl(START_2D_ARRAY,nstp), nchis,
      &                              hisHbbl, record, r2dvar)
         if (ierr /= nf_noerr) then
           lvar=lenstr(vname(1,indxHbbl))
@@ -302,14 +302,14 @@ CR      write(*,*) 'wrt_his:  wrtHbBL' MYID
 ! processes to access data immediately after it is written.
 
 #if defined MPI && !defined PARALLEL_FILES
-      ierr=nf_close (ncidhis)
-      if (nrpfhis>0 .and. record>=nrpfhis) ncidhis=-1
+      ierr=nf_close (nchis)
+      if (nrpfhis>0 .and. record>=nrpfhis) nchis=-1
 #else
       if (nrpfhis>0 .and. record>=nrpfhis) then
-        ierr=nf_close (ncidhis)
-        ncidhis=-1
+        ierr=nf_close (nchis)
+        nchis=-1
       else
-        ierr=nf_sync(ncidhis)
+        ierr=nf_sync(nchis)
       endif
 #endif
       if (ierr == nf_noerr) then

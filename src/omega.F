@@ -34,11 +34,12 @@
       implicit none
       integer istr,iend,jstr,jend, i,j,k
 # include "param.h"
-      real CX(PRIVATE_1D_SCRATCH_ARRAY,0:N),  dtau,cdt,
-     &    wrk(PRIVATE_1D_SCRATCH_ARRAY),      cff, dh,dh2
-      real, parameter :: cu_min=0.2D0, cu_max=0.5D0,
-     &      cu_inv=1.D0/cu_max,  cutoff=2.D0*cu_max-cu_min,
-     &                  delta=0.25D0*cu_inv/(cu_max-cu_min)
+      real CX(PRIVATE_1D_SCRATCH_ARRAY,0:N),  dtau, c2d,dh, cw, cff, 
+     &    wrk(PRIVATE_1D_SCRATCH_ARRAY),      cw_min,cw_max,cw_max2
+      real, parameter :: cu_min=0.6D0, cu_max=1.0D0,
+     &  cmnx_ratio=cu_min/cu_max,  cutoff=2.D0-cmnx_ratio,
+     &                      r4cmx=0.25D0/(1.D0-cmnx_ratio)
+
 
 # include "grid.h"
 # include "ocean3d.h"
@@ -78,40 +79,43 @@
           do i=istr,iend
             Wi(i,j,k)=Wi(i,j,k)-wrk(i)*(z_w(i,j,k)-z_w(i,j,0))
 
-            CX(i,k+1)=CX(i,k+1)-min(Wi(i,j,k),0.)
-            CX(i,k  )=CX(i,k  )+max(Wi(i,j,k),0.)
-          enddo
-        enddo
-        do k=1,N-1
-          do i=istr,iend
-c*          if (Wi(i,j,k)>0) then        ! Three different variants
-c*            cdt=CX(i,k)                ! of computing Courant number
+
+c*          if (Wi(i,j,k) > 0.) then     ! Three different variants
+c*            c2d=CX(i,k)                ! of computing Courant number
 c*            dh=Hz(i,j,k)               ! at the interface: use value
 c*          else                         ! from the grid box vertically
-c*            cdt=CX(i,k+1)              ! upstream to the interface;
+c*            c2d=CX(i,k+1)              ! upstream to the interface;
 c*            dh=Hz(i,j,k+1)             ! average; or select maximum
 c*          endif                        ! value between the two.
 
-c>          cdt=CX(i,k) +CX(i,k+1)
-c>          dh=Hz(i,j,k)+Hz(i,j,k+1)
+c>          c2d=0.5*(CX(i,k) +CX(i,k+1))
+c>          dh=0.5*(Hz(i,j,k)+Hz(i,j,k+1))
 
-            cdt=max(CX(i,k),  CX(i,k+1))
+            c2d=max(CX(i,k),  CX(i,k+1))
             dh=min(Hz(i,j,k),Hz(i,j,k+1))
 
-            cdt=cdt*CX(i,0)     !<-- after this cdt/dh = Courant number
-            dh2=dh*dh
-            if (cdt<cu_min*dh) then
-              cff=dh2
-            elseif (cdt<cutoff*dh) then
-              cff=dh2+delta*(cdt-cu_min*dh)**2
+            cw_max=cu_max*dh-c2d*CX(i,0)
+            if (cw_max > 0.D0) then
+              cw_max2=cw_max*cw_max
+              cw_min=cw_max*cmnx_ratio
+
+              cw=abs(Wi(i,j,k))*CX(i,0)  !<-- cw/dh = vertical Courant
+
+              if (cw < cw_min) then
+                cff=cw_max2
+              elseif (cw < cutoff*cw_max) then
+                cff=cw_max2 +r4cmx*(cw-cw_min)**2 
+              else
+                cff=cw_max*cw
+              endif
+
+              We(i,j,k)=cw_max2*Wi(i,j,k)/cff  !<-- NORMAL SPLITING
+              Wi(i,j,k)=Wi(i,j,k)-We(i,j,k)    !<-- CODE TO BE USED
             else
-              cff=cu_inv*cdt*dh
+              We(i,j,k)=0.           !--> Wi(i,j,k) remains unchanged
             endif
 
-            We(i,j,k)=dh2*Wi(i,j,k)/cff    !<-- NORMAL SPLITING
-            Wi(i,j,k)=Wi(i,j,k)-We(i,j,k)  !<-- CODE TO BE USED
-
-c**          We(i,j,k)=0.          !<-- fully implicit (BE), test only
+c             We(i,j,k)=0.          !<-- fully implicit (BE), test only
 
 c**         We(i,j,k)=Wi(i,j,k)    !<-- for testing only: revert
 c**         Wi(i,j,k)=0.           !<-- back to fully explicit code

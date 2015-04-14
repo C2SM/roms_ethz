@@ -251,7 +251,7 @@
             Kt(i,j,k)=nuws                    ! only
 # endif
 # if defined LMD_CONVEC && (!defined LMD_KPP && !defined LMD_BKPP)
-            if (Rig(i,j,k)<0.) then        ! In the case of KPP
+            if (Rig(i,j,k) < 0.) then         ! In the case of KPP
               Kv(i,j,k)=Kv(i,j,k) + nu0c      ! convective adjustment
               Kt(i,j,k)=Kt(i,j,k) + nu0c      ! will be added later
             endif                             ! and only below HBL

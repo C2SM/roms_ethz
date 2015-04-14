@@ -42,6 +42,12 @@ c     &               LLm=460, MMm=240, N=50  ! PACSMA grid
      &               LLm=768, MMm=512, N=1
 c    &               LLm=1520, MMm=1088, N=1
 
+#elif defined SO
+     &               LLm=720, MMm=216, N=42
+c     &               LLm=1440, MMm=432, N=42
+c     &               LLm=2880, MMm=864, N=42
+
+
 #elif defined OVERFLOW
      &               LLm=4,   MMm=128, N=20
 #elif defined SEAMOUNT
@@ -122,13 +128,14 @@ c**  &               LLm=126,  MMm=254, N=20    ! USWEST grid 16
 !                                             XI- and ETA-directions;
       integer, parameter ::
 #ifdef MPI
-     &      NP_XI=2, NP_ETA=2, NSUB_X=2, NSUB_E=13
+     &      NP_XI=16, NP_ETA=18, NSUB_X=1, NSUB_E=1
+!--> Sasha orig     &      NP_XI=2, NP_ETA=2, NSUB_X=2, NSUB_E=13
 #else
 c     &      NSUB_X=4, NSUB_E=40  ! PAC44
 c     &      NSUB_X=8, NSUB_E=80   ! PAC22
 c     &      NSUB_X=4, NSUB_E=1
 c     &      NSUB_X=2, NSUB_E=2
-     &      NSUB_X=4, NSUB_E=22  ! <-- 384x128 soliton
+     &      NSUB_X=6, NSUB_E=24
 c     &      NSUB_X=4, NSUB_E=52
 c     &      NSUB_X=2, NSUB_E=8  ! <-- iswake 768x192
 c     &      NSUB_X=8, NSUB_E=48

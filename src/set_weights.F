@@ -40,7 +40,7 @@ c--# define TEST_WEIGHTS
 ! temporal accuracy for time-averaged      !  2.  5.    0.1976   0.296
 ! barotropic motions resolved by           !  2.  6.    0.2039   0.304
 ! baroclinic time step.                    !  2.  8.    0.2129   0.314
-!
+
 ! Note: The theoretical values of "r" presented in the table above are
 ! derived assuming "exact" barotropic mode stepping.  Consequently, it
 ! does not account for effects caused by Forward-Euler (FE) startup of
@@ -75,8 +75,8 @@ c**   r=0.281*(1.-4.7/(dble(ndtfast)-6.75)) !<-- old way
         do i=1,2*ndtfast
           cff=scale*dble(i)
           weight(1,i)=cff**p - cff**(p+q) - r*cff
-          if (weight(1,i)>0.) nfast=i
-          if (nfast>0 .and. weight(1,i)<0.) weight(1,i)=0.
+          if (weight(1,i) > 0.) nfast=i
+          if (nfast > 0 .and. weight(1,i) < 0.) weight(1,i)=0.
         enddo
                                            ! Find center of gravity
         sum=0.                             ! of the primary weighting

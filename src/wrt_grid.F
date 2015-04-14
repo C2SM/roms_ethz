@@ -25,12 +25,12 @@
       if (mynode == 0) then
 #  endif
 # endif
-        ierr=nf_create (fname, nf_clobber+nf_64bit_offset, ncid)
+        ierr=nf_create(fname, nf_clobber+nf_64bit_offset, ncid)
         if (ierr==nf_noerr) then
           call put_global_atts (ncid, ierr)
 
-          ierr=my_nf_def_dim (ncid, 'xi_rho',  xi_rho,  r2dgrd(1))
-          ierr=my_nf_def_dim (ncid, 'eta_rho', eta_rho, r2dgrd(2))
+          ierr=my_nf_def_dim(ncid, 'xi_rho',  xi_rho,  r2dgrd(1))
+          ierr=my_nf_def_dim(ncid, 'eta_rho', eta_rho, r2dgrd(2))
 
           call def_grid (ncid, r2dgrd)
           ierr=nf_enddef(ncid)
@@ -41,7 +41,7 @@
         endif
 # if defined MPI & !defined PARALLEL_FILES
       else
-        ierr=nf_open (fname, nf_write, ncid)
+        ierr=nf_open(fname, nf_write, ncid)
         if (ierr/=nf_noerr) then
           write(*,'(/1x,4A/12x,A/)')    '### ERROR: wrt_ana_grid :: ',
      &             'Cannot open netCDF file ''', fname(1:lncn), ''',',
@@ -71,7 +71,7 @@
 
 
 
-      subroutine def_grid (ncid, r2dgrd)
+      subroutine def_grid(ncid, r2dgrd)
 
 ! Define grid variables in output NetCDF file, which may be
 ! restart, history, averages, etc...
@@ -89,7 +89,7 @@
 
 ! Decide about precision:
 
-      if (ncid==ncidrst) then
+      if (ncid==ncrst) then
         nf_ftype=NF_FTYPE
       else
         nf_ftype=NF_FOUT
@@ -97,81 +97,81 @@
 
 ! Grid type switch: Spherical or Cartesian.
 
-      ierr=nf_def_var (ncid, 'spherical', nf_char, 0, 0, varid)
-      ierr=nf_put_att_text (ncid, varid, 'long_name',24,
-     &                                   'grid type logical switch')
-      ierr=nf_put_att_text (ncid, varid, 'option_T', 9, 'spherical')
-      ierr=nf_put_att_text (ncid, varid, 'option_F', 9, 'cartesian')
+      ierr=nf_def_var(ncid, 'spherical', nf_char, 0, 0, varid)
+      ierr=nf_put_att_text(ncid, varid, 'long_name',24,
+     &                                  'grid type logical switch')
+      ierr=nf_put_att_text(ncid, varid, 'option_T', 9, 'spherical')
+      ierr=nf_put_att_text(ncid, varid, 'option_F', 9, 'cartesian')
 
 ! Physical dimensions of model domain, xl,el (Cartesian grid only).
 
 #ifndef SPHERICAL
-      ierr=nf_def_var (ncid, 'xl', nf_ftype, 0, 0, varid)
+      ierr=nf_def_var(ncid, 'xl', nf_ftype, 0, 0, varid)
       ierr=nf_put_att_text (ncid, varid, 'long_name',   33,
-     &                   'domain length in the XI-direction')
-      ierr=nf_put_att_text (ncid, varid, 'units', 5, 'meter')
+     &                  'domain length in the XI-direction')
+      ierr=nf_put_att_text(ncid, varid, 'units', 5, 'meter')
 
-      ierr=nf_def_var (ncid, 'el', nf_ftype, 0, 0, varid)
-      ierr=nf_put_att_text (ncid, varid, 'long_name',   34,
-     &                  'domain length in the ETA-direction')
-      ierr=nf_put_att_text (ncid, varid, 'units', 5, 'meter')
+      ierr=nf_def_var(ncid, 'el', nf_ftype, 0, 0, varid)
+      ierr=nf_put_att_text(ncid, varid, 'long_name',   34,
+     &                 'domain length in the ETA-direction')
+      ierr=nf_put_att_text(ncid, varid, 'units', 5, 'meter')
 #endif
 
 ! Bathymetry.
 
-      ierr=nf_def_var (ncid, 'h', nf_ftype, 2, r2dgrd, varid)
-      ierr=nf_put_att_text (ncid, varid, 'long_name',  24,
-     &                            'bathymetry at RHO-points')
-      ierr=nf_put_att_text (ncid, varid, 'units', 5, 'meter')
-      ierr=nf_put_att_text (ncid, varid, 'field', 12,
-     &                                        'bath, scalar')
+      ierr=nf_def_var(ncid, 'h', nf_ftype, 2, r2dgrd, varid)
+      ierr=nf_put_att_text(ncid, varid, 'long_name',  24,
+     &                           'bathymetry at RHO-points')
+      ierr=nf_put_att_text(ncid, varid, 'units', 5, 'meter')
+      ierr=nf_put_att_text(ncid, varid, 'field', 12,
+     &                                       'bath, scalar')
 
 ! Coriolis Parameter.
 
-      ierr=nf_def_var (ncid,'f', nf_ftype, 2, r2dgrd, varid)
-      ierr=nf_put_att_text (ncid, varid, 'long_name',   32,
-     &                        'Coriolis parameter at RHO-points')
-      ierr=nf_put_att_text (ncid, varid, 'units',  8, 'second-1')
-      ierr=nf_put_att_text (ncid, varid, 'field', 16,
-     &                                        'coriolis, scalar')
+      ierr=nf_def_var(ncid,'f', nf_ftype, 2, r2dgrd, varid)
+      ierr=nf_put_att_text(ncid, varid, 'long_name',   32,
+     &                       'Coriolis parameter at RHO-points')
+      ierr=nf_put_att_text(ncid, varid, 'units',  8, 'second-1')
+      ierr=nf_put_att_text(ncid, varid, 'field', 16,
+     &                                       'coriolis, scalar')
 
 ! Curvilinear coordinate metric coefficients pm,pn.
 
-      ierr=nf_def_var (ncid, 'pm', nf_ftype, 2, r2dgrd, varid)
-      ierr=nf_put_att_text (ncid, varid, 'long_name', 35,
-     &                       'curvilinear coordinate metric in XI')
-      ierr=nf_put_att_text (ncid, varid, 'units',  7,    'meter-1')
-      ierr=nf_put_att_text (ncid, varid, 'field', 10, 'pm, scalar')
+      ierr=nf_def_var(ncid, 'pm', nf_ftype, 2, r2dgrd, varid)
+      ierr=nf_put_att_text(ncid, varid, 'long_name', 35,
+     &                      'curvilinear coordinate metric in XI')
+      ierr=nf_put_att_text(ncid, varid, 'units',  7,    'meter-1')
+      ierr=nf_put_att_text(ncid, varid, 'field', 10, 'pm, scalar')
 
-      ierr=nf_def_var (ncid, 'pn', nf_ftype, 2, r2dgrd, varid)
-      ierr=nf_put_att_text (ncid, varid, 'long_name', 36,
-     &                      'curvilinear coordinate metric in ETA')
-      ierr=nf_put_att_text (ncid, varid, 'units',  7,    'meter-1')
-      ierr=nf_put_att_text (ncid, varid, 'field', 10, 'pn, scalar')
+      ierr=nf_def_var(ncid, 'pn', nf_ftype, 2, r2dgrd, varid)
+      ierr=nf_put_att_text(ncid, varid, 'long_name', 36,
+     &                     'curvilinear coordinate metric in ETA')
+      ierr=nf_put_att_text(ncid, varid, 'units',  7,    'meter-1')
+      ierr=nf_put_att_text(ncid, varid, 'field', 10, 'pn, scalar')
 
 ! Longitude-latitude or cartezian coordinates of RHO-points.
 
 #ifdef SPHERICAL
-      ierr=nf_def_var (ncid, 'lon_rho', nf_ftype, 2, r2dgrd, varid)
-      ierr=nf_put_att_text (ncid, varid, 'long_name', 23,
-     &                                     'longitude of RHO-points')
-      ierr=nf_put_att_text (ncid, varid, 'units', 11,  'degree_east')
-      ierr=nf_put_att_text (ncid, varid, 'field', 15,
-     &                                             'lon_rho, scalar')
+      ierr=nf_def_var(ncid, 'lon_rho', nf_ftype, 2, r2dgrd, varid)
+      ierr=nf_put_att_text(ncid, varid, 'long_name', 23,
+     &                                    'longitude of RHO-points')
+      ierr=nf_put_att_text(ncid, varid, 'units', 11,  'degree_east')
+      ierr=nf_put_att_text(ncid, varid, 'field', 15,
+     &                                            'lon_rho, scalar')
 
-      ierr=nf_def_var (ncid, 'lat_rho', nf_ftype, 2, r2dgrd, varid)
-      ierr=nf_put_att_text (ncid,varid,'long_name',22,
-     &                                      'latitude of RHO-points')
-      ierr=nf_put_att_text (ncid, varid, 'units', 12,
-     &                                                'degree_north')
-      ierr=nf_put_att_text (ncid, varid, 'field', 15,
-     &                                             'lat_rho, scalar')
+      ierr=nf_def_var(ncid, 'lat_rho', nf_ftype, 2, r2dgrd, varid)
+      ierr=nf_put_att_text(ncid,varid,'long_name',22,
+     &                                     'latitude of RHO-points')
+      ierr=nf_put_att_text(ncid, varid, 'units', 12,
+     &                                               'degree_north')
+      ierr=nf_put_att_text(ncid, varid, 'field', 15,
+     &                                            'lat_rho, scalar')
 #else
-      ierr=nf_def_var (ncid, 'x_rho', nf_ftype, 2, r2dgrd, varid)
-      ierr=nf_put_att_text (ncid, varid, 'long_name', 25,
-     &                                   'x-locations of RHO-points')
-      ierr=nf_put_att_text (ncid, varid, 'units', 5, 'meter')
-      ierr=nf_put_att_text (ncid, varid, 'field',13, 'x_rho, scalar')
+      ierr=nf_def_var(ncid, 'x_rho', nf_ftype, 2, r2dgrd, varid)
+      ierr=nf_put_att_text(ncid, varid, 'long_name', 25,
+     &                                  'x-locations of RHO-points')
+      ierr=nf_put_att_text(ncid, varid, 'units', 5, 'meter')
+      ierr=nf_put_att_text(ncid, varid, 'field',13, 'x_rho, scalar')
 
       ierr=nf_def_var (ncid, 'y_rho', nf_ftype, 2, r2dgrd, varid)
       ierr=nf_put_att_text (ncid, varid, 'long_name',25,
@@ -182,28 +182,28 @@
 #ifdef CURVGRID
 ! Angle between XI-axis and EAST at RHO-points
 
-      ierr=nf_def_var (ncid, 'angle', nf_ftype, 2, r2dgrd,varid)
-      ierr=nf_put_att_text (ncid, varid, 'long_name',30,
-     &                              'angle between XI-axis and EAST')
-      ierr=nf_put_att_text (ncid, varid, 'units', 7, 'radians')
-      ierr=nf_put_att_text (ncid, varid, 'field',13, 'angle, scalar')
+      ierr=nf_def_var(ncid, 'angle', nf_ftype, 2, r2dgrd,varid)
+      ierr=nf_put_att_text(ncid, varid, 'long_name',30,
+     &                             'angle between XI-axis and EAST')
+      ierr=nf_put_att_text(ncid, varid, 'units', 7, 'radians')
+      ierr=nf_put_att_text(ncid, varid, 'field',13, 'angle, scalar')
 #endif
 #ifdef MASKING
 
 ! Land-Sea mask at RHO-points.
 
-      ierr=nf_def_var (ncid, 'mask_rho', nf_ftype, 2, r2dgrd, varid)
-      ierr=nf_put_att_text (ncid, varid, 'long_name',18,
-     &                                          'mask on RHO-points')
-      ierr=nf_put_att_text (ncid, varid, 'option_0',    4,   'land' )
-      ierr=nf_put_att_text (ncid, varid, 'option_1',    5,   'water')
+      ierr=nf_def_var(ncid, 'mask_rho', nf_ftype, 2, r2dgrd, varid)
+      ierr=nf_put_att_text(ncid, varid, 'long_name',18,
+     &                                         'mask on RHO-points')
+      ierr=nf_put_att_text(ncid, varid, 'option_0',    4,   'land' )
+      ierr=nf_put_att_text(ncid, varid, 'option_1',    5,   'water')
 #endif
       end
 
 
 
 
-      subroutine wrt_grid (ncid, ncname, lncn)
+      subroutine wrt_grid(ncid, ncname, lncn)
 
 ! Write grid variables in output NetCDF file, which may be restart,
 ! history, averages, etc. All variables are assumed to be previously
@@ -215,7 +215,7 @@
 !            lncn    length of ncname
 
       implicit none
-      character*(*) ncname
+      character(len=*) ncname
       integer ncid, lncn, varid, ierr, nf_fwrite
 #include "param.h"
 #include "scalars.h"
@@ -229,13 +229,13 @@
 
 ! Grid type switch: Spherical or Cartesian.
 
-        ierr=nf_inq_varid (ncid, 'spherical', varid)
+        ierr=nf_inq_varid(ncid, 'spherical', varid)
         if (ierr == nf_noerr) then
-          ierr=nf_put_var1_text (ncid, varid, 1,
+          ierr=nf_put_var1_text(ncid, varid, 1,
 #ifdef SPHERICAL
-     &                                          'T')
+     &                                         'T')
 #else
-     &                                          'F')
+     &                                         'F')
 #endif
           if (ierr /= nf_noerr) then
             write(*,2) 'spherical', ncname(1:lncn)
@@ -248,9 +248,9 @@
 #ifndef SPHERICAL
 ! Physical Dimensions of Model Domain, xl,el (Cartesian grid only).
 
-        ierr=nf_inq_varid (ncid, 'xl', varid)
+        ierr=nf_inq_varid(ncid, 'xl', varid)
         if (ierr == nf_noerr) then
-          ierr=nf_put_var1_FTYPE (ncid, varid, 1, xl)
+          ierr=nf_put_var1_FTYPE(ncid, varid, 1, xl)
           if (ierr/=nf_noerr) then
             write(*,2) 'xl', ncname(1:lncn)
           endif
@@ -259,9 +259,9 @@
         endif
         if (ierr /= nf_noerr)  goto 99                   !--> ERROR
 
-        ierr=nf_inq_varid (ncid, 'el', varid)
+        ierr=nf_inq_varid(ncid, 'el', varid)
         if (ierr == nf_noerr) then
-          ierr=nf_put_var1_FTYPE (ncid, varid, 1, el)
+          ierr=nf_put_var1_FTYPE(ncid, varid, 1, el)
           if (ierr/=nf_noerr) then
             write(*,2) 'el', ncname(1:lncn)
           endif
@@ -284,10 +284,10 @@
 
 ! Bathymetry.
 
-      ierr=nf_inq_varid (ncid, 'h', varid)
+      ierr=nf_inq_varid(ncid, 'h', varid)
       if (ierr == nf_noerr) then
-        ierr=nf_fwrite (h(START_2D_ARRAY), ncid, -varid, 0, r2dvar)
-        if (ierr/=nf_noerr) then
+        ierr=nf_fwrite(h(START_2D_ARRAY), ncid, -varid, 0, r2dvar)
+        if (ierr /= nf_noerr) then
           write(*,2) 'h', ncname(1:lncn)
         endif
       else
@@ -297,9 +297,9 @@
 
 ! Coriolis parameter.
 
-      ierr=nf_inq_varid (ncid, 'f', varid)
+      ierr=nf_inq_varid(ncid, 'f', varid)
       if (ierr == nf_noerr) then
-        ierr=nf_fwrite (f(START_2D_ARRAY), ncid, -varid, 0, r2dvar)
+        ierr=nf_fwrite(f(START_2D_ARRAY), ncid, -varid, 0, r2dvar)
         if (ierr /= nf_noerr) then
           write(*,2) 'f', ncname(1:lncn)
         endif
@@ -310,9 +310,9 @@
 
 ! Curvilinear transformation metrics.
 
-      ierr=nf_inq_varid (ncid, 'pm', varid)
+      ierr=nf_inq_varid(ncid, 'pm', varid)
       if (ierr == nf_noerr) then
-        ierr=nf_fwrite (pm(START_2D_ARRAY), ncid, -varid, 0, r2dvar)
+        ierr=nf_fwrite(pm(START_2D_ARRAY), ncid, -varid, 0, r2dvar)
         if (ierr /= nf_noerr) then
           write(*,2) 'pm', ncname(1:lncn)
         endif
@@ -321,9 +321,9 @@
       endif
       if (ierr /= nf_noerr)  goto 99                     !--> ERROR
 
-      ierr=nf_inq_varid (ncid, 'pn', varid)
+      ierr=nf_inq_varid(ncid, 'pn', varid)
       if (ierr == nf_noerr) then
-        ierr=nf_fwrite (pn(START_2D_ARRAY), ncid, -varid, 0, r2dvar)
+        ierr=nf_fwrite(pn(START_2D_ARRAY), ncid, -varid, 0, r2dvar)
         if (ierr /= nf_noerr) then
           write(*,2) 'pn', ncname(1:lncn)
         endif
@@ -335,9 +335,9 @@
 ! Longitude-latitude or cartezian coordinates of RHO-points
 
 #ifdef SPHERICAL
-      ierr=nf_inq_varid (ncid, 'lon_rho', varid)
+      ierr=nf_inq_varid(ncid, 'lon_rho', varid)
       if (ierr == nf_noerr) then
-        ierr=nf_fwrite (lonr(START_2D_ARRAY), ncid, -varid, 0,r2dvar)
+        ierr=nf_fwrite(lonr(START_2D_ARRAY), ncid, -varid, 0,r2dvar)
         if (ierr /= nf_noerr) then
           write(*,2) 'lon_rho', ncname(1:lncn)
         endif
@@ -346,9 +346,9 @@
       endif
       if (ierr /= nf_noerr)  goto 99                     !--> ERROR
 
-      ierr=nf_inq_varid (ncid, 'lat_rho', varid)
+      ierr=nf_inq_varid(ncid, 'lat_rho', varid)
       if (ierr == nf_noerr) then
-        ierr=nf_fwrite (latr(START_2D_ARRAY), ncid, -varid, 0,r2dvar)
+        ierr=nf_fwrite(latr(START_2D_ARRAY), ncid, -varid, 0,r2dvar)
         if (ierr /= nf_noerr) then
           write(*,2) 'lat_rho', ncname(1:lncn)
         endif
@@ -357,9 +357,9 @@
       endif
       if (ierr /= nf_noerr)  goto 99                     !--> ERROR
 #else
-      ierr=nf_inq_varid (ncid, 'x_rho', varid)
+      ierr=nf_inq_varid(ncid, 'x_rho', varid)
       if (ierr == nf_noerr) then
-        ierr=nf_fwrite (xr(START_2D_ARRAY), ncid, -varid, 0, r2dvar)
+        ierr=nf_fwrite(xr(START_2D_ARRAY), ncid, -varid, 0, r2dvar)
         if (ierr /= nf_noerr) then
           write(*,2) 'x_rho', ncname(1:lncn)
         endif
@@ -368,9 +368,9 @@
       endif
       if (ierr /= nf_noerr)  goto 99                     !--> ERROR
 
-      ierr=nf_inq_varid (ncid, 'y_rho', varid)
+      ierr=nf_inq_varid(ncid, 'y_rho', varid)
       if (ierr == nf_noerr) then
-        ierr=nf_fwrite (yr(START_2D_ARRAY), ncid, -varid, 0, r2dvar)
+        ierr=nf_fwrite(yr(START_2D_ARRAY), ncid, -varid, 0, r2dvar)
         if (ierr /= nf_noerr) then
           write(*,2) 'y_rho', ncname(1:lncn)
         endif
@@ -382,9 +382,9 @@
 #ifdef CURVGRID
 ! Angle between XI-axis and EAST at RHO-points
 
-      ierr=nf_inq_varid (ncid, 'angle', varid)
+      ierr=nf_inq_varid(ncid, 'angle', varid)
       if (ierr == nf_noerr) then
-        ierr=nf_fwrite (angler(START_2D_ARRAY),ncid, -varid, 0,r2dvar)
+        ierr=nf_fwrite(angler(START_2D_ARRAY),ncid, -varid, 0,r2dvar)
         if (ierr /= nf_noerr) then
           write(*,2) 'angle', ncname(1:lncn)
         endif
@@ -397,9 +397,9 @@
 #ifdef MASKING
 ! Masking fields at RHO-points.
 
-      ierr=nf_inq_varid (ncid, 'mask_rho', varid)
+      ierr=nf_inq_varid(ncid, 'mask_rho', varid)
       if (ierr == nf_noerr) then
-        ierr=nf_fwrite (rmask(START_2D_ARRAY),ncid, -varid, 0,r2dvar)
+        ierr=nf_fwrite(rmask(START_2D_ARRAY),ncid, -varid, 0,r2dvar)
         if (ierr /= nf_noerr) then
           write(*,2) 'mask_rho', ncname(1:lncn)
         endif
@@ -409,7 +409,7 @@
       if (ierr /= nf_noerr)  goto 99                     !--> ERROR
 #endif
 #ifdef MPI_SILENT_MODE
-      if (mynode==0) then
+      if (mynode == 0) then
 #endif
         write(*,'(6x,4A,2x,A,I4)')  'wrt_grid :: wrote grid data ',
      &          'into file ''', ncname(1:lncn), '''.' MYID

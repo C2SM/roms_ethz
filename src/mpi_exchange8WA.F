@@ -63,7 +63,7 @@ CSDISTRIBUTE_RESHAPE D(BLOCK_PATTERN,*) BLOCK_CLAUSE
 # ifdef USE_WAIT_ANY 
      &                                         status(MPI_STATUS_SIZE)
 # else
-     &                                      status(MPI_STATUS_SIZE*16)
+     &                                      status(MPI_STATUS_SIZE,16)
 # endif
 # ifdef ALT_SEND_ORD
       integer ipass

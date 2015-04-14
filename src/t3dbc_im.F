@@ -494,7 +494,7 @@
 ! radiation, the corner points have to be set in all cases, even if the
 ! adjacent boundaries are closed.  This differs from setting boundaries
 ! for velocities, where there is anisotropy associated with normal and
-! tangential components. In the case when one/or both points near the
+! tangential components.   In the case when one/or both points near the
 ! corner is/are masked, the use of masked points is avoided.
 
 # ifndef EW_PERIODIC
@@ -502,7 +502,7 @@
       if (SOUTHERN_EDGE .and. WESTERN_EDGE) then
 #   ifdef MASKING
         cff=rmask(istr,jstr-1)+rmask(istr-1,jstr)
-        if (cff>0.) then
+        if (cff > 0.) then
           cff=1./cff
           do k=1,N
             t(istr-1,jstr-1,k,nnew,itrc)=cff*(
@@ -525,7 +525,7 @@
       if (SOUTHERN_EDGE .and. EASTERN_EDGE) then
 #   ifdef MASKING
         cff=rmask(iend,jstr-1)+rmask(iend+1,jstr)
-        if (cff>0.) then
+        if (cff > 0.) then
           cff=1./cff
           do k=1,N
             t(iend+1,jstr-1,k,nnew,itrc)=cff*(
@@ -548,7 +548,7 @@
       if (NORTHERN_EDGE .and. WESTERN_EDGE) then
 #   ifdef MASKING
         cff=rmask(istr,jend+1)+rmask(istr-1,jend)
-        if (cff>0.) then
+        if (cff > 0.) then
           cff=1./cff
           do k=1,N
             t(istr-1,jend+1,k,nnew,itrc)=cff*(
@@ -571,7 +571,7 @@
       if (NORTHERN_EDGE .and. EASTERN_EDGE) then
 #   ifdef MASKING
         cff=rmask(iend,jend+1)+rmask(iend+1,jend)
-        if (cff>0.) then
+        if (cff > 0.) then
           cff=1./cff
           do k=1,N
             t(iend+1,jend+1,k,nnew,itrc)=cff*(

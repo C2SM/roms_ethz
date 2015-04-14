@@ -1,6 +1,6 @@
 #include "cppdefs.h"
 #ifdef MPI
-# define TRANSPOSED_MPI_NODE_ORDER
+c--# define TRANSPOSED_MPI_NODE_ORDER
 # define PRINT_HOSTNAME
 
 C$    subroutine master_num_threads (nthrds)

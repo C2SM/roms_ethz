@@ -1,12 +1,7 @@
 #include "cppdefs.h"
 
-! ANALYTICAL PACKAGE:
-!=========== ========
-!
-! This package is used to provide various analytical fields to the
-! model when appropriate.
-!
-! Routines:
+! ANALYTICAL PACKAGE:   Set up various analytical forcing fields
+!=========== ========   for the model.
 !
 ! ana_bsedim_tile   Analytical bottom sediment grain size
 !                          and density.
@@ -24,7 +19,6 @@
 ! ana_uclima_tile   Analytical tracer climatology fields.
 ! ana_wwave_tile    Analytical wind induced wave amplitude,
 !                         direction and period.
-!-------------------------------------------------------------------
 
 #if defined ANA_BSEDIM && defined SG_BBL96
       subroutine ana_bsedim_tile(istr,iend,jstr,jend)
@@ -222,20 +216,16 @@ c           rhobar(i,j,k)=R0-cff2*exp(z_r(i,j,k)/800.)*
       enddo
 
 # elif defined UPWELLING
-      if (tdays<=2.) then
-        TauX=-0.1*sin(pi*tdays/4.)/rho0
+      if (tdays < 2.) then
+        TauX=+0.1*sin(pi*tdays/4.)/rho0
       else
-        TauX=-0.1/rho0
+        TauX=+0.1/rho0
       endif
-c??
-c??
-c      TauX=0.
-c??
-c??
+
       do j=jstrR,jendR
         do i=istrR,iendR
           sustr(i,j)=TauX
-          svstr(i,j)=0.2*TauX !<-- to make it ETALON_CHECK sensitive
+c?        svstr(i,j)=0.2*TauX !<-- to make it ETALON_CHECK sensitive
         enddo
       enddo
 # elif defined BALTIC

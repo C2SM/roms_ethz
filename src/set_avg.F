@@ -224,7 +224,7 @@
         if (wrtavg(indxHbbl)) then
           do j=jstrR,jendR
             do i=istrR,iendR
-              hbbl_avg(i,j)=cff1*hbbl_avg(i,j) +cff*hbbls(i,j,nstp)
+              hbbl_avg(i,j)=cff1*hbbl_avg(i,j) +cff*hbbl(i,j,nstp)
             enddo
           enddo
         endif

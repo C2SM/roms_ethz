@@ -334,23 +334,23 @@ c--      fname='roms.in.US_West'
      &                       , tauM3_in, tauM3_out
      &                       , tauT_in,  tauT_out
 # endif
-          if (tauM2_in>0.) then               ! convert relaxation
+          if (tauM2_in > 0.) then                ! convert relaxation
             tauM2_in =1./(tauM2_in *day2sec)     ! time [units = days]
           endif                                  ! into
-          if (tauM2_out>0.) then              ! nudging coefficient
+          if (tauM2_out > 0.) then               ! nudging coefficient
             tauM2_out=1./(tauM2_out*day2sec)     ! [units = 1/sec]
           endif
 # ifdef SOLVE3D
-          if (tauM3_in>0.) then
+          if (tauM3_in > 0.) then
             tauM3_in =1./(tauM3_in *day2sec)
           endif
-          if (tauM3_out>0.) then
+          if (tauM3_out > 0.) then
             tauM3_out=1./(tauM3_out*day2sec)
           endif
-          if (tauT_in>0.) then
+          if (tauT_in > 0.) then
             tauT_in =1./(tauT_in *day2sec)
           endif
-          if (tauT_out>0.) then
+          if (tauT_out > 0.) then
             tauT_out=1./(tauT_out*day2sec)
           endif
 # endif

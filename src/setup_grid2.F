@@ -104,7 +104,7 @@
       isize=iend-istr  ; jsize=jend-jstr
 
       do while (isize>0 .or. jsize>0)
-        if (jsize>0) then
+        if (jsize > 0) then
           js=(jsize+1)/2-1
           do j=0,js
             jtg=jstr+j
@@ -124,7 +124,7 @@
           jsize=js
         endif
 
-        if (isize>0) then
+        if (isize > 0) then
           is=(isize+1)/2-1
           do j=jstr,jstr+jsize
             do i=0,is
@@ -270,7 +270,7 @@
       endif
 
 C$OMP CRITICAL (grd2_cr_rgn)
-        if (tile_count==0) then       ! Global min, max, and sum
+        if (tile_count == 0) then       ! Global min, max, and sum
           hmin=my_hmin                  ! operations within each shared
           hmax=my_hmax                  ! memory group (an MPI-node).
           grdmin=my_grdmin              ! Counter "tile_count" is to

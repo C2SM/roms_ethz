@@ -76,7 +76,7 @@
      &                  depth=1.,           f0=0.,      beta=+1.
 # elif defined UPWELLING
      &                  Size_ETA=8.E+4,     Size_XI=Size_ETA*LLm/MMm,
-     &                  depth=150.,         f0=-8.26E-5,   beta=0.
+     &                  depth=150.,         f0=+8.26E-5,   beta=0.
 # elif defined RIVER
      &                  Size_XI=60.e+3,     Size_ETA=Size_XI*MMm/LLm,
      &                  depth=150.,         f0=1.E-4,      beta=0.

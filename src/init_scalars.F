@@ -81,19 +81,19 @@ c      v3bc_max=0.
       gamma2=1.              ! along the straight boundaries: this may
                              ! be overwritten later by "read_inp".
 
-      ncidrst=-1 ; nrecrst=0       ! Set netCDF file IDs to negative
-      ncidhis=-1 ; nrechis=0       ! values to indicate their initially 
+      ncrst=-1   ; nrecrst=0       ! Set netCDF file IDs to negative
+      nchis=-1   ; nrechis=0       ! values to indicate their initially
 #ifdef AVERAGES
-      ncidavg=-1 ; nrecavg=0       ! closed status. Also reset record
+      ncavg=-1   ; nrecavg=0       ! closed status. Also reset record
 #endif
 #ifdef STATIONS
       ncidstn=-1 ; nrecstn=0       ! counters for restart, history,
 #endif
 #ifdef FLOATS
-      ncidflt=-1 ; nrecflt=0       ! average, stations, and floats.
+      ncidflt=-1 ; nrecflt=0       ! averages, stations, and floats.
 #endif
       do i=1,max_frc_file
-        ncidfrc(i)=-1
+        ncfrc(i)=-1
       enddo
 #ifndef ANA_SMFLUX
       sms_file_id=0

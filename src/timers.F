@@ -102,9 +102,9 @@ C$      WallClock = omp_get_wtime() - WallClock
 # endif
 # ifdef __IFC
         cpu_time(3) = etime(cpu_time) - cpu_time(3)
-#else
+# else
         call etime(cpu_time,cpu_time(3))
-#endif
+# endif
 C$OMP CRITICAL (stop_timers_cr_rgn)
 # ifdef MPI
 #  ifdef MPI_SILENT_MODE
@@ -135,18 +135,18 @@ C$OMP CRITICAL (stop_timers_cr_rgn)
         trd_count=trd_count+1
         if (trd_count==numthreads) then
           trd_count=0
-#  ifdef MPI_SILENT_MODE
+# ifdef MPI_SILENT_MODE
           if (mynode==0) then
-#  endif
+# endif
 C$          write(*,'(24x,A,F12.2,F18.2,F16.2)')        'TOTAL:',
 C$   &                        cpu_all(3), cpu_all(1), cpu_all(2)
 # ifdef OMP_GET_WTIME
 C$          write(*,'(4x,A,F12.2)') 'Wall Clock (elapsed) Time:',
 C$   &                                                WallClock
 # endif
-#  ifdef MPI_SILENT_MODE
+# ifdef MPI_SILENT_MODE
           endif
-#  endif
+# endif
         endif
 C$OMP END CRITICAL (stop_timers_cr_rgn)
       endif
@@ -169,8 +169,8 @@ C$OMP END CRITICAL (stop_timers_cr_rgn)
       subroutine sync_trap(ibarr)
       implicit none
       integer ibarr, indx, itest
-#include "param.h"
-#include "scalars.h"
+# include "param.h"
+# include "scalars.h"
       indx=1+mod(ibarr-1,16)
       priv_count(indx)=priv_count(indx)+1
 C$OMP CRITICAL (trap_cr_rgn)
@@ -191,7 +191,8 @@ C$OMP END CRITICAL (trap_cr_rgn)
                                        ! These are stub-routines for
       subroutine start_timers          ! compatibility with compilers
       implicit none                    ! without OpenMP support.
-#include "param.h"
+# include "param.h"
+# include "scalars.h"
       mpi_master_only write(*,'(/2(1x,A,I3),4x,2(1x,A,I4)/)')
      &                        'BLOCKING:', NSUB_X, 'x', NSUB_E,
      &                        'HORIZ. GRID SIZE:', Lm, 'x', Mm

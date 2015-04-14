@@ -7,7 +7,7 @@
      &                     +u(i,j,1,nrhs)*u(i+1,j,1,nrhs)
      &               +v(i,j,1,nrhs)**2+v(i,j+1,1,nrhs)**2
      &                     +v(i,j,1,nrhs)*v(i,j+1,1,nrhs)
-     &                                                 ))
+     &                                               ) )
 
 
 ! Canonical log-layer drag law formula valid for Zob << Hz only.   It
@@ -43,33 +43,27 @@ c**           rd(i,j)=min(rd(i,j), Hz(i,j,1)/dt) !!! FOR_TEST_ONLY
 
 # if !defined IMPLICIT_BOTTOM_DRAG
 #  if !defined IMPLCT_NO_SLIP_BTTM_BC
-
-        rd(i,j)=min(rd(i,j), 0.8*Hz(i,j,1)/dt) !<-- needed for stability
-
+                                                     ! must have
+              rd(i,j)=min(rd(i,j), 0.8*Hz(i,j,1)/dt) ! restriction
+                                                     ! for stability
 #  endif
 # endif
-
-
-c??           if (i==Lm/2 .and. j==Mm/16) then
-c??             write(*,'(1x,A,3F16.10)') 'rd check',
-c??     &             dt*rd(i,j)/Hz(i,j,1),
-c??     &       dt*Akv(i,j,1)/(Hz(i,j,1)*Hz(i,j,1))
-c??           endif
-
             enddo
           enddo
-        else  !<-- Zob>0.
-#endif
+        else  !<-- Zob > 0.
+#endif /* ! LINEAR_DRAG_ONLY */
+
           do j=jstrV-1,jend
             do i=istrU-1,iend
               rd(i,j)=rdrg
 
-              rd(i,j)=min(rd(i,j), 0.8*Hz(i,j,1)/dt) !!! FOR_TEST_ONLY
+              rd(i,j)=min(rd(i,j), 0.8*Hz(i,j,1)/dt)
 
             enddo
           enddo
+
 #ifndef LINEAR_DRAG_ONLY
-        endif  !<-- Zob>0
+        endif  !<-- Zob > 0
 #endif
 
 ! Save "rd" into shared array "r_D" for subsequent use in barotropic

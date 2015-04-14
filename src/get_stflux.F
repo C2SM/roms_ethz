@@ -42,7 +42,7 @@
 ! in reading part below.
 
       ifrc=max(stf_file_id(itrc),1)
- 100  ncid=ncidfrc(ifrc)
+ 100  ncid=ncfrc(ifrc)
       frcname=frcfile(ifrc)
       lfrc=lenstr(frcname)
       ierr=nf_noerr
@@ -51,7 +51,7 @@
         if (ncid==-1) then
           ierr=nf_open (frcname(1:lfrc), nf_nowrite, ncid)
           if (ierr==nf_noerr) then
-            ncidfrc(ifrc)=ncid
+            ncfrc(ifrc)=ncid
           else
             write(*,'(/1x,4A,1x,2A,I4 /)') '### ERROR: get_stflux :: ',
      &            'Cannot open netCDF file ''', frcname(1:lfrc), '''.',
@@ -318,11 +318,18 @@ c**      dSdt=0.
 
 #  if defined QCORRECTION && !defined ANA_SST
 
-     &                 -dSdt*Hz(i,j,N)*( t(i,j,N,nrhs,isalt)
+#   ifdef SALINITY_MASK
+              if (sssg(i,j,it7) > 0.) then
+#   endif
+             stflx(i,j,isalt)=stflx(i,j,isalt) -dSdt*Hz(i,j,N)*(
+     &                                   t(i,j,N,nrhs,isalt)
 c**  &                                         -tclm(i,j,N,isalt)
 
      &                   -(cff7*sssg(i,j,it7)+cff8*sssg(i,j,it8))
      &                                                          )
+#   ifdef SALINITY_MASK
+              endif
+#   endif
 #  endif
             enddo
           enddo

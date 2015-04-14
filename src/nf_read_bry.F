@@ -65,7 +65,6 @@
      &               nf_strerror(ierr) MYID
           endif
         endif
-
       else
         write(*,'(/1x,2A,I4/)') '### ERROR: nf_read_bry_EW :: ',
      &                          'illegal grid type', type

@@ -1,9 +1,9 @@
 #ifndef AVRH
 # include "cppdefs.h"
 
-      subroutine def_his (total_rec, ierr)
+      subroutine def_his(total_rec, ierr)
 #else
-      subroutine def_avg (total_rec, ierr)
+      subroutine def_avg(total_rec, ierr)
 #endif
 
 ! Create/open averages/history netCDF file. In the case when a new
@@ -26,12 +26,13 @@
 
       implicit none
       logical create_new_file
-      integer total_rec, ierr, rec, lncn,lvar,lenstr, timedim
-     &      , r2dgrd(3), u2dgrd(3), v2dgrd(3), auxil(2), checkdims
+      integer total_rec, ierr, rec,timedim, old_fill, lfnm, lvar
+     &      , r2dgrd(3), u2dgrd(3), v2dgrd(3), auxil(2)
 #ifdef SOLVE3D
      &      , r3dgrd(4), u3dgrd(4), v3dgrd(4), w3dgrd(4), itrc
 #endif
-      integer my_nf_def_dim  ! <-- instrumented netCDF function.
+      integer my_nf_def_dim     !<-- instrumented netCDF function.
+      integer lenstr, checkdims
       character*60 text
 
 #include "param.h"
@@ -50,8 +51,8 @@
 
 
 #ifndef AVRH
-# define ncid ncidhis
-# define ncname hisname
+# define ncid nchis
+# define fname hisname
 # define rec_per_file nrpfhis
 # define wrt wrthis
 # define vidTime hisTime
@@ -86,8 +87,8 @@
 #  define vidKAPS hisKAPS
 # endif
 #else
-# define ncid ncidavg
-# define ncname avgname
+# define ncid ncavg
+# define fname avgname
 # define rec_per_file nrpfavg
 # define wrt wrtavg
 # define vidTime avgTime
@@ -135,10 +136,10 @@
 ! total_record changes continuously throughout the sequence of files.
 
       ierr=0
-      lncn=lenstr(ncname)
+      lfnm=lenstr(fname)
       if (rec_per_file>0) then
         lvar=total_rec-(1+mod(total_rec-1, rec_per_file))
-        call insert_time_index (ncname, lncn, lvar, ierr)
+        call insert_time_index (fname, lfnm, lvar, ierr)
         if (ierr /= 0) goto 99
       endif
 
@@ -178,7 +179,7 @@
 ! ====== === ======= ======== =====    define all the variables.
 
   10  if (create_new_file) then
-        ierr=nf_create (ncname(1:lncn), nf_clobber+nf_64bit_offset,
+        ierr=nf_create(fname(1:lfnm), nf_clobber+nf_64bit_offset,
      &                                                        ncid)
         if (ierr /= nf_noerr) then
 #ifdef AVRH
@@ -186,30 +187,31 @@
 #else
           write(*,'(/1x,4A/12x,A/)')  '### ERROR: def_his :: ',
 #endif
-     &          'Cannot create netCDF file ''', ncname(1:lncn),
+     &          'Cannot create netCDF file ''', fname(1:lfnm),
      &                              '''.',   nf_strerror(ierr)
           goto 99
         endif
+        ierr=nf_set_fill(ncid, nf_nofill, old_fill)
         if (rec_per_file == 0) total_rec=0
 
 ! Put global attributes.
 ! --- ------ -----------
 
-        call put_global_atts (ncid, ierr)
+        call put_global_atts(ncid, ierr)
 
 ! Define dimensions of staggered fields.
 ! ------ ---------- -- --------- -------
 
-        ierr=my_nf_def_dim (ncid, 'xi_rho',  xi_rho,  r2dgrd(1))
-        ierr=my_nf_def_dim (ncid, 'xi_u',    xi_u,    u2dgrd(1))
-        ierr=my_nf_def_dim (ncid, 'eta_rho', eta_rho, r2dgrd(2))
-        ierr=my_nf_def_dim (ncid, 'eta_v',   eta_v,   v2dgrd(2))
+        ierr=my_nf_def_dim(ncid, 'xi_rho',  xi_rho,  r2dgrd(1))
+        ierr=my_nf_def_dim(ncid, 'xi_u',    xi_u,    u2dgrd(1))
+        ierr=my_nf_def_dim(ncid, 'eta_rho', eta_rho, r2dgrd(2))
+        ierr=my_nf_def_dim(ncid, 'eta_v',   eta_v,   v2dgrd(2))
 #ifdef SOLVE3D
-        ierr=my_nf_def_dim (ncid, 's_rho',   N,       r3dgrd(3))
-        ierr=my_nf_def_dim (ncid, 's_w',     N+1,     w3dgrd(3))
+        ierr=my_nf_def_dim(ncid, 's_rho',   N,       r3dgrd(3))
+        ierr=my_nf_def_dim(ncid, 's_w',     N+1,     w3dgrd(3))
 #endif
-        ierr=my_nf_def_dim (ncid, 'time', nf_unlimited, timedim)
-        ierr=my_nf_def_dim (ncid, 'auxil',   iaux,     auxil(1))
+        ierr=my_nf_def_dim(ncid, 'time', nf_unlimited, timedim)
+        ierr=my_nf_def_dim(ncid, 'auxil',   iaux,     auxil(1))
 
         auxil(2)=timedim
 
@@ -617,7 +619,7 @@
 #else
          write(*,'(7x,4A,I4)') 'def_his :: created new netCDF file ''',
 #endif
-     &                          ncname(1:lncn), '''.' MYID
+     &                          fname(1:lfnm), '''.' MYID
 #ifdef MPI_SILENT_MODE
         endif
 #endif
@@ -631,7 +633,7 @@
 ! their netCDF IDs.
 
       elseif (ncid==-1) then  !--> alt. to "create_new_file"
-        ierr=nf_open (ncname(1:lncn), nf_write, ncid)
+        ierr=nf_open(fname(1:lfnm), nf_write, ncid)
         if (ierr. eq. nf_noerr) then
 #ifdef MPI_SILENT_MODE
           if (mynode==0) then
@@ -641,11 +643,12 @@
 #else
             write(*,'(7x,5A,I4)')    'def_his :: opened existing ',
 #endif
-     &                     'file ''', ncname(1:lncn),  '''.' MYID
+     &                     'file ''', fname(1:lfnm),  '''.' MYID
 #ifdef MPI_SILENT_MODE
           endif
 #endif
-          ierr=checkdims (ncid, ncname, rec)
+          ierr=nf_set_fill(ncid, nf_nofill, old_fill)
+          ierr=checkdims(ncid, fname, rec)
           if (ierr == nf_noerr) then
             if (rec_per_file==0) then
               ierr=rec+1 - total_rec
@@ -660,7 +663,7 @@
 #else
      &            'WARNING: def_his :: The actual number of records',
 #endif
-     &             rec, 'present in file ''',  ncname(1:lncn),  '''',
+     &             rec, 'present in file ''',  fname(1:lfnm),  '''',
      &            'exceeds record', rec+1-ierr, '/', total_rec,
      &            'specified by restart initial conditions.',
      &        'All records beyond this number will be overwritten.'
@@ -686,7 +689,7 @@
 # else
             write(*,'(/1x,5A,I4/)')    '### ERROR: def_his :: ',
 # endif
-     &        'Cannot open file ''', ncname(1:lncn), '''.' MYID
+     &        'Cannot open file ''', fname(1:lfnm), '''.' MYID
             goto 99                                       !--> ERROR
           endif
 #else
@@ -702,7 +705,7 @@
 #ifndef AVRH
         ierr=nf_inq_varid (ncid, 'time_step', hisTstep)
         if (ierr /= nf_noerr) then
-          write(*,1) 'time_step', ncname(1:lncn)
+          write(*,1) 'time_step', fname(1:lfnm)
           goto 99                                         !--> ERROR
         endif
 #endif
@@ -710,7 +713,7 @@
         lvar=lenstr(vname(1,indxTime))
         ierr=nf_inq_varid (ncid,vname(1,indxTime)(1:lvar),vidTime)
         if (ierr /= nf_noerr) then
-          write(*,1) vname(1,indxTime)(1:lvar), ncname(1:lncn)
+          write(*,1) vname(1,indxTime)(1:lvar), fname(1:lfnm)
           goto 99                                         !--> ERROR
         endif
 
@@ -720,7 +723,7 @@
           lvar=lenstr(vname(1,indxZ))
           ierr=nf_inq_varid (ncid, vname(1,indxZ)(1:lvar), vidZ)
           if (ierr /= nf_noerr) then
-            write(*,1) vname(1,indxZ)(1:lvar), ncname(1:lncn)
+            write(*,1) vname(1,indxZ)(1:lvar), fname(1:lfnm)
             goto 99                                       !--> ERROR
           endif
         endif
@@ -729,7 +732,7 @@
           lvar=lenstr(vname(1,indxUb))
           ierr=nf_inq_varid (ncid, vname(1,indxUb)(1:lvar), vidUb)
           if (ierr /= nf_noerr) then
-            write(*,1) vname(1,indxUb)(1:lvar), ncname(1:lncn)
+            write(*,1) vname(1,indxUb)(1:lvar), fname(1:lfnm)
             goto 99                                       !--> ERROR
           endif
         endif
@@ -738,7 +741,7 @@
           lvar=lenstr(vname(1,indxVb))
           ierr=nf_inq_varid (ncid, vname(1,indxVb)(1:lvar), vidVb)
           if (ierr /= nf_noerr) then
-            write(*,1) vname(1,indxVb)(1:lvar), ncname(1:lncn)
+            write(*,1) vname(1,indxVb)(1:lvar), fname(1:lfnm)
             goto 99                                       !--> ERROR
           endif
         endif
@@ -751,7 +754,7 @@
           lvar=lenstr(vname(1,indxU))
           ierr=nf_inq_varid (ncid, vname(1,indxU)(1:lvar), vidU)
           if (ierr /= nf_noerr) then
-            write(*,1) vname(1,indxU)(1:lvar), ncname(1:lncn)
+            write(*,1) vname(1,indxU)(1:lvar), fname(1:lfnm)
             goto 99                                       !--> ERROR
           endif
         endif
@@ -759,7 +762,7 @@
           lvar=lenstr(vname(1,indxV))
           ierr=nf_inq_varid (ncid, vname(1,indxV)(1:lvar), vidV)
           if (ierr /= nf_noerr) then
-            write(*,1) vname(1,indxV)(1:lvar), ncname(1:lncn)
+            write(*,1) vname(1,indxV)(1:lvar), fname(1:lfnm)
             goto 99                                       !--> ERROR
           endif
         endif
@@ -772,7 +775,7 @@
             ierr=nf_inq_varid (ncid, vname(1,indxT+itrc-1)(1:lvar),
      &                                                  vidT(itrc))
             if (ierr /= nf_noerr) then
-              write(*,1) vname(1,indxT+itrc-1)(1:lvar), ncname(1:lncn)
+              write(*,1) vname(1,indxT+itrc-1)(1:lvar), fname(1:lfnm)
               goto 99                                     !--> ERROR
             endif
           endif
@@ -784,7 +787,7 @@
           lvar=lenstr(vname(1,indxR))
           ierr=nf_inq_varid (ncid, vname(1,indxR)(1:lvar), vidR)
           if (ierr /= nf_noerr) then
-            write(*,1) vname(1,indxR)(1:lvar), ncname(1:lncn)
+            write(*,1) vname(1,indxR)(1:lvar), fname(1:lfnm)
             goto 99                                       !--> ERROR
           endif
         endif
@@ -795,7 +798,7 @@
           lvar=lenstr(vname(1,indxO))
           ierr=nf_inq_varid (ncid, vname(1,indxO)(1:lvar), vidO)
           if (ierr /= nf_noerr) then
-            write(*,1) vname(1,indxO)(1:lvar), ncname(1:lncn)
+            write(*,1) vname(1,indxO)(1:lvar), fname(1:lfnm)
             goto 99                                       !--> ERROR
           endif
         endif
@@ -804,7 +807,7 @@
           lvar=lenstr(vname(1,indxW))
           ierr=nf_inq_varid (ncid, vname(1,indxW)(1:lvar), vidW)
           if (ierr /= nf_noerr) then
-            write(*,1) vname(1,indxW)(1:lvar), ncname(1:lncn)
+            write(*,1) vname(1,indxW)(1:lvar), fname(1:lfnm)
             goto 99                                       !--> ERROR
           endif
         endif
@@ -815,7 +818,7 @@
           lvar=lenstr(vname(1,indxAkv))
           ierr=nf_inq_varid (ncid, vname(1,indxAkv)(1:lvar), vidAkv)
           if (ierr /= nf_noerr) then
-            write(*,1) vname(1,indxAkv)(1:lvar), ncname(1:lncn)
+            write(*,1) vname(1,indxAkv)(1:lvar), fname(1:lfnm)
             goto 99                                       !--> ERROR
           endif
         endif
@@ -824,7 +827,7 @@
           lvar=lenstr(vname(1,indxAkt))
           ierr=nf_inq_varid (ncid,vname(1,indxAkt)(1:lvar), vidAkt)
           if (ierr /= nf_noerr) then
-            write(*,1) vname(1,indxAkt)(1:lvar), ncname(1:lncn)
+            write(*,1) vname(1,indxAkt)(1:lvar), fname(1:lfnm)
             goto 99                                       !--> ERROR
           endif
         endif
@@ -834,7 +837,7 @@
           lvar=lenstr(vname(1,indxAks))
           ierr=nf_inq_varid (ncid,vname(1,indxAks)(1:lvar), vidAks)
           if (ierr /= nf_noerr) then
-            write(*,1) vname(1,indxAks)(1:lvar), ncname(1:lncn)
+            write(*,1) vname(1,indxAks)(1:lvar), fname(1:lfnm)
             goto 99                                       !--> ERROR
           endif
         endif
@@ -846,7 +849,7 @@
           lvar=lenstr(vname(1,indxHbls))
           ierr=nf_inq_varid (ncid,vname(1,indxHbls)(1:lvar), vidHbls)
           if (ierr /= nf_noerr) then
-          write(*,1) vname(1,indxHbls)(1:lvar), ncname(1:lncn)
+          write(*,1) vname(1,indxHbls)(1:lvar), fname(1:lfnm)
             goto 99                                       !--> ERROR
           endif
         endif
@@ -858,7 +861,7 @@
           lvar=lenstr(vname(1,indxHbbl))
           ierr=nf_inq_varid (ncid,vname(1,indxHbbl)(1:lvar), vidHbbl)
           if (ierr /= nf_noerr) then
-          write(*,1) vname(1,indxHbbl)(1:lvar), ncname(1:lncn)
+          write(*,1) vname(1,indxHbbl)(1:lvar), fname(1:lfnm)
             goto 99                                       !--> ERROR
           endif
         endif
@@ -872,14 +875,14 @@
 #else
           write(*,'(7x,4A,I4,2x,A,I4)') 'def_his :: opened existing ',
 #endif
-     &   'file ''', ncname(1:lncn), ''' from rec =', rec MYID
+     &   'file ''', fname(1:lfnm), ''' from rec =', rec MYID
 #ifdef MPI_SILENT_MODE
         endif
 #endif
 
 #if defined MPI & !defined PARALLEL_FILES
       else
-        ierr=nf_open (ncname(1:lncn), nf_write, ncid)
+        ierr=nf_open(fname(1:lfnm), nf_write, ncid)
         if (ierr == nf_noerr) then
 # ifndef MPI_SILENT_MODE
 #  ifdef AVRH
@@ -887,7 +890,7 @@
 #  else
           write(*,'(7x,5A,I4)')   'def_his :: reopened existing ',
 #  endif
-     &            'file ''', ncname(1:lncn), '''.' MYID
+     &            'file ''', fname(1:lfnm), '''.' MYID
 # endif
         else
 # ifdef AVRH
@@ -895,7 +898,7 @@
 # else
           write(*,'(/1x,6A,I4/)')  '### ERROR: def_his :: Cannot ',
 # endif
-     &                       'open file ''', ncname(1:lncn), '''.',
+     &                       'open file ''', fname(1:lfnm), '''.',
      &                        nf_strerror(ierr) MYID
           goto 99                                   !--> ERROR
         endif
@@ -925,13 +928,13 @@
 ! Write grid variables.
 !------ ---- ----------
 
-        if (total_rec<=1) call wrt_grid (ncid, ncname, lncn)
+        if (total_rec<=1) call wrt_grid (ncid, fname, lfnm)
 #endif
   99  return
       end
 
 #undef ncid
-#undef ncname
+#undef fname
 #undef rec_per_file
 #undef wrt
 #undef vidTime

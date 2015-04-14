@@ -16,7 +16,7 @@
 
       if (iic==ntstart) then
         ifrc=1                 ! since tidal forcing data is read
- 100    ncid=ncidfrc(ifrc)     ! only once and does not to be re-read
+ 100    ncid=ncfrc(ifrc)     ! only once and does not to be re-read
         frcname=frcfile(ifrc)  ! later, there is no need to memorize
         lfrc=lenstr(frcname)   ! netcdf ID for tidal file (unlike for
         ierr=nf_noerr          ! all other forces).
@@ -25,7 +25,7 @@
         if (ncid==-1) then
           ierr=nf_open (frcname(1:lfrc), nf_nowrite, ncid)
           if (ierr == nf_noerr) then
-            ncidfrc(ifrc)=ncid
+            ncfrc(ifrc)=ncid
           else
             write(*,'(/1x,4A/)') '### ERROR in get_tides: Can not ',
      &                'open netCDF file ''', frcname(1:lfrc), '''.',

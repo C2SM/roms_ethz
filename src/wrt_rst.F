@@ -47,7 +47,7 @@
       if (ierr /= nf_noerr) goto 99
       lstr=lenstr(rstname)
       nrecrst=max(nrecrst,1)                  !!! WARNING: Here it
-      if (nrpfrst==0) then                  !!! is assumed that
+      if (nrpfrst == 0) then                  !!! is assumed that
         record=nrecrst                        !!! global restart
       else                                    !!! record index
         record=1+mod(nrecrst-1, abs(nrpfrst)) !!! nrecrst is already
@@ -73,7 +73,7 @@
       start(2)=record
       count(1)=iaux
       count(2)=1
-      ierr=nf_put_vara_int (ncidrst, rstTstep, start, count, ibuff)
+      ierr=nf_put_vara_int (ncrst, rstTstep, start, count, ibuff)
       if (ierr /= nf_noerr) then
         write(*,'(/1x,3A,i6/11x,A,3x,A,i4/)') '### ERROR: wrt_rst :: ',
      &       'Cannot write variable ''time_step'' into restart file, ',
@@ -83,7 +83,7 @@
 
 ! Time.
 
-      ierr=nf_put_var1_FTYPE (ncidrst, rstTime, record, time)
+      ierr=nf_put_var1_FTYPE (ncrst, rstTime, record, time)
       if (ierr /= nf_noerr) then
         lvar=lenstr(vname(1,indxTime))
         write(*,'(/1x,4A,i6/11x,A,3x,A,i4/)') '### ERROR: wrt_rst :: ',
@@ -96,7 +96,7 @@
 ! Barotropic mode variables: free-surface and 2D momentum components
 ! in XI- and ETA-directions.
 
-      ierr=nf_fwrite (zeta(START_2D_ARRAY,knew), ncidrst, rstZ,
+      ierr=nf_fwrite (zeta(START_2D_ARRAY,knew), ncrst, rstZ,
      &                                            record, r2dvar)
       if (ierr /= nf_noerr) then
         lvar=lenstr(vname(1,indxZ))
@@ -104,7 +104,7 @@
         goto 99                                           !--> ERROR
       endif
 
-      ierr=nf_fwrite (ubar(START_2D_ARRAY,knew), ncidrst, rstUb,
+      ierr=nf_fwrite (ubar(START_2D_ARRAY,knew), ncrst, rstUb,
      &                                            record, u2dvar)
       if (ierr /= nf_noerr) then
         lvar=lenstr(vname(1,indxUb))
@@ -112,7 +112,7 @@
         goto 99                                           !--> ERROR
       endif
 
-      ierr=nf_fwrite (vbar(START_2D_ARRAY,knew), ncidrst, rstVb,
+      ierr=nf_fwrite (vbar(START_2D_ARRAY,knew), ncrst, rstVb,
      &                                            record, v2dvar)
       if (ierr /= nf_noerr) then
         lvar=lenstr(vname(1,indxVb))
@@ -121,12 +121,12 @@
       endif
 #ifdef SOLVE3D
 # ifdef EXACT_RESTART
-      ierr=nf_fwrite (DU_avg2, ncidrst, rst_DU_avg2, record, u2dvar)
+      ierr=nf_fwrite (DU_avg2, ncrst, rst_DU_avg2, record, u2dvar)
       if (ierr /= nf_noerr) then
         write(*,1) 'DU_avg2', record MYID
         goto 99                                           !--> ERROR
       endif
-      ierr=nf_fwrite (DV_avg2, ncidrst, rst_DV_avg2, record, v2dvar)
+      ierr=nf_fwrite (DV_avg2, ncrst, rst_DV_avg2, record, v2dvar)
       if (ierr /= nf_noerr) then
         write(*,1) 'DV_avg2', record MYID
         goto 99                                           !--> ERROR
@@ -137,7 +137,7 @@
 
 ! 3D momentum components in XI- and ETA-directions.
 
-      ierr=nf_fwrite (u(START_2D_ARRAY,1,nstp), ncidrst, rstU,
+      ierr=nf_fwrite (u(START_2D_ARRAY,1,nstp), ncrst, rstU,
      &                                         record, u3dvar)
       if (ierr /= nf_noerr) then
         lvar=lenstr(vname(1,indxU))
@@ -145,7 +145,7 @@
         goto 99                                           !--> ERROR
       endif
 
-      ierr=nf_fwrite (v(START_2D_ARRAY,1,nstp), ncidrst, rstV,
+      ierr=nf_fwrite (v(START_2D_ARRAY,1,nstp), ncrst, rstV,
      &                                         record, v3dvar)
       if (ierr /= nf_noerr) then
         lvar=lenstr(vname(1,indxV))
@@ -156,7 +156,7 @@
 ! Tracer variables.
 
       do itrc=1,NT
-        ierr=nf_fwrite (t(START_2D_ARRAY,1,nstp,itrc), ncidrst,
+        ierr=nf_fwrite (t(START_2D_ARRAY,1,nstp,itrc), ncrst,
      &                              rstT(itrc), record, r3dvar)
         if (ierr /= nf_noerr) then
           lvar=lenstr(vname(1,indxT+itrc-1))
@@ -168,7 +168,7 @@
 # ifdef LMD_KPP
 ! Depth of planetary boundary layer [m].
 
-      ierr=nf_fwrite (hbls(START_2D_ARRAY,nstp), ncidrst,
+      ierr=nf_fwrite (hbls(START_2D_ARRAY,nstp), ncrst,
      &                           rstHbls, record, r2dvar)
       if (ierr /= nf_noerr) then
         lvar=lenstr(vname(1,indxHbls))
@@ -179,7 +179,7 @@
 # ifdef LMD_BKPP
 ! Thickness of KPP bottom boundary layer [m].
 
-      ierr=nf_fwrite (hbbls(START_2D_ARRAY,nstp), ncidrst,
+      ierr=nf_fwrite (hbbl(START_2D_ARRAY,nstp), ncrst,
      &                           rstHbbl, record, r2dvar)
       if (ierr /= nf_noerr) then
         lvar=lenstr(vname(1,indxHbbl))
@@ -191,7 +191,7 @@
 
 #ifdef FLOATS
 ! write nfloats
-      ierr=nf_put_vara_int (ncidrst, rstnfloats, record, 1, nfloats)
+      ierr=nf_put_vara_int (ncrst, rstnfloats, record, 1, nfloats)
       if (ierr /= nf_noerr) then
         write(*,'(/1x,3A,i6/11x,A,3x,A,i4/)') '### ERROR: wrt_rst :: ',
      &         'Cannot write variable ''nfloats'' into restart file, ',
@@ -208,7 +208,7 @@
       countTinfo(2)=nfloats
       countTinfo(3)=1
 
-      ierr=nf_put_vara_FTYPE (ncidrst, rstTinfo, startTinfo,
+      ierr=nf_put_vara_FTYPE (ncrst, rstTinfo, startTinfo,
      &                        countTinfo, Tinfo)
       if (ierr /= nf_noerr) then
         write(*,'(/1x,3A,i6/11x,A,3x,A,i4/)') '### ERROR: wrt_rst :: ',
@@ -224,7 +224,7 @@
       count(1)=nfloats
       count(2)=1
 
-      ierr=nf_put_vara_int (ncidrst, rstfltgrd, start, count, fltgrd)
+      ierr=nf_put_vara_int (ncrst, rstfltgrd, start, count, fltgrd)
       if (ierr /= nf_noerr) then
         write(*,'(/1x,3A,i6/11x,A,3x,A,i4/)') '### ERROR: wrt_rst :: ',
      &      'Cannot write variable ''grid level'' into restart file, ',
@@ -264,7 +264,7 @@
           bufftrack(6,i,j)=track(izrhs,tmp(i,fltgrd(j)),j)
         enddo
       enddo
-      ierr=nf_put_vara_FTYPE (ncidrst, rsttrack, starttrack,
+      ierr=nf_put_vara_FTYPE (ncrst, rsttrack, starttrack,
      &   counttrack, bufftrack)
       if (ierr /= nf_noerr) then
         write(*,'(/1x,3A,i6/11x,A,3x,A,i4/)') '### ERROR: wrt_rst :: ',
@@ -284,14 +284,14 @@
 ! processes to access data immediately after it is written.
 
 #if defined MPI & !defined PARALLEL_FILES
-      ierr=nf_close (ncidrst)
-      if (nrpfrst>0 .and. record>=nrpfrst) ncidrst=-1
+      ierr=nf_close (ncrst)
+      if (nrpfrst>0 .and. record>=nrpfrst) ncrst=-1
 #else
       if (nrpfrst>0 .and. record>=nrpfrst) then
-        ierr=nf_close (ncidrst)
-        ncidrst=-1
+        ierr=nf_close (ncrst)
+        ncrst=-1
       else
-        ierr=nf_sync(ncidrst)
+        ierr=nf_sync(ncrst)
       endif
 #endif
       if (ierr == nf_noerr) then

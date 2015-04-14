@@ -24,10 +24,10 @@
       real, dimension(PRIVATE_1D_SCRATCH_ARRAY,0:N) :: WC,FC,CF,DC
       real, dimension(PRIVATE_2D_SCRATCH_ARRAY) :: UFx,UFe,VFx,VFe,
      &                                                   wrk1,wrk2
-      real cff
-      real, parameter ::  delta=0.125 !!!! delta=0.1666666666666667
+      real cff, stress
+      real, parameter ::  delta=0.1666666666666667 ! delta=0.125
 # ifdef UPSTREAM_UV
-     &                  , gamma=0.25  !!!! gamma=0.3333333333333333
+     &                  , gamma=0.3333333333333333 ! gamma=0.25
 # endif
 # include "grid.h"
 # include "ocean3d.h"
@@ -265,8 +265,7 @@
 # include "param.h"
 # include "strings.h"
       ie=lenstr(cpps)
-      is=ie+2
-      ie=is+13
+      is=ie+2 ; ie=is+13
       if (ie>max_opt_size) goto 99
       cpps(is:ie)='<step3d_uv1.F>'
 
@@ -277,7 +276,6 @@
      &  'Insufficient length of string "cpps" in file "strings.h".',
      &        'Increase parameter "max_opt_size" it and recompile.'
       ierr=ierr+1
-      return
       end
 
 #else

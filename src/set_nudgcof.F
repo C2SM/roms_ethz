@@ -36,7 +36,7 @@
         frac=(float(j)         -0.5)/float(MMm)
 #  endif
         cff=Tau*(179./168. - frac*352./21.)      ! All these fancy
-        if (cff>0.) then                      ! looking rational
+        if (cff > 0.) then                       ! looking rational
           do i=istrR,iendR                       ! fractions are just
             Tnudgcof(i,j,itemp)=cff              ! for the reasons of
           enddo                                  ! compatibility with
@@ -50,7 +50,7 @@
       enddo
 
       cff2=Tau/12.
-      if (LLm==128) then            ! Make special semi-circular
+      if (LLm == 128) then            ! Make special semi-circular
         cff3=Tau*95./84.              ! nudjing area to simulate
         frac=0.125                    ! Mediterranean outflow.
         I1=102                        ! I0,J0 are index coordinates
@@ -130,35 +130,35 @@ c      enddo
 #  else
       isp=(LLm+1)/12
 #  endif
-
-      do j=max(-1,jstrR-1),jendR
-        do i=max(-1,istrR-1),iendR
-          ibnd=isp
+                                            ! Note that i+iSW_corn and
+      do j=max(-1,jstrR-1),jendR            ! j+jSW_corn are indices on
+        do i=max(-1,istrR-1),iendR          ! the physical grid (a.k.a.
+          ibnd=isp                          ! absolute indices).
 #  ifdef MPI
 #   ifdef OBC_WEST
-          ibnd=min(ibnd,i + iSW_corn)
+          ibnd=min(ibnd,         i+iSW_corn )
 #   endif
 #   ifdef OBC_EAST
-          ibnd=min(ibnd,LLm+1 - i-iSW_corn)
+          ibnd=min(ibnd, LLm+1 -(i+iSW_corn))
 #   endif
 #   ifdef OBC_SOUTH
-          ibnd=min(ibnd,j + jSW_corn)
+          ibnd=min(ibnd,         j+jSW_corn )
 #   endif
 #   ifdef OBC_NORTH
-          ibnd=min(ibnd,MMm+1 - j-jSW_corn)
+          ibnd=min(ibnd, MMm+1 -(j+jSW_corn))
 #   endif
 #  else
 #   ifdef OBC_WEST
-          ibnd=min(ibnd,i)
+          ibnd=min(ibnd,      i)
 #   endif
 #   ifdef OBC_EAST
-          ibnd=min(ibnd,Lm+1-i)
+          ibnd=min(ibnd, Lm+1-i)
 #   endif
 #   ifdef OBC_SOUTH
-          ibnd=min(ibnd,j)
+          ibnd=min(ibnd,      j)
 #   endif
 #   ifdef OBC_NORTH
-          ibnd=min(ibnd,Mm+1-j)
+          ibnd=min(ibnd, Mm+1-j)
 #   endif
 #  endif
 #  ifdef PACIFIC

@@ -55,11 +55,11 @@
 
 ! Open forcing NetCDF file for reading.
 
-      ncid=ncidfrc(ifrc)
+      ncid=ncfrc(ifrc)
       if (ncid==-1) then
         ierr=nf_open(frcname(1:lstr), nf_nowrite, ncid)
         if (ierr==nf_noerr) then
-          ncidfrc(ifrc)=ncid
+          ncfrc(ifrc)=ncid
         else
           write(*,20) frcname(1:lstr)
           may_day_flag=2

@@ -27,8 +27,7 @@
 ! front 2dx-modes in one iteration; the first and the second attenuate
 ! the 2dx-mode by factors of 1/2 and 1/4 per iteration.
 
-      cff=1.D0/12.D0
-      cff1=3.D0/16.D0
+      cff=1.D0/12.D0 ; cff1=3.D0/16.D0
 
 #  ifndef EW_PERIODIC
       if (WESTERN_EDGE) then

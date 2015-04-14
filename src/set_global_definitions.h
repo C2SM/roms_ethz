@@ -9,8 +9,8 @@
  create its own output file (this switch has no effect if MPI is not
  defined).  */
 
-c--#define MPI
-c--#define PARALLEL_FILES
+#define MPI
+#define PARALLEL_FILES
 
 /* Turn OFF printout (other than error messages) from MPI nodes with
  rank > 0.   This does not affect the model results other than making
@@ -74,10 +74,6 @@ c--# define IMPLCT_NO_SLIP_BTTM_BC
 
 #define VAR_RHO_2D
 
-
-
-
-
 /* Switch ON/OFF double precision for real type variables (since this
  is mostly controlled by mpc and/or compiler options, this CPP-switch
  affects only on the correct choice of netCDF functions, see below)
@@ -85,7 +81,6 @@ c--# define IMPLCT_NO_SLIP_BTTM_BC
  always desirable, but some compilers do not support it.  */
 
 #define DBLEPREC
-
 
 /* Define standard dimensions for the model arrays (vertical dimensions
  are inserted explicitly in the code, when needed).  Periodic and
@@ -125,16 +120,16 @@ c--# define IMPLCT_NO_SLIP_BTTM_BC
 
 /* The following macros contain logical expressions which answer
  the question: ''Am I a thread working on subdomain (tile) which is
- adjacent to WESTERN[EASTERN,SOUTHERN,NORTHERN] edge (i.e. physical
+ adjacent to WESTERN[EASTERN,SOUTHERN,NORTHERN] edge (i.e., physical
  boundary) of the model domain?''  Note that ghost points associated
  with periodicity are NOT considered as physical boundary points by
- these macros.  In the case of periodicity and/or MPI-partitioning in
- either direction these macros deliberately left undefined (non-existing):
- if they were, they would always be .false. in this case because the
- corresponding WEST[EAST, ...]_EXCH are .true. and periodicity is
- handled the same way as MPI messages. They are left undefined to
- prevent their mistaken use as flags for proximity to the edge of
- the grid.  */
+ these macros. In the case of periodicity and/or MPI-partitioning in
+ either direction these macros deliberately left undefined
+ (non-existing): if they were, they would always be .false. in this
+ case because the corresponding WEST[EAST, ...]_EXCH are .true. and
+ periodicity is handled the same way as MPI messages. They are left
+ undefined to prevent their mistaken use as flags for proximity to
+ the edge of the grid.  */
 
 #ifndef EW_PERIODIC
 # ifdef MPI

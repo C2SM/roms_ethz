@@ -1,13 +1,5 @@
 #include "cppdefs.h"
 #ifdef SOLVE3D
-
-
-# define UPSTREAM_UV
-
-# define UPSTREAM_TS
-c--# define AKIMA
-
-
                                     ! Note that arrays A2d(1,1:4) in
       subroutine pre_step3d (tile)  ! the call just below are repeated
       implicit none                 ! within the list of agruments to
@@ -34,9 +26,9 @@ c--# define AKIMA
      &                                                   wrk1,wrk2
       real dtau, cf_stp,cf_bak,  cff, FlxDiv
       real, parameter :: AM3_crv=1./6., epsil=1.E-33
-     &                 , delta=0.125 !!!! delta=0.1666666666666667
+     &                 , delta=0.1666666666666667 !! delta=0.125
 # ifdef UPSTREAM_UV
-     &                 , gamma=0.25  !!!! gamma=0.3333333333333333
+     &                 , gamma=0.3333333333333333 !! gamma=0.25
 # endif
       integer indx, itrc, iAkt
 # ifdef PSOURCE
@@ -428,8 +420,7 @@ c--# define AKIMA
 # include "param.h"
 # include "strings.h"
       ie=lenstr(cpps)
-      is=ie+2
-      ie=is+15
+      is=ie+2 ; ie=is+15
       if (ie>max_opt_size) goto 99
       cpps(is:ie)='<pre_step3d4S.F>'
 

@@ -93,7 +93,7 @@ c--#define VERBOSE
               if (attname(1:latt) == 'cycle_length') then
                 ierr=nf_get_att_FTYPE (ncid, varid, attname(1:latt),
      &                                                 cycle_length)
-                if (ierr/=nf_noerr) then
+                if (ierr /= nf_noerr) then
                   write(*,'(/1x,4A/12x,A)') '### ERROR: set_cycle :: ',
      &                     'Cannot read attribute ''', attname(1:latt),
      &                                       '''.',  nf_strerror(ierr)
@@ -145,9 +145,9 @@ c--#define VERBOSE
         endif   !<-- ntime>1
 
 #ifdef VERBOSE
-        write(*,'(1x,2A,1x,A,I5,2x,A,ES16.9)') 'set_cycle: varname =',
-     &                              varname(1:lvar), 'ntime =', ntime,
-     &                                 'cycle_length =', cycle_length
+        write(*,'(1x,3A,1x,A,I5,2x,A,ES16.9)')         'set_cycle: ',
+     &          'varname = ''', varname(1:lvar), ''' ntime =', ntime,
+     &                      'cycle_length =', cycle_length*sec2day
 #endif
       else
         write(*,'(/1x,2A,I4,1x,A/12x,A/)')   '### ERROR: set_cycle ',
@@ -188,7 +188,7 @@ c--#define VERBOSE
         ierr=nf_get_var1_FTYPE (ncid, varid, irec, tstart)
         if (ierr==nf_noerr) then
           tstart=tstart*day2sec
-          if (cycle_length>0.) then
+          if (cycle_length > 0.) then
             icycle=int((time-tstart)/cycle_length)
             if (time<tstart) icycle=icycle-1
             tstart=tstart + icycle*cycle_length
@@ -222,7 +222,7 @@ c--#define VERBOSE
             endif                     ! Because no actual data has been
           enddo                       ! read thus far, backstep "irec"
                                       ! twice, so the subsequient call
-          if (ierr==nf_noerr) then  ! to "get_" routine will retrieve
+          if (ierr == nf_noerr) then  ! to "get_" routine will retrieve
             do i=1,2                  ! two time levels of data.
               irec=irec-1
               if (irec<1 .and. cycle_length>0) then

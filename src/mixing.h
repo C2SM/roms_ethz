@@ -39,7 +39,7 @@ CSDISTRIBUTE_RESHAPE bvf(BLOCK_PATTERN,*) BLOCK_CLAUSE
       common /mixing_bvf/ bvf
 # endif
 
- 
+
 # ifdef MY25_MIXING
 
 ! Mellor-Yamada (1982) Level 2.5 vertical mixing variables
@@ -84,9 +84,9 @@ CSDISTRIBUTE_RESHAPE ghat(BLOCK_PATTERN,*) BLOCK_CLAUSE
 #  endif
 # endif /* LMD_KPP */
 # ifdef LMD_BKPP
-      real hbbls(GLOBAL_2D_ARRAY,2)
-CSDISTRIBUTE_RESHAPE hbbls(BLOCK_PATTERN,*) BLOCK_CLAUSE
-      common /kpp_hbbl/hbbls
+      real hbbl(GLOBAL_2D_ARRAY,2)
+CSDISTRIBUTE_RESHAPE hbbl(BLOCK_PATTERN,*) BLOCK_CLAUSE
+      common /kpp_hbbl/hbbl
 # endif /* LMD_BKPP */
 #endif /* SOLVE3D */
- 
+

@@ -38,7 +38,7 @@
 ! subdomains is extracted from the source file and copied into
 ! partial files.
 
-#define TRANSPOSED_MPI_NODE_ORDER
+c--#define TRANSPOSED_MPI_NODE_ORDER
 
 c--#define AUTORENICE
 #define TIMING
@@ -75,17 +75,18 @@ c--#define VERBOSE
      &                    dimid,  ibuff,   dimids,  dimsize, start,
      &                    count,  start1,  part_switch,      series
 
-      real*8, allocatable, dimension(:) ::  buff
+      real(kind=8), allocatable, dimension(:) ::  buff
 
 #ifdef TIMING
-      real*4 tstart, RUN_time, CPU_time(2)
-      integer iclk(2), nclk, clk_rate, clk_max, iclk_init
-      integer*8 net_read_size, net_wrt_size,
-     &          net_read_clk,  net_wrt_clk,  net_assm_clk,
-     &          net_sync_clk,  net_gray_clk, inc_clk
-      real*8    GrayTime
+      real(kind=4) tstart, RUN_time, CPU_time(2)
+      real(kind=8)    GrayTime
+      integer(kind=4) iclk(2), nclk, clk_rate, clk_max
+      integer(kind=8) inc_clk
+      integer(kind=8) :: net_clk=0, net_read_size=0, net_wrt_size=0,
+     &              net_read_clk=0,  net_sync_clk=0, net_assm_clk=0,
+     &                                               net_gray_clk=0
 # ifdef __IFC
-      real*4 etime
+      real(kind=4) etime
 # endif
 #endif
                     ! Function "iargc" is viewed as intrinsic by
@@ -113,11 +114,7 @@ c--#define VERBOSE
       call etime(CPU_time, tstart)
 # endif
       nclk=1
-      call system_clock (iclk(nclk), clk_rate, clk_max)
-      iclk_init=iclk(nclk)
-      net_read_size=0 ; net_wrt_size=0
-      net_read_clk=0  ; net_sync_clk=0
-      net_assm_clk=0  ; net_gray_clk=0
+      call system_clock(iclk(nclk), clk_rate, clk_max)
 #endif
 
 ! Check how many arguments are given, complain about the error,
@@ -627,9 +624,17 @@ c**          ierr=nf_set_fill (ncid(node), nf_nofill, i)
         write(*,'(/4x,A/)') 'Left definition mode.'
 #endif
 #ifdef TIMING
+! Note: there is a possibility that "iclk" goes beyond "clk_max" and
+! is folded back into the range of [0 ... clk_max]. The logic needs to
+! account for this. Recal that all the arguments of system_clock() are
+! 4-byte integers, while all integers computed below system_clock()
+! call are 8-byte integers.
+
         nclk=3-nclk
-        call system_clock (iclk(nclk), clk_rate,clk_max)
+        call system_clock(iclk(nclk), clk_rate,clk_max)
         inc_clk=iclk(nclk)-iclk(3-nclk)
+        if (inc_clk < 0) inc_clk=inc_clk+clk_max
+        net_clk=net_clk+inc_clk
         net_gray_clk=net_gray_clk+inc_clk
 #endif
 
@@ -1025,20 +1030,19 @@ c**                 write(*,*) ' count:',    (count(j),j=1,vardims(i))
 
       if (clk_rate>0) then
         nclk=3-nclk
-        call system_clock (iclk(nclk), clk_rate, clk_max)
+        call system_clock(iclk(nclk), clk_rate, clk_max)
         inc_clk=iclk(nclk)-iclk(3-nclk)
+        if (inc_clk < 0) inc_clk=inc_clk+clk_max
+        net_clk=net_clk+inc_clk
         net_gray_clk=net_gray_clk+inc_clk
         GrayTime=net_gray_clk/dble(clk_rate)
         write(*,'(14x,A,22x,F12.2,1x,A)') 'Gray time :',GrayTime,'sec'
-        inc_clk=iclk(nclk)-iclk_init
         write(*,'(47x,A/12x,A,11x,F12.2,1x,A/)') '------------------',
-     &   'Elapsed wall-clock time:', inc_clk/dble(clk_rate), 'sec'
+     &   'Elapsed wall-clock time:',dble(net_clk)/dble(clk_rate),'sec'
       endif
 #endif
       stop
       end
-
-
 
 ! Setup horizontal dimensions and associated variables for each
 ! subdomain. The following code is extracted into a separate entity,

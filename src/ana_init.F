@@ -28,8 +28,7 @@
 
       real, parameter :: f0=0.8E-4,              ! Coriolis parameter
      &     h_0=60., dh=100.,  wdth=5.e+3,
-     &     b_0=7.3e-3, N_0=6.3e-3,
-     &     B=0.02, lam=1./50.
+     &     b_0=7.3e-3, N_0=6.3e-3, B=0.02, lam=1./50.
 
       real xx,zz, hbl, sgm
       real, dimension(PRIVATE_2D_SCRATCH_ARRAY) :: hq
@@ -257,22 +256,22 @@ c     &              +30./(1.+exp((-200.-z_r(i,j,k))/200.))
 #   ifdef MPI
       i0=i0 -iSW_corn
 #   endif
-      cff=Tcoef*(35.-5.)*20./(4.*rho0)  ! A provision is made to form
-      do j=jstrR,jendR                  ! a 2-point transitional layer
-        do i=istrR,iendR                ! between the left- and right-
-          if (i < i0) then              ! constant values in order to
-            t(i,j,1,1,itemp)=5.         ! "soften" the step function.
+      cff=Tcoef*(35.-5.)*20./(4.*rho0)   ! A provision is made to form
+      do j=jstrR,jendR                   ! a 2-point transitional layer
+        do i=istrR,iendR                 ! between the left- and right-
+          if (i < i0) then               ! constant values in order to
+            t(i,j,1,1,itemp)=5.          ! "soften" the step function.
             zeta(i,j,1)=-cff
-          elseif (i == i0) then         ! Setting free surface to
-            t(i,j,1,1,itemp)=5. +3.75   !
-            zeta(i,j,1)=-cff*0.75       !         Tcoef*DeltaT
-          elseif (i == i0+1) then       ! zeta = -------------- * h
-            t(i,j,1,1,itemp)=35.-3.75   !           2.*rho0
-            zeta(i,j,1)=+cff*0.75       !
-          else                          ! balances the barotropic mode
-            t(i,j,1,1,itemp)=35.        ! making the solution be almost
-            zeta(i,j,1)=+cff            ! free of barotropic seiche
-          endif                         ! mode.
+          elseif (i == i0) then          ! Setting free surface to
+            t(i,j,1,1,itemp)=5.  +3.75
+            zeta(i,j,1)=-cff*0.75        !         Tcoef*DeltaT
+          elseif (i == i0+1) then        ! zeta = -------------- * h
+            t(i,j,1,1,itemp)=35. -3.75   !           2.*rho0
+            zeta(i,j,1)=+cff*0.75
+          else                           ! balances the barotropic
+            t(i,j,1,1,itemp)=35.         ! mode making the solution be
+            zeta(i,j,1)=+cff             ! almost free of barotropic
+          endif                          ! seiche mode.
           zeta(i,j,2)=zeta(i,j,1)
           t(i,j,1,2,itemp)=t(i,j,1,1,itemp)    ! Canonically, when
         enddo                                  ! initialized to zero,
@@ -284,6 +283,7 @@ c     &              +30./(1.+exp((-200.-z_r(i,j,k))/200.))
         enddo   !<-- k                         ! provided that
       enddo   !<-- j                           ! Tcoef=0.2.
 #  endif
+
 # elif defined COLD_FILAMENT
 #  ifdef VISC_TERM_WIND_BALANCE
 #   define I_EXT_RANGE istrU-1,iend+1
@@ -898,7 +898,8 @@ c     &                            +z_w(i,j,k-1))/5000.)
       do k=1,N
         do j=jstrR,jendR
           do i=istrR,iendR
-c            t(i,j,k,1,itemp)=14.+8.*exp(z_r(i,j,k)/50.)
+
+c**         t(i,j,k,1,itemp)=14.+8.*exp(z_r(i,j,k)/50.)
 
 
 #   define Z0 (-35.)
@@ -910,23 +911,21 @@ c            t(i,j,k,1,itemp)=14.+8.*exp(z_r(i,j,k)/50.)
 #   define Z1 (-120.)
 #   define STRAT 75.
 
-c           t(i,j,k,1,itemp)=18.+4.*tanh((z_r(i,j,k)-Z0)/THKNSS)
-c     &                                  +(z_r(i,j,k)-Z1)/STRAT
+c**         t(i,j,k,1,itemp)=14.+4.*tanh((z_r(i,j,k)-Z0)/THKNSS)
+c**  &                                     +(z_r(i,j,k)-Z1)/STRAT
 
-           t(i,j,k,1,itemp)=14.+4.*THKNSS*log(
-     &                          cosh((z_w(i,j,k )-Z0)/THKNSS)
-     &                         /cosh((z_w(i,j,k-1)-Z0)/THKNSS)
-     &                             )/(z_w(i,j,k)-z_w(i,j,k-1))
-     &               +((z_w(i,j,k)+z_w(i,j,k-1))/2.-Z1)/STRAT
+            t(i,j,k,1,itemp)=14.+4.*THKNSS*log(
+     &                             cosh((z_w(i,j,k  )-Z0)/THKNSS)
+     &                            /cosh((z_w(i,j,k-1)-Z0)/THKNSS)
+     &                                )/(z_w(i,j,k)-z_w(i,j,k-1))
+     &                  +((z_w(i,j,k)+z_w(i,j,k-1))/2. -Z1)/STRAT
 
 #   undef Z0
 #   undef THKNSS
 #   undef Z1
 #   undef STRAT
 
-
-
-
+c            t(i,j,k,1,itemp)=14.
 
             t(i,j,k,2,itemp)=t(i,j,k,1,itemp)
 
@@ -934,11 +933,11 @@ c     &                                  +(z_r(i,j,k)-Z1)/STRAT
 c*            t(i,j,k,1,isalt)=1.E-4*yr(i,j)-S0 +0.1
             t(i,j,k,1,isalt)=1.
 
-            if (j<j0) then          ! A provision is made to form
+            if (j < j0) then           ! A provision is made to form
               t(i,j,k,1,isalt)=0.      ! a 2-point transitional layer
-            elseif (j==j0) then      ! between S=0 and S=+1, hence
+            elseif (j == j0) then      ! between S=0 and S=+1, hence
               t(i,j,k,1,isalt)=0.2     ! "softening" the step function.
-            elseif (j==j0+1) then
+            elseif (j == j0+1) then
               t(i,j,k,1,isalt)=0.8
             else
               t(i,j,k,1,isalt)=1.

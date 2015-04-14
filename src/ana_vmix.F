@@ -44,7 +44,11 @@
       do k=0,N
         do j=jstr,jend
           do i=istr,iend
-            Akv(i,j,k)=0.004+0.008*exp(cff*(z_w(i,j,k)-z_w(i,j,N)))
+           Akv(i,j,k)=0.005+0.015*exp(cff*(z_w(i,j,k)-z_w(i,j,N))
+
+
+
+c           Akv(i,j,k)=0.004+0.008*exp(cff*(z_w(i,j,k)-z_w(i,j,N)))
             Akt(i,j,k,itemp)=0.2*Akt_bak(itemp)
 c??
 c??

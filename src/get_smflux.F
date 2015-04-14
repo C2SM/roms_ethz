@@ -13,7 +13,7 @@
       integer ncid,ifrc, ierr, lfrc, lenstr, nf_fread
       character(len=max_name_size) :: frcname
 
-! Initialization: Check, whether forcing netCDF file is already in 
+! Initialization: Check, whether forcing netCDF file is already in
 !---------------- opened state, open it if not. Find and save netCDF
 ! IDs for relevant variables. Determine whether there is cycling to
 ! reuse the input data and what is cycling period "sms_cycle", find
@@ -26,7 +26,7 @@
 # endif
 
       ifrc=max(sms_file_id,1)
- 100  ncid=ncidfrc(ifrc)
+ 100  ncid=ncfrc(ifrc)
       frcname=frcfile(ifrc)
       lfrc=lenstr(frcname)
       ierr=nf_noerr
@@ -35,7 +35,7 @@
         if (ncid==-1) then
           ierr=nf_open (frcname(1:lfrc), nf_nowrite, ncid)
           if (ierr==nf_noerr) then
-            ncidfrc(ifrc)=ncid
+            ncfrc(ifrc)=ncid
           else
             write(*,'(/1x,4A,1x,2A,I4 /)') '### ERROR: get_smflux :: ',
      &            'Cannot open netCDF file ''', frcname(1:lfrc), '''.',

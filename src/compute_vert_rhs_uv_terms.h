@@ -1,21 +1,19 @@
-# ifdef UV_ADV
+#ifdef UV_ADV
 
 ! Compute and add in vertical advection terms:
 
-#  define SPLINE_UV
-#  define NEUMANN_UV
+# define SPLINE_UV
+c--# define NEUMANN_UV
 
-#  ifdef SPLINE_UV
+# ifdef SPLINE_UV
         do i=istrU,iend
           DC(i,1)=0.5625*(Hz(i  ,j,1)+Hz(i-1,j,1))
      &           -0.0625*(Hz(i+1,j,1)+Hz(i-2,j,1))
-#   if defined NEUMANN_UV
-          FC(i,0)=1.5*u(i,j,1,nrhs)
-          CF(i,1)=0.5
-#   elif defined LINEAR_UV
-          FC(i,0)=2.0*u(i,j,1,nrhs)
-          CF(i,1)=1.
-#   endif
+#  if defined NEUMANN_UV
+          CF(i,1)=0.5 ;  FC(i,0)=1.5*u(i,j,1,nrhs)
+#  else
+          CF(i,1)=1.  ;  FC(i,0)=2.0*u(i,j,1,nrhs)
+#  endif
         enddo
         do k=1,N-1,+1    !--> recursive
           do i=istrU,iend
@@ -30,26 +28,26 @@
           enddo
         enddo               !--> discard DC, keep CF,FC
         do i=istrU,iend
-#   if defined NEUMANN_UV
+#  if defined NEUMANN_UV
           FC(i,N)=(3.*u(i,j,N,nrhs)-FC(i,N-1))/(2.-CF(i,N))
-#   elif defined LINEAR_UV
+#  else
           FC(i,N)=(2.*u(i,j,N,nrhs)-FC(i,N-1))/(1.-CF(i,N))
-#   endif
+#  endif
           DC(i,N)=0.        !<-- uppermost W*U flux
         enddo
         do k=N-1,1,-1       !--> recursive
           do i=istrU,iend
             FC(i,k)=FC(i,k)-CF(i,k+1)*FC(i,k+1)
 
-#   ifdef MASKING
+#  ifdef MASKING
             DC(i,k)=FC(i,k) * 0.5*( We(i,j,k)+We(i-1,j,k) -0.125*(
      &                        (We(i+1,j,k)-We(i  ,j,k))*umask(i+1,j)
      &                       -(We(i-1,j,k)-We(i-2,j,k))*umask(i-1,j)
      &                                                          ))
-#   else
+#  else
             DC(i,k)=FC(i,k)*( 0.5625*(We(i  ,j,k)+We(i-1,j,k))
      &                       -0.0625*(We(i+1,j,k)+We(i-2,j,k)))
-#   endif
+#  endif
 
             ru(i,j,k+1)=ru(i,j,k+1) -DC(i,k+1)+DC(i,k)
           enddo
@@ -57,7 +55,7 @@
         do i=istrU,iend
           ru(i,j,1)=ru(i,j,1) -DC(i,1)
         enddo                          !--> discard DC
-#  else
+# else
         do k=2,N-2
           do i=istrU,iend
             FC(i,k)=( 0.5625*(u(i,j,k  ,nrhs)+u(i,j,k+1,nrhs))
@@ -94,20 +92,18 @@ c*      enddo
             ru(i,j,k)=ru(i,j,k)-FC(i,k)+FC(i,k-1)
           enddo
         enddo               !--> discard FC
-#  endif
+# endif
 
-        if (j>=jstrV) then
-#  ifdef SPLINE_UV
+        if (j >= jstrV) then
+# ifdef SPLINE_UV
           do i=istr,iend
             DC(i,1)=0.5625*(Hz(i  ,j,1)+Hz(i,j-1,1))
      &             -0.0625*(Hz(i,j+1,1)+Hz(i,j-2,1))
-#   if defined NEUMANN_UV
-            FC(i,0)=1.5*v(i,j,1,nrhs)
-            CF(i,1)=0.5
-#   elif defined LINEAR_UV
-            FC(i,0)=2.0*v(i,j,1,nrhs)
-            CF(i,1)=1.
-#   endif
+#  if defined NEUMANN_UV
+            CF(i,1)=0.5 ;  FC(i,0)=1.5*v(i,j,1,nrhs)
+#  else
+            CF(i,1)=1.  ;  FC(i,0)=2.0*v(i,j,1,nrhs)
+#  endif
           enddo
           do k=1,N-1,+1       !--> recursive
             do i=istr,iend
@@ -122,26 +118,26 @@ c*      enddo
             enddo
           enddo               !--> discard DC, keep CF,FC
           do i=istr,iend
-#   if defined NEUMANN_UV
+#  if defined NEUMANN_UV
             FC(i,N)=(3.*v(i,j,N,nrhs)-FC(i,N-1))/(2.-CF(i,N))
-#   elif defined LINEAR_UV
+#  else
             FC(i,N)=(2.*v(i,j,N,nrhs)-FC(i,N-1))/(1.-CF(i,N))
-#   endif
+#  endif
             DC(i,N)=0.        !<-- uppermost W*V flux
           enddo
           do k=N-1,1,-1       !--> recursive
             do i=istr,iend
               FC(i,k)=FC(i,k)-CF(i,k+1)*FC(i,k+1)
 
-#   ifdef MASKING
+#  ifdef MASKING
               DC(i,k)=FC(i,k) * 0.5*( We(i,j,k)+We(i,j-1,k) -0.125*(
      &                         (We(i,j+1,k)-We(i,j  ,k))*vmask(i,j+1)
      &                        -(We(i,j-1,k)-We(i,j-2,k))*vmask(i,j-1)
      &                                                           ))
-#   else
+#  else
               DC(i,k)=FC(i,k)*( 0.5625*(We(i,j  ,k)+We(i,j-1,k))
      &                         -0.0625*(We(i,j+1,k)+We(i,j-2,k)))
-#   endif
+#  endif
 
               rv(i,j,k+1)=rv(i,j,k+1) -DC(i,k+1)+DC(i,k)
             enddo
@@ -150,7 +146,7 @@ c*      enddo
             rv(i,j,1)=rv(i,j,1) -DC(i,1)
           enddo                         !--> discard DC
 
-#  else
+# else
           do k=2,N-2
             do i=istr,iend
               FC(i,k)=( 0.5625*(v(i,j,k ,nrhs)+v(i,j,k+1,nrhs))
@@ -187,6 +183,6 @@ c*        enddo
               rv(i,j,k)=rv(i,j,k)-FC(i,k)+FC(i,k-1)
             enddo
           enddo
-#  endif
-        endif !<-- j>=jstrV
-# endif /* UV_ADV */
+# endif
+        endif !<-- j >= jstrV
+#endif /* UV_ADV */

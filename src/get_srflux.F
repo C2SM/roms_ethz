@@ -29,7 +29,7 @@
 # endif
 
       ifrc=max(srf_file_id,1)
- 100  ncid=ncidfrc(ifrc)
+ 100  ncid=ncfrc(ifrc)
       frcname=frcfile(ifrc)
       lfrc=lenstr(frcname)
       ierr=nf_noerr
@@ -38,7 +38,7 @@
         if (ncid==-1) then
           ierr=nf_open(frcname(1:lfrc), nf_nowrite, ncid)
           if (ierr==nf_noerr) then
-            ncidfrc(ifrc)=ncid
+            ncfrc(ifrc)=ncid
           else
             write(*,'(/1x,4A/)') '### ERROR: get_srflux :: Cannot ',
      &                'open netCDF file ''', frcname(1:lfrc), '''.'
@@ -140,9 +140,8 @@
 # include "scalars.h"
 # include "grid.h"
 # include "forces.h"
-!
+
 # include "compute_extended_bounds.h"
-!
 
 c# ifdef DIURNAL_SRFLUX
 c      cff=2.*dt*sec2day
@@ -224,11 +223,11 @@ c# endif
 ! Yusuke Uchiyama, 2009: UTC correction based on lonr is added.
 !                        ocean_time should be in UTC.
 !
-# define UTC_CORRECTION
+#  define UTC_CORRECTION
 !
-# ifndef UTC_CORRECTION
+#  ifndef UTC_CORRECTION
       cos_h=cos(2.*pi*(tdays+.5-int(tdays+.5)))
-# endif
+#  endif
       dec=-0.406*cos(deg2rad*(tdays-
      &               int(tdays*day2year)*year2day))
       cos_d=cos(dec)
@@ -236,10 +235,10 @@ c# endif
       tan_d=tan(dec)
       do j=jstrR,jendR
         do i=istrR,iendR
-# ifdef UTC_CORRECTION
+#  ifdef UTC_CORRECTION
           utc=lonr(i,j)*utc_cor
           cos_h=cos(2.*pi*(tdays+.5-int(tdays+.5)+utc))
-# endif
+#  endif
           phi=latr(i,j)*deg2rad
           h0=acos(-tan(phi)*tan_d)
           cff1=cos_d*cos(phi)

@@ -12,9 +12,11 @@ c--#undef EKMAN_SPIRAL
 c--#define GRAV_ADJ        /* Graviational Adjustment */
 #undef COLD_FILAMENT  /* Submesoscale cold filament */
 #undef ISWAKE         /* Island Wake Problem */
-#define USWC_CENTRAL
-c--#define PACIFIC         /* North-Equatorial Pacific Application */
-#undef PACIFIC_2D     /* Pacific Tsunami model */
+c--#define USWC_CENTRAL
+c--#define PACIFIC     /* North-Equatorial Pacific Application */
+#undef PACIFIC_2D      /* Pacific Tsunami model */
+# define SO            /* Southern Ocean (circumpolar) */
+
 #undef OVERFLOW        /* Graviational/Overflow */
 #undef SEAMOUNT        /* Seamount */
 #undef SOLITON         /* Equatorial Rossby Wave */
@@ -214,7 +216,7 @@ c---# define NON_TRADITIONAL
 # define CURVGRID
 # define SPHERICAL
 # define MASKING
-c--# define MASK_LAND_DATA
+# define MASK_LAND_DATA
 
 # define EXACT_RESTART
 c--# define AVERAGES
@@ -351,6 +353,51 @@ c--# define UV_TIDES
 c--# define OBC_M2ORLANSKI
 c--# define OBC_VOLCONS
 # define SPONGE
+
+
+#elif defined SO
+
+# define SOLVE3D
+# define UV_ADV
+# define UV_COR
+                     /*  Equation of State */
+# define NONLIN_EOS
+# define SPLIT_EOS
+# define SALINITY
+
+c--# define AVERAGES
+c--# define DIURNAL_SRFLUX
+                     /*  Forcing and Climatology */
+# define QCORRECTION
+# define SALINITY_MASK
+# define T_FRC_BRY
+# define Z_FRC_BRY
+# define M3_FRC_BRY
+# define M2_FRC_BRY
+                      /* Lateral Mixing */
+# define UV_VIS2
+# define TS_DIF2
+                      /* Vertical Mixing */
+# define LMD_MIXING
+# define LMD_KPP
+# define LMD_NONLOCAL
+# define LMD_RIMIX
+# define LMD_CONVEC
+
+                      /* Grid Configuration */
+# define CURVGRID
+# define SPHERICAL
+# define MASKING
+# define MASK_LAND_DATA
+                      /* Open Boundary Conditions */
+# define EW_PERIODIC
+# define OBC_NORTH
+
+# define OBC_M2FLATHER
+# define OBC_M3ORLANSKI
+# define OBC_TORLANSKI
+
+
 
 #elif defined OVERFLOW      /* Gravitational Overflow */
 # define SOLVE3D

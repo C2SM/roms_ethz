@@ -202,7 +202,7 @@ c***              no code here
 #endif
 
 
-c>>>      if (ierr/=0) may_day_flag=2
+c>>>      if (ierr /= 0) may_day_flag=2
 #ifdef ANA_PSOURCE
       if (ZEROTH_TILE) call ana_psource
 #endif

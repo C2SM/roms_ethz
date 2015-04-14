@@ -48,20 +48,20 @@
 ! code, typically double precision, while all others can be made
 ! single precision.
 
-      if (ncid==ncidrst) then
+      if (ncid==ncrst) then
         nf_ftype=NF_FTYPE
       else
         nf_ftype=NF_FOUT
       endif
 
-      if (ncid == ncidrst) then
+      if (ncid == ncrst) then
         ierr=nf_put_att_text (ncid, nf_global, 'type',  17,
      &                                 'ROMS restart file')
-      elseif (ncid == ncidhis) then
+      elseif (ncid == nchis) then
         ierr=nf_put_att_text (ncid, nf_global, 'type',  17,
      &                                 'ROMS history file')
 #ifdef AVERAGES
-      elseif (ncid == ncidavg) then
+      elseif (ncid == ncavg) then
         ierr=nf_put_att_text (ncid, nf_global, 'type',  18,
      &                                'ROMS averages file')
 #endif

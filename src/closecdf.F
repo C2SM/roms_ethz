@@ -11,16 +11,16 @@
 # include "ncvars_floats.h"
 #endif
 
-      if (ncidrst/=-1) ierr=nf_close(ncidrst)
-      if (ncidhis/=-1) ierr=nf_close(ncidhis)
+      if (ncrst /= -1) ierr=nf_close(ncrst)
+      if (nchis /= -1) ierr=nf_close(nchis)
 #ifdef AVERAGES
-      if (ncidavg/=-1) ierr=nf_close(ncidavg)
+      if (ncavg /= -1) ierr=nf_close(ncavg)
 #endif
 #ifdef FLOATS
       if (ncidflt/=-1) ierr=nf_close(ncidflt)
 #endif
 # ifdef MPI_SILENT_MODE
-      if (mynode==0) then
+      if (mynode == 0) then
 # endif
         write(*,'(/1x,A,6(1x,A,I5)/)') 'MAIN: DONE - Records written:',
      &                     'history:', nrechis ,  'restart:', nrecrst

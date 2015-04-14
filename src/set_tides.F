@@ -45,7 +45,7 @@
 # endif
 
       do itide=1,Ntides
-        if (Tperiod(itide)>0.) then
+        if (Tperiod(itide) > 0.) then
           omega=2.*pi*time/Tperiod(itide)
 
 # if defined SSH_TIDES

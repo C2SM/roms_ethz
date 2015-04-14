@@ -102,7 +102,7 @@
       endif
 #ifdef SOLVE3D
       if (chk_Cs_wr>0) then
-c        icount=icount+check_scoord(ncid, fname, chk_Cs_wr)
+        icount=icount+check_scoord(ncid, fname, chk_Cs_wr)
       endif
 #endif
   1   format(/' ### ERROR: checkdims :: wrong size of dimension ''',
@@ -295,39 +295,41 @@ c        icount=icount+check_scoord(ncid, fname, chk_Cs_wr)
                   endif
                 enddo
                 if (ierr/=nf_noerr) then
-                  write(*,'(/1x,2A,I3,1x,3A/12x,A/)')  '### ERROR: ',
-     &                  'Cannot find size of dimension #', dimids(i),
-     &        'in file ''', fname(1:lfile), '''.', nf_strerror(ierr)
+                  write(*,'(/1x,2A,I3,1x,3A/12x,A/)')    '### ERROR: ',
+     &                'read_nc1dat :: Cannot find size of dimension #',
+     &                 dimids(i),  'in file ''', fname(1:lfile), '''.',
+     &                                             nf_strerror(ierr)
                 endif
               else
-                write(*,'(/1x,6A/12x,A/)')      '### ERROR: Cannot ',
-     &               'determine dimension IDs for ''', vname(1:lvar),
-     &    ''' in file ''',  fname(1:lfile), '''.', nf_strerror(ierr)
+                write(*,'(/1x,6A/12x,A/)')   '### ERROR: read_nc1dat ',
+     &       ':: Cannot determine dimension IDs for ''', vname(1:lvar),
+     &       ''' in file ''', fname(1:lfile), '''.', nf_strerror(ierr)
               endif
             endif
           else
-            write(*,'(/1x,6A/12x,A/)')          '### ERROR: Cannot ',
-     &        'determine number of dimensions for ''', vname(1:lvar),
-     &    ''' in file ''',  fname(1:lfile), '''.', nf_strerror(ierr)
+            write(*,'(/1x,6A/12x,A/)')    '### ERROR: read_nc1dat :: ',
+     &   'Cannot determine number of dimensions for ''', vname(1:lvar),
+     &      ''' in file ''',  fname(1:lfile), '''.', nf_strerror(ierr)
           endif
           if (size==nlen .and. ierr==nf_noerr) then
             ierr=nf_get_var_FTYPE (ncid, varid, value)
             if (ierr/=nf_noerr) then
-              write(*,'(/1x,6A/12x,A/)')   '### ERROR: Cannot read ',
-     &              'variable ''',  vname(1:lvar), ''' from file ''',
-     &                      fname(1:lfile), '''.', nf_strerror(ierr)
+              write(*,'(/1x,6A/12x,A/)')  '### ERROR: read_nc1dat :: ',
+     &                       'Cannot read variable ''',  vname(1:lvar),
+     &     ''' from file ''', fname(1:lfile), '''.', nf_strerror(ierr)
             endif
           endif
         else
-          write(*,'(/1x,6A/12x,A/)')  '### ERROR: Cannot determine ',
-     &           'netCDF ID for ''',  vname(1:lvar), ''' in file ''',
-     &                      fname(1:lfile), '''.', nf_strerror(ierr)
+          write(*,'(/1x,6A/14x,A/)')   '### WARNING: read_nc1dat :: ',
+     &            'Cannot determine netCDF ID for ''',  vname(1:lvar),
+     &      ''' in file ''', fname(1:lfile), '''.', nf_strerror(ierr)
         endif
       endif
-      if (size/=nlen .and. ierr==nf_noerr) then
-        write(*,'(/1x,6A/12x,A,I7,1x,A,I7/)')         '### ERROR: ',
-     &      'Unexpected size of ''', vname(1:lvar), ''' in file ''',
-     &  fname(1:lfile), ''':', 'should be', nlen, 'but found', size
+      if (size /= nlen .and. ierr == nf_noerr) then
+        write(*,'(/1x,6A/12x,A,I7,1x,A,I7/)')    '### ERROR: ',
+     &   'read_nc1dat :: Unexpected size of ''', vname(1:lvar),
+     &     ''' in file ''', fname(1:lfile), ''':', 'should be',
+     &                                 nlen, 'but found', size
         ierr=+1
       endif
       read_nc1dat=ierr

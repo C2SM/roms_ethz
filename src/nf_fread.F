@@ -46,7 +46,7 @@ CSDISTRIBUTE_RESHAPE  A(BLOCK_PATTERN,*) BLOCK_CLAUSE
 #include "compute_starts_counts.h"
 
 
-      if (varid>0) then         ! Normally netCDF IDs are positive.
+      if (varid > 0) then          ! Normally netCDF IDs are positive.
         vid=varid                  ! Negative "varid" is used here as
         mask_land_data=.true.      ! flag to signal that land masking
       else                         ! does not need to be applied for

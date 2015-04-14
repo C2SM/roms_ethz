@@ -9,27 +9,27 @@
 # include "scalars.h"
 # include "netcdf.inc"
 # include "ncvars.h"
+
       integer ierr, ncid, ifrc, lfrc, lenstr, nf_fread
       character(len=max_name_size) frcname
       character(len=3), parameter :: sss_var='SSS'
-      character(lEN=8), parameter :: sss_var_time='sss_time'
+      character(len=8), parameter :: sss_var_time='sss_time'
       real cff
 
-! Initialization:  Check, whether forcing netCDF file is already
-!----------------  opened, an if not, open it. Find and save netCDF
-! IDs for relevant variables, and determine whether sss data exists
-! as 2D field or scalar. After that determine whether there is
-! cycling to reuse the input data and what is cycling period
-! "sss_cycle", set initial cycling index "sss_ncycle", record index
-! "sss_rec", and time index "itsss" and both time record bounds to
-! large negative artificial values, so that it will trigger logic
-! in the reading part below.
+! Initialization:  Check, whether forcing netCDF file is already in
+!----------------  open state, open it if not. Find and save netCDF IDs
+! for relevant variables, and determine whether "sss" data exists as 2D
+! field or a scalar. Determine whether there is cycling to reuse the
+! input data and what is cycling period "sss_cycle", set initial
+! cycling index "sss_ncycle", record index "sss_rec", and time index
+! "itsss" and both time record bounds to large negative artificial
+! values, so that it will trigger logic in the reading part below.
 # ifdef VERBOSE
       write(*,*) 'enter get_sss' MYID
 # endif
 
       ifrc=max(sss_file_id,1)
- 100  ncid=ncidfrc(ifrc)
+ 100  ncid=ncfrc(ifrc)
       frcname=frcfile(ifrc)
       lfrc=lenstr(frcname)
       ierr=nf_noerr
@@ -38,7 +38,7 @@
         if (ncid==-1) then
           ierr=nf_open(frcname(1:lfrc), nf_nowrite, ncid)
           if (ierr==nf_noerr) then
-            ncidfrc(ifrc)=ncid
+            ncfrc(ifrc)=ncid
           else
             write(*,'(/1x,4A/)')  '### ERROR: get_sss :: Cannot ',
      &              'open netCDF file ''', frcname(1:lfrc), '''.'
@@ -115,8 +115,8 @@
      &                                      sss_time(itsss)*sec2day
         endif
       enddo
-  3   format(/1x,'### ERROR: get_sss: cannot read variable ''',
-     &                         A, ''' for record ', I4/12x,A/)
+  3   format(/1x,'### ERROR: get_sss: cannot read variable ''', A,
+     &                               ''' for record ', I4/12x,A/)
 # ifdef VERBOSE
       write(*,*) 'return from get_sss' MYID
 # endif

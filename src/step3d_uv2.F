@@ -415,11 +415,11 @@ c--# define TR
 # ifdef TR
             CF(i,k)=0.5*DC(i,k)*(u(i,j,k,nstp)+u(i,j,k,nnew))
 #else
-#define EPSIL 0.125
-#define DELTA 0.75
+c--#define EPSIL 0.125
+c--#define DELTA 0.75
 
-c--# define EPSIL 0.36
-c--# define DELTA 0.28
+# define EPSIL 0.36
+# define DELTA 0.28
 
 c>># define EPSIL 0.2105
 c>># define DELTA 0.5790
@@ -583,9 +583,8 @@ c??     &                                      20. ) !<-- 20 meters
       character(len=16) tmpstr
 
       ie=lenstr(cpps)
-      is=ie+2
-      ie=is+13
-      if (ie>max_opt_size) goto 99
+      is=ie+2 ; ie=is+13
+      if (ie > max_opt_size) goto 99
       cpps(is:ie)='<step3d_uv2.F>'
 # ifdef DELTA
       write(tmpstr,'(F16.12)') DELTA
@@ -593,9 +592,8 @@ c??     &                                      20. ) !<-- 20 meters
       do while(tmpstr(lstr:lstr)=='0' .and. lstr>3)
         lstr=lstr-1
       enddo
-      is=ie+2
-      ie=is+5+lstr
-      if (ie>max_opt_size) goto 99
+      is=ie+2 ; ie=is+5+lstr
+      if (ie > max_opt_size) goto 99
       cpps(is:ie)='DELTA='/ /tmpstr(1:lstr)
 # endif
 # ifdef EPSIL
@@ -604,9 +602,8 @@ c??     &                                      20. ) !<-- 20 meters
       do while(tmpstr(lstr:lstr)=='0' .and. lstr>3)
         lstr=lstr-1
       enddo
-      is=ie+2
-      ie=is+5+lstr
-      if (ie>max_opt_size) goto 99
+      is=ie+2 ; ie=is+5+lstr
+      if (ie > max_opt_size) goto 99
       cpps(is:ie)='EPSIL='/ /tmpstr(1:lstr)
 # endif
 # ifdef GAMMA
@@ -615,9 +612,8 @@ c??     &                                      20. ) !<-- 20 meters
       do while(tmpstr(lstr:lstr)=='0' .and. lstr>3)
         lstr=lstr-1
       enddo
-      is=ie+2
-      ie=is+5+lstr
-      if (ie>max_opt_size) goto 99
+      is=ie+2 ; ie=is+5+lstr
+      if (ie > max_opt_size) goto 99
       cpps(is:ie)='GAMMA='/ /tmpstr(1:lstr)
 # endif
 # ifdef ALPHA_MAX
@@ -626,9 +622,8 @@ c??     &                                      20. ) !<-- 20 meters
       do while(tmpstr(lstr:lstr)=='0' .and. lstr>3)
         lstr=lstr-1
       enddo
-      is=ie+2
-      ie=is+9+lstr
-      if (ie>max_opt_size) goto 99
+      is=ie+2 ; ie=is+9+lstr
+      if (ie > max_opt_size) goto 99
       cpps(is:ie)='ALPHA_MAX='/ /tmpstr(1:lstr)
 # endif
       return
@@ -636,7 +631,6 @@ c??     &                                      20. ) !<-- 20 meters
      &  'Insufficient length of string "cpps" in file "strings.h".',
      &        'Increase parameter "max_opt_size" it and recompile.'
       ierr=ierr+1
-      return
       end
 #else
       subroutine step3d_uv_empty

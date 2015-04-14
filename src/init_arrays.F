@@ -386,8 +386,8 @@
 
       do j=jstrR,jendR
         do i=istrR,iendR
-          hbbls(i,j,1)=0.  ! init
-          hbbls(i,j,2)=0.
+          hbbl(i,j,1)=0.  ! init
+          hbbl(i,j,2)=0.
 #  ifdef AVERAGES
           hbbl_avg(i,j)=init
 #  endif

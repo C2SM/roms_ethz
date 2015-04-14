@@ -516,7 +516,7 @@ c**      start_time=start_time - 20.*360. *day2sec
       lvar=lenstr(vname(1,indxHbbl))
       ierr=nf_inq_varid (ncid, vname(1,indxHbbl)(1:lvar), varid)
       if (ierr == nf_noerr) then
-        ierr=nf_fread (hbbls(START_2D_ARRAY,tindx), ncid, varid,
+        ierr=nf_fread (hbbl(START_2D_ARRAY,tindx), ncid, varid,
      &                                           record, r2dvar)
         if (ierr /= nf_noerr) then
           write(*,2) vname(1,indxHbbl)(1:lvar), record,

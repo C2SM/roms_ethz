@@ -24,17 +24,17 @@
 
       implicit none                       ! In the code below there
       character(len=*) string             ! are two possible outcomes
-      integer lenstr, is,ie               ! of the search for the first 
+      integer lenstr, is,ie               ! of the search for the first
       ie=len(string)
       do while (string(ie:ie)==' ' .and. ie>1)
         ie=ie-1
       enddo                               ! non-blank character "is":
       is=1
-      do while (string(is:is)==' ' .and. is<ie)
+      do while(string(is:is)==' ' .and. is<ie)
         is=is+1
       enddo                               ! it either finds one, or
       if (string(is:is) /= ' ') then      ! the search is terminated
-        if (is>1) string=string(is:ie)    ! by reaching the condition
+        if (is > 1) string=string(is:ie)  ! by reaching the condition
         lenstr=ie-is+1                    ! (is==ie), while the
       else                                ! character is still blank,
         lenstr=0                          ! which  means that the

@@ -25,15 +25,20 @@
 # include "cppdefs.h"
 !--># define BAKWD_COMPAT
 
-c# define mpi_exchange_tile   mpi_exchange4_tile
-c# define mpi_exchange_2_tile mpi_exchange4_2_tile
-c# define mpi_exchange_3_tile mpi_exchange4_3_tile
-c# define mpi_exchange_4_tile mpi_exchange4_4_tile
+
+/*
+# define mpi_exchange_tile   mpi_exchange4_tile
+# define mpi_exchange_2_tile mpi_exchange4_2_tile
+# define mpi_exchange_3_tile mpi_exchange4_3_tile
+# define mpi_exchange_4_tile mpi_exchange4_4_tile
+*/
 
 # define mpi_exchange_tile   mpi_exchange8_tile
 # define mpi_exchange_2_tile mpi_exchange8_2_tile
 # define mpi_exchange_3_tile mpi_exchange8_3_tile
 # define mpi_exchange_4_tile mpi_exchange8_4_tile
+
+
 
 #endif
 #ifdef EXCHANGE
@@ -292,7 +297,7 @@ CSDISTRIBUTE_RESHAPE D(BLOCK_PATTERN) BLOCK_CLAUSE
       call mpi_exchange_3_tile (istr,iend,jstr,jend, A,1, B,1, C,1)
 #  elif NARGS == 4
       call mpi_exchange_4_tile (istr,iend,jstr,jend, A,1, B,1,
-     &                                                C,1, D,1)
+     &                                               C,1, D,1)
 #  endif
 # endif
       return

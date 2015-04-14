@@ -30,7 +30,7 @@
 #endif
 
       ifrc=max(sst_file_id,1)
- 100  ncid=ncidfrc(ifrc)
+ 100  ncid=ncfrc(ifrc)
       frcname=frcfile(ifrc)
       lfrc=lenstr(frcname)
       ierr=nf_noerr
@@ -39,7 +39,7 @@
         if (ncid==-1) then
           ierr=nf_open(frcname(1:lfrc), nf_nowrite, ncid)
           if (ierr==nf_noerr) then
-            ncidfrc(ifrc)=ncid
+            ncfrc(ifrc)=ncid
           else
             write(*,'(/1x,4A/)')   '### ERROR: get_sst :: Cannot ',
      &               'open netCDF file ''', frcname(1:lfrc), '''.'
