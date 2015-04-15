@@ -1,25 +1,25 @@
 #include "cppdefs.h"
 #ifdef SOLVE3D
- 
+
       subroutine t3dbc_tile (istr,iend,jstr,jend, itrc, grad)
-!
+
 ! Set lateral boundary conditions for tracer field t(:,:,:,itrc)
-!
+
       implicit none
       integer istr,iend,jstr,jend, itrc, i,j,k
-      real grad(PRIVATE_2D_SCRATCH_ARRAY), eps, dtfwd,
-     &     cff, cx,cy, dft,dfx,dfy, tau,tau_in,tau_out
-      parameter (eps=1.E-20)
+      real grad(PRIVATE_2D_SCRATCH_ARRAY), cx,cy, cff,
+     &         dtfwd, dft,dfx,dfy, tau,tau_in,tau_out
+      real, parameter :: eps=1.E-33
 # include "param.h"
 # include "grid.h"
 # include "ocean3d.h"
 # include "climat.h"
 # include "scalars.h"
 # include "boundary.h"
-!
+
 # include "compute_auxiliary_bounds.h"
-!
-      if (PRE_STEP) then      ! because predictor sub-step advances
+
+      if (PRED_STAGE) then    ! because predictor sub-step advances
         dtfwd=0.5*dt          ! u, v, t to "n+1/2", the forward step
       else                    ! employed here for upstream advection
         dtfwd=dt              ! in the vicinity of open boundary is
@@ -51,22 +51,22 @@
 /* --->
             dft=t(istr,j,k,nstp,itrc)-t(istr  ,j,k,nnew,itrc)
             dfx=t(istr,j,k,nnew,itrc)-t(istr+1,j,k,nnew,itrc)
- 
-            if (dfx*dft .lt. 0.) then
-              dft=0.                  ! <-- cancel, if inflow 
+
+            if (dfx*dft < 0.) then
+              dft=0.                  ! <-- cancel, if inflow
 #   if defined T_FRC_BRY || defined TNUDGING
               tau=tau_in
             else
               tau=tau_out
 #   endif
             endif
- 
-            if (dft*(grad(istr,j)+grad(istr,j+1)) .gt. 0.) then
+
+            if (dft*(grad(istr,j)+grad(istr,j+1)) > 0.) then
               dfy=grad(istr,j)
             else
               dfy=grad(istr,j+1)
             endif
- 
+
 #   ifdef OBC_RAD_NORMAL
             dfy=0.
 #   endif
@@ -91,7 +91,7 @@
             cy=0.5*dtfwd*(v(istr-1,j,k,nrhs)+v(istr-1,j+1,k,nrhs))
      &                                               *pn(istr-1,j)
 
-            if (cx.gt.0.) then
+            if (cx>0.) then
               tau=0.
             else
               tau=-cx
@@ -112,7 +112,7 @@
 #   if defined T_FRC_BRY || defined TNUDGING
             t(istr-1,j,k,nnew,itrc)=(1.-tau)*t(istr-1,j,k,nnew,itrc)
 #    ifdef T_FRC_BRY
-     &                                    +tau*t_west(j,k,itrc)     
+     &                                    +tau*t_west(j,k,itrc)
 #    else
      &                                    +tau*tclm(istr-1,j,k,itrc)
 #    endif
@@ -143,14 +143,14 @@
 #  endif
       endif     ! <-- WESTERN_EDGE
 
-#ifdef ISWAKE
-# define OBC_TORLANSKI
-#endif
+#  ifdef ISWAKE
+#   define OBC_TORLANSKI
+#  endif
 
       if (EASTERN_EDGE) then
 #  if defined OBC_EAST && defined OBC_TORLANSKI
-!
-!                                        !  Eastern edge radiation BC
+
+                                         !  Eastern edge radiation BC
         do k=1,N                         !  ======= ==== ========= ==
           do j=jstr,jend+1
            grad(iend  ,j)=( t(iend  ,j  ,k,nstp,itrc)
@@ -168,22 +168,22 @@
 /* --->
             dft=t(iend,j,k,nstp,itrc)-t(iend  ,j,k,nnew,itrc)
             dfx=t(iend,j,k,nnew,itrc)-t(iend-1,j,k,nnew,itrc)
- 
-            if (dfx*dft .lt. 0.) then
-              dft=0.                  ! <-- cancel, if inflow 
+
+            if (dfx*dft < 0.) then
+              dft=0.                  ! <-- cancel, if inflow
 #   if defined T_FRC_BRY || defined TNUDGING
               tau=tau_in
             else
               tau=tau_out
 #   endif
             endif
- 
-            if (dft*(grad(iend,j)+grad(iend,j+1)) .gt. 0.) then
+
+            if (dft*(grad(iend,j)+grad(iend,j+1)) > 0.) then
               dfy=grad(iend,j)
             else
               dfy=grad(iend,j+1)
             endif
- 
+
 #   ifdef OBC_RAD_NORMAL
             dfy=0.
 #   endif
@@ -194,7 +194,7 @@
 #   else
             cy=min(cff,max(dft*dfy,-cff))
 #   endif
- 
+
             t(iend+1,j,k,nnew,itrc)=( cff*t(iend+1,j,k,nstp,itrc)
      &                                   +cx*t(iend,j,k,nnew,itrc)
      &                                -max(cy,0.)*grad(iend+1,j  )
@@ -207,8 +207,8 @@
             cx=dtfwd*u(iend+1,j,k,nrhs)*pm(iend+1,j)
             cy=0.5*dtfwd*(v(iend+1,j,k,nrhs)+v(iend+1,j+1,k,nrhs))
      &                                               *pn(iend+1,j)
-          
-            if (cx.gt.0.) then
+
+            if (cx>0.) then
               tau=0.
             else
               tau=-cx
@@ -244,7 +244,7 @@
           do j=jstr,jend
 #   if defined OBC_EAST && defined OBC_TSPECIFIED
 #    ifdef T_FRC_BRY
-            t(iend+1,j,k,nnew,itrc)=t_east(j,k,itrc) 
+            t(iend+1,j,k,nnew,itrc)=t_east(j,k,itrc)
 #    else
             t(iend+1,j,k,nnew,itrc)=tclm(iend+1,j,k,itrc)
 #    endif
@@ -265,7 +265,7 @@
 
 
 
- 
+
 # ifndef NS_PERIODIC
       if (SOUTHERN_EDGE) then
 #  if defined OBC_SOUTH && defined OBC_TORLANSKI
@@ -286,22 +286,22 @@
 /* --->
             dft=t(i,jstr,k,nstp,itrc)-t(i,jstr  ,k,nnew,itrc)
             dfx=t(i,jstr,k,nnew,itrc)-t(i,jstr+1,k,nnew,itrc)
- 
-            if (dfx*dft .lt. 0.) then
-              dft=0.                   ! <-- cancel, if inflow 
+
+            if (dfx*dft < 0.) then
+              dft=0.                   ! <-- cancel, if inflow
 #   if defined T_FRC_BRY || defined TNUDGING
               tau=tau_in
             else
               tau=tau_out
 #   endif
             endif
- 
-            if (dft*(grad(i,jstr)+grad(i+1,jstr)) .gt. 0.) then
+
+            if (dft*(grad(i,jstr)+grad(i+1,jstr)) > 0.) then
               dfy=grad(i,jstr)
             else
               dfy=grad(i+1,jstr)
             endif
- 
+
 #   ifdef OBC_RAD_NORMAL
             dfy=0.
 #   endif
@@ -312,7 +312,7 @@
 #   else
             cy=min(cff,max(dft*dfy,-cff))
 #   endif
- 
+
             t(i,jstr-1,k,nnew,itrc)=( cff*t(i,jstr-1,k,nstp,itrc)
      &                                   +cx*t(i,jstr,k,nnew,itrc)
      &                                -max(cy,0.)*grad(i  ,jstr-1)
@@ -326,7 +326,7 @@
             cy=0.5*dtfwd*(u(i,jstr-1,k,nrhs)+u(i+1,jstr-1,k,nrhs))
      &                                            *pm(i,jstr-1)
 
-            if (cx.gt.0.) then
+            if (cx>0.) then
               tau=0.
             else
               tau=-cx
@@ -397,22 +397,22 @@
 /* --->
             dft=t(i,jend,k,nstp,itrc)-t(i,jend  ,k,nnew,itrc)
             dfx=t(i,jend,k,nnew,itrc)-t(i,jend-1,k,nnew,itrc)
- 
-            if (dfx*dft .lt. 0.) then
-              dft=0.                          ! <-- cancel, if inflow 
+
+            if (dfx*dft < 0.) then
+              dft=0.                          ! <-- cancel, if inflow
 #   if defined T_FRC_BRY || defined TNUDGING
               tau=tau_in
             else
               tau=tau_out
 #   endif
             endif
- 
-            if (dft*(grad(i,jend)+grad(i+1,jend)) .gt. 0.) then
+
+            if (dft*(grad(i,jend)+grad(i+1,jend)) > 0.) then
               dfy=grad(i,jend)
             else
               dfy=grad(i+1,jend)
             endif
- 
+
 #   ifdef OBC_RAD_NORMAL
             dfy=0.
 #   endif
@@ -434,7 +434,7 @@
             cy=0.5*dtfwd*(u(i,jend+1,k,nrhs)+u(i+1,jend+1,k,nrhs))
      &                                            *pm(i,jend+1)
 
-            if (cx.gt.0.) then
+            if (cx>0.) then
               tau=0.
             else
               tau=-cx
@@ -488,22 +488,21 @@
 #  endif
       endif    ! <-- NORTHERN_EDGE
 # endif /* ! NS_PERIODIC */
-!
-! Corner points between adjacent boundaries. Note that because
-! boundary conditions for tracers are of gradient nature -- either
-! Neumann, or radiation, the corner points have to be set in all
-! cases, even if the adjacent boundaries are closed. This differs
-! from setting boundaries for velocities, where there is anisotropy
-! associated with normal and tangential components. In the case when 
-! one/or both points near the corner is/are masked, the use of masked
-! points is avoided. 
+
+! Corner points between adjacent boundaries. Note that because boundary
+! conditions for tracers are of gradient nature -- either Neumann, or
+! radiation, the corner points have to be set in all cases, even if the
+! adjacent boundaries are closed.  This differs from setting boundaries
+! for velocities, where there is anisotropy associated with normal and
+! tangential components.   In the case when one/or both points near the
+! corner is/are masked, the use of masked points is avoided.
 
 # ifndef EW_PERIODIC
 #  ifndef NS_PERIODIC
       if (SOUTHERN_EDGE .and. WESTERN_EDGE) then
 #   ifdef MASKING
         cff=rmask(istr,jstr-1)+rmask(istr-1,jstr)
-        if (cff.gt.0.) then
+        if (cff > 0.) then
           cff=1./cff
           do k=1,N
             t(istr-1,jstr-1,k,nnew,itrc)=cff*(
@@ -526,7 +525,7 @@
       if (SOUTHERN_EDGE .and. EASTERN_EDGE) then
 #   ifdef MASKING
         cff=rmask(iend,jstr-1)+rmask(iend+1,jstr)
-        if (cff.gt.0.) then
+        if (cff > 0.) then
           cff=1./cff
           do k=1,N
             t(iend+1,jstr-1,k,nnew,itrc)=cff*(
@@ -549,7 +548,7 @@
       if (NORTHERN_EDGE .and. WESTERN_EDGE) then
 #   ifdef MASKING
         cff=rmask(istr,jend+1)+rmask(istr-1,jend)
-        if (cff.gt.0.) then
+        if (cff > 0.) then
           cff=1./cff
           do k=1,N
             t(istr-1,jend+1,k,nnew,itrc)=cff*(
@@ -572,7 +571,7 @@
       if (NORTHERN_EDGE .and. EASTERN_EDGE) then
 #   ifdef MASKING
         cff=rmask(iend,jend+1)+rmask(iend+1,jend)
-        if (cff.gt.0.) then
+        if (cff > 0.) then
           cff=1./cff
           do k=1,N
             t(iend+1,jend+1,k,nnew,itrc)=cff*(
@@ -593,7 +592,6 @@
       endif
 #  endif
 # endif
-      return
       end
 #else
       subroutine t3dbc_empty

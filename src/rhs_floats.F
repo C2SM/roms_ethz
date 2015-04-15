@@ -68,7 +68,7 @@ CSDISTRIBUTE_RESHAPE A(BLOCK_PATTERN,*) BLOCK_CLAUSE
         cff2=q1*(p1*rmask(i1,j1) + p2*rmask(i2,j1))
      &      +q2*(p1*rmask(i1,j2) + p2*rmask(i2,j2))
 
-        if (cff2.gt.0.) then
+        if (cff2>0.) then
           track(izrhs,nfp1,iflt)=cff1/cff2
         else
           track(izrhs,nfp1,iflt)=0.0
@@ -99,7 +99,7 @@ CSDISTRIBUTE_RESHAPE A(BLOCK_PATTERN,*) BLOCK_CLAUSE
         r2=track(izgrd,nfp1,iflt)+0.5 - float(k1)
         r1=1.-r2
         k1=max(k1,   1)
-        k2=min(k1+1, N) 
+        k2=min(k1+1, N)
 
         i1=int(track(ixgrd,nfp1,iflt)+0.5)
         i2=i1+1
@@ -110,9 +110,9 @@ CSDISTRIBUTE_RESHAPE A(BLOCK_PATTERN,*) BLOCK_CLAUSE
         j2=j1+1
 #  ifdef MASKING
 !
-! Note that the following code segment yields 
+! Note that the following code segment yields
 !
-!           rmask(i1,j1) rmask(i1,j2)       q1   q2 
+!           rmask(i1,j1) rmask(i1,j2)       q1   q2
 !           ----------------------------------------------
 !               1            1        0< q1,q2 <1, q1+q2=1
 !               1            0               1    0

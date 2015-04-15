@@ -1,0 +1,78 @@
+title:
+       Pacific Ocean, 0.5 degree resolution
+
+
+time_stepping: NTIMES   dt[sec]  NDTFAST  NINFO
+                12800     4800.    71      1 
+
+
+S-coord: THETA_S,   THETA_B,    hc (m)
+           6.0D0      0.0D0     250.D0
+
+grid:  filename
+             /woossee/pac44/pacific_grid_488x360.nc 
+
+
+initial: NRREC  filename
+          2 
+        rst.0000.nc
+         /woossee/pac44/roms_ini.nc
+
+
+forcing: filename
+          /woossee/pac44/ncep_heat.nc
+          /woossee/pac44/ncep_winds.nc
+
+
+boundary: filename
+         /woossee/pac44/bry_frc_file.nc
+
+
+restart:          NRST, NRPFRST / filename
+                   36      +2
+                           rst.nc
+
+history: LDEFHIS, NWRT, NRPFHIS / filename 
+            F     270    24  <-- normal settings
+              his.nc
+
+
+
+averages: NTSAVG, NAVG, NRPFAVG / filename
+            1      180    18 
+                 avg.nc
+
+primary_history_fields: zeta U,VBAR  U,V   wrtT(1:NT)
+                          T   T T    T T   T T
+
+auxiliary_history_fields: rho Omega W  Akv Akt Aks  HBL HBBL
+                           F   F    T   F   T   F    T   F
+
+primary_averages: zeta U,VBAR  U,V   wrtT(1:NT)
+                    T    T T   T T      T T
+
+auxiliary_averages: rho Omega W  Akv Akt Aks  HBL HBBL
+                     F    T   F   F   T   F    T   F
+
+rho0:
+      1027.8
+
+lateral_visc:   VISC2[m^2/sec]
+                 0.
+
+tracer_diff2: TNU2(1:NT)           [m^2/sec for all]
+ 0. 0. 0. 0. 0. 0. 0. 0. 0.
+
+
+bottom_drag:     RDRG [m/s],  RDRG2,  Zob [m],  Cdb_min, Cdb_max
+                 0.0         1.0E-3     0.E-4     1.E-4    1.E-2
+
+gamma2:
+                 1.
+
+v_sponge:           V_SPONGE [m^2/sec]
+                   2000.
+
+nudg_cof: TauM2_in/out  attnM2   TauM3_in/out  TauT_in/out [days for all]
+             0.2  30.   0.005      1. 360.      1.  360.
+

@@ -7,7 +7,7 @@
 ! these are fast-time-averaged barotropic variables. 
 !
 #ifdef SOLVE3D
-      real weight(2,256)
+      real weight(2,288)
       common /coup_weight/ weight
 
       real rufrc(GLOBAL_2D_ARRAY)

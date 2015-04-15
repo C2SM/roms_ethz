@@ -45,7 +45,7 @@
 # include "ocean.h"
 # include "scalars.h"
 # include "work.h"
- 
+
       integer i, iter, itrc, j, k
       real advtrc(0:L,0:M,N), trc(0:L,0:M,N),
      &         ua(L,0:M,N), va(0:L,M,N), wa(0:L,0:M,0:N)
@@ -113,7 +113,7 @@ c
 !  velocities (ua,va,wa) are overwritten with the new anti-diffusion
 !  velocities.
 !
-        if (iter.lt.adv_ord) then
+        if (iter<adv_ord) then
           call smol_adiff (trc,advtrc,ua,va,wa)
         endif
       enddo
@@ -132,4 +132,4 @@ c
 #endif /* SMOLARKIEWICZ */
       return
       end
- 
+

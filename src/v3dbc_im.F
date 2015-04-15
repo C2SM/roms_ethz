@@ -1,16 +1,16 @@
 #include "cppdefs.h"
 #ifdef SOLVE3D
- 
+
       subroutine v3dbc_tile (istr,iend,jstr,jend, grad)
-!
+
 ! Set lateral boundary conditions for ETA-component velocity
-! v(:,:,:,nnew) 
-!
+! v(:,:,:,nnew)
+
       implicit none
       integer istr,iend,jstr,jend, i,j,k
-      real grad(PRIVATE_2D_SCRATCH_ARRAY), eps, dtfwd,
-     &     cff, cx,cy, dft,dfx,dfy, tau,tau_in,tau_out
-      parameter (eps=1.E-20)
+      real grad(PRIVATE_2D_SCRATCH_ARRAY), cx,cy, cff,
+     &         dtfwd, dft,dfx,dfy, tau,tau_in,tau_out
+      real, parameter :: eps=1.E-33
 # include "param.h"
 # include "scalars.h"
 # include "grid.h"
@@ -20,10 +20,10 @@
 # else
 #  include "climat.h"
 # endif
-!
+
 # include "compute_auxiliary_bounds.h"
-!
-      if (PRE_STEP) then      ! because predictor sub-step advances
+
+      if (PRED_STAGE) then    ! because predictor sub-step advances
         dtfwd=0.5*dt          ! u, v, t to "n+1/2", the forward step
       else                    ! employed here for upstream advection
         dtfwd=dt              ! in the vicinity of open boundary is
@@ -53,8 +53,8 @@
           do i=istr,iend
             dft=v(i,jstr+1,k,nstp)-v(i,jstr+1,k,nnew)
             dfx=v(i,jstr+1,k,nnew)-v(i,jstr+2,k,nnew)
- 
-            if (dfx*dft .lt. 0.) then
+
+            if (dfx*dft < 0.) then
               dft=0.                      ! <-- cancel cx, if inflow
 #    if defined M3_FRC_BRY || defined M3NUDGING
               tau=tau_in
@@ -62,13 +62,13 @@
               tau=tau_out
 #    endif
             endif
- 
-            if (dft*(grad(i,jstr+1)+grad(i+1,jstr+1)) .gt. 0.) then
+
+            if (dft*(grad(i,jstr+1)+grad(i+1,jstr+1)) > 0.) then
               dfy=grad(i,jstr+1)
             else
               dfy=grad(i+1,jstr+1)
             endif
- 
+
 #    ifdef OBC_RAD_NORMAL
             dfy=0.
 #    endif
@@ -79,17 +79,17 @@
 #    else
             cy=min(cff,max(dft*dfy,-cff))
 #    endif
- 
+
             v(i,jstr,k,nnew)=( cff*v(i,jstr,k,nstp)
      &                        +cx*v(i,jstr+1,k,nnew)
      &                    -max(cy,0.)*grad(i  ,jstr)
      &                    -min(cy,0.)*grad(i+1,jstr)
      &                                   )/(cff+cx)
-#    if defined M3_FRC_BRY  || defined M3NUDGING 
+#    if defined M3_FRC_BRY  || defined M3NUDGING
             v(i,jstr,k,nnew)=(1.-tau)*v(i,jstr,k,nnew)
 #     ifdef M3_FRC_BRY
      &                               +tau*v_south(i,k)
-#     else     
+#     else
      &                             +tau*vclm(i,jstr,k)
 #     endif
 #    endif
@@ -124,9 +124,9 @@
         enddo
 #  endif              /* OBC_SOUTH */
       endif         !<-- SOUTHERN_EDGE
- 
- 
- 
+
+
+
       if (NORTHERN_EDGE) then
 #  ifdef OBC_NORTH
 #   ifdef OBC_M3ORLANSKI
@@ -144,8 +144,8 @@
           do i=istr,iend
             dft=v(i,jend,k,nstp)-v(i,jend  ,k,nnew)
             dfx=v(i,jend,k,nnew)-v(i,jend-1,k,nnew)
- 
-            if (dfx*dft .lt. 0.) then
+
+            if (dfx*dft < 0.) then
               dft=0.                       ! <-- cancel cx, if inflow
 #    if defined M3_FRC_BRY || defined M3NUDGING
               tau=tau_in
@@ -153,13 +153,13 @@
               tau=tau_out
 #    endif
             endif
- 
-            if (dft*(grad(i,jend)+grad(i+1,jend)) .gt. 0.) then
+
+            if (dft*(grad(i,jend)+grad(i+1,jend)) > 0.) then
               dfy=grad(i,jend)
             else
               dfy=grad(i+1,jend)
             endif
- 
+
 #    ifdef OBC_RAD_NORMAL
             dfy=0.
 #    endif
@@ -170,17 +170,17 @@
 #    else
             cy=min(cff,max(dft*dfy,-cff))
 #    endif
- 
+
             v(i,jend+1,k,nnew)=( cff*v(i,jend+1,k,nstp)
      &                              +cx*v(i,jend,k,nnew)
      &                      -max(cy,0.)*grad(i  ,jend+1)
      &                      -min(cy,0.)*grad(i+1,jend+1)
      &                                      )/(cff+cx)
-#    if defined M3_FRC_BRY  || defined M3NUDGING 
+#    if defined M3_FRC_BRY  || defined M3NUDGING
             v(i,jend+1,k,nnew)=(1.-tau)*v(i,jend+1,k,nnew)
 #     ifdef M3_FRC_BRY
      &                                   +tau*v_north(i,k)
-#     else     
+#     else
      &                               +tau*vclm(i,jend+1,k)
 #     endif
 #    endif
@@ -216,9 +216,9 @@
 #  endif
       endif     !<--  NORTHERN_EDGE
 # endif          /* !NS_PERIODIC */
- 
- 
- 
+
+
+
 # ifndef EW_PERIODIC
       if (WESTERN_EDGE) then
 #  ifdef OBC_WEST
@@ -232,8 +232,8 @@
 /* --->
             dft=v(istr,j,k,nstp)-v(istr  ,j,k,nnew)
             dfx=v(istr,j,k,nnew)-v(istr+1,j,k,nnew)
- 
-            if (dfx*dft .lt. 0.) then
+
+            if (dfx*dft < 0.) then
               dft=0.                       ! <-- cancel cx, if inflow
 #    if defined M3_FRC_BRY || defined M3NUDGING
               tau=tau_in
@@ -241,13 +241,13 @@
               tau=tau_out
 #    endif
             endif
- 
-            if (dft*(grad(istr,j-1)+grad(istr,j)) .gt. 0.) then
+
+            if (dft*(grad(istr,j-1)+grad(istr,j)) > 0.) then
               dfy=grad(istr,j-1)
             else
               dfy=grad(istr,j  )
             endif
- 
+
 #    ifdef OBC_RAD_NORMAL
             dfy=0.
 #    endif
@@ -258,7 +258,7 @@
 #    else
             cy=min(cff,max(dft*dfy,-cff))
 #    endif
- 
+
             v(istr-1,j,k,nnew)=( cff*v(istr-1,j,k,nstp)
      &                              +cx*v(istr,j,k,nnew)
      &                      -max(cy,0.)*grad(istr-1,j-1)
@@ -275,7 +275,7 @@
      &                            *( pn(istr-1,j)+pn(istr-1,j-1)
      &                                +pn(istr,j)+pn(istr,j-1) )
 
-          if (cx.gt.0.) then
+          if (cx>0.) then
             tau=0.
           else
             tau=-cx
@@ -294,11 +294,11 @@
 
 
 
-#    if defined M3_FRC_BRY  || defined M3NUDGING 
+#    if defined M3_FRC_BRY  || defined M3NUDGING
             v(istr-1,j,k,nnew)=(1.-tau)*v(istr-1,j,k,nnew)
 #     ifdef M3_FRC_BRY
      &                                    +tau*v_west(j,k)
-#     else     
+#     else
      &                               +tau*vclm(istr-1,j,k)
 #     endif
 #    endif
@@ -342,11 +342,11 @@
 #   undef J_RANGE
 #  endif
       endif          !<-- WESTERN_EDGE
- 
-#ifdef ISWAKE
-# define OBC_M3ORLANSKI
-#endif
- 
+
+#  ifdef ISWAKE
+#   define OBC_M3ORLANSKI
+#  endif
+
       if (EASTERN_EDGE) then
 #  ifdef OBC_EAST
 #   ifdef OBC_M3ORLANSKI
@@ -359,8 +359,8 @@
 /* --->
             dft=v(iend,j,k,nstp)-v(iend  ,j,k,nnew)
             dfx=v(iend,j,k,nnew)-v(iend-1,j,k,nnew)
- 
-            if (dfx*dft .lt. 0.) then
+
+            if (dfx*dft < 0.) then
               dft=0.                       ! <-- cancel cx, if inflow
 #    if defined M3_FRC_BRY || defined M3NUDGING
               tau=tau_in
@@ -368,13 +368,13 @@
               tau=tau_out
 #    endif
             endif
- 
-            if (dft*(grad(iend,j-1)+grad(iend,j)) .gt. 0.) then
+
+            if (dft*(grad(iend,j-1)+grad(iend,j)) > 0.) then
               dfy=grad(iend,j-1)
             else
               dfy=grad(iend,j  )
             endif
- 
+
 #    ifdef OBC_RAD_NORMAL
             dfy=0.
 #    endif
@@ -385,7 +385,7 @@
 #    else
             cy=min(cff,max(dft*dfy,-cff))
 #    endif
- 
+
             v(iend+1,j,k,nnew)=( cff*v(iend+1,j,k,nstp)
      &                              +cx*v(iend,j,k,nnew)
      &                      -max(cy,0.)*grad(iend+1,j-1)
@@ -402,7 +402,7 @@
      &                               *( pn(iend+1,j)+pn(iend+1,j-1)
      &                                   +pn(iend,j)+pn(iend,j-1) )
 
-          if (cx.gt.0.) then
+          if (cx>0.) then
             tau=0.
           else
             tau=-cx
@@ -420,11 +420,11 @@
 
 
 
-#    if defined M3_FRC_BRY  || defined M3NUDGING 
+#    if defined M3_FRC_BRY  || defined M3NUDGING
             v(iend+1,j,k,nnew)=(1.-tau)*v(iend+1,j,k,nnew)
 #     ifdef M3_FRC_BRY
      &                                    +tau*v_east(j,k)
-#     else     
+#     else
      &                               +tau*vclm(iend+1,j,k)
 #     endif
 #    endif
@@ -469,10 +469,10 @@
 #  endif
       endif     !<-- EASTERN_EDGE
 # endif          /* !EW_PERIODIC */
- 
+
                            ! Corners between adjacent open boundaries
                            ! ======= ======= ======== ==== ==========
- 
+
 # if defined OBC_SOUTH && defined OBC_WEST
       if (WESTERN_EDGE .and. SOUTHERN_EDGE) then
         do k=1,N
@@ -505,10 +505,9 @@
         enddo
       endif
 # endif
-      return
       end
 #else
       subroutine v3dbc_empty
       end
 #endif /* SOLVE3D */
- 
+

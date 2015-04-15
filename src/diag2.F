@@ -1,20 +1,19 @@
 #include "cppdefs.h"
 #ifdef BIOLOGY
- 
+
       subroutine bio_diag (tile)
-!
+
 ! An alternative diagnostic routine designed to measure quadratic
 ! variation of physical/biological tracers, mostly for the purpose
 ! of comparison of different runs.
-!
+
       implicit none
       integer tile
 # include "param.h"
 # include "compute_tile_bounds.h"
       call bio_diag_tile  (istr,iend,jstr,jend)
-      return
       end
- 
+
       subroutine bio_diag_tile (istr,iend,jstr,jend)
       implicit none
       integer istr,iend,jstr,jend, i,j,k,itrc, iocheck,
@@ -28,7 +27,7 @@
 # include "grid.h"
 # include "ocean3d.h"
 # include "scalars.h"
- 
+
 # define  ETALON_CHECK
 # ifdef ETALON_CHECK
       integer ncheck, nparam
@@ -37,11 +36,11 @@
       character*57 check_line, etalon_line(ncheck)
       real    A0(nparam), A1(nparam)
       integer P0(nparam), P1(nparam)
- 
+
 # include "etalon_data.h"
 # endif
- 
-      if (mod(iic-1,ninfo).eq.0) then
+
+      if (mod(iic-1,ninfo)==0) then
         do itrc=1,NT
           my_sum(2*itrc  )=0.          ! <-- Reset local sums
           my_sum(2*itrc+1)=0.
@@ -49,14 +48,14 @@
           do k=1,N,+1
             k1=k2
             k2=3-k1
-            if (k.eq.1) then
+            if (k==1) then
               do j=jstr,jend
                 do i=istr,iend
                   FC(i,j,k1)=0.
                 enddo
               enddo
             endif
-            if (k.eq.N) then
+            if (k==N) then
               do j=jstr,jend
                 do i=istr,iend
                   FC(i,j,k2)=0.
@@ -97,14 +96,14 @@
             enddo
           enddo         ! <-- k
         enddo         !<-- itrc
- 
- 
- 
- 
- 
- 
- 
- 
+
+
+
+
+
+
+
+
         do itrc=0,NT
           my_sum(2*itrc  )=0.          ! <-- Reset local sums
           my_sum(2*itrc+1)=0.
@@ -127,23 +126,23 @@
            enddo
          enddo
         enddo
- 
- 
+
+
         if (SINGLE_TILE_MODE) then
           NSUB=1
         else
           NSUB=NSUB_X*NSUB_E
         endif
-!
+
 ! Perform global summation: whoever gets first to the critical region
 ! resets global sums before global summation starts; after the global
 ! summation is completed, thread, which is the last one to enter the
 ! critical region, finalizes the computation of diagnostics and
 ! prints them out.
-!
+
 C$OMP CRITICAL (diag2_cr_rgn)
- 
-        if (tile_count.eq.0) then
+
+        if (tile_count==0) then
           do itrc=1,2*NT+1
             global_sum(itrc)=my_sum(itrc)
           enddo
@@ -152,43 +151,43 @@ C$OMP CRITICAL (diag2_cr_rgn)
             global_sum(itrc)=global_sum(itrc)+my_sum(itrc)
             enddo
         endif
- 
+
         tile_count=tile_count+1
- 
-        if (tile_count.eq.NSUB) then
+
+        if (tile_count==NSUB) then
           tile_count=0
- 
+
           cff=1./global_sum(1)
           do itrc=1,NT
             global_sum(2*itrc  )=cff*global_sum(2*itrc )
             global_sum(2*itrc+1)=cff*global_sum(2*itrc+1)
      &                              -global_sum(2*itrc)**2
           enddo
-          if (first_time.eq.0) then
+          if (first_time==0) then
             first_time=1
-            write(stdout,1) 'STEP','time[DAYS]','rms_PHYT+ZOO',
-     &                'rms____NO3','rms___NH4','rms__DETRIT','trd'
+            write(*,1) 'STEP', 'time[DAYS]', 'rms_PHYT+ZOO',
+     &                 'rms____NO3','rms___NH4','rms__DETRIT','trd'
    1        format(1x,A4,3x,A10,1x,A12,4x,A10,4x,A10,4x,A10,3x,A3)
           endif
- 
+
           do itrc=1,NT
             global_sum(2*itrc+1)=sqrt(global_sum(2*itrc+1))
           enddo
- 
+
           cff=global_sum(13) + global_sum(15)
- 
-          write(stdout,2) iic-1,tdays, cff, global_sum(7),
+
+          write(*,2) iic-1,tdays, cff, global_sum(7),
      &                  global_sum(9), global_sum(11), proc(2)
-   2      format(I6, F12.5, 1PE16.9, 3(1PE14.7), I3)
- 
+   2      format(I6, F12.5, ES16.9, 3(ES14.7), I3)
+
 # ifdef  ETALON_CHECK
           do icheck=1,ncheck
-            if (iic-1.eq.check_point(icheck)) then
+            if (iic-1==check_point(icheck)) then
               write(check_line,10,iostat=iocheck) cff,global_sum(7),
      &                                global_sum( 9),global_sum(11)
-  10          format(1PE15.9,3(1pe14.7))
-              if (check_line .eq. etalon_line(icheck)) then
-                write(stdout,*) 'PASSED_ETALON_CHECK'
+  10          format(ES15.9,3(ES14.7))
+              if (check_line == etalon_line(icheck)) then
+                write(*,*) 'PASSED_ETALON_CHECK'
               else
                 read(check_line         ,11,iostat=iocheck) (A1(i),
      &                                           P1(i), i=1,nparam)
@@ -203,18 +202,18 @@ C$OMP CRITICAL (diag2_cr_rgn)
   12            format(f14.9,3(1x,f13.7))
                 j=0
                 do i=2,56
-                  if (check_line(i-1:i).eq.'0.') then
+                  if (check_line(i-1:i)=='0.') then
                     check_line(i:i)=':'
                     j=1
-                  else if (j.eq.1 .and. check_line(i:i).eq.'0') then
+                  else if (j==1 .and. check_line(i:i)=='0') then
                     check_line(i:i)='.'
                   else
                     j=0
                   endif
                 enddo
-                write(stdout,15) ' difference:    ',check_line
+                write(*,15) ' difference:    ',check_line
   15            format(A16,A56)
-                write(stdout,*) 'ETALON_CHECK: SOMETHING_IS_WRONG'
+                write(*,*) 'ETALON_CHECK: SOMETHING_IS_WRONG'
               endif
             endif
           enddo
@@ -222,10 +221,8 @@ C$OMP CRITICAL (diag2_cr_rgn)
         endif
 C$OMP END CRITICAL (diag2_cr_rgn)
       endif
-      return
       end
 #else
       subroutine bio_diag_empty
       end
 #endif
- 

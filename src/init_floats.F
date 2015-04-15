@@ -13,7 +13,7 @@
 !  input floats script.                                              !
 !                                                                    !
 !=====================================================================
-!
+
       implicit none
 # include "param.h"
 # include "grid.h"
@@ -22,7 +22,7 @@
 # include "scalars.h"
 # include "floats.h"
 # include "init_floats.h"
-!
+
       integer Ncount, i, icard, iunit, j, k, lstr, mc, nc
       integer index(Mfloats)
       integer lenstr
@@ -30,38 +30,37 @@
       real Ip0(Mfloats), Jp0(Mfloats), lat(Mfloats), lon(Mfloats)
       character*35 frmt
       parameter (iunit=50)
-!
+
       k=0
-!
+
 !---------------------------------------------------------------------
 !  Read in initial float locations.
 !---------------------------------------------------------------------
-!
+
       lstr=lenstr(fposnam)
-      open(iunit,file=fposnam(1:lstr),form='formatted',
-     &  status='old', err=195)
-c     write(stdout,10)
+      open(iunit, file=fposnam(1:lstr), form='formatted',
+     &                             status='old', err=195)
+c     write(*,10)
 c 10  format(/,' FLOATS processing parameters:',/)
 !
 !  Read input parameters according to their input card number.
 !
       icard=0
-      do while (icard.lt.99)
+      do while (icard<99)
 !
 !  Read in floats identification title.
 !
-        if (icard.eq.1) then
+        if (icard==1) then
           read(iunit,'(a)',err=70) Ftitle
           lstr=lenstr(Ftitle)
-          write(stdout,20) Ftitle(1:lstr)
-  20      format(1x,'(',a,')',/)
-!
+          write(*,'(1x,3A)')   '(', Ftitle(1:lstr), ')'
+
 !  Read in initial floats location.
-!
-        elseif (icard.eq.2) then
+
+        elseif (icard==2) then
           i=0
           nfloats=0
-c         write(stdout,30)
+c         write(*,30)
 c30       format(1x,'Fcoor',2x,'Ftype',2x,'Fcount',2x,'Ft0',
 c    &        2x,'Fx0',2x,'Fy0',2x,'Fz0',2x,'Fgrd',2x,'Fdt',
 c    &                           2x,'Fdx',2x,'Fdy',2x,'Fdz',/)
@@ -72,20 +71,20 @@ c    &                           2x,'Fdx',2x,'Fdy',2x,'Fdz',/)
      &                           Fdt(i), Fdx(i), Fdy(i), Fdz(i)
             nfloats=nfloats+Fcount(i)
 c# if !defined SPHERICAL
-c           if (Fcoor(i).eq.1) then
+c           if (Fcoor(i)==1) then
 c             frmt='(i1,i2,i5,f10.4,2f8.0,f8.2,2x,i1,4f9.3)'
 c           else
 c            frmt='(i1,i2,i5,f10.4,3f8.2,2x,i1,4f9.3)'
 c           endif
-c# else 
+c# else
 c             frmt='(i1,i2,i5,f10.4,3f8.2,2x,i1,4f9.3)'
 c# endif
-c           write(stdout,frmt) Fcoor(i), Ftype(i), Fcount(i),
+c           write(*,frmt) Fcoor(i), Ftype(i), Fcount(i),
 c    &                         Ft0(i), Fx0(i), Fy0(i), Fz0(i),
 c    &                   Fgrd(i),Fdt(i), Fdx(i), Fdy(i), Fdz(i)
           enddo
-  40      if (Ft0(i).ne.99.0) then
-            write(stdout,50) icard, i, fposnam
+  40      if (Ft0(i)/=99.0) then
+            write(*,50) icard, i, fposnam
   50        format(/,' INIT_FLOATS - error while reading input card: ',
      &             i2, ', floats location entry: ',i3,/,15x,
      &             'in input script: ',a)
@@ -95,49 +94,49 @@ c    &                   Fgrd(i),Fdt(i), Fdx(i), Fdy(i), Fdz(i)
             i_floats=i-1
             goto 90
           endif
-          if (Mfloats.lt.nfloats) then
-            write(stdout,60) Mfloats, nfloats
+          if (Mfloats<nfloats) then
+            write(*,60) Mfloats, nfloats
   60        format(/,' INIT_FLOATS - too small dimension parameter,',
      &             ' Mfloats',2i6,/,15x,'change file  param.h  and',
      &             ' recompile.')
             stop
           endif
         endif
-!
+
 !  Read last input card ID.
-!
+
         read(iunit,*,err=70) icard
       enddo
       goto 90
 !
 !  Error while reading input parameters.
 !
-  70  write(stdout,80) icard, fposnam
+  70  write(*,80) icard, fposnam
   80  format(/,' INIT_FLOATS - error while reading input card: ',
      &       i2,15x,'in input script: ',a)
 
   90  close(iunit)
-      write(stdout,100) nfloats
+      write(*,100) nfloats
  100  format(/,2x,i6,4x,'nfloats',t26,
      &       'Number of float trajectories to compute.',/)
-!
+
 !---------------------------------------------------------------------
-!  Set initial float location.
+! Set initial float location.
 !---------------------------------------------------------------------
 !
-!  Set time of float release (seconds after model initialization) and
-!  initial float horizontal positions (grid units).  Fill the initial
-!  vertical level or depth position.
-!
+! Set time of float release (seconds after model initialization) and
+! initial float horizontal positions (grid units).  Fill the initial
+! vertical level or depth position.
+
       mc=0
       nc=0
       do i=1,Ncount
-        if (Fcount(i).eq.1) then
+        if (Fcount(i)==1) then
           nc=nc+1
           Tinfo(itstr,nc)=(tdays+Ft0(i))*day2sec
           Tinfo(izgrd,nc)=Fz0(i)
           Tinfo(igrd,i)=FLOAT(Fgrd(i)) ! each float belongs to this grid initially
-          if (Fcoor(i).eq.0) then
+          if (Fcoor(i)==0) then
              Tinfo(ixgrd,nc)=MIN(MAX(0.5,Fx0(i)),FLOAT(LLm)+0.5)
              Tinfo(iygrd,nc)=MIN(MAX(0.5,Fy0(i)),FLOAT(MMm)+0.5)
           else
@@ -146,15 +145,15 @@ c    &                   Fgrd(i),Fdt(i), Fdx(i), Fdy(i), Fdz(i)
             lat(mc)=Fy0(i)
             index(mc)=nc
           endif
-        elseif (Fcount(i).gt.1) then
+        elseif (Fcount(i)>1) then
           do j=1,Fcount(i)
             nc=nc+1
             Tinfo(igrd,nc)=FLOAT(Fgrd(i)) ! each float belongs to this grid initially
-            if (Fdt(i).gt.0.0) then
+            if (Fdt(i)>0.0) then
               Tinfo(itstr,nc)=(tdays+Ft0(i)+FLOAT(j-1)*Fdt(i))*
      &                        day2sec
               Tinfo(izgrd,nc)=Fz0(i)
-              if (Fcoor(i).eq.0) then
+              if (Fcoor(i)==0) then
                 Tinfo(ixgrd,nc)=MIN(MAX(0.5,Fx0(i)),FLOAT(LLm)+0.5)
                 Tinfo(iygrd,nc)=MIN(MAX(0.5,Fy0(i)),FLOAT(MMm)+0.5)
               else
@@ -165,17 +164,17 @@ c    &                   Fgrd(i),Fdt(i), Fdx(i), Fdy(i), Fdz(i)
               endif
             else
               Tinfo(itstr,nc)=(tdays+Ft0(i))*day2sec
-              if (Fdz(i).eq.0.0) then
+              if (Fdz(i)==0.0) then
                 Tinfo(izgrd,nc)=Fz0(i)
               else
-                if (Fz0(i).gt.0.0) then
+                if (Fz0(i)>0.0) then
                   zfloat=Fz0(i)+FLOAT(j-1)*Fdz(i)
                   Tinfo(izgrd,nc)=MIN(MAX(0.0,zfloat),FLOAT(N))
                 else
                   Tinfo(izgrd,nc)=Fz0(i)+FLOAT(j-1)*Fdz(i)
                 endif
               endif
-              if (Fcoor(i).eq.0) then
+              if (Fcoor(i)==0) then
                   xfloat=Fx0(i)+FLOAT(j-1)*Fdx(i)
                   Tinfo(ixgrd,nc)=MIN(MAX(0.5,xfloat),
      &                                FLOAT(LLm)+0.5)
@@ -200,7 +199,7 @@ c    &                   Fgrd(i),Fdt(i), Fdx(i), Fdy(i), Fdz(i)
 !  If applicable, convert floats initial (lon,lat) positions to grid
 !  units.
 !
-      if (mc.gt.0) then
+      if (mc>0) then
 # ifdef SPHERICAL
           call hindices (Ip0,Jp0,lon,lat,mc,lonr,latr)
 # else
@@ -216,16 +215,16 @@ c    &                   Fgrd(i),Fdt(i), Fdx(i), Fdy(i), Fdz(i)
 !
       return
 
- 195  write(stdout,205) fposnam
- 205  format(/,'float file ',A,/,' not found => float initialization', 
+ 195  write(*,205) fposnam
+ 205  format(/,'float file ',A,/,' not found => float initialization',
      &   ' using restart file')
 
-          call get_initial_floats
+          call get_init_flts
           ldefflt= .false.
 
 C! Test de l'initialisation des flotteurs xa
 C      do nc=1,nfloats
-C      write(stdout,53) nc, Tinfo(ixgrd,nc), Tinfo(iygrd,nc),
+C      write(*,53) nc, Tinfo(ixgrd,nc), Tinfo(iygrd,nc),
 C     &    Tinfo(izgrd,nc), NINT(Tinfo(igrd,nc)), Tinfo(itstr,nc)
 C      enddo
 C! Fin test
@@ -256,7 +255,7 @@ C! Fin test
       logical found
       logical Try_Range
       integer Imax, Imin, Jmax, Jmin, Npos, i0, j0, k
-      real Ipos(Npos), Jpos(Npos), Xpos(Npos), Ypos(Npos), 
+      real Ipos(Npos), Jpos(Npos), Xpos(Npos), Ypos(Npos),
      &  deltax, deltay, dx1, dy1, dx2, dy2, c1, c2
       real Xgrd(GLOBAL_2D_ARRAY),
      &     Ygrd(GLOBAL_2D_ARRAY)
@@ -287,8 +286,8 @@ C! Fin test
           Imax=LLm+1
           Jmin=0
           Jmax=MMm+1
-          do while (((Imax-Imin).gt.1).or.((Jmax-Jmin).gt.1))
-            if ((Imax-Imin).gt.1) then
+          do while (((Imax-Imin)>1).or.((Jmax-Jmin)>1))
+            if ((Imax-Imin)>1) then
               i0=(Imin+Imax)/2
               found=Try_Range(Imin,i0,Jmin,Jmax,Xpos(k),Ypos(k),
      &                        Xgrd,Ygrd)
@@ -298,7 +297,7 @@ C! Fin test
                 Imin=i0
               endif
             endif
-            if ((Jmax-Jmin).gt.1) then
+            if ((Jmax-Jmin)>1) then
               j0=(Jmin+Jmax)/2
               found=Try_Range(Imin,Imax,Jmin,j0,Xpos(k),Ypos(k),
      &                        Xgrd,Ygrd)
@@ -310,10 +309,10 @@ C! Fin test
             endif
           enddo
 
-! Improved interpolation block (02/06/03). Not totally 
-! accurate in case where the grid is strongly deformed. 
-! The nonalignment of xsi (eta) axis with longitude 
-! (latitude) direction is taken into account. 
+! Improved interpolation block (02/06/03). Not totally
+! accurate in case where the grid is strongly deformed.
+! The nonalignment of xsi (eta) axis with longitude
+! (latitude) direction is taken into account.
 
            dy1=Ygrd(Imin,Jmin+1)-Ygrd(Imin,Jmin)
            dx1=Xgrd(Imin,Jmin+1)-Xgrd(Imin,Jmin)
@@ -328,7 +327,7 @@ C! Fin test
 
            c1=Xgrd(Imin,Jmin)*dy1-Ygrd(Imin,Jmin)*dx1
            c2=Xpos(k)        *dy2-Ypos(k)        *dx2
-           deltay=(c1*dy2-c2*dy1)/(dx2*dy1-dy2*dx1) 
+           deltay=(c1*dy2-c2*dy1)/(dx2*dy1-dy2*dx1)
            deltay=(deltay-Ygrd(Imin,Jmin))/dy1
            Jpos(k)=FLOAT(Jmin)+MIN(MAX(0.0,deltay),1.0)
 
@@ -507,30 +506,30 @@ C! Fin test
       do kk=0,Nb-1,Nstep
         nc=0
         do k=kk+1,MIN(kk+Nstep,Nb)
-          if (((Xb(k+1)-Xo)*(Xo-Xb(k)).ge.0.0).and.
-     &        (Xb(k).ne.Xb(k+1))) then
+          if (((Xb(k+1)-Xo)*(Xo-Xb(k))>=0.0).and.
+     &        (Xb(k)/=Xb(k+1))) then
             nc=nc+1
             index(nc)=k
           endif
         enddo
         do i=1,nc
           k=index(i)
-          if (Xb(k).ne.Xb(k+1)) then
+          if (Xb(k)/=Xb(k+1)) then
             dx1=Xo-Xb(k)
             dx2=Xb(k+1)-Xo
             dxy=dx2*(Yo-Yb(k))-dx1*(Yb(k+1)-Yo)
             inc=0
-            if ((Xb(k).eq.Xo).and.(Yb(k).eq.Yo)) then
+            if ((Xb(k)==Xo).and.(Yb(k)==Yo)) then
               crossings=1
               goto 10
-            elseif (((dx1.eq.0.0).and.(Yo.ge.Yb(k  ))).or.
-     &              ((dx2.eq.0.0).and.(Yo.ge.Yb(k+1)))) then
+            elseif (((dx1==0.0).and.(Yo>=Yb(k  ))).or.
+     &              ((dx2==0.0).and.(Yo>=Yb(k+1)))) then
               inc=1
-            elseif ((dx1*dx2.gt.0.0).and.             ! See Note 1
-     &              ((Xb(k+1)-Xb(k))*dxy.ge.0.0)) then
+            elseif ((dx1*dx2>0.0).and.             ! See Note 1
+     &              ((Xb(k+1)-Xb(k))*dxy>=0.0)) then
               inc=2
             endif
-            if (Xb(k+1).gt.Xb(k)) then
+            if (Xb(k+1)>Xb(k)) then
               crossings=crossings+inc
             else
               crossings=crossings-inc
@@ -541,7 +540,7 @@ C! Fin test
 !
 !  Determine if point (Xo,Yo) is inside of closed polygon.
 !
-  10  if (crossings.eq.0) then
+  10  if (crossings==0) then
         inside=.false.
       else
         inside=.true.

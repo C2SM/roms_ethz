@@ -13,36 +13,28 @@ c**   contains
       call step2D_FB_tile (istr,iend,jstr,jend, A2d(1,1),  A2d(1,2),
      &                    A2d(1, 3), A2d(1, 4), A2d(1, 5), A2d(1, 6),
      &                    A2d(1, 7), A2d(1, 8), A2d(1, 9), A2d(1,10),
-     &                    A2d(1,11), A2d(1,12), A2d(1,13), A2d(1,14))
-      return
+     &                               A2d(1,11), A2d(1,12), A2d(1,13))
       end subroutine step2d
- 
+
       subroutine step2D_FB_tile (istr,iend,jstr,jend, zeta_new,Dnew,
-     &                             rubar,rvbar, urhs,vrhs, DUon,DVom,
-     &                                Drhs, Drhs_p, UFx,UFe,VFx,VFe)
-!
+     &                           rubar,rvbar, urhs,vrhs,  DUon,DVom,
+     &                                        Drhs, UFx,UFe,VFx,VFe)
+
 ! Prform one time step for barotropic mode (free-surface and baro-
 ! tropic 2D momentum equations) using Generalized Forward-Backward
 ! AB3-AM4 algorithm. Also calculate fast-time averages to interact
 ! with baroclinic mode.
-!
+
       implicit none
 #include "param.h"
-      integer istr,iend,jstr,jend, i,j, kbak, kold, is
-      real zeta_new(PRIVATE_2D_SCRATCH_ARRAY),  cff,
-     &         Dnew(PRIVATE_2D_SCRATCH_ARRAY),  cff0,
-     &        rubar(PRIVATE_2D_SCRATCH_ARRAY),  cff1,
-     &        rvbar(PRIVATE_2D_SCRATCH_ARRAY),  cff2,
-     &         urhs(PRIVATE_2D_SCRATCH_ARRAY),
-     &         vrhs(PRIVATE_2D_SCRATCH_ARRAY),
-     &         DUon(PRIVATE_2D_SCRATCH_ARRAY),  cff3,
-     &         DVom(PRIVATE_2D_SCRATCH_ARRAY),  cff4,
-     &         Drhs(PRIVATE_2D_SCRATCH_ARRAY),  cff5,
-     &       Drhs_p(PRIVATE_2D_SCRATCH_ARRAY),  cff6,
-     &          UFx(PRIVATE_2D_SCRATCH_ARRAY),
-     &          UFe(PRIVATE_2D_SCRATCH_ARRAY),  DUnew,
-     &          VFx(PRIVATE_2D_SCRATCH_ARRAY),  DVnew,
-     &          VFe(PRIVATE_2D_SCRATCH_ARRAY)
+      integer istr,iend,jstr,jend, i,j, kbak, kold
+      real, dimension(PRIVATE_2D_SCRATCH_ARRAY) :: zeta_new, Dnew,
+     &                         rubar,rvbar,  urhs,vrhs,  DUon,DVom,
+     &                                       Drhs, UFx,UFe,VFx,VFe
+      real cff, cff0,cff1,cff2,cff3,  DUnew,DVnew
+#ifdef PSOURCE
+      integer is
+#endif
 #include "grid.h"
 #include "ocean2d.h"
 #ifdef SOLVE3D
@@ -54,33 +46,37 @@ c**   contains
 #include "climat.h"
 #include "scalars.h"
 #include "sources.h"
-!
+
 #include "compute_auxiliary_bounds.h"
-!
-! Preliminary step: compute total depth (meters) of the water
-! ----------------- column and vertically integrated mass fluxes
-! which are needed to compute divergence in rhs_zeta and as input
-! data to compute nonlinear advection terms for the barotropic
-! momentum equations.
-!
+
+! Preliminary step: compute total depth (meters) of the water column
+! ----------------- and vertically-integrated mass fluxes needed for
+! computing divergence in rhs_zeta terms and for nonlinear advection
+! terms for the barotropic momentum equations.
+
       if (FIRST_2D_STEP) then         ! Meaning of temporal indices
         kbak=kstp                     ! ------- -- -------- -------
-        kold=kstp                     ! m-2    m-1     m       m+1
-        cff1=1.                       ! kold   kbak   kstp    knew
+        kold=kstp                     ! m-2     m-1      m      m+1
+        cff1=1.                       ! kold    kbak    kstp    knew
         cff2=0.
         cff3=0.
       elseif (FIRST_2D_STEP+1) then
         kbak=kstp-1
-        if (kbak.lt.1) kbak=4
+        if (kbak<1) kbak=4
         kold=kbak
-        cff1= 1.5
-        cff2=-0.5
-        cff3= 0.
+
+cxx     cff1= 1.5
+cxx     cff2=-0.5
+cxx     cff3= 0.
+
+        cff1=1.                  ! Logically AB2-AM3 forward-backward
+        cff2=0.                  ! scheme with coefficients chosen for
+        cff3=0.                  ! maximum stability ... (see below)
       else
         kbak=kstp-1
-        if (kbak.lt.1) kbak=4
+        if (kbak<1) kbak=4
         kold=kstp-2
-        if (kold.lt.1) kold=4
+        if (kold<1) kold=4
 
 c       cff1= 1.72
 c       cff2=-0.94
@@ -90,13 +86,13 @@ c       cff3= 0.22
         cff2=-1.06221
         cff3= 0.281105
       endif
- 
+
           Drhs(istrU-2:iend+1,jstrV-2:jend+1)=
      &                   h(istrU-2:iend+1,jstrV-2:jend+1)
      &          +cff1*zeta(istrU-2:iend+1,jstrV-2:jend+1,kstp)
      &          +cff2*zeta(istrU-2:iend+1,jstrV-2:jend+1,kbak)
      &          +cff3*zeta(istrU-2:iend+1,jstrV-2:jend+1,kold)
- 
+
 
           urhs(istrU-1:iend+1,jstr-1:jend+1)=
      &            cff1*ubar(istrU-1:iend+1,jstr-1:jend+1,kstp)
@@ -122,11 +118,11 @@ c       cff3= 0.22
      &                     *vrhs(istr-1:iend+1,jstrV-1:jend+1)
 
 
- 
+
 #ifdef OBC_VOLCONS
       call set_DUV_bc_tile (istr,iend,jstr,jend, Drhs, DUon,DVom)
 #endif
- 
+
       if (FIRST_2D_STEP) then
         cff0=1.
         cff1=0.
@@ -148,12 +144,12 @@ c       cff3=0.0088
         cff2=0.088
         cff3=0.013
       endif
- 
+
 #define zwrk UFx
 #define rzeta  UFe
 #define rzeta2  VFe
 #define rzetaSA VFx
- 
+
 
           zeta_new(istrU-1:iend,jstrV-1:jend)=
      &       zeta(istrU-1:iend,jstrV-1:jend,kstp)
@@ -172,13 +168,13 @@ c       cff3=0.0088
           Dnew(istrU-1:iend,jstrV-1:jend)=
      &           zeta_new(istrU-1:iend,jstrV-1:jend)
      &                 +h(istrU-1:iend,jstrV-1:jend)
- 
+
           zwrk(istrU-1:iend,jstrV-1:jend)=
      &       cff0*zeta_new(istrU-1:iend,jstrV-1:jend)
      &          +cff1*zeta(istrU-1:iend,jstrV-1:jend,kstp)
      &          +cff2*zeta(istrU-1:iend,jstrV-1:jend,kbak)
      &          +cff3*zeta(istrU-1:iend,jstrV-1:jend,kold)
- 
+
 #if defined VAR_RHO_2D && defined SOLVE3D
           rzeta(istrU-1:iend,jstrV-1:jend)=
      &          (1.+rhoS(istrU-1:iend,jstrV-1:jend))
@@ -212,18 +208,18 @@ c       cff3=0.0088
 
           zeta(istrR:iendR,jstrR:jendR,knew)=
      &       zeta_new(istrR:iendR,jstrR:jendR)
-!
-! Compute time averaged fields over all short timesteps.
-!-------- ---- -------- ------ ---- --- ----- ----------
+
+! Compute fast-time-averaged fields over all short timesteps.
+!-------- ---- ---- -------- ------ ---- --- ----- ----------
 ! Reset/initialise arrays for averaged fields during the first
 ! barotropic time step; Accumulate averages after that. Include
 ! physical boundary points, but not periodic ghost points or
 ! computation  MPI computational margins.
-!
+
 #ifdef SOLVE3D
         cff1=weight(1,iif)
         cff2=weight(2,iif)
- 
+
         if (FIRST_2D_STEP) then
           do j=jstrR,jendR
             do i=istrR,iendR
@@ -263,7 +259,7 @@ c       cff3=0.0088
      &       (h(istr-1:iend-1,jstr:jend)+h(istr:iend,jstr:jend))
      &   *(rzeta(istr-1:iend-1,jstr:jend)-rzeta(istr:iend,jstr:jend))
      &   +rzeta2(istr-1:iend-1,jstr:jend)-rzeta2(istr:iend,jstr:jend)
- 
+
 #if defined VAR_RHO_2D && defined SOLVE3D
      &              +(h(istr-1:iend-1,jstr:jend)-h(istr:iend,jstr:jend))*( rzetaSA(i-1,j)+rzetaSA(i,j)
      &                        +0.333333333333*(rhoA(i-1,j)-rhoA(i,j))
@@ -275,7 +271,7 @@ c       cff3=0.0088
      &            (h(istr:iend,jstr-1:jend-1)+h(istr:iend,jstr:jend))
      &   *(rzeta(istr:iend,jstr-1:jend-1)-rzeta(istr:iend,jstr:jend))
      &   +rzeta2(istr:iend,jstr-1:jend-1)-rzeta2(istr:iend,jstr:jend)
- 
+
 #if defined VAR_RHO_2D && defined SOLVE3D
      &           +(h(istr:iend,jstr-1:jend-1)-h(istr:iend,jstr:jend))
      &    *( rzetaSA(istr:iend,jstr-1:jend-1)
@@ -303,11 +299,11 @@ c       cff3=0.0088
 # undef UV_ADV
 # undef UV_VIS2
 #endif
-!
+
 ! Compute horizontal advection terms for momentum equations (2D only)
 !-------- ---------- --------- ----- --- -------- --------- --- -----
 ! NOTE: mathematically necessary (minimal) index ranges for momentum-
-! flux components are 
+! flux components are
 !
 !      UFx(istrU-1:iend,jstr:jend)   VFx(istr:iend+1,jstrV:jend)
 !      UFe(istrU:iend,jstr:jend+1)   VFe(istr,iend,jstrV-1,jend)
@@ -316,8 +312,8 @@ c       cff3=0.0088
 ! unified by suppressing U,V-suffices in order to allow fusion of the
 ! consecutive loops. This leads to slight increase of the redundant
 ! computations near western and southern boundaries in non-periodic
-! directions. 
-!
+! directions.
+
 #ifdef UV_ADV
         UFx(istr-1:iend,jstr:jend)=0.25*( DUon(istr-1:iend,jstr:jend)
      &                                   +DUon(istr:iend+1,jstr:jend)
@@ -439,12 +435,12 @@ c       cff3=0.0088
 ! Linear and/or quadratic bottom stress.
 !
 #ifndef SOLVE3D
-      if (rdrg2.gt.0.) then
+      if (rdrg2>0.) then
         do j=jstr,jend
           do i=istrU,iend
             cff=0.25*( vbar(i  ,j,kstp)+vbar(i  ,j+1,kstp)
      &                +vbar(i-1,j,kstp)+vbar(i-1,j+1,kstp))
- 
+
             rubar(i,j)=rubar(i,j)-ubar(i,j,kstp)*( rdrg+rdrg2
      &              *sqrt(ubar(i,j,kstp)*ubar(i,j,kstp)+cff*cff)
      &                                     )*dm_u(i,j)*dn_u(i,j)
@@ -454,13 +450,13 @@ c       cff3=0.0088
           do i=istr,iend
             cff=0.25*( ubar(i,j  ,kstp)+ubar(i+1,j  ,kstp)
      &                +ubar(i,j-1,kstp)+ubar(i+1,j-1,kstp))
- 
+
             rvbar(i,j)=rvbar(i,j)-vbar(i,j,kstp)*( rdrg+rdrg2
      &              *sqrt(cff*cff+vbar(i,j,kstp)*vbar(i,j,kstp))
      &                                     )*dm_v(i,j)*dn_v(i,j)
           enddo
         enddo
-      else if (rdrg.gt.0.0) then
+      else if (rdrg>0.0) then
         do j=jstr,jend
           do i=istrU,iend
             rubar(i,j)=rubar(i,j) - rdrg*ubar(i,j,kstp)
@@ -475,7 +471,7 @@ c       cff3=0.0088
         enddo
       endif
 #endif
-!
+
 ! Coupling between 2D and 3D parts.
 !--------- ------- -- --- -- ------
 ! Before the predictor step of the first barotropic time step
@@ -491,7 +487,7 @@ c       cff3=0.0088
 ! these newly computed forcing terms will remain constant during
 ! the fast time stepping and will added to "rubar" and "rvbar"
 ! during all subsequent barotropic time steps.
-!
+
 #ifdef SOLVE3D
       if (FIRST_2D_STEP) then
 /*      if (FIRST_TIME_STEP) then
@@ -533,23 +529,23 @@ c       cff3=0.0088
         enddo                                ! to be performed.
       endif
 #endif
-!
+
 ! Perform time step for the 2D momentum equations. Also compute
 ! fast-time averaged barotropic mass fluxes. Doing so on the fly
-! yields a more computationally dense code and eliminates repeated   
+! yields a more computationally dense code and eliminates repeated
 ! multiplication by Dnew (since mass fluxes are actually available
 ! as volatile variables DUnew,DVnew at this moment. However, as the
 ! result of this arrangement, a special code is needed to compute
 ! fast-time averages along the physical boundaries, which is done
-! immediately below. 
-!
+! immediately below.
+
 #define Dstp DUon
 #define DUnew DVom
 #define DVnew DVom
- 
+
           Dstp(istrU-1:iend,jstrV-1:jend)=+h(istrU-1:iend,jstrV-1:jend)
      &                            +zeta(istrU-1:iend,jstrV-1:jend,kstp)
- 
+
       cff=0.5*dtfast
 #ifdef SOLVE3D
       cff1=0.5*weight(1,iif)
@@ -599,19 +595,19 @@ c       cff3=0.0088
           DV_avg1(istr:iend,jstrV:jend)=DV_avg1(istr:iend,jstrV:jend)
      &      +cff1*DVnew(istr:iend,jstrV:jend)*dm_v(istr:iend,jstrV:jend)
 #endif
-!
+
 ! Set boundary conditions and compute integral mass flux accross
 ! all open boundaries, if any.
-!
+
       call    u2dbc_tile (istr,iend,jstr,jend, UFx)
       call    v2dbc_tile (istr,iend,jstr,jend, UFx)
 #ifdef OBC_VOLCONS
       call obc_flux_tile (istr,iend,jstr,jend, UFx)
 #endif
-!
+
 ! Compute fast-time averaged barotropic mass fluxes along physical
 ! boundaries.
-!
+
 #ifdef SOLVE3D
 # ifndef EW_PERIODIC
       if (WESTERN_EDGE) then
@@ -644,7 +640,7 @@ c       cff3=0.0088
           DU_avg1(istrU-1,j)=DU_avg1(istrU-1,j)+cff1*(Dnew(istrU-1,j)
      &         +Dnew(istrU-2,j))*ubar(istrU-1,j,knew)*dn_u(istrU-1,j)
         enddo
-        do j=jstr,jend
+        do j=jstrV,jend
           DV_avg1(istr-1,j)=DV_avg1(istr-1,j) +cff1*(Dnew(istr-1,j)
      &       +Dnew(istr-1,j-1) )*vbar(istr-1,j,knew)*dm_v(istr-1,j)
         enddo
@@ -654,7 +650,7 @@ c       cff3=0.0088
           DU_avg1(iend+1,j)=DU_avg1(iend+1,j) +cff1*( Dnew(iend+1,j)
      &            +Dnew(iend,j) )*ubar(iend+1,j,knew)*dn_u(iend+1,j)
         enddo
-        do j=jstr,jend
+        do j=jstrV,jend
           DV_avg1(iend+1,j)=DV_avg1(iend+1,j) +cff1*( Dnew(iend+1,j)
      &        +Dnew(iend+1,j-1) )*vbar(iend+1,j,knew)*dm_v(iend+1,j)
         enddo
@@ -662,7 +658,7 @@ c       cff3=0.0088
 # endif
 # ifndef NS_PERIODIC
       if (SOUTHERN_EDGE) then
-        do i=istr,iend
+        do i=istrU,iend
           DU_avg1(i,jstr-1)=DU_avg1(i,jstr-1) +cff1*( Dnew(i,jstr-1)
      &        +Dnew(i-1,jstr-1) )*ubar(i,jstr-1,knew)*dn_u(i,jstr-1)
         enddo
@@ -672,7 +668,7 @@ c       cff3=0.0088
         enddo
       endif
       if (NORTHERN_EDGE) then
-        do i=istr,iend
+        do i=istrU,iend
           DU_avg1(i,jend+1)=DU_avg1(i,jend+1) +cff1*( Dnew(i,jend+1)
      &        +Dnew(i-1,jend+1) )*ubar(i,jend+1,knew)*dn_u(i,jend+1)
         enddo
@@ -681,15 +677,15 @@ c       cff3=0.0088
      &            +Dnew(i,jend) )*vbar(i,jend+1,knew)*dm_v(i,jend+1)
         enddo
       endif
-# endif 
+# endif
 #endif
 #ifdef PSOURCE
       do is=1,Nsrc           ! Apply point mass sources associated
         i=Isrc(is)           ! with river runoff simulations.
         j=Jsrc(is)
-        if (istrR.le.i .and. i.le.iendR .and.
-     &      jstrR.le.j .and. j.le.jendR) then
-          if (Dsrc(is).eq.0) then
+        if (istrR<=i .and. i<=iendR .and.
+     &      jstrR<=j .and. j<=jendR) then
+          if (Dsrc(is)==0) then
             ubar(i,j,knew)=2.*Qbar(is)/( dn_u(i,j)
      &                   *(Dnew(i-1,j)+Dnew(i,j)) )
 # ifdef SOLVE3D
@@ -706,19 +702,17 @@ c       cff3=0.0088
       enddo
 #endif
 #ifdef SOLVE3D
-      if (iif.eq.nfast) call set_depth_tile (istr,iend,jstr,jend,UFx)
+      if (iif==nfast) call set_depth_tile (istr,iend,jstr,jend,UFx)
 #else
       call diag_tile (istr,iend,jstr,jend, UFx,UFe,VFx)
 #endif
-#if defined EW_PERIODIC || defined NS_PERIODIC || defined  MPI
-      call exchange_r2d_tile (istr,iend,jstr,jend,
-     &                   zeta(START_2D_ARRAY,knew))
-      call exchange_u2d_tile (istr,iend,jstr,jend,
-     &                   ubar(START_2D_ARRAY,knew))
-      call exchange_v2d_tile (istr,iend,jstr,jend,
+#ifdef EXCHANGE
+      call exchange2d_3_tile (istr,iend,jstr,jend,
+     &                   zeta(START_2D_ARRAY,knew),
+     &                   ubar(START_2D_ARRAY,knew),
      &                   vbar(START_2D_ARRAY,knew))
+
 #endif
-      return
-      end subroutine step2D_FB_tile 
- 
+      end subroutine step2D_FB_tile
+
 c**   end module step2d_mod
