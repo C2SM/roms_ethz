@@ -1,1 +1,0 @@
-etalon_data.USWEST
