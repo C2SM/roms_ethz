@@ -304,7 +304,11 @@
      &    indxDIAZPO4UPTAKE,indxDIAZFEUPTAKE,indxDIAZLIGHTLIM,indxFESCAVENGERATE,
      &    indxDONPROD,indxDONREMIN,indxDOFEPROD,indxDOFEREMIN,indxDOPPROD,indxDOPREMIN,
      &    indxDIATSIUPTAKE,indxIRONUPTAKESP,indxIRONUPTAKEDIAT,indxIRONUPTAKEDIAZ,indxNITRIF,
-     &    indxDENITRIF,indxSPNUPTAKE,indxDIATNUPTAKE,indxDIAZNUPTAKE
+     &    indxDENITRIF,indxSPNO3UPTAKE,indxDIATNO3UPTAKE,indxDIAZNO3UPTAKE,indxSPNH4UPTAKE,
+     &    indxDIATNH4UPTAKE,indxDIAZNH4UPTAKE,indxGRAZEDICSP,indxGRAZEDICDIAT,indxGRAZEDICDIAZ,
+     &    indxLOSSDICSP,indxLOSSDICDIAT,indxLOSSDICDIAZ,indxZOOLOSSDIC,indxDIAZAGG,indxGRAZESPZOO,
+     &    indxGRAZEDIATZOO,indxGRAZEDIAZZOO,indxSPQCACO3,indxSPPHOTOACC,indxDIATPHOTOACC,
+     &    indxDIAZPHOTOACC
        parameter( indxPAR=1,indxPOCFLUXIN=indxPAR+1,indxPOCPROD=indxPAR+2,
      &            indxPOCREMIN=indxPAR+3,indxCACO3FLUXIN=indxPAR+4,indxPCACO3PROD=indxPAR+5,
      &            indxCACO3REMIN=indxPAR+6,indxSIO2FLUXIN=indxPAR+7,indxSIO2PROD=indxPAR+8,
@@ -324,8 +328,14 @@
      &            indxDOFEPROD=indxPAR+48,indxDOFEREMIN=indxPAR+49,indxDOPPROD=indxPAR+50,
      &            indxDOPREMIN=indxPAR+51,indxDIATSIUPTAKE=indxPAR+52,indxIRONUPTAKESP=indxPAR+53,
      &            indxIRONUPTAKEDIAT=indxPAR+54,indxIRONUPTAKEDIAZ=indxPAR+55,indxNITRIF=indxPAR+56,
-     &            indxDENITRIF=indxPAR+57,indxSPNUPTAKE=indxPAR+58,indxDIATNUPTAKE=indxPAR+59,
-     &            indxDIAZNUPTAKE=indxPAR+60 )
+     &            indxDENITRIF=indxPAR+57,indxSPNO3UPTAKE=indxPAR+58,indxDIATNO3UPTAKE=indxPAR+59,
+     &            indxDIAZNO3UPTAKE=indxPAR+60,indxSPNH4UPTAKE=indxPAR+61,indxDIATNH4UPTAKE=indxPAR+62,
+     &            indxDIAZNH4UPTAKE=indxPAR+63,indxGRAZEDICSP=indxPAR+64,indxGRAZEDICDIAT=indxPAR+65,
+     &            indxGRAZEDICDIAZ=indxPAR+66,indxLOSSDICSP=indxPAR+67,indxLOSSDICDIAT=indxPAR+68,
+     &            indxLOSSDICDIAZ=indxPAR+69,indxZOOLOSSDIC=indxPAR+70,indxDIAZAGG=indxPAR+71,
+     &            indxGRAZESPZOO=indxPAR+72,indxGRAZEDIATZOO=indxPAR+73,indxGRAZEDIAZZOO=indxPAR+74,
+     &            indxSPQCACO3=indxPAR+75,indxSPPHOTOACC=indxPAR+76,indxDIATPHOTOACC=indxPAR+77,
+     &            indxDIAZPHOTOACC=indxPAR+78 )
 #  endif /* BEC2_DIAG */
 # endif /* BIOLOGY_BEC2 */
 
@@ -438,6 +448,11 @@
 #  endif
 #  endif /* CH_CARBON_DEPTH */
 # endif /* BIOLOGY_NPZDOC || BIOLOGY_BEC */
+#if defined BIOLOGY_BEC2 && defined BEC2_DIAG
+     &      , hisf_graze_CaCO3_remin
+     &      , avgf_graze_CaCO3_remin
+     &      , slavgf_graze_CaCO3_remin
+#endif /* BIOLOGY_BEC2 && BEC2_DIAG */
 
 # ifdef WRITE_DEPTHS
      &      , hisz_r, hisz_w, hisHz

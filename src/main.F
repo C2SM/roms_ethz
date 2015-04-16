@@ -465,7 +465,7 @@ C$OMP END MASTER
 #ifdef BIOLOGY_BEC
 # include "bec_avg.h"
 #endif
- 
+
       trd=proc(2)
       range=(NSUB_X*NSUB_E+numthreads-1)/numthreads
       my_first=trd*range

@@ -55,11 +55,11 @@ c--#define CONST_TRACERS
 !
 # include "compute_auxiliary_bounds.h"
 !
+
       do itrc=1,NT
         do k=1,N
  
 # include "compute_horiz_tracer_fluxes.h"
- 
           do j=jstr,jend
             do i=istr,iend
               t(i,j,k,nnew,itrc)=Hz_bak(i,j,k)*t(i,j,k,nstp,itrc)
@@ -93,7 +93,7 @@ c--#define CONST_TRACERS
 # endif /* PHYS_FLUX_ANALYSIS */
         enddo
       enddo
- 
+
       do j=jstr,jend
         do itrc=1,NT
  
@@ -105,6 +105,7 @@ c--#define CONST_TRACERS
      &                             *pn(i,j)*(FC(i,k)-FC(i,k-1))
             enddo
           enddo
+
 # ifdef PHYS_FLUX_ANALYSIS
           if (itrc .le. NT_PFA) then
 ! separate do loop (for better efficiency) to store the fluxes
