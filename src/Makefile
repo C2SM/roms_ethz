@@ -16,7 +16,7 @@
 #include Makedefs.Fujitsu
 #include Makedefs.Gonzales.ifort
 #include Makedefs.IntelBrutus_ompi
-#include Makedefs.PGIBrutus_ompi
+#include Makedefs.PGI_Brutus_ib
 #include Makedefs.UP_ETH
 include Makedefs
 
@@ -65,7 +65,8 @@ KRNSRC = main.F		step2D_FB.F	read_inp.F	sta_par.F\
 	set_phys_flux_avg.F wrt_phys_flux_his.F wrt_phys_flux_avg.F\
 	biology.F  bio_diag.F atm_pco2.F calendar.F\
 \
-	init_scalars_bec.F ecosys_bec.F ecosys_bec_init.F get_dust.F\
+	init_scalars_bec.F init_scalars_bec2.F ecosys_bec.F ecosys_bec2.F ecosys_bec_init.F\
+        ecosys_bec2_init.F get_dust.F\
 	get_iron.F set_bec_flux_avg.F wrt_bec_flux_avg.F wrt_bec_flux_his.F\
 	init_scalars_becflux.F def_bec_flux.F
 
@@ -78,7 +79,8 @@ IOSRC = nf_fread.F	nf_read_bry.F	set_cycle.F	checkdims.F\
 \
 	get_forces.F	get_all_bry.F	get_tclima.F	get_uclima.F\
 	get_ssh.F	get_smflux.F	get_stflux.F	get_srflux.F\
-	get_sst.F	get_dqdt.F	get_sss.F
+	get_sst.F	get_dqdt.F	get_sss.F\
+	get_nox.F       get_nhy.F       get_din_river.F
 
 
 

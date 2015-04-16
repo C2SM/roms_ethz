@@ -30,8 +30,8 @@
 ! netCDF internal memory limitation associated with simultaneous
 ! opening too many files.
 
-#define NETCDF4
-#define NCCOMPRESS
+!!#define NETCDF4
+!!#define NCCOMPRESS
 !--> #define VERBOSE
 
 
@@ -40,7 +40,7 @@ c--#define KEEP_CLOSED
 c--#define VERBOSE
 #define AUTORENICE
 #ifdef NETCDF4
-# define NCFILEFORMAT nf_netcdf4
+# define NCFILEFORMAT nf_write
 #else
 # define NCFILEFORMAT nf_64bit_offset
 #endif
@@ -49,7 +49,7 @@ c--#define VERBOSE
       implicit none
 #include "netcdf.inc"
       integer maxdims, maxvars, maxnodes
-      parameter (maxdims=32, maxvars=128, maxnodes=384)
+      parameter (maxdims=32, maxvars=1000, maxnodes=384)
       character ncname0*64, ncname(0:maxnodes-1)*64, string*80
       character root*64, root_bak*64, sffx*8, sffx_bak*8
       character dimname(maxdims)*32, varname(maxvars)*32

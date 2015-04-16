@@ -20,7 +20,7 @@
 %.o: %.F
 
 # Settings for UP workstations:
-MPI_ROOT = /usr/local/app/mpich2/mpich2-1.0.7_py25
+# MPI_ROOT = /usr/local/app/mpich2/mpich2-1.0.7_py25
 # NCDF_ROOT = /usr/local/app/netcdf/3.6.2
 
 #
@@ -88,8 +88,11 @@ CFT = ifort
   #  O1 short compilation but small performances
   #  O3 longer compilation but more performant executable
   #
-  FFLAGS =  -O1 -IPF_fma -ip $(LARGE_MEM_FLAG)
-#    FFLAGS =  -O2 -mp -fpe0 -fp-model strict
+  #FFLAGS =  -O0 -check bounds -fpe0 -IPF_fma -ip $(LARGE_MEM_FLAG)
+  #FFLAGS =  -O0 -g -IPF_fma -ip $(LARGE_MEM_FLAG)
+  #FFLAGS =  -O2 -xavx -mp -fpe0 -fp-model strict
+  FFLAGS = -O2 -xavx -fpe0
+  #FFLAGS = -O0 -g -fpe0
 # -prof_gen
 #
 #   FFLAGS = -g -check all -CA -CB -CS
@@ -113,12 +116,13 @@ CFT = ifort
 #   LCDF = -lnetcdf
 # mm ETHZ Gonzales cluster
 # LCDF = -L$(NCDF_ROOT)/lib -lnetcdff -lnetcdf
-LCDF = -L/usr/local/lib -lnetcdff -lnetcdf
+#LCDF = -L/usr/local/lib -lnetcdff -lnetcdf
+LCDF = -L$(NETCDF)/lib64 -lnetcdf
 
 # mm ETHZ Brutus cluster
 #LCDF = -L/panfs/panasas.hpc-net.ethz.ch/uwis/muennicm/intel/lib -lnetcdf
 # mm ETHZ Brutus/ Gonzales cluster Quadrics MPI
-LMPI = -L$(MPI_ROOT)/lib -lmpich
+#LMPI = -L$(MPI_ROOT)/lib -lmpich
 # mm A look at mpif90 made this the likely libraries to link against
 # mm Brutus OK:  LMPI = -L/cluster/admin/mpich2/lib -lmpich  -lpmpich -lpthread   -lrt
 

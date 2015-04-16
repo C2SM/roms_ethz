@@ -218,21 +218,22 @@ CR      write(*,*) 'wrt_avg:  wrtKvO2' MYID
             goto 99
          end if
       end do
-# ifdef OXYGEN
-! gas exchange fluxes
-      do iflux = 1, NumGasExcTerms
-         ierr = nf_fwrite(GasExcFlux_avg(START_2D_ARRAY,iflux), 
-     &        ncid_bgc_flux_avg, avgGasExcFlux(iflux), 
-     &        record, r2dvar)
-         if (ierr .ne. nf_noerr) then
-            lvar=lenstr(vname_bgcflux(1,indxGasExcFlux+iflux-1))
-            write(stdout,1) 
-     &           vname_bgcflux(1,indxGasExcFlux+iflux-1)(1:lvar), 
-     &           record, ierr, nf_strerror(ierr) MYID 
-            goto 99
-         end if
-      end do
-# endif /* OXYGEN */
+!DL: now in tracer avg files:
+!# ifdef OXYGEN
+!! gas exchange fluxes
+!      do iflux = 1, NumGasExcTerms
+!         ierr = nf_fwrite(GasExcFlux_avg(START_2D_ARRAY,iflux), 
+!     &        ncid_bgc_flux_avg, avgGasExcFlux(iflux), 
+!     &        record, r2dvar)
+!         if (ierr .ne. nf_noerr) then
+!            lvar=lenstr(vname_bgcflux(1,indxGasExcFlux+iflux-1))
+!            write(stdout,1) 
+!     &           vname_bgcflux(1,indxGasExcFlux+iflux-1)(1:lvar), 
+!     &           record, ierr, nf_strerror(ierr) MYID 
+!            goto 99
+!         end if
+!      end do
+!# endif /* OXYGEN */
 ! vertical sinking fluxes
       do iflux = 1, NumVSinkTerms
          ierr = nf_fwrite(VSinkFlux_avg(START_2D_ARRAY,0,iflux), 

@@ -216,21 +216,22 @@ CR      write(*,*) 'wrt_his:  wrtKvO2' MYID
             goto 99
          end if
       end do
-# ifdef OXYGEN
-! gas exchange fluxes
-      do iflux = 1, NumGasExcTerms
-         ierr = nf_fwrite(GasExcFlux(START_2D_ARRAY,iflux), 
-     &        ncid_bgc_flux_his, hisGasExcFlux(iflux), 
-     &        record, r2dvar)
-         if (ierr .ne. nf_noerr) then
-            lvar=lenstr(vname_bgcflux(1,indxGasExcFlux+iflux-1))
-            write(stdout,1) 
-     &           vname_bgcflux(1,indxGasExcFlux+iflux-1)(1:lvar), 
-     &           record, ierr, nf_strerror(ierr) MYID 
-            goto 99
-         end if
-      end do
-# endif /* OXYGEN */
+!DL: moved to wrt_his.F:
+!# ifdef OXYGEN
+!! gas exchange fluxes
+!      do iflux = 1, NumGasExcTerms
+!         ierr = nf_fwrite(GasExcFlux(START_2D_ARRAY,iflux), 
+!     &        ncid_bgc_flux_his, hisGasExcFlux(iflux), 
+!     &        record, r2dvar)
+!         if (ierr .ne. nf_noerr) then
+!            lvar=lenstr(vname_bgcflux(1,indxGasExcFlux+iflux-1))
+!            write(stdout,1) 
+!     &           vname_bgcflux(1,indxGasExcFlux+iflux-1)(1:lvar), 
+!     &           record, ierr, nf_strerror(ierr) MYID 
+!            goto 99
+!         end if
+!      end do
+!# endif /* OXYGEN */
 # ifdef BGC_FLUX_EXT_HIS_OUTPUT
 ! vertical sinking fluxes
       do iflux = 1, NumVSinkTerms

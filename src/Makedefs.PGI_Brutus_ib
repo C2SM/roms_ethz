@@ -25,6 +25,7 @@ LDR = $(FC)
 #old HDF5 = /cluster/home/uwis/muennicm/local/hdf5/1.8.6
 
 CPPFLAGS = -DPGI -I$(NETCDF)/include -I${MPI_ROOT}/include
-FFLAGS = -mcmodel=medium -fast -O4 $(OPENMP)
+#FFLAGS = -mcmodel=medium -fast -O3 $(OPENMP)
+FFLAGS = -O3 -fast -Ktrap=fp
 ##old LCDF =-L$(NETCDF)/lib -L$(HDF5)/lib -lnetcdff -lnetcdf -lhdf5_hl -lhdf5 -L/usr/lib64 -lm -lz -lcurl
 LCDF =-L$(NETCDF)/lib -lnetcdff -lnetcdf 

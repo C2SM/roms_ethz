@@ -19,14 +19,14 @@
       CN_P    = 6.625
       CN_Z    = 6.625
 #ifdef CARBON
-      r_CaCO3_orgC = 0.03 ! ETH1.0: 0.07
+      r_CaCO3_orgC = 0.07
       t_dissCaCO3 = 0.0057
 #endif /* CARBON */
       theta_m = 0.053478
-      palpha = 2.0  ! ETH1.0: 1.0
+      palpha = 1.0
       K_NO3   = 1./0.75
       K_NH4   = 1./0.5
-      t_Pmort = 0.048 ! ETH1.0: 0.024
+      t_Pmort = 0.024
       t_Zgraz = 0.6
       AE_N    = 0.75
 #ifdef CARBON
@@ -85,21 +85,18 @@
          print *, 'Default values will be used.'
       end if
 
-      !DL: write biopar file only by the master process:
-      if (mynode.eq.0) then
-         open(72,file=filename_biopar_out_nml,status='unknown',
-     &        iostat=status)
-         if (status .eq. 0) then
-            write(72,NML=biology_param_nml,iostat=status)
-            if (status .ne. 0) then
-               print *, 'Could not write the biology parameter namelist!'
-            end if
-            close(72)
-         else
-            print *, 'Could not create output file ', 
-     &           filename_biopar_out_nml
+      open(72,file=filename_biopar_out_nml,status='unknown',
+     &     iostat=status)
+      if (status .eq. 0) then
+         write(72,NML=biology_param_nml,iostat=status)
+         if (status .ne. 0) then
+            print *, 'Could not write the biology parameter namelist!'
          end if
-      end if ! mynode.eq.0
+         close(72)
+      else
+         print *, 'Could not create output file ', 
+     &        filename_biopar_out_nml
+      end if
 
       return
       end

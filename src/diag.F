@@ -481,6 +481,7 @@ C$   &                                                   , proc(2)
      &              check_line(i:i).ne.'-'  .and. ! to terminate the
      &              check_line(i:i).ne.'.') then  ! run in the case
                     may_day_flag=1                  ! of floating point
+                    nwrt = 1
                   endif                             ! exception
                 endif 
               enddo

@@ -321,28 +321,29 @@ CR      write(stdout,'(1x,A,I3)') 'indxPARinc =',indxPARinc
      &     'CFlux_Dissolv, scalar, series              '
 #   endif /* CARBON */
 
+!DL: moved to init_scalars_npzdoc:
 ! gas exchange terms
-#   ifdef OXYGEN
-      vname_bgcflux(1,indxGasExcFlux)=
-     &     'GasExchangeO2                              '
-      vname_bgcflux(2,indxGasExcFlux)=
-     &     'Gas exchange of oxygen at the surface      '
-      vname_bgcflux(3,indxGasExcFlux)=
-     &     'mmol O2 m-2 s-1                            '
-      vname_bgcflux(4,indxGasExcFlux)=
-     &     'GasExchangeO2, scalar, series              '
-#  endif /* OXYGEN */
-
-# ifdef CARBON
-      vname_bgcflux(1,indxGasExcFlux+1)=
-     &     'GasExchangeCO2                             '
-      vname_bgcflux(2,indxGasExcFlux+1)=
-     &     'Gas exchange of CO2 at the surface         '
-      vname_bgcflux(3,indxGasExcFlux+1)=
-     &     'mmol C m-2 s-1                             '
-      vname_bgcflux(4,indxGasExcFlux+1)=
-     &     'GasExchangeCO2, scalar, series             '
-#  endif /* CARBON */
+!#   ifdef OXYGEN
+!      vname_bgcflux(1,indxGasExcFlux)=
+!     &     'GasExchangeO2                              '
+!      vname_bgcflux(2,indxGasExcFlux)=
+!     &     'Gas exchange of oxygen at the surface      '
+!      vname_bgcflux(3,indxGasExcFlux)=
+!     &     'mmol O2 m-2 s-1                            '
+!      vname_bgcflux(4,indxGasExcFlux)=
+!     &     'GasExchangeO2, scalar, series              '
+!#  endif /* OXYGEN */
+!
+!# ifdef CARBON
+!      vname_bgcflux(1,indxGasExcFlux+1)=
+!     &     'GasExchangeCO2                             '
+!      vname_bgcflux(2,indxGasExcFlux+1)=
+!     &     'Gas exchange of CO2 at the surface         '
+!      vname_bgcflux(3,indxGasExcFlux+1)=
+!     &     'mmol C m-2 s-1                             '
+!      vname_bgcflux(4,indxGasExcFlux+1)=
+!     &     'GasExchangeCO2, scalar, series             '
+!#  endif /* CARBON */
 
 ! vertical sinking terms
       vname_bgcflux(1,indxVSinkFlux)=
