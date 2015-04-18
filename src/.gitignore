@@ -2,6 +2,9 @@
 *.f
 *.o
 *~
+*.mod
+*.mod.f90
+*.for
 check_srcs.F
 check_switches1.F
 checkkwds

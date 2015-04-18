@@ -200,7 +200,7 @@ C$OMP END MASTER
       endif    !<-- nrrec>0
 #endif
 C$OMP BARRIER
-      if (may_day_flag/=0) goto 99      !--> ERROR
+      if (may_day_flag /= 0) goto 99      !--> ERROR
 CR      write(*,*) ' -5' MYID
                                   ! Set initial model clock: at this
       time=start_time             ! moment "start_time" (global scalar)
@@ -303,7 +303,7 @@ CR      write(*,*) '  0' MYID
 
 C$OMP MASTER
         mpi_master_only write(*,'(/1x,A/)')
-     &     'main :: initialization complete, started time-steping.'
+     &     'main :: initialization complete, started time-stepping.'
 C$OMP END MASTER
 
 ! Initialize child-grid model, if any. Note that this call introduces
@@ -486,7 +486,7 @@ C$OMP MASTER
      &                                ) nrecrst=nrecrst+1
         if (mod(iic-ntstart,nwrt)==0) nrechis=nrechis+1
 #ifdef AVERAGES
-        if (mod(iic-ntsavg,navg) ==0) nrecavg=nrecavg+1
+        if (mod(iic-ntsavg,navg) == 0) nrecavg=nrecavg+1
 #endif
 #ifdef STATIONS
         if (mod(iic-ntstart,nsta)==0) nrecstn=nrecstn+1
@@ -494,26 +494,26 @@ C$OMP MASTER
 #ifdef FLOATS
         if (mod(iic-ntstart,nflt)==0) nrecflt=nrecflt+1
 #endif
-        if (mod(iic-ntstart,nrst)==0
+        if (mod(iic-ntstart,nrst) == 0
 #ifdef EXACT_RESTART
      &                      .or. mod(iic-ntstart+1,nrst)==0
 #endif
      &                                 ) call wrt_rst
-        if (mod(iic-ntstart,nwrt)==0 .and. wrthis(indxTime)) then
+        if (mod(iic-ntstart,nwrt) == 0 .and. wrthis(indxTime)) then
           call wrt_his
 c          if (iic>60) nwrt=1 !<-- useful for debugging
         endif
 
 #ifdef AVERAGES
-        if (mod(iic-ntsavg,navg) ==0 .and. wrtavg(indxTime))
+        if (mod(iic-ntsavg,navg) == 0 .and. wrtavg(indxTime))
      &      call wrt_avg
 #endif
 #ifdef STATIONS
-        if (mod(iic-ntstart,nsta)==0 .and. nstation>0)
+        if (mod(iic-ntstart,nsta) == 0 .and. nstation>0)
      &      call wrt_statn
 #endif
 #ifdef FLOATS
-        if (mod(iic-ntstart,nflt)==0 .and. nfloats>0)
+        if (mod(iic-ntstart,nflt) == 0 .and. nfloats>0)
      &      call wrt_floats
         diagfloats=.false.
 #endif

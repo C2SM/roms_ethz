@@ -119,7 +119,7 @@ c      enddo
 !
 #  if defined BENGUELA
       isp=8              ! number of points in sponge layer
-#  elif defined PACIFIC
+#  elif defined PACIFIC || defined ONE_DIM
       isp=(LLm+1)/30
 #  elif defined SMSC || defined SMSC_SUB
       isp=(LLm+1)/16
@@ -129,6 +129,15 @@ c      enddo
       isp=(LLm+1)/40
 #  else
       isp=(LLm+1)/12
+#  else
+!--------------------------------------------------------------------
+!  Set up nudging towards climatology time-scale coeffcients [1/s]
+!  and/or increase horizontal mixing in the sponge areas.
+!--------------------------------------------------------------------
+!
+      ! Old version (breaks arbitrary tiling )
+      ! isp=int(x_sponge*pm(1,1)) ! number of points in layer
+      isp=n_sponge ! number of points in layer
 #  endif
                                             ! Note that i+iSW_corn and
       do j=max(-1,jstrR-1),jendR            ! j+jSW_corn are indices on
@@ -161,10 +170,17 @@ c      enddo
           ibnd=min(ibnd, Mm+1-j)
 #   endif
 #  endif
-#  ifdef PACIFIC
+#  if defined LINEAR_SPONGE_PROFILE
+          wrk(i,j)=float(isp-ibnd)/float(isp)
+#  elif defined PACIFIC /* For compatibility w. Sasha 2015-04 */
           wrk(i,j)=0.5 + 0.5*cos(pi*float(ibnd)/float(isp))
 #  else
-          wrk(i,j)=float(isp-ibnd)/float(isp)
+          if (isp<5) then
+            ! For a narrow sponge linear is appropriate
+            wrk(i,j)=float(isp-ibnd)/float(isp)
+          else
+            wrk(i,j)=0.5 + 0.5*cos(pi*float(ibnd)/float(isp))
+          endif
 #  endif
         enddo
       enddo
@@ -176,7 +192,7 @@ c      enddo
           visc2_r(i,j)=visc2_r(i,j)+v_sponge*wrk(i,j)
 #   endif
 #   if defined SOLVE3D && defined TS_DIF2
-#    ifdef PACIFIC
+#    if defined PACIFIC || defined ONE_DIM
           diff2(i,j,itemp)=diff2(i,j,itemp)+0.5*v_sponge*wrk(i,j)
 #    else
           diff2(i,j,itemp)=diff2(i,j,itemp)+v_sponge*wrk(i,j)
@@ -226,6 +242,7 @@ c        endif
         do j=jstrR,jendR
           do i=istrR,iendR
             diff2(i,j,itrc)=diff2(i,j,itemp)
+! Agrif Roms:            diff2(i,j,itrc)=diff2(i,j,itemp)+tnu2(itrc)
           enddo
         enddo
       enddo

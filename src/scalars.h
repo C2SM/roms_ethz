@@ -81,6 +81,10 @@ C$OMP THREADPRIVATE(/priv_scalars/)
      &                                                 visc2,gamma2
       common /scalars_main/ start_time, dt, dtfast, time_avg, xl,el,
      &                                 rdrg,rdrg2,Zob, visc2,gamma2
+#ifdef SLICE_AVG
+      real time_slavg
+      common /scalars_main/ time_slavg
+#endif
 #ifdef SOLVE3D
       real rho0, tnu2(NT)
       common /scalars_main/ rho0, tnu2
@@ -96,8 +100,9 @@ C$OMP THREADPRIVATE(/priv_scalars/)
 # endif
 #endif
 #ifdef SPONGE
+      real n_sponge
       real v_sponge
-      common /scalars_main/ v_sponge
+      common /scalars_main/ n_sponge, v_sponge
 #endif
 #if  defined T_FRC_BRY || defined M2_FRC_BRY || defined TNUDGING \
   || defined Z_FRC_BRY || defined M3_FRC_BRY || defined M2NUDGING \
@@ -109,6 +114,32 @@ C$OMP THREADPRIVATE(/priv_scalars/)
       common /scalars_main/ tauM3_in,tauM3_out, tauT_in,tauT_out
 # endif
 #endif
+!DL: variables for varying atm pCO2:
+#if defined BIOLOGY_BEC || defined BIOLOGY_BEC2 || defined BIOLOGY_NPZDOC
+# ifdef VARIABLE_ANN_ATM_PCO2
+      real start_year
+      character(len=4) futr_scen
+      common /scalars_var_atm_co2/ start_year, futr_scen
+# endif
+#endif
+
+!DL: gas exchange fluxes:
+# ifdef BIOLOGY_NPZDOC
+      integer NumGasExcTerms
+#  ifdef OXYGEN
+      integer OFlux_GasExc
+      parameter(OFlux_GasExc = 1)
+#   ifdef CARBON
+      integer CFlux_GasExc
+      parameter(CFlux_GasExc = 2)
+      parameter(NumGasExcTerms = 2)
+#   else /* CARBON */
+      parameter(NumGasExcTerms = 1)
+#   endif /* CARBON */
+#  else /* OXYGEN */
+      parameter(NumGasExcTerms = 0)
+#  endif /* OXYGEN */
+# endif /* BIOLOGY_NPZDOC */
 
       integer ntstart, ntimes, ndtfast, nfast, ninfo, may_day_flag,
      &                                                barr_count(16)
@@ -133,4 +164,7 @@ C$OMP THREADPRIVATE(/priv_scalars/)
 #else
      &                 , g=9.81 ! m/s^2
 #endif
-
+#if defined BIOLOGY_BEC || defined BIOLOGY_BEC2
+      real nmol_cm2_to_mmol_m2
+      parameter (nmol_cm2_to_mmol_m2 = 0.01)
+#endif
