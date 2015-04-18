@@ -59,6 +59,16 @@
 # endif
 #endif
 
+#ifdef SOLVE3D
+# ifdef BIOLOGY_NPZDOC
+#  include "bgcflux.h"
+# endif
+
+# if defined BIOLOGY_BEC && defined BGC_FLUX_ANALYSIS && defined AVERAGES
+#  include "bec_avg.h"
+# endif
+#endif /* SOLVE3D */
+
 #include "compute_extended_bounds.h"
 
 #ifdef PRINT_TILE_RANGES
@@ -394,5 +404,85 @@
         enddo
       enddo
 # endif
+# ifdef SEDIMENT_BIOLOGY
+! Initialize sediment array:
+
+      do itrc=1,NT_sed
+         do k=1,N
+            do j=jstrR,jendR
+               do i=istrR,iendR
+                  t_sed(i,j,itrc) = init
+# ifdef AVERAGES
+                  t_sed_avg(i,j,itrc) = init
+# endif
+               enddo
+            enddo
+         enddo
+      enddo
+# endif /* SEDIMENT_BIOLOGY */
+
+! Initialize for NPZDOC model:
+
+# ifdef BIOLOGY_NPZDOC
+      do j=jstrR,jendR
+         do i=istrR,iendR
+#  if defined OXYGEN && defined CARBON
+           pH_hist(i,j)=0.
+           pCO2sw(i,j)=0.
+           pCO2air(i,j)=0.
+#  endif
+           PARinc(i,j)=0.
+#  ifdef AVERAGES
+#   if defined OXYGEN && defined CARBON
+           pH_avg(i,j)=init
+           pCO2_avg(i,j)=init
+           pCO2air_avg(i,j)=init
+#   endif
+           PARinc_avg(i,j)=init
+#  endif
+         end do
+      end do
+      do k=1,N
+         do j=jstrR,jendR
+           do i=istrR,iendR
+              PAR(i,j,k)=0.
+#  ifdef AVERAGES
+              PAR_avg(i,j,k)=init
+#  endif
+           end do
+         end do
+      end do
+# endif /* BIOLOGY_NPZDOC */
+# if defined BGC_FLUX_ANALYSIS && defined AVERAGES
+      do j=jstrR,jendR
+         do i=istrR,iendR
+           PARinc_flux_avg(i,j)=init
+         end do
+      end do
+      do k=1,N
+         do j=jstrR,jendR
+           do i=istrR,iendR
+              PAR_flux_avg(i,j,k)=init
+           end do
+         end do
+      end do
+# endif /* BGC_FLUX_ANALYSIS && AVERAGES */
+# if defined WRITE_DEPTHS && defined AVERAGES
+      do k=1,N
+         do j=jstrR,jendR
+           do i=istrR,iendR
+              z_r_avg(i,j,k)=init
+              Hz_avg(i,j,k)=init
+           end do
+         end do
+      end do
+      do k=0,N
+         do j=jstrR,jendR
+           do i=istrR,iendR
+              z_w_avg(i,j,k)=init
+           end do
+         end do
+      end do
+# endif /* WRITE_DEPTHS && AVERAGES */
 #endif /* SOLVE3D */
       end
