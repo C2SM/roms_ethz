@@ -1,34 +1,30 @@
       program partit
+
+! Generic netCDF partitioning tool: reads netCDF files corresonding to
+! the whole physical grid and prepares multiple files which hold data
+! corresponding to different subdomains.  These files can be then read
+! in parallel by different MPI processes.
 !
-! Generic netCDF partitioning tool: reads netCDF files corresonding
-! to the whole physical grid and prepares multiple files which hold
-! data corresponding to different subdomains. These files can be
-! then read in parallel by different MPI processes.
-!
-! Usage:  partit [-s minrec] [-m maxrec -d out_dir] NP_XI NP_ETA ncname1 ... ncnameN
+! Usage:  partit NP_XI NP_ETA ncname1 ... ncnameN
 ! ------  where NP_XI  number of subdomains along XI-direction
 !               NP_ETA number of subdomains along ETA-direction
 !               ncname1 ... ncnameN  names of netCDF files
-!               minrec: 1st record in partioned output
-!               maxrec: last record in partioned output
-!               out_dir: output directory
-!               
 !
 ! Non-partitionable objects of netCDF files, such as scalar variables
 ! and attributes (both global and attributes to variables) are copied
 ! redundantly into the partitioned files, while partitionable array
 ! data is subdivided into subdomains and distributed among the
-! partitioned files in such a manner that all files contain
-! individual data without any overlap or redundantly stored data.
+! partitioned files in such a manner that all files contain individual
+! data without any overlap or redundantly stored data.
 !
-! The partitioning algorithm works as follows: The partitionable
+! The partitioning algorithm works as follows:  The partitionable
 ! dimensions ('xi_rho', 'xi_u', 'eta_rho' and 'eta_v') are identified
-! by name, then then their values are read and compared in pairs to
-! detect if any of the directions have periodicity. It is assumed
-! that ghost points corresponding to physical boundaries are stored
-! in the file, but computational margins (including periodic margins)
-! are not. Consequently, if xi_rho and xi_u are equal to each other,
-! XI-direction is periodic, and if they differ by one, it is not.
+! by their names, then then their values are read and compared in pairs
+! to detect if any of the directions have periodicity.  It is assumed
+! that ghost points corresponding to physical boundaries are stored in
+! the file, but computational margins (including periodic margins) are
+! not.  Consequently, if 'xi_rho' and 'xi_u' are equal to each other
+! then XI-direction is periodic, and if they differ by one, it is not.
 ! ETA-direction is treated similarly. Once periodicity type is
 ! determined, the internal number of internal points in each
 ! direction (i.e. excluding ghost points corresponding to physical
@@ -41,159 +37,127 @@
 ! Once all dimensions are sorted out, data corresponding to
 ! subdomains is extracted from the source file and copied into
 ! partial files.
-!
 
-!--> #define NETCDF4
-!--> #define NCCOMPRESS
+c--#define TRANSPOSED_MPI_NODE_ORDER
 
-#ifdef NETCDF4
-# define NCFILEFORMAT nf_netcdf4
-#else
-# define NCFILEFORMAT nf_64bit_offset
-#endif
-
-
+c--#define AUTORENICE
+#define TIMING
 c--#define VERBOSE
+
 
       implicit none
 #include "netcdf.inc"
-      integer maxdims, maxvars
-      parameter (maxdims=32, maxvars=128)
-      character src_name*255,  string*255
-      character dimname(maxdims)*32, varname(maxvars)*32
+      integer, parameter ::  maxdims=32,  maxvars=64
+      character(len=80) src_name,         string
+      character(len=32) dimname(maxdims), varname(maxvars)
 
-      integer narg,  NP_XI,  nnodes, xi_rho,  id_xi_rho,  id_xi_psi,
-     &        arg,   NP_ETA, node,   xi_u,    id_xi_u,    id_xi_v,
-     &                eta_rho, id_eta_rho, id_eta_psi,
-     &        ierr,    eta_v,   id_eta_v,   id_eta_u,
-     &        ndims, nvars,  ngatts, tsize,   unlimdimid, varatts,
-     &        i,j,k, ncsrc,  lvar,   size,  rec, lstr, lsrc,  lenstr
-     &        , minrec, maxrec, karg
+      integer narg, nnodes, NP_XI,   xi_rho, id_xi_rho, id_xi_psi,
+     &        arg,  node,   NP_ETA,  xi_u,   id_xi_u,   id_xi_v,
+     &        ierr,         eta_rho, id_eta_rho,        id_eta_psi,
+     &        ierr_all,     eta_v,   id_eta_v,          id_eta_u,
+     &        ndims, nvars, ngatts,  tsize,  varatts,   unlimdimid,
+     &        i,j,k, ncsrc, lvar,    size,   rec, lstr, lsrc, lenstr
 
-      character(len=255) :: out_dir
-      character(len=255), allocatable, dimension(:) :: ncname
+      character(len=80), allocatable, dimension(:) :: ncname
+      integer, allocatable, dimension(:,:) :: vid
       integer, allocatable, dimension(:) :: ncid, xi_start, xi_size,
      &                                           eta_start, eta_size
       logical, allocatable, dimension(:) ::  western_edge,
      &          eastern_edge, southern_edge, northern_edge
 
 
-      integer max_buff_size, varid(maxvars),  vartype(maxvars),
-     &        vardims(maxvars),    dimid(maxdims),  ibuff(maxdims),
-     &        dimids(maxdims,maxvars),              dimsize(maxdims),
-     &        start(maxdims),      count(maxdims),  start1(maxdims)
+      integer max_buff_size,  vartype(maxvars),   vardims(maxvars),
+     &        dimid(maxdims), ibuff(maxdims),dimids(maxdims,maxvars),
+     &        dimsize(maxdims), start(maxdims),   count(maxdims),
+     &                                            start1(maxdims)
       logical part_switch(maxvars),                 series(maxvars)
-      common /partit_int/ max_buff_size,   varid,   vartype, vardims,
+      common /partit_int/ max_buff_size,   vartype, vardims,
      &                    dimid,  ibuff,   dimids,  dimsize, start,
      &                    count,  start1,  part_switch,      series
 
-      real*8, allocatable, dimension(:) ::  buff
+      real(kind=8), allocatable, dimension(:) ::  buff
 
-#ifdef NCCOMPRESS
-      ! If compressed file set compression level
-      integer ncshuff, ncdefl, nclev, ncctg
-      data ncshuff, ncdefl, nclev, ncctg / 1, 1, 1, 0 /
+#ifdef TIMING
+      real(kind=4) tstart, RUN_time, CPU_time(2)
+      real(kind=8)    GrayTime
+      integer(kind=4) iclk(2), nclk, clk_rate, clk_max
+      integer(kind=8) inc_clk
+      integer(kind=8) :: net_clk=0, net_read_size=0, net_wrt_size=0,
+     &              net_read_clk=0,  net_sync_clk=0, net_assm_clk=0,
+     &                                               net_gray_clk=0
+# ifdef __IFC
+      real(kind=4) etime
+# endif
 #endif
-
-
                     ! Function "iargc" is viewed as intrinsic by
-#if defined AIX || defined PGI      /* ! most modern compilers and does not need to  */
+#ifdef XLF       /* ! most modern compilers and does not need to  */
       integer iargc ! be declared. IBM xlf95 is a notable exclusion.
 #endif           /* ! So do 7.x and earlier versions of Intel IFC, */
                     ! but 8.x, 9.x IFORT recognize it as intrinsic.
+#ifdef AUTORENICE
+      integer getpid, pid            ! Sometimes it makes sense to
+      character(len=32) cmd          ! run partit in the background
+      pid=getpid()                   ! mode with lowered priority to
+      write(cmd,'(I8)') pid          ! not interfere with running MPI
+      lstr=lenstr(cmd)               ! job. This code segment catches
+      cmd(11:lstr+10)=cmd(1:lstr)    ! pid of its own process and
+      lstr=lstr+10                   ! executes re-nice command.
+      cmd(1:10)='renice 19 '
+      write(*,'(/3A/)') 'Autorenice: executing ''',cmd(1:lstr),'''.'
+      call system(cmd(1:lstr))
+      write(*,*)
+#endif
+#ifdef TIMING
+# ifdef __IFC
+      tstart = etime(CPU_time)
+# else
+      call etime(CPU_time, tstart)
+# endif
+      nclk=1
+      call system_clock(iclk(nclk), clk_rate, clk_max)
+#endif
 
-!
 ! Check how many arguments are given, complain about the error,
 ! if too few, otherwise extract NP_X and NP_E from the first two
 ! arguments.
-!
+
       narg=iargc()
-      karg = 1
-      if (narg .lt. 3) then
-        write(*,'(/1x,A/32x,2A/)')      'Usage of partit should be:',
-     &     'partit [-s <minrec> -m <maxrec> -d <out_dir>]',
-     &     ' NP_X NP_E ncname1 ... ncnameN'
+      if (narg < 3) then
+        write(*,'(/1x,A/32x,A/)')      'Usage of partit should be:',
+     &                       'partit NP_X NP_E ncname1 ... ncnameN'
         stop
       endif
- 
-!
-! mm: let the user specify start and end of records to put into 
-!      the partitioned files
-!
 
-      minrec = 1
-      maxrec = -1
-      do i=1,255
-      out_dir(i:i) = ' '
-      enddo
-      !out_dir(1:2) = './'
-      lstr=lenstr(out_dir)
- 1    continue
-        call getarg(karg,string)
-        karg = karg + 1
-        if (index(string,'-d') == 1) then
-          call getarg(karg,out_dir)
-          lstr=lenstr(out_dir)
-          if (out_dir(lstr:lstr) .ne. '/') then
-            out_dir(lstr+1:lstr+1) = '/'
-          endif
-          karg = karg +1
-          string = adjustl(string)
-          go to 1
-        endif
-        if (index(string,'-s') == 1) then
-          call getarg(karg,string)
-          karg = karg +1
-          string = adjustl(string)
-          print'(3A)','s-string: >',string,'<'
-          read(string,*) minrec
-          go to 1
-        endif
-        if ( index(string,'-m') == 1) then
-          call getarg(karg,string)
-          karg = karg +1
-          string = adjustl(string)
-          print'(3A)','m-string: >',string,'<'
-          read(string,*) maxrec
-          go to 1
-        endif
-      if ( minrec /= 1 .or. maxrec /= -1 ) then
-         print *, 'minrec = ',minrec, ', maxrec = ',maxrec
-      endif
-
-      lvar=lenstr(string)
+      call getarg(1,string)
+      lstr=lenstr(string)
       NP_XI=0
-      do i=1,lvar
+      do i=1,lstr
         j=ichar(string(i:i))-48
-        if (j.ge.0 .and. j.le.9) then
+        if (j>=0 .and. j<=9) then
           NP_XI=10*NP_XI+j
         else
           write(*,'(/8x,3A/)')     '### ERROR: First argument ',
-     &           string(1:lvar), ', must be an integer number.'
+     &           string(1:lstr), ', must be an integer number.'
           stop
         endif
       enddo
- 
-      call getarg(karg,string)
-      karg = karg + 1
-      lvar=lenstr(string)
+
+      call getarg(2,string)
+      lstr=lenstr(string)
       NP_ETA=0
-      do i=1,lvar
+      do i=1,lstr
         j=ichar(string(i:i))-48
-        if (j.ge.0 .and. j.le.9) then
+        if (j>=0 .and. j<=9) then
           NP_ETA=10*NP_ETA+j
         else
           write(*,'(/8x,3A/)')    '### ERROR: Second argument ',
-     &           string(1:lvar), ', must be an integer number.'
+     &           string(1:lstr), ', must be an integer number.'
           stop
         endif
       enddo
       nnodes=NP_XI*NP_ETA
       write(*,'(/1x,2(4x,A,I3)/)') 'NP_XI =',  NP_XI,
      &                             'NP_ETA =', NP_ETA
-      if ( lenstr(out_dir) > 0 ) then
-         print'(3A)','Output directory: ',trim(out_dir)
-      endif
 
       allocate(ncid(0:nnodes-1))
       allocate(ncname(0:nnodes-1))
@@ -205,24 +169,26 @@ c--#define VERBOSE
       allocate(eastern_edge(0:nnodes-1))
       allocate(southern_edge(0:nnodes-1))
       allocate(northern_edge(0:nnodes-1))
+      allocate(vid(maxvars,0:nnodes-1))
 
       max_buff_size=16384
       allocate(buff(max_buff_size))
 
 
-!
+
 ! Process netCDF files: open, determine if it is already
 ! a partitioned file, then make general inquiry. Complain
 ! about error if it already partitioned, or if number of
 ! variables and/or dimensions exceeds specified limits.
-!
-      do arg=karg,narg
+
+      do arg=3,narg
+        ierr_all=0
         call getarg(arg,src_name)
         lsrc=lenstr(src_name)
         ierr=nf_open (src_name(1:lsrc), nf_nowrite, ncsrc)
-        if (ierr .eq. nf_noerr) then
+        if (ierr == nf_noerr) then
           ierr=nf_inq_att (ncsrc, nf_global, 'partition', i,j)
-          if (ierr .eq. nf_noerr) then
+          if (ierr == nf_noerr) then
             write(*,'(/1x,4A/14x,2A/)')'### WARNING: netCDF file ''',
      &        src_name(1:lsrc),  ''' is already ', 'a partial file ',
      &       'and cannot be partitioned any further ==> ignoring it.'
@@ -234,13 +200,13 @@ c--#define VERBOSE
           goto 97     !--> next file
         endif
 
- 
+
         write(*,'(1x,3A)') 'Processing netCDF file ''',
      &                        src_name(1:lsrc), '''...'
- 
+
         ierr=nf_inq (ncsrc, ndims, nvars, ngatts, unlimdimid)
-        if (ierr.eq.nf_noerr) then
-          if (ndims .gt. maxdims) then
+        if (ierr==nf_noerr) then
+          if (ndims > maxdims) then
             write(*,'(/1x,2A,I4,1x,4A/12x,A,I4,2A/)')  '### ERROR: ',
      &        'Number of dimensions',      ndims,       'in netCDF ',
      &        'file ''', src_name(1:lsrc), ''' exceeds the limit of',
@@ -248,7 +214,7 @@ c--#define VERBOSE
      &                      '"maxdims" in "partit.F" and recompile.'
             ierr=ierr+1
           endif
-          if (nvars .gt. maxvars) then
+          if (nvars > maxvars) then
             write(*,'(/1x,2A,I4,1x,3A/12x,A,I4,2A/)')  '### ERROR: ',
      &           'Number of variables',  nvars,  'in netCDF file ''',
      &            src_name(1:lsrc),       ''' exceeds the limit of ',
@@ -261,18 +227,18 @@ c--#define VERBOSE
      &                         'general inquiry into netCDF file ''',
      &                    src_name(1:lsrc), '''.', nf_strerror(ierr)
         endif
-        if (ierr .ne. nf_noerr) stop
-!
+        if (ierr /= nf_noerr) stop
+
 ! Sort out dimensions: For each dimension find and save its name and
 ! size. Then check whether all partitionable dimensions (identified
 ! by names 'xi_rho', 'xi_u', 'eta_rho' and 'eta_v')  are present and
 ! save their IDs and sizes.
-!
+
         tsize=1      ! <-- default value.
         do i=1,ndims
           ierr=nf_inq_dim (ncsrc, i, dimname(i), dimsize(i))
-          if (ierr.eq.nf_noerr) then
-            if (i.eq. unlimdimid) then
+          if (ierr==nf_noerr) then
+            if (i== unlimdimid) then
               tsize=dimsize(i)
               dimsize(i)=nf_unlimited
             endif
@@ -284,50 +250,49 @@ c--#define VERBOSE
              goto 97     !--> next file
           endif
         enddo
-!
+
 ! Determine IDs and sizes of partitionable dimensions, 'xi_rho',
 ! 'xi_u', 'eta_rho' and 'eta_v'. Also save IDs of obsolete dimensions
 ! 'xi_psi', 'xi_v', 'eta_psi' and and 'eta_u'. These are used to
 ! readress obsolete (redundant) dimensions according to the rules:
-!
+
 #ifdef VERBOSE
         write(*,'(4x,A)') 'Identifying dimensions:'
 #endif
-                                  ! redundant dimension mapping:
-        xi_rho=0                  !
-        id_xi_rho=0               !          xi_psi  --> xi_u
+        xi_rho=0
+        id_xi_rho=0               ! Mapping redundant dimensions:
         xi_u=0                    !
-        id_xi_u=0                 !          xi_v    --> xi_rho
+        id_xi_u=0                 !          xi_psi  --> xi_u
         eta_rho=0                 !
-        id_eta_rho=0              !          eta_psi --> eta_v
+        id_eta_rho=0              !          xi_v    --> xi_rho
         eta_v=0                   !
-        id_eta_v=0                !          eta_u   --> eta_rho
-        id_xi_psi=0
-        id_xi_v=0
+        id_eta_v=0                !          eta_psi --> eta_v
+        id_xi_psi=0               !
+        id_xi_v=0                 !          eta_u   --> eta_rho
         id_eta_psi=0
         id_eta_u=0
 
         do i=1,ndims
           lvar=lenstr(dimname(i))
-          if (lvar.eq.6 .and. dimname(i)(1:lvar).eq.'xi_rho') then
+          if (lvar==6 .and. dimname(i)(1:lvar)=='xi_rho') then
             id_xi_rho=i
             xi_rho=dimsize(i)
-          elseif (lvar.eq.4 .and. dimname(i)(1:lvar).eq.'xi_u') then
+          elseif (lvar==4 .and. dimname(i)(1:lvar)=='xi_u') then
             id_xi_u=i
             xi_u=dimsize(i)
-          elseif (lvar.eq.7.and.dimname(i)(1:lvar).eq.'eta_rho') then
+          elseif (lvar==7.and.dimname(i)(1:lvar)=='eta_rho') then
             id_eta_rho=i
             eta_rho=dimsize(i)
-          elseif (lvar.eq.5 .and. dimname(i)(1:lvar).eq.'eta_v') then
+          elseif (lvar==5 .and. dimname(i)(1:lvar)=='eta_v') then
             id_eta_v=i
             eta_v=dimsize(i)
-          elseif (lvar.eq.6 .and.dimname(i)(1:lvar).eq.'xi_psi') then
+          elseif (lvar==6 .and.dimname(i)(1:lvar)=='xi_psi') then
             id_xi_psi=i
-          elseif (lvar.eq.4 .and. dimname(i)(1:lvar).eq.'xi_v') then
+          elseif (lvar==4 .and. dimname(i)(1:lvar)=='xi_v') then
             id_xi_v=i
-          elseif (lvar.eq.7.and.dimname(i)(1:lvar).eq.'eta_psi') then
+          elseif (lvar==7.and.dimname(i)(1:lvar)=='eta_psi') then
             id_eta_psi=i
-          elseif (lvar.eq.5 .and. dimname(i)(1:lvar).eq.'eta_u') then
+          elseif (lvar==5 .and. dimname(i)(1:lvar)=='eta_u') then
             id_eta_u=i
           endif
 #ifdef VERBOSE
@@ -336,18 +301,18 @@ c--#define VERBOSE
 #endif
         enddo
 
-        if (id_xi_rho.ne.0 .and.  id_xi_u.eq.0) then
+        if (id_xi_rho/=0 .and.  id_xi_u==0) then
           xi_u=xi_rho-1
-        elseif (id_xi_rho.eq.0 .and.  id_xi_u.ne.0) then
+        elseif (id_xi_rho==0 .and.  id_xi_u/=0) then
           xi_rho=xi_u+1
         endif
-        if (id_eta_rho.ne.0 .and. id_eta_v.eq.0) then
-          eta_v=eta_rho-1 
-        elseif (id_eta_rho.eq.0 .and. id_eta_v.eq.0) then
+        if (id_eta_rho/=0 .and. id_eta_v==0) then
+          eta_v=eta_rho-1
+        elseif (id_eta_rho==0 .and. id_eta_v==0) then
           eta_rho=eta_v+1
         endif
-        if (xi_rho.eq.0  .or. xi_u.eq.0 .or.
-     &      eta_rho.eq.0 .or. eta_v.eq.0) then
+        if (xi_rho==0  .or. xi_u==0 .or.
+     &      eta_rho==0 .or. eta_v==0) then
           write(*,'(/8x,2A/15x,3A/)')       '### ERROR: not all ',
      &            'partitionable dimensions are found in netCDF ',
      &                         'file ''', src_name(1:lsrc), '''.'
@@ -356,13 +321,8 @@ c--#define VERBOSE
 
 
 
-
-
-!
 ! Set horizontal dimensions for each subdomain
 !---- ---------- ---------- --- ---- ---------
-!
-
 
         call mpi_setup (NP_XI,NP_ETA, xi_rho,eta_rho,
      &           xi_start,xi_size, eta_start,eta_size,
@@ -371,24 +331,21 @@ c--#define VERBOSE
 
 
 
-!
+
 ! Create partitioned files:
 !======= =========== ======
-!
+
         do node=0,nnodes-1
           lsrc=lenstr(src_name)
           ncname(node)=src_name(1:lsrc)
           lstr=lsrc
           ierr=0
           call insert_node (ncname(node), lstr, node, nnodes, ierr)
-          ncname(node)=trim(out_dir)/ /trim(ncname(node))
-          lstr=lenstr(ncname(node))
 
-          if (ierr. eq. 0) then 
-            ierr=nf_create (ncname(node)(1:lstr), NCFILEFORMAT,
-c**                                          nf_clobber,
-     &                                            ncid(node))
-            if (ierr .eq. nf_noerr) then
+          if (ierr. eq. 0) then
+            ierr=nf_create (ncname(node)(1:lstr),  nf_clobber +
+     &                                nf_64bit_offset, ncid(node))
+            if (ierr == nf_noerr) then
               write(*,'(4x,3A)')      'Created partitioned file ''',
      &                                  ncname(node)(1:lstr), '''.'
             else
@@ -396,29 +353,30 @@ c**                                          nf_clobber,
      &                'create netCDF file ''', ncname(node)(1:lstr),
      &                                    '''.',  nf_strerror(ierr)
             endif
+          else
+            ierr_all=ierr_all+1
           endif
           if (ierr. ne. 0) goto 97     !--> next file to process
-!
+
 ! Define dimensions for the partitioned files:
 !------- ---------- --- --- ----------- -----
-!
 
           do i=1,ndims
-            if (i .eq. id_xi_rho) then
+            if (i == id_xi_rho) then
               size=xi_size(node)
               if (western_edge(node)) size=size+1
               if (eastern_edge(node)) size=size+1
 
-            elseif (i .eq. id_xi_u) then
+            elseif (i == id_xi_u) then
               size=xi_size(node)
               if (eastern_edge(node)) size=size+1
 
-            elseif (i .eq. id_eta_rho) then
+            elseif (i == id_eta_rho) then
               size=eta_size(node)
               if (southern_edge(node)) size=size+1
               if (northern_edge(node)) size=size+1
 
-            elseif (i .eq. id_eta_v) then
+            elseif (i == id_eta_v) then
               size=eta_size(node)
               if (northern_edge(node)) size=size+1
             else
@@ -427,45 +385,44 @@ c**                                          nf_clobber,
 
             dimid(i)=0
             lvar=lenstr(dimname(i))
-            if (i.ne.unlimdimid .and. size.eq.0) then
-              write(*,'(4x,3A)')         'Suppressing dimension ''',
-     &           dimname(i)(1:lvar), ''' because of its zero size.'
-            elseif  (i.eq.unlimdimid .and. tsize.eq.0) then
-              write(*,'(4x,4A)')           'Suppressing unlimited ',
-     &                           'dimension ''', dimname(i)(1:lvar),
-     &                               ''' because of its zero size.'
-            elseif (i.eq.id_xi_psi) then
-              write(*,'(4x,2A)')  'Suppressing obsolete dimension ',
-     &                                                '''xi_psi''.'
-            elseif (i.eq.id_xi_v) then
-              write(*,'(4x,2A)')  'Suppressing obsolete dimension ',
-     &                                                  '''xi_v''.'
-            elseif (i.eq.id_eta_psi) then
-              write(*,'(4x,2A)')  'Suppressing obsolete dimension ',
-     &                                               '''eta_psi''.'
-
-            elseif (i.eq.id_eta_u)  then
-              write(*,'(4x,2A)')  'Suppressing obsolete dimension ',
-     &                                                 '''eta_u''.'
+            if (i/=unlimdimid .and. size==0) then
+              if (node==0) write(*,'(4x,4A)')     'Suppressing ',
+     &          'zero-size dimension ''', dimname(i)(1:lvar), '''.'
+            elseif  (i==unlimdimid .and. tsize==0) then
+              if (node==0) write(*,'(4x,4A)')     'Suppressing ',
+     &                          'zero-size unlimited dimension ''',
+     &                                 dimname(i)(1:lvar), '''.'
+            elseif (i==id_xi_psi) then
+              if (node==0) write(*,'(4x,2A)')     'Suppressing ',
+     &                            'obsolete dimension ''xi_psi''.'
+            elseif (i==id_xi_v) then
+              if (node==0) write(*,'(4x,2A)')     'Suppressing ',
+     &                              'obsolete dimension ''xi_v''.'
+            elseif (i==id_eta_psi) then
+              if (node==0) write(*,'(4x,2A)')     'Suppressing ',
+     &                           'obsolete dimension ''eta_psi''.'
+            elseif (i==id_eta_u)  then
+              if (node==0) write(*,'(4x,2A)')     'Suppressing ',
+     &                              'obsolete dimension ''xi_u''.'
             else
               ierr=nf_def_dim (ncid(node), dimname(i)(1:lvar),
      &                                           size, dimid(i))
+              if (ierr /= nf_noerr) then
+                ierr_all=ierr_all+1
+                write(*,'(/1x,4A,I8,A,I4/12x,A)') '### ERROR: Cannot ',
+     &                       'define dimension ''', dimname(i)(1:lvar),
+     &        ''' of size =', size,',  node=', node, nf_strerror(ierr)
 #ifdef VERBOSE
-              if (ierr .eq. nf_noerr) then
-                write(*,'(8x,2A,I2,2x,2A,I4,T50,A,I4)')  'Defined ',
+              else
+                ierr_all=ierr_all+1
+                write(*,'(8x,2A,I2,2x,2A,I4,T50,A,I4)') 'Defined ',
      &                  'dimension #',dimid(i), dimname(i)(1:lvar),
      &                                 ' =', size, 'node =', node
-              else
-#else
-              if (ierr .ne. nf_noerr) then
 #endif
-                write(*,'(/1x,4A/12x,A)')    '### ERROR: Cannot ',
-     &                  'define dimension ''', dimname(i)(1:lvar),
-     &                                   '''.', nf_strerror(ierr)
               endif
             endif
-          enddo
-!
+          enddo  !<-- loop over dimensions
+
 ! After this moment array dimid(1:ndims) contains the set of NEW
 ! dimension IDs.  If the original file contains any of the four
 ! obsolete dimensions, 'xi_psi', 'eta_psi', 'xi_v', and 'eta_u'
@@ -483,10 +440,11 @@ c**                                          nf_clobber,
           ibuff(4)=eta_start(node)
           ierr=nf_put_att_int (ncid(node), nf_global, 'partition',
      &                                          nf_int, 4, ibuff)
-        enddo
-!
+        enddo  !<-- node=0,nnodes-1
+        if (ierr_all/=0) stop
+
 ! Copy global attributes
-!
+
         do i=1,ngatts
           ierr=nf_inq_attname (ncsrc, nf_global, i, string)
           if (ierr. eq. nf_noerr) then
@@ -495,6 +453,7 @@ c**                                          nf_clobber,
               ierr=nf_copy_att (ncsrc, nf_global, string(1:lvar),
      &                                     ncid(node), nf_global)
               if (ierr. ne. nf_noerr) then
+                ierr_all=ierr_all+1
                 lstr=lenstr(ncname(node))
                 write(*,'(/1x,7A/12x,A)')  '### ERROR: Cannot copy ',
      &             'global attribute ''', string(1:lvar), ''' into ',
@@ -511,170 +470,261 @@ c**                                          nf_clobber,
             goto 97
           endif
         enddo
-!
-! Define variables and their attributes.
-!
+
+! Define variables and their attributes in the partitioned files.
+!------- --------- --- ----- ---------- -- --- ----------- ------
+
         do i=1,nvars
           ierr=nf_inq_var (ncsrc,   i, varname(i),  vartype(i),
-     &                      vardims(i), dimids(1,i),   varatts)
-!
+     &                     vardims(i), dimids(1,i),   varatts)
+          if (ierr/=nf_noerr) then
+             write(*,'(/1x,2A,I3/12x,3A/12x,A/)')     '### ERROR: ',
+     &            'Cannot make general inquiry about variable ID =',
+     &             i, 'in netCDF file ''',  src_name(1:lsrc), ''',',
+     &                                            nf_strerror(ierr)
+
+            goto 97
+          endif
+
 ! Readress obsolete dimensions, if any:
-!
+
           do j=1,vardims(i)
-            if (dimids(j,i).eq.id_xi_psi) then
+            if (dimids(j,i)==id_xi_psi) then
               dimids(j,i)=id_xi_u
-            elseif (dimids(j,i).eq.id_xi_v) then
+            elseif (dimids(j,i)==id_xi_v) then
               dimids(j,i)=id_xi_rho
-            elseif (dimids(j,i).eq.id_eta_psi) then
+            elseif (dimids(j,i)==id_eta_psi) then
               dimids(j,i)=id_eta_v
-            elseif (dimids(j,i).eq.id_eta_u) then
+            elseif (dimids(j,i)==id_eta_u) then
               dimids(j,i)=id_eta_rho
             endif
           enddo
-!
+
 ! Determine whether partitionable dimensions or unlimited dimension
 ! are present for this variable.
-!
+
           series(i)=.false.
           part_switch(i)=.false.
           do j=1,vardims(i)
-            if (dimids(j,i).eq.id_xi_rho .or.
-     &          dimids(j,i).eq.id_xi_u    .or.
-     &          dimids(j,i).eq.id_eta_rho .or.
-     &          dimids(j,i).eq.id_eta_v) then
+            if (dimids(j,i)==id_xi_rho .or.
+     &          dimids(j,i)==id_xi_u    .or.
+     &          dimids(j,i)==id_eta_rho .or.
+     &          dimids(j,i)==id_eta_v) then
               part_switch(i)=.true.
-            elseif (dimids(j,i).eq.unlimdimid) then
+            elseif (dimids(j,i)==unlimdimid) then
               series(i)=.true.
             endif
           enddo
 
-          if (tsize.gt.0 .or. .not.series(i)) then
-!
+          if (tsize>0 .or. .not.series(i)) then
+
 ! WARNING: Since dimids(1:vardims(i),i) contains dimension IDs
 ! corresponding to the set of IDs of the ORIGINAL file, and since
-! some of the original dimensions were eliminated (merged), the
-! set of dimension IDs in the NEW definitions is obtained by
-! inverse mapping of dimids(j,i) onto ibuff(j) using dimid(k) as
-! a mapping array.
-!
+! some of the original dimensions were eliminated (merged), the set
+! of dimension IDs in the NEW definitions is obtained by the inverse
+! mapping of dimids(j,i) onto ibuff(j) using dimid(k) as a mapping
+! array.
+
             do j=1,vardims(i)
               do k=1,ndims
-                if (dimids(j,i).eq.k) ibuff(j)=dimid(k)
+                if (dimids(j,i)==k) ibuff(j)=dimid(k)
               enddo
             enddo
 c**         write(*,*) 'old_dimids:', (dimids(j,i),j=1,vardims(i))
 c**         write(*,*) 'new_dimids:',    (ibuff(j),j=1,vardims(i))
- 
+
             lvar=lenstr(varname(i))
             do node=0,nnodes-1
-              ierr=nf_def_var (ncid(node), varname(i)(1:lvar),
-     &                vartype(i), vardims(i), ibuff, varid(i))
-#ifdef NCCOMPRESS
-              ierr=nf_def_var_deflate(ncid(node), varid(i), ncshuff
-     &                                 , ncdefl, nclev)
-#endif
+              vid(i,node)=0
+              if (lvar>5) then
+                if (varname(i)(lvar-4:lvar)=='_west' .and.
+     &              .not.western_edge(node)) vid(i,node)=-1000
 
-#ifdef VERBOSE
-              if (ierr.eq.nf_noerr) then
-                write(*,'(I3,3A,T36,2(A,I3,1x),2(1x,A,L1),1x,A,I4)')
-     &            i,    ' Created variable ''',   varname(i)(1:lvar),
-     &            '''', 'varid =',varid(i),   'vardims =',vardims(i),
-     &            'part_switch=',part_switch(i), 'series=',series(i),
-     &                                               'node =', node
+                if (varname(i)(lvar-4:lvar)=='_east'  .and.
+     &              .not.eastern_edge(node)) vid(i,node)=-1000
               endif
-#endif
-              if (ierr.ne.nf_noerr) then
-                write(*,'(/1x,4A,I4/12x,A/)') '### ERROR: Cannot ',
-     &                  'create variable ''',   varname(i)(1:lvar),
+              if (lvar>6) then
+                if (varname(i)(lvar-5:lvar)=='_south' .and.
+     &              .not.southern_edge(node)) vid(i,node)=-1000
+
+                if (varname(i)(lvar-5:lvar)=='_north'  .and.
+     &              .not.northern_edge(node)) vid(i,node)=-1000
+              endif
+              if (vid(i,node)==0) then
+                ierr=nf_def_var (ncid(node), varname(i)(1:lvar),
+     &                vartype(i), vardims(i), ibuff, vid(i,node))
+                if (ierr/=nf_noerr) then
+                  write(*,'(/1x,4A,I4/12x,A/)') '### ERROR: Cannot ',
+     &                    'create variable ''',   varname(i)(1:lvar),
      &                  ''', node =',   node,    nf_strerror(ierr)
+#ifdef VERBOSE
+                else
+                 write(*,'(I3,3A,T36,2(A,I3,1x),2(1x,A,L1),1x,A,I4)')
+     &                 i, ' Created variable ''', varname(i)(1:lvar),
+     &                 '''',  'varid =',   vid(i,node),  'vardims =',
+     &                    vardims(i), 'part_switch=', part_switch(i),
+     &                          'series=',series(i), 'node =', node
+#endif
+                endif
+
+#ifdef DUMMY_BRY_VAR
+              else
+                ierr=nf_def_var (ncid(node), varname(i)(1:lvar),
+     &                           vartype(i), 0, ibuff, vid(i,node))
+# ifdef VERBOSE
+                write(*,'(I3,4A,T84,A,I4)')     i, ' Created dummy ',
+     &                'scalar variable ''', varname(i)(1:lvar), '''',
+     &                                              'node =', node
+# endif
+#else
+# ifdef VERBOSE
+              else
+                write(*,'(I3,4A,T84,A,I4)')      i, ' Suppressed ',
+     &                     'variable ''', varname(i)(1:lvar), '''',
+     &                                              'node =', node
+# endif
+#endif
               endif
             enddo
             do j=1,varatts
-              ierr=nf_inq_attname (ncsrc, varid(i), j, string)
+              ierr=nf_inq_attname (ncsrc, i, j, string)
               lvar=lenstr(string)
               do node=0,nnodes-1
-                ierr=nf_copy_att (ncsrc, i, string(1:lvar),
-     &                            ncid(node), varid(i))
+                if (vid(i,node)>0) then
+                  ierr=nf_copy_att (ncsrc, i, string(1:lvar),
+     &                              ncid(node), vid(i,node))
+                  if (ierr/=nf_noerr) then
+                    write(*,'(/1x,4A,I4/12x,A/)') '### ERROR: ',
+     &               'Cannot copy attribute ''', string(1:lvar),
+     &               ''' for variable ''',   varname(i)(1:lvar),
+     &               ''', node =',   node,    nf_strerror(ierr)
+
+                  endif
+                endif
               enddo
             enddo
           endif
-        enddo
-!
-! Leave definition mode
-!
+        enddo    ! <--- i, loop over variables
+
+! Leave definition mode:
+!------ ---------- -----
+
         do node=0,nnodes-1
-c          ierr=nf_set_fill (ncid(node), nf_nofill, i)
+c**          ierr=nf_set_fill (ncid(node), nf_nofill, i)
           ierr=nf_enddef(ncid(node))
+          if (ierr/=nf_noerr) then
+            ierr_all=ierr_all+1
+            write(*,'(1x,3A,I4,1x,A)')   '### ERROR: Cannot switch ',
+     &          'partial netCDF file from definitin to input mode, ',
+     &                             'node =', node, nf_strerror(ierr)
+          endif
         enddo
+        if (ierr_all/=0) stop
 #ifdef VERBOSE
         write(*,'(/4x,A/)') 'Left definition mode.'
 #endif
+#ifdef TIMING
+! Note: there is a possibility that "iclk" goes beyond "clk_max" and
+! is folded back into the range of [0 ... clk_max]. The logic needs to
+! account for this. Recal that all the arguments of system_clock() are
+! 4-byte integers, while all integers computed below system_clock()
+! call are 8-byte integers.
+
+        nclk=3-nclk
+        call system_clock(iclk(nclk), clk_rate,clk_max)
+        inc_clk=iclk(nclk)-iclk(3-nclk)
+        if (inc_clk < 0) inc_clk=inc_clk+clk_max
+        net_clk=net_clk+inc_clk
+        net_gray_clk=net_gray_clk+inc_clk
+#endif
 
 
-!
+
+!     **     *     ***  *******    ***  *********  ********
+!      *    ***   ***   ***   ***  ***  *  ***  *  ***    *
+!       *   ***   ***   ***   ***  ***     ***     ***
+!       *  *** * ***    ***   **   ***     ***     ******
+!        * **  * **     ******     ***     ***     ***
+!        ***    ***     ***  **    ***     ***     ***    *
+!         *     **      ***   ***  ***     ***     ********
+
+
+
 ! Transfer variables into newly created files.
-!
-        if (maxrec < 0) then
-          maxrec = max(tsize,1)
-        else
-          maxrec = min(max(tsize,1),maxrec)
-        endif
-        do rec=minrec,maxrec
-          if (tsize.gt.1) write(*,'(8x,2(1x,A,I5))')
-     &      'Processing record', rec, 'out of ', tsize
+!========= ========= ==== ===== ======= ======
+
+        do rec=1,max(tsize,1)
+          if (tsize>1) write(*,'(8x,2(1x,A,I5))')
+     &      'Processing record', rec, 'out of', tsize
           do i=1,nvars
 #ifdef VERBOSE
-            if (tsize.eq.1) then
+            if (tsize==1) then
               lvar=lenstr(varname(i))
               write(*,'(16x,I4,1x,A,I4,1x,3A)') i, 'of', nvars,
      &           'processing variable ''', varname(i)(1:lvar), '''.'
             endif
 #endif
-            if ((rec.eq.1 .and. .not.series(i))  .or.
-     &          (series(i) .and. tsize.gt.0)) then
+            if ((rec==1 .and. .not.series(i)) .or.
+     &          (series(i) .and. tsize>0)) then
               if (.not.part_switch(i) .and. .not.series(i)) then
-!
+
 ! Scalar (zero-dimensional) variables:
-!
-                if (vartype(i) .eq. nf_char) then
+
+                if (vartype(i) == nf_char) then
                   ierr=nf_get_var_text (ncsrc, i, buff)
-                elseif (vartype(i) .eq. nf_int) then
+                elseif (vartype(i) == nf_byte) then
+                  ierr=nf_get_var_int1   (ncsrc, i, buff)
+                elseif (vartype(i) == nf_short) then
+                  ierr=nf_get_var_int2   (ncsrc, i, buff)
+                elseif (vartype(i) == nf_int) then
                   ierr=nf_get_var_int    (ncsrc, i, buff)
-                elseif (vartype(i) .eq. nf_float) then
+                elseif (vartype(i) == nf_float) then
                   ierr=nf_get_var_real   (ncsrc, i, buff)
-                elseif (vartype(i) .eq. nf_double) then
+                elseif (vartype(i) == nf_double) then
                   ierr=nf_get_var_double (ncsrc, i, buff)
                 else
                   lvar=lenstr(varname(i))
                   write(*,'(/8x,4A/)') '### ERROR: Scalar variable ',
      &              '''', varname(i)(1:lvar), ''' has unknown type.'
-                  stop 
+                  stop
                 endif
-                if (ierr .eq. nf_noerr) then
+                if (ierr == nf_noerr) then
                   do node=0,nnodes-1
-                    if (vartype(i) .eq. nf_char) then
-                     ierr=nf_put_var_text (ncid(node),varid(i),buff)
-                    elseif (vartype(i) .eq. nf_int) then
-                     ierr=nf_put_var_int   (ncid(node),varid(i),buff)
-                    elseif (vartype(i) .eq. nf_float) then
-                     ierr=nf_put_var_real  (ncid(node),varid(i),buff)
-                    elseif (vartype(i) .eq. nf_double) then
-                     ierr=nf_put_var_double(ncid(node),varid(i),buff)
-                    endif
-                    if (ierr .ne. nf_noerr) then
-                      lvar=lenstr(varname(i))
-                      lstr=lenstr(ncname(node))
-                      write(*,'(/1x,3A/12x,3A/12x,A/)')
+                    if (vid(i,node)>0) then
+                      if (vartype(i) == nf_char) then
+                       ierr=nf_put_var_text (ncid(node), vid(i,node),
+     &                                                         buff)
+                      elseif (vartype(i) == nf_byte) then
+                       ierr=nf_put_var_int1 (ncid(node), vid(i,node),
+     &                                                         buff)
+                      elseif (vartype(i) == nf_short) then
+                       ierr=nf_put_var_int2 (ncid(node), vid(i,node),
+     &                                                         buff)
+                      elseif (vartype(i) == nf_int) then
+                       ierr=nf_put_var_int  (ncid(node), vid(i,node),
+     &                                                         buff)
+                      elseif (vartype(i) == nf_float) then
+                       ierr=nf_put_var_real (ncid(node), vid(i,node),
+     &                                                         buff)
+                      elseif (vartype(i) == nf_double) then
+                       ierr=nf_put_var_double(ncid(node),vid(i,node),
+     &                                                         buff)
+                      endif
+                      if (ierr /= nf_noerr) then
+                        lvar=lenstr(varname(i))
+                        lstr=lenstr(ncname(node))
+                        write(*,'(/1x,3A/12x,3A/12x,A/)')
      &                  '### ERROR: Cannot write scalar variable ''',
-     &                   varname(i)(1:lvar),       ''' into netCDF ',
+     &                     varname(i)(1:lvar),     ''' into netCDF ',
      &                  'file ''',    ncname(node)(1:lstr),    '''.',
      &                                             nf_strerror(ierr)
-                      goto 97
+                        goto 97
+                      endif
                     endif
                   enddo
                 else
                   lvar=lenstr(varname(i))
-                  write(*,'(/1x,3A/12x,3A/12x,A/)')      
+                  write(*,'(/1x,3A/12x,3A/12x,A/)')
      &                  '### ERROR: Cannot read scalar variable ''',
      &                   varname(i)(1:lvar),      ''' from netCDF ',
      &                  'file ''',     src_name(1:lsrc),      '''.',
@@ -682,261 +732,322 @@ c          ierr=nf_set_fill (ncid(node), nf_nofill, i)
                   goto 97
                 endif
               elseif (.not.part_switch(i)) then
-!
+
 ! Non-partitionable array.
-!
+
                 size=1
                 do j=1,vardims(i)
-                  if (dimids(j,i).eq.unlimdimid) then
+                  if (dimids(j,i)==unlimdimid) then
                     start(j)=rec
-                    start1(j)=rec-minrec+1
                     count(j)=1
                   else
                     start(j)=1
-                    start1(j)=1
                     count(j)=dimsize(dimids(j,i))
                   endif
                   size=size*count(j)
                 enddo
-                if (vartype(i) .eq. nf_char) then
+                if (vartype(i) == nf_char .or.
+     &              vartype(i) == nf_byte) then
                   size=size*1
-                elseif (vartype(i) .eq. nf_int) then
+                elseif (vartype(i) == nf_short) then
+                  size=size*2
+                elseif (vartype(i) == nf_int) then
                   size=size*4
-                elseif (vartype(i) .eq. nf_float) then
+                elseif (vartype(i) == nf_float) then
                   size=size*4
-                elseif (vartype(i) .eq. nf_double) then
+                elseif (vartype(i) == nf_double) then
                   size=size*8
                 else
                   lvar=lenstr(varname(i))
-                  write(*,'(/8x,3A/)') 'ERROR: variable ''',
+                  write(*,'(/8x,3A/)')   '### ERROR: variable ''',
      &                 varname(i)(1:lvar), ''' has unknown type.'
                   goto 97
                 endif
-                if (size .gt. 8*max_buff_size) then
+                if (size > 8*max_buff_size) then
+
                   if (allocated(buff)) deallocate(buff)
                   max_buff_size=(size+7)/8
                   allocate (buff(max_buff_size))
+
 #ifdef VERBOSE
                   write(*,*) 'Allocated buffer size =', max_buff_size
 #endif
                 endif
- 
-                if (vartype(i) .eq. nf_char) then
-                  ierr=nf_get_vara_text   (ncsrc, i, start,
-     &                                          count, buff)
-                elseif (vartype(i) .eq. nf_int) then
+
+                if (vartype(i) == nf_char) then
+                  ierr=nf_get_vara_text (ncsrc, i, start,
+     &                                        count, buff)
+                elseif (vartype(i) == nf_byte) then
+                  ierr=nf_get_vara_int1  (ncsrc, i, start,
+     &                                         count, buff)
+                elseif (vartype(i) == nf_short) then
+                  ierr=nf_get_vara_int2  (ncsrc, i, start,
+     &                                         count, buff)
+                elseif (vartype(i) == nf_int) then
                   ierr=nf_get_vara_int    (ncsrc, i, start,
      &                                         count, buff)
-                elseif (vartype(i) .eq. nf_float) then
+                elseif (vartype(i) == nf_float) then
                   ierr=nf_get_vara_real   (ncsrc, i, start,
      &                                         count, buff)
-                elseif (vartype(i) .eq. nf_double) then
+                elseif (vartype(i) == nf_double) then
                   ierr=nf_get_vara_double (ncsrc, i, start,
      &                                         count, buff)
                 endif
-                if (ierr .eq. nf_noerr) then
+                if (ierr == nf_noerr) then
                   do node=0,nnodes-1
-                    if (vartype(i) .eq. nf_char) then
-                      ierr=nf_put_vara_text   (ncid(node), varid(i),
-     &                                           start1, count, buff)
-                    elseif (vartype(i) .eq. nf_int) then
-                      ierr=nf_put_vara_int    (ncid(node), varid(i),
-     &                                           start1, count, buff)
-                    elseif (vartype(i) .eq. nf_float) then
-                      ierr=nf_put_vara_real   (ncid(node), varid(i),
-     &                                           start1, count, buff)
-                    elseif (vartype(i) .eq. nf_double) then
-                      ierr=nf_put_vara_double (ncid(node), varid(i),
-     &                                           start1, count, buff)
-                    endif
-                    if (ierr .ne. nf_noerr) then
-                      lvar=lenstr(varname(i))
-                      lstr=lenstr(ncname(node))
-                      write(*,'(/1x,A,I4,1x,3A/12x,3A/12x,A/)')
-     &                  '### ERROR: Cannot write time record =', rec,
-     &                  'for nonpartitionable array ''',
-     &                                      varname(i)(1:lvar), '''',
-     &                  'into netCDF file ''',  ncname(node)(1:lstr),
-     &                                      '''.', nf_strerror(ierr)
-                      goto 97
+                    if (vid(i,node)>0) then
+                      if (vartype(i) == nf_char) then
+                        ierr=nf_put_vara_text (ncid(node),
+     &                       vid(i,node), start, count, buff)
+                      elseif (vartype(i) == nf_byte) then
+                        ierr=nf_put_vara_int1 (ncid(node),
+     &                       vid(i,node), start, count, buff)
+                      elseif (vartype(i) == nf_short) then
+                        ierr=nf_put_vara_int2 (ncid(node),
+     &                       vid(i,node), start, count, buff)
+                      elseif (vartype(i) == nf_int) then
+                        ierr=nf_put_vara_int  (ncid(node),
+     &                       vid(i,node), start, count, buff)
+                      elseif (vartype(i) == nf_float) then
+                        ierr=nf_put_vara_real (ncid(node),
+     &                       vid(i,node), start, count, buff)
+                      elseif (vartype(i) == nf_double) then
+                        ierr=nf_put_vara_double (ncid(node),
+     &                       vid(i,node), start, count, buff)
+                      endif
+                      if (ierr /= nf_noerr) then
+                        lvar=lenstr(varname(i))
+                        lstr=lenstr(ncname(node))
+                        write(*,'(/1x,A,I4,1x,3A/12x,3A/12x,A/)')
+     &                    '### ERROR: Cannot write time record =',
+     &                     rec,   'for nonpartitionable array ''',
+     &                     varname(i)(1:lvar),   '''into netCDF ',
+     &                    'file ''', ncname(node)(1:lstr),  '''.',
+     &                                          nf_strerror(ierr)
+                        goto 97
+                      endif
                     endif
                   enddo
                 else
                   lvar=lenstr(varname(i))
                   write(*,'(/1x,A,I4,1x,3A/12x,3A/12x,A/)')
-     &                  '### ERROR: Cannot read time record =',  rec,
-     &                  'for nonpartitionable array ''',
-     &                                      varname(i)(1:lvar), '''',
-     &                  'from netCDF file ''',      src_name(1:lsrc),
-     &                                      '''.', nf_strerror(ierr)
+     &                    '### ERROR: Cannot read time record =',
+     &                     rec,  'for nonpartitionable array ''',
+     &                     varname(i)(1:lvar),  ''' from netCDF',
+     &                    'file ''',   src_name(1:lsrc),   '''.',
+     &                                         nf_strerror(ierr)
                   goto 97
                 endif
               elseif (part_switch(i)) then
-!
+
 ! Partitioned array:
-!
+
                 do node=0,nnodes-1
+                  if (vid(i,node)>0) then
 #ifdef VERBOSE
-                  lvar=lenstr(varname(i))
-                  write(*,'(24x,A,I4,4x,3A,I3)')  'part var id =', i,
-     &            'name = ''', varname(i)(1:lvar), ''' node =', node
-#endif
-                  size=1
-                  do j=1,vardims(i)
-                    start1(j)=1
-                    if (dimids(j,i).eq.id_xi_rho) then
-                      start(j)=xi_start(node)
-                      count(j)=xi_size(node)
-                      if (western_edge(node)) then
-                        count(j)=count(j)+1
-                      endif
-                      if (eastern_edge(node)) then
-                        count(j)=count(j)+1
-                      endif
- 
-                    elseif (dimids(j,i).eq.id_xi_u) then
-                      start(j)=xi_start(node)
-                      count(j)=xi_size(node)
-
-                      if (.not.western_edge(node)) then
-                        start(j)=start(j)-1
-                      endif
-                      if (eastern_edge(node)) then
-                        count(j)=count(j)+1
-                      endif
- 
-                    elseif (dimids(j,i).eq.id_eta_rho) then
-                      start(j)=eta_start(node)
-                      count(j)=eta_size(node)
-                      if (southern_edge(node)) then
-                        count(j)=count(j)+1
-                      endif
-                      if (northern_edge(node)) then
-                        count(j)=count(j)+1
-                      endif
- 
-                    elseif (dimids(j,i).eq.id_eta_v) then
-                      start(j)=eta_start(node)
-                      count(j)=eta_size(node)
-                      if (.not.southern_edge(node)) then
-                        start(j)=start(j)-1
-                      endif
-                      if (northern_edge(node)) then
-                        count(j)=count(j)+1
-                      endif
- 
-                    elseif (dimids(j,i).eq.unlimdimid) then
-                      start(j)=rec
-                      count(j)=1
-                      start1(j)=rec-minrec+1
-                    else
-                      start(j)=1
-                      count(j)=dimsize(dimids(j,i))
-
-                    endif
-                    size=size*count(j)
-                  enddo
-c**               write(*,*) 'dimids:', (dimids(j,i),j=1,vardims(i))
-c**               write(*,*) ' start:',    (start(j),j=1,vardims(i))
-c**               write(*,*) ' count:',    (count(j),j=1,vardims(i))
- 
- 
-                  if (vartype(i) .eq. nf_char) then
-                    size=size*1
-                  elseif (vartype(i) .eq. nf_int) then
-                    size=size*4
-                  elseif (vartype(i) .eq. nf_float) then
-                    size=size*4
-                  elseif (vartype(i) .eq. nf_double) then
-                    size=size*8
-                  else
                     lvar=lenstr(varname(i))
-                    write(*,'(/1x,4A/)')   '### ERROR: variable ''',
+                    write(*,'(24x,A,I4,4x,3A,I3)')  'part var id =',
+     &                           i, 'name = ''', varname(i)(1:lvar),
+     &                                           ''' node =', node
+#endif
+                    size=1
+                    do j=1,vardims(i)
+                      start1(j)=1
+                      if (dimids(j,i)==id_xi_rho) then
+                        start(j)=xi_start(node)
+                        count(j)=xi_size(node)
+                        if (western_edge(node)) then
+                          count(j)=count(j)+1
+                        endif
+                        if (eastern_edge(node)) then
+                          count(j)=count(j)+1
+                        endif
+
+                      elseif (dimids(j,i)==id_xi_u) then
+                        start(j)=xi_start(node)
+                        count(j)=xi_size(node)
+
+                        if (.not.western_edge(node)) then
+                          start(j)=start(j)-1
+                        endif
+                        if (eastern_edge(node)) then
+                          count(j)=count(j)+1
+                        endif
+
+                      elseif (dimids(j,i)==id_eta_rho) then
+                        start(j)=eta_start(node)
+                        count(j)=eta_size(node)
+                        if (southern_edge(node)) then
+                          count(j)=count(j)+1
+                        endif
+                        if (northern_edge(node)) then
+                          count(j)=count(j)+1
+                        endif
+
+                      elseif (dimids(j,i)==id_eta_v) then
+                        start(j)=eta_start(node)
+                        count(j)=eta_size(node)
+                        if (.not.southern_edge(node)) then
+                          start(j)=start(j)-1
+                        endif
+                        if (northern_edge(node)) then
+                          count(j)=count(j)+1
+                        endif
+
+                      elseif (dimids(j,i)==unlimdimid) then
+                        start(j)=rec
+                        count(j)=1
+                        start1(j)=rec
+                       else
+                        start(j)=1
+                        count(j)=dimsize(dimids(j,i))
+
+                      endif
+                      size=size*count(j)
+                    enddo
+c**                 write(*,*) 'dimids:', (dimids(j,i),j=1,vardims(i))
+c**                 write(*,*) ' start:',    (start(j),j=1,vardims(i))
+c**                 write(*,*) ' count:',    (count(j),j=1,vardims(i))
+
+
+                    if (vartype(i) == nf_char .or.
+     &                  vartype(i) == nf_byte) then
+                      size=size*1
+                    elseif (vartype(i) == nf_short) then
+                      size=size*2
+                    elseif (vartype(i) == nf_int) then
+                      size=size*4
+                    elseif (vartype(i) == nf_float) then
+                      size=size*4
+                    elseif (vartype(i) == nf_double) then
+                      size=size*8
+                    else
+                      lvar=lenstr(varname(i))
+                      write(*,'(/1x,4A/)') '### ERROR: variable ''',
      &                   varname(i)(1:lvar), ''' has unknown type.'
-                    goto 97
-                  endif
+                      goto 97
+                    endif
 
-                  if (size .gt. 8*max_buff_size) then
-                    if (allocated(buff)) deallocate(buff)
+                    if (size > 8*max_buff_size) then
+                      if (allocated(buff)) deallocate(buff)
 
-                    max_buff_size=(size+7)/8
-                    allocate (buff(max_buff_size))
+                      max_buff_size=(size+7)/8
+                      allocate (buff(max_buff_size))
 #ifdef VERBOSE
                  write(*,*) 'Allocated buffer size =',max_buff_size
 #endif
-                  endif
- 
-                  if (vartype(i) .eq. nf_char) then
-                    ierr=nf_get_vara_text   (ncsrc, i, start,
-     &                                           count, buff)
-                  elseif (vartype(i) .eq. nf_int) then
-                    ierr=nf_get_vara_int    (ncsrc, i, start,
-     &                                           count, buff)
-                  elseif (vartype(i) .eq. nf_float) then
-                    ierr=nf_get_vara_real   (ncsrc, i, start,
-     &                                           count, buff)
-                  elseif (vartype(i) .eq. nf_double) then
-                    ierr=nf_get_vara_double (ncsrc, i, start,
-     &                                           count, buff)
-                  endif
- 
-                  if (ierr .eq. nf_noerr) then
-                    if (vartype(i) .eq. nf_char) then
-                      ierr=nf_put_vara_text   (ncid(node), varid(i),
-     &                                          start1, count, buff)
-                    elseif (vartype(i) .eq. nf_int) then
-                      ierr=nf_put_vara_int    (ncid(node), varid(i),
-     &                                          start1, count, buff)
-                    elseif (vartype(i) .eq. nf_float) then
-                      ierr=nf_put_vara_real   (ncid(node), varid(i),
-     &                                          start1, count, buff)
-                    elseif (vartype(i) .eq. nf_double) then
-                      ierr=nf_put_vara_double (ncid(node), varid(i),
-     &                                          start1, count, buff)
                     endif
-                    if (ierr .ne. nf_noerr) then
-                      lvar=lenstr(varname(i))
-                      lstr=lenstr(ncname(node))
-                      write(*,'(/1x,A,I4,1x,3A/12x,3A/12x,A)')
+
+                    if (vartype(i) == nf_char) then
+                      ierr=nf_get_vara_text (ncsrc, i, start,
+     &                                            count, buff)
+                    elseif (vartype(i) == nf_byte) then
+                      ierr=nf_get_vara_int1   (ncsrc, i, start,
+     &                                           count, buff)
+                    elseif (vartype(i) == nf_short) then
+                      ierr=nf_get_vara_int2   (ncsrc, i, start,
+     &                                           count, buff)
+                    elseif (vartype(i) == nf_int) then
+                      ierr=nf_get_vara_int    (ncsrc, i, start,
+     &                                           count, buff)
+                    elseif (vartype(i) == nf_float) then
+                      ierr=nf_get_vara_real   (ncsrc, i, start,
+     &                                            count, buff)
+                    elseif (vartype(i) == nf_double) then
+                      ierr=nf_get_vara_double (ncsrc, i, start,
+     &                                           count, buff)
+                    endif
+
+                    if (ierr == nf_noerr) then
+                      if (vartype(i) == nf_char) then
+                        ierr=nf_put_vara_text (ncid(node),
+     &                       vid(i,node), start1, count, buff)
+                      elseif (vartype(i) == nf_byte) then
+                        ierr=nf_put_vara_int1 (ncid(node),
+     &                       vid(i,node), start1, count, buff)
+                      elseif (vartype(i) == nf_short) then
+                        ierr=nf_put_vara_int2 (ncid(node),
+     &                       vid(i,node), start1, count, buff)
+                      elseif (vartype(i) == nf_int) then
+                        ierr=nf_put_vara_int  (ncid(node),
+     &                       vid(i,node), start1, count, buff)
+                      elseif (vartype(i) == nf_float) then
+                        ierr=nf_put_vara_real (ncid(node),
+     &                       vid(i,node), start1, count, buff)
+                      elseif (vartype(i) == nf_double) then
+                        ierr=nf_put_vara_double (ncid(node),
+     &                       vid(i,node), start1, count, buff)
+                      endif
+                      if (ierr /= nf_noerr) then
+                        lvar=lenstr(varname(i))
+                        lstr=lenstr(ncname(node))
+                        write(*,'(/1x,A,I4,1x,3A/12x,3A/12x,A)')
      &                 '### ERROR: Cannot write time record =',  rec,
      &                 'of partitioned array ''', varname(i)(1:lvar),
      &                 '''',  'into netCDF file ''',
      &                 ncname(node)(1:lstr), '''.', nf_strerror(ierr)
-                      goto 97
-                    endif
-                  else
-                    lvar=lenstr(varname(i))
-                    write(*,'(/1x,A,I4,1x,3A/12x,3A/12x,A)')
+                        goto 97
+                      endif
+                    else
+                      lvar=lenstr(varname(i))
+                      write(*,'(/1x,A,I4,1x,3A/12x,3A/12x,A)')
      &                 '### ERROR: Cannot read time record =',   rec,
      &                 'of partitioned array ''', varname(i)(1:lvar),
      &                 '''', 'from netCDF file ''', src_name(1:lsrc),
      &                                     '''.',  nf_strerror(ierr)
-                    write(*,*) 'start =', start
-                    write(*,*) 'count =', count
-                    goto 97
+                      write(*,*) 'start =', start
+                      write(*,*) 'count =', count
+                      goto 97
+                    endif
                   endif
                 enddo       ! <-- node=0,nnodes-1
-              endif
-            endif       ! <--series(i) .or. rec.eq.1
+              endif       ! <-- part_switch
+            endif       ! <--series(i) .or. rec==1
           enddo       ! <-- i=1,nvars
         enddo       ! <-- rec=1,tsize
-!
+
 ! Close all netCDF files
-!
-  97    ierr=nf_close (ncsrc)
+
+  97    write(*,*) 'closing files...'
+        ierr=nf_close (ncsrc)
+        write(*,*) '...........input'
         do node=0,nnodes-1
          ierr=nf_close (ncid(node))
         enddo
-      enddo
+        write(*,*) '..........output'
+      enddo       ! <-- arg=3,narg
+
+#ifdef TIMING
+# ifdef __IFC
+      RUN_time=etime(CPU_time)
+# else
+      call etime(CPU_time, RUN_time)
+# endif
+      RUN_time=RUN_time-tstart
+
+      write(*,'(/3(1x,A,F11.2,1x))') 'CPU_time:  run =', RUN_time,
+     &                   'usr =', CPU_time(1),  'sys =', CPU_time(2)
+
+      if (clk_rate>0) then
+        nclk=3-nclk
+        call system_clock(iclk(nclk), clk_rate, clk_max)
+        inc_clk=iclk(nclk)-iclk(3-nclk)
+        if (inc_clk < 0) inc_clk=inc_clk+clk_max
+        net_clk=net_clk+inc_clk
+        net_gray_clk=net_gray_clk+inc_clk
+        GrayTime=net_gray_clk/dble(clk_rate)
+        write(*,'(14x,A,22x,F12.2,1x,A)') 'Gray time :',GrayTime,'sec'
+        write(*,'(47x,A/12x,A,11x,F12.2,1x,A/)') '------------------',
+     &   'Elapsed wall-clock time:',dble(net_clk)/dble(clk_rate),'sec'
+      endif
+#endif
       stop
       end
 
-
-!
 ! Setup horizontal dimensions and associated variables for each
 ! subdomain. The following code is extracted into a separate entity,
 ! which is mathematically consistent with the actual mpi_setup, and
-! compute_starts_and_counts.h.  In essense, this subroutine receives 
+! compute_starts_and_counts.h.  In essense, this subroutine receives
 ! four integer numbers: dimension of the grid (including boundary
 ! rows on the side) -- xi_rho,eta_rho; and number of partitions in
 ! each direction, NP_XI,NP_ETA.  These four are translated into
@@ -950,54 +1061,57 @@ c**               write(*,*) ' count:',    (count(j),j=1,vardims(i))
 ! the sizes of subarrays.  The other four variables, western_,
 ! eastern_, southern_, and northern_edge are logical flags to
 ! identify the proximity of side boundary on each side for each
-! subdomain. 
-!
-! Note that the code above --- the main part of "partit" --- is
-! written in such a way that it makes no assumption about the
-! structure of "processor grid" (the arrangement of subdomains
-! corresponding to MPI nodes relatively to the physical grid), but
-! rather relies exclussively on the eight variables defined in the
-! code below. 
-!
+! subdomain.
+
+! Note that the code above - the main part of "partit" - is written
+! in such a way that it makes no assumption about the structure of the
+! "processor grid" (the arrangement of subdomains corresponding to MPI
+! nodes relatively to the physical grid), but rather relies
+! exclussively on the eight variables defined in the code below.
+
 
       subroutine mpi_setup (NP_XI,NP_ETA, xi_rho,eta_rho,
      &               xi_start,xi_size, eta_start,eta_size,
      &                        western_edge, eastern_edge,
      &                       southern_edge, northern_edge)
       implicit none
-! in
-      integer NP_XI,NP_ETA, xi_rho,eta_rho
+      integer, intent(in) :: NP_XI,NP_ETA, xi_rho,eta_rho
 ! out
-      integer, dimension(0:NP_XI*NP_ETA-1) :: xi_start, xi_size,
-     &                                       eta_start, eta_size
-      logical, dimension(0:NP_XI*NP_ETA-1) :: western_edge,
-     &           eastern_edge, southern_edge, northern_edge
+      integer, intent(out), dimension(0:NP_XI*NP_ETA-1) ::
+     &              xi_start, xi_size, eta_start, eta_size
+      logical, intent(out), dimension(0:NP_XI*NP_ETA-1) ::
+     & western_edge, eastern_edge, southern_edge, northern_edge
 ! internal
       integer LLm,Lm, MMm,Mm, nnodes,node, inode,jnode,
      &        iwest,ieast,jsouth,jnorth, iSW_corn,jSW_corn,
      &                                   off_XI,off_ETA
 
-
-      nnodes=NP_XI*NP_ETA 
-      LLm=xi_rho-2                   !
-      MMm=eta_rho-2                  !
-      Lm=(LLm+NP_XI-1)/NP_XI         !
-      Mm=(MMm+NP_ETA-1)/NP_ETA       !
-
+      nnodes=NP_XI*NP_ETA
+      LLm=xi_rho-2           ; MMm=eta_rho-2                  
+      Lm=(LLm+NP_XI-1)/NP_XI ; Mm=(MMm+NP_ETA-1)/NP_ETA     
+#ifdef VERBOSE
+        write(*,'(4x,2A,2I5,4x,A,2I5)') 'mpi_setup: found grid ',
+     &          'sizes: LLm,MMm =',  LLm,MMm,  'Lm,Mm =', Lm,Mm
+#endif
 
 
       do node=0,nnodes-1
-        jnode=node/NP_XI             ! the following segment maps
-        inode=node-jnode*NP_XI       ! exactly onto "mpi_setup" in
-                                       ! the actual ROMS code
+# ifdef TRANSPOSED_MPI_NODE_ORDER
+        inode=node/NP_ETA        ! The following code segment 
+        jnode=node-inode*NP_ETA  ! maps exactly onto logic inside 
+# else
+        jnode=node/NP_XI         ! "mpi_setup" in the actual ROMS
+        inode=node-jnode*NP_XI   ! code.
+# endif
+
         off_XI=NP_XI*Lm-LLm
         iSW_corn=inode*Lm-off_XI/2
-        if (inode.eq.0) then
+        if (inode==0) then
           iwest=1+off_XI/2
         else
           iwest=1
         endif
-        if (inode.lt.NP_XI-1) then
+        if (inode<NP_XI-1) then
           ieast=Lm
         else
           ieast=Lm -(off_XI+1)/2
@@ -1005,12 +1119,12 @@ c**               write(*,*) ' count:',    (count(j),j=1,vardims(i))
 
         off_ETA=NP_ETA*Mm-MMm
         jSW_corn=jnode*Mm-off_ETA/2
-        if (jnode.eq.0) then
+        if (jnode==0) then
           jsouth=1+off_ETA/2
         else
           jsouth=1
         endif
-        if (jnode.lt.NP_ETA-1) then
+        if (jnode<NP_ETA-1) then
           jnorth=Mm
         else
           jnorth=Mm -(off_ETA+1)/2
@@ -1019,47 +1133,44 @@ c**               write(*,*) ' count:',    (count(j),j=1,vardims(i))
         xi_size(node)=ieast - iwest+1
         eta_size(node)=jnorth - jsouth+1
 
-        if (inode.eq.0) then                  !
+        if (inode==0) then
           xi_start(node)=iSW_corn+iwest
         else
           xi_start(node)=iSW_corn+iwest+1
         endif
 
-        if (jnode.eq.0) then
+        if (jnode==0) then
           eta_start(node)=jSW_corn+jsouth
         else
           eta_start(node)=jSW_corn+jsouth+1
         endif
 
-
-        if (inode.eq.0) then
+        if (inode==0) then
           western_edge(node)=.true.
         else
           western_edge(node)=.false.
         endif
-        if (inode.lt.NP_XI-1) then
-          eastern_edge(node)=.false. 
+        if (inode<NP_XI-1) then
+          eastern_edge(node)=.false.
         else
           eastern_edge(node)=.true.
         endif
-        if (jnode.eq.0) then
+        if (jnode==0) then
           southern_edge(node)=.true.
         else
           southern_edge(node)=.false.
         endif
-        if (jnode.lt.NP_ETA-1) then
-          northern_edge(node)=.false. 
+        if (jnode<NP_ETA-1) then
+          northern_edge(node)=.false.
         else
           northern_edge(node)=.true.
         endif
-      enddo   !--> discard iwest,ieast,jsouth,jnorth
-
 
 #ifdef VERBOSE
-        write(*,'(2(4x,A,2I5))') 'found grid sizes:  LLm,MMm =',
-     &              LLm,MMm,  'Lm,Mm =', Lm,Mm
+        write(*,'(A,3I5,2x,A,4(1x,L1))') 'node =', node, inode,jnode,
+     &                    'western,eastern,southern,northern_edge =',
+     &                      western_edge(node),   eastern_edge(node),
+     &                      southern_edge(node), northern_edge(node)
 #endif
-      return
-      end 
-
- 
+      enddo   !--> discard iwest,ieast,jsouth,jnorth
+      end
