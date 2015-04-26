@@ -2,7 +2,7 @@
 #if defined SOLVE3D &&( defined TCLIMATOLOGY ||( defined TNUDGING &&\
               defined T_FRC_BRY )) && !defined ANA_TCLIMA
 
- 
+
                                        ! Read climatology fields for
       subroutine get_tclima (ierr)     ! tracers from climatological
       implicit none                    ! file at appropriate time.
@@ -23,221 +23,162 @@
       logical var_found
       ! Array giving file in which data for each tracer are:
       character(len=80) clm_file_tr(NT)
-!
+
 ! Initialization: Check, whether climatological data file is already
-!================ opened, and if not, open it.  Find and save netCDF
+!---------------- opened, and if not, open it.  Find and save netCDF
 ! IDs for relevant variables.  Determine whether there is cycling to
 ! reuse the input data and find cycling period "tclm_cycle", set
 ! initial cycling index "tclm_ncycle" and record index "tclm_rec",
 ! time index "itclm" and both time record bounds to large negative
 ! artificial values, so that it will trigger the logic in reading
 ! part below.
-!
+
       ierr=nf_noerr
-      if (iic.eq.ntstart) then
-# ifdef MULT_CLIM_FILES
-         if (any(ncidclm.eq.-1)) then
-            do i = 1,nclimfiles
-               lstr=lenstr(clm_file(i))
-               ierr=nf_open (clm_file(i)(1:lstr), nf_nowrite, ncidclm_loc(i))
-               if (ierr .ne. nf_noerr) then
-                  write(stdout,'(/1x,4A/)') 'ERROR ',
-     &            'in get_tclima: can not open netCDF file ''',
-     &            clm_file(i)(1:lstr),   '''.'
-                  goto 99
-               end if
-            end do
-            ! For each tracer, check all the climatology files.
-            ! If no file contains values for tracer itrc, then set ncidclm(itrc)
-            ! to 0 (and a default value will be used).
-            do itrc=1,NT
-               var_found = .false.
-               lvar=lenstr(vname(1,indxT+itrc-1))
-               do i = 1,nclimfiles
-                  ierr=nf_inq_varid (ncidclm_loc(i),vname(1,indxT+itrc-1),ii)
-                  if (ierr .eq. nf_noerr) then
-                     ! Just to be sure: check also that the data times are there:
-                     ierr=nf_inq_varid (ncidclm_loc(i),tclm_name(itrc),ii)
-                     if (ierr .ne. nf_noerr) then
-                        lstr=lenstr(clm_file(i))
-                        write(stdout,'(/1x,4A/)') 'ERROR ',
-     &                  'in get_tclima: cannot find variable ',tclm_name(itrc),
-     &                  ' in file ',clm_file(i)(1:lstr)
-                        goto 99
-                     end if
-                     var_found = .true.
-                     lstr=lenstr(clm_file(i))
-                     ncidclm(itrc) = ncidclm_loc(i)
-                     clm_file_tr(itrc) = clm_file(i)(1:lstr)
-                     tclm_tid(itrc) = ii
-                     MPI_master_only write(stdout,'(6x,4a)') 
-     &                  'get_tclima -- found data for ',
-     &                  vname(1,indxT+itrc-1)(1:lvar),
-     &                  ' in file ',clm_file(i)(1:lstr)
-                     exit
-                  end if
-               end do ! i = 1,nclimfiles
-               ! If variable has not been found in any clim file, then we set
-               ! ncidclm(itrc) to zero and tclm_tid(itrc) to -1:
-               if (.not.var_found) then
-                  ncidclm(itrc) = 0
-                  clm_file_tr(itrc) = ''
-                  tclm_tid(itrc) = -1
-                  MPI_master_only write(stdout,'(6x,4a)') 
-     &                  'get_tclima -- ','NO data found for ',
-     &                  vname(1,indxT+itrc-1)(1:lvar),
-     &                  ' in climatology file(s). Using default value.'
-                  ierr = nf_noerr
-               end if
-            end do ! itrc=1,NT
-         end if  ! any(ncidclm.eq.-1)
-# else /* MULT_CLIM_FILES */
-        if (any(ncidclm.eq.-1)) then
-          lstr=lenstr(clm_file)
-          ierr = nf_open(clm_file(1:lstr), nf_nowrite, ncidclm_loc)
-          if (ierr .ne. nf_noerr) then
-             lstr=lenstr(clm_file)
-             write(stdout,'(/1x,4A/)') 'ERROR ',
-     &            'in get_tclima: can not open netCDF file ''',
-     &            clm_file(1:lstr),   '''.'
-             goto 99
-          end if
-          ! For each tracer, we check whether the climatology file contains
-          ! matching data:
-          do itrc=1,NT
-             var_found = .false.
-             lvar=lenstr(vname(1,indxT+itrc-1))
-             ierr=nf_inq_varid (ncidclm_loc,vname(1,indxT+itrc-1),ii)
-             if (ierr .eq. nf_noerr) then
-                ! Just to be sure: check also that the data times are there:
-                ierr=nf_inq_varid (ncidclm_loc,tclm_name(itrc),ii)
-                if (ierr .ne. nf_noerr) then
-                   lstr=lenstr(clm_file)
-                   write(stdout,'(/1x,4A/)') 'ERROR ',
-     &                  'in get_tclima: cannot find variable ',tclm_name(itrc),
-     &                  ' in file ',clm_file(1:lstr)
-                   goto 99
-                end if
-                var_found = .true.
-                lstr=lenstr(clm_file)
-                ncidclm(itrc) = ncidclm_loc
-                clm_file_tr(itrc) = clm_file(1:lstr)
-                tclm_tid(itrc) = ii
-                MPI_master_only write(stdout,'(6x,4a)') 
-     &                  'get_tclima -- found data for ',
-     &                  vname(1,indxT+itrc-1)(1:lvar),
-     &                  ' in file ',clm_file(1:lstr)
-             end if
-             ! If variable has not been found in any clim file, then we set
-             ! ncidclm(itrc) to zero and tclm_tid(itrc) to -1:
-             if (.not.var_found) then
-                ncidclm(itrc) = 0
-                clm_file_tr(itrc) = ''
-                tclm_tid(itrc) = -1
-                MPI_master_only write(stdout,'(6x,4a)') 
-     &             'get_tclima -- ','NO data found for ',
-     &              vname(1,indxT+itrc-1)(1:lvar),
-     &             ' in climatology file. Using default value.'
-                ierr = nf_noerr
-             end if
-          end do ! itrc=1,NT
-        end if  ! any(ncidclm.eq.-1)
-# endif /* MULT_CLIM_FILES */
-
-
+      lstr=lenstr(clm_file)
+      if (iic==ntstart) then
+        if (ncidclm==-1) then
+          ierr=nf_open (clm_file(1:lstr), nf_nowrite, ncidclm)
+          if (ierr /= nf_noerr) write(*,'(/1x,4A/)') '### ERROR: ',
+     &                          'get_tclima :: can not open file ''',
+     &                                     clm_file(1:lstr),   '''.'
+        endif
         do itrc=1,NT
-           if (ierr.eq.nf_noerr .and. tclm_tid(itrc).gt.0) then
+          if (ierr==nf_noerr) then
+            if (itrc==itemp) then
+              ierr=nf_inq_varid (ncidclm,'tclm_time',tclm_tid(itrc))
+              if (ierr /= nf_noerr) write(*,1) 'tclm_time',
+     &                                         itrc, clm_file(1:lstr)
+# ifdef SALINITY
+            elseif (itrc==isalt) then
+              ierr=nf_inq_varid (ncidclm, 'sclm_time',tclm_tid(itrc))
+              if (ierr /= nf_noerr) write(*,1) 'sclm_time',
+     &                                         itrc, clm_file(1:lstr)
+# endif
+# ifdef BIOLOGY
+            elseif (itrc==iNO3_) then
+              ierr=nf_inq_varid (ncidclm, 'no3_time', tclm_tid(itrc))
+              if (ierr /= nf_noerr) write(*,2) 'no3_time',
+     &                                         itrc, clm_file(1:lstr)
+            elseif (itrc==iNH4_) then
+              ierr=nf_inq_varid (ncidclm, 'nh4_time', tclm_tid(itrc))
+              if (ierr /= nf_noerr) write(*,2) 'nh4_time',
+     &                                         itrc, clm_file(1:lstr)
+            elseif (itrc==iChla) then
+              ierr=nf_inq_varid (ncidclm, 'chla_time',tclm_tid(itrc))
+              if (ierr /= nf_noerr) write(*,2)  'chla_time',
+     &                                         itrc, clm_file(1:lstr)
+            elseif (itrc==iPhyt) then
+              ierr=nf_inq_varid (ncidclm,'phyto_time',tclm_tid(itrc))
+              if (ierr /= nf_noerr) write(*,2) 'phyto_time',
+     &                                         itrc, clm_file(1:lstr)
+            elseif (itrc==iZoo_) then
+              ierr=nf_inq_varid (ncidclm, 'zoo_time', tclm_tid(itrc))
+              if (ierr /= nf_noerr) write(*,2) 'zoo_time',
+     &                                         itrc, clm_file(1:lstr)
+            elseif (itrc==iSDet) then
+              ierr=nf_inq_varid (ncidclm, 'sdet_time',tclm_tid(itrc))
+              if (ierr /= nf_noerr) write(*,2) 'sdet_time',
+     &                                         itrc, clm_file(1:lstr)
+            elseif (itrc==iLDet) then
+              ierr=nf_inq_varid (ncidclm, 'ldet_time',tclm_tid(itrc))
+              if (ierr /= nf_noerr) write(*,2) 'ldet_time',
+     &                                         itrc, clm_file(1:lstr)
+            endif
+            if (ierr/=nf_noerr .and. itrc>=iNO3_) then
+              ierr=nf_noerr
+              tclm_tid(itrc)=-1
+# endif
+            endif
+            if (ierr==nf_noerr .and. tclm_tid(itrc)>0) then
               lvar=lenstr(vname(1,indxT+itrc-1))
-              ierr=nf_inq_varid (ncidclm(itrc), vname(1,indxT+itrc-1)
+              ierr=nf_inq_varid (ncidclm, vname(1,indxT+itrc-1)
      &                                  (1:lvar), tclm_id(itrc))
-              if (ierr .eq. nf_noerr) then
-                call set_cycle (ncidclm(itrc),tclm_tid(itrc), nttclm(itrc),
+              if (ierr == nf_noerr) then
+                call set_cycle (ncidclm,tclm_tid(itrc), nttclm(itrc),
      &                          tclm_cycle(itrc),  tclm_ncycle(itrc),
      &                                         tclm_rec(itrc), ierr)
-
                 ittclm(itrc)=1
                 tclm_time(1,itrc)=-1.E+20
                 tclm_time(2,itrc)=-1.E+20
               else
-                lstr=lenstr(clm_file_tr(itrc))
-                write(stdout,1) vname(1,indxT+itrc-1)(1:lvar),
-     &                          itrc, clm_file_tr(itrc)(1:lstr)
+                write(*,1) vname(1,indxT+itrc-1)(1:lvar),
+     &                                   itrc, clm_file(1:lstr)
               endif
-           endif ! if (ierr.eq.nf_noerr .and. tclm_tid(itrc).gt.0)
-        enddo ! do itrc=1,NT
-      endif ! if (iic.eq.ntstart)
+            endif
+          endif
+        enddo
+      endif
+  1   format(1x,'### ERROR: get_tclima :: Cannot find variable ''',
+     &             A, ''', itrc =', I3,1x, 'in file ''', A, '''.')
+# ifdef BIOLOGY
+  2   format(1x,  'WARNING: get_tclima :: Cannot find variable ''',
+     &          A, ''', itrc =', I3, 1x, 'in file ''', A,'''.'/12x,
+     &        'Setting analytical climatology for this variable.')
+# endif
 
-  1   format(/1x,'ERROR in get_tclima: cannot find variable ''',
-     &    A, ''', itrc =',I3/7x, 'in netCDF file ''', A, '''.' /)
-!
-! Read data from the file:  Check if model time is bounded by past
-!===== ==== ==== === =====  and future data times: if not, increment
+! Read data from the file:   Check if model time is bounded by past
+!----- ---- ---- --- -----   and future data times: if not, increment
 ! record and cycling indices, flip time index and read a new portion
 ! of data. Repeat until model time falls between the two data times.
-!
+
       do itrc=1,NT
-        if (tclm_tid(itrc).gt.0) then
-          do while (tclm_time(ittclm(itrc),itrc).lt.time+0.5*dt .and.
-     &                                              ierr.eq.nf_noerr)
+        if (tclm_tid(itrc)>0) then
+          do while (tclm_time(ittclm(itrc),itrc)<time+0.5*dt
+     &                                   .and. ierr==nf_noerr)
             call advance_cycle (tclm_cycle(itrc),  nttclm(itrc),
      &                 tclm_ncycle(itrc), tclm_rec(itrc), ierr)
-            if (ierr.eq.nf_noerr) then
-               ierr=nf_get_var1_FTYPE(ncidclm(itrc), tclm_tid(itrc),
-     &            tclm_rec(itrc), cff)
-               if (ierr.eq.nf_noerr) then
-                  ittclm(itrc)=min(3-ittclm(itrc),nttclm(itrc))
-                  tclm_time(ittclm(itrc),itrc)=cff*day2sec
+            if (ierr==nf_noerr) then
+              ierr=nf_get_var1_FTYPE(ncidclm, tclm_tid(itrc),
+     &                                  tclm_rec(itrc), cff)
+              if (ierr==nf_noerr) then
+                ittclm(itrc)=min(3-ittclm(itrc),nttclm(itrc))
+                tclm_time(ittclm(itrc),itrc)=cff*day2sec
      &               + tclm_cycle(itrc)*tclm_ncycle(itrc)
 
-                  ierr=nf_fread (tclima(START_2D_ARRAY,1,ittclm(itrc),
-     &                                itrc), ncidclm(itrc), tclm_id(itrc),
+                ierr=nf_fread (tclima(START_2D_ARRAY,1,ittclm(itrc),
+     &                                itrc), ncidclm, tclm_id(itrc),
      &                                      tclm_rec(itrc), r3dvar)
-                  if (ierr.eq.nf_noerr) then
-                    MPI_master_only write(stdout,
-     &              '(6x,A,I3,1x,A,F12.4,2(1x,A,I4))')
-     &              'get_tclima -- read climatology for tracer', itrc,
-     &              'tclm_time =', cff,  'rec =', 
-     &              tclm_rec(itrc) MYID
-                    if (nttclm(itrc).eq.1) goto 30
-                  else
-                    lvar=lenstr(vname(1,indxT+itrc-1))
-                    write(stdout,4) vname(1,indxT+itrc-1)(1:lvar),
-     &                                     itrc, tclm_rec(itrc)
+                if (ierr==nf_noerr) then
+#ifdef MPI_SILENT_MODE
+                  if (mynode==0) then
+#endif
+                    write(*,'(3x,A,I2,1x,A,F12.4,2(1x,A,I4))')
+     &             'get_tclima :: read climatology for tracer', itrc,
+     &             'tclm_time =', cff,  'rec =', tclm_rec(itrc) MYID
+# ifdef MPI_SILENT_MODE
                   endif
-               else
-                  write(stdout,4) 'Xclm_time', itrc, tclm_rec(itrc)
-               endif
+# endif
+                  IF (nttclm(itrc)==1) goto 3
+                else
+                  lvar=lenstr(vname(1,indxT+itrc-1))
+                  write(*,4) vname(1,indxT+itrc-1)(1:lvar),
+     &                                     itrc, tclm_rec(itrc)
+                endif
+              else
+                write(*,4) 'Xclm_time', itrc, tclm_rec(itrc)
+              endif
             else
-              write(stdout,'(/1x,A,I3,1x,A,I3/7x,3A/7x,2(A,G12.4)/)')
-     &       'ERROR in get_tclima: requested time record ',
+              write(*,'(/1x,A,I3,1x,A,I3/7x,3A/7x,2(A,G12.4)/)')
+     &       '### ERROR: get_tclima :: requested time record ',
      &        tclm_rec(itrc), 'exeeds the last record', nttclm(itrc),
      &       'available in netCDF file ''',  clm_file(1:lstr),  '''',
      &       'tdays = ', tdays,' but the last available tclm_time =',
      &                          tclm_time(ittclm(itrc),itrc)*sec2day
             endif
-          enddo
+          enddo  !<-- while()
         endif
- 30   continue
-      enddo
-      return
-
-  4   format(/1x,'ERROR in get_tclima: cannot read variable ''',
-     &                  A, ''', itrc =', I3, ' for record', I3/)
-
-  5   format(/1x,'ERROR in get_tclima: cannot open file ''',
-     &                  A, '''.'/)
-
-
- 99   ierr = nf_noerr + 1
-
+  3    continue
+      enddo  !<-- itrc
+  4   format(1x,'### ERROR: get_tclima :: Cannot read variable ''',
+     &                     A, ''', itrc =', I3, ' for record', I3)
       return
       end
- 
- 
+
+
       subroutine set_tclima_tile (istr,iend,jstr,jend, ierr)
-!
+
 ! Set-up tracer climatology for current tile.
-!
+
       implicit none
       integer istr,iend,jstr,jend, ierr, itrc,i,j,k, it1,it2
       real cff, cff1, cff2
@@ -257,9 +198,9 @@
 #  include "ncvars.h"
 #  include "sources.h"
 # endif
-!
+
 # include "compute_extended_bounds.h"
-!
+
 ! Set coefficients for interpolation. Check that for the next time
 ! step [when time=time+dt] both weights will still be positive, and
 ! if not, set synchro_flag to signal that new data should be read
@@ -267,18 +208,19 @@
 ! After that either load time-invariant data, or interpolate in time
 ! or complain about error and signal to quit, if interpolation is
 ! needed, but not possible.
-!
+
       do itrc=1,NT
-        if (tclm_tid(itrc).gt.0) then
+        if (tclm_tid(itrc)>0) then
           it1=3-ittclm(itrc)
           it2=ittclm(itrc)
-          cff1=tclm_time(it2,itrc)-time
-          cff2=time-tclm_time(it1,itrc)
+          cff=time+0.5*dt
+          cff1=tclm_time(it2,itrc)-cff
+          cff2=cff-tclm_time(it1,itrc)
 
-          if (cff1.lt.dt) synchro_flag=.true.
- 
-          if (nttclm(itrc).eq.1) then         ! Load time-invariant
-            if (iic.eq.0) then                ! tracer climatology.
+          if (cff1<dt .and. nttclm(itrc)>1) synchro_flag=.true.
+
+          if (nttclm(itrc)==1) then         ! Load time-invariant
+            if (iic==0) then                ! tracer climatology.
               do k=1,N
                 do j=jstrR,jendR
                   do i=istrR,iendR
@@ -287,24 +229,28 @@
                 enddo
               enddo
             endif
-          elseif (cff1.ge.0. .and. cff2.ge.0.) then
-            cff=1./(cff1+cff2)                        ! Interpolate
-            cff1=cff1*cff                             ! tracer
-            cff2=cff2*cff                             ! climatology
-            do k=1,N                                  ! climatology
-              do j=jstrR,jendR                        ! in time.
+          else
+            cff=1./(cff1+cff2)               ! Interpolate tracer
+            cff1=cff1*cff                    ! climatology in time.
+            cff2=cff2*cff
+            do k=1,N
+              do j=jstrR,jendR
                 do i=istrR,iendR
                   tclm(i,j,k,itrc)=cff1*tclima(i,j,k,it1,itrc)
      &                            +cff2*tclima(i,j,k,it2,itrc)
                 enddo
               enddo
             enddo
-          elseif (ZEROTH_TILE) then
-            write(stdout,'(/2A/3(1x,A,F16.10)/)') ' SET_TCLIMA_TILE',
-     &         ' --  model time is outside bounds of ''tclm_time''.',
-     &         'TCLM_TSTART=', tclm_time(it1,itrc)*sec2day, 'TDAYS=',
-     &          tdays, 'TCLM_TEND=',     tclm_time(it2,itrc)*sec2day
-            ierr=ierr+1
+            if (cff1<0. .or. cff2<0.) then
+              if (ZEROTH_TILE) then
+                write(*,'(/1x,3A/3(1x,A,F16.10)/)')   '### WARNING: ',
+     &            'set_tclima_tile :: Current model time is outside ',
+     &            'bounds of ''tclm_time''.', 'tclm_tstart =',
+     &             tclm_time(it1,itrc)*sec2day, 'tdays =',      tdays,
+     &            'tclm_tend =', tclm_time(it2,itrc)*sec2day
+              endif
+              ierr=ierr+1
+            endif
           endif
 
       else if (FIRST_TIME_STEP) then  ! no data found for tracer itrc
@@ -541,7 +487,7 @@
               endif ! .not. Age(is)
 # endif /* PASSIVE_TRACER && AGE_DYE_TRACER */
       endif   ! <-- itrc .eq. itemp
-      endif   ! <-- tclm_tid(itrc).gt.0
+        endif   ! <-- tclm_tid(itrc)>0
       enddo   ! <-- itrc
       return
       end
