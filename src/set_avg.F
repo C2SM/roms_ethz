@@ -1,9 +1,9 @@
 #include "cppdefs.h"
 #ifdef AVERAGES
-!
+
 ! We are using CPP to produce 2 similar routines for regular 3 and 2D averages
 ! (set_avg) and slice averages (set_slavg) out of a common source files.
-!
+
 # ifndef AVRSLICE
 #  define set_AVR set_avg
 #  define set_AVR_tile set_avg_tile
@@ -105,41 +105,45 @@
 #  endif /* BIOLOGY_BEC2 && BEC2_DIAG */
 # endif
 
- 
       subroutine set_AVR (tile)
       implicit none
       integer tile
 # include "param.h"
 # include "compute_tile_bounds.h"
-      call set_AVR_tile (istr,iend,jstr,jend,tile)
+# ifdef SOLVE3D
+      if (wrtavg(indxW)) then
+        call wvlcty_tile (istr,iend,jstr,jend, work, A2d(1,1),
+     &                                   A2d(1,2), A2d(1,3))
+      endif
+# endif
+      call set_AVR_tile (istr,iend,jstr,jend)
       return
       end
- 
-      subroutine set_AVR_tile (istr,iend,jstr,jend,tile)
-!
+
+      subroutine set_AVR_tile (istr,iend,jstr,jend)
+
 ! Compute time-averaged fields within a tile.
 ! ------- ------------- ------ ------ - -----
-! Because of syncronization issues, the delayed mode averaging
-! procedure is used. This procedure implies that all fields to be
-! averaged are sampled during the next time step, rather than at
-! the end of the time step when they were computed.
+! Because of the syncronization issues, a delayed-mode procedure is
+! used for averaging.  This implies that all fields to be averaged are
+! sampled during the next time step, rather than at the end of the time
+! step when they are computed.
 !
-! Thought this algorithm results in somewhat awkward controlling
-! logic it has the advantage that that all fields to be sampled
-! correspond to exactly the same time, which is time step "n".
-! Particularly, this is done this way because vertical velocity
-! corresponding to the newly computed horizontal velocities
-! becomes available only during the following time step.
-! The same applies to the density field.
+! Although this algorithm results in somewhat awkward controlling logic
+! it has the advantage that that all fields to be sampled correspond to
+! exactly the same time, which is time step "n".  Particularly, this is
+! done this way because vertical velocity corresponding to the newly
+! computed horizontal velocities becomes available only during the
+! following time step. The same applies to the density field.
 !
 ! The algorithm consists of three logical blocks: (1) initialization
-! of the averages arrays: when mod(iic-1,navg).eq.1 the target arrays
-! are set to the first contribution; (2) accumulation of averaged
-! data, when mod(iic-1,navg).gt.1; and (3) adding the last
-! contribution and scaling.
-!
+! of the average arrays: when  mod(iic-1,navg)==1  the target arrays
+! are set to the first contribution; (2) accumulation of averaged data,
+! when mod(iic-1,navg)>1; and (3) adding the last contribution and
+! scaling.
+
       implicit none
-      integer istr,iend,jstr,jend, i,j, tile
+      integer istr,iend,jstr,jend, i,j
 # ifdef SOLVE3D
      &                       , itrc, k
 # endif
@@ -153,6 +157,10 @@
 # include "eos_vars.h"
 # include "mixing.h"
 # include "averages.h"
+# ifdef SOLVE3D
+#  include "work.h"
+# endif
+
 # ifdef BIOLOGY_NPZDOC
 #  include "bgcflux.h"
 #  ifdef PCO2AIR_FORCING
@@ -605,36 +613,6 @@
               enddo
             ENDKLOOP
           endif
-#  ifdef KPP_DIAGNOSE
-          if (wrtAVR(indxRich)) then
-            KLOOP(0)
-              do j=jstrR,jendR
-                do i=istrR,iendR
-                  rich_AVR(i,j,k)=rich_AVR(i,j,k)+Rich(i,j,KLEVEL)
-                enddo
-              enddo
-            ENDKLOOP
-          endif
-          if (wrtAVR(indxRichN)) then
-            KLOOP(0)
-              do j=jstrR,jendR
-                do i=istrR,iendR
-                  richN_AVR(i,j,k)=richN_AVR(i,j,k)+RichN(i,j,KLEVEL)
-                enddo
-              enddo
-            ENDKLOOP
-          endif
-          if (wrtAVR(indxSwrF)) then
-            KLOOP(0)
-              do j=jstrR,jendR
-                do i=istrR,iendR
-                  swr_frac_AVR(i,j,k)=swr_frac_AVR(i,j,k)
-     &                                +swr_frac(i,j,KLEVEL)
-                enddo
-              enddo
-            ENDKLOOP
-          endif
-#  endif /* KPP_DIAGNOSE */
 #  ifdef SALINITY
           if (wrtAVR(indxAks)) then
             KLOOP(0)
