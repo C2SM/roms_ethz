@@ -6,12 +6,19 @@
 ! tsms    time of surface momentum stresses.
 ! sustrg  two-time level gridded data for XI- anf ETA-componets
 ! svstrg  of wind stess (normally assumed to be in [Newton/m^2].
-!
+
       real sustr(GLOBAL_2D_ARRAY)
 CSDISTRIBUTE_RESHAPE sustr(BLOCK_PATTERN) BLOCK_CLAUSE
       real svstr(GLOBAL_2D_ARRAY)
 CSDISTRIBUTE_RESHAPE svstr(BLOCK_PATTERN) BLOCK_CLAUSE
       common /forces_sustr/sustr /forces_svstr/svstr
+#ifdef WIND_STRESS_AMP
+      real amptau(GLOBAL_2D_ARRAY)
+CSDISTRIBUTE_RESHAPE amptau(BLOCK_PATTERN) BLOCK_CLAUSE
+      common /forces_amptau/ amptau
+#endif
+
+
 #ifndef ANA_SMFLUX
 # if defined SMFLUX_DATA || defined ALL_DATA
 #  undef SMFLUX_DATA
@@ -20,20 +27,33 @@ CSDISTRIBUTE_RESHAPE sustrg(BLOCK_PATTERN,*) BLOCK_CLAUSE
       real svstrg(GLOBAL_2D_ARRAY,2)
 CSDISTRIBUTE_RESHAPE svstrg(BLOCK_PATTERN,*) BLOCK_CLAUSE
       common /smsdat_sustrg/sustrg /smsdat_svstrg/svstrg
+#  ifdef WIND_STRESS_AMP
+      real amptaug(GLOBAL_2D_ARRAY,2)
+CSDISTRIBUTE_RESHAPE amptau(BLOCK_PATTERN) BLOCK_CLAUSE
+      common /forces_amptaug/ amptaug
+#  endif
  
       real sms_cycle, sms_time(2)
-      integer sms_ncycle,  sms_rec,  itsms, ntsms,
-     &        sms_file_id, sms_tid,  susid, svsid
-      common /smsdat/ sms_cycle, sms_time,
-     &        sms_ncycle,  sms_rec,  itsms, ntsms,
-     &        sms_file_id, sms_tid,  susid, svsid
- 
+      integer sms_ncycle,   sms_rec,   itsms, ntsms,
+     &        sms_file_id,  sms_tid,   susid, svsid
+      common /smsdat/ sms_cycle,       sms_time,
+     &        sms_ncycle,   sms_rec,   itsms, ntsms,
+     &        sms_file_id,  sms_tid,   susid, svsid
+
+#  ifdef WIND_STRESS_AMP
+      real atau_cycle, atau_time(2)
+      integer atau_ncycle,  atau_rec,  itatau, ntatau,
+     &        atau_file_id, atau_tid,  atauid
+      common /smsdat/ atau_cycle,      atau_time,
+     &        atau_ncycle,  atau_rec,  itatau, ntatau,
+     &        atau_file_id, atau_tid,  atauid
+#  endif
 # endif /* SMFLUX_DATA */
 #endif /* !ANA_SMFLUX */
 
 
 #ifdef SOLVE3D
-!
+
 ! Surface tracer fluxes:
 !======== ====== =======
 !  stflx   kinematic surface fluxes of tracer type variables at
@@ -41,7 +61,7 @@ CSDISTRIBUTE_RESHAPE svstrg(BLOCK_PATTERN,*) BLOCK_CLAUSE
 !          - temperature; [PSU m/s] - salinity.
 !  stflxg  two-time level surface tracer flux grided data.
 !  tstflx  time of surface tracer flux.
-!
+
       real stflx(GLOBAL_2D_ARRAY,NT)
 CSDISTRIBUTE_RESHAPE stflx(BLOCK_PATTERN,*) BLOCK_CLAUSE
       common /forces_stflx/stflx
@@ -67,14 +87,14 @@ CSDISTRIBUTE_RESHAPE stflxg(BLOCK_PATTERN,*,*) BLOCK_CLAUSE
 # if defined QCORRECTION && !defined ANA_SST
 #  if defined SST_DATA || defined ALL_DATA
 #   undef SST_DATA
-!
+
 ! Heat flux correction:
 !===== ==== ===========
 ! sstg    two-time-level  grided data for sea surface temperature
 ! dqdtg   SST[deg C] and net surface heat flux sensitivity to SST
 !         dQdSST [Watts/m^2/Celsius]
 ! tsst    time of sea surface temperature data.
-!
+
       real sstg(GLOBAL_2D_ARRAY,2)
 CSDISTRIBUTE_RESHAPE  sstg(BLOCK_PATTERN,*) BLOCK_CLAUSE
       real dqdtg(GLOBAL_2D_ARRAY,2)
@@ -197,7 +217,7 @@ CSDISTRIBUTE_RESHAPE  din_riverg(BLOCK_PATTERN,*) BLOCK_CLAUSE
 !              in [degC m/s] at horizontal RHO-points
 ! srflxg  two-time-level grided data for surface [Watts/m^2]
 ! tsrflx  time of solar shortwave radiation flux.
-!
+
       real srflx(GLOBAL_2D_ARRAY)
 #if defined DAILYPAR_PHOTOINHIBITION || defined DAILYPAR_BEC
       real srflx_dailyavg(GLOBAL_2D_ARRAY)
@@ -227,9 +247,9 @@ CSDISTRIBUTE_RESHAPE srflxg(BLOCK_PATTERN,*) BLOCK_CLAUSE
 # endif /* !ANA_SRFLUX */
 # if defined SG_BBL96 && !defined ANA_WWAVE
 #  if defined WWAVE_DATA || defined ALL_DATA
-!
+
 !  WIND INDUCED WAVES:
-!--------------------------------------------------------------------
+!----------------------------------------------------------
 !  wwag  |  Two-time-level       | wave amplitude [m]
 !  wwdg  |  gridded data         | wave direction [radians]
 !  wwpg  |  for wind induced     ! wave period [s]
@@ -239,7 +259,7 @@ CSDISTRIBUTE_RESHAPE srflxg(BLOCK_PATTERN,*) BLOCK_CLAUSE
 !  wwpp  |  for wind induced     ! wave period [s]
 !
 !  tww      Time of wind induced waves.
-!
+
       real wwag(GLOBAL_2D_ARRAY,2)
 CSDISTRIBUTE_RESHAPE wwag(BLOCK_PATTERN,*) BLOCK_CLAUSE
       real wwdg(GLOBAL_2D_ARRAY,2)
@@ -262,5 +282,3 @@ CSDISTRIBUTE_RESHAPE wwpg(BLOCK_PATTERN,*) BLOCK_CLAUSE
 #  endif /* WWAVE_DATA */
 # endif /* SG_BBL96 && !ANA_WWAVE */
 #endif /* SOLVE3D */
- 
- 

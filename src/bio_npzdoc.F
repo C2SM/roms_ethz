@@ -1,58 +1,7 @@
-!   $Log: biology.F,v $
-!   Revision 1.11  2003/01/24 00:52:58  frenzel
-!   Optionally (if DAILYPAR_PHOTOINHIBITION is defined) use daily PAR instead of
-!   instantaneous PAR to compute photoinhibition of nitrification.
-!   Fixed bug in photoinhibition term.
-!
-!   Revision 1.10  2003/01/23 21:58:53  frenzel
-!   Added CaCO3 cycling and simple sediment biology with SedOrgN and SedOrgC.
-!
-!   Revision 1.9  2002/08/27 00:14:11  frenzel
-!   Coupled wind speed calculation to surface stress, and corrected a minor
-!   bug in the calculation of total silicate.
-!
-!   Revision 1.8  2002/06/21 20:46:48  frenzel
-!   Introduced new option: If PAR_DIRECT_INPUT is defined, PAR will be read
-!   directly from forcings input file. It will not be calculated from SWrad.
-!
-!   Revision 1.7  2002/04/19 00:40:36  frenzel
-!   Bug fix: Light inhibition of nitrification did not work as intended.
-!   Modified some parameters.
-!
-!   Revision 1.6  2002/02/11 18:20:38  frenzel
-!   One more bug fix - the factor ITERMAX was not yet applied to the sinking
-!   flux into the sediment.
-!
-!   Revision 1.5  2002/02/06 19:02:56  frenzel
-!   Two bug fixes: All fluxes were a factor ITERMAX too high - this affected
-!   only the flux analysis, not the concentrations.
-!   The vertical sinking fluxes were calculated incorrectly.
-!
-!   Revision 1.4  2002/01/16 20:16:36  frenzel
-!   Introduced analysis and output of biogeochemical and physical fluxes.
-!   Introduced the output of PAR and incoming PAR.
-!
-!   Revision 1.3  2001/10/19 22:45:39  frenzel
-!   Added surface pCO2 output to the history netcdf file.
-!
-!   Revision 1.2  2001/10/19 21:23:31  frenzel
-!   Introduction of the carbon ecosystem model.
-!
-!   Revision 1.1.1.1  2001/10/18 21:25:02  frenzel
-!   The starting point for the introduction of the carbon system:
-!   Code from Patrick Marchesiello, with some modifications.
-!
-!
-!   Revision 1.2  2001/08/24 20:53:56  frenzel
-!   Elimination of chla_c, correction of missing factors "CN_P*12.".
-!
-!   Revision 1.1.1.1  2001/06/01 19:59:20  frenzel
-!   ROMS3D code from Patrick Marchesiello
-!
 #include "cppdefs.h"
 #ifdef BIOLOGY_NPZDOC
 
-      subroutine biology_tile (Istr,Iend,Jstr,Jend)
+      subroutine biology_tile (istr,iend,jstr,jend)
 !
 ! Compute biological forcing functions as defined by the
 ! Moisan et al. [in prep.]
@@ -83,7 +32,7 @@
 !
 
       implicit none
-      integer Istr,Iend,Jstr,Jend
+      integer istr,iend,jstr,jend
 #include "param.h"
 #include "grid.h"
 #include "ocean2d.h"
@@ -274,18 +223,18 @@
 !
 
 #  ifdef EW_PERIODIC
-#   define I_RANGE Istr,Iend
-#   define I_MAX Iend
+#   define I_RANGE istr,iend
+#   define I_MAX iend
 #  else
-#   define I_RANGE IstrR,IendR
-#   define I_MAX IendR
+#   define I_RANGE istrR,iendR
+#   define I_MAX iendR
 #  endif
 #  ifdef NS_PERIODIC
-#   define J_RANGE Jstr,Jend
-#   define J_MAX Jend
+#   define J_RANGE jstr,jend
+#   define J_MAX jend
 #  else
-#   define J_RANGE JstrR,JendR
-#   define J_MAX JendR
+#   define J_RANGE jstrR,jendR
+#   define J_MAX jendR
 #  endif
 
       j_loop: do j=J_RANGE
