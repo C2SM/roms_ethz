@@ -1,15 +1,22 @@
-# Ignore sources and binaries generated during compilation
+# Ignore binaries and 
+# files enerated by compilation
 *.f
 *.o
 *~
 *.mod
 *.mod.f90
 *.for
+# machine-generated source files:
 check_srcs.F
 check_switches1.F
+setup_kwds.F
+# binaries
 checkkwds
 cppcheck
 mpc
 roms
-setup_kwds.F
 srcscheck
+nccp
+nccpstruct
+redefs
+
