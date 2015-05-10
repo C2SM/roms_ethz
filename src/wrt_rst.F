@@ -22,6 +22,10 @@
 #endif
 
 #include "netcdf.inc"
+#if defined BGC_FLUX_ANALYSIS || defined SEDIMENT_BIOLOGY
+# include "bgcflux.h"
+# include "ncroms_bgcflux.h"
+#endif
 
 #if defined FLOATS
 # include "ncvars_floats.h"
@@ -80,6 +84,24 @@
      &       'rec =', record, nf_strerror(ierr) MYID
         goto 99                                           !--> ERROR
       endif
+#if defined BGC_FLUX_ANALYSIS || defined PHYS_FLUX_ANALYSIS
+! Time record numbers for flux analysis:
+      ! default values: 0; replace where appropriate
+      ibuff = (/0, 0, 0, 0/)
+# ifdef PHYS_FLUX_ANALYSIS
+      ibuff(3) = nrec_phys_flux_his
+#  ifdef AVERAGES
+      ibuff(4) = nrec_phys_flux_avg
+#  endif
+# endif
+! start and count values are the same as for time_step
+      ierr=nf_put_vara_int (ncidrst, rstTstepFA, start, count, ibuff)
+      if (ierr .ne. nf_noerr) then
+        write(stdout,1) 'fa_time_step', record, ierr
+     &                   MYID
+        goto 99                                           !--> ERROR
+      endif
+#endif /* BGC_FLUX_ANALYSIS || PHYS_FLUX_ANALYSIS */
 
 ! Time.
 

@@ -184,6 +184,16 @@
         ierr=nf_put_att_text (ncrst, rstTstep, 'long_name', 48,
      &       'time step and record numbers from initialization')
 
+#if defined BGC_FLUX_ANALYSIS || defined PHYS_FLUX_ANALYSIS
+!
+! Time record numbers for flux analysis:
+!
+        ierr=nf_def_var (ncrst, 'fa_time_step', nf_int, 2, auxil,
+     &                                                 rstTstepFA)
+        ierr=nf_put_att_text (ncrst, rstTstepFA, 'long_name', 57,
+     &  'time record numbers from initialization for flux analysis')
+#endif /* BGC_FLUX_ANALYSIS || PHYS_FLUX_ANALYSIS */
+!
 ! Time.
 
         lvar=lenstr(vname(1,indxTime))
@@ -484,6 +494,16 @@
           write(*,1) 'time_step', rstname(1:lrst)
           goto 99                                         !--> ERROR
         endif
+#if defined BGC_FLUX_ANALYSIS || defined PHYS_FLUX_ANALYSIS
+!
+! Time record numbers for flux analysis:
+!
+        ierr=nf_inq_varid (ncrst, 'fa_time_step', rstTstepFA)
+        if (ierr .ne. nf_noerr) then
+          write(stdout,1) 'fa_time_step', rstname(1:lstr)
+          goto 99                                         !--> ERROR
+        endif
+#endif /* BGC_FLUX_ANALYSIS || PHYS_FLUX_ANALYSIS */
 
 ! Time.
 

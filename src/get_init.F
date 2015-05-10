@@ -356,6 +356,48 @@ c**      start_time=start_time - 20.*360. *day2sec
      &   'fields for time =', start_time*sec2day, 'record =', record
 #endif
 
+#if defined BGC_FLUX_ANALYSIS || defined PHYS_FLUX_ANALYSIS
+      ierr=nf_inq_varid (ncid, 'fa_time_step', varid)
+      if (ierr .eq. nf_noerr) then
+        start(1)=1
+        start(2)=record
+        count(1)=4
+        count(2)=1
+        ierr=nf_get_vara_int (ncid, varid, start, count, ibuff)
+        if (ierr .eq. nf_noerr) then
+# ifdef BGC_FLUX_ANALYSIS
+          nrec_bgc_flux_his=ibuff(1)
+          write(stdout,'(6x,A,I4)')
+     &         'GET_INITIAL: bgc_flux_his rec =',
+     &         nrec_bgc_flux_his
+#  ifdef AVERAGES
+          nrec_bgc_flux_avg=ibuff(2)
+          write(stdout,'(6x,A,I4)')
+     &         'GET_INITIAL: bgc_flux_avg rec =',
+     &         nrec_bgc_flux_avg
+#  endif
+# endif
+# ifdef PHYS_FLUX_ANALYSIS
+          nrec_phys_flux_his=ibuff(3)
+          write(stdout,'(6x,A,I4)')
+     &         'GET_INITIAL: phys_flux_his rec =',
+     &         nrec_phys_flux_his
+#  ifdef AVERAGES
+          nrec_phys_flux_avg=ibuff(4)
+          write(stdout,'(6x,A,I4)')
+     &         'GET_INITIAL: phys_flux_avg rec =',
+     &         nrec_phys_flux_avg
+#  endif
+# endif
+        else
+          write(stdout,'(/1x,2A/)') 'GET_INITIAL WARNING: Cannot ',
+     &          'read record indices for flux analysis.'
+!!!          goto 99                                         !--> ERROR
+        endif
+! no "else" needed, initialization to 0 in init_scalars...F routines
+      endif
+#endif /* BGC_FLUX_ANALYSIS || PHYS_FLUX_ANALYSIS */
+
 ! Read initial fields:
 !---------------------
 

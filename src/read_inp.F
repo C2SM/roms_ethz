@@ -13,10 +13,18 @@
 #ifdef FLOATS
 # include "ncvars_floats.h"
 #endif
+#ifdef BGC_FLUX_ANALYSIS
+# include "bgcflux.h"
+# include "ncroms_bgcflux.h"
+#endif
+#ifdef PHYS_FLUX_ANALYSIS
+# include "physflux.h"
+# include "ncroms_physflux.h"
+#endif
 #ifdef MPI
 # include "mpif.h"
 #endif
-      character(len=64) fname
+      character(len=256) fname
       character(len=32) keyword
       character(len=3), parameter :: end_signal='end'
       integer, parameter :: kwsize=32, testunit=40, input=15
@@ -711,6 +719,126 @@ c--      fname='roms.in.US_West'
 #  endif
 # endif /* SOLVE3D */
 #endif /* AVERAGES */
+
+#ifdef BGC_FLUX_ANALYSIS
+!
+! File name for histories of biogeochemical fluxes
+!
+        elseif (keyword(1:kwlen).eq.'bgc_flux_histories') then
+          call cancel_kwd (keyword(1:kwlen), ierr)
+          read(input,*,err=95) new_bgc_flux_his,
+     &         n_bgc_flux_his, nrpf_bgc_flux_his
+          read(input,'(A)',err=95) fname
+#  ifdef SCRATCH_DIR
+          fname=trim(scr_dir)/ /trim(fname)
+#  endif
+          lstr=lenstr(fname)
+# if defined MPI && defined PARALLEL_FILES && !defined JOINED_BGC_FLUX_HIS
+          call insert_node (fname, lstr, mynode, NNODES, ierr)
+# endif
+          bgc_flux_his_name=fname(1:lstr)
+          MPI_master_only write(*,
+     &           '(I10,2x,A,1x,A/32x,A/,6x,A,2x,A,1x,A,I3)')
+     &      n_bgc_flux_his,   
+     &         'n_bgc_flux_his     Number of timesteps between',
+     &     'writing of',
+     &         ' biogeochemical fluxes into file.',
+     &     'Biogeochemical flux file:', 
+     &         bgc_flux_his_name(1:lstr),
+     &     'rec/file =', nrpf_bgc_flux_his
+
+# ifdef AVERAGES
+!
+! File name for averages of biogeochemical fluxes
+!
+        elseif (keyword(1:kwlen).eq.'bgc_flux_averages') then
+          call cancel_kwd (keyword(1:kwlen), ierr)
+          read(input,*,err=95) new_bgc_flux_avg,
+     &         nts_bgc_flux_avg, n_bgc_flux_avg, nrpf_bgc_flux_avg
+          read(input,'(A)',err=95) fname
+#  ifdef SCRATCH_DIR
+          fname=trim(scr_dir)/ /trim(fname)
+#  endif
+          lstr=lenstr(fname)
+#  if defined MPI && defined PARALLEL_FILES && !defined JOINED_BGC_FLUX_AVG
+          call insert_node (fname, lstr, mynode, NNODES, ierr)
+#  endif
+          bgc_flux_avg_name=fname(1:lstr)
+          MPI_master_only write(*,
+     &           '(2(I10,2x,A,1x,A/32x,A/),6x,A,2x,A,1x,A,I3)')
+     &      nts_bgc_flux_avg, 
+     &         'nts_bgc_flux_avg   Starting timestep for the',
+     &           ' accumulation of output', 
+     &         ' time-averaged biogeochemical fluxes.',
+     &      n_bgc_flux_avg,   
+     &         'n_bgc_flux_avg     Number of timesteps between',
+     &     'writing of',
+     &         ' time-averaged biogeochemical fluxes into file.',
+     &     'Averaged biogeochemical flux file:', 
+     &         bgc_flux_avg_name(1:lstr),
+     &     'rec/file =', nrpf_bgc_flux_avg
+# endif /* AVERAGES */
+#endif /* BGC_FLUX_ANALYSIS */
+#ifdef PHYS_FLUX_ANALYSIS
+!
+! File name for histories of physical fluxes
+!
+        elseif (keyword(1:kwlen).eq.'phys_flux_histories') then
+          call cancel_kwd (keyword(1:kwlen), ierr)
+          read(input,*,err=95) new_phys_flux_his,
+     &         n_phys_flux_his, nrpf_phys_flux_his
+          read(input,'(A)',err=95) fname
+#  ifdef SCRATCH_DIR
+          fname=trim(scr_dir)/ /trim(fname)
+#  endif
+          lstr=lenstr(fname)
+# if defined MPI && defined PARALLEL_FILES && !defined PHYS_FLUX_HIS
+          call insert_node (fname, lstr, mynode, NNODES, ierr)
+# endif
+          phys_flux_his_name=fname(1:lstr)
+          MPI_master_only write(*,
+     &           '(I10,2x,A,1x,A/32x,A/,6x,A,2x,A,1x,A,I3)')
+     &      n_phys_flux_his,
+     &         'n_phys_flux_his    Number of timesteps between',
+     &     ' writing of',
+     &         ' physical fluxes into file.',
+     &     'Physical flux file:',
+     &         phys_flux_his_name(1:lstr),
+     &     'rec/file =', nrpf_phys_flux_his
+
+# ifdef AVERAGES
+!
+! File name for averages of physical fluxes
+!
+        elseif (keyword(1:kwlen).eq.'phys_flux_averages') then
+          call cancel_kwd (keyword(1:kwlen), ierr)
+          read(input,*,err=95) new_phys_flux_avg,
+     &         nts_phys_flux_avg, n_phys_flux_avg,
+     &         nrpf_phys_flux_avg
+          read(input,'(A)',err=95) fname
+#  ifdef SCRATCH_DIR
+          fname=trim(scr_dir)/ /trim(fname)
+#  endif
+          lstr=lenstr(fname)
+#  if defined MPI && defined PARALLEL_FILES && !defined PHYS_FLUX_AVG
+          call insert_node (fname, lstr, mynode, NNODES, ierr)
+#  endif
+          phys_flux_avg_name=fname(1:lstr)
+          MPI_master_only write(*,
+     &           '(2(I10,2x,A,1x,A/32x,A/),6x,A,2x,A,1x,A,I3)')
+     &      nts_phys_flux_avg,
+     &         'nts_phys_flux_avg  Starting timestep for the',
+     &           ' accumulation of output',
+     &         ' time-averaged physical fluxes.',
+     &      n_phys_flux_avg,
+     &         'n_phys_flux_avg    Number of timesteps between',
+     &     ' writing of',
+     &         ' time-averaged physical fluxes into file.',
+     &     'Averaged physical flux file:',
+     &         phys_flux_avg_name(1:lstr),
+     &     'rec/file =', nrpf_phys_flux_avg
+# endif /* AVERAGES */
+#endif /* PHYS_FLUX_ANALYSIS */
 
 #ifdef STATIONS
 ! Stations control: file with station locations; output

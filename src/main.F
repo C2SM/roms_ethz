@@ -22,6 +22,16 @@ C$    ierr=0
       if (ierr == 0) then
 # endif
         call init_scalars(ierr)          ! Initialize global scalars,
+#  ifdef BGC_FLUX_ANALYSIS
+      if (ierr == 0) then
+       call init_scalars_bgcflux(ierr)
+      endif 
+#  endif
+# ifdef PHYS_FLUX_ANALYSIS
+      if (ierr == 0) then
+        call init_scalars_physflux(ierr)
+      endif 
+# endif
         if (ierr == 0) then              ! model tunable parameters,
 C$        call omp_set_dynamic(.false.)
 C$OMP PARALLEL                           ! fast-time averaging weights
@@ -349,6 +359,14 @@ C$OMP END MASTER
 #ifdef GRID_LEVEL
       integer iter
 #endif
+#ifdef BGC_FLUX_ANALYSIS
+# include "bgcflux.h"
+# include "ncroms_bgcflux.h"
+#endif
+#ifdef PHYS_FLUX_ANALYSIS
+# include "physflux.h"
+# include "ncroms_physflux.h"
+#endif
 
       trd=proc(2)
       range=(NSUB_X*NSUB_E+numthreads-1)/numthreads
@@ -430,6 +448,16 @@ C$OMP BARRIER
 # endif
 # ifdef AVERAGES
         call    set_avg(tile)
+#  ifdef BGC_FLUX_ANALYSIS
+#   ifdef BIOLOGY_NPZDOC
+        call set_bgc_flux_avg(tile)
+#   elif defined BIOLOGY_BEC
+        call set_bec_flux_avg(tile)
+#   endif
+#  endif
+#  ifdef PHYS_FLUX_ANALYSIS
+        call set_phys_flux_avg(tile)
+#  endif
 # endif
       enddo
 C$OMP BARRIER
@@ -462,6 +490,32 @@ C$OMP BARRIER
 
 ! Output block: write restart/history files.
 !======= ====== ===== =============== ======
+
+!DL: place following block before writing of rst file:
+#ifdef BGC_FLUX_ANALYSIS
+      if (iic > ntstart .and. n_bgc_flux_his > 0 .and. 
+     &     mod(iic-ntstart, n_bgc_flux_his) == 0) then
+         nrec_bgc_flux_his = nrec_bgc_flux_his + 1
+      end if
+# ifdef AVERAGES
+      if (iic > ntstart .and. n_bgc_flux_avg > 0 .and. 
+     &     mod(iic-ntstart, n_bgc_flux_avg) == 0) then
+         nrec_bgc_flux_avg = nrec_bgc_flux_avg + 1
+      end if
+# endif
+#endif /* BGC_FLUX_ANALYSIS */
+#ifdef PHYS_FLUX_ANALYSIS
+      if (iic > ntstart .and. n_phys_flux_his > 0 .and. 
+     &     mod(iic-ntstart, n_phys_flux_his) == 0) then
+         nrec_phys_flux_his = nrec_phys_flux_his + 1
+      end if
+# ifdef AVERAGES
+      if (iic > ntstart .and. n_phys_flux_avg > 0 .and. 
+     &     mod(iic-ntstart, n_phys_flux_avg) == 0) then
+         nrec_phys_flux_avg = nrec_phys_flux_avg + 1
+      end if
+# endif
+#endif /* PHYS_FLUX_ANALYSIS */
 
       if ( iic>ntstart .and. ( mod(iic-ntstart,nrst)==0
 #ifdef EXACT_RESTART
@@ -517,6 +571,40 @@ c          if (iic>60) nwrt=1 !<-- useful for debugging
      &      call wrt_floats
         diagfloats=.false.
 #endif
+
+#ifdef BGC_FLUX_ANALYSIS
+      if (iic > ntstart .and. n_bgc_flux_his > 0 .and. 
+     &     mod(iic-ntstart, n_bgc_flux_his) == 0) then
+# ifdef BIOLOGY_NPZDOC
+         call wrt_bgc_flux_his
+# elif defined BIOLOGY_BEC
+         call wrt_bec_flux_his
+# endif
+      end if
+# ifdef AVERAGES
+      if (iic > ntstart .and. n_bgc_flux_avg > 0 .and. 
+     &     mod(iic-ntstart, n_bgc_flux_avg) == 0) then
+# ifdef BIOLOGY_NPZDOC
+         call wrt_bgc_flux_avg
+# elif defined BIOLOGY_BEC
+         call wrt_bec_flux_avg
+# endif
+      end if
+# endif
+#endif /* BGC_FLUX_ANALYSIS */
+#ifdef PHYS_FLUX_ANALYSIS
+      if (iic > ntstart .and. n_phys_flux_his > 0 .and. 
+     &     mod(iic-ntstart, n_phys_flux_his) == 0) then
+         call wrt_phys_flux_his
+      end if
+# ifdef AVERAGES
+      if (iic > ntstart .and. n_phys_flux_avg > 0 .and. 
+     &     mod(iic-ntstart, n_phys_flux_avg) == 0) then
+         call wrt_phys_flux_avg
+      end if
+# endif
+#endif /* PHYS_FLUX_ANALYSIS */
+
 C$OMP END MASTER
 C$OMP BARRIER
         if (iic-ntstart > ntimes) goto 99   !-->  DONE
