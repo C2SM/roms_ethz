@@ -61,12 +61,12 @@
             else
               write(*,'(1x,5A/12x,A/)')     '### ERROR: get_ssh :: ',
      &          'Cannot get netCDF ID for variable "zeta" or "SSH" ',
-     &          'from ''', clm_file(1:lstr),'''.', nf_strerror(ierr)
+     &          'from ''', clm_file_loc(1:lstr),'''.', nf_strerror(ierr)
             endif
           else
             write(*,'(1x,5A/12x,A/)')       '### ERROR: get_ssh :: ',
      &        'Cannot get netCDF ID for variable "ssh_time" from ''',
-     &                    clm_file(1:lstr), '''.', nf_strerror(ierr)
+     &                    clm_file_loc(1:lstr), '''.', nf_strerror(ierr)
           endif
         endif
       endif

@@ -7,6 +7,12 @@
 #include "scalars.h"
 #include "ncvars.h"
 #include "netcdf.inc"
+#ifdef BIOLOGY_BEC
+# include "ecosys_bec.h"
+#endif
+#if defined BIOLOGY_BEC2 && defined BEC2_DIAG
+# include "ecosys_bec2.h"
+#endif
 #ifdef FLOATS
 # include "floats.h"
 # include "ncvars_floats.h"
@@ -325,6 +331,29 @@
      &                                     NF_FTYPE, 1, spv_set)
 # endif
         enddo
+# ifdef SEDIMENT_BIOLOGY
+!
+! Sediment tracer variables.
+!
+        do itrc=1,NT_sed
+          lvar=lenstr(vname(1,indxSedOrgN+itrc-1))
+          ierr=nf_def_var(ncrst,vname(1,indxSedOrgN+itrc-1)(1:lvar),
+     &                          NF_FTYPE, 3, r2dgrd, rstTsed(itrc))
+          lvar=lenstr(vname(2,indxSedOrgN+itrc-1))
+          ierr=nf_put_att_text (ncrst, rstTsed(itrc), 'long_name',
+     &         lvar,   vname(2,indxSedOrgN+itrc-1)(1:lvar))
+          lvar=lenstr(vname(3,indxSedOrgN+itrc-1))
+          ierr=nf_put_att_text (ncrst, rstTsed(itrc), 'units', lvar,
+     &         vname(3,indxSedOrgN+itrc-1)(1:lvar))
+!          lvar=lenstr(vname(4,indxSedOrgN+itrc-1))
+!          ierr=nf_put_att_text (ncrst, rstTsed(itrc), 'field', lvar,
+!     &         vname(4,indxSedOrgN+itrc-1)(1:lvar))
+#ifdef MASK_LAND_DATA
+        ierr=nf_put_att_FTYPE (ncrst, rstTsed(itrc), '_FillValue',
+     &         NF_FTYPE, 1, spv_set)
+#endif
+        enddo
+# endif /* SEDIMENT_BIOLOGY */
 
 # ifdef LMD_KPP
 ! Depth of surface planetary boundary layer.
@@ -411,6 +440,138 @@
         ierr=nf_put_att_text(ncrst,rsttrack,'Content',lvar,
      &                         vinfo(3)(1:lvar))
 #endif /* FLOATS */
+
+# if defined BIOLOGY_BEC || defined BIOLOGY_NPZDOC
+#  if defined CH_CARBON_DEPTH
+
+!
+! pH_DEPTH:
+!
+        lvar = lenstr(vname(1,indxPHd_rst))
+        ierr=nf_def_var (ncrst, vname(1,indxPHd_rst)(1:lvar),
+     &       NF_FTYPE, 3, r3dgrd, rstPHd)
+        lvar=lenstr(vname(2,indxPHd_rst))
+        ierr=nf_put_att_text (ncrst, rstPHd, 'long_name',
+     &       lvar, vname(2,indxPHd_rst)(1:lvar))
+        lvar=lenstr(vname(3,indxPHd_rst))
+        ierr=nf_put_att_text (ncrst, rstPHd, 'units', lvar,
+     &       vname(3,indxPHd_rst)(1:lvar))
+#ifdef MASK_LAND_DATA
+        ierr=nf_put_att_FTYPE (ncrst, rstPHd, '_FillValue', NF_FTYPE,
+     &                                                 1, spv_set)
+#endif
+#endif /*CH_CARBON_DEPTH*/
+
+
+!
+! pH:
+!
+        lvar = lenstr(vname(1,indxPH_rst))
+        ierr=nf_def_var (ncrst, vname(1,indxPH_rst)(1:lvar),
+     &       NF_FTYPE, 3, r2dgrd, rstPH)
+        lvar=lenstr(vname(2,indxPH_rst))
+        ierr=nf_put_att_text (ncrst, rstPH, 'long_name',
+     &       lvar, vname(2,indxPH_rst)(1:lvar))
+        lvar=lenstr(vname(3,indxPH_rst))
+        ierr=nf_put_att_text (ncrst, rstPH, 'units', lvar,
+     &       vname(3,indxPH_rst)(1:lvar))
+#ifdef MASK_LAND_DATA
+        ierr=nf_put_att_FTYPE (ncrst, rstPH, '_FillValue', NF_FTYPE,
+     &                                                 1, spv_set)
+#endif
+
+!
+! pCO2:
+!
+        lvar = lenstr(vname(1,indxPCO2_rst))
+        ierr=nf_def_var (ncrst, vname(1,indxPCO2_rst)(1:lvar),
+     &       NF_FTYPE, 3, r2dgrd, rstPCO2)
+        lvar=lenstr(vname(2,indxPCO2_rst))
+        ierr=nf_put_att_text (ncrst, rstPCO2, 'long_name',
+     &       lvar, vname(2,indxPCO2_rst)(1:lvar))
+        lvar=lenstr(vname(3,indxPCO2_rst))
+        ierr=nf_put_att_text (ncrst, rstPCO2, 'units', lvar,
+     &       vname(3,indxPCO2_rst)(1:lvar))
+#ifdef MASK_LAND_DATA
+        ierr=nf_put_att_FTYPE (ncrst, rstPCO2, '_FillValue', NF_FTYPE,
+     &                                                 1, spv_set)
+#endif
+
+#  ifdef OUTPUT_PCO2AIR_RST
+!
+! pCO2air:
+!
+        lvar = lenstr(vname(1,indxPCO2air_rst))
+        ierr=nf_def_var (ncrst, vname(1,indxPCO2air_rst)(1:lvar),
+     &       NF_FTYPE, 3, r2dgrd, rstPCO2air)
+        lvar=lenstr(vname(2,indxPCO2air_rst))
+        ierr=nf_put_att_text (ncrst, rstPCO2air, 'long_name',
+     &       lvar, vname(2,indxPCO2air_rst)(1:lvar))
+        lvar=lenstr(vname(3,indxPCO2air_rst))
+        ierr=nf_put_att_text (ncrst, rstPCO2air, 'units', lvar,
+     &       vname(3,indxPCO2air_rst)(1:lvar))
+#ifdef MASK_LAND_DATA
+        ierr=nf_put_att_FTYPE (ncrst, rstPCO2air, '_FillValue', NF_FTYPE,
+     &                                                 1, spv_set)
+#endif
+#  endif /* OUTPUT_PCO2AIR_RST */
+!
+! PAR:
+!
+        lvar = lenstr(vname(1,indxPAR_rst))
+        ierr=nf_def_var (ncrst, vname(1,indxPAR_rst)(1:lvar),
+     &       NF_FTYPE, 4, r3dgrd, rstPAR)
+        lvar=lenstr(vname(2,indxPAR_rst))
+        ierr=nf_put_att_text (ncrst, rstPAR, 'long_name',
+     &       lvar, vname(2,indxPAR_rst)(1:lvar))
+        lvar=lenstr(vname(3,indxPAR_rst))
+        ierr=nf_put_att_text (ncrst, rstPAR, 'units', lvar,
+     &       vname(3,indxPAR_rst)(1:lvar))
+#ifdef MASK_LAND_DATA
+        ierr=nf_put_att_FTYPE (ncrst, rstPAR, '_FillValue', NF_FTYPE,
+     &                                                 1, spv_set)
+#endif
+
+# endif /* BIOLOGY_BEC || BIOLOGY_NPZDOC */
+
+# if defined BIOLOGY_BEC2 && defined BEC2_DIAG
+!
+! 2d diagnostics:
+!
+        do itrc=1,nr_bec2_diag_2d
+           lvar = lenstr(vname_bec2_diag_2d(1,itrc))
+           ierr=nf_def_var (ncrst, vname_bec2_diag_2d(1,itrc)(1:lvar),
+     &          NF_FTYPE, 3, r2dgrd, rstT_bec2_diag(itrc))
+           lvar=lenstr(vname_bec2_diag_2d(2,itrc))
+           ierr=nf_put_att_text (ncrst, rstT_bec2_diag(itrc), 'long_name',
+     &          lvar, vname_bec2_diag_2d(2,itrc)(1:lvar))
+           lvar=lenstr(vname_bec2_diag_2d(3,itrc))
+           ierr=nf_put_att_text (ncrst, rstT_bec2_diag(itrc), 'units', lvar,
+     &          vname_bec2_diag_2d(3,itrc)(1:lvar))
+#ifdef MASK_LAND_DATA
+           ierr=nf_put_att_FTYPE (ncrst, rstT_bec2_diag(itrc), '_FillValue', NF_FTYPE,
+     &                                                 1, spv_set)
+#endif
+        end do
+!
+! 3d diagnostics:
+!
+        do itrc=1,nr_bec2_diag_3d
+           lvar = lenstr(vname_bec2_diag_3d(1,itrc))
+           ierr=nf_def_var (ncrst, vname_bec2_diag_3d(1,itrc)(1:lvar),
+     &          NF_FTYPE, 4, r3dgrd, rstT_bec2_diag(nr_bec2_diag_2d+itrc))
+           lvar=lenstr(vname_bec2_diag_3d(2,itrc))
+           ierr=nf_put_att_text (ncrst, rstT_bec2_diag(nr_bec2_diag_2d+itrc), 'long_name',
+     &          lvar, vname_bec2_diag_3d(2,itrc)(1:lvar))
+           lvar=lenstr(vname_bec2_diag_3d(3,itrc))
+           ierr=nf_put_att_text (ncrst, rstT_bec2_diag(nr_bec2_diag_2d+itrc), 'units', lvar,
+     &          vname_bec2_diag_3d(3,itrc)(1:lvar))
+#ifdef MASK_LAND_DATA
+           ierr=nf_put_att_FTYPE (ncrst, rstT_bec2_diag(nr_bec2_diag_2d+itrc), '_FillValue', NF_FTYPE,
+     &                                                 1, spv_set)
+#endif
+        end do
+# endif /* BIOLOGY_BEC2 && BEC2_DIAG */
 
 ! Leave definition mode.                  Also initialize record
 ! ----- ---------- -----                  dimension size to zero.
@@ -581,6 +742,138 @@
             goto 99                                       !--> ERROR
           endif
         enddo
+# ifdef SEDIMENT_BIOLOGY
+!
+! Sediment tracer variables.
+!
+        do itrc=1,NT_sed
+           lvar=lenstr(vname(1,indxSedOrgN+itrc-1))
+           ierr=nf_inq_varid (ncrst, 
+     &          vname(1,indxSedOrgN+itrc-1)(1:lvar),rstTsed(itrc))
+           if (ierr .ne. nf_noerr) then
+              write(stdout,1) vname(1,indxSedOrgN+itrc-1)(1:lvar),
+     &             rstname(1:lstr) 
+              goto 99           !--> ERROR
+           endif
+        enddo
+# endif /* SEDIMENT_BIOLOGY */
+
+# if defined BIOLOGY_BEC 
+!#ifdef CH_CARBON_DEPTH
+!
+! HCO3:
+!
+!        lvar=lenstr(vname(1,indxHCO3_rst))
+!        ierr=nf_inq_varid (ncrst, vname(1,indxHCO3_rst)(1:lvar), rstHCO3)
+!        if (ierr. ne. nf_noerr) then
+!          write(stdout,1) vname(1,indxHCO3_rst)(1:lvar), rstname(1:lstr)
+!          goto 99                                         !--> ERROR
+!        endif
+!
+! CO3:
+!
+!        lvar=lenstr(vname(1,indxCO3_rst))
+!        ierr=nf_inq_varid (ncrst, vname(1,indxCO3_rst)(1:lvar), rstCO3)
+!        if (ierr. ne. nf_noerr) then
+!          write(stdout,1) vname(1,indxCO3_rst)(1:lvar), rstname(1:lstr)
+!          goto 99                                         !--> ERROR
+!        endif
+
+# if defined CH_CARBON_DEPTH
+!
+! PH_DEPTH
+!
+        lvar=lenstr(vname(1,indxPHd_rst))
+        ierr=nf_inq_varid (ncrst, vname(1,indxPHd_rst)(1:lvar), rstPHd)
+        if (ierr. ne. nf_noerr) then
+          write(stdout,1) vname(1,indxPHd_rst)(1:lvar), rstname(1:lstr)
+          goto 99                                         !--> ERROR
+        endif
+!
+! PH
+!
+!        lvar=lenstr(vname(1,indxPH_rst))
+!        ierr=nf_inq_varid (ncrst, vname(1,indxPH_rst)(1:lvar), rstPH)
+!        if (ierr. ne. nf_noerr) then
+!          write(stdout,1) vname(1,indxPH_rst)(1:lvar), rstname(1:lstr)
+!          goto 99                                         !--> ERROR
+!        endif
+!#else
+
+#endif CH_CARBON_DEPTH
+
+!
+! PH
+!
+        lvar=lenstr(vname(1,indxPH_rst))
+        ierr=nf_inq_varid (ncrst, vname(1,indxPH_rst)(1:lvar), rstPH)
+        if (ierr. ne. nf_noerr) then
+          write(stdout,1) vname(1,indxPH_rst)(1:lvar), rstname(1:lstr)
+          goto 99                                         !--> ERROR
+        endif
+!
+! pCO2:
+!
+        lvar=lenstr(vname(1,indxPCO2_rst))
+        ierr=nf_inq_varid (ncrst, vname(1,indxPCO2_rst)(1:lvar), rstPCO2)
+        if (ierr. ne. nf_noerr) then
+          write(stdout,1) vname(1,indxPCO2_rst)(1:lvar), rstname(1:lstr)
+          goto 99                                         !--> ERROR
+        endif
+
+# ifdef OUTPUT_PCO2AIR_RST
+!
+! pCO2air:
+!
+        lvar=lenstr(vname(1,indxPCO2air_rst))
+        ierr=nf_inq_varid (ncrst, vname(1,indxPCO2air_rst)(1:lvar), rstPCO2air)
+        if (ierr. ne. nf_noerr) then
+          write(stdout,1) vname(1,indxPCO2air_rst)(1:lvar), rstname(1:lstr)
+          goto 99                                         !--> ERROR
+        endif
+# endif /* OUTPUT_PCO2AIR_RST */
+# endif /* BIOLOGY_BEC */
+
+# if defined BIOLOGY_BEC2 && defined BEC2_DIAG
+!
+! 2d diagnostics:
+!
+        do itrc=1,nr_bec2_diag_2d
+           lvar=lenstr(vname_bec2_diag_2d(1,itrc))
+           ierr=nf_inq_varid (ncrst, vname_bec2_diag_2d(1,itrc)(1:lvar),
+     &                        rstT_bec2_diag(itrc))
+           if (ierr. ne. nf_noerr) then
+              write(stdout,1) vname_bec2_diag_2d(1,itrc)(1:lvar),
+     &                                           rstname(1:lstr)
+              goto 99                                       !--> ERROR
+           endif
+        enddo
+!
+! 3d diagnostics:
+!
+        do itrc=1,nr_bec2_diag_3d
+           lvar=lenstr(vname_bec2_diag_3d(1,itrc))
+           ierr=nf_inq_varid (ncrst, vname_bec2_diag_3d(1,itrc)(1:lvar),
+     &                        rstT_bec2_diag(nr_bec2_diag_2d+itrc))
+           if (ierr. ne. nf_noerr) then
+              write(stdout,1) vname_bec2_diag_3d(1,itrc)(1:lvar),
+     &                                           rstname(1:lstr)
+              goto 99                                       !--> ERROR
+           endif
+        enddo
+# endif /* BIOLOGY_BEC2 && BEC2_DIAG */
+
+# if defined BIOLOGY_BEC || defined BIOLOGY_NPZDOC
+!
+! PAR:
+!
+        lvar=lenstr(vname(1,indxPAR_rst))
+        ierr=nf_inq_varid (ncrst, vname(1,indxPAR_rst)(1:lvar), rstPAR)
+        if (ierr. ne. nf_noerr) then
+          write(stdout,1) vname(1,indxPAR_rst)(1:lvar), rstname(1:lstr)
+          goto 99                                         !--> ERROR
+        endif
+# endif /* BIOLOGY_BEC || BIOLOGY_NPZDOC */
 
 # ifdef LMD_KPP
 ! Depth of surface planetary boundary layer.

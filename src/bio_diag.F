@@ -87,7 +87,26 @@ C$OMP CRITICAL (bio_cr_rgn)
           if (bc_count==NSUB) then      ! the last thread, whoever
             bc_count=0                    ! it is, not always master.
 # ifdef MPI
-  Reduce sequence here
+! Perform global summation among MPI processes:
+            if (NNODES > 1) then
+               size=NNODES
+ 10             step=(size+1)/2
+               if (mynode >= step .and. mynode <= size) then
+                  ! global_sum may be real*16, so the size of the message
+                  ! in the following send is doubled:
+                  call MPI_Send (global_sum, 4*NT+4, MPI_DOUBLE_PRECISION,
+     &               mynode-step, 17, MPI_COMM_WORLD, ierr)
+               elseif (mynode < size-step) then
+                  call MPI_Recv (buff, 4*NT+4 , MPI_DOUBLE_PRECISION,
+     &               mynode+step, 17, MPI_COMM_WORLD, status, ierr)
+                  do itrc=1,2*NT+1
+                     global_sum(itrc)=global_sum(itrc)+buff(itrc)
+                  enddo
+               endif ! <-- mynode.ge.step .and. mynode.lt.size
+               size=step
+               if (size.gt.1) goto 10
+            endif ! <-- NNODES.gt.1
+            if (mynode == 0) then
 # endif
 
             cff=1./global_sum(1)

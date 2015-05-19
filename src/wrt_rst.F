@@ -26,6 +26,13 @@
 # include "bgcflux.h"
 # include "ncroms_bgcflux.h"
 #endif
+#ifdef BIOLOGY_BEC
+# include "ecosys_bec.h"
+# include "bec_avg.h"
+#endif
+#ifdef BIOLOGY_BEC2
+# include "ecosys_bec2.h"
+#endif
 
 #if defined FLOATS
 # include "ncvars_floats.h"

@@ -338,7 +338,19 @@ c??         enddo
       call ecosys_vst_tile (istr,iend,jstr,jend, nnew,dt)
 
       do itrc=1,NT
-# elif defined BIOLOGY
+# if defined BIOLOGY_BEC
+      enddo                                    ! Biogeochemical
+                                               ! Elemental Cycles
+      call ecosys_tile (I_RANGE,J_RANGE)       ! (BEC) model 
+
+      do itrc=1,NT
+# elif defined BIOLOGY_BEC2
+      enddo
+
+      call ecosys_bec2_tile (I_RANGE,J_RANGE)       ! BEC, 2014 version
+
+      do itrc=1,NT
+# elif defined BIOLOGY || defined BIOLOGY_NPZDOC
       enddo                                    ! Insert interactive
       call biology_tile (istr,iend,jstr,jend)  ! part of the biological
       do itrc=1,NT                             ! model

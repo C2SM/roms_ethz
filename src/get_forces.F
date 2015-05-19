@@ -62,6 +62,13 @@ c--#define VERBOSE
       if (ierr==0) call get_dqdt (ierr)
       if (ierr==0) call get_sss (ierr)
 # endif
+# if defined BIOLOGY_BEC || defined BIOLOGY_BEC2
+        if (ierr.eq.0)  call get_dust(ierr)
+        if (ierr.eq.0)  call get_iron(ierr)
+# endif
+# ifdef PCO2AIR_FORCING
+        if (ierr.eq.0)  call get_pCO2air(ierr)
+# endif
 # if defined LMD_KPP && !defined ANA_SRFLUX
       if (ierr==0) call get_srflux (ierr)
 # endif
@@ -73,6 +80,14 @@ c--#define VERBOSE
 # ifndef ANA_BSEDIM
       if (ierr==0) call get_bsedim (ierr)
 # endif
+#endif
+!#ifdef BIOLOGY_BEC2
+!      if (ierr.eq.0) call get_nox(ierr)
+!      if (ierr.eq.0) call get_nhy(ierr)
+!      if (ierr.eq.0) call get_din_river(ierr)
+!#endif
+#if defined PASSIVE_TRACER && defined AGE_DYE_TRACER
+      if (ierr.eq.0) call get_agedye(ierr)
 #endif
       if (ierr/=0) then
         may_day_flag=2
@@ -123,7 +138,20 @@ c--#define VERBOSE
 
       implicit none
       integer tile, ierr
+#if defined VFLX_CORR && (defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC || defined BIOLOGY_BEC2)
+     &        , itrc, i, j
+      real cff
+#endif
 #include "param.h"
+#if defined VFLX_CORR && (defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC || defined BIOLOGY_BEC2)
+# include "comm_vars.h"
+# include "forces.h"
+# include "ocean3d.h"
+# include "scalars.h"
+# ifdef MASKING
+#  include "grid.h"
+# endif
+#endif /* VFLX_CORR && (BIOLOGY_NPZDOC || BIOLOGY_BEC || BIOLOGY_BEC2) */
 !
 #include "compute_tile_bounds.h"
 !
@@ -176,8 +204,42 @@ c***              no code here
       call ana_stflux_tile (istr,iend,jstr,jend, isalt)
 #  else
       call set_stflux_tile (istr,iend,jstr,jend, isalt, ierr)
+#   if defined VFLX_CORR && (defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC || defined BIOLOGY_BEC2)
+      ! Flux correction for all biological/chemical tracers
+#   ifdef USE_GLOBAL_SRF_SUM
+      cff = 1. / global_srf_sum(isalt)
+#   endif
+      do itrc=isalt+1,NT
+         do j=jstr,jend
+            do i=istr,iend
+#   ifdef MASKING
+               if (rmask(i,j) .eq. 1) then
+#   endif
+               stflx(i,j,itrc)=stflx(i,j,isalt)*
+#   ifdef USE_GLOBAL_SRF_SUM
+     &              global_srf_sum(itrc) * cff
+#   else
+     &         t(i,j,N,nrhs,itrc)/t(i,j,N,nrhs,isalt)
+#   endif
+#   ifdef MASKING
+               else ! rmask(i,j) .eq. 1
+                  stflx(i,j,itrc)=0.0
+               endif
+#   endif
+            enddo
+         enddo
+      enddo
+#   endif /* VFLX_CORR && (BIOLOGY_NPZDOC || BIOLOGY_BEC || BIOLOGY_BEC2) */
 #  endif
 # endif
+# if defined BIOLOGY_BEC || defined BIOLOGY_BEC2
+      call set_iron_tile (Istr,Iend,Jstr,Jend,ierr) 
+      call set_dust_tile (Istr,Iend,Jstr,Jend,ierr) 
+# endif
+# if defined CARBON && defined PCO2AIR_FORCING
+      call set_pCO2air_tile (Istr,Iend,Jstr,Jend,ierr) 
+# endif
+# if (defined LMD_KPP || defined LMD_BKPP)
 # ifdef LMD_KPP
 #  ifdef ANA_SRFLUX
       call ana_srflux_tile (istr,iend,jstr,jend)

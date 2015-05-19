@@ -22,11 +22,26 @@ C$    ierr=0
       if (ierr == 0) then
 # endif
         call init_scalars(ierr)          ! Initialize global scalars,
+# ifdef BIOLOGY_NPZDOC
+      if (ierr == 0) then
+        call init_scalars_npzdoc(ierr)
+      endif
 #  ifdef BGC_FLUX_ANALYSIS
       if (ierr == 0) then
        call init_scalars_bgcflux(ierr)
       endif 
 #  endif
+# endif
+# ifdef BIOLOGY_BEC
+      if (ierr == 0) then
+        call init_scalars_bec(ierr)
+      endif 
+# endif
+# ifdef BIOLOGY_BEC2
+      if (ierr == 0) then
+        call init_scalars_bec2(ierr)
+      endif 
+# endif
 # ifdef PHYS_FLUX_ANALYSIS
       if (ierr == 0) then
         call init_scalars_physflux(ierr)
@@ -180,6 +195,14 @@ C$OMP BARRIER                          ! slope parameters "rx0", "rx1".
 CR      write(*,*) ' -6' MYID
 #endif
 
+# ifdef BIOLOGY_BEC
+      ! pH is initialized to 0 in ecosys_init
+      call ecosys_init
+# endif
+# ifdef BIOLOGY_BEC2
+      ! pH is initialized to 0 in ecosys_init
+      call ecosys2_init
+# endif
 #ifdef ANA_INITIAL
       do tile=my_tile_range            ! Set initial conditions for
         call set_forces(tile)          ! model prognostic variables,
@@ -235,6 +258,9 @@ CR      write(*,*)  ' -3' MYID
       enddo
 C$OMP BARRIER
 CR      write(*,*)  ' -2' MYID
+# ifdef BIOLOGY_NPZDOC
+      call init_biopar               ! set up biogeochemical parameters
+# endif /* BIOLOGY_NPZDOC */
 #endif
 
 ! Set up climatological environment: Set nudging coefficient for
@@ -272,6 +298,29 @@ CR      write(*,*) ' -1' MYID
 ! from input netCDF files.  Note that CPP-logic here is mutually
 ! exclusive with respect to calls ana_tclima, ana_ssh, and ana_bsedim
 ! just above.
+
+
+#if defined SALINITY && (defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC || defined BIOLOGY_BEC2) \
+    && defined VFLX_CORR && defined USE_GLOBAL_SRF_SUM
+        call reset_global_srf_sum()
+! If the virtual flux correction is used, globally averaged concentrations
+! for the surface cells must be available for subroutine set_stflux_tile
+! (which is called by get_forces)
+C$OMP PARALLEL DO PRIVATE(tile)
+        do tile=0,NSUB_X*NSUB_E-1
+           call calc_global_srf_sum(tile)
+        enddo
+
+! Keep this routine out of the parallel region
+        call scale_global_srf_sum()
+#endif /* SALINITY && (BIOLOGY_NPZDOC || BIOLOGY_BEC || BIOLOGY_BEC2) && VFLX_CORR ..*/
+
+#ifdef BIOLOGY_NPZDOC
+C$OMP PARALLEL DO PRIVATE(tile)
+         do tile=0,NSUB_X*NSUB_E-1
+            call calcpar(tile)
+         enddo
+# endif /* BIOLOGY_NPZDOC */
 
 C$OMP MASTER
 #ifdef ANA_GRID
@@ -367,7 +416,10 @@ C$OMP END MASTER
 # include "physflux.h"
 # include "ncroms_physflux.h"
 #endif
-
+#ifdef BIOLOGY_BEC
+# include "bec_avg.h"
+#endif
+ 
       trd=proc(2)
       range=(NSUB_X*NSUB_E+numthreads-1)/numthreads
       my_first=trd*range
@@ -419,9 +471,9 @@ C$OMP BARRIER                          ! avoid MPI deadlock the exit is
 # endif
         call    rho_eos(tile)
         call    set_HUV(tile)
-        call       diag(tile)
-# ifdef BIOLOGY
-        call   bio_diag(tile)
+        if (ninfo > 0)  call diag(tile)
+# if defined BIOLOGY || defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC
+!        call   bio_diag(tile)
 # endif
       enddo
 C$OMP BARRIER

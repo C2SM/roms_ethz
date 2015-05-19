@@ -178,6 +178,10 @@
 # include "climat.h"
 # include "scalars.h"
 # include "ocean3d.h"
+# ifdef BIOLOGY_NPZDOC
+      real CN_avg
+# include "biopar.h"
+# endif /* BIOLOGY_NPZDOC */
 
 # include "compute_extended_bounds.h"
 
@@ -232,7 +236,7 @@
               ierr=ierr+1
             endif
           endif
-# ifdef BIOLOGY
+# if defined BIOLOGY || defined BIOLOGY_NPZDOC
 #  define temp cff
 #  define SiO4 cff1
         elseif (itrc==iNO3_) then     ! <-- analytical setup for
@@ -251,32 +255,174 @@
                 elseif (temp>16.) then
                   SiO4=0.
                 endif
+                     tclm(i,j,k,iNO3_)=1.67+0.5873*SiO4
+     &                    +0.0144*SiO4**2
+     &                    +0.0003099*SiO4**3
 
-                tclm(i,j,k,iNO3_)=1.67 + SiO4*( 0.5873 + SiO4*(
-     &                                0.0144 + SiO4*0.0003099 ))
+!hf: by default, do not perform the cutoff!
+#ifdef NO3_SFC_CUTOFF 
 
 ! Cut off surface NO3
 
                 tclm(i,j,k,iNO3_)=tclm(i,j,k,iNO3_)
      &               *(1-0.5*(tanh((z_r(i,j,k)+100.)/8.)+1.))
+#endif /* NO3_SFC_CUTOFF */
               enddo
             enddo
-          enddo
-        elseif (iic==ntstart .and. itrc==iNH4_) then
-          do k=1,N
-            do j=jstrR,jendR
-              do i=istrR,iendR
-                if (tclm_tid(iNH4_)<0) tclm(i,j,k,iNH4_)=0.10
-                if (tclm_tid(iChla)<0) tclm(i,j,k,iChla)=0.08
-                if (tclm_tid(iPhyt)<0) tclm(i,j,k,iPhyt)=0.06
-                if (tclm_tid(iZoo_)<0) tclm(i,j,k,iZoo_)=0.04
-                if (tclm_tid(iSDet)<0) tclm(i,j,k,iSDet)=0.02
-                if (tclm_tid(iLDet)<0) tclm(i,j,k,iLDet)=0.02
-              enddo
-            enddo
-          enddo
+          end do
+         else if (itrc == iNH4_ .or. itrc == iSDet .or.
+     &           itrc == iLDet) then
+            tclm(:,:,:,itrc)=0.0
+         else if (itrc == iChla) then
+! small positive concentrations for plankton to avoid "dead water"
+            tclm(:,:,:,itrc)=0.2
+         else if (itrc == iPhyt) then
+! small positive concentrations for plankton to avoid "dead water"
+            tclm(:,:,:,itrc)=0.1
+         else if (itrc == iZoo_) then
+            tclm(:,:,:,itrc)=0.05
+#  ifdef OXYGEN
+! the following three values are way too high at depth, these default
+! values are mostly provided as convenience for test purposes
+         else if (itrc == iO2) then  
+            tclm(:,:,:,iO2)=250.0 
+#   ifdef CARBON
+         else if (itrc == iDIC) then  
+            tclm(:,:,:,iDIC)=1988.0 
+         else if (itrc == iTALK) then  
+            tclm(:,:,:,iTALK)=2214.0 
+         else if (itrc == iSDetC) then  
+            CN_avg = 0.5 * (CN_P + CN_Z)
+            tclm(:,:,:,iSDetC)=tclm(:,:,:,iSDet) * CN_avg
+         else if (itrc == iLDetC) then  
+            CN_avg = 0.5 * (CN_P + CN_Z)
+            tclm(:,:,:,iLDetC)=tclm(:,:,:,iLDet) * CN_avg
+         else if (itrc == iCaCO3) then  
+            tclm(:,:,:,iCaCO3)=0.0
+#   endif /* CARBON */
+#  endif /* OXYGEN */
 #  undef SiO4
 #  undef temp
+# endif /* BIOLOGY_NPZDOC */
+
+# if defined BIOLOGY_BEC || defined BIOLOGY_BEC2
+          else if (itrc == iNO3) then
+#  define temp cff
+#  define SiO4 cff1
+             do k=1,N
+               do j=jstrR,jendR
+                 do i=istrR,iendR
+                    temp=tclm(i,j,k,itemp)
+                    if (temp.lt.8.) then
+                       SiO4=30.
+                    elseif (temp.ge.8. .and. temp.le.11.) then
+                       SiO4=30.-((temp-8.)*(20./3.))
+                    elseif (temp.gt.11. .and. temp.le.13.) then
+                       SiO4=10.-((temp-11.)*(8./2.))
+                    elseif (temp.gt.13. .and. temp.le.16.) then
+                       SiO4=2.-((temp-13.)*(2./3.))
+                    elseif (temp.gt.16.) then
+                       SiO4=0.
+                    endif
+                    tclm(i,j,k,iNO3)=1.67+0.5873*SiO4
+     &                   +0.0144*SiO4**2
+     &                   +0.0003099*SiO4**3
+!hf: by default, do not perform the cutoff!
+#ifdef NO3_SFC_CUTOFF 
+!
+!  Cut off surface NO3
+!
+                    tclm(i,j,k,iNO3)=tclm(i,j,k,iNO3)*
+     &                   (1-.5*(tanh((z_r(i,j,k)+100.)/8.)+1))
+#endif /* NO3_SFC_CUTOFF */
+                 end do
+               end do
+             end do
+
+           else if (itrc == iPO4) then
+              ! Set PO4 to NO3/16:
+#  define temp cff
+#  define SiO4 cff1
+              do k=1,N
+                do j=jstrR,jendR
+                  do i=istrR,iendR
+                     temp=tclm(i,j,k,itemp)
+                     if (temp.lt.8.) then
+                        SiO4=30.
+                     elseif (temp.ge.8. .and. temp.le.11.) then
+                        SiO4=30.-((temp-8.)*(20./3.))
+                     elseif (temp.gt.11. .and. temp.le.13.) then
+                        SiO4=10.-((temp-11.)*(8./2.))
+                     elseif (temp.gt.13. .and. temp.le.16.) then
+                        SiO4=2.-((temp-13.)*(2./3.))
+                     elseif (temp.gt.16.) then
+                        SiO4=0.
+                     endif
+                     tclm(i,j,k,itrc)=(1.67+0.5873*SiO4
+     &                    +0.0144*SiO4**2
+     &                    +0.0003099*SiO4**3)/16
+!hf: by default, do not perform the cutoff!
+#ifdef NO3_SFC_CUTOFF 
+!
+!  Cut off surface NO3
+!
+                     tclm(i,j,k,itrc)=tclm(i,j,k,itrc)*
+     &                    (1-.5*(tanh((z_r(i,j,k)+100.)/8.)+1))
+#endif /* NO3_SFC_CUTOFF */
+                  end do
+                end do
+              end do
+           else if (itrc == iSiO3) then
+              tclm(:,:,:,iSiO3)=tclm(:,:,:,iNO3)
+           else if (itrc == iNH4) then
+              tclm(:,:,:,iNH4)=0.0
+           else if (itrc == iFE) then
+              tclm(:,:,:,iFE)=5.395e-4  ! mmol/m3
+           else if (itrc == iO2) then
+              tclm(:,:,:,iO2)=177.9  ! mmol/m3
+           else if (itrc == iDIC) then
+              tclm(:,:,:,iDIC)=2200.
+           else if (itrc == iALK) then
+              tclm(:,:,:,iALK)=2300.
+           else if (itrc == iDOC) then
+              tclm(:,:,:,iDOC)=0.0 ! 0.001
+           else if (itrc == iSPC) then
+              tclm(:,:,:,iSPC)=0.1
+           else if (itrc == iSPCHL) then
+              tclm(:,:,:,iSPCHL)=0.03
+           else if (itrc == iSPCACO3) then
+              tclm(:,:,:,iSPCACO3)=0.1
+           else if (itrc == iDIATC) then
+              tclm(:,:,:,iDIATC)=0.1
+           else if (itrc == iDIATCHL) then
+              tclm(:,:,:,iDIATCHL)=0.03
+           else if (itrc == iZOOC) then
+              tclm(:,:,:,iZOOC)=0.01
+           else if (itrc == iSPFE) then
+              tclm(:,:,:,iSPFE)=5.47e-7
+           else if (itrc == iDIATSI) then
+              tclm(:,:,:,iDIATSI)=0.02735
+           else if (itrc == iDIATFE) then
+              tclm(:,:,:,iDIATFE)=5.47e-7
+           else if (itrc == iDIAZC) then
+              tclm(:,:,:,iDIAZC)=0.1
+           else if (itrc == iDIAZCHL) then
+              tclm(:,:,:,iDIAZCHL)=0.03
+           else if (itrc == iDIAZFE) then
+              tclm(:,:,:,iDIAZFE)=5.47e-7
+           else if (itrc == iDON) then
+              tclm(:,:,:,iDON)=0.0 ! 1.368e-4
+           else if (itrc == iDOFE) then
+              tclm(:,:,:,iDOFE)=0.0 ! 5.47e-9
+           else if (itrc == iDOP) then
+              tclm(:,:,:,iDOP)=0.0 ! 8.55e-4
+# endif /* BIOLOGY_BEC || BIOLOGY_BEC2 */
+! Provide default values for additional tracers in the later version of BEC:
+# ifdef BIOLOGY_BEC2
+           else if (itrc == iDOPR) then
+              tclm(:,:,:,iDOPR)=0.0
+           else if (itrc == iDONR) then
+              tclm(:,:,:,iDONR)=0.0
 # endif
         endif   ! <-- tclm_tid(itrc)>0
       enddo   ! <-- itrc

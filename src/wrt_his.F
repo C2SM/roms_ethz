@@ -15,6 +15,22 @@
 #include "eos_vars.h"
 #include "mixing.h"
 #include "netcdf.inc"
+#ifdef SEDIMENT_BIOLOGY
+# include "bgcflux.h"
+#endif
+#ifdef PCO2AIR_FORCING
+!  pCO2air is in here
+# include "forces.h"
+#endif
+#ifdef BIOLOGY_BEC
+# include "ecosys_bec.h"
+#endif
+#ifdef BIOLOGY_BEC2
+# include "ecosys_bec2.h"
+#endif
+#ifdef BIOLOGY_NPZDOC
+# include "gasexc.h"
+#endif
 #ifdef SOLVE3D
       integer tile, itrc, j,k
 # include "work.h"
@@ -169,6 +185,23 @@ c          endif
 CR      write(*,*) 'wrt_his:  wrtT  ' MYID
         endif
       enddo
+#ifdef SEDIMENT_BIOLOGY
+!
+! Sediment concentrations
+
+      do itrc=1,NT_sed
+        if (wrthis(indxSedOrgN+itrc-1)) then
+          ierr=nf_fwrite(t_sed(START_2D_ARRAY,itrc), nchis,
+     &                                hisTsed(itrc), record, r2dvar)
+          if (ierr /= nf_noerr) then
+            lvar=lenstr(vname(1,indxSedOrgN+itrc-1))
+            write(*,1) vname(1,indxSedOrgN+itrc-1)(1:lvar),
+     &                      record MYID
+            goto 99                                       !--> ERROR
+          endif
+        endif
+      enddo
+#endif /* SEDIMENT_BIOLOGY */
 
 ! Density anomaly.
 

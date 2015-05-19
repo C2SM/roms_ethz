@@ -27,6 +27,23 @@
 # include "coupling.h"
 #endif
 #include "ocean3d.h"
+#ifdef BIOLOGY_BEC
+# include "ecosys_bec.h"
+!# include "ncroms_bgcflux.h"
+!HF not needed, only for debugging:
+# include "param_bec.h"
+#endif
+#if defined BIOLOGY_BEC2 && defined BEC2_DIAG
+# include "ecosys_bec2.h"
+#endif
+#ifdef PHYS_FLUX_ANALYSIS
+#  include "physflux.h"
+#  include "ncroms_physflux.h"
+#endif
+#ifdef BGC_FLUX_ANALYSIS
+# include "bgcflux.h"
+# include "ncroms_bgcflux.h"
+#endif
 #ifdef LMD_KPP
 # include "mixing.h"
 #endif
@@ -38,6 +55,10 @@ c--#define VERBOSE
       write(*,'(3(2x,A,I3))') 'enter get_init: req_rec =', req_rec,
      &            'tindx =', tindx, 'may_day_flag =', may_day_flag
 #endif
+
+#if defined BIOLOGY_NPZDOC && !defined BGC_FLUX_ANALYSIS
+# include "bgcflux.h"
+#endif 
       if (may_day_flag/=0) return      !-->  EXIT
 
 ! Open conditions netCDF file for reading.  Check that all spatial
@@ -535,6 +556,153 @@ c**      start_time=start_time - 20.*360. *day2sec
           goto 99                                         !--> ERROR
         endif
       enddo
+# ifdef SEDIMENT_BIOLOGY
+!
+! Sediment tracer variables.
+!
+      do itrc=1,NT_sed
+        lvar=lenstr(vname(1,indxSedOrgN+itrc-1))
+        ierr=nf_inq_varid (ncid, 
+     &       vname(1,indxSedOrgN+itrc-1)(1:lvar), varid)
+        if (ierr .eq. nf_noerr) then
+          ierr=nf_fread (t_sed(START_2D_ARRAY,itrc), ncid,  varid,
+     &                                               record, r2dvar)
+          if (ierr .ne. nf_noerr) then
+            write(stdout,2) vname(1,indxSedOrgN+itrc-1)(1:lvar),
+     &            record,  ininame(1:lstr)
+            goto 99                                       !--> ERROR
+          endif
+        else
+          MPI_master_only write(stdout,1) 
+     &                         vname(1,indxSedOrgN+itrc-1)(1:lvar),
+     &                                    ininame(1:lstr)
+     &            ,' => Initialized to 0.' 
+!          MPI_master_only write(stdout,'(1x,2a/1x,a)') 
+!     &         'Note: Previous versions of ROMS did ',
+!     &         'not include sediment biology.'
+!     &         'Starting with 0 concentration.'
+CHF          goto 99                                         !--> ERROR
+        endif
+      enddo
+# endif /* SEDIMENT_BIOLOGY */
+# if defined BIOLOGY_BEC || (defined BIOLOGY_NPZDOC && \
+    defined OXYGEN && defined CARBON)
+
+
+      !
+      !pH
+      !
+      lvar=lenstr(vname(1,indxPH_rst))
+      ierr=nf_inq_varid (ncid, vname(1,indxPH_rst)(1:lvar), varid)
+      if (ierr .eq. nf_noerr) then
+         ierr=nf_fread (ph_hist(START_2D_ARRAY), ncid,  varid,
+     &                                               record, r2dvar)
+         if (ierr .ne. nf_noerr) then
+            write(stdout,2) vname(1,indxPH_rst)(1:lvar), record,
+     &           ininame(1:lstr)
+            goto 99             !--> ERROR
+         endif
+      else
+         MPI_master_only write(stdout,*)
+     &        'pH field not in init/rst file, initialize to 0'
+      endif
+
+      !
+      ! pCO2:
+      !
+      lvar=lenstr(vname(1,indxPCO2_rst))
+      ierr=nf_inq_varid (ncid, vname(1,indxPCO2_rst)(1:lvar), varid)
+      if (ierr .eq. nf_noerr) then
+         ierr=nf_fread (pCO2sw(START_2D_ARRAY), ncid,  varid,
+     &                                               record, r2dvar)
+         if (ierr .ne. nf_noerr) then
+            write(stdout,2) vname(1,indxPCO2_rst)(1:lvar), record,
+     &           ininame(1:lstr)
+            goto 99             !--> ERROR
+         endif
+      else
+         MPI_master_only write(stdout,*) 
+     &        'PCO2 not in init/rst file, initialize to 0'
+      endif
+
+#  ifndef PCO2AIR_FORCING /* if pCO2air is not a 2D forcing field */
+
+      ! pCO2 in the air:
+      lvar=lenstr(vname(1,indxPCO2air_rst))
+      ierr=nf_inq_varid (ncid, vname(1,indxPCO2air_rst)(1:lvar), varid)
+      if (ierr .eq. nf_noerr) then
+         ierr=nf_fread (pCO2air(START_2D_ARRAY), ncid,  varid,
+     &                                               record, r2dvar)
+         if (ierr .ne. nf_noerr) then
+            write(stdout,2) vname(1,indxPCO2air_rst)(1:lvar), record,
+     &           ininame(1:lstr)
+            goto 99             !--> ERROR
+         endif
+      else
+         MPI_master_only write(stdout,*) 
+     &        'PCO2air not in init/rst file, initialize to 0'
+      endif
+#  endif
+# endif /* BIOLOGY_BEC || (BIOLOGY_NPZDOC && OXYGEN && CARBON) */
+# if defined BIOLOGY_BEC2 && defined BEC2_DIAG
+      ! Read in 2d diagnostic variables:
+      do itrc=1,nr_bec2_diag_2d
+         lvar=lenstr(vname_bec2_diag_2d(1,itrc))
+      end do
+      do itrc=1,nr_bec2_diag_2d
+         lvar=lenstr(vname_bec2_diag_2d(1,itrc))
+         ierr=nf_inq_varid (ncid, vname_bec2_diag_2d(1,itrc)(1:lvar), varid)
+         if (ierr .eq. nf_noerr) then
+            ierr=nf_fread (bec2_diag_2d(START_2D_ARRAY,itrc), ncid,  varid,
+     &                                               record, r2dvar)
+            if (ierr .ne. nf_noerr) then
+               write(stdout,2) vname_bec2_diag_2d(1,itrc)(1:lvar), record,
+     &              ininame(1:lstr)
+               goto 99             !--> ERROR
+            endif
+         else
+            MPI_master_only write(*,1) vname_bec2_diag_2d(1,itrc)(1:lvar), 
+     &                           ininame(1:lstr)
+     &            ,' => Initialized to 0.'
+         endif
+      end do
+      ! Read in 3d diagnostic variables:
+      do itrc=1,nr_bec2_diag_3d
+         lvar=lenstr(vname_bec2_diag_3d(1,itrc))
+         ierr=nf_inq_varid (ncid, vname_bec2_diag_3d(1,itrc)(1:lvar), varid)
+         if (ierr .eq. nf_noerr) then
+            ierr=nf_fread (bec2_diag_3d(START_2D_ARRAY,1,itrc), ncid,  varid,
+     &                                               record, r3dvar)
+            if (ierr .ne. nf_noerr) then
+               write(stdout,2) vname_bec2_diag_3d(1,itrc)(1:lvar), record,
+     &              ininame(1:lstr)
+               goto 99             !--> ERROR
+            endif
+         else
+            MPI_master_only write(*,1) vname_bec2_diag_3d(1,itrc)(1:lvar), 
+     &                           ininame(1:lstr)
+     &            ,' => Initialized to 0.'
+         endif
+      end do
+# endif /* BIOLOGY_BEC2 && BEC2_DIAG */
+
+# if defined BIOLOGY_BEC || defined BIOLOGY_NPZDOC
+      ! Photosynthetically available radiation:
+      lvar=lenstr(vname(1,indxPAR_rst))
+      ierr=nf_inq_varid (ncid, vname(1,indxPAR_rst)(1:lvar), varid)
+      if (ierr .eq. nf_noerr) then
+         ierr=nf_fread (PAR(START_2D_ARRAY,1), ncid,  varid,
+     &                                               record, r2dvar)
+         if (ierr .ne. nf_noerr) then
+            write(stdout,2) vname(1,indxPAR_rst)(1:lvar), record,
+     &           ininame(1:lstr)
+            goto 99             !--> ERROR
+         endif
+      else
+         MPI_master_only write(stdout,*) 
+     &        'PAR not in init/rst file, initialize to 0'
+      endif
+# endif /* BIOLOGY_BEC || BIOLOGY_NPZDOC */
 # ifdef LMD_KPP
       lvar=lenstr(vname(1,indxHbls))
       ierr=nf_inq_varid (ncid, vname(1,indxHbls)(1:lvar), varid)

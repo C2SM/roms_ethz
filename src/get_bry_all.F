@@ -140,6 +140,19 @@
      &                                              bry_file(1:lstr)
               ierr_all=ierr_all+ierr
 #    endif
+          do itrc = itemp + ntrc_salt + 1, NT
+             lvar=lenstr(vname(1,itrc+indxT-itemp))
+             vname_bry = vname(1,itrc+indxT-itemp)(1:lvar)/ /'_west'
+
+             ierr=nf_inq_varid (bry_id, vname_bry,
+     &            t_west_id(itrc))
+! NOTE: as currently coded, only a warning is issued, not an error
+! default boundary conditions and/or error handling must be provided below!
+             if (ierr.ne.nf_noerr) then
+                write(stdout,11) vname_bry(1:lvar+5)
+                t_west_id(itrc) = 0
+             end if
+          end do
 #   endif
 #  endif
             endif
@@ -185,6 +198,19 @@
      &                                              bry_file(1:lstr)
               ierr_all=ierr_all+ierr
 #    endif
+          do itrc = itemp + ntrc_salt + 1, NT
+             lvar=lenstr(vname(1,itrc+indxT-itemp))
+             vname_bry = vname(1,itrc+indxT-itemp)(1:lvar)/ /'_east'
+
+             ierr=nf_inq_varid (bry_id, vname_bry,
+     &            t_east_id(itrc))
+! NOTE: as currently coded, only a warning is issued, not an error
+! default boundary conditions and/or error handling must be provided below!
+             if (ierr.ne.nf_noerr) then
+                write(stdout,11) vname_bry(1:lvar+5)
+                t_east_id(itrc) = 0
+             end if
+          end do
 #   endif
 #  endif
             endif
@@ -230,6 +256,19 @@
      &                                                bry_file(1:lstr)
               ierr_all=ierr_all+ierr
 #    endif
+          do itrc = itemp + ntrc_salt + 1, NT
+             lvar=lenstr(vname(1,itrc+indxT-itemp))
+             vname_bry = vname(1,itrc+indxT-itemp)(1:lvar)/ /'_south'
+
+             ierr=nf_inq_varid (bry_id, vname_bry,
+     &            t_south_id(itrc))
+! NOTE: as currently coded, only a warning is issued, not an error
+! default boundary conditions and/or error handling must be provided below!
+             if (ierr.ne.nf_noerr) then
+                write(stdout,11) vname_bry(1:lvar+6)
+                t_south_id(itrc) = 0
+             end if
+          end do
 #   endif
 #  endif
             endif
@@ -275,6 +314,20 @@
      &                                              bry_file(1:lstr)
               ierr_all=ierr_all+ierr
 #    endif
+          do itrc = itemp + ntrc_salt + 1, NT
+             lvar=lenstr(vname(1,itrc+indxT-itemp))
+             vname_bry = vname(1,itrc+indxT-itemp)(1:lvar)/ /'_north'
+
+             ierr=nf_inq_varid (bry_id, vname_bry,
+     &            t_north_id(itrc))
+! NOTE: as currently coded, only a warning is issued, not an error
+! default boundary conditions and/or error handling must be provided below!
+             if (ierr.ne.nf_noerr) then
+                write(stdout,11) vname_bry(1:lvar+6)
+                t_north_id(itrc) = 0
+             end if
+
+          end do
 #   endif
 #  endif
             endif
@@ -342,12 +395,222 @@
                 do itrc=1,NT
                   ierr=nf_read_bry_EW (t_west_dt(0,1,itbry,itrc),
      &                 bry_id, t_west_id(itrc),  bry_rec, r3dvar)
-                  ierr_all=ierr_all+ierr
-                enddo
+                  if (ierr.ne.nf_noerr)  then
+                     if (itrc .le. 1 + ntrc_salt) then
+                        write(stdout,2)  vname_bry(1:lvar+5)
+                        ierr_all=ierr_all+ierr
+                     end if
+                  else
+                     bry_set = .true.   
+                  end if
+               end if
+!DL: defaults for temperature and salinity: means of WOA2005
+               if (.not. bry_set .and. itrc .eq. itemp) then
+                  t_west_dt(:,:,itbry,itrc) = 3.568  ! C
+               end if
+               if (.not. bry_set .and. itrc .eq. isalt) then
+                  t_west_dt(:,:,itbry,itrc) = 34.72  ! PSU
+               end if
+! HF: NOTE carefully: if other tracers are used that are not covered
+! by the currently defined cases, code for default values (or errors)
+! must be added
+#    ifdef PASSIVE_TRACER
+               if (.not. bry_set .and. itrc .ge. itpas(1) .and. 
+     &              itrc .le. itpas(ntrc_pas)) then
+                  ierr = 0
+                  write(stdout,3)  vname_bry(1:lvar+5)
+                  t_west_dt(:,:,itbry,itrc) = 0.0
+!HF: assume a special case: if number of passive tracers equals number
+! of sigma levels, use each passive tracer to track advection/diffusion
+! from one sigma level
+                  if (ntrc_pas .eq. N) then
+!HF concentration is 1 in layer equal to index, 0 otherwise
+                     t_west_dt(:,itrc-itpas(1)+1,itbry,itrc) = 1.0
+                  end if
+               end if
+#    endif /* PASSIVE_TRACER */
+
+#    ifdef BIOLOGY_NPZDOC
+               if (.not. bry_set .and. itrc .ge. iNO3_ .and. 
+     &              itrc .le. iNO3_ + ntrc_bio - 1) then
+
+!DL: defaults for all tracers are provided:
+!                  if (itrc .eq. iNO3_
+!#     ifdef OXYGEN
+!     &                 .or. itrc .eq. iO2
+!#     endif
+!#     ifdef CARBON
+!     &                 .or. itrc .eq. iDIC .or. itrc .eq. iTALK
+!#     endif
+!     &                 ) then
+!                     write(stdout,2)  vname_bry(1:lvar+5)
+!                     ierr_all=ierr_all+ierr
+!                  else
+                     ierr = 0
+                     write(stdout,3)  vname_bry(1:lvar+5)
+                     if (itrc .eq. iNO3_) then
+#     define temp cff
+#     define SiO4 cff1
+                        do k=1,N
+                          do j=0,Mm+1
+                             temp=t_west_dt(j,k,itbry,itemp)
+                             if (temp.lt.8.) then
+                               SiO4=30.
+                             elseif (temp.ge.8. .and. temp.le.11.) then
+                               SiO4=30.-((temp-8.)*(20./3.))
+                             elseif (temp.gt.11. .and. temp.le.13.) then
+                               SiO4=10.-((temp-11.)*(8./2.))
+                             elseif (temp.gt.13. .and. temp.le.16.) then
+                               SiO4=2.-((temp-13.)*(2./3.))
+                             elseif (temp.gt.16.) then
+                               SiO4=0.
+                             endif
+                             t_west_dt(j,k,itbry,itrc)=1.67+0.5873*SiO4
+     &                             +0.0144*SiO4**2
+     &                             +0.0003099*SiO4**3
+!hf: by default, do not perform the cutoff!
+#     ifdef NO3_SFC_CUTOFF 
+!
+!  Cut off surface NO3
+!
+                             t_west_dt(j,k,itbry,itrc)=t_west_dt(j,k,itbry,itrc)*
+     &                             (1-.5*(tanh((z_r(iwest,j,k)+100.)/8.)+1))
+#     endif /* NO3_SFC_CUTOFF */
+                          end do
+                        end do
+                     else if (itrc .eq. iNH4_) then
+                        t_west_dt(:,:,itbry,itrc) = 0.0
+                     else if (itrc .eq. iChla) then
+                        t_west_dt(:,:,itbry,itrc) = 0.10
+                     else if (itrc .eq. iPhyt) then
+                        t_west_dt(:,:,itbry,itrc) = 0.05
+                     else if (itrc .eq. iZoo_) then
+                        t_west_dt(:,:,itbry,itrc) = 0.02
+                     else if (itrc .eq. iSDet) then
+                        t_west_dt(:,:,itbry,itrc) = 0.0
+                     else if (itrc .eq. iLDet) then
+                        t_west_dt(:,:,itbry,itrc) = 0.0
+#     ifdef OXYGEN
+                     else if (itrc .eq. iO2) then
+                        t_west_dt(:,:,itbry,itrc) = 177.9  ! mmol/m3
+#      ifdef CARBON
+                     else if (itrc .eq. iDIC) then
+                        t_west_dt(:,:,itbry,itrc) = 2200.
+                     else if (itrc .eq. iTALK) then
+                        t_west_dt(:,:,itbry,itrc) = 2300.
+                     else if (itrc .eq. iSDetC) then
+                        t_west_dt(:,:,itbry,itrc) = 0.0
+                     else if (itrc .eq. iLDetC) then
+                        t_west_dt(:,:,itbry,itrc) = 0.0
+                     else if (itrc .eq. iCaCO3) then
+                        t_west_dt(:,:,itbry,itrc) = 0.0
 #   endif
-#  endif
-              endif
-# endif
+#     endif /* OXYGEN */
+                     end if  ! itrc .eq. iNO3_
+!DL                  end if
+               end if  ! .not. bry_set .and. itrc .ge. iNO3_ ...
+#    endif /* BIOLOGY_NPZDOC */
+
+#    if defined BIOLOGY_BEC || defined BIOLOGY_BEC2
+! do not provide defaults for selected biogeochemical variables
+               if (.not. bry_set .and. itrc .ge. iPO4 .and. 
+     &              itrc .le. iPO4 + ntrc_bio - 1) then
+!DL: defaults for all tracers are provided:
+!                  if ( (itrc .ge. iPO4 .and. itrc .le. iSIO3)
+!     &                 .or. (itrc .ge. iFE .and. itrc .le. iALK)
+!     &                 ) then
+!                     write(stdout,2)  vname_bry(1:lvar+5)
+!                     ierr_all=ierr_all+ierr
+!                  else
+                     ierr = 0
+                     write(stdout,3)  vname_bry(1:lvar+5)
+                     if (itrc .eq. iNH4 .or. itrc .eq. iDOC .or.
+     &                    itrc .eq. iDON .or. itrc. eq. iDOFE
+     &                    .or. itrc .eq. iDOP) then
+                        t_west_dt(:,:,itbry,itrc) = 0.0
+                     else if (itrc .eq. iPO4) then
+#  define temp cff
+#  define SiO4 cff1
+                        do k=1,N
+                          do j=0,Mm+1
+                             temp=t_west_dt(j,k,itbry,itemp)
+                             if (temp.lt.8.) then
+                               SiO4=30.
+                             elseif (temp.ge.8. .and. temp.le.11.) then
+                               SiO4=30.-((temp-8.)*(20./3.))
+                             elseif (temp.gt.11. .and. temp.le.13.) then
+                               SiO4=10.-((temp-11.)*(8./2.))
+                             elseif (temp.gt.13. .and. temp.le.16.) then
+                               SiO4=2.-((temp-13.)*(2./3.))
+                             elseif (temp.gt.16.) then
+                               SiO4=0.
+                             endif
+                             t_west_dt(j,k,itbry,itrc)=(1.67+0.5873*SiO4
+     &                             +0.0144*SiO4**2
+     &                             +0.0003099*SiO4**3)/16
+!hf: by default, do not perform the cutoff!
+#ifdef NO3_SFC_CUTOFF 
+!
+!  Cut off surface NO3
+!
+                             t_west_dt(j,k,itbry,itrc)=t_west_dt(j,k,itbry,itrc)*
+     &                             (1-.5*(tanh((z_r(iwest,j,k)+100.)/8.)+1))
+#endif /* NO3_SFC_CUTOFF */
+                          end do
+                        end do
+                     else if (itrc .eq. iNO3) then
+                        t_west_dt(:,:,itbry,itrc) = 16*t_west_dt(:,:,itbry,iPO4)
+                     else if (itrc .eq. iSiO3) then
+                        t_west_dt(:,:,itbry,itrc) = t_west_dt(:,:,itbry,iNO3)
+                     else if (itrc .eq. iFE) then
+                        t_west_dt(:,:,itbry,itrc) = 5.395e-4  ! mmol/m3
+                     else if (itrc .eq. iO2) then
+                        t_west_dt(:,:,itbry,itrc) = 177.9  ! mmol/m3
+                     else if (itrc .eq. iDIC) then
+                        t_west_dt(:,:,itbry,itrc) = 2255  ! mmol/m3
+                     else if (itrc .eq. iALK) then
+                        t_west_dt(:,:,itbry,itrc) = 2363  ! mmol/m3
+                     else if (itrc .eq. iSPC) then
+                        t_west_dt(:,:,itbry,itrc) = 0.10
+                     else if (itrc .eq. iSPCHL) then
+                        t_west_dt(:,:,itbry,itrc) = 0.1 *
+     &                       t_west_dt(:,:,itbry,iSPC)  
+                     else if (itrc .eq. iSPFE) then
+                        t_west_dt(:,:,itbry,itrc) = 4.d-5 *
+     &                     t_west_dt(:,:,itbry,iSPC)  
+                     else if (itrc .eq. iSPCACO3) then
+                        t_west_dt(:,:,itbry,itrc) = 0.03 *
+     &                     t_west_dt(:,:,itbry,iSPC)  
+                     else if (itrc .eq. iDIATC) then
+                        t_west_dt(:,:,itbry,itrc) = 0.10
+                     else if (itrc .eq. iDIATCHL) then
+                        t_west_dt(:,:,itbry,itrc) = 0.1 *
+     &                       t_west_dt(:,:,itbry,iDIATC)  
+                     else if (itrc .eq. iDIATSI) then
+                        t_west_dt(:,:,itbry,itrc) = 0.2 *
+     &                       t_west_dt(:,:,itbry,iDIATC)  
+                     else if (itrc .eq. iDIATFE) then
+                        t_west_dt(:,:,itbry,itrc) = 3.d-5 *
+     &                       t_west_dt(:,:,itbry,iDIATC)  
+                     else if (itrc .eq. iDIAZC) then
+                        t_west_dt(:,:,itbry,itrc) = 0.01
+                     else if (itrc .eq. iDIAZCHL) then
+                        t_west_dt(:,:,itbry,itrc) = 0.1 *
+     &                       t_west_dt(:,:,itbry,iDIAZC)  
+                     else if (itrc .eq. iDIAZFE) then
+                        t_west_dt(:,:,itbry,itrc) = 3.d-5 *
+     &                       t_west_dt(:,:,itbry,iDIAZC)  
+                     else if (itrc .eq. iZOOC) then
+                        t_west_dt(:,:,itbry,itrc) = 0.05
+                     end if
+!DL                  end if
+               end if
+#    endif /* BIOLOGY_BEC || BIOLOGY_BEC2 */
+            enddo
+#   endif /* T_FRC_BRY */
+#  endif /* SOLVE3D */
+      endif ! east_bry_active
+# endif /* OBC_WEST */
 
 # ifdef OBC_EAST
               if (east_bry_active) then
@@ -376,13 +639,224 @@
 #   ifdef T_FRC_BRY
                 do itrc=1,NT
                   ierr=nf_read_bry_EW (t_east_dt(0,1,itbry,itrc),
-     &                bry_id, t_east_id(itrc),  bry_rec, r3dvar)
-                  ierr_all=ierr_all+ierr
-                enddo
-#   endif
-#  endif
-              endif
-# endif
+     &                 bry_id, t_east_id(itrc),  bry_rec, r3dvar)
+                  if (ierr.ne.nf_noerr)  then
+                     if (itrc .le. 1 + ntrc_salt) then
+                        write(stdout,2)  vname_bry(1:lvar+5)
+                        ierr_all=ierr_all+ierr
+                     end if
+                  else
+                     bry_set = .true.   
+                  end if
+               end if
+!DL: defaults for temperature and salinity: means of WOA2005
+               if (.not. bry_set .and. itrc .eq. itemp) then
+                  t_east_dt(:,:,itbry,itrc) = 3.568  ! C
+               end if
+               if (.not. bry_set .and. itrc .eq. isalt) then
+                  t_east_dt(:,:,itbry,itrc) = 34.72  ! PSU
+               end if
+! HF: NOTE carefully: if other tracers are used that are not covered
+! by the currently defined cases, code for default values (or errors)
+! must be added
+#    ifdef PASSIVE_TRACER
+               if (.not. bry_set .and. itrc .ge. itpas(1) .and. 
+     &              itrc .le. itpas(ntrc_pas)) then
+                  ierr = 0
+                  write(stdout,3)  vname_bry(1:lvar+5)
+                  t_east_dt(:,:,itbry,itrc) = 0.0
+!HF: assume a special case: if number of passive tracers equals number
+! of sigma levels, use each passive tracer to track advection/diffusion
+! from one sigma level
+                  if (ntrc_pas .eq. N) then
+!HF concentration is 1 in layer equal to index, 0 otherwise
+                     t_east_dt(:,itrc-itpas(1)+1,itbry,itrc) = 1.0
+                  end if
+               end if
+#    endif /* PASSIVE_TRACER */
+
+#    ifdef BIOLOGY_NPZDOC
+! do not provide defaults for selected biogeochemical variables
+               if (.not. bry_set .and. itrc .ge. iNO3_ .and. 
+     &              itrc .le. iNO3_ + ntrc_bio - 1) then
+!DL: defaults for all tracers are provided:
+!                  if (itrc .eq. iNO3_
+!#     ifdef OXYGEN
+!     &                 .or. itrc .eq. iO2
+!#     endif
+!#     ifdef CARBON
+!     &                 .or. itrc .eq. iDIC .or. itrc .eq. iTALK
+!#     endif
+!     &                 ) then
+!                     write(stdout,2)  vname_bry(1:lvar+5)
+!                     ierr_all=ierr_all+ierr
+!                  else
+                     ierr = 0
+                     write(stdout,3)  vname_bry(1:lvar+5)
+                     if (itrc .eq. iNO3_) then
+#     define temp cff
+#     define SiO4 cff1
+                        do k=1,N
+                          do j=0,Mm+1
+                             temp=t_east_dt(j,k,itbry,itemp)
+                             if (temp.lt.8.) then
+                               SiO4=30.
+                             elseif (temp.ge.8. .and. temp.le.11.) then
+                               SiO4=30.-((temp-8.)*(20./3.))
+                             elseif (temp.gt.11. .and. temp.le.13.) then
+                               SiO4=10.-((temp-11.)*(8./2.))
+                             elseif (temp.gt.13. .and. temp.le.16.) then
+                               SiO4=2.-((temp-13.)*(2./3.))
+                             elseif (temp.gt.16.) then
+                               SiO4=0.
+                             endif
+                             t_east_dt(j,k,itbry,itrc)=1.67+0.5873*SiO4
+     &                             +0.0144*SiO4**2
+     &                             +0.0003099*SiO4**3
+!hf: by default, do not perform the cutoff!
+#     ifdef NO3_SFC_CUTOFF 
+!
+!  Cut off surface NO3
+!
+                             t_east_dt(j,k,itbry,itrc)=t_east_dt(j,k,itbry,itrc)*
+     &                             (1-.5*(tanh((z_r(ieast,j,k)+100.)/8.)+1))
+#     endif /* NO3_SFC_CUTOFF */
+                          end do
+                        end do
+                     else if (itrc .eq. iNH4_) then
+                        t_east_dt(:,:,itbry,itrc) = 0.0
+                     else if (itrc .eq. iChla) then
+                        t_east_dt(:,:,itbry,itrc) = 0.10
+                     else if (itrc .eq. iPhyt) then
+                        t_east_dt(:,:,itbry,itrc) = 0.05
+                     else if (itrc .eq. iZoo_) then
+                        t_east_dt(:,:,itbry,itrc) = 0.02
+                     else if (itrc .eq. iSDet) then
+                        t_east_dt(:,:,itbry,itrc) = 0.0
+                     else if (itrc .eq. iLDet) then
+                        t_east_dt(:,:,itbry,itrc) = 0.0
+#     ifdef OXYGEN
+                     else if (itrc .eq. iO2) then
+                        t_east_dt(:,:,itbry,itrc) = 177.9  ! mmol/m3
+#      ifdef CARBON
+                     else if (itrc .eq. iDIC) then
+                        t_east_dt(:,:,itbry,itrc) = 2200.
+                     else if (itrc .eq. iTALK) then
+                        t_east_dt(:,:,itbry,itrc) = 2300.
+                     else if (itrc .eq. iSDetC) then
+                        t_east_dt(:,:,itbry,itrc) = 0.0
+                     else if (itrc .eq. iLDetC) then
+                        t_east_dt(:,:,itbry,itrc) = 0.0
+                     else if (itrc .eq. iCaCO3) then
+                        t_east_dt(:,:,itbry,itrc) = 0.0
+#      endif
+#     endif /* OXYGEN */
+                     end if  ! itrc .eq. iNO3_
+!DL                  end if
+               end if  ! .not. bry_set .and. itrc .ge. iNO3_ ...
+#    endif /* BIOLOGY_NPZDOC */
+
+#    if defined BIOLOGY_BEC || defined BIOLOGY_BEC2
+! do not provide defaults for selected biogeochemical variables
+               if (.not. bry_set .and. itrc .ge. iPO4 .and. 
+     &              itrc .le. iPO4 + ntrc_bio - 1) then
+!DL: defaults for all tracers are provided:
+!                  if ( (itrc .ge. iPO4 .and. itrc .le. iSIO3)
+!     &                 .or. (itrc .ge. iFE .and. itrc .le. iALK)
+!     &                 ) then
+!                     write(stdout,2)  vname_bry(1:lvar+5)
+!                     ierr_all=ierr_all+ierr
+!                  else
+                     ierr = 0
+                     write(stdout,3)  vname_bry(1:lvar+5)
+                     if (itrc .eq. iNH4 .or. itrc .eq. iDOC .or.
+     &                    itrc .eq. iDON .or. itrc. eq. iDOFE
+     &                    .or. itrc .eq. iDOP) then
+                        t_east_dt(:,:,itbry,itrc) = 0.0
+                     else if (itrc .eq. iPO4) then
+#  define temp cff
+#  define SiO4 cff1
+                        do k=1,N
+                          do j=0,Mm+1
+                             temp=t_east_dt(j,k,itbry,itemp)
+                             if (temp.lt.8.) then
+                               SiO4=30.
+                             elseif (temp.ge.8. .and. temp.le.11.) then
+                               SiO4=30.-((temp-8.)*(20./3.))
+                             elseif (temp.gt.11. .and. temp.le.13.) then
+                               SiO4=10.-((temp-11.)*(8./2.))
+                             elseif (temp.gt.13. .and. temp.le.16.) then
+                               SiO4=2.-((temp-13.)*(2./3.))
+                             elseif (temp.gt.16.) then
+                               SiO4=0.
+                             endif
+                             t_east_dt(j,k,itbry,itrc)=(1.67+0.5873*SiO4
+     &                             +0.0144*SiO4**2
+     &                             +0.0003099*SiO4**3)/16
+!hf: by default, do not perform the cutoff!
+#ifdef NO3_SFC_CUTOFF 
+!
+!  Cut off surface NO3
+!
+                             t_east_dt(j,k,itbry,itrc)=t_east_dt(j,k,itbry,itrc)*
+     &                             (1-.5*(tanh((z_r(ieast,j,k)+100.)/8.)+1))
+#endif /* NO3_SFC_CUTOFF */
+                          end do
+                        end do
+                     else if (itrc .eq. iNO3) then
+                        t_east_dt(:,:,itbry,itrc) = 16*t_east_dt(:,:,itbry,iPO4)
+                     else if (itrc .eq. iSiO3) then
+                        t_east_dt(:,:,itbry,itrc) = t_east_dt(:,:,itbry,iNO3)
+                     else if (itrc .eq. iFE) then
+                        t_east_dt(:,:,itbry,itrc) = 5.395e-4  ! mmol/m3
+                     else if (itrc .eq. iO2) then
+                        t_east_dt(:,:,itbry,itrc) = 177.9  ! mmol/m3
+                     else if (itrc .eq. iDIC) then
+                        t_east_dt(:,:,itbry,itrc) = 2255  ! mmol/m3
+                     else if (itrc .eq. iALK) then
+                        t_east_dt(:,:,itbry,itrc) = 2363  ! mmol/m3
+                     else if (itrc .eq. iSPC) then
+                        t_east_dt(:,:,itbry,itrc) = 0.10
+                     else if (itrc .eq. iSPCHL) then
+                        t_east_dt(:,:,itbry,itrc) = 0.1 *
+     &                       t_east_dt(:,:,itbry,iSPC)  
+                     else if (itrc .eq. iSPFE) then
+                        t_east_dt(:,:,itbry,itrc) = 4.d-5 *
+     &                     t_east_dt(:,:,itbry,iSPC)  
+                     else if (itrc .eq. iSPCACO3) then
+                        t_east_dt(:,:,itbry,itrc) = 0.03 *
+     &                     t_east_dt(:,:,itbry,iSPC)  
+                     else if (itrc .eq. iDIATC) then
+                        t_east_dt(:,:,itbry,itrc) = 0.10
+                     else if (itrc .eq. iDIATCHL) then
+                        t_east_dt(:,:,itbry,itrc) = 0.1 *
+     &                       t_east_dt(:,:,itbry,iDIATC)  
+                     else if (itrc .eq. iDIATSI) then
+                        t_east_dt(:,:,itbry,itrc) = 0.2 *
+     &                       t_east_dt(:,:,itbry,iDIATC)  
+                     else if (itrc .eq. iDIATFE) then
+                        t_east_dt(:,:,itbry,itrc) = 3.d-5 *
+     &                       t_east_dt(:,:,itbry,iDIATC)  
+                     else if (itrc .eq. iDIAZC) then
+                        t_east_dt(:,:,itbry,itrc) = 0.01
+                     else if (itrc .eq. iDIAZCHL) then
+                        t_east_dt(:,:,itbry,itrc) = 0.1 *
+     &                       t_east_dt(:,:,itbry,iDIAZC)  
+                     else if (itrc .eq. iDIAZFE) then
+                        t_east_dt(:,:,itbry,itrc) = 3.d-5 *
+     &                       t_east_dt(:,:,itbry,iDIAZC)  
+                     else if (itrc .eq. iZOOC) then
+                        t_east_dt(:,:,itbry,itrc) = 0.05
+                     end if
+!DL                  end if
+               end if
+#    endif /* BIOLOGY_BEC || BIOLOGY_BEC2 */
+            enddo
+#   endif /* T_FRC_BRY */
+#  endif /* SOLVE3D */
+       endif ! east_bry_active
+# endif /* OBC_EAST */
+
 
 # ifdef OBC_SOUTH
               if (south_bry_active) then
@@ -409,67 +883,494 @@
                 ierr_all=ierr_all+ierr
 #   endif
 #   ifdef T_FRC_BRY
-                do itrc=1,NT
+            do itrc=1,NT
+               bry_set = .false.
+               lvar=lenstr(vname(1,indxT+itrc-1))
+               vname_bry = vname(1,indxT+itrc-1)(1:lvar)/ /'_south'
+               if (t_south_id(itrc) .gt. 0) then
                   ierr=nf_read_bry_NS (t_south_dt(0,1,itbry,itrc),
-     &                bry_id, t_south_id(itrc),  bry_rec, r3dvar)
-                  ierr_all=ierr_all+ierr
-                enddo
-#   endif
-#  endif
-              endif
-# endif
+     &                 bry_id, t_south_id(itrc),  bry_rec, r3dvar)
+                  if (ierr.ne.nf_noerr)  then
+                     if (itrc .le. 1 + ntrc_salt) then
+                        write(stdout,2)  vname_bry(1:lvar+6)
+                        ierr_all=ierr_all+ierr
+                     end if
+                  else
+                     bry_set = .true.   
+                  end if
+               end if
+!DL: defaults for temperature and salinity: means of WOA2005
+               if (.not. bry_set .and. itrc .eq. itemp) then
+                  t_south_dt(:,:,itbry,itrc) = 3.568  ! C
+               end if
+               if (.not. bry_set .and. itrc .eq. isalt) then
+                  t_south_dt(:,:,itbry,itrc) = 34.72  ! PSU
+               end if
+! HF: NOTE carefully: if other tracers are used that are not covered
+! by the currently defined cases, code for default values (or errors)
+! must be added
+#    ifdef PASSIVE_TRACER
+               if (.not. bry_set .and. itrc .ge. itpas(1) .and. 
+     &              itrc .le. itpas(ntrc_pas)) then
+                  ierr = 0
+                  write(stdout,3)  vname_bry(1:lvar+6)
+                  t_south_dt(:,:,itbry,itrc) = 0.0
+!HF: assume a special case: if number of passive tracers equals number
+! of sigma levels, use each passive tracer to track advection/diffusion
+! from one sigma level
+                  if (ntrc_pas .eq. N) then
+!HF concentration is 1 in layer equal to index, 0 otherwise
+                     t_south_dt(:,itrc-itpas(1)+1,itbry,itrc) = 1.0
+                  end if
+               end if
+#    endif /* PASSIVE_TRACER */
+
+#    ifdef BIOLOGY_NPZDOC
+! do not provide defaults for selected biogeochemical variables
+               if (.not. bry_set .and. itrc .ge. iNO3_ .and. 
+     &              itrc .le. iNO3_ + ntrc_bio - 1) then
+!DL: defaults for all tracers are provided:
+!                  if (itrc .eq. iNO3_
+!#     ifdef OXYGEN
+!     &                 .or. itrc .eq. iO2
+!#     endif
+!#     ifdef CARBON
+!     &                 .or. itrc .eq. iDIC .or. itrc .eq. iTALK
+!#     endif
+!     &                 ) then
+!                     write(stdout,2)  vname_bry(1:lvar+6)
+!                     ierr_all=ierr_all+ierr
+!                  else
+                     ierr = 0
+                     write(stdout,3)  vname_bry(1:lvar+6)
+                     if (itrc .eq. iNO3_) then
+#  define temp cff
+#  define SiO4 cff1
+                        do k=1,N
+                          do i=0,Lm+1
+                             temp=t_south_dt(i,k,itbry,itemp)
+                             if (temp.lt.8.) then
+                               SiO4=30.
+                             elseif (temp.ge.8. .and. temp.le.11.) then
+                               SiO4=30.-((temp-8.)*(20./3.))
+                             elseif (temp.gt.11. .and. temp.le.13.) then
+                               SiO4=10.-((temp-11.)*(8./2.))
+                             elseif (temp.gt.13. .and. temp.le.16.) then
+                               SiO4=2.-((temp-13.)*(2./3.))
+                             elseif (temp.gt.16.) then
+                               SiO4=0.
+                             endif
+                             t_south_dt(i,k,itbry,itrc)=1.67+0.5873*SiO4
+     &                             +0.0144*SiO4**2
+     &                             +0.0003099*SiO4**3
+!hf: by default, do not perform the cutoff!
+#ifdef NO3_SFC_CUTOFF 
+!
+!  Cut off surface NO3
+!
+                             t_south_dt(i,k,itbry,itrc)=t_south_dt(i,k,itbry,itrc)*
+     &                             (1-.5*(tanh((z_r(i,jsouth,k)+100.)/8.)+1))
+#endif /* NO3_SFC_CUTOFF */
+                          end do
+                        end do
+                     else if (itrc .eq. iNH4_) then
+                        t_south_dt(:,:,itbry,itrc) = 0.0
+                     else if (itrc .eq. iChla) then
+                        t_south_dt(:,:,itbry,itrc) = 0.10
+                     else if (itrc .eq. iPhyt) then
+                        t_south_dt(:,:,itbry,itrc) = 0.05
+                     else if (itrc .eq. iZoo_) then
+                        t_south_dt(:,:,itbry,itrc) = 0.02
+                     else if (itrc .eq. iSDet) then
+                        t_south_dt(:,:,itbry,itrc) = 0.0
+                     else if (itrc .eq. iLDet) then
+                        t_south_dt(:,:,itbry,itrc) = 0.0
+#     ifdef OXYGEN
+                     else if (itrc .eq. iO2) then
+                        t_south_dt(:,:,itbry,itrc) = 177.9  ! mmol/m3
+#      ifdef CARBON
+                     else if (itrc .eq. iDIC) then
+                        t_south_dt(:,:,itbry,itrc) = 2200.
+                     else if (itrc .eq. iTALK) then
+                        t_south_dt(:,:,itbry,itrc) = 2300.
+                     else if (itrc .eq. iSDetC) then
+                        t_south_dt(:,:,itbry,itrc) = 0.0
+                     else if (itrc .eq. iLDetC) then
+                        t_south_dt(:,:,itbry,itrc) = 0.0
+                     else if (itrc .eq. iCaCO3) then
+                        t_south_dt(:,:,itbry,itrc) = 0.0
+#      endif
+#     endif /* OXYGEN */
+                     end if  ! itrc .eq. iNO3_
+!DL                  end if
+               end if  ! .not. bry_set .and. itrc .ge. iNO3_ ...
+#    endif /* BIOLOGY_NPZDOC */
+
+#    if defined BIOLOGY_BEC || defined BIOLOGY_BEC2
+! do not provide defaults for selected biogeochemical variables
+               if (.not. bry_set .and. itrc .ge. iPO4 .and. 
+     &              itrc .le. iPO4 + ntrc_bio - 1) then
+!DL: defaults for all tracers are provided:
+!                  if ( (itrc .ge. iPO4 .and. itrc .le. iSIO3)
+!     &                 .or. (itrc .ge. iFE .and. itrc .le. iALK)
+!     &                 ) then
+!                     write(stdout,2)  vname_bry(1:lvar+6)
+!                     ierr_all=ierr_all+ierr
+!                  else
+                     ierr = 0
+                     write(stdout,3)  vname_bry(1:lvar+6)
+                     if (itrc .eq. iNH4 .or. itrc .eq. iDOC .or.
+     &                    itrc .eq. iDON .or. itrc. eq. iDOFE
+     &                    .or. itrc .eq. iDOP) then
+                        t_south_dt(:,:,itbry,itrc) = 0.0
+                     else if (itrc .eq. iPO4) then
+#  define temp cff
+#  define SiO4 cff1
+                        do k=1,N
+                          do i=0,Lm+1
+                             temp=t_south_dt(i,k,itbry,itemp)
+                             if (temp.lt.8.) then
+                               SiO4=30.
+                             elseif (temp.ge.8. .and. temp.le.11.) then
+                               SiO4=30.-((temp-8.)*(20./3.))
+                             elseif (temp.gt.11. .and. temp.le.13.) then
+                               SiO4=10.-((temp-11.)*(8./2.))
+                             elseif (temp.gt.13. .and. temp.le.16.) then
+                               SiO4=2.-((temp-13.)*(2./3.))
+                             elseif (temp.gt.16.) then
+                               SiO4=0.
+                             endif
+                             t_south_dt(i,k,itbry,itrc)=(1.67+0.5873*SiO4
+     &                             +0.0144*SiO4**2
+     &                             +0.0003099*SiO4**3)/16
+!hf: by default, do not perform the cutoff!
+#ifdef NO3_SFC_CUTOFF 
+!
+!  Cut off surface NO3
+!
+                             t_south_dt(i,k,itbry,itrc)=t_south_dt(i,k,itbry,itrc)*
+     &                             (1-.5*(tanh((z_r(i,jsouth,k)+100.)/8.)+1))
+#endif /* NO3_SFC_CUTOFF */
+                          end do
+                        end do
+                     else if (itrc .eq. iNO3) then
+                        t_south_dt(:,:,itbry,itrc) = 16*t_south_dt(:,:,itbry,iPO4)
+                     else if (itrc .eq. iSiO3) then
+                        t_south_dt(:,:,itbry,itrc) = t_south_dt(:,:,itbry,iNO3)
+                     else if (itrc .eq. iFE) then
+                        t_south_dt(:,:,itbry,itrc) = 5.395e-4  ! mmol/m3
+                     else if (itrc .eq. iO2) then
+                        t_south_dt(:,:,itbry,itrc) = 177.9  ! mmol/m3
+                     else if (itrc .eq. iDIC) then
+                        t_south_dt(:,:,itbry,itrc) = 2255  ! mmol/m3
+                     else if (itrc .eq. iALK) then
+                        t_south_dt(:,:,itbry,itrc) = 2363  ! mmol/m3
+                     else if (itrc .eq. iSPC) then
+                        t_south_dt(:,:,itbry,itrc) = 0.10
+                     else if (itrc .eq. iSPCHL) then
+                        t_south_dt(:,:,itbry,itrc) = 0.1 *
+     &                       t_south_dt(:,:,itbry,iSPC)  
+                     else if (itrc .eq. iSPFE) then
+                        t_south_dt(:,:,itbry,itrc) = 4.d-5 *
+     &                     t_south_dt(:,:,itbry,iSPC)  
+                     else if (itrc .eq. iSPCACO3) then
+                        t_south_dt(:,:,itbry,itrc) = 0.03 *
+     &                     t_south_dt(:,:,itbry,iSPC)  
+                     else if (itrc .eq. iDIATC) then
+                        t_south_dt(:,:,itbry,itrc) = 0.10
+                     else if (itrc .eq. iDIATCHL) then
+                        t_south_dt(:,:,itbry,itrc) = 0.1 *
+     &                       t_south_dt(:,:,itbry,iDIATC)  
+                     else if (itrc .eq. iDIATSI) then
+                        t_south_dt(:,:,itbry,itrc) = 0.2 *
+     &                       t_south_dt(:,:,itbry,iDIATC)  
+                     else if (itrc .eq. iDIATFE) then
+                        t_south_dt(:,:,itbry,itrc) = 3.d-5 *
+     &                       t_south_dt(:,:,itbry,iDIATC)  
+                     else if (itrc .eq. iDIAZC) then
+                        t_south_dt(:,:,itbry,itrc) = 0.01
+                     else if (itrc .eq. iDIAZCHL) then
+                        t_south_dt(:,:,itbry,itrc) = 0.1 *
+     &                       t_south_dt(:,:,itbry,iDIAZC)  
+                     else if (itrc .eq. iDIAZFE) then
+                        t_south_dt(:,:,itbry,itrc) = 3.d-5 *
+     &                       t_south_dt(:,:,itbry,iDIAZC)  
+                     else if (itrc .eq. iZOOC) then
+                        t_south_dt(:,:,itbry,itrc) = 0.05
+                     end if
+!DL                  end if
+               end if
+#    endif /* BIOLOGY_BEC || BIOLOGY_BEC2 */
+            enddo
+#   endif /* T_FRC_BRY */
+#  endif /* SOLVE3D */
+        endif ! south_bry_active
+# endif /* OBC_SOUTH */
 
 # ifdef OBC_NORTH
-              if (north_bry_active) then
+            if (north_bry_active) then
 #  ifdef Z_FRC_BRY
-                ierr=nf_read_bry_NS (zeta_north_dt(0,itbry), bry_id,
-     &                               zeta_north_id, bry_rec, r2dvar)
-                ierr_all=ierr_all+ierr
+              ierr=nf_read_bry_NS (zeta_north_dt(0,itbry), bry_id,
+     &                             zeta_north_id, bry_rec, r2dvar)
+              if (ierr.ne.nf_noerr) write(stdout,2) 'zeta_north'
+              ierr_all=ierr_all+ierr
 #  endif
 #  ifdef M2_FRC_BRY
-                ierr=nf_read_bry_NS (ubar_north_dt(0,itbry), bry_id,
-     &                               ubar_north_id, bry_rec, u2dvar)
-                ierr_all=ierr_all+ierr
-                ierr=nf_read_bry_NS (vbar_north_dt(0,itbry), bry_id,
-     &                               vbar_north_id, bry_rec, v2dvar)
-                ierr_all=ierr_all+ierr
+              ierr=nf_read_bry_NS (ubar_north_dt(0,itbry), bry_id,
+     &                             ubar_north_id, bry_rec, u2dvar)
+              if (ierr.ne.nf_noerr) write(stdout,2) 'ubar_north'
+              ierr_all=ierr_all+ierr
+              ierr=nf_read_bry_NS (vbar_north_dt(0,itbry), bry_id, 
+     &                             vbar_north_id, bry_rec, v2dvar)
+              if (ierr.ne.nf_noerr) write(stdout,2) 'vbar_north'
+              ierr_all=ierr_all+ierr
 #  endif
 #  ifdef SOLVE3D
 #   ifdef M3_FRC_BRY
-                ierr=nf_read_bry_NS (u_north_dt(0,1,itbry), bry_id,
-     &                               u_north_id,  bry_rec,  u3dvar)
-                ierr_all=ierr_all+ierr
-                ierr=nf_read_bry_NS (v_north_dt(0,1,itbry), bry_id,
-     &                               v_north_id,  bry_rec,  v3dvar)
-                ierr_all=ierr_all+ierr
+              ierr=nf_read_bry_NS (u_north_dt(0,1,itbry), bry_id,
+     &                             u_north_id,  bry_rec,  u3dvar)
+              if (ierr.ne.nf_noerr)  write(stdout,2)  'u_north'
+              ierr_all=ierr_all+ierr
+              ierr=nf_read_bry_NS (v_north_dt(0,1,itbry), bry_id,
+     &                             v_north_id,  bry_rec,  v3dvar)
+              if (ierr.ne.nf_noerr)  write(stdout,2)  'v_north'
+              ierr_all=ierr_all+ierr
 #   endif
 #   ifdef T_FRC_BRY
-                do itrc=1,NT
+            do itrc=1,NT
+               bry_set = .false.
+               lvar=lenstr(vname(1,indxT+itrc-1))
+               vname_bry = vname(1,indxT+itrc-1)(1:lvar)/ /'_north'
+               if (t_north_id(itrc) .gt. 0) then
                   ierr=nf_read_bry_NS (t_north_dt(0,1,itbry,itrc),
      &                 bry_id, t_north_id(itrc),  bry_rec, r3dvar)
-                  ierr_all=ierr_all+ierr
-                enddo
-#   endif
-#  endif
-              endif
-# endif
-              ierr=ierr_all
-              if (ierr==0) then
-# ifdef MPI_SILENT_MODE
-                if (mynode==0) then
-# endif
-                  write(*,'(3x,A,3x,A,F12.4,2(1x,A,I4))')
-     &           'get_bry_all :: read boundary for all fields',
-     &           'bry_time =', cff, 'rec =', bry_rec MYID
-# ifdef MPI_SILENT_MODE
-                endif
-# endif
-              else
-                write(*,'(1x,2A,I4,1x,3A,1x,A,I4)') '### ERROR: ',
-     &             'get_bry_all :: Cannot read rec =',  bry_rec,
-     &             'of ''',  bry_file(1:lstr),  '''.'  MYID
-              endif
-            endif !<-- need_bry
+                  if (ierr.ne.nf_noerr)  then
+                     if (itrc .le. 1 + ntrc_salt) then
+                        write(stdout,2)  vname_bry(1:lvar+6)
+                        ierr_all=ierr_all+ierr
+                     end if
+                  else
+                     bry_set = .true.   
+                  end if
+               end if
+!DL: defaults for temperature and salinity: means of WOA2005
+               if (.not. bry_set .and. itrc .eq. itemp) then
+                  t_north_dt(:,:,itbry,itrc) = 3.568  ! C
+               end if
+               if (.not. bry_set .and. itrc .eq. isalt) then
+                  t_north_dt(:,:,itbry,itrc) = 34.72  ! PSU
+               end if
+! HF: NOTE carefully: if other tracers are used that are not covered
+! by the currently defined cases, code for default values (or errors)
+! must be added
+#    ifdef PASSIVE_TRACER
+               if (.not. bry_set .and. itrc .ge. itpas(1) .and. 
+     &              itrc .le. itpas(ntrc_pas)) then
+                  ierr = 0
+                  write(stdout,3)  vname_bry(1:lvar+6)
+                  t_north_dt(:,:,itbry,itrc) = 0.0
+!HF: assume a special case: if number of passive tracers equals number
+! of sigma levels, use each passive tracer to track advection/diffusion
+! from one sigma level
+                  if (ntrc_pas .eq. N) then
+!HF concentration is 1 in layer equal to index, 0 otherwise
+                     t_north_dt(:,itrc-itpas(1)+1,itbry,itrc) = 1.0
+                  end if
+               end if
+#    endif /* PASSIVE_TRACER */
+
+#    ifdef BIOLOGY_NPZDOC
+! do not provide defaults for selected biogeochemical variables
+               if (.not. bry_set .and. itrc .ge. iNO3_ .and. 
+     &              itrc .le. iNO3_ + ntrc_bio - 1) then
+!DL: defaults for all tracers are provided:
+!                  if (itrc .eq. iNO3_
+!#     ifdef OXYGEN
+!     &                 .or. itrc .eq. iO2
+!#     endif
+!#     ifdef CARBON
+!     &                 .or. itrc .eq. iDIC .or. itrc .eq. iTALK
+!#     endif
+!     &                 ) then
+!                     write(stdout,2)  vname_bry(1:lvar+6)
+!                     ierr_all=ierr_all+ierr
+!                  else
+                     ierr = 0
+                     write(stdout,3)  vname_bry(1:lvar+6)
+                     if (itrc .eq. iNO3_) then
+#  define temp cff
+#  define SiO4 cff1
+                        do k=1,N
+                          do i=0,Lm+1
+                             temp=t_north_dt(i,k,itbry,itemp)
+                             if (temp.lt.8.) then
+                               SiO4=30.
+                             elseif (temp.ge.8. .and. temp.le.11.) then
+                               SiO4=30.-((temp-8.)*(20./3.))
+                             elseif (temp.gt.11. .and. temp.le.13.) then
+                               SiO4=10.-((temp-11.)*(8./2.))
+                             elseif (temp.gt.13. .and. temp.le.16.) then
+                               SiO4=2.-((temp-13.)*(2./3.))
+                             elseif (temp.gt.16.) then
+                               SiO4=0.
+                             endif
+                             t_north_dt(i,k,itbry,itrc)=1.67+0.5873*SiO4
+     &                             +0.0144*SiO4**2
+     &                             +0.0003099*SiO4**3
+!hf: by default, do not perform the cutoff!
+#ifdef NO3_SFC_CUTOFF 
+!
+!  Cut off surface NO3
+!
+                             t_north_dt(i,k,itbry,itrc)=t_north_dt(i,k,itbry,itrc)*
+     &                             (1-.5*(tanh((z_r(i,jnorth,k)+100.)/8.)+1))
+#endif /* NO3_SFC_CUTOFF */
+                          end do
+                        end do
+                     else if (itrc .eq. iNH4_) then
+                        t_north_dt(:,:,itbry,itrc) = 0.0
+                     else if (itrc .eq. iChla) then
+                        t_north_dt(:,:,itbry,itrc) = 0.10
+                     else if (itrc .eq. iPhyt) then
+                        t_north_dt(:,:,itbry,itrc) = 0.05
+                     else if (itrc .eq. iZoo_) then
+                        t_north_dt(:,:,itbry,itrc) = 0.02
+                     else if (itrc .eq. iSDet) then
+                        t_north_dt(:,:,itbry,itrc) = 0.0
+                     else if (itrc .eq. iLDet) then
+                        t_north_dt(:,:,itbry,itrc) = 0.0
+#     ifdef OXYGEN
+                     else if (itrc .eq. iO2) then
+                        t_north_dt(:,:,itbry,itrc) = 177.9  ! mmol/m3
+#      ifdef CARBON
+                     else if (itrc .eq. iDIC) then
+                        t_north_dt(:,:,itbry,itrc) = 2200.
+                     else if (itrc .eq. iTALK) then
+                        t_north_dt(:,:,itbry,itrc) = 2300.
+                     else if (itrc .eq. iSDetC) then
+                        t_north_dt(:,:,itbry,itrc) = 0.0
+                     else if (itrc .eq. iLDetC) then
+                        t_north_dt(:,:,itbry,itrc) = 0.0
+                     else if (itrc .eq. iCaCO3) then
+                        t_north_dt(:,:,itbry,itrc) = 0.0
+#      endif
+#     endif /* OXYGEN */
+                     end if  ! itrc .eq. iNO3_
+!DL                  end if
+               end if ! .not. bry_set .and. itrc .ge. iNO3_ ...
+#    endif /* BIOLOGY_NPZDOC */
+
+#    if defined BIOLOGY_BEC || defined BIOLOGY_BEC2
+! do not provide defaults for selected biogeochemical variables
+               if (.not. bry_set .and. itrc .ge. iPO4 .and. 
+     &              itrc .le. iPO4 + ntrc_bio - 1) then
+!DL: defaults for all tracers are provided:
+!                  if ( (itrc .ge. iPO4 .and. itrc .le. iSIO3)
+!     &                 .or. (itrc .ge. iFE .and. itrc .le. iALK)
+!     &                 ) then
+!                     write(stdout,2)  vname_bry(1:lvar+6)
+!                     ierr_all=ierr_all+ierr
+!                  else
+                     ierr = 0
+                     write(stdout,3)  vname_bry(1:lvar+6)
+                     if (itrc .eq. iNH4 .or. itrc .eq. iDOC .or.
+     &                    itrc .eq. iDON .or. itrc. eq. iDOFE
+     &                    .or. itrc .eq. iDOP) then
+                        t_north_dt(:,:,itbry,itrc) = 0.0
+                     else if (itrc .eq. iPO4) then
+#  define temp cff
+#  define SiO4 cff1
+                        do k=1,N
+                          do i=0,Lm+1
+                             temp=t_north_dt(i,k,itbry,itemp)
+                             if (temp.lt.8.) then
+                               SiO4=30.
+                             elseif (temp.ge.8. .and. temp.le.11.) then
+                               SiO4=30.-((temp-8.)*(20./3.))
+                             elseif (temp.gt.11. .and. temp.le.13.) then
+                               SiO4=10.-((temp-11.)*(8./2.))
+                             elseif (temp.gt.13. .and. temp.le.16.) then
+                               SiO4=2.-((temp-13.)*(2./3.))
+                             elseif (temp.gt.16.) then
+                               SiO4=0.
+                             endif
+                             t_north_dt(i,k,itbry,itrc)=(1.67+0.5873*SiO4
+     &                             +0.0144*SiO4**2
+     &                             +0.0003099*SiO4**3)/16
+!hf: by default, do not perform the cutoff!
+#ifdef NO3_SFC_CUTOFF 
+!
+!  Cut off surface NO3
+!
+                             t_north_dt(i,k,itbry,itrc)=t_north_dt(i,k,itbry,itrc)*
+     &                             (1-.5*(tanh((z_r(i,jnorth,k)+100.)/8.)+1))
+#endif /* NO3_SFC_CUTOFF */
+                          end do
+                        end do
+                     else if (itrc .eq. iNO3) then
+                        t_north_dt(:,:,itbry,itrc) = 16*t_north_dt(:,:,itbry,iPO4)
+                     else if (itrc .eq. iSiO3) then
+                        t_north_dt(:,:,itbry,itrc) = t_north_dt(:,:,itbry,iNO3)
+                     else if (itrc .eq. iFE) then
+                        t_north_dt(:,:,itbry,itrc) = 5.395e-4  ! mmol/m3
+                     else if (itrc .eq. iO2) then
+                        t_north_dt(:,:,itbry,itrc) = 177.9  ! mmol/m3
+                     else if (itrc .eq. iDIC) then
+                        t_north_dt(:,:,itbry,itrc) = 2255  ! mmol/m3
+                     else if (itrc .eq. iALK) then
+                        t_north_dt(:,:,itbry,itrc) = 2363  ! mmol/m3
+                     else if (itrc .eq. iSPC) then
+                        t_north_dt(:,:,itbry,itrc) = 0.10
+                     else if (itrc .eq. iSPCHL) then
+                        t_north_dt(:,:,itbry,itrc) = 0.1 *
+     &                       t_north_dt(:,:,itbry,iSPC)  
+                     else if (itrc .eq. iSPFE) then
+                        t_north_dt(:,:,itbry,itrc) = 4.d-5 *
+     &                     t_north_dt(:,:,itbry,iSPC)  
+                     else if (itrc .eq. iSPCACO3) then
+                        t_north_dt(:,:,itbry,itrc) = 0.03 *
+     &                     t_north_dt(:,:,itbry,iSPC)  
+                     else if (itrc .eq. iDIATC) then
+                        t_north_dt(:,:,itbry,itrc) = 0.10
+                     else if (itrc .eq. iDIATCHL) then
+                        t_north_dt(:,:,itbry,itrc) = 0.1 *
+     &                       t_north_dt(:,:,itbry,iDIATC)  
+                     else if (itrc .eq. iDIATSI) then
+                        t_north_dt(:,:,itbry,itrc) = 0.2 *
+     &                       t_north_dt(:,:,itbry,iDIATC)  
+                     else if (itrc .eq. iDIATFE) then
+                        t_north_dt(:,:,itbry,itrc) = 3.d-5 *
+     &                       t_north_dt(:,:,itbry,iDIATC)  
+                     else if (itrc .eq. iDIAZC) then
+                        t_north_dt(:,:,itbry,itrc) = 0.01
+                     else if (itrc .eq. iDIAZCHL) then
+                        t_north_dt(:,:,itbry,itrc) = 0.1 *
+     &                       t_north_dt(:,:,itbry,iDIAZC)  
+                     else if (itrc .eq. iDIAZFE) then
+                        t_north_dt(:,:,itbry,itrc) = 3.d-5 *
+     &                       t_north_dt(:,:,itbry,iDIAZC)  
+                     else if (itrc .eq. iZOOC) then
+                        t_north_dt(:,:,itbry,itrc) = 0.05
+                     end if
+!DL                  end if
+               end if
+#    endif /* BIOLOGY_BEC || BIOLOGY_BEC2 */
+            enddo
+#   endif /* T_FRC_BRY */
+#  endif /* SOLVE3D */
+        endif ! north_bry_active
+# endif /* OBC_NORTH */
+
+            ierr=ierr_all
+            if (ierr.eq.0) then
+              write(stdout,'(6x,A,2x,A,F12.4,2(1x,A,I4))')
+     &            'get_all_bry -- read boundary for all fields',
+     &            'bry_time =', cff, 'rec =', bry_rec MYID
+            else
+              write(stdout,'(1x,2A,I4/8x,3A)')
+     &           '### ERROR(s) occur while trying to read record ',
+     &             bry_rec,  'in file ''',bry_file(1:lstr),'''.'
+            endif 
           else
             write(*,'(8x,2A,I4)')  '### ERROR: get_bry_all :: ',
      &             'Cannot read variable ''bry_time''' MYID
@@ -486,6 +1387,10 @@
 # ifdef VERBOSE
       write(*,*) 'return from get_bry_all' MYID
 # endif
+  2   format(/1x,'### ERROR in get_bry_all: Cannot read variable ''',
+     &                                                     A, '''.')
+ 3    format('###  NOTE in get_bry_all: cannot read variable ''',
+     &                           A,'''/',' - using default values')
       return
       end
 
