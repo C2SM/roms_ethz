@@ -286,7 +286,7 @@ CR      write(stdout,'(1x,A,I3)') 'indxNH4 =',indxNH4
       vname_bec2_diag_2d(4,indxIRONFLUX)=' '
       vname_bec2_diag_2d(1,indxSEDDENITRIF)='SED_DENITRIF'
       vname_bec2_diag_2d(2,indxSEDDENITRIF)='Sediment denitrification'
-      vname_bec2_diag_2d(3,indxSEDDENITRIF)='mmol/m2/s'
+      vname_bec2_diag_2d(3,indxSEDDENITRIF)='mmol/m3/s'
       vname_bec2_diag_2d(4,indxSEDDENITRIF)=' '
 
       !
@@ -300,97 +300,97 @@ CR      write(stdout,'(1x,A,I3)') 'indxNH4 =',indxNH4
 
       vname_bec2_diag_3d(1,indxPOCFLUXIN)='POC_FLUX_IN'
       vname_bec2_diag_3d(2,indxPOCFLUXIN)='POC flux into cell'
-      vname_bec2_diag_3d(3,indxPOCFLUXIN)='mmol/m2/s '
+      vname_bec2_diag_3d(3,indxPOCFLUXIN)='mmol C/m2/s '
       vname_bec2_diag_3d(4,indxPOCFLUXIN)=' '
 
       vname_bec2_diag_3d(1,indxPOCPROD)='POC_PROD'
       vname_bec2_diag_3d(2,indxPOCPROD)='POC production'
-      vname_bec2_diag_3d(3,indxPOCPROD)='mmol/m3/s '
+      vname_bec2_diag_3d(3,indxPOCPROD)='mmol C/m3/s '
       vname_bec2_diag_3d(4,indxPOCPROD)=' '
       vname_bec2_diag_3d(1,indxPOCREMIN)='POC_REMIN'
       vname_bec2_diag_3d(2,indxPOCREMIN)='POC remineralization'
-      vname_bec2_diag_3d(3,indxPOCREMIN)='mmol/m3/s'
+      vname_bec2_diag_3d(3,indxPOCREMIN)='mmol C/m3/s'
       vname_bec2_diag_3d(4,indxPOCREMIN)=' '
 
       vname_bec2_diag_3d(1,indxCACO3FLUXIN)='CACO3_FLUX_IN'
       vname_bec2_diag_3d(2,indxCACO3FLUXIN)=
      &  'Incoming flux of large detrital CaCO3'
-      vname_bec2_diag_3d(3,indxCACO3FLUXIN)='mmol/m2/s '
+      vname_bec2_diag_3d(3,indxCACO3FLUXIN)='mmol CaCO3/m2/s '
       vname_bec2_diag_3d(4,indxCACO3FLUXIN)=' '
       vname_bec2_diag_3d(1,indxPCACO3PROD)='PCACO3_PROD'
       vname_bec2_diag_3d(2,indxPCACO3PROD)=
      &  'Production of large detrital CaCO3'
-      vname_bec2_diag_3d(3,indxPCACO3PROD)='mmol/m3/s '
+      vname_bec2_diag_3d(3,indxPCACO3PROD)='mmol CaCO3/m3/s '
       vname_bec2_diag_3d(4,indxPCACO3PROD)=' '
       vname_bec2_diag_3d(1,indxCACO3REMIN)='CACO3_REMIN'
       vname_bec2_diag_3d(2,indxCACO3REMIN)=
      &  'Remineralization of large detrital CaCO3'
-      vname_bec2_diag_3d(3,indxCACO3REMIN)='mmol/m3/s '
+      vname_bec2_diag_3d(3,indxCACO3REMIN)='mmol CaCO3/m3/s '
       vname_bec2_diag_3d(4,indxCACO3REMIN)=' '
 
       vname_bec2_diag_3d(1,indxSIO2FLUXIN)='SIO2_FLUX_IN'
       vname_bec2_diag_3d(2,indxSIO2FLUXIN)=
      &  'Incoming flux of large detritus SiO2'
-      vname_bec2_diag_3d(3,indxSIO2FLUXIN)='mmol/m2/s '
+      vname_bec2_diag_3d(3,indxSIO2FLUXIN)='mmol Si/m2/s '
       vname_bec2_diag_3d(4,indxSIO2FLUXIN)=' '
       vname_bec2_diag_3d(1,indxSIO2PROD)='SIO2_PROD'
       vname_bec2_diag_3d(2,indxSIO2PROD)=
      &  'Production of large detritus SiO2'
-      vname_bec2_diag_3d(3,indxSIO2PROD)='mmol/m3/s '
+      vname_bec2_diag_3d(3,indxSIO2PROD)='mmol Si/m3/s '
       vname_bec2_diag_3d(4,indxSIO2PROD)=' '
       vname_bec2_diag_3d(1,indxSIO2REMIN)='SIO2_REMIN'
       vname_bec2_diag_3d(2,indxSIO2REMIN)=
      &  'Remineralization of large detritus SiO2'
-      vname_bec2_diag_3d(3,indxSIO2REMIN)='mmol/m3/s'
+      vname_bec2_diag_3d(3,indxSIO2REMIN)='mmol Si/m3/s'
       vname_bec2_diag_3d(4,indxSIO2REMIN)=' '
 
       vname_bec2_diag_3d(1,indxDUSTFLUXIN)='DUST_FLUX_IN'
       vname_bec2_diag_3d(2,indxDUSTFLUXIN)=
      &  'Incoming dust flux'
-      vname_bec2_diag_3d(3,indxDUSTFLUXIN)='mmol/m2/s '
+      vname_bec2_diag_3d(3,indxDUSTFLUXIN)='kg dust/m2/s '
       vname_bec2_diag_3d(4,indxDUSTFLUXIN)=' '
       vname_bec2_diag_3d(1,indxDUSTREMIN)='DUST_REMIN'
       vname_bec2_diag_3d(2,indxDUSTREMIN)=
      &  'Remineralization of dust'
-      vname_bec2_diag_3d(3,indxDUSTREMIN)='mmol/m3/s '
+      vname_bec2_diag_3d(3,indxDUSTREMIN)='kg dust/m3/s '
       vname_bec2_diag_3d(4,indxDUSTREMIN)=' '
 
       vname_bec2_diag_3d(1,indxPIRONFLUXIN)='P_IRON_FLUX_IN'
       vname_bec2_diag_3d(2,indxPIRONFLUXIN)=
      &  'Incoming flux of large detritus iron'
-      vname_bec2_diag_3d(3,indxPIRONFLUXIN)='mmol/m2/s '
+      vname_bec2_diag_3d(3,indxPIRONFLUXIN)='mmol Fe/m2/s '
       vname_bec2_diag_3d(4,indxPIRONFLUXIN)=' '
       vname_bec2_diag_3d(1,indxPIRONPROD)='P_IRON_PROD'
       vname_bec2_diag_3d(2,indxPIRONPROD)=
      &  'Production of large detritus iron'
-      vname_bec2_diag_3d(3,indxPIRONPROD)='mmol/m3/s '
+      vname_bec2_diag_3d(3,indxPIRONPROD)='mmol Fe/m3/s '
       vname_bec2_diag_3d(4,indxPIRONPROD)=' '
       vname_bec2_diag_3d(1,indxPIRONREMIN)='P_IRON_REMIN'
       vname_bec2_diag_3d(2,indxPIRONREMIN)=
      &  'Remineralization of large detritus iron'
-      vname_bec2_diag_3d(3,indxPIRONREMIN)='mmol/m3/s '
+      vname_bec2_diag_3d(3,indxPIRONREMIN)='mmol Fe/m3/s '
       vname_bec2_diag_3d(4,indxPIRONREMIN)=' '
 
       vname_bec2_diag_3d(1,indxGRAZESP)='GRAZE_SP'
       vname_bec2_diag_3d(2,indxGRAZESP)=
      &  'Grazing rate on small phytoplankton'
-      vname_bec2_diag_3d(3,indxGRAZESP)='mmol/m3/s '
+      vname_bec2_diag_3d(3,indxGRAZESP)='mmol C/m3/s '
       vname_bec2_diag_3d(4,indxGRAZESP)=' '
       vname_bec2_diag_3d(1,indxGRAZEDIAT)='GRAZE_DIAT'
       vname_bec2_diag_3d(2,indxGRAZEDIAT)=
      &  'Grazing rate on diatoms'
-      vname_bec2_diag_3d(3,indxGRAZEDIAT)='mmol/m3/s'
+      vname_bec2_diag_3d(3,indxGRAZEDIAT)='mmol C/m3/s'
       vname_bec2_diag_3d(4,indxGRAZEDIAT)=' '
       vname_bec2_diag_3d(1,indxGRAZEDIAZ)='GRAZE_DIAZ'
       vname_bec2_diag_3d(2,indxGRAZEDIAZ)=
      &  'Grazing rate on diazotrophs'
-      vname_bec2_diag_3d(3,indxGRAZEDIAZ)='mmol/m3/s'
+      vname_bec2_diag_3d(3,indxGRAZEDIAZ)='mmol C/m3/s'
       vname_bec2_diag_3d(4,indxGRAZEDIAZ)=' '
 
       vname_bec2_diag_3d(1,indxSPLOSS)='SP_LOSS'
       vname_bec2_diag_3d(2,indxSPLOSS)=
      &  'Small phytoplankton non-grazing mortality'
-      vname_bec2_diag_3d(3,indxSPLOSS)='mmol/m3/s '
+      vname_bec2_diag_3d(3,indxSPLOSS)='mmol C/m3/s '
       vname_bec2_diag_3d(4,indxSPLOSS)=' '
       vname_bec2_diag_3d(1,indxDIATLOSS)='DIAT_LOSS'
       vname_bec2_diag_3d(2,indxDIATLOSS)=
@@ -400,29 +400,29 @@ CR      write(stdout,'(1x,A,I3)') 'indxNH4 =',indxNH4
       vname_bec2_diag_3d(1,indxZOOLOSS)='ZOO_LOSS'
       vname_bec2_diag_3d(2,indxZOOLOSS)=
      &  'Mortality due to higher trophic grazing on zooplankton'
-      vname_bec2_diag_3d(3,indxZOOLOSS)='mmol/m3/s '
+      vname_bec2_diag_3d(3,indxZOOLOSS)='mmol C/m3/s '
       vname_bec2_diag_3d(4,indxZOOLOSS)=' '
 
       vname_bec2_diag_3d(1,indxSPAGG)='SP_AGG'
       vname_bec2_diag_3d(2,indxSPAGG)=
      &  'Aggregation of small phytoplankton'
-      vname_bec2_diag_3d(3,indxSPAGG)='mmol/m3/s '
+      vname_bec2_diag_3d(3,indxSPAGG)='mmol C/m3/s '
       vname_bec2_diag_3d(4,indxSPAGG)=' '
       vname_bec2_diag_3d(1,indxDIATAGG)='DIAT_AGG'
       vname_bec2_diag_3d(2,indxDIATAGG)=
      &  'Aggregation of diatoms'
-      vname_bec2_diag_3d(3,indxDIATAGG)='mmol/m3/s '
+      vname_bec2_diag_3d(3,indxDIATAGG)='mmol C/m3/s '
       vname_bec2_diag_3d(4,indxDIATAGG)=' '
 
       vname_bec2_diag_3d(1,indxPHOTOCSP)='PHOTOC_SP'
       vname_bec2_diag_3d(2,indxPHOTOCSP)=
      &  'C fixation rate by small phytoplankton'
-      vname_bec2_diag_3d(3,indxPHOTOCSP)='mmol/m3/s '
+      vname_bec2_diag_3d(3,indxPHOTOCSP)='mmol C/m3/s '
       vname_bec2_diag_3d(4,indxPHOTOCSP)=' '
       vname_bec2_diag_3d(1,indxPHOTOCDIAT)='PHOTOC_DIAT'
       vname_bec2_diag_3d(2,indxPHOTOCDIAT)=
      &  'C fixation rate by diatoms'
-      vname_bec2_diag_3d(3,indxPHOTOCDIAT)='mmol/m3/s '
+      vname_bec2_diag_3d(3,indxPHOTOCDIAT)='mmol C/m3/s '
       vname_bec2_diag_3d(4,indxPHOTOCDIAT)=' '
 
       vname_bec2_diag_3d(1,indxTOTPROD)='TOT_PROD'
@@ -432,13 +432,13 @@ CR      write(stdout,'(1x,A,I3)') 'indxNH4 =',indxNH4
       vname_bec2_diag_3d(4,indxTOTPROD)=' '
       vname_bec2_diag_3d(1,indxDOCPROD)='DOC_PROD'
       vname_bec2_diag_3d(2,indxDOCPROD)='DOC production'
-      vname_bec2_diag_3d(3,indxDOCPROD)='mmol/m3/s '
+      vname_bec2_diag_3d(3,indxDOCPROD)='mmol C/m3/s '
       vname_bec2_diag_3d(4,indxDOCPROD)=' '
 
       vname_bec2_diag_3d(1,indxDOCREMIN)='DOC_REMIN'
       vname_bec2_diag_3d(2,indxDOCREMIN)=
      &  'Remineralization rate of DOC'
-      vname_bec2_diag_3d(3,indxDOCREMIN)='mmol/m3/s  '
+      vname_bec2_diag_3d(3,indxDOCREMIN)='mmol C/m3/s  '
       vname_bec2_diag_3d(4,indxDOCREMIN)=' '
       vname_bec2_diag_3d(1,indxFESCAVENGE)='FE_SCAVENGE'
       vname_bec2_diag_3d(2,indxFESCAVENGE)=
@@ -509,7 +509,7 @@ CR      write(stdout,'(1x,A,I3)') 'indxNH4 =',indxNH4
       vname_bec2_diag_3d(1,indxDIAZLOSS)='DIAZ_LOSS'
       vname_bec2_diag_3d(2,indxDIAZLOSS)=
      &  'Diazotroph non-grazing mortality'
-      vname_bec2_diag_3d(3,indxDIAZLOSS)='mmol/m3/s  '
+      vname_bec2_diag_3d(3,indxDIAZLOSS)='mmol C/m3/s  '
       vname_bec2_diag_3d(4,indxDIAZLOSS)=' '
       vname_bec2_diag_3d(1,indxPHOTOCDIAZ)='PHOTOC_DIAZ'
       vname_bec2_diag_3d(2,indxPHOTOCDIAZ)=
@@ -603,24 +603,119 @@ CR      write(stdout,'(1x,A,I3)') 'indxNH4 =',indxNH4
       vname_bec2_diag_3d(3,indxDENITRIF)='mmol/m3/s  '
       vname_bec2_diag_3d(4,indxDENITRIF)=' '
 
-      vname_bec2_diag_3d(1,indxSPNUPTAKE)='SP_N_UPTAKE'
-      vname_bec2_diag_3d(2,indxSPNUPTAKE)=
-     &   'N uptake rate of small phyto'
-      vname_bec2_diag_3d(3,indxSPNUPTAKE)='mmol/m3/s  '
-      vname_bec2_diag_3d(4,indxSPNUPTAKE)=' '
-      vname_bec2_diag_3d(1,indxDIATNUPTAKE)='DIAT_N_UPTAKE'
-      vname_bec2_diag_3d(2,indxDIATNUPTAKE)=
-     &   'N uptake rate of diatoms'
-      vname_bec2_diag_3d(3,indxDIATNUPTAKE)='mmol/m3/s  '
-      vname_bec2_diag_3d(4,indxDIATNUPTAKE)=' '
-      vname_bec2_diag_3d(1,indxDIAZNUPTAKE)='DIAZ_N_UPTAKE'
-      vname_bec2_diag_3d(2,indxDIAZNUPTAKE)=
-     &   'N uptake rate of diazotrophs'
-      vname_bec2_diag_3d(3,indxDIAZNUPTAKE)='mmol/m3/s  '
-      vname_bec2_diag_3d(4,indxDIAZNUPTAKE)=' '
+      vname_bec2_diag_3d(1,indxSPNO3UPTAKE)='SP_NO3_UPTAKE'
+      vname_bec2_diag_3d(2,indxSPNO3UPTAKE)=
+     &   'NO3 uptake rate of small phyto'
+      vname_bec2_diag_3d(3,indxSPNO3UPTAKE)='mmol/m3/s  '
+      vname_bec2_diag_3d(4,indxSPNO3UPTAKE)=' '
+      vname_bec2_diag_3d(1,indxDIATNO3UPTAKE)='DIAT_NO3_UPTAKE'
+      vname_bec2_diag_3d(2,indxDIATNO3UPTAKE)=
+     &   'NO3 uptake rate of diatoms'
+      vname_bec2_diag_3d(3,indxDIATNO3UPTAKE)='mmol/m3/s  '
+      vname_bec2_diag_3d(4,indxDIATNO3UPTAKE)=' '
+      vname_bec2_diag_3d(1,indxDIAZNO3UPTAKE)='DIAZ_NO3_UPTAKE'
+      vname_bec2_diag_3d(2,indxDIAZNO3UPTAKE)=
+     &   'NO3 uptake rate of diazotrophs'
+      vname_bec2_diag_3d(3,indxDIAZNO3UPTAKE)='mmol/m3/s  '
+      vname_bec2_diag_3d(4,indxDIAZNO3UPTAKE)=' '
 
-      
+      vname_bec2_diag_3d(1,indxSPNH4UPTAKE)='SP_NH4_UPTAKE'
+      vname_bec2_diag_3d(2,indxSPNH4UPTAKE)=
+     &   'NH4 uptake rate of small phyto'
+      vname_bec2_diag_3d(3,indxSPNH4UPTAKE)='mmol/m3/s  '
+      vname_bec2_diag_3d(4,indxSPNH4UPTAKE)=' '
+      vname_bec2_diag_3d(1,indxDIATNH4UPTAKE)='DIAT_NH4_UPTAKE'
+      vname_bec2_diag_3d(2,indxDIATNH4UPTAKE)=
+     &   'NH4 uptake rate of diatoms'
+      vname_bec2_diag_3d(3,indxDIATNH4UPTAKE)='mmol/m3/s  '
+      vname_bec2_diag_3d(4,indxDIATNH4UPTAKE)=' '
+      vname_bec2_diag_3d(1,indxDIAZNH4UPTAKE)='DIAZ_NH4_UPTAKE'
+      vname_bec2_diag_3d(2,indxDIAZNH4UPTAKE)=
+     &   'NH4 uptake rate of diazotrophs'
+      vname_bec2_diag_3d(3,indxDIAZNH4UPTAKE)='mmol/m3/s  '
+      vname_bec2_diag_3d(4,indxDIAZNH4UPTAKE)=' '
 
+      vname_bec2_diag_3d(1,indxGRAZEDICSP)='SP_GRAZE_DIC'
+      vname_bec2_diag_3d(2,indxGRAZEDICSP)=
+     &   'Small phyto grazing rate routed to DIC'
+      vname_bec2_diag_3d(3,indxGRAZEDICSP)='mmol C/m3/s  '
+      vname_bec2_diag_3d(4,indxGRAZEDICSP)=' '
+      vname_bec2_diag_3d(1,indxGRAZEDICDIAT)='DIAT_GRAZE_DIC'
+      vname_bec2_diag_3d(2,indxGRAZEDICDIAT)=
+     &   'Diatom grazing rate routed to DIC'
+      vname_bec2_diag_3d(3,indxGRAZEDICDIAT)='mmol C/m3/s  '
+      vname_bec2_diag_3d(4,indxGRAZEDICDIAT)=' '
+      vname_bec2_diag_3d(1,indxGRAZEDICDIAZ)='DIAZ_GRAZE_DIC'
+      vname_bec2_diag_3d(2,indxGRAZEDICDIAZ)=
+     &   'Diazotroph grazing rate routed to DIC'
+      vname_bec2_diag_3d(3,indxGRAZEDICDIAZ)='mmol C/m3/s  '
+      vname_bec2_diag_3d(4,indxGRAZEDICDIAZ)=' '
+
+      vname_bec2_diag_3d(1,indxLOSSDICSP)='SP_LOSS_DIC'
+      vname_bec2_diag_3d(2,indxLOSSDICSP)=
+     &   'Small phyto non-grazing mortality routed to DIC'
+      vname_bec2_diag_3d(3,indxLOSSDICSP)='mmol C/m3/s  '
+      vname_bec2_diag_3d(4,indxLOSSDICSP)=' '
+      vname_bec2_diag_3d(1,indxLOSSDICDIAT)='DIAT_LOSS_DIC'
+      vname_bec2_diag_3d(2,indxLOSSDICDIAT)=
+     &   'Diatom non-grazing mortality routed to DIC'
+      vname_bec2_diag_3d(3,indxLOSSDICDIAT)='mmol C/m3/s  '
+      vname_bec2_diag_3d(4,indxLOSSDICDIAT)=' '
+      vname_bec2_diag_3d(1,indxLOSSDICDIAZ)='DIAZ_LOSS_DIC'
+      vname_bec2_diag_3d(2,indxLOSSDICDIAZ)=
+     &   'Diazotroph non-grazing mortality routed to DIC'
+      vname_bec2_diag_3d(3,indxLOSSDICDIAZ)='mmol C/m3/s  '
+      vname_bec2_diag_3d(4,indxLOSSDICDIAZ)=' '
+
+      vname_bec2_diag_3d(1,indxZOOLOSSDIC)='ZOO_LOSS_DIC'
+      vname_bec2_diag_3d(2,indxZOOLOSSDIC)=
+     &   'Zooplankton loss routed to DIC'
+      vname_bec2_diag_3d(3,indxZOOLOSSDIC)='mmol C/m3/s  '
+      vname_bec2_diag_3d(4,indxZOOLOSSDIC)=' '
+
+      vname_bec2_diag_3d(1,indxDIAZAGG)='DIAZ_AGG'
+      vname_bec2_diag_3d(2,indxDIAZAGG)=
+     &  'Aggregation of diatoms'
+      vname_bec2_diag_3d(3,indxDIAZAGG)='mmol C/m3/s '
+      vname_bec2_diag_3d(4,indxDIAZAGG)=' '
+
+      vname_bec2_diag_3d(1,indxGRAZESPZOO)='GRAZE_SP_ZOO'
+      vname_bec2_diag_3d(2,indxGRAZESPZOO)=
+     &  'Grazing rate on small phytoplankton routed to zoo'
+      vname_bec2_diag_3d(3,indxGRAZESPZOO)='mmol C/m3/s '
+      vname_bec2_diag_3d(4,indxGRAZESPZOO)=' '
+      vname_bec2_diag_3d(1,indxGRAZEDIATZOO)='GRAZE_DIAT_ZOO'
+      vname_bec2_diag_3d(2,indxGRAZEDIATZOO)=
+     &  'Grazing rate on diatoms routed to zoo'
+      vname_bec2_diag_3d(3,indxGRAZEDIATZOO)='mmol C/m3/s'
+      vname_bec2_diag_3d(4,indxGRAZEDIATZOO)=' '
+      vname_bec2_diag_3d(1,indxGRAZEDIAZZOO)='GRAZE_DIAZ_ZOO'
+      vname_bec2_diag_3d(2,indxGRAZEDIAZZOO)=
+     &  'Grazing rate on diazotrophs routed to zoo'
+      vname_bec2_diag_3d(3,indxGRAZEDIAZZOO)='mmol C/m3/s'
+      vname_bec2_diag_3d(4,indxGRAZEDIAZZOO)=' '
+
+      vname_bec2_diag_3d(1,indxSPQCACO3)='QCACO3'
+      vname_bec2_diag_3d(2,indxSPQCACO3)=
+     &  'Small phyto CaCO3/C ratio'
+      vname_bec2_diag_3d(3,indxSPQCACO3)='mmol CaCO3/mmol C'
+      vname_bec2_diag_3d(4,indxSPQCACO3)=' '
+
+      vname_bec2_diag_3d(1,indxSPPHOTOACC)='PHOTOACC_SP'
+      vname_bec2_diag_3d(2,indxSPPHOTOACC)=
+     &  'Chl synthesis in photoadaptation for small phyto'
+      vname_bec2_diag_3d(3,indxSPPHOTOACC)='mg Chl/m3/s'
+      vname_bec2_diag_3d(4,indxSPPHOTOACC)=' '
+      vname_bec2_diag_3d(1,indxDIATPHOTOACC)='PHOTOACC_DIAT'
+      vname_bec2_diag_3d(2,indxDIATPHOTOACC)=
+     &  'Chl synthesis in photoadaptation for diatoms'
+      vname_bec2_diag_3d(3,indxDIATPHOTOACC)='mg Chl/m3/s'
+      vname_bec2_diag_3d(4,indxDIATPHOTOACC)=' '
+      vname_bec2_diag_3d(1,indxDIAZPHOTOACC)='PHOTOACC_DIAZ'
+      vname_bec2_diag_3d(2,indxDIAZPHOTOACC)=
+     &  'Chl synthesis in photoadaptation for diazotrophs'
+      vname_bec2_diag_3d(3,indxDIAZPHOTOACC)='mg Chl/m3/s'
+      vname_bec2_diag_3d(4,indxDIAZPHOTOACC)=' '
 
 # endif /* BEC2_DIAG */
 

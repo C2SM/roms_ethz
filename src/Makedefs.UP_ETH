@@ -4,7 +4,10 @@
 
 .SUFFIXES:	# Delete the default suffixes
 .SUFFIXES: .o .f .F
+
+# Uncomment to make .f stick around:
 .PRECIOUS: %.f
+
 # Use pattern rule to indicate dependency on mpc
 %.f:  mpc %.F 
 	$(CPP) $(CPPFLAGS) $*.F | mpc > $@
@@ -20,6 +23,11 @@ LCDF =-L$(NETCDF)/lib -lnetcdff -lnetcdf
 MPIFC = mpif90
 LDR = $(MPIFC)
 #
+# C-preprocessor from Intel compiler package. Note: in this case
+# __IFC is a pre-defined macro, so there is no need to include it
+# into CPPFLAGS.
+#
+#     CPP = fpp
 
 ifeq ($(notdir $(FC)),pgf90) 
    #  ============= PGI compiler settings =============
@@ -40,16 +48,7 @@ else
    #FFLAGS = $(OPENMP) -pc80 -132 -msse2 -O3 $(LARGE_MEM_FLAG)
    # File to include in make clean
    COMP_FILES = work.pc work.pcl ifort*
-
-   # ------ Comments ------ 
-   #
-   # C-preprocessor from Intel compiler package. Note: in this case
-   # __IFC is a pre-defined macro, so there is no need to include it
-   # into CPPFLAGS.
-   #
-   #     CPP = fpp
-   #
-   #
+ 
    # Compiler settings:  -fpp2 is required only if -openmp is present.
    # Not having -fpp2 here just causes compiler warning (-fpp is set to
    # level 2 by -openmp), but other than that has no effect.

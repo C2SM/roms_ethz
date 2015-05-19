@@ -11,7 +11,11 @@
 ! Diagnostic variables appearing in average and history files:
 !
       integer nr_bec2_diag_2d, nr_bec2_diag_3d, nr_bec2_diag
+<<<<<<< HEAD
       parameter( nr_bec2_diag_3d=64, nr_bec2_diag_2d=18 )
+=======
+      parameter( nr_bec2_diag_3d=79, nr_bec2_diag_2d=18 )
+>>>>>>> BEC2
       parameter( nr_bec2_diag=nr_bec2_diag_2d+nr_bec2_diag_3d )
       real bec2_diag_3d(GLOBAL_2D_ARRAY,N,nr_bec2_diag_3d)
       real bec2_diag_2d(GLOBAL_2D_ARRAY,nr_bec2_diag_2d)
@@ -32,7 +36,14 @@
      &        fescavengerate_idx_t,donprod_idx_t,donremin_idx_t,dofeprod_idx_t,doferemin_idx_t,
      &        dopprod_idx_t,dopremin_idx_t,diatsiuptake_idx_t,ironuptakesp_idx_t,ironuptakediat_idx_t,
      &        ironuptakediaz_idx_t,nitrif_idx_t,denitrif_idx_t,spno3uptake_idx_t,diatno3uptake_idx_t,
+<<<<<<< HEAD
      &        diazno3uptake_idx_t,spnh4uptake_idx_t,diatnh4uptake_idx_t,diaznh4uptake_idx_t
+=======
+     &        diazno3uptake_idx_t,spnh4uptake_idx_t,diatnh4uptake_idx_t,diaznh4uptake_idx_t,grazedicsp_idx_t,
+     &        grazedicdiat_idx_t,grazedicdiaz_idx_t,lossdicsp_idx_t,lossdicdiat_idx_t,lossdicdiaz_idx_t,
+     &        zoolossdic_idx_t,diazagg_idx_t,grazespzoo_idx_t,grazediatzoo_idx_t,grazediazzoo_idx_t,
+     &        spqcaco3_idx_t,spphotoacc_idx_t,diatphotoacc_idx_t,diazphotoacc_idx_t
+>>>>>>> BEC2
       parameter( par_idx_t=1,pocfluxin_idx_t=par_idx_t+1,
      &   pocprod_idx_t=par_idx_t+2,pocremin_idx_t=par_idx_t+3,caco3fluxin_idx_t=par_idx_t+4,
      &   pcaco3prod_idx_t=par_idx_t+5,caco3remin_idx_t=par_idx_t+6,sio2fluxin_idx_t=par_idx_t+7,
@@ -54,7 +65,16 @@
      &   ironuptakesp_idx_t=par_idx_t+53,ironuptakediat_idx_t=par_idx_t+54,ironuptakediaz_idx_t=par_idx_t+55,
      &   nitrif_idx_t=par_idx_t+56,denitrif_idx_t=par_idx_t+57,spno3uptake_idx_t=par_idx_t+58,
      &   diatno3uptake_idx_t=par_idx_t+59,diazno3uptake_idx_t=par_idx_t+60,spnh4uptake_idx_t=par_idx_t+61,
+<<<<<<< HEAD
      &   diatnh4uptake_idx_t=par_idx_t+62,diaznh4uptake_idx_t=par_idx_t+63 )
+=======
+     &   diatnh4uptake_idx_t=par_idx_t+62,diaznh4uptake_idx_t=par_idx_t+63,grazedicsp_idx_t=par_idx_t+64,
+     &   grazedicdiat_idx_t=par_idx_t+65,grazedicdiaz_idx_t=par_idx_t+66,lossdicsp_idx_t=par_idx_t+67,
+     &   lossdicdiat_idx_t=par_idx_t+68,lossdicdiaz_idx_t=par_idx_t+69,zoolossdic_idx_t=par_idx_t+70,
+     &   diazagg_idx_t=par_idx_t+71,grazespzoo_idx_t=par_idx_t+72,grazediatzoo_idx_t=par_idx_t+73,
+     &   grazediazzoo_idx_t=par_idx_t+74,spqcaco3_idx_t=par_idx_t+75,spphotoacc_idx_t=par_idx_t+76,
+     &   diatphotoacc_idx_t=par_idx_t+77,diazphotoacc_idx_t=par_idx_t+78 )
+>>>>>>> BEC2
       ! Indices to be used in bec2_diag_2d:
       integer ph_idx_t, pco2ws_idx_t, pco2air_idx_t, parinc_idx_t,
      &        fgo2_idx_t, fgco2_idx_t,ws10m_idx_t,xkw_idx_t,atmpress_idx_t,
@@ -73,8 +93,8 @@
      &        rstT_bec2_diag(nr_bec2_diag)
 
       ! Arrays storing information (name, unit, fill value) about each diagnostic variable:
-      character*64  vname_bec2_diag_2d(4,nr_bec2_diag_2d)
-      character*64  vname_bec2_diag_3d(4,nr_bec2_diag_3d)
+      character*72  vname_bec2_diag_2d(4,nr_bec2_diag_2d)
+      character*72  vname_bec2_diag_3d(4,nr_bec2_diag_3d)
 
       common /bec2_diag2/ hisT_bec2_diag, avgT_bec2_diag, slavgT_bec2_diag, rstT_bec2_diag,
      &   vname_bec2_diag_2d, vname_bec2_diag_3d
@@ -141,8 +161,12 @@
 !
 ! Arrays related to sinking particles:
 !
-!  *_sed_loss: loss to sediments (base units/cm^s/sec)
-!  *_remin: remineralization term (base units/cm^3/sec)
+!  *_hflux_in: incoming flux of hard subclass (base units/m^2/sec)
+!  *_hflux_out: outgoing flux of hard subclass (base units/m^2/sec)
+!  *_sflux_in: incoming flux of soft subclass (base units/m^2/sec)
+!  *_sflux_out: outgoing flux of soft subclass (base units/m^2/sec)
+!  *_sed_loss: loss to sediments (base units/m^2/sec)
+!  *_remin: remineralization term (base units/m^3/sec)
 
       real, dimension(GLOBAL_2D_ARRAY) ::
      &   P_CaCO3_sflux_out, P_CaCO3_hflux_out, P_CaCO3_sed_loss,

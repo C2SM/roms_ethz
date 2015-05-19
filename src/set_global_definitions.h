@@ -13,9 +13,12 @@
  normally should be undefined.
 */
 
+<<<<<<< HEAD
 #define COMPUTE_SPEED_DIAGNOSE
 !--> #define SCRATCH_DIR
 #define EW_PERIODIC
+=======
+>>>>>>> BEC2
  
 c--#define ALLOW_SINGLE_BLOCK_MODE
 #ifdef ALLOW_SINGLE_BLOCK_MODE
@@ -60,9 +63,15 @@ c--#define ALLOW_SINGLE_BLOCK_MODE
  process create its own output file (this switch has no effect if MPI
  is not defined).
 */
+<<<<<<< HEAD
  
 #define MPI
 !--> #define PARALLEL_FILES
+=======
+
+#define MPI
+#define PARALLEL_FILES
+>>>>>>> BEC2
  
 /* Define standard dimensions for the model arrays (vertical
  dimensions are inserted explicitly in the code, when needed).
@@ -133,9 +142,12 @@ c--#define ALLOW_SINGLE_BLOCK_MODE
 #ifdef EW_PERIODIC
 # undef WESTERN_EDGE
 # undef EASTERN_EDGE
+<<<<<<< HEAD
 ! mm added for Moorea setup to compile
 # define WESTERN_EDGE .false.
 # define EASTERN_EDGE .false.
+=======
+>>>>>>> BEC2
 #endif
 #ifdef NS_PERIODIC
 # undef SOUTHERN_EDGE
@@ -289,7 +301,12 @@ c-#endif
  precision of the code.
 */
  
+<<<<<<< HEAD
 /* #define HIS_DOUBLE */
+=======
+!!#undef HIS_DOUBLE 
+#define HIS_DOUBLE
+>>>>>>> BEC2
 #define PUT_GRID_INTO_RESTART
 #define PUT_GRID_INTO_HISTORY
 #define PUT_GRID_INTO_AVERAGES

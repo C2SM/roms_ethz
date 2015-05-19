@@ -62,6 +62,7 @@
 #endif /* BIOLOGY_NPZDOC && OXYGEN */
 #if defined BIOLOGY_BEC2 && defined BEC2_DIAG
 # include "ecosys_bec2.h"
+# include "param_bec2.h"
 #endif
 
 #ifdef MASK_LAND_DATA
@@ -159,6 +160,7 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
 # endif /* BIOLOGY_NPZDOC && OXYGEN */
 # if defined BIOLOGY_BEC2 && defined BEC2_DIAG
 #  define vidT_bec2 hisT_bec2_diag
+#  define vidf_graze_CaCO3_remin hisf_graze_CaCO3_remin
 # endif
 #else /* AVRH is defined */
 # ifndef AVR2DH
@@ -218,6 +220,7 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
 # endif /* BIOLOGY_NPZDOC && OXYGEN */
 # if defined BIOLOGY_BEC2 && defined BEC2_DIAG
 #  define vidT_bec2 avgT_bec2_diag
+#  define vidf_graze_CaCO3_remin avgf_graze_CaCO3_remin
 # endif
 # else /* AVR2DH is defined */
 #  define SDEF_FOUT 'DEF_SLAVG'
@@ -276,6 +279,7 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
 # endif /* WRITE_DEPTHS */
 # if defined BIOLOGY_BEC2 && defined BEC2_DIAG
 #  define vidT_bec2 slavgT_bec2_diag
+#  define vidf_graze_CaCO3_remin slavgf_graze_CaCO3_remin
 # endif
 # endif /* AVR2DH */
 #endif /* AVRH */
@@ -1132,6 +1136,15 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
 
 #if defined BIOLOGY_BEC2 && defined BEC2_DIAG
 !
+! Parameters put into file as variables:
+!
+        ierr = nf_def_var(ncid, 'f_graze_CaCO3_remin', NF_FOUT, 0, 0, vidf_graze_CaCO3_remin)
+        text =
+     &  'Fraction of spCaCO3 grazing'
+        lvar = lenstr(text)
+        ierr = nf_put_att_text(ncid, vidf_graze_CaCO3_remin, 'long_name', 
+     &          lvar, text(1:lvar))
+!
 ! 2d diagnostics:
 !
         do itrc=1,nr_bec2_diag_2d
@@ -1342,6 +1355,12 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
         ierr=nf_enddef(ncid,20000,8,20000,8)
         write(stdout,'(6x,6A,i4)')  SDEF_FOUT,   ': Created new ',
      &  'netCDF file ''', ncname(1:lstr), '''.' MYID
+
+#if defined BIOLOGY_BEC2 && defined BEC2_DIAG
+        ! Write the scalar variables regarding biogeochemical fluxes:
+        ierr = nf_put_var1_FTYPE(ncid, vidf_graze_CaCO3_remin, 1, f_graze_CaCO3_remin)
+#endif
+        
 !
 ! Open existing file and prepare for appending data:   Inquire about
 ! ==== ======== ==== === ======= === ========= ====    dimensions and
@@ -1886,6 +1905,7 @@ CR     &      'existing file ''', ncname(1:lstr), ''' ncid =', ncid
 #undef vidGasExcFlux
 # if defined BIOLOGY_BEC2 && defined BEC2_DIAG
 #  undef vidT_bec2
+#  undef vidf_graze_CaCO3_remin
 # endif
 
 #undef vidR

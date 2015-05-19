@@ -23,7 +23,7 @@
 ! (like the temperature).
  
       integer ncidclm_loc, Csr_id, scr_id, ths_id, thb_id
-      character(len=180) clm_file_loc
+      character(len=80) clm_file_loc
       integer k, ierr, ncid, varid, lstr, lenstr, checkdims, nf_fread
             
       integer start
@@ -201,7 +201,7 @@ c          sc2=(dble(k-N)-0.5D0)/dble(N)
       end
 
 
-# if defined LEGACY_S_COORD && defined NEW_S_COORD
+# if defined LEGACY_S_COORD && NEW_S_COORDD
 
       function CSF (sc, theta_s,theta_b)          ! Legacy
       real*8 CSF, sc, theta_s,theta_b             ! S-coordinate
