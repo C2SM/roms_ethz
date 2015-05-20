@@ -264,6 +264,12 @@
 # endif /* VARIABLE_ATM_PCO2 */
 
          DO j = jstr,jend
+
+! MF (added treatment of pCO2air forcing)
+# ifdef PCO2AIR_FORCING
+          XCO2(istr:iend) = pCO2air(istr:iend,j)
+# endif /* PCO2AIR_FORCING */
+
           WHERE (PH_HIST(istr:iend,j) .ne. c0)
              PHLO = PH_HIST(istr:iend,j) - del_ph
              PHHI = PH_HIST(istr:iend,j) + del_ph

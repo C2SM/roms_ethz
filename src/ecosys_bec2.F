@@ -271,6 +271,12 @@ c$$$       enddo
 # endif /* VARIABLE_ATM_PCO2 */
 
           DO j = jstr,jend
+
+! MF (added treatment of pCO2air forcing)
+# ifdef PCO2AIR_FORCING
+          XCO2(istr:iend) = pCO2air(istr:iend,j)
+# endif /* PCO2AIR_FORCING */
+
 # ifdef BEC2_DIAG
              WHERE (BEC2_DIAG_2D(istr:iend,j,ph_idx_t) .ne. c0)
                 PHLO(istr:iend) = BEC2_DIAG_2D(istr:iend,j,ph_idx_t) - del_ph

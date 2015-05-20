@@ -221,8 +221,10 @@ c***              no code here
       call set_iron_tile (Istr,Iend,Jstr,Jend,ierr) 
       call set_dust_tile (Istr,Iend,Jstr,Jend,ierr) 
 # endif
-# if defined CARBON && defined PCO2AIR_FORCING
+# ifdef PCO2AIR_FORCING
+# if defined BIOLOGY_BEC || defined BIOLOGY_BEC2 || (defined CARBON && defined BIOLOGY_NPZDOC)
       call set_pCO2air_tile (Istr,Iend,Jstr,Jend,ierr) 
+# endif
 # endif
 # if (defined LMD_KPP || defined LMD_BKPP)
 #  ifdef ANA_SRFLUX
