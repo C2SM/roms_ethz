@@ -138,20 +138,12 @@
      & )
 
   !---------------------------------------------------------------------
-<<<<<<< HEAD
-  !     Compute iron remineralization and flux out.
-=======
   !     Compute iron remineralization and flux out. In CESM units
->>>>>>> BEC2
   !     dust remin gDust = 0.035 gFe      mol Fe     1e9 nmolFe
   !                        --------- *  ---------- * ----------
   !			    gDust       55.847 gFe     molFe
   !
-<<<<<<< HEAD
-  !     dust_to_Fe          conversion - dust to iron (nmol Fe/g Dust) 
-=======
   !     dust_to_Fe          conversion - dust to iron (CESM: nmol Fe/g Dust) 
->>>>>>> BEC2
   !---------------------------------------------------------------------
   !
   ! DL: in ROMS we have to convert kg dust -> mmol Fe, so the above calculation
@@ -221,11 +213,7 @@
      &   CaCO3_temp_thres2, CaCO3_sp_thres
        parameter(
      &   thres_z1          = 100.0,  ! threshold = C_loss_thres for z shallower than this (m)
-<<<<<<< HEAD
-     &   thres_z2          = 200.0, !!!150.0,  ! threshold = 0 for z deeper than this (m)
-=======
-     &   thres_z2          = 200.0,   !!!150.0,  ! threshold = 0 for z deeper than this (m)
->>>>>>> BEC2
+     &   thres_z2          = 150.0,  ! threshold = 0 for z deeper than this (m)
      &   loss_thres_zoo    = 0.005,    ! zoo conc. where losses go to zero
      &   CaCO3_temp_thres1 = 6.0,      ! upper temp threshold for CaCO3 prod
      &   CaCO3_temp_thres2 = -2.0,     ! lower temp threshold
@@ -246,11 +234,7 @@
        real Tref, Q_10
        parameter(
      &   Tref = 30.0,   ! reference temperature (C)
-<<<<<<< HEAD
-     &   Q_10 = 2.0 !!1.5     ! factor for temperature dependence (non-dim)
-=======
-     &   Q_10 = 2.0     !!! 1.5  ! factor for temperature dependence (non-dim)
->>>>>>> BEC2
+     &   Q_10 = 1.5     ! factor for temperature dependence (non-dim)
      & )
 
   !---------------------------------------------------------------------

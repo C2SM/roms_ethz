@@ -86,9 +86,8 @@ CR           print *, 'lmd parameter namelist file was not found'
 CR           print *, 'Default values will be used.'
         end if
 
-<<<<<<< HEAD
 #ifdef WRITE_KPP_PAR
-        !DL: write biopar file only by the master process:
+        !DL: write KPP parameter file only by the master process:
 # ifdef MPI
         if (mynode.eq.0) then
 # endif
@@ -110,22 +109,6 @@ CR           print *, 'Default values will be used.'
         end if ! (mynode.eq.0
 # endif
 #endif
-=======
-        open(76,file=filename_lmd_out_nml,status='unknown'
-     &       ,iostat=status)
-
-        if (status .eq. 0) then
-           write(76,NML=param_lmd_nml,iostat=status)
-           if (status .ne. 0) then
-               print *, 'Could not write the turbulence (lmd_kpp) ',
-     &             'parameter namelist!'
-           end if
-           close(76)
-        else
-            print *, 'Could not create lmd param output file ',
-     &                  filename_lmd_out_nml
-        end if 
->>>>>>> BEC2
 
         return
 !End of the function

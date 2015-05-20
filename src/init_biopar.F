@@ -85,10 +85,11 @@
          print *, 'Default values will be used.'
       end if
 
-<<<<<<< HEAD
 #ifdef WRITE_BIOPAR
       !DL: write biopar file only by the master process:
+# ifdef MPI
       if (mynode.eq.0) then
+# endif
          open(72,file=filename_biopar_out_nml,status='unknown',
      &        iostat=status)
          if (status .eq. 0) then
@@ -101,22 +102,10 @@
             print *, 'Could not create output file ', 
      &           filename_biopar_out_nml
          end if
+# ifdef MPI
       end if ! mynode.eq.0
+# endif
 #endif
-=======
-      open(72,file=filename_biopar_out_nml,status='unknown',
-     &     iostat=status)
-      if (status .eq. 0) then
-         write(72,NML=biology_param_nml,iostat=status)
-         if (status .ne. 0) then
-            print *, 'Could not write the biology parameter namelist!'
-         end if
-         close(72)
-      else
-         print *, 'Could not create output file ', 
-     &        filename_biopar_out_nml
-      end if
->>>>>>> BEC2
 
       return
       end

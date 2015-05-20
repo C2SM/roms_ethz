@@ -66,13 +66,8 @@
 !
 ! Interpolate/extrapolate wind stress to rho grid:
 !
-<<<<<<< HEAD
-       do j=J_RANGE
-          if (j == J_MIN) then
-=======
        do j=jstr,jend
           if (j == jstr) then
->>>>>>> BEC2
              sv_j1 = j+1
           else
              sv_j1 = j
@@ -82,13 +77,8 @@
           else
              sv_j2 = j-1
           end if
-<<<<<<< HEAD
-          do i=I_RANGE
-             if (i == I_MIN) then
-=======
           do i=istr,iend
              if (i == istr) then
->>>>>>> BEC2
                 su_i1 = i+1
              else
                 su_i1 = i
@@ -108,21 +98,6 @@
 !
        do m=1,ntrc_bio
           do k=1,N
-<<<<<<< HEAD
-             tracer(istrR:iendR,jstrR:jendR,k,m) =
-     &              t(istr:iend,jstr:jend,k,nnew,1+ntrc_salt+ntrc_pas+m)
-!     &             p5 * ( t(istrR:iendR,jstrR:jendR,k,nnew,1+ntrc_salt+ntrc_pas+m)
-!     &                  + t(istrR:iendR,jstrR:jendR,k,nstp,1+ntrc_salt+ntrc_pas+m))
-             
-          enddo 
-       enddo
-!       sstt(istrR:iendR,jstrR:jendR) = p5 * (t(istrR:iendR,jstrR:jendR,N,nnew,1)
-!     &                                  + t(istrR:iendR,jstrR:jendR,N,nstp,1))
-!       ssss(istrR:iendR,jstrR:jendR)= p5 * (t(istrR:iendR,jstrR:jendR,N,nnew,2)
-!     &                                  + t(istrR:iendR,jstrR:jendR,N,nstp,2))
-       sstt(istrR:iendR,jstrR:jendR) = t(istrR:iendR,jstrR:jendR,N,nnew,1)
-       ssss(istrR:iendR,jstrR:jendR) = t(istrR:iendR,jstrR:jendR,N,nnew,2)
-=======
              tracer(istr:iend,jstr:jend,k,m) =
      &              t(istr:iend,jstr:jend,k,nnew,1+ntrc_salt+ntrc_pas+m)             
           enddo 
@@ -147,7 +122,6 @@ c$$$             endif
 c$$$          enddo
 c$$$       enddo
 
->>>>>>> BEC2
 !
 ! Get short wave radiation:
 !
@@ -874,11 +848,7 @@ c$$$       enddo
              bec2_diag_3d(istr:iend,j,k,diatlightlim_idx_t) = light_lim
           else
              ! Diazotrophs:
-<<<<<<< HEAD
-             bec2_diag_3d(istrR:iendR,j,k,diazlightlim_idx_t) = light_lim
-=======
              bec2_diag_3d(istr:iend,j,k,diazlightlim_idx_t) = light_lim
->>>>>>> BEC2
           end if
 # endif
 
@@ -1079,28 +1049,6 @@ c$$$       enddo
        end do  ! auto_ind = 1, autotroph_cnt
 
 # ifdef BEC2_DIAG
-<<<<<<< HEAD
-       bec2_diag_3d(istrR:iendR,j,k,grazesp_idx_t) = auto_graze(istrR:iendR,sp_ind)
-       bec2_diag_3d(istrR:iendR,j,k,grazediat_idx_t) = auto_graze(istrR:iendR,diat_ind)
-       bec2_diag_3d(istrR:iendR,j,k,grazediaz_idx_t) = auto_graze(istrR:iendR,diaz_ind)
-       bec2_diag_3d(istrR:iendR,j,k,sploss_idx_t) = auto_loss(istrR:iendR,sp_ind)
-       bec2_diag_3d(istrR:iendR,j,k,diatloss_idx_t) = auto_loss(istrR:iendR,diat_ind)
-       bec2_diag_3d(istrR:iendR,j,k,spagg_idx_t) = auto_agg(istrR:iendR,sp_ind)
-       bec2_diag_3d(istrR:iendR,j,k,diatagg_idx_t) = auto_agg(istrR:iendR,diat_ind)
-       bec2_diag_3d(istrR:iendR,j,k,photocsp_idx_t) = photoC(istrR:iendR,sp_ind)
-       bec2_diag_3d(istrR:iendR,j,k,photocdiat_idx_t) = photoC(istrR:iendR,diat_ind)
-       bec2_diag_3d(istrR:iendR,j,k,photocdiaz_idx_t) = photoC(istrR:iendR,diaz_ind)
-       bec2_diag_3d(istrR:iendR,j,k,totprod_idx_t) = sum(photoC,dim=2)
-       bec2_diag_3d(istrR:iendR,j,k,spnlim_idx_t) = VNtot(istrR:iendR,sp_ind)
-       bec2_diag_3d(istrR:iendR,j,k,diatnlim_idx_t) = VNtot(istrR:iendR,diat_ind)
-       bec2_diag_3d(istrR:iendR,j,k,diazloss_idx_t) = auto_loss(istrR:iendR,diaz_ind)
-       bec2_diag_3d(istrR:iendR,j,k,spno3uptake_idx_t) = NO3_V(istrR:iendR,sp_ind)
-       bec2_diag_3d(istrR:iendR,j,k,diatno3uptake_idx_t) = NO3_V(istrR:iendR,diat_ind)
-       bec2_diag_3d(istrR:iendR,j,k,diazno3uptake_idx_t) = NO3_V(istrR:iendR,diaz_ind)
-       bec2_diag_3d(istrR:iendR,j,k,spnh4uptake_idx_t) = NH4_V(istrR:iendR,sp_ind)
-       bec2_diag_3d(istrR:iendR,j,k,diatnh4uptake_idx_t) = NH4_V(istrR:iendR,diat_ind)
-       bec2_diag_3d(istrR:iendR,j,k,diaznh4uptake_idx_t) = NH4_V(istrR:iendR,diaz_ind)
-=======
        bec2_diag_3d(istr:iend,j,k,grazesp_idx_t) = auto_graze(istr:iend,sp_ind)
        bec2_diag_3d(istr:iend,j,k,grazediat_idx_t) = auto_graze(istr:iend,diat_ind)
        bec2_diag_3d(istr:iend,j,k,grazediaz_idx_t) = auto_graze(istr:iend,diaz_ind)
@@ -1131,7 +1079,6 @@ c$$$       enddo
        bec2_diag_3d(istr:iend,j,k,grazespzoo_idx_t) = auto_graze_zoo(istr:iend,sp_ind)
        bec2_diag_3d(istr:iend,j,k,grazediatzoo_idx_t) = auto_graze_zoo(istr:iend,diat_ind)
        bec2_diag_3d(istr:iend,j,k,grazediazzoo_idx_t) = auto_graze_zoo(istr:iend,diaz_ind)
->>>>>>> BEC2
 !       if (mynode==15 .and. j==11 .and. k==32) then
 !          print *, 'NO3 uptake rate(15,11) = ', NO3_V(15,sp_ind)+NO3_V(15,diat_ind)+NO3_V(15,diaz_ind)
 !       endif

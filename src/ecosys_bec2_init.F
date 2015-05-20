@@ -49,12 +49,7 @@
       parm_o2_min            = 4.0  ! mmol/m^3 = nmol/cm^3
       parm_o2_min_delta      = 2.0  ! mmol/m^3 = nmol/cm^3
       parm_kappa_nitrif      = 0.06 * dps ! (= 1/( days))
-<<<<<<< HEAD
-      !DL parm_nitrif_par_lim    = 1.0
-=======
-      !!!!parm_nitrif_par_lim    = 1.0
->>>>>>> BEC2
-      parm_nitrif_par_lim    = 4.0
+      parm_nitrif_par_lim    = 1.0
       parm_z_mort_0          = 0.1 * dps
       parm_z_mort2_0         = 0.4 * dps
       parm_labile_ratio      = 0.85
