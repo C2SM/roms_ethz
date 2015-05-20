@@ -203,6 +203,16 @@
       lflux_gas_o2  = .TRUE.
       lflux_gas_co2 = .TRUE.
       liron_flux = .TRUE.
+#ifdef RIVER_LOAD_N
+      lriver_load_n = .TRUE.
+#else /* RIVER_LAOD_N */
+      lriver_load_n = .FALSE.
+#endif
+#ifdef RIVER_LOAD_P
+      lriver_load_p = .TRUE.
+#else /* RIVER_LAOD_P */
+      lriver_load_p = .FALSE.
+#endif
       lsource_sink  = .TRUE.  
 
       where(rmask ==1)

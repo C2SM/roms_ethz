@@ -335,6 +335,76 @@ c$$$       enddo
     !   Surface fluxes:
     !----------------------------------------------------------------------
 
+       !CN: N loads from rivers
+       if (lriver_load_n) then
+          FLUX(istr:iend,jstr:jend)=din_river(istr:iend,jstr:jend)
+!          if (mynode==264) then
+!          print*,'ecosys_bec2.F: mynode:',mynode
+!          print*,'ecosys_bec2.F: read in din_river value:',FLUX(istr:iend,jstr:jend)
+!          endif
+       else
+          FLUX = c0
+       endif
+      
+
+       ! convert unit: from kg N -> mmol N  (with atomic mass of N:
+       ! 14.00674 g/mol)
+          FLUX(istr:iend,jstr:jend)=FLUX(istr:iend,jstr:jend)*71394.200220751
+       ! convert from per day to per second!   
+          FLUX(istr:iend,jstr:jend)=FLUX(istr:iend,jstr:jend)/86400
+!       ! assumption: only 1% is bioavailable (very crude, just a test)
+!          FLUX(istr:iend,jstr:jend)=FLUX(istr:iend,jstr:jend)*0.01
+!          if (mynode==264) then
+!          print*,'ecosys_bec2.F: mynode:',mynode
+!          print*,'ecosys_bec2.F: din_river value, after unit conversion',FLUX(istr:iend,jstr:jend)
+!          print*,'ecosys_bec2.F: tracer before river addition',tracer(istr:iend,jstr:jend,N,no3_ind_t)
+!          endif
+
+       ! add to tracer: NO3       
+       tracer(istr:iend,jstr:jend,N,no3_ind_t) =
+     &         tracer(istr:iend,jstr:jend,N,no3_ind_t) +
+     &         FLUX(istr:iend,jstr:jend)
+     &         *dt/Hz(istr:iend,jstr:jend,N)
+
+!       ! add to tracer: DON       
+!       tracer(istr:iend,jstr:jend,N,don_ind_t) =
+!     &         tracer(istr:iend,jstr:jend,N,don_ind_t) +
+!     &         0.5*FLUX(istr:iend,jstr:jend)
+!     &         *dt/Hz(istr:iend,jstr:jend,N)
+
+!          if (mynode==264) then
+!          print*,'ecosys_bec2.F: mynode:',mynode
+!          print*,'ecosys_bec2.F: tracer after river addition',tracer(istr:iend,jstr:jend,N,no3_ind_t)
+!          endif
+
+       !CN: P loads from rivers
+       if (lriver_load_p) then
+          FLUX(istr:iend,jstr:jend)=dip_river(istr:iend,jstr:jend)
+       else
+          FLUX = c0
+       endif
+      
+       ! onvert unit: from kg P -> mmol P  (with atomic mass of P:
+       ! 30.97376 g/mol)
+          FLUX(istr:iend,jstr:jend)=FLUX(istr:iend,jstr:jend)*32285.392538717
+       ! convert from per day to per second!   
+          FLUX(istr:iend,jstr:jend)=FLUX(istr:iend,jstr:jend)/86400
+!       ! assumption: only 1% is bioavailable (very crude, just a test)
+!          FLUX(istr:iend,jstr:jend)=FLUX(istr:iend,jstr:jend)*0.01
+
+       ! add to tracer: PO4       
+       tracer(istr:iend,jstr:jend,N,po4_ind_t) =
+     &         tracer(istr:iend,jstr:jend,N,po4_ind_t) +
+     &         FLUX(istr:iend,jstr:jend)
+     &         *dt/Hz(istr:iend,jstr:jend,N)
+
+!       ! add to tracer: DOP
+!       tracer(istr:iend,jstr:jend,N,dop_ind_t) =
+!     &         tracer(istr:iend,jstr:jend,N,dop_ind_t) +
+!     &         0.25*FLUX(istr:iend,jstr:jend)
+!     &         *dt/Hz(istr:iend,jstr:jend,N)
+
+
        !DL: note that iron fluxes are in mmol Fe/m^2/s (see get_iron.F).
        if (liron_flux) then
           FLUX(istr:iend,jstr:jend)=iron(istr:iend,jstr:jend)

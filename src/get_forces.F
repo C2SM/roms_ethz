@@ -76,12 +76,18 @@
       if (ierr.eq.0) call get_bsedim (ierr)
 # endif
 #endif
+#ifdef BIOLOGY_BEC2
 ! DL:
-!#ifdef BIOLOGY_BEC2
 !      if (ierr.eq.0) call get_nox(ierr)
 !      if (ierr.eq.0) call get_nhy(ierr)
-!      if (ierr.eq.0) call get_din_river(ierr)
-!#endif
+#ifdef RIVER_LOAD_N
+      if (ierr.eq.0) call get_din_river(ierr)
+#endif
+#ifdef RIVER_LOAD_P
+      if (ierr.eq.0) call get_dip_river(ierr)
+#endif
+#endif
+
 #if defined PASSIVE_TRACER && defined AGE_DYE_TRACER
       if (ierr.eq.0) call get_agedye(ierr)
 #endif
@@ -254,13 +260,17 @@ c>>>      if (ierr.ne.0) may_day_flag=2
 #ifdef ANA_PSOURCE
       if (ZEROTH_TILE) call ana_psource
 #endif
-
+#ifdef BIOLOGY_BEC2
 ! DL:
-!#ifdef BIOLOGY_BEC2
 !      if (ierr.eq.0) call set_nox_tile (istr,iend,jstr,jend,ierr)
 !      if (ierr.eq.0) call set_nhy_tile (istr,iend,jstr,jend,ierr)
-!      if (ierr.eq.0) call set_din_river_tile (istr,iend,jstr,jend,ierr)
-!#endif
+#ifdef RIVER_LOAD_N
+      if (ierr.eq.0) call set_din_river_tile (istr,iend,jstr,jend,ierr)
+#endif
+#ifdef RIVER_LOAD_P
+      if (ierr.eq.0) call set_dip_river_tile (istr,iend,jstr,jend,ierr)
+#endif
+#endif
 #if defined PASSIVE_TRACER && defined AGE_DYE_TRACER
       if (ierr.eq.0) call set_agedye_tile (istr,iend,jstr,jend,ierr)
 #endif

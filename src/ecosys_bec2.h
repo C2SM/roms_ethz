@@ -104,9 +104,9 @@
       common /calcation/landmask
 
       logical lsource_sink,lflux_gas_o2, lflux_gas_co2,
-     &  liron_flux,ldust_flux
+     &  liron_flux,ldust_flux,lriver_load_n,lriver_load_p
       common /ecoflag/lsource_sink,lflux_gas_o2,lflux_gas_co2,
-     &   liron_flux,ldust_flux
+     &   liron_flux,ldust_flux,lriver_load_n,lriver_load_p
 
 !
 ! Relative tracer indices for prognostic variables:
