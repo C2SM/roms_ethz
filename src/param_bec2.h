@@ -253,3 +253,15 @@
      &   DONrefract = 0.08,                      ! fraction of DON to refractory pool
      &   DOPrefract = 0.03                       ! fraction of DOP to refractory pool
      & )
+
+  !---------------------------------------------------------------------
+  !  Threshold for PAR used in computation of pChl:
+  !  Introduced by CN in April 2015 (BEC blew up in SO setup otherwise)
+  !---------------------------------------------------------------------
+
+       real PAR_thres_pChl
+       parameter(
+     &   PAR_thres_pChl = 1e-10
+     & )
+
+       

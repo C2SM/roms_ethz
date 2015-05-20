@@ -977,7 +977,7 @@ c$$$       enddo
     !-----------------------------------------------------------------------
 
           WORK1 = alphaPI(auto_ind) * thetaC(istr:iend,auto_ind) * PAR_lay
-          where (WORK1 > c0)
+          where (WORK1 > PAR_thres_pChl)
              pChl = thetaN_max(auto_ind) * PCphoto / WORK1
              photoacc(istr:iend,auto_ind) = (pChl * VNC / thetaC(istr:iend,auto_ind))
      &                       * Chl_loc(istr:iend,auto_ind)
