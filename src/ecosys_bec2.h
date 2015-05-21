@@ -11,7 +11,7 @@
 ! Diagnostic variables appearing in average and history files:
 !
       integer nr_bec2_diag_2d, nr_bec2_diag_3d, nr_bec2_diag
-      parameter( nr_bec2_diag_3d=79, nr_bec2_diag_2d=18 )
+      parameter( nr_bec2_diag_3d=86, nr_bec2_diag_2d=18 )
       parameter( nr_bec2_diag=nr_bec2_diag_2d+nr_bec2_diag_3d )
       real bec2_diag_3d(GLOBAL_2D_ARRAY,N,nr_bec2_diag_3d)
       real bec2_diag_2d(GLOBAL_2D_ARRAY,nr_bec2_diag_2d)
@@ -35,7 +35,8 @@
      &        diazno3uptake_idx_t,spnh4uptake_idx_t,diatnh4uptake_idx_t,diaznh4uptake_idx_t,grazedicsp_idx_t,
      &        grazedicdiat_idx_t,grazedicdiaz_idx_t,lossdicsp_idx_t,lossdicdiat_idx_t,lossdicdiaz_idx_t,
      &        zoolossdic_idx_t,diazagg_idx_t,grazespzoo_idx_t,grazediatzoo_idx_t,grazediazzoo_idx_t,
-     &        spqcaco3_idx_t,spphotoacc_idx_t,diatphotoacc_idx_t,diazphotoacc_idx_t
+     &        spqcaco3_idx_t,spphotoacc_idx_t,diatphotoacc_idx_t,diazphotoacc_idx_t,spczero_idx_t,
+     &        diatczero_idx_t,diazczero_idx_t,doczero_idx_t,zooczero_idx_t,spcaco3zero_idx_t,donrremin_idx_t
       parameter( par_idx_t=1,pocfluxin_idx_t=par_idx_t+1,
      &   pocprod_idx_t=par_idx_t+2,pocremin_idx_t=par_idx_t+3,caco3fluxin_idx_t=par_idx_t+4,
      &   pcaco3prod_idx_t=par_idx_t+5,caco3remin_idx_t=par_idx_t+6,sio2fluxin_idx_t=par_idx_t+7,
@@ -62,7 +63,9 @@
      &   lossdicdiat_idx_t=par_idx_t+68,lossdicdiaz_idx_t=par_idx_t+69,zoolossdic_idx_t=par_idx_t+70,
      &   diazagg_idx_t=par_idx_t+71,grazespzoo_idx_t=par_idx_t+72,grazediatzoo_idx_t=par_idx_t+73,
      &   grazediazzoo_idx_t=par_idx_t+74,spqcaco3_idx_t=par_idx_t+75,spphotoacc_idx_t=par_idx_t+76,
-     &   diatphotoacc_idx_t=par_idx_t+77,diazphotoacc_idx_t=par_idx_t+78 )
+     &   diatphotoacc_idx_t=par_idx_t+77,diazphotoacc_idx_t=par_idx_t+78,spczero_idx_t=par_idx_t+79,
+     &   diatczero_idx_t=par_idx_t+80,diazczero_idx_t=par_idx_t+81,doczero_idx_t=par_idx_t+82,
+     &   zooczero_idx_t=par_idx_t+83,spcaco3zero_idx_t=par_idx_t+84,donrremin_idx_t=par_idx_t+85 )
       ! Indices to be used in bec2_diag_2d:
       integer ph_idx_t, pco2ws_idx_t, pco2air_idx_t, parinc_idx_t,
      &        fgo2_idx_t, fgco2_idx_t,ws10m_idx_t,xkw_idx_t,atmpress_idx_t,

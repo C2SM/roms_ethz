@@ -161,6 +161,8 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
 # if defined BIOLOGY_BEC2 && defined BEC2_DIAG
 #  define vidT_bec2 hisT_bec2_diag
 #  define vidf_graze_CaCO3_remin hisf_graze_CaCO3_remin
+#  define vidQ_BEC2 hisQ_BEC2
+#  define vidDONrefract hisDONrefract
 # endif
 #else /* AVRH is defined */
 # ifndef AVR2DH
@@ -221,6 +223,8 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
 # if defined BIOLOGY_BEC2 && defined BEC2_DIAG
 #  define vidT_bec2 avgT_bec2_diag
 #  define vidf_graze_CaCO3_remin avgf_graze_CaCO3_remin
+#  define vidQ_BEC2 avgQ_BEC2
+#  define vidDONrefract avgDONrefract
 # endif
 # else /* AVR2DH is defined */
 #  define SDEF_FOUT 'DEF_SLAVG'
@@ -280,6 +284,8 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
 # if defined BIOLOGY_BEC2 && defined BEC2_DIAG
 #  define vidT_bec2 slavgT_bec2_diag
 #  define vidf_graze_CaCO3_remin slavgf_graze_CaCO3_remin
+#  define vidQ_BEC2 slavgQ_BEC2
+#  define vidDONrefract slavgDONrefract
 # endif
 # endif /* AVR2DH */
 #endif /* AVRH */
@@ -1144,6 +1150,20 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
         lvar = lenstr(text)
         ierr = nf_put_att_text(ncid, vidf_graze_CaCO3_remin, 'long_name', 
      &          lvar, text(1:lvar))
+
+        ierr = nf_def_var(ncid, 'Q', NF_FOUT, 0, 0, vidQ_BEC2)
+        text =
+     &  'N/C ratio (mmol/mmol) of phyto & zoo'
+        lvar = lenstr(text)
+        ierr = nf_put_att_text(ncid, vidQ_BEC2, 'long_name', 
+     &          lvar, text(1:lvar))
+
+        ierr = nf_def_var(ncid, 'DONrefract', NF_FOUT, 0, 0, vidDONrefract)
+        text =
+     &  'Fraction of DON to refractory pool'
+        lvar = lenstr(text)
+        ierr = nf_put_att_text(ncid, vidDONrefract, 'long_name', 
+     &          lvar, text(1:lvar))
 !
 ! 2d diagnostics:
 !
@@ -1359,6 +1379,8 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
 #if defined BIOLOGY_BEC2 && defined BEC2_DIAG
         ! Write the scalar variables regarding biogeochemical fluxes:
         ierr = nf_put_var1_FTYPE(ncid, vidf_graze_CaCO3_remin, 1, f_graze_CaCO3_remin)
+        ierr = nf_put_var1_FTYPE(ncid, vidQ_BEC2, 1, Q)
+        ierr = nf_put_var1_FTYPE(ncid, vidDONrefract, 1,DONrefract)
 #endif
         
 !
@@ -1906,6 +1928,8 @@ CR     &      'existing file ''', ncname(1:lstr), ''' ncid =', ncid
 # if defined BIOLOGY_BEC2 && defined BEC2_DIAG
 #  undef vidT_bec2
 #  undef vidf_graze_CaCO3_remin
+#  undef vidQ_BEC2
+#  undef vidDONrefract
 # endif
 
 #undef vidR

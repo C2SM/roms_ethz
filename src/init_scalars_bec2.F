@@ -547,7 +547,7 @@ CR      write(stdout,'(1x,A,I3)') 'indxNH4 =',indxNH4
       vname_bec2_diag_3d(1,indxDONREMIN)='DON_REMIN'
       vname_bec2_diag_3d(2,indxDONREMIN)=
      &  'Remineralization rate of DON'
-      vname_bec2_diag_3d(3,indxDONREMIN)='mmol/m3/s  '
+      vname_bec2_diag_3d(3,indxDONREMIN)='mmol N/m3/s  '
       vname_bec2_diag_3d(4,indxDONREMIN)=' '
 
       vname_bec2_diag_3d(1,indxDOFEPROD)='DOFE_PROD'
@@ -716,6 +716,43 @@ CR      write(stdout,'(1x,A,I3)') 'indxNH4 =',indxNH4
      &  'Chl synthesis in photoadaptation for diazotrophs'
       vname_bec2_diag_3d(3,indxDIAZPHOTOACC)='mg Chl/m3/s'
       vname_bec2_diag_3d(4,indxDIAZPHOTOACC)=' '
+
+      vname_bec2_diag_3d(1,indxSPCZERO)='SPC_ZERO'
+      vname_bec2_diag_3d(2,indxSPCZERO)=
+     &  'Change caused by setting negative SPC values to zero'
+      vname_bec2_diag_3d(3,indxSPCZERO)='mMol C/m3/s'
+      vname_bec2_diag_3d(4,indxSPCZERO)=' '
+      vname_bec2_diag_3d(1,indxDIATCZERO)='DIATC_ZERO'
+      vname_bec2_diag_3d(2,indxDIATCZERO)=
+     &  'Change caused by setting negative DIATC values to zero'
+      vname_bec2_diag_3d(3,indxDIATCZERO)='mMol C/m3/s'
+      vname_bec2_diag_3d(4,indxDIATCZERO)=' '
+      vname_bec2_diag_3d(1,indxDIAZCZERO)='DIAZC_ZERO'
+      vname_bec2_diag_3d(2,indxDIAZCZERO)=
+     &  'Change caused by setting negative DIAZC values to zero'
+      vname_bec2_diag_3d(3,indxDIAZCZERO)='mMol C/m3/s'
+      vname_bec2_diag_3d(4,indxDIAZCZERO)=' '
+      vname_bec2_diag_3d(1,indxDOCZERO)='DOC_ZERO'
+      vname_bec2_diag_3d(2,indxDOCZERO)=
+     &  'Change caused by setting negative DOC values to zero'
+      vname_bec2_diag_3d(3,indxDOCZERO)='mMol C/m3/s'
+      vname_bec2_diag_3d(4,indxDOCZERO)=' '
+      vname_bec2_diag_3d(1,indxZOOCZERO)='ZOOC_ZERO'
+      vname_bec2_diag_3d(2,indxZOOCZERO)=
+     &  'Change caused by setting negative ZOOC values to zero'
+      vname_bec2_diag_3d(3,indxZOOCZERO)='mMol C/m3/s'
+      vname_bec2_diag_3d(4,indxZOOCZERO)=' '
+      vname_bec2_diag_3d(1,indxSPCACO3ZERO)='SPCACO3_ZERO'
+      vname_bec2_diag_3d(2,indxSPCACO3ZERO)=
+     &  'Change caused by setting negative SPCACO3 values to zero'
+      vname_bec2_diag_3d(3,indxSPCACO3ZERO)='mMol CaCO3/m3/s'
+      vname_bec2_diag_3d(4,indxSPCACO3ZERO)=' '
+
+      vname_bec2_diag_3d(1,indxDONRREMIN) = 'DONr_REMIN'
+      vname_bec2_diag_3d(2,indxDONRREMIN)=
+     &  'Portion of refractory DON remineralized'
+      vname_bec2_diag_3d(3,indxDONRREMIN)='mMol N/m3/s'
+      vname_bec2_diag_3d(4,indxDONRREMIN)=' '
 
 # endif /* BEC2_DIAG */
 

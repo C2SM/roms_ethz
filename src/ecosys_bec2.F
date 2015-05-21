@@ -614,7 +614,7 @@ c$$$       enddo
      &    autoFe_loc,      ! amount of iron in each autotroph species
      &    Si_loc,          ! amount of Si in each autotroph species
      &    CaCO3_loc,       ! amount of CaCO3 in each autotroph species
-     &    QCaCO3,          ! small phyto CaCO3/C ratio (mmol CaCO3/mmol C)
+     &    QCaCO3,          ! CaCO3/C ratio (mmol CaCO3/mmol C)
      &    VNO3,            ! NO3 uptake rate (non-dim)
      &    VNH4,            ! NH4 uptake rate (non-dim)
      &    VNtot,           ! total N uptake rate (non-dim)
@@ -677,6 +677,14 @@ c$$$       enddo
        DOP_loc  = MAX(c0, TRACER(istr:iend,j,k,dop_ind_t))
        DOPr_loc = MAX(c0, TRACER(istr:iend,j,k,dopr_ind_t))
        DONr_loc = MAX(c0, TRACER(istr:iend,j,k,donr_ind_t))
+#ifdef BEC2_DIAG
+       bec2_diag_3d(istr:iend,j,k,spczero_idx_t) = max(c0,-TRACER(istr:iend,j,k,spC_ind_t))/dt
+       bec2_diag_3d(istr:iend,j,k,diatczero_idx_t) = max(c0,-TRACER(istr:iend,j,k,diatC_ind_t))/dt
+       bec2_diag_3d(istr:iend,j,k,diazczero_idx_t) = max(c0,-TRACER(istr:iend,j,k,diazC_ind_t))/dt
+       bec2_diag_3d(istr:iend,j,k,doczero_idx_t) = max(c0,-TRACER(istr:iend,j,k,doc_ind_t))/dt
+       bec2_diag_3d(istr:iend,j,k,zooczero_idx_t) = max(c0,-TRACER(istr:iend,j,k,zooC_ind_t))/dt
+       bec2_diag_3d(istr:iend,j,k,spcaco3zero_idx_t) = max(c0,-TRACER(istr:iend,j,k,spCaCO3_ind_t))/dt
+#endif
 
     !---------------------------------------------------------------------------
     !   If any phyto box are zero, set others to zeros.
@@ -779,9 +787,8 @@ c$$$       enddo
           end if
        end do  ! auto_ind = 1, autotroph_cnt
 # ifdef BEC2_DIAG
-       bec2_diag_2d(istr:iend,j,spqcaco3_idx_t) = QCaCO3(istr:iend,sp_ind)
+       bec2_diag_3d(istr:iend,j,k,spqcaco3_idx_t) = QCaCO3(istr:iend,sp_ind)
 # endif
-
 
     !---------------------------------------------------------------------------
     !   various k==N initializations
@@ -1246,6 +1253,7 @@ c$$$       enddo
 # ifdef BEC2_DIAG
        bec2_diag_3d(istr:iend,j,k,docremin_idx_t) = DOC_remin
        bec2_diag_3d(istr:iend,j,k,donremin_idx_t) = DON_remin
+       bec2_diag_3d(istr:iend,j,k,donrremin_idx_t) = DONr_remin
        bec2_diag_3d(istr:iend,j,k,doferemin_idx_t) = DOFe_remin
        bec2_diag_3d(istr:iend,j,k,dopremin_idx_t) = DOFe_remin
 # endif
@@ -1951,13 +1959,6 @@ c$$$       enddo
      &          ((dust_sflux_in(i,j) - dust_sflux_out(i,j)) +
      &          (dust_hflux_in(i,j) - dust_hflux_out(i,j))) * dzr_loc
 
-# ifdef BEC2_DIAG
-             bec2_diag_3d(i,j,k,caco3remin_idx_t) = P_CaCO3_remin(i,j)
-             bec2_diag_3d(i,j,k,sio2remin_idx_t) = P_SiO2_remin(i,j)
-             bec2_diag_3d(i,j,k,pocremin_idx_t) = POC_remin(i,j)
-             bec2_diag_3d(i,j,k,dustremin_idx_t) = dust_remin(i)
-# endif
-
     !-----------------------------------------------------------------------
     !  Compute iron remineralization and flux out.
     !-----------------------------------------------------------------------
@@ -2004,9 +2005,6 @@ c$$$       enddo
              P_Iron_remin(i,j) = P_Iron_remin(i,j)
      &           + dust_remin(i) * dust_to_Fe
      &           + (FESEDFLUX(i) * dzr_loc)
-# ifdef BEC2_DIAG
-             bec2_diag_3d(i,j,k,pironremin_idx_t) = P_Iron_remin(i,j)
-# endif
 
              P_iron_hflux_out(i,j) = P_iron_hflux_in(i,j)
 
@@ -2157,6 +2155,14 @@ c$$$       enddo
          end if  ! LANDMASK(i,j) .and. (k == 1)
 
        end do  ! i = istr, iend
+
+# ifdef BEC2_DIAG
+       bec2_diag_3d(istr:iend,j,k,pironremin_idx_t) = P_Iron_remin(istr:iend,j)
+       bec2_diag_3d(istr:iend,j,k,caco3remin_idx_t) = P_CaCO3_remin(istr:iend,j)
+       bec2_diag_3d(istr:iend,j,k,sio2remin_idx_t) = P_SiO2_remin(istr:iend,j)
+       bec2_diag_3d(istr:iend,j,k,pocremin_idx_t) = POC_remin(istr:iend,j)
+       bec2_diag_3d(istr:iend,j,k,dustremin_idx_t) = dust_remin(istr:iend)       
+# endif
 
        return
        end subroutine compute_particulate_terms
