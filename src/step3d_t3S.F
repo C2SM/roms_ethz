@@ -464,19 +464,19 @@ c??         enddo
           do j=J_RANGE
             do i=I_RANGE
 #  ifdef TCLIMATOLOGY
+#  ifdef FULL_PHYS_FLUX_ANALYSIS
+              if (itrc .le. NT_PFA) then
+                 NudgingFlux(i,j,k,itrc) = Tnudgcof(i,j,itrc) *
+     &               ( tclm(i,j,k,itrc) - t(i,j,k,nnew,itrc) )
+#   ifdef MASKING
+     &               * rmask(i,j)
+#   endif
+              end if
+#  endif /* FULL_PHYS_FLUX_ANALYSIS */
               t(i,j,k,nnew,itrc)=t(i,j,k,nnew,itrc)
      &       +dt*Tnudgcof(i,j,itrc)*( tclm(i,j,k,itrc)
      &                             -t(i,j,k,nnew,itrc))
-#  ifdef FULL_PHYS_FLUX_ANALYSIS
-          if (itrc .le. NT_PFA) then
-               NudgingFlux(i,j,k,itrc) = Tnudgcof(i,j,itrc) *
-     &              ( tclm(i,j,k,itrc) - t(i,j,k,nnew,itrc) )
-#   ifdef MASKING
-     &              * rmask(i,j)
-#   endif
-            end if
-#  endif /* FULL_PHYS_FLUX_ANALYSIS */
-#  endif
+#  endif /* TCLIMATOLOGY */
 #  ifdef MASKING
               t(i,j,k,nnew,itrc)=t(i,j,k,nnew,itrc)*rmask(i,j)
 #  endif
