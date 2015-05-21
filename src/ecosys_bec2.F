@@ -1989,6 +1989,7 @@ c$$$       enddo
     !-----------------------------------------------------------------------
 
              ! Set Fe remin flux from sediments (no input in ROMS):
+# ifdef FE_SEDFLUX
              ! CN: test with value from Moore 2004 (in mmolFe/m2/sec,
              ! see old BEC code)
              if (k==1) then
@@ -1996,6 +1997,9 @@ c$$$       enddo
                 FESEDFLUX(i) = 2.3148e-8
              endif
              endif
+# else
+             FESEDFLUX(i) = c0
+# endif
 
              P_Iron_remin(i,j) = P_Iron_remin(i,j)
      &           + dust_remin(i) * dust_to_Fe
