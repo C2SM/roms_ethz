@@ -323,8 +323,142 @@ CR      write(*,*) 'wrt_his:  wrtHBL' MYID
 CR      write(*,*) 'wrt_his:  wrtHbBL' MYID
       endif
 # endif
-#endif
+# if defined BIOLOGY_BEC || (defined BIOLOGY_NPZDOC && \
+    defined OXYGEN && defined CARBON)
 
+! Write out averaged pH:
+
+      ierr=nf_fwrite (pH_hist(START_2D_ARRAY), nchis,
+     &                              hisPH, record, r2dvar)
+      if (ierr /= nf_noerr) then
+        lvar=lenstr(vname(1,indxPH_rst))
+        write(*,1) vname(1,indxPH_rst)(1:lvar), record MYID
+        goto 99                                         !--> ERROR
+      endif
+
+! Write out averaged pCO2:
+
+      ierr=nf_fwrite (pCO2sw(START_2D_ARRAY), nchis,
+     &                              hisPCO2, record, r2dvar)
+      if (ierr /= nf_noerr) then
+        lvar=lenstr(vname(1,indxPCO2_rst))
+        write(*,1) vname(1,indxPCO2_rst)(1:lvar), record MYID
+        goto 99                                         !--> ERROR
+      endif
+
+
+! Write out averaged pCO2air:
+
+      ierr=nf_fwrite (pCO2air(START_2D_ARRAY), nchis,
+     &                              hisPCO2air, record, r2dvar)
+      if (ierr /= nf_noerr) then
+        lvar=lenstr(vname(1,indxPCO2air_rst))
+        write(*,1) vname(1,indxPCO2air_rst)(1:lvar), record MYID
+        goto 99                                         !--> ERROR
+      endif
+# endif /* BIOLOGY_BEC || (BIOLOGY_NPZDOC && OXYGEN && CARBON) */
+# if defined BIOLOGY_BEC || defined BIOLOGY_NPZDOC
+
+! PARinc:
+
+      ierr=nf_fwrite (PARinc(START_2D_ARRAY), nchis,
+     &     hisPARinc, record, r2dvar)
+      if (ierr /= nf_noerr) then
+        lvar=lenstr(vname(1,indxPARinc_rst))
+        write(*,1) vname(1,indxPARinc_rst)(1:lvar), record MYID
+        goto 99                                         !--> ERROR
+      endif
+
+! PAR:
+
+      ierr=nf_fwrite (PAR(START_2D_ARRAY,1), nchis,
+     &                              hisPAR, record, r3dvar)
+      if (ierr /= nf_noerr) then
+        lvar=lenstr(vname(1,indxPAR_rst))
+        write(*,1) vname(1,indxPAR_rst)(1:lvar), record MYID
+        goto 99                                         !--> ERROR
+      endif
+# endif /* BIOLOGY_BEC || BIOLOGY_NPZDOC */
+
+# if defined BIOLOGY_BEC2 && defined BEC2_DIAG
+
+! 2d diagnostics:
+
+      do itrc=1,nr_bec2_diag_2d
+         ierr=nf_fwrite (bec2_diag_2d(START_2D_ARRAY,itrc), nchis,
+     &                   hisT_bec2_diag(itrc), record, r2dvar)
+         if (ierr /= nf_noerr) then
+           lvar=lenstr(vname_bec2_diag_2d(1,itrc))
+           write(*,1) vname_bec2_diag_2d(1,itrc)(1:lvar), record MYID
+           goto 99                                         !--> ERROR
+         endif
+      end do
+
+! 3d diagnostics:
+
+      do itrc=1,nr_bec2_diag_3d
+         ierr=nf_fwrite (bec2_diag_3d(START_2D_ARRAY,1,itrc), nchis,
+     &                   hisT_bec2_diag(nr_bec2_diag_2d+itrc), record, r3dvar)
+         if (ierr /= nf_noerr) then
+           lvar=lenstr(vname_bec2_diag_3d(1,itrc))
+           write(*,1) vname_bec2_diag_3d(1,itrc)(1:lvar), record MYID
+           goto 99                                         !--> ERROR
+         endif
+      end do
+# endif /* BIOLOGY_BEC2 && BEC2_DIAG */
+
+!DL:
+# ifdef WRITE_DEPTHS
+
+! depths of rho points:
+
+      ierr=nf_fwrite (z_r(START_2D_ARRAY,1), nchis,
+     &                              hisz_r, record, r3dvar)
+      if (ierr /= nf_noerr) then
+        lvar=lenstr(vname(1,indxz_r))
+        write(*,1) vname(1,indxz_r)(1:lvar), record MYID
+        goto 99                                         !--> ERROR
+      endif
+
+! depths at w points:
+
+      ierr=nf_fwrite (z_w(START_2D_ARRAY,0), nchis,
+     &                              hisz_w, record, w3dvar)
+      if (ierr /= nf_noerr) then
+        lvar=lenstr(vname(1,indxz_w))
+        write(*,1) vname(1,indxz_w)(1:lvar), record MYID
+        goto 99                                         !--> ERROR
+      endif
+
+! thicknesses of sigma layers:
+
+      ierr=nf_fwrite (Hz(START_2D_ARRAY,1), nchis,
+     &                              hisHz, record, r3dvar)
+      if (ierr /= nf_noerr) then
+        lvar=lenstr(vname(1,indxHz))
+        write(*,1) vname(1,indxHz)(1:lvar), record MYID
+        goto 99                                         !--> ERROR
+      endif
+# endif /* WRITE_DEPTHS */
+
+! gas exchange fluxes:
+
+# if defined BIOLOGY_NPZDOC && defined OXYGEN
+      do itrc = 1, NumGasExcTerms
+         ierr = nf_fwrite(GasExcFlux(START_2D_ARRAY,itrc), 
+     &        nchis, hisGasExcFlux(itrc), 
+     &        record, r2dvar)
+         if (ierr /= nf_noerr) then
+            lvar=lenstr(vname_GasExcFlux(1,itrc))
+            write(*,1) 
+     &           vname_GasExcFlux(1,itrc)(1:lvar), 
+     &           record MYID 
+            goto 99
+         end if
+      end do
+# endif /* BIOLOGY_NPZDOC && OXYGEN */
+
+#endif /* SOLVE3D */
   1   format(/1x, '### ERROR: wrt_his :: Cannot write variable ''',
      &              A, ''' into history file, rec =', i6, 3x,A,i4)
       goto 100
