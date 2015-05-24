@@ -24,6 +24,10 @@
 #ifdef MPI
 # include "mpif.h"
 #endif
+#if defined PASSIVE_TRACER && defined AGE_DYE_TRACER
+# include "sources.h"
+      integer N_agedye_files
+#endif
       character(len=256) fname
       character(len=32) keyword
       character(len=3), parameter :: end_signal='end'
@@ -31,6 +35,10 @@
       integer ierr, iargc, is,ie,  kwlen, lstr, lenstr
 #ifdef SOLVE3D
      &                                            , itrc
+#endif
+#if (defined BIOLOGY_BEC || defined BIOLOGY_BEC2 || defined BIOLOGY_NPZDOC)\
+    && defined VARIABLE_ANN_ATM_PCO2
+      logical futr_scen_valid
 #endif
 
 ! This is needed to avoid automatic promotion to 8-byte integer by
@@ -101,6 +109,8 @@
       fname='roms.in.River'
 #elif defined PACIFIC
       fname='pacific.in'
+#elif defined ONE_DIM
+      fname='one_dim.in'
 #elif defined PACIFIC_2D
       fname='pacific_2D.in'
 #elif defined CANBAS2
@@ -123,6 +133,14 @@ c--      fname='roms.in.USW20'
 c--      fname='roms.in.US_West'
 #elif defined SCB_TEST
       fname='scb_test.in'
+#elif defined USWC_CENTRAL
+      fname='usw.in'
+#elif defined HBCS60
+      fname='hbcs.in'
+#elif defined HBCS5
+      fname='hbcs5.in'
+#elif defined SAWC
+      fname='sawc.in'
 #elif defined DAMEE_B
       fname='roms.in.Atl4'
 #else
@@ -405,7 +423,7 @@ c--      fname='roms.in.US_West'
           call cancel_kwd (keyword(1:kwlen), ierr)
           read(input,'(A)',err=95) fname
           lstr=lenstr(fname)
-# if defined MPI && defined PARALLEL_FILES
+# if defined MPI && defined PARALLEL_FILES && !defined JOINED_GRD
           call insert_node (fname, lstr, mynode, NNODES, ierr)
 # endif
           open(testunit,file=fname(1:lstr), status='old', err=97)
@@ -510,7 +528,7 @@ c--      fname='roms.in.US_West'
           call cancel_kwd (keyword(1:kwlen), ierr)
           read(input,'(A)',err=95) fname
           lstr=lenstr(fname)
-#  if defined MPI && defined PARALLEL_FILES
+#  if defined MPI && defined PARALLEL_FILES && !defined JOINED_BRY
           call insert_node (fname, lstr, mynode, NNODES, ierr)
 #  endif
           open (testunit, file=fname(1:lstr), status='old', err=97)
@@ -529,7 +547,7 @@ c--      fname='roms.in.US_West'
           read(input,*,err=95) nrst, nrpfrst
           read(input,'(A)',err=95)  fname
           lstr=lenstr(fname)
-# if defined MPI && defined PARALLEL_FILES
+# if defined MPI && defined PARALLEL_FILES && !defined JOINED_RST
           call insert_node (fname, lstr, mynode, NNODES, ierr)
 # endif
           rstname=fname(1:lstr)
@@ -545,7 +563,7 @@ c--      fname='roms.in.US_West'
           read(input,*,err=95) ldefhis, nwrt, nrpfhis
           read(input,'(A)',err=95) fname
           lstr=lenstr(fname)
-# if defined MPI && defined PARALLEL_FILES
+# if defined MPI && defined PARALLEL_FILES && !defined JOINED_HIS
           call insert_node (fname, lstr, mynode, NNODES, ierr)
 # endif
           hisname=fname(1:lstr)
@@ -562,6 +580,10 @@ c--      fname='roms.in.US_West'
 #ifdef SOLVE3D
      &                      ,  wrthis(indxU),  wrthis(indxV)
      &                      , (wrthis(indxT+itrc-1), itrc=1,NT)
+# ifdef SEDIMENT_BIOLOGY
+     &                      , (wrthis(itrc), 
+     &                         itrc=indxSedOrgN,indxSedOrgN+NT_sed-1)
+# endif /* SEDIMENT_BIOLOGY */
 #endif
           if ( wrthis(indxZ) .or. wrthis(indxUb) .or. wrthis(indxVb)
 #ifdef SOLVE3D
@@ -583,6 +605,15 @@ c--      fname='roms.in.US_West'
      &        itrc, ')', wrthis(indxT+itrc-1), vname(2,indxT+itrc-1)
           enddo
 
+# ifdef SEDIMENT_BIOLOGY
+          do itrc = 1, NT_sed
+            if (wrthis(indxSedOrgN+itrc-1)) wrthis(indxTime)=.true.
+            MPI_master_only write(*, '(6x,L1,2x,A,I2,A,I2,A)')
+     &           wrthis(indxSedOrgN+itrc-1), 'write T_sed(', 
+     &           itrc,')  Sediment tracer of index ', itrc,'.' 
+          end do
+# endif /* SEDIMENT_BIOLOGY */
+ 
         elseif (keyword(1:kwlen) == 'auxiliary_history_fields') then
           call cancel_kwd (keyword(1:kwlen), ierr)
           read(input,*,err=95) wrthis(indxR), wrthis(indxO)
@@ -638,7 +669,7 @@ c--      fname='roms.in.US_West'
           read(input,*,err=95) ntsavg, navg, nrpfavg
           read(input,'(A)',err=95) fname
           lstr=lenstr(fname)
-# if defined MPI && defined PARALLEL_FILES
+# if defined MPI && defined PARALLEL_FILES && !defined JOINED_AVG
           call insert_node (fname, lstr, mynode, NNODES, ierr)
 # endif
           avgname=fname(1:lstr)
@@ -1003,6 +1034,21 @@ c--      fname='roms.in.US_West'
 #endif   /* MOORE_BEC */
 
 
+!DL: age/dye tracers:
+#if defined PASSIVE_TRACER && defined AGE_DYE_TRACER
+        elseif (keyword(1:kwlen).eq.'age_dye') then
+           call cancel_kwd (keyword(1:kwlen), ierr)
+           ! Read number of age/dye tracers:
+           read(input,*,err=95) N_agedye
+           if (N_agedye .gt. ntrc_pas) then
+              MPI_master_only write(*,'(3a,i6)') 'ERROR: ',
+     &        'too many age/dye tracers. Set parameter ntrc_pas ',
+     &        'in param.h to a value >= ', N_agedye
+              goto 95
+           end if
+           MPI_master_only write(*,'(6x,i2,A)')
+     &          N_agedye, ' Number of age/dye tracers'
+#endif /* PASSIVE_TRACER && AGE_DYE_TRACER */
         else
           mpi_master_only write(*,'(/1x,4A/)') 'WARNING: ',
      &                'Urecognized keyword ''', keyword(1:kwlen),

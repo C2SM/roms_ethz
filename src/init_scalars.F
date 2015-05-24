@@ -9,6 +9,11 @@
 
       implicit none
       integer ierr, i
+#ifdef PASSIVE_TRACER
+     &        , j
+      integer itrc
+      character*3 c_indx
+#endif
 #define ALL_DATA
 #include "param.h"
 #include "scalars.h"
@@ -85,6 +90,9 @@ c      v3bc_max=0.
       nchis=-1   ; nrechis=0       ! values to indicate their initially
 #ifdef AVERAGES
       ncavg=-1   ; nrecavg=0       ! closed status. Also reset record
+# ifdef SLICE_AVG
+      ncidslavg=-1; nrecslavg=0
+# endif
 #endif
 #ifdef STATIONS
       ncidstn=-1 ; nrecstn=0       ! counters for restart, history,
@@ -118,6 +126,14 @@ c      v3bc_max=0.
        bry_id=-1
 #endif
 
+#ifdef PSOURCE
+       do j=1,NT                     ! Initialize switch
+         do i=1,Msrc                 ! to apply tracer
+           Lsrc(i,j)=.false.         ! sources and sinks.
+         enddo
+       enddo
+#endif
+ 
       call get_date (date_str)
 
 ! Names of variables in NetCDF output files. The first element
@@ -125,7 +141,16 @@ c      v3bc_max=0.
 
 c--#define CR
 CR      write(*,'(1x,A,I3)') 'indxTime =',indxTime
+#ifdef CALENDAR
+      vname(1,indxTime)='time'
+# ifdef STARTDATE
+      vname(3,indxTime)='second since '/ /STARTDATE/ /' 00:00:00'
+# else
+      vname(3,indxTime)='second since 0001-01-01 00:00:00          '
+# endif
+#else
       vname(1,indxTime)='ocean_time'
+#endif
       vname(2,indxTime)='Time since initialization'
       vname(3,indxTime)='second'
 
@@ -181,6 +206,32 @@ CR      write(*,'(1x,A,I3)') 'indxS = ', indxS
       vname(2,indxS)='salinity'
       vname(3,indxS)='PSU'
 # endif
+# ifdef PASSIVE_TRACER
+      do itrc = 1, ntrc_pas
+         itpas(itrc) = itemp + ntrc_salt + itrc
+      end do
+!
+      do itrc = indxT+ntrc_salt+1,indxT+ntrc_salt+ntrc_pas
+         if (itrc-indxT-ntrc_salt .lt. 10) then
+            write (c_indx, '(i1)') itrc-indxT-ntrc_salt
+         else if (itrc-indxT-ntrc_salt .lt. 100) then
+            write (c_indx, '(i2)') itrc-indxT-ntrc_salt
+         else
+            write (c_indx, '(i3)') itrc-indxT-ntrc_salt
+         end if
+         vname(1,itrc) = 'tpas'/ /trim(c_indx)
+         vname(2,itrc) = 'passive tracer '/ /c_indx
+         vname(3,itrc)='no unit'
+         vname(4,itrc)='passive tracer, scalar, series'
+      end do
+#  ifdef AGE_DYE_TRACER
+      N_agedye = 0
+      do itrc=1,ntrc_pas
+         ncid_ad(itrc) = -1
+      enddo
+#  endif
+# endif /* PASSIVE_TRACER */
+
 # ifdef BIOLOGY
 CR      write(*,'(1x,A,I3)') 'indxNO3 =', indxNO3
       vname(1,indxNO3)='NO3'
@@ -237,7 +288,47 @@ CR      write(*,'(1x,A,I3)') 'indxHbbl =',indxHbbl
 # endif
 #endif
 
+CR      write(*,'(1x,A,I3)') 'indxSUSTR =',indxSUSTR
+      vname(1,indxSUSTR)='sustr                                     '
+      vname(2,indxSUSTR)='surface u-momentum stress                 '
+      vname(3,indxSUSTR)='Newton meter-2                            '
+ 
+CR      write(*,'(1x,A,I3)') 'indxSVSTR =',indxSVSTR
+      vname(1,indxSVSTR)='svstr                                     '
+      vname(2,indxSVSTR)='surface v-momentum stress                 '
+      vname(3,indxSVSTR)='Newton meter-2                            '
+ 
 #ifdef SOLVE3D
+CR      write(*,'(1x,A,I3)') 'indxSHFl =',indxSHFl
+      vname(1,indxSHFl)='shflux                                    '
+      vname(2,indxSHFl)='surface net heat flux                     '
+      vname(3,indxSHFl)='Watts meter-2                             '
+# ifdef SALINITY
+CR      write(*,'(1x,A,I3)') 'indxSSFl=',indxSSFl
+      vname(1,indxSSFl)='swflux                                    '
+      vname(2,indxSSFl)='surface freshwater flux (E-P)             '
+      vname(3,indxSSFl)='centimeter day-1                          '
+# endif
+CR      write(*,'(1x,A,I3)') 'indxSWRad =',indxSWRad
+      vname(1,indxSWRad)='swrad                                     '
+      vname(2,indxSWRad)='solar shortwave radiation                 '
+      vname(3,indxSWRad)='Watts meter-2                             '
+ 
+CR      write(*,'(1x,A,I3)') 'indxSST =', indxSST
+      vname(1,indxSST)='SST                                       '
+      vname(2,indxSST)='sea surface temperature                   '
+      vname(3,indxSST)='Celsius                                   '
+ 
+CR      write(*,'(1x,A,I3)') 'indxdQdSST =', indxdQdSST
+      vname(1,indxdQdSST)='dQdSST                                    '
+      vname(2,indxdQdSST)='surface net heat flux sensitivity to SST  '
+      vname(3,indxdQdSST)='Watts meter-2 Celsius-1                   '
+
+CR      write(*,'(1x,A,I3)') 'indxSSS =', indxSSS
+      vname(1,indxSSS)='SSS                                       '
+      vname(2,indxSSS)='sea surface salinity                      '
+      vname(3,indxSSS)='PSU                                       '
+ 
 # ifdef SG_BBL96
 #  ifndef ANA_WWAVE
       vname(1,indxWWA)='Awave'
@@ -288,7 +379,24 @@ CR      write(*,'(1x,A,I3)') 'indxHbbl =',indxHbbl
       vname(2,indxTIsrf)='temperature of ice surface'
       vname(3,indxTIsrf)='Kelvin'
 #endif
+!DL:
+#ifdef WRITE_DEPTHS
+      vname(1,indxz_r)='z_r                                       '
+      vname(2,indxz_r)='depths of rho points                      '
+      vname(3,indxz_r)='meter                                     '
+      vname(1,indxz_w)='z_w                                       '
+      vname(2,indxz_w)='depths of w points                        '
+      vname(3,indxz_w)='meter                                     '
+      vname(1,indxHz)='Hz                                        '
+      vname(2,indxHz)='thicknesses of sigma layers               '
+      vname(3,indxHz)='meter                                     '
+#endif /* WRITE_DEPTHS */
 
+      tclm_name(itemp) = 'tclm_time'
+#ifdef SALINITY
+      tclm_name(isalt) = 'sclm_time'
+#endif
+ 
       ierr=0
       call read_inp (ierr)
       if (ierr==0) then

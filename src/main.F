@@ -93,6 +93,7 @@ C$    integer omp_get_thread_num, omp_get_num_threads
 #include "param.h"
 #include "scalars.h"
 
+#include "sources.h"
 #include "ncvars.h"
 #ifdef FLOATS
 ! grid.h is needed so that lonr and latr are readily available
@@ -500,6 +501,9 @@ C$OMP BARRIER
 # endif
 # ifdef AVERAGES
         call    set_avg(tile)
+#  ifdef SLICE_AVG
+        call    set_slavg(tile)
+#  endif
 #  ifdef BGC_FLUX_ANALYSIS
 #   ifdef BIOLOGY_NPZDOC
         call set_bgc_flux_avg(tile)
@@ -576,6 +580,10 @@ C$OMP BARRIER
      &   .or. (mod(iic-ntstart,nwrt)==0 .and. wrthis(indxTime))
 #ifdef AVERAGES
      &   .or. (mod(iic-ntsavg,navg)==0  .and. wrtavg(indxTime))
+# ifdef SLICE_AVG
+     &   .or. ( mod(iic-ntsslavg,nslavg) == 0  
+     &               .and. wrtslavg(indxTime) )
+# endif
 #endif
 #ifdef STATIONS
      &   .or. (mod(iic-ntstart,nsta)==0 .and. nstation>0)
@@ -593,6 +601,9 @@ C$OMP MASTER
         if (mod(iic-ntstart,nwrt)==0) nrechis=nrechis+1
 #ifdef AVERAGES
         if (mod(iic-ntsavg,navg) == 0) nrecavg=nrecavg+1
+# ifdef SLICE_AVG
+        if (mod(iic-ntsslavg,nslavg) == 0) nrecslavg=nrecslavg+1
+# endif
 #endif
 #ifdef STATIONS
         if (mod(iic-ntstart,nsta)==0) nrecstn=nrecstn+1
@@ -611,6 +622,10 @@ c          if (iic>60) nwrt=1 !<-- useful for debugging
         endif
 
 #ifdef AVERAGES
+# ifdef SLICE_AVG
+        if (mod(iic-ntsslavg,nslavg) == 0 .and. wrtslavg(indxTime))
+     &      call wrt_slice_avg
+# endif
         if (mod(iic-ntsavg,navg) == 0 .and. wrtavg(indxTime))
      &      call wrt_avg
 #endif

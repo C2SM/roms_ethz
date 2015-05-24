@@ -33,6 +33,10 @@
 #ifdef BIOLOGY_BEC2
 # include "ecosys_bec2.h"
 #endif
+#ifdef PHYS_FLUX_ANALYSIS
+# include "physflux.h"
+# include "ncroms_physflux.h"
+#endif
 
 #if defined FLOATS
 # include "ncvars_floats.h"
@@ -50,6 +54,8 @@
       if (mynode>0) call MPI_Recv (blank, 1, MPI_INTEGER,
      &            mynode-1, 1, ocean_grid_comm, status, ierr)
 #endif
+
+      record = 0
 
 ! Create/open restart file; write grid arrays, if so requested,
 ! then set record index within the file..
@@ -95,6 +101,12 @@
 ! Time record numbers for flux analysis:
       ! default values: 0; replace where appropriate
       ibuff = (/0, 0, 0, 0/)
+# ifdef BGC_FLUX_ANALYSIS
+      ibuff(1) = nrec_bgc_flux_his
+#  ifdef AVERAGES
+      ibuff(2) = nrec_bgc_flux_avg
+#  endif
+# endif
 # ifdef PHYS_FLUX_ANALYSIS
       ibuff(3) = nrec_phys_flux_his
 #  ifdef AVERAGES
@@ -193,6 +205,99 @@
           goto 99                                         !--> ERROR
         endif
       enddo
+
+#  ifdef SEDIMENT_BIOLOGY
+
+! Sediment tracer variables.
+
+      do itrc=1,NT_sed
+        ierr=nf_fwrite (t_sed(START_2D_ARRAY,itrc), ncidrst,
+     &                              rstTsed(itrc), record, r2dvar)
+        if (ierr .ne. nf_noerr) then
+          lvar=lenstr(vname(1,indxSedOrgN+itrc-1))
+          write(stdout,1) vname(1,indxSedOrgN+itrc-1)(1:lvar), 
+     &         record, ierr, nf_strerror(ierr) MYID
+          goto 99                                         !--> ERROR
+        endif
+      enddo
+#  endif /* SEDIMENT_BIOLOGY */
+#  if defined BIOLOGY_BEC || (defined BIOLOGY_NPZDOC && \
+    defined OXYGEN && defined CARBON)
+
+! pH:
+
+      ierr=nf_fwrite (ph_hist, ncidrst, rstPH, record, r2dvar)
+      if (ierr .ne. nf_noerr) then
+         lvar=lenstr(vname(1,indxPH_rst))
+         write(stdout,1) vname(1,indxPH_rst)(1:lvar), record,
+     &        ierr, nf_strerror(ierr) MYID
+         goto 99                !--> ERROR
+      endif
+
+! pCO2:
+
+      ierr=nf_fwrite (pCO2sw, ncidrst, rstPCO2, record, r2dvar)
+      if (ierr .ne. nf_noerr) then
+         lvar=lenstr(vname(1,indxPCO2_rst))
+         write(stdout,1) vname(1,indxPCO2_rst)(1:lvar), record,
+     &        ierr, nf_strerror(ierr) MYID
+         goto 99                !--> ERROR
+      endif
+#  ifdef OUTPUT_PCO2AIR_RST
+
+! pCO2air:
+
+      ierr=nf_fwrite (pCO2air, ncidrst, rstPCO2air, record, r2dvar)
+      if (ierr .ne. nf_noerr) then
+         lvar=lenstr(vname(1,indxPCO2air_rst))
+         write(stdout,1) vname(1,indxPCO2air_rst)(1:lvar), record,
+     &        ierr, nf_strerror(ierr) MYID
+         goto 99                !--> ERROR
+      endif
+#  endif /* OUTPUT_PCO2AIR_RST */
+# endif /* BIOLOGY_BEC || (BIOLOGY_NPZDOC && OXYGEN && CARBON) */
+
+# if defined BIOLOGY_BEC2 && defined BEC2_DIAG
+
+! 2d diagnostics:
+
+      do itrc=1,nr_bec2_diag_2d
+         ierr=nf_fwrite (bec2_diag_2d(START_2D_ARRAY,itrc), ncidrst,
+     &                              rstT_bec2_diag(itrc), record, r2dvar)
+        if (ierr .ne. nf_noerr) then
+          lvar=lenstr(vname_bec2_diag_2d(1,itrc))
+          write(stdout,1) vname_bec2_diag_2d(1,itrc)(1:lvar), record,
+     &              ierr, nf_strerror(ierr) MYID
+          goto 99                                         !--> ERROR
+        endif
+      enddo
+
+! 3d diagnostics:
+
+      do itrc=1,nr_bec2_diag_3d
+         ierr=nf_fwrite (bec2_diag_3d(START_2D_ARRAY,1,itrc), ncidrst,
+     &                   rstT_bec2_diag(nr_bec2_diag_2d+itrc), record, r3dvar)
+        if (ierr .ne. nf_noerr) then
+          lvar=lenstr(vname_bec2_diag_3d(1,itrc))
+          write(stdout,1) vname_bec2_diag_3d(1,itrc)(1:lvar), record,
+     &              ierr, nf_strerror(ierr) MYID
+          goto 99                                         !--> ERROR
+        endif
+      enddo
+# endif /* BIOLOGY_BEC2 && BEC2_DIAG */
+
+# if defined BIOLOGY_BEC || defined BIOLOGY_NPZDOC
+
+! PAR:
+
+      ierr=nf_fwrite (PAR, ncidrst, rstPAR, record, r3dvar)
+      if (ierr .ne. nf_noerr) then
+         lvar=lenstr(vname(1,indxPAR_rst))
+         write(stdout,1) vname(1,indxPAR_rst)(1:lvar), record,
+     &        ierr, nf_strerror(ierr) MYID
+         goto 99                !--> ERROR
+      endif
+#  endif /* BIOLOGY_BEC || BIOLOGY_NPZDOC */
 
 # ifdef LMD_KPP
 ! Depth of planetary boundary layer [m].

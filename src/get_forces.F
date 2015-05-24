@@ -268,6 +268,17 @@ c>>>      if (ierr /= 0) may_day_flag=2
 #ifdef ANA_PSOURCE
       if (ZEROTH_TILE) call ana_psource
 #endif
+
+! DL:
+!#ifdef BIOLOGY_BEC2
+!      if (ierr.eq.0) call set_nox_tile (istr,iend,jstr,jend,ierr)
+!      if (ierr.eq.0) call set_nhy_tile (istr,iend,jstr,jend,ierr)
+!      if (ierr.eq.0) call set_din_river_tile (istr,iend,jstr,jend,ierr)
+!#endif
+#if defined PASSIVE_TRACER && defined AGE_DYE_TRACER
+      if (ierr.eq.0) call set_agedye_tile (istr,iend,jstr,jend,ierr)
+#endif
+
       return
       end
 
