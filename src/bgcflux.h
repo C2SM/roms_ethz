@@ -14,6 +14,11 @@
       integer NFlux_Zexcr, NFlux_ZmortS, NFlux_ZmortL, NFlux_DetCoagP
       integer NFlux_DetCoagD, NFlux_ReminS, NFlux_ReminL, NFlux_Nitrif
       integer NumFluxTermsN, NumFluxTerms
+      integer NFlux_Theta, NFlux_PhytoLimTemp, NFlux_PhytoLimNO3
+      integer NFlux_PhytoLimNH4, NFlux_PhytoLimTempLight
+      ! DL: number of volume fluxes: does not include diagnostics related 
+      ! related to phyto growth
+      integer NumFluxTermsVol
 
       parameter(NFlux_NewProd = 1)   ! new production (NO3 -> Phyto.)
       parameter(NFlux_RegProd = 2)   ! regenerated prod. (NH4 -> Phyto.)
@@ -43,21 +48,32 @@
       integer CFlux_DetCoagD, CFlux_ReminS, CFlux_ReminL, CFlux_Dissolv
       integer NumFluxTermsC
       ! fluxes of and changes in carbon [mmol C m^-2 s^-1]
-#ifdef OXYLIM
-      parameter(CFlux_Zresp = NFlux_DenitrL + 1)      ! Zoopl. respiration (Zoo. -> DIC)
-#else
-      parameter(CFlux_Zresp = NFlux_Nitrif + 1)      ! Zoopl. respiration (Zoo. -> DIC)
-#endif /* OXYLIM */
+!DL: CFlux_Zresp is always NumFluxTermsN+1:
+      parameter(CFlux_Zresp = NumFluxTermsN + 1)      ! Zoopl. respiration (Zoo. -> DIC)
+!#ifdef OXYLIM
+!      parameter(CFlux_Zresp = NFlux_DenitrL + 1)      ! Zoopl. respiration (Zoo. -> DIC)
+!#else
+!      parameter(CFlux_Zresp = NFlux_Nitrif + 1)      ! Zoopl. respiration (Zoo. -> DIC)
+!#endif /* OXYLIM */
       parameter(CFlux_DetCoagD = CFlux_Zresp + 1)! Coagul. of det. (SDetC -> LDetC)
       parameter(CFlux_ReminS = CFlux_DetCoagD + 1)  ! Remineralization (SDetC -> NH4)
       parameter(CFlux_ReminL = CFlux_ReminS + 1)    ! Remineralization (LDetC -> NH4)
       parameter(CFlux_Dissolv = CFlux_ReminL + 1)   ! Dissolution of CaCO3 (CaCO3 -> DIC)
       parameter(NumFluxTermsC = CFlux_Dissolv - NumFluxTermsN)
 
-      parameter(NumFluxTerms = NumFluxTermsN + NumFluxTermsC)
+      parameter(NumFluxTermsVol = NumFluxTermsN + NumFluxTermsC)
 #   else /* CARBON */
-      parameter(NumFluxTerms = NumFluxTermsN)
+      parameter(NumFluxTermsVol = NumFluxTermsN)
 #   endif /* CARBON */
+
+!DL: some diagnustic variables related to phyto growth:
+      parameter(NFlux_Theta = NumFluxTermsVol + 1)    ! Ratio chl/C [mg Chla (mg C)-1]
+      parameter(NFlux_PhytoLimTemp = NFlux_Theta + 1) ! Temperature limitation factor of P
+      parameter(NFlux_PhytoLimNO3 = NFlux_PhytoLimTemp + 1)  ! NO3 nutrient limitation factor of P
+      parameter(NFlux_PhytoLimNH4 = NFlux_PhytoLimNO3 + 1)  ! NH4 nutrient limitation factor of P
+      parameter(NFlux_PhytoLimTempLight = NFlux_PhytoLimNH4 + 1) ! Temperature-dependent, light-limited growth rate of P
+
+      parameter(NumFluxTerms = NumFluxTermsVol + 5)
 
 !DL: moved since the gas exchange fluxes are always output
 !      integer NumGasExcTerms 

@@ -321,6 +321,47 @@ CR      write(stdout,'(1x,A,I3)') 'indxPARinc =',indxPARinc
      &     'CFlux_Dissolv, scalar, series              '
 #   endif /* CARBON */
 
+!DL: some diagnostic variables related to phyto growth:
+      vname_bgcflux(1,indxFlux+NFlux_Theta-1)=
+     &     'Theta                               '
+      vname_bgcflux(2,indxFlux+NFlux_Theta-1)=
+     &     'Phytoplankton Chl/C ratio                 '
+      vname_bgcflux(3,indxFlux+NFlux_Theta-1)=
+     &     'mg Chla (mg C)-1                          '
+      vname_bgcflux(4,indxFlux+NFlux_Theta-1)= ' '
+
+      vname_bgcflux(1,indxFlux+NFlux_PhytoLimTemp-1)=
+     &     'PhytoLimTemp                        '
+      vname_bgcflux(2,indxFlux+NFlux_PhytoLimTemp-1)=
+     &     'Temperature-dependent growth rate of P'
+      vname_bgcflux(3,indxFlux+NFlux_PhytoLimTemp-1)=
+     &     'day-1                                     '
+      vname_bgcflux(4,indxFlux+NFlux_PhytoLimTemp-1)= ' '
+
+      vname_bgcflux(1,indxFlux+NFlux_PhytoLimNO3-1)=
+     &     'PhytoLimNO3                         '
+      vname_bgcflux(2,indxFlux+NFlux_PhytoLimNO3-1)=
+     &     'NO3 limitation factor of P        '
+      vname_bgcflux(3,indxFlux+NFlux_PhytoLimNO3-1)=
+     &     '                                          '
+      vname_bgcflux(4,indxFlux+NFlux_PhytoLimNO3-1)= ' '
+
+      vname_bgcflux(1,indxFlux+NFlux_PhytoLimNH4-1)=
+     &     'PhytoLimNH4                         '
+      vname_bgcflux(2,indxFlux+NFlux_PhytoLimNH4-1)=
+     &     'NH4 limitation factor of P        '
+      vname_bgcflux(3,indxFlux+NFlux_PhytoLimNH4-1)=
+     &     '                                          '
+      vname_bgcflux(4,indxFlux+NFlux_PhytoLimNH4-1)= ' '
+
+      vname_bgcflux(1,indxFlux+NFlux_PhytoLimTempLight-1)=
+     &     'PhytoLimTempLight                   '
+      vname_bgcflux(2,indxFlux+NFlux_PhytoLimTempLight-1)=
+     &     'Temperature-dependent, light-limited growth rate of P'
+      vname_bgcflux(3,indxFlux+NFlux_PhytoLimTempLight-1)=
+     &     'day-1                                     '
+      vname_bgcflux(4,indxFlux+NFlux_PhytoLimTempLight-1)= ' '
+
 !DL: moved to init_scalars_npzdoc:
 ! gas exchange terms
 !#   ifdef OXYGEN

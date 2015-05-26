@@ -468,15 +468,20 @@
 !           temperature- and light-limited growth rate
             Vp=Vp0*0.59*(1.066**t(i,j,k,nnew,itemp)) ! From Eppley: [0.59=ln(2.)*.851]
 !           (Eppley, R.W., 1972, Fishery Bulletin, 70: 1063-1085)
+            Flux(i,j,k,NFlux_PhytoLimTemp) = Vp
             cff=thisPAR*palpha*theta(k)              ! Vp=2.9124317 at
             Epp=Vp/sqrt(Vp*Vp+cff*cff)               ! T=19.25 degrees
             t_PPmax=Epp*cff
+            Flux(i,j,k,NFlux_PhytoLimTempLight) = t_PPmax
+            Flux(i,j,k,NFlux_Theta) = theta(k)
 !
 !           nutrient-limitation terms
             inhNH4=1./(1.+(NH4(k)*K_NH4)) ! Parker 1993 Ecol Mod., 66, 113-120.
 !
             L_NO3=NO3(k)*K_NO3*inhNH4/(1. + NO3(k)*K_NO3)
             L_NH4=NH4(k)*K_NH4/(1. + NH4(k)*K_NH4)
+            Flux(i,j,k,NFlux_PhytoLimNO3) = L_NO3
+            Flux(i,j,k,NFlux_PhytoLimNH4) = L_NH4
             LTOT=L_NO3+L_NH4   ! (L </= 1)
 !
             cff=dtdays*t_PPmax*LTOT
@@ -1047,7 +1052,7 @@
 ! Transfer fluxes to global arrays at the end of each biological time step
 ! for computational efficiency, divide now by dtsec to get the correct units
 !DL: also multiply by box height Hz(i,j,k)
-        do iflux = 1, NumFluxTerms
+        do iflux = 1, NumFluxTermsVol
            do k = 1, N
               Flux(i,j,k,iflux) = ( Flux(i,j,k,iflux) +
      &             Hz(i,j,k) * ThisFlux(k, iflux) / dt )
