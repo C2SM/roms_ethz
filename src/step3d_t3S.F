@@ -37,7 +37,6 @@ c--# define AKIMA
 #ifdef PHYS_FLUX_ANALYSIS
 # include "physflux.h"
 #endif
-! DL:
 #if defined PASSIVE_TRACER && defined AGE_DYE_TRACER
 # include "ncvars.h"
 #endif
@@ -45,7 +44,6 @@ c--# define AKIMA
 ! temporary variable for calculation of vertical diffusive flux
       real ThisVDF(PRIVATE_2D_SCRATCH_ARRAY,0:N)
 # endif /* PHYS_FLUX_ANALYSIS */
-! DL:
 #if defined PASSIVE_TRACER && defined AGE_DYE_TRACER
       integer is
       logical source_active
@@ -454,6 +452,14 @@ c??         enddo
 #  endif
 # endif
 
+# if defined MOORE_BEC
+      enddo                                    ! Multi-Group species
+                                               ! biological Model (MGM)
+      call ecosys_tile (istr,iend,jstr,jend)
+      call mgm_avg_tile (istr,iend,jstr,jend)
+      call ecosys_vst_tile (istr,iend,jstr,jend, nnew,dt)
+
+      do itrc=1,NT
 # if defined BIOLOGY_BEC
       enddo                                    ! Biogeochemical
                                                ! Elemental Cycles

@@ -14,8 +14,6 @@
 # include "param.h"
       real cff1, NSUB
       real*QUAD cff, my_sum(0:2*NT+1)
-      character ses(8)*1, echar*8
-      pointer (i_s,ses)
 
 
 # include "grid.h"

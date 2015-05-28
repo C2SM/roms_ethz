@@ -32,7 +32,7 @@
 !  just a further diagnostic output we just to not output
 !  PAR in slice averages when using the Intel compiler.
 !
-#   define NOPARWRT
+#-->   define NOPARWRT
 #  endif
 # endif /* ifndef SLICE_AVG */
 
@@ -229,7 +229,7 @@ CR      write(*,*) 'wrt_avr:  wrtT_sed  ' MYID
 ! True vertical velocity (m/s).
 
       if (wrtavr(indxW)) then
-        ierr=nf_fwrite(wt_avr, ncavr, avrW, record, R3DVAR)
+        ierr=nf_fwrite (wvl_avr, ncavr, avrW, record, R3DVAR)
         if (ierr /= nf_noerr) then
           lvar=lenstr(vname(1,indxW))
           write(*,1) vname(1,indxW)(1:lvar), record MYID
@@ -240,7 +240,7 @@ CR      write(*,*) 'wrt_avr:  wrtT_sed  ' MYID
 ! Vertical eddy viscosity coefficient for momentum.
 
       if (wrtavr(indxAkv)) then
-        ierr=nf_fwrite (Akv_avr(START_3D_ARRAY_K0), ncavr,
+        ierr=nf_fwrite (akv_avr(START_3D_ARRAY_K0), ncavr,
      &                                avrAkv, record, W3DVAR)
         if (ierr /= nf_noerr) then
           lvar=lenstr(vname(1,indxAkv))
@@ -252,7 +252,7 @@ CR      write(*,*) 'wrt_avr:  wrtT_sed  ' MYID
 ! Vertical heat conductivity
 
       if (wrtavr(indxAkt)) then
-        ierr=nf_fwrite (Akt_avr(START_3D_ARRAY_K0), ncavr,
+        ierr=nf_fwrite (akt_avr(START_3D_ARRAY_K0), ncavr,
      &                                avrAkt, record, W3DVAR)
         if (ierr /= nf_noerr) then
           lvar=lenstr(vname(1,indxAkt))
@@ -260,29 +260,12 @@ CR      write(*,*) 'wrt_avr:  wrtT_sed  ' MYID
           goto 99                                         !--> ERROR
         endif
       endif
-#  ifdef KPP_DIAGNOSE
-
-! Write out solar fraction reaching level:
-
-      if (wrtavr(indxSwrF)) then
-        ierr=nf_fwrite (swr_frac_avr(START_3D_ARRAY_K0), ncavr,
-     &                                avrSwrF, record, W3DVAR)
-        if (ierr /= nf_noerr) then
-          lvar=lenstr(vname(1,indxSwrF))
-          write(*,1) vname(1,indxSwrF)(1:lvar), record, ierr,
-     &                    nf_strerror(ierr) MYID
-          goto 99                                         !--> ERROR
-        endif
-      endif
-# endif /* KPP_DIAGNOSE */
-
 #  ifdef SALINITY
 
 ! Vertical diffusion coefficient for salinity.
 
-
       if (wrtavr(indxAks)) then
-        ierr=nf_fwrite (Aks_avr(START_3D_ARRAY_K0), ncavr,
+        ierr=nf_fwrite (aks_avr(START_3D_ARRAY_K0), ncavr,
      &                                avrAks, record, W3DVAR)
         if (ierr /= nf_noerr) then
           lvar=lenstr(vname(1,indxAks))
@@ -297,7 +280,7 @@ CR      write(*,*) 'wrt_avr:  wrtT_sed  ' MYID
 
       if (wrtavr(indxHbls)) then
         ierr=nf_fwrite (hbl_avr(START_2D_ARRAY), ncavr,
-     &                              avrHbls, record, r2dvar)
+     &                            avrHbls, record, r2dvar)
         if (ierr /= nf_noerr) then
           lvar=lenstr(vname(1,indxHbls))
           write(*,1) vname(1,indxHbls)(1:lvar), record MYID
@@ -320,63 +303,10 @@ CR      write(*,*) 'wrt_avr:  wrtT_sed  ' MYID
       endif
 # endif
 # if defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC
-#  if defined CH_CARBON_DEPTH
-
-!
-! Write out averaged CO2STAR_DEPTH:
-!
-      ierr=nf_fwrite (CO2STARd_avr(START_2D_ARRAY,1), ncavr,
-     &                              avrCO2STARd, record, r3dvar)
-      write(*,*) 'ierr=' , ierr
-      if (ierr /= nf_noerr) then
-        lvar=lenstr(vname(1,indxCO2STARd_rst))
-        write(*,1) vname(1,indxCO2STARd_rst)(1:lvar), record, ierr,
-     &                  nf_strerror(ierr) MYID
-        goto 99                                         !--> ERROR
-      endif
-
-!
-! Write out averaged HCO3_DEPTH:
-!
-      ierr=nf_fwrite (HCO3d_avr(START_2D_ARRAY,1), ncavr,
-     &                              avrHCO3d, record, r3dvar) 
-      if (ierr /= nf_noerr) then
-        lvar=lenstr(vname(1,indxHCO3d_rst))
-        write(*,1) vname(1,indxHCO3d_rst)(1:lvar), record, ierr,
-     &                  nf_strerror(ierr) MYID
-        goto 99                                         !--> ERROR
-      endif
-
-!
-! Write out averaged CO3_DEPTH:
-!
-      ierr=nf_fwrite (CO3d_avr(START_2D_ARRAY,1), ncavr,
-     &                              avrCO3d, record, r3dvar)
-      if (ierr /= nf_noerr) then
-        lvar=lenstr(vname(1,indxCO3d_rst))
-        write(*,1) vname(1,indxCO3d_rst)(1:lvar), record, ierr,
-     &                  nf_strerror(ierr) MYID
-        goto 99                                         !--> ERROR
-      endif
 
 
-!
-! Write out averaged PH_DEPTH:
-!
-      ierr=nf_fwrite (PHd_avr(START_2D_ARRAY,1), ncavr,
-     &                              avrPHd, record, r3dvar)
-      if (ierr /= nf_noerr) then
-        lvar=lenstr(vname(1,indxPHd_rst))
-        write(*,1) vname(1,indxPHd_rst)(1:lvar), record, ierr,
-     &                  nf_strerror(ierr) MYID
-        goto 99                                         !--> ERROR
-      endif
+! pH:
 
-#  endif /* CH_CARBON_DEPTH */
-
-!
-! Write out averaged pH:
-!
       ierr=nf_fwrite (pH_avr(START_2D_ARRAY), ncavr,
      &                              avrPH, record, r2dvar)
       if (ierr /= nf_noerr) then
@@ -385,9 +315,9 @@ CR      write(*,*) 'wrt_avr:  wrtT_sed  ' MYID
      &                  nf_strerror(ierr) MYID
         goto 99                                         !--> ERROR
       endif
-!
-! Write out averaged pCO2:
-!
+
+! pCO2:
+
       ierr=nf_fwrite (pCO2_avr(START_2D_ARRAY), ncavr,
      &                              avrPCO2, record, r2dvar)
       if (ierr /= nf_noerr) then
@@ -397,9 +327,9 @@ CR      write(*,*) 'wrt_avr:  wrtT_sed  ' MYID
         goto 99                                         !--> ERROR
       endif
 
-!
-! Write out averaged pCO2air:
-!
+
+! pCO2air:
+
       ierr=nf_fwrite (pCO2air_avr(START_2D_ARRAY), ncavr,
      &                              avrPCO2air, record, r2dvar)
       if (ierr /= nf_noerr) then
@@ -408,9 +338,9 @@ CR      write(*,*) 'wrt_avr:  wrtT_sed  ' MYID
      &                  nf_strerror(ierr) MYID
         goto 99                                         !--> ERROR
       endif
-!
+
 ! incoming PAR:
-!
+
       ierr=nf_fwrite (PARinc_avr(START_2D_ARRAY), ncavr,
      &                              avrPARinc, record, r2dvar)
       if (ierr /= nf_noerr) then
@@ -420,9 +350,9 @@ CR      write(*,*) 'wrt_avr:  wrtT_sed  ' MYID
         goto 99                                         !--> ERROR
       endif
 #  ifndef NOPARWRT
-!
+
 ! PAR:
-!
+
       ierr=nf_fwrite (PAR_avr(START_3D_ARRAY_K1), ncavr,
      &                              avrPAR, record, R3DVAR)
       if (ierr /= nf_noerr) then
@@ -434,9 +364,9 @@ CR      write(*,*) 'wrt_avr:  wrtT_sed  ' MYID
 #  endif
 # endif /* BIOLOGY_NPZDOC || BIOLOGY_BEC */
 # if defined BIOLOGY_BEC2 && defined BEC2_DIAG
-!
+
 ! 2d diagnostics:
-!
+
       do itrc=1,nr_bec2_diag_2d
          ierr=nf_fwrite (bec2_diag_2d_avr(START_2D_ARRAY,itrc), ncavr,
      &                                avrT_bec2_diag(itrc), record, r2dvar)
@@ -447,9 +377,9 @@ CR      write(*,*) 'wrt_avr:  wrtT_sed  ' MYID
             goto 99                                       !--> ERROR
          endif
       enddo
-!
+
 ! 3d diagnostics:
-!
+
       do itrc=1,nr_bec2_diag_3d
          ierr=nf_fwrite (bec2_diag_3d_avr(START_3D_ARRAY_K1,itrc), ncavr,
      &                                avrT_bec2_diag(nr_bec2_diag_2d+itrc), record, R3DVAR)
@@ -461,11 +391,11 @@ CR      write(*,*) 'wrt_avr:  wrtT_sed  ' MYID
          endif
       enddo
 # endif /* BIOLOGY_BEC2 */
-!DL:
+
 # if defined WRITE_DEPTHS && !defined SLICE_AVR
-!
+
 ! depths of rho points:
-!
+
       ierr=nf_fwrite (z_r_avg(START_2D_ARRAY,1), ncidavg,
      &                              avgz_r, record, r3dvar)
       if (ierr /= nf_noerr) then
@@ -474,9 +404,9 @@ CR      write(*,*) 'wrt_avr:  wrtT_sed  ' MYID
      &                  nf_strerror(ierr) MYID
         goto 99                                         !--> ERROR
       endif
-!
+
 ! depths at w points:
-!
+
       ierr=nf_fwrite (z_w_avg(START_2D_ARRAY,0), ncidavg,
      &                              avgz_w, record, w3dvar)
       if (ierr /= nf_noerr) then
@@ -485,9 +415,9 @@ CR      write(*,*) 'wrt_avr:  wrtT_sed  ' MYID
      &                  nf_strerror(ierr) MYID
         goto 99                                         !--> ERROR
       endif
-!
+
 ! thicknesses of sigma layers:
-!
+
       ierr=nf_fwrite (Hz_avg(START_2D_ARRAY,1), ncidavg,
      &                              avgHz, record, r3dvar)
       if (ierr /= nf_noerr) then
@@ -497,9 +427,9 @@ CR      write(*,*) 'wrt_avr:  wrtT_sed  ' MYID
         goto 99                                         !--> ERROR
       endif
 # endif /* WRITE_DEPTHS */
-!
+
 ! Gas exchange fluxes:
-!
+
 # if defined BIOLOGY_NPZDOC && defined OXYGEN
       do itrc = 1, NumGasExcTerms
          ierr = nf_fwrite(GasExcFlux_avr(START_2D_ARRAY,itrc), 

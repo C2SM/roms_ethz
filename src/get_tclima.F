@@ -252,27 +252,7 @@
               ierr=ierr+1
             endif
           endif
-
-      else if (FIRST_TIME_STEP) then  ! no data found for tracer itrc
-         if (itrc == itemp) then
-            ! Default value for temperature: mean of WOA2005
-            do k=1,N
-               do j=jstrR,jendR
-                  do i=istrR,iendR
-                     tclm(i,j,k,itemp) = 3.568  ! C
-                  end do
-               end do
-            end do
-         else if (itrc == isalt) then
-            ! Default value for salinity: mean of WOA2005
-            do k=1,N
-               do j=jstrR,jendR
-                  do i=istrR,iendR
-                     tclm(i,j,k,isalt) = 34.72  ! PSU
-                  end do
-               end do
-            end do
-# ifdef BIOLOGY_NPZDOC
+# if defined BIOLOGY || defined BIOLOGY_NPZDOC
 ! hf: Note that the following settings are only provided for cases
 ! where no boundary conditions for the bgc state variables have been
 ! provided, e.g. test runs. In all "serious" model runs, boundary 

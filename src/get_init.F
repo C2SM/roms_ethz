@@ -588,31 +588,6 @@ CHF          goto 99                                         !--> ERROR
 # if defined BIOLOGY_BEC || (defined BIOLOGY_NPZDOC && \
     defined OXYGEN && defined CARBON)
 
-      ! pH and PAR can be treated for both BEC and NPZD.
-      ! if pH field is present in the restart file (only recently added), 
-      ! these values will be used instead of the zero initialization
-#  if defined CH_CARBON_DEPTH
-
-      !
-      ! pH_DEPTH:
-      !
-      lvar=lenstr(vname(1,indxPHd_rst))
-      ierr=nf_inq_varid (ncid, vname(1,indxPHd_rst)(1:lvar), varid)
-      if (ierr .eq. nf_noerr) then
-         ierr=nf_fread (PHd_hist(START_2D_ARRAY,1), ncid,  varid,
-     &                                               record, r3dvar)
-         if (ierr .ne. nf_noerr) then
-            write(stdout,2) vname(1,indxPHd_rst)(1:lvar), record,
-     &           ininame(1:lstr)
-            goto 99             !--> ERROR
-         endif
-      else
-         MPI_master_only write(stdout,*)
-     &        'pH_depth field not in init/rst file, initialize to 0'
-      endif
-
-#endif /*CH_CARBON_DEPTH*/
-
 
       !
       !pH

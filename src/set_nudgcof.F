@@ -128,9 +128,6 @@ c      enddo
 #  elif defined USWC
       isp=(LLm+1)/40
 #  else
-#  elif defined ATL50S70N
-! mm use about the same number of points as for Pacific
-      isp=(LLm+1)/22
 #  elif defined OLD_SPONGE_DEFAULT
       isp=(LLm+1)/12
 #  else
@@ -151,13 +148,9 @@ c      enddo
 #   ifdef OBC_WEST
           ibnd=min(ibnd,         i+iSW_corn )
 #   endif
-#  ifndef ATLSMA  
-! ATLSMA does not use a sponge in the EAST 
-! i.e., Baltic, Mediterranean 
 #   ifdef OBC_EAST
           ibnd=min(ibnd, LLm+1 -(i+iSW_corn))
 #   endif
-#  endif
 #   ifdef OBC_SOUTH
           ibnd=min(ibnd,         j+jSW_corn )
 #   endif

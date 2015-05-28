@@ -140,9 +140,6 @@
      &                                              bry_file(1:lstr)
               ierr_all=ierr_all+ierr
 #    endif
-!HF: this includes PASSIVE_TRACER and all biogeochemical tracers
-! if none of these are defined, the starting index will be higher
-! than NT and the loop will not run
           do itrc = itemp + ntrc_salt + 1, NT
              lvar=lenstr(vname(1,itrc+indxT-itemp))
              vname_bry = vname(1,itrc+indxT-itemp)(1:lvar)/ /'_west'
@@ -153,8 +150,6 @@
 ! default boundary conditions and/or error handling must be provided below!
              if (ierr.ne.nf_noerr) then
                 write(stdout,11) vname_bry(1:lvar+5)
-! HF, apparently, a bogus variable ID is assigned if an error occurs, whose
-! usage later would cause problems
                 t_west_id(itrc) = 0
              end if
           end do
@@ -213,8 +208,6 @@
 ! default boundary conditions and/or error handling must be provided below!
              if (ierr.ne.nf_noerr) then
                 write(stdout,11) vname_bry(1:lvar+5)
-! HF, apparently, a bogus variable ID is assigned if an error occurs, whose
-! usage later would cause problems
                 t_east_id(itrc) = 0
              end if
           end do
@@ -273,8 +266,6 @@
 ! default boundary conditions and/or error handling must be provided below!
              if (ierr.ne.nf_noerr) then
                 write(stdout,11) vname_bry(1:lvar+6)
-! HF, apparently, a bogus variable ID is assigned if an error occurs, whose
-! usage later would cause problems
                 t_south_id(itrc) = 0
              end if
           end do
@@ -333,8 +324,6 @@
 ! default boundary conditions and/or error handling must be provided below!
              if (ierr.ne.nf_noerr) then
                 write(stdout,11) vname_bry(1:lvar+6)
-! HF, apparently, a bogus variable ID is assigned if an error occurs, whose
-! usage later would cause problems
                 t_north_id(itrc) = 0
              end if
 
@@ -1383,7 +1372,8 @@
      &             bry_rec,  'in file ''',bry_file(1:lstr),'''.'
             endif 
           else
-            write(stdout,2) 'bry_time'
+            write(*,'(8x,2A,I4)')  '### ERROR: get_bry_all :: ',
+     &             'Cannot read variable ''bry_time''' MYID
           endif
         else
            write(*,'(/1x,A,I4,1x,A,I4/7x,3A/7x,2(A,G12.4)/)')
@@ -1394,6 +1384,9 @@
      &                                   bry_time(itbry)*sec2day
         endif
       enddo
+# ifdef VERBOSE
+      write(*,*) 'return from get_bry_all' MYID
+# endif
   2   format(/1x,'### ERROR in get_bry_all: Cannot read variable ''',
      &                                                     A, '''.')
  3    format('###  NOTE in get_bry_all: cannot read variable ''',

@@ -138,8 +138,6 @@ C$    real*8 omp_get_wtime
 #  include "etalon_data.UPWELLING"
 # elif defined DAMEE_B
 #  include "etalon_data.DAMEE_B"
-# elif defined HUMBOLDT
-#  include "etalon_data.HUMBOLDT"
 # elif defined USWEST
 #  include "etalon_data.USWEST"
 # elif defined PACIFIC

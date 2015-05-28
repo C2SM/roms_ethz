@@ -46,11 +46,11 @@
 # endif
      &                    , indxAkv=indxT+NT,   indxAkt=indxAkv+1
 
-#ifdef SOLVE3D
+# ifdef SOLVE3D
      &                    , indxSUSTR=indxAkt+3
-#else
+# else
                           , indxSUSTR=indxVb+1
-#endif
+# endif
                           , indxSVSTR=indxSUSTR+1, indxSHF=indxSUSTR+2
                           , indxSWRad=indxSHF+1
 
@@ -93,7 +93,6 @@
 # ifdef LMD_BKPP
      &                    , indxHbbl=indxHbls+1
 # endif
-#endif /* SOLVE3D */
 
 # if defined BIOLOGY_BEC || defined BIOLOGY_BEC2
      ! Dust and iron flux:
@@ -396,18 +395,12 @@
      &        rstU, rstV, rstT,       hisO,   hisW,   hisR,
      &        hisU, hisV, hisT,       hisAkv, hisAkt, hisAks
 # if defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC
-#  if defined CH_CARBON_DEPTH
-     &      , rstHCO3d, rstCO3d, rstCO2STARd, rstPHd, rstPH, rstPCO2, rstPCO2air, rstPAR
-     &      , hisHCO3d, hisCO3d, hisCO2STARd, hisPHd, hisPH, hisPCO2, hisPCO2air, hisPARinc, hisPAR
-     &      , avgHCO3d, avgCO3d, avgCO2STARd, avgPHd, avgPH, avgPCO2, avgPCO2air, avgPARinc, avgPAR
-# else
      &      , rstPH, rstPCO2, rstPCO2air, rstPAR
      &      , hisPH, hisPCO2, hisPCO2air, hisPARinc, hisPAR
      &      , avgPH, avgPCO2, avgPCO2air, avgPARinc, avgPAR
 #  ifdef SLICE_AVG
      &      , slavgPH, slavgPCO2, slavgPCO2air, slavgPARinc, slavgPAR
 #  endif
-#  endif /* CH_CARBON_DEPTH */
 # endif /* BIOLOGY_NPZDOC || BIOLOGY_BEC */
 
 # ifdef WRITE_DEPTHS
@@ -600,7 +593,12 @@
       character(len=max_name_size) aparnam, assname
       common /cncvars/ aparnam, assname
 #endif
-      character*42  vname(4,40+NT-2)
+      character*42  vname(4,
+#ifdef BIOLOGY
+     &                       40+NT-2)
+#else
+     &                       40)
+#endif
       common /cncvars/ vname
 
 !DL: array for storing the names of those variables in the climatology

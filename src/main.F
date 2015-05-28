@@ -66,7 +66,6 @@ C$OMP END PARALLEL                       ! launch the model in OpenMP
 
       subroutine roms_thread
       implicit none
-      integer my_iic
 # include "param.h"
 # include "scalars.h"
                                          ! Note: Because there is
@@ -247,18 +246,14 @@ C$OMP BARRIER
 # endif
 #endif
 
-!DL:initialize data structures related to age/dye tracers specified via
-! Netcdf files, if necessary:
 #if defined PASSIVE_TRACER && defined AGE_DYE_TRACER
       do tile=my_tile_range
          call init_agedye(tile)
       enddo
 C$OMP BARRIER
-      if (may_day_flag.ne.0) goto 99      !--> ERROR
+      if (may_day_flag /= 0) goto 99      !--> ERROR
 #endif
 
-!DL: give a warning if writing of avg/his files is not synchronized with
-! writing of restart files and ldefhis is set to true:
 #ifdef AVERAGES
       if (nrpfavg.ne.0 .and. mod(nrecavg, nrpfavg).gt.0 
      &   .and. ldefhis) then
@@ -283,7 +278,6 @@ C$OMP BARRIER
      &    'history file by setting ldefhis to true.  ',
      &    'Are you sure that this is what you want?'
       end if
-!End DL
 
       if (may_day_flag /= 0) goto 99      !--> ERROR
 CR      write(*,*) ' -5' MYID

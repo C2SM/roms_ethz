@@ -55,10 +55,8 @@
      &            mynode-1, 1, ocean_grid_comm, status, ierr)
 #endif
 
-!hf initialization needed in case of error during call to def_rst
       record = 0
 
-!
 ! Create/open restart file; write grid arrays, if so requested,
 ! then set record index within the file..
 
@@ -209,9 +207,9 @@
       enddo
 
 #  ifdef SEDIMENT_BIOLOGY
-!
+
 ! Sediment tracer variables.
-!
+
       do itrc=1,NT_sed
         ierr=nf_fwrite (t_sed(START_2D_ARRAY,itrc), ncidrst,
      &                              rstTsed(itrc), record, r2dvar)
@@ -225,23 +223,9 @@
 #  endif /* SEDIMENT_BIOLOGY */
 #  if defined BIOLOGY_BEC || (defined BIOLOGY_NPZDOC && \
     defined OXYGEN && defined CARBON)
-#  if defined CH_CARBON_DEPTH
-!
-! pH_DEPTH:
-!
-      ierr=nf_fwrite (PHd_hist, ncidrst, rstPHd, record, r3dvar)
-      if (ierr .ne. nf_noerr) then
-         lvar=lenstr(vname(1,indxPHd_rst))
-         write(stdout,1) vname(1,indxPHd_rst)(1:lvar), record,
-     &        ierr, nf_strerror(ierr) MYID
-         goto 99                !--> ERROR
-      endif
 
-#else /*CH_CARBON_DEPTH*/
-
-!
 ! pH:
-!
+
       ierr=nf_fwrite (ph_hist, ncidrst, rstPH, record, r2dvar)
       if (ierr .ne. nf_noerr) then
          lvar=lenstr(vname(1,indxPH_rst))
@@ -249,9 +233,9 @@
      &        ierr, nf_strerror(ierr) MYID
          goto 99                !--> ERROR
       endif
-!
+
 ! pCO2:
-!
+
       ierr=nf_fwrite (pCO2sw, ncidrst, rstPCO2, record, r2dvar)
       if (ierr .ne. nf_noerr) then
          lvar=lenstr(vname(1,indxPCO2_rst))
@@ -259,11 +243,10 @@
      &        ierr, nf_strerror(ierr) MYID
          goto 99                !--> ERROR
       endif
-#endif /*CH_CARBON_DEPTH*/
 #  ifdef OUTPUT_PCO2AIR_RST
-!
+
 ! pCO2air:
-!
+
       ierr=nf_fwrite (pCO2air, ncidrst, rstPCO2air, record, r2dvar)
       if (ierr .ne. nf_noerr) then
          lvar=lenstr(vname(1,indxPCO2air_rst))
@@ -275,9 +258,9 @@
 # endif /* BIOLOGY_BEC || (BIOLOGY_NPZDOC && OXYGEN && CARBON) */
 
 # if defined BIOLOGY_BEC2 && defined BEC2_DIAG
-!
+
 ! 2d diagnostics:
-!
+
       do itrc=1,nr_bec2_diag_2d
          ierr=nf_fwrite (bec2_diag_2d(START_2D_ARRAY,itrc), ncidrst,
      &                              rstT_bec2_diag(itrc), record, r2dvar)
@@ -288,9 +271,9 @@
           goto 99                                         !--> ERROR
         endif
       enddo
-!
+
 ! 3d diagnostics:
-!
+
       do itrc=1,nr_bec2_diag_3d
          ierr=nf_fwrite (bec2_diag_3d(START_2D_ARRAY,1,itrc), ncidrst,
      &                   rstT_bec2_diag(nr_bec2_diag_2d+itrc), record, r3dvar)
@@ -304,9 +287,9 @@
 # endif /* BIOLOGY_BEC2 && BEC2_DIAG */
 
 # if defined BIOLOGY_BEC || defined BIOLOGY_NPZDOC
-!
+
 ! PAR:
-!
+
       ierr=nf_fwrite (PAR, ncidrst, rstPAR, record, r3dvar)
       if (ierr .ne. nf_noerr) then
          lvar=lenstr(vname(1,indxPAR_rst))
