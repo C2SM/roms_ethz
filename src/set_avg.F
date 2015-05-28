@@ -18,7 +18,7 @@
 #  define u_AVR(i,j,k) u_avg(i,j,k)
 #  define v_AVR(i,j,k) v_avg(i,j,k)
 #  define w_AVR(i,j,k) w_avg(i,j,k)
-#  define wt_AVR(i,j,k) wt_avg(i,j,k)
+#  define wvl_AVR(i,j,k) wvl_avg(i,j,k)
 #  define t_AVR(i,j,k,itrc) t_avg(i,j,k,itrc)
 #  define hbl_AVR hbl_avg
 #  define hbbl_AVR hbbl_avg
@@ -67,7 +67,7 @@
 #  define u_AVR(i,j,k) u_slavg(i,j)
 #  define v_AVR(i,j,k) v_slavg(i,j)
 #  define w_AVR(i,j,k) w_slavg(i,j)
-#  define wt_AVR(i,j,k) wt_slavg(i,j)
+#  define wvl_AVR(i,j,k) wvl_slavg(i,j)
 #  define t_AVR(i,j,k,itrc) t_slavg(i,j,itrc)
 #  define hbl_AVR hbl_slavg
 #  define hbbl_AVR hbbl_slavg
@@ -109,6 +109,11 @@
       implicit none
       integer tile
 # include "param.h"
+# ifdef SOLVE3D
+#  include "ncvars.h"
+#  include "work.h"
+#  include "private_scratch.h"
+# endif
 # include "compute_tile_bounds.h"
 # ifdef SOLVE3D
       if (wrtavg(indxW)) then
@@ -147,7 +152,7 @@
 # ifdef SOLVE3D
      &                       , itrc, k
 # endif
-      real cff
+      real cff,cff1
 # include "param.h"
 # include "scalars.h"
 # include "ncvars.h"
@@ -176,371 +181,238 @@
 #if defined BIOLOGY_BEC2 && defined BEC2_DIAG
 # include "ecosys_bec2.h"
 #endif
-# include "work.h"
-!
-#include "compute_auxiliary_bounds.h"
-!
-      if (iic.gt.ntsAVR) then
-        if (nAVR .eq. 1 .or. mod(iic-ntsAVR,nAVR).eq.1) then
-          if (ZEROTH_TILE) then
-            time_AVR=time
-!      MPI_master_only write(*,*) 'started averaging',iic,ntsAVR,nAVR
-          endif
-          if (wrtAVR(indxZ)) then
-            do j=jstrR,jendR
-              do i=istrR,iendR
-                zeta_AVR(i,j)=zeta(i,j,knew)
-              enddo
-            enddo
-          endif
-          if (wrtAVR(indxUb)) then
-            do j=jstrR,jendR
-              do i=istrR,iendR
-                ubar_AVR(i,j)=ubar(i,j,knew)
-              enddo
-            enddo
-          endif
-          if (wrtAVR(indxVb)) then
-            do j=jstrR,jendR
-              do i=istrR,iendR
-                vbar_AVR(i,j)=vbar(i,j,knew)
-              enddo
-            enddo
-          endif
-# ifdef SOLVE3D
-          if (wrtAVR(indxU)) then
-            KLOOP(1)
-              do j=jstrR,jendR
-                do i=istrR,iendR
-                  u_AVR(i,j,k)=u(i,j,KLEVEL,nstp)
-                enddo
-              enddo
-            ENDKLOOP
-          endif
-          if (wrtAVR(indxV)) then
-            KLOOP(1)
-              do j=jstrR,jendR
-                do i=istrR,iendR
-                  v_AVR(i,j,k)=v(i,j,KLEVEL,nstp)
-                enddo
-              enddo
-            ENDKLOOP
-          endif
-          do itrc=1,NT
-           if (wrtAVR(indxT+itrc-1)) then
-             KLOOP(1)
-               do j=jstrR,jendR
-                 do i=istrR,iendR
-                   t_AVR(i,j,k,itrc)=t(i,j,KLEVEL,nstp,itrc)
-                 enddo
-               enddo
-            ENDKLOOP
-           endif
-          enddo
-#  ifdef SEDIMENT_BIOLOGY
-          do itrc=1,NT_sed
-             if (wrtAVR(indxSedOrgN+itrc-1)) then
-                do j=jstrR,jendR
-                   do i=istrR,iendR
-                      t_sed_AVR(i,j,itrc)=t_sed(i,j,itrc)
-                   enddo
-                enddo
-             endif
-          enddo
-#  endif /* SEDIMENT_BIOLOGY */
-#  if defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC
-#   if defined CH_CARBON_DEPTH
-         KLOOP(1)
-          do j=jstrR,jendR
-             do i=istrR,iendR
-                HCO3d_AVR(i,j,k) = HCO3d_hist(i,j,KLEVEL)
-                CO3d_AVR(i,j,k) = CO3d_hist(i,j,KLEVEL)
-                CO2STARd_AVR(i,j,k) = CO2STARd_hist(i,j,KLEVEL)
-                PHd_AVR(i,j,k) = PHd_hist(i,j,KLEVEL)
-             end do
-           end do
-         ENDKLOOP
-#   endif /* CH_CARBON_DEPTH */
-          do j=jstrR,jendR
-             do i=istrR,iendR
-                pH_AVR(i,j) = pH_hist(i,j)
-                pCO2_AVR(i,j) = pCO2sw(i,j)
-                pCO2air_AVR(i,j) = pCO2air(i,j)
-             end do
-          end do
 
+# include "compute_auxiliary_bounds.h"
+
+      if (iic>ntsAVR) then
+        cff=1./dble(nAVR) !<-- scaling
+        if (mod(iic-ntsAVR,nAVR)==1) then
+          if (ZEROTH_TILE) then
+            mpi_master_only write(*,'(7x,A,I8,2x,A,I8,2x,A,I5)')
+     &               'set_AVR :: started averaging at iic=', iic,
+     &                          'ntsAVR=', ntsAVR, 'nAVR=', nAVR
+          endif
+          cff1=0.   !--> initialize
+        else
+          cff1=1.   !--> keep adding
+        endif
+
+        if (ZEROTH_TILE) time_avg=cff1*time_avg + cff*time
+
+        if (wrtavg(indxZ)) then
           do j=jstrR,jendR
-             do i=istrR,iendR
-                PARinc_AVR(i,j) = PARinc(i,j)
-             end do
-          end do
+            do i=istrR,iendR
+              zeta_AVR(i,j)=cff1*zeta_AVR(i,j) + cff*zeta(i,j,knew)
+            enddo
+          enddo
+        endif
+        if (wrtAVR(indxUb)) then
+          do j=jstrR,jendR
+            do i=istrR,iendR
+              ubar_AVR(i,j)=cff1*ubar_AVR(i,j) + cff*ubar(i,j,knew)
+            enddo
+          enddo
+        endif
+        if (wrtAVR(indxVb)) then
+          do j=jstrR,jendR
+            do i=istrR,iendR
+              vbar_AVR(i,j)=cff1*vbar_AVR(i,j) +cff*vbar(i,j,knew)
+            enddo
+          enddo
+        endif
+
+
+# ifdef SOLVE3D
+        if (wrtAVR(indxU)) then
           KLOOP(1)
             do j=jstrR,jendR
-               do i=istrR,iendR
-                  PAR_AVR(i,j,k) = PAR(i,j,KLEVEL)
-               end do
-            end do
-         ENDKLOOP
-#  endif /* BIOLOGY_NPZDOC || BIOLOGY_BEC */
-#  if defined BIOLOGY_BEC2 && defined BEC2_DIAG
-          do itrc=1,nr_bec2_diag_2d
-             do j=jstrR,jendR
-                do i=istrR,iendR
-                   bec2_diag_2d_AVR(i,j,itrc) = bec2_diag_2d(i,j,itrc)
-                end do
-             end do
-          end do
-          do itrc=1,nr_bec2_diag_3d
-             KLOOP(1)
-             do j=jstrR,jendR
-                do i=istrR,iendR
-                   bec2_diag_3d_AVR(i,j,k,itrc) = bec2_diag_3d(i,j,KLEVEL,itrc)
-                end do
-             end do
-             ENDKLOOP
-          end do
-#  endif /* BIOLOGY_BEC2 && BEC2_DIAG */
-          if (wrtAVR(indxR)) then
-            KLOOP(1)
-              do j=jstrR,jendR
-                do i=istrR,iendR
-#  ifdef SPLIT_EOS
-                  rho_AVR(i,j,k)=rho1(i,j,KLEVEL)+qp1(i,j,KLEVEL)
-     &                          *(z_w(i,j,N)-z_r(i,j,KLEVEL))
-#  else
-                  rho_AVR(i,j,k)=rho(i,j,KLEVEL)
-#  endif
-                enddo
-              enddo
-            ENDKLOOP
-          endif
-          if (wrtAVR(indxO)) then
-            KLOOP(1)
-              do j=jstrR,jendR
-                do i=istrR,iendR
-                  w_AVR(i,j,k)=w(i,j,KLEVEL)
-                enddo
-              enddo
-            ENDKLOOP
-          endif
-! --T.Nagai to put true vertical velocity 6/29/2006
-          if (wrtAVR(indxW)) then
-              call Wvlcty (tile, work) 
-            KLOOP(1)
-              do j=jstrR,jendR
-                do i=istrR,iendR
-                  wt_AVR(i,j,k)=work(i,j,KLEVEL)
-                enddo
-              enddo
-            ENDKLOOP
-          endif
-! --T.Nagai to put true vertical velocity 6/29/2006
-          if (wrtAVR(indxAkt)) then
-            KLOOP(0)
-              do j=jstrR,jendR
-                do i=istrR,iendR
-                  akt_AVR(i,j,k)=Akt(i,j,KLEVEL,itemp)
-                enddo
-              enddo
-            ENDKLOOP
-          endif
-          if (wrtAVR(indxAkv)) then
-            KLOOP(0)
-              do j=jstrR,jendR
-                do i=istrR,iendR
-                  akv_AVR(i,j,k)=Akv(i,j,KLEVEL)
-                enddo
-              enddo
-            ENDKLOOP
-          endif
-#  ifdef KPP_DIAGNOSE
-          if (wrtAVR(indxRich)) then
-            KLOOP(0)
-              do j=jstrR,jendR
-                do i=istrR,iendR
-                  rich_AVR(i,j,k)=Rich(i,j,KLEVEL)
-                enddo
-              enddo
-            ENDKLOOP
-          endif
-          if (wrtAVR(indxRichN)) then
-            KLOOP(0)
-              do j=jstrR,jendR
-                do i=istrR,iendR
-                  richN_AVR(i,j,k)=RichN(i,j,KLEVEL)
-                enddo
-              enddo
-            ENDKLOOP
-          endif
-          if (wrtAVR(indxSwrF)) then
-            KLOOP(0)
-              do j=jstrR,jendR
-                do i=istrR,iendR
-                  swr_frac_AVR(i,j,k)=swr_frac(i,j,KLEVEL)
-                enddo
-              enddo
-            ENDKLOOP
-          endif
-#  endif /* KPP_DIAGNOSE */
-#  ifdef SALINITY
-          if (wrtAVR(indxAks)) then
-            KLOOP(0)
-              do j=jstrR,jendR
-                do i=istrR,iendR
-                  aks_AVR(i,j,k)=Akt(i,j,KLEVEL,isalt)
-                enddo
-              enddo
-            ENDKLOOP
-          endif
-#  endif
-#  ifdef LMD_KPP
-          if (wrtAVR(indxHbl)) then
-            do j=jstrR,jendR
               do i=istrR,iendR
-                hbl_AVR(i,j)=hbls(i,j,nstp)
+                u_AVR(i,j,k)=cff1*u_AVR(i,j,KLEVEL) +cff*u(i,j,KLEVEL,nstp)
               enddo
             enddo
+          ENDKLOOP
+        endif
+        if (wrtAVR(indxV)) then
+          KLOOP(1)
+            do j=jstrR,jendR
+              do i=istrR,iendR
+                v_AVR(i,j,k)=cff1*v_AVR(i,j,KLEVEL) + cff*v(i,j,KLEVEL,nstp)
+              enddo
+            enddo
+          ENDKLOOP
+        endif
+        do itrc=1,NT
+          if (wrtAVR(indxT+itrc-1)) then
+            KLOOP(1)
+              do j=jstrR,jendR
+                do i=istrR,iendR
+                  t_AVR(i,j,k,itrc)=cff1*t_AVR(i,j,KLEVEL,itrc)
+     &                              +cff*t(i,j,KLEVEL,nstp,itrc)
+                enddo
+              enddo
+            ENDKLOOP
           endif
+        enddo
+        if (wrtAVR(indxR)) then
+          KLOOP(1)
+            do j=jstrR,jendR
+              do i=istrR,iendR
+#  ifdef SPLIT_EOS
+                rho_AVR(i,j,k)=cff1*rho_AVR(i,j,KLEVEL) +cff*( rho1(i,j,KLEVEL)
+     &                                        -qp1(i,j,KLEVEL)*z_r(i,j,KLEVEL) )
+#  else
+                rho_AVR(i,j,k)=cff1*rho_AVR(i,j,KLEVEL) +cff*rho(i,j,KLEVEL)
+#  endif
+              enddo
+            enddo
+          ENDKLOOP
+        endif
+        if (wrtAVR(indxO)) then
+          if (mod(iic-ntsAVR,nAVR)==1) then
+            KLOOP(0)
+              do j=jstrR,jendR
+                do i=istrR,iendR
+                  w_AVR(i,j,k)=We(i,j,KLEVEL)+Wi(i,j,KLEVEL)
+                enddo
+              enddo
+            ENDKLOOP
+          elseif (mod(iic-ntsAVR,nAVR)>1) then
+            KLOOP(0)
+              do j=jstrR,jendR
+                do i=istrR,iendR
+                  w_AVR(i,j,k)=w_AVR(i,j,KLEVEL) +We(i,j,KLEVEL)+Wi(i,j,KLEVEL)
+                enddo
+              enddo
+            ENDKLOOP
+          elseif (mod(iic-ntsAVR,nAVR)==0) then
+            KLOOP(0)
+              do j=jstrR,jendR
+                do i=istrR,iendR
+                  w_AVR(i,j,k)=cff*( w_AVR(i,j,KLEVEL)+We(i,j,KLEVEL)+Wi(i,j,KLEVEL)
+     &                                              )*pm(i,j)*pn(i,j)
+                enddo
+              enddo
+            ENDKLOOP
+          endif
+        endif
+        if (wrtAVR(indxW)) then
+          KLOOP(1)
+            do j=jstrR,jendR
+              do i=istrR,iendR
+                wvl_AVR(i,j,k)=cff1*wvl_AVR(i,j,KLEVEL) +cff*work(i,j,KLEVEL)
+              enddo
+            enddo
+          ENDKLOOP
+        endif
+        if (wrtAVR(indxAkv)) then
+          KLOOP(0)
+            do j=jstrR,jendR
+              do i=istrR,iendR
+                akv_AVR(i,j,k)=cff1*akv_AVR(i,j,KLEVEL) +cff*Akv(i,j,KLEVEL)
+              enddo
+            enddo
+          ENDKLOOP
+        endif
+        if (wrtAVR(indxAkt)) then
+          KLOOP(0)
+            do j=jstrR,jendR
+              do i=istrR,iendR
+                akt_AVR(i,j,k)=cff1*akt_AVR(i,j,KLEVEL)+cff*Akt(i,j,KLEVEL,itemp)
+              enddo
+            enddo
+          ENDKLOOP
+        endif
+#  ifdef SALINITY
+        if (wrtAVR(indxAks)) then
+          KLOOP(0)
+            do j=jstrR,jendR
+              do i=istrR,iendR
+                aks_AVR(i,j,k)=cff1*aks_AVR(i,j,KLEVEL)+cff*Akt(i,j,KLEVEL,isalt)
+              enddo
+            enddo
+          ENDKLOOP
+        endif
+#  endif
+#  ifdef LMD_KPP
+        if (wrtAVR(indxHbls)) then
+          do j=jstrR,jendR
+            do i=istrR,iendR
+              hbl_AVR(i,j)=cff1*hbl_AVR(i,j) +cff*hbls(i,j,nstp)
+            enddo
+          enddo
+        endif
 #  endif
 #  ifdef LMD_BKPP
         if (wrtAVR(indxHbbl)) then
           do j=jstrR,jendR
             do i=istrR,iendR
-              hbbl_AVR(i,j)=hbbls(i,j,nstp)
+              hbbl_AVR(i,j)=cff1*hbbl_AVR(i,j) +cff*hbbl(i,j,nstp)
             enddo
           enddo
         endif
 #  endif
-!DL:
-# ifdef WRITE_DEPTHS
-            do k=1,N
-              do j=jstrR,jendR
-                do i=istrR,iendR
-                  z_r_avg(i,j,k)=z_r(i,j,k)
-                  Hz_avg(i,j,k)=Hz(i,j,k)
-                enddo
-              enddo
-            enddo
-            do k=0,N
-              do j=jstrR,jendR
-                do i=istrR,iendR
-                  z_w_avg(i,j,k)=z_w(i,j,k)
-                enddo
-              enddo
-            enddo
-# endif /* WRITE_DEPTHS */
-# ifdef BIOLOGY_NPZDOC
-          do k=1,NumGasExcTerms
-             do j=jstrR,jendR
-                do i=istrR,iendR
-                   GasExcFlux_AVR(i,j,k) = GasExcFlux(i,j,k)
-                end do
-             end do
-          end do
-# endif /* BIOLOGY_NPZDOC */
-# endif /* SOLVE3D */
-        elseif (mod(iic-ntsAVR,nAVR).gt.1) then
-          if (ZEROTH_TILE) time_AVR=time_AVR+time
-          if (wrtAVR(indxZ)) then
-            do j=jstrR,jendR
-              do i=istrR,iendR
-                zeta_AVR(i,j)=zeta_AVR(i,j)+zeta(i,j,knew)
-              enddo
-            enddo
-          endif
-          if (wrtAVR(indxUb)) then
-            do j=jstrR,jendR
-              do i=istrR,iendR
-                ubar_AVR(i,j)=ubar_AVR(i,j)+ubar(i,j,knew)
-              enddo
-            enddo
-          endif
-          if (wrtAVR(indxVb)) then
-            do j=jstrR,jendR
-              do i=istrR,iendR
-                vbar_AVR(i,j)=vbar_AVR(i,j)+vbar(i,j,knew)
-              enddo
-            enddo
-          endif
-# ifdef SOLVE3D
-          if (wrtAVR(indxU)) then
-            KLOOP(1)
-              do j=jstrR,jendR
-                do i=istrR,iendR
-                  u_AVR(i,j,k)=u_AVR(i,j,k)+u(i,j,KLEVEL,nstp)
-                enddo
-              enddo
-            ENDKLOOP
-          endif
-          if (wrtAVR(indxV)) then
-            KLOOP(1)
-              do j=jstrR,jendR
-                do i=istrR,iendR
-                  v_AVR(i,j,k)=v_AVR(i,j,k)+v(i,j,KLEVEL,nstp)
-                enddo
-              enddo
-            ENDKLOOP
-          endif
-          do itrc=1,NT
-            if (wrtAVR(indxT+itrc-1)) then
-              KLOOP(1)
-                do j=jstrR,jendR
-                  do i=istrR,iendR
-                    t_AVR(i,j,k,itrc)=t_AVR(i,j,k,itrc)
-     &                              +t(i,j,KLEVEL,nstp,itrc)
-                  enddo
-                enddo
-              ENDKLOOP
-            endif
-          enddo
-#  ifdef SEDIMENT_BIOLOGY
-          do itrc=1,NT_sed
-             if (wrtAVR(indxSedOrgN+itrc-1)) then
-                do j=jstrR,jendR
-                   do i=istrR,iendR
-                      t_sed_AVR(i,j,itrc)=t_sed_AVR(i,j,itrc)
-     &                     +t_sed(i,j,itrc)
-                   enddo
-                enddo
-             endif
-          enddo
-#  endif /* SEDIMENT_BIOLOGY */
-#  if defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC
-#   if defined CH_CARBON_DEPTH
+
+#  ifdef WRITE_DEPTHS
         KLOOP(1)
           do j=jstrR,jendR
-             do i=istrR,iendR
-                HCO3d_AVR(i,j,k) = HCO3d_AVR(i,j,k) + 
-     &                             HCO3d_hist(i,j,KLEVEL)
-                CO3d_AVR(i,j,k) = CO3d_AVR(i,j,k) + 
-     &                            CO3d_hist(i,j,KLEVEL)
-                CO2STARd_AVR(i,j,k) = CO2STARd_AVR(i,j,k) + 
-     &                                CO2STARd_hist(i,j,KLEVEL)
-                PHd_AVR(i,j,k) = PHd_AVR(i,j,k) + PHd_hist(i,j,KLEVEL)
-             end do
-          end do
+            do i=istrR,iendR
+              z_r_AVR(i,j,k)=cff1*z_r_AVR(i,j,k)+cff*z_r(i,j,k)
+              Hz_AVR(i,j,k)=cff1*Hz_AVR(i,j,k)+cff*Hz(i,j,k)
+            enddo
+          enddo
         ENDKLOOP
-#   endif /* CH_CARBON_DEPTH */
+        KLOOP(0)
+          do j=jstrR,jendR
+            do i=istrR,iendR
+              z_w_AVR(i,j,k)=cff1*z_w_AVR(i,j,k)+cff*z_w(i,j,k)
+            enddo
+          enddo
+        ENDKLOOP
+#  endif /* WRITE_DEPTHS */
+
+#  if defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC
           do j=jstrR,jendR
              do i=istrR,iendR
-                pCO2air_AVR(i,j) = pCO2air_AVR(i,j) + pCO2air(i,j)
-                pH_AVR(i,j) = pH_AVR(i,j) + pH_hist(i,j)
-                pCO2_AVR(i,j) = pCO2_AVR(i,j) + pCO2sw(i,j)
+                pCO2air_AVR(i,j) = cff1*pCO2air_AVR(i,j) + cff*pCO2air(i,j)
+                pH_AVR(i,j) = cff1*pH_AVR(i,j) + cff*pH_hist(i,j)
+                pCO2_AVR(i,j) = cff1*pCO2_AVR(i,j) + cff*pCO2sw(i,j)
              end do
           end do
 
           do j=jstrR,jendR
              do i=istrR,iendR
-                PARinc_AVR(i,j) = PARinc_AVR(i,j) + PARinc(i,j)
+                PARinc_AVR(i,j) = cff1*PARinc_AVR(i,j) + cff*PARinc(i,j)
              end do
           end do
           KLOOP(1)
             do j=jstrR,jendR
                do i=istrR,iendR
-                  PAR_AVR(i,j,k) = PAR_AVR(i,j,k) + PAR(i,j,KLEVEL)
+                  PAR_AVR(i,j,k) = cff1*PAR_AVR(i,j,k) + cff*PAR(i,j,KLEVEL)
                end do
             end do
           ENDKLOOP
+
+#   ifdef OXYGEN
+          do itrc=1,NumGasExcTerms
+             do j=jstrR,jendR
+                do i=istrR,iendR
+                   GasExcFlux_AVR(i,j,itrc) = cff1*GasExcFlux_AVR(i,j,itrc)+cff*GasExcFlux(i,j,k)
+                end do
+             end do
+          end do
+#   endif /* OXYGEN */
+
+#   ifdef SEDIMENT_BIOLOGY
+        do itrc=1,NT_sed
+          if (wrtAVR(indxSedOrgN+itrc-1)) then
+            do j=jstrR,jendR
+              do i=istrR,iendR
+                t_sed_AVR(i,j,itrc)=cff1*t_sed_AVR(i,j) +cff*t_sed(i,j)
+              enddo
+            enddo
+          endif
+        enddo
+#   endif /* SEDIMENT_BIOLOGY */
 #  endif /* BIOLOGY_NPZDOC || BIOLOGY_BEC */
 #  if defined BIOLOGY_BEC2 && defined BEC2_DIAG
           do itrc=1,nr_bec2_diag_2d
@@ -560,388 +432,16 @@
              ENDKLOOP
           end do
 #  endif /* BIOLOGY_BEC2 && BEC2_DIAG */
-          if (wrtAVR(indxR)) then
-            KLOOP(1)
-              do j=jstrR,jendR
-                do i=istrR,iendR
-#  ifdef SPLIT_EOS
-                  rho_AVR(i,j,k)=rho_AVR(i,j,KLEVEL) + rho1(i,j,KLEVEL)
-     &                     +qp1(i,j,KLEVEL)*(z_w(i,j,N)-z_r(i,j,KLEVEL))
-#  else
-                  rho_AVR(i,j,k)=rho_AVR(i,j,k)+rho(i,j,KLEVEL)
-#  endif
-                enddo
-              enddo
-            ENDKLOOP
-          endif
-          if (wrtAVR(indxO)) then
-            KLOOP(1)
-              do j=jstrR,jendR
-                do i=istrR,iendR
-                  w_AVR(i,j,k)=w_AVR(i,j,k)+w(i,j,KLEVEL)
-                enddo
-              enddo
-            ENDKLOOP
-          endif
-! --T.Nagai to put true vertical velocity 6/29/2006
-          if (wrtAVR(indxW)) then
-              call Wvlcty (tile, work) 
-            KLOOP(1)
-              do j=jstrR,jendR
-                do i=istrR,iendR
-                  wt_AVR(i,j,k)=wt_AVR(i,j,k)+work(i,j,KLEVEL)
-                enddo
-              enddo
-            ENDKLOOP
-          endif
-! --T.Nagai to put true vertical velocity 6/29/2006
-          if (wrtAVR(indxAkt)) then
-            KLOOP(0)
-              do j=jstrR,jendR
-                do i=istrR,iendR
-                  akt_AVR(i,j,k)=akt_AVR(i,j,k)+Akt(i,j,KLEVEL,itemp)
-                enddo
-              enddo
-            ENDKLOOP
-          endif
-          if (wrtAVR(indxAkv)) then
-            KLOOP(0)
-              do j=jstrR,jendR
-                do i=istrR,iendR
-                  akv_AVR(i,j,k)=akv_AVR(i,j,k)+Akv(i,j,KLEVEL)
-                enddo
-              enddo
-            ENDKLOOP
-          endif
-#  ifdef SALINITY
-          if (wrtAVR(indxAks)) then
-            KLOOP(0)
-              do j=jstrR,jendR
-                do i=istrR,iendR
-                  aks_AVR(i,j,k)=aks_AVR(i,j,k)+Akt(i,j,KLEVEL,isalt)
-                enddo
-              enddo
-            ENDKLOOP
-          endif
-#  endif
-#  ifdef LMD_KPP
-          if (wrtAVR(indxHbl)) then
-            do j=jstrR,jendR
-              do i=istrR,iendR
-                hbl_AVR(i,j)=hbl_AVR(i,j)+hbls(i,j,nstp)
-              enddo
-            enddo
-          endif
-#  endif
-#  ifdef LMD_BKPP
-        if (wrtAVR(indxHbbl)) then
-          do j=jstrR,jendR
-            do i=istrR,iendR
-              hbbl_AVR(i,j)=hbbl_AVR(i,j)+hbbls(i,j,nstp)
-            enddo
-          enddo
-        endif
-#  endif
-!DL:
-# ifdef WRITE_DEPTHS
-            do k=1,N
-              do j=jstrR,jendR
-                do i=istrR,iendR
-                  z_r_avg(i,j,k)=z_r_avg(i,j,k)+z_r(i,j,k)
-                  Hz_avg(i,j,k)=Hz_avg(i,j,k)+Hz(i,j,k)
-                enddo
-              enddo
-            enddo
-            do k=0,N
-              do j=jstrR,jendR
-                do i=istrR,iendR
-                  z_w_avg(i,j,k)=z_w_avg(i,j,k)+z_w(i,j,k)
-                enddo
-              enddo
-            enddo
-# endif /* WRITE_DEPTHS */
-# ifdef BIOLOGY_NPZDOC
-          do k=1,NumGasExcTerms
-             do j=jstrR,jendR
-                do i=istrR,iendR
-                   GasExcFlux_AVR(i,j,k) = GasExcFlux_AVR(i,j,k)+GasExcFlux(i,j,k)
-                end do
-             end do
-          end do
-# endif /* BIOLOGY_NPZDOC */
-
 # endif /* SOLVE3D */
-        elseif (mod(iic-ntsAVR,nAVR).eq.0) then
-          cff=1./float(nAVR)
+
+        if (mod(iic-ntsAVR,nAVR)==0) then
           if (ZEROTH_TILE) then
-             time_AVR=cff*(time_AVR+time)
-!      MPI_master_only write(*,*) 'finish averaging',iic,ntsAVR,nAVR
+            mpi_master_only write(*,'(7x,A,I8,2x,A,I8,2x,A,I5)')
+     &              'set_AVR :: finished averaging at iic=', iic,
+     &                         'ntsAVR=', ntsAVR,  'nAVR=', nAVR
           endif
-          if (wrtAVR(indxZ)) then
-            do j=jstrR,jendR
-              do i=istrR,iendR
-                zeta_AVR(i,j)=cff*( zeta_AVR(i,j)+zeta(i,j,knew))
-              enddo
-            enddo
-          endif
-          if (wrtAVR(indxUb)) then
-            do j=jstrR,jendR
-              do i=istrR,iendR
-                ubar_AVR(i,j)=cff*( ubar_AVR(i,j)+ubar(i,j,knew))
-              enddo
-            enddo
-          endif
-          if (wrtAVR(indxVb)) then
-            do j=jstrR,jendR
-              do i=istrR,iendR
-                vbar_AVR(i,j)=cff*( vbar_AVR(i,j)+vbar(i,j,knew))
-              enddo
-            enddo
-          endif
-# ifdef SOLVE3D
-          if (wrtAVR(indxU)) then
-            KLOOP(1)
-              do j=jstrR,jendR
-                do i=istrR,iendR
-                  u_AVR(i,j,k)=cff*(u_AVR(i,j,k)+u(i,j,KLEVEL,nstp))
-                enddo
-              enddo
-            ENDKLOOP
-          endif
-          if (wrtAVR(indxV)) then
-            KLOOP(1)
-              do j=jstrR,jendR
-                do i=istrR,iendR
-                  v_AVR(i,j,k)=cff*(v_AVR(i,j,k)+v(i,j,KLEVEL,nstp))
-                enddo
-              enddo
-            ENDKLOOP
-          endif
-          do itrc=1,NT
-            if (wrtAVR(indxT+itrc-1)) then
-              KLOOP(1)
-                do j=jstrR,jendR
-                  do i=istrR,iendR
-                    t_AVR(i,j,k,itrc)=cff*( t_AVR(i,j,KLEVEL,itrc)
-     &                                    +t(i,j,KLEVEL,nstp,itrc))
-                  enddo
-                enddo
-              ENDKLOOP
-            endif
-          enddo
-#ifdef SEDIMENT_BIOLOGY
-          do itrc=1,NT_sed
-             if (wrtAVR(indxSedOrgN+itrc-1)) then
-                do j=jstrR,jendR
-                   do i=istrR,iendR
-                      t_sed_AVR(i,j,itrc)=cff*( t_sed_AVR(i,j,itrc)
-     &                     +t_sed(i,j,itrc))
-                   enddo
-                enddo
-             endif
-          enddo
-#endif /* SEDIMENT_BIOLOGY */
-#  if defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC
-#   if defined CH_CARBON_DEPTH
-       KLOOP(1)
-          do j=jstrR,jendR
-             do i=istrR,iendR
-                HCO3d_AVR(i,j,k) = cff*( HCO3d_AVR(i,j,k) + HCO3d_hist(i,j,KLEVEL) )
-                CO3d_AVR(i,j,k) = cff*( CO3d_AVR(i,j,k) + CO3d_hist(i,j,KLEVEL) )
-                CO2STARd_AVR(i,j,k) = cff*( CO2STARd_AVR(i,j,k) + CO2STARd_hist(i,j,KLEVEL) )
-                PHd_AVR(i,j,k) = cff*( PHd_AVR(i,j,k) + PHd_hist(i,j,KLEVEL) )
-             end do
-          end do
-       ENDKLOOP
-
-#   endif /* CH_CARBON_DEPTH */
-          do j=jstrR,jendR
-             do i=istrR,iendR
-                pH_AVR(i,j) = cff*( pH_AVR(i,j) + pH_hist(i,j) )
-                pCO2_AVR(i,j) = cff*( pCO2_AVR(i,j) + pCO2sw(i,j) )
-                pCO2air_AVR(i,j) = cff*(pCO2air_AVR(i,j) + pCO2air(i,j))
-             end do
-          end do
-
-          do j=jstrR,jendR
-             do i=istrR,iendR
-                PARinc_AVR(i,j) = cff*( PARinc_AVR(i,j) + PARinc(i,j) )
-             end do
-          end do
-          KLOOP(1)
-            do j=jstrR,jendR
-               do i=istrR,iendR
-                  PAR_AVR(i,j,k) = cff*( PAR_AVR(i,j,k) + PAR(i,j,KLEVEL) )
-               end do
-            end do
-          ENDKLOOP
-#  endif /* BIOLOGY_NPZDOC */
-#  if defined BIOLOGY_BEC2 && defined BEC2_DIAG
-          do itrc=1,nr_bec2_diag_2d
-             do j=jstrR,jendR
-                do i=istrR,iendR
-                   bec2_diag_2d_AVR(i,j,itrc) = cff*(bec2_diag_2d_AVR(i,j,itrc) + bec2_diag_2d(i,j,itrc))
-                end do
-             end do
-          end do
-          do itrc=1,nr_bec2_diag_3d
-             KLOOP(1)
-             do j=jstrR,jendR
-                do i=istrR,iendR
-                   bec2_diag_3d_AVR(i,j,k,itrc) = cff*(bec2_diag_3d_AVR(i,j,KLEVEL,itrc) + bec2_diag_3d(i,j,KLEVEL,itrc))
-                end do
-             end do
-             ENDKLOOP
-          end do
-#  endif /* BIOLOGY_BEC2 && BEC2_DIAG */
-          if (wrtAVR(indxR)) then
-            KLOOP(1)
-              do j=jstrR,jendR
-                do i=istrR,iendR
-#  ifdef SPLIT_EOS
-                  rho_AVR(i,j,k)=cff*( rho_AVR(i,j,KLEVEL) 
-     &                          + rho1(i,j,KLEVEL)
-     &                          +qp1(i,j,KLEVEL)*(z_w(i,j,N)
-     &                          -z_r(i,j,KLEVEL)) )
-#  else
-                  rho_AVR(i,j,k)=cff*(rho_AVR(i,j,k)+rho(i,j,KLEVEL))
-#  endif
-                enddo
-              enddo
-            ENDKLOOP
-          endif
-          if (wrtAVR(indxO)) then
-            KLOOP(1)
-              do j=jstrR,jendR
-                do i=istrR,iendR
-                  w_AVR(i,j,k)=cff*pm(i,j)*pn(i,j)*( w_AVR(i,j,k)
-     &                                                  +w(i,j,KLEVEL))
-                enddo
-              enddo
-            ENDKLOOP
-          endif
-! --T.Nagai to put true vertical velocity 6/29/2006
-          if (wrtAVR(indxW)) then
-              call Wvlcty (tile, work) 
-            KLOOP(1)
-              do j=jstrR,jendR
-                do i=istrR,iendR
-                  wt_AVR(i,j,k)=cff*(wt_AVR(i,j,k)+work(i,j,KLEVEL))
-                enddo
-              enddo
-            ENDKLOOP
-          endif
-! --T.Nagai to put true vertical velocity 6/29/2006
-          if (wrtAVR(indxAkt)) then
-            KLOOP(0)
-              do j=jstrR,jendR
-                do i=istrR,iendR
-                  akt_AVR(i,j,k)=cff*(akt_AVR(i,j,k)+
-     &                                Akt(i,j,KLEVEL,itemp))
-                enddo
-              enddo
-            ENDKLOOP
-          endif
-          if (wrtAVR(indxAkv)) then
-            KLOOP(0)
-              do j=jstrR,jendR
-                do i=istrR,iendR
-                  akv_AVR(i,j,k)=cff*(akv_AVR(i,j,k)+Akv(i,j,KLEVEL))
-                enddo
-              enddo
-            ENDKLOOP
-          endif
-#  ifdef KPP_DIAGNOSE
-          if (wrtAVR(indxRich)) then
-            KLOOP(0)
-              do j=jstrR,jendR
-                do i=istrR,iendR
-                  rich_AVR(i,j,k)=cff*(rich_AVR(i,j,k)+Rich(i,j,KLEVEL))
-                enddo
-              enddo
-            ENDKLOOP
-          endif
-          if (wrtAVR(indxRichN)) then
-            KLOOP(0)
-              do j=jstrR,jendR
-                do i=istrR,iendR
-                  richN_AVR(i,j,k)=cff*(richN_AVR(i,j,k)+
-     &                                  RichN(i,j,KLEVEL))
-                enddo
-              enddo
-            ENDKLOOP
-          endif
-          if (wrtAVR(indxSwrF)) then
-            KLOOP(0)
-              do j=jstrR,jendR
-                do i=istrR,iendR
-                  swr_frac_AVR(i,j,k)=cff*(swr_frac_AVR(i,j,k)+
-     &                                  swr_frac(i,j,KLEVEL))
-                enddo
-              enddo
-            ENDKLOOP
-          endif
-#  endif /* KPP_DIAGNOSE */
-#  ifdef SALINITY
-          if (wrtAVR(indxAks)) then
-            KLOOP(0)
-              do j=jstrR,jendR
-                do i=istrR,iendR
-                  aks_AVR(i,j,k)=cff*(aks_AVR(i,j,k)+
-     &                           Akt(i,j,KLEVEL,isalt))
-                enddo
-              enddo
-            ENDKLOOP
-          endif
-#  endif
-#  ifdef LMD_KPP
-          if (wrtAVR(indxHbl)) then
-            do j=jstrR,jendR
-              do i=istrR,iendR
-                hbl_AVR(i,j)=cff*(hbl_AVR(i,j)+hbls(i,j,nstp))
-              enddo
-            enddo
-          endif
-#  endif
-#  ifdef LMD_BKPP
-        if (wrtAVR(indxHbbl)) then
-          do j=jstrR,jendR
-            do i=istrR,iendR
-              hbbl_AVR(i,j)=cff*(hbbl_AVR(i,j)+hbbls(i,j,nstp))
-            enddo
-          enddo
         endif
-#  endif
-!DL:
-# ifdef WRITE_DEPTHS
-            do k=1,N
-              do j=jstrR,jendR
-                do i=istrR,iendR
-                  z_r_avg(i,j,k)=cff*(z_r_avg(i,j,k)+z_r(i,j,k))
-                  Hz_avg(i,j,k)=cff*(Hz_avg(i,j,k)+Hz(i,j,k))
-                enddo
-              enddo
-            enddo
-            do k=0,N
-              do j=jstrR,jendR
-                do i=istrR,iendR
-                  z_w_avg(i,j,k)=cff*(z_w_avg(i,j,k)+z_w(i,j,k))
-                enddo
-              enddo
-            enddo
-# endif /* WRITE_DEPTHS */
-# ifdef BIOLOGY_NPZDOC
-          do k=1,NumGasExcTerms
-             do j=jstrR,jendR
-                do i=istrR,iendR
-                   GasExcFlux_AVR(i,j,k) = cff*(GasExcFlux_AVR(i,j,k)+GasExcFlux(i,j,k))
-                end do
-             end do
-          end do
-# endif /* BIOLOGY_NPZDOC */
-# endif /* SOLVE3D */
-        endif
-      endif       !<-- iic.gt.ntsAVR
+      endif       !<-- iic>ntsAVR
       return
       end
 

@@ -36,11 +36,10 @@
 
       implicit none
       logical create_new_file
-      integer ncid, total_rec, ierr, rec, lfnm,lvar,lenstr, timedim
-     &      , r2dgrd(3),  u2dgrd(3), v2dgrd(3),  auxil(2),  checkdims
-     &      , itrc
-#if defined SOLVE3D && !defined AVR2DH
-     &      , r3dgrd(4),  u3dgrd(4), v3dgrd(4),  w3dgrd(4)
+      integer total_rec, ierr, rec,timedim, old_fill, lfnm, lvar
+     &      , r2dgrd(3), u2dgrd(3), v2dgrd(3), auxil(2)
+#ifdef SOLVE3D
+     &      , r3dgrd(4), u3dgrd(4), v3dgrd(4), w3dgrd(4), itrc
 #endif
       integer my_nf_def_dim     !<-- instrumented netCDF function.
       integer lenstr, checkdims
@@ -103,7 +102,7 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
 #endif
 
 #ifndef AVRH
-# define SDEF_FOUT 'DEF_HIS'
+# define ncid nchis
 # define fname hisname
 # define rec_per_file nrpfhis
 # define wrt wrthis
@@ -125,11 +124,6 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
 # define UGRD u3dgrd
 # define VGRD v3dgrd
 # define WGRD w3dgrd
-# ifdef KPP_DIAGNOSE
-#  define vidRich hisRich
-#  define vidRichN hisRichN
-#  define vidSwrF hisSwrF
-# endif
 # define vidAks hisAks
 # define vidHbls hisHbls
 # define vidHbbl hisHbbl
@@ -163,9 +157,22 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
 # if defined BIOLOGY_BEC2 && defined BEC2_DIAG
 #  define vidT_bec2 hisT_bec2_diag
 # endif
+# ifdef MRL_WCI
+#  define vidSUP hisSUP
+#  define vidUST2D hisUST2D
+#  define vidVST2D hisVST2D
+#  define vidUST hisUST
+#  define vidVST hisVST
+#  define vidWST hisWST
+#  define vidAkb hisAkb
+#  define vidAkw hisAkw
+#  define vidKVF hisKVF
+#  define vidCALP hisCALP
+#  define vidKAPS hisKAPS
+# endif
 #else /* AVRH is defined */
 # ifndef AVR2DH
-# define SDEF_FOUT 'DEF_AVG'
+# define ncid ncavg
 # define fname avgname
 # define rec_per_file nrpfavg
 # define wrt wrtavg
@@ -187,11 +194,6 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
 # define UGRD u3dgrd
 # define VGRD v3dgrd
 # define WGRD w3dgrd
-# ifdef KPP_DIAGNOSE
-#  define vidRich avgRich
-#  define vidRichN avgRichN
-#  define vidSwrF avgSwrF
-# endif
 # define vidAks avgAks
 # define vidHbls avgHbls
 # define vidHbbl avgHbbl
@@ -222,8 +224,26 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
 # if defined BIOLOGY_BEC2 && defined BEC2_DIAG
 #  define vidT_bec2 avgT_bec2_diag
 # endif
+
+# ifdef WKB_WWAVE
+#  define vidWKB avgWKB
+# endif
+# ifdef MRL_WCI
+#  define vidSUP avgSUP
+#  define vidUST2D avgUST2D
+#  define vidVST2D avgVST2D
+#  define vidUST avgUST
+#  define vidWST avgWST
+#  define vidVST avgVST
+#  define vidAkb avgAkb
+#  define vidAkw avgAkw
+#  define vidKVF avgKVF
+#  define vidCALP avgCALP
+#  define vidKAPS avgKAPS
+# endif
+
 # else /* AVR2DH is defined */
-#  define SDEF_FOUT 'DEF_SLAVG'
+#  define ncid ncslavg
 #  define fname slavgname
 #  define rec_per_file nrpfslavg
 #  define wrt wrtslavg
@@ -280,9 +300,25 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
 # if defined BIOLOGY_BEC2 && defined BEC2_DIAG
 #  define vidT_bec2 slavgT_bec2_diag
 # endif
+# ifdef WKB_WWAVE
+#  define vidWKB avgWKB
+# endif
+# ifdef MRL_WCI
+#  define vidSUP slavgSUP
+#  define vidUST2D slavgUST2D
+#  define vidVST2D slavgVST2D
+#  define vidUST slavgUST
+#  define vidWST slavgWST
+#  define vidVST slavgVST
+#  define vidAkb slavgAkb
+#  define vidAkw slavgAkw
+#  define vidKVF slavgKVF
+#  define vidCALP slavgCALP
+#  define vidKAPS slavgKAPS
+# endif
 # endif /* AVR2DH */
 #endif /* AVRH */
-!
+
 ! Put time record index into file name. In  the case when model
 ! output is to be arranged into sequence of named files, the naming
 ! convention is as follows: 'his_root.INDEX.[MPI_node.]nc', where
@@ -340,16 +376,18 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
   10  if (create_new_file) then
 #ifdef NETCDF4
         ierr=nf_create(fname(1:lfnm), 
-     &                 or(nf_clobber,nf_netcdf4), ncid)
+     &                 or(nf_clobber,nf_globber+nf_netcdf4), ncid)
 #else
-        ierr=nf_create(fname(1:lfnm), 
-     &                 or(nf_clobber,nf_64bit_offset), ncid)
+        ierr=nf_create(fname(1:lfnm), nf_clobber+nf_64bit_offset,
+     &                                                        ncid)
 #endif
-        if (ierr .ne. nf_noerr) then
-          write(stdout,'(/1x,3A/)') 'ERROR in ',SDEF_FOUT,': Can not ',
-     &                 'create netCDF file ''', fname(1:lfnm), '''.'
+        if (ierr /= nf_noerr) then
+          write(*,'(/1x,4A/12x,A/)')  '### ERROR: DEF_FOUT :: ',
+     &          'Cannot create netCDF file ''', fname(1:lfnm),
+     &                              '''.',   nf_strerror(ierr)
           goto 99
         endif
+        ierr=nf_set_fill(ncid, nf_nofill, old_fill)
         if (rec_per_file == 0) total_rec=0
 
 ! Put global attributes.
@@ -424,9 +462,7 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
 ! Time-step number and time-record indices: (history file only, this
 ! may be needed in the event when a history record is used to restart
 ! the current model run);
-
-        ierr=nf_def_var (ncid, 'time_step', nf_int, 2, auxil,
-     &                                                 vidTstep)
+        ierr=nf_def_var (ncid, 'time_step', nf_int, 2, auxil, vidTstep)
         ierr=nf_put_att_text (ncid, vidTstep, 'long_name', 48,
      &              'time step and record numbers from initialization')
 
@@ -475,8 +511,11 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
           ierr=nf_put_att_text (ncid, vidT(itrc), 'coordinates',15,
      &                              'lon_rho lat_rho') 
 #ifdef MASK_LAND_DATA
-          ierr=nf_put_att_FOUT (ncid, vidZ, '_FillValue',
-     &                                   NF_FOUT, 1, spv_set)
+          ierr=nf_put_att_FOUT (ncid, vidZ, '_FillValue', NF_FOUT,
+     &                                                 1, spv_set)
+          if (ierr/=nf_noerr) then
+             write(*,*)  'nf_put_att_XXX:', nf_strerror(ierr)
+          endif
 #endif
 #ifdef NCCOMPRESS
           ierr=nf_def_var_deflate(ncid, vidZ, ncshuff, ncdefl, nclev)
@@ -559,17 +598,17 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
      &                                  vname(3,indxU)(1:lvar))
           ierr=nf_put_att_text (ncid, vidT(itrc), 'coordinates',
      &                            11, 'lon_u lat_u') 
-#ifdef MASK_LAND_DATA
-          ierr=nf_put_att_FOUT (ncid, vidU, '_FillValue',
-     &                                   NF_FOUT, 1, spv_set)
-#endif
+# ifdef MASK_LAND_DATA
+          ierr=nf_put_att_FOUT (ncid, vidU, '_FillValue', NF_FOUT,
+     &                                                 1, spv_set)
+# endif
 #ifdef NCCOMPRESS
           ierr=nf_def_var_deflate(ncid, vidU, ncshuff, ncdefl, nclev )
           ierr=nf_def_var_chunking(ncid, vidU, ncctg, ncuchnk3)
 #endif
 
         endif
- 
+
         if (wrt(indxV)) then
           lvar=lenstr(vname(1,indxV))
           ierr=nf_def_var (ncid, vname(1,indxV)(1:lvar), NF_FOUT,
@@ -629,10 +668,6 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
           ierr=nf_def_var_deflate(ncid, vidT, ncshuff, ncdefl, nclev )
           ierr=nf_def_var_chunking(ncid, vidT, ncctg, ncrchnk3)
 # endif
-# ifdef HFREQ_2D_AVERAGES
-            ierr=nf_put_att_text (ncid, vidT(itrc), 'sigma-level',
-     &                                          lvar, 'top')
-# endif
           endif
         enddo
 
@@ -688,8 +723,8 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
           ierr=nf_put_att_text (ncid, vidT(itrc), 'coordinates',
      &                            15, 'lon_rho lat_rho') 
 # ifdef MASK_LAND_DATA
-          ierr=nf_put_att_FOUT (ncid, vidR, '_FillValue',
-     &                                   NF_FOUT, 1, spv_set)
+          ierr=nf_put_att_FOUT (ncid, vidR, '_FillValue', NF_FOUT,
+     &                                                 1, spv_set)
 # endif
 #ifdef NCCOMPRESS
           ierr=nf_def_var_deflate(ncid, vidR, ncshuff, ncdefl, nclev )
@@ -796,99 +831,15 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
           lvar=lenstr(vname(3,indxAkt))
           ierr=nf_put_att_text (ncid, vidAkt, 'units',     lvar,
      &                                  vname(3,indxAkt)(1:lvar))
-#ifdef MASK_LAND_DATA 
-          ierr=nf_put_att_FOUT (ncid, vidAkt, '_FillValue',
-     &                                   NF_FOUT, 1, spv_set)
-#endif
-#ifdef NCCOMPRESS
+# ifdef MASK_LAND_DATA
+          ierr=nf_put_att_FOUT (ncid, vidAkt, '_FillValue', NF_FOUT,
+     &                                                   1, spv_set)
+# endif
+# ifdef NCCOMPRESS
           ierr=nf_def_var_deflate(ncid, vidAkt, ncshuff, ncdefl, nclev)
           ierr=nf_def_var_chunking(ncid, vidAkt, ncctg, ncrchnk3)
-#endif
-        endif
-# ifdef KPP_DIAGNOSE
-!
-! Diffusivity due to vertical velocity shear:
-!
-        if (wrt(indxRich)) then
-          lvar=lenstr(vname(1,indxRich))
-          ierr=nf_def_var (ncid, vname(1,indxRich)(1:lvar), NF_FOUT,
-     &                                           NVDIM, WGRD, vidRich)
-# ifdef AVRH
-          text='averaged '/ /vname(2,indxRich)
-# else
-          text=vname(2,indxRich)
 # endif
-          lvar=lenstr(text)
-          ierr=nf_put_att_text (ncid, vidRich, 'long_name', lvar,
-     &                                              text(1:lvar))
-          lvar=lenstr(vname(3,indxRich))
-          ierr=nf_put_att_text (ncid, vidRich, 'units',     lvar,
-     &                                  vname(3,indxRich)(1:lvar))
-#ifdef MASK_LAND_DATA 
-          ierr=nf_put_att_FOUT (ncid, vidRich, '_FillValue',
-     &                                   NF_FOUT, 1, spv_set)
-#endif
-#ifdef NCCOMPRESS
-          ierr=nf_def_var_deflate(ncid, vidRich, ncshuff, ncdefl, nclev)
-          ierr=nf_def_var_chunking(ncid, vidRich, ncctg, ncrchnk3)
-#endif
         endif
-!
-! Local gradient Richardson number:
-!
-        if (wrt(indxRichN)) then
-          lvar=lenstr(vname(1,indxRichN))
-          ierr=nf_def_var (ncid, vname(1,indxRichN)(1:lvar), NF_FOUT,
-     &                                           NVDIM, WGRD, vidRichN)
-# ifdef AVRH
-          text='averaged '/ /vname(2,indxRichN)
-# else
-          text=vname(2,indxRichN)
-# endif
-          lvar=lenstr(text)
-          ierr=nf_put_att_text (ncid, vidRichN, 'long_name', lvar,
-     &                                              text(1:lvar))
-          lvar=lenstr(vname(3,indxRichN))
-          ierr=nf_put_att_text (ncid, vidRichN, 'units',     lvar,
-     &                                  vname(3,indxRichN)(1:lvar))
-#ifdef MASK_LAND_DATA 
-          ierr=nf_put_att_FOUT (ncid, vidRichN, '_FillValue',
-     &                                   NF_FOUT, 1, spv_set)
-#endif
-#ifdef NCCOMPRESS
-          ierr=nf_def_var_deflate(ncid, vidRichN, 
-     &                             ncshuff, ncdefl, nclev)
-          ierr=nf_def_var_chunking(ncid, vidRichN, ncctg, ncrchnk3)
-#endif
-        endif
-!
-! Solar Radiation Fraction reaching the level (swr_frac)
-!
-        if (wrt(indxSwrF)) then
-          lvar=lenstr(vname(1,indxSwrF))
-          ierr=nf_def_var (ncid, vname(1,indxSwrF)(1:lvar), NF_FOUT,
-     &                                           NVDIM, WGRD, vidSwrF)
-# ifdef AVRH
-          text='averaged '/ /vname(2,indxSwrF)
-# else
-          text=vname(2,indxSwrF)
-# endif
-          lvar=lenstr(text)
-          ierr=nf_put_att_text (ncid, vidSwrF, 'long_name', lvar,
-     &                                              text(1:lvar))
-          lvar=lenstr(vname(3,indxSwrF))
-          ierr=nf_put_att_text (ncid, vidSwrF, 'units',     lvar,
-     &                                  vname(3,indxSwrF)(1:lvar))
-#ifdef MASK_LAND_DATA 
-          ierr=nf_put_att_FOUT (ncid, vidSwrF, '_FillValue',
-     &                                   NF_FOUT, 1, spv_set)
-#endif
-#ifdef NCCOMPRESS
-          ierr=nf_def_var_deflate(ncid, vidSwrF, ncshuff, ncdefl, nclev)
-          ierr=nf_def_var_chunking(ncid, vidSwrF, ncctg, ncrchnk3)
-#endif
-        endif
-# endif /* KPP_DIAGNOSE */
 # ifdef SALINITY
 ! Vertical diffusion coefficient for salinity.
 
@@ -907,10 +858,10 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
           lvar=lenstr(vname(3,indxAks))
           ierr=nf_put_att_text (ncid, vidAks, 'units',     lvar,
      &                                  vname(3,indxAks)(1:lvar))
-#ifdef MASK_LAND_DATA 
-          ierr=nf_put_att_FOUT (ncid, vidAks, '_FillValue',
-     &                                   NF_FOUT, 1, spv_set)
-#endif
+#  ifdef MASK_LAND_DATA
+          ierr=nf_put_att_FOUT (ncid, vidAks, '_FillValue', NF_FOUT,
+     &                                                   1, spv_set)
+#  endif
 #ifdef NCCOMPRESS
           ierr=nf_def_var_deflate(ncid, vidAks, ncshuff, ncdefl, nclev)
           ierr=nf_def_var_chunking(ncid, vidAks, ncctg, ncrchnk3)
@@ -939,10 +890,10 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
           ierr=nf_put_att_FOUT (ncid, vidHbls, '_FillValue',
      &                                       NF_FOUT, 1, spv_set)
 #  endif
-#ifdef NCCOMPRESS
+#  ifdef NCCOMPRESS
           ierr=nf_def_var_deflate(ncid, vidHbl, ncshuff, ncdefl, nclev)
           ierr=nf_def_var_chunking(ncid, vidHbl, ncctg, ncrchnk2)
-#endif
+#  endif
         endif
 # endif /* LMD_KPP */
 # ifdef LMD_BKPP
@@ -950,8 +901,8 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
 
         if (wrt(indxHbbl)) then
           lvar=lenstr(vname(1,indxHbbl))
-          ierr=nf_def_var (ncid, vname(1,indxHbbl)(1:lvar), NF_FOUT,
-     &                                           3, r2dgrd, vidHbbl)
+          ierr=nf_def_var (ncid, vname(1,indxHbbl)(1:lvar),
+     &                            NF_FOUT, 3, r2dgrd, vidHbbl)
 #  ifdef AVRH
           text='averaged '/ /vname(2,indxHbbl)
 #  else
@@ -963,6 +914,10 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
           lvar=lenstr(vname(3,indxHbbl))
           ierr=nf_put_att_text (ncid, vidHbbl, 'units',     lvar,
      &                                 vname(3,indxHbbl)(1:lvar))
+#  ifdef MASK_LAND_DATA
+          ierr=nf_put_att_FOUT (ncid, vidHbbl, '_FillValue',
+     &                                       NF_FOUT, 1, spv_set)
+#  endif
         endif
 # endif /* LMD_BKPP */
 
@@ -1331,16 +1286,21 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
         end do
 # endif /* BIOLOGY_NPZDOC && OXYGEN */
 #endif /* SOLVE3D */
-!
+
 ! Leave definition mode.
 ! ----- ---------- -----
-!
-        ! ierr=nf_enddef(ncid)
+
         !  Pad header section (20kB) to allow faster adding of new variables
         ierr=nf_enddef(ncid,20000,8,20000,8)
-        write(stdout,'(6x,6A,i4)')  SDEF_FOUT,   ': Created new ',
-     &  'netCDF file ''', fname(1:lfnm), '''.' MYID
-!
+#ifdef MPI_SILENT_MODE
+        if (mynode==0) then
+#endif
+         write(*,'(7x,4A,I4)') 'DEF_FOUT :: created new netCDF file ''',
+     &                          fname(1:lfnm), '''.' MYID
+#ifdef MPI_SILENT_MODE
+        endif
+#endif
+
 ! Open existing file and prepare for appending data:   Inquire about
 ! ==== ======== ==== === ======= === ========= ====    dimensions and
 ! variables. Check for consistency with model dimensions. In the case
@@ -1348,18 +1308,22 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
 ! wrong with its dimensions) create a new file.  After that verify
 ! that all necessary variables are already defined, find and save
 ! their netCDF IDs.
-!
-      elseif (ncid.eq.-1) then
-        ierr=nf_open (fname(1:lfnm), nf_write, ncid)
+
+      elseif (ncid==-1) then  !--> alt. to "create_new_file"
+        ierr=nf_open(fname(1:lfnm), nf_write, ncid)
         if (ierr. eq. nf_noerr) then
-          MPI_master_only write(stdout,'(1x,4A,1x,A,I3,A,I4)')
-     &                  'Opened existing ',
-     &                 'netCDF file ''',   fname(1:lfnm),   ''''
-CR     &                , 'ncid =', ncid  
-CR     &                   MYID
-          ierr=checkdims (ncid, fname(1:lfnm), lfnm, rec)
-          if (ierr .eq. nf_noerr) then
-            if (rec_per_file.eq.0) then
+#ifdef MPI_SILENT_MODE
+          if (mynode==0) then
+#endif
+            write(*,'(7x,5A,I4)')    'DEF_FOUT :: opened existing ',
+     &                     'file ''', fname(1:lfnm),  '''.' MYID
+#ifdef MPI_SILENT_MODE
+          endif
+#endif
+          ierr=nf_set_fill(ncid, nf_nofill, old_fill)
+          ierr=checkdims(ncid, fname, rec)
+          if (ierr == nf_noerr) then
+            if (rec_per_file==0) then
               ierr=rec+1 - total_rec
             else
               ierr=rec+1 - (1+mod(total_rec-1, rec_per_file))
@@ -1367,7 +1331,7 @@ CR     &                   MYID
             if (ierr.gt.0) then
               MPI_master_only write( stdout,
      &                 '(/1x,3A,I5,1x,A/8x,3A,I5,/8x,A,I5,1x,A/)'
-     &           ) 'WARNING: ', SDEF_FOUT,': Actual number of records',
+     &           ) 'WARNING: ', DEF_FOUT,': Actual number of records',
      &               rec,  'in netCDF file',  '''',  fname(1:lfnm),
      &             ''' exceeds the record number from restart data',
      &             rec+1-ierr,'/', total_rec,', restart is assumed.'
@@ -1388,8 +1352,8 @@ CR     &                   MYID
             create_new_file=.true.
             goto 10
           else
-            write(stdout,'(/1x,5A,I4/)') '### ERROR: ',SDEF_FOUT,
-     &        ': Cannot open file ''', fname(1:lfnm), '''.' MYID
+            write(*,'(/1x,5A,I4/)')    '### ERROR: DEF_FOUT :: ',
+     &        'Cannot open file ''', fname(1:lfnm), '''.' MYID
             goto 99                                       !--> ERROR
           endif
 #else
@@ -1402,12 +1366,13 @@ CR     &                   MYID
 ! ---- ------ --- -- -------- ----- ----------
 
 ! Time-step indices, ocean time:
+#ifndef AVRH
         ierr=nf_inq_varid (ncid, 'time_step', vidTstep)
         if (ierr /= nf_noerr) then
           write(*,1) 'time_step', fname(1:lfnm)
           goto 99                                         !--> ERROR
         endif
-! Time.
+#endif
 
         lvar=lenstr(vname(1,indxTime))
         ierr=nf_inq_varid (ncid,vname(1,indxTime)(1:lvar),vidTime)
@@ -1550,41 +1515,7 @@ CR     &                   MYID
             goto 99                                       !--> ERROR
           endif
         endif
-# ifdef KPP_DIAGNOSE
 
-! Diffusivity due to vertical velocity shear:
-
-        if (wrt(indxRich)) then
-          lvar=lenstr(vname(1,indxRich))
-          ierr=nf_inq_varid (ncid,vname(1,indxRich)(1:lvar), vidRich)
-          if (ierr .ne. nf_noerr) then
-            write(stdout,1) vname(1,indxRich)(1:lvar), fname(1:lfnm)
-            goto 99                                       !--> ERROR
-          endif
-        endif
-
-! Local gradient Richardson number:
-
-        if (wrt(indxRichN)) then
-          lvar=lenstr(vname(1,indxRichN))
-          ierr=nf_inq_varid (ncid,vname(1,indxRichN)(1:lvar), vidRichN)
-          if (ierr .ne. nf_noerr) then
-            write(stdout,1) vname(1,indxRichN)(1:lvar), fname(1:lfnm)
-            goto 99                                       !--> ERROR
-          endif
-        endif
-
-! Solar radiation fraction reaching the level:
-
-        if (wrt(indxSwrF)) then
-          lvar=lenstr(vname(1,indxSwrF))
-          ierr=nf_inq_varid (ncid,vname(1,indxSwrF)(1:lvar), vidSwrF)
-          if (ierr .ne. nf_noerr) then
-            write(stdout,1) vname(1,indxSwrF)(1:lvar), fname(1:lfnm)
-            goto 99                                       !--> ERROR
-          endif
-        endif
-# endif /* KPP_DIAGNOSE */
 # ifdef SALINITY
         if (wrt(indxAks)) then
           lvar=lenstr(vname(1,indxAks))
@@ -1796,11 +1727,15 @@ CR     &                   MYID
         end do
 # endif /* BIOLOGY_NPZDOC && OXYGEN */
 #endif /* SOLVE3D */
-        MPI_master_only write(*,'(6x,3A,i4,1x,A,i4)') 
-     &              SDEF_FOUT,  ': Opened ',
-     &              'existing file from record =', rec 
-CR     &                  MYID
- 
+#ifdef MPI_SILENT_MODE
+        if (mynode==0) then
+#endif
+          write(*,'(7x,4A,I4,2x,A,I4)') 'DEF_FOUT :: opened existing ',
+     &   'file ''', fname(1:lfnm), ''' from rec =', rec MYID
+#ifdef MPI_SILENT_MODE
+        endif
+#endif
+
 #if defined MPI && !defined PARALLEL_FILES
       else
         ierr=nf_open (fname(1:lfnm), nf_write, ncid)
@@ -1808,21 +1743,22 @@ CR     &                  MYID
 CR          write(stdout,'(1x,5A,I5)')  SDEF_FOUT,  ': Opened ',
 CR     &      'existing file ''', fname(1:lfnm), ''' ncid =', ncid
         else
-          write(stdout,'(/1x,5A,I4/)')   '### ERROR: ', SDEF_FOUT,
-     &      ': Cannot open file ''', fname(1:lfnm), '''.' MYID
-          goto 99                                         !--> ERROR
+          write(*,'(/1x,6A,I4/)')  '### ERROR: SDEF_FOUT :: Cannot ',
+     &                       'open file ''', fname(1:lfnm), '''.',
+     &                        nf_strerror(ierr) MYID
+          goto 99                                   !--> ERROR
         endif
 #endif
       endif             !<--  create_new_file
- 
+
       ierr=nf_set_fill (ncid, nf_nofill, lvar)
-      if (ierr .ne. nf_noerr) then
-        write(*,'(6x,4A,i4)')    '### ERROR: def_his/avg: Cannot ',
-     &          'switch to ''nf_nofill'' mode.', nf_strerror(ierr)
+      if (ierr /= nf_noerr) then
+        write(*,'(1x,4A,I4)') '### ERROR: DEF_FOUT :: Cannot switch ',
+     &          'to ''nf_nofill'' mode.', nf_strerror(ierr)
      &           MYID
       endif
-   1  format(/1x,'### ERROR: def_his/avg: Cannot find variable ''',
-     &                       A, ''' in netCDF file ''', A, '''.'/)
+   1  format(/1x,'### ERROR: DEF_FOUT :: Cannot find variable ''',
+     &                           A, ''' in file ''', A, '''.'/)
 #if (defined PUT_GRID_INTO_HISTORY && !defined AVRH)\
  || (defined PUT_GRID_INTO_AVERAGES && defined AVRH)
 
@@ -1833,7 +1769,8 @@ CR     &      'existing file ''', fname(1:lfnm), ''' ncid =', ncid
 #endif
   99  return
       end
- 
+
+#undef ncid
 #undef fname
 #undef rec_per_file
 #undef wrt
@@ -1877,9 +1814,6 @@ CR     &      'existing file ''', fname(1:lfnm), ''' ncid =', ncid
 #undef vidW
 #undef vidAkv
 #undef vidAkt
-#undef vidRich
-#undef vidRichN
-#undef vidSwrF
 #undef vidAks
 #undef vidHbls
 #undef vidHbbl

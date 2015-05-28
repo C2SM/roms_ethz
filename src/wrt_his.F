@@ -205,7 +205,11 @@ CR      write(*,*) 'wrt_his:  wrtT  ' MYID
 ! Density anomaly.
 
       if (wrthis(indxR)) then
+# ifdef SPLIT_EOS
         ierr=nf_fwrite (rho1, nchis, hisR, record, r3dvar)
+# else
+        ierr=nf_fwrite (rho, nchis, hisR, record, r3dvar)
+# endif
         if (ierr /= nf_noerr) then
           lvar=lenstr(vname(1,indxR))
           write(*,1) vname(1,indxR)(1:lvar), record MYID
@@ -274,32 +278,6 @@ CR      write(*,*) 'wrt_his:  wrtAkt' MYID
       endif
 # ifdef KPP_DIAGNOSE
 
-! Write out diffusion coefficient due to vertical velocity shear:
-
-      if (wrthis(indxRich)) then
-        ierr=nf_fwrite (Rich(START_2D_ARRAY,0), nchis,
-     &                                hisRich, record, w3dvar)
-        if (ierr /= nf_noerr) then
-          lvar=lenstr(vname(1,indxRich))
-          write(*,1) vname(1,indxRich)(1:lvar), record MYID
-          goto 99                                         !--> ERROR
-        endif
-CR      write(*,*) 'wrt_his:  wrtRich' MYID
-      endif
-
-! Write out local gradient Richardson number:
-
-      if (wrthis(indxRichN)) then
-        ierr=nf_fwrite (RichN(START_2D_ARRAY,0), nchis,
-     &                                hisRichN, record, w3dvar)
-        if (ierr /= nf_noerr) then
-          lvar=lenstr(vname(1,indxRichN))
-          write(*,1) vname(1,indxRichN)(1:lvar), record MYID
-          goto 99                                         !--> ERROR
-        endif
-CR      write(*,*) 'wrt_his:  wrtRichN' MYID
-      endif
-
 ! Write out solar fraction reaching level:
 
       if (wrthis(indxSwrF)) then
@@ -312,7 +290,7 @@ CR      write(*,*) 'wrt_his:  wrtRichN' MYID
         endif
 CR      write(*,*) 'wrt_his:  wrtSwrF' MYID
       endif
-# endif /* KPP_DIAGNOSE */
+# endif 
 # ifdef SALINITY
 
 ! Vertical diffusion coefficient for salinity.
@@ -358,55 +336,6 @@ CR      write(*,*) 'wrt_his:  wrtHbBL' MYID
 # endif
 # if defined BIOLOGY_BEC || (defined BIOLOGY_NPZDOC && \
     defined OXYGEN && defined CARBON)
-#  if defined CH_CARBON_DEPTH
-
-
-! Write out averaged HCO3_DEPTH:
-
-      ierr=nf_fwrite (HCO3d_hist(START_2D_ARRAY,1), nchis,
-     &                              hisHCO3d, record, r3dvar)
-      if (ierr /= nf_noerr) then
-        lvar=lenstr(vname(1,indxHCO3d_rst))
-        write(*,1) vname(1,indxHCO3d_rst)(1:lvar), record MYID
-        goto 99                                         !--> ERROR
-      endif
-
-
-! Write out averaged CO3_DEPTH:
-
-      ierr=nf_fwrite (CO3d_hist(START_2D_ARRAY,1), nchis,
-     &                              hisCO3d, record, r3dvar)
-      if (ierr /= nf_noerr) then
-        lvar=lenstr(vname(1,indxCO3d_rst))
-        write(*,1) vname(1,indxCO3d_rst)(1:lvar), record MYID
-        goto 99                                         !--> ERROR
-      endif
-
-
-! Write out averaged CO2STAR_DEPTH:
-
-      ierr=nf_fwrite (CO2STARd_hist(START_2D_ARRAY,1), nchis,
-     &                              hisCO2STARd, record, r3dvar)
-      if (ierr /= nf_noerr) then
-        lvar=lenstr(vname(1,indxCO2STARd_rst))
-        write(*,1) vname(1,indxCO2STARd_rst)(1:lvar), record MYID
-        goto 99                                         !--> ERROR
-      endif
-
-
-
-! Write out averaged PH_DEPTH:
-
-      ierr=nf_fwrite (PHd_hist(START_2D_ARRAY,1), nchis,
-     &                              hisPHd, record, r3dvar)
-      if (ierr /= nf_noerr) then
-        lvar=lenstr(vname(1,indxPHd_rst))
-        write(*,1) vname(1,indxPHd_rst)(1:lvar), record MYID
-        goto 99                                         !--> ERROR
-      endif
-
-#  endif /* CH_CARBON_DEPTH */
- 
 
 ! Write out averaged pH:
 
@@ -543,7 +472,6 @@ CR      write(*,*) 'wrt_his:  wrtHbBL' MYID
 #endif /* SOLVE3D */
   1   format(/1x, '### ERROR: wrt_his :: Cannot write variable ''',
      &              A, ''' into history file, rec =', i6, 3x,A,i4)
-!     &             /, ' Error: ',A)
       goto 100
   99  if (may_day_flag==0) may_day_flag=3
  100  continue
@@ -584,7 +512,7 @@ CR      write(*,*) 'wrt_his:  wrtHbBL' MYID
         if (may_day_flag==0) may_day_flag=3
       endif
 #if defined MPI && !defined PARALLEL_FILES
-      if (mynode .lt. NNODES-1) call MPI_Send (blank, 1, MPI_INTEGER,
-     &                            mynode+1, 2, ocean_grid_comm, ierr)
+      if (mynode < NNODES-1) call MPI_Send (blank, 1, MPI_INTEGER,
+     &                           mynode+1, 2, ocean_grid_comm, ierr)
 #endif
       end
