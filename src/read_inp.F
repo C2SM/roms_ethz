@@ -32,7 +32,10 @@
       character(len=32) keyword
       character(len=3), parameter :: end_signal='end'
       integer, parameter :: kwsize=32, testunit=40, input=15
-      integer ierr, iargc, is,ie,  kwlen, lstr, lenstr, i
+      integer ierr, iargc, is,ie,  kwlen, lstr, lenstr
+#ifdef MULT_CLIM_FILES
+     &        , i
+#endif
 #ifdef SOLVE3D
      &                                            , itrc
 #endif
@@ -572,7 +575,8 @@ c--      fname='roms.in.US_West'
           mpi_master_only write(*,'(1x,2A)') 'boundary forcing file: ',
      &                                              bry_file(1:lstr)
 # endif
-#endif  /* SOLVED3D && TCLIMATOLOGY etc. */
+# endif /* MULT_CLIM_FILES */
+#endif
 
 ! Output files controls: restart, history, averages, stations, floats
 !------- ----- ---------

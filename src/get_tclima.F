@@ -253,11 +253,6 @@
             endif
           endif
 # if defined BIOLOGY || defined BIOLOGY_NPZDOC
-! hf: Note that the following settings are only provided for cases
-! where no boundary conditions for the bgc state variables have been
-! provided, e.g. test runs. In all "serious" model runs, boundary 
-! conditions should be provided at least for NO3, O2, DIC, and Alk,
-! and ideally for Chla, Phyto, and Zoo as well.
 #  define temp cff
 #  define SiO4 cff1
         elseif (itrc==iNO3_) then     ! <-- analytical setup for

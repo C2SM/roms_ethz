@@ -185,9 +185,7 @@ CR      write(*,*) ' -7' MYID
       do tile=my_tile_range            ! Create three-dimensional
         call set_depth(tile)           ! S-coordinate system, which
 # ifdef LMD_KPP
-#  ifndef BIO_SWR_FRAC
         call swr_frac(tile)            ! may be needed by ana_init.
-#  endif
 # endif
       enddo
 C$OMP BARRIER                          ! Here it is assumed that free
@@ -239,13 +237,6 @@ C$OMP END MASTER
 #endif
 C$OMP BARRIER
 
-#ifdef LMD_KPP
-# ifdef BIO_SWR_FRAC
-      ! Moved here as we need current chlorophyl to set swr_frac
-      call swr_frac (tile)
-# endif
-#endif
-
 #if defined PASSIVE_TRACER && defined AGE_DYE_TRACER
       do tile=my_tile_range
          call init_agedye(tile)
@@ -253,32 +244,6 @@ C$OMP BARRIER
 C$OMP BARRIER
       if (may_day_flag /= 0) goto 99      !--> ERROR
 #endif
-
-#ifdef AVERAGES
-      if (nrpfavg.ne.0 .and. mod(nrecavg, nrpfavg).gt.0 
-     &   .and. ldefhis) then
-         MPI_master_only write (stdout,'(2a,i10,2a/)') 
-     &       'WARNING: first averages record will be ',
-     &       'written into record ', mod(nrecavg, nrpfavg)+1,
-     &       ' of average file ', avgname
-         MPI_master_only write (*,'(a,2(a/))') 
-     &   'You have chosen to create a NEW ', 
-     &   'average file by setting ldefhis to true.  ',
-     &   'Are you sure that this is what you want?'
-      end if
-#endif
-      if ( nrpfhis.ne.0 .and. mod(nrechis-1, nrpfhis).gt.0 
-     &     .and. ldefhis ) then
-         MPI_master_only write (stdout,'(2a,i10,2a/)') 
-     &       'WARNING: first history record will be',
-     &       'written into record ', mod(nrechis-1, nrpfhis)+1,
-     &       'of history file ', hisname
-         MPI_master_only write (*,'(a,2(a/))') 
-     &    'You have chosen to create a NEW ', 
-     &    'history file by setting ldefhis to true.  ',
-     &    'Are you sure that this is what you want?'
-      end if
-
       if (may_day_flag /= 0) goto 99      !--> ERROR
 CR      write(*,*) ' -5' MYID
                                   ! Set initial model clock: at this

@@ -128,7 +128,6 @@ c      enddo
 #  elif defined USWC
       isp=(LLm+1)/40
 #  else
-#  elif defined OLD_SPONGE_DEFAULT
       isp=(LLm+1)/12
 #  else
 !--------------------------------------------------------------------

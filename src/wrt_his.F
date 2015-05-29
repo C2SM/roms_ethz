@@ -148,6 +148,7 @@ CR      write(*,*) 'wrt_his: wrtVBAR' MYID
           write(*,1) vname(1,indxU)(1:lvar), record MYID
           goto 99                                         !--> ERROR
         endif
+CR      write(*,*) 'wrt_his:  wrtU  ' MYID
       endif
       if (wrthis(indxV)) then
         ierr=nf_fwrite (v(START_2D_ARRAY,1,nstp), nchis,
@@ -276,21 +277,6 @@ CR      write(*,*) 'wrt_his:  wrtAkv' MYID
         endif
 CR      write(*,*) 'wrt_his:  wrtAkt' MYID
       endif
-# ifdef KPP_DIAGNOSE
-
-! Write out solar fraction reaching level:
-
-      if (wrthis(indxSwrF)) then
-        ierr=nf_fwrite (swr_frac(START_2D_ARRAY,0), nchis,
-     &                                hisSwrF, record, w3dvar)
-        if (ierr /= nf_noerr) then
-          lvar=lenstr(vname(1,indxSwrF))
-          write(*,1) vname(1,indxSwrF)(1:lvar), record, MYID
-          goto 99                                         !--> ERROR
-        endif
-CR      write(*,*) 'wrt_his:  wrtSwrF' MYID
-      endif
-# endif 
 # ifdef SALINITY
 
 ! Vertical diffusion coefficient for salinity.
