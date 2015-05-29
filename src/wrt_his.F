@@ -207,9 +207,6 @@ CR      write(*,*) 'wrt_his:  wrtT  ' MYID
 
       if (wrthis(indxR)) then
 # ifdef SPLIT_EOS
-cxxxxxxxxxx
-cxxxxxxxxxx
-cxxxxxxxxxx
         ierr=nf_fwrite (rho1, nchis, hisR, record, r3dvar)
 # else
         ierr=nf_fwrite (rho, nchis, hisR, record, r3dvar)

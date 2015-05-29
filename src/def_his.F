@@ -1290,7 +1290,8 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
 ! Leave definition mode.
 ! ----- ---------- -----
 
-        ierr=nf_enddef(ncid)
+        !  Pad header section (20kB) to allow faster adding of new variables
+        ierr=nf_enddef(ncid,20000,8,20000,8)
 #ifdef MPI_SILENT_MODE
         if (mynode==0) then
 #endif
@@ -1390,6 +1391,8 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
             goto 99                                       !--> ERROR
           endif
         endif
+
+! 2D momenta in XI- and ETA-directions.
 
         if (wrt(indxUb)) then
           lvar=lenstr(vname(1,indxUb))
@@ -1547,6 +1550,7 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
           endif
         endif
 # endif
+
 # if defined BIOLOGY_BEC || (defined BIOLOGY_NPZDOC && \
     defined OXYGEN && defined CARBON)
 #  if defined CH_CARBON_DEPTH
@@ -1732,7 +1736,7 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
         endif
 #endif
 
-#if defined MPI & !defined PARALLEL_FILES
+#if defined MPI && !defined PARALLEL_FILES
       else
         ierr=nf_open (fname(1:lfnm), nf_write, ncid)
         if (ierr .eq. nf_noerr) then

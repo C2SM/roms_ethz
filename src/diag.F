@@ -72,6 +72,11 @@
       integer size, step, itag, status(MPI_STATUS_SIZE)
       real*QUAD buff(16)
 #endif
+#ifdef  COMPUTE_SPEED_DIAGNOSE
+C$    real*8 omp_get_wtime  
+      real*8      wtime0, wtime1, wtime2
+      save wtime0, wtime1
+#endif
 #include "grid.h"
 #ifdef SOLVE3D
 # include "ocean3d.h"
@@ -620,6 +625,15 @@ C$   &                                                 , 'trd'
      &                             avke, avpe, avke+avpe, avzeta
 C$   &                                                 , proc(2)
 #endif /* SOLVE3D */
+#ifdef  COMPUTE_SPEED_DIAGNOSE
+# ifdef MPI
+              wtime2=MPI_Wtime()
+            if (first_time.eq.0) then
+              wtime0=wtime2
+              wtime1=wtime2
+            endif
+# endif
+#endif
           ie=max_check_line
           do while (check_line(ie:ie)==' ' .and. ie>0)
             ie=ie-1

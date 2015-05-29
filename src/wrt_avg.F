@@ -72,6 +72,7 @@
      &                       ocean_grid_comm, status, ierr)
       endif
 # endif
+CR      mpi_master_only print *, '--- NOTE: Executing ', SWRT_AVR
 
 ! Create/open averages file; write grid arrays, if so needed,
 ! check for errors, then set record within the file "record".
