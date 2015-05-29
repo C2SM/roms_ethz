@@ -204,6 +204,8 @@ CR      write(*,*) ' -6' MYID
       ! pH is initialized to 0 in ecosys_init
       call ecosys2_init
 # endif
+      ! Initialisation of lmd parameters (JDS)
+!      call lmd_kpp_init
 #ifdef ANA_INITIAL
       do tile=my_tile_range            ! Set initial conditions for
         call set_forces(tile)          ! model prognostic variables,
@@ -234,6 +236,14 @@ C$OMP END MASTER
       endif    !<-- nrrec>0
 #endif
 C$OMP BARRIER
+
+#if defined PASSIVE_TRACER && defined AGE_DYE_TRACER
+      do tile=my_tile_range
+         call init_agedye(tile)
+      enddo
+C$OMP BARRIER
+      if (may_day_flag /= 0) goto 99      !--> ERROR
+#endif
       if (may_day_flag /= 0) goto 99      !--> ERROR
 CR      write(*,*) ' -5' MYID
                                   ! Set initial model clock: at this
@@ -299,7 +309,7 @@ CR      write(*,*) ' -1' MYID
 ! from input netCDF files.  Note that CPP-logic here is mutually
 ! exclusive with respect to calls ana_tclima, ana_ssh, and ana_bsedim
 ! just above.
-
+!
 
 #if defined SALINITY && (defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC || defined BIOLOGY_BEC2) \
     && defined VFLX_CORR && defined USE_GLOBAL_SRF_SUM
