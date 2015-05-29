@@ -33,6 +33,9 @@
       character(len=3), parameter :: end_signal='end'
       integer, parameter :: kwsize=32, testunit=40, input=15
       integer ierr, iargc, is,ie,  kwlen, lstr, lenstr
+#ifdef MULT_CLIM_FILES
+     &        , i
+#endif
 #ifdef SOLVE3D
      &                                            , itrc
 #endif
@@ -160,6 +163,9 @@ c--      fname='roms.in.US_West'
       wrtsta(indxTime)=.true.
 #endif
 
+      mpi_master_only print '(/3A)', '------------------'
+     &  , ' Reading input parameters ', '------------------'
+!
 ! Read in keyword: keep trying, until keyword is found.
 ! ==== == ======== ==== ======= ===== ======= == ======
 
@@ -397,9 +403,17 @@ c--      fname='roms.in.US_West'
 #ifdef SPONGE
 ! Parameters for the sponge layers
 
+#  if defined OLD_SPONGE_DEFAULT || defined BENGUELA || PACIFIC
         elseif (keyword(1:kwlen) == 'v_sponge') then
           call cancel_kwd (keyword(1:kwlen), ierr)
           read(input,*,err=95) v_sponge
+#  else
+         elseif (keyword(1:kwlen).eq.'sponge') then
+           call cancel_kwd (keyword(1:kwlen), ierr)
+           read(input,*,err=95) n_sponge,v_sponge
+           MPI_master_only write(*,'(1pe10.2,2x,A)') n_sponge
+     &       ,'n_sponge Number of grid lines in sponge layer [-]'
+#  endif
           mpi_master_only write(*,'(3x,A,F10.2,2x,A)') 'v_sponge =',
      &          v_sponge, 'Maximum viscosity in sponge layer [m2/s]'
 #endif
@@ -508,6 +522,30 @@ c--      fname='roms.in.US_West'
 
         elseif (keyword(1:kwlen) == 'climatology') then
           call cancel_kwd (keyword(1:kwlen), ierr)
+# ifdef MULT_CLIM_FILES
+          ! Read number of climatology files:
+          read(input,'(i)') nclimfiles
+          if (nclimfiles > 4) then
+             MPI_master_only write (*,'(a,1x,a)') 'ERROR:',
+     &         'at most 4 climatology files are possible.'
+             goto 95
+          end if
+          MPI_master_only write(*,'(3x,a,i3)')
+     &      'Number of climatology files: ', nclimfiles
+          ! Read names of clim files (one per line):
+          do i = 1,nclimfiles
+             read(input,'(A)',err=95) fname
+             lstr=lenstr(fname)
+#  if defined MPI && defined PARALLEL_FILES && !defined JOINED_CLM
+             call insert_node (fname, lstr, mynode, NNODES, ierr)
+#  endif
+             open (testunit, file=fname(1:lstr), status='old', err=97)
+             close(testunit)
+             clm_file(i) = fname(1:lstr)
+             MPI_master_only write(*,'(3x,A,i3,A,2x,A)')
+     &          'Climatology File ',i,':', clm_file(i)(1:lstr)
+          end do
+# else /* MULT_CLIM_FILES */
           read(input,'(A)',err=95) fname
           lstr=lenstr(fname)
 # if defined MPI && defined PARALLEL_FILES
@@ -537,6 +575,7 @@ c--      fname='roms.in.US_West'
           mpi_master_only write(*,'(1x,2A)') 'boundary forcing file: ',
      &                                              bry_file(1:lstr)
 # endif
+# endif /* MULT_CLIM_FILES */
 #endif
 
 ! Output files controls: restart, history, averages, stations, floats
@@ -706,6 +745,14 @@ c--      fname='roms.in.US_West'
             mpi_master_only write(*,'(8x,A,I2,A,T16,L1,T20,A)') 't(',
      &        itrc, ')', wrtavg(indxT+itrc-1), vname(2,indxT+itrc-1)
           enddo
+#  ifdef SEDIMENT_BIOLOGY
+          do itrc = 1, NT_sed
+            if (wrtavg(indxSedOrgN+itrc-1)) wrtavg(indxTime)=.true.
+            MPI_master_only write(*, '(6x,L1,2x,A,I2,A,I2,A)')
+     &           wrtavg(indxSedOrgN+itrc-1), 'write T_sed(', 
+     &           itrc,')  Sediment tracer of index ', itrc,'.' 
+          end do
+#  endif /* SEDIMENT_BIOLOGY */
 
         elseif (keyword(1:kwlen) == 'auxiliary_averages') then
           call cancel_kwd (keyword(1:kwlen), ierr)
@@ -748,6 +795,95 @@ c--      fname='roms.in.US_West'
 #  ifdef LMD_BKPP
      &                 , 'hbbl',   wrtavg(indxHbbl), vname(2,indxHbbl)
 #  endif
+#  ifdef SLICE_AVERAGES
+        elseif (keyword(1:kwlen) == 'slice_averages') then
+          call cancel_kwd (keyword(1:kwlen), ierr)
+          read(input,*,err=95) ntsslavg, nslavg, nrpfslavg
+          read(input,'(A)',err=95) fname
+          lstr=lenstr(fname)
+#   if defined MPI && defined PARALLEL_FILES && !defined JOINED_AVG
+          call insert_node (fname, lstr, mynode, NNODES, ierr)
+#   endif
+          slavgname=fname(1:lstr)
+          mpi_master_only write(*,'(/1x,A,I5,2x,A,I5,2x,A,I4,2x,3A)')
+     &       'averages :: ntsslavg = ', ntsslavg,      'nslavg =', nslavg,
+     &       'rec/file =', nrpfslavg, 'file = ''', slavgname(1:lstr), ''''
+
+! Switches for fields to compute averages.
+
+        elseif (keyword(1:kwlen) == 'primary_averages') then
+          call cancel_kwd (keyword(1:kwlen), ierr)
+          read(input,*,err=95) wrtslavg(indxZ),  wrtslavg(indxUb)
+     &                                        ,  wrtslavg(indxVb)
+     &                      ,  wrtslavg(indxU),     wrtslavg(indxV)
+     &                      , (wrtslavg(indxT+itrc-1), itrc=1,NT)
+          if ( wrtslavg(indxZ) .or. wrtslavg(indxUb) .or. wrtslavg(indxVb)
+     &                       .or. wrtslavg(indxU)  .or. wrtslavg(indxV)
+     &       ) wrtslavg(indxTime)=.true.
+
+          mpi_master_only write(*,'(/1x,A,5(/8x,A,T16,L1,T20,A))')
+     &                   'fields to compute time averages of: (T/F)'
+     &                 , 'zeta',   wrtslavg(indxZ),    vname(2,indxZ)
+     &                 , 'ubar',   wrtslavg(indxUb),   vname(2,indxUb)
+     &                 , 'vbar',   wrtslavg(indxVb),   vname(2,indxVb)
+     &                 , 'u',      wrtslavg(indxU),    vname(2,indxU)
+     &                 , 'v',      wrtslavg(indxV),    vname(2,indxV)
+          do itrc=1,NT
+            if (wrtslavg(indxT+itrc-1)) wrtslavg(indxTime)=.true.
+            mpi_master_only write(*,'(8x,A,I2,A,T16,L1,T20,A)') 't(',
+     &        itrc, ')', wrtslavg(indxT+itrc-1), vname(2,indxT+itrc-1)
+          enddo
+#   ifdef SEDIMENT_BIOLOGY
+          do itrc = 1, NT_sed
+            if (wrtslavg(indxSedOrgN+itrc-1)) wrtslavg(indxTime)=.true.
+            MPI_master_only write(*, '(6x,L1,2x,A,I2,A,I2,A)')
+     &           wrtslavg(indxSedOrgN+itrc-1), 'write T_sed(', 
+     &           itrc,')  Sediment tracer of index ', itrc,'.' 
+          end do
+#   endif /* SEDIMENT_BIOLOGY */
+
+        elseif (keyword(1:kwlen) == 'auxiliary_averages') then
+          call cancel_kwd (keyword(1:kwlen), ierr)
+          read(input,*,err=95) wrtslavg(indxR), wrtslavg(indxO)
+     &          ,  wrtslavg(indxW),  wrtslavg(indxAkv),  wrtslavg(indxAkt)
+#   ifdef SALINITY
+     &                                            ,  wrtslavg(indxAks)
+#   endif
+#   ifdef LMD_KPP
+     &                                            ,  wrtslavg(indxHbls)
+#   endif
+#   ifdef LMD_BKPP
+     &                                            ,  wrtslavg(indxHbbl)
+#   endif
+          if ( wrtslavg(indxR) .or. wrtslavg(indxO) .or. wrtslavg(indxW)
+     &                     .or. wrtslavg(indxAkv) .or. wrtslavg(indxAkt)
+#   ifdef SALINITY
+     &                                          .or. wrtslavg(indxAks)
+#   endif
+#   ifdef LMD_KPP
+     &                                          .or. wrtslavg(indxHbls)
+#   endif
+#   ifdef LMD_BKPP
+     &                                          .or. wrtslavg(indxHbbl)
+#   endif
+     &       ) wrtslavg(indxTime)=.true.
+
+          mpi_master_only write(*,'(8(/8x,A,T16,L1,T20,A))')
+     &                   'rho',    wrtslavg(indxR),    vname(2,indxR)
+     &                 , 'Omega',  wrtslavg(indxO),    vname(2,indxO)
+     &                 , 'W',      wrtslavg(indxW),    vname(2,indxW)
+     &                 , 'Akv',    wrtslavg(indxAkv),  vname(2,indxAkv)
+     &                 , 'Akt',    wrtslavg(indxAkt),  vname(2,indxAkt)
+#   ifdef SALINITY
+     &                 , 'Aks',    wrtslavg(indxAks),  vname(2,indxAks)
+#   endif
+#   ifdef LMD_KPP
+     &                 , 'hbls',   wrtslavg(indxHbls), vname(2,indxHbls)
+#    endif
+#   ifdef LMD_BKPP
+     &                 , 'hbbl',   wrtslavg(indxHbbl), vname(2,indxHbbl)
+#   endif
+#  endif /* SLICE_AVERAGES */
 # endif /* SOLVE3D */
 #endif /* AVERAGES */
 
@@ -787,9 +923,6 @@ c--      fname='roms.in.US_West'
           read(input,*,err=95) new_bgc_flux_avg,
      &         nts_bgc_flux_avg, n_bgc_flux_avg, nrpf_bgc_flux_avg
           read(input,'(A)',err=95) fname
-#  ifdef SCRATCH_DIR
-          fname=trim(scr_dir)/ /trim(fname)
-#  endif
           lstr=lenstr(fname)
 #  if defined MPI && defined PARALLEL_FILES && !defined JOINED_BGC_FLUX_AVG
           call insert_node (fname, lstr, mynode, NNODES, ierr)
@@ -819,9 +952,6 @@ c--      fname='roms.in.US_West'
           read(input,*,err=95) new_phys_flux_his,
      &         n_phys_flux_his, nrpf_phys_flux_his
           read(input,'(A)',err=95) fname
-#  ifdef SCRATCH_DIR
-          fname=trim(scr_dir)/ /trim(fname)
-#  endif
           lstr=lenstr(fname)
 # if defined MPI && defined PARALLEL_FILES && !defined PHYS_FLUX_HIS
           call insert_node (fname, lstr, mynode, NNODES, ierr)
@@ -847,9 +977,6 @@ c--      fname='roms.in.US_West'
      &         nts_phys_flux_avg, n_phys_flux_avg,
      &         nrpf_phys_flux_avg
           read(input,'(A)',err=95) fname
-#  ifdef SCRATCH_DIR
-          fname=trim(scr_dir)/ /trim(fname)
-#  endif
           lstr=lenstr(fname)
 #  if defined MPI && defined PARALLEL_FILES && !defined PHYS_FLUX_AVG
           call insert_node (fname, lstr, mynode, NNODES, ierr)
@@ -962,6 +1089,24 @@ c--      fname='roms.in.US_West'
 #  endif
 # endif /* SOLVE3D */
 #endif /* STATIONS */
+
+!DL: keywords related to interannual variations of atm. pCO2:
+#if (defined BIOLOGY_BEC || defined BIOLOGY_BEC2 || defined BIOLOGY_NPZDOC)\
+    && defined VARIABLE_ANN_ATM_PCO2
+        elseif (keyword(1:kwlen) == 'start_year') then
+          ! Year at which the simulation starts. This is needed for
+          ! the computation of the atmospheric pCO2. It can be a 
+          ! floating point number, e.g. 2002.5 if the run starts in
+          ! the middle of 2002.
+          call cancel_kwd (keyword(1:kwlen), ierr)
+          read(input,*,err=95) start_year
+          MPI_master_only write(*,'(1pe10.3,2x,A,1x,A)')
+     &       start_year, 'start_year   point in time (year) when',
+     &       'simulation starts'
+#endif /* BIOLOGY_BEC || BIOLOGY_BEC2 || BIOLOGY_NPZDOC) && VARIABLE_ANN_ATM_PCO2
+
+
+
 
 
 #ifdef FLOATS
@@ -1082,6 +1227,8 @@ c--      fname='roms.in.US_West'
 #ifdef MPI
       call MPI_Barrier (ocean_grid_comm, ierr)
 #endif
+      mpi_master_only print '(/3A)', '------------'
+     &    , ' Finished reading input parameters ', '------------'
       return
       end
 

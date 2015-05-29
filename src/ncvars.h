@@ -20,6 +20,13 @@
 ! indxBSD,BSS bottom sediment grain Density and Size.
 ! indxWWA,WWD,WWP  wind induced wave Amplitude, Direction,and Period
 
+! indxSUSTR,indxSVSTR  surface U-, V-momentum stress (wind forcing)
+! indxSHF        net surface heat flux.
+! indxSWRad       shortwave radiation flux
+! indxSST         sea surface temperature
+! indxdQdSST      Q-correction coefficient dQdSST
+! indxSSFl        surface fresh water flux
+
       integer, parameter :: indxTime=1, indxZ=2, indxUb=3, indxVb=4
 #ifdef SOLVE3D
      &                    , indxU=5, indxV=6, indxO=7, indxW=8
@@ -38,6 +45,28 @@
      &                    , indxSDet=indxNO3+5, indxLDet=indxNO3+6
 # endif
      &                    , indxAkv=indxT+NT,   indxAkt=indxAkv+1
+
+# ifdef SOLVE3D
+     &                    , indxSUSTR=indxAkt+3
+# else
+                          , indxSUSTR=indxVb+1
+# endif
+                          , indxSVSTR=indxSUSTR+1, indxSHF=indxSUSTR+2
+                          , indxSWRad=indxSHF+1
+
+# ifdef SALINITY
+                          , indxSSFl=indxSWRad+1, indxSSS=indxSWRad+2
+                          , indxSST=indxSWRad+3
+# else
+                          , indxSST=indxSWRad+1
+# endif
+                          , indxdQdSST=indxSST+1
+
+# ifdef WRITE_DEPTHS
+                          , indxz_r=indxAkt+1,  indxz_w=indxAkt+2
+     &                    , indxHz=indxAkt+3
+# endif
+
 # if defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC || defined BIOLOGY_BEC2
 
       /* Create space for pH, pCO2, pCO2air, PARinc, PAR: */
@@ -365,6 +394,14 @@
       common /ncvars/
      &        rstU, rstV, rstT,       hisO,   hisW,   hisR,
      &        hisU, hisV, hisT,       hisAkv, hisAkt, hisAks
+# if defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC
+     &      , rstPH, rstPCO2, rstPCO2air, rstPAR
+     &      , hisPH, hisPCO2, hisPCO2air, hisPARinc, hisPAR
+     &      , avgPH, avgPCO2, avgPCO2air, avgPARinc, avgPAR
+#  ifdef SLICE_AVG
+     &      , slavgPH, slavgPCO2, slavgPCO2air, slavgPARinc, slavgPAR
+#  endif
+# endif /* BIOLOGY_NPZDOC || BIOLOGY_BEC */
 
 # ifdef WRITE_DEPTHS
      &      , hisz_r, hisz_w, hisHz
@@ -387,7 +424,7 @@
       integer rstHbbl, hisHbbl
       common /ncvars/ rstHbbl, hisHbbl
 # endif
-#endif
+#endif /* SOLVE3D */
 
 #ifdef AVERAGES
       integer ncavg, nrecavg, nrpfavg,  avgTime, avgZ, avgUb, avgVb
@@ -436,8 +473,8 @@
       common /ncvars/ slavgHbbl
 #   endif
 #  endif /* SLICE_AVG */
-# endif
-#endif
+# endif /* SOLVE3D */
+#endif /* AVERAGES */
 
 #ifdef STATIONS
       integer nstation,  ispos(NS), jspos(NS),
@@ -457,13 +494,13 @@
       integer stnHbbl
       common /ncvars/ stnHbbl
 #  endif
-# endif
-#endif
+# endif /* SOLVE3D */
+#endif /* STATIONS */
+
 #if defined PASSIVE_TRACER && defined AGE_DYE_TRACER
       integer ncid_ad(ntrc_pas), ad_tid(ntrc_pas), bcVal_id(ntrc_pas)
       common /ncvars/ ncid_ad, ad_tid,  bcVal_id
 #endif /* PASSIVE_TRACER && AGE_DYE_TRACER */
-
 
 #ifdef SOLVE3D
 # define NWRTHIS 100+NT
@@ -532,9 +569,16 @@
 # endif
 #endif
 #if (defined TCLIMATOLOGY && !defined ANA_TCLIMA) || !defined ANA_SSH
+# ifdef MULT_CLIM_FILES
+      integer, parameter :: max_clm_files=2
+      integer nclimfiles
+      character(len=max_name_size) clm_file(max_clm_files)
+      common /cncvars/ nclimfiles, clm_file
+# else
       character(len=max_name_size) clm_file
       common /cncvars/ clm_file
-#endif
+# endif /* MULT_CLIM_FILES */
+#endif /* (defined TCLIMATOLOGY && ... */
 #if defined T_FRC_BRY  || defined M2_FRC_BRY || \
     defined M3_FRC_BRY || defined Z_FRC_BRY
       character(len=max_name_size) bry_file

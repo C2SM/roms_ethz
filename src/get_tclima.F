@@ -14,6 +14,15 @@
 # include "netcdf.inc"
       real cff
       integer i,itrc, lstr,lvar,lenstr, ierr, nf_fread
+# ifdef MULT_CLIM_FILES
+      integer ncidclm_loc(4)
+# else
+      integer ncidclm_loc
+# endif
+      integer ii
+      logical var_found
+      ! Array giving file in which data for each tracer are:
+      character(len=80) clm_file_tr(NT)
 
 ! Initialization: Check, whether climatological data file is already
 !---------------- opened, and if not, open it.  Find and save netCDF
