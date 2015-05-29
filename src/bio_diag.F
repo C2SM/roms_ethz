@@ -1,6 +1,5 @@
 #include "cppdefs.h"
-#ifdef BIOLOGY
-
+#if defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC || defined BIOLOGY
       subroutine bio_diag (tile)
       implicit none
       integer tile
@@ -23,6 +22,7 @@
 # include "comm_vars.h"
 
 # define  ETALON_CHECK
+#undef ETALON_CHECK
 # ifdef ETALON_CHECK
       integer ncheck, nparam
       parameter (ncheck=10, nparam=4)
@@ -33,7 +33,7 @@
       real    A0(nparam), A1(nparam)
       integer P0(nparam), P1(nparam)
 
-# include "etalon_data.PACIFIC"
+# include "etalon_data.h"
 # endif
 
       if (mod(iic-1,ninfo)==0) then
@@ -137,7 +137,7 @@ C$OMP CRITICAL (bio_cr_rgn)
               if (iic-1==check_point(icheck)) then
                 write(check_line,3,iostat=iocheck) cff,global_sum(7),
      &                                  global_sum( 9),global_sum(11)
-   3            format(ES15.9,3(ES14.7))
+   3            format(1PE15.9,3(1pe14.7))
                 if (check_line == etalon_line(icheck)) then
                   write(*,*) 'PASSED_ETALON_CHECK'
                 else
@@ -171,11 +171,133 @@ C$OMP CRITICAL (bio_cr_rgn)
               endif
             enddo
 # endif
-          endif
+#ifdef MPI
+          endif    ! <-- mynode==0
+#endif
+          endif  ! <-- bc_count==NSUB
 C$OMP END CRITICAL (bio_cr_rgn)
-      endif
+      endif  ! <-- mod(iic-1,ninfo)==0
       end
 #else
+! the wrapper routine for calc_global_srf_sum_tile
+      subroutine calc_global_srf_sum(tile)
+      implicit none
+      integer tile
+# include "param.h"
+# include "compute_tile_bounds.h"
+      call calc_global_srf_sum_tile(Istr,Iend,Jstr,Jend)
+      end
+
+! calculates the global surface volume and concentrations for one tile
+      subroutine calc_global_srf_sum_tile(Istr,Iend,Jstr,Jend)
+      
+!      USE param
+!      USE scalars
+!      USE grid
+!      USE ocean3d
+
+      implicit none
+#include "param.h"
+#include "grid.h"
+#include "ocean3d.h"
+#include "scalars.h"
+#include "comm_vars.h"
+      integer i,j,Istr,Iend,Jstr,Jend,itrc,NSUB
+      real cff1
+      real*QUAD my_srf_sum(0:NT)
+
+      do itrc = 0, NT
+         my_srf_sum(itrc) = QuadZero
+      enddo
+      do j=Jstr,Jend
+         do i=Istr,Iend
+#ifdef MASKING
+           cff1=rmask(i,j)/(pm(i,j)*pn(i,j))  ! <-- grid box area
+#else 
+           cff1=1./(pm(i,j)*pn(i,j))
+#endif
+           my_srf_sum(0)=my_srf_sum(0) + cff1*Hz(i,j,N) ! accumulate volume
+           do itrc=1,NT
+              my_srf_sum(itrc) = my_srf_sum(itrc) +
+     &             cff1 * Hz(i,j,N) * t(i,j,N,nstp,itrc) 
+           enddo
+
+           if (SINGLE_TILE_MODE) then
+              NSUB=1
+           else
+              NSUB=NSUB_X*NSUB_E
+           endif
+         enddo
+      enddo
+
+! Summation over OpenMP threads:
+C$OMP CRITICAL (bio_diag_rgn)
+      do itrc = 0, NT
+         global_srf_sum(itrc) = global_srf_sum(itrc) + 
+     &             my_srf_sum(itrc)
+      enddo
+C$OMP END CRITICAL (bio_diag_rgn)
+
+      return 
+      end
+
+
+! computes actual concentrations by dividing the total masses by volume
+      subroutine scale_global_srf_sum()
+
+!      USE param
+!      USE scalars
+
+      implicit none
+#include "param.h"
+#include "scalars.h"
+#include "comm_vars.h"
+      integer itrc
+      real*QUAD factor
+#ifdef MPI
+# include "mpif.h"
+      integer size, step, status(MPI_STATUS_SIZE), ierr
+      real*QUAD buff(0:2*NT+1)
+#endif
+
+#ifdef MPI
+!DL: at this point, each MPI process has an array global_srf_sum with
+! values for its own tile only. Now we sum over the MPI domains:
+      if (NNODES.gt.1) then
+         size=NNODES
+ 33       step=(size+1)/2
+         if (mynode.ge.step .and. mynode.lt.size) then
+            ! global_srf_sum may be real*16, so the size of the message
+            ! in the following send is doubled:
+            call MPI_Send (global_srf_sum, 2*NT+2, MPI_DOUBLE_PRECISION,
+     &           mynode-step, 18, MPI_COMM_WORLD, ierr)
+         elseif (mynode .lt. size-step) then
+            call MPI_Recv (buff, 2*NT+2 , MPI_DOUBLE_PRECISION,
+     &           mynode+step, 18, MPI_COMM_WORLD, status, ierr)
+            do itrc=0,NT
+               global_srf_sum(itrc)=global_srf_sum(itrc)+buff(itrc)
+            enddo
+         end if   ! <-- mynode.ge.step .and. mynode.lt.size
+         size=step
+         if (size.gt.1) goto 33
+
+         call MPI_Barrier (ocean_grid_comm, ierr)
+         call MPI_Bcast(global_srf_sum, 2*NT+2, MPI_DOUBLE_PRECISION,
+     &               0, ocean_grid_comm, ierr)
+      end if   ! <-- NNODES.gt.1
+#endif
+
+      ! global_srf_sum(0) is now the volume of the whole model domain:
+      factor = 1.0 / global_srf_sum(0)
+      do itrc = 1, NT
+         global_srf_sum(itrc) = global_srf_sum(itrc) * factor
+      enddo
+
+      return
+      end
+#endif /* SALINITY && VFLX_CORR */
+ 
+#else /* BIOLOGY_NPZDOC || BIOLOGY_BEC || BIOLOGY */
       subroutine bio_diag_empty
       end
-#endif
+#endif /* BIOLOGY_NPZDOC || BIOLOGY_BEC || BIOLOGY */
