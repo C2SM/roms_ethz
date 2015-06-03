@@ -231,6 +231,7 @@ c--# define IMPLCT_NO_SLIP_BTTM_BC
 
 #ifdef MPI
 # define mpi_master_only if (mynode==0)
+# define MPI_master_only if (mynode==0)
 # ifdef MPI_SILENT_MODE
 #  define mpi_nonexit_warn if (mynode==0)
 #  define MYID !

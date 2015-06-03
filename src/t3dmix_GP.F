@@ -171,9 +171,8 @@ c**  &                                                             )
           do j=jstr,jend
             do i=istr,iend
               t(i,j,k,nnew,itrc)=t(i,j,k,nnew,itrc)+dt*( pm(i,j)*
-     &                                   pn(i,j)*( FX(i+1,j)-FX(i,j)
-     &                                            +FE(i,j+1)-FE(i,j))
-     &                                         +FC(i,j,k2)-FC(i,j,k1)
+     &               pn(i,j)*( FX(i+1,j)-FX(i,j) +FE(i,j+1)-FE(i,j) )
+     &                                       +FSC(i,j,k2)-FSC(i,j,k1)
      &                                                   )/Hz(i,j,k)
             enddo
           enddo
@@ -200,7 +199,7 @@ c**  &                                                             )
            do i=Istr,Iend
               ! unit: mmol/(m2 s)
               ! reverse sign so that fluxes are positive upwards
-              VertMixFlux(i,j,k,itrc) = -FC(i,j,k2)
+              VertMixFlux(i,j,k,itrc) = -FSC(i,j,k2)
 #   ifdef MASKING
      &             * rmask(i,j)
 #   endif
@@ -561,7 +560,7 @@ c**  &                                                             )
            do i=Istr,Iend
               ! unit: mmol/(m2 s)
               ! reverse sign so that fluxes are positive upwards
-              VertMixFlux(i,j,k,itrc) = -FC(i,j,k2)
+              VertMixFlux(i,j,k,itrc) = -FSC(i,j,k2)
 #   ifdef MASKING
      &             * rmask(i,j)
 #   endif

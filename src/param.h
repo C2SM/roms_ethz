@@ -175,13 +175,14 @@ c     &      NSUB_X=8, NSUB_E=48
 #ifdef SOLVE3D
      &       , itemp=1
 # ifdef SALINITY
-     &       , isalt=2
+     &       , isalt=2, ntrc_salt=1
 #  ifdef BIOLOGY
      &       , NT=7, iNO3_=3, iNH4_=4, iDet_=5, iPhyt=6, iZoo_=7
 #  else
      &       , NT=2
 #  endif
 # else
+     &       ,  ntrc_salt=0
 #  ifdef BIOLOGY
      &       , NT=6, iNO3_=2, iNH4_=3, iDet_=4, iPhyt=5, iZoo_=6
 #  else

@@ -64,8 +64,7 @@ IOSRC = nf_fread.F	nf_read_bry.F	set_cycle.F	checkdims.F\
 	get_forces.F	get_bry_all.F	get_tclima.F	get_uclima.F\
 	get_ssh.F	get_smflux.F	get_stflux.F	get_srflux.F\
 	get_sst.F	get_dqdt.F	get_sss.F	get_stress_magn.F\
-	get_tides.F	set_tides.F
-\
+	get_tides.F	set_tides.F \
 	get_nox.F       get_nhy.F       get_din_river.F # for BEC2
 
 

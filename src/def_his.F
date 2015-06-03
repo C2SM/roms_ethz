@@ -1329,9 +1329,9 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
               ierr=rec+1 - (1+mod(total_rec-1, rec_per_file))
             endif
             if (ierr.gt.0) then
-              MPI_master_only write( stdout,
+              mpi_master_only write(*,
      &                 '(/1x,3A,I5,1x,A/8x,3A,I5,/8x,A,I5,1x,A/)'
-     &           ) 'WARNING: ', DEF_FOUT,': Actual number of records',
+     &           ) 'WARNING: ', 'DEF_FOUT',': Actual number of records',
      &               rec,  'in netCDF file',  '''',  fname(1:lfnm),
      &             ''' exceeds the record number from restart data',
      &             rec+1-ierr,'/', total_rec,', restart is assumed.'
@@ -1457,7 +1457,7 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
             ierr=nf_inq_varid (ncid, 
      &           vname(1,indxSedOrgN+itrc-1)(1:lvar),vidTsed(itrc))
             if (ierr .ne. nf_noerr) then
-              write(stdout,1) vname(1,indxSedOrgN+itrc-1)(1:lvar),
+              write(*,1) vname(1,indxSedOrgN+itrc-1)(1:lvar),
      &                                       fname(1:lfnm) 
               goto 99                                     !--> ERROR
             endif
@@ -1561,7 +1561,7 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
         lvar=lenstr(vname(1,indxHCO3d_rst))
         ierr=nf_inq_varid (ncid,vname(1,indxHCO3d_rst)(1:lvar), vidHCO3d)
         if (ierr .ne. nf_noerr) then
-           write(stdout,1) vname(1,indxHCO3d_rst)(1:lvar), fname(1:lfnm)
+           write(*,1) vname(1,indxHCO3d_rst)(1:lvar), fname(1:lfnm)
            goto 99                                       !--> ERROR
         endif
 
@@ -1571,7 +1571,7 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
         lvar=lenstr(vname(1,indxCO3d_rst))
         ierr=nf_inq_varid (ncid,vname(1,indxCO3d_rst)(1:lvar), vidCO3d)
         if (ierr .ne. nf_noerr) then
-           write(stdout,1) vname(1,indxCO3d_rst)(1:lvar), fname(1:lfnm)
+           write(*,1) vname(1,indxCO3d_rst)(1:lvar), fname(1:lfnm)
            goto 99                                       !--> ERROR
         endif
 
@@ -1581,7 +1581,7 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
         lvar=lenstr(vname(1,indxCO2STARd_rst))
         ierr=nf_inq_varid (ncid,vname(1,indxCO2STARd_rst)(1:lvar), vidCO2STARd)
         if (ierr .ne. nf_noerr) then
-           write(stdout,1) vname(1,indxCO2STARd_rst)(1:lvar), fname(1:lfnm)
+           write(*,1) vname(1,indxCO2STARd_rst)(1:lvar), fname(1:lfnm)
            goto 99                                       !--> ERROR
         endif
 
@@ -1591,7 +1591,7 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
         lvar=lenstr(vname(1,indxPHd_rst))
         ierr=nf_inq_varid (ncid,vname(1,indxPHd_rst)(1:lvar), vidPHd)
         if (ierr .ne. nf_noerr) then
-           write(stdout,1) vname(1,indxPHd_rst)(1:lvar), fname(1:lfnm)
+           write(*,1) vname(1,indxPHd_rst)(1:lvar), fname(1:lfnm)
            goto 99                                       !--> ERROR
         endif
 
@@ -1603,7 +1603,7 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
         lvar=lenstr(vname(1,indxPH_rst))
         ierr=nf_inq_varid (ncid,vname(1,indxPH_rst)(1:lvar), vidPH)
         if (ierr .ne. nf_noerr) then
-           write(stdout,1) vname(1,indxPH_rst)(1:lvar), fname(1:lfnm)
+           write(*,1) vname(1,indxPH_rst)(1:lvar), fname(1:lfnm)
            goto 99                                       !--> ERROR
         endif
 !
@@ -1612,7 +1612,7 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
         lvar=lenstr(vname(1,indxPCO2_rst))
         ierr=nf_inq_varid (ncid,vname(1,indxPCO2_rst)(1:lvar), vidPCO2)
         if (ierr .ne. nf_noerr) then
-           write(stdout,1) vname(1,indxPCO2_rst)(1:lvar), fname(1:lfnm)
+           write(*,1) vname(1,indxPCO2_rst)(1:lvar), fname(1:lfnm)
            goto 99                                       !--> ERROR
         endif
 !
@@ -1622,7 +1622,7 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
         ierr=nf_inq_varid (ncid,vname(1,indxPCO2air_rst)(1:lvar), 
      &       vidPCO2air)
         if (ierr .ne. nf_noerr) then
-           write(stdout,1) vname(1,indxPCO2air_rst)(1:lvar), 
+           write(*,1) vname(1,indxPCO2air_rst)(1:lvar), 
      &          fname(1:lfnm)
            goto 99                                       !--> ERROR
         endif
@@ -1637,7 +1637,7 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
            ierr=nf_inq_varid (ncid,vname_bec2_diag_2d(1,itrc)(1:lvar), 
      &                        vidT_bec2(itrc))
            if (ierr .ne. nf_noerr) then
-              write(stdout,1) vname_bec2_diag_2d(1,itrc)(1:lvar), 
+              write(*,1) vname_bec2_diag_2d(1,itrc)(1:lvar), 
      &             fname(1:lfnm)
               goto 99                                       !--> ERROR
            endif
@@ -1650,7 +1650,7 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
            ierr=nf_inq_varid (ncid,vname_bec2_diag_3d(1,itrc)(1:lvar), 
      &                        vidT_bec2(nr_bec2_diag_2d+itrc))
            if (ierr .ne. nf_noerr) then
-              write(stdout,1) vname_bec2_diag_3d(1,itrc)(1:lvar), 
+              write(*,1) vname_bec2_diag_3d(1,itrc)(1:lvar), 
      &             fname(1:lfnm)
               goto 99                                       !--> ERROR
            endif
@@ -1665,7 +1665,7 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
         ierr=nf_inq_varid (ncid,vname(1,indxPARinc_rst)(1:lvar), 
      &       vidPARinc)
         if (ierr .ne. nf_noerr) then
-           write(stdout,1) vname(1,indxPARinc_rst)(1:lvar), 
+           write(*,1) vname(1,indxPARinc_rst)(1:lvar), 
      &          fname(1:lfnm)
            goto 99                                       !--> ERROR
         endif
@@ -1675,7 +1675,7 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
         lvar=lenstr(vname(1,indxPAR_rst))
         ierr=nf_inq_varid (ncid,vname(1,indxPAR_rst)(1:lvar), vidPAR)
         if (ierr .ne. nf_noerr) then
-           write(stdout,1) vname(1,indxPAR_rst)(1:lvar), fname(1:lfnm)
+           write(*,1) vname(1,indxPAR_rst)(1:lvar), fname(1:lfnm)
            goto 99                                       !--> ERROR
         endif
 # endif /* BIOLOGY_BEC || BIOLOGY_NPZDOC */
@@ -1687,7 +1687,7 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
         lvar=lenstr(vname(1,indxz_r))
         ierr=nf_inq_varid (ncid,vname(1,indxz_r)(1:lvar), vidz_r)
         if (ierr .ne. nf_noerr) then
-           write(stdout,1) vname(1,indxz_r)(1:lvar), fname(1:lfnm)
+           write(*,1) vname(1,indxz_r)(1:lvar), fname(1:lfnm)
            goto 99                                       !--> ERROR
         endif
 !
@@ -1696,7 +1696,7 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
         lvar=lenstr(vname(1,indxz_w))
         ierr=nf_inq_varid (ncid,vname(1,indxz_w)(1:lvar), vidz_w)
         if (ierr .ne. nf_noerr) then
-           write(stdout,1) vname(1,indxz_w)(1:lvar), fname(1:lfnm)
+           write(*,1) vname(1,indxz_w)(1:lvar), fname(1:lfnm)
            goto 99                                       !--> ERROR
         endif
 !
@@ -1705,7 +1705,7 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
         lvar=lenstr(vname(1,indxHz))
         ierr=nf_inq_varid (ncid,vname(1,indxHz)(1:lvar), vidHz)
         if (ierr .ne. nf_noerr) then
-           write(stdout,1) vname(1,indxHz)(1:lvar), fname(1:lfnm)
+           write(*,1) vname(1,indxHz)(1:lvar), fname(1:lfnm)
            goto 99                                       !--> ERROR
         endif
 # endif /* WRITE_DEPTHS */
@@ -1719,7 +1719,7 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
      &          vname_GasExcFlux(1,itrc)(1:lvar),
      &          vidGasExcFlux(itrc))
            if (ierr .ne. nf_noerr) then
-              write(stdout,1) 
+              write(*,1) 
      &             vname_GasExcFlux(1,itrc)(1:lvar), 
      &             fname(1:lfnm)
               goto 99           !--> ERROR
@@ -1740,7 +1740,7 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
       else
         ierr=nf_open (fname(1:lfnm), nf_write, ncid)
         if (ierr .eq. nf_noerr) then
-CR          write(stdout,'(1x,5A,I5)')  SDEF_FOUT,  ': Opened ',
+CR          write(*,'(1x,5A,I5)')  SDEF_FOUT,  ': Opened ',
 CR     &      'existing file ''', fname(1:lfnm), ''' ncid =', ncid
         else
           write(*,'(/1x,6A,I4/)')  '### ERROR: SDEF_FOUT :: Cannot ',

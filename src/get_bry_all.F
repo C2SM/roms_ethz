@@ -19,6 +19,10 @@
 # if defined OBC_SOUTH || defined OBC_NORTH
      &                          , nf_read_bry_NS
 # endif
+# ifdef T_FRC_BRY
+      character*40 vname_bry
+      logical bry_set
+# endif
       logical need_bry
 # ifdef OBC_WEST
      &      , west_bry_active
@@ -141,15 +145,15 @@
               ierr_all=ierr_all+ierr
 #    endif
           do itrc = itemp + ntrc_salt + 1, NT
-             lvar=lenstr(vname(1,itrc+indxT-itemp))
-             vname_bry = vname(1,itrc+indxT-itemp)(1:lvar)/ /'_west'
+             lstr=lenstr(vname(1,itrc+indxT-itemp))
+             vname_bry = vname(1,itrc+indxT-itemp)(1:lstr)/ /'_west'
 
              ierr=nf_inq_varid (bry_id, vname_bry,
      &            t_west_id(itrc))
 ! NOTE: as currently coded, only a warning is issued, not an error
 ! default boundary conditions and/or error handling must be provided below!
              if (ierr.ne.nf_noerr) then
-                write(stdout,11) vname_bry(1:lvar+5)
+                write(*,11) vname_bry(1:lstr+5)
                 t_west_id(itrc) = 0
              end if
           end do
@@ -199,15 +203,15 @@
               ierr_all=ierr_all+ierr
 #    endif
           do itrc = itemp + ntrc_salt + 1, NT
-             lvar=lenstr(vname(1,itrc+indxT-itemp))
-             vname_bry = vname(1,itrc+indxT-itemp)(1:lvar)/ /'_east'
+             lstr=lenstr(vname(1,itrc+indxT-itemp))
+             vname_bry = vname(1,itrc+indxT-itemp)(1:lstr)/ /'_east'
 
              ierr=nf_inq_varid (bry_id, vname_bry,
      &            t_east_id(itrc))
 ! NOTE: as currently coded, only a warning is issued, not an error
 ! default boundary conditions and/or error handling must be provided below!
              if (ierr.ne.nf_noerr) then
-                write(stdout,11) vname_bry(1:lvar+5)
+                write(*,11) vname_bry(1:lstr+5)
                 t_east_id(itrc) = 0
              end if
           end do
@@ -257,15 +261,15 @@
               ierr_all=ierr_all+ierr
 #    endif
           do itrc = itemp + ntrc_salt + 1, NT
-             lvar=lenstr(vname(1,itrc+indxT-itemp))
-             vname_bry = vname(1,itrc+indxT-itemp)(1:lvar)/ /'_south'
+             lstr=lenstr(vname(1,itrc+indxT-itemp))
+             vname_bry = vname(1,itrc+indxT-itemp)(1:lstr)/ /'_south'
 
              ierr=nf_inq_varid (bry_id, vname_bry,
      &            t_south_id(itrc))
 ! NOTE: as currently coded, only a warning is issued, not an error
 ! default boundary conditions and/or error handling must be provided below!
              if (ierr.ne.nf_noerr) then
-                write(stdout,11) vname_bry(1:lvar+6)
+                write(*,11) vname_bry(1:lstr+6)
                 t_south_id(itrc) = 0
              end if
           end do
@@ -315,15 +319,15 @@
               ierr_all=ierr_all+ierr
 #    endif
           do itrc = itemp + ntrc_salt + 1, NT
-             lvar=lenstr(vname(1,itrc+indxT-itemp))
-             vname_bry = vname(1,itrc+indxT-itemp)(1:lvar)/ /'_north'
+             lstr=lenstr(vname(1,itrc+indxT-itemp))
+             vname_bry = vname(1,itrc+indxT-itemp)(1:lstr)/ /'_north'
 
              ierr=nf_inq_varid (bry_id, vname_bry,
      &            t_north_id(itrc))
 ! NOTE: as currently coded, only a warning is issued, not an error
 ! default boundary conditions and/or error handling must be provided below!
              if (ierr.ne.nf_noerr) then
-                write(stdout,11) vname_bry(1:lvar+6)
+                write(*,11) vname_bry(1:lstr+6)
                 t_north_id(itrc) = 0
              end if
 
@@ -348,6 +352,7 @@
       endif
   1   format(1x,'### ERROR: get_bry_all :: Cannot find variable ''',
      &                                A, ''' in file ''', A, '''.')
+  11   format(' --> NOTE: get_bry_all: Cannot find variable ''',A,'''')
 
 ! Read data from the file:  Check if model time is bounded by past and
 !----- ---- ---- --- -----  future data times: if not, increment record
@@ -397,7 +402,7 @@
      &                 bry_id, t_west_id(itrc),  bry_rec, r3dvar)
                   if (ierr.ne.nf_noerr)  then
                      if (itrc .le. 1 + ntrc_salt) then
-                        write(stdout,2)  vname_bry(1:lvar+5)
+                        write(*,2)  vname_bry(1:lstr+5)
                         ierr_all=ierr_all+ierr
                      end if
                   else
@@ -418,7 +423,7 @@
                if (.not. bry_set .and. itrc .ge. itpas(1) .and. 
      &              itrc .le. itpas(ntrc_pas)) then
                   ierr = 0
-                  write(stdout,3)  vname_bry(1:lvar+5)
+                  write(*,3)  vname_bry(1:lstr+5)
                   t_west_dt(:,:,itbry,itrc) = 0.0
 !HF: assume a special case: if number of passive tracers equals number
 ! of sigma levels, use each passive tracer to track advection/diffusion
@@ -443,11 +448,11 @@
 !     &                 .or. itrc .eq. iDIC .or. itrc .eq. iTALK
 !#     endif
 !     &                 ) then
-!                     write(stdout,2)  vname_bry(1:lvar+5)
+!                     write(*,2)  vname_bry(1:lstr+5)
 !                     ierr_all=ierr_all+ierr
 !                  else
                      ierr = 0
-                     write(stdout,3)  vname_bry(1:lvar+5)
+                     write(*,3)  vname_bry(1:lstr+5)
                      if (itrc .eq. iNO3_) then
 #     define temp cff
 #     define SiO4 cff1
@@ -519,11 +524,11 @@
 !                  if ( (itrc .ge. iPO4 .and. itrc .le. iSIO3)
 !     &                 .or. (itrc .ge. iFE .and. itrc .le. iALK)
 !     &                 ) then
-!                     write(stdout,2)  vname_bry(1:lvar+5)
+!                     write(*,2)  vname_bry(1:lstr+5)
 !                     ierr_all=ierr_all+ierr
 !                  else
                      ierr = 0
-                     write(stdout,3)  vname_bry(1:lvar+5)
+                     write(*,3)  vname_bry(1:lstr+5)
                      if (itrc .eq. iNH4 .or. itrc .eq. iDOC .or.
      &                    itrc .eq. iDON .or. itrc. eq. iDOFE
      &                    .or. itrc .eq. iDOP) then
@@ -642,7 +647,7 @@
      &                 bry_id, t_east_id(itrc),  bry_rec, r3dvar)
                   if (ierr.ne.nf_noerr)  then
                      if (itrc .le. 1 + ntrc_salt) then
-                        write(stdout,2)  vname_bry(1:lvar+5)
+                        write(*,2)  vname_bry(1:lstr+5)
                         ierr_all=ierr_all+ierr
                      end if
                   else
@@ -663,7 +668,7 @@
                if (.not. bry_set .and. itrc .ge. itpas(1) .and. 
      &              itrc .le. itpas(ntrc_pas)) then
                   ierr = 0
-                  write(stdout,3)  vname_bry(1:lvar+5)
+                  write(*,3)  vname_bry(1:lstr+5)
                   t_east_dt(:,:,itbry,itrc) = 0.0
 !HF: assume a special case: if number of passive tracers equals number
 ! of sigma levels, use each passive tracer to track advection/diffusion
@@ -688,11 +693,11 @@
 !     &                 .or. itrc .eq. iDIC .or. itrc .eq. iTALK
 !#     endif
 !     &                 ) then
-!                     write(stdout,2)  vname_bry(1:lvar+5)
+!                     write(*,2)  vname_bry(1:lstr+5)
 !                     ierr_all=ierr_all+ierr
 !                  else
                      ierr = 0
-                     write(stdout,3)  vname_bry(1:lvar+5)
+                     write(*,3)  vname_bry(1:lstr+5)
                      if (itrc .eq. iNO3_) then
 #     define temp cff
 #     define SiO4 cff1
@@ -764,11 +769,11 @@
 !                  if ( (itrc .ge. iPO4 .and. itrc .le. iSIO3)
 !     &                 .or. (itrc .ge. iFE .and. itrc .le. iALK)
 !     &                 ) then
-!                     write(stdout,2)  vname_bry(1:lvar+5)
+!                     write(*,2)  vname_bry(1:lstr+5)
 !                     ierr_all=ierr_all+ierr
 !                  else
                      ierr = 0
-                     write(stdout,3)  vname_bry(1:lvar+5)
+                     write(*,3)  vname_bry(1:lstr+5)
                      if (itrc .eq. iNH4 .or. itrc .eq. iDOC .or.
      &                    itrc .eq. iDON .or. itrc. eq. iDOFE
      &                    .or. itrc .eq. iDOP) then
@@ -885,14 +890,14 @@
 #   ifdef T_FRC_BRY
             do itrc=1,NT
                bry_set = .false.
-               lvar=lenstr(vname(1,indxT+itrc-1))
-               vname_bry = vname(1,indxT+itrc-1)(1:lvar)/ /'_south'
+               lstr=lenstr(vname(1,indxT+itrc-1))
+               vname_bry = vname(1,indxT+itrc-1)(1:lstr)/ /'_south'
                if (t_south_id(itrc) .gt. 0) then
                   ierr=nf_read_bry_NS (t_south_dt(0,1,itbry,itrc),
      &                 bry_id, t_south_id(itrc),  bry_rec, r3dvar)
                   if (ierr.ne.nf_noerr)  then
                      if (itrc .le. 1 + ntrc_salt) then
-                        write(stdout,2)  vname_bry(1:lvar+6)
+                        write(*,2)  vname_bry(1:lstr+6)
                         ierr_all=ierr_all+ierr
                      end if
                   else
@@ -913,7 +918,7 @@
                if (.not. bry_set .and. itrc .ge. itpas(1) .and. 
      &              itrc .le. itpas(ntrc_pas)) then
                   ierr = 0
-                  write(stdout,3)  vname_bry(1:lvar+6)
+                  write(*,3)  vname_bry(1:lstr+6)
                   t_south_dt(:,:,itbry,itrc) = 0.0
 !HF: assume a special case: if number of passive tracers equals number
 ! of sigma levels, use each passive tracer to track advection/diffusion
@@ -938,11 +943,11 @@
 !     &                 .or. itrc .eq. iDIC .or. itrc .eq. iTALK
 !#     endif
 !     &                 ) then
-!                     write(stdout,2)  vname_bry(1:lvar+6)
+!                     write(*,2)  vname_bry(1:lstr+6)
 !                     ierr_all=ierr_all+ierr
 !                  else
                      ierr = 0
-                     write(stdout,3)  vname_bry(1:lvar+6)
+                     write(*,3)  vname_bry(1:lstr+6)
                      if (itrc .eq. iNO3_) then
 #  define temp cff
 #  define SiO4 cff1
@@ -1014,11 +1019,11 @@
 !                  if ( (itrc .ge. iPO4 .and. itrc .le. iSIO3)
 !     &                 .or. (itrc .ge. iFE .and. itrc .le. iALK)
 !     &                 ) then
-!                     write(stdout,2)  vname_bry(1:lvar+6)
+!                     write(*,2)  vname_bry(1:lstr+6)
 !                     ierr_all=ierr_all+ierr
 !                  else
                      ierr = 0
-                     write(stdout,3)  vname_bry(1:lvar+6)
+                     write(*,3)  vname_bry(1:lstr+6)
                      if (itrc .eq. iNH4 .or. itrc .eq. iDOC .or.
      &                    itrc .eq. iDON .or. itrc. eq. iDOFE
      &                    .or. itrc .eq. iDOP) then
@@ -1112,41 +1117,41 @@
 #  ifdef Z_FRC_BRY
               ierr=nf_read_bry_NS (zeta_north_dt(0,itbry), bry_id,
      &                             zeta_north_id, bry_rec, r2dvar)
-              if (ierr.ne.nf_noerr) write(stdout,2) 'zeta_north'
+              if (ierr.ne.nf_noerr) write(*,2) 'zeta_north'
               ierr_all=ierr_all+ierr
 #  endif
 #  ifdef M2_FRC_BRY
               ierr=nf_read_bry_NS (ubar_north_dt(0,itbry), bry_id,
      &                             ubar_north_id, bry_rec, u2dvar)
-              if (ierr.ne.nf_noerr) write(stdout,2) 'ubar_north'
+              if (ierr.ne.nf_noerr) write(*,2) 'ubar_north'
               ierr_all=ierr_all+ierr
               ierr=nf_read_bry_NS (vbar_north_dt(0,itbry), bry_id, 
      &                             vbar_north_id, bry_rec, v2dvar)
-              if (ierr.ne.nf_noerr) write(stdout,2) 'vbar_north'
+              if (ierr.ne.nf_noerr) write(*,2) 'vbar_north'
               ierr_all=ierr_all+ierr
 #  endif
 #  ifdef SOLVE3D
 #   ifdef M3_FRC_BRY
               ierr=nf_read_bry_NS (u_north_dt(0,1,itbry), bry_id,
      &                             u_north_id,  bry_rec,  u3dvar)
-              if (ierr.ne.nf_noerr)  write(stdout,2)  'u_north'
+              if (ierr.ne.nf_noerr)  write(*,2)  'u_north'
               ierr_all=ierr_all+ierr
               ierr=nf_read_bry_NS (v_north_dt(0,1,itbry), bry_id,
      &                             v_north_id,  bry_rec,  v3dvar)
-              if (ierr.ne.nf_noerr)  write(stdout,2)  'v_north'
+              if (ierr.ne.nf_noerr)  write(*,2)  'v_north'
               ierr_all=ierr_all+ierr
 #   endif
 #   ifdef T_FRC_BRY
             do itrc=1,NT
                bry_set = .false.
-               lvar=lenstr(vname(1,indxT+itrc-1))
-               vname_bry = vname(1,indxT+itrc-1)(1:lvar)/ /'_north'
+               lstr=lenstr(vname(1,indxT+itrc-1))
+               vname_bry = vname(1,indxT+itrc-1)(1:lstr)/ /'_north'
                if (t_north_id(itrc) .gt. 0) then
                   ierr=nf_read_bry_NS (t_north_dt(0,1,itbry,itrc),
      &                 bry_id, t_north_id(itrc),  bry_rec, r3dvar)
                   if (ierr.ne.nf_noerr)  then
                      if (itrc .le. 1 + ntrc_salt) then
-                        write(stdout,2)  vname_bry(1:lvar+6)
+                        write(*,2)  vname_bry(1:lstr+6)
                         ierr_all=ierr_all+ierr
                      end if
                   else
@@ -1167,7 +1172,7 @@
                if (.not. bry_set .and. itrc .ge. itpas(1) .and. 
      &              itrc .le. itpas(ntrc_pas)) then
                   ierr = 0
-                  write(stdout,3)  vname_bry(1:lvar+6)
+                  write(*,3)  vname_bry(1:lstr+6)
                   t_north_dt(:,:,itbry,itrc) = 0.0
 !HF: assume a special case: if number of passive tracers equals number
 ! of sigma levels, use each passive tracer to track advection/diffusion
@@ -1192,11 +1197,11 @@
 !     &                 .or. itrc .eq. iDIC .or. itrc .eq. iTALK
 !#     endif
 !     &                 ) then
-!                     write(stdout,2)  vname_bry(1:lvar+6)
+!                     write(*,2)  vname_bry(1:lstr+6)
 !                     ierr_all=ierr_all+ierr
 !                  else
                      ierr = 0
-                     write(stdout,3)  vname_bry(1:lvar+6)
+                     write(*,3)  vname_bry(1:lstr+6)
                      if (itrc .eq. iNO3_) then
 #  define temp cff
 #  define SiO4 cff1
@@ -1268,11 +1273,11 @@
 !                  if ( (itrc .ge. iPO4 .and. itrc .le. iSIO3)
 !     &                 .or. (itrc .ge. iFE .and. itrc .le. iALK)
 !     &                 ) then
-!                     write(stdout,2)  vname_bry(1:lvar+6)
+!                     write(*,2)  vname_bry(1:lstr+6)
 !                     ierr_all=ierr_all+ierr
 !                  else
                      ierr = 0
-                     write(stdout,3)  vname_bry(1:lvar+6)
+                     write(*,3)  vname_bry(1:lstr+6)
                      if (itrc .eq. iNH4 .or. itrc .eq. iDOC .or.
      &                    itrc .eq. iDON .or. itrc. eq. iDOFE
      &                    .or. itrc .eq. iDOP) then
@@ -1363,11 +1368,11 @@
 
             ierr=ierr_all
             if (ierr.eq.0) then
-              write(stdout,'(6x,A,2x,A,F12.4,2(1x,A,I4))')
+              write(*,'(6x,A,2x,A,F12.4,2(1x,A,I4))')
      &            'get_all_bry -- read boundary for all fields',
      &            'bry_time =', cff, 'rec =', bry_rec MYID
             else
-              write(stdout,'(1x,2A,I4/8x,3A)')
+              write(*,'(1x,2A,I4/8x,3A)')
      &           '### ERROR(s) occur while trying to read record ',
      &             bry_rec,  'in file ''',bry_file(1:lstr),'''.'
             endif 

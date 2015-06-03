@@ -21,7 +21,7 @@
 ! indxWWA,WWD,WWP  wind induced wave Amplitude, Direction,and Period
 
 ! indxSUSTR,indxSVSTR  surface U-, V-momentum stress (wind forcing)
-! indxSHF        net surface heat flux.
+! indxSHFl        net surface heat flux.
 ! indxSWRad       shortwave radiation flux
 ! indxSST         sea surface temperature
 ! indxdQdSST      Q-correction coefficient dQdSST
@@ -49,21 +49,21 @@
 # ifdef SOLVE3D
      &                    , indxSUSTR=indxAkt+3
 # else
-                          , indxSUSTR=indxVb+1
+     &                    , indxSUSTR=indxVb+1
 # endif
-                          , indxSVSTR=indxSUSTR+1, indxSHF=indxSUSTR+2
-                          , indxSWRad=indxSHF+1
+     &                    , indxSVSTR=indxSUSTR+1, indxSHFl=indxSUSTR+2
+     &                    , indxSWRad=indxSHFl+1
 
 # ifdef SALINITY
-                          , indxSSFl=indxSWRad+1, indxSSS=indxSWRad+2
-                          , indxSST=indxSWRad+3
+     &                    , indxSSFl=indxSWRad+1, indxSSS=indxSWRad+2
+     &                    , indxSST=indxSWRad+3
 # else
-                          , indxSST=indxSWRad+1
+     &                    , indxSST=indxSWRad+1
 # endif
-                          , indxdQdSST=indxSST+1
+     &                    , indxdQdSST=indxSST+1
 
 # ifdef WRITE_DEPTHS
-                          , indxz_r=indxAkt+1,  indxz_w=indxAkt+2
+     &                    , indxz_r=indxAkt+1,  indxz_w=indxAkt+2
      &                    , indxHz=indxAkt+3
 # endif
 
@@ -79,7 +79,6 @@
      &     + 3
 #  endif 
 # endif /* BIOLOGY_NPZDOC || BIOLOGY_BEC || BIOLOGY_BEC2 */
-     &     )
 # ifdef SALINITY
      &                    , indxAks=indxAkt+1
 # endif
