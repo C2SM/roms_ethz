@@ -174,6 +174,10 @@ CSDISTRIBUTE_RESHAPE  nhyg(BLOCK_PATTERN,*) BLOCK_CLAUSE
 CSDISTRIBUTE_RESHAPE  din_river(BLOCK_PATTERN) BLOCK_CLAUSE
        real din_riverg(GLOBAL_2D_ARRAY,2)
 CSDISTRIBUTE_RESHAPE  din_riverg(BLOCK_PATTERN,*) BLOCK_CLAUSE
+       real dip_river(GLOBAL_2D_ARRAY)
+CSDISTRIBUTE_RESHAPE  dip_river(BLOCK_PATTERN) BLOCK_CLAUSE
+       real dip_riverg(GLOBAL_2D_ARRAY,2)
+CSDISTRIBUTE_RESHAPE  dip_riverg(BLOCK_PATTERN,*) BLOCK_CLAUSE
        common /bec2_atm_depos1/ nox, noxg, nhy, nhyg
        real nox_time(2),nhy_time(2),nox_cycle,nhy_cycle
        integer itnox,nox_id,nox_ncycle,
@@ -182,12 +186,16 @@ CSDISTRIBUTE_RESHAPE  din_riverg(BLOCK_PATTERN,*) BLOCK_CLAUSE
      &  itnox,nox_id,nox_ncycle,nox_rec,nox_tid,
      &  nhy_time, nhy_cycle,
      &  itnhy,nhy_id,nhy_ncycle,nhy_rec,nhy_tid
-       common /bec2_atm_depos1/ din_river, din_riverg
-       real din_river_time(2),din_river_cycle
+       common /bec2_atm_depos1/ din_river, din_riverg, dip_river, dip_riverg
+       real din_river_time(2),din_river_cycle,dip_river_time(2),dip_river_cycle
        integer itdin_river,din_river_id,din_river_ncycle,
      &  din_river_rec,din_river_tid
        common /bec2_atm_depos2/ din_river_time, din_river_cycle,
      &  itdin_river,din_river_id,din_river_ncycle,din_river_rec,din_river_tid
+       integer itdip_river,dip_river_id,dip_river_ncycle,
+     &  dip_river_rec,dip_river_tid
+       common /bec2_atm_depos2/ dip_river_time, dip_river_cycle,
+     &  itdip_river,dip_river_id,dip_river_ncycle,dip_river_rec,dip_river_tid
 #endif
 
 !
