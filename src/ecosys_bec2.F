@@ -984,6 +984,9 @@ c$$$       enddo
     !-----------------------------------------------------------------------
 
           WORK1 = alphaPI(auto_ind) * thetaC(istr:iend,auto_ind) * PAR_lay
+
+    ! CN (April 2015): changed from c0 to value slightly larger than c0 (parameter
+    ! PAR_thres_pChl, BEC blew up in SO setup otherwise):
           where (WORK1 > PAR_thres_pChl)
              pChl = thetaN_max(auto_ind) * PCphoto / WORK1
              photoacc(istr:iend,auto_ind) = (pChl * VNC / thetaC(istr:iend,auto_ind))
@@ -1363,8 +1366,16 @@ c$$$       enddo
 
        WORK1 = merge(c0, WORK1, NO3_loc == c0)
 
+       ! CN: See Simon's code: under low NO3, DENITRIF is reduced!
+       ! NO3min=2
+
        DENITRIF = WORK1 * ((DOC_remin + POC_remin(istr:iend,j) - OTHER_REMIN) / denitrif_C_N
      &                  - SED_DENITRIF)
+
+       where (NO3_loc < parm_denitrif_NO3_limit)
+            DENITRIF = 1/parm_denitrif_NO3_limit * NO3_loc * DENITRIF
+       end where
+
 # ifdef BEC2_DIAG
        bec2_diag_3d(istr:iend,j,k,denitrif_idx_t) = DENITRIF
 # endif
@@ -1991,6 +2002,17 @@ c$$$       enddo
 
              ! Set Fe remin flux from sediments (no input in ROMS):
 # ifdef FE_SEDFLUX
+             !-------------------------------------------------------------------
+             !
+             ! CN: this comment is taken from ecosys_bec.F
+             !
+             ! Add diffusive iron flux if depth < 1100.0m, based on
+             ! Johnson et al.1999, value of 5.0 umolFe/m2/day.
+             !
+             ! 0.5 umolFe/m2/day,  5.78704e-7 nmolFe/cm2/sec.
+             ! 1.0 umolFe/m2/day,  1.1574e-6  nmolFe/cm2/sec.
+             ! 2.0 umolFe/m2/day,  2.3148e-6  nmolFe/cm2/sec
+             !-----------------------------------------------------------------
              ! CN: test with value from Moore 2004 (in mmolFe/m2/sec,
              ! see old BEC code)
              if (k==1) then
@@ -2059,8 +2081,27 @@ c$$$       enddo
                POC_sed_loss(i,j) = flux * min(0.8, parm_POMbury
      &             * (0.013 + 0.53 * flux_alt*flux_alt / (7.0 + flux_alt)**2))
 
+            ! CN: set denitr to zero if NO3<=0 in bottom water (to not
+            ! further deplete already not existing NO3)
+            ! if this works: actually, this might still take out too
+            ! much NO3 if NO3_BW is just slightly above zero. Include
+            ! something like "if SED_DENITRIF > NO3_loc,
+            ! reduce SED_DENITRIF to available NO3"
+            ! check: is some NO3 threshold implemented for water col
+            ! denitrif? could also cause neg NO3...
+            ! FOR NOW: NO3min=5 (see Simon's draft!! he uses 2, but said
+            ! it's kind of arbitrary...), below this
+            ! sed_denitr is reduced! same for water column denitrf!
+
+               if (NO3_loc(i) < parm_sed_denitrif_NO3_limit) then
                SED_DENITRIF(i) = dzr_loc * flux
      &             * (0.06 + 0.19 * 0.99**(O2_loc(i)-NO3_loc(i)))
+               SED_DENITRIF(i) = 1/parm_sed_denitrif_NO3_limit*NO3_loc(i)*SED_DENITRIF(i)
+               else
+               SED_DENITRIF(i) = dzr_loc * flux
+     &             * (0.06 + 0.19 * 0.99**(O2_loc(i)-NO3_loc(i)))
+               endif
+
 #ifdef BEC2_DIAG
                bec2_diag_2d(i,j,seddenitrif_idx_t) = SED_DENITRIF(i)
 #endif

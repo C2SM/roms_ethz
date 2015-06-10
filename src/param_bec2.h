@@ -264,4 +264,16 @@
      &   PAR_thres_pChl = 1e-10
      & )
 
-       
+   !---------------------------------------------------------------------
+   !  Thresholds below which denitrification will be reduced. If NO3 conc
+   !  is below the values set here, then the denitrification rate will be
+   !  multiplied by the inverse of the parameter value and by the NO3 conc.
+   !  This helps reduce negative concentrations somewhat. Introduced by
+   !  Cara Nissen in April 2015.
+   !---------------------------------------------------------------------
+
+       real parm_denitrif_NO3_limit, parm_sed_denitrif_NO3_limit
+       parameter(
+     &   parm_denitrif_NO3_limit = 5.0,   ! threshold for reducing water column denitrification
+     &   parm_sed_denitrif_NO3_limit = 5.0 ! threshold for reducing sediment denitrification
+     & )
