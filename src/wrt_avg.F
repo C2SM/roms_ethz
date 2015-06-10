@@ -64,6 +64,14 @@
 #  define avrname avgname
 #  define wrtavr wrtavg
 #  define SWRT_AVR 'WRT_AVG'
+#  ifdef WRITE_DEPTHS
+#   define avrHz avgHz
+#   define avrz_r avgz_r
+#   define avrz_w avgz_w
+#   define Hz_avr Hz_avg
+#   define z_r_avr z_r_avg
+#   define z_w_avr z_w_avg
+#  endif
 #  if defined BIOLOGY_BEC2 && defined BEC2_DIAG
 #   define bec2_diag_2d_avr bec2_diag_2d_avg
 #   define bec2_diag_3d_avr bec2_diag_3d_avg
@@ -148,6 +156,14 @@
 !  PAR in slice averages when using the Intel compiler.
 !
 #   define NOPARWRT
+#  endif
+#  ifdef WRITE_DEPTHS
+#   define avrHz slavgHz
+#   define avrz_r slavgz_r
+#   define avrz_w slavgz_w
+#   define Hz_avr Hz_slavg
+#   define z_r_avr z_r_slavg
+#   define z_w_avr z_w_slavg
 #  endif
 #  if defined BIOLOGY_BEC2 && defined BEC2_DIAG
 #   define bec2_diag_2d_avr bec2_diag_2d_slavg
@@ -626,8 +642,8 @@ CR      write(*,*) 'wrt_avr:  wrtT_sed  ' MYID
 !
 ! depths of rho points:
 !
-      ierr=nf_fwrite (z_r_avg(START_2D_ARRAY,1), ncidavg,
-     &                              avgz_r, record, r3dvar)
+      ierr=nf_fwrite (z_r_avr(START_3D_ARRAY_K1), ncidavr,
+     &                              avrz_r, record, R3DVAR)
       if (ierr .ne. nf_noerr) then
         lvar=lenstr(vname(1,indxz_r))
         write(stdout,1) vname(1,indxz_r)(1:lvar), record, ierr,
@@ -637,8 +653,8 @@ CR      write(*,*) 'wrt_avr:  wrtT_sed  ' MYID
 !
 ! depths at w points:
 !
-      ierr=nf_fwrite (z_w_avg(START_2D_ARRAY,0), ncidavg,
-     &                              avgz_w, record, w3dvar)
+      ierr=nf_fwrite (z_w_avr(START_3D_ARRAY_K0), ncidavr,
+     &                              avrz_w, record, W3DVAR)
       if (ierr .ne. nf_noerr) then
         lvar=lenstr(vname(1,indxz_w))
         write(stdout,1) vname(1,indxz_w)(1:lvar), record, ierr,
@@ -648,8 +664,8 @@ CR      write(*,*) 'wrt_avr:  wrtT_sed  ' MYID
 !
 ! thicknesses of sigma layers:
 !
-      ierr=nf_fwrite (Hz_avg(START_2D_ARRAY,1), ncidavg,
-     &                              avgHz, record, r3dvar)
+      ierr=nf_fwrite (Hz_avr(START_3D_ARRAY_K1), ncidavr,
+     &                              avrHz, record, R3DVAR)
       if (ierr .ne. nf_noerr) then
         lvar=lenstr(vname(1,indxHz))
         write(stdout,1) vname(1,indxHz)(1:lvar), record, ierr,

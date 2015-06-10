@@ -573,7 +573,11 @@
       integer slavgHbbl
       common /ncvars/ slavgHbbl
 #  endif
+#  ifdef WRITE_DEPTHS
+      integer slavgz_r, slavgz_w, slavgHz
+      common /ncvars/ slavgz_r, slavgz_w, slavgHz
 #  endif
+#  endif /* SLICE_AVG */
 # endif /* SOLVE3D */
 #endif /* AVERAGES */
 

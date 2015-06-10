@@ -50,6 +50,11 @@
 #   define pCO2air_AVR pCO2air_avg
 #   define PARinc_AVR PARinc_avg
 #  endif /* BIOLOGY_BEC */
+#  ifdef WRITE_DEPTHS
+#    define Hz_AVR Hz_avg
+#    define z_r_AVR z_r_avg
+#    define z_w_AVR z_w_avg
+#  endif /* WRITE_DEPTHS */
 #  if defined BIOLOGY_BEC2 && defined BEC2_DIAG
 #   define bec2_diag_2d_AVR bec2_diag_2d_avg
 #   define bec2_diag_3d_AVR(i,j,k,itrc) bec2_diag_3d_avg(i,j,k,itrc)
@@ -99,6 +104,11 @@
 #   define pCO2air_AVR pCO2air_slavg
 #   define PARinc_AVR PARinc_slavg
 #  endif /* BIOLOGY_BEC */
+#  ifdef WRITE_DEPTHS
+#    define Hz_AVR(i,j,k) Hz_slavg(i,j)
+#    define z_r_AVR(i,j,k) z_r_slavg(i,j)
+#    define z_w_AVR(i,j,k) z_w_slavg(i,j)
+#  endif /* WRITE_DEPTHS */
 #  if defined BIOLOGY_BEC2 && defined BEC2_DIAG
 #   define bec2_diag_2d_AVR bec2_diag_2d_slavg
 #   define bec2_diag_3d_AVR(i,j,k,itrc) bec2_diag_3d_slavg(i,j,itrc)
@@ -408,15 +418,15 @@
             do k=1,N
               do j=jstrR,jendR
                 do i=istrR,iendR
-                  z_r_avg(i,j,k)=z_r(i,j,k)
-                  Hz_avg(i,j,k)=Hz(i,j,k)
+                  z_r_AVR(i,j,k)=z_r(i,j,k)
+                  Hz_AVR(i,j,k)=Hz(i,j,k)
                 enddo
               enddo
             enddo
             do k=0,N
               do j=jstrR,jendR
                 do i=istrR,iendR
-                  z_w_avg(i,j,k)=z_w(i,j,k)
+                  z_w_AVR(i,j,k)=z_w(i,j,k)
                 enddo
               enddo
             enddo
@@ -669,15 +679,15 @@
             do k=1,N
               do j=jstrR,jendR
                 do i=istrR,iendR
-                  z_r_avg(i,j,k)=z_r_avg(i,j,k)+z_r(i,j,k)
-                  Hz_avg(i,j,k)=Hz_avg(i,j,k)+Hz(i,j,k)
+                  z_r_AVR(i,j,k)=z_r_AVR(i,j,k)+z_r(i,j,k)
+                  Hz_AVR(i,j,k)=Hz_AVR(i,j,k)+Hz(i,j,k)
                 enddo
               enddo
             enddo
             do k=0,N
               do j=jstrR,jendR
                 do i=istrR,iendR
-                  z_w_avg(i,j,k)=z_w_avg(i,j,k)+z_w(i,j,k)
+                  z_w_AVR(i,j,k)=z_w_AVR(i,j,k)+z_w(i,j,k)
                 enddo
               enddo
             enddo
@@ -939,15 +949,15 @@
             do k=1,N
               do j=jstrR,jendR
                 do i=istrR,iendR
-                  z_r_avg(i,j,k)=cff*(z_r_avg(i,j,k)+z_r(i,j,k))
-                  Hz_avg(i,j,k)=cff*(Hz_avg(i,j,k)+Hz(i,j,k))
+                  z_r_AVR(i,j,k)=cff*(z_r_AVR(i,j,k)+z_r(i,j,k))
+                  Hz_AVR(i,j,k)=cff*(Hz_AVR(i,j,k)+Hz(i,j,k))
                 enddo
               enddo
             enddo
             do k=0,N
               do j=jstrR,jendR
                 do i=istrR,iendR
-                  z_w_avg(i,j,k)=cff*(z_w_avg(i,j,k)+z_w(i,j,k))
+                  z_w_AVR(i,j,k)=cff*(z_w_AVR(i,j,k)+z_w(i,j,k))
                 enddo
               enddo
             enddo

@@ -1281,7 +1281,7 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
 !
         lvar=lenstr(vname(1,indxz_r))
         ierr=nf_def_var (ncid, vname(1,indxz_r)(1:lvar), NF_FOUT,
-     &                                           4, r3dgrd, vidz_r)
+     &                                   NVDIM, RGRD, vidz_r)
 #  ifdef AVRH
         text='averaged '/ /vname(2,indxz_r)
 #  else
@@ -1302,7 +1302,7 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
 !
         lvar=lenstr(vname(1,indxz_w))
         ierr=nf_def_var (ncid, vname(1,indxz_w)(1:lvar), NF_FOUT,
-     &                                           4, w3dgrd, vidz_w)
+     &                                   NVDIM, WGRD, vidz_w)
 #  ifdef AVRH
         text='averaged '/ /vname(2,indxz_w)
 #  else
@@ -1323,7 +1323,7 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
 !
         lvar=lenstr(vname(1,indxHz))
         ierr=nf_def_var (ncid, vname(1,indxHz)(1:lvar), NF_FOUT,
-     &                                           4, r3dgrd, vidHz)
+     &                                   NVDIM, RGRD, vidHz)
 #  ifdef AVRH
         text='averaged '/ /vname(2,indxHz)
 #  else

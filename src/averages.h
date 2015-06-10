@@ -57,7 +57,7 @@ CSDISTRIBUTE_RESHAPE hbbl_avg(BLOCK_PATTERN) BLOCK_CLAUSE
 #  ifdef WRITE_DEPTHS
       real z_r_avg(GLOBAL_2D_ARRAY,N)
       real z_w_avg(GLOBAL_2D_ARRAY,0:N), Hz_avg(GLOBAL_2D_ARRAY,N)
-      common /avg_depth/z_r_avg, z_w_avg, Hz_avg
+      common /avg_depth/ z_r_avg, z_w_avg, Hz_avg
 #  endif /* WRITE_DEPTHS */
 
 #  if defined BIOLOGY_NPZDOC && defined OXYGEN
@@ -120,6 +120,13 @@ CSDISTRIBUTE_RESHAPE hbl_slavg(BLOCK_PATTERN) BLOCK_CLAUSE
 CSDISTRIBUTE_RESHAPE hbbl_slavg(BLOCK_PATTERN) BLOCK_CLAUSE
       common /slavg_hbbl/hbbl_slavg
 #  endif
+
+#  ifdef WRITE_DEPTHS
+      real z_r_slavg(GLOBAL_2D_ARRAY)
+      real z_w_slavg(GLOBAL_2D_ARRAY), Hz_slavg(GLOBAL_2D_ARRAY)
+      common /slavg_depth/ z_r_slavg, z_w_slavg, Hz_slavg
+#  endif /* WRITE_DEPTHS */
+
 
 #  if defined BIOLOGY_NPZDOC && defined OXYGEN
       real GasExcFlux_slavg(GLOBAL_2D_ARRAY,NumGasExcTerms)
