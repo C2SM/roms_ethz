@@ -173,6 +173,35 @@ c--# define OBC_M2ORLANSKI
 c--# define OBC_M3ORLANSKI
 c--# define OBC_TORLANSKI
 
+#elif defined NJ_BIGHT        /* New Jersey Bight Configuration */
+# define SOLVE3D
+ 
+# define UV_ADV
+# define UV_COR
+# define UV_VIS2
+ 
+# define SALINITY
+ 
+# define TS_DIF2
+ 
+# define CURVGRID
+# define SPHERICAL
+ 
+# define STATIONS
+# define OBC_EAST
+# define OBC_NORTH
+# define OBC_SOUTH
+# define OBC_FSORLANSKI
+# define OBC_M2ORLANSKI
+# define OBC_M3ORLANSKI
+# define LMD_MIXING
+# define LMD_RIMIX
+# define LMD_KPP
+# define ANA_INITIAL
+# define ANA_SMFLUX
+# define ANA_SRFLUX
+# define ANA_SSFLUX
+# define ANA_STFLUX
 #elif defined COLD_FILAMENT   /* Submesoscale cold filament */
 # define SOLVE3D
 

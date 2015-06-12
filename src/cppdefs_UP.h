@@ -2,38 +2,48 @@
    Standard UP ETH Zurich Settings for Regional and Basin Configurations
 */
                      /* Basics */
-# define SOLVE3D
-# define UV_ADV
-# define UV_COR
+#define SOLVE3D
+#define UV_ADV
+#define UV_COR
                      /*  Equation of State */
-# define NONLIN_EOS
-# define SPLIT_EOS
-# define SALINITY
+#define NONLIN_EOS
+#define SPLIT_EOS
+#define SALINITY
                      /*  Forcing */
-                     /*    - surface */
-# define DIURNAL_SRFLUX
-# define QCORRECTION
-!# define SALINITY_MASK
-                     /*    - lateral */
-# define T_FRC_BRY
-# define Z_FRC_BRY
-# define M3_FRC_BRY
-# define M2_FRC_BRY
+                     /*         - surface */
+#define DIURNAL_SRFLUX
+#define QCORRECTION
+!#define SALINITY_MASK
+                     /*         - lateral */
+#define T_FRC_BRY
+#define Z_FRC_BRY
+#define M3_FRC_BRY
+#define M2_FRC_BRY
                      /* Mixing */
-                     /*   - lateral */
-# define UV_VIS2
-# define TS_DIF2
-                     /*   - vertical */
-# define LMD_MIXING
-# define LMD_KPP
-# define LMD_NONLOCAL
-# define LMD_RIMIX
-# define LMD_CONVEC
+                     /*        - lateral */
+#define UV_VIS2
+#define TS_DIF2
+                     /*        - vertical */
+#define LMD_MIXING
+#define LMD_KPP
+#define LMD_NONLOCAL
+#define LMD_RIMIX
+#define LMD_CONVEC
+
                       /* Grid Configuration */
-# define CURVGRID
-# define SPHERICAL
-# define MASKING
+#define CURVGRID
+#define SPHERICAL
+#define MASKING
 
                       /* Output Options */
-# define MASK_LAND_DATA
+#define MASK_LAND_DATA
 
+                      /* Restart */
+#define EXACT_RESTART
+
+         /* Open Boundary Conditions */
+#define OBC_M2FLATHER
+#define OBC_M3ORLANSKI
+#define OBC_TORLANSKI
+
+/* End of UP ETH Standard Settings */

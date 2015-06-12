@@ -8,18 +8,17 @@
          /* Forcing */
 #define SALINITY_MASK
 
-         /* Open Boundary Conditions */
+         /* Open Boundaries */
 #define EW_PERIODIC
 #define OBC_NORTH
-#define OBC_M2FLATHER
-#define OBC_M3ORLANSKI
-#define OBC_TORLANSKI
+
+         /* Open Boundary Conditions */
+#undef SPONGE /* note: UCLA uses SPONGE with BRY */
 
          /* Output */
 !--# define AVERAGES
 
-#define SO
-
+#define SO /* used in param.h */
 
 #include "set_global_definitions.h"
 
