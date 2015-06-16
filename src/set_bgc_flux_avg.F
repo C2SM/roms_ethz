@@ -66,7 +66,7 @@
 
       if (iic.gt.nts_bgc_flux_avg) then
          if (n_bgc_flux_avg .eq. 1 .or. 
-     &        mod(iic-1,n_bgc_flux_avg).eq.1) then
+     &        mod(iic-nts_bgc_flux_avg,n_bgc_flux_avg).eq.1) then
             if (ZEROTH_TILE) time_bgc_flux_avg=time
             do j = jstrR, jendR
                do i = istrR, iendR
@@ -189,7 +189,7 @@
                end do
             end do
 #  endif /* SEDIMENT_BIOLOGY */
-         elseif (mod(iic-1,n_bgc_flux_avg).gt.1) then
+         elseif (mod(iic-nts_bgc_flux_avg,n_bgc_flux_avg).gt.1) then
             if (ZEROTH_TILE) time_bgc_flux_avg=time_bgc_flux_avg+time
             do j = jstrR, jendR
                do i = istrR, iendR
@@ -315,7 +315,7 @@
                end do
             end do
 # endif /* SEDIMENT_BIOLOGY */
-         elseif (mod(iic-1,n_bgc_flux_avg).eq.0) then
+         elseif (mod(iic-nts_bgc_flux_avg,n_bgc_flux_avg).eq.0) then
             cff=1./float(n_bgc_flux_avg)
             if (ZEROTH_TILE) time_bgc_flux_avg=cff*
      &           (time_bgc_flux_avg + time)

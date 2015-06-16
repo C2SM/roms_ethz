@@ -620,7 +620,9 @@ C$OMP BARRIER
 ! Output block: write restart/history files.
 !======= ====== ===== =============== ======
 !
-!DL: place following block before writing of rst file:
+!DL: place following block before writing of rst file (to make
+! sure the correct values for nrec_bgc_flux_his etc are written
+! to rst files):
 #ifdef BGC_FLUX_ANALYSIS
       if (iic > ntstart .and. n_bgc_flux_his > 0 .and. 
      &     mod(iic-ntstart, n_bgc_flux_his) == 0) then
@@ -628,7 +630,7 @@ C$OMP BARRIER
       end if
 # ifdef AVERAGES
       if (iic > ntstart .and. n_bgc_flux_avg > 0 .and. 
-     &     mod(iic-ntstart, n_bgc_flux_avg) == 0) then
+     &     mod(iic-nts_bgc_flux_avg, n_bgc_flux_avg) == 0) then
          nrec_bgc_flux_avg = nrec_bgc_flux_avg + 1
       end if
 # endif
@@ -640,7 +642,7 @@ C$OMP BARRIER
       end if
 # ifdef AVERAGES
       if (iic > ntstart .and. n_phys_flux_avg > 0 .and. 
-     &     mod(iic-ntstart, n_phys_flux_avg) == 0) then
+     &     mod(iic-nts_phys_flux_avg, n_phys_flux_avg) == 0) then
          nrec_phys_flux_avg = nrec_phys_flux_avg + 1
       end if
 # endif
@@ -657,6 +659,18 @@ C$OMP BARRIER
      &   .or. ( mod(iic-ntsslavg,nslavg).eq.0  
      &           .and. wrtslavg(indxTime) )
 # endif
+# ifdef BGC_FLUX_ANALYSIS
+     &   .or. ( mod(iic-nts_bgc_flux_avg,n_bgc_flux_avg).eq.0 )
+# endif
+# ifdef PHYS_FLUX_ANALYSIS
+     &   .or. ( mod(iic-nts_phys_flux_avg,n_phys_flux_avg).eq.0 )
+# endif
+#endif /* AVERAGES */
+#ifdef BGC_FLUX_ANALYSIS
+     &   .or. ( mod(iic-ntstart,n_bgc_flux_his).eq.0 )
+#endif
+#ifdef PHYS_FLUX_ANALYSIS
+     &   .or. ( mod(iic-ntstart,n_phys_flux_his).eq.0 )
 #endif
 #ifdef STATIONS
      &   .or. (mod(iic-ntstart,nsta).eq.0 .and. nstation.gt.0)
@@ -722,7 +736,7 @@ C$OMP MASTER
       end if
 # ifdef AVERAGES
       if (iic > ntstart .and. n_bgc_flux_avg > 0 .and. 
-     &     mod(iic-ntstart, n_bgc_flux_avg) == 0) then
+     &     mod(iic-nts_bgc_flux_avg, n_bgc_flux_avg) == 0) then
 # ifdef BIOLOGY_NPZDOC
          call wrt_bgc_flux_avg
 # elif defined BIOLOGY_BEC
@@ -738,7 +752,7 @@ C$OMP MASTER
       end if
 # ifdef AVERAGES
       if (iic > ntstart .and. n_phys_flux_avg > 0 .and. 
-     &     mod(iic-ntstart, n_phys_flux_avg) == 0) then
+     &     mod(iic-nts_phys_flux_avg, n_phys_flux_avg) == 0) then
          call wrt_phys_flux_avg
       end if
 # endif
