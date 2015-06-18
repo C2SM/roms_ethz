@@ -91,7 +91,7 @@ c      v3bc_max=0.
 #ifdef AVERAGES
       ncavg=-1   ; nrecavg=0       ! closed status. Also reset record
 # ifdef SLICE_AVG
-      ncidslavg=-1; nrecslavg=0
+      ncslavg=-1; nrecslavg=0
 # endif
 #endif
 #ifdef STATIONS

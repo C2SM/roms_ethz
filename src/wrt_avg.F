@@ -32,7 +32,7 @@
 !  just a further diagnostic output we just to not output
 !  PAR in slice averages when using the Intel compiler.
 !
-#-->   define NOPARWRT
+!--> #   define NOPARWRT
 #  endif
 # endif /* ifndef SLICE_AVG */
 

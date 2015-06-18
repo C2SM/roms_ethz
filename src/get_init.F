@@ -388,30 +388,30 @@ c**      start_time=start_time - 20.*360. *day2sec
         if (ierr .eq. nf_noerr) then
 # ifdef BGC_FLUX_ANALYSIS
           nrec_bgc_flux_his=ibuff(1)
-          write(stdout,'(6x,A,I4)')
+          write(*,'(6x,A,I4)')
      &         'GET_INITIAL: bgc_flux_his rec =',
      &         nrec_bgc_flux_his
 #  ifdef AVERAGES
           nrec_bgc_flux_avg=ibuff(2)
-          write(stdout,'(6x,A,I4)')
+          write(*,'(6x,A,I4)')
      &         'GET_INITIAL: bgc_flux_avg rec =',
      &         nrec_bgc_flux_avg
 #  endif
 # endif
 # ifdef PHYS_FLUX_ANALYSIS
           nrec_phys_flux_his=ibuff(3)
-          write(stdout,'(6x,A,I4)')
+          write(*,'(6x,A,I4)')
      &         'GET_INITIAL: phys_flux_his rec =',
      &         nrec_phys_flux_his
 #  ifdef AVERAGES
           nrec_phys_flux_avg=ibuff(4)
-          write(stdout,'(6x,A,I4)')
+          write(*,'(6x,A,I4)')
      &         'GET_INITIAL: phys_flux_avg rec =',
      &         nrec_phys_flux_avg
 #  endif
 # endif
         else
-          write(stdout,'(/1x,2A/)') 'GET_INITIAL WARNING: Cannot ',
+          write(*,'(/1x,2A/)') 'GET_INITIAL WARNING: Cannot ',
      &          'read record indices for flux analysis.'
 !!!          goto 99                                         !--> ERROR
         endif
@@ -568,16 +568,16 @@ c**      start_time=start_time - 20.*360. *day2sec
           ierr=nf_fread (t_sed(START_2D_ARRAY,itrc), ncid,  varid,
      &                                               record, r2dvar)
           if (ierr .ne. nf_noerr) then
-            write(stdout,2) vname(1,indxSedOrgN+itrc-1)(1:lvar),
+            write(*,2) vname(1,indxSedOrgN+itrc-1)(1:lvar),
      &            record,  ininame(1:lstr)
             goto 99                                       !--> ERROR
           endif
         else
-          MPI_master_only write(stdout,1) 
+          MPI_master_only write(*,1) 
      &                         vname(1,indxSedOrgN+itrc-1)(1:lvar),
      &                                    ininame(1:lstr)
      &            ,' => Initialized to 0.' 
-!          MPI_master_only write(stdout,'(1x,2a/1x,a)') 
+!          MPI_master_only write(*,'(1x,2a/1x,a)') 
 !     &         'Note: Previous versions of ROMS did ',
 !     &         'not include sediment biology.'
 !     &         'Starting with 0 concentration.'
@@ -598,12 +598,12 @@ CHF          goto 99                                         !--> ERROR
          ierr=nf_fread (ph_hist(START_2D_ARRAY), ncid,  varid,
      &                                               record, r2dvar)
          if (ierr .ne. nf_noerr) then
-            write(stdout,2) vname(1,indxPH_rst)(1:lvar), record,
+            write(*,2) vname(1,indxPH_rst)(1:lvar), record,
      &           ininame(1:lstr)
             goto 99             !--> ERROR
          endif
       else
-         MPI_master_only write(stdout,*)
+         MPI_master_only write(*,*)
      &        'pH field not in init/rst file, initialize to 0'
       endif
 
@@ -616,12 +616,12 @@ CHF          goto 99                                         !--> ERROR
          ierr=nf_fread (pCO2sw(START_2D_ARRAY), ncid,  varid,
      &                                               record, r2dvar)
          if (ierr .ne. nf_noerr) then
-            write(stdout,2) vname(1,indxPCO2_rst)(1:lvar), record,
+            write(*,2) vname(1,indxPCO2_rst)(1:lvar), record,
      &           ininame(1:lstr)
             goto 99             !--> ERROR
          endif
       else
-         MPI_master_only write(stdout,*) 
+         MPI_master_only write(*,*) 
      &        'PCO2 not in init/rst file, initialize to 0'
       endif
 
@@ -634,12 +634,12 @@ CHF          goto 99                                         !--> ERROR
          ierr=nf_fread (pCO2air(START_2D_ARRAY), ncid,  varid,
      &                                               record, r2dvar)
          if (ierr .ne. nf_noerr) then
-            write(stdout,2) vname(1,indxPCO2air_rst)(1:lvar), record,
+            write(*,2) vname(1,indxPCO2air_rst)(1:lvar), record,
      &           ininame(1:lstr)
             goto 99             !--> ERROR
          endif
       else
-         MPI_master_only write(stdout,*) 
+         MPI_master_only write(*,*) 
      &        'PCO2air not in init/rst file, initialize to 0'
       endif
 #  endif
@@ -656,7 +656,7 @@ CHF          goto 99                                         !--> ERROR
             ierr=nf_fread (bec2_diag_2d(START_2D_ARRAY,itrc), ncid,  varid,
      &                                               record, r2dvar)
             if (ierr .ne. nf_noerr) then
-               write(stdout,2) vname_bec2_diag_2d(1,itrc)(1:lvar), record,
+               write(*,2) vname_bec2_diag_2d(1,itrc)(1:lvar), record,
      &              ininame(1:lstr)
                goto 99             !--> ERROR
             endif
@@ -674,7 +674,7 @@ CHF          goto 99                                         !--> ERROR
             ierr=nf_fread (bec2_diag_3d(START_2D_ARRAY,1,itrc), ncid,  varid,
      &                                               record, r3dvar)
             if (ierr .ne. nf_noerr) then
-               write(stdout,2) vname_bec2_diag_3d(1,itrc)(1:lvar), record,
+               write(*,2) vname_bec2_diag_3d(1,itrc)(1:lvar), record,
      &              ininame(1:lstr)
                goto 99             !--> ERROR
             endif
@@ -694,12 +694,12 @@ CHF          goto 99                                         !--> ERROR
          ierr=nf_fread (PAR(START_2D_ARRAY,1), ncid,  varid,
      &                                               record, r2dvar)
          if (ierr .ne. nf_noerr) then
-            write(stdout,2) vname(1,indxPAR_rst)(1:lvar), record,
+            write(*,2) vname(1,indxPAR_rst)(1:lvar), record,
      &           ininame(1:lstr)
             goto 99             !--> ERROR
          endif
       else
-         MPI_master_only write(stdout,*) 
+         MPI_master_only write(*,*) 
      &        'PAR not in init/rst file, initialize to 0'
       endif
 # endif /* BIOLOGY_BEC || BIOLOGY_NPZDOC */

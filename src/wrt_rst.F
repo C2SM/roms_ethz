@@ -114,9 +114,9 @@
 #  endif
 # endif
 ! start and count values are the same as for time_step
-      ierr=nf_put_vara_int (ncidrst, rstTstepFA, start, count, ibuff)
+      ierr=nf_put_vara_int (ncrst, rstTstepFA, start, count, ibuff)
       if (ierr .ne. nf_noerr) then
-        write(stdout,1) 'fa_time_step', record, ierr
+        write(*,1) 'fa_time_step', record, ierr
      &                   MYID
         goto 99                                           !--> ERROR
       endif
@@ -211,11 +211,11 @@
 ! Sediment tracer variables.
 
       do itrc=1,NT_sed
-        ierr=nf_fwrite (t_sed(START_2D_ARRAY,itrc), ncidrst,
+        ierr=nf_fwrite (t_sed(START_2D_ARRAY,itrc), ncrst,
      &                              rstTsed(itrc), record, r2dvar)
         if (ierr .ne. nf_noerr) then
           lvar=lenstr(vname(1,indxSedOrgN+itrc-1))
-          write(stdout,1) vname(1,indxSedOrgN+itrc-1)(1:lvar), 
+          write(*,1) vname(1,indxSedOrgN+itrc-1)(1:lvar), 
      &         record, ierr, nf_strerror(ierr) MYID
           goto 99                                         !--> ERROR
         endif
@@ -226,20 +226,20 @@
 
 ! pH:
 
-      ierr=nf_fwrite (ph_hist, ncidrst, rstPH, record, r2dvar)
+      ierr=nf_fwrite (ph_hist, ncrst, rstPH, record, r2dvar)
       if (ierr .ne. nf_noerr) then
          lvar=lenstr(vname(1,indxPH_rst))
-         write(stdout,1) vname(1,indxPH_rst)(1:lvar), record,
+         write(*,1) vname(1,indxPH_rst)(1:lvar), record,
      &        ierr, nf_strerror(ierr) MYID
          goto 99                !--> ERROR
       endif
 
 ! pCO2:
 
-      ierr=nf_fwrite (pCO2sw, ncidrst, rstPCO2, record, r2dvar)
+      ierr=nf_fwrite (pCO2sw, ncrst, rstPCO2, record, r2dvar)
       if (ierr .ne. nf_noerr) then
          lvar=lenstr(vname(1,indxPCO2_rst))
-         write(stdout,1) vname(1,indxPCO2_rst)(1:lvar), record,
+         write(*,1) vname(1,indxPCO2_rst)(1:lvar), record,
      &        ierr, nf_strerror(ierr) MYID
          goto 99                !--> ERROR
       endif
@@ -247,10 +247,10 @@
 
 ! pCO2air:
 
-      ierr=nf_fwrite (pCO2air, ncidrst, rstPCO2air, record, r2dvar)
+      ierr=nf_fwrite (pCO2air, ncrst, rstPCO2air, record, r2dvar)
       if (ierr .ne. nf_noerr) then
          lvar=lenstr(vname(1,indxPCO2air_rst))
-         write(stdout,1) vname(1,indxPCO2air_rst)(1:lvar), record,
+         write(*,1) vname(1,indxPCO2air_rst)(1:lvar), record,
      &        ierr, nf_strerror(ierr) MYID
          goto 99                !--> ERROR
       endif
@@ -262,11 +262,11 @@
 ! 2d diagnostics:
 
       do itrc=1,nr_bec2_diag_2d
-         ierr=nf_fwrite (bec2_diag_2d(START_2D_ARRAY,itrc), ncidrst,
+         ierr=nf_fwrite (bec2_diag_2d(START_2D_ARRAY,itrc), ncrst,
      &                              rstT_bec2_diag(itrc), record, r2dvar)
         if (ierr .ne. nf_noerr) then
           lvar=lenstr(vname_bec2_diag_2d(1,itrc))
-          write(stdout,1) vname_bec2_diag_2d(1,itrc)(1:lvar), record,
+          write(*,1) vname_bec2_diag_2d(1,itrc)(1:lvar), record,
      &              ierr, nf_strerror(ierr) MYID
           goto 99                                         !--> ERROR
         endif
@@ -275,11 +275,11 @@
 ! 3d diagnostics:
 
       do itrc=1,nr_bec2_diag_3d
-         ierr=nf_fwrite (bec2_diag_3d(START_2D_ARRAY,1,itrc), ncidrst,
+         ierr=nf_fwrite (bec2_diag_3d(START_2D_ARRAY,1,itrc), ncrst,
      &                   rstT_bec2_diag(nr_bec2_diag_2d+itrc), record, r3dvar)
         if (ierr .ne. nf_noerr) then
           lvar=lenstr(vname_bec2_diag_3d(1,itrc))
-          write(stdout,1) vname_bec2_diag_3d(1,itrc)(1:lvar), record,
+          write(*,1) vname_bec2_diag_3d(1,itrc)(1:lvar), record,
      &              ierr, nf_strerror(ierr) MYID
           goto 99                                         !--> ERROR
         endif
@@ -290,10 +290,10 @@
 
 ! PAR:
 
-      ierr=nf_fwrite (PAR, ncidrst, rstPAR, record, r3dvar)
+      ierr=nf_fwrite (PAR, ncrst, rstPAR, record, r3dvar)
       if (ierr .ne. nf_noerr) then
          lvar=lenstr(vname(1,indxPAR_rst))
-         write(stdout,1) vname(1,indxPAR_rst)(1:lvar), record,
+         write(*,1) vname(1,indxPAR_rst)(1:lvar), record,
      &        ierr, nf_strerror(ierr) MYID
          goto 99                !--> ERROR
       endif

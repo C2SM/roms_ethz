@@ -33,11 +33,13 @@
       character(len=3), parameter :: end_signal='end'
       integer, parameter :: kwsize=32, testunit=40, input=15
       integer ierr, iargc, is,ie,  kwlen, lstr, lenstr
-#ifdef MULT_CLIM_FILES
-     &        , i
-#endif
 #ifdef SOLVE3D
-     &                                            , itrc
+     &        , itrc
+#if defined MULT_CLIM_FILES &&\
+     ( defined TCLIMATOLOGY ||( defined TNUDGING &&\
+                        defined T_FRC_BRY )) && !defined ANA_TCLIMA
+     &        , i
+# endif
 #endif
 #if (defined BIOLOGY_BEC || defined BIOLOGY_BEC2 || defined BIOLOGY_NPZDOC)\
     && defined VARIABLE_ANN_ATM_PCO2
@@ -403,16 +405,16 @@ c--      fname='roms.in.US_West'
 #ifdef SPONGE
 ! Parameters for the sponge layers
 
-#  if defined OLD_SPONGE_DEFAULT || defined BENGUELA || PACIFIC
-        elseif (keyword(1:kwlen) == 'v_sponge') then
-          call cancel_kwd (keyword(1:kwlen), ierr)
-          read(input,*,err=95) v_sponge
-#  else
+#  ifdef SPONGE_WIDTH
          elseif (keyword(1:kwlen).eq.'sponge') then
            call cancel_kwd (keyword(1:kwlen), ierr)
            read(input,*,err=95) n_sponge,v_sponge
            MPI_master_only write(*,'(1pe10.2,2x,A)') n_sponge
      &       ,'n_sponge Number of grid lines in sponge layer [-]'
+#  else
+        elseif (keyword(1:kwlen) == 'v_sponge') then
+          call cancel_kwd (keyword(1:kwlen), ierr)
+          read(input,*,err=95) v_sponge
 #  endif
           mpi_master_only write(*,'(3x,A,F10.2,2x,A)') 'v_sponge =',
      &          v_sponge, 'Maximum viscosity in sponge layer [m2/s]'

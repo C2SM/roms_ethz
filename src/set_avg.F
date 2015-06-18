@@ -458,6 +458,7 @@
 # undef u_AVR
 # undef v_AVR
 # undef w_AVR
+# undef wvl_AVR
 # undef t_AVR
 # undef hbl_AVR
 # undef hbbl_AVR

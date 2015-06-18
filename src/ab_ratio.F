@@ -22,7 +22,7 @@
       implicit none
 # include "param.h"
       integer istr,iend, j, i, k
-      real ratio(PRIVATE_1D_SCRATCH_ARRAY,0:N), cff
+      real ratio(PRIVATE_1D_SCRATCH_ARRAY,0:N)
 # include "grid.h"
 # include "ocean3d.h"
 # include "scalars.h"
@@ -70,7 +70,8 @@
         enddo
       enddo    /* R8000: 16 clock cycles; 56%(75%) of peak */
 # else                        /* Linear Equation of state. */
-#  ifdef SALINITY             /* ------------------------- */
+     real cff
+#  ifdef SALINITY
       if (Scoef>0.) then
         cff=Tcoef/Scoef
       else

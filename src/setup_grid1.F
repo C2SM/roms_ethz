@@ -16,7 +16,7 @@
 #include "scalars.h"
 #include "grid.h"
 #ifdef SPHERICAL
-      real cff1, cff2
+      real cff1
 #endif
 
 #include "compute_extended_bounds.h"

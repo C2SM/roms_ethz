@@ -127,17 +127,11 @@ c      enddo
       isp=(LLm+1)/16
 #  elif defined USWC
       isp=(LLm+1)/40
+#  elif defined SPONGE_WIDTH
+!     number of sponge points is an input parameter "n_sponge"
+      isp=n_sponge 
 #  else
       isp=(LLm+1)/12
-#  else
-!--------------------------------------------------------------------
-!  Set up nudging towards climatology time-scale coeffcients [1/s]
-!  and/or increase horizontal mixing in the sponge areas.
-!--------------------------------------------------------------------
-!
-      ! Old version (breaks arbitrary tiling )
-      ! isp=int(x_sponge*pm(1,1)) ! number of points in layer
-      isp=n_sponge ! number of points in layer
 #  endif
                                             ! Note that i+iSW_corn and
       do j=max(-1,jstrR-1),jendR            ! j+jSW_corn are indices on

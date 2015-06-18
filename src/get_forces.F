@@ -206,26 +206,26 @@ c***              no code here
       call set_stflux_tile (istr,iend,jstr,jend, isalt, ierr)
 #   if defined VFLX_CORR && (defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC || defined BIOLOGY_BEC2)
       ! Flux correction for all biological/chemical tracers
-#   ifdef USE_GLOBAL_SRF_SUM
+#    ifdef USE_GLOBAL_SRF_SUM
       cff = 1. / global_srf_sum(isalt)
-#   endif
+#    endif
       do itrc=isalt+1,NT
          do j=jstr,jend
             do i=istr,iend
-#   ifdef MASKING
+#    ifdef MASKING
                if (rmask(i,j) .eq. 1) then
-#   endif
+#    endif
                stflx(i,j,itrc)=stflx(i,j,isalt)*
-#   ifdef USE_GLOBAL_SRF_SUM
+#    ifdef USE_GLOBAL_SRF_SUM
      &              global_srf_sum(itrc) * cff
-#   else
+#    else
      &         t(i,j,N,nrhs,itrc)/t(i,j,N,nrhs,isalt)
-#   endif
-#   ifdef MASKING
+#    endif
+#    ifdef MASKING
                else ! rmask(i,j) .eq. 1
                   stflx(i,j,itrc)=0.0
                endif
-#   endif
+#    endif
             enddo
          enddo
       enddo
@@ -239,7 +239,6 @@ c***              no code here
 # if defined CARBON && defined PCO2AIR_FORCING
       call set_pCO2air_tile (Istr,Iend,Jstr,Jend,ierr) 
 # endif
-# if (defined LMD_KPP || defined LMD_BKPP)
 # ifdef LMD_KPP
 #  ifdef ANA_SRFLUX
       call ana_srflux_tile (istr,iend,jstr,jend)

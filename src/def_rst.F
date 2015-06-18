@@ -661,7 +661,7 @@
 !
         ierr=nf_inq_varid (ncrst, 'fa_time_step', rstTstepFA)
         if (ierr .ne. nf_noerr) then
-          write(stdout,1) 'fa_time_step', rstname(1:lstr)
+          write(*,1) 'fa_time_step', rstname(1:lrst)
           goto 99                                         !--> ERROR
         endif
 #endif /* BGC_FLUX_ANALYSIS || PHYS_FLUX_ANALYSIS */
@@ -751,8 +751,8 @@
            ierr=nf_inq_varid (ncrst, 
      &          vname(1,indxSedOrgN+itrc-1)(1:lvar),rstTsed(itrc))
            if (ierr .ne. nf_noerr) then
-              write(stdout,1) vname(1,indxSedOrgN+itrc-1)(1:lvar),
-     &             rstname(1:lstr) 
+              write(*,1) vname(1,indxSedOrgN+itrc-1)(1:lvar),
+     &             rstname(1:lrst) 
               goto 99           !--> ERROR
            endif
         enddo
@@ -766,7 +766,7 @@
 !        lvar=lenstr(vname(1,indxHCO3_rst))
 !        ierr=nf_inq_varid (ncrst, vname(1,indxHCO3_rst)(1:lvar), rstHCO3)
 !        if (ierr. ne. nf_noerr) then
-!          write(stdout,1) vname(1,indxHCO3_rst)(1:lvar), rstname(1:lstr)
+!          write(*,1) vname(1,indxHCO3_rst)(1:lvar), rstname(1:lrst)
 !          goto 99                                         !--> ERROR
 !        endif
 !
@@ -775,7 +775,7 @@
 !        lvar=lenstr(vname(1,indxCO3_rst))
 !        ierr=nf_inq_varid (ncrst, vname(1,indxCO3_rst)(1:lvar), rstCO3)
 !        if (ierr. ne. nf_noerr) then
-!          write(stdout,1) vname(1,indxCO3_rst)(1:lvar), rstname(1:lstr)
+!          write(*,1) vname(1,indxCO3_rst)(1:lvar), rstname(1:lrst)
 !          goto 99                                         !--> ERROR
 !        endif
 
@@ -786,7 +786,7 @@
         lvar=lenstr(vname(1,indxPHd_rst))
         ierr=nf_inq_varid (ncrst, vname(1,indxPHd_rst)(1:lvar), rstPHd)
         if (ierr. ne. nf_noerr) then
-          write(stdout,1) vname(1,indxPHd_rst)(1:lvar), rstname(1:lstr)
+          write(*,1) vname(1,indxPHd_rst)(1:lvar), rstname(1:lrst)
           goto 99                                         !--> ERROR
         endif
 !
@@ -795,7 +795,7 @@
 !        lvar=lenstr(vname(1,indxPH_rst))
 !        ierr=nf_inq_varid (ncrst, vname(1,indxPH_rst)(1:lvar), rstPH)
 !        if (ierr. ne. nf_noerr) then
-!          write(stdout,1) vname(1,indxPH_rst)(1:lvar), rstname(1:lstr)
+!          write(*,1) vname(1,indxPH_rst)(1:lvar), rstname(1:lrst)
 !          goto 99                                         !--> ERROR
 !        endif
 !#else
@@ -808,7 +808,7 @@
         lvar=lenstr(vname(1,indxPH_rst))
         ierr=nf_inq_varid (ncrst, vname(1,indxPH_rst)(1:lvar), rstPH)
         if (ierr. ne. nf_noerr) then
-          write(stdout,1) vname(1,indxPH_rst)(1:lvar), rstname(1:lstr)
+          write(*,1) vname(1,indxPH_rst)(1:lvar), rstname(1:lrst)
           goto 99                                         !--> ERROR
         endif
 !
@@ -817,7 +817,7 @@
         lvar=lenstr(vname(1,indxPCO2_rst))
         ierr=nf_inq_varid (ncrst, vname(1,indxPCO2_rst)(1:lvar), rstPCO2)
         if (ierr. ne. nf_noerr) then
-          write(stdout,1) vname(1,indxPCO2_rst)(1:lvar), rstname(1:lstr)
+          write(*,1) vname(1,indxPCO2_rst)(1:lvar), rstname(1:lrst)
           goto 99                                         !--> ERROR
         endif
 
@@ -828,7 +828,7 @@
         lvar=lenstr(vname(1,indxPCO2air_rst))
         ierr=nf_inq_varid (ncrst, vname(1,indxPCO2air_rst)(1:lvar), rstPCO2air)
         if (ierr. ne. nf_noerr) then
-          write(stdout,1) vname(1,indxPCO2air_rst)(1:lvar), rstname(1:lstr)
+          write(*,1) vname(1,indxPCO2air_rst)(1:lvar), rstname(1:lrst)
           goto 99                                         !--> ERROR
         endif
 # endif /* OUTPUT_PCO2AIR_RST */
@@ -843,8 +843,8 @@
            ierr=nf_inq_varid (ncrst, vname_bec2_diag_2d(1,itrc)(1:lvar),
      &                        rstT_bec2_diag(itrc))
            if (ierr. ne. nf_noerr) then
-              write(stdout,1) vname_bec2_diag_2d(1,itrc)(1:lvar),
-     &                                           rstname(1:lstr)
+              write(*,1) vname_bec2_diag_2d(1,itrc)(1:lvar),
+     &                                           rstname(1:lrst)
               goto 99                                       !--> ERROR
            endif
         enddo
@@ -856,8 +856,8 @@
            ierr=nf_inq_varid (ncrst, vname_bec2_diag_3d(1,itrc)(1:lvar),
      &                        rstT_bec2_diag(nr_bec2_diag_2d+itrc))
            if (ierr. ne. nf_noerr) then
-              write(stdout,1) vname_bec2_diag_3d(1,itrc)(1:lvar),
-     &                                           rstname(1:lstr)
+              write(*,1) vname_bec2_diag_3d(1,itrc)(1:lvar),
+     &                                           rstname(1:lrst)
               goto 99                                       !--> ERROR
            endif
         enddo
@@ -870,7 +870,7 @@
         lvar=lenstr(vname(1,indxPAR_rst))
         ierr=nf_inq_varid (ncrst, vname(1,indxPAR_rst)(1:lvar), rstPAR)
         if (ierr. ne. nf_noerr) then
-          write(stdout,1) vname(1,indxPAR_rst)(1:lvar), rstname(1:lstr)
+          write(*,1) vname(1,indxPAR_rst)(1:lvar), rstname(1:lrst)
           goto 99                                         !--> ERROR
         endif
 # endif /* BIOLOGY_BEC || BIOLOGY_NPZDOC */

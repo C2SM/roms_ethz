@@ -199,12 +199,10 @@ c     &    NP_XI=4, NP_ETA=24, NSUB_X=1, NSUB_E=1  ! 15km & 5km
 # else
      &      NP_XI=16, NP_ETA=18, NSUB_X=1, NSUB_E=1
 !--> Sasha orig     &      NP_XI=2, NP_ETA=2, NSUB_X=2, NSUB_E=13
-#else
 c     &      NSUB_X=4, NSUB_E=40  ! PAC44
 c     &      NSUB_X=8, NSUB_E=80   ! PAC22
-     &      NSUB_X=6, NSUB_E=24
 c     &      NSUB_X=2, NSUB_E=8  ! <-- iswake 768x192
-c     &      NSUB_X=8, NSUB_E=48
+# endif /* DOMAIN_TILING */
 #endif
 
 ! Array dimensions and bounds of the used portions of sub-arrays
@@ -249,11 +247,11 @@ c     &      NSUB_X=8, NSUB_E=48
 # endif /* PASSIVE_TRACER */
 # ifdef SALINITY
      &       , isalt=2, ntrc_salt=1
+     &       , itrc_bio=itemp+ntrc_salt+ntrc_pas+1 
 #  ifdef BIOLOGY
-     &       , ntrc_bio=5, itrc_bio=itemp+ntrc_salt+ntrc_pas+1
-     &       , NT=7, iNO3_=3, iNH4_=4, iDet_=5, iPhyt=6, iZoo_=7
+     &       , ntrc_bio=5
+     &       , iNO3_=3, iNH4_=4, iDet_=5, iPhyt=6, iZoo_=7
 #  elif defined BIOLOGY_NPZDOC
-     &       , itrc_bio=itemp+ntrc_salt+ntrc_pas+1
      &       , iNO3_=itrc_bio
      &       , iNH4_=iNO3_+1, iChla=iNO3_+2, iPhyt=iNO3_+3
      &       , iZoo_=iNO3_+4, iSDet=iNO3_+5, iLDet=iNO3_+6
@@ -283,7 +281,6 @@ c     &      NSUB_X=8, NSUB_E=48
 #    endif
 #   endif /* SEDIMENT_BIOLOGY */
 # elif defined BIOLOGY_BEC
-     &       , itrc_bio=itemp+ntrc_salt+ntrc_pas+1
      &       , iPO4=itrc_bio, 
      &       , iNO3=iPO4+1, iSIO3=iPO4+2, iNH4=iPO4+3
      &       , iFE=iPO4+4, iO2=iPO4+5, iDIC=iPO4+6
@@ -295,7 +292,6 @@ c     &      NSUB_X=8, NSUB_E=48
      &       , iDOFE=iPO4+22, iDOP=iPO4+23
      &       , ntrc_bio=24
 # elif defined BIOLOGY_BEC2
-     &       , itrc_bio=itemp+ntrc_salt+ntrc_pas+1
      &       , iPO4=itrc_bio
      &       , iNO3=iPO4+1, iSIO3=iPO4+2, iNH4=iPO4+3
      &       , iFE=iPO4+4, iO2=iPO4+5, iDIC=iPO4+6
@@ -307,18 +303,19 @@ c     &      NSUB_X=8, NSUB_E=48
      &       , iDIATFE=iPO4+21, iDIATSI=iPO4+22, iDIAZCHL=iPO4+23
      &       , iDIAZC=iPO4+24, iDIAZFE=iPO4+25
      &       , ntrc_bio=26
-#  else  /* BIOLOGY */
-     &       , NT=2, ntrc_bio=0
+#  else  /* ifdef BIOLOGY */
+     &       , ntrc_bio=0
 #  endif /* BIOLOGY */
-# else
-     &       ,  ntrc_salt=0
+# else /* ifdef SALINITY */
+     &       , ntrc_salt=0
 #  ifdef BIOLOGY
-     &       , NT=6, iNO3_=2, iNH4_=3, iDet_=4, iPhyt=5, iZoo_=6
+     &       , iNO3_=itrc_bio, iNH4_=3, iDet_=4, iPhyt=5, iZoo_=6
 #  else
-     &       , NT=1, ntrc_bio=0
+     &       , ntrc_bio=0
 #  endif
 # endif
 #endif
+     &       , NT=itemp+ntrc_salt+ntrc_pas+ntrc_bio
 
 #ifdef PSOURCE
      &       , Msrc=10   ! Number of point sources

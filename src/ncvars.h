@@ -94,11 +94,8 @@
 # endif
 
 # if defined BIOLOGY_BEC || defined BIOLOGY_BEC2
-     ! Dust and iron flux:
-      integer indxdust
-      parameter (indxdust=indxSST+3)
-      integer indxiron
-      parameter (indxiron=indxSST+4)
+     &                    , indxdust=indxSST+3
+     &                    , indxiron=indxSST+4
 # endif /* BIOLOGY_BEC || BIOLOGY_BEC2 */
 # ifdef SG_BBL96
 #  ifndef ANA_WWAVE
@@ -249,7 +246,7 @@
      &            indxXKW=indxPH+7,indxATMPRESS=indxPH+8,indxSCHMIDTO2=indxPH+9,
      &            indxO2SAT=indxPH+10,indxSCHMIDTCO2=indxPH+11,indxPVO2=indxPH+12,
      &            indxPVCO2=indxPH+13,indxCO2STAR=indxPH+14,indxDCO2STAR=indxPH+15,
-     &            indxIRONFLUX=indxPH+16,indxSEDDENITRIF=indxPH+17 )
+     &            indxIRONFLUX=indxPH+16,indxSEDDENITRIF=indxPH+17
        ! Indices to be used in vname_bec2_diag_3d:
        integer, parameter :: indxPAR=1,indxPOCFLUXIN=indxPAR+1,indxPOCPROD=indxPAR+2,
      &            indxPOCREMIN=indxPAR+3,indxCACO3FLUXIN=indxPAR+4,indxPCACO3PROD=indxPAR+5,
@@ -272,7 +269,7 @@
      &            indxIRONUPTAKEDIAT=indxPAR+54,indxIRONUPTAKEDIAZ=indxPAR+55,indxNITRIF=indxPAR+56,
      &            indxDENITRIF=indxPAR+57,indxSPNO3UPTAKE=indxPAR+58,indxDIATNO3UPTAKE=indxPAR+59,
      &            indxDIAZNO3UPTAKE=indxPAR+60,indxSPNH4UPTAKE=indxPAR+61,indxDIATNH4UPTAKE=indxPAR+62,
-     &            indxDIAZNH4UPTAKE=indxPAR+63 )
+     &            indxDIAZNH4UPTAKE=indxPAR+63
 #  endif /* BEC2_DIAG */
 # endif /* BIOLOGY_BEC2 */
 #endif /* SOLVE3D */
@@ -449,9 +446,9 @@
       common /ncvars/ avgHbbl
 #  endif
 #  ifdef SLICE_AVG
-      integer ncidslavg, nrecslavg,  nrpfslavg,
+      integer ncslavg, nrecslavg,  nrpfslavg,
      &    slavgTime, slavgTstep, slavgZ, slavgUb, slavgVb
-      common /ncvars/  ncidslavg,  nrecslavg, nrpfslavg,
+      common /ncvars/  ncslavg,  nrecslavg, nrpfslavg,
      &    slavgTime, slavgTstep, slavgZ, slavgUb, slavgVb
       integer ksl, slavgU, slavgV, slavgT(NT+1), slavgR
      &      , slavgO, slavgW, slavgAkv, slavgAkt, slavgAks

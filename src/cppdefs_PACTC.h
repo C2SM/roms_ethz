@@ -5,6 +5,9 @@
          /* Include standard CPP switches for UP ETH Zurich */  
 #include "cppdefs_UP.h"
 
+#define GRID_SIZE LLm=416, MMm=346, N=42      ! 5km-66km telescopic
+#define DOMAIN_TILING NP_XI=10, NP_ETA=24, NSUB_X=1, NSUB_E=1
+
          /* Open Boundaries */
 #define OBC_SOUTH
 
