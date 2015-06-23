@@ -68,10 +68,10 @@
 #  ifdef SEDIMENT_BIOLOGY
      &     + NT_sed
 #  endif
-#  ifdef WRITE_DEPTHS
-     &     + 3
-#  endif /* WRITE_DEPTHS */
 # endif /* BIOLOGY_NPZDOC || BIOLOGY_BEC || BIOLOGY_BEC2 */
+# ifdef WRITE_DEPTHS
+     &     + 3
+# endif /* WRITE_DEPTHS */
      &     )
       parameter (indxW=indxO+1, indxR=indxO+2,
      &     indxAkv=indxR+1, 
