@@ -47,12 +47,12 @@
         if (ierr .eq. nf_noerr) then
           ierr=nf_inq_varid (ncid, 'din_river_time', din_river_tid)
           if (ierr .ne. nf_noerr) then
-            MPI_master_only
-     &      print*, 'get_din:river: Error getting ID din_river_time in '
+            MPI_master_only print*
+     &             , 'get_din:river: Error getting ID din_river_time in '
      &             , frcname(1:lstr),', nc error no = ',ierr
           else
-            MPI_master_only
-     &      print*,  'get_din_river: got ID of din_river_time in '
+            MPI_master_only print*
+     &             ,  'get_din_river: got ID of din_river_time in '
      &             , frcname(1:lstr)
           endif
           if (ierr .eq. nf_noerr) then
@@ -65,15 +65,15 @@
               din_river_time(2)=-1.E+20
             else
               MPI_master_only print*,'At 1st WARNING in get_din_river'
-              MPI_master_only
-     &        write(stdout,1) 'din_river_flux', frcname(1:lstr)
+              MPI_master_only write(stdout,1)
+     &           'din_river_flux', frcname(1:lstr)
               print*,' 1st WARNING: ierr = ',ierr
             endif
           else
-            MPI_master_only
-     &        print*,'At 2nd WARNING in get_din_river'
-            MPI_master_only
-     &      write(stdout,1) 'din_river_time', frcname(1:lstr)
+            MPI_master_only print*
+     &         ,'At 2nd WARNING in get_din_river'
+            MPI_master_only write(stdout,1)
+     &       'din_river_time', frcname(1:lstr)
             MPI_master_only print*,' 2nd WARNING: ierr = ',ierr
             if (ifrc .lt. max_frc_file) then
               ifrc=ifrc+1
