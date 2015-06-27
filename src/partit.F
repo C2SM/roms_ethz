@@ -2,8 +2,8 @@
 
 ! ROMS netCDF file partitioning tool: reads netCDF files containing
 ! data (usually forcing, initial fields, and boundary conditions) for
-! to the whole physical grid and prepares multiple files which contain
-! data for individual MPI-subdomains.  These files are be then read in
+! the whole physical grid and prepares multiple files containing only 
+! data for individual MPI-subdomains. These files are be then read in
 ! parallel by different MPI processes of running model.
 
 ! Usage:  partit NP_XI NP_ETA ncname1 ... ncnameN
@@ -47,8 +47,8 @@
 ! routines.
 
 ! To comply with Fortran 2003 standard this code has been revised to
-! use individual buffer arrays for each type of data (character, byte,
-! int2, integer, single and double precision floating point), so each
+! use individual buffer arrays for each type of data: character, byte,
+! int2, integer, single and double precision floating point, so each
 ! call to nf_get/put_vara_TYPE and extract_TYPE matches exactly the
 ! internally-declared type of argument, even though it is necessary
 ! to just match length of each data type in bytes because the buffer
@@ -66,20 +66,20 @@ c--#define VERBOSE
       implicit none
 #include "netcdf.inc"
       character(len=128) src_name, string
-      integer nargs, nnodes,   NP_XI,   xi_rho,  id_xi_rho, id_xi_psi,
-     &        arg,   node,     NP_ETA,  xi_u,    id_xi_u,   id_xi_v,
-     &        ierr,  ierr_all, eta_rho, id_eta_rho,         id_eta_psi,
-     &        ncsrc, ndims,    eta_v,   id_eta_v,           id_eta_u,
-     &        nvars, ngatts,   varatts, unlimdimid, tsize,  rec,
-     &        i,j,k, lstr,     lsrc,    lfnm, lvar, lenstr, chk_alloc
+      integer nargs, nnodes, NP_XI,  xi_rho,  id_xi_rho,  id_xi_psi,
+     &        arg,   node,   NP_ETA, eta_rho, id_eta_rho, id_eta_psi,
+     &        ncsrc, ndims,  ngatts, xi_u,    id_xi_u,    id_xi_v,
+     &        nvars, varatts,        eta_v,   id_eta_v,   id_eta_u,
+     &        i,j,k, ierr,   tsize,  rec,     unlimdimid, ierr_all,
+     &        lstr,  lsrc,   lfnm,   lvar,    lenstr,     chk_alloc
 
       character(len=128), allocatable, dimension(:) :: fname
       character(len=32),  allocatable, dimension(:) :: dimname, vname
 
       integer, allocatable, dimension(:,:) :: vid, dimids
-      integer, allocatable, dimension(:) :: ncid, dimid, dimsize,
-     &                ibuff, xi_start, xi_size, eta_start, eta_size,
-     &                vtype, vdims,  part_type, start, count, start1
+      integer, allocatable, dimension(:) :: ncid,  dimid,  dimsize,
+     &                     xi_start, xi_size,   eta_start, eta_size,
+     &              vtype, vdims,    part_type, start, count, start1
 #ifdef FAST_MODE
      &                                                      , count1
 #endif
@@ -209,8 +209,9 @@ c--#define VERBOSE
 
 ! Process netCDF files: open, check whether it is already a partitioned
 ! file -- print a warning message and skip the file if it is, otherwise
-! proceed with general inquiry, allocate bookkeeping arrays of proper
-! number of dimensions and variables.
+! proceed with general inquiry, check sizes of book-keeping arrays, and
+! if needed allocate them for proper numbers of dimensions and
+! variables actually found in netCDF file.
 
       do arg=3,nargs
         ierr_all=0
@@ -238,17 +239,16 @@ c--#define VERBOSE
         if (ierr == nf_noerr) then
           if (ndims > maxdims .or. nvars > maxvars) then
             if (allocated(dimname)) then
-              deallocate( dimname, dimid, ibuff, dimsize,
-     &                                      start, count, start1,
+              deallocate( dimname, dimid, dimsize, start, count,
+     &                                                       start1,
 #ifdef FAST_MODE
-     &                                                    count1,
+     &                                                       count1,
 #endif
-     &               vname, vtype, vdims, part_type, series,
-     &                                            dimids, vid )
+     &        vname, vtype, vdims, part_type, series, dimids, vid )
             endif
             maxdims=max(ndims,4) ; maxvars=nvars
 
-            allocate( dimname(maxdims), dimid(maxdims), ibuff(maxdims),
+            allocate( dimname(maxdims), dimid(maxdims),
      &                dimsize(maxdims), start(maxdims), count(maxdims),
      &                                 start1(maxdims)
 #ifdef FAST_MODE
@@ -260,7 +260,7 @@ c--#define VERBOSE
 
             allocate(dimids(maxdims,maxvars), vid(maxvars,0:nnodes-1))
 
-            write(*,'(1x,2A,I3,1x,A,I3)')    'allocated bookkeeping ',
+            write(*,'(1x,2A,I3,1x,A,I3)')   'allocated book-keeping ',
      &           'arrays, maxdims =', maxdims, 'maxvars =', maxvars
           endif
         else
@@ -276,17 +276,17 @@ c--#define VERBOSE
 ! save their IDs and sizes.
 
         tsize=1      ! <-- default value.
-        do i=1,ndims
-          ierr=nf_inq_dim (ncsrc, i, dimname(i), dimsize(i))
-          if (ierr==nf_noerr) then
-            if (i== unlimdimid) then
-              tsize=dimsize(i)
-              dimsize(i)=nf_unlimited
+        do j=1,ndims
+          ierr=nf_inq_dim(ncsrc, j, dimname(j), dimsize(j))
+          if (ierr == nf_noerr) then
+            if (j == unlimdimid) then
+              tsize=dimsize(j)
+              dimsize(j)=nf_unlimited
             endif
           else
             write(*,'(/1x,2A,I4/12x,3A/12x,A/)')       '### ERROR: ',
-     &              'Cannot determine name and size for dimension #',
-     &              i,  'in netCDF file ''', src_name(1:lsrc), '''.',
+     &           'Cannot determine name and size for dimension #', j,
+     &                  'in netCDF file ''', src_name(1:lsrc), '''.',
      &                                             nf_strerror(ierr)
              goto 97     !--> next file
           endif
@@ -300,43 +300,37 @@ c--#define VERBOSE
 #ifdef VERBOSE
         write(*,'(4x,A)') 'Identifying dimensions:'
 #endif
-
-        xi_rho=0  ; id_xi_rho=0   ! Mapping redundant dimensions:
-        xi_u=0    ; id_xi_u=0     !
-        eta_rho=0 ; id_eta_rho=0  !          xi_psi  --> xi_u
-        eta_v=0   ; id_eta_v=0    !
-                                  !          xi_v    --> xi_rho
-        id_xi_psi=0               !
-        id_xi_v=0                 !          eta_psi --> eta_v
-        id_eta_psi=0              !
-        id_eta_u=0                !          eta_u   --> eta_rho
-
-        do i=1,ndims
-          lvar=lenstr(dimname(i))
-          if (lvar==6 .and. dimname(i)(1:lvar)=='xi_rho') then
-            id_xi_rho=i
-            xi_rho=dimsize(i)
-          elseif (lvar==4 .and. dimname(i)(1:lvar)=='xi_u') then
-            id_xi_u=i
-            xi_u=dimsize(i)
-          elseif (lvar==7 .and. dimname(i)(1:lvar)=='eta_rho') then
-            id_eta_rho=i
-            eta_rho=dimsize(i)
-          elseif (lvar==5 .and. dimname(i)(1:lvar)=='eta_v') then
-            id_eta_v=i
-            eta_v=dimsize(i)
-          elseif (lvar==6 .and. dimname(i)(1:lvar)=='xi_psi') then
-            id_xi_psi=i
-          elseif (lvar==4 .and. dimname(i)(1:lvar)=='xi_v') then
-            id_xi_v=i
-          elseif (lvar==7 .and. dimname(i)(1:lvar)=='eta_psi') then
-            id_eta_psi=i
-          elseif (lvar==5 .and. dimname(i)(1:lvar)=='eta_u') then
-            id_eta_u=i
+                                   ! Mapping redundant dimensions:
+        xi_rho=0   ; id_xi_rho=0   !
+        xi_u=0     ; id_xi_u=0     !         xi_psi  --> xi_u
+        eta_rho=0  ; id_eta_rho=0  !
+        eta_v=0    ; id_eta_v=0    !         xi_v    --> xi_rho
+                                   !
+        id_xi_v=0  ; id_xi_psi=0   !         eta_psi --> eta_v
+        id_eta_u=0 ; id_eta_psi=0  !
+                                   !         eta_u   --> eta_rho
+        do j=1,ndims
+          lvar=lenstr(dimname(j))
+          if (lvar==6 .and. dimname(j)(1:lvar)=='xi_rho') then
+            id_xi_rho=j  ; xi_rho=dimsize(j)
+          elseif (lvar==4 .and. dimname(j)(1:lvar)=='xi_u') then
+            id_xi_u=j    ; xi_u=dimsize(j)
+          elseif (lvar==7 .and. dimname(j)(1:lvar)=='eta_rho') then
+            id_eta_rho=j ; eta_rho=dimsize(j)
+          elseif (lvar==5 .and. dimname(j)(1:lvar)=='eta_v') then
+            id_eta_v=j   ; eta_v=dimsize(j)
+          elseif (lvar==6 .and. dimname(j)(1:lvar)=='xi_psi') then
+            id_xi_psi=j
+          elseif (lvar==4 .and. dimname(j)(1:lvar)=='xi_v') then
+            id_xi_v=j
+          elseif (lvar==7 .and. dimname(j)(1:lvar)=='eta_psi') then
+            id_eta_psi=j
+          elseif (lvar==5 .and. dimname(j)(1:lvar)=='eta_u') then
+            id_eta_u=j
           endif
 #ifdef VERBOSE
-          write(*,'(8x,I3,1x,A,T24,I3)') i, dimname(i)(1:lvar),
-     &                                              dimsize(i)
+          write(*,'(8x,I3,1x,A,T24,I3)') j, dimname(j)(1:lvar),
+     &                                              dimsize(j)
 #endif
         enddo
 
@@ -357,8 +351,6 @@ c--#define VERBOSE
      &                    'file ''', src_name(1:lsrc), '''.'
           goto 97     !--> next file
         endif
-
-
 
 ! Set horizontal dimensions for each subdomain
 !---- ---------- ---------- --- ---- ---------
@@ -388,8 +380,8 @@ c--#define VERBOSE
             if (ierr == nf_noerr) then
               if ( node < 16 .or. ( nnodes > 16 .and.
      &                              node == nnodes-1 )) then
-                write(*,'(4x,3A)')   'Created partitioned file ''',
-     &                                  fname(node)(1:lfnm), '''.'
+                write(*,'(4x,3A)') 'Created partitioned file ''',
+     &                                fname(node)(1:lfnm), '''.'
 
               elseif (nnodes > 16 .and. node < 18) then
                 write(*,'(16x,A)') '.................................'
@@ -412,62 +404,62 @@ c--#define VERBOSE
 ! Define dimensions for the partitioned files:
 !------- ---------- --- --- ----------- -----
 
-          do i=1,ndims
-            if (i == id_xi_rho) then
+          do j=1,ndims
+            if (j == id_xi_rho) then
               size=xi_size(node)
               if (western_edge(node)) size=size+1
               if (eastern_edge(node)) size=size+1
 
-            elseif (i == id_xi_u) then
+            elseif (j == id_xi_u) then
               size=xi_size(node)
               if (eastern_edge(node)) size=size+1
 
-            elseif (i == id_eta_rho) then
+            elseif (j == id_eta_rho) then
               size=eta_size(node)
               if (southern_edge(node)) size=size+1
               if (northern_edge(node)) size=size+1
 
-            elseif (i == id_eta_v) then
+            elseif (j == id_eta_v) then
               size=eta_size(node)
               if (northern_edge(node)) size=size+1
             else
-              size=dimsize(i)
+              size=dimsize(j)
             endif
 
-            dimid(i)=0
-            lvar=lenstr(dimname(i))
-            if (i /= unlimdimid .and. size == 0) then
-              if (node==0) write(*,'(4x,4A)')       'Suppressing ',
-     &          'zero-size dimension ''', dimname(i)(1:lvar), '''.'
-            elseif  (i == unlimdimid .and. tsize == 0) then
-              if (node==0) write(*,'(4x,4A)')     'Suppressing ',
-     &                          'zero-size unlimited dimension ''',
-     &                                 dimname(i)(1:lvar), '''.'
-            elseif (i==id_xi_psi) then
-              if (node==0) write(*,'(4x,2A)')     'Suppressing ',
-     &                            'obsolete dimension ''xi_psi''.'
-            elseif (i==id_xi_v) then
-              if (node==0) write(*,'(4x,2A)')     'Suppressing ',
-     &                              'obsolete dimension ''xi_v''.'
-            elseif (i==id_eta_psi) then
-              if (node==0) write(*,'(4x,2A)')     'Suppressing ',
-     &                           'obsolete dimension ''eta_psi''.'
-            elseif (i==id_eta_u)  then
-              if (node==0) write(*,'(4x,2A)')     'Suppressing ',
-     &                              'obsolete dimension ''xi_u''.'
+            dimid(j)=0 ; lvar=lenstr(dimname(j))
+
+            if (j /= unlimdimid .and. size == 0) then
+              if (node == 0) write(*,'(4x,4A)')   'Suppressing ',
+     &       'zero-size dimension ''', dimname(j)(1:lvar), '''.'
+            elseif  (j == unlimdimid .and. tsize == 0) then
+              if (node == 0) write(*,'(4x,4A)')   'Suppressing ',
+     &                        'zero-size unlimited dimension ''',
+     &                                 dimname(j)(1:lvar), '''.'
+            elseif (j == id_xi_psi) then
+              if (node == 0) write(*,'(4x,2A)')   'Suppressing ',
+     &                          'obsolete dimension ''xi_psi''.'
+            elseif (j == id_xi_v) then
+              if (node == 0) write(*,'(4x,2A)')   'Suppressing ',
+     &                            'obsolete dimension ''xi_v''.'
+            elseif (j == id_eta_psi) then
+              if (node == 0) write(*,'(4x,2A)')   'Suppressing ',
+     &                         'obsolete dimension ''eta_psi''.'
+            elseif (j == id_eta_u)  then
+              if (node == 0) write(*,'(4x,2A)')   'Suppressing ',
+     &                            'obsolete dimension ''xi_u''.'
             else
-              ierr=nf_def_dim (ncid(node), dimname(i)(1:lvar),
-     &                                           size, dimid(i))
+              ierr=nf_def_dim(ncid(node), dimname(j)(1:lvar),
+     &                                        size, dimid(j))
               if (ierr /= nf_noerr) then
                 ierr_all=ierr_all+1
                 write(*,'(/1x,4A,I8,A,I4/12x,A)')    '### ERROR: ',
-     &            'Cannot define dimension ''', dimname(i)(1:lvar),
+     &            'Cannot define dimension ''', dimname(j)(1:lvar),
      &                       ''' of size =', size,',  node=', node,
      &                                           nf_strerror(ierr)
 #ifdef VERBOSE
               else
                 write(*,'(8x,2A,I2,2x,2A,I4,T50,A,I4)') 'Defined ',
-     &                  'dimension #',dimid(i), dimname(i)(1:lvar),
+     &                  'dimension #',dimid(i), dimname(j)(1:lvar),
      &                                 ' =', size, 'node =', node
 #endif
               endif
@@ -486,10 +478,10 @@ c--#define VERBOSE
 !---- ------ -----------    identifies position of each individual
 !                           subdomain within the processor grid
 
-          ibuff(1)=node    ; ibuff(3)=xi_start(node)
-          ibuff(2)=nnodes  ; ibuff(4)=eta_start(node)
+          start(1)=node    ; start(3)=xi_start(node)
+          start(2)=nnodes  ; start(4)=eta_start(node)
           ierr=nf_put_att_int(ncid(node), nf_global, 'partition',
-     &                                         nf_int, 4, ibuff)
+     &                                       nf_int,   4, start)
         enddo  !<-- node=0,nnodes-1
         if (ierr_all /= 0) stop
 
@@ -575,16 +567,16 @@ c--#define VERBOSE
 ! corresponding to the set of IDs of the ORIGINAL file, and since
 ! some of the original dimensions were eliminated (merged), the set
 ! of dimension IDs in the NEW definitions is obtained by the inverse
-! mapping of dimids(j,i) onto ibuff(j) using dimid(k) as a mapping
+! mapping of dimids(j,i) onto start(j) using dimid(k) as a mapping
 ! array.
 
             do j=1,vdims(i)
               do k=1,ndims
-                if (dimids(j,i) == k) ibuff(j)=dimid(k)
+                if (dimids(j,i) == k) start(j)=dimid(k)
               enddo
             enddo
 c**         write(*,*) 'old_dimids:', (dimids(j,i),j=1,vdims(i))
-c**         write(*,*) 'new_dimids:',    (ibuff(j),j=1,vdims(i))
+c**         write(*,*) 'new_dimids:',    (start(j),j=1,vdims(i))
 
             lvar=lenstr(vname(i))
             do node=0,nnodes-1
@@ -605,7 +597,7 @@ c**         write(*,*) 'new_dimids:',    (ibuff(j),j=1,vdims(i))
               endif
               if (vid(i,node) == 0) then
                 ierr=nf_def_var(ncid(node), vname(i)(1:lvar), vtype(i),
-     &                                   vdims(i), ibuff, vid(i,node))
+     &                                   vdims(i), start, vid(i,node))
                 if (ierr /= nf_noerr) then
                   write(*,'(/1x,4A,I4/12x,A/)') '### ERROR: Cannot ',
      &                    'create variable ''',   vname(i)(1:lvar),
@@ -623,7 +615,7 @@ c**         write(*,*) 'new_dimids:',    (ibuff(j),j=1,vdims(i))
 #ifdef DUMMY_BRY_VAR
               else
                 ierr=nf_def_var(ncid(node), vname(i)(1:lvar), vtype(i),
-     &                                          0, ibuff, vid(i,node))
+     &                                          0, start, vid(i,node))
 # ifdef VERBOSE
                 write(*,'(I3,4A,T84,A,I4)') i,' Created dummy scalar ',
      &           'variable ''', vname(i)(1:lvar), '''', 'node =', node
@@ -636,7 +628,7 @@ c**         write(*,*) 'new_dimids:',    (ibuff(j),j=1,vdims(i))
 # endif
 #endif
               endif
-            enddo
+            enddo     !--> discard start
             do j=1,varatts
               ierr=nf_inq_attname(ncsrc, i, j, string)
               lvar=lenstr(string)
