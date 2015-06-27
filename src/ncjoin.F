@@ -2,17 +2,13 @@
 
 ! Reads ROMS partial netCDF files and combines them into a file for
 ! the whole physical grid.  This operation is the inverse to partit.
-! Usage:
+! Basic usage:
 !
-!                  ncjoin files.???.nc
-! or
-!                  ncjoin -d files.???.nc
-! or
-!                  ncjoin --delete files.???.nc
+!           ncjoin [-3 -d -h -c=<n> -o=<dir>] files.*.nc
 !
-! where files.???.nc matches a complete set of partial files (or
-! several complete sets) and "-d" or "--delete" forces deletion of
-! partial files upon successful joining.
+! where files.*.nc matches a complete set of partial files (or
+! several complete sets).
+! "ncjoin -h" prints  more help on its usage.
 
 ! CPP-switch "FAST_MODE" activates mode in which partial arrays are
 ! assembled into a big array in operating memory, and the whole data
@@ -24,9 +20,9 @@
 ! slower.
 
 ! CPP-switch "DEL_PART_FILES" enables the user-activated option to
-! delete partial files just after they are joined.  If compiled with
-! this switch is defined, ncjoin becomes sensitive to whether its first
-! argument is "-d" or "--delete".  The deletion occurs one-set-at-at-
+! delete partial files just after they are joined.  This becomes
+! the default. Only with the option "-k" the partial files are kept.
+! The deletion occurs one-set-at-at-
 ! a-time and ONLY if the joining is successful, i.e., if an error of
 ! any kind occurs, so the set cannot be joined for whatever reason (a
 ! missing file, or one file has fewer records than others, or reading
@@ -54,7 +50,7 @@
 
 #define FAST_MODE
 #define DEL_PART_FILES
-c--#define ZLIB_COMPRESSION
+#define ZLIB_COMPRESSION
 c--#define KEEP_CLOSED
 #define TIMING
 c--#define AUTORENICE
@@ -72,10 +68,12 @@ c--#define VERBOSE
      &        ntest, nctarg,   ndims,    code_size,           is,ie,
      &        nvars, ngatts,   varatts,  code_size_bak,        i,j,k,
      &        lsrc,  ltrg,     lvar,     lstr,lbak, lenstr, chk_alloc
+      integer  ::  ldir=0
 
       character(len=8) sffx, sffx_bak
       character(len=32) vname(maxvars), dimname(maxdims)
-      character(len=64) nctestname, nctargname, root, root_bak, string
+      character(len=64) root, root_bak, string
+      character(len=256) nctestname, nctargname, odir
 
       character(len=128), allocatable, dimension(:) :: srcname
 
@@ -126,7 +124,8 @@ c--#define VERBOSE
 #ifdef ZLIB_COMPRESSION
       character(len=25), parameter :: signature =
      &                       'netCDF-4, zlib-compressed'
-      integer :: shuffle=1, deflate=1, deflate_level=6 ! <-- default
+      integer :: shuffle=1, deflate=1, deflate_level=1 ! <-- default
+     &           , ncVersion=4 
 #endif
 #ifdef DEL_PART_FILES
       logical del_part_files
@@ -180,14 +179,19 @@ c--#define VERBOSE
       call system_clock(iclk(nclk), clk_rate, clk_max)
 #endif
 #ifdef DEL_PART_FILES
-      del_part_files=.false.
+      !del_part_files=.false.
+      del_part_files=.true.
 #endif
 
       ntest=-1 ; maxnodes=-1
 
       nargs=iargc() ; arg=0
+      if ( nargs < 1 ) then
+        call usage
+        call exit(-1)
+      endif
 
-! Extract a set of files which cover the whole physical grid.
+! Extract a set of files which cover the whole physical grid.'
 
   1   nnodes=-1                        ! Reset variables which
       root_bak(1:1)=' '                ! define the file set.
@@ -199,24 +203,33 @@ c--#define VERBOSE
         lsrc=lenstr(nctestname)
 #ifdef DEL_PART_FILES
         if ( nctestname(1:1) == '-' .and. (
-     &       lsrc == 2 .and. nctestname(1:2) == '-d' .or.
-     &       lsrc == 8 .and. nctestname(1:8) == '--delete' )) then
-          write(*,'(/1x,2A/)') '>>>> Flag to delete partial files ',
-     &                                                 'is raised.'
-          del_part_files=.true.
+     &       lsrc == 2 .and. nctestname(1:2) == '-k' .or.
+     &       lsrc == 6 .and. nctestname(1:6) == '--keep' )) then
+          print'(/1x,A/)', '---> Keeping partial files'
+          ! write(*,'(/1x,2A/)') '>>>> Flag to delete partial files ',
+     ! &                                                 'is raised.'
+          ! del_part_files=.true.
+          del_part_files=.false.
           goto 2
         endif
 #endif
 #ifdef ZLIB_COMPRESSION
         if ( nctestname(1:1)=='-' .and. (
+     &       lsrc == 2  .and. nctestname(1:2) == '-3' )) then
+          ncVersion=3
+        endif
+        if (ncVersion < 4 ) deflate_level=0
+       
+        if ( nctestname(1:1)=='-' .and. (
      &       lsrc > 3  .and. nctestname(1:3) == '-c=' .or.
      &       lsrc > 12 .and. nctestname(1:12) == '--complevel=' )) then
           i=ichar(nctestname(lsrc:lsrc))-48
           if (i == 0) then
-            shuffle=0 ; deflate=0 ; deflate_level=0
+            shuffle=1 ; deflate=0 ; deflate_level=0
+            write(*,'(/1x,A,I2/)') '---> No compression. level =', i
           elseif (0 < i .and. i <= 9) then
             shuffle=1 ; deflate=1 ; deflate_level=i
-            write(*,'(/1x,A,I2/)') '>>>> Set compression level =', i
+            write(*,'(/1x,A,I2/)') '---> Set compression level =', i
           else
             write(*,'(/1x,2A/)') '### ERROR: invalid argument: ',
      &                   'compression level must be from 0 to 9.'
@@ -225,6 +238,19 @@ c--#define VERBOSE
           goto 2
         endif
 #endif
+        if ( nctestname(1:1)=='-' .and. (
+     &       lsrc > 3  .and. nctestname(1:3) == '-o=' )) then
+          ldir=lenstr(nctestname)
+          odir=nctestname(4:ldir)
+          ldir=ldir-3
+          goto 2
+        endif
+        if ( nctestname(1:1)=='-' .and. (
+     &       lsrc > 1  .and. nctestname(1:2) == '-h' )) then
+          call usage
+          call exit(0)
+        endif
+
         if (ntest /= -1) then
           ierr=nf_close(ntest) ; ntest=-1
         endif
@@ -850,17 +876,24 @@ c**         endif
         if (nctargname(i:i) == '/') j=i+1       ! and if it does, take
       enddo                                     ! them out: "ncjoin"
       if (j > 0) then                           ! is designed to place
-        nctargname=nctargname(j:ltrg)           ! the combined files
-        ltrg=ltrg-j+1                           ! into current working
-      endif                                     ! directory.
+        nctargname=nctargname(j:ltrg)           ! the combined files by 
+        ltrg=ltrg-j+1                           ! default into the current
+      endif                                     ! working directory.
+      if (ldir > 0) then
+        nctargname= odir(1:ldir)/ /'/'/ /nctargname(j:ltrg)
+        ltrg=lenstr(nctargname)
+      endif
 
-      ierr=nf_create(nctargname(1:ltrg),
 #ifdef ZLIB_COMPRESSION
-     &                          nf_netcdf4,
-#else
-     &          nf_clobber+nf_64bit_offset,
+      if (ncVersion < 4) then
+        ierr=nf_create(nctargname(1:ltrg),
+     &          nf_clobber+nf_64bit_offset, nctarg)
+      else
+        ierr=nf_create(nctargname(1:ltrg), nf_netcdf4, nctarg)
 #endif
-     &                             nctarg)
+#ifdef ZLIB_COMPRESSION
+      endif
+#endif
       if (ierr == nf_noerr) then
         write(*,'(/1x,3A)')  'Created netCDF file ''',
      &                        nctargname(1:ltrg), '''.'
@@ -955,9 +988,11 @@ c**         endif
         enddo
 
 #ifdef ZLIB_COMPRESSION                         /* Put format label */
-        lvar=lenstr(signature)                    ! so the file can be
-        ierr=nf_put_att_text(nctarg, nf_global,   ! later identified as
-     &                 signame, lvar, signature)  ! compressed netCDF4.
+        if (ncVersion > 3 .and. deflate_level > 0) then
+          lvar=lenstr(signature)                    ! so the file can be
+          ierr=nf_put_att_text(nctarg, nf_global,   ! later identified as
+     &                 signame, lvar, signature)    ! compressed netCDF4.
+       endif
 #endif
 
       else
@@ -987,6 +1022,7 @@ c**         endif
      &                        vdims(i), dimids(1,i), varid(i))
             if (ierr == nf_noerr) then
 #ifdef ZLIB_COMPRESSION
+              ! if (vdims(i) > 1 .and. deflate_level > 0 ) then
               if (vdims(i) > 1) then
                 ierr=nf_def_var_deflate(nctarg, varid(i), shuffle,
      &                                     deflate, deflate_level)
@@ -2069,3 +2105,31 @@ c       ierr=nf_open(nctargname(1:ltrg), nf_write, nctarg)
 # include "copy_subarray.h"
       end
 #endif
+
+      subroutine usage
+        print'(/17(A/))'
+     &   , 'NCJOIN'
+     &   , '     Reads ROMS partial netCDF files and combines them'
+     &   , '     into a file for the whole physical grid.'
+     &   , '     By default partial files are deleted upon'
+     &   , '     successful joining. The output files are'
+     &   , '     written in the current working directory'
+     &   , '     (NCJOIN  is the inverse of PARTIT.)'
+     &   , ' '
+     &   , 'USAGE:'
+     &   , '     ncjoin [-3 -k -h -c=<n>>] files.*.nc'
+     &   , ' '
+     &   , '     where files.*.nc matches one or more complete set of' 
+     &   , '     partial files'
+     &   , ' '
+     &   , 'OPTIONS:'
+     &   , '    -3           netCDF3 (64-bit) output (default: netCDF4)'
+     &   , '    -c=0-9       output compression level (default: 1)'
+     &   , '                 -c=0 contiguous storage, no compression'
+     &   , '    -k           keep partial files'
+     &   , '    -h           print this help'
+     !&   , '    -o=<dir>     output directory (default: working dir)'
+     !&   , '     ncjoin [-3 -k -h -c=<n> -o=<dir>] files.*.nc'
+
+      end
+

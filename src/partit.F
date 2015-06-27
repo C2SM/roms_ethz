@@ -170,8 +170,9 @@ c--#define VERBOSE
 
       nargs=iargc()
       if (nargs < 3) then
-        write(*,'(/1x,A/32x,A/)')      'Usage of partit should be:',
-     &                       'partit NP_X NP_E ncname1 ... ncnameN'
+        !write(*,'(/1x,A/32x,A/)')      'Usage of partit should be:',
+     !&                       'partit NP_X NP_E ncname1 ... ncnameN'
+        call usage
         stop
       endif
 
@@ -181,6 +182,7 @@ c--#define VERBOSE
         if (j < 0 .or. j > 9) then
           write(*,'(/8x,3A/)')     '### ERROR: First argument ',
      &           string(1:lstr), ', must be an integer number.'
+          call usage
           stop
         else
           NP_XI=10*NP_XI+j
@@ -193,6 +195,7 @@ c--#define VERBOSE
         if (j < 0 .or. j > 9) then
           write(*,'(/8x,3A/)')    '### ERROR: Second argument ',
      &           string(1:lstr), ', must be an integer number.'
+          call usage
           stop
         else
           NP_ETA=10*NP_ETA+j
@@ -1667,3 +1670,32 @@ c**         write(*,*) 'new_dimids:',    (start(j),j=1,vdims(i))
 # include "copy_subarray.h"
       end
 #endif
+
+      subroutine usage
+        print'(/15(A/))'
+     &   , 'PARTIT'
+     &   , '     Reads ROMS  netCDF files and partitions them'
+     &   , '     into NP_X times NP_E partial files for running'
+     &   , '     ROMS with "PARALLEL_FILES" enabled.'
+     &   , '     (This operation is the inverse to NCJOIN.)'
+     &   , ' '
+     &   , 'USAGE:'
+     &   , '     partit NP_X NP_E file.nc [file2.nc ...]'
+     &   , ' '
+     &   , '     where file.nc is a full grid ROMS netCDF files' 
+     &   , '     and NP_X, NP_E are the tiling dimensions in Xi and Eta'
+     &   , '     directions. The partitioned files  are written to the'
+     &   , '     current working directory.  For optimal performance'
+     &   , '     this should be on a different files system than the '
+     &   , '     input file(s).'
+     ! &   , ' '
+     ! &   , 'OPTIONS:'
+     ! &   , '    -3           netCDF3 (64-bit) output (default: netCDF4)'
+     ! &   , '    -c=0-9       output compression level (default: 1)'
+     ! &   , '                 -c=0 contiguous storage, no compression'
+     ! &   , '    -k           keep partial files'
+     ! &   , '    -h           print this help'
+     ! &   , '    -o=<dir>     output directory (default: working dir)'
+
+      end
+
