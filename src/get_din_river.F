@@ -24,18 +24,18 @@
 ! reading part below.
 !
       ifrc=1
- 100  ncid=ncidfrc(ifrc)
+ 100  ncid=ncfrc(ifrc)
       frcname=frcfile(ifrc)
       ierr=nf_noerr
 
       if (iic.eq.ntstart) then
         lstr=lenstr(frcname)
         if (ncid.eq.-1) then
-          ierr=nf_open(frcname(1:lstr), nf_nowrite, ncidfrc)
+          ierr=nf_open(frcname(1:lstr), nf_nowrite, ncfrc)
           if (ierr.eq.nf_noerr) then
-            ncidfrc(ifrc)=ncid
+            ncfrc(ifrc)=ncid
           else
-            write(stdout,'(/1x,4A/)') '### ERROR ',
+            write(*,'(/1x,4A/)') '### ERROR ',
      &                   'in get_din_river: can not open netCDF file ''',
      &                                       frcname(1:lstr), '''.'
           endif
@@ -51,10 +51,10 @@
               din_river_time(1)=-1.E+20
               din_river_time(2)=-1.E+20
             else
-              write(stdout,1) 'din_river_flux', frcname(1:lstr)
+              write(*,1) 'din_river_flux', frcname(1:lstr)
             endif
           else
-            write(stdout,1) 'din_river_time', frcname(1:lstr)
+            write(*,1) 'din_river_time', frcname(1:lstr)
             if (ifrc .lt. max_frc) then
               ifrc=ifrc+1
               goto 100
@@ -83,18 +83,18 @@
             ierr=nf_fread (din_riverg(START_2D_ARRAY,itdin_river), ncid,
      &                                 din_river_id, din_river_rec, r2dvar)
             if (ierr .eq. nf_noerr) then
-              MPI_master_only write(stdout,
+              MPI_master_only write(*,
      &          '(6x,2A,G12.4,1x,A,I4)') 'get_din_river    --',
      &          ' read din_river                       for time =',
      &                   cff MYID
             else
-              write(stdout,2) 'din_river', din_river_rec
+              write(*,2) 'din_river', din_river_rec
             endif
           else
-            write(stdout,2) 'din_river_time', din_river_rec
+            write(*,2) 'din_river_time', din_river_rec
           endif
         else
-          write(stdout,'(/1x,A,I4,1x,A,I4/7x,4A/7x,2(A,G12.4)/)')
+          write(*,'(/1x,A,I4,1x,A,I4/7x,4A/7x,2(A,G12.4)/)')
      &   'ERROR in get_din_river: requested time record ',      din_river_rec,
      &   'exeeds the last record', ntdin_river, 'available in forcing ',
      &   'netCDF file ''',   frcname(1:lstr),   '''',  'tdays = ',
@@ -151,7 +151,7 @@
           enddo
         enddo
       elseif (ZEROTH_TILE) then
-        write(stdout,'(/1x,2A/3(1x,A,F16.10)/)')
+        write(*,'(/1x,2A/3(1x,A,F16.10)/)')
      &       'SET_DIN_RIVER_TILE - current model time is outside bounds ',
      &       'of ''din_river_time''.', 'DIN_RIVER_TSTART=',din_river_time(it1)*sec2day,
      &                           'TDAYS=',     tdays,

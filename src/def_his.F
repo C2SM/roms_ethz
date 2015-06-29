@@ -37,9 +37,10 @@
       implicit none
       logical create_new_file
       integer total_rec, ierr, rec,timedim, old_fill, lfnm, lvar
-     &      , r2dgrd(3), u2dgrd(3), v2dgrd(3), auxil(2)
-#ifdef SOLVE3D
-     &      , r3dgrd(4), u3dgrd(4), v3dgrd(4), w3dgrd(4), itrc
+     &      , r2dgrd(3), u2dgrd(3), v2dgrd(3), auxil(2), itrc
+!#ifdef SOLVE3D
+# if defined SOLVE3D && !defined AVR2DH
+     &      , r3dgrd(4), u3dgrd(4), v3dgrd(4), w3dgrd(4)
 #endif
       integer my_nf_def_dim     !<-- instrumented netCDF function.
       integer lenstr, checkdims
@@ -271,7 +272,7 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
 #   define vidSwrF slavgSwrF
 #  endif
 #  define vidAks slavgAks
-#  define vidHbl slavgHbl
+#  define vidHbls slavgHbls
 #  define vidHbbl slavgHbbl
 #  if defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC
 #   if defined CH_CARBON_DEPTH
@@ -462,9 +463,11 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
 ! Time-step number and time-record indices: (history file only, this
 ! may be needed in the event when a history record is used to restart
 ! the current model run);
+#ifndef AVRH 
         ierr=nf_def_var (ncid, 'time_step', nf_int, 2, auxil, vidTstep)
         ierr=nf_put_att_text (ncid, vidTstep, 'long_name', 48,
      &              'time step and record numbers from initialization')
+#endif
 
 ! Time.
         lvar=lenstr(vname(1,indxTime))

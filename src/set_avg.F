@@ -150,7 +150,10 @@
       implicit none
       integer istr,iend,jstr,jend, i,j
 # ifdef SOLVE3D
-     &                       , itrc, k
+     &                       , itrc
+#  ifndef AVRSLICE
+     &                       , k
+#  endif
 # endif
       real cff,cff1
 # include "param.h"
@@ -483,6 +486,10 @@
 #   undef GasExcFlux_AVR
 #  endif
 # endif
+#  if defined BIOLOGY_BEC2 && defined BEC2_DIAG
+#   undef bec2_diag_2d_AVR
+#   undef bec2_diag_3d_AVR
+#  endif /* BIOLOGY_BEC2 && BEC2_DIAG */
 # ifdef SLICE_AVG
 #  ifndef AVRSLICE
 #   define AVRSLICE

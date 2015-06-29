@@ -80,11 +80,11 @@ CSDISTRIBUTE_RESHAPE t_slavg(BLOCK_PATTERN,*) BLOCK_CLAUSE
       real rho_slavg(GLOBAL_2D_ARRAY)
 CSDISTRIBUTE_RESHAPE rho_slavg(BLOCK_PATTERN) BLOCK_CLAUSE
       real w_slavg(GLOBAL_2D_ARRAY)
-      real wt_slavg(GLOBAL_2D_ARRAY)
+      real wvl_slavg(GLOBAL_2D_ARRAY)
 CSDISTRIBUTE_RESHAPE w_slavg(BLOCK_PATTERN) BLOCK_CLAUSE
       common /slavg_u/u_slavg /slavg_v/v_slavg /slavg_t/t_slavg
      &                /slavg_rho/rho_slavg /slavg_w/w_slavg
-     &                /slavg_wt/wt_slavg
+     &                /slavg_wvl/wvl_slavg
       real akv_slavg(GLOBAL_2D_ARRAY)
       real akt_slavg(GLOBAL_2D_ARRAY)
 CSDISTRIBUTE_RESHAPE akt_slavg(BLOCK_PATTERN) BLOCK_CLAUSE

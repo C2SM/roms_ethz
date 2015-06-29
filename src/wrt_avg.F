@@ -1,42 +1,24 @@
 #include "cppdefs.h"
+!  We are playing the same redefinition preprocessor game as in def_his.F here...
 #ifdef AVERAGES
 # ifndef SLICE_AVR
 #  define START_3D_ARRAY_K0 START_2D_ARRAY,0
 #  define START_3D_ARRAY_K1 START_2D_ARRAY,1
-! Defining strings for regular avg
-#  define avr avg
-#  define SWRT_AVR 'WRT_AVG'
-#  if defined BIOLOGY_BEC2 && defined BEC2_DIAG
-#   define bec2_diag_2d_avr bec2_diag_2d_avg
-#   define bec2_diag_3d_avr bec2_diag_3d_avg
-#   define avrT_bec2_diag avgT_bec2_diag
-#  endif
+#  define AVR avg 
+! By defining AVR as avg we make use of the fact that
+! compiler will ignore spaced e.g., wrt_ avg -> wrt_avg
+! This makes that *.f a bit less readable but saves a lot of #define
 # else
-!  We are playing the same redefinition preprocessor game as in def_his.F here...
 #  define START_3D_ARRAY_K0 START_2D_ARRAY
 #  define START_3D_ARRAY_K1 START_2D_ARRAY
-! Redefining strings for slices
-# define avr slavg
+#  define AVR slavg
 #  define R3DVAR r2dvar
 #  define U3DVAR u2dvar
 #  define V3DVAR v2dvar
 #  define W3DVAR r2dvar
-#  define SWRT_AVR 'WRT_SLAVG'
-#  ifdef __IFC
-!
-!        BRUTUS CLUSTER CLUTCH
-!  With the Intel compiler slice averages of PAR are
-!  contain INF and other weired values.  It appears to be
-!  a tiling/optimisation problem.  Other output appears 
-!  not to be affected. It is a bit unnerving but as it's 
-!  just a further diagnostic output we just to not output
-!  PAR in slice averages when using the Intel compiler.
-!
-!--> #   define NOPARWRT
-#  endif
 # endif /* ifndef SLICE_AVG */
 
-      subroutine wrt_avr             ! Write time-averaged fields
+      subroutine wrt_ AVR              ! Write time-averaged fields
                                      ! into averages netCDF file.
       implicit none
       integer record, i, ierr, lstr, lvar, lenstr, nf_fwrite
@@ -72,43 +54,45 @@
      &                       ocean_grid_comm, status, ierr)
       endif
 # endif
-CR      mpi_master_only print *, '--- NOTE: Executing ', SWRT_AVR
+CR      mpi_master_only print *, '--- NOTE: Executing ', wrt_ AVR
 
 ! Create/open averages file; write grid arrays, if so needed,
 ! check for errors, then set record within the file "record".
 
-      call def_avr (nrecavr, ierr)
-      lstr=lenstr(avrname)
+      call def_ AVR  (nrec AVR , ierr)
+      lstr=lenstr( AVR name)
       if (ierr /= nf_noerr) goto 99       !!! WARNING: Here it is
-      nrecavr=max(nrecavr,1)                !!! assumed that global
-      if (nrpfavr==0) then                !!! averages record index
-        record=nrecavr                      !!! "nrecavr" is already
+      nrec AVR =max(nrec AVR ,1)                !!! assumed that global
+      if (nrpf AVR ==0) then                !!! averages record index
+        record=nrec AVR                       !!! "nrec AVR " is already
       else                                  !!! advanced by main.
-        record=1+mod(nrecavr-1, nrpfavr)
+        record=1+mod(nrec AVR -1, nrpf AVR )
       endif
 
 ! Write out time-averaged variables:
 ! ----- --- ------------- ----------
+#if 0  /* Only needed if averages would be used as restart */
 ! Time step and record indices.
 
       ibuff(1)=iic
       ibuff(2)=nrecrst
       ibuff(3)=nrechis
-      ibuff(4)=nrecavr
+      ibuff(4)=nrec AVR 
  
       start(1)=1
       start(2)=record
       count(1)=4
       count(2)=1
-      ierr=nf_put_vara_int (ncavr, avrTstep, start, count, ibuff)
+      ierr=nf_put_vara_int (nc AVR ,  AVR Tstep, start, count, ibuff)
       if (ierr /= nf_noerr) then
         write(*,1) 'time_step', record,ierr MYID
         goto 99                                           !--> ERROR
       endif
+#endif
 !
 ! Averaged time
 
-      ierr=nf_put_var1_FTYPE (ncavr, avrTime, record, time_avr)
+      ierr=nf_put_var1_FTYPE (nc AVR ,  AVR Time, record, time_ AVR )
       if (ierr /= nf_noerr) then
         lvar=lenstr(vname(1,indxTime))
         write(*,1) vname(1,indxTime)(1:lvar), record MYID
@@ -118,8 +102,8 @@ CR      mpi_master_only print *, '--- NOTE: Executing ', SWRT_AVR
 ! Barotropic mode variables: free-surface and 2D momentum components
 ! in XI-,ETA-directions.
 
-      if (wrtavr(indxZ)) then
-        ierr=nf_fwrite (zeta_avr(START_2D_ARRAY), ncavr, avrZ,
+      if (wrt AVR (indxZ)) then
+        ierr=nf_fwrite (zeta_ AVR (START_2D_ARRAY), nc AVR ,  AVR Z,
      &                                            record, r2dvar)
         if (ierr /= nf_noerr) then
           lvar=lenstr(vname(1,indxZ))
@@ -128,8 +112,8 @@ CR      mpi_master_only print *, '--- NOTE: Executing ', SWRT_AVR
         endif
       endif
 
-      if (wrtavr(indxUb)) then
-        ierr=nf_fwrite (ubar_avr(START_2D_ARRAY), ncavr, avrUb,
+      if (wrt AVR (indxUb)) then
+        ierr=nf_fwrite (ubar_ AVR (START_2D_ARRAY), nc AVR ,  AVR Ub,
      &                                            record, u2dvar)
         if (ierr /= nf_noerr) then
           lvar=lenstr(vname(1,indxUb))
@@ -138,8 +122,8 @@ CR      mpi_master_only print *, '--- NOTE: Executing ', SWRT_AVR
         endif
       endif
 
-      if (wrtavr(indxVb)) then
-        ierr=nf_fwrite (vbar_avr(START_2D_ARRAY), ncavr, avrVb,
+      if (wrt AVR (indxVb)) then
+        ierr=nf_fwrite (vbar_ AVR (START_2D_ARRAY), nc AVR ,  AVR Vb,
      &                                            record, v2dvar)
         if (ierr /= nf_noerr) then
           lvar=lenstr(vname(1,indxVb))
@@ -151,8 +135,8 @@ CR      mpi_master_only print *, '--- NOTE: Executing ', SWRT_AVR
 
 ! 3D momentum components in XI- and ETA-directions.
 
-      if (wrtavr(indxU)) then
-        ierr=nf_fwrite (u_avr(START_3D_ARRAY_K1), ncavr, avrU,
+      if (wrt AVR (indxU)) then
+        ierr=nf_fwrite (u_ AVR (START_3D_ARRAY_K1), nc AVR ,  AVR U,
      &                                           record, U3DVAR)
         if (ierr /= nf_noerr) then
           lvar=lenstr(vname(1,indxU))
@@ -161,8 +145,8 @@ CR      mpi_master_only print *, '--- NOTE: Executing ', SWRT_AVR
         endif
       endif
 
-      if (wrtavr(indxV)) then
-        ierr=nf_fwrite (v_avr(START_3D_ARRAY_K1), ncavr, avrV,
+      if (wrt AVR (indxV)) then
+        ierr=nf_fwrite (v_ AVR (START_3D_ARRAY_K1), nc AVR ,  AVR V,
      &                                           record, V3DVAR)
         if (ierr /= nf_noerr) then
         lvar=lenstr(vname(1,indxV))
@@ -174,9 +158,9 @@ CR      mpi_master_only print *, '--- NOTE: Executing ', SWRT_AVR
 ! Tracer variables.
 
       do itrc=1,NT
-        if (wrtavr(indxT+itrc-1)) then
-          ierr=nf_fwrite (t_avr(START_3D_ARRAY_K1,itrc), ncavr,
-     &                              avrT(itrc), record, R3DVAR)
+        if (wrt AVR (indxT+itrc-1)) then
+          ierr=nf_fwrite (t_ AVR (START_3D_ARRAY_K1,itrc), nc AVR ,
+     &                               AVR T(itrc), record, R3DVAR)
           if (ierr /= nf_noerr) then
             lvar=lenstr(vname(1,indxT+itrc-1))
             write(*,1) vname(1,indxT+itrc-1)(1:lvar),record MYID
@@ -189,24 +173,24 @@ CR      mpi_master_only print *, '--- NOTE: Executing ', SWRT_AVR
 ! Sediment concentrations
 
       do itrc=1,NT_sed
-        if (wrtavr(indxSedOrgN+itrc-1)) then
-          ierr=nf_fwrite (t_sed_avr(START_2D_ARRAY,itrc), ncavr,
-     &                                avrTsed(itrc), record, r2dvar)
+        if (wrt AVR (indxSedOrgN+itrc-1)) then
+          ierr=nf_fwrite (t_sed_ AVR (START_2D_ARRAY,itrc), nc AVR ,
+     &                                 AVR Tsed(itrc), record, r2dvar)
           if (ierr /= nf_noerr) then
             lvar=lenstr(vname(1,indxSedOrgN+itrc-1))
             write(*,1) vname(1,indxSedOrgN+itrc-1)(1:lvar), record,
      &                      ierr, nf_strerror(ierr) MYID
             goto 99                                       !--> ERROR
           endif
-CR      write(*,*) 'wrt_avr:  wrtT_sed  ' MYID
+CR      write(*,*) 'wrt_ AVR :  wrtT_sed  ' MYID
         endif
       enddo
 #endif /* SEDIMENT_BIOLOGY */
 
 ! Density anomaly.
 
-      if (wrtavr(indxR)) then
-        ierr=nf_fwrite (rho_avr(START_3D_ARRAY_K1), ncavr, avrR,
+      if (wrt AVR (indxR)) then
+        ierr=nf_fwrite (rho_ AVR (START_3D_ARRAY_K1), nc AVR ,  AVR R,
      &                                             record, R3DVAR)
         if (ierr /= nf_noerr) then
           lvar=lenstr(vname(1,indxR))
@@ -217,8 +201,8 @@ CR      write(*,*) 'wrt_avr:  wrtT_sed  ' MYID
 
 ! S-coordinate omega vertical velocity (m/s).
 
-      if (wrtavr(indxO)) then
-        ierr=nf_fwrite (w_avr, ncavr, avrO, record, W3DVAR)
+      if (wrt AVR (indxO)) then
+        ierr=nf_fwrite (w_ AVR , nc AVR ,  AVR O, record, W3DVAR)
         if (ierr /= nf_noerr) then
           lvar=lenstr(vname(1,indxO))
           write(*,1) vname(1,indxO)(1:lvar), record  MYID
@@ -228,8 +212,8 @@ CR      write(*,*) 'wrt_avr:  wrtT_sed  ' MYID
 
 ! True vertical velocity (m/s).
 
-      if (wrtavr(indxW)) then
-        ierr=nf_fwrite (wvl_avr, ncavr, avrW, record, R3DVAR)
+      if (wrt AVR (indxW)) then
+        ierr=nf_fwrite (wvl_ AVR , nc AVR ,  AVR W, record, R3DVAR)
         if (ierr /= nf_noerr) then
           lvar=lenstr(vname(1,indxW))
           write(*,1) vname(1,indxW)(1:lvar), record MYID
@@ -239,9 +223,9 @@ CR      write(*,*) 'wrt_avr:  wrtT_sed  ' MYID
 
 ! Vertical eddy viscosity coefficient for momentum.
 
-      if (wrtavr(indxAkv)) then
-        ierr=nf_fwrite (akv_avr(START_3D_ARRAY_K0), ncavr,
-     &                                avrAkv, record, W3DVAR)
+      if (wrt AVR (indxAkv)) then
+        ierr=nf_fwrite (akv_ AVR (START_3D_ARRAY_K0), nc AVR ,
+     &                                 AVR Akv, record, W3DVAR)
         if (ierr /= nf_noerr) then
           lvar=lenstr(vname(1,indxAkv))
           write(*,1) vname(1,indxAkv)(1:lvar), record MYID
@@ -251,9 +235,9 @@ CR      write(*,*) 'wrt_avr:  wrtT_sed  ' MYID
 
 ! Vertical heat conductivity
 
-      if (wrtavr(indxAkt)) then
-        ierr=nf_fwrite (akt_avr(START_3D_ARRAY_K0), ncavr,
-     &                                avrAkt, record, W3DVAR)
+      if (wrt AVR (indxAkt)) then
+        ierr=nf_fwrite (akt_ AVR (START_3D_ARRAY_K0), nc AVR ,
+     &                                 AVR Akt, record, W3DVAR)
         if (ierr /= nf_noerr) then
           lvar=lenstr(vname(1,indxAkt))
           write(*,1) vname(1,indxAkt)(1:lvar), record MYID
@@ -264,9 +248,9 @@ CR      write(*,*) 'wrt_avr:  wrtT_sed  ' MYID
 
 ! Vertical diffusion coefficient for salinity.
 
-      if (wrtavr(indxAks)) then
-        ierr=nf_fwrite (aks_avr(START_3D_ARRAY_K0), ncavr,
-     &                                avrAks, record, W3DVAR)
+      if (wrt AVR (indxAks)) then
+        ierr=nf_fwrite (aks_ AVR (START_3D_ARRAY_K0), nc AVR ,
+     &                                 AVR Aks, record, W3DVAR)
         if (ierr /= nf_noerr) then
           lvar=lenstr(vname(1,indxAks))
           write(*,1) vname(1,indxAks)(1:lvar), record MYID
@@ -278,9 +262,9 @@ CR      write(*,*) 'wrt_avr:  wrtT_sed  ' MYID
 
 ! Depth of planetary boundary layer [m].
 
-      if (wrtavr(indxHbls)) then
-        ierr=nf_fwrite (hbl_avr(START_2D_ARRAY), ncavr,
-     &                            avrHbls, record, r2dvar)
+      if (wrt AVR (indxHbls)) then
+        ierr=nf_fwrite (hbl_ AVR (START_2D_ARRAY), nc AVR ,
+     &                             AVR Hbls, record, r2dvar)
         if (ierr /= nf_noerr) then
           lvar=lenstr(vname(1,indxHbls))
           write(*,1) vname(1,indxHbls)(1:lvar), record MYID
@@ -292,9 +276,9 @@ CR      write(*,*) 'wrt_avr:  wrtT_sed  ' MYID
 
 ! Thickness of KPP bottom boundary layer [m].
 
-      if (wrtavr(indxHbbl)) then
-        ierr=nf_fwrite (hbbl_avr(START_2D_ARRAY), ncavr,
-     &                              avrHbbl, record, r2dvar)
+      if (wrt AVR (indxHbbl)) then
+        ierr=nf_fwrite (hbbl_ AVR (START_2D_ARRAY), nc AVR ,
+     &                               AVR Hbbl, record, r2dvar)
         if (ierr /= nf_noerr) then
           lvar=lenstr(vname(1,indxHbbl))
           write(*,1) vname(1,indxHbbl)(1:lvar), record MYID
@@ -307,8 +291,8 @@ CR      write(*,*) 'wrt_avr:  wrtT_sed  ' MYID
 
 ! pH:
 
-      ierr=nf_fwrite (pH_avr(START_2D_ARRAY), ncavr,
-     &                              avrPH, record, r2dvar)
+      ierr=nf_fwrite (pH_ AVR (START_2D_ARRAY), nc AVR ,
+     &                               AVR PH, record, r2dvar)
       if (ierr /= nf_noerr) then
         lvar=lenstr(vname(1,indxPH_rst))
         write(*,1) vname(1,indxPH_rst)(1:lvar), record, ierr,
@@ -318,8 +302,8 @@ CR      write(*,*) 'wrt_avr:  wrtT_sed  ' MYID
 
 ! pCO2:
 
-      ierr=nf_fwrite (pCO2_avr(START_2D_ARRAY), ncavr,
-     &                              avrPCO2, record, r2dvar)
+      ierr=nf_fwrite (pCO2_ AVR (START_2D_ARRAY), nc AVR ,
+     &                               AVR PCO2, record, r2dvar)
       if (ierr /= nf_noerr) then
         lvar=lenstr(vname(1,indxPCO2_rst))
         write(*,1) vname(1,indxPCO2_rst)(1:lvar), record, ierr,
@@ -330,8 +314,8 @@ CR      write(*,*) 'wrt_avr:  wrtT_sed  ' MYID
 
 ! pCO2air:
 
-      ierr=nf_fwrite (pCO2air_avr(START_2D_ARRAY), ncavr,
-     &                              avrPCO2air, record, r2dvar)
+      ierr=nf_fwrite (pCO2air_ AVR (START_2D_ARRAY), nc AVR ,
+     &                               AVR PCO2air, record, r2dvar)
       if (ierr /= nf_noerr) then
         lvar=lenstr(vname(1,indxPCO2air_rst))
         write(*,1) vname(1,indxPCO2air_rst)(1:lvar), record, ierr,
@@ -341,8 +325,8 @@ CR      write(*,*) 'wrt_avr:  wrtT_sed  ' MYID
 
 ! incoming PAR:
 
-      ierr=nf_fwrite (PARinc_avr(START_2D_ARRAY), ncavr,
-     &                              avrPARinc, record, r2dvar)
+      ierr=nf_fwrite (PARinc_ AVR (START_2D_ARRAY), nc AVR ,
+     &                               AVR PARinc, record, r2dvar)
       if (ierr /= nf_noerr) then
         lvar=lenstr(vname(1,indxPARinc_rst))
         write(*,1) vname(1,indxPARinc_rst)(1:lvar), record, ierr,
@@ -353,8 +337,8 @@ CR      write(*,*) 'wrt_avr:  wrtT_sed  ' MYID
 
 ! PAR:
 
-      ierr=nf_fwrite (PAR_avr(START_3D_ARRAY_K1), ncavr,
-     &                              avrPAR, record, R3DVAR)
+      ierr=nf_fwrite (PAR_ AVR (START_3D_ARRAY_K1), nc AVR ,
+     &                               AVR PAR, record, R3DVAR)
       if (ierr /= nf_noerr) then
         lvar=lenstr(vname(1,indxPAR_rst))
         write(*,1) vname(1,indxPAR_rst)(1:lvar), record, ierr,
@@ -368,8 +352,8 @@ CR      write(*,*) 'wrt_avr:  wrtT_sed  ' MYID
 ! 2d diagnostics:
 
       do itrc=1,nr_bec2_diag_2d
-         ierr=nf_fwrite (bec2_diag_2d_avr(START_2D_ARRAY,itrc), ncavr,
-     &                                avrT_bec2_diag(itrc), record, r2dvar)
+         ierr=nf_fwrite (bec2_diag_2d_ AVR (START_2D_ARRAY,itrc), nc AVR ,
+     &                                 AVR T_bec2_diag(itrc), record, r2dvar)
          if (ierr /= nf_noerr) then
             lvar=lenstr(vname_bec2_diag_2d(1,itrc))
             write(*,1) vname_bec2_diag_2d(1,itrc)(1:lvar),
@@ -381,8 +365,8 @@ CR      write(*,*) 'wrt_avr:  wrtT_sed  ' MYID
 ! 3d diagnostics:
 
       do itrc=1,nr_bec2_diag_3d
-         ierr=nf_fwrite (bec2_diag_3d_avr(START_3D_ARRAY_K1,itrc), ncavr,
-     &                                avrT_bec2_diag(nr_bec2_diag_2d+itrc), record, R3DVAR)
+         ierr=nf_fwrite (bec2_diag_3d_ AVR (START_3D_ARRAY_K1,itrc), nc AVR ,
+     &                                 AVR T_bec2_diag(nr_bec2_diag_2d+itrc), record, R3DVAR)
          if (ierr /= nf_noerr) then
             lvar=lenstr(vname_bec2_diag_3d(1,itrc))
             write(*,1) vname_bec2_diag_3d(1,itrc)(1:lvar),
@@ -432,8 +416,8 @@ CR      write(*,*) 'wrt_avr:  wrtT_sed  ' MYID
 
 # if defined BIOLOGY_NPZDOC && defined OXYGEN
       do itrc = 1, NumGasExcTerms
-         ierr = nf_fwrite(GasExcFlux_avr(START_2D_ARRAY,itrc), 
-     &        ncavr, avrGasExcFlux(itrc), 
+         ierr = nf_fwrite(GasExcFlux_ AVR (START_2D_ARRAY,itrc), 
+     &        nc AVR ,  AVR GasExcFlux(itrc), 
      &        record, r2dvar)
          if (ierr /= nf_noerr) then
             lvar=lenstr(vname_GasExcFlux(1,itrc))
@@ -446,7 +430,7 @@ CR      write(*,*) 'wrt_avr:  wrtT_sed  ' MYID
 # endif /* BIOLOGY_NPZDOC && OXYGEN */
 # endif /* SOLVE3D */
 
-  1   format(/1x, '### ERROR: wrt_avr :: Cannot write variable ''',
+  1   format(/1x, '### ERROR: wrt_ AVR  :: Cannot write variable ''',
      &             A, ''' into averages file, rec =', i6, 3x,A,i4)
       goto 100
   99  if (may_day_flag==0) may_day_flag=3
@@ -456,33 +440,33 @@ CR      write(*,*) 'wrt_avr:  wrtT_sed  ' MYID
 ! processes to access data immediately after it is written.
 
 # if defined MPI && !defined PARALLEL_FILES
-      ierr=nf_close(ncavr)
-      if (nrpfavr>0 .and. record>=nrpfavr) ncavr=-1
+      ierr=nf_close(nc AVR )
+      if (nrpf AVR >0 .and. record>=nrpf AVR ) nc AVR =-1
 # else
-      if (nrpfavr>0 .and. record>=nrpfavr) then
-        ierr=nf_close(ncavr)
-        ncavr=-1
+      if (nrpf AVR >0 .and. record>=nrpf AVR ) then
+        ierr=nf_close(nc AVR )
+        nc AVR =-1
       else
-        ierr=nf_sync(ncavr)
+        ierr=nf_sync(nc AVR )
       endif
 # endif
       if (ierr == nf_noerr) then
 # ifdef MPI_SILENT_MODE
         if (mynode==0) then
 # endif
-          write(tstring,'(F18.8)') time_avr*sec2day
+          write(tstring,'(F18.8)') time_ AVR *sec2day
           i=1
           do while (i<18 .and. tstring(i:i)==' ')
             i=i+1
           enddo
-          write(*,'(7x,2A,1x,A,1x,A,I4,A,I4,1x,A,I3)') 'wrt_avr :: ',
-     &      'wrote averages for time_avr =', tstring(i:i+8), 'rec =',
-     &       record, '/', nrecavr  MYID
+          write(*,'(7x,2A,1x,A,1x,A,I4,A,I4,1x,A,I3)') 'wrt_ AVR  :: ',
+     &      'wrote averages for time_ AVR  =', tstring(i:i+8), 'rec =',
+     &       record, '/', nrec AVR   MYID
 # ifdef MPI_SILENT_MODE
         endif
 # endif
       else
-        write(*,'(/1x,2A/)')      '### ERROR: SWRT_AVR :: Cannot ',
+        write(*,'(/1x,2A/)')      '### ERROR: wrt_ AVR :: Cannot ',
      &                         'synchronize/close averages file.'
         if (may_day_flag==0) may_day_flag=3
       endif
@@ -494,8 +478,8 @@ CR      write(*,*) 'wrt_avr:  wrtT_sed  ' MYID
 # ifndef SLICE_AVR
 #  undef START_3D_ARRAY_K0
 #  undef START_3D_ARRAY_K1
-#  undef avr
-#  undef SWRT_AVR
+#  undef  AVR 
+!#  undef SWRT_AVR
 #  undef WRTROUTINE
 #  undef NOPARWRT
 #  if defined  SLICE_AVG && !defined SLICE_AVR /* also create wrt_slice_avg */

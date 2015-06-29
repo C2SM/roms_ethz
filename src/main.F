@@ -634,7 +634,7 @@ c          if (iic>60) nwrt=1 !<-- useful for debugging
 #ifdef AVERAGES
 # ifdef SLICE_AVG
         if (mod(iic-ntsslavg,nslavg) == 0 .and. wrtslavg(indxTime))
-     &      call wrt_slice_avg
+     &      call wrt_slavg
 # endif
         if (mod(iic-ntsavg,navg) == 0 .and. wrtavg(indxTime))
      &      call wrt_avg
