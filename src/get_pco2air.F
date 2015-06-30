@@ -26,7 +26,7 @@
 !
       if (iic.eq.ntstart) then
         ifrc=1
- 100    ncid=ncidfrc(ifrc)
+ 100    ncid=ncfrc(ifrc)
         frcname=frcfile(ifrc)
         ierr=nf_noerr
 
@@ -34,14 +34,17 @@
         if (ncid.eq.-1) then
           ierr=nf_open(frcname(1:lstr), nf_nowrite, ncid)
           if (ierr.eq.nf_noerr) then
-            ncidfrc(ifrc)=ncid
-            MPI_master_only print*
-     &            , 'get_pCO2air: Opened forcing data file "'
-     &            , frcname(1:lstr),'"'
+            ncfrc(ifrc)=ncid
+!#if 0
+            print*, 'get_pCO2air: '
+     &            , 'Opened forcing data file '''
+     &            , frcname(1:lstr)
+     &            , ''''
+!#endif
           else
             MPI_master_only print*, '### ERROR: '
-     &            , 'get_pCO2air: Cannot open forcing data file "'
-     &            , frcname(1:lstr),'"', ', netCDF error no = ',ierr
+     &            , 'get_pCO2air: Cannot open forcing data file >'
+     &            , frcname(1:lstr),'<', ', netCDF error no = ',ierr
           endif
         endif
         if (ierr .eq. nf_noerr) then
@@ -68,14 +71,14 @@
             else
               MPI_master_only print*,'At 1st WARNING in get_pco2air'
               MPI_master_only
-     &        write(stdout,1) 'pco2air', frcname(1:lstr)
+     &        write(*,1) 'pco2air', frcname(1:lstr)
               print*,' 1st WARNING: ierr = ',ierr
             endif
           else
             MPI_master_only
      &        print*,'At 2nd WARNING in get_pco2air'
             MPI_master_only
-     &      write(stdout,1) 'pco2_time', frcname(1:lstr)
+     &      write(*,1) 'pco2_time', frcname(1:lstr)
             MPI_master_only print*,' 2nd WARNING: ierr = ',ierr
             if (ifrc .lt. max_frc_file) then
               ifrc=ifrc+1
@@ -111,19 +114,19 @@
             ierr=nf_fread (pCO2airg(START_2D_ARRAY,itpCO2air), ncid,
      &                              pCO2air_id, pCO2air_rec, r2dvar)
             if (ierr .eq. nf_noerr) then
-              MPI_master_only write(stdout,
+              MPI_master_only write(*,
      &             '(6x,2A,G12.4,1x,A,I4)') 'get_pCO2air    --',
      &                 ' read pCO2air                     for time =',
      &                   cff MYID
             else
-              MPI_master_only write(stdout,2) 'pco2_air', pCO2air_rec
+              MPI_master_only write(*,2) 'pco2_air', pCO2air_rec
             endif
           else
-            MPI_master_only write(stdout,2) 'pco2_time', pCO2air_rec
+            MPI_master_only write(*,2) 'pco2_time', pCO2air_rec
           endif
         else
           MPI_master_only
-     &    write(stdout,'(/1x,A,I4,1x,A,I4/7x,4A/7x,2(A,G12.4)/)')
+     &    write(*,'(/1x,A,I4,1x,A,I4/7x,4A/7x,2(A,G12.4)/)')
      &   'ERROR in get_pCO2air: requested time record ', pCO2air_rec,
      &   'exeeds the last record', ntpCO2air, 'available in forcing ',
      &   'netCDF file ''',   frcname(1:lstr),   '''',  'tdays = ',
@@ -188,7 +191,7 @@
 #endif
       elseif (ZEROTH_TILE) then
         MPI_master_only
-     &  write(stdout,'(/1x,2A/3(1x,A,F16.10)/)')
+     &  write(*,'(/1x,2A/3(1x,A,F16.10)/)')
      &       'SET_PCO2AIR_TILE - current model time is outside bounds ',
      &       'of ''pco2air_time''.', 'PCO2AIR_TSTART=',
      &       pCO2air_time(it1)*sec2day,

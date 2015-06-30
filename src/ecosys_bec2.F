@@ -1922,9 +1922,9 @@ c$$$     &         *dt/Hz(istrR:iendR,jstrR:jendR,N)
     !----------------------------------------------------------------------------------
 
                if (O2_loc(i) < c1) then
-	          OTHER_REMIN(i) = dzr_loc *
+                 OTHER_REMIN(i) = dzr_loc *
      &                (flux - POC_sed_loss(i,j) - (SED_DENITRIF(i)*dz_loc*denitrif_C_N))
-	       endif
+              endif
 
             endif  ! flux > c0
 

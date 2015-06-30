@@ -178,7 +178,27 @@ C$OMP CRITICAL (bio_cr_rgn)
 C$OMP END CRITICAL (bio_cr_rgn)
       endif  ! <-- mod(iic-1,ninfo)==0
       end
-#else
+
+
+#if defined SALINITY && defined VFLX_CORR
+! resets all global surface sums (volume and tracer concentrations) to 0
+      subroutine reset_global_srf_sum()
+
+!      USE param
+!      USE scalars
+
+      implicit none
+#include "param.h"
+#include "scalars.h"
+#include "comm_vars.h"
+      integer itrc
+      do itrc = 0, NT
+         global_srf_sum(itrc) = QuadZero
+      enddo
+
+      return
+      end
+
 ! the wrapper routine for calc_global_srf_sum_tile
       subroutine calc_global_srf_sum(tile)
       implicit none

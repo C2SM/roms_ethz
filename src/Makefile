@@ -45,7 +45,7 @@ KRNSRC = main.F		step2D_FB.F	read_inp.F	read_sta_pos.F\
 BIOSRC = CalcPar.F  carbon.F  co2calc_SWS.F  def_bgc_flux.F\
 	drtsafe.F  init_biopar.F  init_scalars_bgcflux.F  init_scalars_npzdoc.F\
 	init_scalars_physflux.F o2sato.F set_bgc_flux_avg.F\
-	ta_iter_SWS.F wrt_bgc_flux_avg.F wrt_bgc_flux_his.F\
+	wrt_bgc_flux_avg.F wrt_bgc_flux_his.F\
 	def_phys_flux.F\
 	set_phys_flux_avg.F wrt_phys_flux_his.F wrt_phys_flux_avg.F\
 	biology.F  bio_diag.F atm_pco2.F calendar.F\
@@ -54,6 +54,8 @@ BIOSRC = CalcPar.F  carbon.F  co2calc_SWS.F  def_bgc_flux.F\
 	init_scalars_bec.F ecosys_bec.F ecosys_bec_init.F get_dust.F\
 	get_iron.F set_bec_flux_avg.F wrt_bec_flux_avg.F wrt_bec_flux_his.F\
 	init_scalars_becflux.F def_bec_flux.F get_pco2air.F
+
+#	ta_iter_SWS.F wrt_bgc_flux_avg.F wrt_bgc_flux_his.F\
 
 IOSRC = nf_fread.F	nf_read_bry.F	set_cycle.F	checkdims.F\
 	insert_node.F	closecdf.F	put_global_atts.F\
@@ -76,7 +78,7 @@ FLTSRC = init_floats.F	init_arrays_floats.F	get_init_flts.F\
 # old/obsolete/non-parallelized stuff
 #       pp_vmix.F	get_wwave.F	smol_adv.F	get_bsedim.F
 
-  SRCS = $(KRNSRC) $(IOSRC)
+  SRCS = $(KRNSRC) $(IOSRC) $(BIOSRC)
    RCS = $(SRCS:.F=.f)
   OBJS = $(RCS:.f=.o)
   SBIN = roms
