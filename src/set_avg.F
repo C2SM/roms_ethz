@@ -410,7 +410,7 @@
           if (wrtAVR(indxSedOrgN+itrc-1)) then
             do j=jstrR,jendR
               do i=istrR,iendR
-                t_sed_AVR(i,j,itrc)=cff1*t_sed_AVR(i,j) +cff*t_sed(i,j)
+                t_sed_AVR(i,j,itrc)=cff1*t_sed_AVR(i,j,itrc) +cff*t_sed(i,j,itrc)
               enddo
             enddo
           endif

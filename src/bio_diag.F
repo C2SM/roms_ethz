@@ -19,6 +19,12 @@
 # include "grid.h"
 # include "ocean3d.h"
 # include "scalars.h"
+#ifdef MPI
+# include "mpif.h"
+      integer size, step, status(MPI_STATUS_SIZE), ierr
+      real*QUAD buff(0:4*NT+3)
+      common /xyz/ buff
+#endif
 # include "comm_vars.h"
 
 # define  ETALON_CHECK

@@ -13,17 +13,17 @@
       integer i, lstr,lvar,lenstr, ierr, nf_fread
 !DL: if MULT_CLIM_FILES is defined, then ncidclm and clm_file are arrays,
 ! and we need to pick one element.
-      integer ncidclm_loc
-      character(len=80) clm_file_loc
+!      integer ncidclm_loc
+!      character(len=80) clm_file_loc
 
 ! The sea surface height is assumed to be in the first climatology 
 ! file (like the temperature):
-      ncidclm_loc = ncidclm(itemp)
-# ifdef MULT_CLIM_FILES
-      clm_file_loc = clm_file(1)
-# else
-      clm_file_loc = clm_file
-# endif
+!      ncidclm_loc = ncidclm(itemp)
+!# ifdef MULT_CLIM_FILES
+!      clm_file_loc = clm_file(1)
+!# else
+!      clm_file_loc = clm_file
+!# endif
 !
 ! Initialization:  Check, whether climatological data file is already
 !----------------  opened, and if not, open it.  Find and save netCDF

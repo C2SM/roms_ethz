@@ -461,7 +461,6 @@
                  tclm(:,:,N,itrc) = 0.0
               endif ! .not. Age(is)
 # endif /* PASSIVE_TRACER && AGE_DYE_TRACER */
-      endif   ! <-- itrc == itemp
         endif   ! <-- tclm_tid(itrc)>0
       enddo   ! <-- itrc
       return
