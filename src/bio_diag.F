@@ -22,7 +22,7 @@
 # include "comm_vars.h"
 
 # define  ETALON_CHECK
-#undef ETALON_CHECK
+# undef ETALON_CHECK
 # ifdef ETALON_CHECK
       integer ncheck, nparam
       parameter (ncheck=10, nparam=4)
@@ -171,9 +171,9 @@ C$OMP CRITICAL (bio_cr_rgn)
               endif
             enddo
 # endif
-#ifdef MPI
+# ifdef MPI
           endif    ! <-- mynode==0
-#endif
+# endif
           endif  ! <-- bc_count==NSUB
 C$OMP END CRITICAL (bio_cr_rgn)
       endif  ! <-- mod(iic-1,ninfo)==0
@@ -211,11 +211,11 @@ C$OMP END CRITICAL (bio_cr_rgn)
       enddo
       do j=Jstr,Jend
          do i=Istr,Iend
-#ifdef MASKING
+# ifdef MASKING
            cff1=rmask(i,j)/(pm(i,j)*pn(i,j))  ! <-- grid box area
-#else 
+# else 
            cff1=1./(pm(i,j)*pn(i,j))
-#endif
+# endif
            my_srf_sum(0)=my_srf_sum(0) + cff1*Hz(i,j,N) ! accumulate volume
            do itrc=1,NT
               my_srf_sum(itrc) = my_srf_sum(itrc) +
@@ -254,13 +254,13 @@ C$OMP END CRITICAL (bio_diag_rgn)
 #include "comm_vars.h"
       integer itrc
       real*QUAD factor
-#ifdef MPI
+# ifdef MPI
 # include "mpif.h"
       integer size, step, status(MPI_STATUS_SIZE), ierr
       real*QUAD buff(0:2*NT+1)
-#endif
+# endif
 
-#ifdef MPI
+# ifdef MPI
 !DL: at this point, each MPI process has an array global_srf_sum with
 ! values for its own tile only. Now we sum over the MPI domains:
       if (NNODES.gt.1) then
@@ -285,7 +285,7 @@ C$OMP END CRITICAL (bio_diag_rgn)
          call MPI_Bcast(global_srf_sum, 2*NT+2, MPI_DOUBLE_PRECISION,
      &               0, ocean_grid_comm, ierr)
       end if   ! <-- NNODES.gt.1
-#endif
+# endif
 
       ! global_srf_sum(0) is now the volume of the whole model domain:
       factor = 1.0 / global_srf_sum(0)
