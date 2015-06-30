@@ -2,6 +2,7 @@
 
       implicit none
       real days_elapsed, get_frac_year
+#include "cppdefs.h"
 
 ! This function computes the number of years elapsed after days_elapsed
 ! days. The result is a real number.
