@@ -90,3 +90,13 @@
 #else
      &    photoFe_sp_AVG, nitrif_AVG
 #endif
+
+#ifdef SLICE_AVG
+      real PAR_slavg(GLOBAL_2D_ARRAY)
+      real PARinc_slavg(GLOBAL_2D_ARRAY)
+      real pco2_slavg(GLOBAL_2D_ARRAY)
+      real pCO2air_slavg(GLOBAL_2D_ARRAY)
+      real pH_slavg(GLOBAL_2D_ARRAY)
+      common /time_slavg1/ PAR_slavg, PARinc_slavg, 
+     &        pco2_slavg, pCO2air_slavg, pH_slavg
+#endif /* SLICE_AVG */

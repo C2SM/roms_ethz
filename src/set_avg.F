@@ -98,7 +98,7 @@
 #   endif
 #  endif /* BIOLOGY_NPZDOC */
 #  ifdef BIOLOGY_BEC
-#   define PAR_AVR PAR_slavg
+#   define PAR_AVR(i,j,k) PAR_slavg(i,j)
 #   define pH_AVR pH_slavg
 #   define pCO2_AVR pCO2_slavg
 #   define pCO2air_AVR pCO2air_slavg
