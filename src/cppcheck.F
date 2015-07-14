@@ -300,8 +300,10 @@ c**  &                              '''<', fname(ifile)(1:ln), '>'''
      &             'if (ie>=max_opt_size) goto 99',
      &             'cpps(is:ie)=''<', fname(ifile)(1:ln), '>''',
      &             'cpps(ie+1:ie+1)='' '''
+      enddo
 
-        do i=fswtch(ifile),fswtch(ifile+1)-1
+        !do i=fswtch(ifile),fswtch(ifile+1)-1
+        do i=1,nswtchs
           ln=size(i)
           if (ifile==1) then
             write(iout,'(A,1x,A)') '#ifdef', switch(i)(1:ln)
@@ -325,7 +327,7 @@ c**  &                              '''<', fname(ifile)(1:ln), '>'''
             write(iout,'(A)')  '#endif'
           endif
         enddo
-      enddo
+      !enddo
 
       write(iout,'(6x,A/8x,A/5x,A1,1x,A/8x,A/6x,A)')
      &      'if (iexample==0) then',
