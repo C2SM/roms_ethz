@@ -399,8 +399,8 @@
      &     , ntdust, ntiron
 #endif
 #ifdef BIOLOGY_BEC2
-      integer ntnox, ntnhy, ntdin_river
-      common /ncvars/ ntnox, ntnhy, ntdin_river
+      integer ntnox, ntnhy, ntdin_river, ntdip_river
+      common /ncvars/ ntnox, ntnhy, ntdin_river, ntdip_river
 #endif
 
 
