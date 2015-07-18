@@ -511,7 +511,7 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
           lvar=lenstr(vname(3,indxZ))
           ierr=nf_put_att_text (ncid, vidZ, 'units',     lvar,
      &                                  vname(3,indxZ)(1:lvar))
-          ierr=nf_put_att_text (ncid, vidT(itrc), 'coordinates',15,
+          ierr=nf_put_att_text (ncid, vidZ, 'coordinates',15,
      &                              'lon_rho lat_rho') 
 #ifdef MASK_LAND_DATA
           ierr=nf_put_att_FOUT (ncid, vidZ, '_FillValue', NF_FOUT,
@@ -542,7 +542,7 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
           lvar=lenstr(vname(3,indxUb))
           ierr=nf_put_att_text (ncid, vidUb, 'units',     lvar,
      &                                  vname(3,indxUb)(1:lvar))
-          ierr=nf_put_att_text (ncid, vidT(itrc), 'coordinates',
+          ierr=nf_put_att_text (ncid, vidUb, 'coordinates',
      &                            11, 'lon_u lat_u') 
 #ifdef MASK_LAND_DATA
           ierr=nf_put_att_FOUT (ncid, vidUb, '_FillValue', NF_FOUT,
@@ -569,7 +569,7 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
           lvar=lenstr(vname(3,indxVb))
           ierr=nf_put_att_text (ncid, vidVb, 'units',     lvar,
      &                                  vname(3,indxVb)(1:lvar))
-          ierr=nf_put_att_text (ncid, vidT(itrc), 'coordinates',
+          ierr=nf_put_att_text (ncid, vidVb, 'coordinates',
      &                            11, 'lon_v lat_v') 
 #ifdef MASK_LAND_DATA
           ierr=nf_put_att_FOUT (ncid, vidVb, '_FillValue', NF_FOUT,
@@ -599,7 +599,7 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
           lvar=lenstr(vname(3,indxU))
           ierr=nf_put_att_text (ncid, vidU, 'units',     lvar,
      &                                  vname(3,indxU)(1:lvar))
-          ierr=nf_put_att_text (ncid, vidT(itrc), 'coordinates',
+          ierr=nf_put_att_text (ncid, vidU, 'coordinates',
      &                            11, 'lon_u lat_u') 
 # ifdef MASK_LAND_DATA
           ierr=nf_put_att_FOUT (ncid, vidU, '_FillValue', NF_FOUT,
@@ -627,7 +627,7 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
           lvar=lenstr(vname(3,indxV))
           ierr=nf_put_att_text (ncid, vidV, 'units',     lvar,
      &                                  vname(3,indxV)(1:lvar))
-          ierr=nf_put_att_text (ncid, vidT(itrc), 'coordinates',
+          ierr=nf_put_att_text (ncid, vidV, 'coordinates',
      &                            11, 'lon_v lat_v') 
 # ifdef MASK_LAND_DATA
           ierr=nf_put_att_FOUT (ncid, vidV, '_FillValue', NF_FOUT,
@@ -697,7 +697,7 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
             lvar=lenstr(vname(3,indxSedOrgN+itrc-1))
             ierr=nf_put_att_text (ncid, vidTsed(itrc), 'units', lvar,
      &           vname(3,indxSedOrgN+itrc-1)(1:lvar))
-          ierr=nf_put_att_text (ncid, vidT(itrc), 'coordinates',
+          ierr=nf_put_att_text (ncid, vidTsed, 'coordinates',
      &                            15, 'lon_rho lat_rho') 
             ! lvar=lenstr(vname(4,indxSedOrgN+itrc-1))
             ! ierr=nf_put_att_text (ncid, vidTsed(itrc), 'field', lvar,
@@ -723,7 +723,7 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
           lvar=lenstr(vname(3,indxR))
           ierr=nf_put_att_text (ncid, vidR, 'units',     lvar,
      &                                  vname(3,indxR)(1:lvar))
-          ierr=nf_put_att_text (ncid, vidT(itrc), 'coordinates',
+          ierr=nf_put_att_text (ncid, vidR, 'coordinates',
      &                            15, 'lon_rho lat_rho') 
 # ifdef MASK_LAND_DATA
           ierr=nf_put_att_FOUT (ncid, vidR, '_FillValue', NF_FOUT,
@@ -752,6 +752,8 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
           lvar=lenstr(vname(3,indxO))
           ierr=nf_put_att_text (ncid, vidO, 'units',     lvar,
      &                                  vname(3,indxO)(1:lvar))
+          ierr=nf_put_att_text (ncid, vidO, 'coordinates',15,
+     &                              'lon_rho lat_rho') 
 # ifdef MASK_LAND_DATA
           ierr=nf_put_att_FOUT (ncid, vidO, '_FillValue', NF_FOUT,
      &                                                 1, spv_set)
@@ -780,6 +782,8 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
           lvar=lenstr(vname(3,indxW))
           ierr=nf_put_att_text (ncid, vidW, 'units',     lvar,
      &                                  vname(3,indxW)(1:lvar))
+          ierr=nf_put_att_text (ncid, vidW, 'coordinates',15,
+     &                              'lon_rho lat_rho') 
 # ifdef MASK_LAND_DATA
           ierr=nf_put_att_FOUT (ncid, vidW, '_FillValue', NF_FOUT,
      &                                                 1, spv_set)
@@ -807,6 +811,8 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
           lvar=lenstr(vname(3,indxAkv))
           ierr=nf_put_att_text (ncid, vidAkv, 'units',     lvar,
      &                                  vname(3,indxAkv)(1:lvar))
+          ierr=nf_put_att_text (ncid, vidAkt, 'coordinates',15,
+     &                              'lon_rho lat_rho') 
 # ifdef MASK_LAND_DATA
           ierr=nf_put_att_FOUT (ncid, vidAkv, '_FillValue', NF_FOUT,
      &                                                   1, spv_set)
@@ -834,6 +840,8 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
           lvar=lenstr(vname(3,indxAkt))
           ierr=nf_put_att_text (ncid, vidAkt, 'units',     lvar,
      &                                  vname(3,indxAkt)(1:lvar))
+          ierr=nf_put_att_text (ncid, vidAkt, 'coordinates',15,
+     &                              'lon_rho lat_rho') 
 # ifdef MASK_LAND_DATA
           ierr=nf_put_att_FOUT (ncid, vidAkt, '_FillValue', NF_FOUT,
      &                                                   1, spv_set)
@@ -861,6 +869,8 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
           lvar=lenstr(vname(3,indxAks))
           ierr=nf_put_att_text (ncid, vidAks, 'units',     lvar,
      &                                  vname(3,indxAks)(1:lvar))
+          ierr=nf_put_att_text (ncid, vidAks, 'coordinates',15,
+     &                              'lon_rho lat_rho') 
 #  ifdef MASK_LAND_DATA
           ierr=nf_put_att_FOUT (ncid, vidAks, '_FillValue', NF_FOUT,
      &                                                   1, spv_set)
@@ -889,6 +899,8 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
           lvar=lenstr(vname(3,indxHbls))
           ierr=nf_put_att_text (ncid, vidHbls, 'units',     lvar,
      &                                 vname(3,indxHbls)(1:lvar))
+          ierr=nf_put_att_text (ncid, vidHbls, 'coordinates',15,
+     &                              'lon_rho lat_rho') 
 #  ifdef MASK_LAND_DATA
           ierr=nf_put_att_FOUT (ncid, vidHbls, '_FillValue',
      &                                       NF_FOUT, 1, spv_set)
@@ -917,6 +929,8 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
           lvar=lenstr(vname(3,indxHbbl))
           ierr=nf_put_att_text (ncid, vidHbbl, 'units',     lvar,
      &                                 vname(3,indxHbbl)(1:lvar))
+          ierr=nf_put_att_text (ncid, vidHbbl, 'coordinates',15,
+     &                              'lon_rho lat_rho') 
 #  ifdef MASK_LAND_DATA
           ierr=nf_put_att_FOUT (ncid, vidHbbl, '_FillValue',
      &                                       NF_FOUT, 1, spv_set)
@@ -945,6 +959,8 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
         lvar=lenstr(vname(3,indxHCO3d_rst))
         ierr=nf_put_att_text (ncid, vidHCO3d, 'units',     lvar,
      &                                  vname(3,indxHCO3d_rst)(1:lvar))
+          ierr=nf_put_att_text (ncid, vidHCO3d, 'coordinates',15,
+     &                              'lon_rho lat_rho') 
 #ifdef MASK_LAND_DATA
         ierr=nf_put_att_FOUT (ncid, vidHCO3d, '_FillValue',
      &                                  NF_FOUT, 1, spv_set)
@@ -967,6 +983,8 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
         lvar=lenstr(vname(3,indxCO3d_rst))
         ierr=nf_put_att_text (ncid, vidCO3d, 'units',     lvar,
      &                                  vname(3,indxCO3d_rst)(1:lvar))
+          ierr=nf_put_att_text (ncid, vidCO3d, 'coordinates',15,
+     &                              'lon_rho lat_rho') 
 #ifdef MASK_LAND_DATA
         ierr=nf_put_att_FOUT (ncid, vidCO3d, '_FillValue',
      &                                  NF_FOUT, 1, spv_set)
@@ -990,6 +1008,8 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
         lvar=lenstr(vname(3,indxCO2STARd_rst))
         ierr=nf_put_att_text (ncid, vidCO2STARd, 'units',     lvar,
      &                                  vname(3,indxCO2STARd_rst)(1:lvar))
+          ierr=nf_put_att_text (ncid, vidCO2STARd, 'coordinates',15,
+     &                              'lon_rho lat_rho') 
 #ifdef MASK_LAND_DATA
         ierr=nf_put_att_FOUT (ncid, vidCO2STARd, '_FillValue',
      &                                  NF_FOUT, 1, spv_set)
@@ -1036,6 +1056,8 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
         lvar=lenstr(vname(3,indxPH_rst))
         ierr=nf_put_att_text (ncid, vidPH, 'units',     lvar,
      &                                  vname(3,indxPH_rst)(1:lvar))
+          ierr=nf_put_att_text (ncid, vidPH, 'coordinates',15,
+     &                              'lon_rho lat_rho') 
 #ifdef MASK_LAND_DATA 
         ierr=nf_put_att_FOUT (ncid, vidPH, '_FillValue',
      &                                  NF_FOUT, 1, spv_set)
@@ -1057,6 +1079,8 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
         lvar=lenstr(vname(3,indxPCO2_rst))
         ierr=nf_put_att_text (ncid, vidPCO2, 'units',     lvar,
      &                                  vname(3,indxPCO2_rst)(1:lvar))
+          ierr=nf_put_att_text (ncid, vidPCO2, 'coordinates',15,
+     &                              'lon_rho lat_rho') 
 #ifdef MASK_LAND_DATA 
         ierr=nf_put_att_FOUT (ncid, vidPCO2, '_FillValue',
      &                                  NF_FOUT, 1, spv_set)
@@ -1079,6 +1103,8 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
         lvar=lenstr(vname(3,indxPCO2air_rst))
         ierr=nf_put_att_text (ncid, vidPCO2air, 'units',     lvar,
      &       vname(3,indxPCO2air_rst)(1:lvar))
+          ierr=nf_put_att_text (ncid, vidPCO2air, 'coordinates',15,
+     &                              'lon_rho lat_rho') 
 #ifdef MASK_LAND_DATA
         ierr=nf_put_att_FOUT (ncid, vidPCO2air, '_FillValue',
      &                                  NF_FOUT, 1, spv_set)
@@ -1105,6 +1131,8 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
             lvar=lenstr(vname_bec2_diag_2d(3,itrc))
             ierr=nf_put_att_text (ncid, vidT_bec2(itrc), 'units', lvar,
      &                               vname_bec2_diag_2d(3,itrc)(1:lvar))
+          ierr=nf_put_att_text (ncid, vidT_bec2(itrc), 'coordinates',15,
+     &                              'lon_rho lat_rho') 
 # ifdef MASK_LAND_DATA
             ierr=nf_put_att_FOUT (ncid, vidT_bec2(itrc), '_FillValue',
      &                                       NF_FOUT, 1, spv_set)
@@ -1136,6 +1164,8 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
             lvar=lenstr(vname_bec2_diag_3d(3,itrc))
             ierr=nf_put_att_text (ncid, vidT_bec2(nr_bec2_diag_2d+itrc), 'units', lvar,
      &                               vname_bec2_diag_3d(3,itrc)(1:lvar))
+          ierr=nf_put_att_text (ncid, vidT_bec2(nr_bec2_diag_2d+itrc), 'coordinates',15,
+     &                              'lon_rho lat_rho') 
 # ifdef MASK_LAND_DATA
             ierr=nf_put_att_FOUT (ncid, vidT_bec2(nr_bec2_diag_2d+itrc), '_FillValue',
      &                                       NF_FOUT, 1, spv_set)
@@ -1170,6 +1200,8 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
         lvar=lenstr(vname(3,indxPARinc_rst))
         ierr=nf_put_att_text (ncid, vidPARinc, 'units',     lvar,
      &                                  vname(3,indxPARinc_rst)(1:lvar))
+          ierr=nf_put_att_text (ncid, vidPARinc, 'coordinates',15,
+     &                              'lon_rho lat_rho') 
 #ifdef MASK_LAND_DATA 
         ierr=nf_put_att_FOUT (ncid, vidPARinc, '_FillValue',
      &                                  NF_FOUT, 1, spv_set)
@@ -1191,6 +1223,8 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
         lvar=lenstr(vname(3,indxPAR_rst))
         ierr=nf_put_att_text (ncid, vidPAR, 'units',     lvar,
      &                                  vname(3,indxPAR_rst)(1:lvar))
+          ierr=nf_put_att_text (ncid, vidPAR, 'coordinates',15,
+     &                              'lon_rho lat_rho') 
 #ifdef MASK_LAND_DATA 
         ierr=nf_put_att_FOUT (ncid, vidPAR, '_FillValue',
      &                                  NF_FOUT, 1, spv_set)
@@ -1216,6 +1250,8 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
         lvar=lenstr(vname(3,indxz_r))
         ierr=nf_put_att_text (ncid, vidz_r, 'units',     lvar,
      &                                  vname(3,indxz_r)(1:lvar))
+          ierr=nf_put_att_text (ncid, vidz_r, 'coordinates',15,
+     &                              'lon_rho lat_rho') 
 #  ifdef MASK_LAND_DATA 
         ierr=nf_put_att_FOUT (ncid, vidz_r, '_FillValue',
      &                                  NF_FOUT, 1, spv_set)
@@ -1237,6 +1273,8 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
         lvar=lenstr(vname(3,indxz_w))
         ierr=nf_put_att_text (ncid, vidz_w, 'units',     lvar,
      &                                  vname(3,indxz_w)(1:lvar))
+          ierr=nf_put_att_text (ncid, vidz_w, 'coordinates',15,
+     &                              'lon_rho lat_rho') 
 #  ifdef MASK_LAND_DATA 
         ierr=nf_put_att_FOUT (ncid, vidz_w, '_FillValue',
      &                                  NF_FOUT, 1, spv_set)
@@ -1258,6 +1296,8 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
         lvar=lenstr(vname(3,indxHz))
         ierr=nf_put_att_text (ncid, vidHz, 'units',     lvar,
      &                                  vname(3,indxHz)(1:lvar))
+          ierr=nf_put_att_text (ncid, vidHz, 'coordinates',15,
+     &                              'lon_rho lat_rho') 
 #  ifdef MASK_LAND_DATA 
         ierr=nf_put_att_FOUT (ncid, vidHz, '_FillValue',
      &                                  NF_FOUT, 1, spv_set)
@@ -1282,6 +1322,8 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
            lvar=lenstr(vname_GasExcFlux(3,itrc))
            ierr=nf_put_att_text (ncid, vidGasExcFlux(itrc), 'units',     lvar,
      &                                  vname_GasExcFlux(3,itrc)(1:lvar))
+          ierr=nf_put_att_text (ncid, vidGasExcFlux(itrc), 'coordinates',15,
+     &                              'lon_rho lat_rho') 
 #  ifdef MASK_LAND_DATA 
            ierr=nf_put_att_FOUT (ncid, vidGasExcFlux(itrc), '_FillValue',
      &                                  NF_FOUT, 1, spv_set)
