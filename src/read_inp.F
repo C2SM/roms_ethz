@@ -739,7 +739,7 @@ c--      fname='roms.in.US_West'
      &                 , 'zeta',   wrtavg(indxZ),    vname(2,indxZ)
      &                 , 'ubar',   wrtavg(indxUb),   vname(2,indxUb)
      &                 , 'vbar',   wrtavg(indxVb),   vname(2,indxVb)
-#ifdef SOLVE3D
+# ifdef SOLVE3D
      &                 , 'u',      wrtavg(indxU),    vname(2,indxU)
      &                 , 'v',      wrtavg(indxV),    vname(2,indxV)
           do itrc=1,NT
@@ -797,10 +797,10 @@ c--      fname='roms.in.US_West'
 #  ifdef LMD_BKPP
      &                 , 'hbbl',   wrtavg(indxHbbl), vname(2,indxHbbl)
 #  endif
-#  ifdef SLICE_AVERAGES
+#  ifdef SLICE_AVG
         elseif (keyword(1:kwlen) == 'slice_averages') then
           call cancel_kwd (keyword(1:kwlen), ierr)
-          read(input,*,err=95) ntsslavg, nslavg, nrpfslavg
+          read(input,*,err=95) ksl, ntsslavg, nslavg, nrpfslavg
           read(input,'(A)',err=95) fname
           lstr=lenstr(fname)
 #   if defined MPI && defined PARALLEL_FILES && !defined JOINED_AVG
@@ -813,7 +813,7 @@ c--      fname='roms.in.US_West'
 
 ! Switches for fields to compute averages.
 
-        elseif (keyword(1:kwlen) == 'primary_averages') then
+        elseif (keyword(1:kwlen) == 'primary_slice_avg') then
           call cancel_kwd (keyword(1:kwlen), ierr)
           read(input,*,err=95) wrtslavg(indxZ),  wrtslavg(indxUb)
      &                                        ,  wrtslavg(indxVb)
@@ -844,7 +844,7 @@ c--      fname='roms.in.US_West'
           end do
 #   endif /* SEDIMENT_BIOLOGY */
 
-        elseif (keyword(1:kwlen) == 'auxiliary_averages') then
+        elseif (keyword(1:kwlen) == 'auxiliary_slice_avg') then
           call cancel_kwd (keyword(1:kwlen), ierr)
           read(input,*,err=95) wrtslavg(indxR), wrtslavg(indxO)
      &          ,  wrtslavg(indxW),  wrtslavg(indxAkv),  wrtslavg(indxAkt)
