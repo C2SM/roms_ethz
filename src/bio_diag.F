@@ -39,7 +39,7 @@
       real    A0(nparam), A1(nparam)
       integer P0(nparam), P1(nparam)
 
-# include "etalon_data.h"
+# include "Etalon_data/etalon_data.REF"
 # endif
 
       if (mod(iic-1,ninfo)==0) then

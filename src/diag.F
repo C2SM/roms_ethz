@@ -123,28 +123,29 @@ C$    real*8 omp_get_wtime
         etalon_line(icheck)=' '        ! is needed because some of them
       enddo                            ! may be left uninitialized.
 
-# if defined SOLITON
-#  include "etalon_data.SOLITON"
-# elif defined WAVE_RAD
-#  include "etalon_data.WAVE_RAD"
-
-# elif defined SEAMOUNT
-#  include "etalon_data.SEAMOUNT"
-# elif defined GRAV_ADJ
-#  include "etalon_data.GRAV_ADJ"
-# elif defined ISWAKE
-#  include "etalon_data.ISWAKE"
-# elif defined UPWELLING
-#  include "etalon_data.UPWELLING"
-# elif defined DAMEE_B
-#  include "etalon_data.DAMEE_B"
-# elif defined USWEST
-#  include "etalon_data.USWEST"
-# elif defined PACIFIC
-#  include "etalon_data.PACIFIC"
-# elif defined BRAZIL
-#  include "etalon_data.BRAZIL"
-# endif
+# include Etalon_data/etalon_data.REF
+!-- # if defined SOLITON
+!-- #  include "etalon_data.SOLITON"
+!-- # elif defined WAVE_RAD
+!-- #  include "etalon_data.WAVE_RAD"
+!-- 
+!-- # elif defined SEAMOUNT
+!-- #  include "etalon_data.SEAMOUNT"
+!-- # elif defined GRAV_ADJ
+!-- #  include "etalon_data.GRAV_ADJ"
+!-- # elif defined ISWAKE
+!-- #  include "etalon_data.ISWAKE"
+!-- # elif defined UPWELLING
+!-- #  include "etalon_data.UPWELLING"
+!-- # elif defined DAMEE_B
+!-- #  include "etalon_data.DAMEE_B"
+!-- # elif defined USWEST
+!-- #  include "etalon_data.USWEST"
+!-- # elif defined PACIFIC
+!-- #  include "etalon_data.PACIFIC"
+!-- # elif defined BRAZIL
+!-- #  include "etalon_data.BRAZIL"
+!-- # endif
 #endif
 
       ierr=0
@@ -701,7 +702,8 @@ C$        ie=ie-3             ! <--  disregard thread number
           do icheck=1,ncheck
             if (iic-1 == check_point(icheck)) then
 # ifdef WRITE_ETALON
-              if (mcheck==0) open(unit=19, file='etalon_data.NEW')
+              if (mcheck==0) open(unit=19, 
+     &                         file='Etalon_data/etalon_data.NEW')
               mcheck=mcheck+1
               write(19,'(8x,A,I2,A,I6,2x,A,2x,A,I2,A/5x,A,3x,3A)')
      &       'check_point(', mcheck, ')=', check_point(icheck), ';',
