@@ -328,6 +328,8 @@ c**  &                              '''<', fname(ifile)(1:ln), '>'''
         enddo
       enddo
 
+#define MULTI_CPPDEFS
+#ifndef MULTI_CPPDEFS
       write(iout,'(6x,A/8x,A/5x,A1,1x,A/8x,A/6x,A)')
      &      'if (iexample==0) then',
      &      'mpi_master_only write(*,''(/1x,A)'')', '&',
@@ -338,6 +340,7 @@ c**  &                              '''<', fname(ifile)(1:ln), '>'''
      &      '''### ERROR: More than one main configuration '',', '&',
      &      '''switch is defined in "cppdefs.h".''',   'ierr=ierr+1',
      &                                             'endif', 'return'
+#endif
       write(iout,'(2x,A/5x,A1,2x,A,1x,A/5x,A1,2x,A,1x,A)')
      &      '99  mpi_master_only write(*,''(/1x,2A/14x,A)'')',  '&',
      &      '''### ERROR: checkdefs :: Insufficient size of string',
