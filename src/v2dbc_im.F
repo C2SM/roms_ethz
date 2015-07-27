@@ -1,26 +1,18 @@
 #include "cppdefs.h"
- 
-      subroutine v2dbc (tile)
-      implicit none
-      integer tile
-#include "param.h"
-#include "private_scratch.h"
-#include "compute_tile_bounds.h"
-      call v2dbc_tile (istr,iend,jstr,jend, A2d(1,1))
-      return
-      end
- 
+
       subroutine v2dbc_tile (istr,iend,jstr,jend, grad)
-!
-! Set lateral boundary conditions for the barotropic (i.e.
-! vertically integrated) ETA-component velocity vbar(:,:,knew).
-!
+
+! Set lateral boundary conditions for the barotropic (i.e. vertically
+! integrated) ETA-component velocity vbar(:,:,knew).
+
       implicit none
       integer istr,iend,jstr,jend, i,j
-      real grad(PRIVATE_2D_SCRATCH_ARRAY), eps,cff, cx,cy,
-     &            dft,dfx,dfy, tau,tau_in,tau_out, uv_crss
-      parameter (eps=1.D-20)
-      real hx,zx 
+      real grad(PRIVATE_2D_SCRATCH_ARRAY), cx,cy, cff,
+     &         dft,dfx,dfy, tau,tau_in,tau_out, zx,hx
+      real, parameter :: eps=1.D-33
+#ifdef OBC_FLUX_CORR
+      real uv_crss
+#endif
 #include "param.h"
 #include "scalars.h"
 #include "grid.h"
@@ -30,9 +22,9 @@
 #else
 # include "climat.h"
 #endif
-!
+
 #include "compute_auxiliary_bounds.h"
-!
+
 #if defined M2_FRC_BRY || defined M2NUDGING
       tau_in=dtfast*tauM2_in
       tau_out=dtfast*tauM2_out
@@ -58,8 +50,8 @@
         do i=istr,iend
           dft=vbar(i,jstr+1,kstp)-vbar(i,jstr+1,knew)
           dfx=vbar(i,jstr+1,knew)-vbar(i,jstr+2,knew)
- 
-          if (dfx*dft .lt. 0.) then
+
+          if (dfx*dft < 0.) then
             dft=0.                       ! <-- cancel cx, if inflow
 #   if defined M2_FRC_BRY || defined M2NUDGING
             tau=tau_in
@@ -67,13 +59,13 @@
             tau=tau_out
 #   endif
           endif
- 
-          if (dft*(grad(i,jstr+1)+grad(i+1,jstr+1)) .gt. 0.) then
+
+          if (dft*(grad(i,jstr+1)+grad(i+1,jstr+1)) > 0.) then
             dfy=grad(i  ,jstr+1)
           else
             dfy=grad(i+1,jstr+1)
           endif
- 
+
 #   ifdef OBC_RAD_NORMAL
           dfy=0.
 #   endif
@@ -84,7 +76,7 @@
 #   else
           cy=min(cff,max(dft*dfy,-cff))
 #   endif
- 
+
           vbar(i,jstr,knew)=( cff*vbar(i,jstr,kstp)
      &                       +cx*vbar(i,jstr+1,knew)
      &                    -max(cy,0.)*grad(i  ,jstr)
@@ -113,7 +105,7 @@
         enddo
 #  else         /* alternative open: Flather, specified, gradient */
         do i=istr,iend
-#    if defined OBC_M2FLATHER
+#   if defined OBC_M2FLATHER
 c**          vbar(i,jstr,knew)= -sqrt(2.*g/(h(i,jstr-1)+h(i,jstr)))
 c**     &             *( 0.5*(zeta(i,jstr-1,knew)+zeta(i,jstr,knew))
 c**#    ifdef M2_FRC_BRY
@@ -128,13 +120,13 @@ c**#    endif
           cx=dtfast*cff*hx*0.5*(pn(i,jstr-1)+pn(i,jstr))
 
           zx=(0.5+cx)*zeta(i,jstr,kstp)+(0.5-cx)*zeta(i,jstr-1,kstp)
-          if (cx .gt. 0.292893218813452) then
+          if (cx > 0.292893218813452) then
             zx=zx + ( zeta(i,jstr,knew) +cx*zeta(i,jstr-1,kstp)
      &                               -(1.+cx)*zeta(i,jstr,kstp)
      &                           )*(1.-0.292893218813452/cx)**2
           endif
 
-c          if (cx .lt. 0.25) then
+c          if (cx < 0.25) then
 c           zx=(0.5+cx)*zeta(i,jstr,kstp)+(0.5-cx)*zeta(i,jstr-1,kstp)
 c          else
 c            zx=( 0.375*zeta(i,jstr,kstp)   +0.125*zeta(i,jstr-1,kstp)
@@ -178,9 +170,9 @@ c          endif
         enddo                                 !  (no-flux, default)
 # endif          /* OBC_SOUTH */
       endif   !<-- SOUTHERN_EDGE
- 
- 
- 
+
+
+
       if (NORTHERN_EDGE) then
 # ifdef OBC_NORTH
 #  ifdef OBC_M2ORLANSKI
@@ -199,8 +191,8 @@ c          endif
         do i=istr,iend
           dft=vbar(i,jend,kstp)-vbar(i,jend  ,knew)
           dfx=vbar(i,jend,knew)-vbar(i,jend-1,knew)
- 
-          if (dfx*dft .lt. 0.) then
+
+          if (dfx*dft < 0.) then
             dft=0.                         ! <-- cancel cx, if inflow
 #   if defined M2_FRC_BRY || defined M2NUDGING
             tau=tau_in
@@ -208,13 +200,13 @@ c          endif
             tau=tau_out
 #   endif
           endif
- 
-          if (dft*(grad(i,jend)+grad(i+1,jend)) .gt. 0.) then
+
+          if (dft*(grad(i,jend)+grad(i+1,jend)) > 0.) then
             dfy=grad(i  ,jend)
           else
             dfy=grad(i+1,jend)
           endif
- 
+
 #   ifdef OBC_RAD_NORMAL
           dfy=0.
 #   endif
@@ -225,7 +217,7 @@ c          endif
 #   else
           cy=min(cff,max(dft*dfy,-cff))
 #   endif
- 
+
           vbar(i,jend+1,knew)=( cff*vbar(i,jend+1,kstp)
      &                             +cx*vbar(i,jend,knew)
      &                      -max(cy,0.)*grad(i  ,jend+1)
@@ -270,13 +262,13 @@ c**#  endif
           cx=dtfast*cff*hx*0.5*(pn(i,jend)+pn(i,jend+1))
 
           zx=(0.5+cx)*zeta(i,jend,kstp)+(0.5-cx)*zeta(i,jend+1,kstp)
-          if (cx .gt. 0.292893218813452) then
+          if (cx > 0.292893218813452) then
             zx=zx + ( zeta(i,jend,knew) +cx*zeta(i,jend+1,kstp)
      &                               -(1.+cx)*zeta(i,jend,kstp)
      &                           )*(1.-0.292893218813452/cx)**2
           endif
 
-c         if (cx .lt. 0.25) then
+c         if (cx < 0.25) then
 c          zx=(0.5+cx)*zeta(i,jend,kstp)+(0.5-cx)*zeta(i,jend+1,kstp)
 c         else
 c           zx=( 0.375*zeta(i,jend,kstp)   +0.125*zeta(i,jend+1,kstp)
@@ -324,21 +316,21 @@ c         endif
 # endif /* OBC_NORTH */
       endif          !<--  NORTHERN_EDGE
 #endif                  /* !NS_PERIODIC */
- 
+
 
 
 
 c****
 c****
 #ifdef OBC_M2FLATHER
-#undef OBC_M2FLATHER
-#define OBC_M2ORLANSKI
+# undef OBC_M2FLATHER
+# define OBC_M2ORLANSKI
 #endif
 
 
 
- 
- 
+
+
 #ifndef EW_PERIODIC
       if (WESTERN_EDGE) then
 # ifdef OBC_WEST
@@ -353,22 +345,22 @@ c****
 /* --->
           dft=vbar(istr,j,kstp)-vbar(istr  ,j,knew)
           dfx=vbar(istr,j,knew)-vbar(istr+1,j,knew)
- 
-          if (dfx*dft .lt. 0.) then
+
+          if (dfx*dft < 0.) then
             dft=0.                        ! <-- cancel cx, if inflow
 #   if defined M2_FRC_BRY || defined M2NUDGING
-            tau=tau_in  
+            tau=tau_in
           else
             tau=tau_out
 #   endif
           endif
- 
-          if (dft*(grad(istr,j-1)+grad(istr,j)) .gt. 0.) then
+
+          if (dft*(grad(istr,j-1)+grad(istr,j)) > 0.) then
             dfy=grad(istr,j-1)
           else
             dfy=grad(istr,j  )
           endif
- 
+
 #   ifdef OBC_RAD_NORMAL
           dfy=0.
 #   endif
@@ -379,7 +371,7 @@ c****
 #   else
           cy=min(cff,max(dft*dfy,-cff))
 #   endif
- 
+
           vbar(istr-1,j,knew)=( cff*vbar(istr-1,j,kstp)
      &                             +cx*vbar(istr,j,knew)
      &                      -max(cy,0.)*grad(istr-1,j-1)
@@ -396,7 +388,7 @@ c****
           cy= 0.125*dtfast*(vbar(istr-1,j,kstp)+vbar(istr,j,kstp))
      &      *(pn(istr-1,j)+pn(istr-1,j-1)+pn(istr,j)+pn(istr,j-1))
 
-          if (cx.gt.0.) then
+          if (cx>0.) then
             tau=0.
           else
             tau=-cx
@@ -467,14 +459,14 @@ c****
 #  undef J_RANGE
 # endif              /* OBC_WEST */
       endif       !<-- WESTERN_EDGE
- 
+
 
 c--#ifdef ISWAKE
 c--# define OBC_M2ORLANSKI
 c--#endif
 
- 
- 
+
+
       if (EASTERN_EDGE) then
 # ifdef OBC_EAST
 #  if defined OBC_M2ORLANSKI
@@ -488,8 +480,8 @@ c--#endif
 /* --->
           dft=vbar(iend,j,kstp)-vbar(iend  ,j,knew)
           dfx=vbar(iend,j,knew)-vbar(iend-1,j,knew)
- 
-          if (dfx*dft .lt. 0.) then
+
+          if (dfx*dft < 0.) then
             dft=0.                                 ! <-- INFLOW
 #   if defined M2_FRC_BRY || defined M2NUDGING
             tau=tau_in
@@ -497,13 +489,13 @@ c--#endif
             tau=tau_out
 #   endif
           endif
- 
-          if (dft*(grad(iend,j-1)+grad(iend,j)) .gt. 0.) then
+
+          if (dft*(grad(iend,j-1)+grad(iend,j)) > 0.) then
             dfy=grad(iend,j-1)
           else
             dfy=grad(iend,j  )
           endif
- 
+
 #   ifdef OBC_RAD_NORMAL
           dfy=0.
 #   endif
@@ -523,21 +515,21 @@ c--#endif
 
 ---> */
 
-         
+
           cx=0.125*dtfast*(ubar(iend+1,j,kstp)+ubar(iend+1,j-1,kstp))
      &         *(pm(iend,j)+pm(iend,j-1)+pm(iend+1,j)+pm(iend+1,j-1))
 
           cy=0.125*dtfast*(vbar(iend,j,kstp)+vbar(iend+1,j,kstp))
      &         *(pn(iend,j)+pn(iend,j-1)+pn(iend+1,j)+pn(iend+1,j-1))
 
-          if (cx.gt.0.) then 
+          if (cx>0.) then
             tau=0.
           else
             tau=-cx
             cx=0.
           endif
 
-          vbar(iend+1,j,knew)=(1.-cx)*( vbar(iend+1,j,kstp)          
+          vbar(iend+1,j,knew)=(1.-cx)*( vbar(iend+1,j,kstp)
      &                          -max(cy,0.)*grad(iend+1,j-1)
      &                          -min(cy,0.)*grad(iend+1,j  )
      &                                                     )
@@ -596,10 +588,10 @@ c--#endif
 # endif            /* OBC_EAST */
       endif      !<-- EASTERN_EDGE
 #endif             /* !EW_PERIODIC */
- 
+
                            ! Corners between adjacent open boundaries
                            ! ======= ======= ======== ==== ==========
- 
+
 #if defined OBC_SOUTH && defined OBC_WEST
       if (WESTERN_EDGE .and. SOUTHERN_EDGE) then
         vbar(istr-1,jstr,knew)=0.5*( vbar(istr-1,jstr+1,knew)
@@ -624,6 +616,5 @@ c--#endif
      &                                +vbar(iend,jend+1,knew))
       endif
 #endif
-      return
       end
- 
+

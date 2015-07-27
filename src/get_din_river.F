@@ -11,7 +11,6 @@
       real cff
       integer i,ierr, lstr,lenstr, nf_fread, ifrc, ncid
       character*(max_name_size) frcname
-      save ncid
 
 !
 ! Initialization: Check, whether forcing netCDF file is already
@@ -24,58 +23,39 @@
 ! large negative artificial values, so that it will trigger logic in
 ! reading part below.
 !
-      if (iic.eq.ntstart) then
-        ifrc=1
- 100    ncid=ncidfrc(ifrc)
-        frcname=frcfile(ifrc)
-        ierr=nf_noerr
+      ifrc=1
+ 100  ncid=ncfrc(ifrc)
+      frcname=frcfile(ifrc)
+      ierr=nf_noerr
 
+      if (iic.eq.ntstart) then
         lstr=lenstr(frcname)
         if (ncid.eq.-1) then
-          ierr=nf_open(frcname(1:lstr), nf_nowrite, ncid)
+          ierr=nf_open(frcname(1:lstr), nf_nowrite, ncfrc)
           if (ierr.eq.nf_noerr) then
-            ncidfrc(ifrc)=ncid
-            MPI_master_only print*
-     &            , 'get_din_river: Opened forcing data file "'
-     &            , frcname(1:lstr),'"'
+            ncfrc(ifrc)=ncid
           else
-            MPI_master_only print*, '### ERROR: '
-     &            , 'get_din_river: Cannot open forcing data file "'
-     &            , frcname(1:lstr),'"', ', netCDF error no = ',ierr
+            write(*,'(/1x,4A/)') '### ERROR ',
+     &                   'in get_din_river: can not open netCDF file ''',
+     &                                       frcname(1:lstr), '''.'
           endif
         endif
         if (ierr .eq. nf_noerr) then
           ierr=nf_inq_varid (ncid, 'din_river_time', din_river_tid)
-          if (ierr .ne. nf_noerr) then
-            MPI_master_only print*
-     &             , 'get_din:river: Error getting ID din_river_time in '
-     &             , frcname(1:lstr),', nc error no = ',ierr
-          else
-            MPI_master_only print*
-     &             ,  'get_din_river: got ID of din_river_time in '
-     &             , frcname(1:lstr)
-          endif
           if (ierr .eq. nf_noerr) then
-            ierr=nf_inq_varid (ncid, 'din_river_flux', din_river_id)
+            ierr=nf_inq_varid (ncid,'din_river_flux',din_river_id)
             if (ierr .eq. nf_noerr) then
-              call set_cycle (ncid, din_river_tid, ntdin_river,din_river_cycle,
-     &                                 din_river_ncycle, din_river_rec,ierr)
+              call set_cycle (ncid, din_river_tid, ntdin_river, din_river_cycle,
+     &                                 din_river_ncycle, din_river_rec, ierr)
               itdin_river=1
               din_river_time(1)=-1.E+20
               din_river_time(2)=-1.E+20
             else
-              MPI_master_only print*,'At 1st WARNING in get_din_river'
-              MPI_master_only write(stdout,1)
-     &           'din_river_flux', frcname(1:lstr)
-              print*,' 1st WARNING: ierr = ',ierr
+              write(*,1) 'din_river_flux', frcname(1:lstr)
             endif
           else
-            MPI_master_only print*
-     &         ,'At 2nd WARNING in get_din_river'
-            MPI_master_only write(stdout,1)
-     &       'din_river_time', frcname(1:lstr)
-            MPI_master_only print*,' 2nd WARNING: ierr = ',ierr
-            if (ifrc .lt. max_frc_file) then
+            write(*,1) 'din_river_time', frcname(1:lstr)
+            if (ifrc .lt. max_frc) then
               ifrc=ifrc+1
               goto 100
             endif
@@ -84,7 +64,6 @@
       endif
   1   format(/1x,'WARNING: get_din_river cannot find variable ''',
      &     A, ''''/7x, 'in forcing netCDF file ''', A, '''.')
-
 !
 ! Reading data from the forcing file:  Get out, if model time is
 !======== ==== ==== === ======= =====  already within the interval
@@ -101,22 +80,21 @@
           if (ierr .eq. nf_noerr) then
             itdin_river=3-itdin_river
             din_river_time(itdin_river)=cff*day2sec + din_river_cycle*din_river_ncycle
-
             ierr=nf_fread (din_riverg(START_2D_ARRAY,itdin_river), ncid,
      &                                 din_river_id, din_river_rec, r2dvar)
             if (ierr .eq. nf_noerr) then
-              MPI_master_only write(stdout,
+              MPI_master_only write(*,
      &          '(6x,2A,G12.4,1x,A,I4)') 'get_din_river    --',
      &          ' read din_river                       for time =',
      &                   cff MYID
             else
-              write(stdout,2) 'din_river', din_river_rec
+              write(*,2) 'din_river', din_river_rec
             endif
           else
-            write(stdout,2) 'din_river_time', din_river_rec
+            write(*,2) 'din_river_time', din_river_rec
           endif
         else
-          write(stdout,'(/1x,A,I4,1x,A,I4/7x,4A/7x,2(A,G12.4)/)')
+          write(*,'(/1x,A,I4,1x,A,I4/7x,4A/7x,2(A,G12.4)/)')
      &   'ERROR in get_din_river: requested time record ',      din_river_rec,
      &   'exeeds the last record', ntdin_river, 'available in forcing ',
      &   'netCDF file ''',   frcname(1:lstr),   '''',  'tdays = ',
@@ -159,7 +137,6 @@
       cff2=time-din_river_time(it1)
 
 
-!      print*,'din_river(istrR:iendR,jstrR:jendR)',din_river(istrR:iendR,jstrR:jendR)
       if (ZEROTH_TILE  .and. ( cff1.lt.dt )) synchro_flag=.true.
  
       if (cff1.ge.0. .and. cff2.ge.0. ) then
@@ -173,9 +150,8 @@
               din_river(i,j)=(cff1*din_riverg(i,j,it1)+cff2*din_riverg(i,j,it2))
           enddo
         enddo
-
       elseif (ZEROTH_TILE) then
-        write(stdout,'(/1x,2A/3(1x,A,F16.10)/)')
+        write(*,'(/1x,2A/3(1x,A,F16.10)/)')
      &       'SET_DIN_RIVER_TILE - current model time is outside bounds ',
      &       'of ''din_river_time''.', 'DIN_RIVER_TSTART=',din_river_time(it1)*sec2day,
      &                           'TDAYS=',     tdays,

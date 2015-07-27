@@ -7,14 +7,14 @@
 # include "param.h"
 # include "compute_tile_bounds.h"
       call ana_vmix_tile (istr,iend,jstr,jend)
-      return
       end
  
       subroutine ana_vmix_tile (istr,iend,jstr,jend)
-!
-! Set vertical mixing coefficients for momentum "Akv"
-! and tracers "Akt" [m^2/s] using analytical expressions.
-!
+
+! Set vertical kinematic vertical viscosity "Akv" [m^2/s] for momentum
+! and vertical mixing c efficients "Akt" [m^2/s] for tracer equations
+! using analytical expressions.
+
       implicit none
       integer istr,iend,jstr,jend, i,j,k
       real cff
@@ -28,7 +28,7 @@
  
 # if defined CANYON_B
       cff=1./50.                    ! Setup both top and bottom
-      do k=1,N-1                    ! boundary layers.
+      do k=0,N                      ! boundary layers.
         do j=jstr,jend
           do i=istr,iend
             Akv(i,j,k)=0.001+0.0095*(
@@ -40,12 +40,16 @@
         enddo
       enddo
 # elif defined UPWELLING || defined IBERIA
-      cff=1./150.
-      do k=1,N-1
+      cff=1./100.
+      do k=0,N
         do j=jstr,jend
           do i=istr,iend
-            Akv(i,j,k)=0.002+0.008*exp(cff*(z_w(i,j,k)-z_w(i,j,N)))
-            Akt(i,j,k,itemp)=Akt_bak(itemp)
+           Akv(i,j,k)=0.005+0.015*exp(cff*(z_w(i,j,k)-z_w(i,j,N))
+
+
+
+c           Akv(i,j,k)=0.004+0.008*exp(cff*(z_w(i,j,k)-z_w(i,j,N)))
+            Akt(i,j,k,itemp)=0.2*Akt_bak(itemp)
 c??
 c??
 c             Akv(i,j,k)=0.
@@ -69,20 +73,17 @@ c??
         enddo
       enddo
 # endif /* CANYON_B */
- 
-# if defined EW_PERIODIC || defined NS_PERIODIC || defined MPI
-      call exchange_w3d_tile (istr,iend,jstr,jend, Akv)
-      call exchange_w3d_tile (istr,iend,jstr,jend,
-     &                     Akt(START_2D_ARRAY,0,itemp))
+
+# ifdef EXCHANGE
+      call exchange_2_tile (istr,iend,jstr,jend,  Akv, N+1,
+     &                    Akt(START_2D_ARRAY,0,itemp), N+1)
 #  ifdef SALINITY
-      call exchange_w3d_tile (istr,iend,jstr,jend,
-     &                     Akt(START_2D_ARRAY,0,isalt))
+      call exchange_tile (istr,iend,jstr,jend,
+     &                    Akt(START_2D_ARRAY,0,isalt), N+1)
 #  endif
 # endif
+      end
 #else
       subroutine ana_vmix_empty
-#endif /* ANA_VMIX */
-      return
       end
- 
- 
+#endif /* ANA_VMIX */

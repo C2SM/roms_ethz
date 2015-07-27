@@ -1,29 +1,28 @@
       program srcscheck
-!
-! PURPOSE: Read list of source code files SRCS from Makefile and
-! create file "check_srcs.F" which contains subroutine check_srcs
-! which puts the list of source codes into string "scrs".
-!
-! This string is subsequently written as a global attribute SCRS
-! into model history/restart netCDF files to automatically document
-! the model configuration (that is composition of names of source
-! code files at the moment when model was compiled).
-!
+
+! PURPOSE: Read list of source code files SRCS (also KRNSRC, IOSRC)
+! from Makefile and create file "check_srcs.F" which contains
+! subroutine check_srcs to put the list of source codes into string
+! "scrs". The string is subsequently written as a global attribute
+! SCRS into model history/restart netCDF files to automatically
+! document  the model configuration (that is composition of names of
+! source files at the moment when model was compiled).
+
       implicit none
 #include "strings.h"
-      integer input,iout, max_string
-      parameter (input=11, iout=12, max_string=128)
+      integer, parameter :: iin=11, iout=12, max_string=128
       character tab*1, backslash*1, string*128
-      integer lstr, i, is,ie,indx,iocheck
+      integer lstr, i, is,ie, indx, iocheck
       logical end_of_file, sources
+
       tab=char(9)
       backslash=char(92)
       sources=.false.
       end_of_file=.false.
- 
+
       write(*,'(/1x,A,1x,A/)') 'This is SRCSCHECK:',
      &          'Creating new version of check_srcs.F.'
- 
+
       open (unit=iout,file='check_srcs.F',form='formatted')
       write(iout,'(A/, /6x,A/, /3(A,1x,A/),A,29x,A/)')
      &     '#include "cppdefs.h"',    'subroutine check_srcs',
@@ -37,56 +36,56 @@
       write(iout,'(6x,A/6x,A/A/6x,A/8x,A/6x,A)')
      &     'implicit none', 'integer i', '#include "strings.h"',
      &     'do i=1,max_opt_size',  'srcs(i:i)='' ''',   'enddo'
- 
+
       indx=1
-      open(unit=input,file='Makefile')
+      open(unit=iin,file='Makefile')
    1  string=' '
-       read(input,'(A)',iostat=iocheck,end=2) string
+       read(iin,'(A)',iostat=iocheck,end=2) string
         goto 3
    2    end_of_file=.true.
    3    lstr=max_string
-   4    if (string(lstr:lstr).eq.' ') then
+   4    if (string(lstr:lstr)==' ') then
           lstr=lstr-1
-          if (lstr.gt.0) goto 4
+          if (lstr>0) goto 4
         endif
-        if (lstr.eq.0 .and. .not.end_of_file) goto 1
+        if (lstr==0 .and. .not.end_of_file) goto 1
         do i=1,lstr
-          if (string(i:i).eq.tab .or.
-     &        string(i:i).eq.'=') string(i:i)=' '
+          if (string(i:i)==tab .or.
+     &        string(i:i)=='=') string(i:i)=' '
         enddo
         is=1
-   5    if (string(is:is).eq.' ') then
+   5    if (string(is:is)==' ') then
           is=is+1
-          if (is.lt.lstr) goto 5
+          if (is<lstr) goto 5
         endif
 
-        if (string(is:is+5).eq.'KRNSRC') then
+        if (string(is:is+5)=='KRNSRC') then
           sources=.true.
-        elseif (string(is:is+4).eq.'IOSRC') then
+        elseif (string(is:is+4)=='IOSRC') then
           sources=.true.
-        elseif (string(is:is+3).eq.'SRCS') then
+        elseif (string(is:is+3)=='SRCS') then
           sources=.true.
         endif
 
         if (sources) then
-          if (string(lstr:lstr).eq.backslash) then
+          if (string(lstr:lstr)==backslash) then
             lstr=lstr-1
-            if (lstr.eq.0 .and. .not.end_of_file) goto 1
+            if (lstr==0 .and. .not.end_of_file) goto 1
           else
             sources=.false.
           endif
- 
-   6      if (string(is:is).eq.' ') then
+
+   6      if (string(is:is)==' ') then
             is=is+1
-            if (is.lt.lstr) goto 6
+            if (is<lstr) goto 6
           endif
           ie=is
-   7      if (string(ie+1:ie+1).ne.' ') then
+   7      if (string(ie+1:ie+1)/=' ') then
             ie=ie+1
-            if (ie.lt.lstr) goto 7
+            if (ie<lstr) goto 7
           endif
 
-          if (indx.eq.1) then
+          if (indx==1) then
             write(iout,'(6x,A,I4,A1,I4,3A)') 'srcs(', indx, ':',
      &                   indx+ie-is, ')=''', string(is:ie), ''''
             indx=indx+ie-is
@@ -95,7 +94,7 @@
      &                indx+ie-is+1, ')='' ', string(is:ie), ''''
             indx=indx+ie-is+1
           endif
-          if (indx.gt.max_opt_size) then
+          if (indx>max_opt_size) then
             write(iout,'(A/2(A,1x,A/),A)') '*****', '*****   ERROR:',
      &           'parameter max_opt_size in file "strings.h" is not',
      &           '*****          sufficient to accomodate SCRS list',
@@ -104,12 +103,12 @@
           endif
           indx=indx+1
           is=ie+1
-          if (is.le.lstr) goto 6
+          if (is<=lstr) goto 6
         endif
        if (.not.end_of_file) goto 1
-      close(unit=input)
+      close(unit=iin)
   99  write(iout,'(6x,A/6x,A)') 'return', 'end'
       close(iout)
       stop
       end
- 
+

@@ -1,7 +1,7 @@
 #include "cppdefs.h"
  
       subroutine get_forces
-!
+
 ! Read various forcing and climatological fields from their netCDF
 ! files and save them as globally accessible arrays in common blocks
 ! "forces.h" and "climat.h". NOTE that NO EFFORT has been made to
@@ -11,51 +11,56 @@
 ! and short wave radiation fluxes are in [Watts/m^2]; SST sensitivity
 ! to heat flux dQdSST is in [Watts/(deg C * m^2)]; surface fresh
 ! water flux is in [mm/day].
-!
+
       implicit none
       integer ierr
 #include "param.h"
 #include "scalars.h"
+c--#define VERBOSE
+#ifdef VERBOSE
+      write(*,*) 'enter get_forces' MYID
+#endif
       ierr=0
 #if defined M2NUDGING && !defined M2_FRC_BRY && !defined ANA_SSH
       call get_ssh (ierr)
 #endif
 #if defined UCLIMATOLOGY && !defined ANA_UCLIMA
-      if (ierr.eq.0) call get_uclima (ierr)
+      if (ierr==0) call get_uclima (ierr)
 #endif
 #ifdef SOLVE3D
 # if ( defined TCLIMATOLOGY ||( defined TNUDGING && \
        defined T_FRC_BRY )) && !defined ANA_TCLIMA
-      if (ierr.eq.0) call get_tclima (ierr)
+      if (ierr==0) call get_tclima (ierr)
 # endif
 #endif
 # if  defined T_FRC_BRY  || defined M2_FRC_BRY || \
       defined M3_FRC_BRY || defined Z_FRC_BRY 
 #  ifndef ANA_BRY
-      if (ierr.eq.0) call get_all_bry (ierr)
+      if (ierr==0) call get_bry_all (ierr)
 #  endif
 # endif
 #if defined SSH_TIDES || defined UV_TIDES
-      if (ierr.eq.0) call get_tides (ierr)
+      if (ierr==0) call get_tides (ierr)
 #endif
 
 
 #ifndef ANA_SMFLUX
-      if (ierr.eq.0) call get_smflux (ierr)
+      if (ierr==0) call get_smflux (ierr)
+# ifdef WIND_STRESS_AMP
+      if (ierr==0) call get_stress_magn (ierr)
+# endif
 #endif
 #ifdef SOLVE3D
 # ifndef ANA_STFLUX
-      if (ierr.eq.0) call get_stflux (itemp, ierr)
+      if (ierr==0) call get_stflux (itemp, ierr)
 # endif
 # if defined SALINITY && !defined ANA_SSFLUX
-      if (ierr.eq.0) call get_stflux (isalt, ierr)
+      if (ierr==0) call get_stflux (isalt, ierr)
 # endif
 # if defined QCORRECTION && !defined ANA_SST
-      if (ierr.eq.0) call get_sst (ierr)
-      if (ierr.eq.0) call get_dqdt (ierr)
-
-      if (ierr.eq.0) call get_sss (ierr)
-
+      if (ierr==0) call get_sst (ierr)
+      if (ierr==0) call get_dqdt (ierr)
+      if (ierr==0) call get_sss (ierr)
 # endif
 # if defined BIOLOGY_BEC || defined BIOLOGY_BEC2
         if (ierr.eq.0)  call get_dust(ierr)
@@ -64,34 +69,35 @@
 # ifdef PCO2AIR_FORCING
         if (ierr.eq.0)  call get_pCO2air(ierr)
 # endif
-# if (defined LMD_KPP || defined LMD_BKPP) && !defined ANA_SRFLUX
-      if (ierr.eq.0) call get_srflux (ierr)
+# if defined LMD_KPP && !defined ANA_SRFLUX
+      if (ierr==0) call get_srflux (ierr)
 # endif
 #endif
 #if defined SG_BBL96
 # ifndef ANA_WWAVE
-      if (ierr.eq.0) call get_wwave (ierr)
+      if (ierr==0) call get_wwave (ierr)
 # endif
 # ifndef ANA_BSEDIM
-      if (ierr.eq.0) call get_bsedim (ierr)
+      if (ierr==0) call get_bsedim (ierr)
 # endif
 #endif
-#ifdef BIOLOGY_BEC2
-! DL:
+!#ifdef BIOLOGY_BEC2
 !      if (ierr.eq.0) call get_nox(ierr)
 !      if (ierr.eq.0) call get_nhy(ierr)
-#ifdef RIVER_LOAD_N
-      if (ierr.eq.0) call get_din_river(ierr)
-#endif
-#ifdef RIVER_LOAD_P
-      if (ierr.eq.0) call get_dip_river(ierr)
-#endif
-#endif
-
+!      if (ierr.eq.0) call get_din_river(ierr)
+!#endif
 #if defined PASSIVE_TRACER && defined AGE_DYE_TRACER
       if (ierr.eq.0) call get_agedye(ierr)
 #endif
-      if (ierr.ne.0) may_day_flag=2
+      if (ierr/=0) then
+        may_day_flag=2
+        write(*,'(1x,2A,2x,A,I4)') '### ERROR: get_forces :: ',
+     &          'set may_day_flag = 2' MYID
+      endif
+
+#ifdef VERBOSE
+      write(*,*) 'return get_forces' MYID
+#endif
       return
       end
  
@@ -99,7 +105,7 @@
  
       subroutine set_forces (tile)
       
-!
+
 ! Using either data read from netCDF files or created analytically,
 ! prepare surface and bottom boundary fluxes as well as relevant
 ! climatological fields, so they can be applied to the model. This
@@ -129,10 +135,13 @@
 ! NOTE: Since some of the surface flux formulation may require
 ! climatological data (e.g., salinity at surface) update tclima
 ! first.
-!
+
       implicit none
-      integer tile, ierr, itrc, i, j
+      integer tile, ierr
+#if defined VFLX_CORR && (defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC || defined BIOLOGY_BEC2)
+     &        , itrc, i, j
       real cff
+#endif
 #include "param.h"
 #if defined VFLX_CORR && (defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC || defined BIOLOGY_BEC2)
 # include "comm_vars.h"
@@ -174,7 +183,7 @@
 #  ifdef ANA_BRY 
 c***              no code here
 #  else
-      call set_all_bry_tile (istr,iend,jstr,jend, ierr)
+      call set_bry_all_tile (istr,iend,jstr,jend, ierr)
 #  endif
 # endif
 
@@ -227,12 +236,10 @@ c***              no code here
       call set_iron_tile (Istr,Iend,Jstr,Jend,ierr) 
       call set_dust_tile (Istr,Iend,Jstr,Jend,ierr) 
 # endif
-# ifdef PCO2AIR_FORCING
-# if defined BIOLOGY_BEC || defined BIOLOGY_BEC2 || (defined CARBON && defined BIOLOGY_NPZDOC)
+# if defined CARBON && defined PCO2AIR_FORCING
       call set_pCO2air_tile (Istr,Iend,Jstr,Jend,ierr) 
 # endif
-# endif
-# if (defined LMD_KPP || defined LMD_BKPP)
+# ifdef LMD_KPP
 #  ifdef ANA_SRFLUX
       call ana_srflux_tile (istr,iend,jstr,jend)
 #  else
@@ -256,24 +263,21 @@ c***              no code here
 #endif
 
 
-c>>>      if (ierr.ne.0) may_day_flag=2
+c>>>      if (ierr /= 0) may_day_flag=2
 #ifdef ANA_PSOURCE
       if (ZEROTH_TILE) call ana_psource
 #endif
-#ifdef BIOLOGY_BEC2
+
 ! DL:
+!#ifdef BIOLOGY_BEC2
 !      if (ierr.eq.0) call set_nox_tile (istr,iend,jstr,jend,ierr)
 !      if (ierr.eq.0) call set_nhy_tile (istr,iend,jstr,jend,ierr)
-#ifdef RIVER_LOAD_N
-      if (ierr.eq.0) call set_din_river_tile (istr,iend,jstr,jend,ierr)
-#endif
-#ifdef RIVER_LOAD_P
-      if (ierr.eq.0) call set_dip_river_tile (istr,iend,jstr,jend,ierr)
-#endif
-#endif
+!      if (ierr.eq.0) call set_din_river_tile (istr,iend,jstr,jend,ierr)
+!#endif
 #if defined PASSIVE_TRACER && defined AGE_DYE_TRACER
       if (ierr.eq.0) call set_agedye_tile (istr,iend,jstr,jend,ierr)
 #endif
 
       return
       end
+

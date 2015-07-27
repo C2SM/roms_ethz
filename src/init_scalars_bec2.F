@@ -32,7 +32,7 @@ C$OMP CRITICAL (isca_cr_rgn)
 C$      numthreads=omp_get_num_threads()
 C$OMP END CRITICAL (isca_cr_rgn)
 C$OMP END PARALLEL
-      MPI_master_only write(stdout,'(1x,A,3(1x,A,I3),A)') 'NUMBER',
+      MPI_master_only write(*,'(1x,A,3(1x,A,I3),A)') 'NUMBER',
      &    'OF THREADS:',numthreads,'BLOCKING:',NSUB_X,'x',NSUB_E,'.'
 
 #ifdef MPI
@@ -42,11 +42,11 @@ C$OMP END PARALLEL
 #endif
 
       if (numthreads.gt.NUMPROC) then
-        MPI_master_only write(stdout,'(/1x,A,I3/)')
+        MPI_master_only write(*,'(/1x,A,I3/)')
      &    'ERROR: Requested number of threads exceeds setting: ',NUMPROC
         ierr=ierr+1                                      !--> ERROR
       elseif (mod(NSUB_X*NSUB_E,numthreads).ne.0) then
-        MPI_master_only write(stdout,
+        MPI_master_only write(*,
      &                '(/1x,A,1x,A,I3,4x,A,I3,4x,A,I4,A)') 'ERROR:',
      &                'wrong choice of numthreads =', numthreads,
      &                'NSUB_X =', NSUB_X, 'NSUB_E =', NSUB_E, '.'
@@ -68,7 +68,7 @@ C$OMP END PARALLEL
       vname(3,indxpO4)='mMol P m-3                                '
       vname(4,indxpO4)='  '
 
-CR      write(stdout,'(1x,A,I3)') 'indxNO3 =',indxNO3
+CR      write(*,'(1x,A,I3)') 'indxNO3 =',indxNO3
       vname(1,indxNO3)='NO3                                       '
       vname(2,indxNO3)='Nitrate                                   '
       vname(3,indxNO3)='mMol N m-3                                '
@@ -79,7 +79,7 @@ CR      write(stdout,'(1x,A,I3)') 'indxNO3 =',indxNO3
       vname(3,indxSIO3)='mMol Si m-3                               '
       vname(4,indxSIO3)='  '
 
-CR      write(stdout,'(1x,A,I3)') 'indxNH4 =',indxNH4
+CR      write(*,'(1x,A,I3)') 'indxNH4 =',indxNH4
       vname(1,indxNH4)='NH4                                       '
       vname(2,indxNH4)='Ammonium                                  '
       vname(3,indxNH4)='mMol N m-3                                '

@@ -1,147 +1,113 @@
-! This is "ncvars.h":   indices for character array "vname" for
-!----- -- -----------   names of netCDF variables and attributes
-!
+! This is "ncvars.h":   indices for character array "vname" to keep
+!----- -- -----------   names of netCDF variables and their attributes
 ! indxTime        time
 ! indxZ           free-surface
-! indxUb,indxVb   vertically integrated 2D U,V-momentum components
-!
-! indxU,indxV     3D U- and V-momenta.
-! indxT,indxS, ..., indxZoo  tracers (temerature, salinity,
-!                 biological tracers.
-! indxO,indxW     omega vertical mass flux and true vertical velocity
+! indxUb,Vb     vertically integrated 2D U,V-momentum components
+! indxU,V       3D u- and v-velocity components
+! indxT,S,...,Zoo tracers (temperature, salinity, biotracers).
+! indxO         "omega" vertical velocity (flux)
+! indxW         "true" vertical velocity
 ! indxR           density anomaly
-!
-! indxAkv,indxAkt,indxAks  vertical viscosity/diffusivity coeffcients
-! indxHbl         depth of planetary boundary layer in KPP model
-! indxHbbl        depth of bottom boundary layer in (B)KPP model
-!
+! indxAkv,Akt,Aks vertical viscosity/diffusivity coefficients
+! indxHbls      depth of planetary boundary layer in KPP model
+! indxHbbl      depth of bottom boundary layer in BKPP model
+
+! indxAi        fraction of cell covered by ice
+! indxUi,Vi     U,V-components of sea ice velocity
+! indxHi,HS     depth of ice cover and depth of snow cover
+! indxTIsrf     temperature of ice surface
+
+! indxBSD,BSS bottom sediment grain Density and Size.
+! indxWWA,WWD,WWP  wind induced wave Amplitude, Direction,and Period
+
 ! indxSUSTR,indxSVSTR  surface U-, V-momentum stress (wind forcing)
 ! indxSHFl        net surface heat flux.
 ! indxSWRad       shortwave radiation flux
 ! indxSST         sea surface temperature
 ! indxdQdSST      Q-correction coefficient dQdSST
 ! indxSSFl        surface fresh water flux
-!
-! indxAi          fraction of cell covered by ice
-! indxUi,indxVi   U,V-components of sea ice velocity
-! indxHi,indxHS   depth of ice cover and depth of snow cover
-! indxTIsrf       temperature of ice surface
-!
-! indxBSD,indxBSS bottom sediment grain Density and Size.
-! indxWWA,indxWWD,indxWWP   wind induced wave Amplitude,
-!                 Direction and Period
-!
-      integer indxTime, indxZ, indxUb, indxVb
-      parameter (indxTime=1, indxZ=2, indxUb=3, indxVb=4)
+
+      integer, parameter :: indxTime=1, indxZ=2, indxUb=3, indxVb=4
 #ifdef SOLVE3D
-      integer indxU, indxV, indxT
-      parameter (indxU=5, indxV=6, indxT=7)
+     &                    , indxU=5, indxV=6, indxO=7, indxW=8
+     &                    , indxR=9, indxT=10
 # ifdef SALINITY
-      integer indxS
-      parameter (indxS=indxT+1)
+     &                    , indxS=indxT+1
 # endif
 # ifdef BIOLOGY
-      integer indxNO3, indxNH4, indxChla,
-     &        indxPhyt, indxZoo, indxSDet, indxLDet
-      parameter (indxNO3=indxT+ntrc_salt+ntrc_pas+1)
-      parameter (indxNH4=indxNO3+1,  indxChla=indxNO3+2,
-     &           indxPhyt=indxNO3+3, indxZoo=indxNO3+4,
-     &           indxSDet=indxNO3+5, indxLDet=indxNO3+6)
-# endif /* BIOLOGY */
-      integer indxO, indxW, indxR, indxAkv, indxAkt
-# ifdef KPP_DIAGNOSE
-     & , indxRich, indxRichN, indxSwrF
-# endif
-# ifdef WRITE_DEPTHS
-      integer indxz_r, indxz_w, indxHz
-# endif /* WRITE_DEPTHS */
-      parameter (indxO=indxT+NT
-# if defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC || defined BIOLOGY_BEC2
-#  if defined CH_CARBON_DEPTH
-      /* Create space for CO3d, HCO3d, CO2STARd, pHd, pH, pCO2, pCO2air, PARinc, and PAR: */
-     &     + 9
+#  ifdef SALINITY
+     &                    , indxNO3=indxS+1
 #  else
+     &                    , indxNO3=indxT+1
+# endif
+     &                    , indxNH4 =indxNO3+1, indxChla=indxNO3+2
+     &                    , indxPhyt=indxNO3+3, indxZoo =indxNO3+4
+     &                    , indxSDet=indxNO3+5, indxLDet=indxNO3+6
+# endif
+     &                    , indxAkv=indxT+NT,   indxAkt=indxAkv+1
+
+# ifdef SOLVE3D
+     &                    , indxSUSTR=indxAkt+3
+# else
+     &                    , indxSUSTR=indxVb+1
+# endif
+     &                    , indxSVSTR=indxSUSTR+1, indxSHFl=indxSUSTR+2
+     &                    , indxSWRad=indxSHFl+1
+
+# ifdef SALINITY
+     &                    , indxSSFl=indxSWRad+1, indxSSS=indxSWRad+2
+     &                    , indxSST=indxSWRad+3
+# else
+     &                    , indxSST=indxSWRad+1
+# endif
+     &                    , indxdQdSST=indxSST+1
+
+# ifdef WRITE_DEPTHS
+     &                    , indxz_r=indxAkt+1,  indxz_w=indxAkt+2
+     &                    , indxHz=indxAkt+3
+# endif
+
+# if defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC || defined BIOLOGY_BEC2
+
       /* Create space for pH, pCO2, pCO2air, PARinc, PAR: */
      &     + 5
-#  endif /* CH_CARBON_DEPTH */
 
 #  ifdef SEDIMENT_BIOLOGY
      &     + NT_sed
 #  endif
-# endif /* BIOLOGY_NPZDOC || BIOLOGY_BEC || BIOLOGY_BEC2 */
-# ifdef WRITE_DEPTHS
+#  ifdef WRITE_DEPTHS
      &     + 3
-# endif /* WRITE_DEPTHS */
-     &     )
-      parameter (indxW=indxO+1, indxR=indxO+2,
-     &     indxAkv=indxR+1, 
-# ifdef KPP_DIAGNOSE
-     & indxRich=indxAkv+1, indxRichN=indxAkv+2, indxSwrF=indxAkv+3,
-# endif
-     &     indxAkt=indxAkv+4)
+#  endif 
+# endif /* BIOLOGY_NPZDOC || BIOLOGY_BEC || BIOLOGY_BEC2 */
 # ifdef SALINITY
-      integer indxAks
-      parameter (indxAks=indxAkt+1)
+     &                    , indxAks=indxAkt+1
 # endif
 # ifdef LMD_KPP
-      integer indxHbl
 #  ifdef SALINITY
-      parameter (indxHbl=indxAks+1)
+     &                    , indxHbls=indxAks+1
 #  else
-      parameter (indxHbl=indxAkt+1)
+     &                    , indxHbls=indxAkt+1
 #  endif
 # endif
 # ifdef LMD_BKPP
-      integer indxHbbl
-#  ifdef SALINITY
-      parameter (indxHbbl=indxAks+2)
-#  else
-      parameter (indxHbbl=indxAkt+2)
+     &                    , indxHbbl=indxHbls+1
 #  endif
-# endif
-#endif /* SOLVE3D */
 
-
-      integer indxSUSTR, indxSVSTR
-#ifdef SOLVE3D
-      parameter (indxSUSTR=indxAkt+3, indxSVSTR=indxAkt+4)
-#else
-      parameter (indxSUSTR=indxVb+1,  indxSVSTR=indxSUSTR+1)
-#endif
-
-#ifdef SOLVE3D
-      integer indxSHFl, indxSWRad
-      parameter (indxSHFl=indxAkt+5)
-# ifdef SALINITY
-      integer indxSSFl
-      parameter (indxSSFl=indxSHFl+1, indxSWRad=indxSHFl+2)
-# else
-      parameter (indxSWRad=indxSHFl+1)
-# endif
-      integer indxSST, indxdQdSST, indxSSS
-      parameter (indxSST=indxSWRad+1, indxdQdSST=indxSST+1,
-     &                                   indxSSS=indxSST+2)
 # if defined BIOLOGY_BEC || defined BIOLOGY_BEC2
-     ! Dust and iron flux:
-      integer indxdust
-      parameter (indxdust=indxSST+3)
-      integer indxiron
-      parameter (indxiron=indxSST+4)
+     &                    , indxdust=indxSST+3
+     &                    , indxiron=indxSST+4
 # endif /* BIOLOGY_BEC || BIOLOGY_BEC2 */
 # ifdef SG_BBL96
 #  ifndef ANA_WWAVE
-      integer indxWWA,indxWWD,indxWWP
-      parameter (indxWWA=indxSST+5,   indxWWD=indxWWA+1,
-     &                                indxWWP=indxWWA+2)
+     &                    , indxWWA=???          indxWWD=indxWWA+1
+     &                    , indxWWP=indxWWA+2
 #  endif
 # endif
 #endif
 #ifdef ICE
-      integer indxAi
-      parameter (indxAi=????)
-      integer indxUi, indxVi, indxHi, indxHS, indxTIsrf
-      parameter (indxUi=indxAi+1, indxVi=indxAi+2, indxHi=indxAi+3,
-     &                         indxHS=indxAi+4, indxTIsrf=indxAi+5)
+      integer, parameter :: indxAi=????,     indxUi=indxAi+1,
+     &                    , indxVi=indxAi+2, indxHi=indxAi+3,
+     &                      indxHS=indxAi+4, indxTIsrf=indxAi+5
 #endif
 
 #ifdef SOLVE3D
@@ -259,6 +225,10 @@
 #  endif /* WRITE_DEPTHS */
 # endif /* BIOLOGY_BEC */
 # ifdef BIOLOGY_BEC2
+
+!  MM Merge remark: This block should be rewritten in 
+!      integer, parameter ::   style
+
        integer indxPo4,indxNo3,indxSio3,indxNh4,indxFe,indxO2,indxDic,
      &   indxAlk,indxDoc,indxDon,indxDofe,indxDop,indxDopr,indxDonr,indxZooc,
      &   indxSpchl,indxSpc,indxSpfe,indxSpcaco3,indxDiatchl,indxDiatc,
@@ -341,19 +311,15 @@
      &            indxSPCACO3ZERO=indxPAR+84,indxDONRREMIN=indxPAR+85 )
 #  endif /* BEC2_DIAG */
 # endif /* BIOLOGY_BEC2 */
-
-# if !defined BIOLOGY_NPZDOC && !defined BIOLOGY_BEC && !defined BIOLOGY_BEC2
-#  ifdef WRITE_DEPTHS
-       parameter(indxz_r=indxT+ntrc_salt+ntrc_pas+1, indxz_w=indxz_r+1,
-     &           indxHz=indxz_w+1)
-#  endif /* WRITE_DEPTHS */
-# endif /* !BIOLOGY_NPZD && !BIOLOGY_BEC && !BIOLOGY_BEC2 */
-
 #endif /* SOLVE3D */
 
-!
+! Length of netCDF variable "time_step"
+
+      integer, parameter :: iaux=6
+
+
 ! Naming conventions for indices, variable IDs, etc...
-!
+!------- ----------- --- -------- -------- ---- ------
 ! prefix ncid_  means netCDF ID for netCDF file
 !        nrec_  record number in netCDF file since initialization
 !        nrpf_  maximum number of records per file  (output netCDF
@@ -361,7 +327,7 @@
 ! prefix/ending rst_/_rst refers to restart  netCDF file
 !               his_/_his           history
 !               avg_/_avg           averages
-!               sta_/_sta           stations
+!               stn_/_stn           stations
 !                    _frc           forcing
 !                    _clm           climatology
 !
@@ -373,7 +339,7 @@
 !
 !  netCDF IDs, if    ___U     3D U-momentum
 !  occur with prefix ___V     3D V-momentum
-!  rst/his/avg/sta   ___T(NT) tracers
+!  rst/his/avg/stn   ___T(NT) tracers
 !                    ___R     density anomaly
 ! or                 ___O     omega vertical velocity
 !                    ___W     true vertical velocity
@@ -381,31 +347,27 @@
 !  if combined with  ___Akv   vertical viscosity coefficient
 !  prefix "indx"     ___Akt   vertical T-diffusion coefficient
 !  (see above).      ___Aks   vertical S-diffusion coefficient
-!                    ___Hbl   depth of mixed layer LMD_KPP.
+!                    ___Hbl   depth of KPP surface boundary layer
+!                    ___Hbbl  thickness of KPP bottom boundary layer
 !
 ! vname    character array for variable names and attributes;
-!
-      integer max_frc_file
-      parameter (max_frc_file=8)
-      integer max_frc, ncidfrc(max_frc_file), nrst, ncidrst, nrecrst,
-     &      nrrec, nrpfrst, nwrt, ncidhis, nrechis, nrpfhis
-      integer ncidclm(NT)
+
+      integer, parameter :: max_frc_file=8
+      integer max_frc, ncfrc(max_frc_file), nrst,  ncrst,   nrecrst,
+     &      nrrec, nrpfrst, ncidclm, nwrt,  nchis, nrechis, nrpfhis
+
 #if defined BIOLOGY_BEC || defined BIOLOGY_BEC2
      &     , ntdust, ntiron
 #endif
-      common /ncvars/       max_frc, ncidfrc, nrst, ncidrst, nrecrst,
-     &      nrrec, nrpfrst, ncidclm, nwrt, ncidhis, nrechis, nrpfhis
+      common /ncvars/       max_frc, ncfrc, nrst,  ncrst,   nrecrst,
+     &      nrrec, nrpfrst, ncidclm, nwrt,  nchis, nrechis, nrpfhis
 #if defined BIOLOGY_BEC || defined BIOLOGY_BEC2
      &     , ntdust, ntiron
 #endif
 #ifdef BIOLOGY_BEC2
-      integer ntnox, ntnhy, ntdin_river, ntdip_river
-      common /ncvars/ ntnox, ntnhy, ntdin_river, ntdip_river
+      integer ntnox, ntnhy, ntdin_river
+      common /ncvars/ ntnox, ntnhy, ntdin_river
 #endif
-
-
-
-
 #ifdef AVERAGES
       integer ntsavg,  navg
       common /ncvars/ ntsavg,  navg
@@ -423,8 +385,7 @@
       common /ncvars/ nflt
 #endif
 
-
-
+! NetCFD ids for model variables
 
       integer rstTime, rstTstep,      rstZ,   rstUb,  rstVb,
      &        hisTime, hisTstep,      hisZ,   hisUb,  hisVb
@@ -432,11 +393,12 @@
      &        rstTime, rstTstep,      rstZ,   rstUb,  rstVb,
      &        hisTime, hisTstep,      hisZ,   hisUb,  hisVb
 #ifdef SOLVE3D
+# ifdef EXACT_RESTART
+      integer rst_DU_avg2, rst_DV_avg2
+      common /ncvars/ rst_DU_avg2, rst_DV_avg2
+# endif
       integer rstU, rstV, rstT(NT+1), hisO,   hisW,   hisR,
      &        hisU, hisV, hisT(NT+1), hisAkv, hisAkt, hisAks 
-#ifdef KPP_DIAGNOSE
-     &        , hisRich, hisRichN, hisSwrF
-#endif
 # if defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC
 #  if defined CH_CARBON_DEPTH
      &      , rstHCO3d, rstCO3d, rstCO2STARd, rstPHd, rstPH, rstPCO2, rstPCO2air, rstPAR
@@ -472,9 +434,6 @@
       common /ncvars/
      &        rstU, rstV, rstT,       hisO,   hisW,   hisR,
      &        hisU, hisV, hisT,       hisAkv, hisAkt, hisAks
-# ifdef KPP_DIAGNOSE
-     &        , hisRich, hisRichN, hisSwrF
-# endif
 # if defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC
 #  if defined CH_CARBON_DEPTH
      &      , rstHCO3d, rstCO3d, rstCO2STARd, rstPHd, rstPH, rstPCO2, rstPCO2air, rstPAR
@@ -504,8 +463,8 @@
 # endif /* SEDIMENT_BIOLOGY */
 
 # ifdef LMD_KPP
-      integer rstHbl, hisHbl
-      common /ncvars/ rstHbl, hisHbl
+      integer rstHbls, hisHbls
+      common /ncvars/ rstHbls, hisHbls
 # endif
 # ifdef LMD_BKPP
       integer rstHbbl, hisHbbl
@@ -514,92 +473,72 @@
 #endif /* SOLVE3D */
 
 #ifdef AVERAGES
-      integer ncidavg, nrecavg,  nrpfavg,
-     &        avgTime, avgTstep, avgZ,    avgUb, avgVb
-      common /ncvars/  ncidavg,  nrecavg, nrpfavg,
-     &        avgTime, avgTstep, avgZ,    avgUb, avgVb
+      integer ncavg, nrecavg, nrpfavg,  avgTime, avgZ, avgUb, avgVb
+      common /ncvars/  ncavg, nrecavg,  nrpfavg,
+     &                                  avgTime, avgZ, avgUb, avgVb
 #  ifdef SOLVE3D
-      integer avgU,  avgV,  avgT(NT+1), avgR,
-     &        avgO,  avgW,  avgAkv,     avgAkt,  avgAks
-#  ifdef KPP_DIAGNOSE
-     &        , avgRich, avgRichN, avgSwrF
-#  endif
+      integer avgU,  avgV,  avgT(NT+1), avgR,    avgO,    avgW,
+     &                                  avgAkv,  avgAkt,  avgAks
 #   ifdef SEDIMENT_BIOLOGY
      &      , avgTsed(NT_sed)
 #   endif /* SEDIMENT_BIOLOGY */
-      common /ncvars/ avgU, avgV,       avgT,    avgR, 
-     &        avgO,  avgW,  avgAkv,     avgAkt,  avgAks
-#  ifdef KPP_DIAGNOSE
-     &        , avgRich, avgRichN, avgSwrF
-#  endif
+      common /ncvars/ avgU, avgV, avgT, avgR,    avgO,    avgW,
+     &                                  avgAkv,  avgAkt,  avgAks
 #  ifdef SEDIMENT_BIOLOGY
      &      , avgTsed
 #  endif /* SEDIMENT_BIOLOGY */
 #  ifdef LMD_KPP
-      integer avgHbl
-      common /ncvars/ avgHbl
+      integer avgHbls
+      common /ncvars/ avgHbls
 #  endif
 #  ifdef LMD_BKPP
       integer avgHbbl
       common /ncvars/ avgHbbl
 #  endif
-
 #  ifdef SLICE_AVG
-      integer ncidslavg, nrecslavg,  nrpfslavg,
+      integer ncslavg, nrecslavg,  nrpfslavg,
      &    slavgTime, slavgTstep, slavgZ, slavgUb, slavgVb
-      common /ncvars/  ncidslavg,  nrecslavg, nrpfslavg,
+      common /ncvars/  ncslavg,  nrecslavg, nrpfslavg,
      &    slavgTime, slavgTstep, slavgZ, slavgUb, slavgVb
       integer ksl, slavgU, slavgV, slavgT(NT+1), slavgR
      &      , slavgO, slavgW, slavgAkv, slavgAkt, slavgAks
-# ifdef KPP_DIAGNOSE
-     &        , slavgRich, slavgRichN, slavgSwrF
-# endif
 #   ifdef SEDIMENT_BIOLOGY
      &      , slavgTsed(NT_sed)
 #   endif /* SEDIMENT_BIOLOGY */
       common /ncvars/ ksl, slavgU, slavgV, slavgT, slavgR
      &      , slavgO, slavgW, slavgAkv, slavgAkt, slavgAks
-# ifdef KPP_DIAGNOSE
-     &        , slavgRich, slavgRichN, slavgSwrF
-# endif
 #  ifdef SEDIMENT_BIOLOGY
      &      , slavgTsed
 #  endif /* SEDIMENT_BIOLOGY */
 #  ifdef LMD_KPP
-      integer slavgHbl
-      common /ncvars/ slavgHbl
+      integer slavgHbls
+      common /ncvars/ slavgHbls
 #  endif
 #  ifdef LMD_BKPP
       integer slavgHbbl
       common /ncvars/ slavgHbbl
-#  endif
-#  ifdef WRITE_DEPTHS
-      integer slavgz_r, slavgz_w, slavgHz
-      common /ncvars/ slavgz_r, slavgz_w, slavgHz
 #  endif
 #  endif /* SLICE_AVG */
 # endif /* SOLVE3D */
 #endif /* AVERAGES */
 
 #ifdef STATIONS
-      integer ncidsta, nrecsta,  nrpfsta,  stadid,    stazid,
-     &        staubid, stavbid,  nstation, ispos(NS), jspos(NS)
-      common /ncvars/
-     &        ncidsta, nrecsta,  nrpfsta,  stadid,    stazid,
-     &        staubid, stavbid,  nstation, ispos,     jspos
+      integer nstation,  ispos(NS), jspos(NS),
+     &        ncidstn, nrecstn, nrpfstn, stnTime, stnZ, stnUb, stnVb
+      common /ncvars/ nstation, ispos,   jspos,
+     &        ncidstn, nrecstn, nrpfstn, stnTime, stnZ, stnUb, stnVb
 # ifdef SOLVE3D
-      integer stauid,  stavid,   statid(NT+1),        starid,
-     &        stawid,  staakvid, staaktid,            staaksid
-      common /ncvars/
-     &        stauid,  stavid,   statid,              starid,
-     &        stawid,  staakvid, staaktid,            staaksid
+      integer stnU,  stnV,  stnT(NT+1),  stnR,    stnO,    stnW,
+     &                                   stnAkv,  stnAkt,  stnAks
+      common /ncvars/ stnU, stnV, stnT,  stnR,    stnO,    stnW,
+     &                                   stnAkv,  stnAkt,  stnAks
 #  ifdef LMD_KPP
-      integer stahblid
-      common /ncvars/ stahblid
+      integer stnHbls
+      common /ncvars/ stnHbls
 #  endif
 #  ifdef LMD_BKPP
-      integer stahbblid
-      common /ncvars/ stahbblid
+      integer stnHbbl
+      common /ncvars/ stnHbbl
 #  endif
 # endif /* SOLVE3D */
 #endif /* STATIONS */
@@ -629,47 +568,46 @@
       common /ncvars/ ldefflt
 #endif
 #ifdef STATIONS
-      logical wsta(NWRTHIS)
-      common /ncvars/ wsta
+      logical wrtsta(NWRTHIS)
+      common /ncvars/ wrtsta
 #endif
 
+
+! Grid Type Codes:  r2dvar....w3hvar are codes for netCDF array types
+!----- ---- ------  which are set according to the rule:
 !
-! Grid Type Codes:  r2dvar....w3hvar are codes for array types.
-! ==== ==== ======  The codes are set according to the rule:
-!                     horiz_grid_type+4*vert_grid_type
-!    where horiz_grid_type=0,1,2,3 for RHO-,U-,V-,PSI-points
-!    respectively and vert_grid_type=0 for 2D fields; 1,2 for
-!    3D-RHO- and W-vertical points.
+!              type = horiz_grid_type + 4*vert_grid_type
 !
-      integer r2dvar, u2dvar, v2dvar, p2dvar, r3dvar,
-     &                u3dvar, v3dvar, p3dvar, w3dvar
-      parameter (r2dvar=0, u2dvar=1, v2dvar=2, p2dvar=3,
-     & r3dvar=4, u3dvar=5, v3dvar=6, p3dvar=7, w3dvar=8)
-!
-!            Horizontal array dimensions in netCDF files.
-! xi_rho     NOTE: In MPI mode using PARALLEL_FILES these
-! xi_u       depend on corresonding sizes of individual MPI
-! eta_rho    subdomains rather than the whole physical grid, 
-! eta_v      and therefore become live variables placed in 
-!            common block here and set in mpi_setup.
-!
-      integer xi_rho,xi_u, eta_rho,eta_v
+! where horiz_grid_type=0,1,2,3 for RHO-,U-,V-,PSI-points respectively,
+! and vert_grid_type=0 for 2D fields; 1 for vertical RHO-points, 2 for
+! vertical W-points.
+
+      integer, parameter :: r2dvar=0, u2dvar=1, v2dvar=2, p2dvar=3,
+     &            r3dvar=4, u3dvar=5, v3dvar=6, p3dvar=7, w3dvar=8
+
+!            Horizontal array dimensions in netCDF files. In the case
+! xi_rho     of MPI code with PARALLEL_FILES activated these dimensions
+! xi_u       depend on the corresponding sizes of individual subdomains
+! eta_rho    rather than the whole physical grid, therefore they become
+! eta_v      live variables placed in common block and assigned values
+!            in "mpi_setup" rather tnan be parameters defined here.
+
 #if defined MPI && defined PARALLEL_FILES
+      integer xi_rho,xi_u, eta_rho,eta_v
       common /ncvars/ xi_rho,xi_u, eta_rho,eta_v
 #else
-      parameter (xi_rho=LLm+2,   eta_rho=MMm+2,
-     &           xi_u=xi_rho-1,  eta_v=eta_rho-1)
+      integer, parameter :: xi_rho=LLm+2, eta_rho=MMm+2,
+     &                     xi_u=xi_rho-1, eta_v=eta_rho-1
 #endif
 
-      integer max_name_size
-      parameter (max_name_size=150)
+      integer, parameter :: max_name_size=256
       character date_str*44, title*80
-      character*(max_name_size) ininame, grdname,
+      character(len=max_name_size) ininame, grdname,
      &                 hisname, rstname, frcfile(max_frc_file)
       common /cncvars/ date_str, title,  ininame,
      &        grdname, hisname, rstname, frcfile
 #ifdef AVERAGES
-      character*(max_name_size) avgname
+      character(len=max_name_size) avgname
       common /cncvars/ avgname
 # ifdef SLICE_AVG
       character*(max_name_size) slavgname
@@ -678,29 +616,35 @@
 #endif
 #if (defined TCLIMATOLOGY && !defined ANA_TCLIMA) || !defined ANA_SSH
 # ifdef MULT_CLIM_FILES
-      integer*2 nclimfiles
-      character(len=max_name_size) clm_file(4)
+      integer, parameter :: max_clm_files=2
+      integer nclimfiles
+      character(len=max_name_size) clm_file(max_clm_files)
       common /cncvars/ nclimfiles, clm_file
 # else
-      character*(max_name_size) clm_file
+      character(len=max_name_size) clm_file
       common /cncvars/ clm_file
 # endif /* MULT_CLIM_FILES */
 #endif /* (defined TCLIMATOLOGY && ... */
 #if defined T_FRC_BRY  || defined M2_FRC_BRY || \
     defined M3_FRC_BRY || defined Z_FRC_BRY
-      character*(max_name_size) bry_file 
+      character(len=max_name_size) bry_file
       common /cncvars/ bry_file
 #endif
 
 #ifdef STATIONS
-      character*(max_name_size) staname, sposnam
-      common /cncvars/ staname, sposnam
+      character(len=max_name_size) staname
+      common /cncvars/ staname
 #endif
 #ifdef ASSIMILATION
-      character*(max_name_size) aparnam, assname
+      character(len=max_name_size) aparnam, assname
       common /cncvars/ aparnam, assname
 #endif
-      character*42  vname(4,40+NT-2)
+      character*42  vname(4,
+#ifdef BIOLOGY
+     &                       40+NT-2)
+#else
+     &                       40)
+#endif
       common /cncvars/ vname
 
 !DL: array for storing the names of those variables in the climatology

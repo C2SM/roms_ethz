@@ -2,7 +2,7 @@
 #ifdef OBC_VOLCONS
 
       subroutine obc_flux_tile (istr,iend,jstr,jend, dFlx)
-!
+
 ! Compute integral crossection of open all boundaries "bc_crss" and
 ! integral mass flux "bc_flux" incoming into model domain (hence
 ! POSITIVE "bc_flux" means GAIN in mass) in order to enforce global
@@ -11,10 +11,10 @@
 ! boundaries within subdomains [tiles], then making global summation
 ! over the subdomains. At the end, global integrated flux is divided
 ! by the global cross-section to compute the correction velocity
-! "ubar_xs" needed to cancel exactly global mass gain.  
-!
+! "ubar_xs" needed to cancel exactly global mass gain.
+
       implicit none
-      integer istr,iend,jstr,jend,  i,j, inc,jnc, nsubs 
+      integer istr,iend,jstr,jend,  i,j, inc,jnc, nsubs
       real*QUAD dFlx(PRIVATE_2D_SCRATCH_ARRAY), my_crss, my_flux
 # include "param.h"
 # include "grid.h"
@@ -26,9 +26,9 @@
       real*QUAD buff(2)
 # endif
                           ! Reset partial sums over the segments
-      my_crss=QuadZero    ! of open boundaries, then compute partial 
+      my_crss=QuadZero    ! of open boundaries, then compute partial
       my_flux=QuadZero    ! cross-sections and mass fluxes over the
-                          ! subdomains 
+                          ! subdomains
 # ifdef OBC_WEST
       if (WESTERN_EDGE) then
         do j=jstr,jend
@@ -42,7 +42,7 @@ c**       my_crss=my_crss + dFlx(istr  ,j)
 c**       my_flux=my_flux + dFlx(istr-1,j)
         enddo
         jnc=1
-        do while(jstr.le.jend-jnc)
+        do while(jstr<=jend-jnc)
           do j=jstr,jend-jnc,2*jnc
             dFlx(istr  ,j) = dFlx(istr  ,j) + dFlx(istr  ,j+jnc)
             dFlx(istr-1,j) = dFlx(istr-1,j) + dFlx(istr-1,j+jnc)
@@ -66,7 +66,7 @@ c**       my_crss=my_crss + dFlx(iend  ,j)
 c**       my_flux=my_flux - dFlx(iend+1,j)
         enddo
         jnc=1
-        do while(jstr.le.jend-jnc)
+        do while(jstr<=jend-jnc)
           do j=jstr,jend-jnc,2*jnc
             dFlx(iend  ,j) = dFlx(iend  ,j) + dFlx(iend  ,j+jnc)
             dFlx(iend+1,j) = dFlx(iend+1,j) + dFlx(iend+1,j+jnc)
@@ -90,7 +90,7 @@ c**       my_crss=my_crss + dFlx(i,jstr  )
 c**       my_flux=my_flux + dFlx(i,jstr-1)
         enddo
         inc=1
-        do while(istr.le.iend-inc)
+        do while(istr<=iend-inc)
           do i=istr,iend-inc,2*inc
             dFlx(i,jstr  ) = dFlx(i,jstr  ) + dFlx(i+inc,jstr  )
             dFlx(i,jstr-1) = dFlx(i,jstr-1) + dFlx(i+inc,jstr-1)
@@ -115,7 +115,7 @@ c**       my_crss=my_crss + dFlx(i,jend  )
 c**       my_flux=my_flux - dFlx(i,jend+1)
         enddo
         inc=1
-        do while(istr.le.iend-inc)
+        do while(istr<=iend-inc)
           do i=istr,iend-inc,2*inc
              dFlx(i,jend  ) = dFlx(i,jend  ) + dFlx(i+inc,jend  )
              dFlx(i,jend+1) = dFlx(i,jend+1) + dFlx(i+inc,jend+1)
@@ -129,37 +129,37 @@ c**       my_flux=my_flux - dFlx(i,jend+1)
 
       if (SINGLE_TILE_MODE) then    ! Global summation is performed
         nsubs=1                     ! in two stages, first within
-      else                          ! each shared memory (MPI-nodes), 
+      else                          ! each shared memory (MPI-nodes),
         nsubs=NSUB_X*NSUB_E         ! then across  MPI nodes (Reduce
       endif                         ! -- Broadcast sequence).
 
 C$OMP CRITICAL (obc_flx_cr_rgn)
-        if (bc_count.eq.0) then     ! Counter tile_count identifies
+        if (bc_count==0) then     ! Counter tile_count identifies
           bc_flux=QuadZero          ! the last thread (within each
           bc_crss=QuadZero          ! MPI-process) leaving critical
         endif                       ! region. This thread (which is
         bc_count=bc_count+1         ! not necessarily master thread
         bc_crss=bc_crss+my_crss     ! within its MPI-process) is
         bc_flux=bc_flux+my_flux     ! responsible for communication
-        if (bc_count.eq.nsubs) then ! exchange between MPI-nodes.
+        if (bc_count==nsubs) then ! exchange between MPI-nodes.
           bc_count=0
 # ifdef MPI
           size=NNODES               ! Reduce-broadcast sequence...
   1        step=(size+1)/2
-            if (mynode.ge.step .and. mynode.lt.size) then
+            if (mynode>=step .and. mynode<size) then
               buff(1)=bc_crss
               buff(2)=bc_flux
               call MPI_Send (buff,  4, MPI_DOUBLE_PRECISION,
      &             mynode-step, 17, ocean_grid_comm,      ierr)
-            elseif (mynode .lt. size-step) then
+            elseif (mynode < size-step) then
               call MPI_Recv (buff,  4, MPI_DOUBLE_PRECISION,
      &             mynode+step, 17, ocean_grid_comm, status, ierr)
-     
+
               bc_crss=bc_crss+buff(1)
               bc_flux=bc_flux+buff(2)
             endif
            size=step
-          if (size.gt.1) goto 1
+          if (size>1) goto 1
 
           buff(1)=bc_crss
           buff(2)=bc_flux
@@ -171,31 +171,27 @@ C$OMP CRITICAL (obc_flx_cr_rgn)
           ubar_xs=bc_flux/bc_crss
         endif
 C$OMP END CRITICAL (obc_flx_cr_rgn)
-      return
       end
 #endif
 #if defined OBC_FLUX_CORR || defined OBC_VOLCONS
 
       subroutine set_DUV_bc_tile (istr,iend,jstr,jend, Drhs, DUon,
      &                                                       DVom)
-!
-! Correct vertically integrated mass fluxes DUon and DVom along
-! the open boundaries in such a way that the integral volume is
-! conserved. This is done by applying ubar_xs correction to the
-! velocities.
-!  
+
+! Correct vertically integrated mass fluxes DUon and DVom along the
+! open boundaries in such a way that the integral volume is conserved.
+! This is done by applying ubar_xs correction to the velocities.
+
       implicit none
 # include "param.h"
       integer istr,iend,jstr,jend, i,j
-      real Drhs(PRIVATE_2D_SCRATCH_ARRAY),
-     &     DUon(PRIVATE_2D_SCRATCH_ARRAY),
-     &     DVom(PRIVATE_2D_SCRATCH_ARRAY)
+      real, dimension(PRIVATE_2D_SCRATCH_ARRAY) :: Drhs,DUon,DVom
 # include "grid.h"
 # include "ocean2d.h"
 # include "scalars.h"
-!
+
 # include "compute_auxiliary_bounds.h"
-!
+
 # ifdef OBC_WEST
       if (WESTERN_EDGE) then
         do j=jstr-1,jendR
@@ -240,11 +236,8 @@ C$OMP END CRITICAL (obc_flx_cr_rgn)
         enddo
       endif
 # endif
-      return
       end
 #else
       subroutine obc_volcons_empty
       end
 #endif
-
-

@@ -1,7 +1,7 @@
 #include "cppdefs.h"
 #ifdef SOLVE3D
- 
-      subroutine Wvlcty (tile, Wvlc)
+
+      subroutine wvlcty (tile, Wvlc)
       implicit none
 # include "param.h"
       integer tile
@@ -9,43 +9,40 @@
 CSDISTRIBUTE_RESHAPE z_w(BLOCK_PATTERN,*) BLOCK_CLAUSE
 # include "private_scratch.h"
 # include "compute_tile_bounds.h"
-      call Wvlcty_tile (istr,iend,jstr,jend, Wvlc, A2d(1,1),
-     &                                   A2d(1,1), A2d(1,2))
-      return
+      call wvlcty_tile (istr,iend,jstr,jend, Wvlc, A2d(1,1), A2d(1,1),
+     &                                                       A2d(1,2))
       end
- 
-      subroutine Wvlcty_tile (istr,iend,jstr,jend, Wvlc,
-     &                                   Wrk, Wxi, Weta)
-!
+
+      subroutine wvlcty_tile (istr,iend,jstr,jend, Wvlc, Wrk,Wxi,Weta)
+
 ! Compute absolute vertical velocity, which consists of three
 ! components: S-coordinate vertical velocity  w*pm*pn; projection
-! of (quasi-)horizontal motions along S=const surfaces; and
-! vertical velocity of moving grid-box interfaces due to the motion
-! of free surface. This computation is done solely for diagnostic/
-! output purposes and does not have any feedback onto the model.
+! of (quasi-)horizontal motions along S=const surfaces; and vertical
+! velocity of moving grid-box interfaces due to the motion of free
+! surface. This computation is done solely for diagnostic/output
+! purposes and does not have any feedback onto the model.
 ! Unlike W, absolute vertical velocity is defined at RHO-points.
-!
+
       implicit none
 # include "param.h"
       integer istr,iend,jstr,jend, imin,imax,jmin,jmax, i,j,k
       real Wvlc(GLOBAL_2D_ARRAY,N)
 CSDISTRIBUTE_RESHAPE z_w(BLOCK_PATTERN,*) BLOCK_CLAUSE
-      real Wrk(PRIVATE_1D_SCRATCH_ARRAY,0:N),
-     &     Wxi(PRIVATE_2D_SCRATCH_ARRAY),
-     &    Weta(PRIVATE_2D_SCRATCH_ARRAY)
- 
+      real, dimension(PRIVATE_1D_SCRATCH_ARRAY,0:N) :: Wrk
+      real, dimension(PRIVATE_2D_SCRATCH_ARRAY) :: Wxi, Weta
+
 # include "grid.h"
 # include "ocean3d.h"
 # include "scalars.h"
-!
+
 # include "compute_extended_bounds.h"
-!
+
 # ifdef EW_PERIODIC
       imin=max(istrR, istr-1)        ! The logic here is somewhat
       imax=min(iendR, iend+1)        ! opposite to the standard
 #else
-      imin=istr                      ! "auxiliary" bounds: extend 
-      imax=iend                      ! the range of computation of  
+      imin=istr                      ! "auxiliary" bounds: extend
+      imax=iend                      ! the range of computation of
 # endif
 # ifdef NS_PERIODIC
       jmin=max(jstrR, jstr-1)        ! "Wvlc", by one row of points
@@ -54,7 +51,7 @@ CSDISTRIBUTE_RESHAPE z_w(BLOCK_PATTERN,*) BLOCK_CLAUSE
       jmin=jstr                      ! case of periodic direction.
       jmax=jend
 # endif
-!
+
 ! Compute "omega" vertical velocity by means of integration of mass
 ! divergence of mass fluxes from bottom up. In this computation,
 ! unlike that in omega.F, there is (1) immediate multiplication by
@@ -63,10 +60,10 @@ CSDISTRIBUTE_RESHAPE z_w(BLOCK_PATTERN,*) BLOCK_CLAUSE
 ! and (2, also unlike omega.F) no subtraction of vertical velocity
 ! of moving grid-box interface (the effect of "breething" of vertical
 ! grid system due to evolving free surface) is made now.
-! Consequently, Wrk(:,N).ne.0, unlike its counterpart W(:,:,N).eqv.0
+! Consequently, Wrk(:,N)/=0, unlike its counterpart W(:,:,N).eqv.0
 ! in omega.F. Once omega vertical velocity is computed, interpolate
 ! it to vertical RHO-points.
-!
+
       do j=jmin,jmax
         do i=imin,imax
           Wrk(i,0)=0.
@@ -91,14 +88,14 @@ c**    Wrk(i,k)=0.!(uncomment to test the second part)
         enddo
         do i=imin,imax
           Wvlc(i,j,  1)= -0.125*Wrk(i,2) +0.75*Wrk(i,1)
-     &                                 +0.375*Wrk(i,0)
+     &                                  +0.375*Wrk(i,0)
         enddo
       enddo
-!
-! Compute and add contributions due to (quasi-)horizontal motions
-! along S=const surfaces by multiplying horizontal velocity
-! components by slops S-coordinate surfaces:
-!
+
+! Compute and add contributions due to quasi-horizontal motions along
+! S=const surfaces by multiplying horizontal velocity components by
+! slops S-coordinate surfaces:
+
       do k=1,N
         do j=jmin,jmax
           do i=imin,imax+1
@@ -119,9 +116,9 @@ c**    Wrk(i,k)=0.!(uncomment to test the second part)
           enddo
         enddo
       enddo
-!
+
 !  Set lateral boundary conditions: gradient only.
-!
+
 # ifndef EW_PERIODIC
       if (WESTERN_EDGE) then
         do k=1,N
@@ -176,10 +173,8 @@ c**    Wrk(i,k)=0.!(uncomment to test the second part)
       endif
 #  endif
 # endif
-      return
       end
 #else
-      subroutine Wvlcty_empty
+      subroutine wvlcty_empty
       end
 #endif /* SOLVE3D */
- 

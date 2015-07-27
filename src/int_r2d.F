@@ -20,13 +20,13 @@
       i=imin_child-1
 
       do j=jmin,jmax
-        if (rmask(i,j).gt.0.) then
+        if (rmask(i,j)>0.) then
           qC=q(i,j)
         else
           cff=rmask(i+1,j)+rmask(i+1,j)+rmask(i,j+1)+rmask(i,j-1)
      &                     +0.7071*( rmask(i+1,j+1)+rmask(i-1,j+1)
      &                             +rmask(i+1,j-1)+rmask(i-1,j-1))
-          if (cff.gt.0.) then
+          if (cff>0.) then
             qC=(  rmask(i+1,j)*q(i+1,j) +rmask(i+1,j)*q(i+1,j)
      &           +rmask(i,j+1)*q(i,j+1) +rmask(i,j-1)*q(i,j-1)
      &     +0.7071*(
@@ -92,13 +92,13 @@
       i=imax_child
 
       do j=jmin,jmax
-        if (rmask(i,j).gt.0.) then
+        if (rmask(i,j)>0.) then
           qC=q(i,j)
         else
           cff=rmask(i+1,j)+rmask(i+1,j)+rmask(i,j+1)+rmask(i,j-1)
      &                     +0.7071*( rmask(i+1,j+1)+rmask(i-1,j+1)
      &                             +rmask(i+1,j-1)+rmask(i-1,j-1))
-          if (cff.gt.0.) then
+          if (cff>0.) then
             qC=(  rmask(i+1,j)*q(i+1,j) +rmask(i+1,j)*q(i+1,j)
      &           +rmask(i,j+1)*q(i,j+1) +rmask(i,j-1)*q(i,j-1)
      &     +0.7071*(
@@ -164,13 +164,13 @@
       j=jmin_child-1
 
       do i=imin,imax
-        if (rmask(i,j).gt.0.) then
+        if (rmask(i,j)>0.) then
           qC=q(i,j)
         else
           cff=rmask(i+1,j)+rmask(i+1,j)+rmask(i,j+1)+rmask(i,j-1)
      &                     +0.7071*( rmask(i+1,j+1)+rmask(i-1,j+1)
      &                             +rmask(i+1,j-1)+rmask(i-1,j-1))
-          if (cff.gt.0.) then
+          if (cff>0.) then
             qC=(  rmask(i+1,j)*q(i+1,j) +rmask(i+1,j)*q(i+1,j)
      &           +rmask(i,j+1)*q(i,j+1) +rmask(i,j-1)*q(i,j-1)
      &     +0.7071*(
@@ -236,13 +236,13 @@
       j=jmax_child
 
       do i=imin,imax
-        if (rmask(i,j).gt.0.) then
+        if (rmask(i,j)>0.) then
           qC=q(i,j)
         else
           cff=rmask(i+1,j)+rmask(i+1,j)+rmask(i,j+1)+rmask(i,j-1)
      &                     +0.7071*( rmask(i+1,j+1)+rmask(i-1,j+1)
      &                             +rmask(i+1,j-1)+rmask(i-1,j-1))
-          if (cff.gt.0.) then
+          if (cff>0.) then
             qC=(  rmask(i+1,j)*q(i+1,j) +rmask(i+1,j)*q(i+1,j)
      &           +rmask(i,j+1)*q(i,j+1) +rmask(i,j-1)*q(i,j-1)
      &     +0.7071*(

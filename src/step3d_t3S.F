@@ -1,7 +1,8 @@
 #include "cppdefs.h"
 #ifdef SOLVE3D
  
-c--#define CONST_TRACERS
+# define UPSTREAM_TS
+c--# define AKIMA
  
       subroutine step3d_t (tile)
       implicit none
@@ -9,26 +10,23 @@ c--#define CONST_TRACERS
 # include "param.h"
 # include "private_scratch.h"
 # include "compute_tile_bounds.h"
-      call step3d_t_tile (istr,iend,jstr,jend, A2d(1,1), A2d(1,2),
-     &                                         A2d(1,3), A2d(1,4),
+      call step3d_t_tile( istr,iend,jstr,jend,
+     &                    A2d(1,1), A2d(1,2), A2d(1,3), A2d(1,4),
      &                               A2d(1,1), A2d(1,2), A2d(1,3))
-      return
       end
  
-      subroutine step3d_t_tile (istr,iend,jstr,jend,
-     &                   FX,FE,WORK,dTdz,  FC,CF,DC)
+      subroutine step3d_t_tile( istr,iend,jstr,jend, WC,FC,CF,DC,
+     &                                                FX,FE,wrk1)
       implicit none
 # include "param.h"
-      integer istr,iend,jstr,jend, itrc,
-     &        imin,imax,jmin,jmax, i,j,k, indx
-      real FX(PRIVATE_2D_SCRATCH_ARRAY),
-     &     FE(PRIVATE_2D_SCRATCH_ARRAY),  cff,
-     &   WORK(PRIVATE_2D_SCRATCH_ARRAY),  epsil,
-     &   dTdz(PRIVATE_2D_SCRATCH_ARRAY,2),
-     &     FC(PRIVATE_1D_SCRATCH_ARRAY,0:N),
-     &     CF(PRIVATE_1D_SCRATCH_ARRAY,0:N),
-     &     DC(PRIVATE_1D_SCRATCH_ARRAY,0:N)
-      parameter (epsil=1.E-16)
+      integer istr,iend,jstr,jend, imin,imax,jmin,jmax, i,j,k
+      real, dimension(PRIVATE_1D_SCRATCH_ARRAY,0:N) :: WC,FC,CF,DC
+      real, dimension(PRIVATE_2D_SCRATCH_ARRAY)     :: FX,FE,wrk1
+
+      real cff
+      real, parameter :: epsil=1.E-33
+      integer itrc, iAkt
+
 # include "grid.h"
 # include "ocean3d.h"
 # include "forces.h"
@@ -39,7 +37,6 @@ c--#define CONST_TRACERS
 #ifdef PHYS_FLUX_ANALYSIS
 # include "physflux.h"
 #endif
-! DL:
 #if defined PASSIVE_TRACER && defined AGE_DYE_TRACER
 # include "ncvars.h"
 #endif
@@ -47,27 +44,31 @@ c--#define CONST_TRACERS
 ! temporary variable for calculation of vertical diffusive flux
       real ThisVDF(PRIVATE_2D_SCRATCH_ARRAY,0:N)
 # endif /* PHYS_FLUX_ANALYSIS */
-! DL:
 #if defined PASSIVE_TRACER && defined AGE_DYE_TRACER
       integer is
       logical source_active
 #endif
-!
-# include "compute_auxiliary_bounds.h"
-!
 
+# include "compute_auxiliary_bounds.h"
+
+! Compute and add in contribution due to horizontal advection fluxes.
+! Note that at this moment the content of array t(:,:,:,nnew,itrc) is
+! concentration of tracer "itrc" taken at time corresponding to "nstp"
+! and already MULTIPLIED by Hz(:,:,:) at "nstp" in "pre_step3d_tile".
+
+      do k=1,N
       do itrc=1,NT
-        do k=1,N
  
 # include "compute_horiz_tracer_fluxes.h"
+ 
           do j=jstr,jend
             do i=istr,iend
-              t(i,j,k,nnew,itrc)=Hz_bak(i,j,k)*t(i,j,k,nstp,itrc)
-     &                     -dt*pm(i,j)*pn(i,j)*( FX(i+1,j)-FX(i,j)
+              t(i,j,k,nnew,itrc)=t(i,j,k,nnew,itrc) -dt*pm(i,j)
+     &                              *pn(i,j)*( FX(i+1,j)-FX(i,j)
      &                                          +FE(i,j+1)-FE(i,j)
      &                                                           )
             enddo
-          enddo
+          enddo                 !-->  discard FX,FE
 # ifdef PHYS_FLUX_ANALYSIS
           if (itrc .le. NT_PFA) then
 ! separate do loops (for better efficiency) to store the fluxes
@@ -93,18 +94,18 @@ c--#define CONST_TRACERS
 # endif /* PHYS_FLUX_ANALYSIS */
         enddo
       enddo
-
-      do j=jstr,jend
-        do itrc=1,NT
+ 
+      do j=jstr,jend                  ! Compute and add explicit part
+        do itrc=1,NT                  ! of vertical advective fluxes.
  
 # include "compute_vert_tracer_fluxes.h"
  
-          do k=1,N            ! Apply vertical advective fluxes.
+          do k=1,N
             do i=istr,iend
-              t(i,j,k,nnew,itrc)=t(i,j,k,nnew,itrc)-dt*pm(i,j)
-     &                             *pn(i,j)*(FC(i,k)-FC(i,k-1))
+              t(i,j,k,nnew,itrc)=t(i,j,k,nnew,itrc) -dt*pm(i,j)*pn(i,j)
+     &                                             *(FC(i,k)-FC(i,k-1))
             enddo
-          enddo
+          enddo               !--> discard FC
 
 # ifdef PHYS_FLUX_ANALYSIS
           if (itrc .le. NT_PFA) then
@@ -121,9 +122,9 @@ c--#define CONST_TRACERS
              enddo
           end if
 # endif /* PHYS_FLUX_ANALYSIS */
-!
-! Add surface and bottom fluxes
-!
+
+! Add surface fluxes
+
 # if defined PASSIVE_TRACER && defined AGE_DYE_TRACER
 !DL: do this except for age tracers. Age tracers are dealt with in pre_step3d
           if (itrc.le.indxT+ntrc_salt .or. itrc.gt.indxT+ntrc_salt+ntrc_pas 
@@ -154,14 +155,14 @@ c--#define CONST_TRACERS
              enddo
           end if
 # endif /* FULL_PHYS_FLUX_ANALYSIS */
+
 # ifdef LMD_KPP
-!
 ! Add the solar radiation flux in temperature equation. Also compute
 ! the nonlocal transport flux for unstable (convective) forcing
 ! conditions into matrix DC when using the Large et al. 1994 KPP
 ! scheme.
-!
-          if (itrc.eq.itemp) then
+
+          if (itrc==itemp) then
             do k=N-1,1,-1
               do i=istr,iend
                 cff=srflx(i,j)*swr_frac(i,j,k)
@@ -173,10 +174,9 @@ c--#define CONST_TRACERS
               enddo
             enddo
 
-c??
 c?? WARNING: the above implies that light (if any) reaching all the
 c?? way to the bottom is entirely absorbed within the botom-most grid
-c?? box, rather that reflected/scatered back to the water column. It 
+c?? box, rather that reflected/scattered back to the water column. It
 c?? is not clear, however, how to deal with this situation correctly
 c??
 c??         do i=istr,iend
@@ -187,9 +187,8 @@ c??#  endif
 c??           t(i,j,1,nnew,itemp)=t(i,j,1,nnew,itemp) -dt*cff
 c??         enddo
 
-
 #  if defined LMD_NONLOCAL && defined SALINITY
-          elseif (itrc.eq.isalt) then
+          elseif (itrc==isalt) then
             do k=N-1,1,-1
               do i=istr,iend
                 cff=-dt*ghat(i,j,k)*stflx(i,j,isalt)
@@ -201,8 +200,7 @@ c??         enddo
           endif
 # endif
 
-!
-! Perform implicit time step for vertical diffusion,
+! Perform an implicit time step for vertical diffusion
 !
 !   dq(k)     1     [         q(k+1)-q(k)             q(k)-q(k-1) ]
 !  ------ = ----- * [ Akt(k)* ----------- - Akt(k-1)* ----------- ]
@@ -219,13 +217,12 @@ c??         enddo
 !                  dz(k)
 !
 ! defined at W-points; q_new(k) is the new-time-step (unknown) tracer
-! field; q_old(k) is old-time-step tracer (known).  As long as
-! vertical diffusivity Akt(k) is nonnegative, the tri-diagonal matrix
-! is diagonally dominant which guarantees stability of a Gaussian
-! elimination procedure, (e.g., Richtmeyer annd  Morton, 1967).
-! Top and bottom boundary conditions are assumed to be no-flux,
-! effectively Akt(N)=Akt(0)=0, hence FC(N)=FC(1)=0. This leads to
-! equations for top and bottom grid boxes; 
+! field; q_old(k) is old-time-step tracer (known).   As long as Akt(k)
+! is nonnegative, the tri-diagonal matrix is diagonally dominant which
+! guarantees stability of the Gaussian elimination algorithm.  Top and
+! bottom boundary conditions are assumed to be no-flux, effectively
+! Akt(N)=Akt(0)=0, hence FC(N)=FC(1)=0. This leads to equations for
+! top and bottom grid boxes;
 !
 !   -FC(N-1)*q_new(N-1) +[Hz(N)+FC(N-1)]*q_new(N) = Hz(N)*q_old(N)
 !
@@ -250,38 +247,53 @@ c??         enddo
          end do
 # endif /* PHYS_FLUX_ANALYSIS & VERT_DIFF_ANALYSIS */
 
-# ifdef AN_UNDEFINED_CASE
-          indx=itrc
-# else
+# ifdef BIOLOGY
 #  ifdef SALINITY
-          indx=min(itrc,isalt)
+          iAkt=min(itrc,isalt)
 #  else
-          indx=min(itrc,itemp)
+          iAkt=min(itrc,itemp)
 #  endif
+# else
+          iAkt=itrc
 # endif
           do i=istr,iend
-            FC(i,1)=dt*Akt(i,j,1,indx)/(z_r(i,j,2)-z_r(i,j,1))
-            cff=1./(Hz(i,j,1)+FC(i,1))
-            CF(i,1)=cff*FC(i,1)
+            DC(i,0)=dt*pm(i,j)*pn(i,j) !<--horizontal metric
+
+            FC(i,1)=2.*dt*Akt(i,j,1,iAkt)/(Hz(i,j,1)+Hz(i,j,2))
+            WC(i,1)=DC(i,0)*Wi(i,j,1)
+
+            cff=1./(Hz(i,j,1) +FC(i,1)+max(WC(i,1),0.))
+            CF(i,1)=cff*(      FC(i,1)-min(WC(i,1),0.))
             DC(i,1)=cff*t(i,j,1,nnew,itrc)
           enddo
           do k=2,N-1,+1
             do i=istr,iend
-              FC(i,k)=dt*Akt(i,j,k,indx)/(z_r(i,j,k+1)-z_r(i,j,k))
-              cff=1./( Hz(i,j,k) +FC(i,k)+FC(i,k-1)*(1.-CF(i,k-1)) )
-              CF(i,k)=cff*FC(i,k)
-              DC(i,k)=cff*(t(i,j,k,nnew,itrc)+FC(i,k-1)*DC(i,k-1))
+              FC(i,k)=2.*dt*Akt(i,j,k,iAkt)/(Hz(i,j,k)+Hz(i,j,k+1))
+              WC(i,k)=Wi(i,j,k)*DC(i,0)
+
+              cff=1./( Hz(i,j,k) +FC(i,k)+max(WC(i,k),0.)
+     &                         +FC(i,k-1)-min(WC(i,k-1),0.)
+     &              -CF(i,k-1)*(FC(i,k-1)+max(WC(i,k-1),0.))
+     &                                                     )
+
+              CF(i,k)=cff*(       FC(i,k)-min(WC(i,k),0.) )
+
+              DC(i,k)=cff*( t(i,j,k,nnew,itrc) +DC(i,k-1)*(
+     &                          FC(i,k-1)+max(WC(i,k-1),0.) ))
             enddo
-          enddo
+          enddo          !--> discard DC(:,0)
           do i=istr,iend
-             t(i,j,N,nnew,itrc)=( t(i,j,N,nnew,itrc) +FC(i,N-1)
-     &         *DC(i,N-1) )/(Hz(i,j,N)+FC(i,N-1)*(1.-CF(i,N-1)))
+            t(i,j,N,nnew,itrc)=( t(i,j,N,nnew,itrc) +DC(i,N-1)*(
+     &                               FC(i,N-1)+max(WC(i,N-1),0.) )
+     &                   )/( Hz(i,j,N) +FC(i,N-1)-min(WC(i,N-1),0.)
+     &                      -CF(i,N-1)*(FC(i,N-1)+max(WC(i,N-1),0.))
+     &                                                             )
           enddo
           do k=N-1,1,-1
             do i=istr,iend
               t(i,j,k,nnew,itrc)=DC(i,k)+CF(i,k)*t(i,j,k+1,nnew,itrc)
             enddo
-          enddo           !--> discard FC,CF,DC
+          enddo           !--> discard FC,WC,CF,DC
 
 # if defined PHYS_FLUX_ANALYSIS && defined VERT_DIFF_ANALYSIS
           do k=1,N
@@ -421,13 +433,12 @@ c??         enddo
 # endif /* PASSIVE_TRACER && AGE_DYE_TRACER */
 
 
-!
+
 ! Set lateral boundary conditions; nudge toward tracer climatology;
 ! apply land-sea mask and exchange periodic boundary conditions.
-!
-      do itrc=1,NT
-        call t3dbc_tile (istr,iend,jstr,jend, itrc, WORK)
 
+      do itrc=1,NT
+        call t3dbc_tile (istr,iend,jstr,jend, itrc, wrk1)
 # if defined MASKING || defined TCLIMATOLOGY
 #  ifdef EW_PERIODIC
 #   define I_RANGE istr,iend
@@ -441,6 +452,14 @@ c??         enddo
 #  endif
 # endif
 
+# if defined MOORE_BEC
+      enddo                                    ! Multi-Group species
+                                               ! biological Model (MGM)
+      call ecosys_tile (istr,iend,jstr,jend)
+      call mgm_avg_tile (istr,iend,jstr,jend)
+      call ecosys_vst_tile (istr,iend,jstr,jend, nnew,dt)
+
+      do itrc=1,NT
 # if defined BIOLOGY_BEC
       enddo                                    ! Biogeochemical
                                                ! Elemental Cycles
@@ -455,28 +474,28 @@ c??         enddo
       do itrc=1,NT
 # elif defined BIOLOGY || defined BIOLOGY_NPZDOC
       enddo                                    ! Insert interactive
-      call biology_tile (istr,iend,jstr,jend)  ! part of the
-      do itrc=1,NT                             ! biological model
+      call biology_tile (istr,iend,jstr,jend)  ! part of the biological
+      do itrc=1,NT                             ! model
 # endif
 
 # if defined MASKING || defined TCLIMATOLOGY
         do k=1,N
-          do j=J_RANGE
-            do i=I_RANGE
+          do j=jstrR,jendR
+            do i=istrR,iendR
 #  ifdef TCLIMATOLOGY
-#  ifdef FULL_PHYS_FLUX_ANALYSIS
-              if (itrc .le. NT_PFA) then
-                 NudgingFlux(i,j,k,itrc) = Tnudgcof(i,j,itrc) *
-     &               ( tclm(i,j,k,itrc) - t(i,j,k,nnew,itrc) )
-#   ifdef MASKING
-     &               * rmask(i,j)
-#   endif
-              end if
-#  endif /* FULL_PHYS_FLUX_ANALYSIS */
               t(i,j,k,nnew,itrc)=t(i,j,k,nnew,itrc)
      &       +dt*Tnudgcof(i,j,itrc)*( tclm(i,j,k,itrc)
      &                             -t(i,j,k,nnew,itrc))
-#  endif /* TCLIMATOLOGY */
+#  ifdef FULL_PHYS_FLUX_ANALYSIS
+          if (itrc .le. NT_PFA) then
+               NudgingFlux(i,j,k,itrc) = Tnudgcof(i,j,itrc) *
+     &              ( tclm(i,j,k,itrc) - t(i,j,k,nnew,itrc) )
+#   ifdef MASKING
+     &              * rmask(i,j)
+#   endif
+            end if
+#  endif /* FULL_PHYS_FLUX_ANALYSIS */
+#  endif
 #  ifdef MASKING
               t(i,j,k,nnew,itrc)=t(i,j,k,nnew,itrc)*rmask(i,j)
 #  endif
@@ -486,92 +505,48 @@ c??         enddo
 #  undef I_RANGE
 #  undef J_RANGE
 # endif
-
       enddo  ! <-- itrc
-!
-! Exchange computational margines and/or periodic boundaries:
+
+! Exchange computational margins and/or periodic boundaries:
 !--------- ------------- -------- ------ -------- ----------- 
 ! This is done only here if the code is configured without explicit
 ! lateral diffusion. If there is one, then the exchange routine is
 ! called from the diffusive routine which immediately follows this
 ! step, therefore there is no need to call it here.
-!
+
 # if !defined TS_DIF2 && !defined TS_DIF4
-#  if defined EW_PERIODIC || defined NS_PERIODIC || defined MPI
+#  ifdef EXCHANGE
       do itrc=1,NT
-        call exchange_r3d_tile (istr,iend,jstr,jend,
-     &                          t(START_2D_ARRAY,1,nnew,itrc))
+        call exchange_tile(istr,iend,jstr,jend,
+     &        t(START_2D_ARRAY,1,nnew,itrc), N)
       enddo
 #  endif
 # endif
-      return
       end
 
+      subroutine check_step_t_switches(ierr)
 
-      subroutine check_trc_adv_switches (ierr)
-!
-! This routine keeps track of the status of CPP-switch settings in
+! The following routine keeps track of the status of CPP settings in
 ! "compute_horiz_tracer_fluxes.h" and "compute_horiz_vert_fluxes.h".
-! This code must be placed here rather than in a separate file in
-! order to be exposed to the relevant CPP-settings.   It does not
-! affect any model results, other than signature in global attribute
-! "CPPS" in output netCDF files.
-!
+! This code must be placed here rather than in a separate file so it
+! is exposed to the relevant CPP-settings.   It does not affect any
+! model results, other than signature in global attribute "CPPS" in
+! the output netCDF files.
+
       implicit none
       integer ierr, is,ie, lenstr
 # include "param.h"
 # include "strings.h"
       ie=lenstr(cpps)
       is=ie+2
-      ie=is+30
-      if (ie.gt.max_opt_size) goto 99
-      cpps(is:ie)='<compute_horiz_tracer_fluxes.h>'
-      MPI_master_only write(stdout,'(1x,A)') cpps(is:ie)
-      is=ie+2
+      ie=is+13
+      if (ie>max_opt_size) goto 99
+      cpps(is:ie)='<step3d_t3S.F>'
 
-# ifdef UPSTREAM
-      ie=is+7
-      if (ie.gt.max_opt_size) goto 99
-      cpps(is:ie)='UPSTREAM'
-      MPI_master_only write(stdout,'(10x,A)') cpps(is:ie)
-      is=ie+2
-# endif
-# ifdef AKIMA
-      ie=is+4
-      if (ie.gt.max_opt_size) goto 99
-      cpps(is:ie)='AKIMA'
-      MPI_master_only write(stdout,'(10x,A)') cpps(is:ie)
-      is=ie+2
-# endif
-# ifdef CONST_TRACERS
-      ie=is+7
-      if (ie.gt.max_opt_size) goto 99
-      cpps(is:ie)='CONST_TRACERS'
-      MPI_master_only write(stdout,'(10x,A)') cpps(is:ie)
-      is=ie+2
-# endif
+# include "track_advec_switches.h"
 
-      ie=is+29
-      if (ie.gt.max_opt_size) goto 99
-      cpps(is:ie)='<compute_vert_tracer_fluxes.h>'
-      MPI_master_only write(stdout,'(1x,A)') cpps(is:ie)
-      is=ie+2
-# ifdef SPLINES
-      ie=is+6
-      if (ie.gt.max_opt_size) goto 99
-      cpps(is:ie)='SPLINES'
-      MPI_master_only write(stdout,'(10x,A)') cpps(is:ie)
-      is=ie+2
-# endif
-# ifdef AKIMA_V
-      ie=is+6
-      if (ie.gt.max_opt_size) goto 99
-      cpps(is:ie)='AKIMA_V'
-      MPI_master_only write(stdout,'(10x,A)') cpps(is:ie)
-      is=ie+2
-# endif
       return
-  99  MPI_master_only write(stdout,'(/1x,2A/12x,A/)') '### ERROR: ',
+  99  mpi_master_only write(*,'(/1x,2A/12x,A/)')      '### ERROR: ',
      &  'Insufficient length of string "cpps" in file "strings.h".',
      &        'Increase parameter "max_opt_size" it and recompile.'
       ierr=ierr+1
@@ -581,4 +556,3 @@ c??         enddo
       subroutine step3d_t_empty
       end
 #endif  /* SOLVE3D */
- 

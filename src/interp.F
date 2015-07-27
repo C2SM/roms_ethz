@@ -23,7 +23,7 @@
       else                      ! the fine and coarse grids within
         jmax=jend+2             ! each fine-grid triad. Note that the
       endif                     ! interpolation routines return mass
-                                ! fluxes, which are then need to be 
+                                ! fluxes, which are then need to be
       if (WESTERN_EDGE) then    ! divided by the crossections.
         do j=jmin,jmax
           buff(istr-1,j)=0.5*( zeta_new(istr-1,j)+h(istr-1,j)
@@ -79,9 +79,9 @@
 
 
 
- 
+
       return
-      end 
+      end
 # endif
 # if GRID_LEVEL < MAX_GRID_LEVEL
 
@@ -89,7 +89,7 @@
       implicit none
       integer istr,iend,jstr,jend, jmin,jmax, j,jf
       real buff(PRIVATE_2D_SCRATCH_ARRAY)
-      real T1,T4,T5, crs,crsR,crsL, uctr,dltR,dltL, cff,cffR,cffL 
+      real T1,T4,T5, crs,crsR,crsL, uctr,dltR,dltL, cff,cffR,cffL
       parameter (T1=1./27., T4=4./27., T5=5./27.)
 #  include "param.h"
 #  include "scalars.h"
@@ -98,12 +98,12 @@
 
       jmin=jmin_child+(jstr-1)/3
       jmax=jmin_child+(jend-1)/3
- 
+
       do j=jmin,jmax                  ! At entry "buff" is preloaded
-        jf=2+3*(j-jmin_child)         ! with masked crossections from 
+        jf=2+3*(j-jmin_child)         ! with masked crossections from
         crs=buff(istr,jf  )           ! the fine grid.  Save them to
-        crsR=buff(istr,jf+1)          ! restore integral flux in each 
-        crsL=buff(istr,jf-1)          ! triade. 
+        crsR=buff(istr,jf+1)          ! restore integral flux in each
+        crsL=buff(istr,jf-1)          ! triade.
 
         uctr=ubar(imin_child,j,knew)
         dltR=ubar(imin_child,j+1,knew)-uctr
@@ -111,12 +111,12 @@
 
         cffL=4.*dltL
         cffR=4.*dltR
-        if (dltL*dltR .lt.0.) then
+        if (dltL*dltR <0.) then
           dltL=0.
           dltR=0.
-        elseif (abs(dltL) .gt. abs(cffR)) then
+        elseif (abs(dltL) > abs(cffR)) then
           dltL=cffR
-        elseif (abs(dltR) .gt. abs(cffL)) then
+        elseif (abs(dltR) > abs(cffL)) then
           dltR=cffL
         endif
 
@@ -125,8 +125,8 @@
         buff(istr,jf-1)=crsL*( uctr -T4*dltR -T5*dltL )
 
         cff=crs+crsR+crsL
-        if (cff.gt.0.) cff=( DU_avg2(imin_child,j) -buff(istr,jf)
-     &                     -buff(istr,jf+1)-buff(istr,jf-1) )/cff 
+        if (cff>0.) cff=( DU_avg2(imin_child,j) -buff(istr,jf)
+     &                     -buff(istr,jf+1)-buff(istr,jf-1) )/cff
 
         buff(istr,jf  )=buff(istr,jf  ) +cff*crs
         buff(istr,jf+1)=buff(istr,jf+1) +cff*crsR
@@ -161,12 +161,12 @@
 
         cffL=4.*dltL
         cffR=4.*dltR
-        if (dltL*dltR .lt.0.) then
+        if (dltL*dltR <0.) then
           dltL=0.
           dltR=0.
-        elseif (abs(dltL) .gt. abs(cffR)) then
+        elseif (abs(dltL) > abs(cffR)) then
           dltL=cffR
-        elseif (abs(dltR) .gt. abs(cffL)) then
+        elseif (abs(dltR) > abs(cffL)) then
           dltR=cffL
         endif
 
@@ -175,8 +175,8 @@
         buff(iend+1,jf-1)=crsL*( uctr-T4*dltR -T5*dltL )
 
         cff=crs+crsR+crsL
-        if (cff.gt.0.) cff=( DU_avg2(imin_child,j) -buff(iend+1,jf)
-     &                   -buff(iend+1,jf+1)-buff(iend+1,jf-1) )/cff  
+        if (cff>0.) cff=( DU_avg2(imin_child,j) -buff(iend+1,jf)
+     &                   -buff(iend+1,jf+1)-buff(iend+1,jf-1) )/cff
 
         buff(iend+1,jf  )=buff(iend+1,jf  ) +cff*crs
         buff(iend+1,jf+1)=buff(iend+1,jf+1) +cff*crsR
@@ -189,4 +189,4 @@
       subroutine int_2d_empty
       end
 #endif
- 
+

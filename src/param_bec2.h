@@ -72,7 +72,7 @@
   !-----------------------------------------------------------------------------
   !   Redfield Ratios, dissolved & particulate
   !-----------------------------------------------------------------------------
-	
+
        real parm_Red_D_C_P, parm_Red_D_N_P, parm_Red_D_O2_P, parm_Remin_D_O2_P,
      &   parm_Red_P_C_P, parm_Red_D_C_N, parm_Red_P_C_N, parm_Red_D_C_O2,
      &   parm_Remin_D_C_O2, parm_Red_P_C_O2, parm_Red_Fe_C, parm_Red_D_C_O2_diaz
@@ -141,7 +141,7 @@
   !     Compute iron remineralization and flux out. In CESM units
   !     dust remin gDust = 0.035 gFe      mol Fe     1e9 nmolFe
   !                        --------- *  ---------- * ----------
-  !			    gDust       55.847 gFe     molFe
+  !                        gDust       55.847 gFe     molFe
   !
   !     dust_to_Fe          conversion - dust to iron (CESM: nmol Fe/g Dust) 
   !---------------------------------------------------------------------
@@ -151,7 +151,7 @@
   !
   !                    0.035 kg Fe         mol Fe         1e3 mmolFe              mmol Fe
   ! dust remin gDust = ---------    *  ---------------- * ----------  =  626.712  -------
-  !		        kg dust        55.847e-3 kg Fe      molFe                 kg dust
+  !                    kg dust        55.847e-3 kg Fe      molFe                 kg dust
 
        real dust_to_Fe
        parameter(dust_to_Fe=0.035/55.847*1.0e6)  ! mmol Fe/kg dust

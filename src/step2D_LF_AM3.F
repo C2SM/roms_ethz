@@ -1,5 +1,5 @@
 #include "cppdefs.h"
- 
+
       subroutine step2D (tile)
       implicit none
       integer tile
@@ -10,44 +10,33 @@
      &                            A2d(1,2),  A2d(1, 3), A2d(1, 4),
      &                  A2d(1,5), A2d(1, 6), A2d(1, 7), A2d(1, 8),
      &                  A2d(1,9), A2d(1,10), A2d(1,11), A2d(1,12))
-      return
       end
- 
+
       subroutine step2D_LFAM3_tile (istr,iend,jstr,jend, zeta_new,
      &                              Dnew, rubar, rvbar, DUon, DVom,
      &                              Drhs, Drhs_p, UFe,UFx,VFe,VFx)
       implicit none
 #include "param.h"
       integer istr,iend,jstr,jend, i,j, krhs, kbak
-      real zeta_new(PRIVATE_2D_SCRATCH_ARRAY),
-     &         Dnew(PRIVATE_2D_SCRATCH_ARRAY),  cff,
-     &        rubar(PRIVATE_2D_SCRATCH_ARRAY),  cff1,
-     &        rvbar(PRIVATE_2D_SCRATCH_ARRAY),  cff2,
-     &         DUon(PRIVATE_2D_SCRATCH_ARRAY),  cff3,
-     &         DVom(PRIVATE_2D_SCRATCH_ARRAY),
-     &         Drhs(PRIVATE_2D_SCRATCH_ARRAY),
-     &       Drhs_p(PRIVATE_2D_SCRATCH_ARRAY),
-     &          UFx(PRIVATE_2D_SCRATCH_ARRAY),
-     &          UFe(PRIVATE_2D_SCRATCH_ARRAY),  gamma,
-     &          VFe(PRIVATE_2D_SCRATCH_ARRAY),  epsil,
-     &          VFx(PRIVATE_2D_SCRATCH_ARRAY),  beta
+      real, dimension(PRIVATE_2D_SCRATCH_ARRAY) :: zeta_new,Dnew,
+     &      rubar,rvbar, DUon,DVom, Drhs, Drhs_p, UFx,UFe,VFe,VFx
+      real cff,cff1,cff2,cff3
 !
 ! The following stability limits are obtained empirically using 3/4
 ! degree Atlantic model configuration. In all these cases barotropic
 ! mode time step is about 180...250 seconds, which is much less than
 ! the inertial period. The maximum stability coefficients turned out
 ! to be slightly different than predicted by linear theory, although
-! all theoretical tendencies agree with practice. Thus, LF-AM3 is
-! slightly more stable than LF-TR, and best accuracy setting is even
-! more stable. Also note the nearly 70% stability gain in comparison
-! with LF-TR for appropriate set of coefficients (linear theory
-! predicts beta=0.166, epsil=0.84).
+! all theoretical tendencies agree with practice. Note the nearly 70%
+! gain in stability in comparison with LF-TR for appropriate set of
+! coefficients (linear theory predicts beta=0.166, epsil=0.84).
 !
-c**   parameter (gamma=0.,     beta=0.,   epsil=0.  )  !--> Cu=0.818
-c**   parameter (gamma=1./12., beta=0.,   epsil=0.  )  !--> Cu=0.878
-c*    parameter (gamma=1./12., beta=0.1,  epsil=0.6 )  !--> Cu=1.050
-      parameter (gamma=0.,     beta=0.14, epsil=0.74)  !==> Cu=1.341
- 
+      real, parameter ::
+c**  &         gamma=0.,     beta=0.,   epsil=0.    !--> Cu=0.818
+c**  &         gamma=1./12., beta=0.,   epsil=0.    !--> Cu=0.878
+c*   &         gamma=1./12., beta=0.1,  epsil=0.6   !--> Cu=1.050
+     &         gamma=0.,     beta=0.14, epsil=0.74  !==> Cu=1.341
+
 #include "grid.h"
 #include "ocean2d.h"
 #ifdef SOLVE3D
@@ -58,10 +47,10 @@ c*    parameter (gamma=1./12., beta=0.1,  epsil=0.6 )  !--> Cu=1.050
 #include "mixing.h"
 #include "climat.h"
 #include "scalars.h"
-!
+
 #include "compute_auxiliary_bounds.h"
-!
-#define PREDICTOR_2D_STEP knew.eq.3
+
+#define PREDICTOR_2D_STEP knew==3
       if (PREDICTOR_2D_STEP) then      ! NOTE: In the following code
         krhs=kstp                      ! it is assumed that variables
       else                             ! with time index "krhs" are
@@ -89,7 +78,7 @@ c*    parameter (gamma=1./12., beta=0.1,  epsil=0.6 )  !--> Cu=1.050
       enddo
 #undef IR_RANGE
 #undef JR_RANGE
- 
+
       do j=jstr-1,jendR
         do i=istrU-1,iend+1
           DUon(i,j)=0.5*(Drhs(i,j)+Drhs(i-1,j))
@@ -105,7 +94,7 @@ c*    parameter (gamma=1./12., beta=0.1,  epsil=0.6 )  !--> Cu=1.050
 #ifdef OBC_VOLCONS
       call set_DUV_bc_tile (istr,iend,jstr,jend, Drhs, DUon,DVom)
 #endif
- 
+
 #ifdef SOLVE3D
 !
 ! Fields averaged over all barotropic time steps.  NOTE: The index
@@ -156,7 +145,7 @@ c*    parameter (gamma=1./12., beta=0.1,  epsil=0.6 )  !--> Cu=1.050
 ! It should be noted that during the predictor of the first 2D step
 ! in 3D mode, the pressure gradient terms are computed using just
 ! zeta(:,:,kstp), i.e. like in Forward Euler step, rather than the
-! more accurate predictor of generalozed RK2.  This is to keep it 
+! more accurate predictor of generalozed RK2.  This is to keep it
 ! consistent with computation of pressure gradient in 3D mode, which
 ! uses exactly the initial value of "zeta", rather than value
 ! changed by the first barotropic predictor step.  Later in this
@@ -169,12 +158,12 @@ c*    parameter (gamma=1./12., beta=0.1,  epsil=0.6 )  !--> Cu=1.050
 #define rzeta  UFe
 #define rzeta2  VFe
 #define rzetaSA VFx
- 
+
       if (PREDICTOR_2D_STEP) then
         if (FIRST_2D_STEP) then     ! Modified RK2 time step (with
-          cff=dtfast                ! Forward-Backward feedback with 
+          cff=dtfast                ! Forward-Backward feedback with
 #ifdef SOLVE3D
-          cff1=0.                   !==> Forward Euler   
+          cff1=0.                   !==> Forward Euler
           cff2=1.
 #else
           cff1=0.333333333333       ! optimally chosen beta=1/3 and
@@ -187,7 +176,7 @@ c*    parameter (gamma=1./12., beta=0.1,  epsil=0.6 )  !--> Cu=1.050
           cff2=1.-2.*beta           ! in the case of LF (for all but
           cff3=beta                 ! the first time step)
         endif
- 
+
         do j=jstrV-1,jend
           do i=istrU-1,iend
             zeta_new(i,j)=zeta(i,j,kbak) + cff*pm(i,j)*pn(i,j)
@@ -196,7 +185,7 @@ c*    parameter (gamma=1./12., beta=0.1,  epsil=0.6 )  !--> Cu=1.050
             zeta_new(i,j)=zeta_new(i,j)*rmask(i,j)
 #endif
             Dnew(i,j)=zeta_new(i,j)+h(i,j)
- 
+
             zwrk(i,j)=cff1*zeta_new(i,j) + cff2*zeta(i,j,kstp)
      &                                   + cff3*zeta(i,j,kbak)
 #if defined VAR_RHO_2D && defined SOLVE3D
@@ -221,7 +210,7 @@ c*    parameter (gamma=1./12., beta=0.1,  epsil=0.6 )  !--> Cu=1.050
           cff2=(0.5+2.*gamma)*epsil     ! during corrector sub-
           cff3=       -gamma *epsil     ! step.
         endif
- 
+
         do j=jstrV-1,jend
           do i=istrU-1,iend
             zeta_new(i,j)=zeta(i,j,kstp) + dtfast*pm(i,j)*pn(i,j)
@@ -230,10 +219,10 @@ c*    parameter (gamma=1./12., beta=0.1,  epsil=0.6 )  !--> Cu=1.050
             zeta_new(i,j)=zeta_new(i,j)*rmask(i,j)
 #endif
             Dnew(i,j)=zeta_new(i,j)+h(i,j)
- 
+
             zwrk(i,j)=cff*zeta(i,j,krhs) + cff1*zeta_new(i,j)
      &              +cff2*zeta(i,j,kstp) + cff3*zeta(i,j,kbak)
- 
+
 #if defined VAR_RHO_2D && defined SOLVE3D
             rzeta(i,j)=(1.+rhoS(i,j))*zwrk(i,j)
             rzeta2(i,j)=rzeta(i,j)*zwrk(i,j)
@@ -255,7 +244,7 @@ c*    parameter (gamma=1./12., beta=0.1,  epsil=0.6 )  !--> Cu=1.050
 ! uvar and vbar between predictor and corrector sub-steps.
 !
       call zetabc_tile (istr,iend,jstr,jend, zeta_new)
- 
+
       if (PREDICTOR_2D_STEP) then
         if (FIRST_2D_STEP) then
           cff1=0.5
@@ -280,16 +269,16 @@ c*    parameter (gamma=1./12., beta=0.1,  epsil=0.6 )  !--> Cu=1.050
         enddo
       endif
 !
-! Compute pressure-gradient terms  NOTE that "rubar" and "rvbar" 
-!-------- -------- -------- -----  are computed within the same 
-! fused loop despite the fact that their normal indexe ranges are 
-! different. Fusing loops causes redundant computation of one 
-! column of "rubar" on the western physical boundary and one row 
-! of "rvbar" on the southern, but, at the same time it allows to 
-! share references to array elements (i,j) which results in an 
-! increase of computational density by almost a factor of 1.5 
-! resulting in overall more efficient code pipelined in 26 cycles 
-! (61% of peak speed) on R10000 vs. 16+16 cycles of separate loop 
+! Compute pressure-gradient terms  NOTE that "rubar" and "rvbar"
+!-------- -------- -------- -----  are computed within the same
+! fused loop despite the fact that their normal indexe ranges are
+! different. Fusing loops causes redundant computation of one
+! column of "rubar" on the western physical boundary and one row
+! of "rvbar" on the southern, but, at the same time it allows to
+! share references to array elements (i,j) which results in an
+! increase of computational density by almost a factor of 1.5
+! resulting in overall more efficient code pipelined in 26 cycles
+! (61% of peak speed) on R10000 vs. 16+16 cycles of separate loop
 ! version for the case when both CPP switches below are defined.
 !
       cff=0.5*g
@@ -297,17 +286,17 @@ c*    parameter (gamma=1./12., beta=0.1,  epsil=0.6 )  !--> Cu=1.050
         do i=istr,iend
           rubar(i,j)=cff*dn_u(i,j)*( (h(i-1,j)+h(i,j))*(rzeta(i-1,j)
      &                        -rzeta(i,j)) +rzeta2(i-1,j)-rzeta2(i,j)
- 
+
 #if defined VAR_RHO_2D && defined SOLVE3D
      &              +(h(i-1,j)-h(i,j))*( rzetaSA(i-1,j)+rzetaSA(i,j)
      &                        +0.333333333333*(rhoA(i-1,j)-rhoA(i,j))
      &                                      *(zwrk(i-1,j)-zwrk(i,j)))
 #endif
      &                                                              )
- 
+
           rvbar(i,j)=cff*dm_v(i,j)*( (h(i,j-1)+h(i,j))*(rzeta(i,j-1)
      &                        -rzeta(i,j)) +rzeta2(i,j-1)-rzeta2(i,j)
- 
+
 #if defined VAR_RHO_2D && defined SOLVE3D
      &              +(h(i,j-1)-h(i,j))*( rzetaSA(i,j-1)+rzetaSA(i,j)
      &                        +0.333333333333*(rhoA(i,j-1)-rhoA(i,j))
@@ -316,7 +305,7 @@ c*    parameter (gamma=1./12., beta=0.1,  epsil=0.6 )  !--> Cu=1.050
      &                                                              )
         enddo
       enddo            !--> discard  zwrk, rzeta, rzeta2, rzetaSA
- 
+
 #undef rzetaSA
 #undef rzeta2
 #undef rzeta
@@ -461,7 +450,7 @@ c*    parameter (gamma=1./12., beta=0.1,  epsil=0.6 )  !--> Cu=1.050
 !---- -- ------ ------ --------- ------ -------
 !
 #ifndef SOLVE3D
-      if (rdrg2.gt.0.) then
+      if (rdrg2>0.) then
         do j=jstr,jend
           do i=istrU,iend
             cff=0.25*( vbar(i  ,j,krhs)+vbar(i  ,j+1,krhs)
@@ -480,7 +469,7 @@ c*    parameter (gamma=1./12., beta=0.1,  epsil=0.6 )  !--> Cu=1.050
      &                                     )*dm_v(i,j)*dn_v(i,j)
           enddo
         enddo
-      else if (rdrg.gt.0.0) then
+      else if (rdrg>0.0) then
         do j=jstr,jend
           do i=istrU,iend
             rubar(i,j)=rubar(i,j)-rdrg*ubar(i,j,krhs)
@@ -526,7 +515,7 @@ c*    parameter (gamma=1./12., beta=0.1,  epsil=0.6 )  !--> Cu=1.050
           cff2=-0.5-2.*cff3              ! weights optimized for
           cff1=1.5+cff3                  ! maximum stability (with
         endif                            ! special care for startup)
- 
+
         do j=jstr,jend
           do i=istrU,iend
             cff=rufrc(i,j)-rubar(i,j)
@@ -552,7 +541,7 @@ c*    parameter (gamma=1./12., beta=0.1,  epsil=0.6 )  !--> Cu=1.050
         enddo                                ! to be performed.
 # endif
 !
-! Since coupling requires that pressure gradient term is computed 
+! Since coupling requires that pressure gradient term is computed
 ! using zeta(:,:,kstp) instead of 1/3 toward zeta_new(:,:) as needed
 ! by generalozed RK2 scheme, apply compensation to shift pressure
 ! gradient terms from "kstp" to 1/3 toward "knew".
@@ -630,7 +619,7 @@ c*    parameter (gamma=1./12., beta=0.1,  epsil=0.6 )  !--> Cu=1.050
           enddo
         enddo
       endif
- 
+
       if (PREDICTOR_2D_STEP) then
         if (FIRST_2D_STEP) then
           cff=0.5*dtfast
@@ -643,7 +632,7 @@ c*    parameter (gamma=1./12., beta=0.1,  epsil=0.6 )  !--> Cu=1.050
           cff2=0.5+2.*gamma
           cff3=      -gamma
         endif
- 
+
         do j=jstr,jend
           do i=istrU,iend
             ubar(i,j,knew)=( ubar(i,j,kbak)*(Dstp(i,j)+Dstp(i-1,j))
@@ -722,7 +711,7 @@ c        enddo
 c      enddo
 c??
 c??
- 
+
 !
 ! Set boundary conditions and compute integral mass flux accross
 ! all open boundaries, if any.
@@ -736,9 +725,9 @@ c??
       do is=1,Nsrc           ! Apply point mass sources associated
         i=Isrc(is)           ! with river runoff simulations.
         j=Jsrc(is)
-        if (istrR.le.i .and. i.le.iendR .and.
-     &      jstrR.le.j .and. j.le.jendR) then
-          if (Dsrc(is).eq.0) then
+        if (istrR<=i .and. i<=iendR .and.
+     &      jstrR<=j .and. j<=jendR) then
+          if (Dsrc(is)==0) then
             ubar(i,j,knew)=2.*Qbar(is)/( dn_u(i,j)
      &                   *(Dnew(i-1,j)+Dnew(i,j)) )
           else
@@ -749,7 +738,7 @@ c??
       enddo
 #endif
 #ifdef SOLVE3D
-!
+
 ! Finalize computation of barotropic mode averages. This procedure
 ! starts with filling in boundary rows of total depths at the new
 ! time step, which is needed to be done only during the last
@@ -758,8 +747,9 @@ c??
 ! DVom are being computed any way). Strictly speaking, filling the
 ! boundaries is necessary only in the case of open boundaries,
 ! since otherwise the associated fluxes are all zeros.
-!
-      if (iif.eq.nfast .and. knew.lt.3) then
+
+      if (iif==nfast .and. knew<3) then
+# ifndef EW_PERIODIC
         if (WESTERN_EDGE) then
           do j=jstr-1,jendR
             Dnew(istr-1,j)=h(istr-1,j)+zeta_new(istr-1,j)
@@ -770,6 +760,8 @@ c??
             Dnew(iend+1,j)=h(iend+1,j)+zeta_new(iend+1,j)
           enddo
         endif
+# endif
+# ifndef NS_PERIODIC
         if (SOUTHERN_EDGE) then
           do i=istr-1,iendR
             Dnew(i,jstr-1)=h(i,jstr-1)+zeta_new(i,jstr-1)
@@ -780,7 +772,8 @@ c??
             Dnew(i,jend+1)=h(i,jend+1)+zeta_new(i,jend+1)
           enddo
         endif
- 
+# endif
+
         cff=weight(1,iif)
         cff1=0.5*cff
         do j=jstrR,jendR
@@ -791,29 +784,25 @@ c??
             DV_avg1(i,j)=DV_avg1(i,j)+cff1*vbar(i,j,knew)
      &                 *(Dnew(i,j)+Dnew(i,j-1))*dm_v(i,j)
 
-!
+
 ! At the end of the last 2D step replace the new free-surface field
-! "zeta(:,:,knew)" with its fast-time-averaged "_avg1" version: this 
+! "zeta(:,:,knew)" with its fast-time-averaged "_avg1" version: this
 ! is the only version of free surface which communicates with 3D part
-! via Zt_avg1 --> zeta(:,:,knew) --> z_w(:,:,N) in set_depth and it 
+! via Zt_avg1 --> zeta(:,:,knew) --> z_w(:,:,N) in set_depth and it
 ! is also used as initial condition for "zeta" for fast-time stepping
 ! during the next 3D-step.
-!
+
             zeta(i,j,knew)=Zt_avg1(i,j)
           enddo
         enddo
         call set_depth_tile (istr,iend,jstr,jend, UFx)
       endif
 #endif
- 
-#if defined EW_PERIODIC || defined NS_PERIODIC || defined  MPI
-      call exchange_r2d_tile (istr,iend,jstr,jend,
-     &                  zeta(START_2D_ARRAY,knew))
-      call exchange_u2d_tile (istr,iend,jstr,jend,
-     &                  ubar(START_2D_ARRAY,knew))
-      call exchange_v2d_tile (istr,iend,jstr,jend,
-     &                  vbar(START_2D_ARRAY,knew))
+
+#ifdef EXCHANGE
+      call exchange2d_3_tile (istr,iend,jstr,jend,
+     &                   zeta(START_2D_ARRAY,knew),
+     &                   ubar(START_2D_ARRAY,knew),
+     &                   vbar(START_2D_ARRAY,knew))
 #endif
-      return
       end
- 

@@ -42,7 +42,7 @@
         cff2=q1*(p1*rmask(i1,j1) + p2*rmask(i2,j1))
      &      +q2*(p1*rmask(i1,j2) + p2*rmask(i2,j2))
 
-        if (cff2.gt.0.) then
+        if (cff2>0.) then
           trackaux(ifld,iflt)=cff1/cff2
         else
           trackaux(ifld,iflt)=0.0
@@ -133,12 +133,12 @@
 # include "ncvars_floats.h"
       integer iflt
       do iflt=1,nfloats
-         trackaux(ifdpt,iflt)=Tinfo(izgrd,iflt) ! Either the depth or the 
+         trackaux(ifdpt,iflt)=Tinfo(izgrd,iflt) ! Either the depth or the
 
          if (wrtflt(indxfltGrd)) then
-           trackaux(izgrd,iflt)=Tinfo(izgrd,iflt)! sigma level position is 
+           trackaux(izgrd,iflt)=Tinfo(izgrd,iflt)! sigma level position is
                                                  ! unavailaible
-           trackaux(ixgrd,iflt)=Tinfo(ixgrd,iflt)! for initial storage 
+           trackaux(ixgrd,iflt)=Tinfo(ixgrd,iflt)! for initial storage
            trackaux(iygrd,iflt)=Tinfo(iygrd,iflt)! for initial storage
          endif
       enddo

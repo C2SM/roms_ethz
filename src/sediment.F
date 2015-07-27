@@ -1,6 +1,6 @@
 #include "cppdefs.h"
 #define SEDIMENT
- 
+
 #ifdef SEDIMENT
       subroutine sediment (tile)
       implicit none
@@ -13,7 +13,7 @@
      &                     A2d(1,7), A2d(1,8), A2d(1,9), A2d(1,10))
       return
       end
- 
+
       subroutine sediment_tile (istr,iend,jstr,jend, FC, qc, qR,qL,
      &                      WR,WL, Hz_inv,Hz_inv2,Hz_inv3, ksource)
       implicit none
@@ -29,14 +29,14 @@
      &  Hz_inv2(PRIVATE_1D_SCRATCH_ARRAY,N),   tau_water,
      &  Hz_inv3(PRIVATE_1D_SCRATCH_ARRAY,N),   ero_flux
       integer ksource(PRIVATE_1D_SCRATCH_ARRAY,N)
- 
+
 # include "scalars.h"
 # include "grid.h"
 # include "ocean3d.h"
 # include "forces.h"
 c# include "bbl.h"
 c# include "sediment.h"
- 
+
 c??
 c??
 c??
@@ -47,7 +47,7 @@ c??
       real Wsed(NST),Erate(NST),Srho(NST),poros(NST),tau_ce(NST)
 c??
 c??
- 
+
       do j=jstr,jend                        ! Auxiliary step: save
         do k=1,N                            ! inverses of grid box
           do i=istr,iend                    ! heights to avoid
@@ -80,7 +80,7 @@ c??
               qc(i,k)=t(i,j,k,nnew,indx)
             enddo
           enddo
- 
+
           do k=N-1,1,-1
             do i=istr,iend
               FC(i,k)=(qc(i,k+1)-qc(i,k))*Hz_inv2(i,k)
@@ -94,12 +94,12 @@ c??
               cffR=cff*FC(i,k)
               cffL=cff*FC(i,k-1)            ! Apply PPM monotonicity
                                             ! constraint to prevent
-              if (dltR*dltL .le. 0.) then   ! oscillation within the
+              if (dltR*dltL <= 0.) then   ! oscillation within the
                 dltR=0.                     ! grid box
                 dltL=0.
-              elseif (abs(dltR) .gt. abs(cffL)) then
+              elseif (abs(dltR) > abs(cffL)) then
                 dltR=cffL
-              elseif (abs(dltL) .gt. abs(cffR)) then
+              elseif (abs(dltL) > abs(cffR)) then
                 dltL=cffR
               endif                         ! Compute right and left
                                             ! side values qR,qL of
@@ -148,7 +148,7 @@ c??
             qL(i,1)=qc(i,1)                 ! piecewise constant.
 # endif
           enddo
- 
+
           do k=1,N                          ! Since the reconciled
             do i=istr,iend                  ! interfacial values may
               dltR=qR(i,k)-qc(i,k)          ! cause non-monotonic
@@ -156,15 +156,15 @@ c??
               cffR=2.*dltR                  ! segments inside grid
               cffL=2.*dltL                  ! box apply monotonicity
                                             ! constraint again.
-              if (dltR*dltL .lt. 0.) then
+              if (dltR*dltL < 0.) then
                 dltR=0.
                 dltL=0.
-              elseif (abs(dltR) .gt. abs(cffL)) then
+              elseif (abs(dltR) > abs(cffL)) then
                 dltR=cffL
-              elseif (abs(dltL) .gt. abs(cffR)) then
+              elseif (abs(dltL) > abs(cffR)) then
                 dltL=cffR
               endif
- 
+
               qR(i,k)=qc(i,k)+dltR
               qL(i,k)=qc(i,k)-dltL
             enddo
@@ -189,14 +189,14 @@ c??
           do k=1,N                        ! point (restricted by N);
             do ks=k,N-1                   ! During the search: also
               do i=istr,iend
-                if (WL(i,k) .gt. z_w(i,j,ks)) then
+                if (WL(i,k) > z_w(i,j,ks)) then
                   ksource(i,k)=ks+1
                   FC(i,k-1)=FC(i,k-1)+WR(i,ks)
                 endif
               enddo                       ! add in content of whole
             enddo                         ! grid boxes participating
           enddo       !--> discard WR     ! in FC.
- 
+
           do k=1,N                        ! Finalize computation of
             do i=istr,iend                ! flux: add fractional part
               ks=ksource(i,k)
@@ -236,7 +236,7 @@ c??
 # endif
             ero_flux=min( max(0., cff*(cff1*tau_water-1.)),
      &                  cff2*bed(i,j,1,ithck)+0.001*FC(i,0) )
- 
+
             bed(i,j,1,ithck)=( bed(i,j,1,ithck) -cff3*( ero_flux
      &                                          -0.001*FC(i,0) ))
 # ifdef MASKING
@@ -245,7 +245,7 @@ c??
             qc(i,1)=qc(i,1) + 1000.*ero_flux*Hz_inv(i,1)
           enddo
 
-          do k=1,N                         ! Write concentration of 
+          do k=1,N                         ! Write concentration of
             do i=istr,iend                 ! suspended sediment back
                 t(i,j,k,nnew,indx)=qc(i,k) ! to its global array.
 # ifdef MASKING
@@ -261,4 +261,4 @@ c??
       subroutine sediment_empty
       end
 #endif
- 
+

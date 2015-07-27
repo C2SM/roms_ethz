@@ -2,18 +2,18 @@
 #if defined SSH_TIDES || defined UV_TIDES
 
       subroutine set_tides (tile)
-!
+
 !================================================== Robert Hetland ===
-! Copyright (c) 2000 Rutgers/UCLA                                   !
+! Copyright (c) 2000 Rutgers/UCLA
 !================================================ Hernan G. Arango ===
-!                                                                    !
-! This routine adds tidal elevation (m) and tidal currents (m/s) to !
-! sea surface height and 2D momentum climatologies, respectively.   !
-!                                                                    !
-!=====================================================================
 !
+! This routine adds tidal elevation (m) and tidal currents (m/s) to
+! sea surface height and 2D momentum climatologies, respectively.
+!
+!=====================================================================
+
       implicit none
-      integer tile, trd, omp_get_thread_num
+      integer tile
 # include "param.h"
 # include "private_scratch.h"
 # include "compute_tile_bounds.h"
@@ -33,20 +33,19 @@
 # include "boundary.h"
 
       integer istr,iend,jstr,jend,    itide, i,j
-      real Cangle(PRIVATE_2D_SCRATCH_ARRAY), angle,
-     &     Sangle(PRIVATE_2D_SCRATCH_ARRAY), phase, 
-     &     Cphase(PRIVATE_2D_SCRATCH_ARRAY), omega, 
-     &     Sphase(PRIVATE_2D_SCRATCH_ARRAY), ramp 
+      real, dimension(PRIVATE_2D_SCRATCH_ARRAY) :: Cangle, Cphase,
+     &                                             Sangle, Sphase
+      real angle, phase, omega, ramp
 
 #  include "compute_auxiliary_bounds.h"
 
       ramp=1.
 # ifdef TIDERAMP
-      ramp=TANH(dt*sec2day*float(iic-ntstart)) 
+      ramp=TANH(dt*sec2day*float(iic-ntstart))
 # endif
 
       do itide=1,Ntides
-        if (Tperiod(itide).gt.0.) then
+        if (Tperiod(itide) > 0.) then
           omega=2.*pi*time/Tperiod(itide)
 
 # if defined SSH_TIDES
@@ -287,5 +286,3 @@
       subroutine set_tides_empty
       end
 #endif /* SSH_TIDES || UV_TIDES */
-
-

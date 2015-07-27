@@ -1,5 +1,5 @@
 #include "cppdefs.h"
- 
+
       subroutine init_arrays (tile)
       implicit none
       integer tile, i,j
@@ -24,11 +24,10 @@
       enddo
 
       call init_arrays_tile (istr,iend,jstr,jend)
-      return
       end
- 
+
       subroutine init_arrays_tile (istr,iend,jstr,jend)
-!
+
 ! Initialize (first touch) globally accessable arrays. Most of them
 ! are assigned to zeros, vertical mixing coefficients are assinged
 ! to their background values. These will remain unchenged if no
@@ -36,11 +35,10 @@
 ! default data distribution policy, this operation actually performs
 ! distribution of the shared arrays accross the cluster, unless
 ! another distribution policy is specified to override the default.
-!
+
       implicit none
       integer istr,iend,jstr,jend, i,j,k,itrc
-      real init    !!!!  0xFFFA5A5A ==> NaN
-      parameter (init=0.)
+      real, parameter :: init=0.    !!!!  0xFFFA5A5A ==> NaN
 #define ALL_DATA
 #include "param.h"
 #include "scalars.h"
@@ -54,11 +52,13 @@
 #include "forces.h"
 #include "climat.h"
 #undef ALL_DATA
-#ifdef MPI
-# include "mpif.h"
+#ifdef PRINT_TILE_RANGES
+# ifdef MPI
+#  include "mpif.h"
       integer status(MPI_STATUS_SIZE), blank, ierr
+# endif
 #endif
-!
+
 #ifdef SOLVE3D
 # ifdef BIOLOGY_NPZDOC
 #  include "bgcflux.h"
@@ -70,10 +70,10 @@
 #endif /* SOLVE3D */
 
 #include "compute_extended_bounds.h"
-!
-#ifdef NOT_
+
+#ifdef PRINT_TILE_RANGES
 # ifdef MPI
-      if (mynode.gt.0) then
+      if (mynode>0) then
         call MPI_Recv (blank, 1, MPI_INTEGER, mynode-1,
      &                 1, ocean_grid_comm, status, ierr)
       endif
@@ -86,7 +86,7 @@
       write(*,'(4x,2(6x,A6,I3,3x,A6,I3)/)')   'istrR=',istrR,
      &        'iendR=',iendR, 'jstrR=',jstrR, 'jendR=',jendR
 # ifdef MPI
-      if (mynode .lt. NNODES) then
+      if (mynode < NNODES) then
         call MPI_Send (blank, 1, MPI_INTEGER, mynode+1,
      &                        1, ocean_grid_comm,  ierr)
       endif
@@ -97,11 +97,11 @@
           zeta(i,j,1)=0. ! init      ! variables.
           zeta(i,j,2)=init
           zeta(i,j,3)=init
- 
+
           ubar(i,j,1)=init
           ubar(i,j,2)=init
           ubar(i,j,3)=init
- 
+
           vbar(i,j,1)=init
           vbar(i,j,2)=init
           vbar(i,j,3)=init
@@ -117,19 +117,17 @@
           rhoA(i,j)=0.
           rhoS(i,j)=0.
 # endif
-# ifdef AVERAGES
           Zt_avg1(i,j)=0. !init
           DU_avg1(i,j)=0. !init
           DV_avg1(i,j)=0. !init
           DU_avg2(i,j)=0. !init
           DV_avg2(i,j)=0. !init
-# endif
-#endif /* SOLVE3D */
-!
-! WARNING: "rmask" MUST BE initialized to all-one state in order
-! to read grid variables (coordinates, metric, topography), which
-! should not be masked. 
-!
+#endif
+
+! WARNING: "rmask" MUST BE initialized to all-one state in order to
+! read grid variables (coordinates, metric, topography), which should
+! not be masked.
+
 #ifdef MASKING
           rmask(i,j)=1.
 #endif
@@ -141,12 +139,12 @@
           do i=istrR,iendR           ! variables.
             u(i,j,k,1)=init
             u(i,j,k,2)=init
- 
+
             v(i,j,k,1)=init
             v(i,j,k,2)=init
- 
-            rho1(i,j,k)=init
+
 # ifdef SPLIT_EOS
+            rho1(i,j,k)=init
             qp1(i,j,k)=init
 # else
             rho(i,j,k)=init
@@ -162,9 +160,11 @@
       do k=0,N
         do j=jstrR,jendR
           do i=istrR,iendR
-            W(i,j,k)=init
+            We(i,j,k)=init
+            Wi(i,j,k)=init
 # ifdef AVERAGES
             w_avg(i,j,k)=init
+            wvl_avg(i,j,k)=init
 # endif
           enddo
         enddo
@@ -183,9 +183,9 @@
         enddo
       enddo
 #endif /* SOLVE3D */
-!
-!  Initialize forcing arrays (see "forces.h").
-!
+
+! Initialize forcing arrays (see "forces.h").
+
       do j=jstrR,jendR
         do i=istrR,iendR
           sustr(i,j)=init
@@ -234,9 +234,9 @@
         enddo
       enddo
 #endif /* SOLVE3D */
-!
+
 ! Initialize climatology arrays (see "climat.h").
-!
+
 #if defined M2NUDGING && !defined M2_FRC_BRY
       do j=jstrR,jendR
         do i=istrR,iendR
@@ -249,7 +249,7 @@
       enddo
 #endif
 #ifdef SOLVE3D
-# ifdef TCLIMATOLOGY 
+# ifdef TCLIMATOLOGY
       do itrc=1,NT
         do j=jstrR,jendR
           do i=istrR,iendR
@@ -301,10 +301,10 @@
 #  endif
 # endif
 #endif
-!
+
 ! Set variable horizontal viscosities and tracer diffusion
 ! coefficients (see "mixing.h") to their background values.
-!
+
 #ifdef UV_VIS2
         do j=jstrR,jendR
           do i=istrR,iendR
@@ -323,18 +323,18 @@
           enddo
         enddo
 # endif
-!
+
 ! Initialize vertical mixing coefficients (see "mixing.h") to their
 ! background values. If no vertical closure scheme is selected, the
 ! vertical mixing coefficients are those specified by the background
 ! values.
-!
+
       do k=0,N
         do j=jstrR,jendR
           do i=istrR,iendR
-# if !defined LMD_MIXING && !defined BVF_MIXING\
-  && !defined MY2_MIXING && !defined MY25_MIXING\
-                         && !defined PP_MIXING
+# if !defined LMD_MIXING && !defined BVF_MIXING && !defined PP_MIXING\
+                         && !defined MY2_MIXING && !defined MY25_MIXING
+
             Akv(i,j,k)=Akv_bak
 # else
             Akv(i,j,k)=init
@@ -342,12 +342,9 @@
 # ifdef AVERAGES
             akv_avg(i,j,k)=init
 # endif
-# if defined MIX_EN_TS || defined MIX_EN_UV
-            rhosx(i,j,k)=init
-            rhose(i,j,k)=init
-# endif
 # if defined BVF_MIXING || defined LMD_MIXING  || defined LMD_KPP \
-  || defined MY2_MIXING || defined MY25_MIXING || defined PP_MIXING
+  || defined MY2_MIXING || defined MY25_MIXING || defined PP_MIXING \
+  || defined LMD_BKPP
             bvf(i,j,k)=init
 # endif
           enddo
@@ -355,16 +352,11 @@
         do itrc=1,NT
           do j=jstrR,jendR
             do i=istrR,iendR
-# if !defined LMD_MIXING && !defined BVF_MIXING\
-  && !defined MY2_MIXING && !defined MY25_MIXING\
-                         && !defined PP_MIXING
+# if !defined LMD_MIXING && !defined BVF_MIXING && !defined PP_MIXING\
+                         && !defined MY2_MIXING && !defined MY25_MIXING
               Akt(i,j,k,itrc)=Akt_bak(itrc)
 # else
               Akt(i,j,k,itrc)=init
-# endif
-# ifdef KPP_DIAGNOSE
-              Rich(i,j,k)=init
-              RichN(i,j,k)=init
 # endif
 # ifdef AVERAGES
               akt_avg(i,j,k)=init
@@ -376,7 +368,7 @@
           enddo
         enddo
       enddo
- 
+
 # if defined LMD_KPP && defined LMD_NONLOCAL
       do k=1,N
         do j=jstrR,jendR
@@ -387,20 +379,34 @@
       enddo
 # endif
 # ifdef LMD_KPP
-!
-!  Initialize depth of planetary boundary layer.
-!
+! Depth of surface planetary boundary layer.
+
       do j=jstrR,jendR
         do i=istrR,iendR
           hbls(i,j,1)=0.  ! init
           hbls(i,j,2)=0.
+#  ifdef AVERAGES
+          hbl_avg(i,j)=init
+#  endif
         enddo
       enddo
-# endif /* LMD_KPP */
+# endif
+# ifdef LMD_BKPP
+! Thickness of bottom boundary layer.
+
+      do j=jstrR,jendR
+        do i=istrR,iendR
+          hbbl(i,j,1)=0.  ! init
+          hbbl(i,j,2)=0.
+#  ifdef AVERAGES
+          hbbl_avg(i,j)=init
+#  endif
+        enddo
+      enddo
+# endif
 # ifdef SEDIMENT_BIOLOGY
-!
 ! Initialize sediment array:
-!
+
       do itrc=1,NT_sed
          do k=1,N
             do j=jstrR,jendR
@@ -414,34 +420,34 @@
          enddo
       enddo
 # endif /* SEDIMENT_BIOLOGY */
-!
-! Initialize some more arrays (pH, pCO2sw, pCO2air, PAR) for NPZD model:
-!
+
+! Initialize for NPZDOC model:
+
 # ifdef BIOLOGY_NPZDOC
       do j=jstrR,jendR
          do i=istrR,iendR
 #  if defined OXYGEN && defined CARBON
-           pH_hist(i,j) = 0.0
-           pCO2sw(i,j) = 0.0
-           pCO2air(i,j) = 0.0
+           pH_hist(i,j)=0.
+           pCO2sw(i,j)=0.
+           pCO2air(i,j)=0.
 #  endif
-           PARinc(i,j) = 0.0
+           PARinc(i,j)=0.
 #  ifdef AVERAGES
 #   if defined OXYGEN && defined CARBON
-           pH_avg(i,j) = 0.0
-           pCO2_avg(i,j) = 0.0
-           pCO2air_avg(i,j) = 0.0
+           pH_avg(i,j)=init
+           pCO2_avg(i,j)=init
+           pCO2air_avg(i,j)=init
 #   endif
-           PARinc_avg(i,j) = 0.0
+           PARinc_avg(i,j)=init
 #  endif
          end do
       end do
       do k=1,N
          do j=jstrR,jendR
            do i=istrR,iendR
-              PAR(i,j,k) = 0.0
+              PAR(i,j,k)=0.
 #  ifdef AVERAGES
-              PAR_avg(i,j,k) = 0.0
+              PAR_avg(i,j,k)=init
 #  endif
            end do
          end do
@@ -450,13 +456,13 @@
 # if defined BGC_FLUX_ANALYSIS && defined AVERAGES
       do j=jstrR,jendR
          do i=istrR,iendR
-           PARinc_flux_avg(i,j) = 0.0
+           PARinc_flux_avg(i,j)=init
          end do
       end do
       do k=1,N
          do j=jstrR,jendR
            do i=istrR,iendR
-              PAR_flux_avg(i,j,k) = 0.0
+              PAR_flux_avg(i,j,k)=init
            end do
          end do
       end do
@@ -465,21 +471,18 @@
       do k=1,N
          do j=jstrR,jendR
            do i=istrR,iendR
-              z_r_avg(i,j,k) = 0.0
-              Hz_avg(i,j,k) = 0.0
+              z_r_avg(i,j,k)=init
+              Hz_avg(i,j,k)=init
            end do
          end do
       end do
       do k=0,N
          do j=jstrR,jendR
            do i=istrR,iendR
-              z_w_avg(i,j,k) = 0.0
+              z_w_avg(i,j,k)=init
            end do
          end do
       end do
 # endif /* WRITE_DEPTHS && AVERAGES */
 #endif /* SOLVE3D */
-
-      return
       end
- 

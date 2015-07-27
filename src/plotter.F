@@ -1,30 +1,30 @@
 ! The purpose of this code is to visualize ROMS standard output
 ! integral characteristics, such as time histories of kinetic
 ! energy, etc. This code is linked to NCAR graphics librart and
-! therefore it must be a single precision code. 
-!  
+! therefore it must be a single precision code.
+!
 
 #include "cppdefs.h"
- 
+
       implicit none
+      integer*4, parameter :: iin=11, ndots_max=200000,
+     &           solid_line=1, dashed_line=2, dotted_line=3
+      real*4, parameter :: angle=0., left=-1., ctr=0., right=+1.,
+     &           vL=0.15, vR=0.975, vB=0.15, vT=0.975,
+     &        thick_line=2.2,   medium_line=1.1,   thin_line=0.6,
+     &        large_font=0.025, medium_font=0.011, small_font=0.009
+
       character filename*128, label*6, string*64
-      integer*4 iin,ndots_max, last_arg,iargc, ne, is,ie, i,j,n,
-     &        ndots, iic, solid_line, dashed_line, dotted_line,
-     &        icolor, iocheck,ipa, lab_int, ilab
-      parameter (iin=11, ndots_max=200000)
-      real*4 xx(ndots_max), xmin,xmax, tmin,tmax, t,dt, tdays,  xp,
-     &       yy(ndots_max), ymin,ymax, emin,emax, y,de, PA(16), yp,
-     &       thick_line, medium_line, thin_line,  level, angle,
-     &       large_font, medium_font, small_font, left,ctr,right
-      parameter (xmin=0.15, xmax=0.975, ymin=0.15, ymax=0.975,
-     &           solid_line=1,  thick_line=2.2,  large_font=0.025,
-     &           dashed_line=2, medium_line=1.1, medium_font=0.011,
-     &           dotted_line=3,   thin_line=0.6,  small_font=0.009,
-     &           angle=0., left=-1., ctr=0., right=+1.)
+      integer*4 last_arg,iargc, ne, is,ie, i,j,n,
+     &        ndots, iic, icolor, iocheck,ipa, lab_int, ilab
+      real*4 xx(ndots_max), tmin,tmax, t,dt, tdays,  xp,
+     &       yy(ndots_max), emin,emax, y,de, PA(16), yp,
+     &         level
+
 
       data icolor/0/  ipa/1/
       logical start_range, inside_range, log_scale
- 
+
 c--#define POSTSCRIPT
 #ifdef POSTSCRIPT
       integer ngpswk
@@ -36,39 +36,39 @@ c--#define POSTSCRIPT
       call opngks
 #endif
       last_arg=iargc()
-      if (last_arg.eq.0) stop '### ERROR: NO FILE TO PROCESS'
- 
+      if (last_arg==0) stop '### ERROR: NO FILE TO PROCESS'
+
 #if defined SEAMOUNT
       tmin=0.
       tmax=250.
- 
+
       ipa=1
- 
-      if (ipa.eq.1 .or. ipa.eq.2) then
+
+      if (ipa==1 .or. ipa==2) then
         log_scale=.true.
         emin=3.E-6
         emax=1.1E-3
          emin=3.E-10
- 
+
 c        emin=3.E-10
 c        emax=0.12E-3
- 
- 
+
+
 c        emin=3.E-7    ! Comparison
 c        emax=0.3E-3   ! among 30.XXXh
- 
- 
-      elseif (ipa.ge.3 .and. ipa.le.5) then
+
+
+      elseif (ipa>=3 .and. ipa<=5) then
         log_scale=.false.
         emin=0.
         emax=0.35
         emax=0.175   ! 30.XXXh
-      elseif (ipa.eq.6) then
+      elseif (ipa==6) then
         log_scale=.false.
         emin=0.
         emax=1.05
       endif
- 
+
 #elif defined DAMEE_B
       tmin=0.
       tmax=tmin + 360.*20.
@@ -85,54 +85,54 @@ c        emax=0.3E-3   ! among 30.XXXh
       tmin=15.
       tmax=10800.
       ipa=1
-      if (ipa.eq.1) then
+      if (ipa==1) then
         emax=0.0024
         emin=0.0010
-      elseif (ipa.eq.2) then
+      elseif (ipa==2) then
         emax=0.0007
         emin=0.00035
-      endif 
+      endif
 #else
 #error No application specified: Check main switch in "cppdefs.h".
 #endif
- 
+
       ne=7
       de=(emax-emin)/float(ne)
- 
-      write(*,*) xmin,xmax, ymin,ymax, tmin,tmax, emin,emax
 
-      call set (xmin,xmax, ymin,ymax, tmin,tmax, emin,emax, 1)
+      write(*,*) vL,vR, vB,vT, tmin,tmax, emin,emax
+
+      call set (vL,vR, vB,vT, tmin,tmax, emin,emax, 1)
       call gsclip (0)
       call gslwsc (thin_line)
       call line(tmin,emin, tmax,emin)
       call line(tmin,emin, tmin,emax)
- 
-      if (tmax-tmin.gt.719.) then             ! Select time interval 
+
+      if (tmax-tmin>719.) then             ! Select time interval
         dt=360.                               ! [days] for horizontal
-      elseif (tmax-tmin.gt.89.) then          ! scale avoiding over 
+      elseif (tmax-tmin>89.) then          ! scale avoiding over
         dt=30.                                ! loading of the plot.
-      elseif (tmax-tmin.gt.29.) then
+      elseif (tmax-tmin>29.) then
         dt=10.
       else
         dt=1.
       endif
- 
+
       lab_int=1+int(medium_font*(tmax-tmin)/(0.1*dt))
       ilab=0
       t=tmin                                   ! Draw horizontal
-      do while (t.le.tmax)                     ! axis and label it.
-        call gsln (solid_line)                 ! Automatically select 
-        if (mod(ilab, lab_int).eq.0) then      ! labeling interval 
-          if (tmax-tmin .gt. 3600.) then       ! so the neighboring
+      do while (t<=tmax)                     ! axis and label it.
+        call gsln (solid_line)                 ! Automatically select
+        if (mod(ilab, lab_int)==0) then      ! labeling interval
+          if (tmax-tmin > 3600.) then       ! so the neighboring
             write(label,'(I6)') int(t-tmin)/360
           else
             write(label,'(I6)') int(t-tmin)
           endif
           is=1
-          do while (label(is:is).eq.' ' .and. is.lt.6)
+          do while (label(is:is)==' ' .and. is<6)
             is=is+1
-          enddo                                ! labels do not touch 
-          yp=emin-0.03*(emax-emin)             ! each other. 
+          enddo                                ! labels do not touch
+          yp=emin-0.03*(emax-emin)             ! each other.
           call gslwsc (thick_line)
           call plchhq(t,yp, label(is:6), medium_font,angle,ctr)
           call gslwsc (thin_line)
@@ -146,34 +146,34 @@ c        emax=0.3E-3   ! among 30.XXXh
         call line (t,emin, t,emax)
         t=t+dt
         ilab=ilab+1
-      enddo 
- 
-      if (ipa.eq.1) then
+      enddo
+
+      if (ipa==1) then
         string=':F9:E:BF7:kin:N:,m:S:2:N:s:S:-2'
-      elseif (ipa.eq.2) then
+      elseif (ipa==2) then
         string=':F9:E:BF7:bar:N:,m:S:2:N:s:S:-2'
-      elseif (ipa.eq.3) then
+      elseif (ipa==3) then
         string=':F9:V:BF7:max:N:,ms:S:-1'
-      elseif (ipa.eq.4) then
+      elseif (ipa==4) then
         string=':F9:<V>:BF7:max:N:,ms:S:-1'
-      elseif (ipa.eq.5) then
+      elseif (ipa==5) then
         string=':F9:(V-<V>):BF7:max:N:,ms:S:-1'
-      elseif (ipa.eq.6) then
+      elseif (ipa==6) then
         string=':F9:E:BF7:bar:N:/:F9:E:BF7:kin:N:'
- 
-      elseif (ipa.eq.3) then
+
+      elseif (ipa==3) then
         string=':F9:E:BF7:bcn:N:,m:S:2:N:s:S:-2'
       endif
- 
+
       call gsln (solid_line)
       call gslwsc (thick_line)
       xp=tmin+0.025*(tmax-tmin)
       call plchhq (xp,emax, string, large_font,angle,left)
       if (log_scale) then
-        call set (xmin,xmax, ymin,ymax, tmin,tmax, emin,emax, 2)
+        call set (vL,vR, vB,vT, tmin,tmax, emin,emax, 2)
         do j=-10,+10
           level=10.D0**j
-          if (emin.le.level .and. level.le.emax) then
+          if (emin<=level .and. level<=emax) then
             write(label,'(PE6.0)') level
             call gslwsc (thick_line)
             xp=tmin-0.025*(tmax-tmin)
@@ -186,7 +186,7 @@ c        emax=0.3E-3   ! among 30.XXXh
             call gsln (solid_line)
             do i=2,9
               y=0.1*level*float(i)
-              if (emin.le.y .and. y.le.emax) then
+              if (emin<=y .and. y<=emax) then
                 xp=tmin-0.005*(tmax-tmin)
                 call line(tmin,y, xp,y)
               endif
@@ -207,7 +207,7 @@ c        emax=0.3E-3   ! among 30.XXXh
       endif
       call gsclip (1)
 c*      goto 100
- 
+
       do n=1,last_arg
         filename=' '
         call getarg(n,filename)
@@ -224,9 +224,9 @@ c*      goto 100
 #else
      &                        tdays, (PA(i), i=1,4)
 #endif
-            if (iocheck.eq.0) then
-              if (tdays.gt.tmax) inside_range=.false.
-              if (ndots .lt. ndots_max) then
+            if (iocheck==0) then
+              if (tdays>tmax) inside_range=.false.
+              if (ndots < ndots_max) then
                 ndots=ndots+1
                 xx(ndots)=tdays
                 yy(ndots)=PA(ipa)
@@ -234,18 +234,18 @@ c*      goto 100
                 write(*,'(/1x,2A/16x,A,I9,1x,A/)') '### WARNING: ',
      &                'Exceeding maximum number of points allowed',
      &                'ndots_max =', ndots_max, 'record truncated.'
-                goto 99 
+                goto 99
               endif
             endif
           else
             read(iin,'(A)',iostat=iocheck) string
-            if (string(2:5).eq.'STEP') start_range=.true.
+            if (string(2:5)=='STEP') start_range=.true.
           endif
         enddo
   98    close (iin)
         write(*,*) 'ndots=',ndots
-  99    if (ndots.gt.1) then
-c          if (icolor.eq.0 .or. xx(1)-tmin .lt. 0.01*(tmax-tmin)) then
+  99    if (ndots>1) then
+c          if (icolor==0 .or. xx(1)-tmin < 0.01*(tmax-tmin)) then
             call set_new_color (icolor, last_arg)
 c          endif
           call gslwsc (medium_line)
@@ -254,23 +254,23 @@ c**       do i=1,ndots
 c**         write(*,*) i, xx(i),yy(i)
 c**       enddo
         endif
- 
+
         is=1
-        do while (filename(is:is).eq.' ')
+        do while (filename(is:is)==' ')
           is=is+1
         enddo
         i=is+1
-        do while (filename(i:i).ne.' ')
+        do while (filename(i:i)/=' ')
           ie=i
           i=i+1
         enddo
-        if (filename(is:is+4).eq.'trace') is=is+5
-        if (filename(is:is).eq.'.'.or.filename(is:is).eq.'_') is=is+1
+        if (filename(is:is+4)=='trace') is=is+5
+        if (filename(is:is)=='.'.or.filename(is:is)=='_') is=is+1
         xp=xx(ndots)+0.01*(tmax-tmin)
         call plchhq (xp,yy(ndots), filename(is:ie),
      &                       small_font,angle,left)
       enddo
- 
+
  100  call frame
 #ifdef POSTSCRIPT
       call gdawk(1)
@@ -284,7 +284,7 @@ c**       enddo
       end
 
 c--#define  POSTSCRIPT
- 
+
       subroutine set_new_color (icolor, maxcolor)
       implicit none
       integer*4 icolor, maxcolor
@@ -306,27 +306,27 @@ c--#define  POSTSCRIPT
       real*4 Hue,Sat,Val
       parameter (Sat=1., Val=1.)
 #endif
-      icolor=max(1,icolor)    ! Check, whether color index has been 
+      icolor=max(1,icolor)    ! Check, whether color index has been
       icolor=icolor+1         ! initialized, advance it, then define
-      if (maxcolor.gt.1) then
+      if (maxcolor>1) then
         frac=float(icolor-2)/float(maxcolor-1)-0.5
       else
-        frac=0.               ! fractional variable "frac" within the 
-      endif                   ! range -1/2 < frac < 1/2 
+        frac=0.               ! fractional variable "frac" within the
+      endif                   ! range -1/2 < frac < 1/2
 #ifdef POSTSCRIPT
       frac=15.5 + 28.999*frac
       ifrac=int(frac)
       frac=frac-float(ifrac)
-      write(*,*) 'set_new_color, ifrac,frac =', ifrac,frac 
+      write(*,*) 'set_new_color, ifrac,frac =', ifrac,frac
 
       R=(1.-frac)*RGB(1,ifrac)+frac*RGB(1,ifrac+1)
       G=(1.-frac)*RGB(2,ifrac)+frac*RGB(2,ifrac+1)
       B=(1.-frac)*RGB(3,ifrac)+frac*RGB(3,ifrac+1)
 #else
       Hue=135.-300.*frac            ! This algorithm sets bright,
-      if (Hue.lt.0.) then           ! the most distinctive colors,
+      if (Hue<0.) then           ! the most distinctive colors,
         Hue=Hue+360.                ! centered around grass green
-      elseif (Hue.gt.360.) then     ! (Hue=135) using color-wheel
+      elseif (Hue>360.) then     ! (Hue=135) using color-wheel
         Hue=Hue-360.                ! method.
       endif
       call hsvrgb (Hue,Sat,Val, R,G,B)
@@ -335,6 +335,5 @@ c--#define  POSTSCRIPT
       write(*,*) 'set_new_color, icolor=', icolor, 'R,G,B =', R,G,B
       call gscr (1, icolor, R,G,B)
       call gsplci (icolor)
-      return
       end
- 
+

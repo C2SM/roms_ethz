@@ -1,6 +1,30 @@
+# Ignore binaries and 
+# files enerated by compilation
 *.f
 *.o
 *~
 *.mod
 *.mod.f90
 *.for
+# machine-generated source files:
+check_srcs.F
+check_switches1.F
+setup_kwds.F
+Make.depend
+roms.tar
+# binaries
+checkkwds
+cross_matrix
+cppcheck
+mpc
+nccp
+nccpstruct
+ncextract
+ncjoin
+ncrename
+partit
+redefs
+roms
+srcscheck
+
+

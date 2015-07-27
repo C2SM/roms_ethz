@@ -19,7 +19,7 @@
 ! Because this module also contains type declarations for these
 ! bounds, it must be included just after the last type declaration
 ! inside a subroutine, but before the first executable statement.
-! 
+ 
 #ifdef EW_PERIODIC
 # undef istrU
 # define istrU istr

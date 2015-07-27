@@ -1,23 +1,21 @@
 #include "cppdefs.h"
 #if !defined GRID_LEVEL || GRID_LEVEL == 1
 
-!!    program main                   ! Open MP version of ROMS
-      implicit none                  ! driver with single parallel
-      real*8 tstart, tend            ! region using explicit barrier
-      integer ierr,  level,req_lev   ! synchronization.
+!!    program main               ! Open MP version of ROMS driver
+      implicit none              ! with single parallel region using
+      integer ierr               ! explicit barrier synchronization.
 # include "param.h"
 # ifdef MPI
+      real*8 tstart, tend
+C$    integer level,req_lev
 #  include "mpif.h"
-#ifdef SCRATCH_DIR
-      character*256 scr_cmd, outdir
-#endif
-
+c**   call system('uname -nmr')
       ierr=1 
 C$    req_lev=MPI_THREAD_MULTIPLE
 C$    call MPI_Init_thread (req_lev, level, ierr)
-C$    write(*,*) 'MPI thread support levels=', req_lev,level
+C$ !!   write(*,*) 'MPI thread support levels =', req_lev,level
 C$    ierr=0
-      if (ierr.eq.1) call MPI_Init (ierr)
+      if (ierr == 1) call MPI_Init(ierr)
 
       call mpi_setup (ierr)
 #ifdef SCRATCH_DIR
@@ -25,41 +23,44 @@ C$    ierr=0
       write(scr_cmd,'(2A)') 'make_tree ', trim(outdir)
       call system(scr_cmd)
       MPI_master_only print'(a/a)','Executed system command: ',scr_cmd
-#endif
+#endi
       tstart=MPI_Wtime()
-c**   call MPI_Test
-      if (ierr.ne.0) goto 100
+      if (ierr == 0) then
 # endif
-! Initialize global scalars, fast-time averaging weights for barotropic mode,
-! and launch the model in OpenMP parallel regime.
-      call init_scalars (ierr)
-      if (ierr.ne.0) goto 100
+        call init_scalars(ierr)          ! Initialize global scalars,
 # ifdef BIOLOGY_NPZDOC
+      if (ierr == 0) then
       call init_scalars_npzdoc(ierr)
-      if (ierr.ne.0) goto 100
+      endif
 #  ifdef BGC_FLUX_ANALYSIS
+      if (ierr == 0) then
       call init_scalars_bgcflux(ierr)
-      if (ierr.ne.0) goto 100 
+      endif 
 #  endif
-# endif /* BIOLOGY_NPZDOC */
+# endif
 # ifdef BIOLOGY_BEC
+      if (ierr == 0) then
       call init_scalars_bec(ierr)
-      if (ierr.ne.0) goto 100
+      endif 
 # endif
 # ifdef BIOLOGY_BEC2
+      if (ierr == 0) then
       call init_scalars_bec2(ierr)
-      if (ierr.ne.0) goto 100
+      endif 
 # endif
 # ifdef PHYS_FLUX_ANALYSIS
+      if (ierr == 0) then
       call init_scalars_physflux(ierr)
-      if (ierr.ne.0) goto 100 
-# endif /* PHYS_FLUX_ANALYSIS */
+      endif 
+# endif
+        if (ierr == 0) then              ! model tunable parameters,
 C$       call omp_set_dynamic(.false.)
-C$OMP PARALLEL
-      call roms_thread
-C$OMP END PARALLEL
- 100  continue
+C$OMP PARALLEL                           ! fast-time averaging weights
+          call roms_thread               ! for barotropic mode, and
+C$OMP END PARALLEL                       ! launch the model in OpenMP
+        endif                            ! parallel regime.
 # ifdef MPI
+      endif
       call MPI_Barrier(ocean_grid_comm, ierr)
 #  ifdef SCRATCH_DIR
       write(scr_cmd,'(3A)') 'move_tree ', trim(outdir), ' .'
@@ -68,9 +69,9 @@ C$OMP END PARALLEL
       write(scr_cmd,'(A,I4.4,A)') 'rm  out_', mynode, ' 2>/dev/null'
       call system(scr_cmd)
       MPI_master_only print'(a/a)','Executed system command: ',scr_cmd
-#  endif
+#  endi
       tend=MPI_Wtime()
-      MPI_master_only write(*,*) 'run_time =', tend-tstart
+      mpi_master_only write(*,*) 'MPI_run_time =', tend-tstart
       call MPI_Finalize (ierr)
 # endif
       stop
@@ -79,30 +80,26 @@ C$OMP END PARALLEL
 
       subroutine roms_thread
       implicit none
-      integer my_iic
+      integer my_ii
 # include "param.h"
 # include "scalars.h"
-
-        call start_timers ()
-        call roms_init
-        if (may_day_flag.ne.0) goto 99
-        do my_iic=1,ntimes+1
+                                         ! Note: Because there is
+      call start_timers()                ! a possibility of I/O error
+      call roms_init                     ! occurring on some MPI nodes,
+      if (may_day_flag /= 0) goto 99     ! but not simultaneously on
+      do iic=ntstart,ntstart+ntimes      ! all, exiting is deferred
+        diag_sync=.false.                ! until "may_day_flag" is
           call roms_step
-          if (may_day_flag.ne.0) goto 99
+        if (diag_sync .and. may_day_flag /= 0) goto 99
         enddo
-  99    call stop_timers()
-
-C$OMP BARRIER
-C$OMP MASTER
-        call closecdf
-C$OMP END MASTER
-      return
-      end
-
-
+  99  call stop_timers()                 ! summarized among all nodes
+C$OMP BARRIER                            ! and broadcasted by "diag"
+C$OMP MASTER                             ! [which sets diag_sync=T to
+      call closecdf                      ! signal that "may_day_flag"
+C$OMP END MASTER                         ! is in uniform state]. This
+      return                             ! is THE ONLY route to exit
+      end                                ! if something goes wrong.
 #endif
- 
- 
  
       subroutine roms_init
       implicit none
@@ -110,6 +107,7 @@ C$OMP END MASTER
 C$    integer omp_get_thread_num, omp_get_num_threads
 # include "param.h"
 # include "scalars.h"
+
 # include "sources.h"
 # include "ncvars.h"
 #ifdef FLOATS
@@ -118,16 +116,15 @@ C$    integer omp_get_thread_num, omp_get_num_threads
 # include "floats.h"
 # include "ncvars_floats.h"
 #endif
-
-      numthreads=1
+      numthreads=1 ; trd=0
 C$    numthreads=omp_get_num_threads()
-      trd=0
+      trd=
 C$    trd=omp_get_thread_num()
       proc(2)=trd
 
-      if (mod(NSUB_X*NSUB_E,numthreads).ne.0) then
+      if (mod(NSUB_X*NSUB_E,numthreads)/=0) then
 C$OMP MASTER
-        MPI_master_only write(stdout,'(/3(1x,A,I3),A/)')
+        mpi_master_only write(*,'(/3(1x,A,I3),A/)')
      &    '### ERROR: wrong choice of numthreads =', numthreads,
      &         'while NSUB_X =', NSUB_X, 'NSUB_E =', NSUB_E,'.'
         may_day_flag=8
@@ -135,45 +132,41 @@ C$OMP END MASTER
 C$OMP BARRIER
         goto 99 !-->  EXIT
       endif
- 
-      iic=0                     ! WARNING: This code is written
-      kstp=1                    ! under assumption that the scalars
-      knew=1                    ! on the left -- numthreads, iic,
+                                       ! NOTE: This code is written
+      iic=0  ; kstp=1 ; knew=1         ! under an assumption that all
 #ifdef SOLVE3D
-      iif=1                     ! kstp, knew, iif, nstp, nnew --
-      nstp=1                    ! belong to a  THREADPRIVATE common
-      nrhs=1                    ! block, so there no false sharing
-      nnew=1                    ! here.
-      nnew=1
+      iif=1  ; nstp=1                  ! the scalar variables assigned
+      nnew=1 ; nrhs=1                  ! on the left here are placed
 #endif
-      synchro_flag=.true.
-      priv_count=0
+      synchro_flag=.true.              ! into a THREADPRIVATE common
+      diag_sync=.false.                ! block so each thread must
+      priv_count=0                     ! assign them to same values.
 
       range=(NSUB_X*NSUB_E+numthreads-1)/numthreads
       my_first=trd*range
       my_last=min(my_first + range-1, NSUB_X*NSUB_E-1)
 #define my_tile_range my_first,my_last
  
-      do tile=my_tile_range      ! Initialize (FIRST-TOUCH) model
-        call init_arrays (tile)  ! global arrays (most of them are
-      enddo                      ! just set to to zero).
+      do tile=my_tile_range            ! Initialize or "first touch"
+        call init_arrays(tile)         ! global arrays (most of them
+      enddo                            ! are just set to to zero).
 C$OMP BARRIER
  
-!--> #define CR
+c--#define CR
 CR      write(*,*) '-11' MYID
  
  
 #ifdef ANA_GRID
-      do tile=my_tile_range       ! Set horizontal curvilinear grid
-        call ana_grid (tile)      ! and model bathymetry (analyticaly
-      enddo                       ! or read from GRID netCDF file).
-C$OMP BARRIER
+      do tile=my_tile_range            ! Set horizontal curvilinear
+        call ana_grid(tile)            ! grid and model bathymetry
+      enddo                            ! (either analytically or read
+C$OMP BARRIER                          ! from grid netCDF file).
 #else
 C$OMP MASTER
       call get_grid
 C$OMP END MASTER
 C$OMP BARRIER
-      if (may_day_flag.ne.0) goto 99 !-->  EXIT
+      if (may_day_flag/=0) goto 99 !-->  EXIT
 #endif
       do tile=my_tile_range          ! Compute various metric terms
         call setup_grid1 (tile)      ! and their combinations.
@@ -187,33 +180,33 @@ C$OMP BARRIER
 CR      write(*,*) '-9' MYID
  
 #ifdef SOLVE3D
-C$OMP MASTER                         ! Setup vertical grid-stretching
+C$OMP MASTER                           ! Setup vertical stretching
       call set_scoord                ! functions for S-coordinate
 C$OMP END MASTER                     ! system
 C$OMP BARRIER
-      if (may_day_flag.ne.0) goto 99
+      if (may_day_flag /=0 ) goto 99
 #endif
 CR      write(*,*) ' -8' MYID
  
-#if defined VIS_GRID || defined DIF_GRID
+#if (defined UV_VIS2 && defined VIS_GRID) ||\
+    (defined TS_DIF2 && defined DIF_GRID)
       do tile=my_tile_range          ! Rescale horizontal mixing
         call visc_rescale (tile)     ! coefficients according to
       enddo                          ! local grid size.
 C$OMP BARRIER
 CR      write(*,*) ' -7' MYID
 #endif
+
 #ifdef SOLVE3D
       do tile=my_tile_range          ! Create three-dimensional
         call set_depth (tile)        ! S-coordinate system, which
 #ifdef LMD_KPP
-# ifndef BIO_SWR_FRAC
-        call swr_frac (tile)
+        call swr_frac(tile)            ! may be needed by ana_init.
 # endif
-#endif
-      enddo                          ! may be needed by ana_initial.
+      enddo
 C$OMP BARRIER                        ! Here it is assumed that free
       do tile=my_tile_range          ! surface zeta is at rest state,
-        call grid_stiffness (tile)   ! 'zeta=0). Also find and report
+        call grid_stiffness(tile)      ! zeta=0). Also find and report
       enddo                          ! extremal values of topographic
 C$OMP BARRIER                        ! slope parameters "rx0", "rx1".
 CR      write(*,*) ' -6' MYID
@@ -228,89 +221,53 @@ CR      write(*,*) ' -6' MYID
       call ecosys2_init
 # endif
       ! Initialisation of lmd parameters (JDS)
-      call lmd_kpp_init
-                                     ! Set initial conditions for
+!      call lmd_kpp_init
 #ifdef ANA_INITIAL
-      do tile=my_tile_range          ! model prognostic variables,
-        call ana_initial (tile)      ! either analytically or read
-      enddo                          ! from netCDF file. Note that
-C$OMP BARRIER
-      if (nrrec.gt.0) then           ! because ana_initial may also
+      do tile=my_tile_range            ! Set initial conditions for
+        call set_forces(tile)          ! model prognostic variables,
+      enddo                            ! either analytically or read
+C$OMP BARRIER                          ! from netCDF file.  Note that
+      do tile=my_tile_range            ! analytical initialization
+        call ana_init(tile)            ! may require surface forcing
+      enddo                            ! fields (e.g, wind stress),
+C$OMP BARRIER                          ! so call forces first.
+      if (nrrec>0) then                ! Also note that ana_init may
 #endif
 #ifdef EXACT_RESTART
 C$OMP MASTER                         ! setup environmental variables
-        call get_initial (nrrec-1,2) ! (e.g. analytical boundary
+        call get_init(nrrec-1,2)       ! (e.g. analytical boundary
 C$OMP END MASTER                     ! forcing), call it first, even
-C$OMP BARRIER 
-                       ! in the case of restart run.
+C$OMP BARRIER                          ! in the case of restart run.
 # ifdef SOLVE3D
         do tile=my_tile_range
-          call set_depth (tile)     !<-- needed to initialize Hz_bak
+          call set_depth(tile)
         enddo
 C$OMP BARRIER
 # endif
 #endif
 C$OMP MASTER
-        call get_initial (nrrec, 1)
+        call get_init(nrrec, 1)
 C$OMP END MASTER
 #ifdef ANA_INITIAL
-      endif    !<-- nrrec.gt.0
+      endif    !<-- nrrec>0
 #endif
 C$OMP BARRIER
 
-#ifdef LMD_KPP
-# ifdef BIO_SWR_FRAC
-      ! Moved here as we need current chlorophyl to set swr_frac
-      call swr_frac (tile)
-# endif
-#endif
-
-!DL:initialize data structures related to age/dye tracers specified via
-! Netcdf files, if necessary:
 #if defined PASSIVE_TRACER && defined AGE_DYE_TRACER
       do tile=my_tile_range
          call init_agedye(tile)
       enddo
 C$OMP BARRIER
-      if (may_day_flag.ne.0) goto 99      !--> ERROR
+      if (may_day_flag /= 0) goto 99      !--> ERROR
 #endif
-
-!DL: give a warning if writing of avg/his files is not synchronized with
-! writing of restart files and ldefhis is set to true:
-#ifdef AVERAGES
-      if (nrpfavg.ne.0 .and. mod(nrecavg, nrpfavg).gt.0 
-     &   .and. ldefhis) then
-         MPI_master_only write (stdout,'(2a,i10,2a/)') 
-     &       'WARNING: first averages record will be ',
-     &       'written into record ', mod(nrecavg, nrpfavg)+1,
-     &       ' of average file ', avgname
-         MPI_master_only write (*,'(a,2(a/))') 
-     &   'You have chosen to create a NEW ', 
-     &   'average file by setting ldefhis to true.  ',
-     &   'Are you sure that this is what you want?'
-      end if
-#endif
-      if ( nrpfhis.ne.0 .and. mod(nrechis-1, nrpfhis).gt.0 
-     &     .and. ldefhis ) then
-         MPI_master_only write (stdout,'(2a,i10,2a/)') 
-     &       'WARNING: first history record will be',
-     &       'written into record ', mod(nrechis-1, nrpfhis)+1,
-     &       'of history file ', hisname
-         MPI_master_only write (*,'(a,2(a/))') 
-     &    'You have chosen to create a NEW ', 
-     &    'history file by setting ldefhis to true.  ',
-     &    'Are you sure that this is what you want?'
-      end if
-!End DL
-
-      if (may_day_flag.ne.0) goto 99      !--> ERROR
+      if (may_day_flag /= 0) goto 99      !--> ERROR
 CR      write(*,*) ' -5' MYID
                               ! Set initial model clock: at this
       time=start_time         ! moment "start_time" (global scalar)
-      tdays=time*sec2day      ! is set by get_initial or analytically
-                              ! --> copy it into threadprivate "time"
+      tdays=time*sec2day          ! is set by get_init or analytically
+                                  ! copy it into threadprivate "time"
 #ifdef SOLVE3D
-      do tile=my_tile_range       ! Re-compute three-dimensional S-
+      do tile=my_tile_range       ! recompute three-dimensional S-
         call set_depth (tile)     ! coordinate system: at this moment
       enddo                       ! free surface has non-zero status
 C$OMP BARRIER
@@ -332,14 +289,14 @@ CR      write(*,*)  ' -2' MYID
       call init_biopar               ! set up biogeochemical parameters
 # endif /* BIOLOGY_NPZDOC */
 #endif
-!
+
 ! Set up climatological environment: Set nudging coefficient for
 !==== == ============== ============ sea-surface hight and tracer
 ! climatology; create analytical tracer and sea-surface hight
 ! climatology fields (if applicable); set bottom sediment grain
 ! size [m] and density [kg/m^3] used for bottom boundary layer
 ! formulation;
-!
+
 #if defined SPONGE || defined TCLIMATOLOGY \
   || (defined SG_BBL96 && defined ANA_BSEDIM)\
   || (defined TCLIMATOLOGY && defined ANA_TCLIMA)\
@@ -362,11 +319,11 @@ CR      write(*,*)  ' -2' MYID
 C$OMP BARRIER
 #endif
 CR      write(*,*) ' -1' MYID
-!
+
 ! Read initial input data for forcing fields; tracer and sea surface
 ! climatology; bottom sediment grain size and density (if applicable)
-! from input netCDF files. Recall that CPP-logic here is mutually
-! exclussive with respect to cals ana_tclima, ana_ssh, and ana_bsedim
+! from input netCDF files.  Note that CPP-logic here is mutually
+! exclusive with respect to calls ana_tclima, ana_ssh, and ana_bsedim
 ! just above.
 !
 
@@ -393,10 +350,10 @@ C$OMP PARALLEL DO PRIVATE(tile)
 # endif /* BIOLOGY_NPZDOC */
 
 C$OMP MASTER
-        if (ldefhis .and. wrthis(indxTime)) call wrt_his
-#ifdef STATIONS
-        if (nstation.gt.0) def_station
+#ifdef ANA_GRID
+        call wrt_ana_grid
 #endif
+        if (ldefhis .and. wrthis(indxTime)) call wrt_his
 #ifdef FLOATS
 ! Initialization for Lagrangian floats
 !-------------------------------------------------------
@@ -428,19 +385,17 @@ C$OMP MASTER
 C$OMP END MASTER
 C$OMP BARRIER
 CR      write(*,*) '  0' MYID
-      if (may_day_flag.ne.0) goto 99     !-->  EXIT
+      if (may_day_flag /=0 ) goto 99     !-->  EXIT
 
 C$OMP MASTER
-      MPI_master_only call system (
-     &  'echo; echo MAIN: started time-stepping at `date`; echo')
+        mpi_master_only write(*,'(/1x,A/)')
+     &     'main :: initialization complete, started time-stepping.'
 C$OMP END MASTER
 
-      iic=ntstart-1
-!
-! Initialize child-grid model, if any. Note that this call
-! introduces recursive sequence, since child-grid model may
-! also have child on its own.
-!
+! Initialize child-grid model, if any. Note that this call introduces
+! recursive sequence, since child-grid model may also have child on its
+! own.
+
 #ifdef GRID_LEVEL
 # if GRID_LEVEL < MAX_GRID_LEVEL
 #  if GRID_LEVEL == 1
@@ -455,7 +410,7 @@ C$OMP END MASTER
   99  return
       end
 
-!
+
 !      *****    *********    ******   *******    *********
 !    ***   ***  *  ***  *   *   ***   ***   ***  *  ***  *
 !    ***           ***     **   ***   ***   ***     ***
@@ -463,7 +418,7 @@ C$OMP END MASTER
 !          ***     ***    *********   ******        ***
 !    ***   ***     ***    ***   ***   ***  **       ***
 !      *****       ***    ***   ***   ***   ***     ***
-!
+
  
       subroutine roms_step
       implicit none
@@ -491,17 +446,25 @@ C$OMP END MASTER
 #ifdef BIOLOGY_BEC
 # include "bec_avg.h"
 #endif
-
+ 
       trd=proc(2)
       range=(NSUB_X*NSUB_E+numthreads-1)/numthreads
       my_first=trd*range
       my_last=min(my_first + range-1, NSUB_X*NSUB_E-1)
 
-                                 ! increment time index anc clock
-      iic=iic+1 
-      time=start_time+dt*float(iic-ntstart)
+! Increment time-step index and set model clock. Note that "time" set
+! below corresponds to step "n" (denoted here as "nstp"), while counter
+! "iic" corresponds to "n+1", so normally, assuming that time is
+! counted from zero, the following relation holds: time=dt*(iic-1).
+!  Also note that the output history/restart/averages routines write
+! time and all the fields at step "n" (not n+1), while the first
+! element of structure "time_index" written into the files is actually
+! iic-1, hence normally time=time_index*dt there.  Same rule applies
+! to the diagnostic routine "diag" which prints time and time step
+! (actually iic-1) on the screen.
+
+      time=start_time+dt*float(iic-ntstart) !<-- corresp. to "nstp"
       tdays=time*sec2day
-   
 #ifdef SOLVE3D
       nstp=1+mod(iic-ntstart,2)
       nrhs=nstp
@@ -509,45 +472,38 @@ C$OMP END MASTER
 #endif
 
 #ifdef FLOATS
-      nfp1=MOD(nfp1+1,NFT+1)  ! Shift time indices
-      nf  =MOD(nf  +1,NFT+1)  ! for floats
-      nfm1=MOD(nfm1+1,NFT+1)
-      nfm2=MOD(nfm2+1,NFT+1)
-      nfm3=MOD(nfm3+1,NFT+1)
+      nfp1=mod(nfp1+1,NFT+1)           ! rotate time
+      nf  =mod(nf  +1,NFT+1)           ! indices for
+      nfm1=mod(nfm1+1,NFT+1)           ! floats
+      nfm2=mod(nfm2+1,NFT+1)
+      nfm3=mod(nfm3+1,NFT+1)
 C$OMP MASTER
       flt_str=0
 C$OMP END MASTER
 #endif
-
-      if (synchro_flag) then
-        synchro_flag=.false.
-C$OMP MASTER
-        call get_forces               ! Read forcing/climatology data
-C$OMP END MASTER
-C$OMP BARRIER
-        if (may_day_flag.ne.0) goto 99  !-->  EXIT
-      endif
- 
+                                       ! Read forcing and climatology
+      if (synchro_flag) then           ! data. This operation may raise
+        synchro_flag=.false.           ! "may_day_flag" in the case of
+C$OMP MASTER                           ! I/O errors which may occur on
+        call get_forces                ! some nodes, but not on all at 
+C$OMP END MASTER                       ! the same time.  Therefore to
+C$OMP BARRIER                          ! avoid MPI deadlock the exit is
+      endif                            ! deferred until after broadcast
+                                       ! of "may_day_flag" by diag.
 #ifdef SOLVE3D
-      do tile=my_tile_range                ! Interpolate forcing
-        call set_forces (tile)             ! date to model time and
+      do tile=my_tile_range                 ! interpolate forcing
+        call set_forces(tile)               ! data to model time and
 # if defined SSH_TIDES || defined UV_TIDES
         call set_tides  (tile)             ! compute surface fluxes.  
 # endif 
         call    rho_eos (tile)
         call    set_HUV (tile)
-        !JDS when setting ninfo to 0 we remove any output diagnostic
-        !coming from diag.F
-        if (ninfo .ne. 0) then
-                call diag (tile)
-        endif
+        if (ninfo > 0)  call diag(tile)
 #if defined BIOLOGY || defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC
 !        call   bio_diag (tile)
 #endif
       enddo
 C$OMP BARRIER
-      if (may_day_flag.ne.0) go to 99  !-->  EXIT
- 
  
       do tile=my_tile_range
         call omega (tile)
@@ -555,7 +511,6 @@ C$OMP BARRIER
         call ana_vmix (tile)
 # elif defined LMD_MIXING
         call lmd_vmix (tile)
-c        call lmd_kmix (tile)
 # elif defined BVF_MIXING
         call bvf_mix (tile)
 # endif
@@ -564,7 +519,6 @@ C$OMP BARRIER
 
       do tile=my_tile_range
         call     prsgrd (tile)
-        call      rhs3d (tile)
         call pre_step3d (tile)
 # ifdef PRED_COUPLED_MODE
 #  ifdef UV_VIS2
@@ -605,9 +559,8 @@ C$OMP BARRIER
       enddo
 C$OMP BARRIER
 
-      do tile=my_tile_range  ! sensitive
+      do tile=my_tile_range
         call     prsgrd (tile)
-        call      rhs3d (tile)
         call step3d_uv1 (tile)
 #  ifdef UV_VIS2
         call     visc3d (tile)
@@ -616,13 +569,11 @@ C$OMP BARRIER
 C$OMP BARRIER
 # endif
 #endif  /* SOLVE3D */
-!
+
 ! Output block: write restart/history files.
 !======= ====== ===== =============== ======
-!
-!DL: place following block before writing of rst file (to make
-! sure the correct values for nrec_bgc_flux_his etc are written
-! to rst files):
+
+!DL: place following block before writing of rst file:
 #ifdef BGC_FLUX_ANALYSIS
       if (iic > ntstart .and. n_bgc_flux_his > 0 .and. 
      &     mod(iic-ntstart, n_bgc_flux_his) == 0) then
@@ -630,7 +581,7 @@ C$OMP BARRIER
       end if
 # ifdef AVERAGES
       if (iic > ntstart .and. n_bgc_flux_avg > 0 .and. 
-     &     mod(iic-nts_bgc_flux_avg, n_bgc_flux_avg) == 0) then
+     &     mod(iic-ntstart, n_bgc_flux_avg) == 0) then
          nrec_bgc_flux_avg = nrec_bgc_flux_avg + 1
       end if
 # endif
@@ -642,85 +593,86 @@ C$OMP BARRIER
       end if
 # ifdef AVERAGES
       if (iic > ntstart .and. n_phys_flux_avg > 0 .and. 
-     &     mod(iic-nts_phys_flux_avg, n_phys_flux_avg) == 0) then
+     &     mod(iic-ntstart, n_phys_flux_avg) == 0) then
          nrec_phys_flux_avg = nrec_phys_flux_avg + 1
       end if
 # endif
 #endif /* PHYS_FLUX_ANALYSIS */
 
-      if ( iic.gt.ntstart .and. ( mod(iic-ntstart,nrst).eq.0
+      if ( iic>ntstart .and. ( mod(iic-ntstart,nrst)==0
 #ifdef EXACT_RESTART
-     &                        .or. mod(iic-ntstart+1,nrst).eq.0
+     &                        .or. mod(iic-ntstart+1,nrst)==0
 #endif
-     &   .or. (mod(iic-ntstart,nwrt).eq.0 .and. wrthis(indxTime))
+     &   .or. (mod(iic-ntstart,nwrt)==0 .and. wrthis(indxTime))
 #ifdef AVERAGES
-     &   .or. (mod(iic-ntsavg,navg).eq.0  .and. wrtavg(indxTime))
+     &   .or. (mod(iic-ntsavg,navg)==0  .and. wrtavg(indxTime))
 # ifdef SLICE_AVG
-     &   .or. ( mod(iic-ntsslavg,nslavg).eq.0  
+     &   .or. ( mod(iic-ntsslavg,nslavg) == 0  
      &           .and. wrtslavg(indxTime) )
 # endif
 # ifdef BGC_FLUX_ANALYSIS
-     &   .or. ( mod(iic-nts_bgc_flux_avg,n_bgc_flux_avg).eq.0 )
+     &   .or. ( mod(iic-nts_bgc_flux_avg,n_bgc_flux_avg)==0 )
 # endif
 # ifdef PHYS_FLUX_ANALYSIS
-     &   .or. ( mod(iic-nts_phys_flux_avg,n_phys_flux_avg).eq.0 )
+     &   .or. ( mod(iic-nts_phys_flux_avg,n_phys_flux_avg)==0 )
 # endif
 #endif /* AVERAGES */
 #ifdef BGC_FLUX_ANALYSIS
-     &   .or. ( mod(iic-ntstart,n_bgc_flux_his).eq.0 )
+     &   .or. ( mod(iic-ntstart,n_bgc_flux_his)==0 )
 #endif
 #ifdef PHYS_FLUX_ANALYSIS
-     &   .or. ( mod(iic-ntstart,n_phys_flux_his).eq.0 )
+     &   .or. ( mod(iic-ntstart,n_phys_flux_his)==0 )
 #endif
 #ifdef STATIONS
-     &   .or. (mod(iic-ntstart,nsta).eq.0 .and. nstation.gt.0)
+     &   .or. (mod(iic-ntstart,nsta)==0 .and. nstation>0)
 #endif
 #ifdef FLOATS
-     &   .or. (mod(iic-ntstart,nflt).eq.0 .and. nfloats.gt.0)
+     &   .or. (mod(iic-ntstart,nflt)==0 .and. nfloats>0)
 #endif
      &                                                  )) then
 C$OMP MASTER
-        if (mod(iic-ntstart,nrst).eq.0
+        if (mod(iic-ntstart,nrst)==0
 #ifdef EXACT_RESTART
-     &                      .or. mod(iic-ntstart+1,nrst).eq.0
+     &                      .or. mod(iic-ntstart+1,nrst)==0
 #endif
      &                                ) nrecrst=nrecrst+1
-        if (mod(iic-ntstart,nwrt).eq.0) nrechis=nrechis+1
+        if (mod(iic-ntstart,nwrt)==0) nrechis=nrechis+1
 #ifdef AVERAGES
-        if (mod(iic-ntsavg,navg) .eq.0) nrecavg=nrecavg+1
+        if (mod(iic-ntsavg,navg) == 0) nrecavg=nrecavg+1
 # ifdef SLICE_AVG
-        if (mod(iic-ntsslavg,nslavg) .eq.0) nrecslavg=nrecslavg+1
+        if (mod(iic-ntsslavg,nslavg) == 0) nrecslavg=nrecslavg+1
 # endif
 #endif
-
-
 #ifdef STATIONS
-        if (mod(iic-ntstart,nsta).eq.0) nrecsta=nrecsta+1
+        if (mod(iic-ntstart,nsta)==0) nrecstn=nrecstn+1
 #endif
 #ifdef FLOATS
-        if (mod(iic-ntstart,nflt).eq.0) nrecflt=nrecflt+1
+        if (mod(iic-ntstart,nflt)==0) nrecflt=nrecflt+1
 #endif
-        if (mod(iic-ntstart,nrst).eq.0
+        if (mod(iic-ntstart,nrst) == 0
 #ifdef EXACT_RESTART
-     &                      .or. mod(iic-ntstart+1,nrst).eq.0
+     &                      .or. mod(iic-ntstart+1,nrst)==0
 #endif
      &    ) call wrt_rst
-        if (mod(iic-ntstart,nwrt).eq.0 .and. wrthis(indxTime))
-     &      call wrt_his
+        if (mod(iic-ntstart,nwrt) == 0 .and. wrthis(indxTime)) then
+          call wrt_his
+c          if (iic>60) nwrt=1 !<-- useful for debugging
+        endif
+
 #ifdef AVERAGES
 # ifdef SLICE_AVG
-        if (mod(iic-ntsslavg,nslavg) .eq.0 .and. wrtslavg(indxTime))
-     &      call wrt_slice_avg
+        if (mod(iic-ntsslavg,nslavg) == 0 .and. wrtslavg(indxTime))
+     &      call wrt_slavg
 # endif
-        if (mod(iic-ntsavg,navg) .eq.0 .and. wrtavg(indxTime))
+        if (mod(iic-ntsavg,navg) == 0 .and. wrtavg(indxTime))
      &      call wrt_avg
 #endif
 #ifdef STATIONS
-        if (mod(iic-ntstart,nsta).eq.0 .and. nstation.gt.0)
-     &      call wrt_station
+        if (mod(iic-ntstart,nsta) == 0 .and. nstation>0)
+     &      call wrt_statn
 #endif
 #ifdef FLOATS
-        if (mod(iic-ntstart,nflt).eq.0 .and. nfloats.gt.0)
+        if (mod(iic-ntstart,nflt) == 0 .and. nfloats>0)
      &      call wrt_floats
         diagfloats=.false.
 #endif
@@ -760,31 +712,27 @@ C$OMP MASTER
 
 C$OMP END MASTER
 C$OMP BARRIER
-        if (may_day_flag .ne. 0)     goto 99   !-->  EXIT
-        if (iic-ntstart .gt. ntimes) goto 99   !-->  DONE
+        if (iic-ntstart > ntimes) goto 99   !-->  DONE
       endif
 
 #ifdef FLOATS
 ! flag for diagnostic computation (for writing at next time step)
-      if (mod(iic-ntstart,nflt).eq.0) then
+      if (mod(iic-ntstart,nflt)==0) then
         diagfloats=.true.
       endif
 #endif
 
-
+! Solve the 2D equations for the barotropic mode.
+!------ --- -- --------- --- --- ---------- -----
 #ifdef SOLVE3D
-!
-! Solve the 2D primitive equations for the barotropic mode.
-!------ --- -- --------- --------- --- --- ---------- -----
-!
       do iif=1,nfast
 #endif
 #define FORW_BAK
 #ifdef FORW_BAK
         kstp=knew                   ! This might look a bit silly,
-        knew=kstp+1                 ! since both branches of this
-        if (knew.gt.4) knew=1       ! if statement are identical.
-        if (mod(knew,2).eq.0) then  ! Nevertheless, it makes sense,
+        knew=kstp+1                    ! because both branches of this
+        if (knew > 4) knew=1           ! "if" statement are identical.
+        if (mod(knew,2) == 0) then     ! Nevertheless, it makes sense,
           do tile=my_tile_range     ! since mpc will reverse one of
 # ifndef SOLVE3D
             call set_forces (tile)  ! these loops to make zig-zag
@@ -817,11 +765,8 @@ C$OMP BARRIER
         enddo
 C$OMP BARRIER
 #endif
-#ifndef SOLVE3D
-        if (may_day_flag.ne.0) goto 99 !-->  EXIT
-#else
+#ifdef SOLVE3D
       enddo    ! <-- iif
- 
 
 # ifdef PRED_COUPLED_MODE
       do tile=my_tile_range      ! This code segment is for
@@ -839,17 +784,16 @@ C$OMP BARRIER
 C$OMP BARRIER
       do tile=my_tile_range
         call     prsgrd (tile)
-        call      rhs3d (tile)
         call step3d_uv1 (tile)
       enddo
 C$OMP BARRIER
 # endif
-                                   ! Continue solution of
-      do tile=my_tile_range        ! the three-dimensional
-        call step3d_uv2 (tile)     ! equations: finalize
-      enddo                        ! time step for momenta
-C$OMP BARRIER                      ! and tracers
-      do tile=my_tile_range
+
+      do tile=my_tile_range              ! Continue solution of
+        call step3d_uv2(tile)            ! the three-dimensional
+      enddo                              ! equations: finalize
+C$OMP BARRIER                            ! time step for momenta
+      do tile=my_tile_range              ! and tracers.
         call omega (tile)
         call step3d_t (tile)
 # if defined TS_DIF2 || defined TS_DIF4
@@ -861,7 +805,7 @@ C$OMP BARRIER
 
 #ifdef FLOATS
       chunk_size_flt=32
-      do while (flt_str.lt.nfloats)
+      do while (flt_str < nfloats)
 C$OMP CRITICAL
         Lstr=flt_str+1
         flt_str=Lstr+chunk_size_flt-1
@@ -885,8 +829,5 @@ c**    call step_floats (1,nfloats) ! serial version for debugging
       enddo
 # endif
 #endif
-
   99  return
       end
- 
- 

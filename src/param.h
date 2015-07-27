@@ -2,19 +2,17 @@
 !----------- -- -------- ---- --- ----- -----------
 ! LLm   Number of the internal points of the PHYSICAL grid in XI-
 ! MMm   and ETA-directions, excluding physical side boundary points,
-!       peroodic ghost points, and MPI-margins (if any). 
+!       peroodic ghost points, and MPI-margins (if any).
 !
 ! Lm    Number of the internal points [see above] of array covering
-! Mm    a single MPI-subdomain.  These are identical to LLm,MMm there 
-!       is no MPI-partitioning. 
-!
-      integer  LLm, MMm, N
-# if defined GRID_LEVEL && GRID_LEVEL < MAX_GRID_LEVEL
-     &    , imin_child,imax_child, jmin_child,jmax_child
-# endif
-      parameter (
+! Mm    a single MPI-subdomain.  These are identical to LLm, MMm if
+!       there is no MPI-partitioning.
+
+      integer, parameter ::
 #if defined BASIN
      &               LLm=180, MMm=140, N=12
+#elif defined GRID_SIZE
+     &               GRID_SIZE ! LLm, MMm, N are set in cppdefs
 #elif defined CANYON_A
      &               LLm=65,  MMm=48,  N=10
 #elif defined CANYON_B
@@ -22,52 +20,65 @@
 #elif defined DAMEE_B
      &               LLm=128, MMm=128, N=20
 c**  &               LLm=256, MMm=256, N=20
+#elif defined EKMAN_SPIRAL
+     &               LLm=2, MMm=2, N=30
+
 #elif defined GRAV_ADJ
-     &               LLm=128, MMm=2,   N=32
-c     &               LLm=256, MMm=2,   N=64
+     &               LLm=160, MMm=2,   N=40
+
+#elif defined COLD_FILAMENT
+     &               LLm=400, MMm=2,   N=40
+c     &                LLm=800, MMm=2,   N=80
 #elif defined NJ_BIGHT
 c*   &               LLm=98,  MMm=206, N=12
      &               LLm=24,  MMm=34,  N=10
 #elif defined PACIFIC
-     &               LLm=2, MMm=2, N=32
+
 c    &               LLm=384, MMm=224, N=30
 c    &               LLm=392, MMm=288, N=30
+
 c    &               LLm=432, MMm=320, N=32
-c     &               LLm=488, MMm=360, N=32
-c    &               LLm=768, MMm=512, N=40
+c     &               LLm=488, MMm=360, N=40  ! PAC44
+     &                 LLm=976, MMm=720, N=40 ! PAC22
+
+c     &               LLm=460, MMm=240, N=50  ! PACSMA grid
 #elif defined ONE_DIM
      &               LLm=2, MMm=2, N=32
-#elif defined ATL360X408
-     &               LLm=360,  MMm=408,  N=32
-#elif defined ATL50S70N
-     &               LLm=360,  MMm=468,  N=32
 
 #elif defined PACIFIC_2D
      &               LLm=768, MMm=512, N=1
 c    &               LLm=1520, MMm=1088, N=1
 
+#elif defined SO
+     &               LLm=720, MMm=216, N=42
+c     &               LLm=1440, MMm=432, N=42
+c     &               LLm=2880, MMm=864, N=42
+
+
 #elif defined OVERFLOW
      &               LLm=4,   MMm=128, N=20
 #elif defined SEAMOUNT
-     &               LLm=40,  MMm=40,  N=20
+     &               LLm=41,  MMm=41,  N=30
 c     &               LLm=80,  MMm=80,  N=30
 c    &               LLm=192, MMm=96,  N=22
 #elif defined ISWAKE
 c     &               LLm=192, MMm=84, N=20
 c     &               LLm=384, MMm=168, N=20
-     &               LLm=360, MMm=160, N=10
+c     &               LLm=720, MMm=160, N=2
+c     &              LLm=768, MMm=192, N=2
+     &              LLm=1920, MMm=384, N=2
+c     &               LLm=1440, MMm=320, N=2
 c     &               LLm=768, MMm=336, N=20
-c     &              LLm=1536, MMm=672, N=20 
+c     &              LLm=1536, MMm=672, N=20
 #elif defined SHELFRONT
      &               LLm=4,   MMm=40,  N=12
 #elif defined SOLITON
 c     &               LLm=96,  MMm=32,  N=1
-c     &                 LLm=97, MMm=33, N=1
 c     &               LLm=192, MMm=64,  N=1
      &               LLm=384, MMm=128, N=1
 c     &                LLm=576, MMm=192, N=1
 c     &               LLm=768, MMm=256, N=1
-#elif defined BRAZIL 
+#elif defined BRAZIL
      &               LLm=168, MMm=272, N=40
 
 #elif defined TASMAN_SEA
@@ -76,8 +87,15 @@ c     &               LLm=768, MMm=256, N=1
      &               LLm=40,  MMm=160,  N=16
 c     &                LLm=60,  MMm=240,  N=24
 #elif defined UPWELLING
-     &               LLm=20,  MMm=80,  N=16
+c     &                 LLm=20,  MMm=80,  N=16
+     &                 LLm=20,  MMm=128,  N=40
+
+
+c     &               LLm=20,  MMm=80,  N=32
 #elif defined CANBAS2
+c     &                LLm=224, MMm=288, N=32      ! CanBas
+c     &                LLm=225, MMm=328, N=32      ! NEA_EXT
+c     &                LLm=384, MMm=480, N=32      ! GranCan
      &                LLm=1200, MMm=1800, N=42      ! UNPR
 #elif defined SPIRAL
      &                LLm=694, MMm=972, N=84      ! SPIRAL
@@ -85,17 +103,26 @@ c     &                LLm=60,  MMm=240,  N=24
      &                LLm=1840, MMm=960, N=32      ! PAC_big
 #elif defined ATLSMA
      &                LLm= 420, MMm= 560, N=42      ! ATLSMA
+
+#elif defined BALTIC
+     &                LLm=440, MMm=384, N=32
+
 #elif defined HUMBOLDT
      &               LLm=384, MMm=800, N=30       ! SAWC 8 km
 #elif defined HBCS60
      &               LLm=119, MMm=215, N=20       ! 25km test setup
 #elif defined HBCS5
      &               LLm=399, MMm=616, N=32       ! 5km setup
-#elif defined SAWC                                
-     &               LLm=384, MMm=800, N=32       ! HBCS 7.5km setup
-c     &                LLm=191, MMm=399, N=32       ! HBCS 15km setup
-c     &                LLm=90, MMm=198, N=32        !HBCS 30km setup
-c     &                LLm=46, MMm=98, N=32         !HBCS 60km setup
+#elif defined SAWC
+     &               LLm=384, MMm=800, N=30       ! HBCS 7.5km setup
+c================   ALEX
+#elif defined SO_d05
+     &               LLm=720,  MMm=216, N=42     ! SO_d05
+#elif defined SO_d025
+     &               LLm=1440, MMm=432, N=42     ! SO_d025
+#elif defined SO_d0125
+     &               LLm=2880, MMm=864, N=42     ! SO_d0125
+c================
 #elif defined USWEST
 # ifdef GRID_LEVEL
 #  if GRID_LEVEL == 1
@@ -103,236 +130,199 @@ c     &                LLm=46, MMm=98, N=32         !HBCS 60km setup
      &               imin_child=40,  imax_child=71,  ! Level 1, 15 km
      &               jmin_child=54,  jmax_child=117
 #  elif GRID_LEVEL == 2
-     &               LLm=93,  MMm=189, N=20          ! Level 2, 5 km 
-#  endif 
-# else  
+     &               LLm=93,  MMm=189, N=20          ! Level 2, 5 km
+#  endif
+# else
 
-                     
+
 c>>  &               LLm=72,   MMm=240, N=32    ! PEC2 of Xavier
-c**  &               LLm=62,   MMm=126, N=40    ! SCB L0 grid 
+c**  &               LLm=62,   MMm=126, N=40    ! SCB L0 grid
 c**  &               LLm=83,   MMm=168, N=20    ! MB_L1
-c**  &               LLm=126,  MMm=254, N=20    ! USWEST grid 16 
+c**  &               LLm=126,  MMm=254, N=20    ! USWEST grid 16
      &               LLm=62,   MMm=126, N=20    ! USWEST grid 15 (20 km)
 !HF     &               LLm=312,  MMm=512, N=32    ! USW8 - lev0, 8km
+     &               LLm=312,  MMm=512, N=32    ! USW51 - lev0
 
 # endif /* GRID_LEVEL */
 #elif defined USWC_CENTRAL
-c     &               LLm=20, MMm=40, N=32      !60km config
-c     &               LLm=83, MMm=168, N=20
-c     &               LLm=80, MMm=168, N=32    ! 15km
-     &               LLm=248, MMm=504, N=32   ! new 5km config
+     &               LLm=20, MMm=40, N=32        ! 60km config
+c**     &               LLm=80, MMm=168, N=32       ! 15km config
+c**     &               LLm=248, MMm=504, N=32      ! 5km config
+c**     &               LLm=248, MMm=504, N=42      ! 5km config
+#elif defined PACTC
+     &               LLm=416, MMm=346, N=42      ! 5km-66km telescopic
 #elif defined WAVE_RAD
      &              LLm=384,  MMm=384, N=1
 #else
      &                LLm=??, MMm=??, N=??
 #endif
-     &                                     )
-!
+
+
 ! Domain subdivision parameters:
 !------- ----------- -----------
-! NNODES          total number of MPI processes (nodes);
-! NP_XI,  NP_ETA  number of MPI subdomains in XI-, ETA-directions;
-! NSUB_X, NSUB_E  number of shared memory subdomains (tiles) in
-!                                      XI- and ETA-directions;
-      integer NSUB_X, NSUB_E
+! NNODES             total number of MPI processes (nodes);
+! NP_XI,  NP_ETA     number of MPI subdomains in XI-, ETA-directions;
+! NSUB_X, NSUB_E     number of shared memory subdomains (tiles) in
+!                                             XI- and ETA-directions;
+      integer, parameter ::
 #ifdef MPI
-      integer NP_XI, NP_ETA, NNODES
-cc      parameter (NP_XI=4, NP_ETA=8, NSUB_X=3, NSUB_E=5)
-cc      parameter (NP_XI=4, NP_ETA=48, NSUB_X=1, NSUB_E=1) ! SPIRAL
-cc      parameter (NP_XI=4, NP_ETA=48, NSUB_X=1, NSUB_E=1) ! UNPR newcluster
-cc      parameter (NP_XI=6, NP_ETA=32, NSUB_X=1, NSUB_E=1) ! PACBIG newcluster
-# ifdef ATLSMA
-!mm uclaatlsma        parameter (NP_XI=2, NP_ETA=16, NSUB_X=1, NSUB_E=1) ! ATLSMA newcluster
-        parameter (NP_XI=4, NP_ETA=16, NSUB_X=1, NSUB_E=1) ! ATLSMA newcluster
-# endif
-# ifdef HUMBOLDT
-      parameter (NP_XI=2, NP_ETA=16, NSUB_X=1, NSUB_E=1)
+# ifdef DOMAIN_TILING /* tiling parameter are set in cppdefs */
+     &  DOMAIN_TILING 
+# elif defined SO_d05
+     &   NP_XI=8, NP_ETA=36, NSUB_X=1, NSUB_E=1
+# elif defined SO_d025
+     &   NP_XI=16, NP_ETA=24, NSUB_X=1, NSUB_E=1
+# elif defined SO_d0125
+     &   NP_XI=32, NP_ETA=12, NSUB_X=1, NSUB_E=1
+# elif defined ATLTC25 || ATLEL25
+     &   NP_XI=12, NP_ETA=16, NSUB_X=1, NSUB_E=1
+# elif defined ATLSMA
+     &   NP_XI=4, NP_ETA=16, NSUB_X=1, NSUB_E=1
+# elif defined HUMBOLDT
+     &    NP_XI=2, NP_ETA=16, NSUB_X=1, NSUB_E=1
 # elif defined HBCS60
-      parameter (NP_XI=8, NP_ETA=8, NSUB_X=1, NSUB_E=1)
+     &    NP_XI=8, NP_ETA=8, NSUB_X=1, NSUB_E=1
 # elif defined HBCS5
-      parameter (NP_XI=8, NP_ETA=8, NSUB_X=1, NSUB_E=1)    
+     &    NP_XI=8, NP_ETA=8, NSUB_X=1, NSUB_E=1
 # elif defined SAWC
-      parameter (NP_XI=4, NP_ETA=16,NSUB_X=1, NSUB_E=1)
-c      parameter (NP_XI=2, NP_ETA=8, NSUB_X=1, NSUB_E=1)
-c      parameter (NP_XI=1, NP_ETA=4, NSUB_X=1, NSUB_E=1)
+     &    NP_XI=4, NP_ETA=16, NSUB_X=1, NSUB_E=1
 # elif defined USWC_CENTRAL
-!      parameter (NP_XI=1, NP_ETA=4, NSUB_X=1, NSUB_E=1)
-!      parameter (NP_XI=2, NP_ETA=12, NSUB_X=1, NSUB_E=1)
-      parameter (NP_XI=8, NP_ETA=27, NSUB_X=1, NSUB_E=1)
+!    &    NP_XI=1, NP_ETA=4, NSUB_X=1, NSUB_E=1
+     &    NP_XI=10, NP_ETA=24, NSUB_X=1, NSUB_E=1
+# elif defined PACSG
+     &    NP_XI=10, NP_ETA=24, NSUB_X=1, NSUB_E=1
+# elif defined USWC_CENTRAL
+     &    NP_XI=2, NP_ETA=4, NSUB_X=1, NSUB_E=1  ! 60km 
+c     &    NP_XI=4, NP_ETA=24, NSUB_X=1, NSUB_E=1  ! 15km & 5km 
+# elif defined USTC90
+     &    NP_XI=8, NP_ETA=12, NSUB_X=1, NSUB_E=1
 # else
-      parameter (NP_XI=4, NP_ETA=8, NSUB_X=1, NSUB_E=1)
-# endif
-      parameter (NNODES=NP_XI*NP_ETA)
-#else
-c        parameter (NSUB_X=4, NSUB_E=60)
-      parameter (NSUB_X=1, NSUB_E=1)
-!       parameter (NSUB_X=2, NSUB_E=22)
+     &      NP_XI=16, NP_ETA=18, NSUB_X=1, NSUB_E=1
+!--> Sasha orig     &      NP_XI=2, NP_ETA=2, NSUB_X=2, NSUB_E=13
+c     &      NSUB_X=4, NSUB_E=40  ! PAC44
+c     &      NSUB_X=8, NSUB_E=80   ! PAC22
+c     &      NSUB_X=2, NSUB_E=8  ! <-- iswake 768x192
+# endif /* DOMAIN_TILING */
 #endif
-!
+
 ! Array dimensions and bounds of the used portions of sub-arrays
-!
-      integer Lm,Mm, irc
+
 #ifdef MPI
-      parameter (Lm=(LLm+NP_XI-1)/NP_XI, Mm=(MMm+NP_ETA-1)/NP_ETA)
-      logical west_inter, east_inter, south_inter, north_inter
-      integer ocean_grid_comm, mynode, iwest, ieast, jsouth, jnorth,
-     &                                 iSW_corn,     jSW_corn
-      common /mpi_comm_vars/  ocean_grid_comm, mynode, iwest, ieast,
-     &        jsouth, jnorth, iSW_corn, jSW_corn, irc,
-     &        west_inter, east_inter, south_inter, north_inter
+      integer, parameter :: NNODES=NP_XI*NP_ETA,
+     &    Lm=(LLm+NP_XI-1)/NP_XI, Mm=(MMm+NP_ETA-1)/NP_ETA
+
+      integer ocean_grid_comm, mynode,  iSW_corn, jSW_corn,
+     &                         iwest, ieast, jsouth, jnorth
+# ifndef EW_PERIODIC
+      logical west_exchng,  east_exchng
+# endif
+# ifndef NS_PERIODIC
+      logical south_exchng, north_exchng
+# endif
+      common /mpi_comm_vars/  ocean_grid_comm, mynode,
+     &     iSW_corn, jSW_corn, iwest, ieast, jsouth, jnorth
+# ifndef EW_PERIODIC
+     &                , west_exchng,  east_exchng
+# endif
+# ifndef NS_PERIODIC
+     &                , south_exchng, north_exchng
+# endif
 #else
-      parameter (Lm=LLm, Mm=MMm, irc=1)
+      integer, parameter :: Lm=LLm, Mm=MMm
 #endif
 
-!
-! Number of tracers and tracer identification indices:
-!------- -- ------- --- ------ -------------- --------
-!
-#ifdef SOLVE3D
-      integer NT, itemp, ntrc_salt, ntrc_pas, ntrc_bio
-# ifdef SALINITY
-     &          , isalt
-# endif
-# if defined BIOLOGY || defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC \
-     || defined BIOLOGY_BEC2
-     &          , itrc_bio
-#  ifdef SEDIMENT_BIOLOGY
-     &     , NT_sed
-#  endif
-# endif /* BIOLOGY || BIOLOGY_NPZDOC || BIOLOGY_BEC || BIOLOGY_BEC2 */
-# ifdef BIOLOGY
-     &          , iNO3_, iNH4_, iDet_, iPhyt, iZoo_
-# endif
-# ifdef BIOLOGY_NPZDOC
-     &          , iNO3_, iNH4_, iChla, iPhyt, iZoo_
-     &          , iSDet, iLDet
-#  ifdef OXYGEN
-     &          , iO2
-#   ifdef CARBON
-     &          , iDIC, iTALK, iSDetC, iLDetC, iCaCO3
-#   endif /* CARBON */
-#  endif /* OXYGEN */
-#  ifdef SEDIMENT_BIOLOGY
-     &          , iSedOrgN
-#   ifdef CARBON
-     &          , iSedOrgC, iSedCaCO3
-#   endif /* CARBON */
-#  endif /* SEDIMENT_BIOLOGY */
-# endif /* BIOLOGY_NPZDOC */
-# ifdef BIOLOGY_BEC
-     &     ,iPO4,iNO3,iSIO3,iNH4,iFE,iO2,iDIC,
-     &     iALK,iDOC,iSPC,iSPCHL,iSPCACO3,iDIATC,
-     &     iDIATCHL,iZOOC,iSPFE,iDIATSI,iDIATFE,iDIAZC,
-     &     iDIAZCHL,iDIAZFE,iDON,iDOFE,iDOP
-# endif /* BIOLOGY_BEC */
-# ifdef BIOLOGY_BEC2
-           ! non-autotroph relative tracer indices:
-     &     ,iPO4,iNO3,iSIO3,iNH4,iFE,iO2,iDIC,
-     &     iALK,iDOC,iDON,iDOFE,iDOP,iDOPR,iDONR,iZOOC,
-           ! autotroph indices:
-     &     iSPCHL,iSPC,iSPFE,iSPCACO3,iDIATCHL,iDIATC,iDIATFE,
-     &     iDIATSI,iDIAZCHL,iDIAZC,iDIAZFE
-# endif /* BIOLOGY_BEC2 */
-      parameter (itemp=1
-# ifdef SALINITY
-     &           , isalt=2, ntrc_salt=1
-# else
-     &           , ntrc_salt=0
-# endif
-     &     )
-# ifdef PASSIVE_TRACER
-      parameter (ntrc_pas=20)
-      integer itpas(ntrc_pas)
-      common /pass_tracer/ itpas
-# else
-      parameter (ntrc_pas=0)
-# endif
+! Derived dimension parameters, number of tracers and tracer
+! identification indices:
 
-# ifdef BIOLOGY
-      parameter (ntrc_bio=5, itrc_bio=itemp+ntrc_salt+ntrc_pas+1
-     &           , iNO3_=itrc_bio, iNH4_=iNO3_+1, iDet_=iNO3_+2
-     &           , iPhyt=iNO3_+3, iZoo_=iNO3_+4)
-# elif defined BIOLOGY_NPZDOC
-      parameter (itrc_bio=itemp+ntrc_salt+ntrc_pas+1) 
-      parameter (iNO3_=itrc_bio, 
-     &            iNH4_=iNO3_+1, iChla=iNO3_+2, iPhyt=iNO3_+3,
-     &            iZoo_=iNO3_+4, iSDet=iNO3_+5, iLDet=iNO3_+6)
+      integer, parameter :: padd_X=(Lm+2)/2-(Lm+1)/2,
+     &                      padd_E=(Mm+2)/2-(Mm+1)/2
+#ifdef SOLVE3D
+     &       , itemp=1
+# ifdef PASSIVE_TRACER
+     &, ntrc_pas=4
+! in pre 2015 code:     &, itpas(ntrc_pas)
+! in pre 2015 code:     common /pass_tracer/ itpas
+# else 
+     &, ntrc_pas=0
+# endif /* PASSIVE_TRACER */
+# ifdef SALINITY
+     &       , isalt=2, ntrc_salt=1
+     &       , itrc_bio=itemp+ntrc_salt+ntrc_pas+1 
+#  ifdef BIOLOGY
+     &       , ntrc_bio=5
+     &       , iNO3_=3, iNH4_=4, iDet_=5, iPhyt=6, iZoo_=7
+#  elif defined BIOLOGY_NPZDOC
+     &       , iNO3_=itrc_bio
+     &       , iNH4_=iNO3_+1, iChla=iNO3_+2, iPhyt=iNO3_+3
+     &       , iZoo_=iNO3_+4, iSDet=iNO3_+5, iLDet=iNO3_+6
 #   ifdef OXYGEN
-      parameter(iO2 = iLDet + 1) ! Oxygen
+     &       , iO2 = iLDet + 1     ! Oxygen
 #    ifdef CARBON
-      parameter(iDIC = iO2 + 1)      ! Total inorganic carbon
-      parameter(iTALK = iDIC + 1)    ! Alkalinity 
-      parameter(iSDetC = iTALK + 1)  ! Small detritus carbon
-      parameter(iLDetC = iSDetC + 1) ! Large detritus carbon
-      parameter(iCaCO3 = iLDetC + 1) ! CaCO3
-      parameter (ntrc_bio = 13)
+     &       , iDIC = iO2 + 1      ! Total inorganic carbon
+     &       , iTALK = iDIC + 1    ! Alkalinity 
+     &       , iSDetC = iTALK + 1  ! Small detritus carbon
+     &       , iLDetC = iSDetC + 1 ! Large detritus carbon
+     &       , iCaCO3 = iLDetC + 1 ! CaCO3
+     &       , ntrc_bio = 13
 #    else /* CARBON */
-      parameter (ntrc_bio = 8)
+     &       , ntrc_bio = 8
 #    endif /* CARBON */
 #   else /* OXYGEN */
-      parameter (ntrc_bio = 7)
+     &       , ntrc_bio = 7
 #   endif /* OXYGEN */
-#  ifdef SEDIMENT_BIOLOGY
-      parameter(iSedOrgN = 1)
-#   ifdef CARBON
-      parameter(iSedOrgC = iSedOrgN + 1)
-      parameter(iSedCaCO3 = iSedOrgC + 1)
-      parameter (NT_sed=3)
-#   else
-      parameter (NT_sed=1)
-#   endif
-#  endif /* SEDIMENT_BIOLOGY */
+#   ifdef SEDIMENT_BIOLOGY
+     &       , iSedOrgN = 1
+#    ifdef CARBON
+     &       , iSedOrgC = iSedOrgN + 1
+     &       , iSedCaCO3 = iSedOrgC + 1
+     &       , NT_sed=3
+#    else
+      &      , NT_sed=1
+#    endif
+#   endif /* SEDIMENT_BIOLOGY */
 # elif defined BIOLOGY_BEC
-      parameter (itrc_bio=itemp+ntrc_salt+ntrc_pas+1) 
-      parameter (iPO4=itrc_bio, 
-     &            iNO3=iPO4+1, iSIO3=iPO4+2, iNH4=iPO4+3,
-     &            iFE=iPO4+4, iO2=iPO4+5, iDIC=iPO4+6,
-     &            iALK=iPO4+7, iDOC=iPO4+8, iSPC=iPO4+9,
-     &            iSPCHL=iPO4+10, iSPCACO3=iPO4+11, iDIATC=iPO4+12,
-     &            iDIATCHL=iPO4+13, iZOOC=iPO4+14, iSPFE=iPO4+15,
-     &            iDIATSI=iPO4+16, iDIATFE=iPO4+17, iDIAZC=iPO4+18,
-     &            iDIAZCHL=iPO4+19, iDIAZFE=iPO4+20, iDON=iPO4+21,
-     &            iDOFE=iPO4+22, iDOP=iPO4+23)
-      parameter (ntrc_bio=24)
+     &       , iPO4=itrc_bio, 
+     &       , iNO3=iPO4+1, iSIO3=iPO4+2, iNH4=iPO4+3
+     &       , iFE=iPO4+4, iO2=iPO4+5, iDIC=iPO4+6
+     &       , iALK=iPO4+7, iDOC=iPO4+8, iSPC=iPO4+9
+     &       , iSPCHL=iPO4+10, iSPCACO3=iPO4+11, iDIATC=iPO4+12
+     &       , iDIATCHL=iPO4+13, iZOOC=iPO4+14, iSPFE=iPO4+15
+     &       , iDIATSI=iPO4+16, iDIATFE=iPO4+17, iDIAZC=iPO4+18
+     &       , iDIAZCHL=iPO4+19, iDIAZFE=iPO4+20, iDON=iPO4+21
+     &       , iDOFE=iPO4+22, iDOP=iPO4+23
+     &       , ntrc_bio=24
 # elif defined BIOLOGY_BEC2
-      parameter (itrc_bio=itemp+ntrc_salt+ntrc_pas+1) 
-      parameter (iPO4=itrc_bio, 
-     &            iNO3=iPO4+1, iSIO3=iPO4+2, iNH4=iPO4+3,
-     &            iFE=iPO4+4, iO2=iPO4+5, iDIC=iPO4+6,
-     &            iALK=iPO4+7,iDOC=iPO4+8,iDON=iPO4+9,
-     &            iDOFE=iPO4+10,iDOP=iPO4+11,iDOPR=iPO4+12,
-     &            iDONR=iPO4+13,iZOOC=iPO4+14,
-     &            iSPCHL=iPO4+15,iSPC=iPO4+16,iSPFE=iPO4+17,
-     &            iSPCACO3=iPO4+18,iDIATCHL=iPO4+19,iDIATC=iPO4+20,
-     &            iDIATFE=iPO4+21,iDIATSI=iPO4+22,iDIAZCHL=iPO4+23,
-     &            iDIAZC=iPO4+24,iDIAZFE=iPO4+25)
-      parameter (ntrc_bio=26)
-# else
-      parameter (ntrc_bio=0)
-# endif /* BIOLOGY */
-
-
-      parameter (NT=itemp+ntrc_salt+ntrc_pas+ntrc_bio)
-
-#endif /*SOLVE3D */
-
+     &       , iPO4=itrc_bio
+     &       , iNO3=iPO4+1, iSIO3=iPO4+2, iNH4=iPO4+3
+     &       , iFE=iPO4+4, iO2=iPO4+5, iDIC=iPO4+6
+     &       , iALK=iPO4+7, iDOC=iPO4+8, iDON=iPO4+9
+     &       , iDOFE=iPO4+10, iDOP=iPO4+11, iDOPR=iPO4+12
+     &       , iDONR=iPO4+13, iZOOC=iPO4+14
+     &       , iSPCHL=iPO4+15, iSPC=iPO4+16, iSPFE=iPO4+17
+     &       , iSPCACO3=iPO4+18, iDIATCHL=iPO4+19, iDIATC=iPO4+20
+     &       , iDIATFE=iPO4+21, iDIATSI=iPO4+22, iDIAZCHL=iPO4+23
+     &       , iDIAZC=iPO4+24, iDIAZFE=iPO4+25
+     &       , ntrc_bio=26
+#  else  /* ifdef BIOLOGY */
+     &       , ntrc_bio=0
+#  endif /* BIOLOGY */
+# else /* ifdef SALINITY */
+     &       , ntrc_salt=0
+#  ifdef BIOLOGY
+     &       , iNO3_=itrc_bio, iNH4_=3, iDet_=4, iPhyt=5, iZoo_=6
+#  else
+     &       , ntrc_bio=0
+#  endif
+# endif
+#endif
+     &       , NT=itemp+ntrc_salt+ntrc_pas+ntrc_bio
 
 #ifdef PSOURCE
-      integer Msrc         ! Number of point sources, if any
-      parameter (Msrc=10)
+     &       , Msrc=10   ! Number of point sources
 #endif
 #ifdef STATIONS
-      integer NS           ! Number of output stations (if any).
-      parameter (NS=5)
+     &       , NS=5      ! Number of output stations
 #endif
 #ifdef FLOATS
-       integer Mfloats          ! Maximum number of floats
-       parameter (Mfloats=32000)! ====== == ====== ========
+     &       , Mfloats=32000 ! Maximum number of floats
 #endif
-!
-! Derived dimension parameters.
-!
-      integer stdout, padd_X,padd_E
-      parameter (stdout=6, padd_X=(Lm+2)/2-(Lm+1)/2,
-     &                     padd_E=(Mm+2)/2-(Mm+1)/2)
- 

@@ -37,12 +37,19 @@ CSDISTRIBUTE_RESHAPE h(BLOCK_PATTERN) BLOCK_CLAUSE
 CSDISTRIBUTE_RESHAPE f(BLOCK_PATTERN) BLOCK_CLAUSE
       real fomn(GLOBAL_2D_ARRAY)
 CSDISTRIBUTE_RESHAPE fomn(BLOCK_PATTERN) BLOCK_CLAUSE
-      common /grid_h/h /grid_hinv/hinv /grid_f/f /grid_fomn/fomn
+      common /grd_h/h /grd_hinv/hinv /grd_f/f /grd_fomn/fomn
+# ifdef NON_TRADITIONAL
+      real f_XI(GLOBAL_2D_ARRAY)
+CSDISTRIBUTE_RESHAPE f_XI(BLOCK_PATTERN) BLOCK_CLAUSE
+      real f_ETA(GLOBAL_2D_ARRAY)
+CSDISTRIBUTE_RESHAPE f_ETA(BLOCK_PATTERN) BLOCK_CLAUSE
+      common /grd_fXI/f_XI /grd_fETA/f_ETA
+# endif
  
 # ifdef CURVGRID
       real angler(GLOBAL_2D_ARRAY)
 CSDISTRIBUTE_RESHAPE angler(BLOCK_PATTERN) BLOCK_CLAUSE
-      common /grid_angler/angler
+      common /grd_angler/angler
 # endif
  
 #ifdef SPHERICAL
@@ -50,7 +57,7 @@ CSDISTRIBUTE_RESHAPE angler(BLOCK_PATTERN) BLOCK_CLAUSE
 CSDISTRIBUTE_RESHAPE   latr(BLOCK_PATTERN) BLOCK_CLAUSE
       real lonr(GLOBAL_2D_ARRAY)
 CSDISTRIBUTE_RESHAPE   lonr(BLOCK_PATTERN) BLOCK_CLAUSE
-      common /grid_latr/latr /grid_lonr/lonr
+      common /grd_latr/latr /grd_lonr/lonr
 #else
       real xp(GLOBAL_2D_ARRAY)
 CSDISTRIBUTE_RESHAPE xp(BLOCK_PATTERN) BLOCK_CLAUSE
@@ -60,7 +67,7 @@ CSDISTRIBUTE_RESHAPE xr(BLOCK_PATTERN) BLOCK_CLAUSE
 CSDISTRIBUTE_RESHAPE yp(BLOCK_PATTERN) BLOCK_CLAUSE
       real yr(GLOBAL_2D_ARRAY)
 CSDISTRIBUTE_RESHAPE yr(BLOCK_PATTERN) BLOCK_CLAUSE
-      common /grid_xr/xr /grid_xp/xp /grid_yp/yp /grid_yr/yr
+      common /grd_xr/xr /grd_xp/xp /grd_yp/yp /grd_yr/yr
 #endif
  
       real pm(GLOBAL_2D_ARRAY)
@@ -82,19 +89,25 @@ CSDISTRIBUTE_RESHAPE dn_v(BLOCK_PATTERN) BLOCK_CLAUSE
       real dm_p(GLOBAL_2D_ARRAY)
 CSDISTRIBUTE_RESHAPE dm_p(BLOCK_PATTERN) BLOCK_CLAUSE
       real dn_p(GLOBAL_2D_ARRAY)
-CSDISTRIBUTE_RESHAPE on_p(BLOCK_PATTERN) BLOCK_CLAUSE
-      common /metrics_pm/pm     /metrics_pn/pn
-     &       /metrics_dm_r/dm_r /metrics_dn_r/dn_r
-     &       /metrics_dm_u/dm_u /metrics_dn_u/dn_u
-     &       /metrics_dm_v/dm_v /metrics_dn_v/dn_v
-     &       /metrics_dm_p/dm_p /metrics_dn_p/dn_p
+CSDISTRIBUTE_RESHAPE dn_p(BLOCK_PATTERN) BLOCK_CLAUSE
+      common /mtrix_pm/pm     /mtrix_pn/pn
+     &       /mtrix_dm_r/dm_r /mtrix_dn_r/dn_r
+     &       /mtrix_dm_u/dm_u /mtrix_dn_u/dn_u
+     &       /mtrix_dm_v/dm_v /mtrix_dn_v/dn_v
+     &       /mtrix_dm_p/dm_p /mtrix_dn_p/dn_p
+
+      real iA_u(GLOBAL_2D_ARRAY)
+CSDISTRIBUTE_RESHAPE iA_u(BLOCK_PATTERN) BLOCK_CLAUSE
+      real iA_v(GLOBAL_2D_ARRAY)
+CSDISTRIBUTE_RESHAPE iA_v(BLOCK_PATTERN) BLOCK_CLAUSE
+      common /mtrix_iAu/iA_u  /mtrix_iAv/iA_v
  
 #if (defined CURVGRID && defined UV_ADV)
       real dmde(GLOBAL_2D_ARRAY)
 CSDISTRIBUTE_RESHAPE dmde(BLOCK_PATTERN) BLOCK_CLAUSE
       real dndx(GLOBAL_2D_ARRAY)
 CSDISTRIBUTE_RESHAPE dndx(BLOCK_PATTERN) BLOCK_CLAUSE
-      common /metrics_dmde/dmde   /metrics_dndx/dndx
+      common /mtrix_dmde/dmde   /mtrix_dndx/dndx
 #endif
       real pmon_u(GLOBAL_2D_ARRAY)
 CSDISTRIBUTE_RESHAPE pmon_u(BLOCK_PATTERN) BLOCK_CLAUSE
@@ -102,8 +115,8 @@ CSDISTRIBUTE_RESHAPE pmon_u(BLOCK_PATTERN) BLOCK_CLAUSE
 CSDISTRIBUTE_RESHAPE pnom_v(BLOCK_PATTERN) BLOCK_CLAUSE
       real grdscl(GLOBAL_2D_ARRAY)
 CSDISTRIBUTE_RESHAPE grdscl(BLOCK_PATTERN) BLOCK_CLAUSE
-      common /metrics_pmon_u/pmon_u /metrics_pnom_v/pnom_v
-     &                              /metrics_grdscl/grdscl
+      common /mtrix_pmon_u/pmon_u /mtrix_pnom_v/pnom_v
+     &                            /mtrix_grdscl/grdscl
  
 #ifdef MASKING
       real rmask(GLOBAL_2D_ARRAY)

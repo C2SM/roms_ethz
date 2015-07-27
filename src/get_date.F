@@ -1,5 +1,5 @@
 #include "cppdefs.h"
- 
+
       subroutine get_date (date_str)
 !
 ! Get todays date, day of the week and time called (default month
@@ -30,7 +30,7 @@
      &            'May      ', 'June     ', 'July     ', 'August   ',
      &            'September', 'October  ', 'November ', 'December '/
       character*11 ctime*11, today*18, fmt*20, wkday*44
- 
+
 #if defined cray
       integer century
       parameter (century=1900)
@@ -38,7 +38,7 @@
 #elif defined sun || defined sgi || defined DECALPHA
       character*3  day3, mon
       character*28 fdate, tmpday
-#elif defined AIX
+#elif defined XLF
       character*3  day3, mon
       character*28 tmpday
 #endif
@@ -52,38 +52,38 @@
       year=year+century
       call time (tstring)
       read(tstring,'(i2,1x,i2,1x,i2)',iostat=tstat) hour, minute, sec
-      if(tstat.ne.0) ctime=tstring
+      if(tstat/=0) ctime=tstring
 #elif defined cray
       write(tstring,'(a8)') date()
       read(tstring,'(i2,1x,i2,1x,i2)',iostat=dstat) imon, nday, year
       year=year+century
-      if(dstat.ne.0) then
+      if(dstat/=0) then
         wkday=tstring
         today=' '
       endif
       write(tstring,'(a8)') clock()
       read(tstring,'(i2,1x,i2,1x,i2)',iostat=tstat) hour, minute, sec
-      if(tstat.ne.0) ctime=tstring
+      if(tstat/=0) ctime=tstring
 #elif defined sun || defined sgi || defined DECALPHA
       tmpday=fdate()
       read(tmpday,'(a3,1x,a3,1x,i2)',iostat=dstat) day3, mon, nday
       read(tmpday,'(11x,i2,1x,i2,1x,i2)',iostat=tstat)hour,minute,sec
       tstat=max(abs(dstat),abs(tstat))
       read(tmpday,'(20x,i4)',iostat=dstat) year
-      if(dstat.ne.0 .or. tstat.ne.0) then
+      if(dstat/=0 .or. tstat/=0) then
         dstat=1
         tstat=1
         wkday=tmpday
         today=' '
         ctime=' '
       endif
-#elif defined AIX
+#elif defined XLF
       call fdate_(tmpday)
       read(tmpday,'(a3,1x,a3,1x,i2)',iostat=dstat) day3, mon, nday
       read(tmpday,'(11x,i2,1x,i2,1x,i2)',iostat=tstat)hour,minute,sec
       tstat=max(abs(dstat),abs(tstat))
       read(tmpday,'(20x,i4)',iostat=dstat) year
-      if((dstat.ne.0).or.(tstat.ne.0)) then
+      if((dstat/=0).or.(tstat/=0)) then
         dstat=1
         tstat=1
         wkday=tmpday
@@ -102,27 +102,27 @@ c      mon='Jan'
       today=' '
       ctime=' '
 #endif
-      if (tstat.eq.0) then            ! Convert from 24 hour clock
+      if (tstat==0) then            ! Convert from 24 hour clock
         half=hour/12                  ! clock to 12 hour AM/PM clock.
         hour=hour-half*12
-        if (hour.eq.0) hour=12
-        if (half.eq.2) half=0
+        if (hour==0) hour=12
+        if (half==2) half=0
       endif
-      if (dstat.eq.0) then
+      if (dstat==0) then
 #if defined vax || defined cray
                                              ! Get index for
         call day_code (imon,nday,year,iday)  ! the day of the week.
- 
-#elif defined sun || defined sgi || defined AIX || defined DECALPHA
+
+#elif defined sun || defined sgi || defined XLF || defined DECALPHA
                           ! Loop to find full day name by comparing
                           ! DAY3 with the first 3 letters of day.
         iday=0
-        do while ((day3.ne.day(iday)(1:3)).and.(iday.lt.6))
+        do while ((day3/=day(iday)(1:3)).and.(iday<6))
           iday=iday+1
         enddo             ! Loop to find full month name by comparing
                           ! MON with first 3 letters of month.
         imon=1
-        do while ((mon.ne.month(imon)(1:3)).and.(imon.lt.12))
+        do while ((mon/=month(imon)(1:3)).and.(imon<12))
           imon=imon+1
         enddo
 #endif
@@ -134,29 +134,29 @@ c      mon='Jan'
         write(today,fmt) month(imon),nday,year
         wkday=day(iday)
       endif
-      if(tstat.eq.0) then
+      if(tstat==0) then
         write(ctime,20) hour, minute, sec, ampm(half)
   20    format(i2,':',i2.2,':',i2.2,a3)
       endif
- 
+
       len1=lenstr(wkday)                  ! Concatenate date string.
       len2=lenstr(today)
       len3=lenstr(ctime)
       date_str=wkday(1:len1)
-      if (len2.gt.0) then
+      if (len2>0) then
         len1=lenstr(date_str)
         date_str=date_str(1:len1)/ /' - '/ /today(1:len2)
       endif
-      if (len3.gt.0) then
+      if (len3>0) then
         len1=lenstr(date_str)
         date_str=date_str(1:len1)/ /' - '/ /ctime(1:len3)
       endif
       return
       end
- 
- 
+
+
 #if defined vax || defined cray
- 
+
       subroutine day_code (month,day,year,code)
 !
 ! Compute a code for the day of the week, given the date. This code
@@ -201,8 +201,8 @@ c      mon='Jan'
 ! Determine if this is a leap year.
 !
       leap=nqy/4-nyc/100+nyqc/400
-      leap_year=(mod(nqy,4).eq.0 .and. mod(nyc,100).ne.0)
-     &                            .or. mod(nyqc,400).eq.0
+      leap_year=(mod(nqy,4)==0 .and. mod(nyc,100)/=0)
+     &                            .or. mod(nyqc,400)==0
 !
 ! Compute the number of days this year.  The leap year corrections
 ! are:   Jan. 1 - Feb. 28   Have not had the leap day counted above.
@@ -212,8 +212,8 @@ c      mon='Jan'
       do i=1,month-1
         no_day=no_day+month_day(i)
       enddo
-      if (leap_year .and. no_day.le.feb_end)  no_day=no_day-1
-      if (leap_year .and. month.eq.2 .and. day.eq.29) no_day=no_day-1
+      if (leap_year .and. no_day<=feb_end)  no_day=no_day-1
+      if (leap_year .and. month==2 .and. day==29) no_day=no_day-1
 !
 ! Compute the total number of days since Jan. 1 of the base year,
 ! exclusive of the 364 day per year which represent an even 52
@@ -227,4 +227,4 @@ c      mon='Jan'
       return
       end
 #endif
- 
+

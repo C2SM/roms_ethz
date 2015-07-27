@@ -1,6 +1,6 @@
 #include "cppdefs.h"
-#ifdef SOLVE3D
- 
+#if defined SOLVE3D && (defined TS_DIF2 || defined TS_DIF4 )
+
       subroutine t3dmix (tile)
       implicit none
       integer tile, itrc
@@ -8,31 +8,26 @@
 # include "private_scratch.h"
 # include "compute_tile_bounds.h"
       do itrc=1,NT
-        call t3dmix_tile (istr,iend,jstr,jend, itrc, A3d(1,1),
-     &                                    A2d(1, 1), A2d(1, 2),
-     &                          A2d(1,3), A2d(1, 5), A2d(1, 7),
-     &                          A2d(1,9), A2d(1,11), A2d(1,13))
+        call t3dmix_tile (istr,iend,jstr,jend, itrc, A3d(1,1),A2d(1,1),
+     &                                     A2d(1,2), A2d(1,3),A2d(1,5),
+     &                       A2d(1,7), A2d(1,9), A2d(1,11), A2d(1,13))
       enddo
-      return
       end
- 
-      subroutine t3dmix_tile (istr,iend,jstr,jend, itrc, LapT,
-     &                    FX,FE, FC,dTdz, dTdx,dTde,dZdx,dZde)
+
+      subroutine t3dmix_tile (istr,iend,jstr,jend, itrc, LapT,FX,FE,
+     &                               FSC,dTdz, dTdx,dTde,dZdx,dZde)
       implicit none
 # include "param.h"
       integer istr,iend,jstr,jend, itrc, i,j,k,k1,k2
 # ifdef TS_DIF4
      &                           , imin,imax,jmin,jmax
 # endif
-      real LapT(PRIVATE_2D_SCRATCH_ARRAY,0:N),
-     &       FX(PRIVATE_2D_SCRATCH_ARRAY),
-     &       FE(PRIVATE_2D_SCRATCH_ARRAY),
-     &       FC(PRIVATE_2D_SCRATCH_ARRAY,2),
-     &     dTdz(PRIVATE_2D_SCRATCH_ARRAY,2),   cff,
-     &     dTdx(PRIVATE_2D_SCRATCH_ARRAY,2),   cff1,
-     &     dTde(PRIVATE_2D_SCRATCH_ARRAY,2),   cff2,
-     &     dZdx(PRIVATE_2D_SCRATCH_ARRAY,2),   cff3,
-     &     dZde(PRIVATE_2D_SCRATCH_ARRAY,2),   cff4
+      real, dimension(PRIVATE_2D_SCRATCH_ARRAY,0:N) :: LapT
+      real, dimension(PRIVATE_2D_SCRATCH_ARRAY) :: FX,FE
+      real, dimension(PRIVATE_2D_SCRATCH_ARRAY,2) ::  FSC,dTdz,
+     &                                    dTdx,dTde, dZdx,dZde
+      real cff, cff1, cff2, cff3, cff4
+
 # include "grid.h"
 # include "ocean3d.h"
 # include "mixing.h"
@@ -41,24 +36,23 @@
 # ifdef PHYS_FLUX_ANALYSIS
 #  include "physflux.h"
 # endif
-!
 # include "compute_auxiliary_bounds.h"
-!
+
 # ifdef MASKING
 #  define SWITCH *
 # else
 #  define SWITCH !
 # endif
 # ifdef TS_DIF2
-!                                            !!! WARNING: RECURSIVE
+                                             !!! WARNING: RECURSIVE
 ! Compute horizontal (along geopotential     !!!   BLOCKING SEQUENCE
-! surfaces) Laplacian diffusion terms.       !!! 
-!
-      k2=1            ! vertical   dTdx,dTde(:,:,k2) k+1   rho-points 
-      do k=0,N,+1     ! placement    dTdz,FC(:,:,k2) k+1/2   W-points 
-        k1=k2         ! of scratch dTdx,dTde(:,:,k1) k     rho-points 
-        k2=3-k1       ! variables    dTdz,FC(:,:,k1) k-1/2   W-points
-        if (k.lt.N) then
+! surfaces) Laplacian diffusion terms.       !!!
+
+      k2=1            ! vertical   dTdx,dTde(:,:,k2) k+1   rho-points
+      do k=0,N,+1     ! placement    dTdz,FSC(:,:,k2) k+1/2   W-points
+        k1=k2         ! of scratch dTdx,dTde(:,:,k1) k     rho-points
+        k2=3-k1       ! variables    dTdz,FSC(:,:,k1) k-1/2   W-points
+        if (k<N) then
           do j=jstr,jend
             do i=istr,iend+1
               cff=0.5*(pm(i,j)+pm(i-1,j)) SWITCH umask(i,j)
@@ -84,12 +78,12 @@
             enddo
           enddo
         endif
- 
-        if (k.eq.0 .or. k.eq.N) then
+
+        if (k==0 .or. k==N) then
           do j=jstr-1,jend+1
             do i=istr-1,iend+1
               dTdz(i,j,k2)=0.0     ! Set no-flux bottom or
-              FC(i,j,k2)=0.0       ! top boundary conditions.
+              FSC(i,j,k2)=0.0       ! top boundary conditions.
             enddo
           enddo
         else
@@ -103,8 +97,8 @@
             enddo
           enddo
         endif
- 
-        if (k.gt.0) then
+
+        if (k>0) then
           do j=jstr,jend
             do i=istr,iend+1
               FX(i,j)=0.25*(diff2(i,j,itrc)+diff2(i-1,j,itrc))
@@ -125,7 +119,7 @@
      &                                                             ))
             enddo
           enddo
-          if (k.lt.N) then
+          if (k<N) then
             do j=jstr,jend
               do i=istr,iend
 c**             cff1=min(dZdx(i,j,k1)+dZdx(i+1,j,k2),0.)
@@ -134,7 +128,7 @@ c**
 c**             cff3=min(dZde(i,j,k1)+dZde(i,j+1,k2),0.)
 c**             cff4=max(dZde(i,j,k2)+dZde(i,j+1,k1),0.)
 c**
-c**             FC(i,j,k2)=0.25*diff2(i,j,itrc)*(
+c**             FSC(i,j,k2)=0.25*diff2(i,j,itrc)*(
 c**  &                             dTdz(i,j,k2)*( (cff1+cff2)**2
 c**  &                                           +(cff3+cff4)**2)
 c**
@@ -144,30 +138,30 @@ c**
 c**  &                           -cff3*(dTde(i,j,k1)+dTde(i,j+1,k2))
 c**  &                           -cff4*(dTde(i,j,k2)+dTde(i,j+1,k1))
 c**  &                                                             )
- 
+
                 cff1=min(dZdx(i  ,j,k1),0.)
                 cff2=min(dZdx(i+1,j,k2),0.)
- 
+
                 cff3=max(dZdx(i  ,j,k2),0.)
                 cff4=max(dZdx(i+1,j,k1),0.)
- 
-                FC(i,j,k2)=0.5*diff2(i,j,itrc)*(
+
+                FSC(i,j,k2)=0.5*diff2(i,j,itrc)*(
      &                       cff1*(cff1*dTdz(i,j,k2)-dTdx(i  ,j,k1))
      &                        +cff2*(cff2*dTdz(i,j,k2)-dTdx(i+1,j,k2))
- 
+
      &                        +cff3*(cff3*dTdz(i,j,k2)-dTdx(i  ,j,k2))
      &                        +cff4*(cff4*dTdz(i,j,k2)-dTdx(i+1,j,k1))
      &                                                               )
                 cff1=min(dZde(i,j  ,k1),0.)
                 cff2=min(dZde(i,j+1,k2),0.)
- 
+
                 cff3=max(dZde(i,j  ,k2),0.)
                 cff4=max(dZde(i,j+1,k1),0.)
- 
-                FC(i,j,k2)=FC(i,j,k2)+0.5*diff2(i,j,itrc)*(
+
+                FSC(i,j,k2)=FSC(i,j,k2)+0.5*diff2(i,j,itrc)*(
      &                        cff1*(cff1*dTdz(i,j,k2)-dTde(i,j  ,k1))
      &                       +cff2*(cff2*dTdz(i,j,k2)-dTde(i,j+1,k2))
- 
+
      &                       +cff3*(cff3*dTdz(i,j,k2)-dTde(i,j  ,k2))
      &                       +cff4*(cff4*dTdz(i,j,k2)-dTde(i,j+1,k1))
      &                                                              )
@@ -177,9 +171,8 @@ c**  &                                                             )
           do j=jstr,jend
             do i=istr,iend
               t(i,j,k,nnew,itrc)=t(i,j,k,nnew,itrc)+dt*( pm(i,j)*
-     &                                   pn(i,j)*( FX(i+1,j)-FX(i,j)
-     &                                            +FE(i,j+1)-FE(i,j))
-     &                                         +FC(i,j,k2)-FC(i,j,k1)
+     &               pn(i,j)*( FX(i+1,j)-FX(i,j) +FE(i,j+1)-FE(i,j) )
+     &                                       +FSC(i,j,k2)-FSC(i,j,k1)
      &                                                   )/Hz(i,j,k)
             enddo
           enddo
@@ -206,7 +199,7 @@ c**  &                                                             )
            do i=Istr,Iend
               ! unit: mmol/(m2 s)
               ! reverse sign so that fluxes are positive upwards
-              VertMixFlux(i,j,k,itrc) = -FC(i,j,k2)
+              VertMixFlux(i,j,k,itrc) = -FSC(i,j,k2)
 #   ifdef MASKING
      &             * rmask(i,j)
 #   endif
@@ -219,9 +212,9 @@ c**  &                                                             )
              end do
           end do
 #  endif /* FULL_PHYS_FLUX_ANALYSIS */
-        endif  ! <-- k.gt.0
+        endif  ! <-- k>0
       enddo   ! --> k
-# endif /* TS_DIF2 */
+# endif /* T_DIF2 */
 # ifdef TS_DIF4
 #  ifndef EW_PERIODIC
       if (WESTERN_EDGE) then
@@ -253,19 +246,19 @@ c**  &                                                             )
       jmin=jstr-1
       jmax=jend+1
 #  endif
-!
+
 ! Compute horizontal biharmonic diffusion      !!! WARNING: RECURSIVE
 ! along geopotential surfaces. The biharmonic  !!!  BLOCKING SEQUENCE
 ! operator is computed by applying the rotated !!!
 ! Laplacian operator twice.
-!
-! THE FIRST LAPLACIAN:! vertical   dTdx,dTde(:,:,k2) k+1   rho-points
-!                     ! placement    dTdz,FC(:,:,k2) k+1/2   W-points 
-      k2=1            ! of scratch dTdx,dTde(:,:,k1) k     rho-points 
-      do k=0,N,+1     ! variables    dTdz,FC(:,:,k1) k-1/2   W-points 
+
+! THE FIRST LAPLACIAN: ! vertical   dTdx,dTde(:,:,k2)  k+1   rho-points
+!                      ! placement    dTdz,FSC(:,:,k2) k+1/2   W-points
+      k2=1             ! of scratch dTdx,dTde(:,:,k1)  k     rho-points
+      do k=0,N,+1      ! variables    dTdz,FSC(:,:,k1) k-1/2   W-points
         k1=k2
         k2=3-k1
-        if (k.lt.N) then
+        if (k<N) then
           do j=jmin,jmax
             do i=imin,imax+1
               cff=0.5*(pm(i,j)+pm(i-1,j)) SWITCH umask(i,j)
@@ -283,12 +276,12 @@ c**  &                                                             )
             enddo
           enddo
         endif
- 
-        if (k.eq.0 .or. k.eq.N) then
+
+        if (k==0 .or. k==N) then
           do j=jmin-1,jmax+1
             do i=imin-1,imax+1
               dTdz(i,j,k2)=0.0
-              FC(i,j,k2)=0.0
+              FSC(i,j,k2)=0.0
             enddo
           enddo
         else
@@ -299,27 +292,27 @@ c**  &                                                             )
             enddo
           enddo
         endif
- 
-        if (k.gt.0) then
+
+        if (k>0) then
           do j=jmin,jmax
             do i=imin,imax+1
               FX(i,j)=0.5*(Hz(i,j,k)+Hz(i-1,j,k))*dn_u(i,j)*(
      &                                                dTdx(i  ,j,k1)
      &      -0.5*( min(dZdx(i,j,k1),0.)*(dTdz(i-1,j,k1)+dTdz(i,j,k2))
      &            +max(dZdx(i,j,k1),0.)*(dTdz(i-1,j,k2)+dTdz(i,j,k1))
-     &                                                            ))
+     &                                                             ))
             enddo
           enddo
           do j=jmin,jmax+1
             do i=imin,imax
               FE(i,j)=0.5*(Hz(i,j,k)+Hz(i,j-1,k))*dm_v(i,j)*(
-     &         dTde(i,j,k1)-0.5*(
-     &             min(dZde(i,j,k1),0.)*(dTdz(i,j-1,k1)+dTdz(i,j,k2))
+     &                                                  dTde(i,j,k1)
+     &      -0.5*( min(dZde(i,j,k1),0.)*(dTdz(i,j-1,k1)+dTdz(i,j,k2))
      &            +max(dZde(i,j,k1),0.)*(dTdz(i,j-1,k2)+dTdz(i,j,k1))
      &                                                             ))
             enddo
           enddo
-          if (k.lt.N) then
+          if (k<N) then
             do j=jmin,jmax
               do i=imin,imax
 c**             cff1=min(dZdx(i,j,k1)+dZdx(i+1,j,k2),0.)
@@ -328,8 +321,8 @@ c**
 c**             cff3=min(dZde(i,j,k1)+dZde(i,j+1,k2),0.)
 c**             cff4=max(dZde(i,j,k2)+dZde(i,j+1,k1),0.)
 c**
-c**             FC(i,j,k2)=0.25*( dTdz(i,j,k2)*( (cff1+cff2)**2
-c**  &                                          +(cff3+cff4)**2)
+c**             FSC(i,j,k2)=0.25*( dTdz(i,j,k2)*( (cff1+cff2)**2
+c**  &                                           +(cff3+cff4)**2)
 c**
 c**  &                           -cff1*(dTdx(i,j,k1)+dTdx(i+1,j,k2))
 c**  &                           -cff2*(dTdx(i,j,k2)+dTdx(i+1,j,k1))
@@ -337,30 +330,30 @@ c**
 c**  &                           -cff3*(dTde(i,j,k1)+dTde(i,j+1,k2))
 c**  &                           -cff4*(dTde(i,j,k2)+dTde(i,j+1,k1))
 c**  &                                                             )
- 
+
                 cff1=min(dZdx(i  ,j,k1),0.)
                 cff2=min(dZdx(i+1,j,k2),0.)
- 
+
                 cff3=max(dZdx(i  ,j,k2),0.)
                 cff4=max(dZdx(i+1,j,k1),0.)
- 
-                FC(i,j,k2)=0.5*(
+
+                FSC(i,j,k2)=0.5*(
      &                        cff1*(cff1*dTdz(i,j,k2)-dTdx(i  ,j,k1))
      &                       +cff2*(cff2*dTdz(i,j,k2)-dTdx(i+1,j,k2))
- 
+
      &                       +cff3*(cff3*dTdz(i,j,k2)-dTdx(i  ,j,k2))
      &                       +cff4*(cff4*dTdz(i,j,k2)-dTdx(i+1,j,k1))
      &                                                              )
                 cff1=min(dZde(i,j  ,k1),0.)
                 cff2=min(dZde(i,j+1,k2),0.)
- 
+
                 cff3=max(dZde(i,j  ,k2),0.)
                 cff4=max(dZde(i,j+1,k1),0.)
- 
-                FC(i,j,k2)=FC(i,j,k2)+0.5*(
+
+                FSC(i,j,k2)=FSC(i,j,k2)+0.5*(
      &                        cff1*(cff1*dTdz(i,j,k2)-dTde(i,j  ,k1))
      &                       +cff2*(cff2*dTdz(i,j,k2)-dTde(i,j+1,k2))
- 
+
      &                       +cff3*(cff3*dTdz(i,j,k2)-dTde(i,j  ,k2))
      &                       +cff4*(cff4*dTdz(i,j,k2)-dTde(i,j+1,k1))
      &                                                              )
@@ -370,12 +363,12 @@ c**  &                                                             )
           do j=jmin,jmax
             do i=imin,imax
               LapT(i,j,k)=( pm(i,j)*pn(i,j)*( FX(i+1,j)-FX(i,j)
-     &                                       +FE(i,j+1)-FE(i,j))
-     &                                    +FC(i,j,k2)-FC(i,j,k1)
-     &                                              )/Hz(i,j,k)
+     &                                       +FE(i,j+1)-FE(i,j) )
+     &                                   +FSC(i,j,k2)-FSC(i,j,k1)
+     &                                               )/Hz(i,j,k)
             enddo
           enddo
-        endif   ! <-- k.gt.0
+        endif   ! <-- k>0
       enddo   ! --> k
 
 #  ifndef EW_PERIODIC
@@ -433,8 +426,8 @@ c**  &                                                             )
       do k=0,N,+1
        k1=k2
        k2=3-k1
- 
-        if (k.lt.N) then
+
+        if (k<N) then
           do j=jstr,jend
             do i=istr,iend+1
               cff=0.5*(pm(i,j)+pm(i-1,j)) SWITCH umask(i,j)
@@ -450,12 +443,12 @@ c**  &                                                             )
             enddo
           enddo
         endif
- 
-        if (k.eq.0 .or. k.eq.N) then
+
+        if (k==0 .or. k==N) then
           do j=jstr-1,jend+1
             do i=istr-1,iend+1
               dTdz(i,j,k2)=0.0
-              FC(i,j,k2)=0.0
+              FSC(i,j,k2)=0.0
             enddo
           enddo
         else
@@ -466,8 +459,8 @@ c**  &                                                             )
             enddo
           enddo
         endif
- 
-        if (k.gt.0) then
+
+        if (k>0) then
           do j=jstr,jend
             do i=istr,iend+1
               FX(i,j)=-0.25*(diff4(i,j,itrc)+diff4(i-1,j,itrc))
@@ -488,7 +481,7 @@ c**  &                                                             )
      &                                                             ))
             enddo
           enddo
-          if (k.lt.N) then
+          if (k<N) then
             do j=jstr,jend
               do i=istr,iend
 c**             cff1=min(dZdx(i,j,k1)+dZdx(i+1,j,k2),0.)
@@ -497,7 +490,7 @@ c**
 c**             cff3=min(dZde(i,j,k1)+dZde(i,j+1,k2),0.)
 c**             cff4=max(dZde(i,j,k2)+dZde(i,j+1,k1),0.)
 c**
-c**             FC(i,j,k2)=-0.25*diff4(i,j,itrc)*(
+c**             FSC(i,j,k2)=-0.25*diff4(i,j,itrc)*(
 c**  &                             dTdz(i,j,k2)*( (cff1+cff2)**2
 c**  &                                           +(cff3+cff4)**2)
 c**
@@ -507,30 +500,30 @@ c**
 c**  &                           -cff3*(dTde(i,j,k1)+dTde(i,j+1,k2))
 c**  &                           -cff4*(dTde(i,j,k2)+dTde(i,j+1,k1))
 c**  &                                                             )
- 
+
                 cff1=min(dZdx(i  ,j,k1),0.)
                 cff2=min(dZdx(i+1,j,k2),0.)
- 
+
                 cff3=max(dZdx(i  ,j,k2),0.)
                 cff4=max(dZdx(i+1,j,k1),0.)
- 
-                FC(i,j,k2)=-0.5*diff4(i,j,itrc)*(
+
+                FSC(i,j,k2)=-0.5*diff4(i,j,itrc)*(
      &                        cff1*(cff1*dTdz(i,j,k2)-dTdx(i  ,j,k1))
      &                       +cff2*(cff2*dTdz(i,j,k2)-dTdx(i+1,j,k2))
- 
+
      &                       +cff3*(cff3*dTdz(i,j,k2)-dTdx(i  ,j,k2))
      &                       +cff4*(cff4*dTdz(i,j,k2)-dTdx(i+1,j,k1))
      &                                                              )
                 cff1=min(dZde(i,j  ,k1),0.)
                 cff2=min(dZde(i,j+1,k2),0.)
- 
+
                 cff3=max(dZde(i,j  ,k2),0.)
                 cff4=max(dZde(i,j+1,k1),0.)
- 
-                FC(i,j,k2)=FC(i,j,k2)-0.5*diff4(i,j,itrc)*(
+
+                FSC(i,j,k2)=FSC(i,j,k2)-0.5*diff4(i,j,itrc)*(
      &                        cff1*(cff1*dTdz(i,j,k2)-dTde(i,j  ,k1))
      &                       +cff2*(cff2*dTdz(i,j,k2)-dTde(i,j+1,k2))
- 
+
      &                       +cff3*(cff3*dTdz(i,j,k2)-dTde(i,j  ,k2))
      &                       +cff4*(cff4*dTdz(i,j,k2)-dTde(i,j+1,k1))
      &                                                              )
@@ -539,10 +532,9 @@ c**  &                                                             )
           endif
           do j=jstr,jend
             do i=istr,iend
-              t(i,j,k,nnew,itrc)=t(i,j,k,nnew,itrc) + dt*(
-     &                   pm(i,j)*pn(i,j)*( FX(i+1,j)-FX(i,j)
-     &                                    +FE(i,j+1)-FE(i,j))
-     &                  +FC(i,j,k2)-FC(i,j,k1)    )/Hz(i,j,k)
+              t(i,j,k,nnew,itrc)=t(i,j,k,nnew,itrc) + dt*( pm(i,j)
+     &              *pn(i,j)*( FX(i+1,j)-FX(i,j) +FE(i,j+1)-FE(i,j) )
+     &                        +FSC(i,j,k2)-FSC(i,j,k1)    )/Hz(i,j,k)
             enddo
           enddo
 #  ifdef FULL_PHYS_FLUX_ANALYSIS
@@ -568,7 +560,7 @@ c**  &                                                             )
            do i=Istr,Iend
               ! unit: mmol/(m2 s)
               ! reverse sign so that fluxes are positive upwards
-              VertMixFlux(i,j,k,itrc) = -FC(i,j,k2)
+              VertMixFlux(i,j,k,itrc) = -FSC(i,j,k2)
 #   ifdef MASKING
      &             * rmask(i,j)
 #   endif
@@ -581,19 +573,16 @@ c**  &                                                             )
              end do
           end do
 #  endif /* FULL_PHYS_FLUX_ANALYSIS */
-        endif  ! <-- k.gt.0
+        endif  ! <-- k>0
       enddo   ! --> k
 # endif /* TS_DIF4 */
 
-# if defined EW_PERIODIC || defined NS_PERIODIC || defined MPI
-        call exchange_r3d_tile (istr,iend,jstr,jend,
-     &                          t(START_2D_ARRAY,1,nnew,itrc))
+# ifdef EXCHANGE
+        call exchange_tile (istr,iend,jstr,jend,
+     &                      t(START_2D_ARRAY,1,nnew,itrc),N)
 # endif
-
-      return
       end
 #else
       subroutine t3dmix_empty
       end
 #endif /* SOLVE3D */
- 

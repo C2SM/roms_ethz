@@ -1,0 +1,138 @@
+!titlec: North Atlantic Damee Region
+!titlelc:  L a t i t u d e
+!titlebc:  L o n g i t u d e
+
+! frstd:lastd:dskip:  540 540 2000 2000
+!frstd:lastd:dskip:  960 2000 2000
+! frstd:lastd:dskip: 90 1000 150
+!frstd:lastd:dskip: 1199.951 1379.950 1800.
+
+
+nfields:  1     number of fields to plot.
+  fldid:  3 20 21 54 57  field identification fldid(1:nfields)
+nlevels:  1     number of levels and/or depths to plot.
+ fldlev:  -50 -1500 -1500 -500 -1500 -1250 -1500.   levels (>0) or depths (<0) to plot fldlev(1:nlevels)
+   pmax:  75. 28. 4.  25.  12.5    37.3,  7.5  35.4 +5.25, +7.5, +0.6
+   pmin:   2.5 0.  0.06  0.5  0.25   0.5  03 34.3, 0.5. 34.9 +3.25, +1.0,  -0.8
+   cint:  1.
+   icnt:  0    draw contours between color bands (1=yes/0=no)
+ isoval: 0.0   iso-surface value to process
+
+   iref: 0     secondary or reference field option (see below)
+ fldover: 18    overlay field identification (for IREF=1,2 only)
+levover: 0     level of the overlay field (0 means same as current fldlev)
+!   rmin: 4.0   overlay field minimum value (0.0 for default)
+!   rmax: 50.0   overlay field maximum value (0.0 for default)
+
+
+!
+! A good projection to show abyssal fields (1000 m and below) with
+! emphasis on Equator and off coast of Portugal. Note that Gulf of
+! Mexico is outside the viewport.
+!
+!proj: SV Spherical projection type=(LC ST OR LE GN AE SV CE ME MO)
+!sath: 1000.  Satelite orbit altitude
+!plon:plat:rota: -32.5 +25. 0.
+!pblat:ptlat:  -20.,+59.,  bottom and top map latitudes
+!pllon:prlon:  -76.,+11., left and right map longitudes
+
+!
+! A good general Satelite View projection on Atlantic Ocean optimized
+! for the usage of viewport. Including Gulf of Mexico.
+!
+ proj: SV
+ sath: 1000.
+ plon:plat:rota: -42.5 +25. +1.
+ pblat:ptlat:  -25.,+63.,  bottom and top map latitudes
+ pllon:prlon:  -91.7,+9.5, left and right map longitudes
+
+
+      lgrid:  10    desired longitude/latitude grid spacing (degrees)
+    vec_lwd:  1.0  vector line width (1.0 for default)
+    vec_scl:  10.  vector length scale (1.0 for default)
+ivinc:jvinc: -1 -1 vector grid sampling in X- and Y-directions
+     vintrp:   1   vertical interpolation, 0=linear, 1=cubic splines
+
+
+    isecpos:  2     section positions (0=grid units, 1=Cartesian, 2=Spherical)
+xsec2:ysec2: -30 +60   ending   X,Y-position of section
+xsec1:ysec1: -30 -30   starting X,Y-position of section
+       dels:  0.2      section horizontal grid spacing [km, degrees]
+sztop:szbot:  0. 5500. shallowest and deepest depth limits [m]
+        kms:  40  number of refiment levels between sztop and szbot.
+      ifill:   0  filling under bottom: 0=gray; >0=pattern of dots
+
+
+    pstype: 0   0,1,2 for gmeta, PostScript, or PDF
+     npage: -1  number of plots per page
+  magscale: 1.0
+  wrtclock:  T  write out model time (clock)
+  wrtfield:  T  write out field name below the plot
+  wrtrange:  T  write out data range values and CI.
+   wrtfile:  F  write out input primary filename.
+   wrtdate:  F  write out current date.
+     lview:  F
+     lland:  T   flag to color mask land: [0] no, [1] yes
+    lwater:  F
+  earthdat:  Earth..3  NCAR Graphics library Earth dataset "Earth..1"
+
+ defaults: /home/alex/Data/default.cnt
+   varids: /home/alex/Data/varid.dat
+! palette: /home/alex/Palettes/vel.pal.GREY2
+!  palette: /home/alex/Palettes/black_pat.pal
+
+  history: history.nc
+!  history: history.nc.31Incomp
+!  history: history.nc.32A.incompress
+!  history: /space/MP/history.nc.32AC1Split
+!  history: history.nc.32ACSplit
+!  history: history.nc.32A.nonsplit
+
+!   history: /work/alex/MP/averages.nc.30.nonlinEOS
+!   history: /work/alex/MP/averages.nc.31.nonlinEOS
+!   history: /work/alex/MP/averages.nc.32AC1Split
+!   history: /work/alex/MP/averages.nc.32A.incompress
+
+! city: -15. -54. 0.0125 0. 0. POM Jacobian
+! city: -15. -55. 0.016 0. 0. :F5:g:F13:=0.5
+!  city: -12. -54. 0.0125 0. 0. Cubic H
+!  city: -16. -54. 0.01   0. 0. Split EOS
+!  city: -15.5 -54. 0.01   0. 0. Full nonlin. EOS
+!  city: -15.5 -54. 0.01   0. 0. nonsplit :F5:r:F13:+qz
+! city: -16. -54. 0.008  0. 0. incompressible
+
+! city: -19.5 -54. 0.008 0. 0. depth 1500 m
+! city: -15. -54. 0.0125 0. 0. Bathymetry
+
+!
+! Rest-state test cases.
+!
+!  history: /work/Atl4rest/history.nc.30.incompress
+!  history: /work/Atl4rest/history.nc.31.incompress
+!  history: /work/Atl4rest/history.nc.32.incompress
+!   history: /work/Atl4rest/history.nc.32AC1rest.split
+!   history: /work/Atl4rest/history.nc.32AC1rest.nonsplit
+!   history: /work/Atl4rest/history.nc.32AC1rest.nonsplit.lin
+!   history: /work/Atl4rest/history.nc.32AC1rest.nonsplit.old
+
+
+! history: history.nc.31rest
+! history: history.nc.31rest.nonlin
+! history: history.nc.31rest.nonlin.incomp
+! history: history.nc.31rest.nonlin.old
+
+! history: history.nc.32rest
+! history: history.nc.32rest.nonlin
+! history: history.nc.32rest.nonlin.incomp
+! history: history.nc.32rest.nonlin.old
+! history: history.nc.32rest.split
+
+
+
+ reference: none
+      grid: /home/alex/Damee/damee4_grid_a.nc
+! coastline: /home/alex/Data/coastdb.dat
+! coastline: /home/alex/PlotNew/Data/global_cia.dat
+
+!    grid: /scratch-modi4/shchepet/NP_grid2.nc
+! history: /scratch-modi4/shchepet/NP_grid2.nc

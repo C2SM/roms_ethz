@@ -28,9 +28,9 @@
 #include "ocean3d.h"
 #include "scalars.h"
 c--#define CDEBUG
-      integer Lstr, Lend, mon_thread, tmpnfp1, tmpnf, 
+      integer Lstr, Lend, mon_thread, tmpnfp1, tmpnf,
      & tmpnfm1, tmpnfm2, entier
-      integer i, itrc, iflt, level, rcoeft,rcoefx,rcoefy, 
+      integer i, itrc, iflt, level, rcoeft,rcoefx,rcoefy,
      & k, xfloat, yfloat, index1, index2, i1, j1
       real cff1, cff2, cff3, cff4, xrhs, yrhs, zrhs
      & ,invrcoeft, tmptrack , zfloat, d1, d2, temp, sum
@@ -38,7 +38,7 @@ c--#define CDEBUG
       integer nfltmax, indx(Lend-Lstr+1), nfltmax_bak,id
 # ifdef AGRIF
       logical test
-# endif      
+# endif
 # ifdef RANDOM_WALK
       real tmp(Lend-Lstr+1)
 # endif
@@ -47,7 +47,7 @@ c--#define CDEBUG
 
 # ifdef AGRIF
       level=Agrif_Fixed()
-      floattindex(level)=nfp1 
+      floattindex(level)=nfp1
       rcoeft=int(Agrif_rhot())
       rcoefx=Agrif_irhox()
       rcoefy=Agrif_irhoy()
@@ -62,14 +62,14 @@ c--#define CDEBUG
 
 
 !  CHECK ALL FLOATS BELONGING TO THIS GRID AND TRY
-!  TO PUT THEM (BEFORE RELEASE -  Condition over Tinfo) 
-!  ON THE FINER GRID IF IT EXISTS 
+!  TO PUT THEM (BEFORE RELEASE -  Condition over Tinfo)
+!  ON THE FINER GRID IF IT EXISTS
 
-# ifdef AGRIF 
+# ifdef AGRIF
 c      write(*,*) 'Agrif_nb_step = ',Agrif_nb_step()
 c      write(*,*) 'level = ', Agrif_Fixed()
 c      write(*,*) 'Agrif_Nb_Fine_Grids ',Agrif_Nb_Fine_Grids
-      if (Agrif_nb_step() .eq. 0) then 
+      if (Agrif_nb_step() == 0) then
 
 c        if (.not. Agrif_Root()) then  !initialization of rhot2root
 c           rhot(level,2)=rhot2root(Agrif_Parent_Fixed(),2)*rcoeft
@@ -78,7 +78,7 @@ c        endif
 
          do iflt=Lstr,Lend
 
-            if (NINT(Tinfo(igrd,iflt)) .eq. level) then 
+            if (NINT(Tinfo(igrd,iflt)) == level) then
 
 c          write(*,*)'OLDTINFO',iflt,'  ',Tinfo(igrd,iflt),
 c    &     Tinfo(ixgrd,iflt), Tinfo(iygrd,iflt)
@@ -98,27 +98,27 @@ c    &     Tinfo(ixgrd,iflt), Tinfo(iygrd,iflt)
 
 
 !  CHECK ALL FLOATS BELONGING TO THIS GRID AND TRY
-!  TO PUT THEM (AFTER RELEASE - Condition over fltgrd 
+!  TO PUT THEM (AFTER RELEASE - Condition over fltgrd
 !  and track) ON THE FINER GRID IF IT EXISTS.
 
-# ifdef AGRIF      
+# ifdef AGRIF
 
           do iflt=Lstr,Lend
-            if (fltgrd(iflt).eq.level) then 
+            if (fltgrd(iflt)==level) then
 
             CALL AMR_transfer_floatsp2c(fltgrd(iflt),
      &  track(ixgrd,nf,iflt),track(iygrd,nf,iflt),deltap2c)
 
-!        if float transferred -> adapt velocities and grid value. 
+!        if float transferred -> adapt velocities and grid value.
 !        Take care AMR_coeffreft >= 3 is assumed here
 !        for temporal interpolation
-     
-            if (fltgrd(iflt) .ne. level) then 
 
-! track values are made consistent with the time indexing in 
+            if (fltgrd(iflt) /= level) then
+
+! track values are made consistent with the time indexing in
 ! the new grid (for one position index and all the velocity index).
-! This takes into account the fact that child indexes will be advanced 
-! in time in the new grid 
+! This takes into account the fact that child indexes will be advanced
+! in time in the new grid
               tmpnfp1=floattindex(fltgrd(iflt))
               tmpnf=mod(tmpnfp1+3,NFT+1)
               tmpnfm1=mod(tmpnfp1+2,NFT+1)
@@ -156,7 +156,7 @@ c    &     Tinfo(ixgrd,iflt), Tinfo(iygrd,iflt)
      &  track(izrhs,tmpnfp1,iflt))
 
             endif
-          endif 
+          endif
         enddo /* iflt*/
 # endif /* AGRIF */
 
@@ -166,12 +166,12 @@ c    &     Tinfo(ixgrd,iflt), Tinfo(iygrd,iflt)
 !
       nfltmax=0
       do iflt=Lstr,Lend
-        if (fltgrd(iflt).eq.level) then
+        if (fltgrd(iflt)==level) then
           nfltmax=nfltmax+1
           indx(nfltmax)=iflt
         endif
       enddo
-      
+
 !
 !---------------------------------------------------------------------
 !  Predictor step: compute first guess floats locations using a
@@ -209,7 +209,7 @@ c    &     Tinfo(ixgrd,iflt), Tinfo(iygrd,iflt)
 !---------------------------------------------------------------------
 !
 # ifdef SOLVE3D
-      call rhs_floats (u(START_2D_ARRAY,1,nnew), 
+      call rhs_floats (u(START_2D_ARRAY,1,nnew),
      &                 v(START_2D_ARRAY,1,nnew),
      &                 W(START_2D_ARRAY,0),
      &                           nfltmax, indx)
@@ -218,7 +218,7 @@ c    &     Tinfo(ixgrd,iflt), Tinfo(iygrd,iflt)
       call rhs_floats (ubar(START_2D_ARRAY,nnew),
      &                 vbar(START_2D_ARRAY,nnew),
      &                            nfltmax, indx)
-# endif 
+# endif
 
 !
 !---------------------------------------------------------------------
@@ -230,7 +230,7 @@ c    &     Tinfo(ixgrd,iflt), Tinfo(iygrd,iflt)
         iflt=indx(id)
         track(ixgrd,nfp1,iflt)=1./270*(
      &          19.* track(ixgrd,nfp1,iflt)+
-     &         251.*(track(ixgrd,nf,iflt)+ dt/24.*( 
+     &         251.*(track(ixgrd,nf,iflt)+ dt/24.*(
      &                  9.*track(ixrhs,nfp1,iflt)+
      &                 19.*track(ixrhs,nf  ,iflt)-
      &                  5.*track(ixrhs,nfm1,iflt)+
@@ -263,7 +263,7 @@ c    &     Tinfo(ixgrd,iflt), Tinfo(iygrd,iflt)
            iflt=indx(id)
            tmp(id)=track(izgrd,nfp1,iflt)
         enddo
-C compute dAkv/dz at tmp (linear interpolation) and adds 
+C compute dAkv/dz at tmp (linear interpolation) and adds
 C the right random walk components to the vertical position
         call random_walk(tmp,id)
         do id=1,nfltmax
@@ -287,9 +287,9 @@ CDEBUG      write(*,*)'Tinfo(itstr)',Tinfo(itstr,iflt)
 CDEBUG      write(*,*)'Tinfo(igrd)',nint(Tinfo(igrd,iflt))
 CDEBUG      write(*,*)'level',level
 
-        if (nint(Tinfo(igrd,iflt)).eq.level .and.
-     &            Tinfo(itstr,iflt).gt.cff1 .and.
-     &            Tinfo(itstr,iflt).lt.cff2) then
+        if (nint(Tinfo(igrd,iflt))==level .and.
+     &            Tinfo(itstr,iflt)>cff1 .and.
+     &            Tinfo(itstr,iflt)<cff2) then
           nfltmax=nfltmax+1   ! Add newly released floats
           indx(nfltmax)=iflt  ! to the list
         endif
@@ -306,20 +306,20 @@ CDEBUG      write(*,*)'level',level
         track(iygrd,2,iflt)=Tinfo(iygrd,iflt)
         track(ixgrd,3,iflt)=Tinfo(ixgrd,iflt)
         track(iygrd,3,iflt)=Tinfo(iygrd,iflt)
-!       write(*,*) 'release of float ', iflt 
+!       write(*,*) 'release of float ', iflt
 !       write(*,*) 'position is (XA) ', track(ixgrd,i,iflt),
 !     & '    ', track(iygrd,i,iflt)
        i=0
 
-!     DETERMINATION OF FLOAT SIGMA LEVEL (WITH WEIGHTS) 
-!     DONE HERE AND NO LONGER IN init_floats.F to 
-!     achieve a better accuracy (using the child grid 
-!     bathymetry and the four surrounding points). 
+!     DETERMINATION OF FLOAT SIGMA LEVEL (WITH WEIGHTS)
+!     DONE HERE AND NO LONGER IN init_floats.F to
+!     achieve a better accuracy (using the child grid
+!     bathymetry and the four surrounding points).
 
 # ifdef SOLVE3D
         zfloat=Tinfo(izgrd,iflt)
 
-        if (zfloat.lt.0.0) then
+        if (zfloat<0.0) then
           xfloat=INT(Tinfo(ixgrd,iflt))
           d1=Tinfo(ixgrd,iflt)-xfloat
           yfloat=INT(Tinfo(iygrd,iflt))
@@ -334,23 +334,23 @@ CDEBUG      write(*,*)'level',level
           temp=((1-index1)*(1-d1)+index1*d1)*
      &   ((1-index2)*(1-d2)+index2*d2)
           sum=sum+temp
-          
+
           do k=N,1,-1
 
             if ((z_w(xfloat,yfloat,k)-zfloat)*
-     &          (zfloat-z_w(xfloat,yfloat,k-1)).ge.0.0) then
+     &          (zfloat-z_w(xfloat,yfloat,k-1))>=0.0) then
             temp2=(FLOAT(k-1)+
      &     (zfloat-z_w(xfloat,yfloat,k-1))/Hz(xfloat,yfloat,k))
             track(izgrd,i,iflt)=track(izgrd,i,iflt)+temp2*
      &     temp
-           
+
            endif
           enddo
 
           enddo
           enddo
 
-          if (sum .ne. 0) then 
+          if (sum /= 0) then
           track(izgrd,i,iflt)=track(izgrd,i,iflt)/sum
           endif
         endif
@@ -397,12 +397,12 @@ CDEBUG      write(*,*)'level',level
 # endif
         enddo
       enddo
- 
+
 !---------------------------------------------------------------------
 !  Interpolate various output variables at the corrected locations,
-!  if writing occurs at next time step. Not optimal yet since 
-!  diags routines are called three times for level 3 (instead of one). 
-!  Build an AMR function to optimize this. 
+!  if writing occurs at next time step. Not optimal yet since
+!  diags routines are called three times for level 3 (instead of one).
+!  Build an AMR function to optimize this.
 !---------------------------------------------------------------------
 
       if (wrtflt(indxfltVel)) then
@@ -417,7 +417,7 @@ CDEBUG      write(*,*)'level',level
      &        (track(iyrhs,nfp1,iflt)/pn(i1,j1))**2  )
          enddo
       endif
-       
+
       if (diagfloats) then
 
 # ifdef AGRIF
@@ -441,7 +441,7 @@ CDEBUG      write(*,*)'level',level
           call interp_w3d_type (z_w(START_2D_ARRAY,0), ifdpt,
      &                                      nfltmax, indx)
 
-          if (wrtflt(indxfltRho)) then 
+          if (wrtflt(indxfltRho)) then
             call interp_r3d_type (rho1(START_2D_ARRAY,1), ifden,
      &                                      nfltmax, indx)
           endif
@@ -498,20 +498,20 @@ CDEBUG      write(*,*)'level',level
 !
 # ifdef AGRIF
       if (.not. Agrif_Root()) then
-        if (Agrif_nbstepint() .eq. int(Agrif_rhot())-1) then
+        if (Agrif_nbstepint() == int(Agrif_rhot())-1) then
 
           do id=1,nfltmax
             iflt=indx(id)
-            if (   track(ixgrd,nfp1,iflt) .gt. float(Lm)+0.5-deltac2p
-     &        .or. track(ixgrd,nfp1,iflt) .lt. 0.5+deltac2p
-     &        .or. track(iygrd,nfp1,iflt) .gt. float(Mm)+0.5-deltac2p
-     &        .or. track(iygrd,nfp1,iflt) .lt. 0.5+deltac2p   ) then
+            if (   track(ixgrd,nfp1,iflt) > float(Lm)+0.5-deltac2p
+     &        .or. track(ixgrd,nfp1,iflt) < 0.5+deltac2p
+     &        .or. track(iygrd,nfp1,iflt) > float(Mm)+0.5-deltac2p
+     &        .or. track(iygrd,nfp1,iflt) < 0.5+deltac2p   ) then
 
-! Modify velocities and position for new grid level. Not 
-! perfect since the velocity is going to be exact in the 
+! Modify velocities and position for new grid level. Not
+! perfect since the velocity is going to be exact in the
 ! new grid for time nf only (and nfm1 if refinement coef is 3)
-! Note : it is ok to just copy the value for z since grid 
-! topographies match near the boundaries. 
+! Note : it is ok to just copy the value for z since grid
+! topographies match near the boundaries.
               fltgrd(iflt)=Agrif_Parent_Fixed()
               tmpnfp1=floattindex(fltgrd(iflt))
               tmpnf=mod(tmpnfp1+3,NFT+1)
@@ -547,34 +547,32 @@ CDEBUG      write(*,*)'level',level
       else  ! AGRIF_Root()
         do id=1,nfltmax
           iflt=indx(id)
-          if  (track(ixgrd,nfp1,iflt) .gt. float(Lm)+0.5
-     &      .or.    track(ixgrd,nfp1,iflt) .lt. 0.5
-     &      .or.    track(iygrd,nfp1,iflt) .gt. float(Mm)+0.5
-     &      .or.    track(iygrd,nfp1,iflt) .lt. 0.5   ) then
- 
+          if  (track(ixgrd,nfp1,iflt) > float(Lm)+0.5
+     &      .or.    track(ixgrd,nfp1,iflt) < 0.5
+     &      .or.    track(iygrd,nfp1,iflt) > float(Mm)+0.5
+     &      .or.    track(iygrd,nfp1,iflt) < 0.5   ) then
+
               fltgrd(iflt)=-1 ! float dead
           endif
         enddo
       endif
-# else 
+# else
       do id=1,nfltmax
         iflt=indx(id)
-        if (track(ixgrd,nfp1,iflt) .gt. float(Lm)+0.5
-     &    .or.    track(ixgrd,nfp1,iflt) .lt. 0.5
-     &    .or.    track(iygrd,nfp1,iflt) .gt. float(Mm)+0.5
-     &    .or.    track(iygrd,nfp1,iflt) .lt. 0.5   ) then
+        if (track(ixgrd,nfp1,iflt) > float(Lm)+0.5
+     &    .or.    track(ixgrd,nfp1,iflt) < 0.5
+     &    .or.    track(iygrd,nfp1,iflt) > float(Mm)+0.5
+     &    .or.    track(iygrd,nfp1,iflt) < 0.5   ) then
 
           fltgrd(iflt)=-1 ! float dead
         endif
       enddo
 # endif /* AGRIF */
-      return
       end
 
-#else 
+#else
 
-      subroutine step_floats_empty 
-      return
+      subroutine step_floats_empty
       end
 
 #endif /* FLOATS */

@@ -1,267 +1,256 @@
 #include "cppdefs.h"
- 
+c--#define VERBOSE
+
       subroutine set_cycle (ncid, varid, ntime, cycle_length,
      &                                   icycle, irec,  ierr)
+
+! Purpose: Set the initial time record index "irec" and, if applicable,
+! cycling index "icycle", in such a way that the subsequent reading of
+! two consecutive records of timing variable (identified by netCDF ID
+! "varid") results in bounding the current model time as
 !
-! Determine how many time records "ntime" are available for variable
-! with netCDF ID "varid", check whether there is time periodicity
-! (cycling) for this variable and set initial cycling index "icycle"
-! and time record index "irec" depending on the current model in such
-! a way that subsequent reading of two records of time variable
-! results in bounding of current model time according to
-!
-!               X_time(irec-1) =< time < X_time(irec)
+!             X_time(irec-1)  <=  time  <  X_time(irec)
 !
 ! where, in the case of cycling X_time my be incremented by
 ! icycle*cycle_length relatively to data from the file.
 !
+! This routine also automatically detects and assigns values to the
+! associated variables "ntime" and "cycle_length".
+!
+!
+! Arguments:
+!-------------
 ! input:  ncid          netCDF file ID
 !         varid         netCDF ID for field time variable
 !
-! output: ntime         size of time dimension.
-!         cycle_length  length of field time cycle [seconds].
+! output: ntime         size of time dimension
+!         cycle_length  length of field time cycle [seconds]
 !         icycle        cycling index (integer)
 !         irec          time record index (integer)
-!
+!         ierr          error status, normally nf_noerr
+
       implicit none
       real cycle_length,  tstart, tend
-      integer ncid, varid, ntime, icycle, irec, ierr,  itry, nvdims,
-     &  vdims(8), vartype, nvatts, size, i, lvar, ldim, latt, lenstr
+      integer ncid, varid, ntime, icycle, irec, ierr, nvdims, nvatts,
+     &        vartype,  size, vdims(8), i, lvar, ldim, latt, lenstr
       logical found
-      character*16 varname, dimname, attname, testname
- 
+      character(len=16) varname, dimname, attname
+
 #include "param.h"
 #include "scalars.h"
 #include "netcdf.inc"
-!                       ! Default settings: if not discovered
-      cycle_length=0.   ! otherwise, it is assumed that file
-      icycle=0          ! contains only one record for requested
-      irec=1            ! variable, and no temporal interpolation
-      ntime=1           ! needed/can be to be further performed.
-!
-! Make general inquiry into about variable with netCDF ID "varid"
-! and find whether one (and only one) of its dimension names has
-! suffix "_time" (i.e. temporal record dimension). If found,
-! retrieve its size "ntime".
-!
+
+      ntime=1         ! Initialize: if not found later otherwise,
+      cycle_length=0. ! it is assumed that the file contains only one
+      icycle=0        ! record for the requested variable, and no
+      irec=1          ! temporal interpolation needed/can be performed.
+
+! Make general inquiry into about variable with netCDF ID "varid" and
+! find whether there is a single dimension dimension which name has the
+! suffix "_time" (i.e. temporal record dimension). If found, retrieve
+! its size and save it as "ntime".
+
       ierr=nf_inq_var (ncid, varid, varname, vartype,
      &                       nvdims,  vdims,  nvatts)
-      lvar=lenstr(varname)
-      found=.false.
-      i=0
-      do while (i.lt.nvdims .and. ierr.eq.nf_noerr)
-        i=i+1
-        ierr=nf_inq_dim (ncid, vdims(i), dimname, size)
-        if (ierr.eq.nf_noerr) then
-          ldim=lenstr(dimname)
-          if (dimname(ldim-4:ldim) .eq. '_time') then
-            if (.not.found) then
-              found=.true.
-              ntime=size
-            else
-              write(*,'(/1x,4A/18x,A)')  '### ERROR: set_cycle :: ',
-     &                    'variable ''',  varname(1:lvar), ''' has',
-     &                         'more than one ''_time'' dimension.'
-              ierr=-9999
+      if (ierr==nf_noerr) then
+        lvar=lenstr(varname)
+        found=.false.
+        i=0
+        do while (i<nvdims .and. ierr==nf_noerr)
+          i=i+1
+          ierr=nf_inq_dim (ncid, vdims(i), dimname, size)
+          if (ierr==nf_noerr) then
+            ldim=lenstr(dimname)
+            if (dimname(ldim-4:ldim) == '_time') then
+              if (.not.found) then
+                found=.true.
+                ntime=size
+              else
+                write(*,'(/1x,5A)')         '### ERROR: set_cycle :: ',
+     &                  'variable ''', varname(1:lvar), ''' has more ',
+     &                                 'than one ''_time'' dimension.'
+                ierr=-9999
+              endif
             endif
+          else
+            write(*,'(/1x,4A/12x,A/)')      '### ERROR: set_cycle :: ',
+     &                     'Cannot inquire dimensions for variable ''',
+     &                      varname(1:lvar), ''':', nf_strerror(ierr)
           endif
-        else
-          write(*,'(/1x,4A/10x,A/)')      '### ERROR: set_cycle :: ',
-     &                   'Cannot inquire dimensions for variable ''',
-     &                     varname(1:lvar), '''.', nf_strerror(ierr) 
-        endif
-      enddo
-!
-! Check, if there is more than one record available in netCDF file:
-! In the case of multiple records, check whether variable has cycling
-! attribute, if so, retrieve cycling period (leaving it set to zero
-! means that no recycling will be performed).  Also, in the case of
-! cycling,  scan all times available in the file and check whether
-! all of them lie within the declared cycling interval,
-!
-!      time(irec=1)  <  time(irec)  <=  time(irec=1)+cycle_length
-!                         1< irec <= ntime
-!
-! and if not restrict the last record to be read "ntime" to those
-! which are within (this means that all the remaining records in the
-! file will be ignored). 
-!
-      if (ierr.eq.nf_noerr) then
-        if (ntime.gt.1) then
+        enddo
+
+! If there is more than one record available check whether the variable
+! has cycling attribute, and if so, retrieve cycling period (leaving it
+! set to zero means that no recycling will be performed).
+
+        if (ntime>1 .and. ierr==nf_noerr) then
           i=0
-          do while (i.lt.nvatts .and. ierr.eq.nf_noerr)
+          do while (i<nvatts .and. ierr==nf_noerr)
             i=i+1
             ierr=nf_inq_attname (ncid, varid, i, attname)
-            if (ierr.eq.nf_noerr) then
+            if (ierr==nf_noerr) then
               latt=lenstr(attname)
-              if (attname(1:latt) .eq. 'cycle_length') then
+              if (attname(1:latt) == 'cycle_length') then
                 ierr=nf_get_att_FTYPE (ncid, varid, attname(1:latt),
      &                                                 cycle_length)
-                if (ierr.eq.nf_noerr) then
-                 if (cycle_length>0) then
-                  irec=0
-                  do while (irec.lt.ntime) 
-                    irec=irec+1
-                    ierr=nf_get_var1_FTYPE (ncid, varid, irec, tend)
-                    if (ierr.eq.nf_noerr) then
-                      if (irec.eq.1) then
-                        tstart=tend          !<-- initial time
-                      elseif (irec.eq.2) then
-                        tstart=2.*tstart-tend !<-- retard by 1/2-step
-                      elseif (tend .gt. tstart+cycle_length) then
-                        write(*,'(8x,A,2(A,I4,1x),A)')   'WARNING: ',
-     &                 'set_cycle :: Adjusted "ntime" from ', ntime,
-     &                 'to', irec-1,  'restricted by "cycle_length".'
-                        ntime=irec-1
-                      endif
-                    else
-                      write(*,1) varname(1:lvar), irec,
-     &                                nf_strerror(ierr)
-                    endif
-                  enddo
-
-                  irec=1
-                  cycle_length=cycle_length*day2sec
-                 endif
-                else
-                  write(*,'(/1x,4A/12x,A)')  '### ERROR: set_cycle ',
-     &                ':: Cannot read attribute ''', attname(1:latt),
-     &                                     '''.',  nf_strerror(ierr)
+                if (ierr /= nf_noerr) then
+                  write(*,'(/1x,4A/12x,A)') '### ERROR: set_cycle :: ',
+     &                     'Cannot read attribute ''', attname(1:latt),
+     &                                       '''.',  nf_strerror(ierr)
                 endif
               endif   !<-- cycle_length  is/is not present
             else
-              write(*,'(/1x,4A/12x,A)')   '### ERROR: set_cycle :: ',
-     &           'Cannot inquire attributes for ''', varname(1:lvar),
-     &                                     '''.',  nf_strerror(ierr)
+              write(*,'(/1x,2A,I3,1x,2A/12x,A)')        '### ERROR: ',
+     &           'set_cycle :: Cannot inquire name of attribute #', i,
+     &           'for ''', varname(1:lvar), '''.',  nf_strerror(ierr)
             endif
           enddo
-!
-! Search for starting time record field and time-index. First look
-! at the first record and, in the case of cycling, compare its value
-! "tstart" with current model time to set initial cycling index
-! "icycle" in such a way, that current model time is held within the
-! bouds:
-!
-!     tstart+icycle*cycle_length ; tstart+(icycle+1)*cycle_length
-!
-! Once it is set, increment "irec" forward in time (in a manner
-! similar to the actual time stepping done by get_ routines), to
-! find two consecutive time records which bound corrent model time,
-!
-!           X_time(irec-1) <= time < X_time(irec)
-!
-! (hence "irec" corresponds to future time). NOTE: in the case when
-! input netCDF file has corrupt or missing data, it is still possible
-! that nf_get_var1_FTYPE returns non-error status and bad values for
-! tstart, tend, and cycle_length (if any).  This is known to put the 
-! search algorithm into indefinite spin, even is situations when,
-! cycle length is not specified, i.e., data is not designed to be
-! cycled [the exact cause of it is due to the fact that missing
-! value in netCDF files is interpreted stil as a number, which
-! results in tstart,tend be the same and equal to whatever missing
-! value flag is set to.  Consequently model time is always outside
-! time the window and search goes on indefinitely. To prevent this
-! from happening, an alternative termination algoritm counts the
-! number of search iterations ("itry") and  terminates the search
-! after scanning all of the records avalable in the file.  
-!
-          if (ierr.eq.nf_noerr) then
-            found=.false.
-            ierr=nf_get_var1_FTYPE (ncid, varid, irec, tstart)
-            if (ierr.eq.nf_noerr) then
-              tstart=tstart*day2sec
-              if (cycle_length.gt.0.) then
-                icycle=int((time-tstart)/cycle_length)
-                if (time.lt.tstart) icycle=icycle-1
-                tstart=tstart + icycle*cycle_length
-              endif
-              itry=0
-              do while (.not.found .and. ierr.eq.nf_noerr)
-                itry=itry+1
-                call advance_cycle (cycle_length, ntime, icycle,
-     &                                              irec, ierr)
-                  if (ierr.eq.nf_noerr) then
-                  ierr=nf_get_var1_FTYPE (ncid, varid, irec, tend)
-                  if (ierr.eq.nf_noerr) then
 
-c           write(*,*) irec, ntime, icycle, cycle_length, tend 
-                     
-                    tend=tend*day2sec + icycle*cycle_length
-                    if (tstart.le.time .and. time.lt.tend) then
-                      found=.true.
-                    elseif (itry.gt.ntime) then
-
-         write(*,97) '### ERROR: set_cycle :: Cannot find ',
-     &  'appropriate record after scanning all records ',
-     &  'available:  icycle =', icycle,   'cycle_length =',
-     &   cycle_length, ' tstart =', tstart,  'tend =', tend,
-     &  'Possible cause: Check integrity of netCDF input ',
-     &  'file for missing/corrupt data.' 
-  97     format(/1x,2A/12x,A,I16,3x,A,E16.9/7x,2(4x,A,E16.9)/12x,2A)
-
-                      ierr=1000 
-                    else
-                      tstart=tend  !--> continue search
-                    endif
-                  else
-                    write(*,1) varname(1:lvar),irec,nf_strerror(ierr)
-                  endif
-                endif
-              enddo
+! If cycle_length is found, scan all records available within in the
+! file and check whether all of them lie within the declared cycling
+! interval, i.e.,
 !
-! Since no actual data has been read so far, retard "irec" twice,
-! so that calling get_ routine will retrieve two time levels of data.
+!     time(rec=1)  <  time(rec)  <=  time(rec=1)+cycle_length
+!          for all   1  <  rec  <=  ntime
 !
-              if (ierr.eq.nf_noerr) then
-                do i=1,2
-                  irec=irec-1
-                  if (irec.lt.1 .and. cycle_length.gt.0) then
-                    irec=ntime
-                    icycle=icycle-1
-                  elseif (irec.lt.0) then
-                    write(*,'(/1x,2A/)')  '### ERROR: set_cycle :: ',
-     &            'run out of time records in non-recycling regime.'
-                    ierr=-9999
-                  endif
-                enddo
-              endif
-            endif
+! If not restrict the last record to be read "ntime" to those which
+! are within (this means that all the remaining records in the file
+! will be ignored).
+
+          if (cycle_length>0.) then
+             i=0
+             do while (i<ntime)
+               i=i+1
+               ierr=nf_get_var1_FTYPE (ncid, varid, i, tend)
+               if (ierr==nf_noerr) then
+                 if (i==1) then
+                   tstart=tend           !<-- initial time
+                 elseif (i==2) then
+                   tstart=2.*tstart-tend !<-- retard by 1/2-step
+                 elseif (tend > tstart+cycle_length) then
+                    write(*,'(8x,A,2(A,I4,1x),A)')   'WARNING: ',
+     &               'set_cycle :: Adjusted "ntime" from ', ntime,
+     &               'to', i-1,  'restricted by "cycle_length".'
+                      ntime=i-1
+                 endif
+               else
+                 write(*,1) varname(1:lvar), i, nf_strerror(ierr)
+               endif
+             enddo
+
+! Convert cycle_length from days to seconds.
+
+             cycle_length=cycle_length*day2sec
           endif
-        else
-          write(*,1) varname(1:lvar), irec, nf_strerror(ierr) 
-        endif
+        endif   !<-- ntime>1
+
+#ifdef VERBOSE
+        write(*,'(1x,3A,1x,A,I5,2x,A,ES16.9)')         'set_cycle: ',
+     &          'varname = ''', varname(1:lvar), ''' ntime =', ntime,
+     &                      'cycle_length =', cycle_length*sec2day
+#endif
       else
         write(*,'(/1x,2A,I4,1x,A/12x,A/)')   '### ERROR: set_cycle ',
      &     ':: Cannot make general inquiry about variable with ID =',
      &             varid, 'in input netCDF file.', nf_strerror(ierr)
       endif
-  1   format(/1x,'### ERROR: set_cycle :: Cannot read variable ''',
-     &                             A, ''' for record ', I4/12x,A/)
 
-      if (ierr .ne. nf_noerr) then
-        i=nf_inq_varname (ncid, varid, testname)
-        if (i .eq. nf_noerr) then
-          lvar=lenstr(testname)
-          write(*,'(1x,A,I4,2x,3A,2(1x,A,1PE16.7)/)')      'varid =',
-     &         varid, 'variable in question: ''', testname(1:lvar),
-     &                       '''.', 'cycle_length=',  cycle_length
+! Search for starting time record field and time-index. First look
+! at the first record and, in the case of cycling, compare its value
+! "tstart" with current model time to set initial cycling index
+! "icycle" in such a way, that current model time is held within the
+! bounds:
+!
+!     tstart+icycle*cycle_length ; tstart+(icycle+1)*cycle_length
+!
+! Once it is set, increment "irec" forward in time (in a manner similar
+! to the actual time stepping done by get_ routines), to find two
+! consecutive time records which bound current model time,
+!
+!           X_time(irec-1) <= time < X_time(irec)
+!
+! (hence "irec" corresponds to future time). WARNING: in the case when
+! input netCDF file has corrupt or missing data, it is still possible
+! that nf_get_var1_FTYPE returns non-error status and bad values for
+! tstart, tend, and cycle_length (if any).  This is known to put the
+! search algorithm into indefinite spin, even is situations when, cycle
+! length is not specified, i.e., data is not designed to be cycled
+! [the exact cause of it is due to the fact that missing value in
+! netCDF files is interpreted still as a number, which results in
+! tstart,tend be the same and equal to whatever missing value flag is
+! set to.  Consequently model time is always outside time the window
+! and search goes on indefinitely. To prevent this from happening, an
+! alternative termination algorithm counts the number of search
+! iterations and  terminates the search after scanning all of the
+! records available in the file.
 
-        else
+      if (ntime>1 .and. ierr==nf_noerr) then
+        ierr=nf_get_var1_FTYPE (ncid, varid, irec, tstart)
+        if (ierr==nf_noerr) then
+          tstart=tstart*day2sec
+          if (cycle_length > 0.) then
+            icycle=int((time-tstart)/cycle_length)
+            if (time<tstart) icycle=icycle-1
+            tstart=tstart + icycle*cycle_length
+          endif
 
+          found=.false.
+          i=0
+          do while (.not.found .and. ierr==nf_noerr)
+            i=i+1
+            call advance_cycle (cycle_length,ntime, icycle,irec, ierr)
+            if (ierr==nf_noerr) then
+              ierr=nf_get_var1_FTYPE (ncid, varid, irec, tend)
+              if (ierr==nf_noerr) then
+                tend=tend*day2sec + icycle*cycle_length
+                if (tstart<=time .and. time<tend) then
+                  found=.true.
+                elseif (i>ntime) then
+
+        write(*,2)  '### ERROR: set_cycle :: Cannot find appropriate ',
+     & 'time record after scanning all', 'available records: icycle =',
+     &  icycle,   'cycle_length =', cycle_length,   'tstart =', tstart,
+     & 'tend =', tend,    'Check integrity of netCDF input file for ',
+     &                                     'missing or corrupt data.'
+                  ierr=-9999
+                else
+                  tstart=tend  !--> continue search
+                endif
+              else
+                write(*,1) varname(1:lvar), irec, nf_strerror(ierr)
+              endif
+            endif                     ! Because no actual data has been
+          enddo                       ! read thus far, backstep "irec"
+                                      ! twice, so the subsequient call
+          if (ierr == nf_noerr) then  ! to "get_" routine will retrieve
+            do i=1,2                  ! two time levels of data.
+              irec=irec-1
+              if (irec<1 .and. cycle_length>0) then
+                irec=ntime
+                icycle=icycle-1
+              elseif (irec<0) then
+                write(*,'(/1x,2A/)')      '### ERROR: set_cycle :: ',
+     &            'run out of time records in non-recycling regime.'
+                ierr=-9999
+              endif
+            enddo
+          endif
         endif
       endif
-      return
+
+  1   format(/1x,'### ERROR: set_cycle :: Cannot read variable ''',
+     &                               A, ''' for record ', I4/12x,A/)
+  2   format(/1x,2A/12x,A,I8,2x,A,ES16.10/8x,2(4x,A,ES16.10)/12x,2A)
       end
- 
- 
-      subroutine advance_cycle (cycle_length, ntime,
-     &                           icycle, irec, ierr)
+
+
+      subroutine advance_cycle (cycle_length, ntime, icycle,irec, ierr)
       implicit none
       real cycle_length
       integer ntime, icycle, irec, ierr
       irec=irec+1
-      if (irec.gt.ntime) then
-        if (cycle_length.gt.0.) then
+      if (irec>ntime) then
+        if (cycle_length>0.) then
           irec=1
           icycle=icycle+1
         else
@@ -270,7 +259,4 @@ c           write(*,*) irec, ntime, icycle, cycle_length, tend
           ierr=-9999
         endif
       endif
-      return
       end
- 
- 

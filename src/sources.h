@@ -1,5 +1,5 @@
 #ifdef PSOURCE
-!
+
 ! Nsrc       Number of point Sources/Sinks.
 ! Dsrc       Direction of point Sources/Sinks:  0 = along XI-;
 !                                          1= along ETA-direction.
@@ -16,7 +16,7 @@
 !              point Sources/Sinks.
 ! Qshape     Nondimensional shape function to distribute mass
 !             ass point Sources/Sinks vertically.
-!
+
       real Qbar(Msrc), Qsrc(Msrc,N),  Qshape(Msrc,N),
      &                                Tsrc(Msrc,N,NT)
 # ifndef ANA_PSOURCE
@@ -29,7 +29,7 @@
      &                                 QbarG,  TsrcG,
 # endif
      &                 Nsrc, Dsrc, Isrc, Jsrc, Lsrc
-#endif /* PSOURCE */
+#endif
 
 ! DL:
 #if defined PASSIVE_TRACER && defined AGE_DYE_TRACER

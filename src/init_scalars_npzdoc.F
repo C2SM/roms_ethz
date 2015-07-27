@@ -30,7 +30,7 @@ C$OMP CRITICAL (isca_cr_rgn)
 C$      numthreads=omp_get_num_threads()
 C$OMP END CRITICAL (isca_cr_rgn)
 C$OMP END PARALLEL
-      MPI_master_only write(stdout,'(1x,A,3(1x,A,I3),A)') 'NUMBER',
+      MPI_master_only write(*,'(1x,A,3(1x,A,I3),A)') 'NUMBER',
      &    'OF THREADS:',numthreads,'BLOCKING:',NSUB_X,'x',NSUB_E,'.'
 
 #ifdef MPI
@@ -40,11 +40,11 @@ C$OMP END PARALLEL
 #endif
 
       if (numthreads.gt.NUMPROC) then
-        MPI_master_only write(stdout,'(/1x,A,I3/)')
+        MPI_master_only write(*,'(/1x,A,I3/)')
      &   'ERROR: Requested number of threads exceeds setting: ', NUMPROC
         ierr=ierr+1                                      !--> ERROR
       elseif (mod(NSUB_X*NSUB_E,numthreads).ne.0) then
-        MPI_master_only write(stdout,
+        MPI_master_only write(*,
      &                '(/1x,A,1x,A,I3,4x,A,I3,4x,A,I4,A)') 'ERROR:',
      &                'wrong choice of numthreads =', numthreads,
      &                'NSUB_X =', NSUB_X, 'NSUB_E =', NSUB_E, '.'
@@ -61,43 +61,43 @@ C$OMP END PARALLEL
 ! attributes (name, long-name, units, field).
 !
 #ifdef SOLVE3D
-CR      write(stdout,'(1x,A,I3)') 'indxNO3 =',indxNO3
+CR      write(*,'(1x,A,I3)') 'indxNO3 =',indxNO3
       vname(1,indxNO3)='NO3                                       '
       vname(2,indxNO3)='NO3 Nutrient                              '
       vname(3,indxNO3)='mMol N m-3                                '
       vname(4,indxNO3)='NO3, scalar, series                       '
 
-CR      write(stdout,'(1x,A,I3)') 'indxNH4 =',indxNH4
+CR      write(*,'(1x,A,I3)') 'indxNH4 =',indxNH4
       vname(1,indxNH4)='NH4                                       '
       vname(2,indxNH4)='NH4 Nutrient                              '
       vname(3,indxNH4)='mMol N m-3                                '
       vname(4,indxNH4)='NH4, scalar, series                       '
 
-CR      write(stdout,'(1x,A,I3)') 'indxChla =',indxChla
+CR      write(*,'(1x,A,I3)') 'indxChla =',indxChla
       vname(1,indxChla)='CHLA                                     '
       vname(2,indxChla)='Chlorophyll A                            '
       vname(3,indxChla)='mg Chla m-3                              '
       vname(4,indxChla)='Chlorophyll, scalar, series              '
 
-CR      write(stdout,'(1x,A,I3)') 'indxPhyt =',indxPhyt
+CR      write(*,'(1x,A,I3)') 'indxPhyt =',indxPhyt
       vname(1,indxPhyt)='PHYTO                                    '
       vname(2,indxPhyt)='Phytoplankton                            '
       vname(3,indxPhyt)='mMol N m-3                               '
       vname(4,indxPhyt)='Phytoplankton, scalar, series            '
 
-CR      write(stdout,'(1x,A,I3)') 'indxZoo =',indxZoo
+CR      write(*,'(1x,A,I3)') 'indxZoo =',indxZoo
       vname(1,indxZoo)='ZOO                                       '
       vname(2,indxZoo)='Zooplankton                               '
       vname(3,indxZoo)='mMol N m-3                                '
       vname(4,indxZoo)='Zooplankton, scalar, series               '
 
-CR      write(stdout,'(1x,A,I3)') 'indxSDet =',indxSDet
+CR      write(*,'(1x,A,I3)') 'indxSDet =',indxSDet
       vname(1,indxSDet)='SDET                                     '
       vname(2,indxSDet)='Small Detritus Nutrient                  '
       vname(3,indxSDet)='mMol N m-3                               '
       vname(4,indxSDet)='Small Detritus, scalar, series           '
 
-CR      write(stdout,'(1x,A,I3)') 'indxLDet =',indxLDet
+CR      write(*,'(1x,A,I3)') 'indxLDet =',indxLDet
       vname(1,indxLDet)='LDET                                     '
       vname(2,indxLDet)='Large Detritus Nutrient                  '
       vname(3,indxLDet)='mMol N m-3                               '

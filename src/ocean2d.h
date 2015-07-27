@@ -2,7 +2,7 @@
 !---------------------------------------------------------
 ! zeta       Free surface elevation [m] and barotropic
 ! ubar,vbar  velocity components in XI- and ETA-directions
-!
+
       real zeta(GLOBAL_2D_ARRAY,4)
 CSDISTRIBUTE_RESHAPE zeta(BLOCK_PATTERN,*) BLOCK_CLAUSE
       real ubar(GLOBAL_2D_ARRAY,4)
