@@ -315,6 +315,8 @@ c$$$       enddo
              bec2_diag_2d(istr:iend,j,dco2star_idx_t) = DCO2STAR_ROW(istr:iend)
              bec2_diag_2d(istr:iend,j,pco2ws_idx_t)   = pCO2SURF_ROW(istr:iend)
              bec2_diag_2d(istr:iend,j,pco2air_idx_t)  = pCO2SURF_ROW(istr:iend) - DpCO2_ROW(istr:iend)
+# else
+             ph_hist(istr,iend,j)=ph_new(istr:iend)
 # endif
 
              FLUX(istr:iend,j) = PV(istr:iend,j) * DCO2STAR_ROW(istr:iend)

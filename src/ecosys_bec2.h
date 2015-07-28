@@ -95,6 +95,9 @@
       real bec2_diag_3d_slavg(GLOBAL_2D_ARRAY,nr_bec2_diag_3d)
       real bec2_diag_2d_slavg(GLOBAL_2D_ARRAY,nr_bec2_diag_2d)
       common /bec2_diag3/ bec2_diag_3d_avg, bec2_diag_2d_avg, bec2_diag_3d_slavg, bec2_diag_2d_slavg
+#else
+      real ph_hist(GLOBAL_2D_ARRAY)
+      common /ph_hist_com/ ph_hist
 #endif /* BEC2_DIAG */
 
 !     IFRAC  sea ice fraction (non-dimensional)
