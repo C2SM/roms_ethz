@@ -35,7 +35,7 @@
 ! Created by Alexander Shchepetkin <alex@atmos.ucla.edu> on May 2000.
 
       implicit none
-      integer, parameter :: max_str_size=80,  max_switches=1024,
+      integer, parameter :: max_str_size=512,  max_switches=1024,
      &                      iin=11, iout=12,  nwords=16
 
       character(len=max_str_size) string
@@ -330,7 +330,7 @@ c**  &                              '''<', fname(ifile)(1:ln), '>'''
 
 #define MULTI_CPPDEFS
 #ifndef MULTI_CPPDEFS
-      write(iout,'(6x,A/8x,A/5x,A1,1x,A/8x,A/6x,A)')
+      write(iout,'(6x,A/8x,A/5x,A1,1x,A/8x,A)')
      &      'if (iexample==0) then',
      &      'mpi_master_only write(*,''(/1x,A)'')', '&',
      & '''### ERROR in "cppdefs.h": no configuration is specified.''',
@@ -339,9 +339,10 @@ c**  &                              '''<', fname(ifile)(1:ln), '>'''
      &      'mpi_master_only write(*,''(/1x,2A/)'')', '&',
      &      '''### ERROR: More than one main configuration '',', '&',
      &      '''switch is defined in "cppdefs.h".''',   'ierr=ierr+1',
-     &                                             'endif', 'return'
+     &                                             'endif'
 #endif
-      write(iout,'(2x,A/5x,A1,2x,A,1x,A/5x,A1,2x,A,1x,A)')
+      write(iout,'(6x,A/2x,A/5x,A1,2x,A,1x,A/5x,A1,2x,A,1x,A)')
+     &      'return',
      &      '99  mpi_master_only write(*,''(/1x,2A/14x,A)'')',  '&',
      &      '''### ERROR: checkdefs :: Insufficient size of string',
      &      '"cpps" '',', '&', '''in file "strings.h".'',',

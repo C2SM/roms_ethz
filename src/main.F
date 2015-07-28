@@ -18,12 +18,6 @@ C$    ierr=0
       if (ierr == 1) call MPI_Init(ierr)
 
       call mpi_setup (ierr)
-#ifdef SCRATCH_DIR
-      call getenv('TMPDIR',outdir)
-      write(scr_cmd,'(2A)') 'make_tree ', trim(outdir)
-      call system(scr_cmd)
-      MPI_master_only print'(a/a)','Executed system command: ',scr_cmd
-#endi
       tstart=MPI_Wtime()
       if (ierr == 0) then
 # endif
@@ -62,14 +56,6 @@ C$OMP END PARALLEL                       ! launch the model in OpenMP
 # ifdef MPI
       endif
       call MPI_Barrier(ocean_grid_comm, ierr)
-#  ifdef SCRATCH_DIR
-      write(scr_cmd,'(3A)') 'move_tree ', trim(outdir), ' .'
-      call system(scr_cmd)
-      MPI_master_only print'(a/a)','Executed system command: ',scr_cmd
-      write(scr_cmd,'(A,I4.4,A)') 'rm  out_', mynode, ' 2>/dev/null'
-      call system(scr_cmd)
-      MPI_master_only print'(a/a)','Executed system command: ',scr_cmd
-#  endi
       tend=MPI_Wtime()
       mpi_master_only write(*,*) 'MPI_run_time =', tend-tstart
       call MPI_Finalize (ierr)
@@ -80,7 +66,6 @@ C$OMP END PARALLEL                       ! launch the model in OpenMP
 
       subroutine roms_thread
       implicit none
-      integer my_ii
 # include "param.h"
 # include "scalars.h"
                                          ! Note: Because there is
@@ -118,7 +103,6 @@ C$    integer omp_get_thread_num, omp_get_num_threads
 #endif
       numthreads=1 ; trd=0
 C$    numthreads=omp_get_num_threads()
-      trd=
 C$    trd=omp_get_thread_num()
       proc(2)=trd
 
