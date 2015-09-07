@@ -40,7 +40,7 @@
 #define MASK_LAND_DATA
 
                       /* Restart */
-#define EXACT_RESTART
+!--> #define EXACT_RESTART
 
          /* Open Boundary Conditions */
 #define OBC_M2FLATHER
