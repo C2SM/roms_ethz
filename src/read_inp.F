@@ -1,4 +1,11 @@
 #include "cppdefs.h"
+#ifdef MPI
+# define BEGIN_MPI_MASTER if (mynode==0) then
+# define END_MPI_MASTER endif
+#else
+# define BEGIN_MPI_MASTER
+# define END_MPI_MASTER
+#endif
                                         ! Read and report model input
       subroutine read_inp (ierr)        ! parameters from keyword-based
       implicit none                     ! startup file.
@@ -32,7 +39,7 @@
       character(len=32) keyword
       character(len=3), parameter :: end_signal='end'
       integer, parameter :: kwsize=32, testunit=40, input=15
-      integer ierr, iargc, is,ie,  kwlen, lstr, lenstr
+      integer ierr, iargc, is,ie,  kwlen, lstr, lenstr, nbasic, naux
 #ifdef SOLVE3D
      &        , itrc
 #if defined MULT_CLIM_FILES &&\
@@ -626,34 +633,37 @@ c--      fname='roms.in.US_West'
      &                         itrc=indxSedOrgN,indxSedOrgN+NT_sed-1)
 # endif /* SEDIMENT_BIOLOGY */
 #endif
-          if ( wrthis(indxZ) .or. wrthis(indxUb) .or. wrthis(indxVb)
-#ifdef SOLVE3D
-     &                         .or. wrthis(indxU) .or. wrthis(indxV)
-#endif
-     &       ) wrthis(indxTime)=.true.
+      if (any(wrthis)) wrthis(indxTime)=.true.
 
-          mpi_master_only write(*,'(/1x,A,5(/8x,A,T16,L1,T20,A))')
-     &                   'fields to write into history file: (T/F)'
-     &                 , 'zeta',   wrthis(indxZ),    vname(2,indxZ)
-     &                 , 'ubar',   wrthis(indxUb),   vname(2,indxUb)
-     &                 , 'vbar',   wrthis(indxVb),   vname(2,indxVb)
-#ifdef SOLVE3D
-     &                 , 'u',      wrthis(indxU),    vname(2,indxU)
-     &                 , 'v',      wrthis(indxV),    vname(2,indxV)
-          do itrc=1,NT
-            if (wrthis(indxT+itrc-1)) wrthis(indxTime)=.true.
-            mpi_master_only write(*,'(8x,A,I2,A,T16,L1,T20,A)') 't(',
-     &        itrc, ')', wrthis(indxT+itrc-1), vname(2,indxT+itrc-1)
-          enddo
 
+      BEGIN_MPI_MASTER
+!      write(*,*) 'fields to write into history file:'
+      nbasic=3 ! zeta, ubar, vbar
+      END_MPI_MASTER
+#ifdef SOLVE3D
+      BEGIN_MPI_MASTER
+      write(*,*)
+      nbasic=nbasic+2 ! u, v
+      call echo_to_write(wrthis(indxZ), nbasic,'primary'
+     &         , 'history',vname(1,indxZ))
+      call echo_to_write(wrthis(indxT), NT,'tracer'
+     &         , 'history',vname(1,indxT))
+# ifdef SEDIMENT_BIOLOGY
+      call echo_to_write(wrthis(indxSedOrgN), NT_sed,'sediment'
+     &         , 'history',vname(1,indxSedOrgN))
+# endif /* SEDIMENT_BIOLOGY */
+      END_MPI_MASTER
+
+#ifdef OBSOLETE
 # ifdef SEDIMENT_BIOLOGY
           do itrc = 1, NT_sed
             if (wrthis(indxSedOrgN+itrc-1)) wrthis(indxTime)=.true.
-            MPI_master_only write(*, '(6x,L1,2x,A,I2,A,I2,A)')
+            mpi_master_only write(*, '(6x,L1,2x,A,I2,A,I2,A)')
      &           wrthis(indxSedOrgN+itrc-1), 'write T_sed(', 
      &           itrc,')  Sediment tracer of index ', itrc,'.' 
           end do
 # endif /* SEDIMENT_BIOLOGY */
+#endif
  
         elseif (keyword(1:kwlen) == 'auxiliary_history_fields') then
           call cancel_kwd (keyword(1:kwlen), ierr)
@@ -666,22 +676,28 @@ c--      fname='roms.in.US_West'
      &                                            ,  wrthis(indxHbls)
 # endif
 # ifdef LMD_BKPP
-     &                                           ,  wrthis(indxHbbl)
+     &                                            ,  wrthis(indxHbbl)
 # endif
-          if ( wrthis(indxR) .or. wrthis(indxO) .or. wrthis(indxW)
-     &                     .or. wrthis(indxAkv) .or. wrthis(indxAkt)
+
+      BEGIN_MPI_MASTER
+      naux=3 ! omega, w, rho
+      call echo_to_write(wrthis(indxO), naux,'auxiliary'
+     &         , 'history',vname(1,indxO))
+      naux=2 ! Akv, Akt
 # ifdef SALINITY
-     &                                          .or. wrthis(indxAks)
+      naux=naux+1
 # endif
 # ifdef LMD_KPP
-     &                                          .or. wrthis(indxHbls)
+      naux=naux+1
 # endif
 # ifdef LMD_BKPP
-     &                                          .or. wrthis(indxHbbl)
+      naux=naux+1
 # endif
-     &       ) wrthis(indxTime)=.true.
+      call echo_to_write(wrthis(indxAkv), naux,'mixing'
+     &         , 'history',vname(1,naux))
+      END_MPI_MASTER
 
-
+#ifdef OBSOLETE
           mpi_master_only write(*,'(8(/8x,A,T16,L1,T20,A))')
      &                   'rho',    wrthis(indxR),    vname(2,indxR)
      &                 , 'Omega',  wrthis(indxO),    vname(2,indxO)
@@ -697,6 +713,10 @@ c--      fname='roms.in.US_West'
 # ifdef LMD_BKPP
      &                 , 'hbbl',   wrthis(indxHbbl), vname(2,indxHbbl)
 # endif
+#endif /* OBSOLETE */
+#else /* SOLVE3D */
+      mpi_master_only call echo_to_write(wrthis(indxT), nbasic,'f'
+     &         , 'history',vname(1,indxSedOrgN))
 #endif /* SOLVE3D */
 
 
@@ -728,12 +748,25 @@ c--      fname='roms.in.US_West'
      &                      ,  wrtavg(indxU),     wrtavg(indxV)
      &                      , (wrtavg(indxT+itrc-1), itrc=1,NT)
 # endif
-          if ( wrtavg(indxZ) .or. wrtavg(indxUb) .or. wrtavg(indxVb)
-# ifdef SOLVE3D
-     &                       .or. wrtavg(indxU)  .or. wrtavg(indxV)
-# endif
-     &       ) wrtavg(indxTime)=.true.
+      if (any(wrtavg)) wrtavg(indxTime)=.true.
 
+      BEGIN_MPI_MASTER
+!      write(*,*) 'fields to write into history file:'
+      nbasic=3 ! zeta, ubar, vbar
+#ifdef SOLVE3D
+      nbasic=nbasic+2 ! u, v
+#endif
+      call echo_to_write(wrthis(indxZ), nbasic,'primary'
+     &         , 'averages',vname(1,indxZ))
+      call echo_to_write(wrthis(indxT), NT,'tracer'
+     &         , 'averages',vname(1,indxT))
+# ifdef SEDIMENT_BIOLOGY
+      call echo_to_write(wrthis(indxSedOrgN), NT_sed,'sediment'
+     &         , 'averages',vname(1,indxSedOrgN))
+# endif /* SEDIMENT_BIOLOGY */
+      END_MPI_MASTER
+
+#ifdef OBSOLETE_PIECE
           mpi_master_only write(*,'(/1x,A,5(/8x,A,T16,L1,T20,A))')
      &                   'fields to compute time averages of: (T/F)'
      &                 , 'zeta',   wrtavg(indxZ),    vname(2,indxZ)
@@ -742,11 +775,19 @@ c--      fname='roms.in.US_West'
 # ifdef SOLVE3D
      &                 , 'u',      wrtavg(indxU),    vname(2,indxU)
      &                 , 'v',      wrtavg(indxV),    vname(2,indxV)
+# ifdef MPI
+      if (mynode==0) call echo_to_write(wrthis(indxT), NT,'t'
+     &                       , 'averages',vname(1,indxT))
+# else
+      call echo_writefields(wrthis(indxT), NT,'t'
+     &                       , 'averages',vname(1,indxT))
+# endif
           do itrc=1,NT
             if (wrtavg(indxT+itrc-1)) wrtavg(indxTime)=.true.
             mpi_master_only write(*,'(8x,A,I2,A,T16,L1,T20,A)') 't(',
      &        itrc, ')', wrtavg(indxT+itrc-1), vname(2,indxT+itrc-1)
           enddo
+#endif /* OBSOLETE_PIECE */
 #  ifdef SEDIMENT_BIOLOGY
           do itrc = 1, NT_sed
             if (wrtavg(indxSedOrgN+itrc-1)) wrtavg(indxTime)=.true.
@@ -769,6 +810,25 @@ c--      fname='roms.in.US_West'
 #  ifdef LMD_BKPP
      &                                            ,  wrtavg(indxHbbl)
 #  endif
+      BEGIN_MPI_MASTER
+      naux=3 ! omega, w, rho
+      call echo_to_write(wrthis(indxO), naux,'auxiliary'
+     &         , 'history',vname(1,indxO))
+      naux=2 ! Akv, Akt
+# ifdef SALINITY
+      naux=naux+1
+# endif
+# ifdef LMD_KPP
+      naux=naux+1
+# endif
+# ifdef LMD_BKPP
+      naux=naux+1
+# endif
+
+#ifdef OBSOLETE
+      call echo_to_write(wrthis(indxAkv), naux,'mixing'
+     &         , 'history',vname(1,naux))
+      END_MPI_MASTER
           if ( wrtavg(indxR) .or. wrtavg(indxO) .or. wrtavg(indxW)
      &                     .or. wrtavg(indxAkv) .or. wrtavg(indxAkt)
 #  ifdef SALINITY
@@ -797,6 +857,7 @@ c--      fname='roms.in.US_West'
 #  ifdef LMD_BKPP
      &                 , 'hbbl',   wrtavg(indxHbbl), vname(2,indxHbbl)
 #  endif
+#endif /* OBSOLETE */
 #  ifdef SLICE_AVG
         elseif (keyword(1:kwlen) == 'slice_averages') then
           call cancel_kwd (keyword(1:kwlen), ierr)
@@ -824,7 +885,7 @@ c--      fname='roms.in.US_West'
      &       ) wrtslavg(indxTime)=.true.
 
           mpi_master_only write(*,'(/1x,A,5(/8x,A,T16,L1,T20,A))')
-     &                   'fields to compute time averages of: (T/F)'
+     &                   'fields to compute slice averages of: (T/F)'
      &                 , 'zeta',   wrtslavg(indxZ),    vname(2,indxZ)
      &                 , 'ubar',   wrtslavg(indxUb),   vname(2,indxUb)
      &                 , 'vbar',   wrtslavg(indxVb),   vname(2,indxVb)
@@ -1197,9 +1258,8 @@ c--      fname='roms.in.US_West'
      &          N_agedye, ' Number of age/dye tracers'
 #endif /* PASSIVE_TRACER && AGE_DYE_TRACER */
         else
-          mpi_master_only write(*,'(/1x,4A/)') 'WARNING: ',
-     &                'Urecognized keyword ''', keyword(1:kwlen),
-     &                                      ''' --> DISREGARDED.'
+          mpi_master_only write(*,'(1x,4A/)') 'WARNING: ',
+     &          'Discarded unknown keyword "', keyword(1:kwlen), '".'
         endif
        if (keyword(1:kwlen) == end_signal) goto 99
       goto 1
@@ -1232,6 +1292,40 @@ c--      fname='roms.in.US_West'
       mpi_master_only print '(/3A)', '------------'
      &    , ' Finished reading input parameters ', '------------'
       return
+      end
+
+      subroutine echo_to_write(wrtflag, NT, c, s, var)
+      implicit none
+      integer, intent(in) ::  NT
+      logical, dimension(NT), intent(in) :: wrtflag ! wrthis,wrtavg,wrtslavg
+      character(len=*), dimension(4,NT), intent(in) :: var ! vname 
+      character(len=*), intent(in) :: c  ! field type primary, tracer, sediment, auxil.
+      character(len=*), intent(in) :: s 
+      integer itrc
+      logical :: skipped=.false.
+
+      if (any(wrtflag(1:NT))) write(*,'(4a)') 
+     &         trim(c), ' fields to write to ',trim(s),' file'
+    
+      do itrc=1,NT
+        if (wrtflag(itrc)) then
+          write(*,'(8x,2A,I2,A,T16,A,T24,A)')
+     &      c(1:1),'(', itrc, ')', var(1,itrc), var(2,itrc)
+        else
+          skipped=.true.
+CR          write(*,*) 'Field # skipped: ', itrc
+        endif
+      enddo
+
+      if (skipped) then
+        write(*,'(4x,3A)') '--- not written to ',trim(s),' file ---'
+        do itrc=1,NT
+          if (.not. wrtflag(itrc)) then
+            write(*,'(8x,3A,I2,A,T18,A,T24,A)')
+     &          '-',c(1:1),'(', itrc, ')', var(1,itrc), var(2,itrc)
+          endif
+        enddo
+      endif
       end
 
                                             ! Find place in the string
