@@ -47,7 +47,8 @@
 # must be specified.
 
 
- OMP_FLAG = -fpp2 -openmp
+ #sasha: OMP_FLAG = -fpp2 -openmp
+ OMP_FLAG = 
 
  LARGE_MEM_FLAG = -mcmodel=medium -i-dynamic
 
@@ -56,7 +57,9 @@
    CFTFLAGS = -pc80 -auto -stack_temps -warn unused
 
 
-      CFT = ifort $(OMP_FLAG) $(CFTFLAGS) $(LARGE_MEM_FLAG)
+      #mm Euler: CFT = ifort $(OMP_FLAG) $(CFTFLAGS) $(LARGE_MEM_FLAG)
+      #mm workstations, ch4:
+      CFT = mpif90 $(OMP_FLAG) $(CFTFLAGS) $(LARGE_MEM_FLAG)
 #--> Sasha2015 openMP      LDR = $(CFT)
      LDR = mpif90 $(OMP_FLAG) $(CFTFLAGS) $(LARGE_MEM_FLAG)
 

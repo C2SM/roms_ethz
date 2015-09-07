@@ -6,10 +6,13 @@
 #include "cppdefs_UP.h"
 
 #define GRID_SIZE LLm=416, MMm=346, N=42      ! 5km-66km telescopic
-#define DOMAIN_TILING NP_XI=10, NP_ETA=24, NSUB_X=1, NSUB_E=1
+!--> Euler: #define DOMAIN_TILING NP_XI=10, NP_ETA=24, NSUB_X=1, NSUB_E=1 ! Euler
+!--> #define DOMAIN_TILING NP_XI=3, NP_ETA=2, NSUB_X=1, NSUB_E=1  !ch4
+#define DOMAIN_TILING NP_XI=1, NP_ETA=1, NSUB_X=1, NSUB_E=1  !ch4
 
          /* Open Boundaries */
 #define OBC_SOUTH
+
 
                       /* Open Boundary Conditions */
 !-- #define CLMFORING
@@ -44,15 +47,17 @@
 
 
                       /* Biology */
+!--> #define BIOLOGY_NPZDOC
 # define BIOLOGY_BEC2
 
 #ifdef BIOLOGY_BEC2
-# define MULT_CLIM_FILES
-# define VFLX_CORR
-# define BEC2_DIAG
+# define DEFAULT_BGC_BRY_VALUES
+!--> # define MULT_CLIM_FILES
+!--> # define VFLX_CORR
+!--> # define BEC2_DIAG
 !# define RIVER_LOAD_N
 !# define RIVER_LOAD_P
-# define PCO2AIR_FORCING
+!--> # define PCO2AIR_FORCING
 #endif /* BIOLOGY_BEC2 */
 
 
@@ -67,6 +72,11 @@
 
                      
 !#define USE_REAL_YEAR /* Only used by age tracers*/
+!--> #define VERBOSE
+#define HIS_DOUBLE
+!--> #define DEBUG
 
 #include "set_global_definitions.h"
+
+#undef PARALLEL_FILES
 
