@@ -22,30 +22,32 @@ C$    ierr=0
       if (ierr == 0) then
 # endif
         call init_scalars(ierr)          ! Initialize global scalars,
-# ifdef BIOLOGY_NPZDOC
+# ifdef OBSOLETE_SUB_INIT_SCALARS_IN_MAIN
+#  ifdef BIOLOGY_NPZDOC 
       if (ierr == 0) then
       call init_scalars_npzdoc(ierr)
       endif
-#  ifdef BGC_FLUX_ANALYSIS
+#   ifdef BGC_FLUX_ANALYSIS
       if (ierr == 0) then
       call init_scalars_bgcflux(ierr)
       endif 
+#   endif
 #  endif
-# endif
-# ifdef BIOLOGY_BEC
+#  ifdef BIOLOGY_BEC
       if (ierr == 0) then
-      call init_scalars_bec(ierr)
+        call init_scalars_bec(ierr)
       endif 
-# endif
-# ifdef BIOLOGY_BEC2
+#  endif
+#  ifdef BIOLOGY_BEC2
       if (ierr == 0) then
-      call init_scalars_bec2(ierr)
+        call init_scalars_bec2(ierr)
       endif 
-# endif
-# ifdef PHYS_FLUX_ANALYSIS
+#  endif
+#  ifdef PHYS_FLUX_ANALYSIS
       if (ierr == 0) then
       call init_scalars_physflux(ierr)
       endif 
+#  endif
 # endif
         if (ierr == 0) then              ! model tunable parameters,
 C$       call omp_set_dynamic(.false.)

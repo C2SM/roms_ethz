@@ -1,4 +1,5 @@
 #include "cppdefs.h"
+# define CR
 
        subroutine init_scalars (ierr)
 
@@ -269,7 +270,7 @@ CR      write(*,'(1x,A,I3)') 'indxAkt =',indxAkt
       vname(2,indxAkt)='vertical thermal conductivity coefficient'
       vname(3,indxAkt)='meter2 second-1'
 # ifdef SALINITY
-CR      write(*,'(1x,A,I3)') 'indxAkt =',indxAks
+CR      write(*,'(1x,A,I3)') 'indxAks =',indxAks
       vname(1,indxAks)='AKs'
       vname(2,indxAks)='salinity vertical diffusion coefficient'
       vname(3,indxAks)='meter2 second-1'
@@ -396,6 +397,34 @@ CR      write(*,'(1x,A,I3)') 'indxSSS =', indxSSS
 #ifdef SALINITY
       tclm_name(isalt) = 'sclm_time'
 #endif
+# ifndef OBSOLETE_SUB_INIT_SCALARS_IN_MAIN
+#  ifdef BIOLOGY_NPZDOC
+      if (ierr == 0) then
+      call init_scalars_npzdoc(ierr)
+      endif
+#   ifdef BGC_FLUX_ANALYSIS
+      if (ierr == 0) then
+      call init_scalars_bgcflux(ierr)
+      endif
+#   endif
+#  endif
+#  ifdef BIOLOGY_BEC
+      if (ierr == 0) then
+        call init_scalars_bec(ierr)
+      endif
+#  endif
+#  ifdef BIOLOGY_BEC2
+      if (ierr == 0) then
+        call init_scalars_bec2(ierr)
+      endif
+#  endif
+#  ifdef PHYS_FLUX_ANALYSIS
+      if (ierr == 0) then
+      call init_scalars_physflux(ierr)
+      endif
+#  endif
+# endif /* OBSOLETE_SUB_INIT_SCALARS_IN_MAIN */
+
  
       ierr=0
       call read_inp (ierr)
@@ -416,3 +445,4 @@ CR      write(*,'(1x,A,I3)') 'indxSSS =', indxSSS
 #endif
       endif
       end
+#undef CR

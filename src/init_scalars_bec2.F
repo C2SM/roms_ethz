@@ -16,6 +16,8 @@
 #include "ncvars.h"
 #include "comm_vars.h"
 #include "ncroms_bgcflux.h"
+
+#ifdef NEVER_DEF
 #ifdef BEC2_DIAG
 # include "ecosys_bec2.h"
 #endif
@@ -56,6 +58,7 @@ C$OMP END PARALLEL
       do i=0,2*NT+1
         global_sum(i)=QuadZero
       enddo
+#endif /* NEVER_DEF */
 
 !
 ! Define names of variables in NetCDF output files.
@@ -214,18 +217,18 @@ CR      write(*,'(1x,A,I3)') 'indxNH4 =',indxNH4
       vname_bec2_diag_2d(2,indxPH)='surf pH value'
       vname_bec2_diag_2d(3,indxPH)=' '
       vname_bec2_diag_2d(4,indxPH)=' '
-      vname_bec2_diag_2d(1,indxPCO2)='pCO2                                 '
-      vname_bec2_diag_2d(2,indxPCO2)='Surface water pCO2                   '
-      vname_bec2_diag_2d(3,indxPCO2)='ppm                                  '
+      vname_bec2_diag_2d(1,indxPCO2)='pCO2'
+      vname_bec2_diag_2d(2,indxPCO2)='Surface water pCO2'
+      vname_bec2_diag_2d(3,indxPCO2)='ppm'
       vname_bec2_diag_2d(4,indxPCO2)='  '
-      vname_bec2_diag_2d(1,indxPCO2air)='pCO2air                           '
-      vname_bec2_diag_2d(2,indxPCO2air)='Atmospheric pCO2                  '
-      vname_bec2_diag_2d(3,indxPCO2air)='ppm                               '
+      vname_bec2_diag_2d(1,indxPCO2air)='pCO2air'
+      vname_bec2_diag_2d(2,indxPCO2air)='Atmospheric pCO2'
+      vname_bec2_diag_2d(3,indxPCO2air)='ppm'
       vname_bec2_diag_2d(4,indxPCO2air)='           '
-      vname_bec2_diag_2d(1,indxPARinc)='PARinc                                '
+      vname_bec2_diag_2d(1,indxPARinc)='PARinc'
       vname_bec2_diag_2d(2,indxPARinc)=
      &  'Incoming photosynth. active radiation '
-      vname_bec2_diag_2d(3,indxPARinc)='W m-2                                 '
+      vname_bec2_diag_2d(3,indxPARinc)='W m-2'
       vname_bec2_diag_2d(4,indxPARinc)='  '
       vname_bec2_diag_2d(1,indxFGO2)='FG_O2'
       vname_bec2_diag_2d(2,indxFGO2)='Air-sea flux of O2'
