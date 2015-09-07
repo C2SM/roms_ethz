@@ -45,9 +45,7 @@
      &    PHLO,         ! lower bound for ph in solver
      &    PHHI,         ! upper bound for ph in solver
      &    PH_NEW,       ! computed PH from solver
-# if !defined BEC2_DIAG
-     &    PH_HIST,       ! computed PH from solver
-# endif
+!--> moved into a common block     &    PH_HIST,       ! computed PH from solver
      &    CO2STAR_ROW,  ! CO2STAR from solver
      &    DCO2STAR_ROW, ! DCO2STAR from solver
      &    pCO2SURF_ROW, ! pCO2SURF from solver
@@ -277,15 +275,9 @@ c$$$       enddo
           XCO2(istr:iend) = pCO2air(istr:iend,j)
 # endif /* PCO2AIR_FORCING */
 
-# ifdef BEC2_DIAG
-             WHERE (BEC2_DIAG_2D(istr:iend,j,ph_idx_t) .ne. c0)
-                PHLO(istr:iend) = BEC2_DIAG_2D(istr:iend,j,ph_idx_t) - del_ph
-                PHHI(istr:iend) = BEC2_DIAG_2D(istr:iend,j,ph_idx_t) + del_ph
-# else
-             WHERE (PH_HIST(istr:iend) .ne. c0)
-                PHLO(istr:iend) = PH_HIST(istr:iend) - del_ph
-                PHHI(istr:iend) = PH_HIST(istr:iend) + del_ph
-# endif
+             WHERE (ph_hist(istr:iend,j) .ne. c0)
+                PHLO(istr:iend) = ph_hist(istr:iend,j) - del_ph
+                PHHI(istr:iend) = ph_hist(istr:iend,j) + del_ph
              ELSEWHERE
                 PHLO = phlo_init
                 PHHI = phhi_init
@@ -309,14 +301,13 @@ c$$$       enddo
 !                 print *, 'PV(istr:iend,j) =', PV(istr:iend,j)
 !             endif
 
+             ph_hist(istr:iend,j)=ph_new(istr:iend)
 # ifdef BEC2_DIAG
-             bec2_diag_2d(istr:iend,j,ph_idx_t) = PH_NEW(istr:iend)
+             bec2_diag_2d(istr:iend,j,ph_idx_t) = ph_hist(istr:iend,j)
              bec2_diag_2d(istr:iend,j,co2star_idx_t)  = CO2STAR_ROW(istr:iend)
              bec2_diag_2d(istr:iend,j,dco2star_idx_t) = DCO2STAR_ROW(istr:iend)
              bec2_diag_2d(istr:iend,j,pco2ws_idx_t)   = pCO2SURF_ROW(istr:iend)
              bec2_diag_2d(istr:iend,j,pco2air_idx_t)  = pCO2SURF_ROW(istr:iend) - DpCO2_ROW(istr:iend)
-# else
-             ph_hist(istr,iend,j)=ph_new(istr:iend)
 # endif
 
              FLUX(istr:iend,j) = PV(istr:iend,j) * DCO2STAR_ROW(istr:iend)
