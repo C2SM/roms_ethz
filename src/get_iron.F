@@ -31,7 +31,7 @@
       if (iic.eq.ntstart) then
         lstr=lenstr(frcname)
         if (ncid.eq.-1) then
-          ierr=nf_open(frcname(1:lstr), nf_nowrite, ncfrc)
+          ierr=nf_open(frcname(1:lstr), nf_nowrite, ncid)
           if (ierr.eq.nf_noerr) then
             ncfrc(ifrc)=ncid
           else

@@ -399,7 +399,7 @@
 # endif
       integer rstU, rstV, rstT(NT+1), hisO,   hisW,   hisR,
      &        hisU, hisV, hisT(NT+1), hisAkv, hisAkt, hisAks 
-# if defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC
+# if defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC || defined BIOLOGY_BEC2
 #  if defined CH_CARBON_DEPTH
      &      , rstHCO3d, rstCO3d, rstCO2STARd, rstPHd, rstPH, rstPCO2, rstPCO2air, rstPAR
      &      , hisHCO3d, hisCO3d, hisCO2STARd, hisPHd, hisPH, hisPCO2, hisPCO2air, hisPARinc, hisPAR

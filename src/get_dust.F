@@ -166,4 +166,4 @@
 #else /* BIOLOGY_BEC || BIOLOGY_BEC2 */
       subroutine get_dust_empty
       end
-#endif /* BIOLOGY_BEC  || BIOLOGY_BEC2 */
+#endif /* BIOLOGY_BEC || BIOLOGY_BEC2 */

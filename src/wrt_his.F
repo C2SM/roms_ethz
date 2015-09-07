@@ -325,7 +325,7 @@ CR      write(*,*) 'wrt_his:  wrtHbBL' MYID
 
 ! Write out averaged pH:
 
-      ierr=nf_fwrite (pH_hist(START_2D_ARRAY), nchis,
+      ierr=nf_fwrite (ph_hist(START_2D_ARRAY), nchis,
      &                              hisPH, record, r2dvar)
       if (ierr /= nf_noerr) then
         lvar=lenstr(vname(1,indxPH_rst))
