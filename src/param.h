@@ -164,8 +164,8 @@ c**     &               LLm=248, MMm=504, N=42      ! 5km config
 ! NP_XI,  NP_ETA     number of MPI subdomains in XI-, ETA-directions;
 ! NSUB_X, NSUB_E     number of shared memory subdomains (tiles) in
 !                                             XI- and ETA-directions;
-      integer, parameter ::
 #ifdef MPI
+      integer, parameter ::
 # ifdef DOMAIN_TILING /* tiling parameter are set in cppdefs */
      &  DOMAIN_TILING 
 # elif defined SO_d05

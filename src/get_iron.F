@@ -23,6 +23,10 @@
 ! large negative artificial values, so that it will trigger logic in
 ! reading part below.
 !
+!--> # define NOIRON
+# ifdef NOIRON
+      return
+# endif
       ifrc=1
  100  ncid=ncfrc(ifrc)
       frcname=frcfile(ifrc)
@@ -152,9 +156,14 @@
         do j=jstrR,jendR             !
           do i=istrR,iendR
              ! convert units from CCSM to ROMS (nmol/cm2 to mmol/m2)
+# ifdef NOIRON
+              iron(i,j)=0.0
+# else 
               iron(i,j)=(cff1*irong(i,j,it1)+cff2*irong(i,j,it2))
      &            * nmol_cm2_to_mmol_m2
+# endif
           enddo
+
         enddo
       elseif (ZEROTH_TILE) then
         write(*,'(/1x,2A/3(1x,A,F16.10)/)')

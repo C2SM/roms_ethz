@@ -29,7 +29,7 @@
       logical lsumX, lsumY
       integer nsubs, inc, jnc
 # else
-      real dV  !<-- not actually needed
+      real, dimension(PRIVATE_2D_SCRATCH_ARRAY) :: dV !<-- not actually needed
 # endif
 # ifdef VERT_COORD_TYPE_SM09
       real cff2_r,cff2_w, z_r0,z_w0

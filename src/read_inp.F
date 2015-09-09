@@ -301,10 +301,12 @@ c--      fname='roms.in.US_West'
         elseif (keyword(1:kwlen) == 'tracer_diff2') then
           call cancel_kwd (keyword(1:kwlen), ierr)
           read(input,*,err=95) (tnu2(itrc),itrc=1,NT)
+          write(*,*) '     Laplacian tracer diffusion coefficient '
+     &               , '(m^2/s) "tnu2":'
+          write(*,*) '     N | TRACER  |     TNU2'
           do itrc=1,NT
-            mpi_master_only write(*,'(ES10.3,A,I2,2A/32x,A,I2,A)')
-     &      tnu2(itrc), '  tnu2(',itrc,')     Horizontal Laplacian ',
-     &      'diffusion coefficient (m2/s)', 'for tracer ',  itrc, '.'
+            mpi_master_only write(*,'(5x,i2,2a,T18,a,g12.3)') itrc
+     &         ,' | ', trim(vname(1,itrc)), ' | ',tnu2(itrc) 
           enddo
 # endif
 #endif

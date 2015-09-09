@@ -20,7 +20,7 @@
 #endif
 
 #define SUM_BY_PAIRS
-#define ETALON_CHECK
+!--> #define ETALON_CHECK
 #define MAX_ADV_CFL
 #define MAX_BY_VERT_CFL_ONLY
 
@@ -123,7 +123,7 @@ C$    real*8 omp_get_wtime
         etalon_line(icheck)=' '        ! is needed because some of them
       enddo                            ! may be left uninitialized.
 
-# include Etalon_data/etalon_data.REF
+# include "Etalon_data/etalon_data.REF"
 !-- # if defined SOLITON
 !-- #  include "etalon_data.SOLITON"
 !-- # elif defined WAVE_RAD
@@ -703,7 +703,7 @@ C$        ie=ie-3             ! <--  disregard thread number
             if (iic-1 == check_point(icheck)) then
 # ifdef WRITE_ETALON
               if (mcheck==0) open(unit=19, 
-     &                         file='Etalon_data/etalon_data.NEW')
+     &                         file='etalon_data.NEW')
               mcheck=mcheck+1
               write(19,'(8x,A,I2,A,I6,2x,A,2x,A,I2,A/5x,A,3x,3A)')
      &       'check_point(', mcheck, ')=', check_point(icheck), ';',

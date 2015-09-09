@@ -54,19 +54,19 @@
           ierr=nf_inq_varname (ncid, varid, vname)
           if (ierr == nf_noerr) then
             lstr=lenstr(vname)
-            write(*,'(1x,2A,I6,1x,3A,2x,A,2x,A,I4)')  '### ERROR: ',
+            write(*,'(1x,2A,I6,1x,3A,2x,A,2x,A,I4)')  '--- WARNING:: ',
      &              'nf_read_bry_EW ::Cannot read rec =',   record,
      &              'of variable ''',  vname(1:lstr),  '''.',
      &               nf_strerror(ierr) MYID
           else
-            write(*,'(1x,2A,I6,1x,A,I4,2x,A,2x,A,I4)') '### ERROR: ',
+            write(*,'(1x,2A,I6,1x,A,I4,2x,A,2x,A,I4)') '--- WARNING:: ',
      &              'nf_read_bry_EW ::Cannot read rec =',   record,
      &              'of variable with netCDF ID =',  varid,
      &               nf_strerror(ierr) MYID
           endif
         endif
       else
-        write(*,'(/1x,2A,I4/)') '### ERROR: nf_read_bry_EW :: ',
+        write(*,'(/1x,2A,I4/)') '--- WARNING:: nf_read_bry_EW :: ',
      &                          'illegal grid type', type
       endif
 #ifdef VERBOSE
@@ -118,12 +118,12 @@
           ierr=nf_inq_varname (ncid, varid, vname)
           if (ierr == nf_noerr) then
             lstr=lenstr(vname)
-            write(*,'(1x,2A,I6,1x,3A,2x,A,2x,A,I4)')  '### ERROR: ',
+            write(*,'(1x,2A,I6,1x,3A,2x,A,2x,A,I4)')  '--- WARNING:: ',
      &              'nf_read_bry_NS ::Cannot read rec =',   record,
      &              'of variable ''',  vname(1:lstr),  '''.',
      &               nf_strerror(ierr) MYID
           else
-            write(*,'(1x,2A,I6,1x,A,I4,2x,A,2x,A,I4)') '### ERROR: ',
+            write(*,'(1x,2A,I6,1x,A,I4,2x,A,2x,A,I4)') '--- WARNING: ',
      &              'nf_read_bry_NS ::Cannot read rec =',   record,
      &              'of variable with netCDF ID =',  varid,
      &               nf_strerror(ierr) MYID
@@ -131,7 +131,7 @@
         endif
 
       else
-        write(*,'(/1x,2A,I4/)') '### ERROR: nf_read_bry_NS :: ',
+        write(*,'(/1x,2A,I4/)') '--- WARNING: nf_read_bry_NS :: ',
      &                          'illegal grid type', type
       endif
 #ifdef VERBOSE

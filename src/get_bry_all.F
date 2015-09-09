@@ -499,36 +499,48 @@
 # endif
 
 # ifdef OBC_SOUTH
+#  define CR
               if (south_bry_active) then
 #  ifdef Z_FRC_BRY
+CR              print*,'BRY: reading zeta_south...'
                 ierr=nf_read_bry_NS (zeta_south_dt(0,itbry), bry_id,
      &                              zeta_south_id, bry_rec,  r2dvar)
               if (ierr.ne.nf_noerr) write(*,2) 'zeta_south'
+CR              if (ierr.eq.nf_noerr) write(*,*) 'BRY: zeta_south read'
                 ierr_all=ierr_all+ierr
 #  endif
 #  ifdef M2_FRC_BRY
+CR              print*,'BRY: reading vbar_south...'
                 ierr=nf_read_bry_NS (ubar_south_dt(0,itbry), bry_id,
      &                               ubar_south_id, bry_rec, u2dvar)
               if (ierr.ne.nf_noerr) write(*,2) 'ubar_south'
+CR              if (ierr.eq.nf_noerr) write(*,*) 'BRY: ubar_south read'
                 ierr_all=ierr_all+ierr
+CR              print*,'BRY: reading vbar_south...'
                 ierr=nf_read_bry_NS (vbar_south_dt(0,itbry), bry_id,
      &                               vbar_south_id, bry_rec, v2dvar)
               if (ierr.ne.nf_noerr) write(*,2) 'vbar_south'
+CR              if (ierr.eq.nf_noerr) write(*,*) 'BRY: vbar_south read'
                 ierr_all=ierr_all+ierr
 #  endif
 #  ifdef SOLVE3D
 #   ifdef M3_FRC_BRY
+CR              print*,'BRY: reading u_south...'
                 ierr=nf_read_bry_NS (u_south_dt(0,1,itbry), bry_id,
      &                               u_south_id,  bry_rec,  u3dvar)
               if (ierr.ne.nf_noerr)  write(*,2)  'u_south'
+CR              if (ierr.eq.nf_noerr) write(*,*) 'BRY: u_south read'
                 ierr_all=ierr_all+ierr
+CR              print*,'BRY: reading v_south...'
                 ierr=nf_read_bry_NS (v_south_dt(0,1,itbry), bry_id,
      &                               v_south_id,  bry_rec,  v3dvar)
               if (ierr.ne.nf_noerr)  write(*,2)  'v_south'
+CR              if (ierr.eq.nf_noerr) write(*,*) 'BRY: v_south read'
                 ierr_all=ierr_all+ierr
 #   endif
 #   ifdef T_FRC_BRY
                 do itrc=1,NT
+CR              print*,'BRY: reading tracer_south... itrc=',itrc
                   ierr=nf_read_bry_NS (t_south_dt(0,1,itbry,itrc),
      &                bry_id, t_south_id(itrc),  bry_rec, r3dvar)
 #     if defined DEFAULT_BGC_BRY_VALUES
@@ -541,6 +553,9 @@
                     if (itrc >= iPO4 .and. 
      &                  itrc <= iPO4 + ntrc_bio - 1) then
 #      endif
+CR              print*,'BRY: setting default for'
+CR     &                , ' tracer_south itrc=',itrc
+#undef CR
                       call set_bry_defaults(t_south_dt,itrc,itbry,Lm+1)
                       print 3,trim(vname_bry),t_south_dt(0,1,itbry,itrc)
                       ierr=0

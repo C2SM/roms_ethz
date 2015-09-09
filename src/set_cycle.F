@@ -240,7 +240,7 @@ c--#define VERBOSE
 
   1   format(/1x,'### ERROR: set_cycle :: Cannot read variable ''',
      &                               A, ''' for record ', I4/12x,A/)
-  2   format(/1x,2A/12x,A,I8,2x,A,ES16.10/8x,2(4x,A,ES16.10)/12x,2A)
+  2   format(/1x,2A/12x,A,I8,2x,A,ES17.10/8x,2(4x,A,ES17.10)/12x,2A)
       end
 
 
