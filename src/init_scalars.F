@@ -144,16 +144,14 @@ c--#define CR
 CR      write(*,'(1x,A,I3)') 'indxTime =',indxTime
 #ifdef CALENDAR
       vname(1,indxTime)='time'
-# ifdef STARTDATE
-      vname(3,indxTime)='second since '/ /STARTDATE/ /' 00:00:00'
-# else
-      vname(3,indxTime)='second since 0001-01-01 00:00:00          '
-# endif
 #else
       vname(1,indxTime)='ocean_time'
 #endif
       vname(2,indxTime)='Time since initialization'
-      vname(3,indxTime)='second'
+#ifndef STARTDATE
+# define STARTDATE 0001-01-01 
+#endif
+      vname(3,indxTime)='second since '/ /STARTDATE/ /' 00:00:00'
 
 CR      write(*,'(1x,A,I3)') 'indxZ =',indxZ
       vname(1,indxZ)='zeta'

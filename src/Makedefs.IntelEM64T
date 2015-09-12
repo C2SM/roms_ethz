@@ -76,7 +76,7 @@
 # -prof_gen
 
 #  FFLAGS = -g -check all -CA -CB -CS
-  FFLAGS = -g -check arg_temp_created,bounds,pointers,uninit,format,output_conversion
+#  FFLAGS = -g -check arg_temp_created,bounds,pointers,uninit,format,output_conversion
 
 #  FFLAGS = -O1
 

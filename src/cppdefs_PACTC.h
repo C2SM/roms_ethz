@@ -8,8 +8,8 @@
 #define GRID_SIZE LLm=416, MMm=346, N=42      ! 5km-66km telescopic
 !--> Euler: #define DOMAIN_TILING NP_XI=10, NP_ETA=24, NSUB_X=1, NSUB_E=1 ! Euler
 !--> #define DOMAIN_TILING NP_XI=3, NP_ETA=2, NSUB_X=1, NSUB_E=1  !ch4
-#define DOMAIN_TILING NP_XI=1, NP_ETA=1, NSUB_X=1, NSUB_E=1  !ch4
-!--> #define DOMAIN_TILING NP_XI=4, NP_ETA=4, NSUB_X=1, NSUB_E=1  !ch4
+!--> #define DOMAIN_TILING NP_XI=1, NP_ETA=1, NSUB_X=1, NSUB_E=1  !ch4
+#define DOMAIN_TILING NP_XI=4, NP_ETA=6, NSUB_X=1, NSUB_E=1  !ch4
 
          /* Open Boundaries */
 #define OBC_SOUTH
@@ -49,7 +49,7 @@
 
                       /* Biology */
 !--> #define BIOLOGY_NPZDOC
-!--> # define BIOLOGY_BEC2
+# define BIOLOGY_BEC2
 
 #ifdef BIOLOGY_BEC2
 # define DEFAULT_BGC_BRY_VALUES

@@ -301,13 +301,15 @@ c--      fname='roms.in.US_West'
         elseif (keyword(1:kwlen) == 'tracer_diff2') then
           call cancel_kwd (keyword(1:kwlen), ierr)
           read(input,*,err=95) (tnu2(itrc),itrc=1,NT)
-          write(*,*) '     Laplacian tracer diffusion coefficient '
-     &               , '(m^2/s) "tnu2":'
-          write(*,*) '     N | TRACER  |     TNU2'
-          do itrc=1,NT
-            mpi_master_only write(*,'(5x,i2,2a,T18,a,g12.3)') itrc
-     &         ,' | ', trim(vname(1,itrc)), ' | ',tnu2(itrc) 
-          enddo
+          BEGIN_MPI_MASTER
+            write(*,'(5x,a)') 
+     &          'Laplacian tracer diffusion coefficient TNU2 [m^2/s]:'
+     &          , ' N | TRACER  |     TNU2'
+            do itrc=1,NT
+              write(*,'(5x,i2,2a,T18,a,g12.3)') itrc
+     &         ,' | ', trim(vname(1,indxT+itrc-1)), ' | ',tnu2(itrc) 
+            enddo
+          END_MPI_MASTER
 # endif
 #endif
 
@@ -655,18 +657,6 @@ c--      fname='roms.in.US_West'
      &         , 'history',vname(1,indxSedOrgN))
 # endif /* SEDIMENT_BIOLOGY */
       END_MPI_MASTER
-
-#ifdef OBSOLETE
-# ifdef SEDIMENT_BIOLOGY
-          do itrc = 1, NT_sed
-            if (wrthis(indxSedOrgN+itrc-1)) wrthis(indxTime)=.true.
-            mpi_master_only write(*, '(6x,L1,2x,A,I2,A,I2,A)')
-     &           wrthis(indxSedOrgN+itrc-1), 'write T_sed(', 
-     &           itrc,')  Sediment tracer of index ', itrc,'.' 
-          end do
-# endif /* SEDIMENT_BIOLOGY */
-#endif
- 
         elseif (keyword(1:kwlen) == 'auxiliary_history_fields') then
           call cancel_kwd (keyword(1:kwlen), ierr)
           read(input,*,err=95) wrthis(indxR), wrthis(indxO)
@@ -699,23 +689,6 @@ c--      fname='roms.in.US_West'
      &         , 'history',vname(1,naux))
       END_MPI_MASTER
 
-#ifdef OBSOLETE
-          mpi_master_only write(*,'(8(/8x,A,T16,L1,T20,A))')
-     &                   'rho',    wrthis(indxR),    vname(2,indxR)
-     &                 , 'Omega',  wrthis(indxO),    vname(2,indxO)
-     &                 , 'W',      wrthis(indxW),    vname(2,indxW)
-     &                 , 'Akv',    wrthis(indxAkv),  vname(2,indxAkv)
-     &                 , 'Akt',    wrthis(indxAkt),  vname(2,indxAkt)
-# ifdef SALINITY
-     &                 , 'Aks',    wrthis(indxAks),  vname(2,indxAks)
-# endif
-# ifdef LMD_KPP
-     &                 , 'hbls',   wrthis(indxHbls), vname(2,indxHbls)
-# endif
-# ifdef LMD_BKPP
-     &                 , 'hbbl',   wrthis(indxHbbl), vname(2,indxHbbl)
-# endif
-#endif /* OBSOLETE */
 #else /* SOLVE3D */
       mpi_master_only call echo_to_write(wrthis(indxT), nbasic,'f'
      &         , 'history',vname(1,indxSedOrgN))
@@ -755,9 +728,9 @@ c--      fname='roms.in.US_West'
       BEGIN_MPI_MASTER
 !      write(*,*) 'fields to write into history file:'
       nbasic=3 ! zeta, ubar, vbar
-#ifdef SOLVE3D
+# ifdef SOLVE3D
       nbasic=nbasic+2 ! u, v
-#endif
+# endif
       call echo_to_write(wrthis(indxZ), nbasic,'primary'
      &         , 'averages',vname(1,indxZ))
       call echo_to_write(wrthis(indxT), NT,'tracer'
@@ -768,54 +741,23 @@ c--      fname='roms.in.US_West'
 # endif /* SEDIMENT_BIOLOGY */
       END_MPI_MASTER
 
-#ifdef OBSOLETE_PIECE
-          mpi_master_only write(*,'(/1x,A,5(/8x,A,T16,L1,T20,A))')
-     &                   'fields to compute time averages of: (T/F)'
-     &                 , 'zeta',   wrtavg(indxZ),    vname(2,indxZ)
-     &                 , 'ubar',   wrtavg(indxUb),   vname(2,indxUb)
-     &                 , 'vbar',   wrtavg(indxVb),   vname(2,indxVb)
-# ifdef SOLVE3D
-     &                 , 'u',      wrtavg(indxU),    vname(2,indxU)
-     &                 , 'v',      wrtavg(indxV),    vname(2,indxV)
-# ifdef MPI
-      if (mynode==0) call echo_to_write(wrthis(indxT), NT,'t'
-     &                       , 'averages',vname(1,indxT))
-# else
-      call echo_writefields(wrthis(indxT), NT,'t'
-     &                       , 'averages',vname(1,indxT))
-# endif
-          do itrc=1,NT
-            if (wrtavg(indxT+itrc-1)) wrtavg(indxTime)=.true.
-            mpi_master_only write(*,'(8x,A,I2,A,T16,L1,T20,A)') 't(',
-     &        itrc, ')', wrtavg(indxT+itrc-1), vname(2,indxT+itrc-1)
-          enddo
-#endif /* OBSOLETE_PIECE */
-#  ifdef SEDIMENT_BIOLOGY
-          do itrc = 1, NT_sed
-            if (wrtavg(indxSedOrgN+itrc-1)) wrtavg(indxTime)=.true.
-            MPI_master_only write(*, '(6x,L1,2x,A,I2,A,I2,A)')
-     &           wrtavg(indxSedOrgN+itrc-1), 'write T_sed(', 
-     &           itrc,')  Sediment tracer of index ', itrc,'.' 
-          end do
-#  endif /* SEDIMENT_BIOLOGY */
-
         elseif (keyword(1:kwlen) == 'auxiliary_averages') then
           call cancel_kwd (keyword(1:kwlen), ierr)
           read(input,*,err=95) wrtavg(indxR), wrtavg(indxO)
      &          ,  wrtavg(indxW),  wrtavg(indxAkv),  wrtavg(indxAkt)
-#  ifdef SALINITY
+# ifdef SALINITY
      &                                            ,  wrtavg(indxAks)
-#  endif
-#  ifdef LMD_KPP
+# endif
+# ifdef LMD_KPP
      &                                            ,  wrtavg(indxHbls)
-#  endif
-#  ifdef LMD_BKPP
+# endif
+# ifdef LMD_BKPP
      &                                            ,  wrtavg(indxHbbl)
-#  endif
+# endif
       BEGIN_MPI_MASTER
       naux=3 ! omega, w, rho
-      call echo_to_write(wrthis(indxO), naux,'auxiliary'
-     &         , 'history',vname(1,indxO))
+      call echo_to_write(wrtavg(indxO), naux,'auxiliary'
+     &         , 'averages',vname(1,indxO))
       naux=2 ! Akv, Akt
 # ifdef SALINITY
       naux=naux+1
@@ -826,40 +768,89 @@ c--      fname='roms.in.US_West'
 # ifdef LMD_BKPP
       naux=naux+1
 # endif
-
-#ifdef OBSOLETE
-      call echo_to_write(wrthis(indxAkv), naux,'mixing'
-     &         , 'history',vname(1,naux))
+      call echo_to_write(wrtavg(indxAkv), naux,'mixing'
+     &         , 'averages',vname(1,naux))
       END_MPI_MASTER
-          if ( wrtavg(indxR) .or. wrtavg(indxO) .or. wrtavg(indxW)
-     &                     .or. wrtavg(indxAkv) .or. wrtavg(indxAkt)
-#  ifdef SALINITY
-     &                                          .or. wrtavg(indxAks)
-#  endif
-#  ifdef LMD_KPP
-     &                                          .or. wrtavg(indxHbls)
-#  endif
-#  ifdef LMD_BKPP
-     &                                          .or. wrtavg(indxHbbl)
-#  endif
-     &       ) wrtavg(indxTime)=.true.
 
-          mpi_master_only write(*,'(8(/8x,A,T16,L1,T20,A))')
-     &                   'rho',    wrtavg(indxR),    vname(2,indxR)
-     &                 , 'Omega',  wrtavg(indxO),    vname(2,indxO)
-     &                 , 'W',      wrtavg(indxW),    vname(2,indxW)
-     &                 , 'Akv',    wrtavg(indxAkv),  vname(2,indxAkv)
-     &                 , 'Akt',    wrtavg(indxAkt),  vname(2,indxAkt)
+# ifdef SLICE_AVG
+! Averages controls: slice level (ksl),time step number to start averaging (sets phase
+! for averaging windows); averaging interval in time steps; number of
+! records per file, and output filename.
+
+        elseif (keyword(1:kwlen) == 'slice_averages') then
+          call cancel_kwd (keyword(1:kwlen), ierr)
+          read(input,*,err=95) ksl, ntsslavg, nslavg, nrpfslavg
+          read(input,'(A)',err=95) fname
+          lstr=lenstr(fname)
+#  if defined MPI && defined PARALLEL_FILES && !defined JOINED_AVG
+          call insert_node (fname, lstr, mynode, NNODES, ierr)
+#  endif
+          slavgname=fname(1:lstr)
+          mpi_master_only write(*,'(/1x,A,I5,2x,A,I5,2x,A,I4,2x,3A)')
+     &       'averages :: ntsslavg = ', ntsslavg,  'nslavg =', nslavg,
+     &       'rec/file =', nrpfslavg, 'file = ''', slavgname(1:lstr), ''''
+
+! Switches for fields to compute slice averages.
+
+        elseif (keyword(1:kwlen) == 'primary_slice_avg') then
+          call cancel_kwd (keyword(1:kwlen), ierr)
+          read(input,*,err=95) wrtslavg(indxZ),  wrtslavg(indxUb)
+     &                                        ,  wrtslavg(indxVb)
+#  ifdef SOLVE3D
+     &                      ,  wrtslavg(indxU),     wrtslavg(indxV)
+     &                      , (wrtslavg(indxT+itrc-1), itrc=1,NT)
+#  endif
+      if (any(wrtslavg)) wrtslavg(indxTime)=.true.
+
+      BEGIN_MPI_MASTER
+!      write(*,*) 'fields to write into history file:'
+      nbasic=3 ! zeta, ubar, vbar
+#  ifdef SOLVE3D
+      nbasic=nbasic+2 ! u, v
+#  endif
+      call echo_to_write(wrthis(indxZ), nbasic,'primary'
+     &         , 'slice averages',vname(1,indxZ))
+      call echo_to_write(wrthis(indxT), NT,'tracer'
+     &         , 'averages',vname(1,indxT))
+#  ifdef SEDIMENT_BIOLOGY
+      call echo_to_write(wrthis(indxSedOrgN), NT_sed,'sediment'
+     &         , 'slice averages',vname(1,indxSedOrgN))
+#  endif /* SEDIMENT_BIOLOGY */
+      END_MPI_MASTER
+
+        elseif (keyword(1:kwlen) == 'auxiliary_slice_avg') then
+          call cancel_kwd (keyword(1:kwlen), ierr)
+          read(input,*,err=95) wrtslavg(indxR), wrtslavg(indxO)
+     &       ,  wrtslavg(indxW),  wrtslavg(indxAkv),  wrtslavg(indxAkt)
 #  ifdef SALINITY
-     &                 , 'Aks',    wrtavg(indxAks),  vname(2,indxAks)
+     &                                            ,  wrtslavg(indxAks)
 #  endif
 #  ifdef LMD_KPP
-     &                 , 'hbls',   wrtavg(indxHbls), vname(2,indxHbls)
+     &                                            ,  wrtslavg(indxHbls)
 #  endif
 #  ifdef LMD_BKPP
-     &                 , 'hbbl',   wrtavg(indxHbbl), vname(2,indxHbbl)
+     &                                            ,  wrtslavg(indxHbbl)
 #  endif
-#endif /* OBSOLETE */
+      BEGIN_MPI_MASTER
+      naux=3 ! omega, w, rho
+      call echo_to_write(wrtslavg(indxO), naux,'auxiliary'
+     &         , 'slice .averages',vname(1,indxO))
+      naux=2 ! Akv, Akt
+#  ifdef SALINITY
+      naux=naux+1
+#  endif
+#  ifdef LMD_KPP
+      naux=naux+1
+#  endif
+#  ifdef LMD_BKPP
+      naux=naux+1
+#  endif
+      call echo_to_write(wrtslavg(indxAkv), naux,'mixing'
+     &         , 'slice averages',vname(1,naux))
+      END_MPI_MASTER
+# endif /* SLICE_AVG */
+
+# ifdef OBSOLETE_PIECE
 #  ifdef SLICE_AVG
         elseif (keyword(1:kwlen) == 'slice_averages') then
           call cancel_kwd (keyword(1:kwlen), ierr)
@@ -949,7 +940,7 @@ c--      fname='roms.in.US_West'
      &                 , 'hbbl',   wrtslavg(indxHbbl), vname(2,indxHbbl)
 #   endif
 #  endif /* SLICE_AVERAGES */
-# endif /* SOLVE3D */
+# endif /* OBSOLETE_PIECE */
 #endif /* AVERAGES */
 
 #ifdef BGC_FLUX_ANALYSIS
