@@ -640,7 +640,7 @@
       common /cncvars/ aparnam, assname
 #endif
       character*42  vname(4,
-#ifdef BIOLOGY
+#if defined BIOLOGY || defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC || defined BIOLOGY_BEC2
      &                       40+NT-2)
 #else
      &                       40)

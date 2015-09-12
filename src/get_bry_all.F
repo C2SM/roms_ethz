@@ -499,7 +499,7 @@
 # endif
 
 # ifdef OBC_SOUTH
-#  define CR
+!--> #  define CR
               if (south_bry_active) then
 #  ifdef Z_FRC_BRY
 CR              print*,'BRY: reading zeta_south...'
@@ -555,7 +555,9 @@ CR              print*,'BRY: reading tracer_south... itrc=',itrc
 #      endif
 CR              print*,'BRY: setting default for'
 CR     &                , ' tracer_south itrc=',itrc
-#undef CR
+#ifdef CR
+# undef CR
+#endif
                       call set_bry_defaults(t_south_dt,itrc,itbry,Lm+1)
                       print 3,trim(vname_bry),t_south_dt(0,1,itbry,itrc)
                       ierr=0

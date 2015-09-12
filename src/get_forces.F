@@ -64,7 +64,7 @@ c--#define VERBOSE
 # endif
 # if defined BIOLOGY_BEC || defined BIOLOGY_BEC2
         if (ierr.eq.0)  call get_dust(ierr)
-!mm debug        if (ierr.eq.0)  call get_iron(ierr)
+        if (ierr.eq.0)  call get_iron(ierr)
 # endif
 # ifdef PCO2AIR_FORCING
         if (ierr.eq.0)  call get_pCO2air(ierr)
