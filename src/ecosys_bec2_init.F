@@ -11,6 +11,7 @@
       integer auto_ind
       ! Variables used for namelist parameter input:
       integer status,  lvar,itrc,lenstr
+#ifdef BIOPAR_NAMELIST
       character*100 filename_biopar_bec_nml, filename_biopar_out_bec_nml
 
       ! Define namelist for ecosystem parameters:
@@ -32,14 +33,17 @@
      &    parm_CaCO3_diss,
      &    parm_scalelen_z,
      &    parm_scalelen_vals,
-     &    kFe, kPO4, kDOP, kNO3, kNH4, kSiO3, Qp, gQfe_0, gQfe_min, alphaPI, PCref,
-     &    thetaN_max, loss_thres, loss_thres2, temp_thres, mort, mort2, agg_rate_max,
-     &    agg_rate_min, z_umax_0, z_grz, graze_zoo, graze_poc, graze_doc, 
-     &    loss_poc, f_zoo_detr
+     &    kFe, kPO4, kDOP, kNO3, kNH4, kSiO3, Qp, gQfe_0, gQfe_min, 
+     &    alphaPI, PCref,
+     &    thetaN_max, loss_thres, loss_thres2, temp_thres, mort, mort2, 
+     &    agg_rate_max,
+     &    agg_rate_min, z_umax_0, z_grz, graze_zoo, graze_poc, 
+     &    graze_doc, loss_poc, f_zoo_detr
 
 
       filename_biopar_bec_nml = 'biopar_bec.nml'
       filename_biopar_out_bec_nml = 'biopar_out_bec.nml'
+#endif
 
       !---------------------------------------------------------------------------
       !   default namelist settings
@@ -134,6 +138,7 @@
       Si_ind(auto_ind)        = 0
       CaCO3_ind(auto_ind)     = 0
 
+#ifdef BIOPAR_NAMELIST
       !---------------------------------------------------------------------------
       !   read in namelist
       !---------------------------------------------------------------------------
@@ -147,7 +152,7 @@
          if (mynode.eq.0) then
 #endif
             if (status .ne. 0) then
-               print *, 'Could not read the biology parameter namelist!'
+!               print *, 'Could not read the biology parameter namelist!'
             else
                print *, 'Biology parameters were read from ',
      &              filename_biopar_bec_nml
@@ -157,34 +162,38 @@
 #endif
          close(73)
       else  ! status .eq. 0
-#ifdef MPI
+# ifdef MPI
          if (mynode.eq.0) then
-#endif
+# endif
             print *, 'Biology parameter namelist file was not found'
             print *, 'Default values will be used.'
-#ifdef MPI
+# ifdef MPI
          end if
-#endif
+# endif
       end if  ! status .eq. 0
-#ifdef MPI
+#ifndef BIOPAR_NOWRITE
+# ifdef MPI
       ! Master process writes file with parameters used:
       if (mynode.eq.0) then
-#endif
+# endif
          open(74,file=filename_biopar_out_bec_nml,status='unknown',
      &           iostat=status)
          if (status .eq. 0) then
             write(74,NML=ecosys_parms_nml,iostat=status)
             if (status .ne. 0) then
-               print *, 'Could not write the biology parameter namelist!'
+               print *,'Could not write the biology parameter namelist!'
             end if
             close(74)
          else
             print *, 'Could not create output file ',
      &           filename_biopar_out_bec_nml
          end if
-#ifdef MPI
+# ifdef MPI
       end if  ! (mynode.eq.0)
-#endif
+# endif
+#endif /* BIOPAR_NOWRITE */
+#endif /* BIOPAR_NAMELIST */
+
 
 #ifdef BEC2_DIAG
       !---------------------------------------------------------------------------

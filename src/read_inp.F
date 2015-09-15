@@ -686,7 +686,7 @@ c--      fname='roms.in.US_West'
       naux=naux+1
 # endif
       call echo_to_write(wrthis(indxAkv), naux,'mixing'
-     &         , 'history',vname(1,naux))
+     &         , 'history',vname(1,indxAkv))
       END_MPI_MASTER
 
 #else /* SOLVE3D */
@@ -769,7 +769,7 @@ c--      fname='roms.in.US_West'
       naux=naux+1
 # endif
       call echo_to_write(wrtavg(indxAkv), naux,'mixing'
-     &         , 'averages',vname(1,naux))
+     &         , 'averages',vname(1,indxAkv))
       END_MPI_MASTER
 
 # ifdef SLICE_AVG
@@ -834,7 +834,7 @@ c--      fname='roms.in.US_West'
       BEGIN_MPI_MASTER
       naux=3 ! omega, w, rho
       call echo_to_write(wrtslavg(indxO), naux,'auxiliary'
-     &         , 'slice .averages',vname(1,indxO))
+     &         , 'slice-averages',vname(1,indxO))
       naux=2 ! Akv, Akt
 #  ifdef SALINITY
       naux=naux+1
@@ -846,7 +846,7 @@ c--      fname='roms.in.US_West'
       naux=naux+1
 #  endif
       call echo_to_write(wrtslavg(indxAkv), naux,'mixing'
-     &         , 'slice averages',vname(1,naux))
+     &         , 'slice averages',vname(1,indxAkv))
       END_MPI_MASTER
 # endif /* SLICE_AVG */
 
@@ -1295,10 +1295,11 @@ c--      fname='roms.in.US_West'
       character(len=*), intent(in) :: c  ! field type primary, tracer, sediment, auxil.
       character(len=*), intent(in) :: s 
       integer itrc
-      logical :: skipped=.false.
+      logical :: skipped
+      skipped = .false.
 
-      if (any(wrtflag(1:NT))) write(*,'(4a)') 
-     &         trim(c), ' fields to write to ',trim(s),' file'
+      if (any(wrtflag(1:NT))) write(*,'(6x,4a)') 
+     &         trim(c),'_',trim(s),' fields requested:'
     
       do itrc=1,NT
         if (wrtflag(itrc)) then
@@ -1306,16 +1307,15 @@ c--      fname='roms.in.US_West'
      &      c(1:1),'(', itrc, ')', var(1,itrc), var(2,itrc)
         else
           skipped=.true.
-CR          write(*,*) 'Field # skipped: ', itrc
         endif
       enddo
 
       if (skipped) then
-        write(*,'(4x,3A)') '--- not written to ',trim(s),' file ---'
+        write(*,'(5x,A)') '  not written:'
         do itrc=1,NT
           if (.not. wrtflag(itrc)) then
             write(*,'(8x,3A,I2,A,T18,A,T24,A)')
-     &          '-',c(1:1),'(', itrc, ')', var(1,itrc), var(2,itrc)
+     &         '- ',c(1:1),'(', itrc, ')', var(1,itrc), var(2,itrc)
           endif
         enddo
       endif

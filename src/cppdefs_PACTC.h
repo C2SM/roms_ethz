@@ -9,14 +9,16 @@
 !--> Euler: #define DOMAIN_TILING NP_XI=10, NP_ETA=24, NSUB_X=1, NSUB_E=1 ! Euler
 !--> #define DOMAIN_TILING NP_XI=3, NP_ETA=2, NSUB_X=1, NSUB_E=1  !ch4
 !--> #define DOMAIN_TILING NP_XI=1, NP_ETA=1, NSUB_X=1, NSUB_E=1  !ch4
-#define DOMAIN_TILING NP_XI=4, NP_ETA=6, NSUB_X=1, NSUB_E=1  !ch4
+#define DOMAIN_TILING NP_XI=4, NP_ETA=6, NSUB_X=4, NSUB_E=6  !ch4
 
          /* Open Boundaries */
 #define OBC_SOUTH
+#define SPONGE
 
 
                       /* Open Boundary Conditions */
 !-- #define CLMFORING
+
 
 #ifdef CLMFORCING    /*  Use CLM Files */
 # define TCLIMATOLOGY
@@ -24,7 +26,6 @@
 # define TNUDGING
 # define M3NUDGING
 # define M2NUDGING
-# define SPONGE
 # ifdef TCLIMATOLOGY
 #      define CLIMAT_TS_MIXH
 # endif
@@ -33,19 +34,21 @@
 # undef Z_FRC_BRY
 # undef M3_FRC_BRY
 # undef M2_FRC_BRY
-#else                /* Default: Use BRY Files*/
-# undef SPONGE /* note: UCLA uses SPONGE with BRY */
+--> #else                /* Default: Use BRY Files*/
+--> # undef SPONGE /* note: UP ETH before 8/2015 did not use SPONGE with BRY */
 #endif
 
-#undef OBC_M2FLATHER  /* undefine default in cppdefs_UP.h */
-#define OBC_M2SPECIFIED
+
+!--> #undef OBC_M2FLATHER  /* undefine default in cppdefs_UP.h */
+!--> #define OBC_M2SPECIFIED
 
                       /* Output */
 #define AVERAGES
 #define SLICE_AVG
-#define CALENDAR '365_day'     /* netCDF CF-convention CALENDAR attribute */
-#define STARTDATE '1979-01-01' /* netCDF CF-convention time units attribute */
+!--> #define CALENDAR '360_day'     /* netCDF CF-convention CALENDAR attribute default: '360_day' */
+!--> #define STARTDATE '0001-01-01' /* part of netCDF CF-convention time units attribute default: '0001-01-01'*/
 
+!--> #define ADV_ISONEUTRAL
 
                       /* Biology */
 !--> #define BIOLOGY_NPZDOC
@@ -74,7 +77,7 @@
                      
 !#define USE_REAL_YEAR /* Only used by age tracers*/
 !--> #define VERBOSE
-#define HIS_DOUBLE
+!#define HIS_DOUBLE
 !--> #define DEBUG
 
 #include "set_global_definitions.h"

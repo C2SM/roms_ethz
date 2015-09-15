@@ -1,5 +1,4 @@
 #include "cppdefs.h"
-# define CR
 
        subroutine init_scalars (ierr)
 

@@ -202,15 +202,20 @@
         if (mod(iic-ntsAVR,nAVR)==1) then
           if (ZEROTH_TILE) then
             mpi_master_only write(*,'(7x,A,I8,2x,A,I8,2x,A,I5)')
-     &               'set_AVR :: started averaging at iic=', iic,
-     &                          'ntsAVR=', ntsAVR, 'nAVR=', nAVR
+#ifdef AVRSLICE
+     &          'set_slavg :: started slice averaging at iic=', iic,
+     &                          'ntsslavg=', ntsAVR, 'nslavg=', nAVR
+#else
+     &               'set_avg :: started averaging at iic=', iic,
+     &                          'ntsavg=', ntsAVR, 'navg=', nAVR
+#endif
           endif
           cff1=0.   !--> initialize
         else
           cff1=1.   !--> keep adding
         endif
 
-        if (ZEROTH_TILE) time_avg=cff1*time_avg + cff*time
+        if (ZEROTH_TILE) time_AVR=cff1*time_AVR + cff*time
 
         if (wrtavg(indxZ)) then
             do j=jstrR,jendR

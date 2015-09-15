@@ -843,17 +843,24 @@ c??         enddo
             enddo
           enddo           !--> discard FC,WC,CF,DC
 
-#ifdef CONST_TRACERS
+# ifdef CONST_TRACERS
           do k=1,N
             do i=istr,iend
               t(i,j,k,nnew,itrc)=t(i,j,k,nstp,itrc)
             enddo
           enddo
-#endif
+# endif
         enddo      !<-- j
         call t3dbc_tile (istr,iend,jstr,jend, itrc, wrk1)
       enddo     !<-- itrc
 
+# if defined BIOLOGY_BEC
+      call ecosys_tile (istr,iend,jstr,jend)      ! BEC of about 2006
+# elif defined BIOLOGY_BEC2
+      call ecosys_bec2_tile (istr,iend,jstr,jend) ! BEC, 2014 
+# elif defined BIOLOGY || defined BIOLOGY_NPZDOC
+      call biology_tile (istr,iend,jstr,jend)     ! NPZDOC
+# endif
 
 # if defined EW_PERIODIC || defined NS_PERIODIC || defined MPI
       do itrc=1,NT-1,2
