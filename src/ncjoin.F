@@ -55,7 +55,7 @@ c--#define KEEP_CLOSED
 #define TIMING
 c--#define AUTORENICE
 c--#define VERBOSE
-#define AUTORENICE
+c--#define AUTORENICE
 #ifdef NETCDF4
 # define NCFILEFORMAT nf_netcdf4
 #else
@@ -65,9 +65,11 @@ c--#define VERBOSE
 
       implicit none
 #include "netcdf.inc"
-      integer, parameter :: maxdims=32, maxvars=64
+      !sasha: integer, parameter :: maxdims=32, maxvars=64
+      integer, parameter :: maxdims=128, maxvars=256
       integer, parameter :: part_XI=1,  part_ETA=2, part_2D=3
 
+      logical :: quite=.false.
       logical complete, clean_set,  digit,  var_mask,  lnewvar
       integer nargs, nnodes,   size_XI,  XI_rho,  id_xi_rho,  id_xi_u,
      &        arg,   node,     size_ETA, ETA_rho, id_eta_rho, id_eta_v,
@@ -172,9 +174,8 @@ c--#define VERBOSE
       cmd(11:lstr+10)=cmd(1:lstr)    ! pid of its own process and
       lstr=lstr+10                   ! executes re-nice command.
       cmd(1:10)='renice 19 '
-      write(*,'(/3A/)') 'Autorenice: executing ''',cmd(1:lstr),'''.'
+      write(*,'(/3A//)') 'Autorenice: executing ''',cmd(1:lstr),'''.'
       call system(cmd(1:lstr))
-      write(*,*)
 #endif
 #ifdef TIMING
 # ifdef __IFC
@@ -250,6 +251,11 @@ c--#define VERBOSE
           ldir=lenstr(nctestname)
           odir=nctestname(4:ldir)
           ldir=ldir-3
+          goto 2
+        endif
+        if ( nctestname(1:1)=='-' .and. (
+     &       lsrc > 1  .and. nctestname(1:2) == '-q' )) then
+          quite=.true.
           goto 2
         endif
         if ( nctestname(1:1)=='-' .and. (
