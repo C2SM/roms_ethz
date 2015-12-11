@@ -148,7 +148,7 @@ CR      write(*,'(1x,A,I3)') 'indxTime =',indxTime
 #endif
       vname(2,indxTime)='Time since initialization'
 #ifndef STARTDATE
-# define STARTDATE 0001-01-01 
+# define STARTDATE '0001-01-01' 
 #endif
       vname(3,indxTime)='second since '/ /STARTDATE/ /' 00:00:00'
 
