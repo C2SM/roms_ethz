@@ -118,7 +118,7 @@ c--#define VERBOSE
 ! is done only when file of initial conditions contains sufficient
 ! data, i.e. two consecutive time records of evolving fields one time
 ! step apart from each other.  Thus, in order to accept the file for
-! exact restart, it must pass two consecutive checks: (i) ocean_time
+! exact restart, it must pass two consecutive checks: (i) time
 ! values in two consecutive values must differ by "dt" of current run,
 ! and (ii) "ntstart" from two consecutive records of netCDF structure
 ! "time_step" must differ by one.  If either check fails, forward step
@@ -169,9 +169,12 @@ c--#define VERBOSE
       ierr=nf_inq_varid (ncid, vname(1,indxTime)(1:lvar), varid)
 
 ! The following is done for backward compatibility: normally time
-! variable is named "ocean_time", but legacy startup files may name
-! it either "roms_time" or "scrum_time".
+! variable is named "time", but legacy startup files may name
+! it "ocean_time", "roms_time" or "scrum_time".
 
+      if (ierr /= nf_noerr) then
+        ierr=nf_inq_varid (ncid, 'ocean_time', varid)
+      endif
       if (ierr /= nf_noerr) then
         ierr=nf_inq_varid (ncid, 'roms_time', varid)
       endif
@@ -563,9 +566,19 @@ c**      start_time=start_time - 20.*360. *day2sec
             goto 99                                       !--> ERROR
           endif
         else
-          write(*,1) vname(1,indxT+itrc-1)(1:lvar), ininame(1:lstr),
-     &                                            nf_strerror(ierr)
-          goto 99                                         !--> ERROR
+# if defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC2
+          if (itrc >= 3) then
+            MPI_master_only write(*,3) vname(1,indxT+itrc-1)(1:lvar)
+     &                                 , ininame(1:lstr)
+     &                                 , ' => Initialized to 0.' 
+          else
+# endif
+            MPI_master_only write(*,1) vname(1,indxT+itrc-1)(1:lvar)
+     &                          , ininame(1:lstr), nf_strerror(ierr)
+            goto 99                                         !--> ERROR
+# ifdef BIOLOGY_BEC2
+          endif
+# endif
         endif
       enddo
 # ifdef SEDIMENT_BIOLOGY
@@ -805,5 +818,7 @@ CHF          goto 99                                         !--> ERROR
   1   format(/1x,'### ERROR: get_init :: Cannot find variable ''', A,
      &                 '''' /12x, 'in netCDF file ''', A, ''''/12x,A)
   2   format(/1x,'### ERROR: get_init :: Cannot read variable ''', A,
+     &               '''' /12x, 'from netCDF file ''', A, ''''/12x,A)
+  3   format(/1x,'### WARNING get_init :: Cannot read variable ''', A,
      &               '''' /12x, 'from netCDF file ''', A, ''''/12x,A)
       end

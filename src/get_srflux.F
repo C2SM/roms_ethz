@@ -221,7 +221,7 @@ c# endif
 !        h0 is hour angle at sunset and sunrise
 !
 ! Yusuke Uchiyama, 2009: UTC correction based on lonr is added.
-!                        ocean_time should be in UTC.
+!                        (ocean_)time should be in UTC.
 !
 #  define UTC_CORRECTION
 !

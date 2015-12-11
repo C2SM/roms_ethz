@@ -56,8 +56,8 @@
 #   CFTFLAGS = -pc80 -xSSE2 -auto -stack_temps
 #Sasha:   CFTFLAGS = -pc80 -auto -stack_temps -warn unused
  #mm -warn all
-   CFTFLAGS = -pc80 -auto -stack_temps -warn unused
-   CFTFLAGS = -pc80 -auto -stack_temps -warn unused
+   #CFTFLAGS = -pc80 -auto -stack_temps  -warn unused
+   CFTFLAGS = -pc80 -auto -stack_temps # -warn unused
 
 
       #mm Euler: CFT = ifort $(OMP_FLAG) $(CFTFLAGS) $(LARGE_MEM_FLAG)
@@ -88,7 +88,9 @@
 #    LMPI = ${MPI_ROOT}/lib/libmpich.a 
 
 
+   LCDF = -L$(NETCDF)/../serial/lib -lnetcdff -lnetcdf
    LCDF = -lnetcdff
+##   LCDF = -L${NETCDF}/lib -lnetcdf
 #   LCDF = -lnetcdf -lhdf5 -lhdf5_hl
 #    LCDF = -L/opt/netcdf-4.2.1.1_largemem/lib -lnetcdff
 
