@@ -35,7 +35,11 @@ c--#define VERBOSE
 #endif
 # if  defined T_FRC_BRY  || defined M2_FRC_BRY || \
       defined M3_FRC_BRY || defined Z_FRC_BRY 
-#  ifndef ANA_BRY
+#  if !defined ANA_BRY && ( defined OBC_WEST   || defined OBC_EAST  || \
+                          defined OBC_SOUTH  || defined OBC_NORTH )  \
+                     && ( defined M2_FRC_BRY || defined Z_FRC_BRY || \
+                          defined M3_FRC_BRY || defined T_FRC_BRY )
+
       if (ierr==0) call get_bry_all (ierr)
 #  endif
 # endif
@@ -180,9 +184,10 @@ c--#define VERBOSE
 # endif
 # if  defined T_FRC_BRY  || defined M2_FRC_BRY || \
       defined M3_FRC_BRY || defined Z_FRC_BRY 
-#  ifdef ANA_BRY 
-c***              no code here
-#  else
+#  if !defined ANA_BRY && ( defined OBC_WEST   || defined OBC_EAST  || \
+                          defined OBC_SOUTH  || defined OBC_NORTH )  \
+                     && ( defined M2_FRC_BRY || defined Z_FRC_BRY || \
+                          defined M3_FRC_BRY || defined T_FRC_BRY )
       call set_bry_all_tile (istr,iend,jstr,jend, ierr)
 #  endif
 # endif
