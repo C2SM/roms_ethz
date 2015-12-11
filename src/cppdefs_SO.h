@@ -2,23 +2,49 @@
   UP ETH Southern Ocean Setup 
   == === ======== ===== =====
 */
-         /* Include standard CPP switches for UP ETH Zurich */                   
+     /* Include standard CPP switches for UP ETH Zurich */                   
 #include "cppdefs_UP.h"
-                 
-         /* Forcing */
+
+     /* 1/2 degree setup (SO_d05) */
+#define GRID_SIZE LLm=720, MMm=216, N=42   ! SO_d05 1/2 deg setup
+#define  DOMAIN_TILING NP_XI=8, NP_ETA=36, NSUB_X=1, NSUB_E=1
+
+!--> /* 1/4 degree setup (SO_d025) */
+!--> #define GRID_SIZE LLm=1440, MMm=416, N=42      ! SO_d025 1/4  deg resolution
+!--> #define  DOMAIN_TILING NP_XI=16, NP_ETA=24, NSUB_X=1, NSUB_E=1
+
+!--> /* 1/8 degree setup (SO_d0125) */
+!--> #define GRID_SIZE LLm=2880, MMm=864, N=42      ! SO_d0125 1/8   deg resolution
+!--> #define  DOMAIN_TILING NP_XI=32, NP_ETA=12, NSUB_X=1, NSUB_E=1
+     /* Forcing */
 #define SALINITY_MASK
 
-         /* Open Boundaries */
+     /* Open Boundaries */
 #define EW_PERIODIC
 #define OBC_NORTH
 
-         /* Open Boundary Conditions */
+     /* Open Boundary Conditions */
 #undef SPONGE /* note: UCLA uses SPONGE with BRY */
+#undef OBC_M2FLATHER  /* UCLA/ETH default but not used for Southern Ocean */
+#define OBC_M2SPECIFIED /* special for SO */
 
-         /* Output */
-!--# define AVERAGES
+     /* Output */
+!--> #define AVERAGES
+!--> #define SLICE_AVG
 
-#define SO /* used in param.h */
+     /* Biology */
+!--> #define BIOLOGY_BEC2
+#ifdef BIOLOGY_BEC2
+# define DEFAULT_BGC_BRY_VALUES
+#endif
+
+!--> # define BEC2_DIAG
+!--> # define RIVER_LOAD_N
+!--> # define RIVER_LOAD_P
+!--> # define PCO2AIR_FORCING
+# define VFLX_CORR
+
+
 
 #include "set_global_definitions.h"
 

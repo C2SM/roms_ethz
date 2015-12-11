@@ -5,14 +5,13 @@
          /* Include standard CPP switches for UP ETH Zurich */  
 #include "cppdefs_UP.h"
 
-#define GRID_SIZE LLm=416, MMm=346, N=42      ! 5km-66km telescopic
-!--> Euler: #define DOMAIN_TILING NP_XI=10, NP_ETA=24, NSUB_X=1, NSUB_E=1 ! Euler
-!--> #define DOMAIN_TILING NP_XI=3, NP_ETA=2, NSUB_X=1, NSUB_E=1  !ch4
-!--> #define DOMAIN_TILING NP_XI=1, NP_ETA=1, NSUB_X=1, NSUB_E=1  !ch4
-#define DOMAIN_TILING NP_XI=4, NP_ETA=6, NSUB_X=4, NSUB_E=6  !ch4
+!--> #define GRID_SIZE LLm=416, MMm=346, N=42      ! pacsg 5km-66km telescopic
+#define GRID_SIZE LLm=602, MMm=516, N=42      ! pactcs30 4.1-65km telescopic up to Antarctica
+#define DOMAIN_TILING NP_XI=10, NP_ETA=24, NSUB_X=1, NSUB_E=1 ! Euler
+!--> #define DOMAIN_TILING NP_XI=4, NP_ETA=6, NSUB_X=1, NSUB_E=1  !ch4
 
          /* Open Boundaries */
-#define OBC_SOUTH
+!--> Testing!! #define OBC_SOUTH
 #define SPONGE
 
 
@@ -45,14 +44,14 @@
                       /* Output */
 #define AVERAGES
 #define SLICE_AVG
-!--> #define CALENDAR '360_day'     /* netCDF CF-convention CALENDAR attribute default: '360_day' */
+#define CALENDAR '360_day'     /* netCDF CF-convention CALENDAR attribute default: '360_day' */
 !--> #define STARTDATE '0001-01-01' /* part of netCDF CF-convention time units attribute default: '0001-01-01'*/
 
 !--> #define ADV_ISONEUTRAL
 
                       /* Biology */
 !--> #define BIOLOGY_NPZDOC
-# define BIOLOGY_BEC2
+!--> # define BIOLOGY_BEC2
 
 #ifdef BIOLOGY_BEC2
 # define DEFAULT_BGC_BRY_VALUES
@@ -82,5 +81,5 @@
 
 #include "set_global_definitions.h"
 
-#undef PARALLEL_FILES
+!--> #undef PARALLEL_FILES
 
