@@ -21,7 +21,7 @@
       real time_bak
       integer vid_DU, vid_DV
 #endif
-      character(len=64) units
+      character(len=256) units
 #include "ocean2d.h"
 #ifdef EXACT_RESTART
 # include "coupling.h"

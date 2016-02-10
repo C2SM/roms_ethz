@@ -16,7 +16,7 @@
 #ifdef MPI
 # include "mpif.h"
 #endif
-      character(len=64) fname
+      character(len=256) fname
       character(len=32) keyword
       character(len=3), parameter :: end_signal='end'
       integer, parameter :: kwsize=32, testunit=40, input=15

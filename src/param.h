@@ -43,9 +43,11 @@ c     &               LLm=460, MMm=240, N=50  ! PACSMA grid
 c    &               LLm=1520, MMm=1088, N=1
 
 #elif defined SO
-     &               LLm=720, MMm=216, N=42
+c     &              LLm=602, MMm=516, N=42 ! pactcs30
+     &               LLm=720, MMm=216, N=42 ! SO_d05
 c     &               LLm=1440, MMm=432, N=42
 c     &               LLm=2880, MMm=864, N=42
+
 
 
 #elif defined OVERFLOW
@@ -128,7 +130,8 @@ c**  &               LLm=126,  MMm=254, N=20    ! USWEST grid 16
 !                                             XI- and ETA-directions;
       integer, parameter ::
 #ifdef MPI
-     &      NP_XI=16, NP_ETA=18, NSUB_X=1, NSUB_E=1
+     &      NP_XI=10, NP_ETA=24, NSUB_X=1, NSUB_E=1
+!SO_d05     &      NP_XI=16, NP_ETA=18, NSUB_X=1, NSUB_E=1
 !--> Sasha orig     &      NP_XI=2, NP_ETA=2, NSUB_X=2, NSUB_E=13
 #else
 c     &      NSUB_X=4, NSUB_E=40  ! PAC44
