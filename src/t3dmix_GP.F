@@ -177,6 +177,7 @@ c**  &                                                             )
             enddo
           enddo
 #  ifdef FULL_PHYS_FLUX_ANALYSIS
+#if !defined SELECTED_FLUX_ANALYSIS /* AH */
         do j=Jstr,Jend
            do i=Istr,Iend+1
               ! unit: mmol/s
@@ -211,6 +212,7 @@ c**  &                                                             )
                 VertMixFlux(i,j,k,itrc) = 0.0
              end do
           end do
+#endif /* SELECTED_FLUX_ANALYSIS */
 #  endif /* FULL_PHYS_FLUX_ANALYSIS */
         endif  ! <-- k>0
       enddo   ! --> k
@@ -538,6 +540,7 @@ c**  &                                                             )
             enddo
           enddo
 #  ifdef FULL_PHYS_FLUX_ANALYSIS
+#if !defined SELECTED_FLUX_ANALYSIS /* AH */
         do j=Jstr,Jend
            do i=Istr,Iend+1
               ! unit: mmol/s
@@ -572,6 +575,7 @@ c**  &                                                             )
                 VertMixFlux(i,j,k,itrc) = 0.0
              end do
           end do
+#endif /* SELECTED_FLUX_ANALYSIS */
 #  endif /* FULL_PHYS_FLUX_ANALYSIS */
         endif  ! <-- k>0
       enddo   ! --> k

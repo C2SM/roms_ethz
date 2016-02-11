@@ -75,11 +75,14 @@
 # define vidVertDiffFlux hisVertDiffFlux
 # ifdef FULL_PHYS_FLUX_ANALYSIS
 # define vidTopFlux hisTopFlux
+# define vidSRAbsFlux hisSRAbsFlux
+#if !defined SELECTED_FLUX_ANALYSIS /* AH */
 # define vidBottomFlux hisBottomFlux
 # define vidHorXMixFlux hisHorXMixFlux
 # define vidHorYMixFlux hisHorYMixFlux
 # define vidVertMixFlux hisVertMixFlux
 # define vidNudgingFlux hisNudgingFlux
+#endif /* SELECTED_FLUX_ANALYSIS */
 # endif /* FULL_PHYS_FLUX_ANALYSIS */
 #else /* AVRH */
 # define ncname phys_flux_avg_name
@@ -93,11 +96,14 @@
 # define vidVertDiffFlux avgVertDiffFlux
 # ifdef FULL_PHYS_FLUX_ANALYSIS
 # define vidTopFlux avgTopFlux
+# define vidSRAbsFlux avgSRAbsFlux
+#if !defined SELECTED_FLUX_ANALYSIS /* AH */
 # define vidBottomFlux avgBottomFlux
 # define vidHorXMixFlux avgHorXMixFlux
 # define vidHorYMixFlux avgHorYMixFlux
 # define vidVertMixFlux avgVertMixFlux
 # define vidNudgingFlux avgNudgingFlux
+#endif /* SELECTED_FLUX_ANALYSIS */
 # endif /* FULL_PHYS_FLUX_ANALYSIS */
       character*60 text
 #endif /* AVRH */
@@ -301,6 +307,7 @@
 !
 ! horizontal advective fluxes (xi-direction)
         do iflux = 1, NT_PFA
+         if (wrtavg(indxT+iflux-1)) then
            lvar=lenstr(vname_phys(1,indxHorXAdvFlux+iflux-1))
            ierr=nf_def_var (ncid, 
      &          vname_phys(1,indxHorXAdvFlux+iflux-1)(1:lvar),
@@ -329,9 +336,11 @@
           ierr=nf_put_att_FOUT (ncid, vidHorXAdvFlux(iflux),
      &          '_FillValue', NF_FOUT, 1, spv_set)
 #endif
+         end if
         end do
 ! horizontal advective fluxes (eta-direction)
         do iflux = 1, NT_PFA
+         if (wrtavg(indxT+iflux-1)) then
            lvar=lenstr(vname_phys(1,indxHorYAdvFlux+iflux-1))
            ierr=nf_def_var (ncid, 
      &          vname_phys(1,indxHorYAdvFlux+iflux-1)(1:lvar),
@@ -360,9 +369,11 @@
           ierr=nf_put_att_FOUT (ncid, vidHorYAdvFlux(iflux),
      &          '_FillValue', NF_FOUT, 1, spv_set)
 #endif
+         end if
         end do
 ! vertical advective fluxes
         do iflux = 1, NT_PFA
+         if (wrtavg(indxT+iflux-1)) then
            lvar=lenstr(vname_phys(1,indxVertAdvFlux+iflux-1))
            ierr=nf_def_var (ncid, 
      &          vname_phys(1,indxVertAdvFlux+iflux-1)(1:lvar),
@@ -391,10 +402,12 @@
           ierr=nf_put_att_FOUT (ncid, vidVertAdvFlux(iflux),
      &          '_FillValue', NF_FOUT, 1, spv_set)
 #endif
+         end if
         end do
 #ifdef VERT_DIFF_ANALYSIS
 ! vertical diffusive fluxes
         do iflux = 1, NT_PFA
+         if (wrtavg(indxT+iflux-1)) then
            lvar=lenstr(vname_phys(1,indxVertDiffFlux+iflux-1))
            ierr=nf_def_var (ncid, 
      &          vname_phys(1,indxVertDiffFlux+iflux-1)(1:lvar),
@@ -421,11 +434,13 @@
           ierr=nf_put_att_FOUT (ncid, vidVertDiffFlux(iflux),
      &          '_FillValue', NF_FOUT, 1, spv_set)
 #endif
+         end if
         end do
 #endif /* VERT_DIFF_ANALYSIS */
 # ifdef FULL_PHYS_FLUX_ANALYSIS
 ! top fluxes
         do iflux = 1, NT_PFA
+         if (wrtavg(indxT+iflux-1)) then
            lvar=lenstr(vname_phys(1,indxTopFlux+iflux-1))
            ierr=nf_def_var (ncid, 
      &          vname_phys(1,indxTopFlux+iflux-1)(1:lvar),
@@ -452,9 +467,43 @@
           ierr=nf_put_att_FOUT (ncid, vidTopFlux(iflux),
      &          '_FillValue', NF_FOUT, 1, spv_set)
 #endif
+         end if
         end do
+! shortwave radiation absorption fluxes !AH15
+        if (wrtavg(indxT+itemp-1)) then
+           lvar=lenstr(vname_phys(1,indxSRAbsFlux))
+           ierr=nf_def_var (ncid, 
+     &          vname_phys(1,indxSRAbsFlux)(1:lvar),
+     &          NF_FOUT, 4, r3dgrd, vidSRAbsFlux)
+#  ifndef AVRH
+           lvar=lenstr(vname_phys(2,indxSRAbsFlux))
+           ierr=nf_put_att_text (ncid, vidSRAbsFlux, 
+     &          'long_name', 
+     &          lvar, vname_phys(2,indxSRAbsFlux)(1:lvar))
+#  else
+           text='averaged '/ /vname_phys(2,indxSRAbsFlux)
+           lvar=lenstr(text)
+           ierr=nf_put_att_text (ncid, vidSRAbsFlux, 
+     &          'long_name', 
+     &          lvar, text(1:lvar))
+#  endif
+           lvar=lenstr(vname_phys(3,indxSRAbsFlux))
+           ierr=nf_put_att_text (ncid, vidSRAbsFlux,     
+     &          'units', lvar, 
+     &          vname_phys(3,indxSRAbsFlux)(1:lvar))
+           lvar=lenstr(vname_phys(4,indxSRAbsFlux))
+!           ierr=nf_put_att_text (ncid, vidSRAbsFlux,     
+!     &          'field', lvar, 
+!     &          vname_phys(4,indxSRAbsFlux)(1:lvar))
+#ifdef MASK_LAND_DATA
+          ierr=nf_put_att_FOUT (ncid, vidSRAbsFlux,
+     &          '_FillValue', NF_FOUT, 1, spv_set)
+#endif
+        end if
+#if !defined SELECTED_FLUX_ANALYSIS /* AH */
 ! bottom fluxes
         do iflux = 1, NT_PFA
+         if (wrtavg(indxT+iflux-1)) then
            lvar=lenstr(vname_phys(1,indxBottomFlux+iflux-1))
            ierr=nf_def_var (ncid, 
      &          vname_phys(1,indxBottomFlux+iflux-1)(1:lvar),
@@ -481,9 +530,11 @@
           ierr=nf_put_att_FOUT (ncid, vidBottomFlux(iflux),
      &          '_FillValue', NF_FOUT, 1, spv_set)
 #endif
+         end if
         end do
 ! horizontal mixing fluxes (xi-direction)
         do iflux = 1, NT_PFA
+         if (wrtavg(indxT+iflux-1)) then
            lvar=lenstr(vname_phys(1,indxHorXMixFlux+iflux-1))
            ierr=nf_def_var (ncid, 
      &          vname_phys(1,indxHorXMixFlux+iflux-1)(1:lvar),
@@ -512,9 +563,11 @@
           ierr=nf_put_att_FOUT (ncid, vidHorXMixFlux(iflux),
      &          '_FillValue', NF_FOUT, 1, spv_set)
 #endif
+         end if
         end do
 ! horizontal mixing fluxes (eta-direction)
         do iflux = 1, NT_PFA
+         if (wrtavg(indxT+iflux-1)) then
            lvar=lenstr(vname_phys(1,indxHorYMixFlux+iflux-1))
            ierr=nf_def_var (ncid, 
      &          vname_phys(1,indxHorYMixFlux+iflux-1)(1:lvar),
@@ -543,9 +596,11 @@
           ierr=nf_put_att_FOUT (ncid, vidHorYMixFlux(iflux),
      &          '_FillValue', NF_FOUT, 1, spv_set)
 #endif
+         end if
         end do
 ! vertical mixing fluxes
         do iflux = 1, NT_PFA
+         if (wrtavg(indxT+iflux-1)) then
            lvar=lenstr(vname_phys(1,indxVertMixFlux+iflux-1))
            ierr=nf_def_var (ncid, 
      &          vname_phys(1,indxVertMixFlux+iflux-1)(1:lvar),
@@ -574,9 +629,11 @@
           ierr=nf_put_att_FOUT (ncid, vidVertMixFlux(iflux),
      &          '_FillValue', NF_FOUT, 1, spv_set)
 #endif
+         end if
         end do
 ! nudging fluxes
         do iflux = 1, NT_PFA
+         if (wrtavg(indxT+iflux-1)) then
            lvar=lenstr(vname_phys(1,indxNudgingFlux+iflux-1))
            ierr=nf_def_var (ncid, 
      &          vname_phys(1,indxNudgingFlux+iflux-1)(1:lvar),
@@ -605,7 +662,9 @@
           ierr=nf_put_att_FOUT (ncid, vidNudgingFlux(iflux),
      &          '_FillValue', NF_FOUT, 1, spv_set)
 #endif
+         end if
         end do
+#endif /* SELECTED_FLUX_ANALYSIS */
 # endif /* FULL_PHYS_FLUX_ANALYSIS */
 !
 ! Leave definition mode.
@@ -726,6 +785,7 @@
 !
 ! horizontal advective fluxes (xi-direction)
         do iflux = 1, NT_PFA
+         if (wrtavg(indxT+iflux-1)) then
            lvar=lenstr(vname_phys(1,indxHorXAdvFlux+iflux-1))
            ierr=nf_inq_varid(ncid, 
      &          vname_phys(1,indxHorXAdvFlux+iflux-1)(1:lvar),
@@ -736,10 +796,12 @@
      &             ncname(1:lstr)
               goto 99           !--> ERROR 
            endif
+         end if
         end do
 
 ! horizontal advective fluxes (eta-direction)
         do iflux = 1, NT_PFA
+         if (wrtavg(indxT+iflux-1)) then
            lvar=lenstr(vname_phys(1,indxHorYAdvFlux+iflux-1))
            ierr=nf_inq_varid(ncid, 
      &          vname_phys(1,indxHorYAdvFlux+iflux-1)(1:lvar),
@@ -750,10 +812,12 @@
      &             ncname(1:lstr)
               goto 99           !--> ERROR 
            endif
+         end if
         end do
 
 ! vertical advective fluxes
         do iflux = 1, NT_PFA
+         if (wrtavg(indxT+iflux-1)) then
            lvar=lenstr(vname_phys(1,indxVertAdvFlux+iflux-1))
            ierr=nf_inq_varid(ncid, 
      &          vname_phys(1,indxVertAdvFlux+iflux-1)(1:lvar),
@@ -764,11 +828,13 @@
      &             ncname(1:lstr)
               goto 99           !--> ERROR 
            endif
+         end if
         end do
 
 #ifdef VERT_DIFF_ANALYSIS
 ! vertical diffusive fluxes
         do iflux = 1, NT_PFA
+         if (wrtavg(indxT+iflux-1)) then
            lvar=lenstr(vname_phys(1,indxVertDiffFlux+iflux-1))
            ierr=nf_inq_varid(ncid, 
      &          vname_phys(1,indxVertDiffFlux+iflux-1)(1:lvar),
@@ -779,12 +845,14 @@
      &             ncname(1:lstr)
               goto 99           !--> ERROR 
            endif
+         end if
         end do
 #endif /* VERT_DIFF_ANALYSIS */
 
 #ifdef FULL_PHYS_FLUX_ANALYSIS
 ! top fluxes
         do iflux = 1, NT_PFA
+         if (wrtavg(indxT+iflux-1)) then
            lvar=lenstr(vname_phys(1,indxTopFlux+iflux-1))
            ierr=nf_inq_varid(ncid, 
      &          vname_phys(1,indxTopFlux+iflux-1)(1:lvar),
@@ -795,9 +863,25 @@
      &             ncname(1:lstr)
               goto 99           !--> ERROR 
            endif
+         end if
         end do
+! shortwave radiation absorption fluxes !AH15
+        if (wrtavg(indxT+itemp-1)) then
+           lvar=lenstr(vname_phys(1,indxSRAbsFlux))
+           ierr=nf_inq_varid(ncid, 
+     &          vname_phys(1,indxSRAbsFlux)(1:lvar),
+     &          vidSRAbsFlux)
+           if (ierr .ne. nf_noerr) then
+              write(stdout,1) 
+     &             vname_phys(1,indxSRAbsFlux)(1:lvar), 
+     &             ncname(1:lstr)
+              goto 99           !--> ERROR 
+           endif
+        end if
+#if !defined SELECTED_FLUX_ANALYSIS /* AH */
 ! bottom fluxes
         do iflux = 1, NT_PFA
+         if (wrtavg(indxT+iflux-1)) then
            lvar=lenstr(vname_phys(1,indxBottomFlux+iflux-1))
            ierr=nf_inq_varid(ncid, 
      &          vname_phys(1,indxBottomFlux+iflux-1)(1:lvar),
@@ -808,9 +892,11 @@
      &             ncname(1:lstr)
               goto 99           !--> ERROR 
            endif
+         end if
         end do
 ! horizontal mixing fluxes (xi-direction)
         do iflux = 1, NT_PFA
+         if (wrtavg(indxT+iflux-1)) then
            lvar=lenstr(vname_phys(1,indxHorXMixFlux+iflux-1))
            ierr=nf_inq_varid(ncid, 
      &          vname_phys(1,indxHorXMixFlux+iflux-1)(1:lvar),
@@ -821,9 +907,11 @@
      &             ncname(1:lstr)
               goto 99           !--> ERROR 
            endif
+         end if
         end do
 ! horizontal mixing fluxes (eta-direction)
         do iflux = 1, NT_PFA
+         if (wrtavg(indxT+iflux-1)) then
            lvar=lenstr(vname_phys(1,indxHorYMixFlux+iflux-1))
            ierr=nf_inq_varid(ncid, 
      &          vname_phys(1,indxHorYMixFlux+iflux-1)(1:lvar),
@@ -834,9 +922,11 @@
      &             ncname(1:lstr)
               goto 99           !--> ERROR 
            endif
+         end if
         end do
 ! vertical mixing fluxes
         do iflux = 1, NT_PFA
+         if (wrtavg(indxT+iflux-1)) then
            lvar=lenstr(vname_phys(1,indxVertMixFlux+iflux-1))
            ierr=nf_inq_varid(ncid, 
      &          vname_phys(1,indxVertMixFlux+iflux-1)(1:lvar),
@@ -847,9 +937,11 @@
      &             ncname(1:lstr)
               goto 99           !--> ERROR 
            endif
+         end if
         end do
 ! nudging fluxes
         do iflux = 1, NT_PFA
+         if (wrtavg(indxT+iflux-1)) then
            lvar=lenstr(vname_phys(1,indxNudgingFlux+iflux-1))
            ierr=nf_inq_varid(ncid, 
      &          vname_phys(1,indxNudgingFlux+iflux-1)(1:lvar),
@@ -860,7 +952,9 @@
      &             ncname(1:lstr)
               goto 99           !--> ERROR 
            endif
+         end if
         end do
+#endif /* SELECTED_FLUX_ANALYSIS */
 #endif /* FULL_PHYS_FLUX_ANALYSIS */
 
         MPI_master_only write(*,'(6x,2A,i4,1x,A,i4)')
@@ -927,11 +1021,14 @@
 #undef vidVertDiffFlux
 # ifdef FULL_PHYS_FLUX_ANALYSIS
 #undef vidTopFlux
+#undef vidSRAbsFlux
+#if !defined SELECTED_FLUX_ANALYSIS /* AH */
 #undef vidBottomFlux
 #undef vidHorXMixFlux
 #undef vidHorYMixFlux
 #undef vidVertMixFlux
 #undef vidNudgingFlux
+#endif /* SELECTED_FLUX_ANALYSIS */
 # endif /* FULL_PHYS_FLUX_ANALYSIS */
 
 # ifndef AVRH

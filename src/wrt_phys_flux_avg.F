@@ -82,6 +82,7 @@
      &                  MYID
         goto 99                                           !--> ERROR
       endif
+#if !defined SELECTED_FLUX_ANALYSIS /* AH */
 ! Barotropic mode variable: free-surface
 ! Always include this in the output so that depths of sigma levels
 ! can be computed
@@ -93,8 +94,10 @@
      &        MYID
          goto 99                !--> ERROR
       endif
+#endif /* SELECTED_FLUX_ANALYSIS */
 ! horizontal advective fluxes (xi-direction)
       do iflux = 1, NT_PFA
+         if (wrtavg(indxT+iflux-1)) then
          ierr = nf_fwrite(HorXAdvFlux_avg(START_2D_ARRAY,1,iflux), 
      &        ncid_phys_flux_avg, avgHorXAdvFlux(iflux), record, r3dvar)
          if (ierr .ne. nf_noerr) then
@@ -104,9 +107,11 @@
      &           record, ierr, nf_strerror(ierr) MYID 
             goto 99
          end if
+         end if
       end do
 ! horizontal advective fluxes (eta-direction)
       do iflux = 1, NT_PFA
+         if (wrtavg(indxT+iflux-1)) then
          ierr = nf_fwrite(HorYAdvFlux_avg(START_2D_ARRAY,1,iflux), 
      &        ncid_phys_flux_avg, avgHorYAdvFlux(iflux), record, r3dvar)
          if (ierr .ne. nf_noerr) then
@@ -116,9 +121,11 @@
      &           record, ierr, nf_strerror(ierr) MYID 
             goto 99
          end if
+         end if
       end do
 ! vertical advective fluxes
       do iflux = 1, NT_PFA
+         if (wrtavg(indxT+iflux-1)) then
          ierr = nf_fwrite(VertAdvFlux_avg(START_2D_ARRAY,
      &        0,iflux), 
      &        ncid_phys_flux_avg, avgVertAdvFlux(iflux), record, w3dvar)
@@ -129,10 +136,12 @@
      &           record, ierr, nf_strerror(ierr) MYID 
             goto 99
          end if
+         end if
       end do
 #ifdef VERT_DIFF_ANALYSIS
 ! vertical diffusive fluxes
       do iflux = 1, NT_PFA
+         if (wrtavg(indxT+iflux-1)) then
          ierr = nf_fwrite(VertDiffFlux_avg(START_2D_ARRAY,0,iflux), 
      &        ncid_phys_flux_avg, avgVertDiffFlux(iflux), 
      &        record, w3dvar)
@@ -143,11 +152,13 @@
      &           record, ierr, nf_strerror(ierr) MYID 
             goto 99
          end if
+         end if
       end do
 #endif /* VERT_DIFF_ANALYSIS */
-# ifdef FULL_PHYS_FLUX_ANALYSIS
+#ifdef FULL_PHYS_FLUX_ANALYSIS
 ! top fluxes
       do iflux = 1, NT_PFA
+         if (wrtavg(indxT+iflux-1)) then
          ierr = nf_fwrite(TopFlux_avg(START_2D_ARRAY,iflux), 
      &        ncid_phys_flux_avg, avgTopFlux(iflux), record, r2dvar)
          if (ierr .ne. nf_noerr) then
@@ -156,9 +167,24 @@
      &           record, ierr, nf_strerror(ierr) MYID 
             goto 99
          end if
+         end if
       end do
+! shortwave radiation absorption flux !AH15
+      if (wrtavg(indxT+itemp-1)) then
+         ierr = nf_fwrite(SRAbsFlux_avg(START_2D_ARRAY,1), 
+     &        ncid_phys_flux_avg, avgSRAbsFlux, record, r3dvar)
+         if (ierr .ne. nf_noerr) then
+            lvar=lenstr(vname_phys(1,indxSRAbsFlux))
+            write(stdout,1) 
+     &           vname_phys(1,indxSRAbsFlux)(1:lvar), 
+     &           record, ierr, nf_strerror(ierr) MYID 
+            goto 99
+         end if
+      end if
+#if !defined SELECTED_FLUX_ANALYSIS /* AH */
 ! bottom fluxes
       do iflux = 1, NT_PFA
+         if (wrtavg(indxT+iflux-1)) then
          ierr = nf_fwrite(BottomFlux_avg(START_2D_ARRAY,iflux), 
      &        ncid_phys_flux_avg, avgBottomFlux(iflux), record, r2dvar)
          if (ierr .ne. nf_noerr) then
@@ -167,9 +193,11 @@
      &           record, ierr, nf_strerror(ierr) MYID 
             goto 99
          end if
+         end if
       end do
 ! horizontal mixing fluxes (xi-direction)
       do iflux = 1, NT_PFA
+         if (wrtavg(indxT+iflux-1)) then
          ierr = nf_fwrite(HorXMixFlux_avg(START_2D_ARRAY,1,iflux), 
      &        ncid_phys_flux_avg, avgHorXMixFlux(iflux), record, r3dvar)
          if (ierr .ne. nf_noerr) then
@@ -178,9 +206,11 @@
      &           record, ierr, nf_strerror(ierr) MYID 
             goto 99
          end if
+         end if
       end do
 ! horizontal mixing fluxes (eta-direction)
       do iflux = 1, NT_PFA
+         if (wrtavg(indxT+iflux-1)) then
          ierr = nf_fwrite(HorYMixFlux_avg(START_2D_ARRAY,1,iflux), 
      &        ncid_phys_flux_avg, avgHorYMixFlux(iflux), record, r3dvar)
          if (ierr .ne. nf_noerr) then
@@ -189,9 +219,11 @@
      &           record, ierr, nf_strerror(ierr) MYID 
             goto 99
          end if
+         end if
       end do
 ! vertical mixing fluxes
       do iflux = 1, NT_PFA
+         if (wrtavg(indxT+iflux-1)) then
          ierr = nf_fwrite(VertMixFlux_avg(START_2D_ARRAY,
      &        0,iflux), 
      &        ncid_phys_flux_avg, avgVertMixFlux(iflux), record, w3dvar)
@@ -201,9 +233,11 @@
      &           record, ierr, nf_strerror(ierr) MYID 
             goto 99
          end if
+         end if
       end do
 ! nudging divergences
       do iflux = 1, NT_PFA
+         if (wrtavg(indxT+iflux-1)) then
          ierr = nf_fwrite(NudgingFlux_avg(START_2D_ARRAY,
      &        1,iflux), 
      &        ncid_phys_flux_avg, avgNudgingFlux(iflux), record, r3dvar)
@@ -213,8 +247,10 @@
      &           record, ierr, nf_strerror(ierr) MYID 
             goto 99
          end if
+         end if
       end do
-# endif /* FULL_PHYS_FLUX_ANALYSIS */
+#endif /* SELECTED_FLUX_ANALYSIS */
+#endif /* FULL_PHYS_FLUX_ANALYSIS */
   1   format(/' WRT_PHYS_FLUX_AVG - ERROR while writing variable(',
      &     1x,a,1x,
      &               ')into averages file.',/,11x,'Time record:',

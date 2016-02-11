@@ -76,11 +76,13 @@
          if (n_phys_flux_avg .eq. 1 .or. 
      &        mod(iic-nts_phys_flux_avg,n_phys_flux_avg).eq.1) then
             if (ZEROTH_TILE) time_phys_flux_avg=time
+#if !defined SELECTED_FLUX_ANALYSIS /* AH */
             do j = jstrR, jendR
                do i = istrR, iendR
                   zeta_phys_flux_avg(i,j) = zeta(i,j,knew)
                end do
             end do
+#endif /* SELECTED_FLUX_ANALYSIS */
             do iflux = 1, NT_PFA
                do k = 1, N
                   do j = jstrR, jendR
@@ -131,6 +133,14 @@
                   end do
                end do
             end do
+            do k = 1, N ! AH15
+               do j = jstrR, jendR
+                  do i = istrR, iendR 
+                     SRAbsFlux_avg(i,j,k) = SRAbsFlux(i,j,k)
+                  end do
+               end do
+            end do
+#if !defined SELECTED_FLUX_ANALYSIS /* AH */
             do iflux = 1, NT_PFA
                do j = jstrR, jendR
                   do i = istrR, iendR 
@@ -179,16 +189,19 @@
                   end do
                end do
             end do
+#endif /* SELECTED_FLUX_ANALYSIS */
 # endif /* FULL_PHYS_FLUX_ANALYSIS */
          elseif (mod(iic-nts_phys_flux_avg,n_phys_flux_avg).gt.1) then
             if (ZEROTH_TILE) time_phys_flux_avg=
      &           time_phys_flux_avg+time
+#if !defined SELECTED_FLUX_ANALYSIS /* AH */
             do j = jstrR, jendR
                do i = istrR, iendR
                   zeta_phys_flux_avg(i,j) = zeta_phys_flux_avg(i,j) +
      &                 zeta(i,j,knew)
                end do
             end do
+#endif /* SELECTED_FLUX_ANALYSIS */
             do iflux = 1, NT_PFA
                do k = 1, N
                   do j = jstrR, jendR
@@ -245,6 +258,16 @@
                   end do
                end do
             end do
+            do k = 1, N ! AH15
+               do j = jstrR, jendR
+                  do i = istrR, iendR 
+                     SRAbsFlux_avg(i,j,k) = 
+     &                    SRAbsFlux_avg(i,j,k) + 
+     &                    SRAbsFlux(i,j,k)
+                  end do
+               end do
+            end do
+#if !defined SELECTED_FLUX_ANALYSIS /* AH */
             do iflux = 1, NT_PFA
                do j = jstrR, jendR
                   do i = istrR, iendR 
@@ -298,11 +321,13 @@
                   end do
                end do
             end do
+#endif /* SELECTED_FLUX_ANALYSIS */
 # endif /* FULL_PHYS_FLUX_ANALYSIS */
          elseif (mod(iic-nts_phys_flux_avg,n_phys_flux_avg).eq.0) then
             cff=1./float(n_phys_flux_avg)
             if (ZEROTH_TILE) time_phys_flux_avg=cff*
      &           (time_phys_flux_avg+time)
+#if !defined SELECTED_FLUX_ANALYSIS /* AH */
             do j = jstrR, jendR
                do i = istrR, iendR
                   zeta_phys_flux_avg(i,j) = cff * 
@@ -310,6 +335,7 @@
      &                 zeta(i,j,knew) )
                end do
             end do
+#endif /* SELECTED_FLUX_ANALYSIS */
             do iflux = 1, NT_PFA
                do k = 1, N
                   do j = jstrR, jendR
@@ -366,6 +392,16 @@
                   end do
                end do
             end do
+            do k = 1, N ! AH15
+               do j = jstrR, jendR
+                  do i = istrR, iendR 
+                     SRAbsFlux_avg(i,j,k) = cff *
+     &                    ( SRAbsFlux_avg(i,j,k) + 
+     &                    SRAbsFlux(i,j,k) )
+                  end do
+               end do
+            end do
+#if !defined SELECTED_FLUX_ANALYSIS /* AH */
             do iflux = 1, NT_PFA
                do j = jstrR, jendR
                   do i = istrR, iendR 
@@ -419,6 +455,7 @@
                   end do
                end do
             end do
+#endif /* SELECTED_FLUX_ANALYSIS */
 # endif /* FULL_PHYS_FLUX_ANALYSIS */
          endif
       endif

@@ -46,22 +46,31 @@
 #ifdef VERT_DIFF_ANALYSIS
      &     + 1
 #  endif
-# ifdef FULL_PHYS_FLUX_ANALYSIS
+# if defined FULL_PHYS_FLUX_ANALYSIS && !defined SELECTED_FLUX_ANALYSIS /* AH */
      &     + 6
+# endif
+# if defined FULL_PHYS_FLUX_ANALYSIS && defined SELECTED_FLUX_ANALYSIS /* AH */
+     &     + 1
 # endif
      &     ) * NT_PFA)
       common /cnc_phys_flux/ phys_flux_his_name, vname_phys
 
 # ifdef FULL_PHYS_FLUX_ANALYSIS
-      integer indxTopFlux, indxBottomFlux
+# if !defined SELECTED_FLUX_ANALYSIS /* AH */
+      integer indxTopFlux, indxBottomFlux, indxSRAbsFlux
       integer indxHorXMixFlux, indxHorYMixFlux, indxVertMixFlux
       integer indxNudgingFlux
+# endif /* SELECTED_FLUX_ANALYSIS */
+# if defined SELECTED_FLUX_ANALYSIS /* AH */
+      integer indxTopFlux, indxSRAbsFlux
+# endif /* SELECTED_FLUX_ANALYSIS */
 #ifdef VERT_DIFF_ANALYSIS
 ! 1st top flux
       parameter(indxTopFlux = indxVertDiffFlux + NT_PFA)
 #else
       parameter(indxTopFlux = indxVertAdvFlux + NT_PFA)
 #endif
+# if !defined SELECTED_FLUX_ANALYSIS /* AH */
 ! 1st bottom fl.
       parameter(indxBottomFlux = indxTopFlux + NT_PFA)
 ! mixing fluxes in xi, eta, z directions
@@ -69,24 +78,38 @@
       parameter(indxHorYMixFlux = indxHorXMixFlux + NT_PFA)
       parameter(indxVertMixFlux = indxHorYMixFlux + NT_PFA)
       parameter(indxNudgingFlux = indxVertMixFlux + NT_PFA)
+      parameter(indxSRAbsFlux = indxNudgingFlux + NT_PFA)
+#else
+      parameter(indxSRAbsFlux = indxTopFlux + NT_PFA)
+#endif /* SELECTED_FLUX_ANALYSIS */
 
+
+# if !defined SELECTED_FLUX_ANALYSIS /* AH */
       integer hisTopFlux(NT_PFA), hisBottomFlux(NT_PFA)
      &     , hisHorXMixFlux(NT_PFA), hisHorYMixFlux(NT_PFA)
      &     , hisVertMixFlux(NT_PFA)
      &     , hisNudgingFlux(NT_PFA)
+     &     , hisSRAbsFlux
       common /inc_full_phys_flux/ hisTopFlux, hisBottomFlux
      &     , hisHorXMixFlux, hisHorYMixFlux
      &     , hisVertMixFlux
      &     , hisNudgingFlux
-
+     &     , hisSRAbsFlux
+#endif /* SELECTED_FLUX_ANALYSIS */
+# if defined SELECTED_FLUX_ANALYSIS /* AH */
+      integer hisTopFlux(NT_PFA), hisSRAbsFlux
+      common /inc_full_phys_flux/ hisTopFlux, hisSRAbsFlux
+#endif /* SELECTED_FLUX_ANALYSIS */
 # endif /* FULL_PHYS_FLUX_ANALYSIS */
 
 # ifdef AVERAGES
       real time_phys_flux_avg
       common /t_phys_flux_avg/time_phys_flux_avg
 
+#if !defined SELECTED_FLUX_ANALYSIS /* AH */
       real zeta_phys_flux_avg(GLOBAL_2D_ARRAY)
       common /zeta_phys_flux_avg/zeta_phys_flux_avg
+#endif /* SELECTED_FLUX_ANALYSIS */
 
       logical new_phys_flux_avg
       integer nts_phys_flux_avg, n_phys_flux_avg
@@ -115,15 +138,23 @@
 
 
 #  ifdef FULL_PHYS_FLUX_ANALYSIS
+#if !defined SELECTED_FLUX_ANALYSIS /* AH */
       integer avgTopFlux(NT_PFA), avgBottomFlux(NT_PFA)
      &     , avgHorXMixFlux(NT_PFA), avgHorYMixFlux(NT_PFA)
      &     , avgVertMixFlux(NT_PFA)
      &     , avgNudgingFlux(NT_PFA)
+     &     , avgSRAbsFlux
 
        common /inc_full_phys_flux_avg/ avgTopFlux, avgBottomFlux
      &     , avgHorXMixFlux, avgHorYMixFlux, avgVertMixFlux
      &     , avgNudgingFlux
+     &     , avgSRAbsFlux
+#endif /* SELECTED_FLUX_ANALYSIS */
+#if defined SELECTED_FLUX_ANALYSIS /* AH */
+      integer avgTopFlux(NT_PFA), avgSRAbsFlux
 
+       common /inc_full_phys_flux_avg/ avgTopFlux, avgSRAbsFlux
+#endif /* SELECTED_FLUX_ANALYSIS */
 #  endif /* FULL_PHYS_FLUX_ANALYSIS */
 # endif /* AVERAGES */
 #endif /* SOLVE3D && PHYS_FLUX_ANALYSIS */

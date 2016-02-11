@@ -87,17 +87,17 @@ C$OMP END PARALLEL
          end if
          if (itrc .eq. 1) then
             vname_phys(3,indxHorXAdvFlux+itrc-1) = 
-     &           'degC s-1'
+     &           'degC m3 s-1'
 # ifdef SALINITY
          else if (itrc .eq. 2) then
             vname_phys(3,indxHorXAdvFlux+itrc-1) = 
-     &           'PSU s-1'
+     &           'PSU m3 s-1'
 # endif
 # ifdef PASSIVE_TRACER
          else if (itrc .ge. 2+ntrc_salt .and. 
      &           itrc .le. 1+ntrc_salt+ntrc_pas) then
             vname_phys(3,indxHorXAdvFlux+itrc-1) = 
-     &           's-1'
+     &           'm3 s-1'
 # endif
          else
             vname_phys(3,indxHorXAdvFlux+itrc-1) = 
@@ -150,17 +150,17 @@ C$OMP END PARALLEL
          end if
          if (itrc .eq. 1) then
             vname_phys(3,indxVertAdvFlux+itrc-1) = 
-     &           'degC m-2 s-1'
+     &           'degC m s-1'
 # ifdef SALINITY
          else if (itrc .eq. 2) then
             vname_phys(3,indxVertAdvFlux+itrc-1) = 
-     &           'PSU m-2 s-1'
+     &           'PSU m s-1'
 # endif
 # ifdef PASSIVE_TRACER
          else if (itrc .ge. 2+ntrc_salt .and. 
      &           itrc .le. 1+ntrc_salt+ntrc_pas) then
             vname_phys(3,indxVertAdvFlux+itrc-1) = 
-     &           'm-2 s-1'
+     &           'm s-1'
 # endif
          else
             vname_phys(3,indxVertAdvFlux+itrc-1) = 
@@ -217,7 +217,7 @@ C$OMP END PARALLEL
          vname_phys(3,indxTopFlux+itrc-1) = 
      &        vname_phys(3,indxVertAdvFlux+itrc-1)
 #endif
-# ifdef FULL_PHYS_FLUX_ANALYSIS
+# if defined FULL_PHYS_FLUX_ANALYSIS && !defined SELECTED_FLUX_ANALYSIS /* AH */
 ! bottom fluxes
          vname_phys(1,indxBottomFlux+itrc-1) = 
      &        'BottomFlux_'/ /vname(1,indxT+itrc-1)(1:lvar)
@@ -302,17 +302,17 @@ C$OMP END PARALLEL
          end if
          if (itrc .eq. 1) then
             vname_phys(3,indxNudgingFlux+itrc-1) = 
-     &           'degC m-3 s-1'
+     &           'degC m3 s-1'
 # ifdef SALINITY
          else if (itrc .eq. 2) then
             vname_phys(3,indxNudgingFlux+itrc-1) = 
-     &           'PSU m-3 s-1'
+     &           'PSU m3 s-1'
 # endif
 # ifdef PASSIVE_TRACER
          else if (itrc .ge. 2+ntrc_salt .and. 
      &           itrc .le. 1+ntrc_salt+ntrc_pas) then
             vname_phys(3,indxNudgingFlux+itrc-1) = 
-     &           'm-3 s-1'
+     &           'm3 s-1'
 # endif
          else
             vname_phys(3,indxNudgingFlux+itrc-1) = 
@@ -333,7 +333,16 @@ C$OMP END PARALLEL
 #endif
 # endif /* FULL_PHYS_FLUX_ANALYSIS */
       end do
-
+# if defined FULL_PHYS_FLUX_ANALYSIS || defined TOP_FLUX_ANALYSIS
+! shortwave radiation absorption fluxes !AH15
+      vname_phys(1,indxSRAbsFlux) = 'SRAbsFlux'
+      vname_phys(4,indxSRAbsFlux) = 'SRAbsFlux'/ /
+     &        ', scalar, series'
+      vname_phys(2,indxSRAbsFlux) = 
+     &           'Shortwave radiation absorption flux'
+      vname_phys(3,indxSRAbsFlux) = 
+     &           'degC m s-1'
+# endif
 #endif /* SOLVE3D */
       return
       end

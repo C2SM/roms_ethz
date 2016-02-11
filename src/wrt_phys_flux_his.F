@@ -79,6 +79,7 @@
      &       nf_strerror(ierr) MYID
         goto 99                                           !--> ERROR
       endif
+#if !defined SELECTED_FLUX_ANALYSIS /* AH */
 ! Barotropic mode variable: free-surface
 ! Always include this in the output so that depths of sigma levels
 ! can be computed
@@ -90,6 +91,7 @@
      &        nf_strerror(ierr) MYID
          goto 99                !--> ERROR
       endif
+#endif /* SELECTED_FLUX_ANALYSIS */
 ! horizontal advective fluxes (xi-direction)
       do iflux = 1, NT_PFA
          ierr = nf_fwrite(HorXAdvFlux(START_2D_ARRAY,1,iflux), 
@@ -153,6 +155,7 @@
             goto 99
          end if
       end do
+#if !defined SELECTED_FLUX_ANALYSIS /* AH */
 ! bottom fluxes
       do iflux = 1, NT_PFA
          ierr = nf_fwrite(BottomFlux(START_2D_ARRAY,iflux), 
@@ -208,6 +211,7 @@
             goto 99
          end if
       end do
+#endif /* SELECTED_FLUX_ANALYSIS */
 # endif /* FULL_PHYS_FLUX_ANALYSIS */
   1   format(/' WRT_PHYS_FLUX_HIS - ERROR while writing variable(',
      &     1x,a,1x,

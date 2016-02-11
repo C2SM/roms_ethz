@@ -37,7 +37,11 @@
 
       real TopFlux(GLOBAL_2D_ARRAY,NT_PFA)
       common /ocean_top_flux/TopFlux
+      
+      real SRAbsFlux(GLOBAL_2D_ARRAY,N)
+      common /ocean_top_flux/SRAbsFlux
 
+#if !defined SELECTED_FLUX_ANALYSIS /* AH */
       real BottomFlux(GLOBAL_2D_ARRAY,NT_PFA)
       common /ocean_bottom_flux/BottomFlux
 
@@ -52,6 +56,7 @@
 
       real NudgingFlux(GLOBAL_2D_ARRAY,N,NT_PFA)
       common /ocean_nudging_flux/NudgingFlux
+#endif /* SELECTED_FLUX_ANALYSIS */
 # endif /* FULL_PHYS_FLUX_ANALYSIS */
 
 # ifdef AVERAGES
@@ -73,6 +78,10 @@
       real TopFlux_avg(GLOBAL_2D_ARRAY,NT_PFA)
       common /ocean_top_flux_avg/TopFlux_avg
 
+      real SRAbsFlux_avg(GLOBAL_2D_ARRAY,N)
+      common /ocean_top_flux_avg/SRAbsFlux_avg
+
+#if !defined SELECTED_FLUX_ANALYSIS /* AH */
       real BottomFlux_avg(GLOBAL_2D_ARRAY,NT_PFA)
       common /ocean_bottom_flux_avg/BottomFlux_avg
 
@@ -87,6 +96,7 @@
 
       real NudgingFlux_avg(GLOBAL_2D_ARRAY,N,NT_PFA)
       common /ocean_nudging_flux_avg/NudgingFlux_avg
+#endif /* SELECTED_FLUX_ANALYSIS */
 #  endif /* FULL_PHYS_FLUX_ANALYSIS */
 # endif /* AVERAGES */
 #endif /* SOLVE3D && PHYS_FLUX_ANALYSIS */
