@@ -176,7 +176,9 @@
 # ifdef PACIFIC
 #  include "mixing.h"
 # endif
-
+# ifdef ICEOBS
+#  include "grid.h"
+# endif
 # include "compute_extended_bounds.h"
 
 ! Set coefficients for interpolation.  Also check that for the next
@@ -277,18 +279,47 @@ c**      dSdt=0.
      &                                   +cff4*sstg(i,j,it4)
      &                                                    ))
 
+!
+! Restrict stflx to prevent surface temperature to go below
+! freezing point (degrees C) when not using the sea ice model
+!
+!#  if defined PACIFIC || defined STFLX_LIM
+#  if !defined ICE_MODEL
+#   ifdef ICEOBS
 
-! Restrict stflx to prevent surface temperature to go below -2
-! degrees C.
-
-#  ifdef PACIFIC
+! If there is sea-ice freezing in the grid box we assume a freezing point
+! skin temperature for the entire grid box and recalculate heat fluxes
+! based on Markus (1999). Note that this overwrites any surface forcing
+! heat flux in grid cells with sea ice. !AH15
+!
+              stflx(i,j,itemp)=(stflx(i,j,itemp)
+     &           *abs(min(0.,(real(ceiling(freezing(i,j)))-1.)))
+     &           *(1.-sic(i,j)))
+     &           +(0.006        ! Stanton number under ice
+#    ifdef MASKING
+     &            *(sqrt(sqrt( 
+     &            ( (sustr(i,j)*umask(i,j)+sustr(i+1,j)*umask(i+1,j))
+     &                         *(1.0-0.5*umask(i,j)*umask(i+1,j)) )**2
+     &           +( (svstr(i,j)*vmask(i,j)+svstr(i,j+1)*vmask(i,j+1))
+     &                         *(1.0-0.5*vmask(i,j)*vmask(i,j+1)) )**2 
+     &                                                        )))
+#    else
+     &            *(sqrt(0.5*sqrt( (sustr(i,j)+sustr(i+1,j))**2
+     &                             +(svstr(i,j)+svstr(i,j+1))**2)))
+#    endif
+     &           *(-0.0543*t(i,j,N,nrhs,isalt)-t(i,j,N,nrhs,itemp))
+     &           *max(min(1.,real(ceiling(freezing(i,j)))),sic(i,j)))
+!     &           *sic(i,j))
+#   endif  /* ICEOBS */
               stflx(i,j,itemp)=max( stflx(i,j,itemp),
 #   ifdef LMD_KPP
      &                          max(hbls(i,j,nstp), Hz(i,j,N))
 #   else
      &                                               Hz(i,j,N)
 #   endif
-     &                         *(-2.D0-t(i,j,N,nrhs,itemp))/dt
+!     &                         *(-2.D0-t(i,j,N,nrhs,itemp))/dt )
+! Steele et al. 1989 surface freezing temp: t_freez=-0.0543*salinity !AH14
+     &             *(-0.0543*t(i,j,N,nrhs,isalt)-t(i,j,N,nrhs,itemp))/dt
      &                                                       )
 #  endif
 # endif
@@ -331,6 +362,8 @@ c**  &                                         -tclm(i,j,N,isalt)
               endif
 #   endif
 #  endif
+     &                                                             )
+# endif
             enddo
           enddo
 # endif

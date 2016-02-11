@@ -190,7 +190,8 @@ c     &                                       fposnam(1:lvar))
  || (defined SG_BBL96 && !defined ANA_BSEDIM)  \
  || (defined SG_BBL96 && !defined ANA_WWAVE)   \
  || (defined SALINITY && !defined ANA_SSFLUX)  \
- || (defined LMD_KPP  && !defined ANA_SRFLUX)
+ || (defined LMD_KPP  && !defined ANA_SRFLUX)  \
+ || (defined ICEOBS)
 c      lvar=lenstr(frcname)
 c      ierr=nf_put_att_text(ncid, nf_global,'frc_file', lvar,
 c     &                                       frcname(1:lvar))
