@@ -67,6 +67,9 @@
 # if defined BIOLOGY_BEC && defined BGC_FLUX_ANALYSIS && defined AVERAGES
 #  include "bec_avg.h"
 # endif
+# ifdef TSOURCE
+#  include "sources.h"
+# endif
 #endif /* SOLVE3D */
 
 #include "compute_extended_bounds.h"
@@ -178,9 +181,15 @@
 # ifdef AVERAGES
               t_avg(i,j,k,itrc)=init
 # endif
+# ifdef TSOURCE
+              T_src(i,j,k,itrc)=init
+# endif
             enddo
           enddo
         enddo
+# ifdef TSOURCE
+        tsrc_id(itrc)=0
+# endif
       enddo
 #endif /* SOLVE3D */
 
@@ -222,6 +231,17 @@
 # ifndef ANA_SRFLUX
           srflxg(i,j,1)=init
           srflxg(i,j,2)=init
+# endif
+# ifdef ICEOBS
+          sic(i,j)=init
+          sicg(i,j,1)=init
+          sicg(i,j,2)=init
+          freezing(i,j)=init
+          freezingg(i,j,1)=init
+          freezingg(i,j,2)=init
+          melting(i,j)=init
+          meltingg(i,j,1)=init
+          meltingg(i,j,2)=init
 # endif
 # if defined SG_BBL96 && !defined ANA_WWAVE
           wwag(i,j,1)=init
@@ -385,6 +405,9 @@
         do i=istrR,iendR
           hbls(i,j,1)=0.  ! init
           hbls(i,j,2)=0.
+#  ifdef ICEOBS
+          kbls(i,j)=N
+#  endif
 #  ifdef AVERAGES
           hbl_avg(i,j)=init
 #  endif

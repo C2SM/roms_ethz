@@ -103,6 +103,11 @@ c      v3bc_max=0.
       do i=1,max_frc_file
         ncfrc(i)=-1
       enddo
+#ifdef TSOURCE
+      do i=1,max_frc_file
+        ncidtsrc(i)=-1
+      enddo
+#endif
 #ifndef ANA_SMFLUX
       sms_file_id=0
 #endif
@@ -114,6 +119,12 @@ c      v3bc_max=0.
 # endif
 # ifndef ANA_SRFLUX
       srf_file_id=0
+# endif
+# if defined ICEOBS
+      ice_file_id=0
+# endif
+# if defined TSOURCE
+      tsrc_file_id=0
 # endif
 # if defined QCORRECTION && !defined ANA_SST
       sst_file_id=0
@@ -351,6 +362,17 @@ CR      write(*,'(1x,A,I3)') 'indxSSS =', indxSSS
       vname(3,indxBSD)='kilogram meter-3'
 #  endif
 # endif
+#endif
+#ifdef ICEOBS
+      vname(1,indxCi)='seaice                                    '
+      vname(2,indxCi)='fraction of cell covered by ice           '
+      vname(3,indxCi)='nondimensional                            '
+      vname(1,indxFi)='freezing                                  '
+      vname(2,indxFi)='surface freshwater flux (sea-ice freezing)'
+      vname(3,indxFi)='centimeter day-1                          '
+      vname(1,indxMi)='melting                                   '
+      vname(2,indxMi)='surface freshwater flux (sea-ice melting) '
+      vname(3,indxMi)='centimeter day-1                          '
 #endif
 #ifdef ICE
       vname(1,indxAi)='aice'

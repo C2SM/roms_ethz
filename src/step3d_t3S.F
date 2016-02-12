@@ -66,6 +66,9 @@ c--# define AKIMA
               t(i,j,k,nnew,itrc)=t(i,j,k,nnew,itrc) -dt*pm(i,j)
      &                              *pn(i,j)*( FX(i+1,j)-FX(i,j)
      &                                          +FE(i,j+1)-FE(i,j)
+# ifdef TSOURCE /* AH15: add tracer source at rho-point */
+     &                                          -T_src(i,j,k,itrc)
+# endif /* TSOURCE */
      &                                                           )
             enddo
           enddo                 !-->  discard FX,FE
@@ -136,6 +139,21 @@ c--# define AKIMA
 # if defined PASSIVE_TRACER && defined AGE_DYE_TRACER
           endif ! itrc.le.indxT+ntrc_salt .or. ...
 # endif
+# if defined LMD_KPP && defined ICEOBS
+! AH15: KPP has problems under sea ice. Distributing salt 
+! fluxes due to melting and freezing uniformly over
+! kbls until one layer below (see Duffy et al. 1999)
+          if (itrc .eq. isalt) then
+            do i=istr,iend
+              do k=N,kbls(i,j),-1
+                t(i,j,k,nnew,itrc)=t(i,j,k,nnew,itrc)
+     &                  +(dt*melting(i,j)
+     &                  *Hz(i,j,k)/(z_w(i,j,N)-z_w(i,j,kbls(i,j)-1)))
+              enddo
+              t(i,j,kbls(i,j)-1,nnew,itrc)=t(i,j,kbls(i,j)-1,nnew,itrc)+dt*freezing(i,j)
+            enddo
+          endif
+# endif
 # ifdef FULL_PHYS_FLUX_ANALYSIS
           if (itrc .le. NT_PFA) then
 ! separate do loops (for better efficiency) to store the fluxes
@@ -146,13 +164,15 @@ c--# define AKIMA
      &               * rmask(i,j)
 #  endif
              enddo
+#if !defined SELECTED_FLUX_ANALYSIS /* AH */
              do i=Istr,Iend
              ! unit = mmol / (m2 s)
-                BottomFlux(i,j,itrc) = 0 !-btflx(i,j,itrc)
+                BottomFlux(i,j,itrc) = 0. !-btflx(i,j,itrc)
 #   ifdef MASKING
      &               * rmask(i,j)
 #   endif
              enddo
+#endif /* SELECTED_FLUX_ANALYSIS */
           end if
 # endif /* FULL_PHYS_FLUX_ANALYSIS */
 
@@ -163,6 +183,11 @@ c--# define AKIMA
 ! scheme.
 
           if (itrc==itemp) then
+# ifdef FULL_PHYS_FLUX_ANALYSIS
+            do i=istr,iend
+             SRAbsFlux(i,j,N)=0.
+            enddo
+# endif /* FULL_PHYS_FLUX_ANALYSIS */
             do k=N-1,1,-1
               do i=istr,iend
                 cff=srflx(i,j)*swr_frac(i,j,k)
@@ -171,6 +196,10 @@ c--# define AKIMA
 #  endif
                 t(i,j,k+1,nnew,itemp)=t(i,j,k+1,nnew,itemp) -dt*cff
                 t(i,j,k  ,nnew,itemp)=t(i,j,k  ,nnew,itemp) +dt*cff
+# ifdef FULL_PHYS_FLUX_ANALYSIS
+                SRAbsFlux(i,j,k+1)=SRAbsFlux(i,j,k+1)-cff
+                SRAbsFlux(i,j,k  )=cff
+# endif /* FULL_PHYS_FLUX_ANALYSIS */
               enddo
             enddo
 
@@ -436,6 +465,22 @@ c??         enddo
 
 ! Set lateral boundary conditions; nudge toward tracer climatology;
 ! apply land-sea mask and exchange periodic boundary conditions.
+!
+      do itrc=1,NT
+# if defined PASSIVE_TRACER && defined AGE_DYE_TRACER
+! Age tracer should not be dilluted at the open boundary.
+! So, treat as closed boundary for this tracer only !AH15
+        is = itrc-itemp-ntrc_salt
+        if ((itrc.gt.itemp+ntrc_salt)
+     &             .and.(itrc.le.itemp+ntrc_salt+N_agedye)
+     &             .and.(Age(is))) then
+          call t3dbc_closed_tile (istr,iend,jstr,jend, itrc)
+        else
+# endif /* PASSIVE_TRACER && AGE_DYE_TRACER */
+          call t3dbc_tile (istr,iend,jstr,jend, itrc, WORK)
+# if defined PASSIVE_TRACER && defined AGE_DYE_TRACER
+        endif
+# endif /* PASSIVE_TRACER && AGE_DYE_TRACER */
 
       do itrc=1,NT
         call t3dbc_tile (istr,iend,jstr,jend, itrc, wrk1)
@@ -487,6 +532,7 @@ c??         enddo
      &       +dt*Tnudgcof(i,j,itrc)*( tclm(i,j,k,itrc)
      &                             -t(i,j,k,nnew,itrc))
 #  ifdef FULL_PHYS_FLUX_ANALYSIS
+#if !defined SELECTED_FLUX_ANALYSIS /* AH */
           if (itrc .le. NT_PFA) then
                NudgingFlux(i,j,k,itrc) = Tnudgcof(i,j,itrc) *
      &              ( tclm(i,j,k,itrc) - t(i,j,k,nnew,itrc) )
@@ -494,6 +540,7 @@ c??         enddo
      &              * rmask(i,j)
 #   endif
             end if
+#endif /* SELECTED_FLUX_ANALYSIS */
 #  endif /* FULL_PHYS_FLUX_ANALYSIS */
 #  endif
 #  ifdef MASKING
