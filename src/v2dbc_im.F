@@ -308,7 +308,45 @@ c         endif
           vbar(i,jend+1,knew)=vbar(i,jend+1,knew)*vmask(i,jend+1)
 #   endif
         enddo
-#  endif
+# if defined OBC_NORTH_M2SPECIFIED_TILESTR && defined OBC_NORTH_M2SPECIFIED_TILEEND
+!
+!   Force OBC_M2SPECIFIED as northern boundary condition
+!   in the specified tile range !MM & AH15
+!
+        if ((mynode.ge.OBC_NORTH_M2SPECIFIED_TILESTR)
+     &                       .and. (mynode.le.OBC_NORTH_M2SPECIFIED_TILEEND)) then
+          do i=istr,iend
+#    ifdef M2_FRC_BRY
+            vbar(i,jend+1,knew)=vbar_north(i)
+#    else
+            vbar(i,jend+1,knew)=vbclm(i,jend+1)
+#    endif
+#    ifdef MASKING
+            vbar(i,jend+1,knew)=vbar(i,jend+1,knew)*vmask(i,jend+1)
+#    endif
+          enddo
+        endif
+# endif /* OBC_NORTH_M2SPECIFIED_TILESTR */
+# if defined OBC_NORTH_M2SPECIFIED_TILESTR2 && defined OBC_NORTH_M2SPECIFIED_TILEEND2
+!
+!   Force OBC_M2SPECIFIED as northern boundary condition
+!   in the second specified tile range !MM & AH15
+!
+        if ((mynode.ge.OBC_NORTH_M2SPECIFIED_TILESTR2)
+     &                       .and. (mynode.le.OBC_NORTH_M2SPECIFIED_TILEEND2)) then
+          do i=istr,iend
+#    ifdef M2_FRC_BRY
+            vbar(i,jend+1,knew)=vbar_north(i)
+#    else
+            vbar(i,jend+1,knew)=vbclm(i,jend+1)
+#    endif
+#    ifdef MASKING
+            vbar(i,jend+1,knew)=vbar(i,jend+1,knew)*vmask(i,jend+1)
+#    endif
+          enddo
+        endif
+#   endif /* OBC_NORTH_M2SPECIFIED_TILESTR2 */
+#  endif /* OBC_M2ORLANSKI or alternative open */
 # else
         do i=istr,iend                        ! Northern edge closed
           vbar(i,jend+1,knew)=0.              ! ======== ==== ======
@@ -322,10 +360,6 @@ c         endif
 
 c****
 c****
-#ifdef OBC_M2FLATHER
-# undef OBC_M2FLATHER
-# define OBC_M2ORLANSKI
-#endif
 
 
 
@@ -459,14 +493,9 @@ c****
 #  undef J_RANGE
 # endif              /* OBC_WEST */
       endif       !<-- WESTERN_EDGE
-
-
-c--#ifdef ISWAKE
-c--# define OBC_M2ORLANSKI
-c--#endif
-
-
-
+ 
+ 
+ 
       if (EASTERN_EDGE) then
 # ifdef OBC_EAST
 #  if defined OBC_M2ORLANSKI

@@ -189,10 +189,7 @@ c          endif
 # endif           /* OBC_WEST */
       endif     !<-- WESTERN_EDGE
 
-c--#ifdef ISWAKE
-c--# define OBC_M2ORLANSKI
-c--#endif
-
+ 
       if (EASTERN_EDGE) then
 # ifdef OBC_EAST
 #  ifdef OBC_M2ORLANSKI
@@ -340,15 +337,8 @@ c          endif
 #endif              /* !EW_PERIODIC */
 
 
-
-c****
-c****
-#ifdef OBC_M2FLATHER
-# undef OBC_M2FLATHER
-# define OBC_M2ORLANSKI
-#endif
-
-
+ 
+ 
 #ifndef NS_PERIODIC
       if (SOUTHERN_EDGE) then
 # ifdef OBC_SOUTH
@@ -588,7 +578,46 @@ c****
           ubar(i,jend+1,knew)=ubar(i,jend+1,knew)*umask(i,jend+1)
 #   endif
         enddo
-#  endif
+# if defined OBC_NORTH_M2SPECIFIED_TILESTR && defined OBC_NORTH_M2SPECIFIED_TILEEND
+!
+!   Force OBC_M2SPECIFIED as northern boundary condition
+!   in the specified tile range !MM & AH15
+!
+        if ((mynode.ge.OBC_NORTH_M2SPECIFIED_TILESTR)
+     &                       .and. (mynode.le.OBC_NORTH_M2SPECIFIED_TILEEND)) then
+          do i=istrU,iend
+#    ifdef M2_FRC_BRY
+            ubar(i,jend+1,knew)=ubar_north(i)
+#    else
+            ubar(i,jend+1,knew)=ubclm(i,jend+1)
+#    endif
+#    ifdef MASKING
+            ubar(i,jend+1,knew)=ubar(i,jend+1,knew)*umask(i,jend+1)
+#    endif
+          enddo
+        endif
+# endif /* OBC_NORTH_M2SPECIFIED_TILESTR */
+# if defined OBC_NORTH_M2SPECIFIED_TILESTR2 && defined OBC_NORTH_M2SPECIFIED_TILEEND2
+!
+!   Force OBC_M2SPECIFIED as northern boundary condition
+!   in the second specified tile range !MM & AH15
+!
+        if ((mynode.ge.OBC_NORTH_M2SPECIFIED_TILESTR2)
+     &                       .and. (mynode.le.OBC_NORTH_M2SPECIFIED_TILEEND2)) then
+
+          do i=istrU,iend
+#    ifdef M2_FRC_BRY
+            ubar(i,jend+1,knew)=ubar_north(i)
+#    else
+            ubar(i,jend+1,knew)=ubclm(i,jend+1)
+#    endif
+#    ifdef MASKING
+            ubar(i,jend+1,knew)=ubar(i,jend+1,knew)*umask(i,jend+1)
+#    endif
+          enddo
+        endif
+#   endif /* OBC_NORTH_M2SPECIFIED_TILESTR2 */
+#  endif /* OBC_M2ORLANSKI or alternative open */
 # else
 #  ifdef EW_PERIODIC
 #   define I_RANGE istrU,iend
