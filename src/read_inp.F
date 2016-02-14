@@ -1234,6 +1234,21 @@ c--      fname='roms.in.US_West'
      &        'nwrt =', nwrtmgmavg, 'rec/file =', nprfmgmavg
 #endif   /* MOORE_BEC */
 
+! AH: Read tracer source file name
+#if defined TSOURCE
+        elseif (keyword(1:kwlen).eq.'tracer_source') then
+          call cancel_kwd (keyword(1:kwlen), ierr)
+          read(input,'(A)',err=95) fname
+          lstr=lenstr(fname)
+#  if defined MPI && defined PARALLEL_FILES
+          call insert_node (fname, lstr, mynode, NNODES, ierr)
+#  endif
+          open (testunit, file=fname(1:lstr), status='old', err=97)
+          close(testunit)
+          tsrc_file=fname(1:lstr)
+          MPI_master_only write(stdout,'(6x,A,2x,A)')
+     &          'Tracer Source File:', tsrc_file(1:lstr)
+
 
 !DL: age/dye tracers:
 #if defined PASSIVE_TRACER && defined AGE_DYE_TRACER
