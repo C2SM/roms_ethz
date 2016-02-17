@@ -130,8 +130,9 @@ c**  &               LLm=126,  MMm=254, N=20    ! USWEST grid 16
 !                                             XI- and ETA-directions;
       integer, parameter ::
 #ifdef MPI
-     &      NP_XI=10, NP_ETA=24, NSUB_X=1, NSUB_E=1
+!     &      NP_XI=10, NP_ETA=24, NSUB_X=1, NSUB_E=1
 !SO_d05     &      NP_XI=16, NP_ETA=18, NSUB_X=1, NSUB_E=1
+     &      NP_XI=8, NP_ETA=36, NSUB_X=1, NSUB_E=1
 !--> Sasha orig     &      NP_XI=2, NP_ETA=2, NSUB_X=2, NSUB_E=13
 #else
 c     &      NSUB_X=4, NSUB_E=40  ! PAC44
