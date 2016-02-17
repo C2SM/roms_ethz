@@ -74,9 +74,9 @@ CSDISTRIBUTE_RESHAPE q2l(BLOCK_PATTERN,*,*) BLOCK_CLAUSE
 CSDISTRIBUTE_RESHAPE hbls(BLOCK_PATTERN,*) BLOCK_CLAUSE
       common /kpp_hbl/hbls
 #  ifdef ICEOBS
-      integer kbls(GLOBAL_2D_ARRAY)
-CSDISTRIBUTE_RESHAPE kbls(BLOCK_PATTERN,*) BLOCK_CLAUSE
-      common /kpp_kbl/kbls
+      integer kbl(GLOBAL_2D_ARRAY)
+CSDISTRIBUTE_RESHAPE kbl(BLOCK_PATTERN,*) BLOCK_CLAUSE
+      common /kpp_kbl/kbl
 #  endif
 
       real swr_frac(GLOBAL_2D_ARRAY,0:N)

@@ -99,10 +99,15 @@
 # endif /* BIOLOGY_BEC || BIOLOGY_BEC2 */
 # ifdef SG_BBL96
 #  ifndef ANA_WWAVE
-     &                    , indxWWA=???          indxWWD=indxWWA+1
+     &                    , indxWWA=indxSST+5,  indxWWD=indxWWA+1
      &                    , indxWWP=indxWWA+2
 #  endif
 # endif
+#endif
+#ifdef ICEOBS
+     &                    , indxCi=indxSST+8  ! wastes 3 indices if ANA_WWAVE is not defined!
+     &                    , indxFi=indxCi+1
+     &                    , indxMi=indxFi+1
 #endif
 #ifdef ICE
       integer, parameter :: indxAi=????,     indxUi=indxAi+1,
@@ -359,10 +364,16 @@
 #if defined BIOLOGY_BEC || defined BIOLOGY_BEC2
      &     , ntdust, ntiron
 #endif
+#ifdef TSOURCE
+      integer ncidtsrc(max_frc_file)
+#endif
       common /ncvars/       max_frc, ncfrc, nrst,  ncrst,   nrecrst,
      &      nrrec, nrpfrst, ncidclm, nwrt,  nchis, nrechis, nrpfhis
 #if defined BIOLOGY_BEC || defined BIOLOGY_BEC2
      &     , ntdust, ntiron
+#endif
+#ifdef TSOURCE
+     &     , ncidtsrc
 #endif
 #ifdef BIOLOGY_BEC2
       integer ntnox, ntnhy, ntdin_river
@@ -629,6 +640,11 @@
     defined M3_FRC_BRY || defined Z_FRC_BRY
       character(len=max_name_size) bry_file
       common /cncvars/ bry_file
+#endif
+
+#if defined TSOURCE
+      character*(max_name_size) tsrc_file
+      common /cncvars/ tsrc_file
 #endif
 
 #ifdef STATIONS

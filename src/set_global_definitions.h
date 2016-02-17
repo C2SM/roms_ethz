@@ -414,3 +414,8 @@ c-# define TANH dtanh
 # define flush flush_
 # define etime etime_
 #endif
+
+#ifdef SO
+/* Include AH's Southern Ocean mixed bry switches */
+# include "mixed_SO_bry.h"
+#endif

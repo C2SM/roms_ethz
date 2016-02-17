@@ -174,7 +174,7 @@ c--#define AUTORENICE
       cmd(11:lstr+10)=cmd(1:lstr)    ! pid of its own process and
       lstr=lstr+10                   ! executes re-nice command.
       cmd(1:10)='renice 19 '
-      write(*,'(/3A//)') 'Autorenice: executing ''',cmd(1:lstr),'''.'
+      write(*,'(/3A/ /)') 'Autorenice: executing ''',cmd(1:lstr),'''.'
       call system(cmd(1:lstr))
 #endif
 #ifdef TIMING

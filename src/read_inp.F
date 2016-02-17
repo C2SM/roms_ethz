@@ -1246,7 +1246,7 @@ c--      fname='roms.in.US_West'
           open (testunit, file=fname(1:lstr), status='old', err=97)
           close(testunit)
           tsrc_file=fname(1:lstr)
-          MPI_master_only write(stdout,'(6x,A,2x,A)')
+          MPI_master_only write(*,'(6x,A,2x,A)')
      &          'Tracer Source File:', tsrc_file(1:lstr)
 
 

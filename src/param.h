@@ -196,6 +196,12 @@ c**     &               LLm=248, MMm=504, N=42      ! 5km config
 c     &    NP_XI=4, NP_ETA=24, NSUB_X=1, NSUB_E=1  ! 15km & 5km 
 # elif defined USTC90
      &    NP_XI=8, NP_ETA=12, NSUB_X=1, NSUB_E=1
+#elif defined SO_d05
+     &               LLm=720,  MMm=216, N=42     ! SO_d05
+#elif defined SO_d025
+     &               LLm=1440, MMm=432, N=42     ! SO_d025
+#elif defined SO_d0125
+     &               LLm=2880, MMm=864, N=42     ! SO_d0125
 # else
      &      NP_XI=16, NP_ETA=18, NSUB_X=1, NSUB_E=1
 !--> Sasha orig     &      NP_XI=2, NP_ETA=2, NSUB_X=2, NSUB_E=13

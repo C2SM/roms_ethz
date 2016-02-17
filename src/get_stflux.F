@@ -173,7 +173,8 @@
 # include "scalars.h"
 # include "ocean3d.h"
 # include "forces.h"
-# ifdef PACIFIC
+# ifndef ICE_MODEL
+! hbls (in mixing.h) is needed for surface flux limitation if SST falls below freezing
 #  include "mixing.h"
 # endif
 # ifdef ICEOBS
@@ -362,7 +363,7 @@ c**  &                                         -tclm(i,j,N,isalt)
               endif
 #   endif
 #  endif
-     &                                                             )
+!mm delete this?     &                                                             )
 # endif
             enddo
           enddo

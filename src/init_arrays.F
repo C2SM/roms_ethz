@@ -406,7 +406,7 @@
           hbls(i,j,1)=0.  ! init
           hbls(i,j,2)=0.
 #  ifdef ICEOBS
-          kbls(i,j)=N
+          kbl(i,j)=N
 #  endif
 #  ifdef AVERAGES
           hbl_avg(i,j)=init

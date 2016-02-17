@@ -438,7 +438,6 @@ c--         Vtsq=Vtc*ws*sqrt(max(0., 0.5*(bvf(i,j,k)+bvf(i,j,k-1)) ))
           hbl(i,j)=max(LIMIT_MIN_HBLS, hbl(i,j))
 #   endif
 #   ifdef MASKING
-=======
           hbl(i,j)=hbl(i,j)*rmask(i,j)
 #   endif
         enddo
@@ -809,7 +808,7 @@ c              Ks(i,j,k)=Ks(i,j,k) + wsb*bbl(i,j)*cff1
           if (rmask(i,j) > 0.5) then
 # endif
 # ifdef ICEOBS
-          kbls(i,j)=kbl(i)
+          kbl(i,j)=kbls(i)
 # endif
             do k=0,N
               Akv(i,j,k)=Kv(i,j,k)
@@ -852,7 +851,7 @@ c         hbls(i,j,3-nstp)=hbl(i,j)
         do j=jstr,jend
           hbls(istr-1,j,3-nstp)=hbls(istr,j,3-nstp)
 #  ifdef ICEOBS
-          kbls(istr-1,j)=kbls(istr,j)
+          kbl(istr-1,j)=kbl(istr,j)
 #  endif
         enddo
       endif
@@ -860,7 +859,7 @@ c         hbls(i,j,3-nstp)=hbl(i,j)
         do j=jstr,jend
           hbls(iend+1,j,3-nstp)=hbls(iend,j,3-nstp)
 #  ifdef ICEOBS
-          kbls(iend+1,j)=kbls(iend,j)
+          kbl(iend+1,j)=kbl(iend,j)
 #  endif
         enddo
       endif
@@ -870,7 +869,7 @@ c         hbls(i,j,3-nstp)=hbl(i,j)
         do i=istr,iend
           hbls(i,jstr-1,3-nstp)=hbls(i,jstr,3-nstp)
 #  ifdef ICEOBS
-          kbls(i,jstr-1)=kbls(i,jstr)
+          kbl(i,jstr-1)=kbl(i,jstr)
 #  endif
         enddo
       endif
@@ -878,7 +877,7 @@ c         hbls(i,j,3-nstp)=hbl(i,j)
         do i=istr,iend
           hbls(i,jend+1,3-nstp)=hbls(i,jend,3-nstp)
 #  ifdef ICEOBS
-          kbls(i,jend+1)=kbls(i,jend)
+          kbl(i,jend+1)=kbl(i,jend)
 #  endif
         enddo
       endif
@@ -886,25 +885,25 @@ c         hbls(i,j,3-nstp)=hbl(i,j)
       if (WESTERN_EDGE .and. SOUTHERN_EDGE) then
         hbls(istr-1,jstr-1,3-nstp)=hbls(istr,jstr,3-nstp)
 #   ifdef ICEOBS
-        kbls(istr-1,jstr-1)=kbls(istr,jstr)
+        kbl(istr-1,jstr-1)=kbl(istr,jstr)
 #   endif
       endif
       if (WESTERN_EDGE .and. NORTHERN_EDGE) then
         hbls(istr-1,jend+1,3-nstp)=hbls(istr,jend,3-nstp)
 #   ifdef ICEOBS
-        kbls(istr-1,jend+1)=kbls(istr,jend)
+        kbl(istr-1,jend+1)=kbl(istr,jend)
 #   endif
       endif
       if (EASTERN_EDGE .and. SOUTHERN_EDGE) then
         hbls(iend+1,jstr-1,3-nstp)=hbls(iend,jstr,3-nstp)
 #   ifdef ICEOBS
-        kbls(iend+1,jstr-1)=kbls(iend,jstr)
+        kbl(iend+1,jstr-1)=kbl(iend,jstr)
 #   endif
       endif
       if (EASTERN_EDGE .and. NORTHERN_EDGE) then
         hbls(iend+1,jend+1,3-nstp)=hbls(iend,jend,3-nstp)
 #   ifdef ICEOBS
-        kbls(iend+1,jend+1)=kbls(iend,jend)
+        kbl(iend+1,jend+1)=kbl(iend,jend)
 #   endif
       endif
 #   endif

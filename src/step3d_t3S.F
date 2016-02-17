@@ -142,15 +142,15 @@ c--# define AKIMA
 # if defined LMD_KPP && defined ICEOBS
 ! AH15: KPP has problems under sea ice. Distributing salt 
 ! fluxes due to melting and freezing uniformly over
-! kbls until one layer below (see Duffy et al. 1999)
+! kbl until one layer below (see Duffy et al. 1999)
           if (itrc .eq. isalt) then
             do i=istr,iend
-              do k=N,kbls(i,j),-1
+              do k=N,kbl(i,j),-1
                 t(i,j,k,nnew,itrc)=t(i,j,k,nnew,itrc)
      &                  +(dt*melting(i,j)
-     &                  *Hz(i,j,k)/(z_w(i,j,N)-z_w(i,j,kbls(i,j)-1)))
+     &                  *Hz(i,j,k)/(z_w(i,j,N)-z_w(i,j,kbl(i,j)-1)))
               enddo
-              t(i,j,kbls(i,j)-1,nnew,itrc)=t(i,j,kbls(i,j)-1,nnew,itrc)+dt*freezing(i,j)
+              t(i,j,kbl(i,j)-1,nnew,itrc)=t(i,j,kbl(i,j)-1,nnew,itrc)+dt*freezing(i,j)
             enddo
           endif
 # endif
