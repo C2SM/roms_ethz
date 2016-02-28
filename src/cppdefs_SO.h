@@ -26,7 +26,12 @@
      /* Open Boundary Conditions */
 #undef SPONGE /* note: UCLA uses SPONGE with BRY */
 #undef OBC_M2FLATHER  /* UCLA/ETH default but not used for Southern Ocean */
-#define OBC_M2SPECIFIED /* special for SO */
+!--> new only indic/pacific, see below #define OBC_M2SPECIFIED /* special for SO */
+# define OBC_NORTH_M2SPECIFIED_TILESTR 280 /* OBC_M2SPECIFIED for a certain range of tiles */
+# define OBC_NORTH_M2SPECIFIED_TILEEND 285 /* OBC_M2SPECIFIED for a certain range of tiles */
+# define OBC_M3ORLANSKI /* Baroclin. BC: OBC_M3ORLANSKI, OBC_M3SPECIFIED */
+# define OBC_TORLANSKI /* Tracer BC: OBC_TORLANSKI, OBC_TSPECIFIED */
+
 
      /* Output */
 !--> #define AVERAGES

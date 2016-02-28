@@ -1248,6 +1248,7 @@ c--      fname='roms.in.US_West'
           tsrc_file=fname(1:lstr)
           MPI_master_only write(*,'(6x,A,2x,A)')
      &          'Tracer Source File:', tsrc_file(1:lstr)
+#endif
 
 
 !DL: age/dye tracers:

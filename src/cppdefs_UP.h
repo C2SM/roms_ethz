@@ -11,7 +11,7 @@
 #define SALINITY
                      /*  Forcing */
                      /*         - surface */
-#define DIURNAL_SRFLUX
+!-->mm not working in SO: #define DIURNAL_SRFLUX
 #define QCORRECTION
 !#define SALINITY_MASK
                      /*         - lateral */
