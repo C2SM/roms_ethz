@@ -9,23 +9,25 @@
 #define GRID_SIZE LLm=720, MMm=216, N=42   ! SO_d05 1/2 deg setup
 #define  DOMAIN_TILING NP_XI=8, NP_ETA=36, NSUB_X=1, NSUB_E=1
 
-!--> /* 1/4 degree setup (SO_d025) */
+    /* 1/4 degree setup (SO_d025) */
 !--> #define GRID_SIZE LLm=1440, MMm=416, N=42      ! SO_d025 1/4  deg resolution
 !--> #define  DOMAIN_TILING NP_XI=16, NP_ETA=24, NSUB_X=1, NSUB_E=1
 
-!--> /* 1/8 degree setup (SO_d0125) */
+    /* 1/8 degree setup (SO_d0125) */
 !--> #define GRID_SIZE LLm=2880, MMm=864, N=42      ! SO_d0125 1/8   deg resolution
 !--> #define  DOMAIN_TILING NP_XI=32, NP_ETA=12, NSUB_X=1, NSUB_E=1
      /* Forcing */
 #define SALINITY_MASK
+#define TSOURCE
+#define ICEOBS
 
      /* Open Boundaries */
 #define EW_PERIODIC
 #define OBC_NORTH
 
      /* Open Boundary Conditions */
-#undef SPONGE /* note: UCLA uses SPONGE with BRY */
-#undef OBC_M2FLATHER  /* UCLA/ETH default but not used for Southern Ocean */
+#define SPONGE /* note: UCLA uses SPONGE with BRY */
+#define OBC_M2FLATHER  
 !--> new only indic/pacific, see below #define OBC_M2SPECIFIED /* special for SO */
 # define OBC_NORTH_M2SPECIFIED_TILESTR 280 /* OBC_M2SPECIFIED for a certain range of tiles */
 # define OBC_NORTH_M2SPECIFIED_TILEEND 285 /* OBC_M2SPECIFIED for a certain range of tiles */
@@ -34,7 +36,7 @@
 
 
      /* Output */
-!--> #define AVERAGES
+#define AVERAGES
 !--> #define SLICE_AVG
 
      /* Biology */

@@ -64,7 +64,7 @@ c--#define ALLOW_SINGLE_BLOCK_MODE
  whatever latest velocity values available. */
  
 c--# define IMPLICIT_BOTTOM_DRAG
-c--# define IMPLCT_NO_SLIP_BTTM_BC
+# define IMPLCT_NO_SLIP_BTTM_BC
  
 
 /* Take into account nonuniformity of density field in computation of
