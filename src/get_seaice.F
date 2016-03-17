@@ -197,8 +197,10 @@ CR     &           ''' in ''', frcname(1:lfrc), ''', ifrc =', ifrc
         do j=jstrR,jendR
           do i=istrR,iendR
             sic(i,j)=cff1*sicg(i,j,it1)+cff2*sicg(i,j,it2)
-            freezing(i,j)=cff3*freezingg(i,j,it1)+cff4*freezingg(i,j,it2)*t(i,j,N,nrhs,isalt)
-            melting(i,j)=cff3*meltingg(i,j,it1)+cff4*meltingg(i,j,it2)*t(i,j,N,nrhs,isalt)
+            freezing(i,j)=(cff3*freezingg(i,j,it1)+cff4*freezingg(i,j,it2))
+     &                                       *t(i,j,N,nrhs,isalt)
+            melting(i,j)=(cff3*meltingg(i,j,it1)+cff4*meltingg(i,j,it2))
+     &                                       *t(i,j,N,nrhs,isalt)
           enddo
         enddo
       elseif (ZEROTH_TILE) then
