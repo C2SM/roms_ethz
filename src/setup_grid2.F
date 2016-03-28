@@ -270,7 +270,7 @@
       endif
 
 C$OMP CRITICAL (grd2_cr_rgn)
-        if (tile_count == 0) then       ! Global min, max, and sum
+        if (tile_count==0) then       ! Global min, max, and sum
           hmin=my_hmin                  ! operations within each shared
           hmax=my_hmax                  ! memory group (an MPI-node).
           grdmin=my_grdmin              ! Counter "tile_count" is to
