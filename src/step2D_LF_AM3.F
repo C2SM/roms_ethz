@@ -241,7 +241,7 @@ c*   &         gamma=1./12., beta=0.1,  epsil=0.6   !--> Cu=1.050
 ! "m+1", while zeta(:,:,knew) should be centered either at "m+1/2"
 ! after predictor step and at "m+1" after corrector. Chosing it
 ! to be this way makes it possible avoid storing r.h.s. for zeta,
-! uvar and vbar between predictor and corrector sub-steps.
+! ubar and vbar between predictor and corrector sub-steps.
 !
       call zetabc_tile (istr,iend,jstr,jend, zeta_new)
 

@@ -68,7 +68,7 @@ c--#define WJ_GRADP 0.125
      &                            /(z_r(i,j,N)-z_r(i,j,N-1))
         enddo
 
-        if (j>=jstr) then
+        if (j >= jstr) then
           cff=0.5*g/rho0
           do i=istrU,iend
             pgrd(i)=(g+cff*(rsurf(i-1,j)+rsurf(i,j)))*( z_w(i-1,j,N)
@@ -120,7 +120,7 @@ c--#define WJ_GRADP 0.125
 ! ETA-component: same sequence as above.
 !---- ---------- ---- -------- -- ------
 
-        if (j>=jstrV) then
+        if (j >= jstrV) then
           cff=0.5*g/rho0
           do i=istr,iend
             pgrd(i)=(g+cff*(rsurf(i,j-1)+rsurf(i,j)))*( z_w(i,j-1,N)

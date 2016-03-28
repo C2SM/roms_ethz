@@ -82,7 +82,7 @@ c--# define AKIMA
 ! conditions into matrix DC when using the Large et al. 1994 KPP
 ! scheme.
 
-          if (itrc==itemp) then
+          if (itrc == itemp) then
             do k=N-1,1,-1
               do i=istr,iend
                 cff=srflx(i,j)*swr_frac(i,j,k)
