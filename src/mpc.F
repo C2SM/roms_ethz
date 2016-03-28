@@ -7,21 +7,21 @@
 !------------
 ! (1) Eliminate blank lines left by CPP and Fortran style comments,
 !     but keep compiler directives like C$DOACROSS in place.
-!
+
 ! (2) Usually Fortran syntax does not prohibit the practice when a
 !     quotation is opened on one line and closes on the next line.
 !     Doing so, however, may be considered as unsafe and sloppy from
 !     stylistic point of view; mpc enforces the rule when every
 !     string inside quotation mark must be closed within the line.
 !   --> Optional:: activated by TRAP_UNMATCHED_QUOTES CPP-switch.
-!
+
 ! (3) Convert _default_ size Fortran real type declarations into
 !     real*8.  Any mixture of lower and upper cases letters is
 !     allowed in the word real.
 !     Explicitly specified size declaration, such as real*4
 !     or real*16 will be left unchanged.
 !   --> Optional:: activated by REAL_TO_REAL8 CPP-switch.
-!
+
 ! (4) Enforce double precision accuracy for the real type constants
 !     appearing anywhere in the program, for example, 1. --> 1.D0;
 !          .1 --> .1D0;    9.81 --> 9.81D0;   .5e-8 --> .5D-8;
@@ -32,15 +32,13 @@
 !     code automatically according to Fortran syntax rules, when
 !     this change causes line to increase beyond 72 characters.
 !   --> Optional: activated by DOUBLE_CONST CPP-switch.
-!
-!
+
 ! (5) Convert _default_ size Fortran integer type declarations
 !     into integer*4. Explicitly specified size declaration, such
 !     as integer*2 or integer*8 will be left unchanged.
 !   --> Optional: activated when _both_  INT_TO_INT4 _and_
 !                 REAL_TO_REAL8 CPP-switches are defined.
-!
-!
+
 ! (6) Convert parallelized loops over subdomains (tiles)
 !
 !          do tile=0,NSUB_X*NSUB_E-1
@@ -60,21 +58,31 @@
 !     the tiles it is processing. Automatically append SHARED/PRIVATE
 !     lists with the newly introduced variables.
 !   --> Optional: activated by ZIG_ZAG CPP-switch.
-!
-! (7) Automatically insert calls to "sync_trap(barrier_number)" just
+
+! (7) Automatically insert !dir$ ivdep directives in front of each 
+!     i-loop which has bounds istr:iend or imin:imax, including their
+!     combinations and modifications like istrR and others alike, as
+!     well as additions/subtractions of bounds, like imin-1, imax+2.
+!     Normally these are the innermost loops in ROMS, which are
+!     expected to be vectorized. This is known to affect performance
+!     to some degree, and the effect can be seen in Intel compiler
+!     vectorization report when -qopt-report=5 -qopt-report-phase=vec
+!     flags are invoked.  Activated by CPP-option VECTORIZE below.
+
+! (8) Automatically insert calls to "sync_trap(barrier_number)" just
 !     in front of each Open MP directive BARRIER.   This is merely to
 !     detect loss of synchronization events and it does not affect
-!     computational results (provided, of course, that the code stays
-!     in sync). Activated by CPP-option TRAP_BARRIERS.
-!
-!
+!     computational results provided (of course) that the code does
+!     not do out of sync due to parallel bugs. Activated by CPP-option
+!     TRAP_BARRIERS.
+
 ! More detailed description for each option is available below.
-!
+
 ! In the case when after they were modified, lines of the Fortran
 ! program became longer than the prescribed width of 72 characters,
 ! they are automatically folded by mpc according to the Fortran
 ! syntax rules.
-!
+
 ! Usage:  Overall similar to CPP:
 !-------
 !                         mpc source.file target.file
@@ -115,7 +123,7 @@ c--#define TRAP_BARRIERS
 #define RUTGERS
 
 #define F77_TO_F95
-c--# define VECTORIZE
+# define VECTORIZE
 
 #ifdef F77_TO_F95
 # define integer INTEGER(kind=4)
@@ -149,7 +157,7 @@ c--# define VECTORIZE
 ! starting with version 8.x IFORT recognizes it as intrinsic. Portland
 ! Group PGF compiler also needs it to be declared.
 
-#if defined XLF || defined PGI
+#ifdef INT_IARGC
       integer iargc
 #endif
 
@@ -710,7 +718,7 @@ c--#endif
 ! Automatically place loop vectorization directives for i-loops
 
         do i=istr,length
-          if (symbol(i)>='A' .and. symbol(i)<='Z') then
+          if (symbol(i) >= 'A' .and. symbol(i) <= 'Z') then
             scratch(i:i)=char(ichar(symbol(i))+case_fold)
           else
             scratch(i:i)=symbol(i)
@@ -718,49 +726,49 @@ c--#endif
         enddo
 
         i=istr
-        if (scratch(i:i+1)=='do') then
+        if (scratch(i:i+1) == 'do') then
           i=i+2
-          do while (i<length .and. scratch(i:i)==' ')
+          do while(i < length .and. scratch(i:i) == ' ')
             i=i+1
           enddo
           if (scratch(i:i)=='i') then
             i=i+1
-            do while (i<length .and. scratch(i:i)==' ')
+            do while(i < length .and. scratch(i:i) == ' ')
               i=i+1
             enddo
-            if (scratch(i:i)=='=') then
+            if (scratch(i:i) == '=') then
               i=i+1
-              do while (i<length .and. scratch(i:i)==' ')
+              do while(i < length .and. scratch(i:i) == ' ')
                 i=i+1
               enddo
 
-              if (scratch(i:i+3)=='istr' .or.
-     &            scratch(i:i+3)=='imin') then
+              if (scratch(i:i+3) == 'istr' .or.
+     &            scratch(i:i+3) == 'imin') then
                 i=i+4
-                do while (i<length .and. scratch(i:i)/=',')
+                do while(i < length .and. scratch(i:i) /= ',')
                   i=i+1
                 enddo
-                if (i<length) then
+                if (i < length) then
                   i=i+1
                   if (scratch(i:i+3)=='iend' .or.
      &                scratch(i:i+3)=='imax') then
                     i=i+3
-                    do while (i<length .and. scratch(i:i)/=',')
+                    do while(i < length .and. scratch(i:i) /= ',')
                       i=i+1
                     enddo
-                    if (i==length) then
+                    if (i == length) then
 
-                      write(iout,'(A)') '!dec$ ivdep'
+                      write(iout,'(A)') '!dir$ ivdep'
 
 ! If the target processor is Itanium 2, suppress vectorization
-! directive (available only for Intel IA32 architecture). Not doing
-! so causes compiler warnings, but is harmless otherwise.
+! directive (available only for Intel IA32 architecture).
+! Not doing so causes compiler warnings, but is harmless otherwise.
 
 # if __IFC != IA64
-                      write(iout,'(A)') '!dec$ vector always'
+c                      write(iout,'(A)') '!dir$ vector always'
 # endif
-c                      write(iout,'(A)') '!dec$ prefetch'
-                      write(iout,'(A)') '!dec$ unroll(4)'
+c                      write(iout,'(A)') '!dir$ prefetch'
+c                      write(iout,'(A)') '!dir$ unroll'
 
                     endif
                   endif
