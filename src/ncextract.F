@@ -20,14 +20,19 @@
 ! older versions of netCDF library.
 
       implicit none
-      integer max_string, max_size, max_found, input, iout
-      parameter (max_string=72,  max_size=32,  max_found=512,
-     &                                     input=11, iout=12)
-      character string*(max_string), buff*(max_string),
-     &  quote*1, double_quote*1, nfword(max_found)*(max_size)
-      integer nlen(max_found), nfound, iargc, last_arg, n,
+      integer, parameter :: max_string=72,  max_size=32,
+     &                      max_found=512, input=11, iout=12
+      character(len=max_string) string, buff, nfword(max_found)
+      character(len=1) quote, double_quote
+
+
+      integer nlen(max_found), nfound, last_arg, n,
      &    case_fold, i,j, ie,is, istrt,length, line,iocheck
       logical not_end_of_file, lswtch, lprint
+
+#ifdef INT_IARGC
+      integer iargc
+#endif
 
       nfound=0
       quote=char(39)
@@ -35,13 +40,13 @@
       case_fold=ichar('a')-ichar('A')
 
       last_arg=iargc()
-      if (last_arg>0) then
+      if (last_arg > 0) then
         do n=1,last_arg+1
-          if (n/=last_arg+1) then
+          if (n < last_arg+1) then
             call getarg(n, string)
           else
             string='/usr/local/include/netcdf.inc'
-            open (unit=iout, file='netcdf.inc.ext',form='formatted')
+            open(unit=iout, file='netcdf.inc.ext',form='formatted')
           endif
           open(unit=input, file=string, form='formatted')
           line=0
@@ -63,50 +68,51 @@
               if (string(i:i)/=' ') length=i
             enddo
    3        continue
-            do while (length>0 .and. string(length:length)==' ')
+            do while(length > 1 .and. string(length:length) == ' ')
               length=length-1
             enddo
+            if (string(length:length) == ' ') length=length-1
             istrt=1
-            do while (istrt<length.and.string(istrt:istrt)==' ')
+            do while(istrt < length .and. string(istrt:istrt) == ' ')
               istrt=istrt+1
             enddo
-!
-! Save the non-modified copu of the string into buffer (only for
+
+! Save the non-modified copy of the string into buffer (only for
 ! "netcdf.inc" file, then to simplify comparison and extraction fold
 ! cases to lower case and suppress all symbols except letters, digits
 ! and underscore.
-!
-            if (n==last_arg+1) buff=string(1:length)
+
+            if (n == last_arg+1) buff=string(1:length)
             do i=istrt,length
-              if (string(i:i)>='A' .and. string(i:i)<='Z') then
+              if (string(i:i) >= 'A' .and. string(i:i) <= 'Z') then
                 string(i:i)=char(ichar(string(i:i))+case_fold)
-              elseif (string(i:i)>='a'.and.string(i:i)<='z') then
+              elseif (string(i:i) >= 'a'.and.string(i:i) <= 'z') then
 
-              elseif (string(i:i)>='0'.and.string(i:i)<='9') then
+              elseif (string(i:i) >= '0'.and.string(i:i) <= '9') then
 
-              elseif (string(i:i)=='_') then
+              elseif (string(i:i) == '_') then
 
               else
                 string(i:i)=' '
               endif
             enddo
-!
+
 ! Search for nf_words inside the string; once found, check whether it
 ! is already in the catalog, and if it is not, put it in (all passes,
 ! except the last, where input file is "netcdf.inc") during the last
 ! pass, if, as opposite, nf_word is in catalog, set switch to print
 ! the whole non-modified version of the line into the new file.
-!
+
             lprint=.false.
             i=istrt
-            do while (i<length)
+            do while (i < length)
               if (string(i:i+2)=='nf_') then
                 is=i
               else
                 is=0
               endif
               i=i+3
-              do while (string(i:i)/=' ')
+              do while (string(i:i) /= ' ')
                 i=i+1
               enddo
               if (is>0) then
@@ -129,7 +135,7 @@
                   lprint=.true.
                 endif
               endif
-              do while (string(i:i)==' ' .and. i<length)
+              do while(string(i:i)==' ' .and. i<length)
                 i=i+1
               enddo
             enddo
@@ -143,8 +149,4 @@
      &          'are specified. Usage of ncextract should be',
      &          'ncextract *.F *.h'
       endif
-      stop
       end
-
-
-

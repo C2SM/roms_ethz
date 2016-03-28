@@ -79,7 +79,7 @@
       end                            ! it into 80-character width.
 
 
-      subroutine check_switches2 (ierr)
+      subroutine check_switches2(ierr)
 
 ! Manually check mutual consistency of settings of CPP switches, report
 ! contradictions (if any), and raise errors flag to terminate the run.
@@ -102,61 +102,53 @@
 ! automatically generate the code for tracking switches defined in
 ! "set_global_definitions.h" because most of what the latter contains
 ! is a set of permanently defined macros tracking which which would
-! only clutter the signature stored in "cpps" with adding little useful
-! information.
+! only clutter the signature stored in "cpps" with adding little
+! useful information.
 
 !----->>>>>>>>> begin copy-pasted section.
 
-      is=ie+2
-      ie=is+25
-      if (ie>=max_opt_size) goto 99
+      is=ie+2 ; ie=is+25
+      if (ie >= max_opt_size) goto 99
       cpps(is:ie)='<set_global_definitions.h>'
       cpps(ie+1:ie+1)=' '
 #ifdef PRED_COUPLED_MODE
-      is=ie+2
-      ie=is+16
-      if (ie>=max_opt_size) goto 99
+      is=ie+2 ; ie=is+16
+      if (ie >= max_opt_size) goto 99
       cpps(is:ie)='PRED_COUPLED_MODE'
       cpps(ie+1:ie+1)=' '
 #endif
 #ifdef CORR_COUPLED_MODE
-      is=ie+2
-      ie=is+16
-      if (ie>=max_opt_size) goto 99
+      is=ie+2 ; ie=is+16
+      if (ie >= max_opt_size) goto 99
       cpps(is:ie)='CORR_COUPLED_MODE'
       cpps(ie+1:ie+1)=' '
 #endif
 #ifdef EXTRAP_BAR_FLUXES
-      is=ie+2
-      ie=is+16
-      if (ie>=max_opt_size) goto 99
+      is=ie+2 ; ie=is+16
+      if (ie >= max_opt_size) goto 99
       cpps(is:ie)='EXTRAP_BAR_FLUXES'
       cpps(ie+1:ie+1)=' '
 #endif
-#ifdef IMPLICIT_BOTTOM_DRAG
-      is=ie+2
-      ie=is+19
-      if (ie>=max_opt_size) goto 99
-      cpps(is:ie)='IMPLICIT_BOTTOM_DRAG'
+#ifdef KEEP_CORIOLIS
+      is=ie+2 ; ie=is+12
+      if (ie >= max_opt_size) goto 99
+      cpps(is:ie)='KEEP_CORIOLIS'
       cpps(ie+1:ie+1)=' '
 #endif
 #ifdef IMPLCT_NO_SLIP_BTTM_BC
-      is=ie+2
-      ie=is+21
-      if (ie>=max_opt_size) goto 99
+      is=ie+2 ; ie=is+21
+      if (ie >= max_opt_size) goto 99
       cpps(is:ie)='IMPLCT_NO_SLIP_BTTM_BC'
       cpps(ie+1:ie+1)=' '
 #endif
 #ifdef VAR_RHO_2D
-      is=ie+2
-      ie=is+9
-      if (ie>=max_opt_size) goto 99
+      is=ie+2 ; ie=is+9
+      if (ie >= max_opt_size) goto 99
       cpps(is:ie)='VAR_RHO_2D'
       cpps(ie+1:ie+1)=' '
 #endif
 
 ! <<<<<<<<-- end of copy-pasted section.
-
 
 ! Checking correctness of coupling flags:
 

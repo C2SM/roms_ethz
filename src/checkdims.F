@@ -1,6 +1,6 @@
 #include "cppdefs.h"
 
-      integer function checkdims (ncid, fname, max_rec)
+      integer function checkdims(ncid, fname, max_rec)
 
 ! Verify that all spatial dimensions in file with netCDF ID=ncid and
 ! name=fname are consistent with the corresponding model dimensions and
@@ -115,10 +115,10 @@
 
 #ifdef SOLVE3D
 
-! The following function checks whether S-coordinate parameter hc,
-! and Cs_w-, Cs_r-curves found in netCDF file 'fname' match their
-! counterparts defined by the model. Print error messages and return
-! non-zero status, if musmatch found.
+! The following function checks whether S-coordinate parameter hc, Cs_w- 
+! and Cs_r-curves found in netCDF file 'fname' match their counterparts
+! defined by the model. Print error messages and return non-zero status,
+! in the case of mismatch.
 
       integer function check_scoord(ncid, fname, what_to_check)
       implicit none
@@ -127,11 +127,11 @@
 # include "param.h"
 # include "scoord.h"
       real, parameter :: epsil=1.D-7
-      real tst_val, Cs_w_try(0:N), Cs_r_try(N)
+      real tst_val(N+1)
       integer ierr, k, icount, lfile, lenstr, read_nc1dat
       logical chk_Cs_w, chk_Cs_r
 
-      if (mod(what_to_check,2)==1) then
+      if (mod(what_to_check,2) == 1) then
         chk_Cs_w=.true.                    ! Decode incoming argument
       else                                 ! "what_to_check" into two
         chk_Cs_w=.false.                   ! logical switched to check
@@ -145,11 +145,11 @@
       icount=0
       lfile=lenstr(fname)
       ierr=read_nc1dat(ncid, fname, 'hc', 1, tst_val)
-      if (ierr==0) then
-        if (abs(hc-tst_val)>epsil) then
+      if (ierr == 0) then
+        if (abs(hc-tst_val(1))>epsil) then
           write(*,'(/1x,2A,F12.5,1x,A,F12.5,1x,3A/)')  '### ERROR: ',
      &                  'Mismatch in ''hc'': should be', hc, 'found',
-     &                   tst_val, 'in file ''', fname(1:lfile), '''.'
+     &               tst_val(1), 'in file ''', fname(1:lfile), '''.'
           icount=icount+1
 # ifdef VERBOSE
         else
@@ -159,14 +159,14 @@
       endif
 
       if (chk_Cs_w) then
-        ierr=read_nc1dat(ncid, fname, 'Cs_w', N+1, Cs_w_try)
-        if (ierr==0) then
+        ierr=read_nc1dat(ncid, fname, 'Cs_w', N+1, tst_val)
+        if (ierr == 0) then
           do k=N,0,-1
-            if (abs(Cs_w(k)-Cs_w_try(k))>epsil) then
+            if (abs(Cs_w(k)-tst_val(k+1)) > epsil) then
               ierr=ierr+1
             endif
           enddo
-          if (ierr/=0) then
+          if (ierr /= 0) then
             write(*,'(/1x,4A/)')  '### ERROR: Mismatch in ''Cs_w'' ',
      &                    'values in file ''', fname(1:lfile), '''.'
             icount=icount+1
@@ -179,14 +179,14 @@
       endif
 
       if (chk_Cs_r) then
-        ierr=read_nc1dat(ncid, fname, 'Cs_r', N, Cs_r_try)
-        if (ierr==0) then
+        ierr=read_nc1dat(ncid, fname, 'Cs_r', N, tst_val)
+        if (ierr == 0) then
           do k=N,1,-1
-            if (abs(Cs_r(k)-Cs_r_try(k))>epsil) then
+            if (abs(Cs_r(k)-tst_val(k)) > epsil) then
               ierr=ierr+1
             endif
           enddo
-          if (ierr/=0) then
+          if (ierr /= 0) then
             write(*,'(/1x,4A/)')  '### ERROR: Mismatch in ''Cs_r'' ',
      &                    'values in file ''', fname(1:lfile), '''.'
             icount=icount+1
@@ -198,13 +198,13 @@
         endif
       endif
 
-      if (icount/=0) then
+      if (icount /= 0) then
         ierr=read_nc1dat(ncid, fname, 'theta_s', 1,  tst_val)
-        if (ierr==0) then
-          if (abs(theta_s-tst_val)>epsil) then
+        if (ierr == 0) then
+          if (abs(theta_s-tst_val(1)) > epsil) then
             write(*,'(/1x,A,2(A,F9.4,1x),3A/)')       '### ERROR: ',
      &              'Mismatch in ''theta_s'': should be',   theta_s,
-     &        'found', tst_val, 'in file ''', fname(1:lfile), '''.'
+     &      'found', tst_val(1), 'in file ''', fname(1:lfile), '''.'
 # ifdef VERBOSE
           else
             write(*,*) 'check_scoord :: checking theta_s: OK'
@@ -212,11 +212,11 @@
           endif
         endif
         ierr=read_nc1dat(ncid, fname, 'theta_b', 1,  tst_val)
-        if (ierr==0) then
-          if (abs(theta_b-tst_val)>epsil) then
-            write(*,'(/1x,A,2(A,F9.4,1x),3A/)')       '### ERROR: ',
-     &              'Mismatch in ''theta_b'': should be',   theta_b,
-     &        'found', tst_val, 'in file ''', fname(1:lfile), '''.'
+        if (ierr == 0) then
+          if (abs(theta_b-tst_val(1)) > epsil) then
+            write(*,'(/1x,A,2(A,F9.4,1x),3A/)')        '### ERROR: ',
+     &      'Mismatch in ''theta_b'': should be',   theta_b, 'found',
+     &               tst_val(1), 'in file ''', fname(1:lfile), '''.'
 # ifdef VERBOSE
           else
             write(*,*) 'check_scoord :: checking theta_b: OK'
@@ -264,14 +264,13 @@
      &               i,j, ierr,  lvar, lfile, lenstr
 # include "netcdf.inc"
 
-      lvar=lenstr(vname)
-      lfile=lenstr(fname)
+      lvar=lenstr(vname) ; lfile=lenstr(fname)
 
       ierr=nf_inq_att(ncid, nf_global, vname, vtype, size)
-      if (ierr==nf_noerr) then
-        if (size==nlen) then
-          ierr=nf_get_att_FTYPE (ncid,nf_global, vname(1:lvar),value)
-          if (ierr/=nf_noerr) then
+      if (ierr == nf_noerr) then
+        if (size == nlen) then
+          ierr=nf_get_att_FTYPE(ncid,nf_global, vname(1:lvar),value)
+          if (ierr /= nf_noerr) then
             write(*,'(/1x,6A/12x,A/)')   '### ERROR: read_nc1dat :: ',
      &         'Cannot retrieve global attribute ''',   vname(1:lvar),
      &         ''' from ''', fname(1:lfile), '''.', nf_strerror(ierr)
@@ -279,18 +278,18 @@
         endif
       else
         size=1
-        ierr=nf_inq_varid (ncid, vname, varid)
-        if (ierr==nf_noerr) then
-          ierr=nf_inq_varndims (ncid, varid, ndims)
-          if (ierr==nf_noerr) then
-            if (ndims>0) then
-              ierr=nf_inq_vardimid (ncid, varid, dimids)
-              if (ierr==nf_noerr) then
+        ierr=nf_inq_varid(ncid, vname, varid)
+        if (ierr == nf_noerr) then
+          ierr=nf_inq_varndims(ncid, varid, ndims)
+          if (ierr == nf_noerr) then
+            if (ndims > 0) then
+              ierr=nf_inq_vardimid(ncid, varid, dimids)
+              if (ierr == nf_noerr) then
                 i=0
                 do while (i<ndims .and. ierr==nf_noerr)
                   i=i+1
-                  ierr=nf_inq_dimlen (ncid, dimids(i), j)
-                  if (ierr==nf_noerr) then
+                  ierr=nf_inq_dimlen(ncid, dimids(i), j)
+                  if (ierr == nf_noerr) then
                     size=size*j
                   endif
                 enddo
@@ -311,7 +310,7 @@
      &   'Cannot determine number of dimensions for ''', vname(1:lvar),
      &      ''' in file ''',  fname(1:lfile), '''.', nf_strerror(ierr)
           endif
-          if (size==nlen .and. ierr==nf_noerr) then
+          if (size == nlen .and. ierr == nf_noerr) then
             ierr=nf_get_var_FTYPE (ncid, varid, value)
             if (ierr/=nf_noerr) then
               write(*,'(/1x,6A/12x,A/)')  '### ERROR: read_nc1dat :: ',
@@ -328,7 +327,7 @@
       if (size /= nlen .and. ierr == nf_noerr) then
         write(*,'(/1x,6A/12x,A,I7,1x,A,I7/)')    '### ERROR: ',
      &   'read_nc1dat :: Unexpected size of ''', vname(1:lvar),
-     &     ''' in file ''', fname(1:lfile), ''':', 'should be',
+     &   ''' in file ''',  fname(1:lfile),  ''':', 'should be',
      &                                 nlen, 'but found', size
         ierr=+1
       endif
@@ -337,24 +336,45 @@
 
 
 ! The following is just a wrap-around of the standard nf_def_dim
-! function instrumented solely to print out an error message,  if
-! something goes wrong.  This is needed because there is no error
+! netCDF function instrumented solely to print out an error message,
+!  if something goes wrong.  This is needed because there is no error
 ! handling code in the calling routine.
 
-      integer function my_nf_def_dim (ncid, name, len, dimid)
+      function my_nf_def_dim(ncid, name, len, dimid)
       implicit none
-      integer ncid, len, dimid, ierr
+      integer my_nf_def_dim, ncid, len, dimid, ierr
       character(len=*) name
 # ifdef MPI
 #  include "param.h"       /* <-- needs "mynode" */
 # endif
 # include "netcdf.inc"
-      ierr=nf_def_dim (ncid, name, len, dimid)
-      if (ierr/=nf_noerr) then
-        write(*,'(/1x,A,I3,3A,I4,A,I10/12x,A,I3,3A,I3/)')
-     &      '#### ERROR: my_nf_def_dim: ncid =', ncid, ' name = ''',
-     &       name,  ''' len =', len, ' dimid =', dimid, '  ierr=',
-     &       ierr, ' Cause of error: ', nf_strerror(ierr) MYID
+      ierr=nf_def_dim(ncid, name, len, dimid)
+      if (ierr /= nf_noerr) then
+        write(*,'(/1x,2A,I3,3A,I4,A,I10/12x,2A,I3/)')   '#### ERROR: ',
+     &   'my_nf_def_dim: ncid =', ncid, ' name = ''', name, ''' len =',
+     &           len, ' dimid =', dimid, nf_strerror(ierr) MYID
       endif
       my_nf_def_dim=ierr
       end
+
+      function my_nf_def_var(ncid, name, type, ndims, dimids, varid)
+      implicit none
+      integer my_nf_def_var, ncid, type, ndims, dimids(ndims), varid
+     &      , ierr, i
+      character(len=*) name
+# include "netcdf.inc"
+      ierr=nf_def_var(ncid, name, type, ndims, dimids, varid)
+      if (ierr == nf_noerr) then
+        write(*,*) 'created variable ', name, ' varid =', varid
+      else
+        write(*,'(/1x,A,I4,1x,A,I7,1x,2A,1x,A,I4,1x,A,4I3)')
+     &  '#### ERROR: my_nf_def_var :: ierr =', ierr, 'ncid =', ncid,
+     &                            'name = ', name, 'ndims =', ndims,
+     &                            'dimids =', (dimids(i), i=1,ndims)
+        write(*,'(1x,A)') nf_strerror(ierr)
+      endif
+      my_nf_def_var=ierr
+      end
+
+
+
