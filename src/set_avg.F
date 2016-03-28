@@ -13,15 +13,15 @@
 # include "compute_tile_bounds.h"
 # ifdef SOLVE3D
       if (wrtavg(indxW)) then
-        call wvlcty_tile (istr,iend,jstr,jend, work, A2d(1,1),
-     &                                   A2d(1,2), A2d(1,3))
+        call wvlcty_tile(istr,iend,jstr,jend, work, A2d(1,1),
+     &                                    A2d(1,2), A2d(1,3))
       endif
 # endif
       call set_avg_tile (istr,iend,jstr,jend)
       return
       end
 
-      subroutine set_avg_tile (istr,iend,jstr,jend)
+      subroutine set_avg_tile(istr,iend,jstr,jend)
 
 ! Compute time-averaged fields within a tile.
 ! ------- ------------- ------ ------ - -----
@@ -64,12 +64,12 @@
 
 # include "compute_auxiliary_bounds.h"
 
-      if (iic>ntsavg) then
-        cff=1./dble(navg) !<-- scaling
-        if (mod(iic-ntsavg,navg)==1) then
+      if (iic > ntsavg) then
+        cff=1./dble(navg)    !<-- scaling
+        if (mod(iic-ntsavg,navg) == 1) then
           if (ZEROTH_TILE) then
             mpi_master_only write(*,'(7x,A,I8,2x,A,I8,2x,A,I5)')
-     &               'set_avg :: started averaging at iic=', iic,
+     &              'set_avg :: started averaging at iic =', iic,
      &                          'ntsavg=', ntsavg, 'navg=', navg
           endif
           cff1=0.   !--> initialize
@@ -146,7 +146,7 @@
           enddo
         endif
         if (wrtavg(indxO)) then
-          if (mod(iic-ntsavg,navg)==1) then
+          if (mod(iic-ntsavg,navg) == 1) then
             do k=0,N
               do j=jstrR,jendR
                 do i=istrR,iendR
@@ -154,7 +154,7 @@
                 enddo
               enddo
             enddo
-          elseif (mod(iic-ntsavg,navg)>1) then
+          elseif (mod(iic-ntsavg,navg) > 1) then
             do k=0,N
               do j=jstrR,jendR
                 do i=istrR,iendR
@@ -162,7 +162,7 @@
                 enddo
               enddo
             enddo
-          elseif (mod(iic-ntsavg,navg)==0) then
+          elseif (mod(iic-ntsavg,navg) == 0) then
             do k=0,N
               do j=jstrR,jendR
                 do i=istrR,iendR
@@ -231,15 +231,14 @@
 #  endif
 # endif /* SOLVE3D */
 
-        if (mod(iic-ntsavg,navg)==0) then
+        if (mod(iic-ntsavg,navg) == 0) then
           if (ZEROTH_TILE) then
             mpi_master_only write(*,'(7x,A,I8,2x,A,I8,2x,A,I5)')
      &              'set_avg :: finished averaging at iic=', iic,
      &                         'ntsavg=', ntsavg,  'navg=', navg
           endif
         endif
-      endif       !<-- iic>ntsavg
-      return
+      endif       !<-- iic > ntsavg
       end
 #else
       subroutine set_avg_empty

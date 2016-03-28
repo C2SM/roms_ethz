@@ -80,10 +80,10 @@ C$    numthreads=omp_get_num_threads()
 C$    trd=omp_get_thread_num()
       proc(2)=trd
 
-      if (mod(NSUB_X*NSUB_E,numthreads)/=0) then
+      if (mod(NSUB_X*NSUB_E,numthreads) /= 0) then
 C$OMP MASTER
         mpi_master_only write(*,'(/3(1x,A,I3),A/)')
-     &    '### ERROR: wrong choice of numthreads =', numthreads,
+     &    '### ERROR: Wrong choice of numthreads =', numthreads,
      &         'while NSUB_X =', NSUB_X, 'NSUB_E =', NSUB_E,'.'
         may_day_flag=8
 C$OMP END MASTER
@@ -124,7 +124,7 @@ C$OMP MASTER
       call get_grid
 C$OMP END MASTER
 C$OMP BARRIER
-      if (may_day_flag/=0) goto 99 !-->  EXIT
+      if (may_day_flag /= 0) goto 99 !-->  EXIT
 #endif
       do tile=my_tile_range            ! Compute various metric terms
         call setup_grid1(tile)         ! and their combinations.
@@ -142,7 +142,7 @@ C$OMP MASTER                           ! Setup vertical stretching
       call set_scoord                  ! functions for S-coordinate
 C$OMP END MASTER                       ! system
 C$OMP BARRIER
-      if (may_day_flag /=0 ) goto 99
+      if (may_day_flag /= 0) goto 99
 #endif
 CR      write(*,*) ' -8' MYID
 
@@ -179,7 +179,7 @@ C$OMP BARRIER                          ! from netCDF file.  Note that
         call ana_init(tile)            ! may require surface forcing
       enddo                            ! fields (e.g, wind stress),
 C$OMP BARRIER                          ! so call forces first.
-      if (nrrec>0) then                ! Also note that ana_init may
+      if (nrrec > 0) then              ! Also note that ana_init may
 #endif
 #ifdef EXACT_RESTART
 C$OMP MASTER                           ! setup environmental variables
@@ -200,7 +200,7 @@ C$OMP END MASTER
       endif    !<-- nrrec>0
 #endif
 C$OMP BARRIER
-      if (may_day_flag/=0) goto 99      !--> ERROR
+      if (may_day_flag /= 0) goto 99      !--> ERROR
 CR      write(*,*) ' -5' MYID
                                   ! Set initial model clock: at this
       time=start_time             ! moment "start_time" (global scalar)
@@ -326,7 +326,7 @@ C$OMP END MASTER
 
 
 !      *****    *********    ******   *******    *********
-!    ***   ***  *  ***  *   *   ***   ***   ***  *  ***  *
+!    ***   ***  *  ***  *   **  ***   ***   ***  *  ***  *
 !    ***           ***     **   ***   ***   ***     ***
 !      *****       ***    ***   ***   ***   **      ***
 !          ***     ***    *********   ******        ***
@@ -463,43 +463,43 @@ C$OMP BARRIER
 ! Output block: write restart/history files.
 !======= ====== ===== =============== ======
 
-      if ( iic>ntstart .and. ( mod(iic-ntstart,nrst)==0
+      if ( iic > ntstart .and. ( mod(iic-ntstart,nrst) == 0
 #ifdef EXACT_RESTART
-     &                        .or. mod(iic-ntstart+1,nrst)==0
+     &                         .or. mod(iic-ntstart+1,nrst) == 0
 #endif
-     &   .or. (mod(iic-ntstart,nwrt)==0 .and. wrthis(indxTime))
+     &   .or. (mod(iic-ntstart,nwrt) == 0 .and. wrthis(indxTime))
 #ifdef AVERAGES
-     &   .or. (mod(iic-ntsavg,navg)==0  .and. wrtavg(indxTime))
+     &   .or. (mod(iic-ntsavg,navg) == 0  .and. wrtavg(indxTime))
 #endif
 #ifdef STATIONS
-     &   .or. (mod(iic-ntstart,nsta)==0 .and. nstation>0)
+     &   .or. (mod(iic-ntstart,nsta) == 0 .and. nstation > 0)
 #endif
 #ifdef FLOATS
-     &   .or. (mod(iic-ntstart,nflt)==0 .and. nfloats>0)
+     &   .or. (mod(iic-ntstart,nflt) == 0 .and. nfloats > 0)
 #endif
      &                                                  )) then
 C$OMP MASTER
-        if (mod(iic-ntstart,nrst)==0
+        if (mod(iic-ntstart,nrst) == 0
 #ifdef EXACT_RESTART
-     &                      .or. mod(iic-ntstart+1,nrst)==0
+     &         .or. mod(iic-ntstart+1,nrst) == 0
 #endif
      &                                ) nrecrst=nrecrst+1
-        if (mod(iic-ntstart,nwrt)==0) nrechis=nrechis+1
+        if (mod(iic-ntstart,nwrt) == 0) nrechis=nrechis+1
 #ifdef AVERAGES
-        if (mod(iic-ntsavg,navg) ==0) nrecavg=nrecavg+1
+        if (mod(iic-ntsavg,navg) == 0) nrecavg=nrecavg+1
 #endif
 #ifdef STATIONS
-        if (mod(iic-ntstart,nsta)==0) nrecstn=nrecstn+1
+        if (mod(iic-ntstart,nsta) == 0) nrecstn=nrecstn+1
 #endif
 #ifdef FLOATS
-        if (mod(iic-ntstart,nflt)==0) nrecflt=nrecflt+1
+        if (mod(iic-ntstart,nflt) == 0) nrecflt=nrecflt+1
 #endif
-        if (mod(iic-ntstart,nrst)==0
+        if (mod(iic-ntstart,nrst) == 0
 #ifdef EXACT_RESTART
-     &                      .or. mod(iic-ntstart+1,nrst)==0
+     &         .or. mod(iic-ntstart+1,nrst) == 0
 #endif
      &                                 ) call wrt_rst
-        if (mod(iic-ntstart,nwrt)==0 .and. wrthis(indxTime)) then
+        if (mod(iic-ntstart,nwrt) == 0 .and. wrthis(indxTime)) then
           call wrt_his
 c          if (iic>60) nwrt=1 !<-- useful for debugging
         endif

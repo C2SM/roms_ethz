@@ -137,8 +137,8 @@
 #  include "etalon_data.USWEST"
 # elif defined PACIFIC
 #  include "etalon_data.PACIFIC"
-# elif defined BRAZIL
-#  include "etalon_data.BRAZIL"
+# elif defined DOUBLE_GYRE 
+#  include "etalon_data.DOUBLE_GYRE"
 # endif
 #endif
 
@@ -649,10 +649,17 @@ C$   &                                                 , proc(2)
      &             check_line(i:i) /= '-'  .and.
      &             check_line(i:i) /= '.') then
                 nwrt=1
-                if (may_day_flag==0) then
+                if (may_day_flag == 0) then
                   write(*,*) '---> setting may day flag'
                   may_day_flag=1    !--> BLOW UP
                 endif
+#ifdef DOUBLE_GYRE
+              elseif (avke2b > 0.01) then
+                if (may_day_flag == 0) then
+                  write(*,*) '---> exceeding barotropic KE'
+                  may_day_flag=10
+                endif
+#endif
               endif
             endif
           enddo  ! <-- while(..)
