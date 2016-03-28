@@ -14,7 +14,8 @@
         enddo
       enddo
       do i=1,N2d
-        iA2d(i)=0
+        iA2d(i,1)=0
+        iA2d(i,2)=0
       enddo
 #endif
       do j=1,32
@@ -181,10 +182,10 @@
           sustr(i,j)=init
           svstr(i,j)=init
 #ifndef ANA_SMFLUX
-          sustrg(i,j,1)=init
-          svstrg(i,j,1)=init
-          sustrg(i,j,2)=init
-          svstrg(i,j,2)=init
+          uwind(i,j,1)=init
+          vwind(i,j,1)=init
+          uwind(i,j,2)=init
+          vwind(i,j,2)=init
 #endif
         enddo
       enddo
@@ -210,8 +211,8 @@
 # endif
           srflx(i,j)=init
 # ifndef ANA_SRFLUX
-          srflxg(i,j,1)=init
-          srflxg(i,j,2)=init
+          swradg(i,j,1)=init
+          swradg(i,j,2)=init
 # endif
 # if defined SG_BBL96 && !defined ANA_WWAVE
           wwag(i,j,1)=init

@@ -1,8 +1,9 @@
 #ifndef ANA_BRY
       real bry_time(2), bry_cycle
-      integer bry_id, bry_time_id, bry_ncycle, bry_rec, itbry, ntbry
-      common /bry_indices/ bry_time, bry_cycle,
-     &        bry_id, bry_time_id, bry_ncycle, bry_rec, itbry, ntbry
+      integer max_bry, ibry, bry_id, bry_time_id, bry_ncycle, bry_rec,
+     &                               itbry, ntbry
+      common /bry_indices/ bry_time, bry_cycle, max_bry, ibry,
+     &        bry_id,  bry_time_id, bry_ncycle, bry_rec, itbry, ntbry
 
 # ifdef OBC_WEST
 #  ifdef Z_FRC_BRY
