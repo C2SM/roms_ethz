@@ -10,7 +10,7 @@
 # include "netcdf.inc"
 # include "climat.h"
       real cff
-      integer i, lstr,lvar,lenstr, ierr, nf_fread
+      integer i, lstr,lvar,lenstr, ierr, ncdf_read
 
 ! Initialization:  Check, whether climatological data file is already
 !----------------  opened, and if not, open it.  Find and save netCDF
@@ -24,6 +24,10 @@
       ierr=nf_noerr
       lstr=lenstr(clm_file)
       if (iic==ntstart) then
+        ituclm=1
+        uclm_time(1)=-1.E+20
+        uclm_time(2)=-1.E+20
+
         if (ncidclm==-1) then
           ierr=nf_open (clm_file(1:lstr), nf_nowrite, ncidclm)
           if (ierr /= nf_noerr) write(*,'(/1x,4A/)') '### ERROR: ',
@@ -51,11 +55,8 @@
      &                                                      vclm_id)
                   if (ierr==nf_noerr) then
 # endif
-                    call set_cycle (ncidclm, uclm_tid, ntuclm,
-     &                     uclm_cycle, uclm_ncycle, uclm_rec, ierr)
-                    ituclm=1
-                    uclm_time(1)=-1.E+20
-                    uclm_time(2)=-1.E+20
+                    call find_record(ncidclm,uclm_tid, uclm_rec,ntuclm,
+     &                             uclm_ncycle,uclm_cycle,  1,1, ierr)
 # ifdef SOLVE3D
                   else
                     write(*,1) vname(1,indxV)(1:lvar),
@@ -87,31 +88,31 @@
 ! record and cycling indices, flip time index and read a new portion of
 ! the data. Repeat until model time falls between the two data times.
 
-      do while (uclm_time(ituclm)<time+0.5*dt .and.
-     &                                     ierr==nf_noerr)
-        call advance_cycle (uclm_cycle,  ntuclm, uclm_ncycle,
-     &                                       uclm_rec, ierr)
-        if (ierr==nf_noerr) then
-          ierr=nf_get_var1_FTYPE (ncidclm, uclm_tid, uclm_rec, cff)
-          if (ierr==nf_noerr) then
+      do while(uclm_time(ituclm) < time+0.5*dt .and. ierr == nf_noerr)
+        call advance_record(uclm_rec,ntuclm, uclm_ncycle,uclm_cycle,
+     &                                                    1,1, ierr)
+
+        if (ierr == nf_noerr) then
+          ierr=nf_get_var1_FTYPE(ncidclm, uclm_tid, uclm_rec, cff)
+          if (ierr == nf_noerr) then
             ituclm=min(3-ituclm,ntuclm)
             uclm_time(ituclm)=cff*day2sec + uclm_cycle*uclm_ncycle
-            ierr=nf_fread (ubclima(START_2D_ARRAY,ituclm), ncidclm,
-     &                                   ubclm_id, uclm_rec, u2dvar)
-            if (ierr==nf_noerr) then
-              ierr=nf_fread (vbclima(START_2D_ARRAY,ituclm), ncidclm,
-     &                                    vbclm_id, uclm_rec, v2dvar)
-              if (ierr==nf_noerr) then
+            ierr=ncdf_read(ncidclm, ubclm_id, uclm_rec, u_var,
+     &                     ubclima(START_2D_ARRAY,ituclm), 1)
+            if (ierr == nf_noerr) then
+              ierr=ncdf_read(ncidclm, vbclm_id, uclm_rec, v_var,
+     &                       vbclima(START_2D_ARRAY,ituclm), 1)
+              if (ierr == nf_noerr) then
 # ifdef SOLVE3D
-                ierr=nf_fread (uclima(START_2D_ARRAY,1,ituclm),
-     &                            ncidclm, uclm_id, uclm_rec, u3dvar)
-                if (ierr==nf_noerr) then
-                  ierr=nf_fread (vclima(START_2D_ARRAY,1,ituclm),
-     &                            ncidclm, vclm_id, uclm_rec, v3dvar)
-                  if (ierr==nf_noerr) then
+                ierr=ncdf_read(ncidclm, uclm_id,  uclm_rec,  u_var,
+     &                         uclima(START_2D_ARRAY,1,ituclm), N)
+                if (ierr == nf_noerr) then
+                  ierr=ncdf_read(ncidclm, vclm_id,  uclm_rec,  v_var,
+     &                           vclima(START_2D_ARRAY,1,ituclm), N)
+                  if (ierr == nf_noerr) then
 # endif
 #ifdef MPI_SILENT_MODE
-                    if (mynode==0) then
+                    if (mynode == 0) then
 #endif
                       write(*,'(4x,A,5x,A,G12.4,2(1x,A,I4))')
      &               'get_uclima :: read momentum climatology',
@@ -119,7 +120,7 @@
 # ifdef MPI_SILENT_MODE
                     endif
 # endif
-                    if (ntuclm==1) return
+                    if (ntuclm == 1) return
 # ifdef SOLVE3D
                   else
                     lvar=lenstr(vname(1,indxV))
@@ -139,7 +140,7 @@
               write(*,2) vname(1,indxUb)(1:lvar), uclm_rec
             endif
           else
-            write(*,2) 'Xclm_time', uclm_rec
+            write(*,2) 'clm_time', uclm_rec
           endif
         else
            write(*,'(/1x,A,I4,1x,A,I4/7x,4A/7x,2(A,G12.4)/)')

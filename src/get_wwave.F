@@ -18,7 +18,7 @@
 # include "netcdf.inc"
 # include "ocean.h"
       logical gotwwa, gotwwd, gotwwp, gotwwt
-      integer i, lstr, lsvar, lvar, ierr, lenstr, nf_fread
+      integer i, lstr, lsvar, lvar, ierr, lenstr, ncdf_read
       real tdelta, tend, tstart
 
       if (may_day_flag/=0) return      !-->  EXIT
@@ -166,7 +166,7 @@
 !  induced wave data is always the same and no time interpolation
 !  is performed.
 
-        if (ntww==1) ww_onerec=.true.
+        if (ntww == 1) ww_onerec=.true.
       endif
 
 
@@ -192,30 +192,30 @@
 !  and period.
 
           if (lwwgrd) then
-            ierr=nf_fread(wwag(START_2D_ARRAY,itww),ncid,wwaid,
-     &                      twwindx,r2dvar)
-            if (ierr/=nf_noerr) then
+            ierr=ncdf_read(ncid,  wwaid,  twwindx, r_var,
+     &                     wwag(START_2D_ARRAY,itww), 1)
+            if (ierr /= nf_noerr) then
               write(*,30) 'Awave', twwindx
               may_day_flag=2
               return                     !-->  EXIT
             endif
-            ierr=nf_fread(wwdg(START_2D_ARRAY,itww),ncid,wwdid,
-     &                      twwindx,r2dvar)
-            if (ierr/=nf_noerr) then
+            ierr=ncdf_read(ncid,  wwdid,  twwindx, r_var,
+     &                     wwdg(START_2D_ARRAY,itww), 1)
+            if (ierr /= nf_noerr) then
               write(*,30) 'Dwave', twwindx
               may_day_flag=2
               return                     !-->  EXIT
             endif
-            ierr=nf_fread(wwpg(START_2D_ARRAY,itww),ncid,wwpid,
-     &                      twwindx,r2dvar)
-            if (ierr/=nf_noerr) then
+            ierr=ncdf_read(ncid,  wwpid,  twwindx, r_var,
+     &                     wwpg(START_2D_ARRAY,itww), 1)
+            if (ierr /= nf_noerr) then
               write(*,30) 'Pwave', twwindx
               may_day_flag=2
               return                     !-->  EXIT
             endif
           else
             ierr=nf_get_var1_FTYPE(ncid,wwaid,twwindx,wwap(itww))
-            if (ierr/=nf_noerr) then
+            if (ierr /= nf_noerr) then
               write(*,30) 'Awave', twwindx
               may_day_flag=2
               return                     !-->  EXIT
@@ -233,7 +233,8 @@
               return                     !-->  EXIT
             endif
           endif
-          write(*,40) tww(itww)
+          write(*,'(1x,2A,g12.4)') 'get_wwave :: read wind induced ',
+     &                          'wave fields for time = ', tww(itww)
         endif
 
 !  Increment the local time variable "tsww" by the interval between
@@ -251,15 +252,15 @@
         endif
       endif
 
-  10  format(/,' GET_WWAVE - unable to find forcing variable: ',a,
-     &       /,15x,'in forcing NetCDF file: ',a)
-  20  format(/,' GET_WWAVE - unable to open forcing NetCDF file: ',a)
-  30  format(/,' GET_WWAVE - error while reading variable: ',a,2x,
-     &       ' at TIME index = ',i4)
-  40  format(6x,'GET_WWAVE   - Read wind induced wave fields ',
-     &                  'for time = ', g12.4)
-      return
+  10  format(/1x, '### ERROR: get_wwave :: unable to find forcing ',
+     &            'variable: ',A, /,15x,'in forcing NetCDF file: ',A)
+  20  format(/1x, '### ERROR: get_wwave :: Cannot open netCDF ',
+     &                                     'forcing NetCDF file: ',A)
+  30  format(/1x, '### ERROR: get_wwave :: Cannot read variable: ',A,
+     &                           2x,' at TIME index = ',i4)
       end
+
+
       subroutine set_wwave_tile (istr,iend,jstr,jend)
 !
 !--------------------------------------------------------------------

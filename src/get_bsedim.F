@@ -10,7 +10,7 @@
 # include "netcdf.inc"
       logical gotbsd, gotbss
       integer bsdid, bssid, i, lstr, lsvar, lvar, ierr
-      integer lenstr, nf_fread
+      integer lenstr, ncdf_read
 
       if (may_day_flag/=0) return      !-->  EXIT
 
@@ -71,7 +71,7 @@
 !---------------------------------------------------
 ! Read in sediment grain diameter size (m).
 
-      ierr=nf_fread(Ssize(START_2D_ARRAY),ncid,bssid,0,r2dvar)
+      ierr=ncdf_read(ncid, bssid, 0, r_var, Ssize(START_2D_ARRAY), 1)
       if (ierr/=nf_noerr) then
         write(*,30) 'Ssize'
         may_day_flag=2
@@ -80,7 +80,7 @@
 
 ! Read in sediment grain density (kg/m^3).
 
-      ierr=nf_fread(Sdens(START_2D_ARRAY),ncid,bsdid,0,r2dvar)
+      ierr=ncdf_read(ncid, bsdid, 0, r_var, Sdens(START_2D_ARRAY), 1)
       if (ierr/=nf_noerr) then
         write(*,30) 'Sdens'
         may_day_flag=2

@@ -13,7 +13,7 @@
 #endif
       logical create_new_file
       integer lenstr, checkdims, my_nf_def_dim
-      integer rec, lrst, lvar, timedim, old_fill_mode,
+      integer rec, lrst, lvar, timedim, prev_fill_mode,
      &        r2dgrd(3), u2dgrd(3), v2dgrd(3),  auxil(2)
 #ifdef SOLVE3D
      &      , r3dgrd(4), u3dgrd(4), v3dgrd(4),  w3dgrd(4), itrc
@@ -21,7 +21,7 @@
 #ifdef FLOATS
       integer fltdim, NFVdim, Tinfovardim, NFTdim,
      &        dim_Tinfo(3), dim_track(4), dim_fltgrd(2)
-      character*64 vinfo(4)
+      character(len=64) vinfo(4)
 #endif
 #ifdef MASK_LAND_DATA
 # ifdef DBLEPREC
@@ -42,8 +42,7 @@
 ! where, 1 =< record_within_the_file =< records_per_file, so that
 ! total_record changes continuously throughout the sequence of files.
 
-      ierr=0
-      lrst=lenstr(rstname)
+      ierr=0 ; lrst=lenstr(rstname)
       if (nrpfrst > 0) then
         lvar=total_rec - (1+mod(total_rec-1, nrpfrst))
         call insert_time_index (rstname, lrst, lvar, ierr)
@@ -78,9 +77,9 @@
 !      if it fails, a new file is created.
 
       create_new_file=ldefhis
-      if (ncrst/=-1) create_new_file=.false.
-#if defined MPI & !defined PARALLEL_FILES
-      if (mynode>0) create_new_file=.false.
+      if (ncrst /= -1) create_new_file=.false.
+#if defined MPI && !defined PARALLEL_FILES
+      if (mynode > 0) create_new_file=.false.
 #endif
 
 ! Create new restart file:    Put global attributes
@@ -88,23 +87,29 @@
 
   10  if (create_new_file) then
         ierr=nf_create(rstname(1:lrst), nf_clobber+nf_64bit_offset,
-     &                                                      ncrst)
-        if (ierr /= nf_noerr) then
+     &                                                        ncrst)
+        if (ierr == nf_noerr) then
+          ierr=nf_set_fill(ncrst, nf_nofill, prev_fill_mode)
+          if (ierr /= nf_noerr) then
+            write(*,'(1x,4A,I4)') '### ERROR: def_rst :: Cannot ',
+     &        'switch to ''nf_nofill'' mode.', nf_strerror(ierr)
+     &         MYID
+            goto 99
+          endif
+        else
           write(*,'(/1x,4A/12x,A/)')  '### ERROR: def_rst :: Cannot ',
      &               'create restart NetCDF file ''', rstname(1:lrst),
      &                                       '''',  nf_strerror(ierr)
           goto 99              !--> ERROR
         endif
-        ierr=nf_set_fill(ncrst, nf_nofill, old_fill_mode)
 
-
-! Put global attributes.
+! Put global attributes:
 ! --- ------ -----------
 
         call put_global_atts (ncrst, ierr)
 
-! Define dimensions of staggered fields.
-! ------ ---------- -- --------- -------
+! Define dimensions for field placement on staggered grids:
+! ------ ---------- --- ----- --------- -- --------- -------
 
         ierr=my_nf_def_dim(ncrst, 'xi_rho',  xi_rho,  r2dgrd(1))
         ierr=my_nf_def_dim(ncrst, 'xi_u',    xi_u,    u2dgrd(1))
@@ -119,39 +124,31 @@
 
         auxil(2)=timedim
 
-        r2dgrd(3)=timedim           ! Free surface
+        r2dgrd(3)=timedim                          ! Free surface
 
-        u2dgrd(2)=r2dgrd(2)         ! 2D UBAR-type
-        u2dgrd(3)=timedim
+        u2dgrd(2)=r2dgrd(2) ; u2dgrd(3)=timedim    ! 2D UBAR-type
 
-        v2dgrd(1)=r2dgrd(1)         ! 2D VBAR-type
-        v2dgrd(3)=timedim
+        v2dgrd(1)=r2dgrd(1) ; v2dgrd(3)=timedim    ! 2D VBAR-type
 
 #ifdef SOLVE3D
-        r3dgrd(1)=r2dgrd(1)         !
-        r3dgrd(2)=r2dgrd(2)         ! 3D RHO-type
-        r3dgrd(4)=timedim           !
+        r3dgrd(1)=r2dgrd(1)
+        r3dgrd(2)=r2dgrd(2) ; r3dgrd(4)=timedim    ! 3D RHO-type
 
-        u3dgrd(1)=u2dgrd(1)         !
-        u3dgrd(2)=r2dgrd(2)         ! 3D U-type
-        u3dgrd(3)=r3dgrd(3)         !
-        u3dgrd(4)=timedim
+        u3dgrd(1)=u2dgrd(1) ; u3dgrd(3)=r3dgrd(3)  ! 3D U-type  
+        u3dgrd(2)=r2dgrd(2) ; u3dgrd(4)=timedim    !     
 
-        v3dgrd(1)=r2dgrd(1)         !
-        v3dgrd(2)=v2dgrd(2)         ! 3D V-type
-        v3dgrd(3)=r3dgrd(3)         !
-        v3dgrd(4)=timedim
+        v3dgrd(1)=r2dgrd(1) ; v3dgrd(3)=r3dgrd(3)  ! 3D V-type
+        v3dgrd(2)=v2dgrd(2) ; v3dgrd(4)=timedim    !
 
-        w3dgrd(1)=r2dgrd(1)         !
-        w3dgrd(2)=r2dgrd(2)         ! 3D W-type
-        w3dgrd(4)=timedim           !
+        w3dgrd(1)=r2dgrd(1) ; w3dgrd(4)=timedim    ! 3D W-type
+        w3dgrd(2)=r2dgrd(2)
 #endif
 
 #ifdef FLOATS
-        ierr=my_nf_def_dim (ncrst, 'drifter', nfloats, fltdim)
-        ierr=my_nf_def_dim (ncrst, 'Tinfovar', 5, Tinfovardim)
-        ierr=my_nf_def_dim (ncrst, 'NFV',      6,      NFVdim)
-        ierr=my_nf_def_dim (ncrst, 'NFT',     NFT+1,   NFTdim)
+        ierr=my_nf_def_dim(ncrst, 'drifter', nfloats, fltdim)
+        ierr=my_nf_def_dim(ncrst, 'Tinfovar', 5, Tinfovardim)
+        ierr=my_nf_def_dim(ncrst, 'NFV',      6,      NFVdim)
+        ierr=my_nf_def_dim(ncrst, 'NFT',     NFT+1,   NFTdim)
 
         dim_Tinfo(1)=Tinfovardim
         dim_Tinfo(2)=fltdim
@@ -170,16 +167,14 @@
 
 ! Define grid variables.
 ! ------ ---- ----------
-        if (total_rec==1) call def_grid (ncrst, r2dgrd)
+        if (total_rec == 1) call def_grid(ncrst, r2dgrd)
 #endif
 
 ! Define evolving model variables:
 ! ------ -------- ----- ----------
-!
-!
 ! Time step number and time record numbers:
 
-        ierr=nf_def_var (ncrst, 'time_step', nf_int, 2, auxil,
+        ierr=nf_def_var(ncrst, 'time_step', nf_int, 2, auxil,
      &                                                 rstTstep)
         ierr=nf_put_att_text (ncrst, rstTstep, 'long_name', 48,
      &       'time step and record numbers from initialization')
@@ -187,8 +182,8 @@
 ! Time.
 
         lvar=lenstr(vname(1,indxTime))
-        ierr=nf_def_var (ncrst, vname(1,indxTime)(1:lvar), NF_FTYPE,
-     &                                         1, timedim, rstTime)
+        ierr=nf_def_var(ncrst, vname(1,indxTime)(1:lvar), NF_FTYPE,
+     &                                        1, timedim, rstTime)
         lvar=lenstr(vname(2,indxTime))
         ierr=nf_put_att_text (ncrst, rstTime, 'long_name', lvar,
      &                                   vname(2,indxTime)(1:lvar))
@@ -199,8 +194,8 @@
 ! Free-surface.
 
         lvar=lenstr(vname(1,indxZ))
-        ierr=nf_def_var (ncrst, vname(1,indxZ)(1:lvar), NF_FTYPE,
-     &                                              3, r2dgrd,rstZ)
+        ierr=nf_def_var(ncrst, vname(1,indxZ)(1:lvar), NF_FTYPE,
+     &                                             3, r2dgrd,rstZ)
         lvar=lenstr(vname(2,indxZ))
         ierr=nf_put_att_text (ncrst, rstZ, 'long_name', lvar,
      &                                      vname(2,indxZ)(1:lvar))
@@ -212,62 +207,93 @@
      &                                                 1, spv_set)
 #endif
 
-
-! 2D momenta in XI- and ETA-directions.
+! 2D momenta in XI- and ETA-components
 
         lvar=lenstr(vname(1,indxUb))
-        ierr=nf_def_var (ncrst, vname(1,indxUb)(1:lvar), NF_FTYPE,
-     &                                           3, u2dgrd, rstUb)
+        ierr=nf_def_var(ncrst, vname(1,indxUb)(1:lvar), NF_FTYPE,
+     &                                          3, u2dgrd, rstUb)
         lvar=lenstr(vname(2,indxUb))
-        ierr=nf_put_att_text (ncrst, rstUb, 'long_name', lvar,
-     &                                     vname(2,indxUb)(1:lvar))
+        ierr=nf_put_att_text(ncrst, rstUb, 'long_name', lvar,
+     &                                   vname(2,indxUb)(1:lvar))
         lvar=lenstr(vname(3,indxUb))
-        ierr=nf_put_att_text (ncrst, rstUb, 'units', lvar,
-     &                                     vname(3,indxUb)(1:lvar))
+        ierr=nf_put_att_text(ncrst, rstUb, 'units', lvar,
+     &                                   vname(3,indxUb)(1:lvar))
 #ifdef MASK_LAND_DATA
-        ierr=nf_put_att_FTYPE (ncrst, rstUb, '_FillValue', NF_FTYPE,
-     &                                                  1, spv_set)
+        ierr=nf_put_att_FTYPE(ncrst, rstUb, '_FillValue',
+     &                                     NF_FTYPE, 1, spv_set)
 #endif
 
         lvar=lenstr(vname(1,indxVb))
-        ierr=nf_def_var (ncrst, vname(1,indxVb)(1:lvar), NF_FTYPE,
-     &                                           3, v2dgrd, rstVb)
+        ierr=nf_def_var(ncrst, vname(1,indxVb)(1:lvar), NF_FTYPE,
+     &                                          3, v2dgrd, rstVb)
         lvar=lenstr(vname(2,indxVb))
-        ierr=nf_put_att_text (ncrst, rstVb, 'long_name', lvar,
-     &                                     vname(2,indxVb)(1:lvar))
+        ierr=nf_put_att_text(ncrst, rstVb, 'long_name', lvar,
+     &                                   vname(2,indxVb)(1:lvar))
         lvar=lenstr(vname(3,indxVb))
-        ierr=nf_put_att_text (ncrst, rstVb, 'units',     lvar,
-     &                                     vname(3,indxVb)(1:lvar))
+        ierr=nf_put_att_text(ncrst, rstVb, 'units',     lvar,
+     &                                   vname(3,indxVb)(1:lvar))
 #ifdef MASK_LAND_DATA
-        ierr=nf_put_att_FTYPE (ncrst, rstVb, '_FillValue', NF_FTYPE,
-     &                                                  1, spv_set)
+        ierr=nf_put_att_FTYPE(ncrst, rstVb, '_FillValue',
+     &                                     NF_FTYPE, 1, spv_set)
 #endif
 
 #ifdef SOLVE3D
 # ifdef EXACT_RESTART
-        ierr=nf_def_var (ncrst, 'DU_avg2', NF_FTYPE, 3, u2dgrd,
-     &                                                 rst_DU_avg2)
+#  ifdef EXTRAP_BAR_FLUXES
+        ierr=nf_def_var(ncrst, 'DU_avg2', NF_FTYPE, 3, u2dgrd,
+     &                                             rst_DU_avg2)
+        ierr=nf_put_att_text(ncrst, rst_DU_avg2, 'long_name',
+     &            38, '<<fast-time averaged ubar(:,:,n+1/2)>>')
+#   ifdef MASK_LAND_DATA
+        ierr=nf_put_att_FTYPE(ncrst, rst_DU_avg2, '_FillValue',
+     &                                    NF_FTYPE, 1, spv_set)
+#   endif
 
-        ierr=nf_put_att_text (ncrst, rst_DU_avg2, 'long_name', 38,
-     &                    '<<fast-time averaged ubar(:,:,n+1/2)>>')
+        ierr=nf_def_var(ncrst, 'DV_avg2', NF_FTYPE, 3, v2dgrd,
+     &                                             rst_DV_avg2)
+        ierr=nf_put_att_text(ncrst, rst_DV_avg2, 'long_name',
+     &            38, '<<fast-time-averaged vbar(:,:,n+1/2)>>')
+#   ifdef MASK_LAND_DATA
+        ierr=nf_put_att_FTYPE(ncrst, rst_DV_avg2, '_FillValue',
+     &                                  NF_FTYPE,  1, spv_set)
+#   endif
 
-#  ifdef MASK_LAND_DATA
-        ierr=nf_put_att_FTYPE (ncrst, rst_DU_avg2, '_FillValue',
-     &                                        NF_FTYPE, 1, spv_set)
+        ierr=nf_def_var(ncrst, 'DU_avg_bak', NF_FTYPE, 3, u2dgrd,
+     &                                             rst_DU_avg_bak)
+        ierr=nf_put_att_text(ncrst, rst_DU_avg_bak, 'long_name',
+     &   50, '<back-step mixed fast-time-averaged ubar(:,:,n-1)>')
+#   ifdef MASK_LAND_DATA
+        ierr=nf_put_att_FTYPE(ncrst, rst_DU_avg_bak, '_FillValue',
+     &                                     NF_FTYPE,  1, spv_set)
+#   endif
+
+        ierr=nf_def_var(ncrst, 'DV_avg_bak', NF_FTYPE, 3, v2dgrd,
+     &                                             rst_DV_avg_bak)
+        ierr=nf_put_att_text(ncrst, rst_DV_avg_bak, 'long_name',
+     &   50, '<back-step mixed fast-time-averaged vbar(:,:,n-1)>')
+#   ifdef MASK_LAND_DATA
+        ierr=nf_put_att_FTYPE(ncrst, rst_DV_avg_bak, '_FillValue',
+     &                                     NF_FTYPE, 1,  spv_set)
+#   endif
+#  elif defined PRED_COUPLED_MODE
+        ierr=nf_def_var(ncrst, 'rufrc_bak', NF_FTYPE, 3, u2dgrd,
+     &                                                rst_rufrc)
+        ierr=nf_put_att_text(ncrst, rst_rufrc, 'long_name', 30,
+     &                        '3D-to-2D forcing, XI-component')
+#   ifdef MASK_LAND_DATA
+        ierr=nf_put_att_FTYPE(ncrst, rst_rufrc, '_FillValue',
+     &                                NF_FTYPE, 1,  spv_set)
+#   endif
+        ierr=nf_def_var(ncrst, 'rvfrc_bak', NF_FTYPE, 3, v2dgrd,
+     &                                                rst_rvfrc)
+        ierr=nf_put_att_text(ncrst, rst_rvfrc, 'long_name', 31,
+     &                       '3D-to-2D forcing, ETA-component')
+#   ifdef MASK_LAND_DATA
+        ierr=nf_put_att_FTYPE(ncrst, rst_rvfrc, '_FillValue',
+     &                                NF_FTYPE, 1,  spv_set)
+#   endif
 #  endif
-
-        ierr=nf_def_var (ncrst, 'DV_avg2', NF_FTYPE, 3, v2dgrd,
-     &                                                 rst_DV_avg2)
-
-        ierr=nf_put_att_text (ncrst, rst_DV_avg2, 'long_name', 38,
-     &                    '<<fast-time averaged vbar(:,:,n+1/2)>>')
-
-#  ifdef MASK_LAND_DATA
-        ierr=nf_put_att_FTYPE (ncrst, rst_DV_avg2, '_FillValue',
-     &                                        NF_FTYPE, 1, spv_set)
-#  endif
-# endif
-
+# endif  /* EXACT_RESTART */
 
 ! 3D momenta in XI- and ETA-directions.
 
@@ -428,17 +454,25 @@
 ! In the case when file is rejected (whether it cannot be opened, or
 ! something is wrong with its dimensions, create new file.
 
-      elseif (ncrst==-1) then
-        ierr=nf_open (rstname(1:lrst), nf_write, ncrst)
-        if (ierr. eq. nf_noerr) then
-          ierr=checkdims (ncrst, rstname, rec)
+      elseif (ncrst == -1) then
+        ierr=nf_open(rstname(1:lrst), nf_write, ncrst)
+        if (ierr == nf_noerr) then
+          ierr=nf_set_fill(ncrst, nf_nofill, prev_fill_mode)
+          if (ierr /= nf_noerr) then
+            write(*,'(1x,4A,I4)') '### ERROR: def_rst :: Cannot ',
+     &        'switch to ''nf_nofill'' mode.', nf_strerror(ierr)
+     &         MYID
+            goto 99
+          endif
+
+          ierr=checkdims(ncrst, rstname, rec)
           if (ierr == nf_noerr) then
             if (nrpfrst==0) then
               ierr=rec+1 - nrecrst
             else
               ierr=rec+1 - (1+mod(nrecrst-1, abs(nrpfrst)))
             endif
-            if (ierr>0) then
+            if (ierr > 0) then
               mpi_master_only write(*,
      &           '(/1x,A,I5,1x,3A/21x,A,I5,1x,A,I5,1x,A/21x,A/)')
      &           'WARNING: def_rst :: The actual number of records',
@@ -449,16 +483,16 @@
               rec=rec-ierr
             elseif (nrpfrst==0) then
               total_rec=rec+1           ! <-- set to the next record
-#if defined MPI & !defined PARALLEL_FILES
-              if (mynode>0) total_rec=total_rec-1
+#if defined MPI && !defined PARALLEL_FILES
+              if (mynode > 0) total_rec=total_rec-1
 #endif
             endif
             ierr=nf_noerr
           endif
         endif
 
-        if (ierr. ne. nf_noerr) then
-#if defined MPI & !defined PARALLEL_FILES
+        if (ierr /= nf_noerr) then
+#if defined MPI && !defined PARALLEL_FILES
           if (mynode==0) then
             create_new_file=.true.
             goto 10
@@ -474,90 +508,103 @@
 #endif
         endif
 
-! Find netCDF IDs of evolving model variables:
-! ---- ------ --- -- -------- ----- ----------
-!
-! Time step indices:
+! Find netCDF variable IDs of evolving model variables:
+! ---- ------ -------- --- -- -------- ----- ----------
 
-        ierr=nf_inq_varid (ncrst, 'time_step', rstTstep)
-        if (ierr /= nf_noerr) then
+! Time step indices and time:
+
+        ierr=nf_inq_varid(ncrst, 'time_step', rstTstep)
+        if (ierr == nf_noerr) then
+          lvar=lenstr(vname(1,indxTime))
+          ierr=nf_inq_varid(ncrst, vname(1,indxTime)(1:lvar), rstTime)
+          if (ierr /= nf_noerr) then
+            write(*,1) vname(1,indxTime)(1:lvar), rstname(1:lrst)
+          endif
+        else
           write(*,1) 'time_step', rstname(1:lrst)
-          goto 99                                         !--> ERROR
         endif
+        if (ierr /= nf_noerr) goto 99                     !--> ERROR
 
-! Time.
-
-        lvar=lenstr(vname(1,indxTime))
-        ierr=nf_inq_varid (ncrst, vname(1,indxTime)(1:lvar), rstTime)
-        if (ierr. ne. nf_noerr) then
-          write(*,1) vname(1,indxTime)(1:lvar), rstname(1:lrst)
-          goto 99                                         !--> ERROR
-        endif
-
-! Free-surface.
+! Free-surface and 2D momenta in XI- and ETA-directions
 
         lvar=lenstr(vname(1,indxZ))
-        ierr=nf_inq_varid (ncrst, vname(1,indxZ)(1:lvar), rstZ)
-        if (ierr. ne. nf_noerr) then
+        ierr=nf_inq_varid(ncrst, vname(1,indxZ)(1:lvar), rstZ)
+        if (ierr == nf_noerr) then
+          lvar=lenstr(vname(1,indxUb))
+          ierr=nf_inq_varid(ncrst, vname(1,indxUb)(1:lvar), rstUb)
+          if (ierr == nf_noerr) then
+            lvar=lenstr(vname(1,indxVb))
+            ierr=nf_inq_varid(ncrst, vname(1,indxVb)(1:lvar), rstVb)
+            if (ierr /= nf_noerr) then
+              write(*,1) vname(1,indxVb)(1:lvar), rstname(1:lrst)
+            endif
+          else
+            write(*,1) vname(1,indxUb)(1:lvar), rstname(1:lrst)
+          endif
+        else
           write(*,1) vname(1,indxZ)(1:lvar),  rstname(1:lrst)
-          goto 99                                         !--> ERROR
         endif
-
-! 2D momenta in XI- and ETA-directions.
-
-        lvar=lenstr(vname(1,indxUb))
-        ierr=nf_inq_varid (ncrst, vname(1,indxUb)(1:lvar), rstUb)
-        if (ierr. ne. nf_noerr) then
-          write(*,1) vname(1,indxUb)(1:lvar), rstname(1:lrst)
-          goto 99                                         !--> ERROR
-        endif
-
-        lvar=lenstr(vname(1,indxVb))
-        ierr=nf_inq_varid (ncrst, vname(1,indxVb)(1:lvar), rstVb)
-        if (ierr. ne. nf_noerr) then
-          write(*,1) vname(1,indxVb)(1:lvar), rstname(1:lrst)
-          goto 99                                         !--> ERROR
-        endif
+        if (ierr /= nf_noerr) goto 99                     !--> ERROR
 
 #ifdef SOLVE3D
 # ifdef EXACT_RESTART
-        ierr=nf_inq_varid (ncrst, 'DU_avg2', rst_DU_avg2)
-        if (ierr. ne. nf_noerr) then
+#  ifdef EXTRAP_BAR_FLUXES
+        ierr=nf_inq_varid(ncrst,   'DU_avg2',   rst_DU_avg2)
+        if (ierr == nf_noerr) then
+          ierr=nf_inq_varid(ncrst,  'DV_avg2',     rst_DV_avg2)
+          if (ierr == nf_noerr) then
+            ierr=nf_inq_varid(ncrst, 'DU_avg_bak', rst_DU_avg_bak)
+            if (ierr == nf_noerr) then
+              ierr=nf_inq_varid(ncrst, 'DV_avg_bak', rst_DV_avg_bak)
+              if (ierr /= nf_noerr) then
+                write(*,1) 'DV_avg_bak', rstname(1:lrst)
+              endif
+            else
+              write(*,1) 'DU_avg_bak', rstname(1:lrst)
+            endif
+          else
+            write(*,1) 'DV_avg2', rstname(1:lrst)
+          endif
+        else
           write(*,1) 'DU_avg2', rstname(1:lrst)
-          goto 99                                         !--> ERROR
         endif
-        ierr=nf_inq_varid (ncrst, 'DV_avg2', rst_DV_avg2)
-        if (ierr. ne. nf_noerr) then
-          write(*,1) 'DV_avg2', rstname(1:lrst)
-          goto 99                                         !--> ERROR
+#  elif defined PRED_COUPLED_MODE
+        ierr=nf_inq_varid(ncrst, 'rufrc_bak', rst_rufrc)
+        if (ierr == nf_noerr) then
+          ierr=nf_inq_varid(ncrst, 'rvfrc_bak', rst_rvfrc)
+          if (ierr /= nf_noerr) then
+            write(*,1) 'rvfrc_bak', rstname(1:lrst)
+          endif
+        else
+          write(*,1) 'rufrc_bak', rstname(1:lrst)
         endif
+#  endif
+        if (ierr /= nf_noerr) goto 99                     !--> ERROR
 # endif
 
 ! 3D momenta n XI- and ETA-directions.
 
         lvar=lenstr(vname(1,indxU))
         ierr=nf_inq_varid (ncrst, vname(1,indxU)(1:lvar), rstU)
-        if (ierr. ne. nf_noerr) then
+        if (ierr == nf_noerr) then
+          lvar=lenstr(vname(1,indxV))
+          ierr=nf_inq_varid (ncrst, vname(1,indxV)(1:lvar), rstV)
+          if (ierr /= nf_noerr) then
+            write(*,1) vname(1,indxV)(1:lvar), rstname(1:lrst)
+          endif
+        else
           write(*,1) vname(1,indxU)(1:lvar), rstname(1:lrst)
-          goto 99                                         !--> ERROR
         endif
-
-        lvar=lenstr(vname(1,indxV))
-        ierr=nf_inq_varid (ncrst, vname(1,indxV)(1:lvar), rstV)
-        if (ierr. ne. nf_noerr) then
-          write(*,1) vname(1,indxV)(1:lvar), rstname(1:lrst)
-          goto 99                                         !--> ERROR
-        endif
+        if (ierr /= nf_noerr) goto 99                     !--> ERROR
 
 ! Tracer variables.
 
         do itrc=1,NT
           lvar=lenstr(vname(1,indxT+itrc-1))
-          ierr=nf_inq_varid (ncrst, vname(1,indxT+itrc-1)(1:lvar),
-     &                                                rstT(itrc))
-          if (ierr. ne. nf_noerr) then
-            write(*,1) vname(1,indxT+itrc-1)(1:lvar),
-     &                                            rstname(1:lrst)
+          ierr=nf_inq_varid(ncrst, vname(1,indxT+itrc-1)(1:lvar),
+     &                                                  rstT(itrc))
+          if (ierr /= nf_noerr) then
+            write(*,1) vname(1,indxT+itrc-1)(1:lvar), rstname(1:lrst)
             goto 99                                       !--> ERROR
           endif
         enddo
@@ -566,17 +613,17 @@
 ! Depth of surface planetary boundary layer.
 
         lvar=lenstr(vname(1,indxHbls))
-        ierr=nf_inq_varid (ncrst, vname(1,indxHbls)(1:lvar), rstHbls)
-        if (ierr. ne. nf_noerr) then
+        ierr=nf_inq_varid(ncrst, vname(1,indxHbls)(1:lvar), rstHbls)
+        if (ierr /= nf_noerr) then
           write(*,1) vname(1,indxHbls)(1:lvar), rstname(1:lrst)
-          goto 99                                         !--> ERROR
+          goto 99                                        !--> ERROR
         endif
 # endif
 # ifdef LMD_BKPP
 ! Thickness of bottom boundary layer.
 
         lvar=lenstr(vname(1,indxHbbl))
-        ierr=nf_inq_varid (ncrst, vname(1,indxHbbl)(1:lvar), rstHbbl)
+        ierr=nf_inq_varid(ncrst, vname(1,indxHbbl)(1:lvar), rstHbbl)
         if (ierr /= nf_noerr) then
         write(*,1) vname(1,indxHbbl)(1:lvar), rstname(1:lrst)
           goto 99                                       !--> ERROR
@@ -584,39 +631,48 @@
 # endif
 #endif
 #ifdef MPI_SILENT_MODE
-        if (mynode==0) then
+        if (mynode == 0) then
 #endif
-          write(*,'(7x,4A,I4,2x,A,I4)') 'def_rst :: opened existing ',
+          write(*,'(7x,4A,I4,2x,A,I4)') 'def_rst :: open existing ',
      &            'file ''', rstname(1:lrst), ''' from rec =', rec
      &             MYID
 #ifdef MPI_SILENT_MODE
         endif
 #endif
 
-#if defined MPI & !defined PARALLEL_FILES
+#if defined MPI && !defined PARALLEL_FILES
       else
-        ierr=nf_open (rstname(1:lrst), nf_write, ncrst)
+        ierr=nf_open(rstname(1:lrst), nf_write, ncrst)
         if (ierr == nf_noerr) then
+          ierr=nf_set_fill(ncrst, nf_nofill, prev_fill_mode)
+          if (ierr == nf_noerr) then
 # ifndef MPI_SILENT_MODE
-          write(*,'(7x,5A,I4)')  'def_rst :: reopened existing ',
-     &            'file ''', rstname(1:lrst), '''.' MYID
+            write(*,'(7x,4A,I4)') 'def_rst :: reopen existing file ''',
+     &              rstname(1:lrst), '''.' MYID
 # endif
+          else
+            write(*,'(1x,4A,I4)') '### ERROR: def_rst :: Cannot ',
+     &        'switch to ''nf_nofill'' mode.', nf_strerror(ierr)
+     &         MYID
+            goto 99
+          endif
         else
-          write(*,'(/1x,4A,1x,A,I4/)')      '### ERROR: def_rst :: ',
-     &         'Cannot open restart netCDF file ''', rstname(1:lrst),
-     &         '''.' MYID
+          write(*,'(/1x,4A,1x,A,I4/)') '### ERROR: def_rst :: Cannot ',
+     &            'reopen file ''', rstname(1:lrst),'''.'
+     &             MYID
           goto 99                                         !--> ERROR
         endif
 #endif
       endif              !<-- create_new_file
-   1  format(/1x,'### ERROR: def_rst :: Cannot find variable ''', A,
-     &                            ''' in netCDF file ''', A, '''.'/)
+
 #ifdef PUT_GRID_INTO_RESTART
 
 ! Write grid variables.
 ! ----- ---- ----------
 
-      if (total_rec==1) call wrt_grid (ncrst, rstname, lrst)
+      if (total_rec == 1) call wrt_grid(ncrst, rstname, lrst)
 #endif
   99  return                                              !--> ERROR
+   1  format(/1x,'### ERROR: def_rst :: Cannot find variable ''', A,
+     &                            ''' in netCDF file ''', A, '''.'/)
       end

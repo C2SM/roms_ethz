@@ -4,7 +4,7 @@
       subroutine wrt_avg             ! Write time-averaged fields
                                      ! into averages netCDF file.
       implicit none
-      integer record, i, ierr, lstr, lvar, lenstr, nf_fwrite
+      integer record, i, ierr, lstr, lvar, lenstr, ncdf_write
 # ifdef SOLVE3D
      &             , itrc
 # endif
@@ -17,7 +17,7 @@
 # if defined MPI && !defined PARALLEL_FILES
 #  include "mpif.h"
       integer status(MPI_STATUS_SIZE), blank
-      if (mynode>0) then
+      if (mynode > 0) then
         call MPI_Recv (blank, 1, MPI_INTEGER, mynode-1,  3,
      &                       ocean_grid_comm, status, ierr)
       endif
@@ -28,9 +28,9 @@
 
       call def_avg (nrecavg, ierr)
       lstr=lenstr(avgname)
-      if (ierr /= nf_noerr) goto 99       !!! WARNING: Here it is
+      if (ierr /= nf_noerr) goto 99         !!! WARNING: Here it is
       nrecavg=max(nrecavg,1)                !!! assumed that global
-      if (nrpfavg==0) then                !!! averages record index
+      if (nrpfavg == 0) then                !!! averages record index
         record=nrecavg                      !!! "nrecavg" is already
       else                                  !!! advanced by main.
         record=1+mod(nrecavg-1, nrpfavg)
@@ -44,147 +44,134 @@
       if (ierr /= nf_noerr) then
         lvar=lenstr(vname(1,indxTime))
         write(*,1) vname(1,indxTime)(1:lvar), record MYID
-        goto 99                                           !--> ERROR
       endif
 
 ! Barotropic mode variables: free-surface and 2D momentum components
 ! in XI-,ETA-directions.
 
-      if (wrtavg(indxZ)) then
-        ierr=nf_fwrite (zeta_avg(START_2D_ARRAY), ncavg, avgZ,
-     &                                            record, r2dvar)
+      if (wrtavg(indxZ) .and. ierr == nf_noerr) then
+        ierr=ncdf_write(ncavg, avgZ, record,  r_var,
+     &                  zeta_avg(START_2D_ARRAY), 1)
         if (ierr /= nf_noerr) then
           lvar=lenstr(vname(1,indxZ))
           write(*,1) vname(1,indxTime)(1:lvar), record MYID
-          goto 99                                         !--> ERROR
         endif
       endif
 
-      if (wrtavg(indxUb)) then
-        ierr=nf_fwrite (ubar_avg(START_2D_ARRAY), ncavg, avgUb,
-     &                                            record, u2dvar)
+      if (wrtavg(indxUb) .and. ierr == nf_noerr) then
+        ierr=ncdf_write(ncavg, avgUb, record, u_var,
+     &                  ubar_avg(START_2D_ARRAY), 1)
         if (ierr /= nf_noerr) then
           lvar=lenstr(vname(1,indxUb))
           write(*,1) vname(1,indxUb)(1:lvar), record MYID
-          goto 99                                         !--> ERROR
         endif
       endif
 
-      if (wrtavg(indxVb)) then
-        ierr=nf_fwrite (vbar_avg(START_2D_ARRAY), ncavg, avgVb,
-     &                                            record, v2dvar)
+      if (wrtavg(indxVb) .and. ierr == nf_noerr) then
+        ierr=ncdf_write(ncavg, avgVb, record, v_var,
+     &                  vbar_avg(START_2D_ARRAY), 1)
         if (ierr /= nf_noerr) then
           lvar=lenstr(vname(1,indxVb))
           write(*,1) vname(1,indxVb)(1:lvar), record MYID
-          goto 99                                         !--> ERROR
         endif
       endif
 # ifdef SOLVE3D
 
 ! 3D momentum components in XI- and ETA-directions.
 
-      if (wrtavg(indxU)) then
-        ierr=nf_fwrite (u_avg(START_2D_ARRAY,1), ncavg, avgU,
-     &                                           record, u3dvar)
+      if (wrtavg(indxU) .and. ierr == nf_noerr) then
+        ierr=ncdf_write(ncavg, avgU, record, u_var,
+     &                  u_avg(START_2D_ARRAY,1), N)
         if (ierr /= nf_noerr) then
           lvar=lenstr(vname(1,indxU))
           write(*,1) vname(1,indxU)(1:lvar), record MYID
-          goto 99                                         !--> ERROR
         endif
       endif
 
-      if (wrtavg(indxV)) then
-        ierr=nf_fwrite (v_avg(START_2D_ARRAY,1), ncavg, avgV,
-     &                                          record, v3dvar)
+      if (wrtavg(indxV) .and. ierr == nf_noerr) then
+        ierr=ncdf_write(ncavg, avgV, record, v_var,
+     &                  v_avg(START_2D_ARRAY,1), N)
         if (ierr /= nf_noerr) then
         lvar=lenstr(vname(1,indxV))
           write(*,1) vname(1,indxV)(1:lvar), record MYID
-          goto 99                                         !--> ERROR
         endif
       endif
 
 ! Tracer variables.
 
       do itrc=1,NT
-        if (wrtavg(indxT+itrc-1)) then
-          ierr=nf_fwrite (t_avg(START_2D_ARRAY,1,itrc), ncavg,
-     &                              avgT(itrc), record, r3dvar)
+        if (wrtavg(indxT+itrc-1) .and. ierr == nf_noerr) then
+          ierr=ncdf_write(ncavg, avgT(itrc), record, r_var,
+     &                    t_avg(START_2D_ARRAY,1,itrc), N)
           if (ierr /= nf_noerr) then
             lvar=lenstr(vname(1,indxT+itrc-1))
             write(*,1) vname(1,indxT+itrc-1)(1:lvar),record MYID
-            goto 99                                       !--> ERROR
           endif
         endif
       enddo
 
 ! Density anomaly.
 
-      if (wrtavg(indxR)) then
-        ierr=nf_fwrite (rho_avg(START_2D_ARRAY,1), ncavg, avgR,
-     &                                             record, r3dvar)
+      if (wrtavg(indxR) .and. ierr == nf_noerr) then
+        ierr=ncdf_write(ncavg, avgR, record, r_var,
+     &                  rho_avg(START_2D_ARRAY,1), N)
         if (ierr /= nf_noerr) then
           lvar=lenstr(vname(1,indxR))
           write(*,1) vname(1,indxR)(1:lvar), record  MYID
-          goto 99                                         !--> ERROR
         endif
       endif
 
 ! S-coordinate omega vertical velocity (m/s).
 
-      if (wrtavg(indxO)) then
-        ierr=nf_fwrite (w_avg, ncavg, avgO, record, w3dvar)
+      if (wrtavg(indxO) .and. ierr == nf_noerr) then
+        ierr=ncdf_write(ncavg, avgO, record, r_var, w_avg, N+1)
         if (ierr /= nf_noerr) then
           lvar=lenstr(vname(1,indxO))
           write(*,1) vname(1,indxO)(1:lvar), record  MYID
-          goto 99                                         !--> ERROR
         endif
       endif
 
 ! True vertical velocity (m/s).
 
-      if (wrtavg(indxW)) then
-        ierr=nf_fwrite (wvl_avg, ncavg, avgW, record, r3dvar)
+      if (wrtavg(indxW) .and. ierr == nf_noerr) then
+        ierr=ncdf_write(ncavg, avgW, record, r_var, wvl_avg, N)
         if (ierr /= nf_noerr) then
           lvar=lenstr(vname(1,indxW))
           write(*,1) vname(1,indxW)(1:lvar), record MYID
-          goto 99                                         !--> ERROR
         endif
       endif
 
 ! Vertical eddy viscosity coefficient for momentum.
 
-      if (wrtavg(indxAkv)) then
-        ierr=nf_fwrite (akv_avg(START_2D_ARRAY,0), ncavg,
-     &                                avgAkv, record, w3dvar)
+      if (wrtavg(indxAkv) .and. ierr == nf_noerr) then
+        ierr=ncdf_write(ncavg,  avgAkv,  record,  r_var,
+     &                  akv_avg(START_2D_ARRAY,0), N+1)
         if (ierr /= nf_noerr) then
           lvar=lenstr(vname(1,indxAkv))
           write(*,1) vname(1,indxAkv)(1:lvar), record MYID
-          goto 99                                         !--> ERROR
         endif
       endif
 
 ! Vertical heat conductivity
 
-      if (wrtavg(indxAkt)) then
-        ierr=nf_fwrite (akt_avg(START_2D_ARRAY,0), ncavg,
-     &                                avgAkt, record, w3dvar)
+      if (wrtavg(indxAkt) .and. ierr == nf_noerr) then
+        ierr=ncdf_write(ncavg,  avgAkt,  record,  r_var,
+     &                  akt_avg(START_2D_ARRAY,0), N+1)
         if (ierr /= nf_noerr) then
           lvar=lenstr(vname(1,indxAkt))
           write(*,1) vname(1,indxAkt)(1:lvar), record MYID
-          goto 99                                         !--> ERROR
         endif
       endif
 #  ifdef SALINITY
 
 ! Vertical diffusion coefficient for salinity.
 
-      if (wrtavg(indxAks)) then
-        ierr=nf_fwrite (aks_avg(START_2D_ARRAY,0), ncavg,
-     &                                avgAks, record, w3dvar)
+      if (wrtavg(indxAks) .and. ierr == nf_noerr) then
+        ierr=ncdf_write(ncavg,  avgAks,  record,  r_var,
+     &                  Aks_avg(START_2D_ARRAY,0), N+1)
         if (ierr /= nf_noerr) then
           lvar=lenstr(vname(1,indxAks))
           write(*,1) vname(1,indxAks)(1:lvar), record MYID
-          goto 99                                         !--> ERROR
         endif
       endif
 #  endif
@@ -192,13 +179,12 @@
 
 ! Depth of planetary boundary layer [m].
 
-      if (wrtavg(indxHbls)) then
-        ierr=nf_fwrite (hbl_avg(START_2D_ARRAY), ncavg,
-     &                            avgHbls, record, r2dvar)
+      if (wrtavg(indxHbls) .and. ierr == nf_noerr) then
+        ierr=ncdf_write(ncavg, avgHbls, record, r_var,
+     &                  hbl_avg(START_2D_ARRAY), 1)
         if (ierr /= nf_noerr) then
           lvar=lenstr(vname(1,indxHbls))
           write(*,1) vname(1,indxHbls)(1:lvar), record MYID
-          goto 99                                         !--> ERROR
         endif
       endif
 #  endif
@@ -206,13 +192,12 @@
 
 ! Thickness of KPP bottom boundary layer [m].
 
-      if (wrtavg(indxHbbl)) then
-        ierr=nf_fwrite (hbbl_avg(START_2D_ARRAY), ncavg,
-     &                              avgHbbl, record, r2dvar)
+      if (wrtavg(indxHbbl) .and. ierr == nf_noerr) then
+        ierr=ncdf_write(ncavg, avgHbbl, record, r_var,
+     &                  hbbl_avg(START_2D_ARRAY), 1)
         if (ierr /= nf_noerr) then
           lvar=lenstr(vname(1,indxHbbl))
           write(*,1) vname(1,indxHbbl)(1:lvar), record MYID
-          goto 99                                         !--> ERROR
         endif
       endif
 #  endif
@@ -221,7 +206,7 @@
   1   format(/1x, '### ERROR: wrt_avg :: Cannot write variable ''',
      &             A, ''' into averages file, rec =', i6, 3x,A,i4)
       goto 100
-  99  if (may_day_flag==0) may_day_flag=3
+  99  if (may_day_flag == 0) may_day_flag=3
  100  continue
 
 ! Close or synchronize netCDF file to disk to allow other

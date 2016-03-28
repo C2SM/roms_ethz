@@ -6,41 +6,40 @@
       subroutine def_avg(total_rec, ierr)
 #endif
 
-! Create/open averages/history netCDF file. In the case when a new
-! netCDF file is created, define all variables, their dimensions and
-! attributes. In the case when a previously existing netCDF file is
-! to be opened for addition of new data, verify that all dimensions
-! of the file are consistent with the present model configuration
-! and all necessary variables exist. Save netCDF IDs for all needed
-! variables. Also determine size of the unlimited dimension.
+! Create/open history/averages netCDF file so the subsequent calls
+! to wrt_his/avg can write model variables accessing them by netCDF
+! IDs and proper record number.  This routine can work in two modes:
+! either create a new file and save all netCDF variable IDs, and set
+! record index to 1 (starting a new file), or open an existing file,
+! verify that all dimensions are consistent with the running model
+! and all required variables are present, find and save their variable
+! IDs and set time record to start appending data.
 
-! The difference between def_his and def_avg is as follows: they
-! have different netCDF file name (hisname/avgname); netCDF file ID
-! (passed as argument); time record index (hisindx/avgindx); array
-! of switches which variables to write (wrthis/wrtavg); and different
-! sets of netCDF variable IDs (hisTime...hisHbl/avgTime...avgHbl);
-! and the first attribute of each variable, long_name, has prefix
-! 'averaged'.  Because most of the code is identical for both
-! routines, the second one is generated from the first entirely
-! by CPP.
+! The difference between def_his and def_avg is as follows: they have
+! different netCDF file name (hisname/avgname); netCDF file ID (passed
+! as argument); time record index (hisindx/avgindx); array of switches
+! to select which variables to write (wrthis/wrtavg); different sets
+! of netCDF variable IDs (hisTime...hisHbl/avgTime...avgHbl); and the
+! first attribute of each variable, long_name, has prefix 'averaged'.
+! Because most of the code is identical for both routines, the second
+! one is generated from the first entirely by CPP.
+
+c--#define nf_def_var my_nf_def_var
 
       implicit none
-      logical create_new_file
-      integer total_rec, ierr, rec,timedim, old_fill, lfnm, lvar
-     &      , r2dgrd(3), u2dgrd(3), v2dgrd(3), auxil(2)
-#ifdef SOLVE3D
-     &      , r3dgrd(4), u3dgrd(4), v3dgrd(4), w3dgrd(4), itrc
-#endif
-      integer my_nf_def_dim     !<-- instrumented netCDF function.
-      integer lenstr, checkdims
-      character*60 text
-
+      integer total_rec, ierr
 #include "param.h"
 #include "scalars.h"
 #include "ncvars.h"
 #include "netcdf.inc"
-
-
+      logical create_new_file
+      integer lenstr, checkdims, my_nf_def_dim
+      integer rec, lfnm, lvar, timedim, prev_fill_mode,
+     &        r2dgrd(3), u2dgrd(3), v2dgrd(3), auxil(2)
+#ifdef SOLVE3D
+     &      , r3dgrd(4), u3dgrd(4), v3dgrd(4), w3dgrd(4), itrc
+#endif
+      character(len=64) text
 #ifdef MASK_LAND_DATA
 # ifdef HIS_DOUBLE
       real*8, parameter :: spv_set=1.D+33
@@ -48,7 +47,6 @@
       real*4, parameter :: spv_set=1.E+33
 # endif
 #endif
-
 
 #ifndef AVRH
 # define ncid nchis
@@ -137,7 +135,7 @@
 
       ierr=0
       lfnm=lenstr(fname)
-      if (rec_per_file>0) then
+      if (rec_per_file > 0) then
         lvar=total_rec-(1+mod(total_rec-1, rec_per_file))
         call insert_time_index (fname, lfnm, lvar, ierr)
         if (ierr /= 0) goto 99
@@ -148,7 +146,7 @@
 !
 ! 10  if (create_new_file) then
 !        ... create new file, save netCDF ids for all variables;
-!     elseif (ncid==-1) then
+!     elseif (ncid == -1) then
 !        ... try to open existing file and check its dimensions
 !       if (cannot be opened or rejected) then
 !         create_new_file=.true.
@@ -157,8 +155,8 @@
 !        .... prepare the file for adding new data,
 !        .... find and save netCDF ids for all variables
 !     else
-!        .... just open, no checking, all ids are assumed to be
-!        .... already known (MPI single file output only).
+!        .... just open, no checking, all ids are assumed to be already
+!        .... known (applies only for single file output from MPI code)
 !     endif
 !
 ! which is designed to implement a flexible opening policy: if
@@ -171,7 +169,7 @@
 
       create_new_file=ldefhis            !<-- initialize
       if (ncid /= -1)  create_new_file=.false.
-#if defined MPI & !defined PARALLEL_FILES
+#if defined MPI && !defined PARALLEL_FILES
       if (mynode > 0) create_new_file=.false.
 #endif
 
@@ -180,27 +178,37 @@
 
   10  if (create_new_file) then
         ierr=nf_create(fname(1:lfnm), nf_clobber+nf_64bit_offset,
-     &                                                        ncid)
-        if (ierr /= nf_noerr) then
+     &                                                     ncid)
+        if (ierr == nf_noerr) then
+          ierr=nf_set_fill(ncid, nf_nofill, prev_fill_mode)
+          if (ierr /= nf_noerr) then
+# ifdef AVRH
+            write(*,'(1x,4A,I4)') '### ERROR: def_avg :: Cannot ',
+# else
+            write(*,'(1x,4A,I4)') '### ERROR: def_his :: Cannot ',
+# endif
+     &        'switch to ''nf_nofill'' mode.', nf_strerror(ierr)
+     &         MYID
+          endif
+        else
 #ifdef AVRH
           write(*,'(/1x,4A/12x,A/)')  '### ERROR: def_avg :: ',
 #else
           write(*,'(/1x,4A/12x,A/)')  '### ERROR: def_his :: ',
 #endif
-     &          'Cannot create netCDF file ''', fname(1:lfnm),
-     &                              '''.',   nf_strerror(ierr)
-          goto 99
+     &                'Cannot create ''', fname(1:lfnm), '''.',
+     &                                       nf_strerror(ierr)
         endif
-        ierr=nf_set_fill(ncid, nf_nofill, old_fill)
+        if (ierr /= nf_noerr) goto 99
         if (rec_per_file == 0) total_rec=0
 
-! Put global attributes.
-! --- ------ -----------
+! Put global attributes:
+!---- ------ -----------
 
         call put_global_atts(ncid, ierr)
 
-! Define dimensions of staggered fields.
-! ------ ---------- -- --------- -------
+! Define dimensions for field placement on staggered grids:
+! ------ ---------- --- ----- --------- -- --------- -------
 
         ierr=my_nf_def_dim(ncid, 'xi_rho',  xi_rho,  r2dgrd(1))
         ierr=my_nf_def_dim(ncid, 'xi_u',    xi_u,    u2dgrd(1))
@@ -215,32 +223,24 @@
 
         auxil(2)=timedim
 
-        r2dgrd(3)=timedim           ! Free surface
+        r2dgrd(3)=timedim                          ! Free surface
 
-        u2dgrd(2)=r2dgrd(2)         ! 2D UBAR-type
-        u2dgrd(3)=timedim
+        u2dgrd(2)=r2dgrd(2) ; u2dgrd(3)=timedim    ! 2D UBAR-type
 
-        v2dgrd(1)=r2dgrd(1)         ! 2D VBAR-type
-        v2dgrd(3)=timedim
+        v2dgrd(1)=r2dgrd(1) ; v2dgrd(3)=timedim    ! 2D VBAR-type
 
 #ifdef SOLVE3D
-        r3dgrd(1)=r2dgrd(1)         !
-        r3dgrd(2)=r2dgrd(2)         ! 3D RHO-type
-        r3dgrd(4)=timedim           !
+        r3dgrd(1)=r2dgrd(1)
+        r3dgrd(2)=r2dgrd(2) ; r3dgrd(4)=timedim    ! 3D RHO-type
 
-        u3dgrd(1)=u2dgrd(1)         !
-        u3dgrd(2)=r2dgrd(2)         ! 3D U-type
-        u3dgrd(3)=r3dgrd(3)         !
-        u3dgrd(4)=timedim
+        u3dgrd(1)=u2dgrd(1) ; u3dgrd(3)=r3dgrd(3)  ! 3D U-type
+        u3dgrd(2)=r2dgrd(2) ; u3dgrd(4)=timedim    ! 
 
-        v3dgrd(1)=r2dgrd(1)         !
-        v3dgrd(2)=v2dgrd(2)         ! 3D V-type
-        v3dgrd(3)=r3dgrd(3)         !
-        v3dgrd(4)=timedim
+        v3dgrd(1)=r2dgrd(1) ; v3dgrd(3)=r3dgrd(3)  ! 3D V-type
+        v3dgrd(2)=v2dgrd(2) ; v3dgrd(4)=timedim    !
 
-        w3dgrd(1)=r2dgrd(1)         !
-        w3dgrd(2)=r2dgrd(2)         ! 3D W-type
-        w3dgrd(4)=timedim           !
+        w3dgrd(1)=r2dgrd(1) ; w3dgrd(4)=timedim    ! 3D W-type
+        w3dgrd(2)=r2dgrd(2)
 #endif
 #if (defined PUT_GRID_INTO_HISTORY && !defined AVRH)\
  || (defined PUT_GRID_INTO_AVERAGES && defined AVRH)
@@ -248,7 +248,7 @@
 ! Define grid variables.
 ! ------ ---- ----------
 
-        if (total_rec<=1) call def_grid (ncid, r2dgrd)
+        if (total_rec <= 1) call def_grid(ncid, r2dgrd)
 #endif
 
 ! Define evolving model variables.
@@ -258,15 +258,15 @@
 ! may be needed in the event when a history record is used to restart
 ! the current model run);
 #ifndef AVRH
-        ierr=nf_def_var (ncid, 'time_step', nf_int, 2, auxil, hisTstep)
+        ierr=nf_def_var(ncid, 'time_step', nf_int, 2, auxil, hisTstep)
         ierr=nf_put_att_text (ncid, hisTstep, 'long_name', 48,
-     &              'time step and record numbers from initialization')
+     &             'time step and record numbers from initialization')
 #endif
 
 ! Time.
         lvar=lenstr(vname(1,indxTime))
-        ierr=nf_def_var (ncid, vname(1,indxTime)(1:lvar), NF_FTYPE,
-     &                                         1, timedim, vidTime)
+        ierr=nf_def_var(ncid, vname(1,indxTime)(1:lvar), NF_FTYPE,
+     &                                        1, timedim, vidTime)
 #ifdef AVRH
         text='averaged '/ /vname(2,indxTime)
 #else
@@ -274,87 +274,86 @@
 #endif
         lvar=lenstr(text)
         ierr=nf_put_att_text (ncid, vidTime, 'long_name', lvar,
-     &                                             text(1:lvar))
+     &                                            text(1:lvar))
         lvar=lenstr(vname(3,indxTime))
         ierr=nf_put_att_text (ncid, vidTime, 'units',  lvar,
-     &                                vname(3,indxTime)(1:lvar))
+     &                               vname(3,indxTime)(1:lvar))
 
 ! Free-surface and 2D barotropic velocity components
 
-        if (wrt(indxZ)) then
+        if (wrt(indxZ) .and. ierr == nf_noerr) then
           lvar=lenstr(vname(1,indxZ))
-          ierr=nf_def_var (ncid, vname(1,indxZ)(1:lvar), NF_FOUT,
-     &                                           3, r2dgrd, vidZ)
+          ierr=nf_def_var(ncid, vname(1,indxZ)(1:lvar), NF_FOUT,
+     &                                         3, r2dgrd, vidZ)
 #ifdef AVRH
           text='averaged '/ /vname(2,indxZ)
 #else
           text=vname(2,indxZ)
 #endif
           lvar=lenstr(text)
-          ierr=nf_put_att_text (ncid, vidZ, 'long_name', lvar,
-     &                                            text(1:lvar))
+          ierr=nf_put_att_text(ncid, vidZ, 'long_name', lvar,
+     &                                          text(1:lvar))
           lvar=lenstr(vname(3,indxZ))
-          ierr=nf_put_att_text (ncid, vidZ, 'units',     lvar,
-     &                                  vname(3,indxZ)(1:lvar))
+          ierr=nf_put_att_text(ncid, vidZ, 'units',     lvar,
+     &                                 vname(3,indxZ)(1:lvar))
 #ifdef MASK_LAND_DATA
-          ierr=nf_put_att_FOUT (ncid, vidZ, '_FillValue', NF_FOUT,
-     &                                                 1, spv_set)
-          if (ierr/=nf_noerr) then
-             write(*,*)  'nf_put_att_XXX:', nf_strerror(ierr)
+          ierr=nf_put_att_FOUT(ncid, vidZ, '_FillValue', NF_FOUT,
+     &                                               1, spv_set)
+          if (ierr /= nf_noerr) then
+           write(*,*)  'nf_put_att_XXX:', nf_strerror(ierr)
           endif
 #endif
-
         endif
 
-        if (wrt(indxUb)) then
+        if (wrt(indxUb) .and. ierr == nf_noerr) then
           lvar=lenstr(vname(1,indxUb))
-          ierr=nf_def_var (ncid, vname(1,indxUb)(1:lvar), NF_FOUT,
-     &                                           3, u2dgrd, vidUb)
+          ierr=nf_def_var(ncid, vname(1,indxUb)(1:lvar), NF_FOUT,
+     &                                         3, u2dgrd, vidUb)
 #ifdef AVRH
           text='averaged '/ /vname(2,indxUb)
 #else
           text=vname(2,indxUb)
 #endif
           lvar=lenstr(text)
-          ierr=nf_put_att_text (ncid, vidUb, 'long_name', lvar,
-     &                                             text(1:lvar))
+          ierr=nf_put_att_text(ncid, vidUb, 'long_name', lvar,
+     &                                          text(1:lvar))
           lvar=lenstr(vname(3,indxUb))
-          ierr=nf_put_att_text (ncid, vidUb, 'units',     lvar,
-     &                                  vname(3,indxUb)(1:lvar))
+          ierr=nf_put_att_text(ncid, vidUb, 'units',     lvar,
+     &                               vname(3,indxUb)(1:lvar))
 #ifdef MASK_LAND_DATA
-          ierr=nf_put_att_FOUT (ncid, vidUb, '_FillValue', NF_FOUT,
-     &                                                  1, spv_set)
+          ierr=nf_put_att_FOUT(ncid, vidUb, '_FillValue', NF_FOUT,
+     &                                                1, spv_set)
 #endif
         endif
 
-        if (wrt(indxVb)) then
+        if (wrt(indxVb) .and. ierr == nf_noerr) then
           lvar=lenstr(vname(1,indxVb))
-          ierr=nf_def_var (ncid, vname(1,indxVb)(1:lvar), NF_FOUT,
-     &                                           3, v2dgrd, vidVb)
+          ierr=nf_def_var(ncid, vname(1,indxVb)(1:lvar), NF_FOUT,
+     &                                         3, v2dgrd, vidVb)
 #ifdef AVRH
           text='averaged '/ /vname(2,indxVb)
 #else
           text=vname(2,indxVb)
 #endif
           lvar=lenstr(text)
-          ierr=nf_put_att_text (ncid, vidVb, 'long_name', lvar,
-     &                                             text(1:lvar))
+          ierr=nf_put_att_text(ncid, vidVb, 'long_name', lvar,
+     &                                            text(1:lvar))
           lvar=lenstr(vname(3,indxVb))
-          ierr=nf_put_att_text (ncid, vidVb, 'units',     lvar,
-     &                                  vname(3,indxVb)(1:lvar))
+          ierr=nf_put_att_text(ncid, vidVb, 'units',     lvar,
+     &                                 vname(3,indxVb)(1:lvar))
 #ifdef MASK_LAND_DATA
-          ierr=nf_put_att_FOUT (ncid, vidVb, '_FillValue', NF_FOUT,
-     &                                                  1, spv_set)
+          ierr=nf_put_att_FOUT(ncid, vidVb, '_FillValue', NF_FOUT,
+     &                                                1, spv_set)
 #endif
         endif
 #ifdef SOLVE3D
 
 ! 3D momenta in XI- and ETA-directions.
 
-        if (wrt(indxU)) then
+        if (wrt(indxU) .and. ierr == nf_noerr) then
           lvar=lenstr(vname(1,indxU))
-          ierr=nf_def_var (ncid, vname(1,indxU)(1:lvar), NF_FOUT,
-     &                                           4, u3dgrd, vidU)
+          ierr=nf_def_var(ncid, vname(1,indxU)(1:lvar), NF_FOUT,
+     &                                         4, u3dgrd, vidU)
 # ifdef AVRH
           text='averaged '/ /vname(2,indxU)
 # else
@@ -370,12 +369,11 @@
           ierr=nf_put_att_FOUT (ncid, vidU, '_FillValue', NF_FOUT,
      &                                                 1, spv_set)
 # endif
-
         endif
 
-        if (wrt(indxV)) then
+        if (wrt(indxV) .and. ierr == nf_noerr) then
           lvar=lenstr(vname(1,indxV))
-          ierr=nf_def_var (ncid, vname(1,indxV)(1:lvar), NF_FOUT,
+          ierr=nf_def_var(ncid, vname(1,indxV)(1:lvar), NF_FOUT,
      &                                           4, v3dgrd, vidV)
 # ifdef AVRH
           text='averaged '/ /vname(2,indxV)
@@ -397,7 +395,7 @@
 ! Tracer variables.
 
         do itrc=1,NT
-          if (wrt(indxT+itrc-1)) then
+          if (wrt(indxT+itrc-1) .and. ierr == nf_noerr) then
             lvar=lenstr(vname(1,indxT+itrc-1))
             ierr=nf_def_var (ncid, vname(1,indxT+itrc-1)(1:lvar),
      &                             NF_FOUT, 4, r3dgrd, vidT(itrc))
@@ -421,7 +419,7 @@
 
 ! Density anomaly.
 
-        if (wrt(indxR)) then
+        if (wrt(indxR) .and. ierr == nf_noerr) then
           lvar=lenstr(vname(1,indxR))
           ierr=nf_def_var (ncid, vname(1,indxR)(1:lvar), NF_FOUT,
      &                                           4, r3dgrd, vidR)
@@ -444,7 +442,7 @@
 
 ! S-coordinate "omega" vertical velocity.
 
-        if (wrt(indxO)) then
+        if (wrt(indxO) .and. ierr == nf_noerr) then
           lvar=lenstr(vname(1,indxO))
           ierr=nf_def_var (ncid, vname(1,indxO)(1:lvar), NF_FOUT,
      &                                           4, w3dgrd, vidO)
@@ -467,7 +465,7 @@
 
 ! True W-vertical velocity.
 
-        if (wrt(indxW)) then
+        if (wrt(indxW) .and. ierr == nf_noerr) then
           lvar=lenstr(vname(1,indxW))
           ierr=nf_def_var (ncid, vname(1,indxW)(1:lvar), NF_FOUT,
      &                                           4, r3dgrd, vidW)
@@ -490,7 +488,7 @@
 
 ! Vertical viscosity coefficient.
 
-        if (wrt(indxAkv)) then
+        if (wrt(indxAkv) .and. ierr == nf_noerr) then
           lvar=lenstr(vname(1,indxAkv))
           ierr=nf_def_var (ncid, vname(1,indxAkv)(1:lvar), NF_FOUT,
      &                                           4, w3dgrd, vidAkv)
@@ -513,7 +511,7 @@
 
 ! Vertical thermal conductivity coefficient.
 
-        if (wrt(indxAkt)) then
+        if (wrt(indxAkt) .and. ierr == nf_noerr) then
           lvar=lenstr(vname(1,indxAkt))
           ierr=nf_def_var (ncid, vname(1,indxAkt)(1:lvar), NF_FOUT,
      &                                           4, w3dgrd, vidAkt)
@@ -536,7 +534,7 @@
 # ifdef SALINITY
 ! Vertical diffusion coefficient for salinity.
 
-        if (wrt(indxAks)) then
+        if (wrt(indxAks) .and. ierr == nf_noerr) then
           lvar=lenstr(vname(1,indxAks))
           ierr=nf_def_var (ncid, vname(1,indxAks)(1:lvar), NF_FOUT,
      &                                           4, w3dgrd, vidAks)
@@ -560,7 +558,7 @@
 # ifdef LMD_KPP
 ! Depth of surface planetary boundary layer.
 
-        if (wrt(indxHbls)) then
+        if (wrt(indxHbls) .and. ierr == nf_noerr) then
           lvar=lenstr(vname(1,indxHbls))
           ierr=nf_def_var (ncid, vname(1,indxHbls)(1:lvar),
      &                           NF_FOUT, 3, r2dgrd, vidHbls)
@@ -584,7 +582,7 @@
 # ifdef LMD_BKPP
 ! Thickness of bottom boundary layer.
 
-        if (wrt(indxHbbl)) then
+        if (wrt(indxHbbl) .and. ierr == nf_noerr) then
           lvar=lenstr(vname(1,indxHbbl))
           ierr=nf_def_var (ncid, vname(1,indxHbbl)(1:lvar),
      &                            NF_FOUT, 3, r2dgrd, vidHbbl)
@@ -612,7 +610,7 @@
 
         ierr=nf_enddef(ncid)
 #ifdef MPI_SILENT_MODE
-        if (mynode==0) then
+        if (mynode == 0) then
 #endif
 #ifdef AVRH
          write(*,'(7x,4A,I4)') 'def_avg :: created new netCDF file ''',
@@ -625,37 +623,49 @@
 #endif
 
 ! Open existing file and prepare for appending data:   Inquire about
-! ==== ======== ==== === ======= === ========= ====    dimensions and
-! variables. Check for consistency with model dimensions. In the case
-! when file is rejected (whether it cannot be opened, or something is
-! wrong with its dimensions) create a new file.  After that verify
+! ==== ======== ==== === ======= === ========= ====    its dimensions
+! and variables; check for consistency with model dimensions -- if the
+! file is rejected (it cannot be opened, or its dimensions do not match
+! the ones in the mode) create a new file.  After that verify
 ! that all necessary variables are already defined, find and save
 ! their netCDF IDs.
 
-      elseif (ncid==-1) then  !--> alt. to "create_new_file"
+      elseif (ncid == -1) then  !--> alt. to "create_new_file"
         ierr=nf_open(fname(1:lfnm), nf_write, ncid)
-        if (ierr. eq. nf_noerr) then
+        if (ierr == nf_noerr) then
+          ierr=nf_set_fill(ncid, nf_nofill, prev_fill_mode)
+          if (ierr == nf_noerr) then
 #ifdef MPI_SILENT_MODE
-          if (mynode==0) then
+            if (mynode == 0) then
 #endif
 #ifdef AVRH
-            write(*,'(7x,5A,I4)')    'def_avg :: opened existing ',
+              write(*,'(7x,4A,I4)') 'def_avg :: open existing file ''',
 #else
-            write(*,'(7x,5A,I4)')    'def_his :: opened existing ',
+              write(*,'(7x,4A,I4)') 'def_his :: open existing file ''',
 #endif
-     &                     'file ''', fname(1:lfnm),  '''.' MYID
+     &                        fname(1:lfnm),  '''.' MYID
 #ifdef MPI_SILENT_MODE
-          endif
+            endif
 #endif
-          ierr=nf_set_fill(ncid, nf_nofill, old_fill)
+          else
+# ifdef AVRH
+            write(*,'(1x,4A,I4)') '### ERROR: def_avg :: Cannot ',
+# else
+            write(*,'(1x,4A,I4)') '### ERROR: def_his :: Cannot ',
+# endif
+     &         'switch to ''nf_nofill'' mode.', nf_strerror(ierr)
+     &          MYID
+            goto 99
+          endif
+
           ierr=checkdims(ncid, fname, rec)
           if (ierr == nf_noerr) then
-            if (rec_per_file==0) then
+            if (rec_per_file == 0) then
               ierr=rec+1 - total_rec
             else
               ierr=rec+1 - (1+mod(total_rec-1, rec_per_file))
             endif
-            if (ierr>0) then
+            if (ierr > 0) then
               mpi_master_only write(*,
      &                '(/1x,A,I5,1x,3A/21x,2(A,I5),1x,A/21x,A/)')
 #ifdef AVRH
@@ -668,33 +678,31 @@
      &            'specified by restart initial conditions.',
      &        'All records beyond this number will be overwritten.'
               rec=rec-ierr
-            elseif (rec_per_file==0) then
+            elseif (rec_per_file == 0) then
               total_rec=rec+1           ! <-- set to the next record
-#if defined MPI & !defined PARALLEL_FILES
-              if (mynode>0) total_rec=total_rec-1
+#if defined MPI && !defined PARALLEL_FILES
+              if (mynode > 0) total_rec=total_rec-1
 #endif
             endif
             ierr=nf_noerr
           endif
         endif
 
-        if (ierr. ne. nf_noerr) then
-#if defined MPI & !defined PARALLEL_FILES
-          if (mynode==0) then
-            create_new_file=.true.
-            goto 10
+        if (ierr /= nf_noerr) then
+#if defined MPI && !defined PARALLEL_FILES
+          if (mynode == 0) then
+            create_new_file=.true. ; goto 10 !--> reject and create new
           else
 # ifdef AVRH
-            write(*,'(/1x,5A,I4/)')    '### ERROR: def_avg :: ',
+            write(*,'(/1x,5A,I4/)')  '### ERROR: def_avg :: Cannot ',
 # else
-            write(*,'(/1x,5A,I4/)')    '### ERROR: def_his :: ',
+            write(*,'(/1x,5A,I4/)')  '### ERROR: def_his :: Cannot ',
 # endif
-     &        'Cannot open file ''', fname(1:lfnm), '''.' MYID
+     &        'open ''', fname(1:lfnm), '''.' MYID
             goto 99                                       !--> ERROR
           endif
 #else
-          create_new_file=.true.
-          goto 10
+          create_new_file=.true. ; goto 10   !--> reject and create new
 #endif
         endif
 
@@ -702,235 +710,206 @@
 ! ---- ------ --- -- -------- ----- ----------
 
 ! Time-step indices, ocean time:
-#ifndef AVRH
-        ierr=nf_inq_varid (ncid, 'time_step', hisTstep)
-        if (ierr /= nf_noerr) then
-          write(*,1) 'time_step', fname(1:lfnm)
-          goto 99                                         !--> ERROR
-        endif
-#endif
 
-        lvar=lenstr(vname(1,indxTime))
-        ierr=nf_inq_varid (ncid,vname(1,indxTime)(1:lvar),vidTime)
-        if (ierr /= nf_noerr) then
-          write(*,1) vname(1,indxTime)(1:lvar), fname(1:lfnm)
-          goto 99                                         !--> ERROR
+#ifndef AVRH
+        ierr=nf_inq_varid(ncid, 'time_step', hisTstep)
+        if (ierr /= nf_noerr) write(*,1) 'time_step', fname(1:lfnm)
+#endif
+        if (ierr == nf_noerr) then
+          lvar=lenstr(vname(1,indxTime))
+          ierr=nf_inq_varid(ncid,vname(1,indxTime)(1:lvar), vidTime)
+          if (ierr /= nf_noerr) write(*,1) vname(1,indxTime)(1:lvar),
+     &                                                 fname(1:lfnm)
         endif
 
 ! Free-surface and 2D barotropic velocity components
 
-        if (wrt(indxZ)) then
+        if (wrt(indxZ) .and. ierr == nf_noerr) then
           lvar=lenstr(vname(1,indxZ))
-          ierr=nf_inq_varid (ncid, vname(1,indxZ)(1:lvar), vidZ)
-          if (ierr /= nf_noerr) then
-            write(*,1) vname(1,indxZ)(1:lvar), fname(1:lfnm)
-            goto 99                                       !--> ERROR
-          endif
+          ierr=nf_inq_varid(ncid, vname(1,indxZ)(1:lvar), vidZ)
+          if (ierr /= nf_noerr) write(*,1) vname(1,indxZ)(1:lvar),
+     &                                              fname(1:lfnm)
         endif
-
-        if (wrt(indxUb)) then
+        if (wrt(indxUb) .and. ierr == nf_noerr) then
           lvar=lenstr(vname(1,indxUb))
-          ierr=nf_inq_varid (ncid, vname(1,indxUb)(1:lvar), vidUb)
-          if (ierr /= nf_noerr) then
-            write(*,1) vname(1,indxUb)(1:lvar), fname(1:lfnm)
-            goto 99                                       !--> ERROR
-          endif
+          ierr=nf_inq_varid(ncid, vname(1,indxUb)(1:lvar), vidUb)
+          if (ierr /= nf_noerr) write(*,1) vname(1,indxUb)(1:lvar),
+     &                                               fname(1:lfnm)
         endif
-
-        if (wrt(indxVb)) then
+        if (wrt(indxVb) .and. ierr == nf_noerr) then
           lvar=lenstr(vname(1,indxVb))
-          ierr=nf_inq_varid (ncid, vname(1,indxVb)(1:lvar), vidVb)
-          if (ierr /= nf_noerr) then
-            write(*,1) vname(1,indxVb)(1:lvar), fname(1:lfnm)
-            goto 99                                       !--> ERROR
-          endif
+          ierr=nf_inq_varid(ncid, vname(1,indxVb)(1:lvar), vidVb)
+          if (ierr /= nf_noerr) write(*,1) vname(1,indxVb)(1:lvar),
+     &                                               fname(1:lfnm)
         endif
 
 #ifdef SOLVE3D
 
 ! 3D momenta in XI- and ETA-directions.
 
-        if (wrt(indxU)) then
+        if (wrt(indxU) .and. ierr == nf_noerr) then
           lvar=lenstr(vname(1,indxU))
-          ierr=nf_inq_varid (ncid, vname(1,indxU)(1:lvar), vidU)
-          if (ierr /= nf_noerr) then
-            write(*,1) vname(1,indxU)(1:lvar), fname(1:lfnm)
-            goto 99                                       !--> ERROR
-          endif
+          ierr=nf_inq_varid(ncid, vname(1,indxU)(1:lvar), vidU)
+          if (ierr /= nf_noerr) write(*,1) vname(1,indxU)(1:lvar),
+     &                                              fname(1:lfnm)
         endif
-        if (wrt(indxV)) then
+        if (wrt(indxV)  .and. ierr == nf_noerr) then
           lvar=lenstr(vname(1,indxV))
-          ierr=nf_inq_varid (ncid, vname(1,indxV)(1:lvar), vidV)
-          if (ierr /= nf_noerr) then
-            write(*,1) vname(1,indxV)(1:lvar), fname(1:lfnm)
-            goto 99                                       !--> ERROR
-          endif
+          ierr=nf_inq_varid(ncid, vname(1,indxV)(1:lvar), vidV)
+          if (ierr /= nf_noerr) write(*,1) vname(1,indxV)(1:lvar),
+     &                                              fname(1:lfnm)
         endif
 
 ! Tracer variables.
 
         do itrc=1,NT
-          if (wrt(indxT+itrc-1)) then
+          if (wrt(indxT+itrc-1) .and. ierr == nf_noerr) then
             lvar=lenstr(vname(1,indxT+itrc-1))
-            ierr=nf_inq_varid (ncid, vname(1,indxT+itrc-1)(1:lvar),
-     &                                                  vidT(itrc))
-            if (ierr /= nf_noerr) then
-              write(*,1) vname(1,indxT+itrc-1)(1:lvar), fname(1:lfnm)
-              goto 99                                     !--> ERROR
-            endif
+            ierr=nf_inq_varid(ncid, vname(1,indxT+itrc-1)(1:lvar),
+     &                                                 vidT(itrc))
+            if (ierr /= nf_noerr) write(*,1)
+     &               vname(1,indxT+itrc-1)(1:lvar), fname(1:lfnm)
           endif
         enddo
 
 ! Density anomaly.
 
-        if (wrt(indxR)) then
+        if (wrt(indxR) .and. ierr == nf_noerr) then
           lvar=lenstr(vname(1,indxR))
-          ierr=nf_inq_varid (ncid, vname(1,indxR)(1:lvar), vidR)
-          if (ierr /= nf_noerr) then
-            write(*,1) vname(1,indxR)(1:lvar), fname(1:lfnm)
-            goto 99                                       !--> ERROR
-          endif
+          ierr=nf_inq_varid(ncid, vname(1,indxR)(1:lvar), vidR)
+          if (ierr /= nf_noerr) write(*,1) vname(1,indxR)(1:lvar),
+     &                                              fname(1:lfnm)
         endif
 
 ! S-coordinate "omega" and "true" W- vertical velocities.
 
-        if (wrt(indxO)) then
+        if (wrt(indxO) .and. ierr == nf_noerr) then
           lvar=lenstr(vname(1,indxO))
-          ierr=nf_inq_varid (ncid, vname(1,indxO)(1:lvar), vidO)
-          if (ierr /= nf_noerr) then
-            write(*,1) vname(1,indxO)(1:lvar), fname(1:lfnm)
-            goto 99                                       !--> ERROR
-          endif
+          ierr=nf_inq_varid(ncid, vname(1,indxO)(1:lvar), vidO)
+          if (ierr /= nf_noerr) write(*,1) vname(1,indxO)(1:lvar),
+     &                                              fname(1:lfnm)
         endif
 
-        if (wrt(indxW)) then
+        if (wrt(indxW) .and. ierr == nf_noerr) then
           lvar=lenstr(vname(1,indxW))
-          ierr=nf_inq_varid (ncid, vname(1,indxW)(1:lvar), vidW)
-          if (ierr /= nf_noerr) then
-            write(*,1) vname(1,indxW)(1:lvar), fname(1:lfnm)
-            goto 99                                       !--> ERROR
-          endif
+          ierr=nf_inq_varid(ncid, vname(1,indxW)(1:lvar), vidW)
+          if (ierr /= nf_noerr) write(*,1) vname(1,indxW)(1:lvar),
+     &                                              fname(1:lfnm)
         endif
 
 ! Vertical viscosity, thermal conductivity, and salinity diffusion.
 
-        if (wrt(indxAkv)) then
+        if (wrt(indxAkv) .and. ierr == nf_noerr) then
           lvar=lenstr(vname(1,indxAkv))
-          ierr=nf_inq_varid (ncid, vname(1,indxAkv)(1:lvar), vidAkv)
-          if (ierr /= nf_noerr) then
-            write(*,1) vname(1,indxAkv)(1:lvar), fname(1:lfnm)
-            goto 99                                       !--> ERROR
-          endif
+          ierr=nf_inq_varid(ncid, vname(1,indxAkv)(1:lvar), vidAkv)
+          if (ierr /= nf_noerr) write(*,1) vname(1,indxAkv)(1:lvar),
+     &                                                fname(1:lfnm)
         endif
 
-        if (wrt(indxAkt)) then
+        if (wrt(indxAkt) .and. ierr == nf_noerr) then
           lvar=lenstr(vname(1,indxAkt))
-          ierr=nf_inq_varid (ncid,vname(1,indxAkt)(1:lvar), vidAkt)
-          if (ierr /= nf_noerr) then
-            write(*,1) vname(1,indxAkt)(1:lvar), fname(1:lfnm)
-            goto 99                                       !--> ERROR
-          endif
+          ierr=nf_inq_varid(ncid,vname(1,indxAkt)(1:lvar), vidAkt)
+          if (ierr /= nf_noerr) write(*,1) vname(1,indxAkt)(1:lvar),
+     &                                                fname(1:lfnm)
         endif
 
 # ifdef SALINITY
-        if (wrt(indxAks)) then
+        if (wrt(indxAks) .and. ierr == nf_noerr) then
           lvar=lenstr(vname(1,indxAks))
-          ierr=nf_inq_varid (ncid,vname(1,indxAks)(1:lvar), vidAks)
-          if (ierr /= nf_noerr) then
-            write(*,1) vname(1,indxAks)(1:lvar), fname(1:lfnm)
-            goto 99                                       !--> ERROR
-          endif
+          ierr=nf_inq_varid(ncid,vname(1,indxAks)(1:lvar), vidAks)
+          if (ierr /= nf_noerr) write(*,1) vname(1,indxAks)(1:lvar),
+     &                                                fname(1:lfnm)
         endif
 # endif
 # ifdef LMD_KPP
 ! Depth of surface planetary boundary layer.
 
-        if (wrt(indxHbls)) then
+        if (wrt(indxHbls) .and. ierr == nf_noerr) then
           lvar=lenstr(vname(1,indxHbls))
-          ierr=nf_inq_varid (ncid,vname(1,indxHbls)(1:lvar), vidHbls)
-          if (ierr /= nf_noerr) then
-          write(*,1) vname(1,indxHbls)(1:lvar), fname(1:lfnm)
-            goto 99                                       !--> ERROR
-          endif
+          ierr=nf_inq_varid(ncid,vname(1,indxHbls)(1:lvar), vidHbls)
+          if (ierr /= nf_noerr) write(*,1) vname(1,indxHbls)(1:lvar),
+     &                                                 fname(1:lfnm)
         endif
 # endif
 # ifdef LMD_BKPP
 ! Thickness of bottom boundary layer.
 
-        if (wrt(indxHbbl)) then
+        if (wrt(indxHbbl) .and. ierr == nf_noerr) then
           lvar=lenstr(vname(1,indxHbbl))
-          ierr=nf_inq_varid (ncid,vname(1,indxHbbl)(1:lvar), vidHbbl)
-          if (ierr /= nf_noerr) then
-          write(*,1) vname(1,indxHbbl)(1:lvar), fname(1:lfnm)
-            goto 99                                       !--> ERROR
-          endif
+          ierr=nf_inq_varid(ncid,vname(1,indxHbbl)(1:lvar), vidHbbl)
+          if (ierr /= nf_noerr) write(*,1) vname(1,indxHbbl)(1:lvar),
+     &                                                 fname(1:lfnm)
         endif
 # endif
 #endif /* SOLVE3D */
+        if (ierr == nf_noerr) then
 #ifdef MPI_SILENT_MODE
-        if (mynode==0) then
+          if (mynode == 0) then
 #endif
 #ifdef AVRH
-          write(*,'(7x,4A,I4,2x,A,I4)') 'def_avg :: opened existing ',
+            write(*,'(7x,4A,I4,2x,A,I4)')   'def_avg :: open ',
 #else
-          write(*,'(7x,4A,I4,2x,A,I4)') 'def_his :: opened existing ',
+            write(*,'(7x,4A,I4,2x,A,I4)')   'def_his :: open ',
 #endif
-     &   'file ''', fname(1:lfnm), ''' from rec =', rec MYID
+     &     'existing file ''',fname(1:lfnm),''' from rec =',rec
+     &      MYID
 #ifdef MPI_SILENT_MODE
-        endif
+          endif
 #endif
+        endif
 
-#if defined MPI & !defined PARALLEL_FILES
+#if defined MPI && !defined PARALLEL_FILES
       else
         ierr=nf_open(fname(1:lfnm), nf_write, ncid)
         if (ierr == nf_noerr) then
+          ierr=nf_set_fill(ncid, nf_nofill, prev_fill_mode)
+          if (ierr == nf_noerr) then
 # ifndef MPI_SILENT_MODE
 #  ifdef AVRH
-          write(*,'(7x,5A,I4)')   'def_avg :: reopened existing ',
+            write(*,'(7x,5A,I4)')    'def_avg :: reopen existing ',
 #  else
-          write(*,'(7x,5A,I4)')   'def_his :: reopened existing ',
+            write(*,'(7x,5A,I4)')    'def_his :: reopen existing ',
 #  endif
-     &            'file ''', fname(1:lfnm), '''.' MYID
+     &              'file ''', fname(1:lfnm), '''.' MYID
 # endif
+          else
+# ifdef AVRH
+            write(*,'(1x,4A,I4)')  '### ERROR: def_avg :: Cannot ',
+# else
+            write(*,'(1x,4A,I4)')  '### ERROR: def_his :: Cannot ',
+# endif
+     &         'switch to ''nf_nofill'' mode.', nf_strerror(ierr)
+     &          MYID
+          endif
         else
 # ifdef AVRH
           write(*,'(/1x,6A,I4/)')  '### ERROR: def_avg :: Cannot ',
 # else
           write(*,'(/1x,6A,I4/)')  '### ERROR: def_his :: Cannot ',
 # endif
-     &                       'open file ''', fname(1:lfnm), '''.',
-     &                        nf_strerror(ierr) MYID
-          goto 99                                   !--> ERROR
+     &                      'reopen file ''', fname(1:lfnm), '''.',
+     &                       nf_strerror(ierr) MYID
         endif
 #endif
       endif             !<--  create_new_file
+      if (ierr /= nf_noerr) goto 99
 
-      ierr=nf_set_fill (ncid, nf_nofill, lvar)
-      if (ierr /= nf_noerr) then
+#if (defined PUT_GRID_INTO_HISTORY && !defined AVRH)\
+ || (defined PUT_GRID_INTO_AVERAGES && defined AVRH)
 
-#ifdef AVRH
-        write(*,'(1x,4A,I4)') '### ERROR: def_avg :: Cannot switch ',
-#else
-        write(*,'(1x,4A,I4)') '### ERROR: def_his :: Cannot switch ',
+! Write grid variables.
+
+        if (total_rec <= 1) call wrt_grid (ncid, fname, lfnm)
 #endif
-     &          'to ''nf_nofill'' mode.', nf_strerror(ierr)
-     &           MYID
-      endif
+
+  99  return
+
 #ifdef AVRH
    1  format(/1x,'### ERROR: def_avg :: Cannot find variable ''',
 #else
    1  format(/1x,'### ERROR: def_his :: Cannot find variable ''',
 #endif
-     &                           A, ''' in file ''', A, '''.'/)
-#if (defined PUT_GRID_INTO_HISTORY && !defined AVRH)\
- || (defined PUT_GRID_INTO_AVERAGES && defined AVRH)
-
-! Write grid variables.
-!------ ---- ----------
-
-        if (total_rec<=1) call wrt_grid (ncid, fname, lfnm)
-#endif
-  99  return
+     &                            A, ''' in file ''', A, '''.'/)
       end
 
 #undef ncid

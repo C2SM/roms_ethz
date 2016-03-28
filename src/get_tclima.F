@@ -13,7 +13,7 @@
 # include "ncvars.h"
 # include "netcdf.inc"
       real cff
-      integer i,itrc, lstr,lvar,lenstr, ierr, nf_fread
+      integer i,itrc, lstr,lvar,lenstr, ierr, ncdf_read
 
 ! Initialization: Check, whether climatological data file is already
 !---------------- opened, and if not, open it.  Find and save netCDF
@@ -27,6 +27,11 @@
       ierr=nf_noerr
       lstr=lenstr(clm_file)
       if (iic==ntstart) then
+
+        ittclm(itrc)=1
+        tclm_time(1,itrc)=-1.E+20
+        tclm_time(2,itrc)=-1.E+20
+
         if (ncidclm==-1) then
           ierr=nf_open (clm_file(1:lstr), nf_nowrite, ncidclm)
           if (ierr /= nf_noerr) write(*,'(/1x,4A/)') '### ERROR: ',
@@ -85,12 +90,11 @@
               ierr=nf_inq_varid (ncidclm, vname(1,indxT+itrc-1)
      &                                  (1:lvar), tclm_id(itrc))
               if (ierr == nf_noerr) then
-                call set_cycle (ncidclm,tclm_tid(itrc), nttclm(itrc),
-     &                          tclm_cycle(itrc),  tclm_ncycle(itrc),
-     &                                         tclm_rec(itrc), ierr)
-                ittclm(itrc)=1
-                tclm_time(1,itrc)=-1.E+20
-                tclm_time(2,itrc)=-1.E+20
+                call find_record(      ncidclm, tclm_tid(itrc),
+     &                          tclm_rec(itrc), nttclm(itrc),
+     &                       tclm_ncycle(itrc), tclm_cycle(itrc),
+     &                                       1, 1,         ierr)
+
               else
                 write(*,1) vname(1,indxT+itrc-1)(1:lvar),
      &                                   itrc, clm_file(1:lstr)
@@ -113,12 +117,15 @@
 ! of data. Repeat until model time falls between the two data times.
 
       do itrc=1,NT
-        if (tclm_tid(itrc)>0) then
+        if (tclm_tid(itrc) > 0) then
           do while (tclm_time(ittclm(itrc),itrc)<time+0.5*dt
      &                                   .and. ierr==nf_noerr)
-            call advance_cycle (tclm_cycle(itrc),  nttclm(itrc),
-     &                 tclm_ncycle(itrc), tclm_rec(itrc), ierr)
-            if (ierr==nf_noerr) then
+
+            call advance_record( tclm_rec(itrc), nttclm(itrc),
+     &                        tclm_ncycle(itrc), tclm_cycle(itrc),
+     &                                        1, 1,  ierr )
+
+            if (ierr == nf_noerr) then
               ierr=nf_get_var1_FTYPE(ncidclm, tclm_tid(itrc),
      &                                  tclm_rec(itrc), cff)
               if (ierr==nf_noerr) then
@@ -126,12 +133,12 @@
                 tclm_time(ittclm(itrc),itrc)=cff*day2sec
      &               + tclm_cycle(itrc)*tclm_ncycle(itrc)
 
-                ierr=nf_fread (tclima(START_2D_ARRAY,1,ittclm(itrc),
-     &                                itrc), ncidclm, tclm_id(itrc),
-     &                                      tclm_rec(itrc), r3dvar)
-                if (ierr==nf_noerr) then
+                ierr=ncdf_read(ncidclm, tclm_id(itrc), tclm_rec(itrc),
+     &            r_var, tclima(START_2D_ARRAY,1,ittclm(itrc),itrc), N)
+
+                if (ierr == nf_noerr) then
 #ifdef MPI_SILENT_MODE
-                  if (mynode==0) then
+                  if (mynode == 0) then
 #endif
                     write(*,'(3x,A,I2,1x,A,F12.4,2(1x,A,I4))')
      &             'get_tclima :: read climatology for tracer', itrc,
@@ -139,7 +146,7 @@
 # ifdef MPI_SILENT_MODE
                   endif
 # endif
-                  IF (nttclm(itrc)==1) goto 3
+                  if (nttclm(itrc)==1) goto 3
                 else
                   lvar=lenstr(vname(1,indxT+itrc-1))
                   write(*,4) vname(1,indxT+itrc-1)(1:lvar),
