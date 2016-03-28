@@ -9,8 +9,9 @@
 !       there is no MPI-partitioning.
 
       integer, parameter ::
-#if defined BASIN
-     &               LLm=180, MMm=140, N=12
+#if defined DOUBLE_GYRE
+c     &               LLm=192, MMm=192, N=12
+     &                LLm=384, MMm=384, N=16
 #elif defined CANYON_A
      &               LLm=65,  MMm=48,  N=10
 #elif defined CANYON_B
@@ -26,7 +27,13 @@ c**  &               LLm=256, MMm=256, N=20
 
 #elif defined COLD_FILAMENT
      &               LLm=400, MMm=2,   N=40
-c     &                LLm=800, MMm=2,   N=80
+c     &                LLm=800, MMm=2,  N=80
+#elif defined ATLANTIC
+     &            LLm=1218,  MMm=896, N=50 !<-- 1.5km, full Gulf
+c     &             LLm=1536,  MMm=1024, N=50
+c     &           LLm=1024,  MMm=1536, N=60
+
+
 #elif defined PACIFIC
 
 c    &               LLm=384, MMm=224, N=30
@@ -42,14 +49,6 @@ c     &               LLm=460, MMm=240, N=50  ! PACSMA grid
      &               LLm=768, MMm=512, N=1
 c    &               LLm=1520, MMm=1088, N=1
 
-#elif defined SO
-c     &              LLm=602, MMm=516, N=42 ! pactcs30
-     &               LLm=720, MMm=216, N=42 ! SO_d05
-c     &               LLm=1440, MMm=432, N=42
-c     &               LLm=2880, MMm=864, N=42
-
-
-
 #elif defined OVERFLOW
      &               LLm=4,   MMm=128, N=20
 #elif defined SEAMOUNT
@@ -59,12 +58,10 @@ c    &               LLm=192, MMm=96,  N=22
 #elif defined ISWAKE
 c     &               LLm=192, MMm=84, N=20
 c     &               LLm=384, MMm=168, N=20
-c     &               LLm=720, MMm=160, N=2
-c     &              LLm=768, MMm=192, N=2
-     &              LLm=1920, MMm=384, N=2
-c     &               LLm=1440, MMm=320, N=2
-c     &               LLm=768, MMm=336, N=20
-c     &              LLm=1536, MMm=672, N=20
+c**     &              LLm=768, MMm=288, N=2
+     &              LLm=1920, MMm=576, N=2
+c     &              LLm=3840, MMm=1152, N=2
+
 #elif defined SHELFRONT
      &               LLm=4,   MMm=40,  N=12
 #elif defined SOLITON
@@ -80,8 +77,8 @@ c     &               LLm=768, MMm=256, N=1
      &               LLm=40,  MMm=160,  N=16
 c     &                LLm=60,  MMm=240,  N=24
 #elif defined UPWELLING
-c     &                 LLm=20,  MMm=80,  N=16
-     &                 LLm=20,  MMm=128,  N=40
+c     &                 LLm=20,  MMm=80,  N=24
+     &                 LLm=20,  MMm=160,  N=48
 
 
 c     &               LLm=20,  MMm=80,  N=32
@@ -92,6 +89,14 @@ c     &                LLm=384, MMm=480, N=32      ! GranCan
 
 #elif defined BALTIC
      &                LLm=440, MMm=384, N=32
+
+#elif defined USWC
+c     &    LLm=400,  MMm=512, N=40  ! US West Coast 2010 (L1, 5km)
+c     &    LLm=512,  MMm=400, N=40  ! US West Coast 2010 (L2, 1km)
+c     &    LLm=1120, MMm=560, N=40  ! US West Coast 2010 (L3, 0.25km)
+c     &    LLm=640,  MMm=400, N=32  ! US West Coast 2010 (L4 SMB, 75m)
+     &     LLm=1600, MMm=560, N=32  ! US West Coast 2010 (L4 PV, 75 m)
+
 
 #elif defined USWEST
 # ifdef GRID_LEVEL
@@ -113,8 +118,6 @@ c**  &               LLm=126,  MMm=254, N=20    ! USWEST grid 16
 
 
 # endif
-#elif defined USWC_CENTRAL
-     &               LLm=416, MMm=346, N=42
 #elif defined WAVE_RAD
      &              LLm=384,  MMm=384, N=1
 #else
@@ -130,16 +133,13 @@ c**  &               LLm=126,  MMm=254, N=20    ! USWEST grid 16
 !                                             XI- and ETA-directions;
       integer, parameter ::
 #ifdef MPI
-!     &      NP_XI=10, NP_ETA=24, NSUB_X=1, NSUB_E=1
-!SO_d05     &      NP_XI=16, NP_ETA=18, NSUB_X=1, NSUB_E=1
-     &      NP_XI=8, NP_ETA=36, NSUB_X=1, NSUB_E=1
-!--> Sasha orig     &      NP_XI=2, NP_ETA=2, NSUB_X=2, NSUB_E=13
+     &      NP_XI=8, NP_ETA=32, NSUB_X=1, NSUB_E=3
 #else
 c     &      NSUB_X=4, NSUB_E=40  ! PAC44
 c     &      NSUB_X=8, NSUB_E=80   ! PAC22
-c     &      NSUB_X=4, NSUB_E=1
-c     &      NSUB_X=2, NSUB_E=2
-     &      NSUB_X=6, NSUB_E=24
+     &      NSUB_X=3, NSUB_E=32
+c     &      NSUB_X=1, NSUB_E=4
+c     &      NSUB_X=4, NSUB_E=26  ! <-- 384x128 soliton
 c     &      NSUB_X=4, NSUB_E=52
 c     &      NSUB_X=2, NSUB_E=8  ! <-- iswake 768x192
 c     &      NSUB_X=8, NSUB_E=48

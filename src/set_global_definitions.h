@@ -1,7 +1,7 @@
-/* This is "global_definitions.h":  A set of predetermined definitions
- of CPP-macros which are inserted by CPP during compilation process
- into all other files of the code. General user is strongly discouraged
- from attempts to modify anything below this line.
+/* This is "global_definitions.h":  A set of predetermined CPP macros
+ and switches inserted into other files of the code during compilation
+ process. General user is strongly discouraged from attempts to modify
+ anything below this line.
  ------------------------------------------------------------------ */
 
 /* Turn ON/OFF MPI parallelization. If not activated,the code becomes
@@ -42,16 +42,22 @@ c--#define ALLOW_SINGLE_BLOCK_MODE
 
 /* In the case of CORR_COUPLED_MODE there are two viable options to
  deal with vertically-integrated advection/Coriolis terms in barotropic
- momentum equations: either
-    to compute them at time step "n" AND recompute their barotropic
-    contributions into "rubar", "rvbar" at every fast step;
- or
-    compute at "n+1/2" using AB-extrapolated velocities and keep them
-    constant (do not recompute) during fast-time stepping. */
+ momentum equations: EITHER (1) compute them at time step "n" and
+ recompute their barotropic contributions into "rubar", "rvbar" at
+ every fast step; OR compute at "n+1/2" using AB-like extrapolated
+ velocities and keep them constant (do not recompute) during
+ fast-time stepping. */
 
 #ifdef CORR_COUPLED_MODE
 # define EXTRAP_BAR_FLUXES
 #endif
+
+/* Switch to recompute Coriolis terms in barotropic momentum equations
+ at every barotropic time step.  Applicable to both predictor- and
+ corrector-coupled (including the option with forward extrapolation of
+ barotropic fluxes) modes. */
+
+#define KEEP_CORIOLIS
 
 /* Activation of the first switch of the following two makes computing
  vertical viscous terms as well as implicit part of vertical advection
@@ -64,7 +70,7 @@ c--#define ALLOW_SINGLE_BLOCK_MODE
  whatever latest velocity values available. */
 
 c--# define IMPLICIT_BOTTOM_DRAG
-c--# define IMPLCT_NO_SLIP_BTTM_BC
+# define IMPLCT_NO_SLIP_BTTM_BC
 
 
 /* Take into account nonuniformity of density field in computation of
@@ -73,6 +79,51 @@ c--# define IMPLCT_NO_SLIP_BTTM_BC
  a pure 2D configuration. */
 
 #define VAR_RHO_2D
+
+
+/* Normally, whenever nonlinear EOS is selected, use stiffened and 
+ split form,
+                rho(S,T,z) = rho1(S,T) + qp1(S,T)*[z+qp2*z^2] 
+
+ where all pressure dependency is explicit via "z", while "rho1","qp1"
+ do not depend on pressure (i.e., "z");  "qp2" is just a constant.
+ The above form facilitates computation of adiabatic differences in
+ pressure-gradient scheme, prsgrd32AC1.F, which is critical for its
+ accuracy and robustness.  Overall this follows Shchepetkin and
+ McWilliams (2003, 2011), which in its turn is an adaptation of
+ Dukowicz (2001) and earlier work of Sun, Bleck, Rooth, Dukowicz,
+ Chassignet, and Killworth (1999) with respect to this matter.   */    
+
+#ifdef NONLIN_EOS
+# define SPLIT_EOS
+#endif
+
+
+
+
+/* Enable mathematically seamless restarting procedure from previously
+ saved restart file.   This is done by saving two consecutive steps of
+ model prognostic variables along with few additional fields (coupling
+ terms, hbls/hbbl, etc).  This applies only to 3D configurations and
+ has no effect in pure 2D mode. */
+
+#ifdef SOLVE3D
+# define EXACT_RESTART
+#endif
+
+/* Assign points within the land to special value rather than zero.
+ For RHO-point this means all points where mask_rho == 0.  For U- and
+ V-points this applies only to points which are fully inside, that both
+ RHO-points adjacent to the respective velocity component in upstream
+ and downstream directions are land (if only one land, the other is
+ water, then the velocity point in on the coast line, so its value is
+ still set to zero according to no-normal flow boundary condition).
+*/
+
+#ifdef MASKING
+# define MASK_LAND_DATA
+#endif
+
 
 /* Switch ON/OFF double precision for real type variables (since this
  is mostly controlled by mpc and/or compiler options, this CPP-switch
@@ -120,7 +171,7 @@ c--# define IMPLCT_NO_SLIP_BTTM_BC
 
 /* The following macros contain logical expressions which answer
  the question: ''Am I a thread working on subdomain (tile) which is
- adjacent to WESTERN[EASTERN,SOUTHERN,NORTHERN] edge (i.e., physical
+ adjacent to WESTERN[EASTERN, SOUTHERN, NORTHERN] edge (i.e. physical
  boundary) of the model domain?''  Note that ghost points associated
  with periodicity are NOT considered as physical boundary points by
  these macros. In the case of periodicity and/or MPI-partitioning in
@@ -307,6 +358,21 @@ c--# define IMPLCT_NO_SLIP_BTTM_BC
 #endif
 
 
+/* Computation of global sums uses quad precision real numbers to
+ avoid dependency from order of summation by different CPUs due to
+ roundoff errors. However, not all compilers support quad precision,
+ so it can be conditionally switched on-and-off. */
+
+#if defined DBLEPREC && !defined GCC && !defined __IFC \
+                     && !defined PGI && !defined CRAY
+# define QUAD 16
+# define QuadZero 0.Q0
+/* #  define QuadZero 0.0_16 */
+#else
+# define QUAD 8
+# define QuadZero 0.D0
+#endif
+
 /* Turn ON/OFF double precision for real type variables, associated
  intrinsic functions and netCDF library functions. It should be noted
  that because ROMS relies on compiler options and "mpc" program (see
@@ -314,20 +380,11 @@ c--# define IMPLCT_NO_SLIP_BTTM_BC
  source code, this switch actually does NOT affect the size of real
  data and precision of the computation. Its main effect is to select
  the correct netCDF function (nf_xxxx_double/nf_xxxx_float, see below)
- to work properly, so it must be set consistently with mpc settings and
- compiler flags (if any) according to the intended accuracy.
+ to work properly, so it must be set consistently with mpc settings
+ and compiler flags (if any) according to the intended accuracy.
  Additionally, activate the use QUAD precision for global summation
  variables, which is always desirable, but some compilers do not
  support it.        */
-
-#if defined DBLEPREC && !defined GCC && !defined __IFC && !defined PGI
-# define QUAD 16
-#  define QuadZero 0.Q0
-/* #  define QuadZero 0.0_16 */
-#else
-# define QUAD 8
-# define QuadZero 0.D0
-#endif
 
 #ifdef DBLEPREC
 # define float dble

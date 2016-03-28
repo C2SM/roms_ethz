@@ -28,7 +28,7 @@
       real hmin,hmax, grdmin,grdmax, rx0,rx1, Cg_min,Cg_max, Cu_Cor
       common /comm_vars/ hmin,hmax, grdmin,grdmax, rx0,rx1,
      &                                        Cg_min,Cg_max, Cu_Cor
-      real*4 cpu_all(4)
+      real*4 cpu_all(2)
       integer trd_count, tile_count, bc_count, mcheck, first_time
       common /comm_vars/ cpu_all, trd_count,
      &                   tile_count, bc_count, mcheck, first_time

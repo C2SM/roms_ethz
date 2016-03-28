@@ -23,7 +23,7 @@
       real A2d(N2d,32)
 #ifdef SOLVE3D
       real A3d(N3d,6)
-      integer iA2d(N2d)
+      integer iA2d(N2d,2)
       common /prv_scrch/ A3d, A2d, iA2d
 #else
       common /prv_scrch/ A2d

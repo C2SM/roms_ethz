@@ -31,10 +31,11 @@ CSDISTRIBUTE_RESHAPE rhoA(BLOCK_PATTERN) BLOCK_CLAUSE
 CSDISTRIBUTE_RESHAPE rhoS(BLOCK_PATTERN) BLOCK_CLAUSE
       common /coup_rhoA/rhoA /coup_rhoS/rhoS
 # endif
+
       real r_D(GLOBAL_2D_ARRAY)
 CSDISTRIBUTE_RESHAPE Zt_avg1(BLOCK_PATTERN) BLOCK_CLAUSE
       common /coup_r_D/r_D
-!>
+
       real Zt_avg1(GLOBAL_2D_ARRAY)
 CSDISTRIBUTE_RESHAPE Zt_avg1(BLOCK_PATTERN) BLOCK_CLAUSE
       real DU_avg1(GLOBAL_2D_ARRAY)
@@ -48,7 +49,13 @@ CSDISTRIBUTE_RESHAPE DV_avg2(BLOCK_PATTERN) BLOCK_CLAUSE
       common /coup_Zt_avg1/Zt_avg1
      &       /coup_DU_avg1/DU_avg1 /coup_DV_avg1/DV_avg1
      &       /coup_DU_avg2/DU_avg2 /coup_DV_avg2/DV_avg2
-#endif
 
-
- 
+# ifdef EXTRAP_BAR_FLUXES
+      real DU_avg_bak(GLOBAL_2D_ARRAY)
+CSDISTRIBUTE_RESHAPE DU_avg_bak(BLOCK_PATTERN) BLOCK_CLAUSE
+      real DV_avg_bak(GLOBAL_2D_ARRAY)
+CSDISTRIBUTE_RESHAPE DV_avg_bak(BLOCK_PATTERN) BLOCK_CLAUSE
+      common /coup_DU_avg_bak/DU_avg_bak
+     &       /coup_DV_avg_bak/DV_avg_bak
+# endif
+#endif /* SOLVE3D */ 
