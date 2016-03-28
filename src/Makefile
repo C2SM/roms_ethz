@@ -1,4 +1,4 @@
-# Universal machine independent makefile for ROMS model 
+# Universal machine independent makefile for ROMS model
 #========== ======= =========== ======== === ==== =====
 # Set machine dependent definitions and rules.
 
@@ -10,7 +10,7 @@ include Makedefs.IntelEM64T
 #include Makedefs.p690
 #include Makedefs.PGI_AMD64
 #include Makedefs.Fujitsu
-
+#include Makedefs.Cray
 
 # Configuration for ROMS model:  All source code files are sorted into
 # ------------- --- ---- ------  eight groups separated by blanc lines:
@@ -43,16 +43,15 @@ KRNSRC = main.F		step2D_FB.F	read_inp.F	read_sta_pos.F\
 #mpi_exchange4.F	mpi_exchange8TA.F\
 
 
-IOSRC = nf_fread.F	nf_read_bry.F	set_cycle.F	checkdims.F\
-	insert_node.F	closecdf.F	put_global_atts.F\
-	get_grid.F	get_init.F	wrt_grid.F\
+IOSRC = checkdims.F	find_record.F	insert_node.F	ncdf_read_write.F\
+	get_grid.F	get_init.F	wrt_grid.F	put_global_atts.F\
 	def_rst.F	wrt_rst.F	def_his.F	wrt_his.F\
 	set_avg.F	wrt_avg.F	def_statn.F	wrt_statn.F\
-\
-	get_forces.F	get_bry_all.F	get_tclima.F	get_uclima.F\
-	get_ssh.F	get_smflux.F	get_stflux.F	get_srflux.F\
-	get_sst.F	get_dqdt.F	get_sss.F	get_stress_magn.F\
-	get_tides.F	set_tides.F
+	get_forces.F	get_stflux.F	get_bry_all.F	set_forces.F\
+	set_smflux.F	set_stflux.F	nf_read_bry.F	bulk_flux_COAMS.F\
+	get_tides.F	set_tides.F	set_srflux.F\
+	get_ssh.F	get_tclima.F	get_uclima.F	closecdf.F
+
 
 
 
@@ -102,6 +101,12 @@ $(LROMS): $(OBJS)
 #$(LROMS4): $(SRCS) $(LROMS3)
 #cd 3; make $(LROMS); cd ..
 
+
+check_forces: check_forces.o $(SBIN)
+	cp -pv check_forces.o main.o 	
+	$(LDR) $(FFLAGS) $(LDFLAGS) -o a.out $(OBJS) $(LCDF) $(LMPI)
+	mv a.out check_forces
+
 # Everything
 all: mpc tools depend $(SBIN)
 
@@ -117,7 +122,7 @@ mpi_test: $(MPI_TEST_OBJ)
 
 # Auxiliary utility programs
 # --------- ------- --------
- TOOLS = mpc cppcheck srcscheck checkkwds partit ncjoin ncextract redefs
+ TOOLS = mpc cppcheck srcscheck checkkwds ncextract redefs
 
 tools: $(TOOLS)
 
@@ -128,11 +133,13 @@ mpc: mpc.F Makefile
 	$(CFT) $(FFLAGS) $(LDFLAGS) -o mpc $(TMP)/mpc.f
 #	/bin/rm -rf $(TMP)/mpc.f
 
-partit: partit.o insert_node.o lenstr.o
-	$(CFT) $(FFLAGS) $(LDFLAGS) -o partit partit.o insert_node.o lenstr.o $(LCDF)
+partit_t.f: partit.F
+	$(CPP) -P $(CPPFLAGS) -DTRANSPOSED_MPI_NODE_ORDER partit.F| mpc > partit_t.f
+partit_t: partit_t.f insert_node.o lenstr.o
+	$(CFT) $(FFLAGS) $(LDFLAGS) -o partit_t partit_t.f insert_node.o lenstr.o $(LCDF)
 
-ncjoin: ncjoin.o lenstr.o
-	$(CFT) $(FFLAGS) $(LDFLAGS) -o ncjoin ncjoin.o lenstr.o $(LCDF)
+partit: partit_t partit.o insert_node.o lenstr.o
+	$(CFT) $(FFLAGS) $(LDFLAGS) -o partit partit.o insert_node.o lenstr.o $(LCDF)
 
 ncextract: ncextract.o
 	$(CFT) $(FFLAGS) $(LDFLAGS) -o ncextract ncextract.o
@@ -160,7 +167,7 @@ check_srcs.F: srcscheck Makefile
 setup_kwds.F: checkkwds read_inp.F
 	./checkkwds
 
-depend:  # Note: cross_matrix is external here and should be in path 
+depend:  # Note: cross_matrix is external here and should be in path
 	cross_matrix *.F
 
 plotter: plotter.o
@@ -174,15 +181,17 @@ tarfile: clean
 # Cleaning targets
 # -------- -------
 clean:
-	/bin/rm -rf *.f *.o *.a *.s *.trace *~ $(COMP_FILES) 
+	/bin/rm -rf *.f *.o *.a *.s *.trace *~ $(COMP_FILES)
 allclean: clean
 	cd 2; make -f ./Makefile clean; cd ..
 	cd 3; make -f ./Makefile clean; cd ..
 	cd 4; make -f ./Makefile clean; cd ..
+
 clobber: clean
 	/bin/rm -f check_switches1.F setup_kwds.F check_srcs.F
 	/bin/rm -f $(SBIN) $(TOOLS) nsub
 	/bin/rm -f core core.*
+	/bin/rm -f *_genmod.mod *_genmod.f90
 
 # Automatically generated dependency list:
 
