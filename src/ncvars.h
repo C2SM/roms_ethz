@@ -357,15 +357,15 @@
 !
 ! vname    character array for variable names and attributes;
 
-      integer, parameter :: max_frc_file=8
-      integer max_frc, ncfrc(max_frc_file), nrst,  ncrst,   nrecrst,
+      integer, parameter :: max_frc_files=360
+      integer max_frc, ncfrc(max_frc_files), nrst,  ncrst,   nrecrst,
      &      nrrec, nrpfrst, ncidclm, nwrt,  nchis, nrechis, nrpfhis
 
 #if defined BIOLOGY_BEC || defined BIOLOGY_BEC2
      &     , ntdust, ntiron
 #endif
 #ifdef TSOURCE
-      integer ncidtsrc(max_frc_file)
+      integer ncidtsrc(max_frc_files)
 #endif
       common /ncvars/       max_frc, ncfrc, nrst,  ncrst,   nrecrst,
      &      nrrec, nrpfrst, ncidclm, nwrt,  nchis, nrechis, nrpfhis
@@ -396,17 +396,24 @@
       common /ncvars/ nflt
 #endif
 
-! NetCFD ids for model variables
+! NetCFD IDs for model variables
 
-      integer rstTime, rstTstep,      rstZ,   rstUb,  rstVb,
-     &        hisTime, hisTstep,      hisZ,   hisUb,  hisVb
+      integer rstTime, rstTstep,  rstZ, rstUb, rstVb,
+     &        hisTime, hisTstep,  hisZ, hisUb, hisVb
       common /ncvars/
-     &        rstTime, rstTstep,      rstZ,   rstUb,  rstVb,
-     &        hisTime, hisTstep,      hisZ,   hisUb,  hisVb
+     &        rstTime, rstTstep,  rstZ, rstUb, rstVb,
+     &        hisTime, hisTstep,  hisZ, hisUb, hisVb
 #ifdef SOLVE3D
 # ifdef EXACT_RESTART
-      integer rst_DU_avg2, rst_DV_avg2
-      common /ncvars/ rst_DU_avg2, rst_DV_avg2
+#  ifdef EXTRAP_BAR_FLUXES
+      integer rst_DU_avg2,    rst_DV_avg2,
+     &        rst_DU_avg_bak, rst_DV_avg_bak
+      common /ncvars/ rst_DU_avg2,    rst_DV_avg2,
+     &                rst_DU_avg_bak, rst_DV_avg_bak
+#  elif defined PRED_COUPLED_MODE
+      integer rst_rufrc, rst_rvfrc
+      common /ncvars/ rst_rufrc, rst_rvfrc
+#  endif
 # endif
       integer rstU, rstV, rstT(NT+1), hisO,   hisW,   hisR,
      &        hisU, hisV, hisT(NT+1), hisAkv, hisAkt, hisAks 
@@ -584,17 +591,9 @@
 #endif
 
 
-! Grid Type Codes:  r2dvar....w3hvar are codes for netCDF array types
-!----- ---- ------  which are set according to the rule:
-!
-!              type = horiz_grid_type + 4*vert_grid_type
-!
-! where horiz_grid_type=0,1,2,3 for RHO-,U-,V-,PSI-points respectively,
-! and vert_grid_type=0 for 2D fields; 1 for vertical RHO-points, 2 for
-! vertical W-points.
+! Horizontal Grid Type Codes =  0,1,2,3 for RHO-, U-, V-, PSI-points
 
-      integer, parameter :: r2dvar=0, u2dvar=1, v2dvar=2, p2dvar=3,
-     &            r3dvar=4, u3dvar=5, v3dvar=6, p3dvar=7, w3dvar=8
+      integer, parameter :: r_var=0, u_var=1, v_var=2, q_var=3
 
 !            Horizontal array dimensions in netCDF files. In the case
 ! xi_rho     of MPI code with PARALLEL_FILES activated these dimensions
@@ -613,10 +612,10 @@
 
       integer, parameter :: max_name_size=256
       character date_str*44, title*80
-      character(len=max_name_size) ininame, grdname,
-     &                 hisname, rstname, frcfile(max_frc_file)
-      common /cncvars/ date_str, title,  ininame,
-     &        grdname, hisname, rstname, frcfile
+      character(len=max_name_size) :: ininame, grdname, rstname,
+     &                             hisname, frcfile(max_frc_files)
+      common /cncvars/ date_str, title, ininame, grdname, rstname,
+     &                                           hisname, frcfile
 #ifdef AVERAGES
       character(len=max_name_size) avgname
       common /cncvars/ avgname
@@ -626,19 +625,15 @@
 # endif
 #endif
 #if (defined TCLIMATOLOGY && !defined ANA_TCLIMA) || !defined ANA_SSH
-# ifdef MULT_CLIM_FILES
-      integer, parameter :: max_clm_files=2
-      integer nclimfiles
+      integer, parameter :: max_clm_files=30
+      integer max_clm
       character(len=max_name_size) clm_file(max_clm_files)
-      common /cncvars/ nclimfiles, clm_file
-# else
-      character(len=max_name_size) clm_file
-      common /cncvars/ clm_file
-# endif /* MULT_CLIM_FILES */
+      common /cncvars/ max_clm, clm_file
 #endif /* (defined TCLIMATOLOGY && ... */
 #if defined T_FRC_BRY  || defined M2_FRC_BRY || \
     defined M3_FRC_BRY || defined Z_FRC_BRY
-      character(len=max_name_size) bry_file
+      integer, parameter :: max_bry_files=8
+      character(len=max_name_size) bry_file(max_bry_files)
       common /cncvars/ bry_file
 #endif
 

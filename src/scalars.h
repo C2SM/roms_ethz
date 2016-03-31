@@ -6,10 +6,10 @@
 ! cache line despite their mixed type, so that only one cache line is
 ! being invalidated and has to be propagated accross the multi-CPU
 ! machine.
-! Variables "proc" and "cpu_time" hold thread number and process IDs
-! for individual threads and to measure CPU time consumed by each of
-! them during the whole model run (these are for purely diagnostic and
-! performance measurements and do not affect the model results.)
+! Array "proc" holds thread number and process IDs for individual
+! threads; "cpu_init", "cpu_end" to measure CPU time consumed by each
+! thread during the whole model run (these are for purely diagnostic
+! and performance measurements and do not affect the model results.)
 !
 ! Note that real values are placed first into the common block before
 ! integers. This is done to prevent misallignment of the 8-byte
@@ -20,7 +20,7 @@
 ! make compiler issue a warning message (Sun, DEC Alpha) or even
 ! crash (Alpha).
 
-      real*4 cpu_time(4)
+      real*4 cpu_init, cpu_net
       real WallClock, time, tdays
       integer proc(2), numthreads, iic, kstp, knew
 #ifdef SOLVE3D
@@ -31,8 +31,8 @@
 #endif
      &                           , priv_count(16)
       logical synchro_flag, diag_sync
-      common /priv_scalars/  WallClock, cpu_time,   proc,
-     &         time, tdays, numthreads, iic,  kstp, knew
+      common /priv_scalars/ WallClock, cpu_init, cpu_net,
+     &   proc, time, tdays, numthreads, iic,  kstp, knew
 #ifdef SOLVE3D
      &                           , iif, nstp, nnew, nrhs
 #endif
@@ -45,21 +45,21 @@ C$OMP THREADPRIVATE(/priv_scalars/)
 ! Slowly changing variables: these are typically set in the beginning
 ! of the run and either remain unchanged, or are changing only in
 ! association with the I/0.
-!
+
 ! dt       Time step for 3D primitive equations [seconds];
 ! dtfast   Time step for 2D (barotropic) mode [seconds];
-!
-! xl, el   Physical size (m) of domain box in the XI-,ETA-directions.
-!
+
+! xl, el   Physical size[m] of the domain in XI- and ETA-directions
+
 ! rdrg,rdrg2    Linear and quadratic bottom drag coefficients.
 ! gamma2   Slipperiness parameter, either 1. (free-slip)
-!
+
 ! ntstart  Starting timestep in evolving the 3D primitive equations;
 !                              usually 1, if not a restart run.
 ! ntimes   Number of timesteps for the 3D primitive equations in
 !                                                    the current run.
 ! ndtfast  Number of timesteps for 2-D equations between each "dt".
-!
+
 ! nrst     Number of timesteps between storage of restart fields.
 ! nwrt     Number of timesteps between writing of fields into
 !                                                     history file.
@@ -104,15 +104,30 @@ C$OMP THREADPRIVATE(/priv_scalars/)
       real v_sponge
       common /scalars_main/ n_sponge, v_sponge
 #endif
+
+# if defined OBC_M2ORLANSKI && ( defined M2_FRC_BRY \
+                               || defined M2NUDGING )
+      real attnM2
+      common /scalars_main/ attnM2
+# endif
+
+
+
 #if  defined T_FRC_BRY || defined M2_FRC_BRY || defined TNUDGING \
   || defined Z_FRC_BRY || defined M3_FRC_BRY || defined M2NUDGING \
                                              || defined M3NUDGING
-      real tauM2_in, tauM2_out, attnM2
-      common /scalars_main/ tauM2_in, tauM2_out, attnM2
+      real ubind
+      common /scalars_main/ ubind
+
+
+/* --> OBSOLETE
+      real tauM2_in, tauM2_out
+      common /scalars_main/ tauM2_in, tauM2_out
 # ifdef SOLVE3D
       real tauM3_in, tauM3_out,  tauT_in, tauT_out
       common /scalars_main/ tauM3_in,tauM3_out, tauT_in,tauT_out
 # endif
+*/
 #endif
 !DL: variables for varying atm pCO2:
 #if defined BIOLOGY_BEC || defined BIOLOGY_BEC2 || defined BIOLOGY_NPZDOC

@@ -35,11 +35,11 @@
 ! Created by Alexander Shchepetkin <alex@atmos.ucla.edu> on May 2000.
 
       implicit none
-      integer, parameter :: max_str_size=512,  max_switches=1024,
-     &                      iin=11, iout=12,  nwords=16
+      integer, parameter :: max_str_size=512, max_switches=1024,
+     &                      iin=11, iout=12, nwords=16
 
       character(len=max_str_size) string
-      character(len=32) fname(4), switch(max_switches)
+      character(len=64) fname(4), switch(max_switches)
       integer nfiles, nswtchs,   nexample,nstdpth, fswtch(8),
      &        ifile,  ierr, i,k, is, istr(nwords), size(max_switches),
      &        count,  lstr,ln,n, ie, iend(nwords), line(max_switches)
@@ -52,14 +52,12 @@
 ! starting with version 8.x IFORT recognizes it as intrinsic. Portland
 ! Group PGF compiler also needs it to be declared.
 
-#if defined XLF || defined PGI
+#ifdef INT_IARGC
       integer iargc
 #endif
-      example=.true.
-      nexample=0                ! Initialize catalog: reset/blank out
-      nswtchs=0                 ! all counters, arrays of macro names,
-      fswtch(1)=1               ! and name sizes.
-      do i=1,max_switches
+      example=.true. ; nswtchs=0     ! Initialize catalog: reset/blank
+      nexample=0     ; fswtch(1)=1   ! out all counters, arraysof macro
+      do i=1,max_switches            ! names, and name sizes.
         size(i)=0
         switch(i)='                                '
       enddo     !  12345678901234567890123456789012
@@ -72,7 +70,7 @@
         stop
       endif
 
-       write(*,'(/1x,2A/)') 'This is cppcheck: Creating new',
+       write(*,'(/1x,2A/)') 'This is cppcheck: Creating new ',
      &                      'version of "check_switches1.F".'
       do ifile=1,nfiles
         call getarg(ifile,fname(ifile))
@@ -81,15 +79,15 @@
         ierr=0
         count=0                 ! Reset error flag, line counter and,
         nstdpth=0               ! nesting depth counter of CPP #ifdefs.
-        do while (ierr==0)    ! Blank-out "string", then read in a
+        do while (ierr==0)      ! Blank-out "string", then read in a
           count=count+1         ! line from input file, ignore all
           do i=1,max_str_size   ! lines, which do not start with #,
            string(i:i)=' '      ! otherwise find length of the string
           enddo
           read(iin,'(A)',iostat=ierr) string
-          if (string(1:1)=='#') then
+          if (string(1:1) == '#') then
             lstr=max_str_size
-            do while(string(lstr:lstr)==' ' .and. lstr>1)
+            do while(string(lstr:lstr) == ' ' .and. lstr > 1)
               lstr=lstr-1
             enddo               ! (position right-most non-blank)
 
@@ -98,14 +96,11 @@
             n=0     ! <-- reset counter of comments within the string.
             comment=.false.
             i=1
-            do while (i<lstr)
+            do while(i < lstr)
               if (.not.comment .and. string(i:i+1)=='/*') then
-                comment=.true.
-                n=n+1
-                istr(n)=i
+                comment=.true. ; n=n+1 ; istr(n)=i
               elseif (comment  .and. string(i:i+1)=='*/') then
-                comment=.false.
-                iend(n)=i+1
+                comment=.false.        ; iend(n)=i+1
               endif
               i=i+1
             enddo
@@ -120,14 +115,15 @@
               enddo
             enddo                         ! Suppress special characters
             do i=1,lstr
-c*            if (string(i:i)=='(' .or. string(i:i)==')' .or.
-c*   &            string(i:i)=='&' .or. string(i:i)=='|'  .or.
-c*   &            string(i:i)=='!' .or. ichar(string(i:i))==9)
+c*            if (string(i:i) == '(' .or. string(i:i) == ')' .or.
+c*   &            string(i:i) == '&' .or. string(i:i) == '|'  .or.
+c*   &            string(i:i) == '!' .or. ichar(string(i:i)) == 9)
 c*   &          string(i:i)=' '
                                           ! Character 9 is TaB symbol.
               k=ichar(string(i:i))
-              if ( k<48 .or. (k>57.and.k<65) .or. (k>90
-     &       .and.k<95) .or. k==96 .or. k>122 ) string(i:i)=' '
+              if ( k < 48 .or. (k > 57 .and. k < 65) .or.
+     &            (k > 90 .and. k < 95) .or. k == 96 .or.
+     &                         k > 122 ) string(i:i)=' '
             enddo
 
 ! Identify words within the string, find positions of starting and
@@ -138,15 +134,12 @@ c*   &          string(i:i)=' '
             n=0       ! <-- reset counter of words within the string.
             word=.false.
             i=1
-            do while(i<lstr)
+            do while(i < lstr)
               i=i+1
-              if (string(i:i)/=' ' .and. .not.word) then
-                word=.true.
-                n=n+1
-                istr(n)=i
-              elseif (string(i:i)==' ' .and.  word) then
-                word=.false.
-                iend(n)=i-1
+              if (string(i:i) /= ' ' .and. .not.word) then
+                word=.true. ;  n=n+1 ; istr(n)=i
+              elseif (string(i:i) == ' ' .and.  word) then
+                word=.false.         ; iend(n)=i-1
               endif
             enddo
             if (word) iend(n)=i
@@ -164,35 +157,28 @@ c**         enddo
               ln=ie-is+1
               status=.false.
 
-              if (ln==6 .and. string(is:ie)=='define') then
+              if (ln == 6 .and. string(is:ie) == 'define') then
+                command=.true. ; status=.true.
+              elseif (ln == 5 .and. string(is:ie) == 'undef') then
                 command=.true.
-                status=.true.
-              elseif (ln==5 .and. string(is:ie)=='undef') then
-                command=.true.
-              elseif (ln==2 .and. string(is:ie)=='if') then
-                command=.true.
-                example=.false.
+              elseif (ln == 2 .and. string(is:ie) == 'if') then
+                command=.true. ; example=.false.
                 nstdpth=nstdpth+1
-              elseif (ln==5 .and. string(is:ie)=='ifdef') then
-                command=.true.
-                example=.false.
+              elseif (ln == 5 .and. string(is:ie) == 'ifdef') then
+                command=.true. ; example=.false.
                 nstdpth=nstdpth+1
-              elseif (ln==7 .and. string(is:ie)=='defined') then
-                command=.true.
-                example=.false.
-              elseif (ln==4 .and. string(is:ie)=='elif') then
-                command=.true.
-                example=.false.
-              elseif (ln==4 .and. string(is:ie)=='else') then
+              elseif (ln == 7 .and. string(is:ie) == 'defined') then
+                command=.true. ; example=.false.
+              elseif (ln == 4 .and. string(is:ie) == 'elif') then
+                command=.true. ; example=.false.
+              elseif (ln == 4 .and. string(is:ie) == 'else') then
 
-              elseif (ln==5 .and. string(is:ie)=='endif') then
+              elseif (ln == 5 .and. string(is:ie) == 'endif') then
                 nstdpth=nstdpth-1
-
-              elseif (ln==7 .and. string(is:ie)=='include') then
+              elseif (ln == 7 .and. string(is:ie) == 'include') then
 
               elseif (command) then
-                command=.false.
-                macro(k)=.true.
+                command=.false. ;  macro(k)=.true.
 c**           elseif (string(istr(1):iend(1)) /= 'include') then
 c**             write (*,'(6x,A,1x,A,1x,I4,A1/8x,A)')    '### ERROR: ',
 c**  &        'Unknown CPP-command on line', count, ':', string(is:ie)
@@ -211,13 +197,13 @@ c**         enddo
                 is=istr(k)                ! found in the present line.
                 ie=iend(k)                ! If no match is found, add
                 ln=ie-is+1
-                if (ifile>1 .and. nstdpth>0) then
+                if (ifile > 1 .and. nstdpth > 0) then
                   new=.false.
                 else                      ! the new switch to catalog.
                   new=.true.
                   do i=fswtch(ifile),nswtchs
-                    if (ln==size(i)) then
-                     if (string(is:ie)==switch(i)(1:ln)) new=.false.
+                    if (ln == size(i)) then
+                     if (string(is:ie) == switch(i)(1:ln)) new=.false.
                     endif
                   enddo                   ! Note that CPP-switches
                 endif                     ! found prior to the first
@@ -231,7 +217,7 @@ c**         enddo
                 endif
               endif                       ! configurations (these
             enddo                         ! switches are considered
-          endif  !<-- string(1:1)=='#'  ! to be main configuration
+          endif  !<-- string(1:1) == '#'  ! to be main configuration
         enddo  !<-- while                 ! switches, so only one of
         close(unit=iin)                   ! the is allowed to be
         fswtch(ifile+1)=nswtchs+1         ! defined.)
@@ -250,7 +236,7 @@ c**         enddo
 
       open (unit=iout,file='check_switches1.F',form='formatted')
       write(iout,'(A/)')  '#include "cppdefs.h"'
-      write(iout,'(/6x,A/)') 'subroutine check_switches1 (ierr)'
+      write(iout,'(/6x,A/)') 'subroutine check_switches1(ierr)'
       write(iout,'(4(A,1x,A/),A,14x,A/A,1x,A,3x,A/A,14x,A/A,22x,A)')
      &  '!!!!!! WARNING: THIS IS A MACHINE GENERATED',
      &                                   'CODE, DO NOT EDIT! !!!!!!',
@@ -279,62 +265,58 @@ c**         enddo
         write(iout,'(A/A,1x,A/A)') '!', '!', fname(ifile), '!'
 
         ln=32
-        do while(fname(ifile)(ln:ln)==' ')
+        do while(fname(ifile)(ln:ln) == ' ')
           ln=ln-1
         enddo
 c**     write(iout,'(6x,4A)') 'mpi_master_only write(*,''(1x,A)'') ',
 c**  &                              '''<', fname(ifile)(1:ln), '>'''
 
-        if (ifile>1) then
-          write(iout,'(6x,A)') 'is=ie+2'
+        if (ifile == 1) then
+          if (ln > 8) then
+             write(iout,'(6x,A,I2)')   'is=1 ; ie=is+', ln+1
+          else
+             write(iout,'(6x,A,I1)')   'is=1 ; ie=is+', ln+1
+          endif
         else
-          write(iout,'(6x,A)') 'is=1'
-        endif
-        if (ln>8) then
-           write(iout,'(6x,A,I2)') 'ie=is+', ln+1
-        else
-           write(iout,'(6x,A,I1)') 'ie=is+', ln+1
+          if (ln > 8) then
+             write(iout,'(6x,A,I2)') 'is=ie+2 ; ie=is+', ln+1
+          else
+             write(iout,'(6x,A,I1)') 'is=ie+2 ; ie=is+', ln+1
+          endif
         endif
 
         write(iout,'(6x,A/6x,3A/6x,A/6x,A)')
-     &             'if (ie>=max_opt_size) goto 99',
+     &             'if (ie >= max_opt_size) goto 99',
      &             'cpps(is:ie)=''<', fname(ifile)(1:ln), '>''',
      &             'cpps(ie+1:ie+1)='' '''
        print*,'ifile= ',ifile,' fswitch(ifile)=',fswtch(ifile)
 
         do i=fswtch(ifile),fswtch(ifile+1)-1
           ln=size(i)
-          if (ifile==1) then
-            write(iout,'(A,1x,A)') '#ifdef', switch(i)(1:ln)
-          endif
-          !if (ifile==1 .or. state(i)) then
-            if (i<=nexample) then
-              write(iout,'(6x,A)') 'iexample=iexample+1'
-            endif
-            write(iout,'(6x,A)') 'is=ie+2'
-            if (ln>10) then
-               write(iout,'(6x,A,I2)') 'ie=is+', ln-1
+          if (ifile == 1) write(iout,'(A,1x,A)') '#ifdef',
+     &                                        switch(i)(1:ln)
+          if (ifile == 1 .or. state(i)) then
+            if (i <= nexample) write(iout,'(6x,A)')
+     &                                 'iexample=iexample+1'
+            if (ln > 10) then
+              write(iout,'(6x,A,I2)') 'is=ie+2 ; ie=is+', ln-1
             else
-               write(iout,'(6x,A,I1)') 'ie=is+', ln-1
+              write(iout,'(6x,A,I1)') 'is=ie+2 ; ie=is+', ln-1
             endif
             write(iout,'(6x,A/6x,3A/6x,A)')
-     &                 'if (ie>=max_opt_size) goto 99',
+     &                 'if (ie >= max_opt_size) goto 99',
      &                 'cpps(is:ie)=''', switch(i)(1:ln), '''',
      &                 'cpps(ie+1:ie+1)='' '''
-          !endif
-          if (ifile==1) then
-            write(iout,'(A)')  '#endif'
           endif
+          if (ifile == 1) write(iout,'(A)')  '#endif'
         enddo
       enddo
 
-#define MULTI_CPPDEFS
-#ifndef MULTI_CPPDEFS
-      write(iout,'(6x,A/8x,A/5x,A1,1x,A/8x,A)')
-     &      'if (iexample==0) then',
+      write(iout,'(6x,A/8x,A/5x,A1,1x,A/8x,A/6x,A)')
+     &      'if (iexample == 0) then',
      &      'mpi_master_only write(*,''(/1x,A)'')', '&',
      & '''### ERROR in "cppdefs.h": no configuration is specified.''',
-     &      'ierr=ierr+1',  'elseif (iexample>1) then'
+     &      'ierr=ierr+1',  'elseif (iexample > 1) then'
       write(iout,'(8x,A/5x,A1,2x,A/5x,A1,13x,A/8x,A/6x,A/6x,A)')
      &      'mpi_master_only write(*,''(/1x,2A/)'')', '&',
      &      '''### ERROR: More than one main configuration '',', '&',
@@ -349,5 +331,4 @@ c**  &                              '''<', fname(ifile)(1:ln), '>'''
      &                    '''Increase the size it and recompile.'''
       write(iout,'(6x,A,2(/6x,A))') 'ierr=ierr+1', 'return', 'end'
       close(unit=iout)
-      stop
       end

@@ -24,78 +24,76 @@
 # define jnorth Mm
 #endif
 
-      integer istrR,iendR,jstrR,jendR
-      if (istr==iwest) then
-# ifdef EW_PERIODIC
+      integer istrR,iendR
+#ifndef XI_ONLY
+     &        , jstrR,jendR
+#endif
+
+      if (istr == iwest) then
+#ifdef EW_PERIODIC
         istrR=istr-2
-# else
-#  ifdef MPI
+#elif defined MPI
         if (WEST_EXCHNG) then
           istrR=istr-2
         else
           istrR=istr-1
         endif
-#  else
+#else
         istrR=istr-1
-#  endif
-# endif
+#endif
       else
         istrR=istr
       endif
 
-      if (iend==ieast) then
-# ifdef EW_PERIODIC
+      if (iend == ieast) then
+#ifdef EW_PERIODIC
         iendR=iend+2
-# else
-#  ifdef MPI
+#elif defined MPI
         if (EAST_EXCHNG) then
           iendR=iend+2
         else
           iendR=iend+1
         endif
-#  else
+#else
         iendR=iend+1
-#  endif
-# endif
+#endif
       else
         iendR=iend
       endif
 
-      if (jstr==jsouth) then
+#ifndef XI_ONLY
+      if (jstr == jsouth) then
 # ifdef NS_PERIODIC
         jstrR=jstr-2
-# else
-#  ifdef MPI
+# elif defined MPI
         if (SOUTH_EXCHNG) then
           jstrR=jstr-2
         else
           jstrR=jstr-1
         endif
-#  else
+# else
         jstrR=jstr-1
-#  endif
 # endif
       else
         jstrR=jstr
       endif
 
-      if (jend==jnorth) then
+      if (jend == jnorth) then
 # ifdef NS_PERIODIC
         jendR=jend+2
-# else
-#  ifdef MPI
+# elif defined MPI
         if (NORTH_EXCHNG) then
           jendR=jend+2
         else
           jendR=jend+1
         endif
-#  else
+# else
         jendR=jend+1
-#  endif
 # endif
       else
         jendR=jend
       endif
+#endif
 
 #ifndef MPI
 # undef iwest

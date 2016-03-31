@@ -47,10 +47,9 @@
 # must be specified.
 
 
- #sasha: OMP_FLAG = -fpp2 -openmp
- OMP_FLAG = 
+# OMP_FLAG = -fpp -openmp
 
- LARGE_MEM_FLAG = -mcmodel=medium -i-dynamic
+# LARGE_MEM_FLAG = -mcmodel=medium -i-dynamic
 
 
 #   CFTFLAGS = -pc80 -xSSE2 -auto -stack_temps
@@ -60,14 +59,15 @@
    CFTFLAGS = -pc80 -auto -stack_temps # -warn unused
 
 
-      #mm Euler: CFT = ifort $(OMP_FLAG) $(CFTFLAGS) $(LARGE_MEM_FLAG)
-      #mm workstations, ch4:
+      #mm 
       CFT = mpif90 $(OMP_FLAG) $(CFTFLAGS) $(LARGE_MEM_FLAG)
-#--> Sasha2015 openMP      LDR = $(CFT)
+# sasha2016:      CFT = ifort $(OMP_FLAG) $(CFTFLAGS) $(LARGE_MEM_FLAG)
+#      LDR = $(CFT)
      LDR = mpif90 $(OMP_FLAG) $(CFTFLAGS) $(LARGE_MEM_FLAG)
 
 
 #   FFLAGS = -O3 -IPF_fma -ip 
+# -qopt-report=5 -qopt-report-phase=vec
 
    FFLAGS =  -O3 -fp-model source
 
@@ -75,8 +75,10 @@
 #  FFLAGS =  -O2 -fp-model strict
 # -prof_gen
 
-#  FFLAGS = -g -check all -CA -CB -CS
-#  FFLAGS = -g -check arg_temp_created,bounds,pointers,uninit,format,output_conversion
+# FFLAGS = -g -check all -CA -CB -CS
+# FFLAGS = -g -check arg_temp_created,bounds,pointers,uninit,format,output_conversion
+# FFLAGS = -warn all -g -check arg_temp_created,bounds,pointers,uninit,format,output_conversion
+
 
 #  FFLAGS = -O1
 

@@ -890,8 +890,9 @@ c??         enddo
 # include "param.h"
 # include "strings.h"
       ie=lenstr(cpps)
-      is=ie+2 ; ie=is+15
-      if (ie > max_opt_size) goto 99
+      is=ie+2
+      ie=is+15
+      if (ie>max_opt_size) goto 99
       cpps(is:ie)='<step3d_t_ISO.F>'
 
 # include "track_advec_switches.h"
@@ -901,6 +902,7 @@ c??         enddo
      &  'Insufficient length of string "cpps" in file "strings.h".',
      &        'Increase parameter "max_opt_size" it and recompile.'
       ierr=ierr+1
+      return
       end
 #else
       subroutine step3d_t_empty

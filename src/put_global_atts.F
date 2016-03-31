@@ -48,7 +48,7 @@
 ! code, typically double precision, while all others can be made
 ! single precision.
 
-      if (ncid==ncrst) then
+      if (ncid == ncrst) then
         nf_ftype=NF_FTYPE
       else
         nf_ftype=NF_FOUT
@@ -79,7 +79,7 @@
 
       lvar=lenstr(title)
       ierr=nf_put_att_text(ncid, nf_global, 'title',   lvar,
-     &                                         title(1:lvar))
+     &                                        title(1:lvar))
 
 c      lvar=lenstr(date_str)
 c      ierr=nf_put_att_text(ncid, nf_global, 'date',    lvar,
@@ -110,7 +110,7 @@ c     &                                       fltname(1:lvar))
 c      lvar=lenstr(fposnam)
 c      ierr=nf_put_att_text(ncid, nf_global, 'fpos_file',lvar,
 c     &                                       fposnam(1:lvar))
-      if (ncid==ncidflt) then
+      if (ncid == ncidflt) then
 # ifdef FLOATS_GLOBAL_ATTRIBUTES
         do i=1,i_floats
           tempreal(i)=Ft0(i)
@@ -226,6 +226,8 @@ c     &                                       aparnam(1:lvar))
 #ifdef SOLVE3D
 # ifdef VERT_COORD_TYPE_SM09
       ierr=nf_put_att_text(ncid, nf_global, 'VertCoordType', 4, 'SM09')
+# elif defined VERT_COORD_TYPE_KAU
+      ierr=nf_put_att_text(ncid, nf_global, 'VertCoordType', 4, 'KAU')
 # elif defined VERT_COORD_TYPE_SH94
       ierr=nf_put_att_text(ncid, nf_global, 'VertCoordType', 4, 'SH94')
 # endif

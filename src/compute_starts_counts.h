@@ -32,19 +32,16 @@
 ! array index must always start from 1, while Fortran does not);
 ! Fortran array dimension padding; and stripping
 ! periodic/computational margins.
-!
-      integer imin,imax,jmin,jmax,  vert_type, horiz_type,
-     &                              start(4), count(4)
 
-      vert_type=type/4              ! Decode grid type into vertical
-      horiz_type=type-4*vert_type   ! and horizontal grid types, then
-      jmin=horiz_type/2             ! calculate starting indices in
-      imin=horiz_type-2*jmin        ! horizontal directions.
+      integer imin,imax,jmin,jmax, start(4),count(4)
+
+      jmin=horiz_type/2             ! calculate starting indices
+      imin=horiz_type-2*jmin        ! in horizontal directions.
 
       ierr=0            ! These are default settings. In all cases
-      do i=1,4          ! start,count(1:2) correspond to XI- and
-        start(i)=1      ! ETA-dimensions, while index 3 is for either
-        count(i)=1      ! vertical dimension (if any) or time record
+      do i=1,4          ! start,count(1:2) correspond to XI- and ETA-
+        start(i)=1      ! dimensions, while 3 is either for vertical
+        count(i)=1      ! dimension (if any) or for time record
       enddo             ! (2D-fields); 4 is for time record only
 
 #ifdef MPI
@@ -81,14 +78,9 @@
       count(1)=imax-imin+1
       count(2)=jmax-jmin+1
 
-      if (vert_type==0) then             ! Sort out vertical grids:
-        start(3)=record                  !<-- 2D field variables
-      elseif (vert_type==1) then
-        count(3)=N                       !<-- 3D RHO-grid
-        start(4)=record
-      elseif (vert_type==2) then
-        count(3)=N+1                     !<-- 3D W-grid
+      if (nmax > 1) then
+        count(3)=nmax
         start(4)=record
       else
-        ierr=ierr+1
+        start(3)=record
       endif

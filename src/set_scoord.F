@@ -29,7 +29,7 @@
      &                        'at hc    half way     at hmax'
       do k=N,0,-1
         sc=ds*dble(k-N)
-# ifdef VERT_COORD_TYPE_SM09
+# if defined VERT_COORD_TYPE_SM09 || defined VERT_COORD_TYPE_KAU
         z1=hmin*(hc*sc + hmin*Cs_w(k))/(hc+hmin)
         zhc=0.5*hc*(sc + Cs_w(k))
         z2=0.5*hmax*(hc*sc + 0.5*hmax*Cs_w(k))/(hc+0.5*hmax)
@@ -48,11 +48,11 @@
      &                              k, ds*(k-N),Cs_w(k), z1,    z2,z3
         endif
       enddo
-# ifndef VERT_COORD_TYPE_SM09
+# if ! defined VERT_COORD_TYPE_SM09 && ! defined VERT_COORD_TYPE_KAU
       if (hc > hmin) then
         write(*,'(/1x,2A,F7.2/26x,A,F7.2/)') '### ERROR: set_scoord ',
      &         ':: Specified S-coordinate critical depth  hc   =', hc,
-     &          'exceeds minimum unmasked topography.   hmin =', hmin
+     &          'exceeds minimum unmasked topography.  hmin =', hmin
         may_day_flag=9
             endif
 # endif
@@ -69,7 +69,7 @@
  
 
 
-# ifdef VERT_COORD_TYPE_SM09
+# if defined VERT_COORD_TYPE_SM09 || defined VERT_COORD_TYPE_KAU
                                               ! Note that mathematical
       function CSF(sc, theta_s,theta_b)       ! limits of csrf,CSF for
       implicit none                           ! theta_s, theta_b --> 0
@@ -146,30 +146,31 @@
       end
 # endif
 
-      subroutine check_scoord_switches (ierr)
+      subroutine check_scoord_switches(ierr)
       implicit none
       integer ierr, is,ie, lenstr
 # include "param.h"
 # include "strings.h"
       ie=lenstr(cpps)
-      is=ie+2
-      ie=is+10
+      is=ie+2 ; ie=is+10
       if (ie > max_opt_size) goto 99
       cpps(is:ie)='<scoord.h>'
 # ifdef VERT_COORD_TYPE_SM09
-      is=ie+2
-      ie=is+19
+      is=ie+2 ; ie=is+19
       if (ie > max_opt_size) goto 99
       cpps(is:ie)='VERT_COORD_TYPE_SM09'
+# endif
+# ifdef VERT_COORD_TYPE_KAU
+      is=ie+2 ; ie=is+18
+      if (ie > max_opt_size) goto 99
+      cpps(is:ie)='VERT_COORD_TYPE_KAU'
 # endif
       return
   99  mpi_master_only write(*,'(/1x,2A/12x,A/)')      '### ERROR: ',
      &  'Insufficient length of string "cpps" in file "strings.h".',
      &        'Increase parameter "max_opt_size" it and recompile.'
       ierr=ierr+1
-      return
       end
-
 #else
       subroutine set_scoord_empty
       end

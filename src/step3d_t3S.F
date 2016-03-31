@@ -182,7 +182,7 @@ c--# define AKIMA
 ! conditions into matrix DC when using the Large et al. 1994 KPP
 ! scheme.
 
-          if (itrc==itemp) then
+          if (itrc == itemp) then
 # ifdef FULL_PHYS_FLUX_ANALYSIS
             do i=istr,iend
              SRAbsFlux(i,j,N)=0.

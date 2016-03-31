@@ -9,7 +9,7 @@
       implicit none
       integer istr,iend,jstr,jend, i,j,k
       real grad(PRIVATE_2D_SCRATCH_ARRAY), cx,cy, cff,
-     &         dtfwd, dft,dfx,dfy, tau,tau_in,tau_out
+     &         dtfwd, dft,dfx,dfy, cext
       real, parameter :: eps=1.E-33
 # include "param.h"
 # include "scalars.h"
@@ -30,10 +30,6 @@
       endif                   ! actually a halfstep.
 
 # define dt illegal
-# if defined M3_FRC_BRY || defined M3NUDGING
-      tau_in=dtfwd*tauM3_in
-      tau_out=dtfwd*tauM3_out
-# endif
 
 # ifndef NS_PERIODIC
       if (SOUTHERN_EDGE) then
@@ -54,43 +50,43 @@
             dft=v(i,jstr+1,k,nstp)-v(i,jstr+1,k,nnew)
             dfx=v(i,jstr+1,k,nnew)-v(i,jstr+2,k,nnew)
 
-            if (dfx*dft < 0.) then
-              dft=0.                      ! <-- cancel cx, if inflow
-#    if defined M3_FRC_BRY || defined M3NUDGING
-              tau=tau_in
-            else
-              tau=tau_out
-#    endif
-            endif
-
+#    ifdef OBC_RAD_NORMAL
+            cy=0. ; cff=max(dfx*dfx, eps)
+#    else
             if (dft*(grad(i,jstr+1)+grad(i+1,jstr+1)) > 0.) then
               dfy=grad(i,jstr+1)
             else
               dfy=grad(i+1,jstr+1)
             endif
-
-#    ifdef OBC_RAD_NORMAL
-            dfy=0.
-#    endif
             cff=max(dfx*dfx+dfy*dfy, eps)
-            cx=dft*dfx
-#    ifdef OBC_RAD_NPO
+#     ifdef OBC_RAD_NPO
             cy=0.
-#    else
+#     else
             cy=min(cff,max(dft*dfy,-cff))
+#     endif
 #    endif
+
+            cx=dft*dfx
+            if (cx < 0.) then     !--> cancel, if inflow
+              cx=0. ; cy=0.
+#    if defined M3_FRC_BRY || defined M3NUDGING
+              cext=dtfwd*ubind * 0.5*(pn(i,jstr-1)+pn(i,jstr))
+            else
+              cext=0.
+#    endif
+            endif
 
             v(i,jstr,k,nnew)=( cff*v(i,jstr,k,nstp)
      &                        +cx*v(i,jstr+1,k,nnew)
-     &                    -max(cy,0.)*grad(i  ,jstr)
-     &                    -min(cy,0.)*grad(i+1,jstr)
-     &                                   )/(cff+cx)
+     &                     -max(cy,0.)*grad(i  ,jstr)
+     &                     -min(cy,0.)*grad(i+1,jstr)
+     &                                    )/(cff+cx)
 #    if defined M3_FRC_BRY  || defined M3NUDGING
-            v(i,jstr,k,nnew)=(1.-tau)*v(i,jstr,k,nnew)
+            v(i,jstr,k,nnew)=(1.-cext)*v(i,jstr,k,nnew)
 #     ifdef M3_FRC_BRY
-     &                               +tau*v_south(i,k)
+     &                               +cext*v_south(i,k)
 #     else
-     &                             +tau*vclm(i,jstr,k)
+     &                             +cext*vclm(i,jstr,k)
 #     endif
 #    endif
 #    ifdef MASKING
@@ -145,31 +141,31 @@
             dft=v(i,jend,k,nstp)-v(i,jend  ,k,nnew)
             dfx=v(i,jend,k,nnew)-v(i,jend-1,k,nnew)
 
-            if (dfx*dft < 0.) then
-              dft=0.                       ! <-- cancel cx, if inflow
-#    if defined M3_FRC_BRY || defined M3NUDGING
-              tau=tau_in
-            else
-              tau=tau_out
-#    endif
-            endif
-
+#    ifdef OBC_RAD_NORMAL
+            cy=0. ; cff=max(dfx*dfx, eps)
+#    else
             if (dft*(grad(i,jend)+grad(i+1,jend)) > 0.) then
               dfy=grad(i,jend)
             else
               dfy=grad(i+1,jend)
             endif
-
-#    ifdef OBC_RAD_NORMAL
-            dfy=0.
-#    endif
             cff=max(dfx*dfx+dfy*dfy, eps)
-            cx=dft*dfx
-#    ifdef OBC_RAD_NPO
+#     ifdef OBC_RAD_NPO
             cy=0.
-#    else
-            cy=min(cff,max(dft*dfy,-cff))
+#     else
+            cy=min(cff, max(dft*dfy, -cff))
+#     endif
 #    endif
+
+            cx=dft*dfx
+            if (cx < 0.) then     !--> cancel, if inflow
+              cx=0. ; cy=0.
+#    if defined M3_FRC_BRY || defined M3NUDGING
+              cext=dtfwd*ubind * 0.5*(pn(i,jend)+pn(i,jend+1))
+            else
+              cext=0.
+#    endif
+            endif
 
             v(i,jend+1,k,nnew)=( cff*v(i,jend+1,k,nstp)
      &                              +cx*v(i,jend,k,nnew)
@@ -177,11 +173,11 @@
      &                      -min(cy,0.)*grad(i+1,jend+1)
      &                                      )/(cff+cx)
 #    if defined M3_FRC_BRY  || defined M3NUDGING
-            v(i,jend+1,k,nnew)=(1.-tau)*v(i,jend+1,k,nnew)
+            v(i,jend+1,k,nnew)=(1.-cext)*v(i,jend+1,k,nnew)
 #     ifdef M3_FRC_BRY
-     &                                   +tau*v_north(i,k)
+     &                                   +cext*v_north(i,k)
 #     else
-     &                               +tau*vclm(i,jend+1,k)
+     &                               +cext*vclm(i,jend+1,k)
 #     endif
 #    endif
 #    ifdef MASKING
@@ -229,42 +225,43 @@
             grad(istr  ,j)=v(istr  ,j+1,k,nstp)-v(istr  ,j,k,nstp)
           enddo
           do j=jstrV,jend
-/* --->
+#    ifdef LEGACY_ORLANSKI
             dft=v(istr,j,k,nstp)-v(istr  ,j,k,nnew)
             dfx=v(istr,j,k,nnew)-v(istr+1,j,k,nnew)
 
-            if (dfx*dft < 0.) then
-              dft=0.                       ! <-- cancel cx, if inflow
-#    if defined M3_FRC_BRY || defined M3NUDGING
-              tau=tau_in
-            else
-              tau=tau_out
-#    endif
-            endif
-
+#     ifdef OBC_RAD_NORMAL
+            cy=0. ; cff=max(dfx*dfx, eps)
+#     else
             if (dft*(grad(istr,j-1)+grad(istr,j)) > 0.) then
               dfy=grad(istr,j-1)
             else
               dfy=grad(istr,j  )
             endif
-
-#    ifdef OBC_RAD_NORMAL
-            dfy=0.
-#    endif
             cff=max(dfx*dfx+dfy*dfy, eps)
-            cx=dft*dfx
-#    ifdef OBC_RAD_NPO
+#      ifdef OBC_RAD_NPO
             cy=0.
-#    else
-            cy=min(cff,max(dft*dfy,-cff))
-#    endif
+#      else
+            cy=min(cff, max(dft*dfy, -cff))
+#      endif
+#     endif
+
+            cx=dft*dfx
+            if (cx < 0.) then     !--> cancel, if inflow
+              cx=0. ; cy=0.
+#     if defined M3_FRC_BRY || defined M3NUDGING
+              cext=dtfwd*ubind * 0.5*(pm(istr-1,j-1)+pm(istr-1,j))
+            else
+              cext=0.
+#     endif
+            endif
 
             v(istr-1,j,k,nnew)=( cff*v(istr-1,j,k,nstp)
      &                              +cx*v(istr,j,k,nnew)
-     &                      -max(cy,0.)*grad(istr-1,j-1)
-     &                      -min(cy,0.)*grad(istr-1,j  )
-     &                                       )/(cff+cx)
----> */
+     &                       -max(cy,0.)*grad(istr-1,j-1)
+     &                       -min(cy,0.)*grad(istr-1,j  )
+     &                                        )/(cff+cx)
+
+#    else
 
 
           cx=-0.125*dtfwd*(u(istr,j,k,nrhs)+u(istr,j-1,k,nrhs))
@@ -274,12 +271,10 @@
           cy= 0.125*dtfwd*(v(istr-1,j,k,nrhs)+v(istr,j,k,nrhs))
      &                            *( pn(istr-1,j)+pn(istr-1,j-1)
      &                                +pn(istr,j)+pn(istr,j-1) )
-
-          if (cx>0.) then
-            tau=0.
+          if (cx > 0.) then
+            cext=0.
           else
-            tau=-cx
-            cx=0.
+            cext=-cx ; cx=0.
           endif
 
           v(istr-1,j,k,nnew)=(1.-cx)*( v(istr-1,j,k,nstp)
@@ -292,14 +287,14 @@
      &                                                     )
 
 
-
+#    endif /* LEGACY_ORLANSKI */
 
 #    if defined M3_FRC_BRY  || defined M3NUDGING
-            v(istr-1,j,k,nnew)=(1.-tau)*v(istr-1,j,k,nnew)
+            v(istr-1,j,k,nnew)=(1.-cext)*v(istr-1,j,k,nnew)
 #     ifdef M3_FRC_BRY
-     &                                    +tau*v_west(j,k)
+     &                                    +cext*v_west(j,k)
 #     else
-     &                               +tau*vclm(istr-1,j,k)
+     &                               +cext*vclm(istr-1,j,k)
 #     endif
 #    endif
 #    ifdef MASKING
@@ -343,7 +338,7 @@
 #  endif
       endif          !<-- WESTERN_EDGE
 
-#  ifdef ISWAKE
+#  ifdef ISWAKE_XXX
 #   define OBC_M3ORLANSKI
 #  endif
 
@@ -356,43 +351,43 @@
             grad(iend+1,j)=v(iend+1,j+1,k,nstp)-v(iend+1,j,k,nstp)
           enddo
           do j=jstrV,jend
-/* --->
+#    ifdef LEGACY_ORLANSKI
             dft=v(iend,j,k,nstp)-v(iend  ,j,k,nnew)
             dfx=v(iend,j,k,nnew)-v(iend-1,j,k,nnew)
 
-            if (dfx*dft < 0.) then
-              dft=0.                       ! <-- cancel cx, if inflow
-#    if defined M3_FRC_BRY || defined M3NUDGING
-              tau=tau_in
-            else
-              tau=tau_out
-#    endif
-            endif
-
+#     ifdef OBC_RAD_NORMAL
+            cy=0. ; cff=max(dfx*dfx, eps)
+#     else
             if (dft*(grad(iend,j-1)+grad(iend,j)) > 0.) then
               dfy=grad(iend,j-1)
             else
               dfy=grad(iend,j  )
             endif
-
-#    ifdef OBC_RAD_NORMAL
-            dfy=0.
-#    endif
             cff=max(dfx*dfx+dfy*dfy, eps)
-            cx=dft*dfx
-#    ifdef OBC_RAD_NPO
+#      ifdef OBC_RAD_NPO
             cy=0.
-#    else
-            cy=min(cff,max(dft*dfy,-cff))
-#    endif
+#      else
+            cy=min(cff, max(dft*dfy, -cff))
+#      endif
+#     endif
+
+            cx=dft*dfx
+            if (cx < 0.) then     !--> cancel, if inflow
+              cx=0. ; cy=0.
+#     if defined M3_FRC_BRY || defined M3NUDGING
+              cext=dtfwd*ubind * 0.5*(pm(iend+1,j-1)+pm(iend+1,j))
+            else
+              cext=0.
+#     endif
+            endif
 
             v(iend+1,j,k,nnew)=( cff*v(iend+1,j,k,nstp)
      &                              +cx*v(iend,j,k,nnew)
-     &                      -max(cy,0.)*grad(iend+1,j-1)
-     &                      -min(cy,0.)*grad(iend+1,j  )
-     &                                       )/(cff+cx)
+     &                       -max(cy,0.)*grad(iend+1,j-1)
+     &                       -min(cy,0.)*grad(iend+1,j  )
+     &                                        )/(cff+cx)
 
----> */
+#    else
 
           cx=0.125*dtfwd*(u(iend+1,j,k,nrhs)+u(iend+1,j-1,k,nrhs))
      &                               *( pm(iend+1,j)+pm(iend+1,j-1)
@@ -401,12 +396,10 @@
           cy=0.125*dtfwd*(v(iend,j,k,nrhs)+v(iend+1,j,k,nrhs))
      &                               *( pn(iend+1,j)+pn(iend+1,j-1)
      &                                   +pn(iend,j)+pn(iend,j-1) )
-
-          if (cx>0.) then
-            tau=0.
+          if (cx > 0.) then
+            cext=0.
           else
-            tau=-cx
-            cx=0.
+            cext=-cx ; cx=0.
           endif
 
           v(iend+1,j,k,nnew)=(1.-cx)*(   v(iend+1,j,k,nstp)
@@ -417,15 +410,14 @@
      &                            -max(cy,0.)*grad(iend,j-1)
      &                            -min(cy,0.)*grad(iend,j  )
      &                                                     )
-
-
+#    endif /* LEGACY_ORLANSKI */
 
 #    if defined M3_FRC_BRY  || defined M3NUDGING
-            v(iend+1,j,k,nnew)=(1.-tau)*v(iend+1,j,k,nnew)
+            v(iend+1,j,k,nnew)=(1.-cext)*v(iend+1,j,k,nnew)
 #     ifdef M3_FRC_BRY
-     &                                    +tau*v_east(j,k)
+     &                                    +cext*v_east(j,k)
 #     else
-     &                               +tau*vclm(iend+1,j,k)
+     &                               +cext*vclm(iend+1,j,k)
 #     endif
 #    endif
 #    ifdef MASKING

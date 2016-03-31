@@ -14,12 +14,12 @@
       logical not_end_of_file, omp_dir
       integer last_arg, iin, iout, i, line, ierr, length
 
-
 ! Function "iargc" is viewed as intrinsic by most modern compilers
 ! and does not need to be declared. IBM xlf95 is a notable exclusion.
 ! So do 7.x and earlier versions of Intel IFC compiler, but starting
 ! with version 8.x IFORT recognize it as intrinsic.
-#ifdef XLF
+
+#ifdef INT_IARGC
       integer iargc
 #endif
       tab=char(9)

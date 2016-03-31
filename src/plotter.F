@@ -15,12 +15,14 @@
      &        large_font=0.025, medium_font=0.011, small_font=0.009
 
       character filename*128, label*6, string*64
-      integer*4 last_arg,iargc, ne, is,ie, i,j,n,
+      integer*4 last_arg, ne, is,ie, i,j,n,
      &        ndots, iic, icolor, iocheck,ipa, lab_int, ilab
       real*4 xx(ndots_max), tmin,tmax, t,dt, tdays,  xp,
      &       yy(ndots_max), emin,emax, y,de, PA(16), yp,
      &         level
-
+#ifdef INT_IARGC
+      integer iargc
+#endif
 
       data icolor/0/  ipa/1/
       logical start_range, inside_range, log_scale

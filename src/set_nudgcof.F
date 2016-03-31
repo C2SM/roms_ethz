@@ -36,7 +36,7 @@
         frac=(float(j)         -0.5)/float(MMm)
 #  endif
         cff=Tau*(179./168. - frac*352./21.)      ! All these fancy
-        if (cff > 0.) then                       ! looking rational
+        if (cff>0.) then                      ! looking rational
           do i=istrR,iendR                       ! fractions are just
             Tnudgcof(i,j,itemp)=cff              ! for the reasons of
           enddo                                  ! compatibility with

@@ -11,7 +11,7 @@
       end
 
       subroutine grid_stiffness_tile (istr,iend,jstr,jend)
-!
+
 ! Survey three-dimensional grid in order to determine maximum
 ! grid stiffness ratio:
 !
@@ -21,7 +21,7 @@
 !
 ! This is done for purely diagnostic purposes does not affect
 ! computations.
-!
+
       implicit none
       integer istr,iend,jstr,jend, i,j,k, NSUB
       real my_rx0, my_rx1
@@ -39,8 +39,7 @@
 !
 # include "compute_auxiliary_bounds.h"
 !
-      my_rx0=0.
-      my_rx1=0.
+      my_rx0=0. ; my_rx1=0.
 
       do j=jstr,jend
         do i=istrU,iend
@@ -101,7 +100,7 @@ C$OMP CRITICAL (grd_stff_cr_rgn)
         tile_count=0
 # ifdef MPI
         size=NNODES
-        do while (size>1)
+        do while(size > 1)
          step=(size+1)/2
           if (mynode>=step .and. mynode<size) then
             buff(1)=rx0
@@ -117,18 +116,17 @@ C$OMP CRITICAL (grd_stff_cr_rgn)
          size=step
         enddo
 
-        buff(1)=rx0
-        buff(2)=rx1
+        buff(1)=rx0 ; buff(2)=rx1
+
         call MPI_Bcast(buff, 2, MPI_DOUBLE_PRECISION,
      &                      0, ocean_grid_comm, ierr)
-        rx0=buff(1)
-        rx1=buff(2)
+
+        rx0=buff(1) ; rx1=buff(2)
 # endif
         mpi_master_only write(*,'(/1x,A,F12.9,2x,A,F14.9/)')
      &   'Maximum grid stiffness ratios:   rx0 =',rx0, 'rx1 =',rx1
       endif
-C$OMP END CRITICAL (grd_stff_cr_rgn)
-      return
+C$OMP END CRITICAL(grd_stff_cr_rgn)
       end
 #else
       subroutine grid_stiffness_empty

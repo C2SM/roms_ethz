@@ -38,7 +38,7 @@ c--# define MERGE_OVERLAP
      &                               Gm1,dGm1dS, Gt1,dGt1dS, Gs1,dGs1dS
       integer, dimension(PRIVATE_1D_SCRATCH_ARRAY) :: kbls, kmo
 # ifdef LMD_BKPP
-     &                                                    , kbbl     
+     &                                                    , kbbl
 # endif
 
       real, parameter ::
@@ -168,20 +168,25 @@ c--# define MERGE_OVERLAP
 #  undef beta
 #  undef alpha
 
-#  ifdef WIND_STRESS_AMP
-          ustar(i,j)=sqrt( max( amptau(i,j),  sqrt( 0.333333333333*(
+#  ifdef WIND_MAGN
+#   ifdef WIND_AT_RHO_POINTS
+          ustar(i,j)=sqrt( max( wndmag(i,j), sqrt( sustr(i,j)**2
+     &                                            +svstr(i,j)**2 )))
+#   else
+          ustar(i,j)=sqrt( max( wndmag(i,j),  sqrt( 0.333333333333*(
      &      sustr(i,j)**2 + sustr(i+1,j)**2 + sustr(i,j)*sustr(i+1,j)
      &     +svstr(i,j)**2 + svstr(i,j+1)**2 + svstr(i,j)*svstr(i,j+1)
      &                                                           ))))
+#   endif
 #  else
-
+#   ifdef WIND_AT_RHO_POINTS
+          ustar(i,j)=sqrt( sqrt( sustr(i,j)**2 +svstr(i,j)**2 ))
+#   else
           ustar(i,j)=sqrt( sqrt( 0.333333333333*(
      &      sustr(i,j)**2 + sustr(i+1,j)**2 + sustr(i,j)*sustr(i+1,j)
      &     +svstr(i,j)**2 + svstr(i,j+1)**2 + svstr(i,j)*svstr(i,j+1)
      &                                                            )))
-
-c*          ustar(i,j)=sqrt(0.5*sqrt( (sustr(i,j)+sustr(i+1,j))**2
-c*     &                             +(svstr(i,j)+svstr(i,j+1))**2))
+#   endif
 #  endif
 
 #  ifdef LMD_KPP
@@ -239,10 +244,10 @@ c*     &                             +(svstr(i,j)+svstr(i,j+1))**2))
             cff1=(z_w(i,j,k-1)-z_w(i,j,0))**2
             Kern=cff*cff1/( (cff +(epssfc*hbl(i,j))**2)
      &                    *(cff1 +(epssfc*bbl(i,j))**2) )
-#  elif defined LMD_KPP 
+#  elif defined LMD_KPP
             cff=(z_w(i,j,N)-z_w(i,j,k-1))**2
             Kern=cff/(cff +(epssfc*hbl(i,j))**2)
-#  elif defined LMD_BKPP 
+#  elif defined LMD_BKPP
             cff1=(z_w(i,j,k-1)-z_w(i,j,0))**2
             Kern=cff1/(cff1 +(epssfc*bbl(i,j))**2)
 #  endif
@@ -361,7 +366,7 @@ c**     &                          k, Cr(i,k), Cr(i,k-1), hbl(i,j)
           cff_dn=(z_bl-z_w(i,j,0))**2
           Kern=cff_up*cff_dn/( (cff_up +(epssfc*hbl(i,j))**2)
      &                        *(cff_dn +(epssfc*bbl(i,j))**2) )
-#  elif defined LMD_KPP 
+#  elif defined LMD_KPP
           cff_up=(z_w(i,j,N)-z_bl)**2
           Kern=cff_up/(cff_up +(epssfc*hbl(i,j))**2)
 #  elif defined LMD_BKPP
@@ -971,11 +976,11 @@ c**       hbbl(i,j,3-nstp)=bbl(i,j)
      &                      hbbl(START_2D_ARRAY,3-nstp),1)
 #  endif
 #  ifdef SALINITY
-      call exchange_2_tile( istr,iend,jstr,jend, 
+      call exchange_2_tile( istr,iend,jstr,jend,
      &                   Akt(START_2D_ARRAY,0,itemp), N+1,
      &                   Akt(START_2D_ARRAY,0,isalt), N+1)
 #  else
-     call exchange_tile( istr,iend,jstr,jend, 
+     call exchange_tile( istr,iend,jstr,jend,
      &                   Akt(START_2D_ARRAY,0,itemp), N+1)
 #  endif
 # endif

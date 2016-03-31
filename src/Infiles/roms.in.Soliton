@@ -14,12 +14,12 @@ title:
                 2400    0.105      1      128  .107 stable, .108 not
 
  time_stepping: ntimes  dt[sec] ndtfast ninfo  FB,384x128
-               4800      0.060     1      128   .061 stable, .062 not 
+                4800    0.060     1    128   .061 stable, .062 not 
 
 ! time_stepping: ntimes  dt[sec]  ndtfast ninfo  FB,576x192
                7200     0.040     1     128   .040 stable, .041 not
 
-! time_stepping: ntimes  dt[sec]  ndtfast  ninfo  FB,768x256
+1  time_stepping: ntimes  dt[sec]  ndtfast  ninfo  FB,768x256
                 9600    0.030      1      128  .030 stable, .031 not
 
 ! time_stepping: ntimes   dt[sec]  ndtfast  ninfo
@@ -52,16 +52,16 @@ title:
 
 
 initial: nrrec [/filename]
-           0
+         0
               restart.nc
 
 
 restart:  nrst, nrpfrst / filename
-          8000     -2
+          8000000    -2
                   restart.nc
 
 history: ldefhis, nwrt, nrpfhis / filename
-            T       10000   0
+            F      100000   0
                  history.nc
 
 primary_history_fields: zeta ubar vbar

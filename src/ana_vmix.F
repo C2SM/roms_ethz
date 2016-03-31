@@ -1,6 +1,6 @@
 #include "cppdefs.h"
 #if defined ANA_VMIX && defined SOLVE3D
- 
+
       subroutine ana_vmix (tile)
       implicit none
       integer tile
@@ -8,7 +8,7 @@
 # include "compute_tile_bounds.h"
       call ana_vmix_tile (istr,iend,jstr,jend)
       end
- 
+
       subroutine ana_vmix_tile (istr,iend,jstr,jend)
 
 ! Set vertical kinematic vertical viscosity "Akv" [m^2/s] for momentum
@@ -23,10 +23,27 @@
 # include "ocean3d.h"
 # include "mixing.h"
 # include "scalars.h"
- 
+
 # include "compute_auxiliary_bounds.h"
- 
-# if defined CANYON_B
+
+# if defined DOUBLE_GYRE
+      if (FIRST_TIME_STEP) then
+        cff=1./100.
+        do k=0,N
+          do j=jstr,jend
+            do i=istr,iend
+             Akv(i,j,k)=0.001+0.25*exp(cff*(z_w(i,j,k)-z_w(i,j,N)))
+
+             Akt(i,j,k,itemp)=0.
+#  ifdef SALINITY
+              Akt(i,j,k,isalt)=Akt_bak(isalt)
+#  endif
+            enddo
+          enddo
+        enddo
+      endif
+
+# elif defined CANYON_B
       cff=1./50.                    ! Setup both top and bottom
       do k=0,N                      ! boundary layers.
         do j=jstr,jend
@@ -44,7 +61,7 @@
       do k=0,N
         do j=jstr,jend
           do i=istr,iend
-           Akv(i,j,k)=0.005+0.015*exp(cff*(z_w(i,j,k)-z_w(i,j,N))
+           Akv(i,j,k)=0.005+0.015*exp(cff*(z_w(i,j,k)-z_w(i,j,N)))
 
 
 

@@ -21,7 +21,7 @@
       subroutine wrt_ AVR              ! Write time-averaged fields
                                      ! into averages netCDF file.
       implicit none
-      integer record, i, ierr, lstr, lvar, lenstr, nf_fwrite
+      integer record, i, ierr, lstr, lvar, lenstr, ncdf_write
 # ifdef SOLVE3D
      &             , itrc
 # endif
@@ -49,7 +49,7 @@
 # if defined MPI && !defined PARALLEL_FILES
 #  include "mpif.h"
       integer status(MPI_STATUS_SIZE), blank
-      if (mynode>0) then
+      if (mynode > 0) then
         call MPI_Recv (blank, 1, MPI_INTEGER, mynode-1,  3,
      &                       ocean_grid_comm, status, ierr)
       endif
@@ -61,10 +61,10 @@ CR      mpi_master_only print *, '--- NOTE: Executing ', wrt_ AVR
 
       call def_ AVR  (nrec AVR , ierr)
       lstr=lenstr( AVR name)
-      if (ierr /= nf_noerr) goto 99       !!! WARNING: Here it is
-      nrec AVR =max(nrec AVR ,1)                !!! assumed that global
+      if (ierr /= nf_noerr) goto 99         !!! WARNING: Here it is
+      nrec AVR =max(nrec AVR ,1)            !!! assumed that global
       if (nrpf AVR ==0) then                !!! averages record index
-        record=nrec AVR                       !!! "nrec AVR " is already
+        record=nrec AVR                     !!! "nrec AVR " is already
       else                                  !!! advanced by main.
         record=1+mod(nrec AVR -1, nrpf AVR )
       endif
@@ -96,75 +96,68 @@ CR      mpi_master_only print *, '--- NOTE: Executing ', wrt_ AVR
       if (ierr /= nf_noerr) then
         lvar=lenstr(vname(1,indxTime))
         write(*,1) vname(1,indxTime)(1:lvar), record MYID
-        goto 99                                           !--> ERROR
       endif
 
 ! Barotropic mode variables: free-surface and 2D momentum components
 ! in XI-,ETA-directions.
 
       if (wrt AVR (indxZ)) then
-        ierr=nf_fwrite (zeta_ AVR (START_2D_ARRAY), nc AVR ,  AVR Z,
-     &                                            record, r2dvar)
+        ierr=ncdf_write(nc AVR, AVR Z, record,  r_var,
+     &                  zeta_ AVR (START_2D_ARRAY), 1)
         if (ierr /= nf_noerr) then
           lvar=lenstr(vname(1,indxZ))
           write(*,1) vname(1,indxTime)(1:lvar), record MYID
-          goto 99                                         !--> ERROR
         endif
       endif
 
-      if (wrt AVR (indxUb)) then
-        ierr=nf_fwrite (ubar_ AVR (START_2D_ARRAY), nc AVR ,  AVR Ub,
-     &                                            record, u2dvar)
+      if (wrt AVR (indxUb) .and. ierr == nf_noerr) then
+        ierr=ncdf_write(nc AVR ,  AVR Ub, record, u_var,
+     &                  ubar_ AVR (START_2D_ARRAY), 1)
         if (ierr /= nf_noerr) then
           lvar=lenstr(vname(1,indxUb))
           write(*,1) vname(1,indxUb)(1:lvar), record MYID
-          goto 99                                         !--> ERROR
         endif
       endif
 
-      if (wrt AVR (indxVb)) then
-        ierr=nf_fwrite (vbar_ AVR (START_2D_ARRAY), nc AVR ,  AVR Vb,
-     &                                            record, v2dvar)
+      if (wrt AVR (indxVb) .and. ierr == nf_noerr) then
+        ierr=ncdf_write(nc AVR ,  AVR Vb, record, v_var,
+     &                  vbar_ AVR (START_2D_ARRAY), 1)
         if (ierr /= nf_noerr) then
           lvar=lenstr(vname(1,indxVb))
           write(*,1) vname(1,indxVb)(1:lvar), record MYID
-          goto 99                                         !--> ERROR
         endif
       endif
 # ifdef SOLVE3D
 
 ! 3D momentum components in XI- and ETA-directions.
 
-      if (wrt AVR (indxU)) then
-        ierr=nf_fwrite (u_ AVR (START_3D_ARRAY_K1), nc AVR ,  AVR U,
-     &                                           record, U3DVAR)
+      if (wrt AVR (indxU) .and. ierr == nf_noerr) then
+        ierr=ncdf_write(nc AVR ,  AVR U, record, u_var,
+     &                  u_ AVR (START_2D_ARRAY,1), N)
         if (ierr /= nf_noerr) then
           lvar=lenstr(vname(1,indxU))
           write(*,1) vname(1,indxU)(1:lvar), record MYID
-          goto 99                                         !--> ERROR
         endif
       endif
 
-      if (wrt AVR (indxV)) then
-        ierr=nf_fwrite (v_ AVR (START_3D_ARRAY_K1), nc AVR ,  AVR V,
-     &                                           record, V3DVAR)
+      if (wrt AVR (indxV) .and. ierr == nf_noerr) then
+        ierr=ncdf_write(nc AVR ,  AVR V, record, v_var,
+     &                  v_ AVR (START_2D_ARRAY,1), N)
         if (ierr /= nf_noerr) then
         lvar=lenstr(vname(1,indxV))
           write(*,1) vname(1,indxV)(1:lvar), record MYID
-          goto 99                                         !--> ERROR
         endif
       endif
 
 ! Tracer variables.
 
       do itrc=1,NT
-        if (wrt AVR (indxT+itrc-1)) then
-          ierr=nf_fwrite (t_ AVR (START_3D_ARRAY_K1,itrc), nc AVR ,
-     &                               AVR T(itrc), record, R3DVAR)
+        if (wrt AVR (indxT+itrc-1) .and. ierr == nf_noerr) then
+          ierr=ncdf_write(nc AVR ,  AVR T(itrc), record, r_var,
+     &                    t_ AVR (START_2D_ARRAY,1,itrc), N)
           if (ierr /= nf_noerr) then
             lvar=lenstr(vname(1,indxT+itrc-1))
             write(*,1) vname(1,indxT+itrc-1)(1:lvar),record MYID
-            goto 99                                       !--> ERROR
           endif
         endif
       enddo
@@ -174,8 +167,8 @@ CR      mpi_master_only print *, '--- NOTE: Executing ', wrt_ AVR
 
       do itrc=1,NT_sed
         if (wrt AVR (indxSedOrgN+itrc-1)) then
-          ierr=nf_fwrite (t_sed_ AVR (START_2D_ARRAY,itrc), nc AVR ,
-     &                                 AVR Tsed(itrc), record, r2dvar)
+          ierr=ncdf_write(nc AVR ,  AVR T(itrc), record, r_var,
+     &                    t_sed_ AVR (START_2D_ARRAY,1,itrc), N)
           if (ierr /= nf_noerr) then
             lvar=lenstr(vname(1,indxSedOrgN+itrc-1))
             write(*,1) vname(1,indxSedOrgN+itrc-1)(1:lvar), record,
@@ -189,72 +182,67 @@ CR      write(*,*) 'wrt_ AVR :  wrtT_sed  ' MYID
 
 ! Density anomaly.
 
-      if (wrt AVR (indxR)) then
-        ierr=nf_fwrite (rho_ AVR (START_3D_ARRAY_K1), nc AVR ,  AVR R,
-     &                                             record, R3DVAR)
+      if (wrt AVR (indxR) .and. ierr == nf_noerr) then
+        ierr=ncdf_write(nc AVR ,  AVR R, record, r_var,
+     &                  rho_ AVR (START_2D_ARRAY,1), N)
+>>>>>>> ucla_sasha
         if (ierr /= nf_noerr) then
           lvar=lenstr(vname(1,indxR))
           write(*,1) vname(1,indxR)(1:lvar), record  MYID
-          goto 99                                         !--> ERROR
         endif
       endif
 
 ! S-coordinate omega vertical velocity (m/s).
 
-      if (wrt AVR (indxO)) then
-        ierr=nf_fwrite (w_ AVR , nc AVR ,  AVR O, record, W3DVAR)
+      if (wrt AVR (indxO) .and. ierr == nf_noerr) then
+        ierr=ncdf_write(nc AVR ,  AVR O, record, r_var, w_ AVR , N+1)
         if (ierr /= nf_noerr) then
           lvar=lenstr(vname(1,indxO))
           write(*,1) vname(1,indxO)(1:lvar), record  MYID
-          goto 99                                         !--> ERROR
         endif
       endif
 
 ! True vertical velocity (m/s).
 
-      if (wrt AVR (indxW)) then
-        ierr=nf_fwrite (wvl_ AVR , nc AVR ,  AVR W, record, R3DVAR)
+      if (wrt AVR (indxW) .and. ierr == nf_noerr) then
+        ierr=ncdf_write(nc AVR ,  AVR W, record, r_var, wvl_ AVR , N)
         if (ierr /= nf_noerr) then
           lvar=lenstr(vname(1,indxW))
           write(*,1) vname(1,indxW)(1:lvar), record MYID
-          goto 99                                         !--> ERROR
         endif
       endif
 
 ! Vertical eddy viscosity coefficient for momentum.
 
-      if (wrt AVR (indxAkv)) then
-        ierr=nf_fwrite (akv_ AVR (START_3D_ARRAY_K0), nc AVR ,
-     &                                 AVR Akv, record, W3DVAR)
+      if (wrt AVR (indxAkv) .and. ierr == nf_noerr) then
+        ierr=ncdf_write(nc AVR ,   AVR Akv,  record,  r_var,
+     &                  akv_ AVR (START_2D_ARRAY,0), N+1)
         if (ierr /= nf_noerr) then
           lvar=lenstr(vname(1,indxAkv))
           write(*,1) vname(1,indxAkv)(1:lvar), record MYID
-          goto 99                                         !--> ERROR
         endif
       endif
 
 ! Vertical heat conductivity
 
-      if (wrt AVR (indxAkt)) then
-        ierr=nf_fwrite (akt_ AVR (START_3D_ARRAY_K0), nc AVR ,
-     &                                 AVR Akt, record, W3DVAR)
+      if (wrt AVR (indxAkt) .and. ierr == nf_noerr) then
+        ierr=ncdf_write(nc AVR ,   AVR Akt,  record,  r_var,
+     &                  akt_ AVR (START_2D_ARRAY,0), N+1)
         if (ierr /= nf_noerr) then
           lvar=lenstr(vname(1,indxAkt))
           write(*,1) vname(1,indxAkt)(1:lvar), record MYID
-          goto 99                                         !--> ERROR
         endif
       endif
 #  ifdef SALINITY
 
 ! Vertical diffusion coefficient for salinity.
 
-      if (wrt AVR (indxAks)) then
-        ierr=nf_fwrite (aks_ AVR (START_3D_ARRAY_K0), nc AVR ,
-     &                                 AVR Aks, record, W3DVAR)
+      if (wrt AVR (indxAks) .and. ierr == nf_noerr) then
+        ierr=ncdf_write(nc AVR ,   AVR Aks,  record,  r_var,
+     &                  Aks_ AVR (START_2D_ARRAY,0), N+1)
         if (ierr /= nf_noerr) then
           lvar=lenstr(vname(1,indxAks))
           write(*,1) vname(1,indxAks)(1:lvar), record MYID
-          goto 99                                         !--> ERROR
         endif
       endif
 #  endif
@@ -262,13 +250,12 @@ CR      write(*,*) 'wrt_ AVR :  wrtT_sed  ' MYID
 
 ! Depth of planetary boundary layer [m].
 
-      if (wrt AVR (indxHbls)) then
-        ierr=nf_fwrite (hbl_ AVR (START_2D_ARRAY), nc AVR ,
-     &                             AVR Hbls, record, r2dvar)
+      if (wrt AVR (indxHbls) .and. ierr == nf_noerr) then
+        ierr=ncdf_write(nc AVR ,  AVR Hbls, record, r_var,
+     &                  hbl_ AVR (START_2D_ARRAY), 1)
         if (ierr /= nf_noerr) then
           lvar=lenstr(vname(1,indxHbls))
           write(*,1) vname(1,indxHbls)(1:lvar), record MYID
-          goto 99                                         !--> ERROR
         endif
       endif
 #  endif
@@ -276,13 +263,12 @@ CR      write(*,*) 'wrt_ AVR :  wrtT_sed  ' MYID
 
 ! Thickness of KPP bottom boundary layer [m].
 
-      if (wrt AVR (indxHbbl)) then
-        ierr=nf_fwrite (hbbl_ AVR (START_2D_ARRAY), nc AVR ,
-     &                               AVR Hbbl, record, r2dvar)
+      if (wrt AVR (indxHbbl) .and. ierr == nf_noerr) then
+        ierr=ncdf_write(nc AVR ,  AVR Hbbl, record, r_var,
+     &                  hbbl_ AVR (START_2D_ARRAY), 1)
         if (ierr /= nf_noerr) then
           lvar=lenstr(vname(1,indxHbbl))
           write(*,1) vname(1,indxHbbl)(1:lvar), record MYID
-          goto 99                                         !--> ERROR
         endif
       endif
 # endif
@@ -291,59 +277,58 @@ CR      write(*,*) 'wrt_ AVR :  wrtT_sed  ' MYID
 
 ! pH:
 
-      ierr=nf_fwrite (pH_ AVR (START_2D_ARRAY), nc AVR ,
-     &                               AVR PH, record, r2dvar)
-      if (ierr /= nf_noerr) then
-        lvar=lenstr(vname(1,indxPH_rst))
-        write(*,1) vname(1,indxPH_rst)(1:lvar), record, ierr,
-     &                  nf_strerror(ierr) MYID
-        goto 99                                         !--> ERROR
+      if (wrt AVR (indxpH) .and. ierr == nf_noerr) then
+        ierr=ncdf_write(nc AVR ,   AVR PH,  record,  r_var,
+     &                  pH_ AVR (START_2D_ARRAY), 1)
+        if (ierr /= nf_noerr) then
+          lvar=lenstr(vname(1,indxPH))
+          write(*,1) vname(1,indxPH)(1:lvar), record MYID
+        endif
       endif
 
 ! pCO2:
 
-      ierr=nf_fwrite (pCO2_ AVR (START_2D_ARRAY), nc AVR ,
-     &                               AVR PCO2, record, r2dvar)
-      if (ierr /= nf_noerr) then
-        lvar=lenstr(vname(1,indxPCO2_rst))
-        write(*,1) vname(1,indxPCO2_rst)(1:lvar), record, ierr,
-     &                  nf_strerror(ierr) MYID
-        goto 99                                         !--> ERROR
+      if (wrt AVR (indxpCO2) .and. ierr == nf_noerr) then
+        ierr=ncdf_write(nc AVR ,   AVR pCO2,  record,  r_var,
+     &                  pCO2_ AVR (START_2D_ARRAY), 1)
+        if (ierr /= nf_noerr) then
+          lvar=lenstr(vname(1,indxpCO2))
+          write(*,1) vname(1,indxpCO2)(1:lvar), record MYID
+        endif
       endif
-
 
 ! pCO2air:
 
-      ierr=nf_fwrite (pCO2air_ AVR (START_2D_ARRAY), nc AVR ,
-     &                               AVR PCO2air, record, r2dvar)
-      if (ierr /= nf_noerr) then
-        lvar=lenstr(vname(1,indxPCO2air_rst))
-        write(*,1) vname(1,indxPCO2air_rst)(1:lvar), record, ierr,
-     &                  nf_strerror(ierr) MYID
-        goto 99                                         !--> ERROR
+      if (wrt AVR (indxpCO2air) .and. ierr == nf_noerr) then
+        ierr=ncdf_write(nc AVR ,   AVR pCO2air,  record,  r_var,
+     &                  pCO2air_ AVR (START_2D_ARRAY), 1)
+        if (ierr /= nf_noerr) then
+          lvar=lenstr(vname(1,indxpCO2air))
+          write(*,1) vname(1,indxpCO2air)(1:lvar), record MYID
+        endif
       endif
 
 ! incoming PAR:
 
-      ierr=nf_fwrite (PARinc_ AVR (START_2D_ARRAY), nc AVR ,
-     &                               AVR PARinc, record, r2dvar)
-      if (ierr /= nf_noerr) then
-        lvar=lenstr(vname(1,indxPARinc_rst))
-        write(*,1) vname(1,indxPARinc_rst)(1:lvar), record, ierr,
-     &                  nf_strerror(ierr) MYID
-        goto 99                                         !--> ERROR
+      if (wrt AVR (indxPARinc) .and. ierr == nf_noerr) then
+        ierr=ncdf_write(nc AVR ,   AVR PARinc,  record,  r_var,
+     &                  PARinc_ AVR (START_2D_ARRAY), 1)
+        if (ierr /= nf_noerr) then
+          lvar=lenstr(vname(1,indxPARinc))
+          write(*,1) vname(1,indxPARinc)(1:lvar), record MYID
+        endif
       endif
-#  ifndef NOPARWRT
 
+#  ifndef NOPARWRT
 ! PAR:
 
-      ierr=nf_fwrite (PAR_ AVR (START_3D_ARRAY_K1), nc AVR ,
-     &                               AVR PAR, record, R3DVAR)
-      if (ierr /= nf_noerr) then
-        lvar=lenstr(vname(1,indxPAR_rst))
-        write(*,1) vname(1,indxPAR_rst)(1:lvar), record, ierr,
-     &                  nf_strerror(ierr) MYID
-        goto 99                                         !--> ERROR
+      if (wrt AVR (indxPAR) .and. ierr == nf_noerr) then
+        ierr=ncdf_write(nc AVR ,   AVR PAR,  record,  r_var,
+     &                  PAR_ AVR (START_2D_ARRAY), 1)
+        if (ierr /= nf_noerr) then
+          lvar=lenstr(vname(1,indxPAR))
+          write(*,1) vname(1,indxPAR)(1:lvar), record MYID
+        endif
       endif
 #  endif
 # endif /* BIOLOGY_NPZDOC || BIOLOGY_BEC */
@@ -352,27 +337,27 @@ CR      write(*,*) 'wrt_ AVR :  wrtT_sed  ' MYID
 ! 2d diagnostics:
 
       do itrc=1,nr_bec2_diag_2d
-         ierr=nf_fwrite (bec2_diag_2d_ AVR (START_2D_ARRAY,itrc), nc AVR ,
-     &                                 AVR T_bec2_diag(itrc), record, r2dvar)
-         if (ierr /= nf_noerr) then
+!        if (wrt AVR T_bec2_diag(itrc)) .and. ierr == nf_noerr) then
+          ierr=ncdf_write(nc AVR ,   AVR T_bec2_diag(itrc),  record,  r_var,
+     &                  bec2_diag_2d_ AVR (START_2D_ARRAY), 1)
+          if (ierr /= nf_noerr) then
             lvar=lenstr(vname_bec2_diag_2d(1,itrc))
-            write(*,1) vname_bec2_diag_2d(1,itrc)(1:lvar),
-     &                      record, ierr MYID
-            goto 99                                       !--> ERROR
-         endif
+            write(*,1) vname_bec2_diag_2d(1,itrc)(1:lvar), record MYID
+          endif
+!        endif
       enddo
 
 ! 3d diagnostics:
 
       do itrc=1,nr_bec2_diag_3d
-         ierr=nf_fwrite (bec2_diag_3d_ AVR (START_3D_ARRAY_K1,itrc), nc AVR ,
-     &                                 AVR T_bec2_diag(nr_bec2_diag_2d+itrc), record, R3DVAR)
-         if (ierr /= nf_noerr) then
+!        if (wrt AVR T_bec2_diag(itrc)) .and. ierr == nf_noerr) then
+          ierr=ncdf_write(nc AVR ,   AVR T_bec2_diag(nr_bec2_diag_2d+itrc),  record,  r_var,
+     &                  bec2_diag_3d_ AVR (START_3D_ARRAY_K1), N)
+          if (ierr /= nf_noerr) then
             lvar=lenstr(vname_bec2_diag_3d(1,itrc))
-            write(*,1) vname_bec2_diag_3d(1,itrc)(1:lvar),
-     &                      record, ierr MYID
-            goto 99                                       !--> ERROR
-         endif
+            write(*,1) vname_bec2_diag_3d(1,itrc)(1:lvar), record MYID
+          endif
+!        endif
       enddo
 # endif /* BIOLOGY_BEC2 */
 
@@ -380,13 +365,19 @@ CR      write(*,*) 'wrt_ AVR :  wrtT_sed  ' MYID
 
 ! depths of rho points:
 
-      ierr=nf_fwrite (z_r_avr(START_3D_ARRAY_K1), ncidavr,
-     &                              avrz_r, record, R3DVAR)
-      if (ierr .ne. nf_noerr) then
+      ierr=ncdf_write(nc AVR ,   AVR z_r,  record,  r_var,
+     &                  z_r_ AVR (START_3D_ARRAY_K1), N)
+      if (ierr /= nf_noerr) then
+        lvar=lenstr(vname(1,indxz_r))
+        write(*,1) vname(1,indxz_r)(1:lvar), record, ierr,
+     &                  nf_strerror(ierr) MYID
+        goto 99                                         !--> ERROR
+      endif
+
 ! depths at w points:
 
-      ierr=nf_fwrite (z_w_avr(START_3D_ARRAY_K0), ncidavr,
-     &                              avrz_w, record, W3DVAR)
+      ierr=ncdf_write(nc AVR, AVR z_w,  record,  r_var,
+     &                  z_w_ AVR (START_3D_ARRAY_K0), N)
       if (ierr .ne. nf_noerr) then
         lvar=lenstr(vname(1,indxz_w))
         write(*,1) vname(1,indxz_w)(1:lvar), record, ierr,
@@ -396,8 +387,8 @@ CR      write(*,*) 'wrt_ AVR :  wrtT_sed  ' MYID
 
 ! thicknesses of sigma layers:
 
-      ierr=nf_fwrite (Hz_avr(START_3D_ARRAY_K1), ncidavr,
-     &                              avrHz, record, R3DVAR)
+      ierr=ncdf_write(nc AVR,   AVR Hz,  record,  r_var,
+     &                  Hz_ AVR (START_3D_ARRAY_K1), N)
       if (ierr .ne. nf_noerr) then
         lvar=lenstr(vname(1,indxHz))
         write(*,1) vname(1,indxHz)(1:lvar), record, ierr,
@@ -410,9 +401,8 @@ CR      write(*,*) 'wrt_ AVR :  wrtT_sed  ' MYID
 
 # if defined BIOLOGY_NPZDOC && defined OXYGEN
       do itrc = 1, NumGasExcTerms
-         ierr = nf_fwrite(GasExcFlux_ AVR (START_2D_ARRAY,itrc), 
-     &        nc AVR ,  AVR GasExcFlux(itrc), 
-     &        record, r2dvar)
+        ierr=ncdf_write(nc AVR, AVR GasExcFlux(itrc), record, r_var,
+     &                  Hz_ AVR(START_2D_ARRAY,itrc), 1)
          if (ierr /= nf_noerr) then
             lvar=lenstr(vname_GasExcFlux(1,itrc))
             write(*,1) 
@@ -427,7 +417,7 @@ CR      write(*,*) 'wrt_ AVR :  wrtT_sed  ' MYID
   1   format(/1x, '### ERROR: wrt_ AVR  :: Cannot write variable ''',
      &             A, ''' into averages file, rec =', i6, 3x,A,i4)
       goto 100
-  99  if (may_day_flag==0) may_day_flag=3
+  99  if (may_day_flag == 0) may_day_flag=3
  100  continue
 
 ! Close or synchronize netCDF file to disk to allow other

@@ -45,12 +45,8 @@ c      write(*,*) 'kmp_stacksize =', size
                                      ! Reset intra-thread
       may_day_flag=0                 ! communication signal
       trd_count=0                    ! variables and counters.
-      do i=1,4
-        cpu_all(i)=0.
-      enddo
-      do i=1,16
-        barr_count(i)=0
-      enddo
+      cpu_all=0.   !<-- array
+      barr_count=0 !<-- array
 
       mcheck=0
       first_time=0
@@ -100,25 +96,25 @@ c      v3bc_max=0.
 #ifdef FLOATS
       ncidflt=-1 ; nrecflt=0       ! averages, stations, and floats.
 #endif
-      do i=1,max_frc_file
+      do i=1,max_frc_files
         ncfrc(i)=-1
       enddo
 #ifdef TSOURCE
-      do i=1,max_frc_file
+      do i=1,max_frc_files
         ncidtsrc(i)=-1
       enddo
 #endif
 #ifndef ANA_SMFLUX
-      sms_file_id=0
+      wnd_file_id=-1
 #endif
 #ifdef SOLVE3D
 # if !defined ANA_STFLUX || !defined ANA_SSFLUX
       do i=1,NT
-        stf_file_id(i)=0
+        stf_file_id(i)=-1
       enddo
 # endif
 # ifndef ANA_SRFLUX
-      srf_file_id=0
+      srf_file_id=-1
 # endif
 # if defined ICEOBS
       ice_file_id=0
@@ -127,9 +123,11 @@ c      v3bc_max=0.
       tsrc_file_id=0
 # endif
 # if defined QCORRECTION && !defined ANA_SST
-      sst_file_id=0
-      sss_file_id=0
-      dqdt_file_id=0
+      sst_file_id=-1
+      dqdt_file_id=-1
+# endif
+# if defined SFLX_CORR && defined SALINITY
+      sss_file_id=-1
 # endif
 #endif
       ncidclm=-1
@@ -269,12 +267,12 @@ CR      write(*,'(1x,A,I3)') 'indxZoo =', indxZoo
 # endif
 
 CR      write(*,'(1x,A,I3)') 'indxAkv =', indxAkv
-      vname(1,indxAkv)='AKv'
+      vname(1,indxAkv)='Akv'
       vname(2,indxAkv)='vertical viscosity coefficient'
       vname(3,indxAkv)='meter2 second-1'
 
 CR      write(*,'(1x,A,I3)') 'indxAkt =',indxAkt
-      vname(1,indxAkt)='AKt'
+      vname(1,indxAkt)='Akt'
       vname(2,indxAkt)='vertical thermal conductivity coefficient'
       vname(3,indxAkt)='meter2 second-1'
 # ifdef SALINITY

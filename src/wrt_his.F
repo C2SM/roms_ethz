@@ -5,9 +5,6 @@
       implicit none
 #include "param.h"
 #include "ncvars.h"
-      integer ierr,  record, i, lstr, lvar, lenstr
-     &   , start(2), count(2), ibuff(iaux), nf_fwrite
-      character(len=18) tstring
 #include "scalars.h"
 #include "grid.h"
 #include "ocean2d.h"
@@ -31,6 +28,9 @@
 #ifdef BIOLOGY_NPZDOC
 # include "gasexc.h"
 #endif
+      integer ierr,  record, i, lstr, lvar, lenstr
+     &   , start(2), count(2), ibuff(iaux), ncdf_write
+      character(len=18) tstring
 #ifdef SOLVE3D
       integer tile, itrc, j,k
 # include "work.h"
@@ -38,24 +38,22 @@
 #if defined MPI && !defined PARALLEL_FILES
 # include "mpif.h"
       integer status(MPI_STATUS_SIZE), blank
-      if (mynode>0) call MPI_Recv (blank, 1, MPI_INTEGER,
+      if (mynode > 0) call MPI_Recv (blank, 1, MPI_INTEGER,
      &            mynode-1, 2, ocean_grid_comm, status, ierr)
 #endif
 
-! Create/open history file; write grid arrays, if so needed.
 
-      call def_his (nrechis, ierr)
+! Create/open history and set record index within the file.
+
+      call def_his(nrechis, ierr)
       if (ierr /= nf_noerr) goto 99
       lstr=lenstr(hisname)
-                                        !!! WARNING: Once time
-! Set record within the file.           !!! stepping has been
-                                        !!! started, it is assumed
-      nrechis=max(nrechis,1)            !!! that the global history
-      if (nrpfhis==0) then              !!! record index "nrechis"
-        record=nrechis                  !!! is advanced by main.
-      else
-        record=1+mod(nrechis-1, nrpfhis)
-      endif
+      nrechis=max(nrechis,1)              !!! WARNING: Once time
+      if (nrpfhis == 0) then              !!! stepping has been
+        record=nrechis                    !!! started, it is assumed
+      else                                !!! that the global history
+        record=1+mod(nrechis-1, nrpfhis)  !!! record index "nrechis"
+      endif                               !!! is advanced by main.
 
 
 c-#define CR
@@ -64,10 +62,8 @@ CR      write(*,*) 'wrt_his: Entry  ' MYID
 ! Write out evolving model variables:
 ! ----- --- -------- ----- ----------
 
-      ibuff(1)=iic-1               ! Time step and
-      ibuff(2)=nrecrst             ! record numbers.
-      ibuff(3)=nrechis
-      ibuff(4:iaux)=0
+      ibuff(1)=iic-1  ; ibuff(2)=nrecrst    ! Time step and
+      ibuff(4:iaux)=0 ; ibuff(3)=nrechis    ! record numbers.
 #ifdef AVERAGES
       ibuff(4)=nrecavg
 #endif
@@ -77,11 +73,10 @@ CR      write(*,*) 'wrt_his: Entry  ' MYID
 #ifdef FLOATS
       ibuff(6)=nrecflt
 #endif
-      start(1)=1
-      start(2)=record
-      count(1)=iaux
-      count(2)=1
-      ierr=nf_put_vara_int (nchis, hisTstep, start, count, ibuff)
+      start(1)=1      ; count(1)=iaux
+      start(2)=record ; count(2)=1
+
+      ierr=nf_put_vara_int(nchis, hisTstep, start, count, ibuff)
       if (ierr /= nf_noerr) then
         write(*,'(/1x,3A,i6/11x,A,3x,A,i4/)') '### ERROR: wrt_his :: ',
      &       'Cannot write variable ''time_step'' into history file, ',
@@ -91,7 +86,7 @@ CR      write(*,*) 'wrt_his: Entry  ' MYID
 
 ! Time
 
-      ierr=nf_put_var1_FTYPE (nchis, hisTime, record, time)
+      ierr=nf_put_var1_FTYPE(nchis, hisTime, record, time)
       if (ierr /= nf_noerr) then
         lvar=lenstr(vname(1,indxTime))
         write(*,'(/1x,4A,i6/11x,A,3x,A,i4/)') '### ERROR: wrt_his :: ',
@@ -106,8 +101,8 @@ CR      write(*,*) 'wrt_his:  time  ' MYID
 ! components in XI-,ETA-directions.
 
       if (wrthis(indxZ)) then
-        ierr=nf_fwrite (zeta(START_2D_ARRAY,knew), nchis, hisZ,
-     &                                              record, r2dvar)
+        ierr=ncdf_write(nchis, hisZ,  record,  r_var,
+     &                  zeta(START_2D_ARRAY,knew), 1)
         if (ierr /= nf_noerr) then
           lvar=lenstr(vname(1,indxZ))
           write(*,1) vname(1,indxZ)(1:lvar), record MYID
@@ -116,8 +111,8 @@ CR      write(*,*) 'wrt_his:  time  ' MYID
 CR      write(*,*) 'wrt_his:  wrtZ  ' MYID
       endif
       if (wrthis(indxUb)) then
-        ierr=nf_fwrite (ubar(START_2D_ARRAY,knew), nchis, hisUb,
-     &                                              record, u2dvar)
+        ierr=ncdf_write(nchis, hisUb,  record,  u_var,
+     &                  ubar(START_2D_ARRAY,knew), 1)
         if (ierr /= nf_noerr) then
           lvar=lenstr(vname(1,indxUb))
           write(*,1) vname(1,indxUb)(1:lvar), record MYID
@@ -126,8 +121,8 @@ CR      write(*,*) 'wrt_his:  wrtZ  ' MYID
 CR      write(*,*) 'wrt_his: wrtUBAR' MYID
       endif
       if (wrthis(indxVb)) then
-        ierr=nf_fwrite (vbar(START_2D_ARRAY,knew), nchis, hisVb,
-     &                                            record, v2dvar)
+        ierr=ncdf_write(nchis, hisVb,  record,  v_var,
+     &                  vbar(START_2D_ARRAY,knew), 1)
         if (ierr /= nf_noerr) then
           lvar=lenstr(vname(1,indxVb))
           write(*,1) vname(1,indxVb)(1:lvar), record MYID
@@ -141,8 +136,8 @@ CR      write(*,*) 'wrt_his: wrtVBAR' MYID
 ! 3D momentum components in XI- and ETA-directions.
 
       if (wrthis(indxU)) then
-        ierr=nf_fwrite (u(START_2D_ARRAY,1,nstp), nchis,
-     &                             hisU,  record,  u3dvar)
+        ierr=ncdf_write(nchis, hisU,  record,  u_var,
+     &                  u(START_2D_ARRAY,1,nstp), N)
         if (ierr /= nf_noerr) then
           lvar=lenstr(vname(1,indxU))
           write(*,1) vname(1,indxU)(1:lvar), record MYID
@@ -151,8 +146,8 @@ CR      write(*,*) 'wrt_his: wrtVBAR' MYID
 CR      write(*,*) 'wrt_his:  wrtU  ' MYID
       endif
       if (wrthis(indxV)) then
-        ierr=nf_fwrite (v(START_2D_ARRAY,1,nstp), nchis,
-     &                             hisV,  record,  v3dvar)
+        ierr=ncdf_write(nchis, hisV,  record,  v_var,
+     &                  v(START_2D_ARRAY,1,nstp), N)
         if (ierr /= nf_noerr) then
           lvar=lenstr(vname(1,indxV))
           write(*,1) vname(1,indxV)(1:lvar), record MYID
@@ -165,15 +160,15 @@ CR      write(*,*) 'wrt_his:  wrtV  ' MYID
 
       do itrc=1,NT
         if (wrthis(indxT+itrc-1)) then
-          ierr=nf_fwrite (t(START_2D_ARRAY,1,nstp,itrc), nchis,
-     &                                hisT(itrc), record, r3dvar)
+          ierr=ncdf_write(nchis,  hisT(itrc), record, r_var,
+     &                    t(START_2D_ARRAY,1,nstp,itrc), N)
 
 
 c          write(*,*) 'Replacing T,S with rho1,qp1.'
-c          if (itrc==1) then
-c            ierr=nf_fwrite (rho1, nchis, hisT(itrc), record,r3dvar)
-c          elseif (itrc==2) then
-c            ierr=nf_fwrite  (qp1, nchis, hisT(itrc), record,r3dvar)
+c          if (itrc == 1) then
+c            ierr=ncdf_write(nchis, hisT(itrc), record, r_var, rho1, N)
+c          elseif (itrc == 2) then
+c            ierr=ncdf_write(nchis, hisT(itrc), record, r_var,  qp1, N)
 c          endif
 
           if (ierr /= nf_noerr) then
@@ -207,9 +202,10 @@ CR      write(*,*) 'wrt_his:  wrtT  ' MYID
 
       if (wrthis(indxR)) then
 # ifdef SPLIT_EOS
-        ierr=nf_fwrite (rho1, nchis, hisR, record, r3dvar)
+!2015:        ierr=nf_fwrite (rho1, nchis, hisR, record, r3dvar)
+        ierr=ncdf_write(nchis, hisR, record, r_var, rho1, N) ! sasha 2016-03
 # else
-        ierr=nf_fwrite (rho, nchis, hisR, record, r3dvar)
+        ierr=ncdf_write(nchis, hisR, record, r_var, rho,  N)
 # endif
         if (ierr /= nf_noerr) then
           lvar=lenstr(vname(1,indxR))
@@ -229,7 +225,7 @@ CR      write(*,*) 'wrt_his:  wrtRHO' MYID
             enddo
           enddo
         enddo
-        ierr=nf_fwrite (work, nchis, hisO, record, w3dvar)
+        ierr=ncdf_write(nchis, hisO, record, r_var, work, N+1)
         if (ierr /= nf_noerr) then
           lvar=lenstr(vname(1,indxO))
           write(*,1) vname(1,indxO)(1:lvar), record MYID
@@ -244,7 +240,7 @@ CR      write(*,*) 'wrt_his:  wrtO  ' MYID
         do tile=0,NSUB_X*NSUB_E-1
           call wvlcty (tile, work)
         enddo
-        ierr=nf_fwrite (work, nchis, hisW, record, r3dvar)
+        ierr=ncdf_write(nchis, hisW, record, r_var, work, N)
         if (ierr /= nf_noerr) then
           lvar=lenstr(vname(1,indxW))
           write(*,1) vname(1,indxW)(1:lvar), record MYID
@@ -256,7 +252,7 @@ CR      write(*,*) 'wrt_his:  wrtW  ' MYID
 ! Vertical viscosity coefficient.
 
       if (wrthis(indxAkv)) then
-        ierr=nf_fwrite (Akv, nchis, hisAkv, record, w3dvar)
+        ierr=ncdf_write(nchis, hisAkv, record, r_var, Akv, N+1)
         if (ierr /= nf_noerr) then
           lvar=lenstr(vname(1,indxAkv))
           write(*,1) vname(1,indxAkv)(1:lvar), record MYID
@@ -268,8 +264,8 @@ CR      write(*,*) 'wrt_his:  wrtAkv' MYID
 ! Vertical diffusion coefficient for potential temperature.
 
       if (wrthis(indxAkt)) then
-        ierr=nf_fwrite (Akt(START_2D_ARRAY,0,itemp), nchis,
-     &                                hisAkt, record, w3dvar)
+        ierr=ncdf_write(nchis,   hisAkt,   record,  r_var,
+     &                  Akt(START_2D_ARRAY,0,itemp), N+1)
         if (ierr /= nf_noerr) then
           lvar=lenstr(vname(1,indxAkt))
           write(*,1) vname(1,indxAkt)(1:lvar), record MYID
@@ -282,8 +278,8 @@ CR      write(*,*) 'wrt_his:  wrtAkt' MYID
 ! Vertical diffusion coefficient for salinity.
 
       if (wrthis(indxAks)) then
-        ierr=nf_fwrite (Akt(START_2D_ARRAY,0,isalt), nchis,
-     &                                hisAks, record, w3dvar)
+        ierr=ncdf_write(nchis,  hisAks,   record,   r_var,
+     &                  Akt(START_2D_ARRAY,0,isalt), N+1)
         if (ierr /= nf_noerr) then
           lvar=lenstr(vname(1,indxAks))
           write(*,1) vname(1,indxAks)(1:lvar), record MYID
@@ -296,8 +292,8 @@ CR      write(*,*) 'wrt_his:  wrtAks' MYID
 ! Depth of planetary boundary layer [m].
 
       if (wrthis(indxHbls)) then
-        ierr=nf_fwrite (hbls(START_2D_ARRAY,nstp), nchis,
-     &                             hisHbls, record, r2dvar)
+        ierr=ncdf_write(nchis, hisHbls, record, r_var,
+     &                  hbls(START_2D_ARRAY,nstp), 1)
         if (ierr /= nf_noerr) then
           lvar=lenstr(vname(1,indxHbls))
           write(*,1) vname(1,indxHbls)(1:lvar), record MYID
@@ -310,8 +306,8 @@ CR      write(*,*) 'wrt_his:  wrtHBL' MYID
 ! Thickness of KPP bottom boundary layer [m].
 
       if (wrthis(indxHbbl)) then
-        ierr=nf_fwrite (hbbl(START_2D_ARRAY,nstp), nchis,
-     &                              hisHbbl, record, r2dvar)
+        ierr=ncdf_write(nchis, hisHbbl, record, r_var,
+     &                  hbbl(START_2D_ARRAY,nstp), 1)
         if (ierr /= nf_noerr) then
           lvar=lenstr(vname(1,indxHbbl))
           write(*,1) vname(1,indxHbbl)(1:lvar), record MYID
@@ -459,7 +455,7 @@ CR      write(*,*) 'wrt_his:  wrtHbBL' MYID
   1   format(/1x, '### ERROR: wrt_his :: Cannot write variable ''',
      &              A, ''' into history file, rec =', i6, 3x,A,i4)
       goto 100
-  99  if (may_day_flag==0) may_day_flag=3
+  99  if (may_day_flag == 0) may_day_flag=3
  100  continue
 
 ! Close or synchronize netCDF file to the disk to allow other
@@ -467,9 +463,9 @@ CR      write(*,*) 'wrt_his:  wrtHbBL' MYID
 
 #if defined MPI && !defined PARALLEL_FILES
       ierr=nf_close (nchis)
-      if (nrpfhis>0 .and. record>=nrpfhis) nchis=-1
+      if (nrpfhis > 0 .and. record >= nrpfhis) nchis=-1
 #else
-      if (nrpfhis>0 .and. record>=nrpfhis) then
+      if (nrpfhis > 0 .and. record >= nrpfhis) then
         ierr=nf_close (nchis)
         nchis=-1
       else
@@ -478,11 +474,11 @@ CR      write(*,*) 'wrt_his:  wrtHbBL' MYID
 #endif
       if (ierr == nf_noerr) then
 #ifdef MPI_SILENT_MODE
-        if (mynode==0) then
+        if (mynode == 0) then
 #endif
           write(tstring,'(F18.8)') tdays
           i=1
-          do while (i<18 .and. tstring(i:i)==' ')
+          do while (i < 18 .and. tstring(i:i) == ' ')
             i=i+1
           enddo
           write(*,'(7x,A,1x,A,2x,A,I7,1x,A,I4,A,I4,1x,A,I3)')
@@ -495,7 +491,7 @@ CR      write(*,*) 'wrt_his:  wrtHbBL' MYID
       else
         write(*,'(/1x,2A/)')      '### ERROR: wrt_his :: Cannot ',
      &                       'synchronize or close history file.'
-        if (may_day_flag==0) may_day_flag=3
+        if (may_day_flag == 0) may_day_flag=3
       endif
 #if defined MPI && !defined PARALLEL_FILES
       if (mynode < NNODES-1) call MPI_Send (blank, 1, MPI_INTEGER,

@@ -88,7 +88,6 @@
 /* # define DAILYPAR_BEC */
 /* # undef RIVER_LOAD_N */
 /* # undef RIVER_LOAD_P */
-/* # define MULT_CLIM_FILES */
 /* # define VARIABLE_ATM_PCO2 */
 
                       /* Sea ice */

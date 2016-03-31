@@ -97,9 +97,9 @@
 ! So do 7.x and earlier versions of Intel IFC compiler, but starting
 ! with version 8.x IFORT recognize it as intrinsic.
 
-c**#if defined XLF || defined PGI
+#ifdef INT_IARGC
       integer iargc
-c**#endif
+#endif
                                   ! Open hostname file, inquire about
                                   ! its size, bytes, allocate character
       if (iargc()>0) then         ! string of sufficient length, and

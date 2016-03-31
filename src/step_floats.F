@@ -97,14 +97,15 @@ c    &     Tinfo(ixgrd,iflt), Tinfo(iygrd,iflt)
 # endif /* AGRIF */
 
 
-!  CHECK ALL FLOATS BELONGING TO THIS GRID AND TRY
-!  TO PUT THEM (AFTER RELEASE - Condition over fltgrd
-!  and track) ON THE FINER GRID IF IT EXISTS.
+! Check all floats belonging to this grid and try to put then
+! on the finer grid if it exists. (AFTER RELEASE - Condition
+! over "fltgrd" and "track").
+
 
 # ifdef AGRIF
 
           do iflt=Lstr,Lend
-            if (fltgrd(iflt)==level) then
+            if (fltgrd(iflt) == level) then
 
             CALL AMR_transfer_floatsp2c(fltgrd(iflt),
      &  track(ixgrd,nf,iflt),track(iygrd,nf,iflt),deltap2c)
@@ -166,7 +167,7 @@ c    &     Tinfo(ixgrd,iflt), Tinfo(iygrd,iflt)
 !
       nfltmax=0
       do iflt=Lstr,Lend
-        if (fltgrd(iflt)==level) then
+        if (fltgrd(iflt) == level) then
           nfltmax=nfltmax+1
           indx(nfltmax)=iflt
         endif
@@ -220,12 +221,12 @@ c    &     Tinfo(ixgrd,iflt), Tinfo(iygrd,iflt)
      &                            nfltmax, indx)
 # endif
 
-!
+
 !---------------------------------------------------------------------
 !  Corrector step: correct floats locations using a 5th order
-!     blended Adams-Bashforth/Adams-Moulton time-stepping scheme.
+!  blended Adams-Bashforth/Adams-Moulton time-stepping scheme.
 !---------------------------------------------------------------------
-!
+
       do id=1,nfltmax
         iflt=indx(id)
         track(ixgrd,nfp1,iflt)=1./270*(
@@ -272,12 +273,12 @@ C the right random walk components to the vertical position
         enddo
 # endif
 
-!
+
 !---------------------------------------------------------------------
 !  If appropriate, activate the release of new floats and set initial
 !  positions for all time levels.
 !---------------------------------------------------------------------
-!
+
       nfltmax_bak=nfltmax
       cff1=time-0.5*dt
       cff2=time+0.5*dt
@@ -309,7 +310,7 @@ CDEBUG      write(*,*)'level',level
 !       write(*,*) 'release of float ', iflt
 !       write(*,*) 'position is (XA) ', track(ixgrd,i,iflt),
 !     & '    ', track(iygrd,i,iflt)
-       i=0
+        i=0
 
 !     DETERMINATION OF FLOAT SIGMA LEVEL (WITH WEIGHTS)
 !     DONE HERE AND NO LONGER IN init_floats.F to
@@ -319,7 +320,7 @@ CDEBUG      write(*,*)'level',level
 # ifdef SOLVE3D
         zfloat=Tinfo(izgrd,iflt)
 
-        if (zfloat<0.0) then
+        if (zfloat < 0.) then
           xfloat=INT(Tinfo(ixgrd,iflt))
           d1=Tinfo(ixgrd,iflt)-xfloat
           yfloat=INT(Tinfo(iygrd,iflt))
@@ -327,31 +328,29 @@ CDEBUG      write(*,*)'level',level
           track(izgrd,i,iflt)=0. ! default bottom value
           sum=0.
           do index1=0,1
-          xfloat=xfloat+index1
-          do index2=0,1
-          yfloat=yfloat+index2
+            xfloat=xfloat+index1
+            do index2=0,1
+              yfloat=yfloat+index2
 
-          temp=((1-index1)*(1-d1)+index1*d1)*
-     &   ((1-index2)*(1-d2)+index2*d2)
-          sum=sum+temp
+              temp=((1-index1)*(1-d1)+index1*d1)
+     &            *((1-index2)*(1-d2)+index2*d2)
+              sum=sum+temp
+              do k=N,1,-1
+                if ( z_w(xfloat,yfloat,k-1) <= zfloat .and.
+     &                 zfloat < z_w(xfloat,yfloat,k) ) then 
 
-          do k=N,1,-1
+                  temp2=FLOAT(k-1) + (zfloat-z_w(xfloat,yfloat,k-1))
+     &                /(z_w(xfloat,yfloat,k)-z_w(xfloat,yfloat,k-1))
 
-            if ((z_w(xfloat,yfloat,k)-zfloat)*
-     &          (zfloat-z_w(xfloat,yfloat,k-1))>=0.0) then
-            temp2=(FLOAT(k-1)+
-     &     (zfloat-z_w(xfloat,yfloat,k-1))/Hz(xfloat,yfloat,k))
-            track(izgrd,i,iflt)=track(izgrd,i,iflt)+temp2*
-     &     temp
+                  track(izgrd,i,iflt)=track(izgrd,i,iflt)+temp2*temp
 
-           endif
+                endif
+              enddo
+            enddo
           enddo
 
-          enddo
-          enddo
-
-          if (sum /= 0) then
-          track(izgrd,i,iflt)=track(izgrd,i,iflt)/sum
+          if (sum > 0.) then
+            track(izgrd,i,iflt)=track(izgrd,i,iflt)/sum
           endif
         endif
 # else
@@ -359,15 +358,15 @@ CDEBUG      write(*,*)'level',level
 # endif
 
         do i=0,NFT
-            track(izgrd,i,iflt)=track(izgrd,0,iflt)
+          track(izgrd,i,iflt)=track(izgrd,0,iflt)
         enddo
       enddo
 
-!
+
 !---------------------------------------------------------------------
 !  Calculate slopes with corrected locations.
 !---------------------------------------------------------------------
-!
+
 # ifdef SOLVE3D
       call rhs_floats (u(START_2D_ARRAY,1,nnew),
      &                 v(START_2D_ARRAY,1,nnew),
@@ -495,7 +494,7 @@ CDEBUG      write(*,*)'level',level
 !  The possibility to have periodic boundary conditions
 !  has been removed to simplify the conditional structure.
 !---------------------------------------------------------------------
-!
+
 # ifdef AGRIF
       if (.not. Agrif_Root()) then
         if (Agrif_nbstepint() == int(Agrif_rhot())-1) then
@@ -576,4 +575,3 @@ CDEBUG      write(*,*)'level',level
       end
 
 #endif /* FLOATS */
-

@@ -75,7 +75,7 @@
             MPI_master_only
      &      write(stdout,1) 'dip_river_time', frcname(1:lstr)
             MPI_master_only print*,' 2nd WARNING: ierr = ',ierr
-            if (ifrc .lt. max_frc_file) then
+            if (ifrc .lt. max_frc_files) then
               ifrc=ifrc+1
               goto 100
             endif

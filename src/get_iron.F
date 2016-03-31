@@ -62,7 +62,7 @@
             endif
           else
             write(*,1) 'iron_time', frcname(1:lstr)
-            if (ifrc .lt. max_frc_file) then
+            if (ifrc .lt. max_frc_files) then
               ifrc=ifrc+1
               goto 100
             endif

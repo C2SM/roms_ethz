@@ -53,6 +53,10 @@ c# define CR
       ierr=nf_noerr
 
       if (iic==ntstart) then
+        itpsrc=1
+        psrc_time(1)=-1.E+20
+        psrc_time(2)=-1.E+20
+
 
 ! If not opened yet, open psource NetCDF file for reading.
 ! Find and save IDs for relevant variables.
@@ -89,13 +93,11 @@ c# define CR
         write(snsrc,'(i7)') Nsrc
 c        if (.not.allocated(D)) allocate (D(Nsrc,N))
 ! time
-        ierr=nf_inq_varid (ncid, 'psrc_time', psrc_tid)
+        ierr=nf_inq_varid(ncid, 'psrc_time', psrc_tid)
         if (ierr == nf_noerr) then
-          call set_cycle (ncid, psrc_tid, ntpsrc, psrc_cycle,
-     &                    psrc_ncycle, psrc_rec, ierr)
-          itpsrc=1
-          psrc_time(1)=-1.E+20
-          psrc_time(2)=-1.E+20
+          call find_record(ncid, psrc_tid,  psrc_rec, ntpsrc,
+     &                   psrc_ncycle, psrc_cycle,  1,1, ierr)
+          
         else
           write(*,1) 'psrc_time', psrc_file(1:lstr)
           goto 99                                        !--> ERROR
@@ -259,21 +261,18 @@ CD        enddo
 CR
 CR        write(*,*) 'get_psrcs: ntpsrc=',ntpsrc
 CR
-      do while (psrc_time(itpsrc)<time+0.5*dt  .and.
-     &                                    ierr==nf_noerr)
-        call advance_cycle (psrc_cycle, ntpsrc,
-     &                         psrc_ncycle, psrc_rec, ierr)
+      do while (psrc_time(itpsrc) < time+0.5*dt .and. ierr == nf_noerr)
+        call advance_record(psrc_rec, ntpsrc,  psrc_ncycle, psrc_cycle,
+     &                                                     1,1,  ierr)
 
-        if (ierr==nf_noerr) then
+        if (ierr == nf_noerr) then
           ierr=nf_get_var1_FTYPE (ncid, psrc_tid, psrc_rec, cff)
           if (ierr == nf_noerr) then
             itpsrc=3-itpsrc
             psrc_time(itpsrc)=psrc_cycle*psrc_ncycle + cff*day2sec
 
-            start(1)=1
-            count(1)=Nsrc
-            start(2)=psrc_rec
-            count(2)=1
+            start(1)=1        ; count(1)=Nsrc
+            start(2)=psrc_rec ; count(2)=1
 ! Qbar
             ierr=nf_get_vara_FTYPE (ncid, QbarG_id, start, count,
      &                                           QbarG(1,itpsrc))

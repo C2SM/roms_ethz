@@ -127,15 +127,15 @@
 # include "compute_tile_bounds.h"
 # ifdef SOLVE3D
       if (wrtavg(indxW)) then
-        call wvlcty_tile (istr,iend,jstr,jend, work, A2d(1,1),
-     &                                   A2d(1,2), A2d(1,3))
+        call wvlcty_tile(istr,iend,jstr,jend, work, A2d(1,1),
+     &                                    A2d(1,2), A2d(1,3))
       endif
 # endif
       call set_AVR_tile (istr,iend,jstr,jend)
       return
       end
  
-      subroutine set_AVR_tile (istr,iend,jstr,jend)
+      subroutine set_AVR_tile(istr,iend,jstr,jend)
 
 ! Compute time-averaged fields within a tile.
 ! ------- ------------- ------ ------ - -----
@@ -459,9 +459,8 @@
      &              'set_AVR :: finished averaging at iic=', iic,
      &                         'ntsAVR=', ntsAVR,  'nAVR=', nAVR
           endif
-          endif
+        endif
       endif       !<-- iic>ntsAVR
-      return
       end
 
 # undef set_AVR

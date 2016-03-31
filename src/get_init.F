@@ -1,15 +1,15 @@
 #include "cppdefs.h"
 
-      subroutine get_init (req_rec, tindx)    ! Read initial conditions
-      implicit none                           ! from netCDF file.
+      subroutine get_init(req_rec, tindx)    ! Reads initial conditions
+      implicit none                          ! from netCDF file.
 #include "param.h"
 #include "ncvars.h"
 #include "scalars.h"
 #include "netcdf.inc"
 
-      integer req_rec, tindx, max_rec,  record,   ncid, varid,
-     &        ierr,    lstr,  start(2), count(2), ibuff(iaux),
-     &        lvar,    latt,  lenstr,   nf_fread, checkdims
+      integer req_rec, tindx, max_rec, record, ncid, varid,
+     &        ierr,  start(2), count(2), ibuff(iaux),
+     &        linit, lvar, latt, lenstr, ncdf_read, checkdims
 #ifdef SOLVE3D
      &                                          , itrc
 #endif
@@ -19,7 +19,11 @@
 #ifdef EXACT_RESTART
      &                    , apprx_rst=3, exact_rst=4
       real time_bak
-      integer vid_DU, vid_DV
+# ifdef EXTRAP_BAR_FLUXES
+      integer vid_DU, vid_DV, vid_DU_bak, vid_DV_bak
+# elif defined PRED_COUPLED_MODE
+      integer vid_rufrc, vid_rvfrc
+# endif
 #endif
       character(len=64) units
 #include "ocean2d.h"
@@ -59,40 +63,40 @@ c--#define VERBOSE
 #if defined BIOLOGY_NPZDOC && !defined BGC_FLUX_ANALYSIS
 # include "bgcflux.h"
 #endif 
-      if (may_day_flag/=0) return      !-->  EXIT
+      if (may_day_flag /= 0) return      !-->  EXIT
 
 ! Open conditions netCDF file for reading.  Check that all spatial
 ! dimensions in that file are consistent with the model, determine how
 ! many time records are available in the file and determine the number
 ! of the record from which the data will be read. The record is set as
 ! follows:
-!          (1) if only one time record is available in the file, then
-!              that record is used REGARDLESS of value of "nrrec"
-!              supplied from the input parameter file;
+!         (1) if there is only one time record available in the file,
+!             then use that record REGARDLESS of the value of "nrrec"
+!             supplied in the input parameter file;
 !
-!          (2) if the file has multiple records and "nrrec" is
-!              positive, then "nrrec" is used, provided that "nrrec"
-!              is within the available records;
+!         (2) if the file has multiple records and
 !
-!          (3) if the file has multiple records and nrrec<0, then
-!              THE LAST available record is used.
+!             (2a) nrrec > 0 then record number "nrrec" is read,
+!                  provided that "nrrec" is within the available
+!                  records (error message is printed otherwise);
+!
+!             (2b) nrrec < 0, THE LAST available record is used.
 
-      init_type=0
-      lstr=lenstr(ininame)
-      ierr=nf_open(ininame(1:lstr), nf_nowrite, ncid)
+      init_type=0 ; linit=lenstr(ininame)
+      ierr=nf_open(ininame(1:linit), nf_nowrite, ncid)
       if (ierr == nf_noerr) then
         ierr=checkdims (ncid, ininame, max_rec)
-        if (ierr. eq. nf_noerr) then
-          if (max_rec>0) then
-            if (req_rec>0) then
-              if (req_rec<=max_rec) then
+        if (ierr == nf_noerr) then
+          if (max_rec > 0) then
+            if (req_rec > 0) then
+              if (req_rec <= max_rec) then
                 record=req_rec
               else
                 write(*,'(/1x,2A,I4,1x,A/12x,A,I4,1x,3A/)')
      &              '### ERROR: get_init :: requested restart time ',
      &              'record',req_rec, 'exceeds number', 'of records',
      &                       max_rec,  'available in netCDF file ''',
-     &                                        ininame(1:lstr), '''.'
+     &                                       ininame(1:linit), '''.'
               endif
             else
               record=max_rec
@@ -103,7 +107,7 @@ c--#define VERBOSE
         endif
       else
         write(*,'(/1x,4A/12x,A/)')  '### ERROR: get_init :: Cannot ',
-     &                 'open netCDF file ''', ininame(1:lstr), '''.',
+     &                'open netCDF file ''', ininame(1:linit), '''.',
      &                                             nf_strerror(ierr)
       endif
       if (ierr /= nf_noerr) goto 99                     !--> ERROR
@@ -176,10 +180,10 @@ c--#define VERBOSE
         ierr=nf_inq_varid (ncid, 'ocean_time', varid)
       endif
       if (ierr /= nf_noerr) then
-        ierr=nf_inq_varid (ncid, 'roms_time', varid)
+        ierr=nf_inq_varid(ncid, 'roms_time', varid)
       endif
       if (ierr /= nf_noerr) then
-        ierr=nf_inq_varid (ncid, 'scrum_time', varid)
+        ierr=nf_inq_varid(ncid, 'scrum_time', varid)
       endif
 
       if (ierr == nf_noerr) then
@@ -188,24 +192,23 @@ c--#define VERBOSE
           ierr=nf_get_att_text(ncid, varid, 'units', units)
           if (ierr == nf_noerr) then
             latt=lenstr(units)
-            if (units(1:6)=='second') then
+            if (units(1:6) == 'second') then
               time_scale=1.
-            elseif (units(1:3)=='day') then
+            elseif (units(1:3) == 'day') then
               time_scale=day2sec
             else
-              write(*,'(/1x,4A/12x,3A/)')    '### ERROR: get_init :',
-     &                          ': unknown units of for variable ''',
-     &                               vname(1,indxTime)(1:lvar), '''',
-     &                   'in netCDF file ''', ininame(1:lstr), '''.'
+              write(*,'(/1x,4A/12x,3A/)')    '### ERROR: get_init :: ',
+     &       'unknown units for variable ''',vname(1,indxTime)(1:lvar),
+     &              '''', 'in netCDF file ''', ininame(1:linit), '''.'
               goto 99                                    !--> ERROR
             endif
             start_time=start_time*time_scale
 
 
 #ifdef EXACT_RESTART
-            if (tindx==2) then
+            if (tindx == 2) then
               forw_start=0
-              if (record<max_rec) then
+              if (record < max_rec) then
                 time_bak=start_time
                 ierr=nf_get_var1_FTYPE (ncid, varid, record+1,
      &                                             start_time)
@@ -216,8 +219,8 @@ c--#define VERBOSE
      &                    'start_time =', start_time,    'dt =', dt
 # endif
 
-! Here expression "abs(start_time-time_bak-dt)<0.001*dt" below is
-! a roundoff-error tolerant version of "start_time==time_bak+dt".
+! Note that expression "abs(start_time-time_bak-dt) < 0.001*dt" below
+! is a roundoff-error tolerant version of "start_time == time_bak+dt".
 
                  if (abs(start_time-time_bak-dt) < 0.01*dt) then
                     forw_start=1
@@ -225,22 +228,22 @@ c--#define VERBOSE
             mpi_nonexit_warn write(*,'(1x,2A,2I4/10x,4A/10x,A/)')
      &                'WARNING: Exact restart is requested, but ',
      &                'is not possible: records', record,record+1,
-     &                'in ''',   ininame(1:lstr),   ''' are not ',
+     &                'in ''',   ininame(1:linit),  ''' are not ',
      &                'consecutive time steps ==> proceeding ',
      &                          'with forward initial time step.'
                   endif
                 else
                   write(*,2) vname(1,indxTime)(1:lvar), record,
-     &                       ininame(1:lstr), nf_strerror(ierr)
+     &                       ininame(1:linit), nf_strerror(ierr)
                   goto 99
                 endif
               else
                 mpi_nonexit_warn write(*,'(1x,2A/10x,4A)')
      &           'WARNING: Exact restart is requested, but is not ',
-     &           'possible: initial',  'file ''',   ininame(1:lstr),
+     &           'possible: initial',  'file ''',  ininame(1:linit),
      &                    ''' does not contain sufficient records.'
               endif
-              if (forw_start/=1) return
+              if (forw_start /= 1) return
               forw_start=0
             endif
 #endif
@@ -248,43 +251,34 @@ c--#define VERBOSE
             write(*,'(/1x,4A/12x,3A/12x,A/)')  '### ERROR: get_init ',
      &           ':: Cannot read attribute ''units'' for variable ''',
      &          vname(1,indxTime)(1:lvar),'''', 'from netCDF file ''',
-     &                    ininame(1:lstr),   '''.', nf_strerror(ierr)
+     &                    ininame(1:linit),  '''.', nf_strerror(ierr)
           endif
         else
           write(*,2) vname(1,indxTime)(1:lvar), record,
-     &               ininame(1:lstr), nf_strerror(ierr)
+     &               ininame(1:linit), nf_strerror(ierr)
         endif
       else
-        write(*,1) vname(1,indxTime)(1:lvar), ininame(1:lstr),
+        write(*,1) vname(1,indxTime)(1:lvar), ininame(1:linit),
      &                                      nf_strerror(ierr)
       endif
       if (ierr /= nf_noerr)  goto 99                    !--> ERROR
 
+! Check whether variable 'time_step' is present, which can be a
+! structure of four to up to eight integer numbers storing time step
+! number and the corresponding record numbers for output files.
+! If present, use them to restart the time step number and record
+! counters (i.e., technically  this is "restart" as opposite to
+! "initial run");  otherwise initialise all the counters to zeroes.
 
-#ifdef PACIFIC
-c**  shift back by 20 years for Xavier's experiment with dayly winds,
-c**  hence "day 15" corresponds to Jan 15 1990, rather than 1970.
-c**      start_time=start_time - 20.*360. *day2sec
-#endif
-
-
-! Check presence of variable 'time_step', which is a structure of
-! either four or eight integer numbers storing time step number and
-! the corresponding records number in the output files.  If found,
-! use them to restart time step and record counting (i.e., restart),
-! otherwise initialise all counters from zero.
-
-      ierr=nf_inq_varid (ncid, 'time_step', varid)
+      ierr=nf_inq_varid(ncid, 'time_step', varid)
       if (ierr == nf_noerr) then
-        ierr=nf_inq_vardimid (ncid, varid, ibuff)
+        ierr=nf_inq_vardimid(ncid, varid, ibuff)
         if (ierr == nf_noerr) then
-          ierr=nf_inq_dimlen (ncid, ibuff(1), count(1))
+          ierr=nf_inq_dimlen(ncid, ibuff(1), count(1))
           if (ierr == nf_noerr) then
-            start(1)=1
-            start(2)=record
-            count(2)=1
+            start(1)=1 ; start(2)=record ; count(2)=1
             ibuff(1:iaux)=0
-            ierr=nf_get_vara_int (ncid, varid, start, count, ibuff)
+            ierr=nf_get_vara_int(ncid, varid, start, count, ibuff)
             if (ierr == nf_noerr) then
               ntstart=ibuff(1)+1
               nrecrst=ibuff(2)
@@ -293,13 +287,13 @@ c**      start_time=start_time - 20.*360. *day2sec
               nrecavg=ibuff(4)
 #endif
 #ifdef STATIONS
-              if (count(1)>=5) nrecstn=ibuff(5)
+              if (count(1) >= 5) nrecstn=ibuff(5)
 #endif
 #ifdef FLOATS
-              if (count(1)>=6) nrecflt=ibuff(6)
+              if (count(1) >= 6) nrecflt=ibuff(6)
 #endif
 #ifdef EXACT_RESTART
-              if (tindx==2 .and. record<max_rec) then
+              if (tindx == 2 .and. record < max_rec) then
                 start(2)=record+1
                 ierr=nf_get_vara_int (ncid, varid, start, count, ibuff)
                 if (ierr == nf_noerr) then
@@ -311,19 +305,18 @@ c**      start_time=start_time - 20.*360. *day2sec
                   else
                   mpi_nonexit_warn write(*,'(1x,2A,2I4/10x,4A/10x,A)')
      &             'WARNING: Exact restart is requested, but is not ',
-     &               'possible: records',  record, record+1,  'in ''',
-     &                ininame(1:lstr), ''' are not consecutive time ',
+     &             'possible: records',  record,   record+1,  'in ''',
+     &              ininame(1:linit),  ''' are not consecutive time ',
      &                                    'steps ==> proceeding with',
      &                                   'forward initial time step.'
-
                     return   !--> no need to read preliminary record
                   endif
                 else
-                  write(*,2) 'time_step', record, ininame(1:lstr),
-     &                                            nf_strerror(ierr)
+                  write(*,2) 'time_step', record, ininame(1:linit),
+     &                                           nf_strerror(ierr)
                 endif
-              elseif (tindx==1) then
-                if (forw_start==1) then
+              elseif (tindx == 1) then
+                if (forw_start == 1) then
                   init_type=exact_rst
                 else
                   init_type=apprx_rst
@@ -333,7 +326,7 @@ c**      start_time=start_time - 20.*360. *day2sec
               init_type=rst_run
 #endif
             else
-              write(*,2)  'time_step',  record,  ininame(1:lstr),
+              write(*,2)  'time_step',  record,  ininame(1:linit),
      &                                           nf_strerror(ierr)
             endif
           else
@@ -363,11 +356,11 @@ c**      start_time=start_time - 20.*360. *day2sec
 #endif
       endif
 #ifdef EXACT_RESTART
-      if (tindx==1 .and. forw_start==0) forw_start=ntstart
+      if (tindx == 1 .and. forw_start == 0) forw_start=ntstart
 #endif
 #ifdef AVERAGES
-      if (tindx==1) then
-        if (ntstart>1) then
+      if (tindx == 1) then
+        if (ntstart > 1) then
           mpi_master_only write(*,'(/4x,A,I5,A,I8/)')
      &         'Adjusting averaging phase ntsavg =',  ntsavg,
      &                          ' ---> ', ntsavg + ntstart-1
@@ -437,132 +430,178 @@ c**      start_time=start_time - 20.*360. *day2sec
 ! Read initial fields:
 !---------------------
 
-! Free-surface
+! Free-surface and barotropic 2D momentuma, XI- and ETA-components
 
       lvar=lenstr(vname(1,indxZ))
-      ierr=nf_inq_varid (ncid, vname(1,indxZ)(1:lvar), varid)
+      ierr=nf_inq_varid(ncid, vname(1,indxZ)(1:lvar), varid)
       if (ierr == nf_noerr) then
-        ierr=nf_fread (zeta(START_2D_ARRAY,1), ncid, varid,
-     &                                         record, r2dvar)
-        if (ierr /= nf_noerr) then
-          write(*,2) vname(1,indxZ)(1:lvar),   record,
-     &               ininame(1:lstr), nf_strerror(ierr)
-          goto 99                                         !--> ERROR
+        ierr=ncdf_read( ncid, varid, record, r_var,
+     &                  zeta(START_2D_ARRAY,1), 1)
+        if (ierr == nf_noerr) then
+          lvar=lenstr(vname(1,indxUb))
+          ierr=nf_inq_varid(ncid, vname(1,indxUb)(1:lvar), varid)
+          if (ierr == nf_noerr) then
+            ierr=ncdf_read( ncid, varid, record, u_var,
+     &                      ubar(START_2D_ARRAY,1), 1)
+            if (ierr == nf_noerr) then
+              lvar=lenstr(vname(1,indxVb))
+              ierr=nf_inq_varid(ncid, vname(1,indxVb)(1:lvar), varid)
+              if (ierr == nf_noerr) then
+                ierr=ncdf_read( ncid, varid, record, v_var,
+     &                          vbar(START_2D_ARRAY,1), 1)
+                if (ierr /= nf_noerr) then
+                  write(*,2) vname(1,indxVb)(1:lvar),   record,
+     &                       ininame(1:linit), nf_strerror(ierr)
+                endif
+              else
+                write(*,1) vname(1,indxVb)(1:lvar), ininame(1:linit),
+     &                                             nf_strerror(ierr)
+              endif
+            else
+              write(*,2) vname(1,indxUb)(1:lvar),    record,
+     &                   ininame(1:linit), nf_strerror(ierr)
+            endif
+          else
+            write(*,1) vname(1,indxUb)(1:lvar), ininame(1:linit),
+     &                                         nf_strerror(ierr)
+          endif
+        else
+          write(*,2) vname(1,indxZ)(1:lvar),    record,
+     &               ininame(1:linit), nf_strerror(ierr)
         endif
       else
-        write(*,1) vname(1,indxZ)(1:lvar), ininame(1:lstr),
-     &                                   nf_strerror(ierr)
-        goto 99                                           !--> ERROR
-      endif
-
-! 2D momentum component in the XI- and ETA-directions
-
-      lvar=lenstr(vname(1,indxUb))
-      ierr=nf_inq_varid (ncid, vname(1,indxUb)(1:lvar), varid)
-      if (ierr == nf_noerr) then
-        ierr=nf_fread (ubar(START_2D_ARRAY,1), ncid, varid,
-     &                                         record, u2dvar)
-        if (ierr /= nf_noerr) then
-          write(*,2) vname(1,indxUb)(1:lvar),   record,
-     &               ininame(1:lstr), nf_strerror(ierr)
-          goto 99                                        !--> ERROR
-        endif
-      else
-        write(*,1) vname(1,indxUb)(1:lvar), ininame(1:lstr),
+        write(*,1) vname(1,indxZ)(1:lvar), ininame(1:linit),
      &                                    nf_strerror(ierr)
-        goto 99                                           !--> ERROR
       endif
+      if (ierr /= nf_noerr) goto 99               !--> ERROR
 
-      lvar=lenstr(vname(1,indxVb))
-      ierr=nf_inq_varid (ncid, vname(1,indxVb)(1:lvar), varid)
-      if (ierr == nf_noerr) then
-        ierr=nf_fread (vbar(START_2D_ARRAY,1), ncid, varid,
-     &                                         record, v2dvar)
-        if (ierr /= nf_noerr) then
-          write(*,2) vname(1,indxVb)(1:lvar),   record,
-     &               ininame(1:lstr), nf_strerror(ierr)
-          goto 99                                          !--> ERROR
-        endif
-      else
-        write(*,1) vname(1,indxVb)(1:lvar), ininame(1:lstr),
-     &                                    nf_strerror(ierr)
-        goto 99                                           !--> ERROR
-      endif
+! Two sets of fast-time-averaged barotropic fluxes needed for exact
+! restart in the case when using Adams-Bashforth-like extrapolation of
+! vertically-integrated 3D velocities for computing momentum advection
+! and Coriolis terms for 3D --> 2D forcing of barotropic mode.  Once
+! again, adopting "soft policy" with respect to their presense/absence
+! in the file: if not found use forward step instead of exact restart.
 
 #ifdef SOLVE3D
 # ifdef EXACT_RESTART
-      ierr=nf_inq_varid (ncid, 'DU_avg2', vid_DU)
+#  ifdef EXTRAP_BAR_FLUXES
+      ierr=nf_inq_varid(ncid, 'DU_avg2', vid_DU)
       if (ierr == nf_noerr) then
-        ierr=nf_inq_varid (ncid, 'DV_avg2', vid_DV)
+        ierr=nf_inq_varid(ncid, 'DV_avg2', vid_DV)
         if (ierr == nf_noerr) then
-          ierr=nf_fread (DU_avg2, ncid, vid_DU, record, u2dvar)
+          ierr=nf_inq_varid(ncid, 'DU_avg_bak', vid_DU_bak)
           if (ierr == nf_noerr) then
-            ierr=nf_fread (DV_avg2, ncid, vid_DV, record, v2dvar)
-
-            if (ierr /= nf_noerr) then
-              write(*,2) 'DV_avg2',  record, ininame(1:lstr),
-     &                                       nf_strerror(ierr)
-              goto 99                                    !--> ERROR
+            ierr=nf_inq_varid(ncid, 'DV_avg_bak', vid_DV_bak)
+            if (ierr == nf_noerr) then
+              ierr=ncdf_read(ncid, vid_DU, record, u_var, DU_avg2, 1)
+              if (ierr == nf_noerr) then
+                ierr=ncdf_read(ncid, vid_DV, record, v_var, DV_avg2,1)
+                if (ierr == nf_noerr) then
+                  ierr=ncdf_read(ncid, vid_DU_bak, record, u_var,
+     &                                                  DU_avg_bak, 1)
+                  if (ierr == nf_noerr) then
+                    ierr=ncdf_read(ncid, vid_DV_bak, record, v_var,
+     &                                                  DV_avg_bak, 1)
+                    if (ierr /= nf_noerr) then
+                      write(*,2) 'DV_avg_bak', record,ininame(1:linit),
+     &                                               nf_strerror(ierr)
+                    endif
+                  else
+                    write(*,2)  'DU_avg_bak', record, ininame(1:linit),
+     &                                               nf_strerror(ierr)
+                  endif
+                else
+                  write(*,2) 'DV_avg2',  record, ininame(1:linit),
+     &                                          nf_strerror(ierr)
+                endif
+              else
+                write(*,2)   'DU_avg2',  record, ininame(1:linit),
+     &                                          nf_strerror(ierr)
+              endif
+              if (ierr /= nf_noerr) goto 99                  !--> ERROR
+            else
+              forw_start=ntstart      !--> cancel exact restart
             endif
           else
-            write(*,2)   'DU_avg2',  record, ininame(1:lstr),
-     &                                       nf_strerror(ierr)
-            goto 99                                      !--> ERROR
+            forw_start=ntstart      !--> cancel exact restart
           endif
         else
           forw_start=ntstart    !--> cancel exact restart
         endif
       else
-        forw_start=ntstart      !--> cancel exact restart
+        forw_start=ntstart    !--> cancel exact restart
       endif
-# endif
+
+#  elif defined PRED_COUPLED_MODE
+      ierr=nf_inq_varid(ncid, 'rufrc_bak', vid_rufrc)
+      if (ierr == nf_noerr) then
+        ierr=nf_inq_varid(ncid,  'rvfrc_bak',  vid_rvfrc)
+        if (ierr == nf_noerr) then
+          ierr=ncdf_read( ncid,  vid_rufrc,  record,  u_var,
+     &                     rufrc_bak(START_2D_ARRAY,tindx), 1)
+          if (ierr == nf_noerr) then
+            ierr=ncdf_read( ncid, vid_rvfrc,  record, v_var,
+     &                     rvfrc_bak(START_2D_ARRAY,tindx), 1)
+            if (ierr /= nf_noerr) then
+              write(*,2) 'rvfrc_bak', record, ininame(1:linit),
+     &                                       nf_strerror(ierr)
+            endif
+          else
+            write(*,2)   'rufrc_bak', record, ininame(1:linit),
+     &                                       nf_strerror(ierr)
+          endif
+          if (ierr /= nf_noerr) goto 99                     !--> ERROR
+        else
+          forw_start=ntstart    !--> cancel exact restart
+        endif
+      else
+        forw_start=ntstart    !--> cancel exact restart
+      endif
+#  endif
+# endif /*EXACT_RESTART*/
 
 ! 3D momentum components in XI- and ETA-directions
 
       lvar=lenstr(vname(1,indxU))
-      ierr=nf_inq_varid (ncid, vname(1,indxU)(1:lvar), varid)
+      ierr=nf_inq_varid(ncid, vname(1,indxU)(1:lvar), varid)
       if (ierr == nf_noerr) then
-        ierr=nf_fread (u(START_2D_ARRAY,1,tindx), ncid, varid,
-     &                                         record, u3dvar)
-        if (ierr /= nf_noerr) then
+        ierr=ncdf_read( ncid,  varid,  record,  u_var,
+     &                  u(START_2D_ARRAY,1,tindx), N)
+        if (ierr == nf_noerr) then
+          lvar=lenstr(vname(1,indxV))
+          ierr=nf_inq_varid(ncid, vname(1,indxV)(1:lvar), varid)
+          if (ierr == nf_noerr) then
+            ierr=ncdf_read( ncid,  varid,  record,  v_var,
+     &                      v(START_2D_ARRAY,1,tindx), N)
+            if (ierr /= nf_noerr) then
+              write(*,2) vname(1,indxV)(1:lvar),    record,
+     &                   ininame(1:linit), nf_strerror(ierr)
+            endif
+          else
+            write(*,1) vname(1,indxV)(1:lvar), ininame(1:linit),
+     &                                       nf_strerror(ierr)
+          endif
+        else
           write(*,2) vname(1,indxU)(1:lvar),    record,
-     &               ininame(1:lstr), nf_strerror(ierr)
-          goto 99                                         !--> ERROR
+     &               ininame(1:linit), nf_strerror(ierr)
         endif
       else
-        write(*,1) vname(1,indxU)(1:lvar), ininame(1:lstr),
+        write(*,1) vname(1,indxU)(1:lvar), ininame(1:linit),
      &                                   nf_strerror(ierr)
-        goto 99                                           !--> ERROR
       endif
-
-      lvar=lenstr(vname(1,indxV))
-      ierr=nf_inq_varid (ncid, vname(1,indxV)(1:lvar), varid)
-      if (ierr == nf_noerr) then
-        ierr=nf_fread (v(START_2D_ARRAY,1,tindx), ncid, varid,
-     &                                         record, v3dvar)
-        if (ierr /= nf_noerr) then
-          write(*,2) vname(1,indxV)(1:lvar),    record,
-     &               ininame(1:lstr), nf_strerror(ierr)
-          goto 99                                        !--> ERROR
-        endif
-      else
-        write(*,1) vname(1,indxV)(1:lvar), ininame(1:lstr),
-     &                                   nf_strerror(ierr)
-        goto 99                                           !--> ERROR
-      endif
+      if (ierr /= nf_noerr) goto 99                        !--> ERROR
 
 ! Tracer variables.
 
       do itrc=1,NT
         lvar=lenstr(vname(1,indxT+itrc-1))
-        ierr=nf_inq_varid (ncid, vname(1,indxT+itrc-1)(1:lvar),
-     &                                                    varid)
+        ierr=nf_inq_varid(ncid, vname(1,indxT+itrc-1)(1:lvar), varid)
         if (ierr == nf_noerr) then
-          ierr=nf_fread (t(START_2D_ARRAY,1,tindx,itrc), ncid,
-     &                                    varid, record, r3dvar)
+          ierr=ncdf_read( ncid,   varid,   record,   r_var,
+     &                    t(START_2D_ARRAY,1,tindx,itrc), N)
           if (ierr /= nf_noerr) then
             write(*,2) vname(1,indxT+itrc-1)(1:lvar), record,
-     &                     ininame(1:lstr), nf_strerror(ierr)
+     &                     ininame(1:linit), nf_strerror(ierr)
             goto 99                                       !--> ERROR
           endif
         else
@@ -730,77 +769,74 @@ CHF          goto 99                                         !--> ERROR
 # endif /* BIOLOGY_BEC || BIOLOGY_NPZDOC */
 # ifdef LMD_KPP
       lvar=lenstr(vname(1,indxHbls))
-      ierr=nf_inq_varid (ncid, vname(1,indxHbls)(1:lvar), varid)
+      ierr=nf_inq_varid(ncid, vname(1,indxHbls)(1:lvar), varid)
       if (ierr == nf_noerr) then
-        ierr=nf_fread (hbls(START_2D_ARRAY,tindx), ncid, varid,
-     &                                           record, r2dvar)
+        ierr=ncdf_read( ncid,  varid,  record,  r_var,
+     &                  hbls(START_2D_ARRAY,tindx), 1)
         if (ierr /= nf_noerr) then
           write(*,2) vname(1,indxHbls)(1:lvar), record,
-     &               ininame(1:lstr), nf_strerror(ierr)
+     &               ininame(1:linit), nf_strerror(ierr)
           goto 99                                        !--> ERROR
         endif
       else
         mpi_nonexit_warn write(*,'(1x,6A)')        'WARNING: netCDF ',
      & 'variable ''', vname(1,indxHbls)(1:lvar), ''' not found in ''',
-     &           ininame(1:lstr), ''' ==> initialized to zero state.'
+     &           ininame(1:linit), ''' ==> initialized to zero state.'
 
       endif
 
 # endif
 # ifdef LMD_BKPP
       lvar=lenstr(vname(1,indxHbbl))
-      ierr=nf_inq_varid (ncid, vname(1,indxHbbl)(1:lvar), varid)
+      ierr=nf_inq_varid(ncid, vname(1,indxHbbl)(1:lvar), varid)
       if (ierr == nf_noerr) then
-        ierr=nf_fread (hbbl(START_2D_ARRAY,tindx), ncid, varid,
-     &                                           record, r2dvar)
+        ierr=ncdf_read( ncid,  varid,  record, r_var,
+     &                  hbbl(START_2D_ARRAY,tindx),1)
         if (ierr /= nf_noerr) then
           write(*,2) vname(1,indxHbbl)(1:lvar), record,
-     &               ininame(1:lstr), nf_strerror(ierr)
+     &               ininame(1:linit), nf_strerror(ierr)
           goto 99                                        !--> ERROR
         endif
       else
         mpi_nonexit_warn write(*,'(1x,6A)')        'WARNING: netCDF ',
      & 'variable ''', vname(1,indxHbbl)(1:lvar), ''' not found in ''',
-     &           ininame(1:lstr), ''' ==> initialized to zero state.'
+     &           ininame(1:linit), ''' ==> initialized to zero state.'
 
       endif
 # endif
+#endif /* SOLVE3D */
 
-#endif
-
-! Close input NetCDF file.
+! Close input NetCDF file and  write greeting message depending on
+! the the type of initial/restart procedure performed above.
 
       ierr=nf_close(ncid)
-
-! Write greeting message depending on type of initial conditions.
-
 #ifdef MPI_SILENT_MODE
-      if (mynode==0) then
+      if (mynode == 0) then
 #endif
-       if (tindx==1) then
-        if (init_type == init_run) then
-          write(*,'(6x,2A,F12.4,1x,A,I4)')   'get_init: Read initial ',
+       if (tindx == 1) then
+         if (init_type == init_run) then
+          write(*,'(6x,2A,F12.4,1x,A,I4)') 'get_init :: Read initial ',
      &   'conditions for day =', start_time*sec2day, 'record =',record
 #ifdef EXACT_RESTART
-        elseif (init_type == exact_rst) then
-          write(*,'(6x,A,F12.4,1x,A,I4,A,I8,A,I4,A,I4,A)')
-     &   'get_init: Exact restart from day =',  start_time*sec2day,
-     &   'rec =', record, '(',ntstart,',', nrecrst,',', nrechis,').'
-        elseif (init_type == apprx_rst) then
-          write(*,'(6x,A,F12.4,1x,A,I4,A,I8,A,I4,A,I4,A)')
-     &        'get_init: Approximate, single-step restart from day =',
-     &         start_time*sec2day,  'rec =', record, '(',ntstart, ',',
+         elseif (init_type == exact_rst) then
+           write(*,'(6x,A,F12.4,1x,A,I4,A,I8,A,I4,A,I4,A)')
+     &    'get_init :: Exact restart from day =',  start_time*sec2day,
+     &    'rec =', record,  '(',ntstart, ',',nrecrst,',', nrechis, ').'
+         elseif (init_type == apprx_rst) then
+           write(*,'(6x,A,F12.4,1x,A,I4,A,I8,A,I4,A,I4,A)')
+     &      'get_init :: Approximate, single-step restart from day =',
+     &       start_time*sec2day,   'rec =', record,  '(',ntstart, ',',
      &                                     nrecrst, ',', nrechis,').'
 #else
-        elseif (init_type == rst_run) then
-          write(*,'(6x,A,F12.4,1x,A,I4,A,I8,A,I4,A,I4,A)')
+         elseif (init_type == rst_run) then
+           write(*,'(6x,A,F12.4,1x,A,I4,A,I8,A,I4,A,I4,A)')
      &          'get_init: Restarted from day =', start_time*sec2day,
      &     'rec =', record, '(',ntstart,',', nrecrst,',', nrechis,').'
 #endif
-        else
-          write(*,'(/1x,A/)') '### ERROR: get_init :: Unknown Error.'
-          goto 99
-        endif
+         else
+           write(*,'(/1x,A/)') '### ERROR: get_init :: Unknown Error.'
+           goto 99
+         endif
        endif  !<-- tindex==1
 #ifdef MPI_SILENT_MODE
       endif

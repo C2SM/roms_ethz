@@ -122,11 +122,14 @@
       integer istr,iend,jstr,jend, i,j,k
 # include "param.h"
 # ifdef NONLIN_EOS
+      real Ts,Tt,sqrtTs, dr00, K0
 #  ifndef SPLIT_EOS
-      real K_up(PRIVATE_1D_SCRATCH_ARRAY,0:N),  K1,
-     &     K_dw(PRIVATE_1D_SCRATCH_ARRAY,0:N),  K2
+      real K1, K2                     
+      real dimension(PRIVATE_1D_SCRATCH_ARRAY,0:N) :: K_up,K_dw
 #  endif
-      real K0, Ts, Tt, sqrtTs,dr00
+
+! EOS coefficient notation: first index is for salinity, second for
+! temperature powers, "S" for 3/2 power of salinity.
 
       real, parameter ::   r00=999.842594,     r01=6.793952E-2,
      &      r02=-9.095290E-3,   r03=1.001685E-4,    r04=-1.120083E-6,
@@ -172,14 +175,11 @@
 # include "compute_extended_bounds.h"
 
 # ifdef NONLIN_EOS
+      Tt=3.8D0 ; Ts=34.5D0 ; sqrtTs=sqrt(Ts)
 #  ifdef DUKO_2001
-      Tt=3.8D0
-      Ts=34.5D0
-      sqrtTs=sqrt(Ts)
-
 c*    cff=r00-1000.D0
 c*    rho1_0=cff +Tt*( r01+Tt*( r02+Tt*( r03+Tt*( r04+Tt*r05 ))))
-c*   &                            +Ts*( R10+Tt*( r11+Tt*( r12+Tt*(
+c*   &                            +Ts*( r10+Tt*( r11+Tt*( r12+Tt*(
 c*   &                                              r13+Tt*r14 )))
 c*   &                   +sqrtTs*( rS0+Tt*( rS1+Tt*rS2 ))+Ts*r20 )
 
@@ -198,19 +198,15 @@ c**   write(*,'(2(4x,A,F16.8))') 'rho1_0=',rho1_0, 'K0_Duk=',K0_Duk
           do i=istrR,iendR                             !  EQUATION
             Tt=t(i,j,k,nrhs,itemp)                     !  OF STATE
 #  ifdef SALINITY
-            Ts=max(t(i,j,k,nrhs,isalt), 0.)
-            sqrtTs=sqrt(Ts)
-#  else
-            Ts=0.0
-            sqrtTs=0.0
+            Ts=t(i,j,k,nrhs,isalt) ; sqrtTs=sqrt(max(0.,Ts))
 #  endif
             rho1(i,j,k)=( dr00 +Tt*( r01+Tt*( r02+Tt*( r03+Tt*(
-     &                                           r04+Tt*r05 ))))
+     &                                            r04+Tt*r05 ))))
 
      &                         +Ts*( r10+Tt*( r11+Tt*( r12+Tt*(
-     &                                            r13+Tt*r14 )))
-     &                              +sqrtTs*(rS0+Tt*(
-     &                                   rS1+Tt*rS2 ))+Ts*r20 ))
+     &                                             r13+Tt*r14 )))
+     &                              +sqrtTs*(rS0+Tt*(rS1+Tt*rS2))
+     &                                                +Ts*r20 ) )
 #  ifdef MASKING
      &                                              *rmask(i,j)
 #  endif

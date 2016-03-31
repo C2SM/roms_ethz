@@ -20,17 +20,17 @@
       integer ierr,  record, lvar, lenstr, iflt, id
      &   , nfltrelmax, nfltunrelmax, indxrel(Mfloats)
      &   , indxunrel(Mfloats),Toutint(Mfloats)
-     &   , start(2), count(2), ibuff(2), nf_fwrite
+     &   , start(2), count(2), ibuff(2)
       logical newf
       character*65 vinfo
       real Tout(Mfloats)
 
-# if defined MPI & !defined PARALLEL_FILES
+# if defined MPI && !defined PARALLEL_FILES
       include 'mpif.h'
       integer status(MPI_STATUS_SIZE), blank
 # endif
-# if defined MPI & !defined PARALLEL_FILES
-      if (mynode>0) then
+# if defined MPI && !defined PARALLEL_FILES
+      if (mynode > 0) then
         call MPI_Recv (blank, 1, MPI_INTEGER, mynode-1,
      &                 1, ocean_grid_comm, status, ierr)
       endif
@@ -45,8 +45,8 @@
                                         !!! WARNING: Once time
 ! Set record within the file.           !!! stepping has been
                                         !!! started, it is assumed
-      if (iic==0) nrecflt=nrecflt+1   !!! that the global float
-      if (nrpfflt==0) then            !!!  history record index
+      if (iic == 0) nrecflt=nrecflt+1   !!! that the global float
+      if (nrpfflt == 0) then            !!!  history record index
         record=nrecflt                  !!! "nrecflt" is advanced
       else                              !!! by main.
         record=1+mod(nrecflt-1, nrpfflt)
@@ -342,7 +342,7 @@
 ! Synchronize netCDF file to disk to allow other processes to access
 ! data immediately after it is written.
 
-# if defined MPI & !defined PARALLEL_FILES
+# if defined MPI && !defined PARALLEL_FILES
       ierr=nf_close (ncidflt)
       if (nrpfflt>0 .and. record>=nrpfflt) ncidflt=-1
 # else
@@ -364,7 +364,7 @@
         may_day_flag=3
       endif
 
-# if defined MPI & !defined PARALLEL_FILES
+# if defined MPI && !defined PARALLEL_FILES
       if (mynode < NNODES-1) then
         call MPI_Send (blank, 1, MPI_INTEGER, mynode+1,
      &                        1, ocean_grid_comm, ierr)

@@ -28,7 +28,11 @@ CSDISTRIBUTE_RESHAPE diff3v(BLOCK_PATTERN,*) BLOCK_CLAUSE
 
       real Akv(GLOBAL_2D_ARRAY,0:N)
 CSDISTRIBUTE_RESHAPE Akv(BLOCK_PATTERN,*) BLOCK_CLAUSE
-      real Akt(GLOBAL_2D_ARRAY,0:N,NT)
+# ifdef SALINITY
+      real Akt(GLOBAL_2D_ARRAY,0:N,isalt)
+# else
+      real Akt(GLOBAL_2D_ARRAY,0:N,itemp)
+# endif
 CSDISTRIBUTE_RESHAPE Akt(BLOCK_PATTERN,*,*) BLOCK_CLAUSE
       common /mixing_Akv/Akv /mixing_Akt/Akt
 # if defined BVF_MIXING || defined LMD_MIXING  || defined LMD_KPP \
