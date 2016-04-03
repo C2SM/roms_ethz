@@ -608,12 +608,12 @@ c--#define VERBOSE
 # if defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC2
           if (itrc >= 3) then
             MPI_master_only write(*,3) vname(1,indxT+itrc-1)(1:lvar)
-     &                                 , ininame(1:lstr)
+     &                                 , trim(ininame)
      &                                 , ' => Initialized to 0.' 
           else
 # endif
             MPI_master_only write(*,1) vname(1,indxT+itrc-1)(1:lvar)
-     &                          , ininame(1:lstr), nf_strerror(ierr)
+     &                          , trim(ininame), nf_strerror(ierr)
             goto 99                                         !--> ERROR
 # ifdef BIOLOGY_BEC2
           endif
@@ -633,13 +633,13 @@ c--#define VERBOSE
      &                                               record, r2dvar)
           if (ierr .ne. nf_noerr) then
             write(*,2) vname(1,indxSedOrgN+itrc-1)(1:lvar),
-     &            record,  ininame(1:lstr)
+     &            record,  trim(ininame)
             goto 99                                       !--> ERROR
           endif
         else
           MPI_master_only write(*,1) 
      &                         vname(1,indxSedOrgN+itrc-1)(1:lvar),
-     &                                    ininame(1:lstr)
+     &                                    trim(ininame)
      &            ,' => Initialized to 0.' 
 !          MPI_master_only write(*,'(1x,2a/1x,a)') 
 !     &         'Note: Previous versions of ROMS did ',
@@ -663,7 +663,7 @@ CHF          goto 99                                         !--> ERROR
      &                                               record, r2dvar)
          if (ierr .ne. nf_noerr) then
             write(*,2) vname(1,indxPH_rst)(1:lvar), record,
-     &           ininame(1:lstr)
+     &           trim(ininame)
             goto 99             !--> ERROR
          endif
       else
@@ -681,7 +681,7 @@ CHF          goto 99                                         !--> ERROR
      &                                               record, r2dvar)
          if (ierr .ne. nf_noerr) then
             write(*,2) vname(1,indxPCO2_rst)(1:lvar), record,
-     &           ininame(1:lstr)
+     &           trim(ininame)
             goto 99             !--> ERROR
          endif
       else
@@ -699,7 +699,7 @@ CHF          goto 99                                         !--> ERROR
      &                                               record, r2dvar)
          if (ierr .ne. nf_noerr) then
             write(*,2) vname(1,indxPCO2air_rst)(1:lvar), record,
-     &           ininame(1:lstr)
+     &           trim(ininame)
             goto 99             !--> ERROR
          endif
       else
@@ -721,12 +721,12 @@ CHF          goto 99                                         !--> ERROR
      &                                               record, r2dvar)
             if (ierr .ne. nf_noerr) then
                write(*,2) vname_bec2_diag_2d(1,itrc)(1:lvar), record,
-     &              ininame(1:lstr)
+     &              trim(ininame)
                goto 99             !--> ERROR
             endif
          else
             MPI_master_only write(*,1) vname_bec2_diag_2d(1,itrc)(1:lvar), 
-     &                           ininame(1:lstr)
+     &                           trim(ininame)
      &            ,' => Initialized to 0.'
          endif
       end do
@@ -739,12 +739,12 @@ CHF          goto 99                                         !--> ERROR
      &                                               record, r3dvar)
             if (ierr .ne. nf_noerr) then
                write(*,2) vname_bec2_diag_3d(1,itrc)(1:lvar), record,
-     &              ininame(1:lstr)
+     &              trim(ininame)
                goto 99             !--> ERROR
             endif
          else
             MPI_master_only write(*,1) vname_bec2_diag_3d(1,itrc)(1:lvar), 
-     &                           ininame(1:lstr)
+     &                           trim(ininame)
      &            ,' => Initialized to 0.'
          endif
       end do
@@ -759,7 +759,7 @@ CHF          goto 99                                         !--> ERROR
      &                                               record, r2dvar)
          if (ierr .ne. nf_noerr) then
             write(*,2) vname(1,indxPAR_rst)(1:lvar), record,
-     &           ininame(1:lstr)
+     &           trim(ininame)
             goto 99             !--> ERROR
          endif
       else

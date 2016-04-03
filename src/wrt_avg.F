@@ -185,7 +185,6 @@ CR      write(*,*) 'wrt_ AVR :  wrtT_sed  ' MYID
       if (wrt AVR (indxR) .and. ierr == nf_noerr) then
         ierr=ncdf_write(nc AVR ,  AVR R, record, r_var,
      &                  rho_ AVR (START_2D_ARRAY,1), N)
->>>>>>> ucla_sasha
         if (ierr /= nf_noerr) then
           lvar=lenstr(vname(1,indxR))
           write(*,1) vname(1,indxR)(1:lvar), record  MYID

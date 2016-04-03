@@ -131,7 +131,7 @@ c# endif
 # endif
       end
 #else
-      subroutine get_srflux_empty
+      subroutine set_srflux_empty
       end
 #endif /* SOLVE3D && !ANA_SRFLUX */
 

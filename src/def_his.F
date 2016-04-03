@@ -38,8 +38,6 @@ c--#define nf_def_var my_nf_def_var
 
       implicit none
       integer total_rec, ierr
-     &      , rec,timedim, old_fill, lfnm, lvar
-     &      , r2dgrd(3), u2dgrd(3), v2dgrd(3), auxil(2), itrc
 #include "param.h"
 #include "scalars.h"
 #include "ncvars.h"
@@ -48,7 +46,7 @@ c--#define nf_def_var my_nf_def_var
       integer lenstr, checkdims, my_nf_def_dim
       integer rec, lfnm, lvar, timedim, prev_fill_mode,
      &        r2dgrd(3), u2dgrd(3), v2dgrd(3), auxil(2)
-#ifdef SOLVE3D && !defined AVR2DH
+#if defined SOLVE3D && !defined AVR2DH
      &      , r3dgrd(4), u3dgrd(4), v3dgrd(4), w3dgrd(4), itrc
 #endif
       character(len=64) text
@@ -384,6 +382,7 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
 #else
         ierr=nf_create(fname(1:lfnm), nf_clobber+nf_64bit_offset,
      &                                                     ncid)
+#endif
         if (ierr == nf_noerr) then
           ierr=nf_set_fill(ncid, nf_nofill, prev_fill_mode)
           if (ierr /= nf_noerr) then

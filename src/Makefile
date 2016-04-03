@@ -61,13 +61,13 @@ IOSRC = checkdims.F	find_record.F	insert_node.F	ncdf_read_write.F\
 	get_grid.F	get_init.F	wrt_grid.F	put_global_atts.F\
 	def_rst.F	wrt_rst.F	def_his.F	wrt_his.F\
 	set_avg.F	wrt_avg.F	def_statn.F	wrt_statn.F\
-	get_ssh.F	get_srflux.F get_sst.F	get_dqdt.F	get_sss.F	get_stress_magn.F\
+	get_forces.F	get_stflux.F	get_bry_all.F	set_forces.F\
 	set_smflux.F	set_stflux.F	nf_read_bry.F	bulk_flux_COAMS.F\
 	get_tides.F	set_tides.F	set_srflux.F\
 	get_ssh.F	get_tclima.F	get_uclima.F	closecdf.F
 
-OBSOLETE_SRC=
-	get_forces.F	get_stflux.F	get_bry_all.F	set_forces.F
+OBSOLETE_SRC = \
+	get_ssh.F	get_srflux.F get_sst.F	get_dqdt.F	get_sss.F	get_stress_magn.F
 
 
 

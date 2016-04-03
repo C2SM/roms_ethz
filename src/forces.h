@@ -365,7 +365,7 @@ CSDISTRIBUTE_RESHAPE  dip_riverg(BLOCK_PATTERN,*) BLOCK_CLAUSE
      &  itdip_river,dip_river_id,dip_river_ncycle,dip_river_rec,dip_river_tid
 #endif
 
-#ifdef 2015_SOLARFRC
+#ifdef SOLARFRC_2015
 !
 ! Solar short-wave radiation flux:
 !====== ===== ==== ========= =====
@@ -394,7 +394,9 @@ CSDISTRIBUTE_RESHAPE srflxg(BLOCK_PATTERN,*) BLOCK_CLAUSE
       real srf_cycle, srf_time(2)
       integer srf_ncycle,  srf_rec, itsrf, ntsrf,
      &        srf_file_id, srf_tid, srf_id
-#endif /* 2015_SOLARFRC */
+#  endif /* SRFLUX_DATA || defined ALL_DATA */
+# endif /* ANA_SRFLUX */
+#endif /* SOLARFRC_2015 */
 
 ! Sea-surface salinity (SSS) data
 

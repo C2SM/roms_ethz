@@ -13,7 +13,7 @@
      &               LLm=180, MMm=140, N=12
 #elif defined GRID_SIZE
      &               GRID_SIZE ! LLm, MMm, N are set in cppdefs
-#if defined DOUBLE_GYRE
+#elif defined DOUBLE_GYRE
 c     &               LLm=192, MMm=192, N=12
      &                LLm=384, MMm=384, N=16
 #elif defined CANYON_A

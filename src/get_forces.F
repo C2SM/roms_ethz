@@ -84,9 +84,6 @@ c--#define VERBOSE
 # ifdef PCO2AIR_FORCING
         if (ierr.eq.0)  call get_pCO2air(ierr)
 # endif
-# if defined LMD_KPP && !defined ANA_SRFLUX
-      if (ierr==0) call get_srflux (ierr)
-# endif
 #endif
 #if defined SG_BBL96
 # ifndef ANA_WWAVE
