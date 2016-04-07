@@ -26,7 +26,6 @@
 #define OBC_NORTH
 
      /* Open Boundary Conditions */
-#define SPONGE /* note: UCLA uses SPONGE with BRY */
 #define OBC_M2FLATHER  
 !--> new only indic/pacific, see below #define OBC_M2SPECIFIED /* special for SO */
 # define OBC_NORTH_M2SPECIFIED_TILESTR 280 /* OBC_M2SPECIFIED for a certain range of tiles */

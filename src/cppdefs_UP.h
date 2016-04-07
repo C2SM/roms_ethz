@@ -18,6 +18,7 @@
 #define Z_FRC_BRY
 #define M3_FRC_BRY
 #define M2_FRC_BRY
+#define SPONGE
 #define SPONGE_WIDTH /* # of sponge points is input parameter */
                      /* Mixing */
                      /*        - lateral */
