@@ -129,7 +129,12 @@
       implicit none
       integer istr,iend,jstr,jend, ierr, i,j, it1,it2
       real cff, cff1, cff2
-# ifdef DIURNAL_SRFLUX
+# ifdef DIURNAL_SRFLUX_NEW
+      real dec, hsol, sin_d, cos_d
+      real, parameter :: yrlen=360.0, twopi=2.0*pi
+# elif DIURNAL_SRFLUX_LEGACY
+      real phase
+# elif DIURNAL_SRFLUX
       real phase, year2day, day2year
       real cos_h, dec, cos_d, sin_d, tan_d, phi, h0, utc, utc_cor
       parameter (year2day=365.25, day2year=1.D0/year2day,
@@ -143,15 +148,15 @@
 
 # include "compute_extended_bounds.h"
 
-c# ifdef DIURNAL_SRFLUX
-c      cff=2.*dt*sec2day
-c      phase=4.*(tdays-int(tdays))-2.
-c      cff1=max(-1., min(1., phase-cff))
-c      cff2=max(-1., min(1., phase+cff))
-c      phase=(cff2-cff1)/cff + (sin(pi*cff2)-sin(pi*cff1))/(pi*cff)
-c
-ccc     if (ZEROTH_TILE) write(*,*) 'swrad modulation', tdays, phase
-c# endif
+# ifdef DIURNAL_SRFLUX_LEGACY
+      cff=2.*dt*sec2day
+      phase=4.*(tdays-int(tdays))-2.
+      cff1=max(-1., min(1., phase-cff))
+      cff2=max(-1., min(1., phase+cff))
+      phase=(cff2-cff1)/cff + (sin(pi*cff2)-sin(pi*cff1))/(pi*cff)
+
+cc     if (ZEROTH_TILE) write(*,*) 'swrad modulation', tdays, phase
+# endif
 
 
 ! Set coefficients for interpolation. Check that for the next time
@@ -188,11 +193,11 @@ c# endif
         do j=jstrR,jendR
           do i=istrR,iendR
             srflx(i,j)=cff1*srflxg(i,j,it1)+cff2*srflxg(i,j,it2)
-c# ifdef DIURNAL_SRFLUX
-c            cff=stflx(i,j,itemp)-srflx(i,j)  ! subtract shortwave
-c            srflx(i,j)=srflx(i,j)*phase      ! radiatin from the net,
-c            stflx(i,j,itemp)=cff+srflx(i,j)  ! modulate and add back
-c# endif
+# ifdef DIURNAL_SRFLUX_LEGACY
+            cff=stflx(i,j,itemp)-srflx(i,j)  ! subtract shortwave
+            srflx(i,j)=srflx(i,j)*phase      ! radiatin from the net,
+            stflx(i,j,itemp)=cff+srflx(i,j)  ! modulate and add back
+# endif
           enddo
         enddo
         if (cff1<0. .or. cff2<0.) then
@@ -207,10 +212,61 @@ c# endif
         endif
       endif
 
-# ifdef DIURNAL_SRFLUX
+# ifdef DIURNAL_SRFLUX_NEW
+! Estimate diurnal cycle of srflux from its daily mean
+! and lat,lon,time. Assumes tdays is in UTC and starts at midnight on a Jan 1st.
+! This code is based on the Rutgers ROMS version of DIURNAL_SRFLUX
+!
+! Notation: 
+! yrlen   :: length of year (e.g., 360, 365, 365.25, or 365.2425)
+! dec    :: solar declination (-23.44 degree at winter solstice,
+!                                Dec. 21 or tdays = yrlen-10)
+! hsol    :: hour angle
+! theta_s :: solar zenith angle
+!
+! Formula for theta_s (Wikipedia)
+!  cos(theta_s) = sin(lat)sin(dec) + cos(lat)cos(dec)cos(hsol)
+!               =                 A + B cos(hsol)
+! 3 cases: 
+!   (i) |A| < |B|:  sunrise occurrs
+!    (ii) A > 0 and A > |B| pemanent day 
+!    (iii) A < 0 and -A > |B| permanent night => no modulation 
+!             Normalization for sunrise case:
+!               = (A*arccos(-A/B)+sqrt(B**2-A**2))/pi
+
+      dec=-23.44*deg2rad*cos(twopi*(floor(tdays)-9.5)/yrlen) ! at noon
+      sin_d=sin(dec)
+      cos_d=cos(dec)
+      hsol=mod(tdays,1)*twopi                                  ! at 0 Meridian 
+      eps = 0.001 ! Don't modulate for solar elevations smaller that this
+
+      do j=jstrR,jendR
+        do i=istrR,iendR
+          cff=latr(i,j)*deg2rad
+          cff1=sin(cff)*sin_d ! A
+          cff2=cos(cff)*cos_d ! B
+          if (abs(cff1)+eps < abs(cff2) ) then  ! sunrise occurrs
+            stflx(i,j,itemp)=stflx(i,j,itemp)-srflx(i,j)
+            cff=cff1*acos(-cff1/cff2)+sqrt(cff2**2-cff1**2)
+            srflx(i,j)=max( 0.0,                              ! nighttime
+     &                      srflx(i,j)*pi/cff*(cff1+
+     &                      cff2*cos(hsol-lonr(i,j)*deg2rad)) ! daytime
+     &                    )
+            stflx(i,j,itemp)=stflx(i,j,itemp)+srflx(i,j)
+          elseif (cff1 > eps .and. cff1 > abs(cff2) )  then ! permanent day
+            stflx(i,j,itemp)=stflx(i,j,itemp)-srflx(i,j)
+            srflx(i,j)=srflx(i,j)*
+     &                    ( 1.0+cff2/cff1*cos(hsol+lon(i,j)*deg2rad) )
+            stflx(i,j,itemp)=stflx(i,j,itemp)+srflx(i,j)
+          endif ! otherwise permanent night, no modulation
+        enddo
+      enddo
+
+# elif DIURNAL_SRFLUX
+! mm: updated to work when now sunrise occurrs
 !
 ! DIURNAL CYCLE - USED IN BOTH PHYSICAL AND ECOSYSTEM MODELS
-! Patrick Marchesiello - 1999: Modulate average dayly insolation
+! Patrick Marchesiello - 1999: Modulate average daily insolation
 ! to get diurnal cycle by:
 !
 !              cos(h)*cos(d)*cos(phi) + sin(d)*sin(phi)
@@ -230,6 +286,7 @@ c# endif
 #  endif
       dec=-0.406*cos(deg2rad*(tdays-
      &               int(tdays*day2year)*year2day))
+      ! dec=-23.44*deg2rad*cos(twopi*(floor(tdays)-9.5)/yrlen) ! at noon
       cos_d=cos(dec)
       sin_d=sin(dec)
       tan_d=tan(dec)
@@ -240,13 +297,20 @@ c# endif
           cos_h=cos(2.*pi*(tdays+.5-int(tdays+.5)+utc))
 #  endif
           phi=latr(i,j)*deg2rad
-          h0=acos(-tan(phi)*tan_d)
           cff1=cos_d*cos(phi)
           cff2=sin_d*sin(phi)
-          cff=pi*(cos_h*cff1+cff2)/(sin(h0)*cff1+h0*cff2)
-          stflx(i,j,itemp)=stflx(i,j,itemp)-srflx(i,j)
-          srflx(i,j)=max(0.,cff*srflx(i,j))
-          stflx(i,j,itemp)=stflx(i,j,itemp)+srflx(i,j)
+          if (abs(cff2)+eps < abs(cff1)) then
+            h0=acos(-tan(phi)*tan_d)
+            cff=pi*(cos_h*cff1+cff2)/(sin(h0)*cff1+h0*cff2)
+            stflx(i,j,itemp)=stflx(i,j,itemp)-srflx(i,j)
+            srflx(i,j)=max(0.,cff*srflx(i,j))
+            stflx(i,j,itemp)=stflx(i,j,itemp)+srflx(i,j)
+          elseif (cff2 > eps .and. cff2 > abs(cff1) )  then ! permanent day
+            cff=( 1.0+cff1/cff2*cos_h )
+            stflx(i,j,itemp)=stflx(i,j,itemp)-srflx(i,j)
+            srflx(i,j)=cff*srflx(i,j)
+            stflx(i,j,itemp)=stflx(i,j,itemp)+srflx(i,j)
+          endif
         enddo
       enddo
 # endif

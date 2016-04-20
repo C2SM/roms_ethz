@@ -11,7 +11,7 @@
 #define SALINITY
                      /*  Forcing */
                      /*         - surface */
-!--> #define DIURNAL_SRFLUX
+#define DIURNAL_SRFLUX
 #define QCORRECTION
                      /*         - lateral */
 #define T_FRC_BRY
