@@ -658,25 +658,6 @@ c-->    elseif (keyword(1:kwlen) == 'nudg_cof') then
      &                           'file = ''', clm_file(1:lstr), ''''
 # endif
 #endif
-#if defined T_FRC_BRY || defined M2_FRC_BRY || defined M3_FRC_BRY \
-                      || defined Z_FRC_BRY  || defined WKB_FRC_BRY
-# ifndef ANA_BRY
-! Boundary forcing data file name. Check availability.
-
-        elseif (keyword(1:kwlen) == 'boundary') then
-          call cancel_kwd (keyword(1:kwlen), ierr)
-          read(input,'(A)',err=95) fname
-          lstr=lenstr(fname)
-#  if defined MPI && defined PARALLEL_FILES && !defined JOINED_BRY
-          call insert_node (fname, lstr, mynode, NNODES, ierr)
-#  endif
-          open (testunit, file=fname(1:lstr), status='old', err=97)
-          close(testunit)
-          bry_file=fname(1:lstr)
-          mpi_master_only write(*,'(1x,2A)') 'boundary forcing file: ',
-     &                                              bry_file(1:lstr)
-# endif
-#endif
 
 ! Output files controls: restart, history, averages, stations, floats
 !------- ----- ---------
