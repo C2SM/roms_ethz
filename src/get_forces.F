@@ -42,8 +42,9 @@ c--#define VERBOSE
 #if defined SSH_TIDES || defined UV_TIDES
       call get_tides(ierr)
 #endif
-
-
+#ifdef ICEOBS
+      call get_seaice (ierr)
+#endif
 #ifndef ANA_SMFLUX
       call get_wind(ierr)
 # ifdef WIND_MAGN
@@ -348,6 +349,38 @@ c--#  define timename 'dqdt_time'
 #  define itsmth itsss
 #  define icycle sss_ncycle
 #  define cycle_length sss_cycle
+#  include "get_smth.F"
+# endif
+# if defined BIOLOGY_BEC ||  BIOLOGY_BEC2
+#  define get_smth get_dust
+#  define varname 'dust'
+#  define timename 'dust_time'
+#  define DUST_DATA
+#  define var dustg
+#  define timevar dust_time
+#  define file_id dust_file_id
+#  define varid dust_id
+#  define timevarid dust_tid
+#  define record dust_rec
+#  define ntsmth ntdust
+#  define itsmth itdust
+#  define icycle dust_ncycle
+#  define cycle_length dust_cycle
+
+#  define get_smth get_iron
+#  define varname 'iron'
+#  define timename 'iron_time'
+#  define DUST_DATA
+#  define var irong
+#  define timevar iron_time
+#  define file_id iron_file_id
+#  define varid iron_id
+#  define timevarid iron_tid
+#  define record iron_rec
+#  define ntsmth ntiron
+#  define itsmth itiron
+#  define icycle iron_ncycle
+#  define cycle_length iron_cycle
 #  include "get_smth.F"
 # endif
 #endif /* SOLVE3D */
