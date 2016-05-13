@@ -110,6 +110,9 @@ c***              no code here
 #   endif
 #  endif
 # endif
+# ifdef ICEOBS
+      call set_seaice_tile(istr,iend,jstr,jend,ierr)
+# endif
 #endif  /* SOLVE3D */
 
                                  

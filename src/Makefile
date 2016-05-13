@@ -51,8 +51,8 @@ BIOSRC = CalcPar.F  carbon.F  co2calc_SWS.F  def_bgc_flux.F\
 	biology.F  bio_diag.F atm_pco2.F calendar.F\
 \
 	init_scalars_bec2.F ecosys_bec2.F ecosys_bec2_init.F\
-	init_scalars_bec.F ecosys_bec.F ecosys_bec_init.F get_dust.F\
-	get_iron.F set_bec_flux_avg.F wrt_bec_flux_avg.F wrt_bec_flux_his.F\
+	init_scalars_bec.F ecosys_bec.F ecosys_bec_init.F\
+	set_bec_flux_avg.F wrt_bec_flux_avg.F wrt_bec_flux_his.F\
 	init_scalars_becflux.F def_bec_flux.F get_pco2air.F\
 	get_nox.F       get_nhy.F       get_din_river.F
 
@@ -63,7 +63,7 @@ IOSRC = checkdims.F	find_record.F	insert_node.F	ncdf_read_write.F\
 	set_avg.F	wrt_avg.F	def_statn.F	wrt_statn.F\
 	get_forces.F	get_stflux.F	get_bry_all.F	set_forces.F\
 	set_smflux.F	set_stflux.F	nf_read_bry.F	bulk_flux_COAMS.F\
-	get_tides.F	set_tides.F	set_srflux.F\
+	set_seaice.F	get_tides.F	set_tides.F	set_srflux.F\
 	get_ssh.F	get_tclima.F	get_uclima.F	closecdf.F
 
 OBSOLETE_SRC = \

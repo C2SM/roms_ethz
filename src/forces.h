@@ -456,38 +456,34 @@ CSDISTRIBUTE_RESHAPE wwpg(BLOCK_PATTERN,*) BLOCK_CLAUSE
 #  endif /* WWAVE_DATA */
 # endif /* SG_BBL96 && !ANA_WWAVE */
 
-!
+# ifdef ICEOBS
 ! Sea-ice observation data:
-!====== ===== ==== ========= =====
-! sic   sea-ice concentration [frac] at horizontal RHO-points
-! sicg  two-time-level grided data for surface [frac]
-!
-# if defined ICEOBS || defined ALL_DATA
+! ------ ---------- --------- ------
+!      sic: sea ice fraction [-]
+! freezing: sea ice freezing [cm/day]
+!  melting: sea ice melting [cm/day]
+
       real sic(GLOBAL_2D_ARRAY)
 CSDISTRIBUTE_RESHAPE sic(BLOCK_PATTERN) BLOCK_CLAUSE
-      common /forces_sic/sic
-      real sicg(GLOBAL_2D_ARRAY,2)
-CSDISTRIBUTE_RESHAPE sicg(BLOCK_PATTERN,*) BLOCK_CLAUSE
-      common /forces_sicg/sicg
       real freezing(GLOBAL_2D_ARRAY)
 CSDISTRIBUTE_RESHAPE freezing(BLOCK_PATTERN) BLOCK_CLAUSE
-      common /forces_freezing/freezing
-      real freezingg(GLOBAL_2D_ARRAY,2)
-CSDISTRIBUTE_RESHAPE freezingg(BLOCK_PATTERN,*) BLOCK_CLAUSE
-      common /forces_freezingg/freezingg
       real melting(GLOBAL_2D_ARRAY)
 CSDISTRIBUTE_RESHAPE melting(BLOCK_PATTERN) BLOCK_CLAUSE
-      common /forces_melting/melting
-      real meltingg(GLOBAL_2D_ARRAY,2)
+      common /frc_sic/sic /frc_freezing/freezing /frc_melting/melting
+#  if defined ICEOBS_DATA || defined ALL_DATA
+#   undef ICEOBS_DATA
+      real, dimension(GLOBAL_2D_ARRAY,2) :: sicg, freezingg, meltingg
+CSDISTRIBUTE_RESHAPE sicg(BLOCK_PATTERN,*) BLOCK_CLAUSE
+CSDISTRIBUTE_RESHAPE freezingg(BLOCK_PATTERN,*) BLOCK_CLAUSE
 CSDISTRIBUTE_RESHAPE meltingg(BLOCK_PATTERN,*) BLOCK_CLAUSE
-      common /forces_meltingg/meltingg
+      common /forces_iceobs/sicg, freezingg, meltingg
 
-      real ice_cycle, ice_time(2)
+      real ice_time(2), ice_cycle
       integer ice_ncycle,  ice_rec, itice, ntice,
-     &        ice_file_id, ice_tid, ice_id, ice_Fid, ice_Mid
-
-      common /icedat/ ice_cycle, ice_time,
+     &        ice_file_id, ice_tid, sic_id, freez_id, melt_id
+      common /icedat/ ice_time, ice_cycle,
      &        ice_ncycle,  ice_rec, itice, ntice,
-     &        ice_file_id, ice_tid, ice_id, ice_Fid, ice_Mid
+     &        ice_file_id, ice_tid, sic_id, freez_id, melt_id
+#  endif /* defined ICEOBS_DATA || defined ALL_DATA */
 # endif /* ICEOBS */
 #endif /* SOLVE3D */

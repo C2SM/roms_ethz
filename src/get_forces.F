@@ -147,9 +147,9 @@ c--#define VERBOSE
 # define cycle_length wnd_cycle
 # include "get_smth.F"
 
+# ifdef WIND_MAGN
 ! Wind or wind stress magnitude (scalar field)
 !----- -- ---- ------ --------- ------- -------
-# ifdef WIND_MAGN
 #  define get_smth get_windmag
 #  define varname 'wmag'
 #  define timename 'wnd_time'
@@ -168,9 +168,9 @@ c--#define VERBOSE
 # endif
 #endif  /* !ANA_SMFLUX */
 
+#if defined M2NUDGING && !defined M2_FRC_BRY && !defined ANA_SSH
 ! Sea surface height (SSH) climatology
 !---- ------- ------ ----- ------------
-#if defined M2NUDGING && !defined M2_FRC_BRY && !defined ANA_SSH
 # define get_smth get_ssh
 # define varname 'SSH'
 # define timename 'ssh_time'
@@ -191,7 +191,6 @@ c--#define VERBOSE
 
 #ifdef SOLVE3D
 # ifndef ANA_SRFLUX
-
 ! Solar short-wave radiation flux [Watts/m^2]
 !------ ---------- --------- ---- ------------
 #  define get_smth get_swrad
@@ -249,7 +248,6 @@ c--#define VERBOSE
 #  define cycle_length tair_cycle
 #  include "get_smth.F"
 
-
 ! Relative humidity of air [fraction] at 2m above ocean surface
 !--------- -------- -- --- ---------- -- -- ----- ------ -------
 #  define get_smth get_rhum
@@ -267,7 +265,6 @@ c--#define VERBOSE
 #  define icycle rhum_ncycle
 #  define cycle_length rhum_cycle
 #  include "get_smth.F"
-
 
 ! Precifitation rate (a.k.a. rain fall), [cm day-1]
 !-------------- ---- ------- ---- ------ -----------
@@ -287,18 +284,10 @@ c--#define VERBOSE
 #  define cycle_length prate_cycle
 #  include "get_smth.F"
 
-
-
 #  ifdef SST_SKIN
           'sst_skin'
 #  endif
-
 # endif  /* BULK_FLUX */
-
-
-
-
-
 
 # if defined QCORRECTION && !defined ANA_SST
 #  define get_smth get_sst
@@ -351,7 +340,36 @@ c--#  define timename 'dqdt_time'
 #  define cycle_length sss_cycle
 #  include "get_smth.F"
 # endif
+
+# ifdef ICEOBS
+! Sea ice concentration, melting, and freezing flux
+! --- --- -------------- -------- --- -------- ----
+#  define get_smth get_seaice
+#  define timename 'ice_time'
+#  define varname 'seaice'
+#  define varname2 'freezing'
+#  define varname3 'melting'
+#  define ICEOBS_DATA
+#  define var sicg
+#  define var2 freezingg
+#  define var3 meltingg
+#  define timevar ice_time
+#  define file_id ice_file_id
+#  define varid sic_id
+#  define varid2 freez_id
+#  define varid3 melt_id
+#  define timevarid ice_tid
+#  define record ice_rec
+#  define ntsmth ntice
+#  define itsmth itice
+#  define icycle ice_ncycle
+#  define cycle_length ice_cycle
+#  include "get_smth.F"
+# endif
+
 # if defined BIOLOGY_BEC ||  BIOLOGY_BEC2
+! dust flux
+! ---- ---- 
 #  define get_smth get_dust
 #  define varname 'dust'
 #  define timename 'dust_time'
@@ -366,7 +384,10 @@ c--#  define timename 'dqdt_time'
 #  define itsmth itdust
 #  define icycle dust_ncycle
 #  define cycle_length dust_cycle
+#  include "get_smth.F"
 
+! iron flux
+! ---- ---- 
 #  define get_smth get_iron
 #  define varname 'iron'
 #  define timename 'iron_time'

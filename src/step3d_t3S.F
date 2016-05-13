@@ -145,12 +145,19 @@ c--# define AKIMA
 ! kbl until one layer below (see Duffy et al. 1999)
           if (itrc .eq. isalt) then
             do i=istr,iend
-              do k=N,kbl(i,j),-1
-                t(i,j,k,nnew,itrc)=t(i,j,k,nnew,itrc)
-     &                  +(dt*melting(i,j)
-     &                  *Hz(i,j,k)/(z_w(i,j,N)-z_w(i,j,kbl(i,j)-1)))
-              enddo
-              t(i,j,kbl(i,j)-1,nnew,itrc)=t(i,j,kbl(i,j)-1,nnew,itrc)+dt*freezing(i,j)
+              if (freezing(i,j).gt.0) then
+                t(i,j,N,nnew,itrc)=t(i,j,N,nnew,itrc)-dt*freezing(i,j)
+!                t(i,j,N,nnew,itrc)=t(i,j,N,nnew,itrc)-dt*melting(i,j)
+                do k=N,(kbl(i,j)-1),-1
+                  t(i,j,k,nnew,itrc)=t(i,j,k,nnew,itrc)
+     &                  +(dt*freezing(i,j)
+     &                  *Hz(i,j,k)/(z_w(i,j,N)-z_w(i,j,kbl(i,j)-2)))
+!                  t(i,j,k,nnew,itrc)=t(i,j,k,nnew,itrc)
+!     &                  +(dt*melting(i,j)
+!     &                  *Hz(i,j,k)/(z_w(i,j,N)-z_w(i,j,kbl(i,j)-2)))
+                enddo
+!                t(i,j,kbl(i,j)-1,nnew,itrc)=t(i,j,kbl(i,j)-1,nnew,itrc)+dt*freezing(i,j)
+              endif
             enddo
           endif
 # endif

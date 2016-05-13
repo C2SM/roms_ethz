@@ -414,7 +414,7 @@ c**       ierr=nf_close(ncid) ; ncfrc(ifrc)=-1
 #ifdef MPI_SILENT_MODE
                     endif
 #endif
-#ifdef varname3
+#ifdef varname4
                   else
                     write(*,4) varname4, record, nf_strerror(ierr)
                   endif
