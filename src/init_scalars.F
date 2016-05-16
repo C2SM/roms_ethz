@@ -117,10 +117,10 @@ c      v3bc_max=0.
       srf_file_id=-1
 # endif
 # if defined ICEOBS
-      ice_file_id=0
+      ice_file_id=-1
 # endif
 # if defined TSOURCE
-      tsrc_file_id=0
+      tsrc_file_id=-1
 # endif
 # if defined QCORRECTION && !defined ANA_SST
       sst_file_id=-1

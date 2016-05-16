@@ -106,12 +106,12 @@ c***              no code here
 #   ifdef ANA_SSFLUX
       call ana_stflux_tile(istr,iend,jstr,jend, isalt)
 #   else
+# ifdef ICEOBS
+      call set_seaice_tile(istr,iend,jstr,jend,ierr)
+# endif
       call set_stflux_tile(istr,iend,jstr,jend, isalt, ierr)
 #   endif
 #  endif
-# endif
-# ifdef ICEOBS
-      call set_seaice_tile(istr,iend,jstr,jend,ierr)
 # endif
 #endif  /* SOLVE3D */
 
