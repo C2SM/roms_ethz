@@ -328,6 +328,7 @@ c$$$       enddo
     !   Surface fluxes:
     !----------------------------------------------------------------------
 
+# ifdef RIVER_LOAD_N
        !CN: N loads from rivers
        if (lriver_load_n) then
           FLUX(istr:iend,jstr:jend)=din_river(istr:iend,jstr:jend)
@@ -369,7 +370,9 @@ c$$$       enddo
 !          print*,'ecosys_bec2.F: mynode:',mynode
 !          print*,'ecosys_bec2.F: tracer after river addition',tracer(istr:iend,jstr:jend,N,no3_ind_t)
 !          endif
+# endif /* RIVER_LOAD_N */
 
+# ifdef RIVER_LOAD_P
        !CN: P loads from rivers
        if (lriver_load_p) then
           FLUX(istr:iend,jstr:jend)=dip_river(istr:iend,jstr:jend)
@@ -396,6 +399,7 @@ c$$$       enddo
 !     &         tracer(istr:iend,jstr:jend,N,dop_ind_t) +
 !     &         0.25*FLUX(istr:iend,jstr:jend)
 !     &         *dt/Hz(istr:iend,jstr:jend,N)
+# endif /* RIVER_LOAD_P */
 
 
        !DL: note that iron fluxes are in mmol Fe/m^2/s (see get_iron.F).

@@ -656,7 +656,6 @@ c-->    elseif (keyword(1:kwlen) == 'nudg_cof') then
 
           mpi_master_only write(*,'(1x,4A)')   'climatology data :: ',
      &                           'file = ''', clm_file(1:lstr), ''''
-# endif
 #endif
 
 ! Output files controls: restart, history, averages, stations, floats
@@ -1236,7 +1235,7 @@ c-->    elseif (keyword(1:kwlen) == 'nudg_cof') then
           MPI_master_only write(*,'(1pe10.3,2x,A,1x,A)')
      &       start_year, 'start_year   point in time (year) when',
      &       'simulation starts'
-#endif /* BIOLOGY_BEC || BIOLOGY_BEC2 || BIOLOGY_NPZDOC) && VARIABLE_ANN_ATM_PCO2
+#endif /* BIOLOGY_BEC || BIOLOGY_BEC2 || BIOLOGY_NPZDOC) && VARIABLE_ANN_ATM_PCO2 */
 
 
 

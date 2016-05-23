@@ -99,10 +99,10 @@ c# endif
 ! dec    :: solar declination (-23.44 degree at winter solstice,
 !                                Dec. 21 or tdays = yrlen-10)
 ! hsol    :: hour angle
-! theta_s :: solar zenith angle
+! theta_sol :: solar zenith angle
 !
-! Formula for theta_s (Wikipedia)
-!  cos(theta_s) = sin(lat)sin(dec) + cos(lat)cos(dec)cos(hsol)
+! Formula for theta_sol (Wikipedia)
+!  cos(theta_sol) = sin(lat)sin(dec) + cos(lat)cos(dec)cos(hsol)
 !               =                 A + B cos(hsol)
 ! 3 cases: 
 !   (i) |A| < |B|:  sunrise occurrs

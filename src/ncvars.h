@@ -361,23 +361,13 @@
       integer max_frc, ncfrc(max_frc_files), nrst,  ncrst,   nrecrst,
      &      nrrec, nrpfrst, ncidclm, nwrt,  nchis, nrechis, nrpfhis
 
-#if defined BIOLOGY_BEC || defined BIOLOGY_BEC2
-     &     , ntdust, ntiron
-#endif
 #ifdef TSOURCE
       integer ncidtsrc(max_frc_files)
 #endif
       common /ncvars/       max_frc, ncfrc, nrst,  ncrst,   nrecrst,
      &      nrrec, nrpfrst, ncidclm, nwrt,  nchis, nrechis, nrpfhis
-#if defined BIOLOGY_BEC || defined BIOLOGY_BEC2
-     &     , ntdust, ntiron
-#endif
 #ifdef TSOURCE
      &     , ncidtsrc
-#endif
-#ifdef BIOLOGY_BEC2
-      integer ntnox, ntnhy, ntdin_river
-      common /ncvars/ ntnox, ntnhy, ntdin_river
 #endif
 #ifdef AVERAGES
       integer ntsavg,  navg

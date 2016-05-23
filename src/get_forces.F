@@ -367,13 +367,13 @@ c--#  define timename 'dqdt_time'
 #  include "get_smth.F"
 # endif
 
-# if defined BIOLOGY_BEC ||  BIOLOGY_BEC2
+# if defined BIOLOGY_BEC ||  defined BIOLOGY_BEC2
 ! dust flux
 ! ---- ---- 
 #  define get_smth get_dust
+#  define DUST_DATA
 #  define varname 'dust'
 #  define timename 'dust_time'
-#  define DUST_DATA
 #  define var dustg
 #  define timevar dust_time
 #  define file_id dust_file_id
@@ -385,13 +385,22 @@ c--#  define timename 'dqdt_time'
 #  define icycle dust_ncycle
 #  define cycle_length dust_cycle
 #  include "get_smth.F"
-
+#  define DUST_DATA
+#  define varname 'dust'
+#  define var dustg
+#  define timevar dust_time
+#  define ntsmth ntdust
+#  define itsmth itdust
+#  define SET_SMTH set_dust
+#  define VAR_CFF 1.0
+#  define VAR_NOW dust
+#  include "set_smth.F"
 ! iron flux
 ! ---- ---- 
 #  define get_smth get_iron
 #  define varname 'iron'
 #  define timename 'iron_time'
-#  define DUST_DATA
+#  define IRON_DATA
 #  define var irong
 #  define timevar iron_time
 #  define file_id iron_file_id
@@ -403,5 +412,15 @@ c--#  define timename 'dqdt_time'
 #  define icycle iron_ncycle
 #  define cycle_length iron_cycle
 #  include "get_smth.F"
+#  define IRON_DATA
+#  define varname 'iron'
+#  define var irong
+#  define timevar iron_time
+#  define ntsmth ntiron
+#  define itsmth itiron
+#  define SET_SMTH set_iron
+#  define VAR_CFF 1.0
+#  define VAR_NOW iron
+#  include "set_smth.F"
 # endif
 #endif /* SOLVE3D */
