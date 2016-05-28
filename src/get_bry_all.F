@@ -190,8 +190,8 @@
               write(*,1) 'salt_west', bry_file(ibry)(1:lsrc)
             endif
 #    endif
-          do itrc = itemp + ntrc_salt + 1, NT
-             vname_bry = trim(vname(1,itrc+indxT-itemp))/ /'_west'
+          do itrc = indxT + ntrc_salt + 1, NT
+             vname_bry = trim(vname(1,itrc))/ /'_west'
 
              ierr=nf_inq_varid (bry_id, vname_bry,
      &            t_west_id(itrc))
@@ -260,8 +260,8 @@
               write(*,1) 'salt_east', bry_file(ibry)(1:lsrc)
             endif
 #    endif
-          do itrc = itemp + ntrc_salt + 1, NT
-             vname_bry = trim(vname(1,itrc+indxT-itemp))/ /'_east'
+          do itrc = indxT + ntrc_salt + 1, NT
+             vname_bry = trim(vname(1,itrc))/ /'_east'
 
              ierr=nf_inq_varid (bry_id, vname_bry,
      &            t_east_id(itrc))
@@ -330,8 +330,8 @@
               write(*,1) 'salt_south', bry_file(ibry)(1:lsrc)
             endif
 #    endif
-          do itrc = itemp + ntrc_salt + 1, NT
-             vname_bry = trim(vname(1,itrc+indxT-itemp))/ /'_south'
+          do itrc = indxT + ntrc_salt + 1, NT
+             vname_bry = trim(vname(1,itrc))/ /'_south'
 
              ierr=nf_inq_varid (bry_id, vname_bry,
      &            t_south_id(itrc))
@@ -400,17 +400,27 @@
               write(*,1) 'salt_north', bry_file(ibry)(1:lsrc)
             endif
 #    endif
-          do itrc = itemp + ntrc_salt + 1, NT
-             vname_bry = trim(vname(1,itrc+indxT-itemp))/ /'_north'
+          do itrc = indxT + ntrc_salt + 1, NT
+             print*
+     &            , 'Processing ', vname(1,itrc)(1:6),', Itrc=',itrc
+             if (len(trim(vname(1,itrc))) > 14 ) then
+               t_north_id(itrc) = -1
+               ierr=nf_noerr
+               print'(1x,A,i3)'
+     &            , 'Skipping north bndry for tracer ',itrc
+             else
+             vname_bry = trim(vname(1,itrc))/ /'_north'
 
              ierr=nf_inq_varid (bry_id, vname_bry,
      &            t_north_id(itrc))
+             endif
              if (ierr/=nf_noerr) then
 #    ifdef DEFAULT_BGC_BRY_VALUES
-                write(*,11) trim(vname_bry),bry_file(1:lsrc)
-                t_north_id(itrc) = 0
+                write(*,11) trim(vname_bry),bry_file(ibry)(1:lsrc)
+                print *,' Tracer ',itrc,':'
+                t_north_id(itrc) = -1
 #    else
-                write(*,1) trim(vname_bry),bry_file(1:lsrc)
+                write(*,1) trim(vname_bry),bry_file(ibry)((1:lsrc)
                 ierr_all=ierr_all+ierr
 #    endif
              end if
@@ -424,7 +434,7 @@
 
   1   format(1x,'### ERROR: get_bry_all :: Cannot find variable ''',
      &                                A, ''' in file ''', A, '''.')
-  11  format(1x,'--- NOTE: get_all_bry :: Cannot find variable ''',
+  11  format(1x,'--- NOTE: get_bry_all :: Cannot find variable ''',
      &                                A, ''' in file ''', A, '''.')
 
 ! Read data from the file:  Check if model time is bounded by past and
@@ -495,6 +505,7 @@
 #      endif
                       call set_bry_defaults(t_west_dt,itrc,itbry,Mm+1)
                       print 3,trim(vname_bry),t_west_dt(0,1,itbry,itrc)
+     &                       , mynode
                       ierr=nf_noerr
                     endif
                   endif
@@ -548,6 +559,7 @@
 #      endif
                       call set_bry_defaults(t_east_dt,itrc,itbry,Mm+1)
                       print 3,trim(vname_bry),t_east_dt(0,1,itbry,itrc)
+     &                       , mynode
                       ierr=nf_noerr
                     endif
                   endif
@@ -602,6 +614,7 @@
 #      endif
                       call set_bry_defaults(t_south_dt,itrc,itbry,Lm+1)
                       print 3,trim(vname_bry),t_south_dt(0,1,itbry,itrc)
+     &                       , mynode
                       ierr=nf_noerr
                     endif
                   endif
@@ -641,8 +654,16 @@
 #   endif
 #   ifdef T_FRC_BRY
                 do itrc=1,NT
+                  if (t_north_id(itrc) >= 0 ) then
+                    mpi_master_only
+     &              print *,'ID of tracer ',itrc,' = ',t_north_id(itrc)
                   ierr=read_bry_NS(bry_id, t_north_id(itrc),  bry_rec,
      &                           r_var, t_north_dt(0,1,itbry,itrc), N)
+                  else
+                    mpi_master_only
+     &              print *,'No id for tracer No: ',itrc
+                    ierr=-1
+                  endif
 #     if defined DEFAULT_BGC_BRY_VALUES
                   if (ierr /= nf_noerr)  then
 #      ifdef BIOLOGY_NPZDOC
@@ -654,7 +675,8 @@
      &                  itrc <= iPO4 + ntrc_bio - 1) then
 #      endif
                       call set_bry_defaults(t_north_dt,itrc,itbry,Lm+1)
-                      print 3,trim(vname_bry),t_north_dt(0,1,itbry,itrc)
+                      print 3,trim(vname(1,itrc)),t_north_dt(0,1,itbry,itrc)
+     &                       , mynode, itrc
                       ierr=nf_noerr
                     endif
                   endif 
@@ -697,8 +719,9 @@
       enddo
 !  2   format(/1x,'### ERROR get_bry_all: Cannot read variable ''',
 !     &                                                     A, '''.')
- 3    format(1x,'--- NOTE get_bry_all: Using default ''',
-     &                           A,''' = ',g9.2)
+ 3    format(1x,'--- NOTE get_bry_all: Using default for ''',
+     &          A,''' Sample value = ',g9.2,' (Tile ',i3,')'
+     &          ,' itrc = ',i3)
       if (ierr_ext == nf_noerr) ierr_ext=ierr_all
 # ifdef VERBOSE
       write(*,*) 'leaving get_bry_all' MYID
@@ -1045,10 +1068,10 @@
 #  endif /* BIOLOGY_NPZDOC */
 
 #    if defined BIOLOGY_BEC || defined BIOLOGY_BEC2
-! do not provide defaults for selected biogeochemical variables
+! provide defaults for selected biogeochemical variables
       if (itrc .eq. iNH4 .or. itrc .eq. iDOC .or.
-     &     itrc .eq. iDON .or. itrc. eq. iDOFE
-     &     .or. itrc .eq. iDOP) then
+     &    itrc .eq. iDON .or. itrc. eq. iDOFE .or. 
+     &    itrc .eq. iDOP) then
         t_bry_dt(:,:,itbry,itrc) = 0.0
       else if (itrc .eq. iPO4) then
         do k=1,N

@@ -36,7 +36,8 @@ CSDISTRIBUTE_RESHAPE  dustg(BLOCK_PATTERN,*) BLOCK_CLAUSE
       real dust_cycle, dust_time(2)
       integer dust_ncycle,  dust_rec, itdust, ntdust,
      &        dust_file_id, dust_id,  dust_tid
-      common /dustdat/ dust_ncycle,  dust_rec, itdust, ntdust,
+      common /dustdat/ dust_cycle,    dust_time,
+     &        dust_ncycle,  dust_rec, itdust, ntdust,
      &        dust_file_id, dust_id,  dust_tid
 # endif /* defined DUST_DATA || defined ALL_DATA */
 

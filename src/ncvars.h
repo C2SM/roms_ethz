@@ -34,7 +34,7 @@
 # ifdef SALINITY
      &                    , indxS=indxT+1
 # endif
-# ifdef BIOLOGY
+# ifdef LEGACY_NPZD
 #  ifdef SALINITY
      &                    , indxNO3=indxS+1
 #  else
@@ -408,18 +408,19 @@
       integer rstU, rstV, rstT(NT+1), hisO,   hisW,   hisR,
      &        hisU, hisV, hisT(NT+1), hisAkv, hisAkt, hisAks 
 # if defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC || defined BIOLOGY_BEC2
-#  if defined CH_CARBON_DEPTH
-     &      , rstHCO3d, rstCO3d, rstCO2STARd, rstPHd, rstPH, rstPCO2, rstPCO2air, rstPAR
-     &      , hisHCO3d, hisCO3d, hisCO2STARd, hisPHd, hisPH, hisPCO2, hisPCO2air, hisPARinc, hisPAR
-     &      , avgHCO3d, avgCO3d, avgCO2STARd, avgPHd, avgPH, avgPCO2, avgPCO2air, avgPARinc, avgPAR
-# else
+#  ifdef CH_CARBON_DEPTH
+     &      , rstHCO3d, rstCO3d, rstCO2STARd, rstPHd
+     &      , hisHCO3d, hisCO3d, hisCO2STARd, hisPHd
+     &      , avgHCO3d, avgCO3d, avgCO2STARd, avgPHd
+#  endif /* CH_CARBON_DEPTH */
      &      , rstPH, rstPCO2, rstPCO2air, rstPAR
      &      , hisPH, hisPCO2, hisPCO2air, hisPARinc, hisPAR
+#  ifdef AVERAGES
      &      , avgPH, avgPCO2, avgPCO2air, avgPARinc, avgPAR
+#  endif
 #  ifdef SLICE_AVG
      &      , slavgPH, slavgPCO2, slavgPCO2air, slavgPARinc, slavgPAR
 #  endif
-#  endif /* CH_CARBON_DEPTH */
 # endif /* BIOLOGY_NPZDOC || BIOLOGY_BEC */
 #if defined BIOLOGY_BEC2 && defined BEC2_DIAG
      &      , hisf_graze_CaCO3_remin, hisQ_BEC2, hisDONrefract
@@ -442,19 +443,20 @@
       common /ncvars/
      &        rstU, rstV, rstT,       hisO,   hisW,   hisR,
      &        hisU, hisV, hisT,       hisAkv, hisAkt, hisAks
-# if defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC
+# if defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC || defined BIOLOGY_BEC2
 #  if defined CH_CARBON_DEPTH
-     &      , rstHCO3d, rstCO3d, rstCO2STARd, rstPHd, rstPH, rstPCO2, rstPCO2air, rstPAR
-     &      , hisHCO3d, hisCO3d, hisCO2STARd, hisPHd, hisPH, hisPCO2, hisPCO2air, hisPARinc, hisPAR
-     &      , avgHCO3d, avgCO3d, avgCO2STARd, avgPHd, avgPH, avgPCO2, avgPCO2air, avgPARinc, avgPAR
-# else
+     &      , rstHCO3d, rstCO3d, rstCO2STARd, rstPHd
+     &      , hisHCO3d, hisCO3d, hisCO2STARd, hisPHd
+     &      , avgHCO3d, avgCO3d, avgCO2STARd, avgPHd
+#  endif /* CH_CARBON_DEPTH */
      &      , rstPH, rstPCO2, rstPCO2air, rstPAR
      &      , hisPH, hisPCO2, hisPCO2air, hisPARinc, hisPAR
+#  ifdef AVERAGES
      &      , avgPH, avgPCO2, avgPCO2air, avgPARinc, avgPAR
+#  endif
 #  ifdef SLICE_AVG
      &      , slavgPH, slavgPCO2, slavgPCO2air, slavgPARinc, slavgPAR
 #  endif
-#  endif /* CH_CARBON_DEPTH */
 # endif /* BIOLOGY_NPZDOC || BIOLOGY_BEC */
 
 # ifdef WRITE_DEPTHS

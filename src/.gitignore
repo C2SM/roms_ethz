@@ -6,6 +6,8 @@
 *.mod
 *.mod.f90
 *.for
+*__genmod.f90
+*__genmod.mod
 # machine-generated source files:
 check_srcs.F
 check_switches1.F

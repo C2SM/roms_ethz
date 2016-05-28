@@ -7,11 +7,11 @@
 
       implicit none
       integer istr,iend,jstr,jend, ierr, i,j, it1,it2
-      real cff, cff1, cff2
+      real cff, cff1, cff2, eps
 # ifdef DIURNAL_SRFLUX_NEW
       real dec, hsol, sin_d, cos_d
       real, parameter :: yrlen=360.0, twopi=2.0*pi
-# elif DIURNAL_SRFLUX
+# elif defined DIURNAL_SRFLUX
       real phase, cos_h, dec, cos_d, sin_d, tan_d, phi, h0, utc
       real, parameter :: year2day=365.25, day2year=1.D0/year2day,
      &                             utc_cor=1.D0/360.D0
@@ -139,7 +139,7 @@ c# endif
         enddo
       enddo
 
-# elif DIURNAL_SRFLUX
+# elif defined DIURNAL_SRFLUX
 ! mm: updated to work when now sunrise occurrs
 !
 ! DIURNAL CYCLE - USED IN BOTH PHYSICAL AND ECOSYSTEM MODELS

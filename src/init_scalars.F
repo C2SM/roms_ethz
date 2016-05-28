@@ -239,7 +239,7 @@ CR      write(*,'(1x,A,I3)') 'indxS = ', indxS
 #  endif
 # endif /* PASSIVE_TRACER */
 
-# ifdef BIOLOGY
+# ifdef LEGACY_NPZD
 CR      write(*,'(1x,A,I3)') 'indxNO3 =', indxNO3
       vname(1,indxNO3)='NO3'
       vname(2,indxNO3)='NO3 Nutrient'

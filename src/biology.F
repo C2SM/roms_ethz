@@ -1,5 +1,5 @@
 #include "cppdefs.h"
-#ifdef BIOLOGY
+#ifdef LEGACY_NPZD
 
       subroutine biology_tile (istr,iend,jstr,jend)
 !

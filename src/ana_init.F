@@ -1024,7 +1024,7 @@ c*     &                                  +(z_r(i,j,k)-Z1)/STRAT
             t(i,j,k,1,isalt)=35.
             t(i,j,k,2,isalt)=t(i,j,k,1,isalt)
 #   endif
-#   ifdef BIOLOGY
+#   ifdef LEGACY_NPZD
             t(i,j,k,1,ino3_)=0.
             t(i,j,k,2,ino3_)=t(i,j,k,1,ino3_)
             t(i,j,k,1,inh4_)=0.

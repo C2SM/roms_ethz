@@ -267,7 +267,7 @@ c     &      NSUB_X=2, NSUB_E=8  ! <-- iswake 768x192
 # ifdef SALINITY
      &       , isalt=2, ntrc_salt=1
      &       , itrc_bio=itemp+ntrc_salt+ntrc_pas+1 
-#  ifdef BIOLOGY
+#  ifdef LEGACY_NPZD
      &       , ntrc_bio=5
      &       , iNO3_=3, iNH4_=4, iDet_=5, iPhyt=6, iZoo_=7
 #  elif defined BIOLOGY_NPZDOC

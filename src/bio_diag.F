@@ -1,5 +1,5 @@
 #include "cppdefs.h"
-#if defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC || defined BIOLOGY
+#if defined LEGACY_NPZD
       subroutine bio_diag (tile)
       implicit none
       integer tile
@@ -323,7 +323,7 @@ C$OMP END CRITICAL (bio_diag_rgn)
       end
 #endif /* SALINITY && VFLX_CORR */
  
-#else /* BIOLOGY_NPZDOC || BIOLOGY_BEC || BIOLOGY */
+#else /* LEGACY_NPZD */
       subroutine bio_diag_empty
       end
-#endif /* BIOLOGY_NPZDOC || BIOLOGY_BEC || BIOLOGY */
+#endif /* LEGACY_NPZD */

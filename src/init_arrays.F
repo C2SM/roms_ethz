@@ -370,7 +370,7 @@
 # endif
           enddo
         enddo
-        do itrc=1,NT
+        do itrc=1,min(NT,2)
           do j=jstrR,jendR
             do i=istrR,iendR
 # if !defined LMD_MIXING && !defined BVF_MIXING && !defined PP_MIXING\

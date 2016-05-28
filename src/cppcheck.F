@@ -311,7 +311,7 @@ c**  &                              '''<', fname(ifile)(1:ln), '>'''
           if (ifile == 1) write(iout,'(A)')  '#endif'
         enddo
       enddo
-# ifdef UCLA_CPPDEFS_STYLE
+#ifdef UCLA_CPPDEFS_STYLE
       write(iout,'(6x,A/8x,A/5x,A1,1x,A/8x,A/6x,A)')
      &      'if (iexample == 0) then',
      &      'mpi_master_only write(*,''(/1x,A)'')', '&',
@@ -322,7 +322,6 @@ c**  &                              '''<', fname(ifile)(1:ln), '>'''
      &      '''### ERROR: More than one main configuration '',', '&',
      &      '''switch is defined in "cppdefs.h".''',   'ierr=ierr+1',
      &                                             'endif'
-# endif
 #endif
       write(iout,'(6x,A/2x,A/5x,A1,2x,A,1x,A/5x,A1,2x,A,1x,A)')
      &      'return',
