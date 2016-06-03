@@ -267,7 +267,8 @@
      &                         *vmask(i,jend+1)
 #   endif
         enddo
-# if defined OBC_NORTH_M2SPECIFIED_TILESTR && defined OBC_NORTH_M2SPECIFIED_TILEEND
+#  endif /* OBC_M2FLATHER, OBC_M2ORLANSKI, OBC_M2SPECIFIED or ELSE */
+#  if defined OBC_NORTH_M2SPECIFIED_TILESTR && defined OBC_NORTH_M2SPECIFIED_TILEEND
 !
 !   Force OBC_M2SPECIFIED as northern boundary condition
 !   in the specified tile range !MM & AH15
@@ -275,18 +276,18 @@
         if ((mynode.ge.OBC_NORTH_M2SPECIFIED_TILESTR)
      &                       .and. (mynode.le.OBC_NORTH_M2SPECIFIED_TILEEND)) then
           do i=istr,iend
-#    ifdef M2_FRC_BRY
+#   ifdef M2_FRC_BRY
             vbar(i,jend+1,knew)=vbar_north(i)
-#    else
+#   else
             vbar(i,jend+1,knew)=vbclm(i,jend+1)
-#    endif
-#    ifdef MASKING
-            vbar(i,jend+1,knew)=vbar(i,jend+1,knew)*vmask(i,jend+1)
-#    endif
+#   endif
+#   ifdef MASKING
+     &                         *vmask(i,jend+1)
+#   endif
           enddo
         endif
-# endif /* OBC_NORTH_M2SPECIFIED_TILESTR */
-# if defined OBC_NORTH_M2SPECIFIED_TILESTR2 && defined OBC_NORTH_M2SPECIFIED_TILEEND2
+#  endif /* OBC_NORTH_M2SPECIFIED_TILESTR */
+#  if defined OBC_NORTH_M2SPECIFIED_TILESTR2 && defined OBC_NORTH_M2SPECIFIED_TILEEND2
 !
 !   Force OBC_M2SPECIFIED as northern boundary condition
 !   in the second specified tile range !MM & AH15
@@ -294,18 +295,17 @@
         if ((mynode.ge.OBC_NORTH_M2SPECIFIED_TILESTR2)
      &                       .and. (mynode.le.OBC_NORTH_M2SPECIFIED_TILEEND2)) then
           do i=istr,iend
-#    ifdef M2_FRC_BRY
+#   ifdef M2_FRC_BRY
             vbar(i,jend+1,knew)=vbar_north(i)
-#    else
+#   else
             vbar(i,jend+1,knew)=vbclm(i,jend+1)
-#    endif
-#    ifdef MASKING
-            vbar(i,jend+1,knew)=vbar(i,jend+1,knew)*vmask(i,jend+1)
-#    endif
+#   endif
+#   ifdef MASKING
+     &                         *vmask(i,jend+1)
+#   endif
           enddo
         endif
-#   endif /* OBC_NORTH_M2SPECIFIED_TILESTR2 */
-#  endif /* OBC_M2ORLANSKI or alternative open */
+#  endif /* OBC_NORTH_M2SPECIFIED_TILESTR2 */
 # else
         do i=istr,iend                        ! Northern edge closed
           vbar(i,jend+1,knew)=0.              ! ======== ==== ======

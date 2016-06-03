@@ -4,6 +4,11 @@
 
        subroutine ecosys_bec2_tile(Istr,Iend,Jstr,Jend)
        implicit none
+# ifdef NO_BIO_STEP
+       integer Istr,Iend,Jstr,Jend
+       return
+       end
+# else /* regular BIO STEP */
 
 #include "param.h"  
 #include "param_bec2.h"
@@ -3102,7 +3107,7 @@ c$$$       enddo
        END DO ! iteration loop
 
        END SUBROUTINE drtsafe_row
-
+# endif /* NO_BIO_STEP */
 
 #else  /* BIOLOGY_BEC2 */
        subroutine ecosys_bec2_tile_empty ()

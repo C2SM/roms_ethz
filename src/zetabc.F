@@ -178,7 +178,7 @@ c          if (cx < 0.) cx=0.
 #  endif
         enddo
 
-# elif defined OBC_EAST && defined OBC_Z2ORLANSKI
+# elif defined OBC_NORTH && defined OBC_Z2ORLANSKI
         do i=istrU-1,iend                             ! Northern edge
           dft=zeta(i,jend,kstp)-zeta_new(i,jend)      ! Radiation BC
           dfx=zeta_new(i,jend)-zeta_new(i,jend-1)

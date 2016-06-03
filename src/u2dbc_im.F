@@ -523,7 +523,8 @@ c--#endif
           ubar(i,jend+1,knew)=ubar(i,jend+1,knew)*umask(i,jend+1)
 #   endif
         enddo
-# if defined OBC_NORTH_M2SPECIFIED_TILESTR && defined OBC_NORTH_M2SPECIFIED_TILEEND
+#  endif /* OBC_M2ORLANSKI or alternative open */
+#  if defined OBC_NORTH_M2SPECIFIED_TILESTR && defined OBC_NORTH_M2SPECIFIED_TILEEND
 !
 !   Force OBC_M2SPECIFIED as northern boundary condition
 !   in the specified tile range !MM & AH15
@@ -531,18 +532,18 @@ c--#endif
         if ((mynode.ge.OBC_NORTH_M2SPECIFIED_TILESTR)
      &                       .and. (mynode.le.OBC_NORTH_M2SPECIFIED_TILEEND)) then
           do i=istrU,iend
-#    ifdef M2_FRC_BRY
+#   ifdef M2_FRC_BRY
             ubar(i,jend+1,knew)=ubar_north(i)
-#    else
+#   else
             ubar(i,jend+1,knew)=ubclm(i,jend+1)
-#    endif
-#    ifdef MASKING
+#   endif
+#   ifdef MASKING
             ubar(i,jend+1,knew)=ubar(i,jend+1,knew)*umask(i,jend+1)
-#    endif
+#   endif
           enddo
         endif
-# endif /* OBC_NORTH_M2SPECIFIED_TILESTR */
-# if defined OBC_NORTH_M2SPECIFIED_TILESTR2 && defined OBC_NORTH_M2SPECIFIED_TILEEND2
+#  endif /* OBC_NORTH_M2SPECIFIED_TILESTR */
+#  if defined OBC_NORTH_M2SPECIFIED_TILESTR2 && defined OBC_NORTH_M2SPECIFIED_TILEEND2
 !
 !   Force OBC_M2SPECIFIED as northern boundary condition
 !   in the second specified tile range !MM & AH15
@@ -551,18 +552,17 @@ c--#endif
      &                       .and. (mynode.le.OBC_NORTH_M2SPECIFIED_TILEEND2)) then
 
           do i=istrU,iend
-#    ifdef M2_FRC_BRY
+#   ifdef M2_FRC_BRY
             ubar(i,jend+1,knew)=ubar_north(i)
-#    else
+#   else
             ubar(i,jend+1,knew)=ubclm(i,jend+1)
-#    endif
-#    ifdef MASKING
+#   endif
+#   ifdef MASKING
             ubar(i,jend+1,knew)=ubar(i,jend+1,knew)*umask(i,jend+1)
-#    endif
+#   endif
           enddo
         endif
-#   endif /* OBC_NORTH_M2SPECIFIED_TILESTR2 */
-#  endif /* OBC_M2ORLANSKI or alternative open */
+#  endif /* OBC_NORTH_M2SPECIFIED_TILESTR2 */
 # else
 #  ifdef EW_PERIODIC
 #   define I_RANGE istrU,iend
