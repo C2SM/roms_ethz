@@ -42,7 +42,6 @@
 #define BIOLOGY_BEC2
 !--> #define VERBOSE
 #ifdef BIOLOGY_BEC2
-# define DEFAULT_BGC_BRY_VALUES
 # define BIOLOGY
 # define DEFAULT_BGC_BRY_VALUES
 #endif

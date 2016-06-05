@@ -1,14 +1,14 @@
 #include "cppdefs.h"
 #ifdef BIOLOGY_BEC2
 
-
        subroutine ecosys_bec2_tile(Istr,Iend,Jstr,Jend)
+
+!# ifdef CCHEM_MOCSY
+!       use msingledouble
+!       use mvars
+!# endif
+
        implicit none
-# ifdef NO_BIO_STEP
-       integer Istr,Iend,Jstr,Jend
-       return
-       end
-# else /* regular BIO STEP */
 
 #include "param.h"  
 #include "param_bec2.h"
@@ -45,26 +45,40 @@
 
        real STF(istr:iend,jstr:jend,ntrc_bio)
 
+# ifdef CCHEM_MOCSY
+       real ff, tk100, tk1002, co2star_air, mass_to_vol
        real,dimension(istr:iend)::
-     &    XCO2,         ! atmospheric co2 conc. (dry-air, 1 atm)
-     &    PHLO,         ! lower bound for ph in solver
-     &    PHHI,         ! upper bound for ph in solver
-     &    PH_NEW,       ! computed PH from solver
-!--> moved into a common block     &    PH_HIST,       ! computed PH from solver
-     &    CO2STAR_ROW,  ! CO2STAR from solver
-     &    DCO2STAR_ROW, ! DCO2STAR from solver
-     &    pCO2SURF_ROW, ! pCO2SURF from solver
-     &    DpCO2_ROW     ! DpCO2 from solver
-
+     &    fco2,         ! CO2 fugacity [uatm]
+     &    hco3,         ! bicarbonate ion (HCO3-) concentration [mol/m3]
+     &    co3,          ! carbonate ion (CO3-) concentration [mol/m3]
+     &    omega_arag,   ! the aragonite saturation state
+     &    omega_calc,   ! the calcite saturation state
+     &    betad,        ! Revelle factor, i.e., dpCO2/pCO2 / dDIC/DIC
+     &    rhosw,        ! in-situ density of seawater; rhoSW = f(s, t, p) in [kg/m3]
+     &    p_ocean,      ! pressure [decibars]; p = f(depth, latitude)
+     &    temp_is       ! in-situ temperature [degrees C]
+#  ifdef CCHEM_TODEPTH
+       real, dimension(istr:iend,jstr:jend,N)::  salt_depth, temp_depth
+#  endif
+# else  /* CCHEM_MOCSY */
+       real,dimension(istr:iend)::
+     &    PHLO          ! lower bound for ph in solver
+     &    ,PHHI         ! upper bound for ph in solver
        real, PARAMETER :: 
-     &    a = 8.6e-7,       ! a = 0.31 cm/hr s^2/m^2 in (s/m)
      &    phlo_init = 7.0,  ! low bound for ph for no prev soln
      &    phhi_init = 9.0,  ! high bound for ph for no prev soln
      &    del_ph = 0.20     ! delta-ph for prev soln
+# endif  /* CCHEM_MOCSY */
 
-       logical isnand
-       integer getpid, my_dummy
-       my_dummy = 0
+       real, PARAMETER :: 
+     &    a = 8.6e-7       ! a = 0.31 cm/hr s^2/m^2 in (s/m)
+       real,dimension(istr:iend)::
+     &    PH_NEW,       ! computed PH from solver
+     &    XCO2,         ! atmospheric co2 conc. (dry-air, 1 atm)
+     &    CO2STAR_ROW,  ! CO2STAR from solver
+     &    DCO2STAR_ROW, ! DCO2STAR from solver
+     &    pco2oc_ROW,   ! pco2oc from solver
+     &    DpCO2_ROW     ! DpCO2 from solver
 
 !
 ! Interpolate/extrapolate wind stress to rho grid:
@@ -107,6 +121,16 @@
        enddo
        sstt(istr:iend,jstr:jend) = t(istr:iend,jstr:jend,N,nnew,1)
        ssss(istr:iend,jstr:jend) = t(istr:iend,jstr:jend,N,nnew,2)
+# if defined CCHEM_MOCSY && defined CCHEM_TODEPTH
+       do k=1,N
+          do j=jstr,jend
+             do i=istr,iend
+                temp_depth(i,j,k) = t(i,j,k,nnew,1)
+                salt_depth(i,j,k) = t(i,j,k,nnew,2)
+             end do
+          end do
+       end do
+# endif /* CCHEM_MOCSY && CCHEM_TODEPTH */
 
 c$$$! Check for NaNs in DIC:
 c$$$       do j=jstr,jend
@@ -145,7 +169,12 @@ c$$$       enddo
 
        XKW(istr:iend,jstr:jend) = a * WS_USED(istr:iend,jstr:jend)*WS_USED(istr:iend,jstr:jend)
 # ifdef BEC2_DIAG
+#  ifdef BEC2_DIAG_USER
+       if (bec2_diag_2d_l(ws10m_idx_t))
+     &     bec2_diag_2d(istr:iend,jstr:jend,bec2_diag_2d_idx(ws10m_idx_t)) = WS_USED(istr:iend,jstr:jend)
+#  else
        bec2_diag_2d(istr:iend,jstr:jend,ws10m_idx_t) = WS_USED(istr:iend,jstr:jend)
+#  endif
 # endif
 
     !---------------------------------------------------------------------
@@ -162,8 +191,15 @@ c$$$       enddo
        END WHERE
 
 # ifdef BEC2_DIAG
+#  ifdef BEC2_DIAG_USER
+       if (bec2_diag_2d_l(xkw_idx_t))
+     &     bec2_diag_2d(istr:iend,jstr:jend,bec2_diag_2d_idx(xkw_idx_t)) = XKW(istr:iend,jstr:jend)
+       if (bec2_diag_2d_l(atmpress_idx_t))
+     &     bec2_diag_2d(istr:iend,jstr:jend,bec2_diag_2d_idx(atmpress_idx_t)) = AP_USED(istr:iend,jstr:jend)
+#  else
        bec2_diag_2d(istr:iend,jstr:jend,xkw_idx_t) = XKW(istr:iend,jstr:jend)
        bec2_diag_2d(istr:iend,jstr:jend,atmpress_idx_t) = AP_USED(istr:iend,jstr:jend)
+#  endif
 # endif
 
     !------------------------------------------------------------------------
@@ -189,7 +225,12 @@ c$$$       enddo
      &     landmask(istr:iend,jstr:jend),SCHMIDT_USED(istr:iend,jstr:jend),
      &     istr,iend,jstr,jend)
 # ifdef BEC2_DIAG
+#  ifdef BEC2_DIAG_USER
+         if (bec2_diag_2d_l(schmidto2_idx_t))
+     &       bec2_diag_2d(istr:iend,jstr:jend,bec2_diag_2d_idx(schmidto2_idx_t)) = SCHMIDT_USED(istr:iend,jstr:jend)
+#  else
          bec2_diag_2d(istr:iend,jstr:jend,schmidto2_idx_t) = SCHMIDT_USED(istr:iend,jstr:jend)
+#  endif
 # endif
          call O2SATU(SSTT(istr:iend,jstr:jend),
      &     SSSS(istr:iend,jstr:jend),landmask(istr:iend,jstr:jend),
@@ -209,9 +250,18 @@ c$$$       enddo
                tracer(i,j,N,o2_ind_t) = tracer(i,j,N,o2_ind_t)+
      &                 stf(i,j,o2_ind_t)*dt/Hz(i,j,N)
 # ifdef BEC2_DIAG
+#  ifdef BEC2_DIAG_USER
+               if (bec2_diag_2d_l(pvo2_idx_t))
+     &             bec2_diag_2d(i,j,bec2_diag_2d_idx(pvo2_idx_t)) = PV(i,j)
+               if (bec2_diag_2d_l(o2sat_idx_t))
+     &             bec2_diag_2d(i,j,bec2_diag_2d_idx(o2sat_idx_t)) = O2SAT_USED
+               if (bec2_diag_2d_l(fgo2_idx_t))
+     &             bec2_diag_2d(i,j,bec2_diag_2d_idx(fgo2_idx_t)) = FLUX(i,j)
+#  else
                bec2_diag_2d(i,j,pvo2_idx_t) = PV(i,j)
                bec2_diag_2d(i,j,o2sat_idx_t) = O2SAT_USED
                bec2_diag_2d(i,j,fgo2_idx_t) = FLUX(i,j)
+#  endif
 # endif
             end do  ! i
          end do  ! j
@@ -230,7 +280,12 @@ c$$$       enddo
      &       SCHMIDT_USED(istr:iend,jstr:jend),
      &       istr,iend,jstr,jend)
 # ifdef BEC2_DIAG
+#  ifdef BEC2_DIAG_USER
+          if (bec2_diag_2d_l(schmidtco2_idx_t))
+     &        bec2_diag_2d(istr:iend,jstr:jend,bec2_diag_2d_idx(schmidtco2_idx_t)) = SCHMIDT_USED(istr:iend,jstr:jend)
+#  else
           bec2_diag_2d(istr:iend,jstr:jend,schmidtco2_idx_t) = SCHMIDT_USED(istr:iend,jstr:jend)
+#  endif
 # endif
 
 !          if (mynode == 22) then
@@ -243,7 +298,12 @@ c$$$       enddo
      &                      * rmask(i,j)
 # endif
 # ifdef BEC2_DIAG
+#  ifdef BEC2_DIAG_USER
+               if (bec2_diag_2d_l(pvco2_idx_t))
+     &             bec2_diag_2d(i,j,bec2_diag_2d_idx(pvco2_idx_t)) = PV(i,j)
+#  else
                bec2_diag_2d(i,j,pvco2_idx_t) = PV(i,j)
+#  endif
 # endif
             end do
           end do
@@ -277,12 +337,111 @@ c$$$       enddo
 
 ! MF (added treatment of pCO2air forcing)
 # ifdef PCO2AIR_FORCING
-          XCO2(istr:iend) = pCO2air(istr:iend,j)
+             XCO2(istr:iend) = pCO2air(istr:iend,j)
 # endif /* PCO2AIR_FORCING */
 
-             WHERE (ph_hist(istr:iend,j) .ne. c0)
-                PHLO(istr:iend) = ph_hist(istr:iend,j) - del_ph
-                PHHI(istr:iend) = ph_hist(istr:iend,j) + del_ph
+# ifdef CCHEM_MOCSY
+             call vars(ph_new(istr:iend), pco2oc_ROW, fco2, co2star_row,  ! OUTPUT
+     &          hco3, co3, omega_arag, omega_calc, betad, rhoSW, p_ocean, temp_is,           ! OUTPUT
+     &          sstt(istr:iend,j), ssss(istr:iend,j), 0.001*tracer(istr:iend,j,N,alk_ind_t),       ! INPUT
+     &          0.001*tracer(istr:iend,j,N,dic_ind_t), 0.001*tracer(istr:iend,j,N,sio3_ind_t),     ! INPUT
+     &          0.001*tracer(istr:iend,j,N,po4_ind_t), AP_USED(istr:iend,j), -z_r(istr:iend,j,N),  ! INPUT
+     &          latr(istr:iend,j), iend-istr+1, optCON, optT, optP, optB, optk1k2, optkf, optgas)  ! INPUT
+             ! Unit conversion: mol/m3 -> mmol/m3
+             co2star_row(istr:iend) = 1000 * co2star_row(istr:iend)
+             ! Compute CO2star for air and DCO2star:
+             do i = istr, iend
+                ! For converting (mol/kg) -> (mmol/m^3). Note that rhoSW is kg/m^3.
+                mass_to_vol = 1e3 * rhoSW(i)
+                !---------------------------------------------------------------------
+                !   f = k0(1-pH2O)*correction term for non-ideality
+                !   Weiss  Price (1980, Mar. Chem., 8, 347-359;
+                !                 Eq 13 with table 6 values)
+                !---------------------------------------------------------------------
+                tk100 = (T0_Kelvin + sstt(i,j)) * 1e-2
+                tk1002 = tk100 * tk100
+                ff = EXP(-162.8301 + 218.2968/tk100 + 
+     &             90.9241*LOG(tk100) - 
+     &             1.47696*tk1002 + ssss(i,j)*(.025695 - .025225*tk100 + 
+     &             0.0049867*tk1002))
+                co2star_air = (xco2(i)*1e-6) * ff * AP_USED(i,j) ! mol/kg
+                co2star_air = co2star_air * mass_to_vol ! mmol/m^3
+                DCO2STAR_ROW(i) = co2star_air - co2star_row(i) ! mmol/m^3
+             end do
+             ! Compute delta-pCO2:
+             DpCO2_ROW = pco2oc_ROW - XCO2
+#  ifdef BEC2_DIAG
+#   ifdef CCHEM_TODEPTH
+#    ifdef BEC2_DIAG_USER
+             ! Multiply by 1000 to convert Mol/m3 -> mMol/m3:
+             if (bec2_diag_3d_l(co3_idx_t))
+     &           bec2_diag_3d(istr:iend,j,N,bec2_diag_3d_idx(co3_idx_t)) = 1000*co3
+             if (bec2_diag_3d_l(hco3_idx_t))
+     &           bec2_diag_3d(istr:iend,j,N,bec2_diag_3d_idx(hco3_idx_t)) = 1000*hco3
+             if (bec2_diag_3d_l(co2star_idx_t))
+     &           bec2_diag_3d(istr:iend,j,N,bec2_diag_3d_idx(co2star_idx_t)) = CO2STAR_ROW(istr:iend)
+             if (bec2_diag_3d_l(pco2oc_idx_t))
+     &           bec2_diag_3d(istr:iend,j,N,bec2_diag_3d_idx(pco2oc_idx_t)) = pco2oc_ROW(istr:iend)
+             if (bec2_diag_3d_l(ph_idx_t))
+     &           bec2_diag_3d(istr:iend,j,N,bec2_diag_3d_idx(ph_idx_t)) = ph_new(istr:iend)
+#    else
+             ! Multiply by 1000 to convert Mol/m3 -> mMol/m3:
+             bec2_diag_3d(istr:iend,j,N,co3_idx_t) = 1000*co3
+             bec2_diag_3d(istr:iend,j,N,hco3_idx_t) = 1000*hco3
+             bec2_diag_3d(istr:iend,j,N,co2star_idx_t) = CO2STAR_ROW(istr:iend)
+             bec2_diag_3d(istr:iend,j,N,pco2oc_idx_t) = pco2oc_ROW(istr:iend)
+             bec2_diag_3d(istr:iend,j,N,ph_idx_t) = ph_new(istr:iend)
+#    endif
+#   else /* CCHEM_TODEPTH */
+#    ifdef BEC2_DIAG_USER
+             ! Multiply by 1000 to convert Mol/m3 -> mMol/m3:
+             if (bec2_diag_2d_l(co3_idx_t))
+     &           bec2_diag_2d(istr:iend,j,bec2_diag_2d_idx(co3_idx_t)) = 1000*co3
+             if (bec2_diag_2d_l(hco3_idx_t))
+     &           bec2_diag_2d(istr:iend,j,bec2_diag_2d_idx(hco3_idx_t)) = 1000*hco3
+             if (bec2_diag_2d_l(co2star_idx_t))
+     &           bec2_diag_2d(istr:iend,j,bec2_diag_2d_idx(co2star_idx_t)) = CO2STAR_ROW(istr:iend)
+             if (bec2_diag_2d_l(pco2oc_idx_t))
+     &           bec2_diag_2d(istr:iend,j,bec2_diag_2d_idx(pco2oc_idx_t)) = pco2oc_ROW(istr:iend)
+             if (bec2_diag_2d_l(ph_idx_t))
+     &           bec2_diag_2d(istr:iend,j,bec2_diag_2d_idx(ph_idx_t)) = ph_new(istr:iend)
+#    else
+             ! Multiply by 1000 to convert Mol/m3 -> mMol/m3:
+             bec2_diag_2d(istr:iend,j,co3_idx_t) = 1000*co3
+             bec2_diag_2d(istr:iend,j,hco3_idx_t) = 1000*hco3
+             bec2_diag_2d(istr:iend,j,co2star_idx_t) = CO2STAR_ROW(istr:iend)
+             bec2_diag_2d(istr:iend,j,pco2oc_idx_t) = pco2oc_ROW(istr:iend)
+             bec2_diag_2d(istr:iend,j,ph_idx_t) = ph_new(istr:iend)
+#    endif
+#   endif /* CCHEM_TODEPTH */
+#   ifdef BEC2_DIAG_USER
+             if (bec2_diag_2d_l(pco2air_idx_t))
+     &           bec2_diag_2d(istr:iend,j,bec2_diag_2d_idx(pco2air_idx_t)) = XCO2
+             if (bec2_diag_2d_l(dco2star_idx_t))
+     &           bec2_diag_2d(istr:iend,j,bec2_diag_2d_idx(dco2star_idx_t)) = DCO2STAR_ROW(istr:iend)
+#   else
+             bec2_diag_2d(istr:iend,j,pco2air_idx_t) = XCO2
+             bec2_diag_2d(istr:iend,j,dco2star_idx_t) = DCO2STAR_ROW(istr:iend)
+#   endif
+#  endif /* BEC2_DIAG */
+# else /* CCHEM_MOCSY */
+#  ifdef BEC2_DIAG
+#   ifdef BEC2_DIAG_USER
+             ! pH is present in bec2_diag_2d, so bec2_diag_2d_idx(ph_idx_t)
+             ! is defined:
+             WHERE (BEC2_DIAG_2D(istr:iend,j,bec2_diag_2d_idx(ph_idx_t)) .ne. c0)
+                PHLO(istr:iend) = BEC2_DIAG_2D(istr:iend,j,bec2_diag_2d_idx(ph_idx_t)) - del_ph
+                PHHI(istr:iend) = BEC2_DIAG_2D(istr:iend,j,bec2_diag_2d_idx(ph_idx_t)) + del_ph
+#   else
+             WHERE (BEC2_DIAG_2D(istr:iend,j,ph_idx_t) .ne. c0)
+                PHLO(istr:iend) = BEC2_DIAG_2D(istr:iend,j,ph_idx_t) - del_ph
+                PHHI(istr:iend) = BEC2_DIAG_2D(istr:iend,j,ph_idx_t) + del_ph
+#   endif
+#  else /* BEC2_DIAG */
+             WHERE (PH_HIST(istr:iend,j) .ne. c0)
+                PHLO(istr:iend) = PH_HIST(istr:iend,j) - del_ph
+                PHHI(istr:iend) = PH_HIST(istr:iend,j) + del_ph
+#  endif /* BEC2_DIAG */
              ELSEWHERE
                 PHLO = phlo_init
                 PHHI = phhi_init
@@ -296,27 +455,73 @@ c$$$       enddo
      &         tracer(istr:iend,j,N,sio3_ind_t),
      &         PHLO(istr:iend), PHHI(istr:iend), PH_NEW(istr:iend), XCO2(istr:iend),
      &         AP_USED(istr:iend,j), CO2STAR_ROW(istr:iend),
-     &         DCO2STAR_ROW(istr:iend), pCO2SURF_ROW(istr:iend),
+     &         DCO2STAR_ROW(istr:iend), pco2oc_ROW(istr:iend),
      &         DpCO2_ROW(istr:iend),istr,iend)
-!             if (mynode == 22 .and. j==5) then
-!                 print *, 'ws_used(istr:iend,j) =',  ws_used(istr:iend,j)
-!                print *, 'pCO2SURF_ROW(istr:iend) =', pCO2SURF_ROW(istr:iend)
-!                print *, 'PH_NEW(istr:iend) =', PH_NEW(istr:iend)
-!                print *, 'DCO2STAR_ROW(istr:iend) =', DCO2STAR_ROW(istr:iend)
-!                 print *, 'PV(istr:iend,j) =', PV(istr:iend,j)
-!             endif
-
-             ph_hist(istr:iend,j)=ph_new(istr:iend)
-# ifdef BEC2_DIAG
-             bec2_diag_2d(istr:iend,j,ph_idx_t) = ph_hist(istr:iend,j)
+#  ifdef BEC2_DIAG
+#   ifdef BEC2_DIAG_USER
+             ! bec2_diag_2d_idx(ph_idx_t) is always defined:
+             bec2_diag_2d(istr:iend,j,bec2_diag_2d_idx(ph_idx_t)) = PH_NEW(istr:iend)
+             if (bec2_diag_2d_l(co2star_idx_t))
+     &           bec2_diag_2d(istr:iend,j,bec2_diag_2d_idx(co2star_idx_t))  = CO2STAR_ROW(istr:iend)
+             if (bec2_diag_2d_l(dco2star_idx_t))
+     &           bec2_diag_2d(istr:iend,j,bec2_diag_2d_idx(dco2star_idx_t)) = DCO2STAR_ROW(istr:iend)
+             if (bec2_diag_2d_l(pco2oc_idx_t))
+     &           bec2_diag_2d(istr:iend,j,bec2_diag_2d_idx(pco2oc_idx_t))   = pco2oc_ROW(istr:iend)
+             if (bec2_diag_2d_l(pco2air_idx_t))
+     &           bec2_diag_2d(istr:iend,j,bec2_diag_2d_idx(pco2air_idx_t))  = XCO2
+#   else
+             bec2_diag_2d(istr:iend,j,ph_idx_t) = PH_NEW(istr:iend)
              bec2_diag_2d(istr:iend,j,co2star_idx_t)  = CO2STAR_ROW(istr:iend)
              bec2_diag_2d(istr:iend,j,dco2star_idx_t) = DCO2STAR_ROW(istr:iend)
-             bec2_diag_2d(istr:iend,j,pco2ws_idx_t)   = pCO2SURF_ROW(istr:iend)
-             bec2_diag_2d(istr:iend,j,pco2air_idx_t)  = pCO2SURF_ROW(istr:iend) - DpCO2_ROW(istr:iend)
-# endif
+             bec2_diag_2d(istr:iend,j,pco2oc_idx_t)   = pco2oc_ROW(istr:iend)
+             bec2_diag_2d(istr:iend,j,pco2air_idx_t)  = XCO2
+#   endif
+#  else /* BEC2_DIAG */
+             ph_hist(istr:iend,j) = PH_NEW(istr:iend)
+             pCO2sw(istr:iend,j) = pco2oc_ROW(istr:iend)
+             pCO2air(istr:iend,j) = XCO2(istr:iend)
+#  endif /* BEC2_DIAG */
+# endif /* CCHEM_MOCSY */
 
              FLUX(istr:iend,j) = PV(istr:iend,j) * DCO2STAR_ROW(istr:iend)
           END DO  ! j = jstr,jend
+
+# if defined CCHEM_MOCSY && defined CCHEM_TODEPTH
+          ! Compute carbon chemistry for k<N:
+          do k=1,N-1
+             do j = jstr,jend
+                call vars(ph_new(istr:iend), pco2oc_ROW, fco2, co2star_row,                     ! OUTPUT
+     &             hco3, co3, omega_arag, omega_calc, betad, rhoSW, p_ocean, temp_is,           ! OUTPUT
+     &             temp_depth(istr:iend,j,k), salt_depth(istr:iend,j,k),                              ! INPUT
+     &             0.001*tracer(istr:iend,j,k,alk_ind_t),                                             ! INPUT
+     &             0.001*tracer(istr:iend,j,k,dic_ind_t), 0.001*tracer(istr:iend,j,k,sio3_ind_t),     ! INPUT
+     &             0.001*tracer(istr:iend,j,k,po4_ind_t), AP_USED(istr:iend,j), -z_r(istr:iend,j,k),  ! INPUT
+     &             latr(istr:iend,j), iend-istr+1, optCON, optT, optP, optB, optk1k2, optkf, optgas)  ! INPUT
+#  ifdef BEC2_DIAG
+#   ifdef BEC2_DIAG_USER
+                ! Multiply by 1000 to convert Mol/m3 -> mMol/m3:
+                if (bec2_diag_3d_l(co3_idx_t))
+     &               bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(co3_idx_t)) = 1000*co3
+                if (bec2_diag_3d_l(hco3_idx_t))
+     &               bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(hco3_idx_t)) = 1000*hco3
+                if (bec2_diag_3d_l(co2star_idx_t))
+     &               bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(co2star_idx_t)) = 1000*CO2STAR_ROW(istr:iend)
+                ! bec2_diag_3d_idx(pco2oc_idx_t) and bec2_diag_3d_idx(ph_idx_t)
+                ! are always defined:
+                bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(pco2oc_idx_t)) = pco2oc_ROW(istr:iend)
+                bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(ph_idx_t)) = ph_new(istr:iend)
+#   else
+                ! Multiply by 1000 to convert Mol/m3 -> mMol/m3:
+                bec2_diag_3d(istr:iend,j,k,co3_idx_t) = 1000*co3
+                bec2_diag_3d(istr:iend,j,k,hco3_idx_t) = 1000*hco3
+                bec2_diag_3d(istr:iend,j,k,co2star_idx_t) = 1000*CO2STAR_ROW(istr:iend)
+                bec2_diag_3d(istr:iend,j,k,pco2oc_idx_t) = pco2oc_ROW(istr:iend)
+                bec2_diag_3d(istr:iend,j,k,ph_idx_t) = ph_new(istr:iend)
+#   endif /* BEC2_DIAG_USER */
+#  endif /* BEC2_DIAG */
+             end do  ! j = jstr,jend
+          end do  ! k=1,N-1
+# endif /* CCHEM_MOCSY && CCHEM_TODEPTH */
 
           STF(istr:iend,jstr:jend,dic_ind_t) = FLUX(istr:iend,jstr:jend)
 
@@ -325,7 +530,12 @@ c$$$       enddo
      &       stf(istr:iend,jstr:jend,dic_ind_t)
      &       *dt/Hz(istr:iend,jstr:jend,N)
 # ifdef BEC2_DIAG
+#  ifdef BEC2_DIAG_USER
+          if (bec2_diag_2d_l(fgco2_idx_t))
+     &        bec2_diag_2d(istr:iend,jstr:jend,bec2_diag_2d_idx(fgco2_idx_t)) = FLUX(istr:iend,jstr:jend)
+#  else
           bec2_diag_2d(istr:iend,jstr:jend,fgco2_idx_t) = FLUX(istr:iend,jstr:jend)
+#  endif
 # endif
        ENDIF  ! lflux_gas_co2
 
@@ -430,7 +640,12 @@ c$$$     &         tracer(istr:iend,jstr:jend,N,nh4_ind_t) +
 c$$$     &         nhy(istr:iend,jstr:jend)
 c$$$     &         *dt/Hz(istr:iend,jstr:jend,N)
 # ifdef BEC2_DIAG
+#  ifdef BEC2_DIAG_USER
+       if (bec2_diag_2d_l(ironflux_idx_t))
+     &     bec2_diag_2d(istr:iend,jstr:jend,bec2_diag_2d_idx(ironflux_idx_t)) = FLUX(istr:iend,jstr:jend)
+#  else
        bec2_diag_2d(istr:iend,jstr:jend,ironflux_idx_t) = FLUX(istr:iend,jstr:jend)
+#  endif
 # endif
 
 !end of set_sflux part
@@ -680,12 +895,37 @@ c$$$       enddo
        DOPr_loc = MAX(c0, TRACER(istr:iend,j,k,dopr_ind_t))
        DONr_loc = MAX(c0, TRACER(istr:iend,j,k,donr_ind_t))
 #ifdef BEC2_DIAG
+# ifdef BEC2_DIAG_USER
+       if (bec2_diag_3d_l(totchl_idx_t))
+     &     bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(totchl_idx_t)) = tracer(istr:iend,j,k,spchl_ind_t)
+     &         + tracer(istr:iend,j,k,diatchl_ind_t) + tracer(istr:iend,j,k,diazchl_ind_t)
+       if (bec2_diag_3d_l(totphytoc_idx_t))
+     &     bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(totphytoc_idx_t)) = tracer(istr:iend,j,k,spc_ind_t)
+     &         + tracer(istr:iend,j,k,diatc_ind_t) + tracer(istr:iend,j,k,diazc_ind_t)
+       if (bec2_diag_3d_l(spczero_idx_t))
+     &     bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(spczero_idx_t)) = max(c0,-TRACER(istr:iend,j,k,spC_ind_t))/dt
+       if (bec2_diag_3d_l(diatczero_idx_t))
+     &     bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(diatczero_idx_t)) = max(c0,-TRACER(istr:iend,j,k,diatC_ind_t))/dt
+       if (bec2_diag_3d_l(diazczero_idx_t))
+     &     bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(diazczero_idx_t)) = max(c0,-TRACER(istr:iend,j,k,diazC_ind_t))/dt
+       if (bec2_diag_3d_l(doczero_idx_t))
+     &     bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(doczero_idx_t)) = max(c0,-TRACER(istr:iend,j,k,doc_ind_t))/dt
+       if (bec2_diag_3d_l(zooczero_idx_t))
+     &     bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(zooczero_idx_t)) = max(c0,-TRACER(istr:iend,j,k,zooC_ind_t))/dt
+       if (bec2_diag_3d_l(spcaco3zero_idx_t))
+     &     bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(spcaco3zero_idx_t)) = max(c0,-TRACER(istr:iend,j,k,spCaCO3_ind_t))/dt
+# else
+       bec2_diag_3d(istr:iend,j,k,totchl_idx_t) = tracer(istr:iend,j,k,spchl_ind_t)
+     &     + tracer(istr:iend,j,k,diatchl_ind_t) + tracer(istr:iend,j,k,diazchl_ind_t)
+       bec2_diag_3d(istr:iend,j,k,totphytoc_idx_t) = tracer(istr:iend,j,k,spc_ind_t)
+     &     + tracer(istr:iend,j,k,diatc_ind_t) + tracer(istr:iend,j,k,diazc_ind_t)
        bec2_diag_3d(istr:iend,j,k,spczero_idx_t) = max(c0,-TRACER(istr:iend,j,k,spC_ind_t))/dt
        bec2_diag_3d(istr:iend,j,k,diatczero_idx_t) = max(c0,-TRACER(istr:iend,j,k,diatC_ind_t))/dt
        bec2_diag_3d(istr:iend,j,k,diazczero_idx_t) = max(c0,-TRACER(istr:iend,j,k,diazC_ind_t))/dt
        bec2_diag_3d(istr:iend,j,k,doczero_idx_t) = max(c0,-TRACER(istr:iend,j,k,doc_ind_t))/dt
        bec2_diag_3d(istr:iend,j,k,zooczero_idx_t) = max(c0,-TRACER(istr:iend,j,k,zooC_ind_t))/dt
        bec2_diag_3d(istr:iend,j,k,spcaco3zero_idx_t) = max(c0,-TRACER(istr:iend,j,k,spCaCO3_ind_t))/dt
+# endif
 #endif
 
     !---------------------------------------------------------------------------
@@ -789,7 +1029,12 @@ c$$$       enddo
           end if
        end do  ! auto_ind = 1, autotroph_cnt
 # ifdef BEC2_DIAG
+#  ifdef BEC2_DIAG_USER
+       if (bec2_diag_3d_l(spqcaco3_idx_t))
+     &     bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(spqcaco3_idx_t)) = QCaCO3(istr:iend,sp_ind)
+#  else
        bec2_diag_3d(istr:iend,j,k,spqcaco3_idx_t) = QCaCO3(istr:iend,sp_ind)
+#  endif
 # endif
 
     !---------------------------------------------------------------------------
@@ -804,7 +1049,14 @@ c$$$       enddo
      &            * rmask(istr:iend,j)
 # endif
 # ifdef BEC2_DIAG
+#  ifdef BEC2_DIAG_USER
+          if (bec2_diag_2d_l(parinc_idx_t))
+     &        bec2_diag_2d(istr:iend,j,bec2_diag_2d_idx(parinc_idx_t)) = PAR_out(istr:iend)
+#  else
           bec2_diag_2d(istr:iend,j,parinc_idx_t) = PAR_out(istr:iend)
+#  endif
+# else
+          PARinc(istr:iend,j) = PAR_out(istr:iend)
 # endif
           CALL init_particulate_terms(QA_dust_def,istr,iend,j,dust_flux)
        end if
@@ -827,7 +1079,14 @@ c$$$       enddo
           PAR_out(i) = PAR_in(i) * exp(-KPARdz(i))
           PAR_lay(i) = PAR_in(i) * (c1 - exp(-KPARdz(i))) / KPARdz(i)
 # ifdef BEC2_DIAG
+#  ifdef BEC2_DIAG_USER
+          if (bec2_diag_3d_l(par_idx_t))
+     &        bec2_diag_3d(i,j,k,bec2_diag_3d_idx(par_idx_t)) = PAR_lay(i)
+#  else
           bec2_diag_3d(i,j,k,par_idx_t) = PAR_lay(i)
+#  endif
+# else
+          PAR(i,j,k) = PAR_lay(i)
 # endif
        end do
 
@@ -893,6 +1152,24 @@ c$$$       enddo
           VPtot = VPO4 + VDOP
           f_nut = min(f_nut, VPO4)
 # ifdef BEC2_DIAG
+#  ifdef BEC2_DIAG_USER
+          if (auto_ind == sp_ind) then
+             if (bec2_diag_3d_l(spfeuptake_idx_t))
+     &           bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(spfeuptake_idx_t)) = VFe
+             if (bec2_diag_3d_l(sppo4uptake_idx_t))
+     &           bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(sppo4uptake_idx_t)) = VPO4
+          else if (auto_ind == diat_ind) then
+             if (bec2_diag_3d_l(diatfeuptake_idx_t))
+     &           bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(diatfeuptake_idx_t)) = VFe
+             if (bec2_diag_3d_l(diatpo4uptake_idx_t))
+     &           bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(diatpo4uptake_idx_t)) = VPO4
+          else
+             if (bec2_diag_3d_l(diazfeuptake_idx_t))
+     &           bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(diazfeuptake_idx_t)) = VFe
+             if (bec2_diag_3d_l(diazpo4uptake_idx_t))
+     &           bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(diazpo4uptake_idx_t)) = VPO4
+          end if
+#  else
           if (auto_ind == sp_ind) then
              bec2_diag_3d(istr:iend,j,k,spfeuptake_idx_t) = VFe
              bec2_diag_3d(istr:iend,j,k,sppo4uptake_idx_t) = VPO4
@@ -903,6 +1180,7 @@ c$$$       enddo
              bec2_diag_3d(istr:iend,j,k,diazfeuptake_idx_t) = VFe
              bec2_diag_3d(istr:iend,j,k,diazpo4uptake_idx_t) = VPO4
           end if
+#  endif
 # endif
 
           if (kSiO3(auto_ind) > c0) then
@@ -911,9 +1189,14 @@ c$$$       enddo
           endif
 # ifdef BEC2_DIAG
           if (auto_ind == diat_ind) then
+#  ifdef BEC2_DIAG_USER
+             if (bec2_diag_3d_l(diatsio3uptake_idx_t))
+     &           bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(diatsio3uptake_idx_t)) = VSiO3
+#  else
              bec2_diag_3d(istr:iend,j,k,diatsio3uptake_idx_t) = VSiO3
+#  endif
           end if
-# endif
+# endif /* BEC2_DIAG */
 
     !-----------------------------------------------------------------------
     !     get photosynth. rate, phyto C biomass change, photoadapt
@@ -927,6 +1210,16 @@ c$$$       enddo
           PCphoto = PCmax * light_lim
           photoC(istr:iend,auto_ind) = PCphoto * C_loc(istr:iend,auto_ind)
 # ifdef BEC2_DIAG
+#  ifdef BEC2_DIAG_USER
+          if (auto_ind == sp_ind .and. bec2_diag_3d_l(splightlim_idx_t)) then
+             bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(splightlim_idx_t)) = light_lim
+          else if (auto_ind == diat_ind .and. bec2_diag_3d_l(diatlightlim_idx_t)) then
+             bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(diatlightlim_idx_t)) = light_lim
+          else if (bec2_diag_3d_l(diazlightlim_idx_t)) then
+             ! Diazotrophs:
+             bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(diazlightlim_idx_t)) = light_lim
+          end if
+#  else
           if (auto_ind == sp_ind) then
              bec2_diag_3d(istr:iend,j,k,splightlim_idx_t) = light_lim
           else if (auto_ind == diat_ind) then
@@ -935,7 +1228,8 @@ c$$$       enddo
              ! Diazotrophs:
              bec2_diag_3d(istr:iend,j,k,diazlightlim_idx_t) = light_lim
           end if
-# endif
+#  endif
+# endif /* BEC2_DIAG */
 
     !-----------------------------------------------------------------------
     !  Get nutrient uptakes by autotrophs based on calculated C fixation
@@ -963,7 +1257,12 @@ c$$$       enddo
           end where
           photoFe(istr:iend,auto_ind) = photoC(istr:iend,auto_ind) * gQfe(istr:iend,auto_ind)
 # ifdef BEC2_DIAG
+#  ifdef BEC2_DIAG_USER
+          if (bec2_diag_3d_l(ironuptakesp_idx_t+auto_ind-1))
+     &        bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(ironuptakesp_idx_t+auto_ind-1)) = photoFe(istr:iend,auto_ind)
+#  else
           bec2_diag_3d(istr:iend,j,k,ironuptakesp_idx_t+auto_ind-1) = photoFe(istr:iend,auto_ind)
+#  endif
 # endif
 
     !-----------------------------------------------------------------------
@@ -973,9 +1272,15 @@ c$$$       enddo
           if (kSiO3(auto_ind) > c0) then
              photoSi(istr:iend,auto_ind) = photoC(istr:iend,auto_ind) * gQsi(istr:iend,auto_ind)
 # ifdef BEC2_DIAG
+#  ifdef BEC2_DIAG_USER
+             if (auto_ind == diat_ind .and. bec2_diag_3d_l(diatsiuptake_idx_t)) then
+                bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(diatsiuptake_idx_t)) = photoSi(istr:iend,auto_ind)
+             end if
+#  else
              if (auto_ind == diat_ind) then
                 bec2_diag_3d(istr:iend,j,k,diatsiuptake_idx_t) = photoSi(istr:iend,auto_ind)
              end if
+#  endif
 # endif
           endif
 
@@ -997,9 +1302,18 @@ c$$$       enddo
              photoacc(istr:iend,auto_ind) = c0
           end where
 # ifdef BEC2_DIAG
+#  ifdef BEC2_DIAG_USER
+          if (bec2_diag_3d_l(spphotoacc_idx_t))
+     &        bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(spphotoacc_idx_t)) = photoacc(istr:iend,sp_ind)
+          if (bec2_diag_3d_l(diatphotoacc_idx_t))
+     &        bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(diatphotoacc_idx_t)) = photoacc(istr:iend,diat_ind)
+          if (bec2_diag_3d_l(diazphotoacc_idx_t))
+     &        bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(diazphotoacc_idx_t)) = photoacc(istr:iend,diaz_ind)
+#  else
           bec2_diag_3d(istr:iend,j,k,spphotoacc_idx_t) = photoacc(istr:iend,sp_ind)
           bec2_diag_3d(istr:iend,j,k,diatphotoacc_idx_t) = photoacc(istr:iend,diat_ind)
           bec2_diag_3d(istr:iend,j,k,diazphotoacc_idx_t) = photoacc(istr:iend,diaz_ind)
+#  endif
 # endif
 
     !-----------------------------------------------------------------------
@@ -1026,9 +1340,15 @@ c$$$       enddo
              CaCO3_PROD(istr:iend,auto_ind) = c0
           endif
 # ifdef BEC2_DIAG
+#  ifdef BEC2_DIAG_USER
+          if (auto_ind == sp_ind .and. bec2_diag_3d_l(caco3prod_idx_t)) then
+             bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(caco3prod_idx_t)) = CaCO3_PROD(istr:iend,auto_ind)
+          end if
+#  else
           if (auto_ind == sp_ind) then
              bec2_diag_3d(istr:iend,j,k,caco3prod_idx_t) = CaCO3_PROD(istr:iend,auto_ind)
           end if
+#  endif
 # endif
 
     !-----------------------------------------------------------------------
@@ -1075,9 +1395,15 @@ c$$$       enddo
      &                 + NH4_V(istr:iend,auto_ind) - WORK1
           endif
 # ifdef BEC2_DIAG
+#  ifdef BEC2_DIAG_USER
+          if (auto_ind == diaz_ind .and. bec2_diag_3d_l(diaznfix_idx_t)) then
+             bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(diaznfix_idx_t)) = Nfix(istr:iend,auto_ind)
+          end if
+#  else
           if (auto_ind == diaz_ind) then
              bec2_diag_3d(istr:iend,j,k,diaznfix_idx_t) = Nfix(istr:iend,auto_ind)
           end if
+#  endif
 # endif
 
     !-----------------------------------------------------------------------
@@ -1137,6 +1463,68 @@ c$$$       enddo
        end do  ! auto_ind = 1, autotroph_cnt
 
 # ifdef BEC2_DIAG
+#  ifdef BEC2_DIAG_USER
+       if (bec2_diag_3d_l(grazesp_idx_t))
+     &    bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(grazesp_idx_t)) = auto_graze(istr:iend,sp_ind)
+       if (bec2_diag_3d_l(grazediat_idx_t))
+     &    bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(grazediat_idx_t)) = auto_graze(istr:iend,diat_ind)
+       if (bec2_diag_3d_l(grazediaz_idx_t))
+     &    bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(grazediaz_idx_t)) = auto_graze(istr:iend,diaz_ind)
+       if (bec2_diag_3d_l(sploss_idx_t))
+     &    bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(sploss_idx_t)) = auto_loss(istr:iend,sp_ind)
+       if (bec2_diag_3d_l(diatloss_idx_t))
+     &    bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(diatloss_idx_t)) = auto_loss(istr:iend,diat_ind)
+       if (bec2_diag_3d_l(diazloss_idx_t))
+     &    bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(diazloss_idx_t)) = auto_loss(istr:iend,diaz_ind)
+       if (bec2_diag_3d_l(spagg_idx_t))
+     &    bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(spagg_idx_t)) = auto_agg(istr:iend,sp_ind)
+       if (bec2_diag_3d_l(diatagg_idx_t))
+     &    bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(diatagg_idx_t)) = auto_agg(istr:iend,diat_ind)
+       if (bec2_diag_3d_l(diazagg_idx_t))
+     &    bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(diazagg_idx_t)) = auto_agg(istr:iend,diaz_ind)
+       if (bec2_diag_3d_l(photocsp_idx_t))
+     &    bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(photocsp_idx_t)) = photoC(istr:iend,sp_ind)
+       if (bec2_diag_3d_l(photocdiat_idx_t))
+     &    bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(photocdiat_idx_t)) = photoC(istr:iend,diat_ind)
+       if (bec2_diag_3d_l(photocdiaz_idx_t))
+     &    bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(photocdiaz_idx_t)) = photoC(istr:iend,diaz_ind)
+       if (bec2_diag_3d_l(totprod_idx_t))
+     &    bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(totprod_idx_t)) = sum(photoC,dim=2)
+       if (bec2_diag_3d_l(spnlim_idx_t))
+     &    bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(spnlim_idx_t)) = VNtot(istr:iend,sp_ind)
+       if (bec2_diag_3d_l(diatnlim_idx_t))
+     &    bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(diatnlim_idx_t)) = VNtot(istr:iend,diat_ind)
+       if (bec2_diag_3d_l(spno3uptake_idx_t))
+     &    bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(spno3uptake_idx_t)) = NO3_V(istr:iend,sp_ind)
+       if (bec2_diag_3d_l(diatno3uptake_idx_t))
+     &    bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(diatno3uptake_idx_t)) = NO3_V(istr:iend,diat_ind)
+       if (bec2_diag_3d_l(diazno3uptake_idx_t))
+     &    bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(diazno3uptake_idx_t)) = NO3_V(istr:iend,diaz_ind)
+       if (bec2_diag_3d_l(spnh4uptake_idx_t))
+     &    bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(spnh4uptake_idx_t)) = NH4_V(istr:iend,sp_ind)
+       if (bec2_diag_3d_l(diatnh4uptake_idx_t))
+     &    bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(diatnh4uptake_idx_t)) = NH4_V(istr:iend,diat_ind)
+       if (bec2_diag_3d_l(diaznh4uptake_idx_t))
+     &    bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(diaznh4uptake_idx_t)) = NH4_V(istr:iend,diaz_ind)
+       if (bec2_diag_3d_l(grazedicsp_idx_t))
+     &    bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(grazedicsp_idx_t)) = auto_graze_dic(istr:iend,sp_ind)
+       if (bec2_diag_3d_l(grazedicdiat_idx_t))
+     &    bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(grazedicdiat_idx_t)) = auto_graze_dic(istr:iend,diat_ind)
+       if (bec2_diag_3d_l(grazedicdiaz_idx_t))
+     &    bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(grazedicdiaz_idx_t)) = auto_graze_dic(istr:iend,diaz_ind)
+       if (bec2_diag_3d_l(lossdicsp_idx_t))
+     &    bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(lossdicsp_idx_t)) = auto_loss_dic(istr:iend,sp_ind)
+       if (bec2_diag_3d_l(lossdicdiat_idx_t))
+     &    bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(lossdicdiat_idx_t)) = auto_loss_dic(istr:iend,diat_ind)
+       if (bec2_diag_3d_l(lossdicdiaz_idx_t))
+     &    bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(lossdicdiaz_idx_t)) = auto_loss_dic(istr:iend,diaz_ind)
+       if (bec2_diag_3d_l(grazespzoo_idx_t))
+     &    bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(grazespzoo_idx_t)) = auto_graze_zoo(istr:iend,sp_ind)
+       if (bec2_diag_3d_l(grazediatzoo_idx_t))
+     &    bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(grazediatzoo_idx_t)) = auto_graze_zoo(istr:iend,diat_ind)
+       if (bec2_diag_3d_l(grazediazzoo_idx_t))
+     &    bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(grazediazzoo_idx_t)) = auto_graze_zoo(istr:iend,diaz_ind)
+#  else
        bec2_diag_3d(istr:iend,j,k,grazesp_idx_t) = auto_graze(istr:iend,sp_ind)
        bec2_diag_3d(istr:iend,j,k,grazediat_idx_t) = auto_graze(istr:iend,diat_ind)
        bec2_diag_3d(istr:iend,j,k,grazediaz_idx_t) = auto_graze(istr:iend,diaz_ind)
@@ -1167,10 +1555,8 @@ c$$$       enddo
        bec2_diag_3d(istr:iend,j,k,grazespzoo_idx_t) = auto_graze_zoo(istr:iend,sp_ind)
        bec2_diag_3d(istr:iend,j,k,grazediatzoo_idx_t) = auto_graze_zoo(istr:iend,diat_ind)
        bec2_diag_3d(istr:iend,j,k,grazediazzoo_idx_t) = auto_graze_zoo(istr:iend,diaz_ind)
-!       if (mynode==15 .and. j==11 .and. k==32) then
-!          print *, 'NO3 uptake rate(15,11) = ', NO3_V(15,sp_ind)+NO3_V(15,diat_ind)+NO3_V(15,diaz_ind)
-!       endif
-# endif
+#  endif
+# endif /* BEC2_DIAG */
 
 
     !-----------------------------------------------------------------------
@@ -1201,8 +1587,15 @@ c$$$       enddo
        zoo_loss_dic = parm_labile_ratio * (c1 - f_zoo_detr_loc) * zoo_loss
 
 # ifdef BEC2_DIAG
+#  ifdef BEC2_DIAG_USER
+       if (bec2_diag_3d_l(zooloss_idx_t))
+     &    bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(zooloss_idx_t)) = zoo_loss
+       if (bec2_diag_3d_l(zoolossdic_idx_t))
+     &    bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(zoolossdic_idx_t)) = zoo_loss_dic
+#  else
        bec2_diag_3d(istr:iend,j,k,zooloss_idx_t) = zoo_loss
        bec2_diag_3d(istr:iend,j,k,zoolossdic_idx_t) = zoo_loss_dic
+#  endif
 # endif
 
     !-----------------------------------------------------------------------
@@ -1213,8 +1606,15 @@ c$$$       enddo
        DON_prod = Q * DOC_prod
        DOP_prod = Qp_zoo_pom * zoo_loss_doc
 # ifdef BEC2_DIAG
+#  ifdef BEC2_DIAG_USER
+       if (bec2_diag_3d_l(docprod_idx_t))
+     &    bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(docprod_idx_t)) = DOC_prod
+       if (bec2_diag_3d_l(donprod_idx_t))
+     &    bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(donprod_idx_t)) = DON_prod
+#  else
        bec2_diag_3d(istr:iend,j,k,docprod_idx_t) = DOC_prod
        bec2_diag_3d(istr:iend,j,k,donprod_idx_t) = DON_prod
+#  endif
 # endif
        do auto_ind = 1, autotroph_cnt
           if (Qp(auto_ind) == Qp_zoo_pom) then
@@ -1230,8 +1630,15 @@ c$$$       enddo
      &    (auto_loss_doc(istr:iend,auto_ind) + auto_graze_doc(istr:iend,auto_ind))
        end do
 # ifdef BEC2_DIAG
+#  ifdef BEC2_DIAG_USER
+       if (bec2_diag_3d_l(dofeprod_idx_t))
+     &    bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(dofeprod_idx_t)) = DOFe_prod
+       if (bec2_diag_3d_l(dopprod_idx_t))
+     &    bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(dopprod_idx_t)) = DOP_prod
+#  else
        bec2_diag_3d(istr:iend,j,k,dofeprod_idx_t) = DOFe_prod
        bec2_diag_3d(istr:iend,j,k,dopprod_idx_t) = DOP_prod
+#  endif
 # endif
 
        DOC_remin  = DOC_loc  * DOC_reminR
@@ -1256,11 +1663,24 @@ c$$$       enddo
           DOP_remin(istr:iend,j) = DOP_remin(istr:iend,j) * 0.05
        end where
 # ifdef BEC2_DIAG
+#  ifdef BEC2_DIAG_USER
+       if (bec2_diag_3d_l(docremin_idx_t))
+     &    bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(docremin_idx_t)) = DOC_remin
+       if (bec2_diag_3d_l(donremin_idx_t))
+     &    bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(donremin_idx_t)) = DON_remin
+       if (bec2_diag_3d_l(donrremin_idx_t))
+     &    bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(donrremin_idx_t)) = DONr_remin
+       if (bec2_diag_3d_l(doferemin_idx_t))
+     &    bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(doferemin_idx_t)) = DOFe_remin
+       if (bec2_diag_3d_l(dopremin_idx_t))
+     &    bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(dopremin_idx_t)) = DOFe_remin
+#  else
        bec2_diag_3d(istr:iend,j,k,docremin_idx_t) = DOC_remin
        bec2_diag_3d(istr:iend,j,k,donremin_idx_t) = DON_remin
        bec2_diag_3d(istr:iend,j,k,donrremin_idx_t) = DONr_remin
        bec2_diag_3d(istr:iend,j,k,doferemin_idx_t) = DOFe_remin
        bec2_diag_3d(istr:iend,j,k,dopremin_idx_t) = DOFe_remin
+#  endif
 # endif
 
     !-----------------------------------------------------------------------
@@ -1270,7 +1690,12 @@ c$$$       enddo
        POC_prod = f_zoo_detr_loc * zoo_loss + sum(auto_graze_poc, dim=2)
      &            + sum(auto_agg, dim=2) + sum(auto_loss_poc, dim=2)
 # ifdef BEC2_DIAG
+#  ifdef BEC2_DIAG_USER
+       if (bec2_diag_3d_l(pocprod_idx_t))
+     &    bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(pocprod_idx_t)) = POC_prod(istr:iend)
+#  else
        bec2_diag_3d(istr:iend,j,k,pocprod_idx_t) = POC_prod(istr:iend)
+#  endif
 # endif
 
     !-----------------------------------------------------------------------
@@ -1281,7 +1706,12 @@ c$$$       enddo
        P_CaCO3_prod = ((c1 - f_graze_CaCO3_REMIN) * auto_graze(istr:iend,sp_ind) +
      &                auto_loss(istr:iend,sp_ind) + auto_agg(istr:iend,sp_ind)) * QCaCO3(istr:iend,sp_ind)
 # ifdef BEC2_DIAG
+#  ifdef BEC2_DIAG_USER
+       if (bec2_diag_3d_l(pcaco3prod_idx_t))
+     &    bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(pcaco3prod_idx_t)) = P_CaCO3_prod(istr:iend)
+#  else
        bec2_diag_3d(istr:iend,j,k,pcaco3prod_idx_t) = P_CaCO3_prod(istr:iend)
+#  endif
 # endif
 
     !-----------------------------------------------------------------------
@@ -1298,7 +1728,12 @@ c$$$       enddo
           endif
        end do
 # ifdef BEC2_DIAG
+#  ifdef BEC2_DIAG_USER
+       if (bec2_diag_3d_l(sio2prod_idx_t))
+     &    bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(sio2prod_idx_t)) = P_SiO2_prod(istr:iend)
+#  else
        bec2_diag_3d(istr:iend,j,k,sio2prod_idx_t) = P_SiO2_prod(istr:iend)
+#  endif
 # endif
 
     !-----------------------------------------------------------------------
@@ -1332,9 +1767,18 @@ c$$$       enddo
      &          + auto_loss_poc(istr:iend,auto_ind))
        end do
 # ifdef BEC2_DIAG
+#  ifdef BEC2_DIAG_USER
+       if (bec2_diag_3d_l(pironprod_idx_t))
+     &    bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(pironprod_idx_t)) = P_iron_prod
+       if (bec2_diag_3d_l(fescavenge_idx_t))
+     &    bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(fescavenge_idx_t)) = Fe_scavenge
+       if (bec2_diag_3d_l(fescavengerate_idx_t))
+     &    bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(fescavengerate_idx_t)) = Fe_scavenge_rate
+#  else
        bec2_diag_3d(istr:iend,j,k,pironprod_idx_t) = P_iron_prod
        bec2_diag_3d(istr:iend,j,k,fescavenge_idx_t) = Fe_scavenge
        bec2_diag_3d(istr:iend,j,k,fescavengerate_idx_t) = Fe_scavenge_rate
+#  endif
 # endif
 
        call compute_particulate_terms(k,QA_dust_def, TEMP, O2_loc, NO3_loc,POC_prod,
@@ -1356,7 +1800,12 @@ c$$$       enddo
        end where
 
 # ifdef BEC2_DIAG
+#  ifdef BEC2_DIAG_USER
+       if (bec2_diag_3d_l(nitrif_idx_t))
+     &    bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(nitrif_idx_t)) = NITRIF
+#  else
        bec2_diag_3d(istr:iend,j,k,nitrif_idx_t) = NITRIF
+#  endif
 # endif
 
     !-----------------------------------------------------------------------
@@ -1379,7 +1828,12 @@ c$$$       enddo
        end where
 
 # ifdef BEC2_DIAG
+#  ifdef BEC2_DIAG_USER
+       if (bec2_diag_3d_l(denitrif_idx_t))
+     &    bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(denitrif_idx_t)) = DENITRIF
+#  else
        bec2_diag_3d(istr:iend,j,k,denitrif_idx_t) = DENITRIF
+#  endif
 # endif
 
 
@@ -1717,8 +2171,6 @@ c$$$       enddo
        real, dimension(istr:iend) ::
      &   temp, O2_loc, NO3_loc,
      &   scalelength,POC_prod,P_CaCO3_prod,P_SiO2_prod,P_iron_prod,
-     &   DECAY_CaCO3,      ! scaling factor for dissolution of CaCO3
-     &   DECAY_dust,       ! scaling factor for dissolution of dust
      &   DECAY_Hard,       ! scaling factor for dissolution of Hard Ballast
      &   DECAY_HardDust,   ! scaling factor for dissolution of Hard dust
      &   QA_dust_def,   ! incoming deficit in the QA (dust) POC flux
@@ -1731,8 +2183,12 @@ c$$$       enddo
        real
      &   poc_diss_loc,      ! diss. length used (m)
      &   sio2_diss_loc,     ! diss. length varies spatially with O2 (m)
+     &   caco3_diss_loc,
+     &   dust_diss_loc,
      &   decay_POC_E,       ! scaling factor for dissolution of excess POC
      &   decay_SiO2,        ! scaling factor for dissolution of SiO2
+     &   decay_CaCO3,       ! scaling factor for dissolution of CaCO3
+     &   decay_dust,        ! scaling factor for dissolution of dust
      &   POC_PROD_avail,    ! POC production available for excess POC flux (mmol/m^3/s)
      &   new_QA_dust_def,   ! outgoing deficit in the QA(dust) POC flux
      &   flux, flux_alt,    ! temp variables used to update sinking flux
@@ -1748,42 +2204,73 @@ c$$$       enddo
        P_CaCO3_sflux_in(istr:iend,j) = P_CaCO3_sflux_out(istr:iend,j)
        P_CaCO3_hflux_in(istr:iend,j) = P_CaCO3_hflux_out(istr:iend,j)
 # ifdef BEC2_DIAG
+#  ifdef BEC2_DIAG_USER
+       if (bec2_diag_3d_l(caco3fluxin_idx_t))
+     &    bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(caco3fluxin_idx_t)) = P_CaCO3_sflux_in(istr:iend,j)
+     &          + P_CaCO3_hflux_in(istr:iend,j)
+#  else
        bec2_diag_3d(istr:iend,j,k,caco3fluxin_idx_t) = P_CaCO3_sflux_in(istr:iend,j)
      &          + P_CaCO3_hflux_in(istr:iend,j)
+#  endif
 # endif
 
        P_SiO2_sflux_in(istr:iend,j) = P_SiO2_sflux_out(istr:iend,j)
        P_SiO2_hflux_in(istr:iend,j) = P_SiO2_hflux_out(istr:iend,j)
 # ifdef BEC2_DIAG
+#  ifdef BEC2_DIAG_USER
+       if (bec2_diag_3d_l(sio2fluxin_idx_t))
+     &    bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(sio2fluxin_idx_t)) = P_SiO2_sflux_in(istr:iend,j)
+     &          + P_SiO2_hflux_in(istr:iend,j)
+#  else
        bec2_diag_3d(istr:iend,j,k,sio2fluxin_idx_t) = P_SiO2_sflux_in(istr:iend,j)
      &          + P_SiO2_hflux_in(istr:iend,j)
+#  endif
 # endif
 
        dust_sflux_in(istr:iend,j) = dust_sflux_out(istr:iend,j)
        dust_hflux_in(istr:iend,j) = dust_hflux_out(istr:iend,j)
 # ifdef BEC2_DIAG
+#  ifdef BEC2_DIAG_USER
+       if (bec2_diag_3d_l(dustfluxin_idx_t))
+     &    bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(dustfluxin_idx_t)) = dust_sflux_in(istr:iend,j)
+     &          + dust_hflux_in(istr:iend,j)
+#  else
        bec2_diag_3d(istr:iend,j,k,dustfluxin_idx_t) = dust_sflux_in(istr:iend,j)
      &          + dust_hflux_in(istr:iend,j)
+#  endif
 # endif
 
        POC_sflux_in(istr:iend,j) = POC_sflux_out(istr:iend,j)
        POC_hflux_in(istr:iend,j) = POC_hflux_out(istr:iend,j)
 # ifdef BEC2_DIAG
+#  ifdef BEC2_DIAG_USER
+       if (bec2_diag_3d_l(pocfluxin_idx_t))
+     &    bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(pocfluxin_idx_t)) = POC_sflux_in(istr:iend,j)
+     &          + POC_hflux_in(istr:iend,j)
+#  else
        bec2_diag_3d(istr:iend,j,k,pocfluxin_idx_t) = POC_sflux_in(istr:iend,j)
      &          + POC_hflux_in(istr:iend,j)
+#  endif
 # endif
 
        P_iron_sflux_in(istr:iend,j) = P_iron_sflux_out(istr:iend,j)
        P_iron_hflux_in(istr:iend,j) = P_iron_hflux_out(istr:iend,j)
 # ifdef BEC2_DIAG
+#  ifdef BEC2_DIAG_USER
+       if (bec2_diag_3d_l(pironfluxin_idx_t))
+     &    bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(pironfluxin_idx_t)) = P_iron_sflux_in(istr:iend,j)
+     &          + P_iron_hflux_in(istr:iend,j)
+#  else
        bec2_diag_3d(istr:iend,j,k,pironfluxin_idx_t) = P_iron_sflux_in(istr:iend,j)
      &          + P_iron_hflux_in(istr:iend,j)
+#  endif
 # endif
 
     !-----------------------------------------------------------------------
     !  initialize loss to sediments = 0 and local copy of percent sed
     !-----------------------------------------------------------------------
 
+       P_iron_sed_loss(istr:iend,j) = c0
        POC_sed_loss(istr:iend,j) = c0
        P_CaCO3_sed_loss(istr:iend,j) = c0
        P_SiO2_sed_loss(istr:iend,j) = c0
@@ -1811,8 +2298,6 @@ c$$$       enddo
                 endif
              end do
           endif
-          DECAY_CaCO3(i)    = exp(-Hz(i,j,k) / (scalelength(i)*P_CaCO3_diss))
-          DECAY_dust(i)     = exp(-Hz(i,j,k) / (scalelength(i)*dust_diss))
           DECAY_Hard(i)     = exp(-Hz(i,j,k) / 4.0e4)  ! DL: denominator converted to m
           DECAY_HardDust(i) = exp(-Hz(i,j,k) / 1.2e5)  ! DL: denominator converted to m
        end do
@@ -1831,6 +2316,8 @@ c$$$       enddo
              dzr_loc = c1 / dz_loc
              poc_diss_loc = POC_diss
              sio2_diss_loc = P_SiO2_diss
+             caco3_diss_loc = P_CaCO3_diss
+             dust_diss_loc = dust_diss
 
     !-----------------------------------------------------------------------
     !  increase POC diss length scale where O2 concentrations are low
@@ -1843,11 +2330,28 @@ c$$$       enddo
              endif
 
     !-----------------------------------------------------------------------
+    !  apply scalelength factor to length scales
+    !-----------------------------------------------------------------------
+
+             poc_diss_loc = scalelength(i) * poc_diss_loc
+             sio2_diss_loc = scalelength(i) * sio2_diss_loc
+             caco3_diss_loc = scalelength(i) * caco3_diss_loc
+             dust_diss_loc = scalelength(i) * dust_diss_loc
+
+    !-----------------------------------------------------------------------
+    !  apply temperature dependence to sio2_diss length scale
+    !-----------------------------------------------------------------------
+
+             sio2_diss_loc = sio2_diss_loc / TfuncS(i)
+
+    !-----------------------------------------------------------------------
     !  decay_POC_E and decay_SiO2 set locally, modified by O2
     !-----------------------------------------------------------------------
 
-             decay_POC_E = exp(-dz_loc / (scalelength(i)*poc_diss_loc))
-             decay_SiO2  = exp(-dz_loc / (scalelength(i)*sio2_diss_loc / TfuncS(i)))
+             decay_POC_E = exp(-dz_loc / poc_diss_loc)
+             decay_SiO2  = exp(-dz_loc / sio2_diss_loc)
+             decay_CaCO3 = exp(-dz_loc / caco3_diss_loc)
+             decay_dust  = exp(-dz_loc / dust_diss_loc)
 
     !-----------------------------------------------------------------------
     !  Set outgoing fluxes for non-iron pools.
@@ -1857,21 +2361,21 @@ c$$$       enddo
     !  It is assumed that there is no sub-surface dust production.
     !-----------------------------------------------------------------------
 
-             P_CaCO3_sflux_out(i,j) = P_CaCO3_sflux_in(i,j) * DECAY_CaCO3(i) +
-     &           P_CaCO3_prod(i) * ((c1 - P_CaCO3_gamma) * (c1 - DECAY_CaCO3(i))
-     &             * P_CaCO3_diss)
+             P_CaCO3_sflux_out(i,j) = P_CaCO3_sflux_in(i,j) * decay_CaCO3 +
+     &           P_CaCO3_prod(i) * ((c1 - P_CaCO3_gamma) * (c1 - decay_CaCO3)
+     &             * caco3_diss_loc)
 
              P_CaCO3_hflux_out(i,j) = P_CaCO3_hflux_in(i,j) * DECAY_Hard(i) +
      &           P_CaCO3_prod(i) * (P_CaCO3_gamma * dz_loc)
 
              P_SiO2_sflux_out(i,j) = P_SiO2_sflux_in(i,j) * decay_SiO2 +
      &           P_SiO2_prod(i) * ((c1 - P_SiO2_gamma) * (c1 - decay_SiO2)
-     &             * (P_SiO2_diss / TfuncS(i)))
+     &             * sio2_diss_loc)
 
              P_SiO2_hflux_out(i,j) = P_SiO2_hflux_in(i,j) * DECAY_Hard(i) +
      &           P_SiO2_prod(i) * (P_SiO2_gamma * dz_loc)
 
-             dust_sflux_out(i,j) = dust_sflux_in(i,j) * DECAY_dust(i)
+             dust_sflux_out(i,j) = dust_sflux_in(i,j) * decay_dust
 
              dust_hflux_out(i,j) = dust_hflux_in(i,j) * DECAY_HardDust(i)
 
@@ -1981,9 +2485,10 @@ c$$$       enddo
              else
                 P_Iron_remin(i,j) = (POC_remin(i,j) *
      &             (P_iron_sflux_in(i,j) + P_iron_hflux_in(i,j)) /
-     &             (POC_sflux_in(i,j) + POC_hflux_in(i,j))) +
-     &             (P_iron_sflux_in(i,j) * 1.5e-5)
+     &             (POC_sflux_in(i,j) + POC_hflux_in(i,j)))
              endif
+             P_Iron_remin(i,j) = P_Iron_remin(i,j)
+     &             + P_iron_sflux_in(i,j) * 1.5e-5
 
              P_iron_sflux_out(i,j) = P_iron_sflux_in(i,j) + dz_loc *
      &           ((c1 - P_iron_gamma) * P_iron_prod(i) - P_Iron_remin(i,j))
@@ -2067,7 +2572,7 @@ c$$$       enddo
     !      In special case where bottom O2 has been depleted to < 1.0 uM,
     !               all sedimentary remin is due to DENITRIFICATION + OTHER_REMIN
     !  POC burial from Dunne et al. 2007 (doi:10.1029/2006GB002907), maximum of 80% burial efficiency imposed
-    !  Bsi preservation in sediments = 0.3*sinkBsi - 0.06 mmol/m2/day
+    !  Bsi preservation in sediments based on
     !     Ragueneau et al. 2000 (doi:10.1016/S0921-8181(00)00052-7)
     !  Calcite is preserved in sediments above the lysocline, dissolves below.
     !       Here a constant depth is used for lysocline.
@@ -2105,7 +2610,12 @@ c$$$       enddo
                endif
 
 #ifdef BEC2_DIAG
+# ifdef BEC2_DIAG_USER
+               if (bec2_diag_2d_l(seddenitrif_idx_t))
+     &            bec2_diag_2d(i,j,bec2_diag_2d_idx(seddenitrif_idx_t)) = SED_DENITRIF(i)
+# else
                bec2_diag_2d(i,j,seddenitrif_idx_t) = SED_DENITRIF(i)
+# endif
 #endif
 
                flux_alt = flux*1e-4*spd*365.0 ! convert to mmol C/cm^2/year
@@ -2200,11 +2710,24 @@ c$$$       enddo
        end do  ! i = istr, iend
 
 # ifdef BEC2_DIAG
+#  ifdef BEC2_DIAG_USER
+       if (bec2_diag_3d_l(pironremin_idx_t))
+     &    bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(pironremin_idx_t)) = P_Iron_remin(istr:iend,j)
+       if (bec2_diag_3d_l(caco3remin_idx_t))
+     &    bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(caco3remin_idx_t)) = P_CaCO3_remin(istr:iend,j)
+       if (bec2_diag_3d_l(sio2remin_idx_t))
+     &    bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(sio2remin_idx_t)) = P_SiO2_remin(istr:iend,j)
+       if (bec2_diag_3d_l(pocremin_idx_t))
+     &    bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(pocremin_idx_t)) = POC_remin(istr:iend,j)
+       if (bec2_diag_3d_l(dustremin_idx_t))
+     &    bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(dustremin_idx_t)) = dust_remin(istr:iend)
+#  else
        bec2_diag_3d(istr:iend,j,k,pironremin_idx_t) = P_Iron_remin(istr:iend,j)
        bec2_diag_3d(istr:iend,j,k,caco3remin_idx_t) = P_CaCO3_remin(istr:iend,j)
        bec2_diag_3d(istr:iend,j,k,sio2remin_idx_t) = P_SiO2_remin(istr:iend,j)
        bec2_diag_3d(istr:iend,j,k,pocremin_idx_t) = POC_remin(istr:iend,j)
-       bec2_diag_3d(istr:iend,j,k,dustremin_idx_t) = dust_remin(istr:iend)       
+       bec2_diag_3d(istr:iend,j,k,dustremin_idx_t) = dust_remin(istr:iend)
+#  endif
 # endif
 
        return
@@ -2528,7 +3051,7 @@ c$$$       enddo
 
        SUBROUTINE co2calc_row(mask, t, s, dic_in, ta_in, pt_in,
      &    sit_in, phlo, phhi, ph, xco2_in, atmpres, co2star,
-     &    dco2star, pCO2surf, dpco2, istr,iend)
+     &    dco2star, pco2oc, dpco2, istr,iend)
 
 
     !---------------------------------------------------------------------------
@@ -2577,8 +3100,8 @@ c$$$       enddo
      &    ph,        ! computed ph values, for initial guess on next time step
      &    co2star,   ! CO2*water (mmol/m^3)
      &    dco2star,  ! delta CO2 (mmol/m^3)
-     &    pCO2surf,  ! oceanic pCO2 (ppmv)
-     &    dpco2       ! Delta pCO2, i.e, pCO2ocn - pCO2atm (ppmv)
+     &    pco2oc,    ! oceanic pCO2 (ppmv)
+     &    dpco2      ! Delta pCO2, i.e, pCO2ocn - pCO2atm (ppmv)
 
 
     !---------------------------------------------------------------------------
@@ -2613,7 +3136,7 @@ c$$$       enddo
          ph          = c0
          co2star     = c0
          dco2star    = c0
-         pCO2surf    = c0
+         pCO2oc      = c0
          dpCO2       = c0
        RETURN
       END IF
@@ -2827,22 +3350,22 @@ c$$$       enddo
           ph(i) = -LOG10(htotal(i))
 
           !---------------------------------------------------------------------
-          !   Add two output arguments for storing pCO2surf
+          !   Add two output arguments for storing pco2oc
           !   Should we be using K0 or ff for the solubility here?
           !---------------------------------------------------------------------
 
-          pCO2surf(i) = co2star(i) / ff(i)
-          dpCO2(i)    = pCO2surf(i) - xco2(i) * atmpres(i)
+          pco2oc(i) = co2star(i) / ff(i)
+          dpCO2(i)    = pco2oc(i) - xco2(i) * atmpres(i)
 
           !---------------------------------------------------------------------
           !   Convert units of output arguments
-          !   Note: pCO2surf and dpCO2 are calculated in atm above.
+          !   Note: pco2oc and dpCO2 are calculated in atm above.
           !---------------------------------------------------------------------
 
           co2star(i)  = co2star(i) * mass_to_vol
           dco2star(i) = dco2star(i) * mass_to_vol
 
-          pCO2surf(i) = pCO2surf(i) * 1e6
+          pco2oc(i) = pco2oc(i) * 1e6
           dpCO2(i)    = dpCO2(i) * 1e6
 
         ELSE ! if mask
@@ -2850,7 +3373,7 @@ c$$$       enddo
           ph(i)       = c0
           co2star(i)  = c0
           dco2star(i) = c0
-          pCO2surf(i) = c0
+          pco2oc(i) = c0
           dpCO2(i)    = c0
 
 
@@ -3107,7 +3630,7 @@ c$$$       enddo
        END DO ! iteration loop
 
        END SUBROUTINE drtsafe_row
-# endif /* NO_BIO_STEP */
+
 
 #else  /* BIOLOGY_BEC2 */
        subroutine ecosys_bec2_tile_empty ()

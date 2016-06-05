@@ -11,14 +11,53 @@
 ! Diagnostic variables appearing in average and history files:
 !
       integer nr_bec2_diag_2d, nr_bec2_diag_3d, nr_bec2_diag
-      parameter( nr_bec2_diag_3d=86, nr_bec2_diag_2d=18 )
+      integer nr_cchem_mocsy_2d, nr_cchem_mocsy_3d
+# ifdef CCHEM_MOCSY
+      ! Parameters nr_cchem_mocsy_2d and nr_cchem_mocsy_3d give the numbers of *additional*
+      ! diagnostic variables if MOCSY code is used for carbon chemistry (relative to the 
+      ! OCMIP code):
+#  ifdef CCHEM_TODEPTH
+      parameter( nr_cchem_mocsy_2d=-3, nr_cchem_mocsy_3d=7 )
+#  else
+      parameter( nr_cchem_mocsy_2d=2, nr_cchem_mocsy_3d=0 )
+#  endif
+# else /* CCHEM_MOCSY */
+      parameter( nr_cchem_mocsy_2d=0, nr_cchem_mocsy_3d=0 )
+# endif /* CCHEM_MOCSY */
+      parameter( nr_bec2_diag_3d=88+nr_cchem_mocsy_3d, nr_bec2_diag_2d=18+nr_cchem_mocsy_2d )
       parameter( nr_bec2_diag=nr_bec2_diag_2d+nr_bec2_diag_3d )
+# ifdef BEC2_DIAG_USER
+      real, pointer, dimension(:,:,:,:) :: bec2_diag_3d
+      real, pointer, dimension(:,:,:) :: bec2_diag_2d
+      logical bec2_diag_3d_l(nr_bec2_diag_3d), bec2_diag_2d_l(nr_bec2_diag_2d)
+      integer nr_bec2_diag_2d_user, nr_bec2_diag_3d_user
+      integer bec2_diag_3d_idx(nr_bec2_diag_3d), bec2_diag_2d_idx(nr_bec2_diag_2d)
+# else
       real bec2_diag_3d(GLOBAL_2D_ARRAY,N,nr_bec2_diag_3d)
       real bec2_diag_2d(GLOBAL_2D_ARRAY,nr_bec2_diag_2d)
+# endif /* BEC2_DIAG_USER */
 
       common /bec2_diag1/ bec2_diag_2d, bec2_diag_3d
+# ifdef BEC2_DIAG_USER
+     &      , bec2_diag_3d_l, bec2_diag_2d_l, bec2_diag_3d_idx, bec2_diag_2d_idx
+     &      , nr_bec2_diag_2d_user, nr_bec2_diag_3d_user
+# endif
 
-      ! Indices to be used in bec2_diag_3d:
+      ! Indices to be used in bec2_diag_2d or bec2_diag_3d: these are 3d in space if
+      ! MOCSY is selected and the C chemistry is computed at depth. Otherwise they are
+      ! 2d in space.
+      integer ph_idx_t, pco2oc_idx_t, co2star_idx_t
+# ifdef CCHEM_MOCSY
+      ! Additional variables if if MOCSY is used instead of the OCMIP code for carbon
+      ! chemistry. The numbers of these variables are given by nr_cchem_mocsy_2d and
+      ! nr_cchem_mocsy_3d:
+     &        , co3_idx_t, hco3_idx_t
+#  ifdef CCHEM_TODEPTH
+     &        , omega_calc_idx_t, omega_arag_idx_t
+#  endif
+# endif /* CCHEM_MOCSY */
+
+      ! Indices to be used in bec2_diag_3d only:
       integer par_idx_t,pocfluxin_idx_t,pocprod_idx_t,pocremin_idx_t,caco3fluxin_idx_t,
      &        pcaco3prod_idx_t,caco3remin_idx_t,sio2fluxin_idx_t,sio2prod_idx_t,
      &        sio2remin_idx_t,dustfluxin_idx_t,dustremin_idx_t,pironfluxin_idx_t,
@@ -36,7 +75,8 @@
      &        grazedicdiat_idx_t,grazedicdiaz_idx_t,lossdicsp_idx_t,lossdicdiat_idx_t,lossdicdiaz_idx_t,
      &        zoolossdic_idx_t,diazagg_idx_t,grazespzoo_idx_t,grazediatzoo_idx_t,grazediazzoo_idx_t,
      &        spqcaco3_idx_t,spphotoacc_idx_t,diatphotoacc_idx_t,diazphotoacc_idx_t,spczero_idx_t,
-     &        diatczero_idx_t,diazczero_idx_t,doczero_idx_t,zooczero_idx_t,spcaco3zero_idx_t,donrremin_idx_t
+     &        diatczero_idx_t,diazczero_idx_t,doczero_idx_t,zooczero_idx_t,spcaco3zero_idx_t,donrremin_idx_t,
+     &        totchl_idx_t,totphytoc_idx_t
       parameter( par_idx_t=1,pocfluxin_idx_t=par_idx_t+1,
      &   pocprod_idx_t=par_idx_t+2,pocremin_idx_t=par_idx_t+3,caco3fluxin_idx_t=par_idx_t+4,
      &   pcaco3prod_idx_t=par_idx_t+5,caco3remin_idx_t=par_idx_t+6,sio2fluxin_idx_t=par_idx_t+7,
@@ -65,18 +105,35 @@
      &   grazediazzoo_idx_t=par_idx_t+74,spqcaco3_idx_t=par_idx_t+75,spphotoacc_idx_t=par_idx_t+76,
      &   diatphotoacc_idx_t=par_idx_t+77,diazphotoacc_idx_t=par_idx_t+78,spczero_idx_t=par_idx_t+79,
      &   diatczero_idx_t=par_idx_t+80,diazczero_idx_t=par_idx_t+81,doczero_idx_t=par_idx_t+82,
-     &   zooczero_idx_t=par_idx_t+83,spcaco3zero_idx_t=par_idx_t+84,donrremin_idx_t=par_idx_t+85 )
-      ! Indices to be used in bec2_diag_2d:
-      integer ph_idx_t, pco2ws_idx_t, pco2air_idx_t, parinc_idx_t,
-     &        fgo2_idx_t, fgco2_idx_t,ws10m_idx_t,xkw_idx_t,atmpress_idx_t,
-     &        schmidto2_idx_t,o2sat_idx_t,schmidtco2_idx_t,pvo2_idx_t,
-     &        pvco2_idx_t,co2star_idx_t,dco2star_idx_t,ironflux_idx_t,seddenitrif_idx_t
-      parameter( ph_idx_t=1, pco2ws_idx_t=ph_idx_t+1, pco2air_idx_t=ph_idx_t+2,
-     &   parinc_idx_t=ph_idx_t+3, fgo2_idx_t=ph_idx_t+4, fgco2_idx_t=ph_idx_t+5,
-     &   ws10m_idx_t=ph_idx_t+6, xkw_idx_t=ph_idx_t+7, atmpress_idx_t=ph_idx_t+8,
-     &   schmidto2_idx_t=ph_idx_t+9, o2sat_idx_t=ph_idx_t+10, schmidtco2_idx_t=ph_idx_t+11,
-     &   pvo2_idx_t=ph_idx_t+12,pvco2_idx_t=ph_idx_t+13,co2star_idx_t=ph_idx_t+14,
-     &   dco2star_idx_t=ph_idx_t+15, ironflux_idx_t=ph_idx_t+16,seddenitrif_idx_t=ph_idx_t+17 )
+     &   zooczero_idx_t=par_idx_t+83,spcaco3zero_idx_t=par_idx_t+84,donrremin_idx_t=par_idx_t+85,
+     &   totchl_idx_t=par_idx_t+86,totphytoc_idx_t=par_idx_t+87
+# if defined CCHEM_MOCSY && defined CCHEM_TODEPTH
+     &   ,ph_idx_t=par_idx_t+88, pco2oc_idx_t=ph_idx_t+1, co3_idx_t=ph_idx_t+2
+     &   ,hco3_idx_t=ph_idx_t+3, co2star_idx_t=ph_idx_t+4
+     &   ,omega_calc_idx_t=ph_idx_t+5, omega_arag_idx_t=ph_idx_t+6
+# endif
+     &   )
+
+      ! Indices to be used in bec2_diag_2d only:
+      integer pco2air_idx_t, parinc_idx_t,
+     &   fgo2_idx_t, fgco2_idx_t,ws10m_idx_t,xkw_idx_t,atmpress_idx_t,
+     &   schmidto2_idx_t,o2sat_idx_t,schmidtco2_idx_t,pvo2_idx_t,
+     &   pvco2_idx_t,ironflux_idx_t,seddenitrif_idx_t,dco2star_idx_t
+      parameter( pco2air_idx_t=1,
+     &   parinc_idx_t=pco2air_idx_t+1, fgo2_idx_t=pco2air_idx_t+2, fgco2_idx_t=pco2air_idx_t+3,
+     &   ws10m_idx_t=pco2air_idx_t+4, xkw_idx_t=pco2air_idx_t+5, atmpress_idx_t=pco2air_idx_t+6,
+     &   schmidto2_idx_t=pco2air_idx_t+7, o2sat_idx_t=pco2air_idx_t+8, schmidtco2_idx_t=pco2air_idx_t+9,
+     &   pvo2_idx_t=pco2air_idx_t+10,pvco2_idx_t=pco2air_idx_t+11,ironflux_idx_t=pco2air_idx_t+12,
+     &   seddenitrif_idx_t=pco2air_idx_t+13,dco2star_idx_t=pco2air_idx_t+14
+# ifdef CCHEM_MOCSY
+#  if !defined CCHEM_TODEPTH
+     &   ,ph_idx_t=pco2air_idx_t+15, pco2oc_idx_t=ph_idx_t+1, co3_idx_t=ph_idx_t+2
+     &   ,hco3_idx_t=ph_idx_t+3, co2star_idx_t=ph_idx_t+4
+#  endif
+# else /* CCHEM_MOCSY */
+     &   ,ph_idx_t=pco2air_idx_t+15, pco2oc_idx_t=ph_idx_t+1, co2star_idx_t=ph_idx_t+2
+# endif /* CCHEM_MOCSY */
+     &   )
 
       ! Array for storing the Netcdf variable IDs of the diagnostics:
       ! The IDs of the 2d vars are first, the those of the 3d.
@@ -90,14 +147,31 @@
       common /bec2_diag2/ hisT_bec2_diag, avgT_bec2_diag, slavgT_bec2_diag, rstT_bec2_diag,
      &   vname_bec2_diag_2d, vname_bec2_diag_3d
 
+# ifdef BEC2_DIAG_USER
+#  ifdef AVERAGES
+      real, pointer, dimension(:,:,:,:) :: bec2_diag_3d_avg
+      real, pointer, dimension(:,:,:) ::  bec2_diag_2d_avg
+#   ifdef SLICE_AVG
+      real, pointer, dimension(:,:,:) ::   bec2_diag_3d_slavg
+      real, pointer, dimension(:,:,:) ::   bec2_diag_2d_slavg
+#   endif
+#  endif /* AVERAGES */
+# else /* BEC2_DIAG_USER
+#  ifdef AVERAGES
       real bec2_diag_3d_avg(GLOBAL_2D_ARRAY,N,nr_bec2_diag_3d)
       real bec2_diag_2d_avg(GLOBAL_2D_ARRAY,nr_bec2_diag_2d)
+#   ifdef SLICE_AVG
       real bec2_diag_3d_slavg(GLOBAL_2D_ARRAY,nr_bec2_diag_3d)
       real bec2_diag_2d_slavg(GLOBAL_2D_ARRAY,nr_bec2_diag_2d)
-      common /bec2_diag3/ bec2_diag_3d_avg, bec2_diag_2d_avg, bec2_diag_3d_slavg, bec2_diag_2d_slavg
-#else
-      real ph_hist(GLOBAL_2D_ARRAY)
-      common /ph_hist_com/ ph_hist
+#   endif
+#  endif /* AVERAGES */
+# endif /* BEC2_DIAG_USER */
+# ifdef AVERAGES
+      common /bec2_diag3/ bec2_diag_3d_avg, bec2_diag_2d_avg
+#  ifdef SLICE_AVG
+     &    , bec2_diag_3d_slavg, bec2_diag_2d_slavg
+#  endif
+# endif /* AVERAGES */
 #endif /* BEC2_DIAG */
 
 !     IFRAC  sea ice fraction (non-dimensional)
@@ -201,3 +275,39 @@
      &   POC_sflux_in, POC_hflux_in,
      &   POC_remin, P_iron_remin, P_SiO2_remin,
      &   DOP_remin, DOPr_remin, P_CaCO3_remin
+
+!
+! Arrays related to carbon chemistry: these are in bec2_diag_2d or
+! bec2_diag_3d if BEC2_DIAG is defined
+!
+#ifndef BEC2_DIAG
+      real, dimension(GLOBAL_2D_ARRAY) ::
+     &   ph_hist, pCO2sw, pCO2air, PARinc
+      real, dimension(GLOBAL_2D_ARRAY,N) ::
+     &   PAR
+      common /c_chem/ ph_hist, pCO2sw, pCO2air, PARinc, PAR
+
+      real, dimension(GLOBAL_2D_ARRAY) ::
+     &   ph_avg, pCO2_avg, pCO2air_avg, PARinc_avg
+      real, dimension(GLOBAL_2D_ARRAY,N) ::
+     &   PAR_avg
+      common /time_avg1/ PAR_avg, PARinc_avg, 
+     &        pco2_avg, pCO2air_avg, pH_avg
+# ifdef SLICE_AVG
+      real PAR_slavg(GLOBAL_2D_ARRAY)
+      real PARinc_slavg(GLOBAL_2D_ARRAY)
+      real pco2_slavg(GLOBAL_2D_ARRAY)
+      real pCO2air_slavg(GLOBAL_2D_ARRAY)
+      real pH_slavg(GLOBAL_2D_ARRAY)
+      common /time_slavg1/ PAR_slavg, PARinc_slavg, 
+     &        pco2_slavg, pCO2air_slavg, pH_slavg
+# endif /* SLICE_AVG */
+#endif /* !BEC2_DIAG */
+
+!
+! Options related to MOCSY:
+!
+#ifdef CCHEM_MOCSY
+      character*10 optcon, optt, optp, optb, optkf, optk1k2, optgas
+      common /mocsy_opt/  optcon, optt, optp, optb, optkf, optk1k2, optgas
+#endif

@@ -27,11 +27,13 @@
 !
        character*24 sname(autotroph_cnt)     ! short name of each autotroph
        character*80 lname(autotroph_cnt)     ! long name of each autotroph
-       real Chl_ind(autotroph_cnt),          ! tracer indices for Chl, C, Fe content
+       integer
+     &   Chl_ind(autotroph_cnt),             ! tracer indices for Chl, C, Fe content
      &   C_ind(autotroph_cnt), 
      &   Fe_ind(autotroph_cnt),
      &   Si_ind(autotroph_cnt),
-     &   CaCO3_ind(autotroph_cnt),           ! tracer indices for Si, CaCO3 content
+     &   CaCO3_ind(autotroph_cnt)            ! tracer indices for Si, CaCO3 content
+       real
      &   kFe(autotroph_cnt),                 ! nutrient uptake half-sat constants
      &   kPO4(autotroph_cnt),
      &   kDOP(autotroph_cnt),
@@ -63,8 +65,9 @@
        logical imp_calcifier(autotroph_cnt)  ! flag set to true if autotroph implicitly handles calcification
        logical exp_calcifier(autotroph_cnt)  ! flag set to true if autotroph explicitly handles calcification
        
-       common /ecosys_bec1/ sname, lname, Nfixer, imp_calcifier, exp_calcifier, grazee_ind,
-     &        Chl_ind, C_ind, Fe_ind, Si_ind, CaCO3_ind, kFe, kPO4, kDOP, kNO3, kNH4, kSiO3,
+       common /ecosys_bec1/ Chl_ind, C_ind, Fe_ind, Si_ind, CaCO3_ind, grazee_ind
+     &        , Nfixer, imp_calcifier, exp_calcifier, sname, lname
+       common /ecosys_bec_reals/ kFe, kPO4, kDOP, kNO3, kNH4, kSiO3,
      &        Qp, gQfe_0, gQfe_min, alphaPI, PCref, thetaN_max, loss_thres, loss_thres2,
      &        temp_thres, mort, mort2, agg_rate_max, agg_rate_min, z_umax_0, z_grz,
      &        graze_zoo, graze_poc, graze_doc, loss_poc, f_zoo_detr
@@ -133,8 +136,8 @@
        real fe_scavenge_thres1, dust_fescav_scale, fe_max_scale2
        parameter(
      &   fe_scavenge_thres1 = 0.8e-3,   ! upper thres. for Fe scavenging (mmol/m^3)
-     &   dust_fescav_scale  = 1.0e10,   ! dust scavenging scale factor
-     &   fe_max_scale2      = 600.0     ! unitless scaling coeff.
+     &   dust_fescav_scale  = 1.0e10,   ! dust scavenging scale factor (was 1e9 in CESM)
+     &   fe_max_scale2      = 1200.0    ! unitless scaling coeff.
      & )
 
   !---------------------------------------------------------------------

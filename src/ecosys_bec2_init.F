@@ -50,23 +50,23 @@
       !---------------------------------------------------------------------------
 
       parm_Fe_bioavail       = 1.0
-      parm_o2_min            = 4.0  ! mmol/m^3 = nmol/cm^3
-      parm_o2_min_delta      = 2.0  ! mmol/m^3 = nmol/cm^3
-      parm_kappa_nitrif      = 0.06 * dps ! (= 1/( days))
+      parm_o2_min            = 4.0  ! mmol/m3
+      parm_o2_min_delta      = 2.0  ! mmol/m3
+      parm_kappa_nitrif      = 0.06 * dps ! days-1
       parm_nitrif_par_lim    = 1.0
       parm_z_mort_0          = 0.1 * dps
       parm_z_mort2_0         = 0.4 * dps
       parm_labile_ratio      = 0.85
-      parm_POMbury           = 1.4 ! x1 default
-      parm_BSIbury           = 0.45 ! x1 default
-      parm_fe_scavenge_rate0 = 1.3 ! x1 default
+      parm_POMbury           = 1.4  ! x1 default
+      parm_BSIbury           = 0.65 ! x1 default
+      parm_fe_scavenge_rate0 = 3.0  ! x1 default
       parm_f_prod_sp_CaCO3   = 0.055 ! x1 default
       parm_POC_diss          = 88.0
       parm_SiO2_diss         = 250.0
       parm_CaCO3_diss        = 150.0
 
       parm_scalelen_z    = (/ 130.0, 290.0, 670.0, 1700.0 /) ! DL: converted to m
-      parm_scalelen_vals = (/     1.0,     2.9,     4.8,      8.0 /) ! x1 default
+      parm_scalelen_vals = (/     1.0,     3.0,     5.0,      9.0 /) ! x1 default
       
       ! The following arrays give parameters in this order: sp, diat, diaz
       kFe = (/ 0.04e-3, 0.06e-3, 0.04e-3 /) ! mmol Fe/m3
@@ -152,7 +152,7 @@
          if (mynode.eq.0) then
 #endif
             if (status .ne. 0) then
-!               print *, 'Could not read the biology parameter namelist!'
+               print *, 'Could not read the biology parameter namelist!'
             else
                print *, 'Biology parameters were read from ',
      &              filename_biopar_bec_nml
@@ -199,11 +199,28 @@
       !---------------------------------------------------------------------------
       !   Initialize diagnostic variables:
       !---------------------------------------------------------------------------
+# ifdef BEC2_DIAG_USER
+      ! Allocate arrays for diagnostics:
+      allocate(bec2_diag_2d(GLOBAL_2D_ARRAY,nr_bec2_diag_2d_user))
+      allocate(bec2_diag_3d(GLOBAL_2D_ARRAY,N,nr_bec2_diag_3d_user))
+#  ifdef AVERAGES
+      allocate(bec2_diag_2d_avg(GLOBAL_2D_ARRAY,nr_bec2_diag_2d_user))
+      allocate(bec2_diag_3d_avg(GLOBAL_2D_ARRAY,N,nr_bec2_diag_3d_user))
+#   ifdef SLICE_AVG
+      allocate(bec2_diag_2d_slavg(GLOBAL_2D_ARRAY,nr_bec2_diag_2d_user))
+      allocate(bec2_diag_3d_slavg(GLOBAL_2D_ARRAY,nr_bec2_diag_3d_user))
+#   endif
+#  endif /* AVERAGES */
+      MPI_master_only write (*,'(a,i3,a)') 'bec2_diag_2d allocated for ',
+     &    nr_bec2_diag_2d_user, ' variables'
+      MPI_master_only write (*,'(a,i3,a)') 'bec2_diag_3d allocated for ',
+     &    nr_bec2_diag_3d_user, ' variables'
+# endif /* BEC2_DIAG_USER */
       bec2_diag_2d = c0
       bec2_diag_3d = c0
-#else
+#else /* BEC2_DIAG */
       ph_hist = c0
-#endif
+#endif /* BEC2_DIAG */
 
       !---------------------------------------------------------------------------
       !   Initialize ice fraction and atm. pressure field:
@@ -227,6 +244,16 @@
       elsewhere 
          landmask=.FALSE.
       endwhere
+
+#ifdef CCHEM_MOCSY
+       optcon  = 'mol/m3'   ! input concentrations of DIC, alk, P, Si are in MOL/M3
+       optt    = 'Tpot'     ! 'temp' is POTENTIAL temp [C]
+       optp    = 'm'        ! input variable z_r is in METERS
+       optb    = 'u74'      ! Uppstrom (1974) formulation for total boron
+       optk1k2 = 'm95'      ! Millero (1995) formulations for k1 and k2
+       optkf   = 'pf'       ! Perez & Fraga (1987) formulation for Kf
+       optgas  = 'Pinsitu'  ! compute in situ values for fCO2 and pCO2 (i.e. accounting for pressure)
+#endif
 
 
       end subroutine ecosys2_init

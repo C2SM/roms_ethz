@@ -129,24 +129,24 @@ CR      write(*,'(1x,A,I3)') 'indxNH4 =',indxNH4
       vname(3,indxDop)='mMol P m-3                               '
       vname(4,indxDop)='  '
 
-      vname(1,indxDopr)='DOPR                                     '
+      vname(1,indxDopr)='DOPR'
       vname(2,indxDopr)='Refractory dissolved organic phosphorus  '
-      vname(3,indxDopr)='mMol P m-3                               '
+      vname(3,indxDopr)='mMol P m-3'
       vname(4,indxDopr)='  '
 
-      vname(1,indxDonr)='DONR                                     '
+      vname(1,indxDonr)='DONR'
       vname(2,indxDonr)='Refractory dissolved organic nitrogen    '
-      vname(3,indxDonr)='mMol N m-3                               '
+      vname(3,indxDonr)='mMol N m-3'
       vname(4,indxDonr)='  '
 
-      vname(1,indxZOOC)='ZOOC                                     '
-      vname(2,indxZOOC)='Zooplankton                              '
-      vname(3,indxZOOC)='mMol C m-3                               '
+      vname(1,indxZOOC)='ZOOC'
+      vname(2,indxZOOC)='Zooplankton'
+      vname(3,indxZOOC)='mMol C m-3'
       vname(4,indxZOOC)='  '
 
-      vname(1,indxSPCHL)='SPCHL                                     '
-      vname(2,indxSPCHL)='Small phytoplankton chlorophyll           '
-      vname(3,indxSPCHL)='mg Chl-a m-3                              '
+      vname(1,indxSPCHL)='SPCHL'
+      vname(2,indxSPCHL)='Small phytoplankton chlorophyll'
+      vname(3,indxSPCHL)='mg Chl-a m-3'
       vname(4,indxSPCHL)='  '
 
       vname(1,indxSPC)='SPC                                       '
@@ -209,10 +209,45 @@ CR      write(*,'(1x,A,I3)') 'indxNH4 =',indxNH4
       vname(3,indxiron)='nmol cm-2 s-1                             '
       vname(4,indxiron)='  '
 
+# ifndef BEC2_DIAG
+      vname(1,indxPH)='PH'
+      vname(2,indxPH)='surf pH value'
+      vname(3,indxPH)=' '
+      vname(4,indxPH)=' '
+      vname(1,indxPCO2)='pCO2                                 '
+      vname(2,indxPCO2)='Surface water pCO2                   '
+      vname(3,indxPCO2)='ppm                                  '
+      vname(4,indxPCO2)='  '
+      vname(1,indxPCO2air)='pCO2air                           '
+      vname(2,indxPCO2air)='Atmospheric pCO2                  '
+      vname(3,indxPCO2air)='ppm                               '
+      vname(4,indxPCO2air)='           '
+      vname(1,indxPARinc)='PARinc                                '
+      vname(2,indxPARinc)=
+     &  'Incoming photosynth. active radiation '
+      vname(3,indxPARinc)='W m-2                                 '
+      vname(4,indxPARinc)='  '
+      vname(1,indxPAR)='PAR'
+      vname(2,indxPAR)=
+     &  'Photosynthetically active radiation'
+      vname(3,indxPAR)='W m-2'
+      vname(4,indxPAR)='  '
+# endif /* !BEC2_DIAG */
+
 # ifdef BEC2_DIAG
       !
       ! 2d diagnotics:
       !
+#  if defined CCHEM_MOCSY && defined CCHEM_TODEPTH
+      vname_bec2_diag_3d(1,indxPH)='PH'
+      vname_bec2_diag_3d(2,indxPH)='surf pH value'
+      vname_bec2_diag_3d(3,indxPH)=' '
+      vname_bec2_diag_3d(4,indxPH)=' '
+      vname_bec2_diag_3d(1,indxPCO2)='pCO2'
+      vname_bec2_diag_3d(2,indxPCO2)='Surface water pCO2'
+      vname_bec2_diag_3d(3,indxPCO2)='ppm'
+      vname_bec2_diag_3d(4,indxPCO2)='  '
+#  else
       vname_bec2_diag_2d(1,indxPH)='PH'
       vname_bec2_diag_2d(2,indxPH)='surf pH value'
       vname_bec2_diag_2d(3,indxPH)=' '
@@ -221,6 +256,7 @@ CR      write(*,'(1x,A,I3)') 'indxNH4 =',indxNH4
       vname_bec2_diag_2d(2,indxPCO2)='Surface water pCO2'
       vname_bec2_diag_2d(3,indxPCO2)='ppm'
       vname_bec2_diag_2d(4,indxPCO2)='  '
+#  endif
       vname_bec2_diag_2d(1,indxPCO2air)='pCO2air'
       vname_bec2_diag_2d(2,indxPCO2air)='Atmospheric pCO2'
       vname_bec2_diag_2d(3,indxPCO2air)='ppm'
@@ -274,10 +310,17 @@ CR      write(*,'(1x,A,I3)') 'indxNH4 =',indxNH4
       vname_bec2_diag_2d(3,indxPVCO2)='m/s '
       vname_bec2_diag_2d(4,indxPVCO2)=' '
 
+#  if defined CCHEM_MOCSY && defined CCHEM_TODEPTH
+      vname_bec2_diag_3d(1,indxCO2STAR)='CO2STAR'
+      vname_bec2_diag_3d(2,indxCO2STAR)='CO2STAR'
+      vname_bec2_diag_3d(3,indxCO2STAR)='mmol/m3 '
+      vname_bec2_diag_3d(4,indxCO2STAR)=' '
+#  else
       vname_bec2_diag_2d(1,indxCO2STAR)='CO2STAR'
       vname_bec2_diag_2d(2,indxCO2STAR)='CO2STAR'
       vname_bec2_diag_2d(3,indxCO2STAR)='mmol/m3 '
       vname_bec2_diag_2d(4,indxCO2STAR)=' '
+#  endif
       vname_bec2_diag_2d(1,indxDCO2STAR)='DCO2STAR'
       vname_bec2_diag_2d(2,indxDCO2STAR)='DCO2STAR'
       vname_bec2_diag_2d(3,indxDCO2STAR)='mmol/m3'
@@ -292,8 +335,42 @@ CR      write(*,'(1x,A,I3)') 'indxNH4 =',indxNH4
       vname_bec2_diag_2d(3,indxSEDDENITRIF)='mmol/m3/s'
       vname_bec2_diag_2d(4,indxSEDDENITRIF)=' '
 
+#  ifdef CCHEM_MOCSY
+#   ifdef CCHEM_TODEPTH
+      vname_bec2_diag_3d(1,indxCO3)='CO3'
+      vname_bec2_diag_3d(2,indxCO3)='carbonate ion (CO3-) concentration'
+      vname_bec2_diag_3d(3,indxCO3)='mmol/m3'
+      vname_bec2_diag_3d(4,indxCO3)=' '
+      vname_bec2_diag_3d(1,indxHCO3)='HCO3'
+      vname_bec2_diag_3d(2,indxHCO3)=
+     &  'bicarbonate ion (HCO3-) concentration'
+      vname_bec2_diag_3d(3,indxHCO3)='mmol/m3'
+      vname_bec2_diag_3d(4,indxHCO3)=' '
+      vname_bec2_diag_3d(1,indxOMEGACALC)='OMEGA_CALC'
+      vname_bec2_diag_3d(2,indxOMEGACALC)=
+     &  'Calcite saturation state'
+      vname_bec2_diag_3d(3,indxOMEGACALC)=' '
+      vname_bec2_diag_3d(4,indxOMEGACALC)=' '
+      vname_bec2_diag_3d(1,indxOMEGAARAG)='OMEGA_ARAG'
+      vname_bec2_diag_3d(2,indxOMEGAARAG)=
+     &  'Aragonite saturation state'
+      vname_bec2_diag_3d(3,indxOMEGAARAG)=' '
+      vname_bec2_diag_3d(4,indxOMEGAARAG)=' '
+#   else
+      vname_bec2_diag_2d(1,indxCO3)='CO3'
+      vname_bec2_diag_2d(2,indxCO3)='carbonate ion (CO3-) concentration'
+      vname_bec2_diag_2d(3,indxCO3)='mmol/m3'
+      vname_bec2_diag_2d(4,indxCO3)=' '
+      vname_bec2_diag_2d(1,indxHCO3)='HCO3'
+      vname_bec2_diag_2d(2,indxHCO3)=
+     &  'bicarbonate ion (HCO3-) concentration'
+      vname_bec2_diag_2d(3,indxHCO3)='mmol/m3'
+      vname_bec2_diag_2d(4,indxHCO3)=' '
+#   endif /* CCHEM_TODEPTH */
+#  endif /* CCHEM_MOCSY */
+
       !
-      ! 3d diagnostics:
+      ! More 3d diagnostics:
       !
       vname_bec2_diag_3d(1,indxPAR)='PAR'
       vname_bec2_diag_3d(2,indxPAR)=
@@ -756,6 +833,17 @@ CR      write(*,'(1x,A,I3)') 'indxNH4 =',indxNH4
      &  'Portion of refractory DON remineralized'
       vname_bec2_diag_3d(3,indxDONRREMIN)='mMol N/m3/s'
       vname_bec2_diag_3d(4,indxDONRREMIN)=' '
+
+      vname_bec2_diag_3d(1,indxTOTCHL)='TOT_CHL'
+      vname_bec2_diag_3d(2,indxTOTCHL)=
+     &  'Total Chlorophyll'
+      vname_bec2_diag_3d(3,indxTOTCHL)='mg Chl/m3'
+      vname_bec2_diag_3d(4,indxTOTCHL)=' '
+      vname_bec2_diag_3d(1,indxTOTPHYTOC)='TOT_PHYTOC'
+      vname_bec2_diag_3d(2,indxTOTPHYTOC)=
+     &  'Total Phytoplankton Carbon'
+      vname_bec2_diag_3d(3,indxTOTPHYTOC)='mMol C/m3'
+      vname_bec2_diag_3d(4,indxTOTPHYTOC)=' '
 
 # endif /* BEC2_DIAG */
 

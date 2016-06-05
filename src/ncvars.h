@@ -28,80 +28,85 @@
 ! indxSSFl        surface fresh water flux
 
       integer, parameter :: indxTime=1, indxZ=2, indxUb=3, indxVb=4
+#undef LAST_I
+#define LAST_I indxVb
 #ifdef SOLVE3D
      &                    , indxU=5, indxV=6, indxO=7, indxW=8
      &                    , indxR=9, indxT=10
+# undef LAST_I
+# define LAST_I indxT
 # ifdef SALINITY
-     &                    , indxS=indxT+1
+     &                    , indxS=LAST_I+1
+#  undef LAST_I
+#  define LAST_I indxS
 # endif
 # ifdef LEGACY_NPZD
-#  ifdef SALINITY
-     &                    , indxNO3=indxS+1
-#  else
-     &                    , indxNO3=indxT+1
-# endif
+     &                    , indxNO3=LAST_I+1
      &                    , indxNH4 =indxNO3+1, indxChla=indxNO3+2
      &                    , indxPhyt=indxNO3+3, indxZoo =indxNO3+4
      &                    , indxSDet=indxNO3+5, indxLDet=indxNO3+6
-# endif
-     &                    , indxAkv=indxT+NT,   indxAkt=indxAkv+1
-
-# ifdef SOLVE3D
-     &                    , indxSUSTR=indxAkt+3
-# else
-     &                    , indxSUSTR=indxVb+1
-# endif
+#  undef LAST_I
+#  define LAST_I indxLDet
+# endif /* LEGAGY_NPZD */
+     &                    , indxAkv=LAST_I+1,   indxAkt=indxAkv+1
+# undef LAST_I
+# define LAST_I indxAkt
+#endif /* SOLVE3D */
+     &                    , indxSUSTR=LAST_I+1
      &                    , indxSVSTR=indxSUSTR+1, indxSHFl=indxSUSTR+2
      &                    , indxSWRad=indxSHFl+1
-
-# ifdef SALINITY
+#undef LAST_I
+#define LAST_I indxSWRad
+#ifdef SALINITY
      &                    , indxSSFl=indxSWRad+1, indxSSS=indxSWRad+2
-     &                    , indxSST=indxSWRad+3
-# else
-     &                    , indxSST=indxSWRad+1
-# endif
+# undef LAST_I
+# define LAST_I indxSSS
+#endif
+     &                    , indxSST=LAST_I+1
      &                    , indxdQdSST=indxSST+1
+#undef LAST_I
+#define LAST_I indxdQdSST
+#ifdef WRITE_DEPTHS
+     &                    , indxz_r=LAST_I+1,  indxz_w=LAST_I+2
+     &                    , indxHz=LAST_I+3
+# undef LAST_I
+# define LAST_I indxHz
+#endif
 
-# ifdef WRITE_DEPTHS
-     &                    , indxz_r=indxAkt+1,  indxz_w=indxAkt+2
-     &                    , indxHz=indxAkt+3
-# endif
-
-# if defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC || defined BIOLOGY_BEC2
+#if defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC || defined BIOLOGY_BEC2
 
       /* Create space for pH, pCO2, pCO2air, PARinc, PAR: */
      &     + 5
 
-#  ifdef SEDIMENT_BIOLOGY
+# ifdef SEDIMENT_BIOLOGY
      &     + NT_sed
-#  endif
-#  ifdef WRITE_DEPTHS
+# endif
+#endif /* BIOLOGY_NPZDOC || BIOLOGY_BEC || BIOLOGY_BEC2 */
+#ifdef WRITE_DEPTHS
      &     + 3
-#  endif 
-# endif /* BIOLOGY_NPZDOC || BIOLOGY_BEC || BIOLOGY_BEC2 */
-# ifdef SALINITY
+#endif
+#ifdef SALINITY
      &                    , indxAks=indxAkt+1
-# endif
-# ifdef LMD_KPP
-#  ifdef SALINITY
+#endif
+#ifdef LMD_KPP
+# ifdef SALINITY
      &                    , indxHbls=indxAks+1
-#  else
+# else
      &                    , indxHbls=indxAkt+1
-#  endif
 # endif
-# ifdef LMD_BKPP
+#endif
+#ifdef LMD_BKPP
      &                    , indxHbbl=indxHbls+1
-#  endif
+#endif
 
-# if defined BIOLOGY_BEC || defined BIOLOGY_BEC2
+#if defined BIOLOGY_BEC || defined BIOLOGY_BEC2
      &                    , indxdust=indxSST+3
      &                    , indxiron=indxSST+4
-# endif /* BIOLOGY_BEC || BIOLOGY_BEC2 */
-# ifdef SG_BBL96
-#  ifndef ANA_WWAVE
+#endif /* BIOLOGY_BEC || BIOLOGY_BEC2 */
+#ifdef SG_BBL96
+# ifndef ANA_WWAVE
      &                    , indxWWA=indxSST+5,  indxWWD=indxWWA+1
      &                    , indxWWP=indxWWA+2
-#  endif
 # endif
 #endif
 #ifdef ICEOBS
@@ -167,78 +172,8 @@
 #  endif /* WRITE_DEPTHS */
 # endif /* BIOLOGY_NPZDOC */
 
-# ifdef BIOLOGY_BEC
-#  if defined CH_CARBON_DEPTH
-       integer indxPo4,indxNo3,indxSio3,indxNh4,indxFe,indxO2,indxDic,
-     &   indxAlk,indxDoc,indxSpc,indxSpchl,indxSpcaco3,indxDiatc,indxDiatchl,
-     & indxZooc,indxSpfe,indxDiatsi,indxDiatfe,indxDiazc,indxDiazchl,
-     & indxDiazfe,indxDon,indxDofe,indxDop,indxPH_rst,
-     & indxPCO2_rst, indxPCO2air_rst, indxPARinc_rst, indxPAR_rst,
-     & indxCO2STARd_rst, indxHCO3d_rst, indxCO3d_rst, indxPHd_rst
-       parameter ( indxPO4=indxT+ntrc_salt+ntrc_pas+1,
-     &           indxNo3 =indxPO4+1, indxSio3=indxPO4+2,
-     &           indxNh4 =indxPO4+3, indxFe=indxPO4+4,
-     &           indxO2 =indxPO4+5, indxDic=indxPO4+6,
-     &           indxAlk =indxPO4+7, indxDoc=indxPO4+8,
-     &           indxSpc =indxPO4+9, indxSpchl=indxPO4+10,
-     &           indxSpcaco3 =indxPO4+11, indxDiatc=indxPO4+12,
-     &           indxDiatchl =indxPO4+13, indxZooc=indxPO4+14,
-     &           indxSpfe =indxPO4+15, indxDiatsi=indxPO4+16,
-     &           indxDiatfe =indxPO4+17, indxDiazc=indxPO4+18,
-     &           indxDiazchl =indxPO4+19, indxDiazfe=indxPO4+20,
-     &           indxDon =indxPO4+21, indxDofe=indxPO4+22,
-     &           indxDop =indxPO4+23)
-       parameter(indxPH_rst = indxDOP+1
-     &      )
-       parameter(indxPCO2_rst = indxPH_rst+1,
-     &      indxPCO2air_rst = indxPCO2_rst+1,
-     &      indxPARinc_rst = indxPCO2air_rst+1,
-     &      indxCO2STARd_rst = indxPARinc_rst+1,
-     &      indxHCO3d_rst = indxCO2STARd_rst+1,
-     &      indxCO3d_rst = indxHCO3d_rst+1,
-     &      indxPHd_rst = indxCO3d_rst+1,
-     &      indxPAR_rst = indxPHd_rst+1)
-#  else
-       integer indxPo4,indxNo3,indxSio3,indxNh4,indxFe,indxO2,indxDic,
-     &   indxAlk,indxDoc,indxSpc,indxSpchl,indxSpcaco3,indxDiatc,indxDiatchl,
-     & indxZooc,indxSpfe,indxDiatsi,indxDiatfe,indxDiazc,indxDiazchl,
-     & indxDiazfe,indxDon,indxDofe,indxDop,indxPH_rst,
-     & indxPCO2_rst, indxPCO2air_rst, indxPARinc_rst, indxPAR_rst
-       parameter ( indxPO4=indxT+ntrc_salt+ntrc_pas+1,
-     &           indxNo3 =indxPO4+1, indxSio3=indxPO4+2,
-     &           indxNh4 =indxPO4+3, indxFe=indxPO4+4,
-     &           indxO2 =indxPO4+5, indxDic=indxPO4+6,
-     &           indxAlk =indxPO4+7, indxDoc=indxPO4+8,
-     &           indxSpc =indxPO4+9, indxSpchl=indxPO4+10,
-     &           indxSpcaco3 =indxPO4+11, indxDiatc=indxPO4+12,
-     &           indxDiatchl =indxPO4+13, indxZooc=indxPO4+14,
-     &           indxSpfe =indxPO4+15, indxDiatsi=indxPO4+16,
-     &           indxDiatfe =indxPO4+17, indxDiazc=indxPO4+18,
-     &           indxDiazchl =indxPO4+19, indxDiazfe=indxPO4+20,
-     &           indxDon =indxPO4+21, indxDofe=indxPO4+22,
-     &           indxDop =indxPO4+23)
-       parameter(indxPH_rst = indxDOP+1
-     &      )
-       parameter(indxPCO2_rst = indxPH_rst+1,
-     &      indxPCO2air_rst = indxPCO2_rst+1,
-     &      indxPARinc_rst = indxPCO2air_rst+1,
-     &      indxPAR_rst = indxPARinc_rst+1)
-#  endif /* CH_CARBON_DEPTH */
-#  ifdef WRITE_DEPTHS
-       parameter(indxz_r=indxPAR_rst+1, indxz_w=indxz_r+1,
-     &           indxHz=indxz_w+1)
-#  endif /* WRITE_DEPTHS */
-# endif /* BIOLOGY_BEC */
 # ifdef BIOLOGY_BEC2
-
-!  MM Merge remark: This block should be rewritten in 
-!      integer, parameter ::   style
-
-       integer indxPo4,indxNo3,indxSio3,indxNh4,indxFe,indxO2,indxDic,
-     &   indxAlk,indxDoc,indxDon,indxDofe,indxDop,indxDopr,indxDonr,indxZooc,
-     &   indxSpchl,indxSpc,indxSpfe,indxSpcaco3,indxDiatchl,indxDiatc,
-     &   indxDiatfe,indxDiatsi,indxDiazchl,indxDiazc,indxDiazfe
-       parameter (indxPo4=indxT+ntrc_salt+ntrc_pas+1,
+      integer, parameter :: indxPo4=indxT+ntrc_salt+ntrc_pas+1,
      &            indxNo3=indxPO4+1, indxSio3=indxPO4+2,
      &            indxNh4=indxPO4+3, indxFe=indxPO4+4,
      &            indxO2=indxPO4+5,  indxDic=indxPO4+6,
@@ -251,23 +186,54 @@
      &            indxDiatchl=indxPO4+19, indxDiatc=indxPO4+20,
      &            indxDiatfe=indxPO4+21, indxDiatsi=indxPO4+22,
      &            indxDiazchl=indxPO4+23, indxDiazc=indxPO4+24,
-     &            indxDiazfe=indxPO4+25)
+     &            indxDiazfe=indxPO4+25
+#  undef LAST_I
+#  define LAST_I indxDiazfe
+#  ifndef BEC2_DIAG
+     &            , indxPH=indxPO4+1, indxPCO2=indxPO4+2
+     &            , indxPCO2air=indxPO4+3, indxPARinc=indxPO4+4
+     &            , indxPAR=indxPO4+5
+#   undef LAST_I
+#   define LAST_I indxPAR
+#  endif
 #  ifdef WRITE_DEPTHS
-       parameter(indxz_r=indxDiazfe+1, indxz_w=indxz_r+1,
-     &           indxHz=indxz_w+1)
+     &          , indxz_r=LAST_I+1, indxz_w=indxz_r+1
+     &          , indxHz=indxz_w+1
+#    undef LAST_I
+#   define LAST_I indxHz
 #  endif /* WRITE_DEPTHS */
 #  ifdef BEC2_DIAG
-       ! Indices to be used in vname_bec2_diag_2d:
-       integer indxPH,indxPCO2,indxPCO2air,indxPARinc,indxWS10m,indxXKW,
-     &    indxFGO2,indxFGCO2,indxATMPRESS,indxSCHMIDTO2,indxO2SAT,indxSCHMIDTCO2,
-     &    indxPVO2,indxPVCO2,indxCO2STAR,indxDCO2STAR,indxIRONFLUX,indxSEDDENITRIF
-       parameter( indxPH=1,indxPCO2=indxPH+1,indxPCO2air=indxPH+2,indxPARinc=indxPH+3,
-     &            indxFGO2=indxPH+4,indxFGCO2=indxPH+5,indxWS10m=indxPH+6,
-     &            indxXKW=indxPH+7,indxATMPRESS=indxPH+8,indxSCHMIDTO2=indxPH+9,
-     &            indxO2SAT=indxPH+10,indxSCHMIDTCO2=indxPH+11,indxPVO2=indxPH+12,
-     &            indxPVCO2=indxPH+13,indxCO2STAR=indxPH+14,indxDCO2STAR=indxPH+15,
-     &            indxIRONFLUX=indxPH+16,indxSEDDENITRIF=indxPH+17 )
-       ! Indices to be used in vname_bec2_diag_3d:
+      ! Indices to be used in vname_bec2_diag_2d or vname_bec2_diag_3d: these are 3d
+      ! in space if MOCSY is selected and the C chemistry is computed at depth.
+      ! Otherwise they are 2d in space.
+      integer indxPH, indxPCO2, indxCO2STAR
+# ifdef CCHEM_MOCSY
+      ! Additional variables if if MOCSY is used instead of the OCMIP code for carbon
+      ! chemistry. The numbers of these variables are given by nr_cchem_mocsy_2d and
+      ! nr_cchem_mocsy_3d (in ecosys_bec2.h):
+     &        , indxCO3, indxHCO3
+#  ifdef CCHEM_TODEPTH
+     &        , indxOMEGACALC, indxOMEGAARAG
+#  endif
+# endif /* CCHEM_MOCSY */
+
+       ! Indices to be used in vname_bec2_diag_2d only:
+       integer, parameter :: indxPCO2air=1,indxPARinc=indxPCO2air+1,
+     &            indxFGO2=indxPCO2air+2,indxFGCO2=indxPCO2air+3,indxWS10m=indxPCO2air+4,
+     &            indxXKW=indxPCO2air+5,indxATMPRESS=indxPCO2air+6,indxSCHMIDTO2=indxPCO2air+7,
+     &            indxO2SAT=indxPCO2air+8,indxSCHMIDTCO2=indxPCO2air+9,indxPVO2=indxPCO2air+10,
+     &            indxPVCO2=indxPCO2air+11,indxDCO2STAR=indxPCO2air+12,
+     &            indxIRONFLUX=indxPCO2air+13,indxSEDDENITRIF=indxPCO2air+14
+#   ifdef CCHEM_MOCSY
+#    if !defined CCHEM_TODEPTH
+     &            ,indxPH=indxPCO2air+15, indxPCO2=indxPH+1, indxCO3=indxPH+2, indxHCO3=indxPH+3
+     &            ,indxCO2STAR=indxPH+4
+#    endif
+#   else /* CCHEM_MOCSY */
+     &            ,indxPH=indxPCO2air+15, indxPCO2=indxPH+1, indxCO2STAR=indxPH+2
+#   endif /* CCHEM_MOCSY */
+
+       ! Indices to be used in vname_bec2_diag_3d only:
        integer indxPAR,indxPOCFLUXIN,indxPOCPROD,indxPOCREMIN,indxCACO3FLUXIN,indxPCACO3PROD,
      &    indxCACO3REMIN,indxSIO2FLUXIN,indxSIO2PROD,indxSIO2REMIN,indxDUSTFLUXIN,
      &    indxDUSTREMIN,indxPIRONFLUXIN,indxPIRONPROD,indxPIRONREMIN,indxGRAZESP,
@@ -284,7 +250,7 @@
      &    indxLOSSDICSP,indxLOSSDICDIAT,indxLOSSDICDIAZ,indxZOOLOSSDIC,indxDIAZAGG,indxGRAZESPZOO,
      &    indxGRAZEDIATZOO,indxGRAZEDIAZZOO,indxSPQCACO3,indxSPPHOTOACC,indxDIATPHOTOACC,
      &    indxDIAZPHOTOACC,indxSPCZERO,indxDIATCZERO,indxDIAZCZERO,indxDOCZERO,
-     &    indxZOOCZERO,indxSPCACO3ZERO,indxDONRREMIN
+     &    indxZOOCZERO,indxSPCACO3ZERO,indxDONRREMIN, indxTOTCHL, indxTOTPHYTOC
        parameter( indxPAR=1,indxPOCFLUXIN=indxPAR+1,indxPOCPROD=indxPAR+2,
      &            indxPOCREMIN=indxPAR+3,indxCACO3FLUXIN=indxPAR+4,indxPCACO3PROD=indxPAR+5,
      &            indxCACO3REMIN=indxPAR+6,indxSIO2FLUXIN=indxPAR+7,indxSIO2PROD=indxPAR+8,
@@ -313,14 +279,21 @@
      &            indxSPQCACO3=indxPAR+75,indxSPPHOTOACC=indxPAR+76,indxDIATPHOTOACC=indxPAR+77,
      &            indxDIAZPHOTOACC=indxPAR+78,indxSPCZERO=indxPAR+79,indxDIATCZERO=indxPAR+80,
      &            indxDIAZCZERO=indxPAR+81,indxDOCZERO=indxPAR+82,indxZOOCZERO=indxPAR+83,
-     &            indxSPCACO3ZERO=indxPAR+84,indxDONRREMIN=indxPAR+85 )
+     &            indxSPCACO3ZERO=indxPAR+84,indxDONRREMIN=indxPAR+85, indxTOTCHL=indxPAR+86,
+     &            indxTOTPHYTOC=indxPAR+87
+# if defined CCHEM_MOCSY && defined CCHEM_TODEPTH
+     &   ,indxPH=indxPAR+88, indxPCO2=indxPH+1, indxCO3=indxPH+2
+     &   ,indxHCO3=indxPH+3, indxCO2STAR=indxPH+4
+     &   ,indxOMEGACALC=indxPH+5, indxOMEGAARAG=indxPH+6
+# endif
+     &   )
 #  endif /* BEC2_DIAG */
 # endif /* BIOLOGY_BEC2 */
-#endif /* SOLVE3D */
 
 ! Length of netCDF variable "time_step"
 
       integer, parameter :: iaux=6
+#endif /* SOLVE3D */
 
 
 ! Naming conventions for indices, variable IDs, etc...
@@ -369,6 +342,14 @@
 #ifdef TSOURCE
      &     , ncidtsrc
 #endif
+#ifdef BIOLOGY_BEC2
+      integer ntnox, ntnhy, ntdin_river, ntdip_river
+      common /ncvars/ ntnox, ntnhy, ntdin_river, ntdip_river
+#endif
+
+
+
+
 #ifdef AVERAGES
       integer ntsavg,  navg
       common /ncvars/ ntsavg,  navg
@@ -527,6 +508,10 @@
 #  ifdef LMD_BKPP
       integer slavgHbbl
       common /ncvars/ slavgHbbl
+#  endif
+#  ifdef WRITE_DEPTHS
+      integer slavgz_r, slavgz_w, slavgHz
+      common /ncvars/ slavgz_r, slavgz_w, slavgHz
 #  endif
 #  endif /* SLICE_AVG */
 # endif /* SOLVE3D */
