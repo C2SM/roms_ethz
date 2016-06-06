@@ -9,21 +9,25 @@
      & t0_kelvin= 273.16)
 
 ! Parameters related to autotrophs: how many, how they are ordered
-       integer autotroph_cnt
-       parameter(autotroph_cnt=3)
-       integer sp_ind, diat_ind, diaz_ind
-       parameter (
+       integer, parameter :: autotroph_cnt=3
+#ifdef BEC_COCCO
+     &          +1
+#endif
+       integer, parameter ::
      &   sp_ind   = 1,  ! small phytoplankton
      &   diat_ind = 2,  ! diatoms
      &   diaz_ind = 3   ! diazotrophs
-     & )
+#ifdef BEC_COCCO
+     &  ,cocco_ind = 4  ! Coccolithophores
+#endif
 
 !
-! The following arrays contain one parameter for all of the 3 autotrophs, in the
+! The following arrays contain one parameter for all of the 3 or 4 autotrophs, in the
 ! following order:
 !  1 --> small phytoplankton
 !  2 --> diatoms
 !  3 --> diazotrophs
+!  4 --> coccolithophores
 !
        character*24 sname(autotroph_cnt)     ! short name of each autotroph
        character*80 lname(autotroph_cnt)     ! long name of each autotroph
@@ -144,7 +148,7 @@
   !     Compute iron remineralization and flux out. In CESM units
   !     dust remin gDust = 0.035 gFe      mol Fe     1e9 nmolFe
   !                        --------- *  ---------- * ----------
-  !                        gDust       55.847 gFe     molFe
+  !                         gDust       55.847 gFe     molFe
   !
   !     dust_to_Fe          conversion - dust to iron (CESM: nmol Fe/g Dust) 
   !---------------------------------------------------------------------
@@ -154,7 +158,7 @@
   !
   !                    0.035 kg Fe         mol Fe         1e3 mmolFe              mmol Fe
   ! dust remin gDust = ---------    *  ---------------- * ----------  =  626.712  -------
-  !                    kg dust        55.847e-3 kg Fe      molFe                 kg dust
+  !                     kg dust        55.847e-3 kg Fe      molFe                 kg dust
 
        real dust_to_Fe
        parameter(dust_to_Fe=0.035/55.847*1.0e6)  ! mmol Fe/kg dust

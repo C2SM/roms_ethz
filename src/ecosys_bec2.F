@@ -547,10 +547,6 @@ c$$$       enddo
        !CN: N loads from rivers
        if (lriver_load_n) then
           FLUX(istr:iend,jstr:jend)=din_river(istr:iend,jstr:jend)
-!          if (mynode==264) then
-!          print*,'ecosys_bec2.F: mynode:',mynode
-!          print*,'ecosys_bec2.F: read in din_river value:',FLUX(istr:iend,jstr:jend)
-!          endif
        else
           FLUX = c0
        endif
@@ -563,11 +559,6 @@ c$$$       enddo
           FLUX(istr:iend,jstr:jend)=FLUX(istr:iend,jstr:jend)/86400
 !       ! assumption: only 1% is bioavailable (very crude, just a test)
 !          FLUX(istr:iend,jstr:jend)=FLUX(istr:iend,jstr:jend)*0.01
-!          if (mynode==264) then
-!          print*,'ecosys_bec2.F: mynode:',mynode
-!          print*,'ecosys_bec2.F: din_river value, after unit conversion',FLUX(istr:iend,jstr:jend)
-!          print*,'ecosys_bec2.F: tracer before river addition',tracer(istr:iend,jstr:jend,N,no3_ind_t)
-!          endif
 
        ! add to tracer: NO3       
        tracer(istr:iend,jstr:jend,N,no3_ind_t) =
@@ -581,10 +572,6 @@ c$$$       enddo
 !     &         0.5*FLUX(istr:iend,jstr:jend)
 !     &         *dt/Hz(istr:iend,jstr:jend,N)
 
-!          if (mynode==264) then
-!          print*,'ecosys_bec2.F: mynode:',mynode
-!          print*,'ecosys_bec2.F: tracer after river addition',tracer(istr:iend,jstr:jend,N,no3_ind_t)
-!          endif
 # endif /* RIVER_LOAD_N */
 
 # ifdef RIVER_LOAD_P
@@ -615,6 +602,52 @@ c$$$       enddo
 !     &         0.25*FLUX(istr:iend,jstr:jend)
 !     &         *dt/Hz(istr:iend,jstr:jend,N)
 # endif /* RIVER_LOAD_P */
+
+# ifdef RIVER_LOAD_SI_ALK_DIC   
+       !CN: Si loads from rivers
+       if (lriver_load_si) then
+          FLUX(istr:iend,jstr:jend)=si_river(istr:iend,jstr:jend)
+       else
+          FLUX = c0
+       endif
+       ! convert from per day to per second!   
+          FLUX(istr:iend,jstr:jend)=FLUX(istr:iend,jstr:jend)/86400
+       ! add to tracer: SiO3
+       tracer(istr:iend,jstr:jend,N,sio3_ind_t) =
+     &         tracer(istr:iend,jstr:jend,N,sio3_ind_t) +
+     &         FLUX(istr:iend,jstr:jend)
+     &         *dt/Hz(istr:iend,jstr:jend,N)
+
+
+       !CN: Alk loads from rivers
+       if (lriver_load_alk) then
+          FLUX(istr:iend,jstr:jend)=alk_river(istr:iend,jstr:jend)
+       else
+          FLUX = c0
+       endif
+       ! convert from per day to per second!   
+          FLUX(istr:iend,jstr:jend)=FLUX(istr:iend,jstr:jend)/86400
+       ! add to tracer: Alk
+       tracer(istr:iend,jstr:jend,N,alk_ind_t) =
+     &         tracer(istr:iend,jstr:jend,N,alk_ind_t) +
+     &         FLUX(istr:iend,jstr:jend)
+     &         *dt/Hz(istr:iend,jstr:jend,N)
+
+
+       !CN: DIC loads from rivers
+       if (lriver_load_dic) then
+          FLUX(istr:iend,jstr:jend)=dic_river(istr:iend,jstr:jend)
+       else
+          FLUX = c0
+       endif
+       ! convert from per day to per second!   
+          FLUX(istr:iend,jstr:jend)=FLUX(istr:iend,jstr:jend)/86400
+       ! add to tracer: DIC
+       tracer(istr:iend,jstr:jend,N,dic_ind_t) =
+     &         tracer(istr:iend,jstr:jend,N,dic_ind_t) +
+     &         FLUX(istr:iend,jstr:jend)
+     &         *dt/Hz(istr:iend,jstr:jend,N)
+# endif /* RIVER_LOAD_SI_ALK_DIC */
 
 
        !DL: note that iron fluxes are in mmol Fe/m^2/s (see get_iron.F).
@@ -674,18 +707,22 @@ c$$$     &         *dt/Hz(istr:iend,jstr:jend,N)
     ! biological tracer values.
     !---------------------------------------------------------------------
 
-!       if (mynode==15) then
-!          print *, 'NO3 conc old: ', tracer(15,11,32,2)
-!          print *, 'change rate/m^3: ', DTRACER_MODULE(15,11,32,2)
-!          print *, 'change/m^3: ', dt*DTRACER_MODULE(15,11,32,2)
-!          print *, 'change = ', dt*DTRACER_MODULE(15,11,32,2)*Hz(15,11,32)/(pm(15,11)*pn(15,11))
-!       endif
        do k=1,n
           do m=1,ntrc_bio
              t(istr:iend,jstr:jend,k,nnew,1+ntrc_salt+ntrc_pas+m) =
      &             tracer(istr:iend,jstr:jend,k,m)
      &             + dt * DTRACER_MODULE(istr:iend,jstr:jend,k,m)
           enddo 
+
+! total chl
+# ifdef BEC2_DIAG
+       bec2_diag_3d(istr:iend,jstr:jend,k,totchl_idx_t) =  NEED_FIX_TRACER_INDICES!!
+     &    tracer(istr:iend,jstr:jend,k,16) + dt*DTRACER_MODULE(istr:iend,jstr:jend,k,16) 
+     &    + tracer(istr:iend,jstr:jend,k,20) + dt*DTRACER_MODULE(istr:iend,jstr:jend,k,20) 
+     &    + tracer(istr:iend,jstr:jend,k,24) + dt*DTRACER_MODULE(istr:iend,jstr:jend,k,24) 
+     &    + tracer(istr:iend,jstr:jend,k,28) + dt*DTRACER_MODULE(istr:iend,jstr:jend,k,28)
+# endif
+
        enddo
 !       if (mynode==15) then
 !          print *, 'NO3 conc new: ', t(15,11,32,nnew,1+ntrc_salt+ntrc_pas+2)
@@ -770,25 +807,34 @@ c$$$       enddo
      &    DOP_loc,         ! local copy of model DOP
      &    DOPr_loc,        ! local copy of model DOPr
      &    DONr_loc,        ! local copy of model DONr
+# ifdef BEC_COCCO
+     &    coccoC_loc,      ! local copy of model coccoC
+     &    coccoChl_loc,    ! local copy of model coccoChl
+     &    coccoCal_loc,    ! local copy of model coccoCal
+     &    coccoFe_loc,     ! local copy of model coccoFe
+     &    cal_loc,         ! local copy of model cal
+# endif
      &    QA_dust_def,     ! incoming deficit in the QA(dust) POC flux
      &    NITRIF,          ! nitrification (NH4 -> NO3) (mmol N/m^3/sec)
      &    DENITRIF,        ! water column nitrification (NO3 -> N2) (mmol N/m^3/sec)
      &    SED_DENITRIF,    ! sedimentary denitrification (mmol N/m^3/sec)
      &    OTHER_REMIN,     ! organic C remin not due oxic or denitrif (mmolC/m^3/sec)
+     &    flux_oxidated,   ! carbon oxidation rate in sediment
      &    O2_CONSUMPTION,  ! O2 consumption
      &    O2_PRODUCTION    ! O2 production
 
        REAL, DIMENSION(istr:iend) ::
      &    Tfunc,           ! temp response function GD98 (non-dim)
+# ifdef BEC_COCCO
+!     &    Tfunc_cocco,     ! temp response function GD98 (non-dim) for coccos
+     &    light_lim_calc,  ! light limitation factor for calc of coccos
+# endif
      &    PAR_in,          ! photosynthetically available radiation (W/m^2)
      &    KPARdz,          ! PAR adsorption coefficient (non-dim)
      &    PAR_lay,         ! average PAR over layer depth (W/m^2)
      &    f_loss_thres,    ! fraction of grazing loss reduction at depth
      &    C_loss_thres,    ! bio-C threshold at which losses go to zero (mmol C/m^3)
      &    VFe,             ! C-specific Fe uptake (non-dim)
-     &    VPO4,            ! C-specific PO4 uptake (non-dim)
-     &    VDOP,            ! C-specific DOP uptake rate (non-dim)
-     &    VPtot,           ! total P uptake rate (non-dim)
      &    VSiO3,           ! C-specific SiO3 uptake (non-dim)
      &    f_nut,           ! nut limitation factor, modifies C fixation (non-dim)
      &    PCmax,           ! max value of PCphoto at temperature TEMP (1/sec)
@@ -835,6 +881,9 @@ c$$$       enddo
      &    VNO3,            ! NO3 uptake rate (non-dim)
      &    VNH4,            ! NH4 uptake rate (non-dim)
      &    VNtot,           ! total N uptake rate (non-dim)
+     &    VPO4,            ! C-specific PO4 uptake (non-dim)
+     &    VDOP,            ! C-specific DOP uptake rate (non-dim)
+     &    VPtot,           ! total P uptake rate/limitation (non-dim)
      &    photoC,          ! C-fixation (mmol C/m^3/sec)
      &    photoFe,         ! iron uptake
      &    photoSi,         ! silicon uptake (mmol Si/m^3/sec)
@@ -894,6 +943,13 @@ c$$$       enddo
        DOP_loc  = MAX(c0, TRACER(istr:iend,j,k,dop_ind_t))
        DOPr_loc = MAX(c0, TRACER(istr:iend,j,k,dopr_ind_t))
        DONr_loc = MAX(c0, TRACER(istr:iend,j,k,donr_ind_t))
+# ifdef BEC_COCCO
+       coccoC_loc = MAX(c0, TRACER(istr:iend,j,k,coccoc_ind_t))
+       coccoChl_loc = MAX(c0, TRACER(istr:iend,j,k,coccochl_ind_t))
+       coccoCal_loc = MAX(c0, TRACER(istr:iend,j,k,coccocal_ind_t))
+       coccoFe_loc = MAX(c0, TRACER(istr:iend,j,k,coccofe_ind_t))
+       cal_loc = MAX(c0, TRACER(istr:iend,j,k,cal_ind_t))
+# endif
 #ifdef BEC2_DIAG
 # ifdef BEC2_DIAG_USER
        if (bec2_diag_3d_l(totchl_idx_t))
@@ -955,6 +1011,15 @@ c$$$       enddo
           diazFe_loc = c0
        END WHERE
 
+# ifdef BEC_COCCO
+       WHERE (coccoC_loc == c0 .OR. coccoChl_loc == c0 .OR. coccoFe_loc == c0)
+          coccoC_loc = c0
+          coccoChl_loc = c0
+          coccoCal_loc = c0
+          coccoFe_loc = c0
+       END WHERE
+# endif
+
     !---------------------------------------------------------------------------
     ! Initialize C_loc, Chl_loc, CaCO3_loc, autoFe_loc:
     !---------------------------------------------------------------------------
@@ -974,6 +1039,13 @@ c$$$       enddo
        autoFe_loc(istr:iend,sp_ind) = spFe_loc
        autoFe_loc(istr:iend,diat_ind) = diatFe_loc
        autoFe_loc(istr:iend,diaz_ind) = diazFe_loc
+# ifdef BEC_COCCO
+       C_loc(istr:iend,cocco_ind) = coccoC_loc
+       Chl_loc(istr:iend,cocco_ind) = coccoChl_loc
+       CaCO3_loc(istr:iend,cocco_ind) = coccoCal_loc
+       Si_loc(istr:iend,cocco_ind) = c0
+       autoFe_loc(istr:iend,cocco_ind) = coccoFe_loc
+# endif
 
     !---------------------------------------------------------------------------
     !   set local variables, with incoming ratios
@@ -1024,8 +1096,19 @@ c$$$       enddo
     !-----------------------------------------------------------------------
 
           if (CaCO3_ind(auto_ind) > 0) then
+#  ifdef BEC_COCCO
+             if (exp_calcifier(auto_ind)) then
+                QCaCO3(istr:iend,auto_ind) = 0.433
+                !QCaCO3(istr:iend,auto_ind) = 0.04
+             else 
+                QCaCO3(istr:iend,auto_ind) = 
+     &              min( CaCO3_loc(istr:iend,auto_ind) 
+     &                 / (C_loc(istr:iend,auto_ind) + epsC), QCaCO3_max )
+             endif
+#  else /* case not BEC_COCCO  */
              QCaCO3(istr:iend,auto_ind) = min(CaCO3_loc(istr:iend,auto_ind) 
      &                      / (C_loc(istr:iend,auto_ind) + epsC), QCaCO3_max)
+#  endif /* BEC_COCCO */
           end if
        end do  ! auto_ind = 1, autotroph_cnt
 # ifdef BEC2_DIAG
@@ -1098,6 +1181,9 @@ c$$$       enddo
     !-----------------------------------------------------------------------
 
        Tfunc = Q_10**(((temp + T0_Kelvin) - (Tref + T0_Kelvin)) / c10)
+!# ifdef BEC_COCCO
+!       Tfunc_cocco = Q_10**(((temp + T0_Kelvin) - (Tref + T0_Kelvin)) / c10)
+!# endif
 
     !-----------------------------------------------------------------------
     !  calculate the loss threshold interpolation factor
@@ -1145,12 +1231,19 @@ c$$$       enddo
           VFe = Fe_loc / (Fe_loc + kFe(auto_ind))
           f_nut = min(VNtot(istr:iend,auto_ind), VFe)
 
-          VPO4 = (PO4_loc / kPO4(auto_ind)) /
+          VPO4(istr:iend,auto_ind) = (PO4_loc / kPO4(auto_ind)) /
      &           (c1 + (PO4_loc / kPO4(auto_ind)) + (DOP_loc / kDOP(auto_ind)))
-          VDOP = (DOP_loc / kDOP(auto_ind)) /
+          VDOP(istr:iend,auto_ind) = (DOP_loc / kDOP(auto_ind)) /
      &           (c1 + (PO4_loc / kPO4(auto_ind)) + (DOP_loc / kDOP(auto_ind)))
-          VPtot = VPO4 + VDOP
-          f_nut = min(f_nut, VPO4)
+          VPtot(istr:iend,auto_ind) = VPO4(istr:iend,auto_ind) + VDOP(istr:iend,auto_ind)
+          
+          !f_nut = min(f_nut, VPO4(istr:iend,auto_ind))
+
+          ! CN: consider VPtot instead of VPO4 only! DOP is taken up, so
+          ! it should also potentially be limiting (that's why half-sat
+          ! constants are defined for DOP!)
+          f_nut = min(f_nut, VPtot(istr:iend,auto_ind))
+
 # ifdef BEC2_DIAG
 #  ifdef BEC2_DIAG_USER
           if (auto_ind == sp_ind) then
@@ -1172,13 +1265,20 @@ c$$$       enddo
 #  else
           if (auto_ind == sp_ind) then
              bec2_diag_3d(istr:iend,j,k,spfeuptake_idx_t) = VFe
-             bec2_diag_3d(istr:iend,j,k,sppo4uptake_idx_t) = VPO4
+             bec2_diag_3d(istr:iend,j,k,sppo4uptake_idx_t) =VPO4(istr:iend,sp_ind)
           else if (auto_ind == diat_ind) then
              bec2_diag_3d(istr:iend,j,k,diatfeuptake_idx_t) = VFe
-             bec2_diag_3d(istr:iend,j,k,diatpo4uptake_idx_t) = VPO4
+             bec2_diag_3d(istr:iend,j,k,diatpo4uptake_idx_t) =VPO4(istr:iend,diat_ind)
+#   ifdef BEC_COCCO
+          else if (auto_ind == cocco_ind) then
+             bec2_diag_3d(istr:iend,j,k,coccofeuptake_idx_t) = VFe
+             bec2_diag_3d(istr:iend,j,k,coccopo4uptake_idx_t) =VPO4(istr:iend,diaz_ind)
+#   endif
           else
              bec2_diag_3d(istr:iend,j,k,diazfeuptake_idx_t) = VFe
-             bec2_diag_3d(istr:iend,j,k,diazpo4uptake_idx_t) = VPO4
+#   ifdef BEC_COCCO
+             bec2_diag_3d(istr:iend,j,k,diazpo4uptake_idx_t) =VPO4(istr:iend,cocco_ind)
+#   endif
           end if
 #  endif
 # endif
@@ -1201,13 +1301,62 @@ c$$$       enddo
     !-----------------------------------------------------------------------
     !     get photosynth. rate, phyto C biomass change, photoadapt
     !-----------------------------------------------------------------------
+!# ifdef BEC_COCCO
+! CN: reduce cocco growth below 3 deg C following PlankTOM10 (they use 10 degC)
+      !    do i=istr,iend
+      !        if (temp(i) < 3.0) then 
+      !          Tfunc_cocco(i) = Tfunc_cocco(i) * max(c0,(0.2+0.8*(temp(i)/3.0)))
+      !        endif
+      !    enddo
+
+!          if (auto_ind==cocco_ind) then
+!             PCmax = PCref(auto_ind) * f_nut * Tfunc  ! Tfunc_cocco
+!          else
+!             PCmax = PCref(auto_ind) * f_nut * Tfunc 
+!          endif
+!# endif /* BEC_COCCO */
 
           PCmax = PCref(auto_ind) * f_nut * Tfunc
+!# ifdef BEC_COCCO
+!! smoother function to scale down Tfunc below critical temp
+!          if (auto_ind==cocco_ind) then
+!             PCmax = PCref(auto_ind) * f_nut * Tfunc *
+!     &            ((temp+2)**10)/((temp+2)**10 + (8)**10)
+!          elseif (auto_ind==diaz_ind) then
+!             PCmax = PCref(auto_ind) * f_nut * Tfunc * 
+!     &            ((temp+2)**10)/((temp+2)**10 + (17)**10)
+!          else
+!             PCmax = PCref(auto_ind) * f_nut * Tfunc 
+!          endif
+!# endif /* BEC_COCCO */
           where (temp < temp_thres(auto_ind)) PCmax = c0
 
           light_lim = c1 - exp((-c1 * alphaPI(auto_ind) * thetaC(istr:iend,auto_ind) * PAR_lay) /
      &                      (PCmax + epsTinv))
           PCphoto = PCmax * light_lim
+# ifdef BEC_COCCO
+          if (auto_ind==cocco_ind) then
+!            light_lim = (PAR_lay**4/(0.06**4 + PAR_lay**4))*(c1 - 
+!     &                   exp((-c1 * alphaPI(auto_ind) * thetaC(istr:iend,auto_ind) * PAR_lay) /
+!     &                   (PCmax + epsTinv)))
+          ! set growth to zero at PAR<10 (this aims especially at deeper
+          ! layers!!
+             where (PAR_lay < 10) light_lim = c0
+
+!  calcification: use different light_lim than for photosynthesis (see
+!  Zondervan 2007)
+!            light_lim_calc = (PAR_lay**4/(0.06**4 + PAR_lay**4))*(c1 - 
+!     &                   exp((-c1 * 1.1*alphaPI(auto_ind) * thetaC(istr:iend,auto_ind) * PAR_lay) /
+!     &                   (PCmax + epsTinv)))
+
+             PCphoto = PCmax * light_lim
+
+!   reduce cocco growth at low temperatures
+             where (temp < CaCO3_temp_thres1)
+     &          PCphoto =PCphoto * max((temp-CaCO3_temp_thres2), c0) /
+     &                    (CaCO3_temp_thres1-CaCO3_temp_thres2)
+          end if
+# endif /* BEC_COCCO */
           photoC(istr:iend,auto_ind) = PCphoto * C_loc(istr:iend,auto_ind)
 # ifdef BEC2_DIAG
 #  ifdef BEC2_DIAG_USER
@@ -1224,6 +1373,10 @@ c$$$       enddo
              bec2_diag_3d(istr:iend,j,k,splightlim_idx_t) = light_lim
           else if (auto_ind == diat_ind) then
              bec2_diag_3d(istr:iend,j,k,diatlightlim_idx_t) = light_lim
+#   ifdef BEC_COCCO 
+          else if (auto_ind == cocco_ind) then
+             bec2_diag_3d(istr:iend,j,k,coccolightlim_idx_t) = light_lim
+#   endif
           else
              ! Diazotrophs:
              bec2_diag_3d(istr:iend,j,k,diazlightlim_idx_t) = light_lim
@@ -1248,9 +1401,11 @@ c$$$       enddo
              VNC = c0
           end where
 
-          where (VPtot > c0)
-             PO4_V(istr:iend,auto_ind) = (VPO4 / VPtot) * photoC(istr:iend,auto_ind) * Qp(auto_ind)
-             DOP_V(istr:iend,auto_ind) = (VDOP / VPtot) * photoC(istr:iend,auto_ind) * Qp(auto_ind)
+          where (VPtot(istr:iend,auto_ind) > c0)
+             PO4_V(istr:iend,auto_ind) = (VPO4(istr:iend,auto_ind) / VPtot(istr:iend,auto_ind)) 
+     &                    * photoC(istr:iend,auto_ind) * Qp(auto_ind)
+             DOP_V(istr:iend,auto_ind) = (VDOP(istr:iend,auto_ind) / VPtot(istr:iend,auto_ind)) 
+     &                    * photoC(istr:iend,auto_ind) * Qp(auto_ind)
           elsewhere
              PO4_V(istr:iend,auto_ind) = c0
              DOP_V(istr:iend,auto_ind) = c0
@@ -1261,7 +1416,19 @@ c$$$       enddo
           if (bec2_diag_3d_l(ironuptakesp_idx_t+auto_ind-1))
      &        bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(ironuptakesp_idx_t+auto_ind-1)) = photoFe(istr:iend,auto_ind)
 #  else
+#   ifdef BEC_COCCO
+          if (auto_ind == sp_ind) then
+            bec2_diag_3d(istr:iend,j,k,ironuptakesp_idx_t) = photoFe(istr:iend,sp_ind)
+          else if (auto_ind == diat_ind) then
+            bec2_diag_3d(istr:iend,j,k,ironuptakediat_idx_t) = photoFe(istr:iend,diat_ind)
+          else if (auto_ind == cocco_ind) then
+            bec2_diag_3d(istr:iend,j,k,ironuptakecocco_idx_t) = photoFe(istr:iend,cocco_ind)
+          else
+            bec2_diag_3d(istr:iend,j,k,ironuptakediaz_idx_t) = photoFe(istr:iend,diaz_ind)
+          endif
+#   else /* case not BEC_COCCO */
           bec2_diag_3d(istr:iend,j,k,ironuptakesp_idx_t+auto_ind-1) = photoFe(istr:iend,auto_ind)
+#   endif
 #  endif
 # endif
 
@@ -1313,15 +1480,22 @@ c$$$       enddo
           bec2_diag_3d(istr:iend,j,k,spphotoacc_idx_t) = photoacc(istr:iend,sp_ind)
           bec2_diag_3d(istr:iend,j,k,diatphotoacc_idx_t) = photoacc(istr:iend,diat_ind)
           bec2_diag_3d(istr:iend,j,k,diazphotoacc_idx_t) = photoacc(istr:iend,diaz_ind)
+#   ifdef BEC_COCCO
+          bec2_diag_3d(istr:iend,j,k,coccophotoacc_idx_t) = photoacc(istr:iend,cocco_ind)
+#   endif
 #  endif
 # endif
 
     !-----------------------------------------------------------------------
-    !  CaCO3 Production, parameterized as function of small phyto production:
+    !  implicit CaCO3 Production, parameterized as function of small phyto production:
     !    - decrease CaCO3 as function of nutrient limitation
     !    - decrease CaCO3 prod at low temperatures
     !    - increase CaCO3 prod under bloom conditions
     !  Maximum calcification rate is 40% of primary production.
+    !
+    !  explicit CaCO3 Production, parametrized as function of photoC of PFT
+    !    think about: temp dependence, f_nut dependence, CaCO3:Corg
+    !    ratio (right now set to one)
     !-----------------------------------------------------------------------
 
           if (imp_calcifier(auto_ind)) then
@@ -1336,6 +1510,24 @@ c$$$       enddo
      &          CaCO3_PROD(istr:iend,auto_ind) = min((CaCO3_PROD(istr:iend,auto_ind)
      &                     * C_loc(istr:iend,auto_ind) / CaCO3_sp_thres),
      &                    (f_photosp_CaCO3 * photoC(istr:iend,auto_ind)))
+!# ifdef BEC_COCCO
+!          endif
+!          if (exp_calcifier(auto_ind)) then
+!!  calcification: use different light_lim than for photosynthesis (see
+!!  Zondervan 2007)
+!             QCaCO3(istr:iend,auto_ind) = QCaCO3(istr:iend,auto_ind)*light_lim_calc
+!             CaCO3_PROD(istr:iend,auto_ind) = QCaCO3(istr:iend,auto_ind)*photoC(istr:iend,auto_ind)*(1-light_lim)             
+             CaCO3_PROD(istr:iend,auto_ind) = QCaCO3(istr:iend,auto_ind)*photoC(istr:iend,auto_ind)
+          !   if (k==42) then
+          !   if (mynode==222) then
+          !     print*,'surface, mynode==222:'
+          !     print*,'QCaCO3',QCaCO3(istr:iend,auto_ind)
+          !     print*,'photoC',photoC(istr:iend,auto_ind)
+          !     print*,'photoC',photoC(istr:iend,cocco_ind)
+          !     print*,'CaCO3_PROD',CaCO3_PROD(istr:iend,auto_ind)
+          !   endif
+          !   endif
+! endif /* BEC_COCCO */
           else
              CaCO3_PROD(istr:iend,auto_ind) = c0
           endif
@@ -1348,6 +1540,11 @@ c$$$       enddo
           if (auto_ind == sp_ind) then
              bec2_diag_3d(istr:iend,j,k,caco3prod_idx_t) = CaCO3_PROD(istr:iend,auto_ind)
           end if
+#   ifdef BEC_COCCO
+          if (auto_ind == cocco_ind) then
+             bec2_diag_3d(istr:iend,j,k,caco3prodcocco_idx_t) = CaCO3_PROD(istr:iend,cocco_ind)
+          end if
+#   endif
 #  endif
 # endif
 
@@ -1369,15 +1566,31 @@ c$$$       enddo
     !-----------------------------------------------------------------------
 
           WORK1 = c0
+#  ifdef KILL_THE_WINNER
+!   CN, June 2015: implement "Kill the Winner" formulation for grazing
+!   (see Vallina 2014)
+          WORK2 = 1.2   ! alpha, set 1 for old grazing formulation, >1 for prey switching
+!          WORK3 = 1.0   ! beta, set 1 for old grazing formulation, >1 for different ingestion function
+#  endif
+
           do auto_ind2 = 1, autotroph_cnt
              if (grazee_ind(auto_ind2) == grazee_ind(auto_ind))
      &          WORK1 = WORK1 + Pprime(istr:iend,auto_ind)
+#  ifdef KILL_THE_WINNER
+     &                                                    **WORK2
+#  endif
           end do
 
           z_umax = z_umax_0(auto_ind) * Tfunc
           where (WORK1 > c0)
+#  ifdef KILL_THE_WINNER
+             auto_graze(istr:iend,auto_ind) = (Pprime(istr:iend,auto_ind)**WORK2 / WORK1) *
+     &           z_umax * zooC_loc * (WORK1 / (WORK1 + z_grz(auto_ind)))
+!     &           z_umax * zooC_loc * (WORK1**WORK3 / (WORK1**WORK3 + z_grz(auto_ind)**WORK3))
+#  else /* no prey switching */
              auto_graze(istr:iend,auto_ind) = (Pprime(istr:iend,auto_ind) / WORK1) *
      &           z_umax * zooC_loc * (WORK1 / (WORK1 + z_grz(auto_ind)))
+#  endif /* KILL_THE_WINNER */
           elsewhere
              auto_graze(istr:iend,auto_ind) = c0
           end where
@@ -1540,6 +1753,9 @@ c$$$       enddo
        bec2_diag_3d(istr:iend,j,k,totprod_idx_t) = sum(photoC,dim=2)
        bec2_diag_3d(istr:iend,j,k,spnlim_idx_t) = VNtot(istr:iend,sp_ind)
        bec2_diag_3d(istr:iend,j,k,diatnlim_idx_t) = VNtot(istr:iend,diat_ind)
+       bec2_diag_3d(istr:iend,j,k,spplim_idx_t) = VPtot(istr:iend,sp_ind)
+       bec2_diag_3d(istr:iend,j,k,diatplim_idx_t) = VPtot(istr:iend,diat_ind)
+       bec2_diag_3d(istr:iend,j,k,diazplim_idx_t) = VPtot(istr:iend,diaz_ind)
        bec2_diag_3d(istr:iend,j,k,spno3uptake_idx_t) = NO3_V(istr:iend,sp_ind)
        bec2_diag_3d(istr:iend,j,k,diatno3uptake_idx_t) = NO3_V(istr:iend,diat_ind)
        bec2_diag_3d(istr:iend,j,k,diazno3uptake_idx_t) = NO3_V(istr:iend,diaz_ind)
@@ -1555,6 +1771,19 @@ c$$$       enddo
        bec2_diag_3d(istr:iend,j,k,grazespzoo_idx_t) = auto_graze_zoo(istr:iend,sp_ind)
        bec2_diag_3d(istr:iend,j,k,grazediatzoo_idx_t) = auto_graze_zoo(istr:iend,diat_ind)
        bec2_diag_3d(istr:iend,j,k,grazediazzoo_idx_t) = auto_graze_zoo(istr:iend,diaz_ind)
+#   ifdef BEC_COCCO
+       bec2_diag_3d(istr:iend,j,k,grazecocco_idx_t) = auto_graze(istr:iend,cocco_ind)
+       bec2_diag_3d(istr:iend,j,k,coccoloss_idx_t) = auto_loss(istr:iend,cocco_ind)
+       bec2_diag_3d(istr:iend,j,k,coccoagg_idx_t) = auto_agg(istr:iend,cocco_ind)
+       bec2_diag_3d(istr:iend,j,k,photoccocco_idx_t) = photoC(istr:iend,cocco_ind)
+       bec2_diag_3d(istr:iend,j,k,cocconlim_idx_t) = VNtot(istr:iend,cocco_ind)
+       bec2_diag_3d(istr:iend,j,k,coccoplim_idx_t) = VPtot(istr:iend,cocco_ind)
+       bec2_diag_3d(istr:iend,j,k,coccono3uptake_idx_t) = NO3_V(istr:iend,cocco_ind)
+       bec2_diag_3d(istr:iend,j,k,cocconh4uptake_idx_t) = NH4_V(istr:iend,cocco_ind)
+       bec2_diag_3d(istr:iend,j,k,coccograzedic_idx_t) = auto_graze_dic(istr:iend,cocco_ind)
+       bec2_diag_3d(istr:iend,j,k,coccolossdic_idx_t) = auto_loss_dic(istr:iend,cocco_ind)
+       bec2_diag_3d(istr:iend,j,k,grazecoccozoo_idx_t) = auto_graze_zoo(istr:iend,cocco_ind)
+#   endif /* BEC_COCCO */
 #  endif
 # endif /* BEC2_DIAG */
 
@@ -1705,6 +1934,19 @@ c$$$       enddo
 
        P_CaCO3_prod = ((c1 - f_graze_CaCO3_REMIN) * auto_graze(istr:iend,sp_ind) +
      &                auto_loss(istr:iend,sp_ind) + auto_agg(istr:iend,sp_ind)) * QCaCO3(istr:iend,sp_ind)
+# ifdef BEC_COCCO
+     &                + ((c1 - f_graze_CaCO3_REMIN) * auto_graze(istr:iend,cocco_ind) +
+     &                auto_loss(istr:iend,cocco_ind) + auto_agg(istr:iend,cocco_ind)) * QCaCO3(istr:iend,cocco_ind)
+# endif
+!       print*,'QCaCO3(istr:iend,sp_ind):',QCaCO3(istr:iend,sp_ind)
+
+!   print*,'P_CaCO3_prod:',P_CaCO3_prod(istr:iend)
+
+! CN add these two terms: to get total production? in my configuration, the
+! sp terms would be zero as I will only have explicit calcifiers, but
+! this way, you can potentially have both...
+
+
 # ifdef BEC2_DIAG
 #  ifdef BEC2_DIAG_USER
        if (bec2_diag_3d_l(pcaco3prod_idx_t))
@@ -1790,8 +2032,13 @@ c$$$       enddo
     !  use exponential decay of PAR across model level to compute taper factor
     !-----------------------------------------------------------------------
 
+       ! CN (Oct 2015): add same WORK1 formulation as for
+       ! O2_CONSUMPTION!! -> to avoid that NITRIF is switched off in
+       ! O2_CONSUMPTION, but still appears in NH4 and NO3 equations!
+       WORK1 = (O2_loc - parm_o2_min) / parm_o2_min_delta
+       WORK1 = min(max(WORK1,c0),c1)
        where (PAR_out < parm_nitrif_par_lim)
-          NITRIF = parm_kappa_nitrif * NH4_loc
+          NITRIF = WORK1 * parm_kappa_nitrif * NH4_loc
           where (PAR_in > parm_nitrif_par_lim)
              NITRIF = NITRIF * log(PAR_out / parm_nitrif_par_lim) / (-KPARdz)
           end where
@@ -1847,9 +2094,6 @@ c$$$       enddo
 
        DTRACER_MODULE(istr:iend,j,k,no3_ind_t) = NITRIF - DENITRIF - 
      &                                 SED_DENITRIF - sum(NO3_V, dim=2)
-!       if (mynode==15 .and. j==11 .and. k==32) then
-!          print *, 'DTRACER_MODULE(15,11,NO3) = ', DTRACER_MODULE(15,j,k,no3_ind_t)
-!       endif
 
        DTRACER_MODULE(istr:iend,j,k,nh4_ind_t) = -sum(NH4_V, dim=2) - NITRIF + DON_remin + DONr_remin
      &     + Q * (zoo_loss_dic + sum(auto_loss_dic, dim=2) + sum(auto_graze_dic, dim=2)
@@ -2030,6 +2274,26 @@ c$$$       enddo
      &   + sum(auto_loss_dic, dim=2) + sum(auto_graze_dic, dim=2)) / parm_Remin_D_C_O2 + (c2 * NITRIF))
 
        DTRACER_MODULE(istr:iend,j,k,o2_ind_t) = O2_PRODUCTION - O2_CONSUMPTION
+# ifdef BEC_COCCO
+    !-----------------------------------------------------------------------
+    ! CN, June/July 2015: Implementation of coccolilthophores 
+    !-----------------------------------------------------------------------
+
+
+    !--------------------------------
+    ! 
+    ! detached CaCO3: from explicit calcifiers only
+    !
+    !--------------------------------
+
+       do auto_ind = 1, autotroph_cnt
+          if (exp_calcifier(auto_ind)) then
+            DTRACER_MODULE(istr:iend,j,k,cal_ind_t) = c0
+!            DTRACER_MODULE(istr:iend,j,k,cal_ind_t) = P_CaCO3_prod(istr:iend) - P_CaCO3_remin(istr:iend,j)
+!     &          - P_CaCO3_sed_loss(istr:iend,j)
+          endif
+       end do
+# endif /* BEC_COCCO */
 
        return
        end subroutine ecosys_set_interior
@@ -2396,7 +2660,11 @@ c$$$       enddo
              if (POC_PROD_avail < c0) then
                 print *, 'subroutine compute_particulate_terms:',
      &            ' non_dust ballast production exceeds POC production'
+                print*,'k',k
                 print *, 'POC_prod_avail: ', POC_prod_avail
+                print*,'POC_prod(i)',POC_prod(i)
+                print*,'P_CaCO3_rho*P_CaCO3_prod(i)',P_CaCO3_rho * P_CaCO3_prod(i)
+                print*,'P_SiO2_rho * P_SiO2_prod(i)',P_SiO2_rho * P_SiO2_prod(i)
                 poc_error = .true.
              endif
 
@@ -2523,17 +2791,25 @@ c$$$       enddo
              ! CN: test with value from Moore 2004 (in mmolFe/m2/sec,
              ! see old BEC code)
              if (k==1) then
-             if (z_r(i,j,k) < 1100.) then
+              if (z_r(i,j,k) < 1100.) then
                 FESEDFLUX(i) = 2.3148e-8
-             endif
+              endif
              endif
 # else
              FESEDFLUX(i) = c0
 # endif
 
+          ! CN (Sep 2015): test new formulation for FESEDFLUX (Dale2015)
+          ! this is done directly in bottom cell part!
+
              P_Iron_remin(i,j) = P_Iron_remin(i,j)
      &           + dust_remin(i) * dust_to_Fe
      &           + (FESEDFLUX(i) * dzr_loc)
+
+! P_Iron_remin is updated further down for bottom cell (when FESEDFLUX becomes >0)!!
+# ifdef BEC2_DIAG
+             bec2_diag_3d(i,j,k,pironremin_idx_t) = P_Iron_remin(i,j)
+# endif
 
              P_iron_hflux_out(i,j) = P_iron_hflux_in(i,j)
 
@@ -2600,13 +2876,17 @@ c$$$       enddo
             ! it's kind of arbitrary...), below this
             ! sed_denitr is reduced! same for water column denitrf!
 
+            ! CN (Oct 2015): constrain SED_DENITRIF by what is left to
+            ! be remineralized after POC_sed_loss
                if (NO3_loc(i) < parm_sed_denitrif_NO3_limit) then
-               SED_DENITRIF(i) = dzr_loc * flux
-     &             * (0.06 + 0.19 * 0.99**(O2_loc(i)-NO3_loc(i)))
+               SED_DENITRIF(i) = dzr_loc * min(flux * (0.06 + 0.19 *
+     &                 0.99**(O2_loc(i)-NO3_loc(i))),
+     &                flux-POC_sed_loss(i,j)*denitrif_C_N)
                SED_DENITRIF(i) = 1/parm_sed_denitrif_NO3_limit*NO3_loc(i)*SED_DENITRIF(i)
                else
-               SED_DENITRIF(i) = dzr_loc * flux
-     &             * (0.06 + 0.19 * 0.99**(O2_loc(i)-NO3_loc(i)))
+               SED_DENITRIF(i) = dzr_loc * min(flux * (0.06 + 0.19 *
+     &                 0.99**(O2_loc(i)-NO3_loc(i))),
+     &                flux-POC_sed_loss(i,j)*denitrif_C_N)
                endif
 
 #ifdef BEC2_DIAG
@@ -2615,6 +2895,8 @@ c$$$       enddo
      &            bec2_diag_2d(i,j,bec2_diag_2d_idx(seddenitrif_idx_t)) = SED_DENITRIF(i)
 # else
                bec2_diag_2d(i,j,seddenitrif_idx_t) = SED_DENITRIF(i)
+               bec2_diag_2d(i,j,fluxtosed_idx_t) = flux
+               bec2_diag_2d(i,j,pocsedloss_idx_t) = POC_sed_loss(i,j)
 # endif
 #endif
 
@@ -2644,10 +2926,21 @@ c$$$       enddo
             endif
             P_SiO2_sed_loss(i,j) = flux * parm_BSIbury * P_SiO2_sed_loss(i,j)
 
+# ifdef BEC2_DIAG
+            bec2_diag_2d(i,j,sio2fluxtosed_idx_t) = flux
+# endif
+
+            flux = c0  ! set flux back to zero
             if (-z_w(i,j,k) < 3300.0) then
                flux = P_CaCO3_sflux_out(i,j) + P_CaCO3_hflux_out(i,j)
                P_CaCO3_sed_loss(i,j) = flux
             endif
+
+# ifdef BEC2_DIAG
+             bec2_diag_2d(i,j,caco3fluxtosed_idx_t) = flux
+             bec2_diag_2d(i,j,caco3sedloss_idx_t) = P_CaCO3_sed_loss(i,j)
+             bec2_diag_2d(i,j,sio2sedloss_idx_t) = P_SiO2_sed_loss(i,j)
+# endif
 
     !----------------------------------------------------------------------------------
     !  Update sinking fluxes and remin fluxes, accounting for sediments.
@@ -2677,12 +2970,22 @@ c$$$       enddo
     !        accounted for by FESEDFLUX elsewhere.
     !-----------------------------------------------------------------------
 
+
+            flux = c0  ! set flux back to zero
             flux = (P_iron_sflux_out(i,j) + P_iron_hflux_out(i,j))
             if (flux > c0) then
                P_iron_sed_loss(i,j) = flux
             endif
 
+# ifdef BEC2_DIAG
+             bec2_diag_2d(i,j,pironfluxtosed_idx_t) = flux
+# endif
+
             dust_sed_loss(i,j) = dust_sflux_out(i,j) + dust_hflux_out(i,j)
+
+# ifdef BEC2_DIAG
+             bec2_diag_2d(i,j,dustfluxtosed_idx_t) = dust_sed_loss(i,j)
+# endif
 
     !-----------------------------------------------------------------------
     !   Bottom layer: set all outgoing fluxes to 0.0
@@ -2706,6 +3009,14 @@ c$$$       enddo
             endif
 
          end if  ! LANDMASK(i,j) .and. (k == 1)
+
+! CN: update P_Iron_remin here with FESEDFLUX
+             P_Iron_remin(i,j) = P_Iron_remin(i,j)
+     &           + (FESEDFLUX(i) * dzr_loc)
+
+# ifdef BEC2_DIAG
+             bec2_diag_3d(i,j,k,pironremin_idx_t) = P_Iron_remin(i,j)
+# endif
 
        end do  ! i = istr, iend
 

@@ -6,6 +6,9 @@
       real DTRACER_MODULE(GLOBAL_2D_ARRAY,N,ntrc_bio)
       common /tracers/ tracer, DTRACER_MODULE
 
+      integer counter_no3(288),counter_coccochl(288)      
+      common /counter_neg/ counter_no3, counter_coccochl
+
 #ifdef BEC2_DIAG
 !
 ! Diagnostic variables appearing in average and history files:
@@ -58,26 +61,7 @@
 # endif /* CCHEM_MOCSY */
 
       ! Indices to be used in bec2_diag_3d only:
-      integer par_idx_t,pocfluxin_idx_t,pocprod_idx_t,pocremin_idx_t,caco3fluxin_idx_t,
-     &        pcaco3prod_idx_t,caco3remin_idx_t,sio2fluxin_idx_t,sio2prod_idx_t,
-     &        sio2remin_idx_t,dustfluxin_idx_t,dustremin_idx_t,pironfluxin_idx_t,
-     &        pironprod_idx_t,pironremin_idx_t,grazesp_idx_t,grazediat_idx_t,grazediaz_idx_t,
-     &        sploss_idx_t,diatloss_idx_t,zooloss_idx_t,spagg_idx_t,diatagg_idx_t,
-     &        photocsp_idx_t,photocdiat_idx_t,totprod_idx_t,docprod_idx_t,docremin_idx_t,
-     &        fescavenge_idx_t,spnlim_idx_t,spfeuptake_idx_t,sppo4uptake_idx_t,
-     &        splightlim_idx_t,diatnlim_idx_t,diatfeuptake_idx_t,diatpo4uptake_idx_t,
-     &        diatsio3uptake_idx_t,diatlightlim_idx_t,caco3prod_idx_t,diaznfix_idx_t,
-     &        diazloss_idx_t,photocdiaz_idx_t,diazpo4uptake_idx_t,diazfeuptake_idx_t,diazlightlim_idx_t,
-     &        fescavengerate_idx_t,donprod_idx_t,donremin_idx_t,dofeprod_idx_t,doferemin_idx_t,
-     &        dopprod_idx_t,dopremin_idx_t,diatsiuptake_idx_t,ironuptakesp_idx_t,ironuptakediat_idx_t,
-     &        ironuptakediaz_idx_t,nitrif_idx_t,denitrif_idx_t,spno3uptake_idx_t,diatno3uptake_idx_t,
-     &        diazno3uptake_idx_t,spnh4uptake_idx_t,diatnh4uptake_idx_t,diaznh4uptake_idx_t,grazedicsp_idx_t,
-     &        grazedicdiat_idx_t,grazedicdiaz_idx_t,lossdicsp_idx_t,lossdicdiat_idx_t,lossdicdiaz_idx_t,
-     &        zoolossdic_idx_t,diazagg_idx_t,grazespzoo_idx_t,grazediatzoo_idx_t,grazediazzoo_idx_t,
-     &        spqcaco3_idx_t,spphotoacc_idx_t,diatphotoacc_idx_t,diazphotoacc_idx_t,spczero_idx_t,
-     &        diatczero_idx_t,diazczero_idx_t,doczero_idx_t,zooczero_idx_t,spcaco3zero_idx_t,donrremin_idx_t,
-     &        totchl_idx_t,totphytoc_idx_t
-      parameter( par_idx_t=1,pocfluxin_idx_t=par_idx_t+1,
+      integer, parameter :: par_idx_t=1,pocfluxin_idx_t=par_idx_t+1,
      &   pocprod_idx_t=par_idx_t+2,pocremin_idx_t=par_idx_t+3,caco3fluxin_idx_t=par_idx_t+4,
      &   pcaco3prod_idx_t=par_idx_t+5,caco3remin_idx_t=par_idx_t+6,sio2fluxin_idx_t=par_idx_t+7,
      &   sio2prod_idx_t=par_idx_t+8,sio2remin_idx_t=par_idx_t+9,dustfluxin_idx_t=par_idx_t+10,
@@ -107,33 +91,48 @@
      &   diatczero_idx_t=par_idx_t+80,diazczero_idx_t=par_idx_t+81,doczero_idx_t=par_idx_t+82,
      &   zooczero_idx_t=par_idx_t+83,spcaco3zero_idx_t=par_idx_t+84,donrremin_idx_t=par_idx_t+85,
      &   totchl_idx_t=par_idx_t+86,totphytoc_idx_t=par_idx_t+87
+#  undef LAST_I
+#  define LAST_I totphytoc_idx_t
 # if defined CCHEM_MOCSY && defined CCHEM_TODEPTH
      &   ,ph_idx_t=par_idx_t+88, pco2oc_idx_t=ph_idx_t+1, co3_idx_t=ph_idx_t+2
      &   ,hco3_idx_t=ph_idx_t+3, co2star_idx_t=ph_idx_t+4
      &   ,omega_calc_idx_t=ph_idx_t+5, omega_arag_idx_t=ph_idx_t+6
+#  undef LAST_I
+#  define LAST_I omega_arag_idx_t
 # endif
-     &   )
+# ifdef BEC_COCCO
+     &   grazecocco_idx_t=LAST_I+1,coccoloss_idx_t=LAST_I+2,
+     &   coccoagg_idx_t=LAST_I+3,photoccocco_idx_t=LAST_I+4,cocconlim_idx_t=LAST_I+5,
+     &   coccopo4uptake_idx_t=LAST_I+6,coccofeuptake_idx_t=LAST_I+7,coccolightlim_idx_t=LAST_I+8,
+     &   caco3prodcocco_idx_t=LAST_I+9,ironuptakecocco_idx_t=LAST_I+10,coccono3uptake_idx_t=LAST_I+11,
+     &   cocconh4uptake_idx_t=LAST_I+12,coccograzedic_idx_t=LAST_I+13,
+     &   coccolossdic_idx_t=LAST_I+14,grazecoccozoo_idx_t=LAST_I+15,coccoqcaco3_idx_t=LAST_I+16,
+     &   coccophotoacc_idx_t=LAST_I+17,totchl_idx_t=LAST_I+18,spplim_idx_t=LAST_I+19,
+     &   diatplim_idx_t=LAST_I+20,diazplim_idx_t=LAST_I+21,coccoplim_idx_t=LAST_I+22 
+# endif        
+
 
       ! Indices to be used in bec2_diag_2d only:
-      integer pco2air_idx_t, parinc_idx_t,
-     &   fgo2_idx_t, fgco2_idx_t,ws10m_idx_t,xkw_idx_t,atmpress_idx_t,
-     &   schmidto2_idx_t,o2sat_idx_t,schmidtco2_idx_t,pvo2_idx_t,
-     &   pvco2_idx_t,ironflux_idx_t,seddenitrif_idx_t,dco2star_idx_t
-      parameter( pco2air_idx_t=1,
+      integer, parameter :: pco2air_idx_t=1,
      &   parinc_idx_t=pco2air_idx_t+1, fgo2_idx_t=pco2air_idx_t+2, fgco2_idx_t=pco2air_idx_t+3,
      &   ws10m_idx_t=pco2air_idx_t+4, xkw_idx_t=pco2air_idx_t+5, atmpress_idx_t=pco2air_idx_t+6,
      &   schmidto2_idx_t=pco2air_idx_t+7, o2sat_idx_t=pco2air_idx_t+8, schmidtco2_idx_t=pco2air_idx_t+9,
      &   pvo2_idx_t=pco2air_idx_t+10,pvco2_idx_t=pco2air_idx_t+11,ironflux_idx_t=pco2air_idx_t+12,
      &   seddenitrif_idx_t=pco2air_idx_t+13,dco2star_idx_t=pco2air_idx_t+14
+# undef LAST_I
+# define LAST_I dco2star_idx_t
 # ifdef CCHEM_MOCSY
-#  if !defined CCHEM_TODEPTH
      &   ,ph_idx_t=pco2air_idx_t+15, pco2oc_idx_t=ph_idx_t+1, co3_idx_t=ph_idx_t+2
+#  ifndef CCHEM_TODEPTH
      &   ,hco3_idx_t=ph_idx_t+3, co2star_idx_t=ph_idx_t+4
 #  endif
-# else /* CCHEM_MOCSY */
-     &   ,ph_idx_t=pco2air_idx_t+15, pco2oc_idx_t=ph_idx_t+1, co2star_idx_t=ph_idx_t+2
 # endif /* CCHEM_MOCSY */
-     &   )
+# undef LAST_I
+# define LAST_I co2star_idx_t
+     &   fesedflux_idx_t=LAST_I+1,fluxtosed_idx_t=LAST_I+2,caco3fluxtosed_idx_t=LAST_I+3,
+     &   sio2fluxtosed_idx_t=LAST_I+4,pironfluxtosed_idx_t=LAST_I+5,dustfluxtosed_idx_t=LAST_I+6,
+     &   pocsedloss_idx_t=LAST_I+7,otherremin_idx_t=LAST_I+8,caco3sedloss_idx_t=LAST_I+9,
+     &   sio2sedloss_idx_t=LAST_I+10 
 
       ! Array for storing the Netcdf variable IDs of the diagnostics:
       ! The IDs of the 2d vars are first, the those of the 3d.
@@ -156,7 +155,7 @@
       real, pointer, dimension(:,:,:) ::   bec2_diag_2d_slavg
 #   endif
 #  endif /* AVERAGES */
-# else /* BEC2_DIAG_USER
+# else /* BEC2_DIAG_USER */
 #  ifdef AVERAGES
       real bec2_diag_3d_avg(GLOBAL_2D_ARRAY,N,nr_bec2_diag_3d)
       real bec2_diag_2d_avg(GLOBAL_2D_ARRAY,nr_bec2_diag_2d)
@@ -172,6 +171,10 @@
      &    , bec2_diag_3d_slavg, bec2_diag_2d_slavg
 #  endif
 # endif /* AVERAGES */
+!#else
+!mm does not compile:
+!      real PH_HIST(GLOBAL_2D_ARRAY)
+!      common /ph_hist_com/ PH_HIST
 #endif /* BEC2_DIAG */
 
 !     IFRAC  sea ice fraction (non-dimensional)
@@ -191,6 +194,9 @@
 #ifdef RIVER_LOAD_P
      &  ,lriver_load_p
 #endif
+#ifdef RIVER_LOAD_ALK_DIC_SI
+     &  ,lriver_load_alk,lriver_load_dic,lriver_load_si
+#endif
       common /ecoflag/lsource_sink,lflux_gas_o2,lflux_gas_co2,
      &   liron_flux,ldust_flux
 #ifdef RIVER_LOAD_N
@@ -198,6 +204,9 @@
 #endif
 #ifdef RIVER_LOAD_P
      &  ,lriver_load_p
+#endif
+#ifdef RIVER_LOAD_ALK_DIC_SI
+     &  , lriver_load_alk,lriver_load_dic,lriver_load_si
 #endif
 
 !
@@ -212,6 +221,10 @@
      &    dop_ind_t=12, dopr_ind_t=13, donr_ind_t=14, zooc_ind_t=15, spchl_ind_t=16,
      &    spc_ind_t=17, spfe_ind_t=18, spcaco3_ind_t=19, diatchl_ind_t=20, diatc_ind_t=21,
      &    diatfe_ind_t=22, diatsi_ind_t=23, diazchl_ind_t=24, diazc_ind_t=25, diazfe_ind_t=26 )
+# ifdef BEC_COCCO
+      integer, parameter ::
+     &     coccoc_ind_t=27, coccochl_ind_t=28, coccocal_ind_t=29, coccofe_ind_t=30, cal_ind_t=31
+# endif
 
 !
 ! Parameters related to sinking particles:

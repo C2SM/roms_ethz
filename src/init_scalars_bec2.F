@@ -199,6 +199,33 @@ CR      write(*,'(1x,A,I3)') 'indxNH4 =',indxNH4
       vname(3,indxDiazfe)='mMol Fe m-3                              '
       vname(4,indxDiazfe)='  '
 
+# ifdef BEC_COCCO
+      vname(1,indxCoccoc)='COCCOC                                   '
+      vname(2,indxCoccoc)='Coccolithophore Carbon                   '
+      vname(3,indxCoccoc)='mMol C m-3                              '
+      vname(4,indxCoccoc)='  '
+
+      vname(1,indxCoccochl)='COCCOCHL                                 '
+      vname(2,indxCoccochl)='Coccolithophore Chlorophyll              '
+      vname(3,indxCoccochl)='mg Chl-a m-3                              '
+      vname(4,indxCoccochl)='  '
+
+      vname(1,indxCoccocal)='COCCOCAL                                '
+      vname(2,indxCoccocal)='Coccolithophore CaCO3                   '
+      vname(3,indxCoccocal)='mMol CaCO3 m-3                          '
+      vname(4,indxCoccocal)='  '
+
+      vname(1,indxCoccofe)='COCCOFE                                   '
+      vname(2,indxCoccofe)='Coccolithophore iron                    '
+      vname(3,indxCoccofe)='mMol Fe m-3                              '
+      vname(4,indxCoccofe)='  '
+
+      vname(1,indxCal)='CAL                                   '
+      vname(2,indxCal)='CaCO3                                   '
+      vname(3,indxCal)='mMol CaCO3 m-3                         '
+      vname(4,indxCal)='  '
+# endif 
+
       vname(1,indxdust)='dust                                       '
       vname(2,indxdust)='dust flux                      '
       vname(3,indxdust)='kg m-2 s-1                                '
@@ -330,6 +357,7 @@ CR      write(*,'(1x,A,I3)') 'indxNH4 =',indxNH4
       vname_bec2_diag_2d(2,indxIRONFLUX)='Iron surface flux'
       vname_bec2_diag_2d(3,indxIRONFLUX)='mmol/m2/s'
       vname_bec2_diag_2d(4,indxIRONFLUX)=' '
+
       vname_bec2_diag_2d(1,indxSEDDENITRIF)='SED_DENITRIF'
       vname_bec2_diag_2d(2,indxSEDDENITRIF)='Sediment denitrification'
       vname_bec2_diag_2d(3,indxSEDDENITRIF)='mmol/m3/s'
@@ -368,6 +396,72 @@ CR      write(*,'(1x,A,I3)') 'indxNH4 =',indxNH4
       vname_bec2_diag_2d(4,indxHCO3)=' '
 #   endif /* CCHEM_TODEPTH */
 #  endif /* CCHEM_MOCSY */
+
+      vname_bec2_diag_2d(1,indxFESEDFLUX)='SED_FE_FLUX'
+      vname_bec2_diag_2d(2,indxFESEDFLUX)='Benthic Iron Flux'
+      vname_bec2_diag_2d(3,indxFESEDFLUX)='mmol/m2/s'
+      vname_bec2_diag_2d(4,indxFESEDFLUX)=' '
+
+      vname_bec2_diag_2d(1,indxFLUXTOSED)='FLUX_TO_SED'
+      vname_bec2_diag_2d(2,indxFLUXTOSED)='POC reaching the sediments'
+      vname_bec2_diag_2d(3,indxFLUXTOSED)='mmol/m2/s'
+      vname_bec2_diag_2d(4,indxFLUXTOSED)=' '
+
+      vname_bec2_diag_2d(1,indxCACO3FLUXTOSED)='CACO3_FLUX_TO_SED'
+      vname_bec2_diag_2d(2,indxCACO3FLUXTOSED)='CaCO3 reaching the sed'
+      vname_bec2_diag_2d(3,indxCACO3FLUXTOSED)='mmol/m2/s'
+      vname_bec2_diag_2d(4,indxCACO3FLUXTOSED)=' '
+
+      vname_bec2_diag_2d(1,indxSIO2FLUXTOSED)='SIO2_FLUX_TO_SED'
+      vname_bec2_diag_2d(2,indxSIO2FLUXTOSED)='Opal reaching the sed'
+      vname_bec2_diag_2d(3,indxSIO2FLUXTOSED)='mmol/m2/s'
+      vname_bec2_diag_2d(4,indxSIO2FLUXTOSED)=' '
+
+      vname_bec2_diag_2d(1,indxPIRONFLUXTOSED)='PIRON_FLUX_TO_SED'
+      vname_bec2_diag_2d(2,indxPIRONFLUXTOSED)='P iron reaching the sed'
+      vname_bec2_diag_2d(3,indxPIRONFLUXTOSED)='mmol/m2/s'
+      vname_bec2_diag_2d(4,indxPIRONFLUXTOSED)=' '
+
+      vname_bec2_diag_2d(1,indxDUSTFLUXTOSED)='DUST_FLUX_TO_SED'
+      vname_bec2_diag_2d(2,indxDUSTFLUXTOSED)='Dust reaching the sed'
+      vname_bec2_diag_2d(3,indxDUSTFLUXTOSED)='mmol/m2/s'
+      vname_bec2_diag_2d(4,indxDUSTFLUXTOSED)=' '
+
+      vname_bec2_diag_2d(1,indxPOCSEDLOSS)='POC_SED_LOSS'
+      vname_bec2_diag_2d(2,indxPOCSEDLOSS)='POC lost to sed at bottom'
+      vname_bec2_diag_2d(3,indxPOCSEDLOSS)='mmol/m2/s'
+      vname_bec2_diag_2d(4,indxPOCSEDLOSS)=' '
+
+      vname_bec2_diag_2d(1,indxOTHERREMIN)='OTHER_REMIN'
+      vname_bec2_diag_2d(2,indxOTHERREMIN)='other remin pathways in sed'
+      vname_bec2_diag_2d(3,indxOTHERREMIN)='mmol/m3/s'
+      vname_bec2_diag_2d(4,indxOTHERREMIN)=' '
+
+      vname_bec2_diag_2d(1,indxCACO3SEDLOSS)='P_CACO3_SED_LOSS'
+      vname_bec2_diag_2d(2,indxCACO3SEDLOSS)='CaCO3 lost to sed'
+      vname_bec2_diag_2d(3,indxCACO3SEDLOSS)='mmol/m2/s'
+      vname_bec2_diag_2d(4,indxCACO3SEDLOSS)=' '
+
+      vname_bec2_diag_2d(1,indxSIO2SEDLOSS)='SIO2_SED_LOSS'
+      vname_bec2_diag_2d(2,indxSIO2SEDLOSS)='SiO2 lost to sed'
+      vname_bec2_diag_2d(3,indxSIO2SEDLOSS)='mmol Si/m2/s'
+      vname_bec2_diag_2d(4,indxSIO2SEDLOSS)=' '
+
+
+!      ! MF: Control BEC2_DIAG Output vars
+!      wrtavg_bec2_diag_2d=(/.false.,.true.,.false.,.true.,.false.,  !PH, pCO2sw, pCO2air, PARinc,FG_O2,
+!     &                     .true.,.false.,.false.,.false.,.false.,  !FG_CO2, WS10m, XKW, ATM_PRESS,SCHMIDT_O2,
+!     &                     .false.,.false.,.false.,.false.,.false., !O2SA, SCHMIDT_CO2, PV_O2,PV_CO2, CO2STAR,
+!     &                     .false.,.false.,.true./)                 !DCO2STAR, IRON_FLUX,SED_DENITRI
+
+      ! MF: Control BEC2_DIAG Output vars
+      wrtavg_bec2_diag_2d=(/.true.,.true.,.false.,.true.,.false.,  !PH, pCO2sw, pCO2air, PARinc,FG_O2,
+     &                     .true.,.false.,.false.,.false.,.false.,  !FG_CO2, WS10m, XKW, ATM_PRESS,SCHMIDT_O2,
+     &                     .false.,.false.,.false.,.false.,.false., !O2SA, SCHMIDT_CO2, PV_O2,PV_CO2, CO2STAR,
+     &                     .false.,.false.,.true.,.true.,          !DCO2STAR, IRON_FLUX,SED_DENITRI,FESEDFLUX
+     &                     .true.,.true.,.true.,.true.,.true.,         ! FLUX_TO_SED,CACO3_FLUX_TO_SED,SIO2_FLUX_TO_SED,PIRON_FLUX_TO_SED,DUST_FLUX_TO_SED
+     &                     .true.,.true.,.true.,.true./)         ! POC_SED_LOSS, OTHER_REMIN,CaCO3_sed_loss,P_SiO2_sed_loss
+
 
       !
       ! More 3d diagnostics:
@@ -828,6 +922,108 @@ CR      write(*,'(1x,A,I3)') 'indxNH4 =',indxNH4
       vname_bec2_diag_3d(3,indxSPCACO3ZERO)='mMol CaCO3/m3/s'
       vname_bec2_diag_3d(4,indxSPCACO3ZERO)=' '
 
+# ifdef BEC_COCCO
+      vname_bec2_diag_3d(1,indxGRAZECOCCO)='GRAZE_COCCO'
+      vname_bec2_diag_3d(2,indxGRAZECOCCO)=
+     &  'Grazing rate on Coccos'
+      vname_bec2_diag_3d(3,indxGRAZECOCCO)='mmol C/m3/s'
+      vname_bec2_diag_3d(4,indxGRAZECOCCO)=' '
+
+      vname_bec2_diag_3d(1,indxCOCCOLOSS)='COCCO_LOSS'
+      vname_bec2_diag_3d(2,indxCOCCOLOSS)=
+     &  'Cocco non-grazing mortality'
+      vname_bec2_diag_3d(3,indxCOCCOLOSS)='mmol C/m3/s '
+      vname_bec2_diag_3d(4,indxCOCCOLOSS)=' '
+
+      vname_bec2_diag_3d(1,indxCOCCOAGG)='COCCO_AGG'
+      vname_bec2_diag_3d(2,indxCOCCOAGG)=
+     &  'Aggregation of coccos'
+      vname_bec2_diag_3d(3,indxCOCCOAGG)='mmol C/m3/s '
+      vname_bec2_diag_3d(4,indxCOCCOAGG)=' '
+
+      vname_bec2_diag_3d(1,indxPHOTOCCOCCO)='PHOTOC_COCCO'
+      vname_bec2_diag_3d(2,indxPHOTOCCOCCO)=
+     &  'C fixation rate by Coccos'
+      vname_bec2_diag_3d(3,indxPHOTOCCOCCO)='mmol C/m3/s '
+      vname_bec2_diag_3d(4,indxPHOTOCCOCCO)=' '
+
+      vname_bec2_diag_3d(1,indxCOCCONLIM)='COCCO_N_LIM'
+      vname_bec2_diag_3d(2,indxCOCCONLIM)=
+     &  'N limitation factor of Coccos'
+      vname_bec2_diag_3d(3,indxCOCCONLIM)=' '
+      vname_bec2_diag_3d(4,indxCOCCONLIM)=' '
+      vname_bec2_diag_3d(1,indxCOCCOFEUPTAKE)='COCCO_FE_LIM'
+      vname_bec2_diag_3d(2,indxCOCCOFEUPTAKE)=
+     &  'Fe limitation factor of Coccos'
+      vname_bec2_diag_3d(3,indxCOCCOFEUPTAKE)=' '
+      vname_bec2_diag_3d(4,indxCOCCOFEUPTAKE)=' '
+      vname_bec2_diag_3d(1,indxCOCCOPO4UPTAKE)='COCCO_PO4_LIM'
+      vname_bec2_diag_3d(2,indxCOCCOPO4UPTAKE)=
+     &  'PO4 limitation factor of Coccos'
+      vname_bec2_diag_3d(3,indxCOCCOPO4UPTAKE)=' '
+      vname_bec2_diag_3d(4,indxCOCCOPO4UPTAKE)=' '
+
+      vname_bec2_diag_3d(1,indxCOCCOLIGHTLIM)='COCCO_LIGHT_LIM'
+      vname_bec2_diag_3d(2,indxCOCCOLIGHTLIM)=
+     &  'Cocco light limitation factor'
+      vname_bec2_diag_3d(3,indxCOCCOLIGHTLIM)=' '
+      vname_bec2_diag_3d(4,indxCOCCOLIGHTLIM)=' '
+
+      vname_bec2_diag_3d(1,indxCACO3PRODCOCCO)='CACO3_PROD_COCCO'
+      vname_bec2_diag_3d(2,indxCACO3PRODCOCCO)=
+     &  'Production of CaCO3 by Coccos'
+      vname_bec2_diag_3d(3,indxCACO3PRODCOCCO)='mmol CaCO3/m3/s '
+      vname_bec2_diag_3d(4,indxCACO3PRODCOCCO)=' '
+
+      vname_bec2_diag_3d(1,indxIRONUPTAKECOCCO)='PHOTOFE_COCCO'
+      vname_bec2_diag_3d(2,indxIRONUPTAKECOCCO)=
+     &  'Iron uptake rate by Coccos'
+      vname_bec2_diag_3d(3,indxIRONUPTAKECOCCO)='mmol/m3/s  '
+      vname_bec2_diag_3d(4,indxIRONUPTAKECOCCO)=' '
+
+      vname_bec2_diag_3d(1,indxCOCCONO3UPTAKE)='COCCO_NO3_UPTAKE'
+      vname_bec2_diag_3d(2,indxCOCCONO3UPTAKE)=
+     &   'NO3 uptake rate of Coccos'
+      vname_bec2_diag_3d(3,indxCOCCONO3UPTAKE)='mmol/m3/s  '
+      vname_bec2_diag_3d(4,indxCOCCONO3UPTAKE)=' '
+
+      vname_bec2_diag_3d(1,indxCOCCONH4UPTAKE)='COCCO_NH4_UPTAKE'
+      vname_bec2_diag_3d(2,indxCOCCONH4UPTAKE)=
+     &   'NH4 uptake rate of Coccos'
+      vname_bec2_diag_3d(3,indxCOCCONH4UPTAKE)='mmol/m3/s  '
+      vname_bec2_diag_3d(4,indxCOCCONH4UPTAKE)=' '
+
+      vname_bec2_diag_3d(1,indxCOCCOGRAZEDIC)='COCCO_GRAZE_DIC'
+      vname_bec2_diag_3d(2,indxCOCCOGRAZEDIC)=
+     &   'Cocco grazing rate routed to DIC'
+      vname_bec2_diag_3d(3,indxCOCCOGRAZEDIC)='mmol C/m3/s  '
+      vname_bec2_diag_3d(4,indxCOCCOGRAZEDIC)=' '
+
+      vname_bec2_diag_3d(1,indxCOCCOLOSSDIC)='COCCO_LOSS_DIC'
+      vname_bec2_diag_3d(2,indxCOCCOLOSSDIC)=
+     &   'Cocco non-grazing mortality routed to DIC'
+      vname_bec2_diag_3d(3,indxCOCCOLOSSDIC)='mmol C/m3/s  '
+      vname_bec2_diag_3d(4,indxCOCCOLOSSDIC)=' '
+
+      vname_bec2_diag_3d(1,indxGRAZECOCCOZOO)='GRAZE_COCCO_ZOO'
+      vname_bec2_diag_3d(2,indxGRAZECOCCOZOO)=
+     &  'Grazing rate on Coccos routed to zoo'
+      vname_bec2_diag_3d(3,indxGRAZECOCCOZOO)='mmol C/m3/s '
+      vname_bec2_diag_3d(4,indxGRAZECOCCOZOO)=' '
+
+      vname_bec2_diag_3d(1,indxQCACO3COCCO)='QCACO3_COCCO'
+      vname_bec2_diag_3d(2,indxQCACO3COCCO)=
+     &  'Cocco CaCO3/C ratio'
+      vname_bec2_diag_3d(3,indxQCACO3COCCO)='mmol CaCO3/mmol C'
+      vname_bec2_diag_3d(4,indxQCACO3COCCO)=' '
+
+      vname_bec2_diag_3d(1,indxCOCCOPHOTOACC)='PHOTOACC_COCCO'
+      vname_bec2_diag_3d(2,indxCOCCOPHOTOACC)=
+     &  'Chl synthesis in photoadaptation for Coccos'
+      vname_bec2_diag_3d(3,indxCOCCOPHOTOACC)='mg Chl/m3/s'
+      vname_bec2_diag_3d(4,indxCOCCOPHOTOACC)=' '
+# endif BEC_COCCO
+
       vname_bec2_diag_3d(1,indxDONRREMIN) = 'DONr_REMIN'
       vname_bec2_diag_3d(2,indxDONRREMIN)=
      &  'Portion of refractory DON remineralized'
@@ -839,11 +1035,78 @@ CR      write(*,'(1x,A,I3)') 'indxNH4 =',indxNH4
      &  'Total Chlorophyll'
       vname_bec2_diag_3d(3,indxTOTCHL)='mg Chl/m3'
       vname_bec2_diag_3d(4,indxTOTCHL)=' '
+
       vname_bec2_diag_3d(1,indxTOTPHYTOC)='TOT_PHYTOC'
       vname_bec2_diag_3d(2,indxTOTPHYTOC)=
      &  'Total Phytoplankton Carbon'
       vname_bec2_diag_3d(3,indxTOTPHYTOC)='mMol C/m3'
       vname_bec2_diag_3d(4,indxTOTPHYTOC)=' '
+
+      vname_bec2_diag_3d(1,indxSPPLIM)='SP_P_LIM'
+      vname_bec2_diag_3d(2,indxSPPLIM)=
+     &  'Small phytoplankton P limitation (PO4 + DOP)'
+      vname_bec2_diag_3d(3,indxSPPLIM)=' '
+      vname_bec2_diag_3d(4,indxSPPLIM)=' '
+
+      vname_bec2_diag_3d(1,indxDIATPLIM)='DIAT_P_LIM'
+      vname_bec2_diag_3d(2,indxDIATPLIM)=
+     &  'Diatom P limitation (PO4 + DOP)'
+      vname_bec2_diag_3d(3,indxDIATPLIM)=' '
+      vname_bec2_diag_3d(4,indxDIATPLIM)=' '
+
+      vname_bec2_diag_3d(1,indxDIAZPLIM)='DIAZ_P_LIM'
+      vname_bec2_diag_3d(2,indxDIAZPLIM)=
+     &  'Diazotroph P limitation (PO4 + DOP)'
+      vname_bec2_diag_3d(3,indxDIAZPLIM)=' '
+      vname_bec2_diag_3d(4,indxDIAZPLIM)=' '
+
+      vname_bec2_diag_3d(1,indxCOCCOPLIM)='COCCO_P_LIM'
+      vname_bec2_diag_3d(2,indxCOCCOPLIM)=
+     &  'Cocco P limitation (PO4 + DOP)'
+      vname_bec2_diag_3d(3,indxCOCCOPLIM)=' '
+      vname_bec2_diag_3d(4,indxCOCCOPLIM)=' '
+
+
+
+!     &                     .true.,.true.,.true.,.true.,.true.,       !GRAZE_SP, GRAZE_DIA.true.,GRAZE_DIAZ, SP_LOSS, DIAT_LOSS,
+!     &                     .true.,.true.,.true.,.true.,.true.,       !ZOO_LOSS, SP_AGG, DIAT_AGG,PHOTOC_SP, PHOTOC_DIA.true.,
+!     &                     .false.,.true.,.true.,.false.,.false.,    !TOT_PROD, DOC_PROD,DOC_REMIN, FE_SCAVENGE, SP_N_LIM, 
+!     &                     .false.,.false.,.false.,.false.,.false.,  !SP_FE_LIM, SP_PO4_LIM,SP_LIGHT_LIM, DIAT_N_LIM, DIAT_FE_LIM,
+!     &                     .false.,.false.,.false.,.true.,.false.,   !DIAT_PO4_LIM, DIAT_SIO3_LIM,DIAT_LIGHT_LIM, CACO3_PROD, DIAZ_NFIX,
+!     &                     .true.,.true.,.false.,.false.,.false.,    !DIAZ_LOSS, PHOTOC_DIAZ,DIAZ_PO4_LIM, DIAZ_FE_LIM, DIAZ_LIGHT_LIM,
+!     &                     .false.,.true.,.true.,.false.,.false.,    !FE_SCAVENGE_RATE, DON_PROD,DON_REMIN, DOFE_PROD, DOFE_REMIN,
+!     &                     .false.,.false.,.false.,.false.,.false.,  !DOP_PROD, DOP_REMIN,DIAT_SI_UPTAKE, PHOTOFE_SP, PHOTOFE_DIA.true.,  
+!     &                     .false.,.true.,.true.,.true.,.true.,      !PHOTOFE_DIAZ, NITRI.false.,DENITRI.false.,SP_NO3_UPTAKE,DIAT_NO3_UPTAKE,  
+!     &                     .true.,.true.,.true.,.true.,.true.,       !DIAZ_NO3_UPTAKE,SP_NH4_UPTAKE, DIAT_NH4_UPTAKE,DIAZ_NH4_UPTAKE,SP_GRAZE_DIC,  
+!     &                     .true.,.true.,.true.,.true.,.true.,       !DIAT_GRAZE_DIC,DIAZ_GRAZE_DIC, SP_LOSS_DIC,DIAT_LOSS_DIC,DIAZ_LOSS_DIC,  
+!     &                     .true.,.true.,.true.,.true.,.true.,       !ZOO_LOSS_DIC, DIAZ_AGG,GRAZE_SP_ZOO, GRAZE_DIAT_ZOO, GRAZE_DIAZ_ZOO, 
+!     &                     .true.,.false.,.false.,.false./)          !QCACO3,PHOTOACC_SP,PHOTOACC_DIA.true., PHOTOACC_DIAZ,
+
+
+        ! MF: Control BEC2_DIAG Output vars
+      wrtavg_bec2_diag_3d=(/.true.,.true.,.true.,.true.,.true.,   !PAR, POC_FLUX_IN, POC_Prod,POC_REMIN, CACO3_FLUX_IN,
+     &                     .true.,.true.,.true.,.true.,.true.,   !PCACO3_PROD, CACO3_REMIN,SIO2_FLUX_IN, SIO2_PROD, SIO2_REMIN,
+     &                     .false.,.true.,.false.,.true.,.true.,  !DUST_FLUX_IN, DUST_REMIN,P_IRON_FLUX_IN, P_IRON_PROD, P_IRON_REMIN,
+     &                     .true.,.true.,.true.,.true.,.true.,  !GRAZE_SP, GRAZE_DIAT,GRAZE_DIAZ, SP_LOSS, DIAT_LOSS,
+     &                     .true.,.true.,.true.,.true.,.true.,  !ZOO_LOSS, SP_AGG, DIAT_AGG,PHOTOC_SP, PHOTOC_DIA,
+     &                     .true.,.true.,.true.,.true.,.true.,    !TOT_PROD, DOC_PROD,DOC_REMIN, FE_SCAVENGE, SP_N_LIM, 
+     &                     .true.,.true.,.true.,.true.,.true.,  !SP_FE_LIM, SP_PO4_LIM,SP_LIGHT_LIM, DIAT_N_LIM, DIAT_FE_LIM,
+     &                     .true.,.true.,.true.,.true.,.true.,   !DIAT_PO4_LIM, DIAT_SIO3_LIM,DIAT_LIGHT_LIM, CACO3_PROD, DIAZ_NFIX,
+     &                     .true.,.true.,.true.,.true.,.true.,    !DIAZ_LOSS, PHOTOC_DIAZ,DIAZ_PO4_LIM, DIAZ_FE_LIM, DIAZ_LIGHT_LIM,
+     &                     .true.,.false.,.false.,.false.,.false.,    !FE_SCAVENGE_RATE, DON_PROD,DON_REMIN, DOFE_PROD, DOFE_REMIN,
+     &                     .false.,.false.,.true.,.false.,.false.,  !DOP_PROD, DOP_REMIN,DIAT_SI_UPTAKE, PHOTOFE_SP, PHOTOFE_DIA.true.,  
+     &                     .false.,.true.,.true.,.true.,.true.,  !PHOTOFE_DIAZ, NITRI,DENITRI,SP_NO3_UPTAKE,DIAT_NO3_UPTAKE,  
+     &                     .true.,.true.,.true.,.true.,.false.,  !DIAZ_NO3_UPTAKE,SP_NH4_UPTAKE, DIAT_NH4_UPTAKE,DIAZ_NH4_UPTAKE,SP_GRAZE_DIC,  
+     &                     .false.,.false.,.false.,.false.,.false.,  !DIAT_GRAZE_DIC,DIAZ_GRAZE_DIC, SP_LOSS_DIC,DIAT_LOSS_DIC,DIAZ_LOSS_DIC,  
+     &                     .false.,.true.,.false.,.false.,.false.,  !ZOO_LOSS_DIC, DIAZ_AGG,GRAZE_SP_ZOO, GRAZE_DIAT_ZOO, GRAZE_DIAZ_ZOO, 
+     &                     .false.,.false.,.false.,.false.,          !QCACO3,PHOTOACC_SP,PHOTOACC_DIA, PHOTOACC_DIAZ,
+     &                     .true.,.true.,.true.,.true.,.true.,       !GRAZE_COCCO, COCCO_LOSS, COCCO_AGG, PHOTOC_COCCO, COCCO_N_LIM
+     &                     .true.,.true.,.true.,.true.,.false.,     ! COCCO_PO4_LIM, COCCO_FE_LIM, COCCO_LIGHT_LIM, CACO3_PROD_COCCO,PHOTOFE_COCCO
+     &                     .true.,.true.,.false.,.false.,         ! COCCO_NO3_UPTAKE, COCCO_NH4_UPTAKE, COCCO_GRAZE_DIC,CCOCCO_LOSS_DIC
+     &                     .false.,.true.,.false.,.true.,          !GRAZE_COCCO_ZOO, QCACO3_COCCO, PHOTOACC_COCCO, TOT_CHL
+     &                     .true.,.true.,.true.,.true./)    ! SP_P_LIM, DIAT_P_LIM, DIAZ_P_LIM, COCCO_P_LIM
+
+
 
 # endif /* BEC2_DIAG */
 
@@ -874,6 +1137,13 @@ CR      write(*,'(1x,A,I3)') 'indxNH4 =',indxNH4
       tclm_name(iDIAZC) = 'diazc_time'
       tclm_name(iDIAZCHL) = 'diazchl_time'
       tclm_name(iDIAZFE) = 'diazfe_time'
+# ifdef BEC_COCCO
+      tclm_name(iCOCCOC) = 'coccoc_time'
+      tclm_name(iCOCCOCHL) = 'coccochl_time'
+      tclm_name(iCOCCOCAL) = 'coccocal_time'
+      tclm_name(iCOCCOFE) = 'coccofe_time'
+      tclm_name(iCAL) = 'cal_time'
+# endif
 #endif /* SOLVE3D */
       return
       end

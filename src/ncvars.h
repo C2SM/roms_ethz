@@ -189,6 +189,13 @@
      &            indxDiazfe=indxPO4+25
 #  undef LAST_I
 #  define LAST_I indxDiazfe
+#  ifdef BEC_COCCO
+     &          , indxCoccoc=indxPO4+26,
+     &            indxCoccochl=indxPO4+27, indxCoccocal=indxPO4+28,
+     &            indxCoccofe=indxPO4+29, indxCal=indxPO4+30
+#  undef LAST_I
+#  define LAST_I indxCal
+#  endif
 #  ifndef BEC2_DIAG
      &            , indxPH=indxPO4+1, indxPCO2=indxPO4+2
      &            , indxPCO2air=indxPO4+3, indxPARinc=indxPO4+4

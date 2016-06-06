@@ -299,7 +299,7 @@ c     &      NSUB_X=2, NSUB_E=8  ! <-- iswake 768x192
       &      , NT_sed=1
 #    endif
 #   endif /* SEDIMENT_BIOLOGY */
-# elif defined BIOLOGY_BEC
+#  elif defined BIOLOGY_BEC
      &       , iPO4=itrc_bio, 
      &       , iNO3=iPO4+1, iSIO3=iPO4+2, iNH4=iPO4+3
      &       , iFE=iPO4+4, iO2=iPO4+5, iDIC=iPO4+6
@@ -310,21 +310,30 @@ c     &      NSUB_X=2, NSUB_E=8  ! <-- iswake 768x192
      &       , iDIAZCHL=iPO4+19, iDIAZFE=iPO4+20, iDON=iPO4+21
      &       , iDOFE=iPO4+22, iDOP=iPO4+23
      &       , ntrc_bio=24
-# elif defined BIOLOGY_BEC2
+#  elif defined BIOLOGY_BEC2
      &       , iPO4=itrc_bio
      &       , iNO3=iPO4+1, iSIO3=iPO4+2, iNH4=iPO4+3
      &       , iFE=iPO4+4, iO2=iPO4+5, iDIC=iPO4+6
      &       , iALK=iPO4+7, iDOC=iPO4+8, iDON=iPO4+9
      &       , iDOFE=iPO4+10, iDOP=iPO4+11, iDOPR=iPO4+12
      &       , iDONR=iPO4+13, iZOOC=iPO4+14
-     &       , iSPCHL=iPO4+15, iSPC=iPO4+16, iSPFE=iPO4+17
-     &       , iSPCACO3=iPO4+18, iDIATCHL=iPO4+19, iDIATC=iPO4+20
-     &       , iDIATFE=iPO4+21, iDIATSI=iPO4+22, iDIAZCHL=iPO4+23
-     &       , iDIAZC=iPO4+24, iDIAZFE=iPO4+25
+     &       , iSPCHL=iPO4+15, iSPC=iPO4+16
+     &       , iSPFE=iPO4+17, iSPCACO3=iPO4+18
+     &       , iDIATCHL=iPO4+19, iDIATC=iPO4+20
+     &       , iDIATFE=iPO4+21, iDIATSI=iPO4+22
+     &       , iDIAZCHL=iPO4+23, iDIAZC=iPO4+24
+     &       , iDIAZFE=iPO4+25
+#   ifdef BEC_COCCO
+     &       , iCOCCOC=iPO4+26, iCOCCOCHL=iPO4+27
+     &       , iCOCCOCAL=iPO4+28, iCOCCOFE=iPO4+29
+     &       , iCAL=iPO4+30
+     &       , ntrc_bio=31
+#   else /* case not BEC_COCCO */
      &       , ntrc_bio=26
-#  else  /* ifdef BIOLOGY */
+#   endif /* BEC_COCCO */
+#  else  /* no  BIOLOGY */
      &       , ntrc_bio=0
-#  endif /* BIOLOGY */
+#  endif /* ifdef LEGACY_NPZD */
 # else /* ifdef SALINITY */
      &       , ntrc_salt=0
 #  ifdef BIOLOGY
