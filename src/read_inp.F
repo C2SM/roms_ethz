@@ -182,18 +182,18 @@ c--      fname='roms.in.US_West'
 
       call setup_kwds(ierr)
       open (input, file=fname, status='old', form='formatted', err=97)
-   1   keyword='                                '
+    1  keyword='                                '
        read(input,'(A)',err=1,end=99) keyword
        if (ichar(keyword(1:1))==33) goto 1
        is=1
-   2   if (is == kwsize) then
+    2  if (is == kwsize) then
          goto 1
        elseif (keyword(is:is) == ' ') then
          is=is+1
          goto 2
        endif
        ie=is
-   3   if (keyword(ie:ie) == ':') then
+    3  if (keyword(ie:ie) == ':') then
          keyword(ie:ie)=' '
          goto 4           !--> recognized keyword.
        elseif (keyword(ie:ie) /= ' ' .and. ie < kwsize) then
@@ -201,7 +201,7 @@ c--      fname='roms.in.US_West'
          goto 3
        endif
        goto 1
-   4   kwlen=ie-is
+    4  kwlen=ie-is
        if (is > 1) keyword(1:kwlen)=keyword(is:is+kwlen-1)
 
 ! Read input parameters according to the keyword:
@@ -862,8 +862,9 @@ c-->    elseif (keyword(1:kwlen) == 'nudg_cof') then
           call insert_node (fname, lstr, mynode, NNODES, ierr)
 #  endif
           slavgname=fname(1:lstr)
-          mpi_master_only write(*,'(/1x,A,I5,2x,A,I5,2x,A,I4,2x,3A)')
-     &       'averages :: ntsslavg = ', ntsslavg,  'nslavg =', nslavg,
+          mpi_master_only write(*,'(/1x,A,i3,A,I5,2x,A,I5,2x,A,I4,2x,3A)')
+     &       'slice averages :: level = ',ksl, ', ntsslavg = ', ntsslavg
+     &       ,  'nslavg =', nslavg,
      &       'rec/file =', nrpfslavg, 'file = ''', slavgname(1:lstr), ''''
 
 ! Switches for fields to compute slice averages.
@@ -887,7 +888,7 @@ c-->    elseif (keyword(1:kwlen) == 'nudg_cof') then
       call echo_to_write(wrthis(indxZ), nbasic,'primary'
      &         , 'slice averages',vname(1,indxZ))
       call echo_to_write(wrthis(indxT), NT,'tracer'
-     &         , 'averages',vname(1,indxT))
+     &         , 'slice averages',vname(1,indxT))
 #  ifdef SEDIMENT_BIOLOGY
       call echo_to_write(wrthis(indxSedOrgN), NT_sed,'sediment'
      &         , 'slice averages',vname(1,indxSedOrgN))
@@ -1351,15 +1352,15 @@ c-->    elseif (keyword(1:kwlen) == 'nudg_cof') then
 
 ! Error while reading input parameters.
 
-  95  write(*,'(/1x,4A/)') '### ERROR: read_inp :: Cannot read ',
+   95 write(*,'(/1x,4A/)') '### ERROR: read_inp :: Cannot read ',
      &                       'entry ''', keyword(1:kwlen), '''.'
       ierr=ierr+1
       goto 99
-  97  lstr=lenstr(fname)
+   97 lstr=lenstr(fname)
       write(*,'(/1x,4A/)') '### ERROR: read_inp :: Cannot find ',
      &                     'input file ''', fname(1:lstr), '''.'
       ierr=ierr+1
-  99  close (input)
+   99 close (input)
 
 ! Check that all keywords were canceled, complain about the error,
 ! if some of them left.

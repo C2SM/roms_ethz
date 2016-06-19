@@ -455,8 +455,13 @@
 
         if (mod(iic-ntsAVR,nAVR)==0) then
           if (ZEROTH_TILE) then
-            mpi_master_only write(*,'(7x,A,I8,2x,A,I8,2x,A,I5)')
-     &              'set_AVR :: finished averaging at iic=', iic,
+            mpi_master_only write(*,'(7x,2A,I8,2x,A,I8,2x,A,I5)')
+# ifdef AVRSLICE
+     &              'set_slavg',
+# else 
+     &              'set_avg',
+# endif
+     &              ' :: finished averaging at iic=', iic,
      &                         'ntsAVR=', ntsAVR,  'nAVR=', nAVR
           endif
         endif

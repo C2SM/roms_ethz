@@ -10,12 +10,12 @@
 #define  DOMAIN_TILING NP_XI=8, NP_ETA=36, NSUB_X=1, NSUB_E=1
 
     /* 1/4 degree setup (SO_d025) */
-!--> #define GRID_SIZE LLm=1440, MMm=416, N=42      ! SO_d025 1/4  deg resolution
-!--> #define  DOMAIN_TILING NP_XI=16, NP_ETA=24, NSUB_X=1, NSUB_E=1
+!-- #define GRID_SIZE LLm=1440, MMm=416, N=42      ! SO_d025 1/4  deg resolution
+!-- #define  DOMAIN_TILING NP_XI=16, NP_ETA=24, NSUB_X=1, NSUB_E=1
 
     /* 1/8 degree setup (SO_d0125) */
-!--> #define GRID_SIZE LLm=2880, MMm=864, N=42      ! SO_d0125 1/8   deg resolution
-!--> #define  DOMAIN_TILING NP_XI=32, NP_ETA=12, NSUB_X=1, NSUB_E=1
+!-- #define GRID_SIZE LLm=2880, MMm=864, N=42      ! SO_d0125 1/8   deg resolution
+!-- #define  DOMAIN_TILING NP_XI=32, NP_ETA=12, NSUB_X=1, NSUB_E=1
      /* Forcing */
 #define SALINITY_MASK
 #define TSOURCE
@@ -27,7 +27,7 @@
 
      /* Open Boundary Conditions */
 #define OBC_M2FLATHER  
-!--> new only indic/pacific, see below #define OBC_M2SPECIFIED /* special for SO */
+!-- new only indic/pacific, see below #define OBC_M2SPECIFIED /* special for SO */
 # define OBC_NORTH_M2SPECIFIED_TILESTR 280 /* OBC_M2SPECIFIED for a certain range of tiles */
 # define OBC_NORTH_M2SPECIFIED_TILEEND 285 /* OBC_M2SPECIFIED for a certain range of tiles */
 # define OBC_M3ORLANSKI /* Baroclin. BC: OBC_M3ORLANSKI, OBC_M3SPECIFIED */
@@ -36,21 +36,21 @@
 
      /* Output */
 #define AVERAGES
-!--> #define SLICE_AVG
+#define SLICE_AVG
 
      /* Biology */
 #define BIOLOGY_BEC2
-!--> #define VERBOSE
+!-- #define VERBOSE
 #ifdef BIOLOGY_BEC2
 # define BEC_COCCO
 # define BIOLOGY
 # define DEFAULT_BGC_BRY_VALUES
 #endif
 
-!--> # define BEC2_DIAG
-!--> # define RIVER_LOAD_N
-!--> # define RIVER_LOAD_P
-!--> # define PCO2AIR_FORCING
+# define BEC2_DIAG
+!-- # define RIVER_LOAD_N
+!-- # define RIVER_LOAD_P
+!-- # define PCO2AIR_FORCING
 # define VFLX_CORR
 
 

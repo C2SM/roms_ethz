@@ -5,6 +5,7 @@
 #  define START_3D_ARRAY_K0 START_2D_ARRAY,0
 #  define START_3D_ARRAY_K1 START_2D_ARRAY,1
 #  define AVR avg 
+#  define CAVR 'avg'
 ! By defining AVR as avg we make use of the fact that
 ! compiler will ignore spaced e.g., wrt_ avg -> wrt_avg
 ! This makes that *.f a bit less readable but saves a lot of #define
@@ -12,6 +13,7 @@
 #  define START_3D_ARRAY_K0 START_2D_ARRAY
 #  define START_3D_ARRAY_K1 START_2D_ARRAY
 #  define AVR slavg
+#  define CAVR 'slavg'
 #  define R3DVAR r2dvar
 #  define U3DVAR u2dvar
 #  define V3DVAR v2dvar
@@ -133,7 +135,7 @@ CR      mpi_master_only print *, '--- NOTE: Executing ', wrt_ AVR
 
       if (wrt AVR (indxU) .and. ierr == nf_noerr) then
         ierr=ncdf_write(nc AVR ,  AVR U, record, u_var,
-     &                  u_ AVR (START_2D_ARRAY,1), N)
+     &                  u_ AVR (START_3D_ARRAY_K1), N)
         if (ierr /= nf_noerr) then
           lvar=lenstr(vname(1,indxU))
           write(*,1) vname(1,indxU)(1:lvar), record MYID
@@ -142,7 +144,7 @@ CR      mpi_master_only print *, '--- NOTE: Executing ', wrt_ AVR
 
       if (wrt AVR (indxV) .and. ierr == nf_noerr) then
         ierr=ncdf_write(nc AVR ,  AVR V, record, v_var,
-     &                  v_ AVR (START_2D_ARRAY,1), N)
+     &                  v_ AVR (START_3D_ARRAY_K1), N)
         if (ierr /= nf_noerr) then
         lvar=lenstr(vname(1,indxV))
           write(*,1) vname(1,indxV)(1:lvar), record MYID
@@ -154,7 +156,7 @@ CR      mpi_master_only print *, '--- NOTE: Executing ', wrt_ AVR
       do itrc=1,NT
         if (wrt AVR (indxT+itrc-1) .and. ierr == nf_noerr) then
           ierr=ncdf_write(nc AVR ,  AVR T(itrc), record, r_var,
-     &                    t_ AVR (START_2D_ARRAY,1,itrc), N)
+     &                    t_ AVR (START_3D_ARRAY_K1,itrc), N)
           if (ierr /= nf_noerr) then
             lvar=lenstr(vname(1,indxT+itrc-1))
             write(*,1) vname(1,indxT+itrc-1)(1:lvar),record MYID
@@ -168,7 +170,7 @@ CR      mpi_master_only print *, '--- NOTE: Executing ', wrt_ AVR
       do itrc=1,NT_sed
         if (wrt AVR (indxSedOrgN+itrc-1)) then
           ierr=ncdf_write(nc AVR ,  AVR T(itrc), record, r_var,
-     &                    t_sed_ AVR (START_2D_ARRAY,1,itrc), N)
+     &                    t_sed_ AVR (START_3D_ARRAY_K1,itrc), N)
           if (ierr /= nf_noerr) then
             lvar=lenstr(vname(1,indxSedOrgN+itrc-1))
             write(*,1) vname(1,indxSedOrgN+itrc-1)(1:lvar), record,
@@ -184,7 +186,7 @@ CR      write(*,*) 'wrt_ AVR :  wrtT_sed  ' MYID
 
       if (wrt AVR (indxR) .and. ierr == nf_noerr) then
         ierr=ncdf_write(nc AVR ,  AVR R, record, r_var,
-     &                  rho_ AVR (START_2D_ARRAY,1), N)
+     &                  rho_ AVR (START_3D_ARRAY_K1), N)
         if (ierr /= nf_noerr) then
           lvar=lenstr(vname(1,indxR))
           write(*,1) vname(1,indxR)(1:lvar), record  MYID
@@ -215,7 +217,7 @@ CR      write(*,*) 'wrt_ AVR :  wrtT_sed  ' MYID
 
       if (wrt AVR (indxAkv) .and. ierr == nf_noerr) then
         ierr=ncdf_write(nc AVR ,   AVR Akv,  record,  r_var,
-     &                  akv_ AVR (START_2D_ARRAY,0), N+1)
+     &                  akv_ AVR (START_3D_ARRAY_K0), N+1)
         if (ierr /= nf_noerr) then
           lvar=lenstr(vname(1,indxAkv))
           write(*,1) vname(1,indxAkv)(1:lvar), record MYID
@@ -226,7 +228,7 @@ CR      write(*,*) 'wrt_ AVR :  wrtT_sed  ' MYID
 
       if (wrt AVR (indxAkt) .and. ierr == nf_noerr) then
         ierr=ncdf_write(nc AVR ,   AVR Akt,  record,  r_var,
-     &                  akt_ AVR (START_2D_ARRAY,0), N+1)
+     &                  akt_ AVR (START_3D_ARRAY_K0), N+1)
         if (ierr /= nf_noerr) then
           lvar=lenstr(vname(1,indxAkt))
           write(*,1) vname(1,indxAkt)(1:lvar), record MYID
@@ -238,7 +240,7 @@ CR      write(*,*) 'wrt_ AVR :  wrtT_sed  ' MYID
 
       if (wrt AVR (indxAks) .and. ierr == nf_noerr) then
         ierr=ncdf_write(nc AVR ,   AVR Aks,  record,  r_var,
-     &                  Aks_ AVR (START_2D_ARRAY,0), N+1)
+     &                  Aks_ AVR (START_3D_ARRAY_K0), N+1)
         if (ierr /= nf_noerr) then
           lvar=lenstr(vname(1,indxAks))
           write(*,1) vname(1,indxAks)(1:lvar), record MYID
@@ -413,11 +415,11 @@ CR      write(*,*) 'wrt_ AVR :  wrtT_sed  ' MYID
 # endif /* BIOLOGY_NPZDOC && OXYGEN */
 # endif /* SOLVE3D */
 
-  1   format(/1x, '### ERROR: wrt_ AVR  :: Cannot write variable ''',
+    1 format(/1x, '### ERROR: wrt_',CAVR,' :: Cannot write variable ''',
      &             A, ''' into averages file, rec =', i6, 3x,A,i4)
       goto 100
-  99  if (may_day_flag == 0) may_day_flag=3
- 100  continue
+   99 if (may_day_flag == 0) may_day_flag=3
+  100 continue
 
 ! Close or synchronize netCDF file to disk to allow other
 ! processes to access data immediately after it is written.
@@ -442,14 +444,15 @@ CR      write(*,*) 'wrt_ AVR :  wrtT_sed  ' MYID
           do while (i<18 .and. tstring(i:i)==' ')
             i=i+1
           enddo
-          write(*,'(7x,2A,1x,A,1x,A,I4,A,I4,1x,A,I3)') 'wrt_ AVR  :: ',
-     &      'wrote averages for time_ AVR  =', tstring(i:i+8), 'rec =',
+          write(*,'(7x,4A,1x,A,1x,A,I4,A,I4,1x,A,I3)') 
+     &      'wrt_',CAVR,' :: ',
+     &      'wrote averages for time_avg =', tstring(i:i+8), 'rec =',
      &       record, '/', nrec AVR   MYID
 # ifdef MPI_SILENT_MODE
         endif
 # endif
       else
-        write(*,'(/1x,2A/)')      '### ERROR: wrt_ AVR :: Cannot ',
+        write(*,'(/1x,4A/)')   '### ERROR: wrt_',CAVR,' :: Cannot ',
      &                         'synchronize/close averages file.'
         if (may_day_flag==0) may_day_flag=3
       endif
@@ -462,7 +465,7 @@ CR      write(*,*) 'wrt_ AVR :  wrtT_sed  ' MYID
 #  undef START_3D_ARRAY_K0
 #  undef START_3D_ARRAY_K1
 #  undef  AVR 
-!#  undef SWRT_AVR
+#  undef CAVR
 #  undef WRTROUTINE
 #  undef NOPARWRT
 #  if defined  SLICE_AVG && !defined SLICE_AVR /* also create wrt_slice_avg */

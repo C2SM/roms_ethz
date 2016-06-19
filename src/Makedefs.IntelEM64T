@@ -22,7 +22,8 @@
 # a pre-defined, so there is no need to include it into CPPFLAGS, but
 # the standard CPP is not aware of this.
 
-      CPP = /lib/cpp -traditional -D__IFC
+#      CPP = /lib/cpp -traditional -D__IFC
+      CPP = fpp -e
  CPPFLAGS = -I${MPI_ROOT}/include
 
 # Compiler settings:  -fpp2 is required only if -openmp is present.

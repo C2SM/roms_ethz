@@ -1,5 +1,6 @@
 # Ignore binaries and 
 # files enerated by compilation
+.*.swp
 *.f
 *.o
 *~

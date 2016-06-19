@@ -46,8 +46,11 @@ c--#define nf_def_var my_nf_def_var
       integer lenstr, checkdims, my_nf_def_dim
       integer rec, lfnm, lvar, timedim, prev_fill_mode,
      &        r2dgrd(3), u2dgrd(3), v2dgrd(3), auxil(2)
-#if defined SOLVE3D && !defined AVR2DH
-     &      , r3dgrd(4), u3dgrd(4), v3dgrd(4), w3dgrd(4), itrc
+#ifdef SOLVE3D 
+# ifndef AVR2DH
+     &      , r3dgrd(4), u3dgrd(4), v3dgrd(4), w3dgrd(4)
+# endif
+     &      , itrc
 #endif
       character(len=64) text
 #ifdef NCCOMPRESS
@@ -375,7 +378,7 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
 ! Create new history/averages file:    Put global attributes and
 ! ====== === ======= ======== =====    define all the variables.
 
-  10  if (create_new_file) then
+   10 if (create_new_file) then
 #ifdef NETCDF4
         ierr=nf_create(fname(1:lfnm), 
      &                 or(nf_clobber,nf_globber+nf_netcdf4), ncid)
@@ -442,7 +445,7 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
 
         v2dgrd(1)=r2dgrd(1) ; v2dgrd(3)=timedim    ! 2D VBAR-type
 
-#ifdef SOLVE3D
+#if defined SOLVE3D && !defined AVR2DH
         r3dgrd(1)=r2dgrd(1)
         r3dgrd(2)=r2dgrd(2) ; r3dgrd(4)=timedim    ! 3D RHO-type
 
@@ -645,10 +648,6 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
 # ifdef NCCOMPRESS
           ierr=nf_def_var_deflate(ncid, vidV, ncshuff, ncdefl, nclev )
           ierr=nf_def_var_chunking(ncid, vidV, ncctg, ncvchnk3)
-# endif
-# ifdef  AVR2DH 
-            ierr=nf_put_att_int (ncid, vidV, 'sigma-level',
-     &                                          lvar, ksl)
 # endif
         endif
 
@@ -1803,12 +1802,12 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
         if (total_rec <= 1) call wrt_grid (ncid, fname, lfnm)
 #endif
 
-  99  return
+   99 return
 
 #ifdef AVRH
-   1  format(/1x,'### ERROR: def_avg :: Cannot find variable ''',
+    1 format(/1x,'### ERROR: def_avg :: Cannot find variable ''',
 #else
-   1  format(/1x,'### ERROR: def_his :: Cannot find variable ''',
+    1 format(/1x,'### ERROR: def_his :: Cannot find variable ''',
 #endif
      &                            A, ''' in file ''', A, '''.'/)
       end

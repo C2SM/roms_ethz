@@ -150,11 +150,11 @@ c      v3bc_max=0.
 
 c--#define CR
 CR      write(*,'(1x,A,I3)') 'indxTime =',indxTime
-#ifdef CALENDAR
+!#ifdef CALENDAR
       vname(1,indxTime)='time'
-#else
-      vname(1,indxTime)='ocean_time'
-#endif
+!#else
+!      vname(1,indxTime)='ocean_time'
+!#endif
       vname(2,indxTime)='Time since initialization'
 #ifndef STARTDATE
 # define STARTDATE '0001-01-01' 
@@ -295,6 +295,7 @@ CR      write(*,'(1x,A,I3)') 'indxHbbl =',indxHbbl
 # endif
 #endif
 
+#ifdef WRITE_FORCING
 CR      write(*,'(1x,A,I3)') 'indxSUSTR =',indxSUSTR
       vname(1,indxSUSTR)='sustr                                     '
       vname(2,indxSUSTR)='surface u-momentum stress                 '
@@ -304,18 +305,20 @@ CR      write(*,'(1x,A,I3)') 'indxSVSTR =',indxSVSTR
       vname(1,indxSVSTR)='svstr                                     '
       vname(2,indxSVSTR)='surface v-momentum stress                 '
       vname(3,indxSVSTR)='Newton meter-2                            '
+#endif
  
 #ifdef SOLVE3D
+# ifdef WRITE_FORCING
 CR      write(*,'(1x,A,I3)') 'indxSHFl =',indxSHFl
       vname(1,indxSHFl)='shflux                                    '
       vname(2,indxSHFl)='surface net heat flux                     '
       vname(3,indxSHFl)='Watts meter-2                             '
-# ifdef SALINITY
+#  ifdef SALINITY
 CR      write(*,'(1x,A,I3)') 'indxSSFl=',indxSSFl
       vname(1,indxSSFl)='swflux                                    '
       vname(2,indxSSFl)='surface freshwater flux (E-P)             '
       vname(3,indxSSFl)='centimeter day-1                          '
-# endif
+#  endif
 CR      write(*,'(1x,A,I3)') 'indxSWRad =',indxSWRad
       vname(1,indxSWRad)='swrad                                     '
       vname(2,indxSWRad)='solar shortwave radiation                 '
@@ -335,6 +338,7 @@ CR      write(*,'(1x,A,I3)') 'indxSSS =', indxSSS
       vname(1,indxSSS)='SSS                                       '
       vname(2,indxSSS)='sea surface salinity                      '
       vname(3,indxSSS)='PSU                                       '
+# endif /* WRITE_FORTING */
  
 # ifdef SG_BBL96
 #  ifndef ANA_WWAVE
