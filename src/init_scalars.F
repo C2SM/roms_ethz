@@ -8,9 +8,8 @@
 ! Note that NONE of the model physical parameters is initialized here.
 
       implicit none
-      integer ierr, i
+      integer ierr, i, j
 #ifdef PASSIVE_TRACER
-     &        , j
       integer itrc
       character*3 c_indx
 #endif
@@ -117,10 +116,10 @@ c      v3bc_max=0.
       srf_file_id=-1
 # endif
 # if defined ICEOBS
-      ice_file_id=0
+      ice_file_id=-1
 # endif
 # if defined TSOURCE
-      tsrc_file_id=0
+      tsrc_file_id=-1
 # endif
 # if defined QCORRECTION && !defined ANA_SST
       sst_file_id=-1
@@ -214,9 +213,10 @@ CR      write(*,'(1x,A,I3)') 'indxS = ', indxS
       vname(3,indxS)='PSU'
 # endif
 # ifdef PASSIVE_TRACER
-      do itrc = 1, ntrc_pas
-         itpas(itrc) = itemp + ntrc_salt + itrc
-      end do
+!AH16: Moved to param.h
+!      do itrc = 1, ntrc_pas
+!         itpas(itrc) = itemp + ntrc_salt + itrc
+!      end do
 !
       do itrc = indxT+ntrc_salt+1,indxT+ntrc_salt+ntrc_pas
          if (itrc-indxT-ntrc_salt .lt. 10) then
@@ -281,6 +281,17 @@ CR      write(*,'(1x,A,I3)') 'indxAks =',indxAks
       vname(2,indxAks)='salinity vertical diffusion coefficient'
       vname(3,indxAks)='meter2 second-1'
 # endif
+!AH16:
+# if defined WRITE_TEMP_REST
+      vname(1,indxRestflxTemp)='RestflxTemp'
+      vname(2,indxRestflxTemp)='Restoring flux for temperature'
+      vname(3,indxRestflxTemp)='W m-2'
+# endif /* WRITE_TEMP_REST */
+# if defined WRITE_SALT_REST
+      vname(1,indxRestflxSalt)='RestflxSalt'
+      vname(2,indxRestflxSalt)='Restoring flux for salinity'
+      vname(3,indxRestflxSalt)='centimeter day-1'
+# endif /* WRITE_SALT_REST */
 # ifdef LMD_KPP
 CR      write(*,'(1x,A,I3)') 'indxHbls =',indxHbls
       vname(1,indxHbls)='hbls'

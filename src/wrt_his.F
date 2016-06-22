@@ -15,8 +15,9 @@
 #ifdef SEDIMENT_BIOLOGY
 # include "bgcflux.h"
 #endif
-#ifdef PCO2AIR_FORCING
-!  pCO2air is in here
+#if defined PCO2AIR_FORCING || \
+        defined WRITE_TEMP_REST || defined WRITE_SALT_REST
+! pCO2air and Restflx are here:
 # include "forces.h"
 #endif
 #ifdef BIOLOGY_BEC
@@ -287,7 +288,7 @@ CR      write(*,*) 'wrt_his:  wrtAkt' MYID
         endif
 CR      write(*,*) 'wrt_his:  wrtAks' MYID
       endif
-# endif
+# endif /* SALINITY */
 # ifdef LMD_KPP
 ! Depth of planetary boundary layer [m].
 
@@ -316,6 +317,35 @@ CR      write(*,*) 'wrt_his:  wrtHBL' MYID
 CR      write(*,*) 'wrt_his:  wrtHbBL' MYID
       endif
 # endif
+! AH16:
+# if defined WRITE_TEMP_REST
+
+! Restoring flux for temperature
+
+      if (wrthis(indxRestflxTemp)) then
+        ierr=ncdf_write(nchis, hisRestflxTemp, record, r_var,
+     &                  RestflxTemp(START_2D_ARRAY), 1)
+        if (ierr /= nf_noerr) then
+          lvar=lenstr(vname(1,indxRestflxTemp))
+          write(*,1) vname(1,indxRestflxTemp)(1:lvar), record MYID
+          goto 99                                         !--> ERROR
+        endif
+      endif
+# endif /* WRITE_TEMP_REST */
+# if defined WRITE_SALT_REST
+
+! Restoring flux for salinity
+
+      if (wrthis(indxRestflxSalt)) then
+        ierr=ncdf_write(nchis, hisRestflxSalt, record, r_var,
+     &                  RestflxSalt(START_2D_ARRAY), 1)
+        if (ierr /= nf_noerr) then
+          lvar=lenstr(vname(1,indxRestflxSalt))
+          write(*,1) vname(1,indxRestflxSalt)(1:lvar), record MYID
+          goto 99                                         !--> ERROR
+        endif
+      endif
+# endif /* WRITE_SALT_REST */
 # if defined BIOLOGY_BEC || (defined BIOLOGY_NPZDOC && \
     defined OXYGEN && defined CARBON)
 

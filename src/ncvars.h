@@ -11,6 +11,7 @@
 ! indxAkv,Akt,Aks vertical viscosity/diffusivity coefficients
 ! indxHbls      depth of planetary boundary layer in KPP model
 ! indxHbbl      depth of bottom boundary layer in BKPP model
+! indxRestflx   restoring flux for salinity
 
 ! indxAi        fraction of cell covered by ice
 ! indxUi,Vi     U,V-components of sea ice velocity
@@ -31,90 +32,110 @@
 #ifdef SOLVE3D
      &                    , indxU=5, indxV=6, indxO=7, indxW=8
      &                    , indxR=9, indxT=10
+# define indxX indxT
 # ifdef SALINITY
-     &                    , indxS=indxT+1
+     &                    , indxS=indxX+1
+#  undef indxX
+#  define indxX indxS
 # endif
 # ifdef BIOLOGY
-#  ifdef SALINITY
-     &                    , indxNO3=indxS+1
-#  else
-     &                    , indxNO3=indxT+1
-# endif
+     &                    , indxNO3=indxX+1
      &                    , indxNH4 =indxNO3+1, indxChla=indxNO3+2
      &                    , indxPhyt=indxNO3+3, indxZoo =indxNO3+4
      &                    , indxSDet=indxNO3+5, indxLDet=indxNO3+6
 # endif
      &                    , indxAkv=indxT+NT,   indxAkt=indxAkv+1
-
-# ifdef SOLVE3D
-     &                    , indxSUSTR=indxAkt+3
-# else
-     &                    , indxSUSTR=indxVb+1
+# undef indxX
+# define indxX indxAkt
+# ifdef SALINITY
+     &                    , indxAks=indxX+1
+#  undef indxX
+#  define indxX indxAks
 # endif
+# ifdef LMD_KPP
+     &                    , indxHbls=indxX+1
+#  undef indxX
+#  define indxX indxHbls
+# endif
+# ifdef LMD_BKPP
+     &                    , indxHbbl=indxX+1
+#  undef indxX
+#  define indxX indxHbbl
+# endif
+# if defined WRITE_TEMP_REST
+     &                    , indxRestflxTemp=indxX+1
+#   undef indxX
+#   define indxX indxRestflxTemp
+# endif
+# if defined WRITE_SALT_REST
+     &                    , indxRestflxSalt=indxX+1
+#   undef indxX
+#   define indxX indxRestflxSalt
+# endif
+# ifdef WRITE_DEPTHS
+     &                    , indxz_r=indxX+1,  indxz_w=indxX+2
+     &                    , indxHz=indxX+3
+#  undef indxX
+#  define indxX indxHz
+# endif
+     &                    , indxSUSTR=indxX+1
      &                    , indxSVSTR=indxSUSTR+1, indxSHFl=indxSUSTR+2
      &                    , indxSWRad=indxSHFl+1
-
+# undef indxX
+# define indxX indxSWRad
 # ifdef SALINITY
-     &                    , indxSSFl=indxSWRad+1, indxSSS=indxSWRad+2
-     &                    , indxSST=indxSWRad+3
-# else
-     &                    , indxSST=indxSWRad+1
+     &                    , indxSSFl=indxX+1, indxSSS=indxX+2
+#  undef indxX
+#  define indxX indxSSS
 # endif
+     &                    , indxSST=indxX+1
      &                    , indxdQdSST=indxSST+1
+# undef indxX
+# define indxX indxdQdSST
 
-# ifdef WRITE_DEPTHS
-     &                    , indxz_r=indxAkt+1,  indxz_w=indxAkt+2
-     &                    , indxHz=indxAkt+3
-# endif
-
+/* AH16 this part seems wrong: */
+/* move to indxT+NT above? */
+/* or to indxPO4=indxT+ntrc_salt+ntrc_pas+1 below? */
+/* where are these indx defined anyway? maybe obsolote? */
 # if defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC || defined BIOLOGY_BEC2
-
       /* Create space for pH, pCO2, pCO2air, PARinc, PAR: */
      &     + 5
-
 #  ifdef SEDIMENT_BIOLOGY
      &     + NT_sed
 #  endif
-#  ifdef WRITE_DEPTHS
-     &     + 3
-#  endif 
 # endif /* BIOLOGY_NPZDOC || BIOLOGY_BEC || BIOLOGY_BEC2 */
-# ifdef SALINITY
-     &                    , indxAks=indxAkt+1
-# endif
-# ifdef LMD_KPP
-#  ifdef SALINITY
-     &                    , indxHbls=indxAks+1
-#  else
-     &                    , indxHbls=indxAkt+1
-#  endif
-# endif
-# ifdef LMD_BKPP
-     &                    , indxHbbl=indxHbls+1
-#  endif
+/* AH16 */
 
 # if defined BIOLOGY_BEC || defined BIOLOGY_BEC2
-     &                    , indxdust=indxSST+3
-     &                    , indxiron=indxSST+4
+     &                    , indxdust=indxX+1
+     &                    , indxiron=indxX+2
+#  undef indxX
+#  define indxX indxiron
 # endif /* BIOLOGY_BEC || BIOLOGY_BEC2 */
 # ifdef SG_BBL96
 #  ifndef ANA_WWAVE
-     &                    , indxWWA=indxSST+5,  indxWWD=indxWWA+1
+     &                    , indxWWA=indxX+1,  indxWWD=indxWWA+1
      &                    , indxWWP=indxWWA+2
+#   undef indxX
+#   define indxX indxWWP
 #  endif
 # endif
 #endif
 #ifdef ICEOBS
-     &                    , indxCi=indxSST+8  ! wastes 3 indices if ANA_WWAVE is not defined!
+     &                    , indxCi=indxX+1
      &                    , indxFi=indxCi+1
      &                    , indxMi=indxFi+1
+#  undef indxX
+#  define indxX indxMi
 #endif
 #ifdef ICE
-      integer, parameter :: indxAi=????,     indxUi=indxAi+1,
+      integer, parameter :: indxAi=indxX+1,     indxUi=indxAi+1,
      &                    , indxVi=indxAi+2, indxHi=indxAi+3,
      &                      indxHS=indxAi+4, indxTIsrf=indxAi+5
+#  undef indxX
+#  define indxX indxTIsrf
 #endif
-
+#undef indxX
 #ifdef SOLVE3D
 # ifdef BIOLOGY_NPZDOC
       integer indxNO3, indxNH4, indxChla,
@@ -437,6 +458,18 @@
      &      , slavgf_graze_CaCO3_remin, slavgQ_BEC2, slavgDONrefract
 #endif /* BIOLOGY_BEC2 && BEC2_DIAG */
 
+# if defined WRITE_TEMP_REST
+     &      , hisRestflxTemp
+#  ifdef AVERAGES
+     &      , avgRestflxTemp
+#  endif
+# endif /* WRITE_TEMP_REST */
+# if defined WRITE_SALT_REST
+     &      , hisRestflxSalt
+#  ifdef AVERAGES
+     &      , avgRestflxSalt
+#  endif
+# endif /* WRITE_SALT_REST */
 # ifdef WRITE_DEPTHS
      &      , hisz_r, hisz_w, hisHz
 #  ifdef AVERAGES
@@ -467,6 +500,18 @@
 #  endif /* CH_CARBON_DEPTH */
 # endif /* BIOLOGY_NPZDOC || BIOLOGY_BEC */
 
+# if defined WRITE_TEMP_REST
+     &      , hisRestflxTemp
+#  ifdef AVERAGES
+     &      , avgRestflxTemp
+#  endif
+# endif /* WRITE_TEMP_REST */
+# if defined WRITE_SALT_REST
+     &      , hisRestflxSalt
+#  ifdef AVERAGES
+     &      , avgRestflxSalt
+#  endif
+# endif /* WRITE_SALT_REST */
 # ifdef WRITE_DEPTHS
      &      , hisz_r, hisz_w, hisHz
 #  ifdef AVERAGES

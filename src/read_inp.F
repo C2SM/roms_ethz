@@ -13,6 +13,9 @@
 #include "scoord.h"
 #include "scalars.h"
 #include "ncvars.h"
+#if defined WRITE_TEMP_REST || defined WRITE_SALT_REST
+# include "forces.h"
+#endif
 #include "boundary.h"
 #ifndef NONLIN_EOS
 # include "eos_vars.h"
@@ -656,7 +659,6 @@ c-->    elseif (keyword(1:kwlen) == 'nudg_cof') then
 
           mpi_master_only write(*,'(1x,4A)')   'climatology data :: ',
      &                           'file = ''', clm_file(1:lstr), ''''
-# endif
 #endif
 
 ! Output files controls: restart, history, averages, stations, floats
@@ -744,6 +746,12 @@ c-->    elseif (keyword(1:kwlen) == 'nudg_cof') then
 # ifdef LMD_BKPP
      &                                            ,  wrthis(indxHbbl)
 # endif
+# if defined WRITE_TEMP_REST
+     &                                            ,  wrthis(indxRestflxTemp)
+# endif
+# if defined WRITE_SALT_REST
+     &                                            ,  wrthis(indxRestflxSalt)
+# endif
 
       BEGIN_MPI_MASTER
       naux=3 ! omega, w, rho
@@ -757,6 +765,12 @@ c-->    elseif (keyword(1:kwlen) == 'nudg_cof') then
       naux=naux+1
 # endif
 # ifdef LMD_BKPP
+      naux=naux+1
+# endif
+# if defined WRITE_TEMP_REST
+      naux=naux+1
+# endif
+# if defined WRITE_SALT_REST
       naux=naux+1
 # endif
       call echo_to_write(wrthis(indxAkv), naux,'mixing'
@@ -831,6 +845,12 @@ c-->    elseif (keyword(1:kwlen) == 'nudg_cof') then
 # ifdef LMD_BKPP
      &                                            ,  wrtavg(indxHbbl)
 # endif
+# if defined WRITE_TEMP_REST
+     &                                            ,  wrtavg(indxRestflxTemp)
+# endif
+# if defined WRITE_SALT_REST
+     &                                            ,  wrtavg(indxRestflxSalt)
+# endif
       BEGIN_MPI_MASTER
       naux=3 ! omega, w, rho
       call echo_to_write(wrtavg(indxO), naux,'auxiliary'
@@ -843,6 +863,12 @@ c-->    elseif (keyword(1:kwlen) == 'nudg_cof') then
       naux=naux+1
 # endif
 # ifdef LMD_BKPP
+      naux=naux+1
+# endif
+# if defined WRITE_TEMP_REST
+      naux=naux+1
+# endif
+# if defined WRITE_SALT_REST
       naux=naux+1
 # endif
       call echo_to_write(wrtavg(indxAkv), naux,'mixing'

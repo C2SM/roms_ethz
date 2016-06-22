@@ -21,6 +21,7 @@ include Makedefs.IntelEM64T
 
 KRNSRC = main.F		step2D_FB.F	read_inp.F	read_sta_pos.F\
 	set_weights.F	set_scoord.F	init_scalars.F	init_arrays.F\
+	init_agedye.F\
 	ana_init.F	setup_grid1.F	setup_grid2.F	visc_rescale.F\
 	set_nudgcof.F	ana_grid.F	analytical.F\
 \
@@ -58,11 +59,13 @@ BIOSRC = CalcPar.F  carbon.F  co2calc_SWS.F  def_bgc_flux.F\
 
 
 IOSRC = checkdims.F	find_record.F	insert_node.F	ncdf_read_write.F\
+	set_cycle.F\
 	get_grid.F	get_init.F	wrt_grid.F	put_global_atts.F\
 	def_rst.F	wrt_rst.F	def_his.F	wrt_his.F\
 	set_avg.F	wrt_avg.F	def_statn.F	wrt_statn.F\
 	get_forces.F	get_stflux.F	get_bry_all.F	set_forces.F\
 	set_smflux.F	set_stflux.F	nf_read_bry.F	bulk_flux_COAMS.F\
+	get_tsource.F	get_agedye.F\
 	set_seaice.F	get_tides.F	set_tides.F	set_srflux.F\
 	get_ssh.F	get_tclima.F	get_uclima.F	closecdf.F
 

@@ -203,6 +203,16 @@ c--# define MERGE_OVERLAP
 #  endif
           Cr(i,N)=0.
           Cr(i,0)=0.
+#  ifdef KPP_DIAGNOSE
+          kpp_sbl_sh(i,j,N)=0.
+          kpp_sbl_sh(i,j,0)=0.
+          kpp_sbl_st(i,j,N)=0.
+          kpp_sbl_st(i,j,0)=0.
+          kpp_sbl_rot(i,j,N)=0.
+          kpp_sbl_rot(i,j,0)=0.
+          kpp_sbl_ent(i,j,N)=0.
+          kpp_sbl_ent(i,j,0)=0.
+#  endif
 # endif /* LMD_KPP */
           FC(i,N)=0.
         enddo  !--> discard alpha,beta; keep Bo,Bosol to the very end.
@@ -355,6 +365,18 @@ c**     &                          k, Cr(i,k), Cr(i,k-1), hbl(i,j)
 
      &                                            +C_Ek*f(i,j)*f(i,j)
      &                                                             ))
+#  ifdef KPP_DIAGNOSE
+            kpp_sbl_sh(i,j,k)=kpp_sbl_sh(i,j,k+1) + Kern*(
+     &                0.5*( ( u(i,j,k+1,tind)+u(i+1,j,k+1,tind)
+     &                       -u(i,j,k  ,tind)-u(i+1,j,k  ,tind) )**2
+     &                     +( v(i,j,k+1,tind)+v(i,j+1,k+1,tind)
+     &                       -v(i,j,k  ,tind)-v(i,j+1,k  ,tind) )**2
+     &                      )/(Hz(i,j,k)+Hz(i,j,k+1)))
+            kpp_sbl_st(i,j,k)=kpp_sbl_st(i,j,k+1) + Kern*(
+     &             -0.5*(Hz(i,j,k)+Hz(i,j,k+1))*(Ri_inv*bvf(i,j,k)))
+            kpp_sbl_rot(i,j,k)=kpp_sbl_rot(i,j,k+1) + Kern*(
+     &            -0.5*(Hz(i,j,k)+Hz(i,j,k+1))*(C_Ek*f(i,j)*f(i,j)))
+#  endif
           enddo
         enddo
 
@@ -373,13 +395,23 @@ c**     &                          k, Cr(i,k), Cr(i,k-1), hbl(i,j)
           cff_dn=(z_bl-z_w(i,j,0))**2
           Kern=cff_dn/(cff_dn +(epssfc*bbl(i,j))**2)
 #  endif
-            FC(i,0)=FC(i,1) + Kern*(
+          FC(i,0)=FC(i,1) + Kern*(
      &                   0.5*( (u(i,j,1,tind)+u(i+1,j,1,tind))**2
      &                        +(v(i,j,1,tind)+v(i,j+1,1,tind))**2
      &                       )/Hz(i,j,1)
      &                  -0.5*Hz(i,j,1)*( Ri_inv*bvf(i,j,1)
      &                                  +C_Ek*f(i,j)*f(i,j)
      &                                                       ))
+#  ifdef KPP_DIAGNOSE
+          kpp_sbl_sh(i,j,0)=kpp_sbl_sh(i,j,1) + Kern*(
+     &                   0.5*( (u(i,j,1,tind)+u(i+1,j,1,tind))**2
+     &                        +(v(i,j,1,tind)+v(i,j+1,1,tind))**2
+     &                       )/Hz(i,j,1))
+          kpp_sbl_st(i,j,0)=kpp_sbl_st(i,j,1) + Kern*(
+     &                  -0.5*Hz(i,j,1)*(Ri_inv*bvf(i,j,1)))
+          kpp_sbl_rot(i,j,0)=kpp_sbl_rot(i,j,1) + Kern*(
+     &                  -0.5*Hz(i,j,1)*(C_Ek*f(i,j)*f(i,j)))
+#  endif
         enddo
 
 #  ifdef LMD_KPP
@@ -398,6 +430,9 @@ c--         Vtsq=Vtc*ws*sqrt(max(0., 0.5*(bvf(i,j,k)+bvf(i,j,k-1)) ))
             Vtsq=Vtc*ws*sqrt(max(0., bvf(i,j,k-1) ))  !<-- fix by Gokhan
 
             Cr(i,k)=FC(i,k)+Vtsq
+#   ifdef KPP_DIAGNOSE
+            kpp_sbl_ent(i,j,k)=Vtsq
+#   endif
 
             if (kbls(i) == 0 .and. Cr(i,k) < 0.) kbls(i)=k
 #   ifdef LIMIT_MO_DEPTH
@@ -651,7 +686,10 @@ c--         Vtsq=Vtc*ws*sqrt(max(0., 0.5*(bvf(i,j,k)+bvf(i,j,k-1)) ))
 #  ifdef SALINITY
               Ks(i,j,k)=Ks(i,j,k) + ws*hbl(i,j)*cff
 #  endif
-
+#  ifdef KPP_DIAGNOSE
+              kpp_sblm(i,j,k) = wm*hbl(i,j)*cff
+              kpp_sblt(i,j,k) = ws*hbl(i,j)*cff
+#  endif
 #  ifdef LMD_NONLOCAL
               if (Bfsfc < 0.) then
                 ghat(i,j,k)=Cg * ssgm*(1.-ssgm)**2
@@ -669,6 +707,9 @@ c--         Vtsq=Vtc*ws*sqrt(max(0., 0.5*(bvf(i,j,k)+bvf(i,j,k-1)) ))
                 Kt(i,j,k)=Kt(i,j,k) + nu0c
 #   ifdef SALINITY
                 Ks(i,j,k)=Ks(i,j,k) + nu0c
+#   endif
+#   ifdef KPP_DIAGNOSE
+                kpp_con(i,j,k) = nu0c
 #   endif
               endif
 #  endif
@@ -739,7 +780,11 @@ c*   &                                                ) ) )
             if (sgmb < 1.) then
 
               cff1=sgmb*(1.-sgmb)**2
-
+#  ifdef KPP_DIAGNOSE
+              kpp_bblm(i,j,k) = Kv(i,j,k)
+              kpp_bblt(i,j,k) = Kt(i,j,k)
+              kpp_bbls(i,j,k) = Ks(i,j,k)
+#  endif
 c              Kv(i,j,k)=Kv(i,j,k) + wmb*bbl(i,j)*cff1
 c              Kt(i,j,k)=Kt(i,j,k) + wsb*bbl(i,j)*cff1
 #  ifdef SALINITY
@@ -751,7 +796,11 @@ c              Ks(i,j,k)=Ks(i,j,k) + wsb*bbl(i,j)*cff1
 #  ifdef SALINITY
               Ks(i,j,k)=sqrt( Ks(i,j,k)**2 + (wsb*bbl(i,j)*cff1)**2 )
 #  endif
-
+#  ifdef KPP_DIAGNOSE
+              kpp_bblm(i,j,k) = Kv(i,j,k)-kpp_bblm(i,j,k)
+              kpp_bblt(i,j,k) = Kt(i,j,k)-kpp_bblt(i,j,k)
+              kpp_bbls(i,j,k) = Ks(i,j,k)-kpp_bbls(i,j,k)
+#  endif
 
 #  ifdef OLD_AND_MESSY_WAY
               a1=sgmb-2.
@@ -796,6 +845,9 @@ c              Ks(i,j,k)=Ks(i,j,k) + wsb*bbl(i,j)*cff1
                   Kt(i,j,k)=Kt(i,j,k) + nu0c   ! adjustment outside
 #   ifdef SALINITY
                   Ks(i,j,k)=Ks(i,j,k) + nu0c   ! of mixed layers.
+#   endif
+#   ifdef KPP_DIAGNOSE
+                  kpp_con(i,j,k) = nu0c
 #   endif
 #   ifdef LMD_KPP
                 endif

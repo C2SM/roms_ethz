@@ -605,19 +605,15 @@ c--#define VERBOSE
             goto 99                                       !--> ERROR
           endif
         else
-# if defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC2
-          if (itrc >= 3) then
+          if (itrc >= (itemp+ntrc_salt)) then
             MPI_master_only write(*,3) vname(1,indxT+itrc-1)(1:lvar)
      &                                 , trim(ininame)
      &                                 , ' => Initialized to 0.' 
           else
-# endif
             MPI_master_only write(*,1) vname(1,indxT+itrc-1)(1:lvar)
      &                          , trim(ininame), nf_strerror(ierr)
             goto 99                                         !--> ERROR
-# ifdef BIOLOGY_BEC2
           endif
-# endif
         endif
       enddo
 # ifdef SEDIMENT_BIOLOGY

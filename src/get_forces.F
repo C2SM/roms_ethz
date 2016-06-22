@@ -78,12 +78,23 @@ c--#define VERBOSE
 # ifdef SFLX_CORR
       call get_sss(ierr)
 # endif
+#if defined TSOURCE
+      call get_tsource(ierr)
+#endif
 # if defined BIOLOGY_BEC || defined BIOLOGY_BEC2
       call get_dust(ierr)
       call get_iron(ierr)
 # endif
 # ifdef PCO2AIR_FORCING
         if (ierr.eq.0)  call get_pCO2air(ierr)
+# endif
+!# ifdef BIOLOGY_BEC2
+!      call get_nox(ierr)
+!      call get_nhy(ierr)
+!      call get_din_river(ierr)
+!# endif
+# if defined PASSIVE_TRACER && defined AGE_DYE_TRACER
+      call get_agedye(ierr)
 # endif
 #endif
 #if defined SG_BBL96
@@ -93,14 +104,6 @@ c--#define VERBOSE
 # ifndef ANA_BSEDIM
       call get_bsedim(ierr)
 # endif
-#endif
-!#ifdef BIOLOGY_BEC2
-!      call get_nox(ierr)
-!      call get_nhy(ierr)
-!      call get_din_river(ierr)
-!#endif
-#if defined PASSIVE_TRACER && defined AGE_DYE_TRACER
-      if (ierr.eq.0) call get_agedye(ierr)
 #endif
       if (ierr /= 0) then
         may_day_flag=2

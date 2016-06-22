@@ -41,6 +41,9 @@ c--#define nf_def_var my_nf_def_var
 #include "param.h"
 #include "scalars.h"
 #include "ncvars.h"
+#if defined WRITE_SALT_REST || defined WRITE_TEMP_REST
+# include "forces.h"
+#endif
 #include "netcdf.inc"
       logical create_new_file
       integer lenstr, checkdims, my_nf_def_dim
@@ -121,6 +124,12 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
 # define vidW hisW
 # define vidAkv hisAkv
 # define vidAkt hisAkt
+# if defined WRITE_TEMP_REST
+#  define vidRestflxTemp hisRestflxTemp
+# endif
+# if defined WRITE_SALT_REST
+#  define vidRestflxSalt hisRestflxSalt
+# endif
 # define NVDIM 4
 # define RGRD r3dgrd
 # define UGRD u3dgrd
@@ -191,6 +200,12 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
 # define vidW avgW
 # define vidAkv avgAkv
 # define vidAkt avgAkt
+# if defined WRITE_TEMP_REST
+#  define vidRestflxTemp avgRestflxTemp
+# endif
+# if defined WRITE_SALT_REST
+#  define vidRestflxSalt avgRestflxSalt
+# endif
 # define NVDIM 4
 # define RGRD r3dgrd
 # define UGRD u3dgrd
@@ -890,6 +905,66 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
 #endif
         endif
 # endif /* SALINITY */
+!AH16:
+# if defined WRITE_TEMP_REST
+! Restoring flux for temperature
+        if (wrt(indxRestflxTemp) .and. ierr == nf_noerr) then
+          lvar=lenstr(vname(1,indxRestflxTemp))
+          ierr=nf_def_var (ncid, vname(1,indxRestflxTemp)(1:lvar),
+     &                           NF_FOUT, 3, r2dgrd, vidRestflxTemp)
+#  ifdef AVRH
+          text='averaged '/ /vname(2,indxRestflxTemp)
+#  else
+          text=vname(2,indxRestflxTemp)
+#  endif
+          lvar=lenstr(text)
+          ierr=nf_put_att_text (ncid, vidRestflxTemp, 'long_name', lvar,
+     &                                              text(1:lvar))
+          lvar=lenstr(vname(3,indxRestflxTemp))
+          ierr=nf_put_att_text (ncid, vidRestflxTemp, 'units',     lvar,
+     &                                 vname(3,indxRestflxTemp)(1:lvar))
+          ierr=nf_put_att_text (ncid, vidRestflxTemp, 'coordinates',15,
+     &                              'lon_rho lat_rho') 
+#  ifdef MASK_LAND_DATA 
+          ierr=nf_put_att_FOUT (ncid, vidRestflxTemp, '_FillValue',
+     &                                   NF_FOUT, 1, spv_set)
+#  endif
+#  ifdef NCCOMPRESS
+          ierr=nf_def_var_deflate(ncid, vidRestflxTemp, ncshuff, ncdefl, nclev)
+          ierr=nf_def_var_chunking(ncid, vidRestflxTemp, ncctg, ncrchnk2)
+#  endif
+        endif
+# endif /* WRITE_TEMP_REST */
+!AH16:
+# if defined WRITE_SALT_REST
+! Restoring flux for salinity
+        if (wrt(indxRestflxSalt) .and. ierr == nf_noerr) then
+          lvar=lenstr(vname(1,indxRestflxSalt))
+          ierr=nf_def_var (ncid, vname(1,indxRestflxSalt)(1:lvar),
+     &                           NF_FOUT, 3, r2dgrd, vidRestflxSalt)
+#  ifdef AVRH
+          text='averaged '/ /vname(2,indxRestflxSalt)
+#  else
+          text=vname(2,indxRestflxSalt)
+#  endif
+          lvar=lenstr(text)
+          ierr=nf_put_att_text (ncid, vidRestflxSalt, 'long_name', lvar,
+     &                                              text(1:lvar))
+          lvar=lenstr(vname(3,indxRestflxSalt))
+          ierr=nf_put_att_text (ncid, vidRestflxSalt, 'units',     lvar,
+     &                                 vname(3,indxRestflxSalt)(1:lvar))
+          ierr=nf_put_att_text (ncid, vidRestflxSalt, 'coordinates',15,
+     &                              'lon_rho lat_rho') 
+#  ifdef MASK_LAND_DATA 
+          ierr=nf_put_att_FOUT (ncid, vidRestflxSalt, '_FillValue',
+     &                                   NF_FOUT, 1, spv_set)
+#  endif
+#  ifdef NCCOMPRESS
+          ierr=nf_def_var_deflate(ncid, vidRestflxSalt, ncshuff, ncdefl, nclev)
+          ierr=nf_def_var_chunking(ncid, vidRestflxSalt, ncctg, ncrchnk2)
+#  endif
+        endif
+# endif /* WRITE_SALT_REST */
 # ifdef LMD_KPP
 ! Depth of surface planetary boundary layer.
 
@@ -1563,6 +1638,26 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
      &                                                fname(1:lfnm)
         endif
 # endif
+!AH16:
+# if defined WRITE_TEMP_REST
+! Restoring flux for temperature
+        if (wrt(indxRestflxTemp) .and. ierr == nf_noerr) then
+          lvar=lenstr(vname(1,indxRestflxTemp))
+          ierr=nf_inq_varid(ncid,vname(1,indxRestflxTemp)(1:lvar), vidRestflxTemp)
+          if (ierr /= nf_noerr) write(*,1) vname(1,indxRestflxTemp)(1:lvar),
+     &                                                 fname(1:lfnm)
+        endif
+# endif /* WRITE_TEMP_REST */
+!AH16:
+# if defined WRITE_SALT_REST
+! Restoring flux for salinity
+        if (wrt(indxRestflxSalt) .and. ierr == nf_noerr) then
+          lvar=lenstr(vname(1,indxRestflxSalt))
+          ierr=nf_inq_varid(ncid,vname(1,indxRestflxSalt)(1:lvar), vidRestflxSalt)
+          if (ierr /= nf_noerr) write(*,1) vname(1,indxRestflxSalt)(1:lvar),
+     &                                                 fname(1:lfnm)
+        endif
+# endif /* WRITE_SALT_REST */
 # ifdef LMD_KPP
 ! Depth of surface planetary boundary layer.
 
@@ -1858,6 +1953,12 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
 #undef vidAkv
 #undef vidAkt
 #undef vidAks
+#if defined WRITE_TEMP_REST
+# undef vidRestflxTemp
+#endif
+#if defined WRITE_SALT_REST
+# undef vidRestflxSalt
+#endif
 #undef vidHbls
 #undef vidHbbl
 #ifdef WKB_WWAVE

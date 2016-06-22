@@ -192,15 +192,14 @@
 #    endif
           do itrc = itemp + ntrc_salt + 1, NT
              vname_bry = trim(vname(1,itrc+indxT-itemp))/ /'_west'
-
              ierr=nf_inq_varid (bry_id, vname_bry,
      &            t_west_id(itrc))
              if (ierr/=nf_noerr) then
-#    ifdef DEFAULT_BGC_BRY_VALUES
-                write(*,11) trim(vname_bry),bry_file(1:lsrc)
+#    if defined DEFAULT_BGC_BRY_VALUES || defined PASSIVE_TRACER
+                MPI_master_only write(*,11) trim(vname_bry),bry_file(1:lsrc)
                 t_west_id(itrc) = 0
 #    else
-                write(*,1) trim(vname_bry),bry_file(1:lsrc)
+                MPI_master_only write(*,1) trim(vname_bry),bry_file(1:lsrc)
                 ierr_all=ierr_all+ierr
 #    endif
              end if
@@ -262,15 +261,14 @@
 #    endif
           do itrc = itemp + ntrc_salt + 1, NT
              vname_bry = trim(vname(1,itrc+indxT-itemp))/ /'_east'
-
              ierr=nf_inq_varid (bry_id, vname_bry,
      &            t_east_id(itrc))
              if (ierr/=nf_noerr) then
-#    ifdef DEFAULT_BGC_BRY_VALUES
-                write(*,11) trim(vname_bry),bry_file(1:lsrc)
+#    if defined DEFAULT_BGC_BRY_VALUES || defined PASSIVE_TRACER
+                MPI_master_only write(*,11) trim(vname_bry), bry_file(1:lsrc)
                 t_east_id(itrc) = 0
 #    else
-                write(*,1) trim(vname_bry),bry_file(1:lsrc)
+                MPI_master_only write(*,1) trim(vname_bry), bry_file(1:lsrc)
                 ierr_all=ierr_all+ierr
 #    endif
              end if
@@ -332,15 +330,14 @@
 #    endif
           do itrc = itemp + ntrc_salt + 1, NT
              vname_bry = trim(vname(1,itrc+indxT-itemp))/ /'_south'
-
              ierr=nf_inq_varid (bry_id, vname_bry,
      &            t_south_id(itrc))
              if (ierr/=nf_noerr) then
-#    ifdef DEFAULT_BGC_BRY_VALUES
-                write(*,11) trim(vname_bry),bry_file(1:lsrc)
+#    if defined DEFAULT_BGC_BRY_VALUES || defined PASSIVE_TRACER
+                MPI_master_only write(*,11) trim(vname_bry),bry_file(1:lsrc)
                 t_south_id(itrc) = 0
 #    else
-                write(*,1) trim(vname_bry),bry_file(1:lsrc)
+                MPI_master_only write(*,1) trim(vname_bry),bry_file(1:lsrc)
                 ierr_all=ierr_all+ierr
 #    endif
              end if
@@ -402,15 +399,14 @@
 #    endif
           do itrc = itemp + ntrc_salt + 1, NT
              vname_bry = trim(vname(1,itrc+indxT-itemp))/ /'_north'
-
              ierr=nf_inq_varid (bry_id, vname_bry,
      &            t_north_id(itrc))
              if (ierr/=nf_noerr) then
-#    ifdef DEFAULT_BGC_BRY_VALUES
-                write(*,11) trim(vname_bry),bry_file(1:lsrc)
+#    if defined DEFAULT_BGC_BRY_VALUES || defined PASSIVE_TRACER
+                MPI_master_only write(*,11) trim(vname_bry),bry_file(1:lsrc)
                 t_north_id(itrc) = 0
 #    else
-                write(*,1) trim(vname_bry),bry_file(1:lsrc)
+                MPI_master_only write(*,1) trim(vname_bry),bry_file(1:lsrc)
                 ierr_all=ierr_all+ierr
 #    endif
              end if
@@ -483,22 +479,32 @@
                 do itrc=1,NT
                   ierr=read_bry_EW(bry_id, t_west_id(itrc),  bry_rec,
      &                           r_var, t_west_dt(0,1,itbry,itrc), N)
-#     if defined DEFAULT_BGC_BRY_VALUES
+#    if defined PASSIVE_TRACER || defined DEFAULT_BGC_BRY_VALUES
                   if (ierr /= nf_noerr)  then
-#      ifdef BIOLOGY_NPZDOC
+#    endif
+#    ifdef PASSIVE_TRACER
+                    if (itrc .ge. itpas(1) .and. 
+     &                  itrc .le. itpas(ntrc_pas)) then
+                      ierr = 0
+                      MPI_master_only write(*,3) trim(vname_bry) 0.0
+                      t_west_dt(:,:,itbry,itrc) = 0.0
+                    endif
+#    endif /* PASSIVE_TRACER */
+#    if defined BIOLOGY_NPZDOC && defined DEFAULT_BGC_BRY_VALUES
                     if (itrc >= iNO3_ .and. 
      &                   itrc <= iNO3_ + ntrc_bio - 1) then
-#      endif
-#      if defined BIOLOGY_BEC || defined BIOLOGY_BEC2
+#    endif
+#    if (defined BIOLOGY_BEC || defined BIOLOGY_BEC2) && defined DEFAULT_BGC_BRY_VALUES
                     if (itrc >= iPO4 .and. 
      &                  itrc <= iPO4 + ntrc_bio - 1) then
-#      endif
+#    endif
                       call set_bry_defaults(t_west_dt,itrc,itbry,Mm+1)
-                      print 3,trim(vname_bry),t_west_dt(0,1,itbry,itrc)
+                      MPI_master_only print 3,trim(vname_bry),t_west_dt(0,1,itbry,itrc)
                       ierr=nf_noerr
                     endif
+#    if defined PASSIVE_TRACER || defined DEFAULT_BGC_BRY_VALUES
                   endif
-#     endif /* DEFAULT_BGC_BRY_VALUES */
+#    endif /* PASSIVE_TRACER || DEFAULT_BGC_BRY_VALUES */
                   if (ierr_all == nf_noerr) ierr_all=ierr
                 enddo
 #   endif /* T_FRC_BRY */
@@ -536,22 +542,32 @@
                 do itrc=1,NT
                   ierr=read_bry_EW(bry_id, t_east_id(itrc),  bry_rec,
      &                           r_var, t_east_dt(0,1,itbry,itrc), N)
-#     if defined DEFAULT_BGC_BRY_VALUES 
+#    if defined PASSIVE_TRACER || defined DEFAULT_BGC_BRY_VALUES
                   if (ierr /= nf_noerr)  then
-#      ifdef BIOLOGY_NPZDOC
+#    endif
+#    ifdef PASSIVE_TRACER
+                    if (itrc .ge. itpas(1) .and. 
+     &                  itrc .le. itpas(ntrc_pas)) then
+                      ierr = 0
+                      MPI_master_only write(*,3) trim(vname_bry) 0.0
+                      t_east_dt(:,:,itbry,itrc) = 0.0
+                    endif
+#    endif /* PASSIVE_TRACER */
+#    if defined BIOLOGY_NPZDOC && defined DEFAULT_BGC_BRY_VALUES
                     if (itrc >= iNO3_ .and. 
      &                   itrc <= iNO3_ + ntrc_bio - 1) then
-#      endif
-#      if defined BIOLOGY_BEC || defined BIOLOGY_BEC2
+#    endif
+#    if (defined BIOLOGY_BEC || defined BIOLOGY_BEC2) && defined DEFAULT_BGC_BRY_VALUES
                     if (itrc >= iPO4 .and. 
      &                  itrc <= iPO4 + ntrc_bio - 1) then
-#      endif
+#    endif
                       call set_bry_defaults(t_east_dt,itrc,itbry,Mm+1)
                       print 3,trim(vname_bry),t_east_dt(0,1,itbry,itrc)
                       ierr=nf_noerr
                     endif
+#    if defined PASSIVE_TRACER || defined DEFAULT_BGC_BRY_VALUES
                   endif
-#     endif /* DEFAULT_BGC_BRY_VALUES */
+#    endif /* PASSIVE_TRACER || DEFAULT_BGC_BRY_VALUES */
                   if (ierr_all == nf_noerr) ierr_all=ierr
                 enddo
 #   endif
@@ -590,22 +606,32 @@
                 do itrc=1,NT
                   ierr=read_bry_NS(bry_id, t_south_id(itrc),  bry_rec,
      &                           r_var, t_south_dt(0,1,itbry,itrc), N)
-#     if defined DEFAULT_BGC_BRY_VALUES
+#    if defined PASSIVE_TRACER || defined DEFAULT_BGC_BRY_VALUES
                   if (ierr /= nf_noerr)  then
-#      ifdef BIOLOGY_NPZDOC
+#    endif
+#    ifdef PASSIVE_TRACER
+                    if (itrc .ge. itpas(1) .and. 
+     &                  itrc .le. itpas(ntrc_pas)) then
+                      ierr = 0
+                      MPI_master_only write(*,3) trim(vname_bry) 0.0
+                      t_south_dt(:,:,itbry,itrc) = 0.0
+                    endif
+#    endif /* PASSIVE_TRACER */
+#    if defined BIOLOGY_NPZDOC && defined DEFAULT_BGC_BRY_VALUES
                     if (itrc >= iNO3_ .and. 
      &                   itrc <= iNO3_ + ntrc_bio - 1) then
-#      endif
-#      if defined BIOLOGY_BEC || defined BIOLOGY_BEC2
+#    endif
+#    if (defined BIOLOGY_BEC || defined BIOLOGY_BEC2) && defined DEFAULT_BGC_BRY_VALUES
                     if (itrc >= iPO4 .and. 
      &                  itrc <= iPO4 + ntrc_bio - 1) then
-#      endif
+#    endif
                       call set_bry_defaults(t_south_dt,itrc,itbry,Lm+1)
                       print 3,trim(vname_bry),t_south_dt(0,1,itbry,itrc)
                       ierr=nf_noerr
                     endif
+#    if defined PASSIVE_TRACER || defined DEFAULT_BGC_BRY_VALUES
                   endif
-#     endif /* DEFAULT_BGC_BRY_VALUES */
+#    endif /* PASSIVE_TRACER || DEFAULT_BGC_BRY_VALUES */
                   if (ierr_all == nf_noerr) ierr_all=ierr
                 enddo
 #   endif
@@ -643,22 +669,32 @@
                 do itrc=1,NT
                   ierr=read_bry_NS(bry_id, t_north_id(itrc),  bry_rec,
      &                           r_var, t_north_dt(0,1,itbry,itrc), N)
-#     if defined DEFAULT_BGC_BRY_VALUES
+#    if defined PASSIVE_TRACER || defined DEFAULT_BGC_BRY_VALUES
                   if (ierr /= nf_noerr)  then
-#      ifdef BIOLOGY_NPZDOC
+#    endif
+#    ifdef PASSIVE_TRACER
+                    if (itrc .ge. itpas(1) .and. 
+     &                  itrc .le. itpas(ntrc_pas)) then
+                      ierr = 0
+                      MPI_master_only write(*,3) trim(vname_bry) 0.0
+                      t_north_dt(:,:,itbry,itrc) = 0.0
+                    endif
+#    endif /* PASSIVE_TRACER */
+#    if defined BIOLOGY_NPZDOC && defined DEFAULT_BGC_BRY_VALUES
                     if (itrc >= iNO3_ .and. 
      &                   itrc <= iNO3_ + ntrc_bio - 1) then
-#      endif
-#      if defined BIOLOGY_BEC || defined BIOLOGY_BEC2
+#    endif
+#    if (defined BIOLOGY_BEC || defined BIOLOGY_BEC2) && defined DEFAULT_BGC_BRY_VALUES
                     if (itrc >= iPO4 .and. 
      &                  itrc <= iPO4 + ntrc_bio - 1) then
-#      endif
+#    endif
                       call set_bry_defaults(t_north_dt,itrc,itbry,Lm+1)
                       print 3,trim(vname_bry),t_north_dt(0,1,itbry,itrc)
                       ierr=nf_noerr
                     endif
-                  endif 
-#     endif /* DEFAULT_BGC_BRY_VALUES */
+#    if defined PASSIVE_TRACER || defined DEFAULT_BGC_BRY_VALUES
+                  endif
+#    endif /* PASSIVE_TRACER || DEFAULT_BGC_BRY_VALUES */
                   if (ierr_all == nf_noerr) ierr_all=ierr
                 enddo
 #   endif

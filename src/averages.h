@@ -36,6 +36,16 @@ CSDISTRIBUTE_RESHAPE akt_avg(BLOCK_PATTERN,*) BLOCK_CLAUSE
 CSDISTRIBUTE_RESHAPE aks_avg(BLOCK_PATTERN,*) BLOCK_CLAUSE
       common /avg_aks/aks_avg
 #  endif
+#  if defined QCORRECTION && defined WRITE_TEMP_REST
+      real restflx_temp_avg(GLOBAL_2D_ARRAY)
+CSDISTRIBUTE_RESHAPE restflx_temp_avg(BLOCK_PATTERN) BLOCK_CLAUSE
+      common /avg_restflx_temp/restflx_temp_avg
+#  endif /* QCORRECTION && WRITE_TEMP_REST */
+#  if defined SFLX_CORR && defined WRITE_SALT_REST
+      real restflx_salt_avg(GLOBAL_2D_ARRAY)
+CSDISTRIBUTE_RESHAPE restflx_salt_avg(BLOCK_PATTERN) BLOCK_CLAUSE
+      common /avg_restflx_salt/restflx_salt_avg
+#  endif /* SFLX_CORR && WRITE_SALT_REST */
 #  ifdef LMD_KPP
       real hbl_avg(GLOBAL_2D_ARRAY)
 CSDISTRIBUTE_RESHAPE hbl_avg(BLOCK_PATTERN) BLOCK_CLAUSE
@@ -45,6 +55,11 @@ CSDISTRIBUTE_RESHAPE hbl_avg(BLOCK_PATTERN) BLOCK_CLAUSE
       real hbbl_avg(GLOBAL_2D_ARRAY)
 CSDISTRIBUTE_RESHAPE hbbl_avg(BLOCK_PATTERN,*) BLOCK_CLAUSE
       common /avg_hbbl/hbbl_avg
+#  endif
+#  ifdef KPP_DIAGNOSE
+! kpp_wavm kpp_wavt kpp_richm kpp_richt kpp_con kpp_ddt kpp_dds
+! kpp_bblm kpp_bblt kpp_bbls kpp_sblm kpp_sblt
+! kpp_sbl_sh kpp_sbl_st kpp_sbl_rot kpp_sbl_ent
 #  endif
 !DL:
 #  ifdef WRITE_DEPTHS

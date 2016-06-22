@@ -246,14 +246,27 @@
                                               ! breaking.
             Kv(i,j,k)=nuwm + nu0m*nu_sx
             Kt(i,j,k)=nuws + nu0s*nu_sx
+#  ifdef KPP_DIAGNOSE
+            kpp_wavm(i,j,k) = nuwm
+            kpp_wavt(i,j,k) = nuws
+            kpp_richm(i,j,k) = nu0m*nu_sx
+            kpp_richt(i,j,k) = nu0s*nu_sx
+#  endif
 # else
             Kv(i,j,k)=nuwm                    ! internal waves
             Kt(i,j,k)=nuws                    ! only
+#  ifdef KPP_DIAGNOSE
+            kpp_wavm(i,j,k) = nuwm
+            kpp_wavt(i,j,k) = nuws
+#  endif
 # endif
 # if defined LMD_CONVEC && (!defined LMD_KPP && !defined LMD_BKPP)
             if (Rig(i,j,k) < 0.) then         ! In the case of KPP
               Kv(i,j,k)=Kv(i,j,k) + nu0c      ! convective adjustment
               Kt(i,j,k)=Kt(i,j,k) + nu0c      ! will be added later
+#  ifdef KPP_DIAGNOSE
+              kpp_con(i,j,k) = nu0c
+#  endif
             endif                             ! and only below HBL
 # endif
             Ks(i,j,k)=Kt(i,j,k)
@@ -339,6 +352,10 @@
 
             Kt(i,j,k)=Kt(i,j,k)+nu_ddt
             Ks(i,j,k)=Ks(i,j,k)+nu_dds
+#  ifdef KPP_DIAGNOSE
+            kpp_ddt(i,j,k)=nu_ddt
+            kpp_dds(i,j,k)=nu_dds
+#  endif
           enddo
         enddo
 # endif /* LMD_DDMIX */
@@ -357,6 +374,22 @@
           Kv(i,j,0)=Kv(i,j,  1)
           Ks(i,j,0)=Ks(i,j,  1)
           Kt(i,j,0)=Kt(i,j,  1)
+#  ifdef KPP_DIAGNOSE
+          kpp_wavm(i,j,N)=kpp_wavm(i,j,N-1)
+          kpp_wavt(i,j,N)=kpp_wavt(i,j,N-1)
+          kpp_richm(i,j,N)=kpp_richm(i,j,N-1)
+          kpp_richt(i,j,N)=kpp_richt(i,j,N-1)
+          kpp_con(i,j,N)=kpp_con(i,j,N-1)
+          kpp_ddt(i,j,N)=kpp_ddt(i,j,N-1)
+          kpp_dds(i,j,N)=kpp_dds(i,j,N-1)
+          kpp_wavm(i,j,0)=kpp_wavm(i,j,0)
+          kpp_wavt(i,j,0)=kpp_wavt(i,j,0)
+          kpp_richm(i,j,0)=kpp_richm(i,j,0)
+          kpp_richt(i,j,0)=kpp_richt(i,j,0)
+          kpp_con(i,j,0)=kpp_con(i,j,0)
+          kpp_ddt(i,j,0)=kpp_ddt(i,j,0)
+          kpp_dds(i,j,0)=kpp_dds(i,j,0)
+#  endif
         enddo
       enddo
 # else

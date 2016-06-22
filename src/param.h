@@ -257,19 +257,18 @@ c     &      NSUB_X=2, NSUB_E=8  ! <-- iswake 768x192
      &                      padd_E=(Mm+2)/2-(Mm+1)/2
 #ifdef SOLVE3D
      &       , itemp=1
-# ifdef PASSIVE_TRACER
-     &, ntrc_pas=4
-! in pre 2015 code:     &, itpas(ntrc_pas)
-! in pre 2015 code:     common /pass_tracer/ itpas
-# else 
-     &, ntrc_pas=0
-# endif /* PASSIVE_TRACER */
 # ifdef SALINITY
      &       , isalt=2, ntrc_salt=1
+#  ifdef PASSIVE_TRACER
+     &       , ntrc_pas=1
+     &       , itpas(1)=isalt+1 
+#  else 
+     &       , ntrc_pas=0
+#  endif /* PASSIVE_TRACER */
      &       , itrc_bio=itemp+ntrc_salt+ntrc_pas+1 
 #  ifdef BIOLOGY
      &       , ntrc_bio=5
-     &       , iNO3_=3, iNH4_=4, iDet_=5, iPhyt=6, iZoo_=7
+     &       , iNO3_=itrc_bio, iNH4_=iNO3_+1, iDet_=iNO3_+2, iPhyt=iNO3_+3, iZoo_=iNO3_+4
 #  elif defined BIOLOGY_NPZDOC
      &       , iNO3_=itrc_bio
      &       , iNH4_=iNO3_+1, iChla=iNO3_+2, iPhyt=iNO3_+3
@@ -327,8 +326,15 @@ c     &      NSUB_X=2, NSUB_E=8  ! <-- iswake 768x192
 #  endif /* BIOLOGY */
 # else /* ifdef SALINITY */
      &       , ntrc_salt=0
+#  ifdef PASSIVE_TRACER
+     &       , ntrc_pas=1
+     &       , itpas(1)=itemp+1
+#  else 
+     &       , ntrc_pas=0
+#  endif /* PASSIVE_TRACER */
 #  ifdef BIOLOGY
-     &       , iNO3_=itrc_bio, iNH4_=3, iDet_=4, iPhyt=5, iZoo_=6
+     &       , ntrc_bio=5
+     &       , iNO3_=itrc_bio, iNH4_=iNO3_+1, iDet_=iNO3_+2, iPhyt=iNO3_+3, iZoo_=iNO3_+4
 #  else
      &       , ntrc_bio=0
 #  endif

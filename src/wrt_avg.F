@@ -31,21 +31,24 @@
 # include "averages.h"
 # include "ncvars.h"
 # include "netcdf.inc"
-#ifdef SEDIMENT_BIOLOGY
-# include "bgcflux.h"
-#endif
-#ifdef BIOLOGY_BEC
-# include "ecosys_bec.h"
-# include "bec_avg.h"
-#endif
-#if defined BIOLOGY_BEC2 && defined BEC2_DIAG
-# include "ecosys_bec2.h"
+# ifdef SEDIMENT_BIOLOGY
+#  include "bgcflux.h"
+# endif
+# if defined WRITE_TEMP_REST || defined WRITE_SALT_REST
+#  include "forces.h"
+# endif
+# ifdef BIOLOGY_BEC
+#  include "ecosys_bec.h"
+#  include "bec_avg.h"
+# endif
+# if defined BIOLOGY_BEC2 && defined BEC2_DIAG
+#  include "ecosys_bec2.h"
 !!# include "bec2_avg.h"
-#endif
+# endif
 !DL: for gas exchange fluxes:
-#if defined BIOLOGY_NPZDOC
-# include "gasexc.h"
-#endif
+# if defined BIOLOGY_NPZDOC
+#  include "gasexc.h"
+# endif
 # if defined MPI && !defined PARALLEL_FILES
 #  include "mpif.h"
       integer status(MPI_STATUS_SIZE), blank
@@ -71,7 +74,7 @@ CR      mpi_master_only print *, '--- NOTE: Executing ', wrt_ AVR
 
 ! Write out time-averaged variables:
 ! ----- --- ------------- ----------
-#if 0  /* Only needed if averages would be used as restart */
+# if 0  /* Only needed if averages would be used as restart */
 ! Time step and record indices.
 
       ibuff(1)=iic
@@ -88,7 +91,7 @@ CR      mpi_master_only print *, '--- NOTE: Executing ', wrt_ AVR
         write(*,1) 'time_step', record,ierr MYID
         goto 99                                           !--> ERROR
       endif
-#endif
+# endif
 !
 ! Averaged time
 
@@ -161,7 +164,7 @@ CR      mpi_master_only print *, '--- NOTE: Executing ', wrt_ AVR
           endif
         endif
       enddo
-#ifdef SEDIMENT_BIOLOGY
+# ifdef SEDIMENT_BIOLOGY
 
 ! Sediment concentrations
 
@@ -178,7 +181,7 @@ CR      mpi_master_only print *, '--- NOTE: Executing ', wrt_ AVR
 CR      write(*,*) 'wrt_ AVR :  wrtT_sed  ' MYID
         endif
       enddo
-#endif /* SEDIMENT_BIOLOGY */
+# endif /* SEDIMENT_BIOLOGY */
 
 ! Density anomaly.
 
@@ -244,7 +247,7 @@ CR      write(*,*) 'wrt_ AVR :  wrtT_sed  ' MYID
           write(*,1) vname(1,indxAks)(1:lvar), record MYID
         endif
       endif
-#  endif
+#  endif /* SALINITY */
 #  ifdef LMD_KPP
 
 ! Depth of planetary boundary layer [m].
@@ -271,6 +274,33 @@ CR      write(*,*) 'wrt_ AVR :  wrtT_sed  ' MYID
         endif
       endif
 # endif
+! AH16:
+# if defined WRITE_TEMP_REST
+
+! Restoring flux for temperature
+
+      if (wrt AVR (indxRestflxTemp) .and. ierr == nf_noerr) then
+        ierr=ncdf_write(nc AVR ,  AVR RestflxTemp, record, r_var,
+     &                  restflx_temp_ AVR (START_2D_ARRAY), 1)
+        if (ierr /= nf_noerr) then
+          lvar=lenstr(vname(1,indxRestflxTemp))
+          write(*,1) vname(1,indxRestflxTemp)(1:lvar), record MYID
+        endif
+      endif
+# endif /* WRITE_TEMP_REST */
+# if defined WRITE_SALT_REST
+
+! Restoring flux for salinity
+
+      if (wrt AVR (indxRestflxSalt) .and. ierr == nf_noerr) then
+        ierr=ncdf_write(nc AVR ,  AVR RestflxSalt, record, r_var,
+     &                  restflx_salt_ AVR (START_2D_ARRAY), 1)
+        if (ierr /= nf_noerr) then
+          lvar=lenstr(vname(1,indxRestflxSalt))
+          write(*,1) vname(1,indxRestflxSalt)(1:lvar), record MYID
+        endif
+      endif
+# endif /* WRITE_SALT_REST */
 # if defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC
 
 

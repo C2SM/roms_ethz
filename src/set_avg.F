@@ -26,6 +26,12 @@
 #  define aks_AVR(i,j,k) aks_avg(i,j,k)
 #  define akt_AVR(i,j,k) akt_avg(i,j,k)
 #  define akv_AVR(i,j,k) akv_avg(i,j,k)
+#  if defined WRITE_TEMP_REST
+#   define restflx_temp_AVR(i,j) restflx_temp_avg(i,j)
+#  endif
+#  if defined WRITE_SALT_REST
+#   define restflx_salt_AVR(i,j) restflx_salt_avg(i,j)
+#  endif
 #  define rich_AVR(i,j,k) rich_avg(i,j,k)
 #  define richN_AVR(i,j,k) richN_avg(i,j,k)
 #  define swr_frac_AVR(i,j,k) swr_frac_avg(i,j,k)
@@ -179,12 +185,12 @@
 #  include "work.h"
 # endif
 
+# if (defined BIOLOGY_NPZDOC && defined PCO2AIR_FORCING) || \
+     defined WRITE_TEMP_REST || defined WRITE_SALT_REST
+#  include "forces.h"
+# endif
 # ifdef BIOLOGY_NPZDOC
 #  include "bgcflux.h"
-#  ifdef PCO2AIR_FORCING
-      ! pCO2air is here:
-#   include "forces.h"
-#  endif
 #  include "gasexc.h"
 # endif
 # ifdef BIOLOGY_BEC
@@ -351,6 +357,24 @@
             ENDKLOOP
           endif
 #  endif
+#  if defined WRITE_TEMP_REST
+          if (wrtAVR(indxRestflxTemp)) then
+            do j=jstrR,jendR
+              do i=istrR,iendR
+                restflx_temp_AVR(i,j)=cff1*restflx_temp_AVR(i,j) +cff*RestflxTemp(i,j)
+              enddo
+            enddo
+          endif
+#  endif /* WRITE_TEMP_REST */
+#  if defined WRITE_SALT_REST
+          if (wrtAVR(indxRestflxSalt)) then
+            do j=jstrR,jendR
+              do i=istrR,iendR
+                restflx_salt_AVR(i,j)=cff1*restflx_salt_AVR(i,j) +cff*RestflxSalt(i,j)
+              enddo
+            enddo
+          endif
+#  endif /* WRITE_SALT_REST */
 #  ifdef LMD_KPP
         if (wrtAVR(indxHbls)) then
             do j=jstrR,jendR
@@ -483,6 +507,12 @@
 # undef rho_AVR
 # undef aks_AVR
 # undef akt_AVR
+# if defined WRITE_TEMP_REST
+#  undef restflx_temp_AVR
+# endif
+# if defined WRITE_SALT_REST
+#  undef restflx_salt_AVR
+# endif
 # undef rich_AVR
 # undef richN_AVR
 # undef swr_frac_AVR

@@ -234,7 +234,7 @@
         endif
       enddo
 #  endif /* SEDIMENT_BIOLOGY */
-#  if defined BIOLOGY_BEC || define BIOLOGY_BEC2 || (defined BIOLOGY_NPZDOC && \
+#  if defined BIOLOGY_BEC || defined BIOLOGY_BEC2 || (defined BIOLOGY_NPZDOC && \
     defined OXYGEN && defined CARBON)
 
 ! pH:

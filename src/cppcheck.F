@@ -323,7 +323,6 @@ c**  &                              '''<', fname(ifile)(1:ln), '>'''
      &      '''switch is defined in "cppdefs.h".''',   'ierr=ierr+1',
      &                                             'endif'
 # endif
-#endif
       write(iout,'(6x,A/2x,A/5x,A1,2x,A,1x,A/5x,A1,2x,A,1x,A)')
      &      'return',
      &      '99  mpi_master_only write(*,''(/1x,2A/14x,A)'')',  '&',

@@ -484,13 +484,11 @@ c??         enddo
           call t3dbc_closed_tile (istr,iend,jstr,jend, itrc)
         else
 # endif /* PASSIVE_TRACER && AGE_DYE_TRACER */
-          call t3dbc_tile (istr,iend,jstr,jend, itrc, WORK)
+          call t3dbc_tile (istr,iend,jstr,jend, itrc, wrk1)
 # if defined PASSIVE_TRACER && defined AGE_DYE_TRACER
         endif
 # endif /* PASSIVE_TRACER && AGE_DYE_TRACER */
 
-      do itrc=1,NT
-        call t3dbc_tile (istr,iend,jstr,jend, itrc, wrk1)
 # if defined MASKING || defined TCLIMATOLOGY
 #  ifdef EW_PERIODIC
 #   define I_RANGE istr,iend
@@ -504,14 +502,6 @@ c??         enddo
 #  endif
 # endif
 
-# if defined MOORE_BEC
-      enddo                                    ! Multi-Group species
-                                               ! biological Model (MGM)
-      call ecosys_tile (istr,iend,jstr,jend)
-      call mgm_avg_tile (istr,iend,jstr,jend)
-      call ecosys_vst_tile (istr,iend,jstr,jend, nnew,dt)
-
-      do itrc=1,NT
 # if defined BIOLOGY_BEC
       enddo                                    ! Biogeochemical
                                                ! Elemental Cycles
@@ -559,6 +549,7 @@ c??         enddo
 #  undef I_RANGE
 #  undef J_RANGE
 # endif
+
       enddo  ! <-- itrc
 
 ! Exchange computational margins and/or periodic boundaries:
