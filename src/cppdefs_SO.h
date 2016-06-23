@@ -44,7 +44,7 @@
 #ifdef BIOLOGY_BEC2
 # define BEC_COCCO
 # define BIOLOGY
-# define DEFAULT_BGC_BRY_VALUES
+# define DEFAULT_BRY_VALUES
 #endif
 
 # define BEC2_DIAG

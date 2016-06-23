@@ -54,7 +54,7 @@
 !--> # define BIOLOGY_BEC2
 
 #ifdef BIOLOGY_BEC2
-# define DEFAULT_BGC_BRY_VALUES
+# define DEFAULT_BRY_VALUES
 !--> # define MULT_CLIM_FILES
 !--> # define VFLX_CORR
 !--> # define BEC2_DIAG

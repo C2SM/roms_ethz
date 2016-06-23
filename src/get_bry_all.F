@@ -3,10 +3,6 @@
                           defined OBC_SOUTH  || defined OBC_NORTH )  \
                      && ( defined M2_FRC_BRY || defined Z_FRC_BRY || \
                           defined M3_FRC_BRY || defined T_FRC_BRY )
-#ifndef BIOLOGY
-/*  DEFAULT_BGC_BRY_VALUES only makes sense with a BGC model */
-# undef DEFAULT_BGC_BRY_VALUES
-#endif
 
       subroutine get_bry_all(ierr_ext)     ! Read side boundary forcing
       implicit none                        ! fields from boundary file
@@ -197,12 +193,10 @@
 
              ierr=nf_inq_varid (bry_id, vname_bry, t_west_id(itrc))
              if (ierr/=nf_noerr) then
-#    ifdef DEFAULT_BGC_BRY_VALUES
-                if (itrc >= itrc_bio) then
-                  write(*,11) trim(vname_bry),
-     &                 bry_file(ibry)(1:lsrc) MYID
-                  t_west_id(itrc) = 0
-                endif
+#    ifdef DEFAULT_BRY_VALUES
+                write(*,11) trim(vname_bry),
+     &               bry_file(ibry)(1:lsrc) MYID
+                t_west_id(itrc) = 0
 #    else
                 write(*,1) trim(vname_bry),bry_file(ibry)(1:lsrc)
                 ierr_all=ierr_all+ierr
@@ -270,12 +264,10 @@
               vname_bry = trim(vname(1,itrc+indxT-1))/ /'_east'
               ierr=nf_inq_varid (bry_id, vname_bry, t_east_id(itrc))
               if (ierr/=nf_noerr) then
-#    ifdef DEFAULT_BGC_BRY_VALUES
-                if (itrc >= itrc_bio) then
-                  write(*,11) trim(vname_bry),
-     &                 bry_file(ibry)(1:lsrc) MYID
-                  t_east_id(itrc) = 0
-                endif
+#    ifdef DEFAULT_BRY_VALUES
+                write(*,11) trim(vname_bry),
+     &               bry_file(ibry)(1:lsrc) MYID
+                t_east_id(itrc) = 0
 #    else
                 write(*,1) trim(vname_bry),bry_file(ibry)(1:lsrc)
                 ierr_all=ierr_all+ierr
@@ -343,12 +335,10 @@
               vname_bry = trim(vname(1,itrc+indxT-1))/ /'_south'
               ierr=nf_inq_varid (bry_id, vname_bry, t_south_id(itrc))
               if (ierr/=nf_noerr) then
-#    ifdef DEFAULT_BGC_BRY_VALUES
-                if (itrc >= itrc_bio) then
-                  write(*,11) trim(vname_bry),
-     &                 bry_file(ibry)(1:lsrc) MYID
-                  t_south_id(itrc) = 0
-                endif
+#    ifdef DEFAULT_BRY_VALUES
+                write(*,11) trim(vname_bry),
+     &               bry_file(ibry)(1:lsrc) MYID
+                t_south_id(itrc) = 0
 #    else
                 write(*,1) trim(vname_bry),bry_file(ibry)(1:lsrc)
                 ierr_all=ierr_all+ierr
@@ -416,12 +406,10 @@
             vname_bry = trim(vname(1,itrc+indxT-1))/ /'_north'
             ierr=nf_inq_varid(bry_id,trim(vname_bry),t_north_id(itrc))
             if (ierr/=nf_noerr) then
-#    ifdef DEFAULT_BGC_BRY_VALUES
-              if (itrc >= itrc_bio) then
-                write(*,11) trim(vname_bry),
-     &                 bry_file(ibry)(1:lsrc) MYID
-                t_north_id(itrc) = -1
-              endif
+#    ifdef DEFAULT_BRY_VALUES
+              write(*,11) trim(vname_bry),
+     &               bry_file(ibry)(1:lsrc) MYID
+              t_north_id(itrc) = -1
 #    else
               write(*,1) trim(vname_bry),bry_file(ibry)(1:lsrc)
               ierr_all=ierr_all+ierr
@@ -497,16 +485,14 @@
                 do itrc=1,NT
                   ierr=read_bry_EW(bry_id, t_west_id(itrc),  bry_rec,
      &                           r_var, t_west_dt(0,1,itbry,itrc), N)
-#    if defined BIOLOGY && defined DEFAULT_BGC_BRY_VALUES
+#    ifdef DEFAULT_BRY_VALUES
                   if (ierr /= nf_noerr)  then
-                    if (itrc >= itrc_bio .and. itrc <= NT) then
-                      call set_bry_defaults(t_west_dt,itrc,itbry,Mm+1)
-                      print 3, trim(vname(1,indxT-1+itrc)
-     &                     , t_west_dt(0,1,itbry,itrc) MYID
-                      ierr=nf_noerr
-                    endif
+                    call set_bry_defaults(t_west_dt,itrc,itbry,Mm+1)
+                    print 3, trim(vname(1,indxT-1+itrc)
+     &                   , t_west_dt(0,1,itbry,itrc) MYID
+                    ierr=nf_noerr
                   endif
-#    endif /* DEFAULT_BGC_BRY_VALUES */
+#    endif /* DEFAULT_BRY_VALUES */
                   if (ierr_all == nf_noerr) ierr_all=ierr
                 enddo
 #   endif /* T_FRC_BRY */
@@ -544,16 +530,14 @@
                 do itrc=1,NT
                   ierr=read_bry_EW(bry_id, t_east_id(itrc),  bry_rec,
      &                           r_var, t_east_dt(0,1,itbry,itrc), N)
-#    if defined BIOLOGY && defined DEFAULT_BGC_BRY_VALUES
+#    ifdef DEFAULT_BRY_VALUES
                   if (ierr /= nf_noerr)  then
-                    if (itrc >= itrc_bio .and. itrc <= NT) then
-                      call set_bry_defaults(t_east_dt,itrc,itbry,Mm+1)
-                      print 3, trim(vname(1,indxT-1+itrc)
-     &                     , t_east_dt(0,1,itbry,itrc) MYID
-                      ierr=nf_noerr
-                    endif
+                    call set_bry_defaults(t_east_dt,itrc,itbry,Mm+1)
+                    print 3, trim(vname(1,indxT-1+itrc)
+     &                   , t_east_dt(0,1,itbry,itrc) MYID
+                    ierr=nf_noerr
                   endif
-#     endif /* BIOLOGY && DEFAULT_BGC_BRY_VALUES */
+#     endif /* DEFAULT_BRY_VALUES */
                   if (ierr_all == nf_noerr) ierr_all=ierr
                 enddo
 #   endif
@@ -592,16 +576,14 @@
                 do itrc=1,NT
                   ierr=read_bry_NS(bry_id, t_south_id(itrc),  bry_rec,
      &                           r_var, t_south_dt(0,1,itbry,itrc), N)
-#    if defined BIOLOGY && defined DEFAULT_BGC_BRY_VALUES
+#    ifdef DEFAULT_BRY_VALUES
                   if (ierr /= nf_noerr)  then
-                    if (itrc >= itrc_bio .and. itrc <= NT) then
-                      call set_bry_defaults(t_south_dt,itrc,itbry,Lm+1)
-                      print 3, trim(vname(1,indxT-1+itrc)
-     &                     , t_south_dt(0,1,itbry,itrc) MYID
-                      ierr=nf_noerr
-                    endif
+                    call set_bry_defaults(t_south_dt,itrc,itbry,Lm+1)
+                    print 3, trim(vname(1,indxT-1+itrc)
+     &                   , t_south_dt(0,1,itbry,itrc) MYID
+                    ierr=nf_noerr
                   endif
-#     endif /* BIOLOGY && DEFAULT_BGC_BRY_VALUES */
+#     endif /* DEFAULT_BRY_VALUES */
                   if (ierr_all == nf_noerr) ierr_all=ierr
                 enddo
 #   endif
@@ -644,16 +626,14 @@
                     print *,'No id for tracer No: ',itrc
                     ierr=-1
                   endif
-#    if defined BIOLOGY && defined DEFAULT_BGC_BRY_VALUES
+#    ifdef DEFAULT_BRY_VALUES
                   if (ierr /= nf_noerr)  then
-                    if (itrc >= itrc_bio .and. itrc <= NT) then
-                      call set_bry_defaults(t_north_dt,itrc,itbry,Lm+1)
-                      print 3, trim(vname(1,indxT-1+itrc))
-     &                     , t_north_dt(0,1,itbry,itrc) MYID
-                      ierr=nf_noerr
-                    endif
+                    call set_bry_defaults(t_north_dt,itrc,itbry,Lm+1)
+                    print 3, trim(vname(1,indxT-1+itrc))
+     &                   , t_north_dt(0,1,itbry,itrc) MYID
+                    ierr=nf_noerr
                   endif 
-#     endif /* DEFAULT_BGC_BRY_VALUES */
+#     endif /* DEFAULT_BRY_VALUES */
                   if (ierr_all == nf_noerr) ierr_all=ierr
                 enddo
 #   endif
@@ -970,7 +950,7 @@
       end
 
 
-# ifdef DEFAULT_BGC_BRY_VALUES
+# ifdef DEFAULT_BRY_VALUES
       subroutine set_bry_defaults (t_bry_dt, itrc, itbry, LMmpp)
       implicit none
 #  include "param.h"
@@ -980,10 +960,12 @@
 #  define temp cff
 #  define SiO4 cff1
 
-
+      if (itrc == itemp) then
+        t_bry_dt(:,:,itbry,itrc) = 5.0 ! default temperature
+      else if (itrc == isalt) then
+        t_bry_dt(:,:,itbry,itrc) = 35.0 ! default salinity
 #  ifdef BIOLOGY_NPZDOC
-
-      if (itrc == iNO3_) then
+      elseif (itrc == iNO3_) then
         cff=20./3.
         cff1=2./3.
         do k=1,N
@@ -1037,12 +1019,11 @@
         t_bry_dt(:,:,itbry,itrc) = 0.0
 #    endif
 #   endif /* OXYGEN */
-      endif  ! itrc .eq. iNO3_
 #  endif /* BIOLOGY_NPZDOC */
 
 #    if defined BIOLOGY_BEC || defined BIOLOGY_BEC2
 ! provide defaults for selected biogeochemical variables
-      if (itrc .eq. iNH4 .or. itrc .eq. iDOC .or.
+      elseif (itrc .eq. iNH4 .or. itrc .eq. iDOC .or.
      &    itrc .eq. iDON .or. itrc. eq. iDOFE .or. 
      &    itrc .eq. iDOP) then
         t_bry_dt(:,:,itbry,itrc) = 0.0
@@ -1114,13 +1095,15 @@
      &     t_bry_dt(:,:,itbry,iDIAZC)  
       else if (itrc .eq. iZOOC) then
         t_bry_dt(:,:,itbry,itrc) = 0.05
-      else 
+      else if (itrc >= itrc_bio) then
         t_bry_dt(:,:,itbry,itrc) = 1e-30
-      end if
 #    endif /* BIOLOGY_BEC */
+      else 
+        t_bry_dt(:,:,itbry,itrc) = 0.0
+      endif ! tracer cases
       return
       end
-# endif /* DEFAULT_BGC_BRY_VALUES */
+# endif /* DEFAULT_BRY_VALUES */
 
 #else
       subroutine get_bry_all(ierr_ext)     ! Read side boundary forcing
