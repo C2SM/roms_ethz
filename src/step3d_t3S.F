@@ -64,12 +64,8 @@ c--# define AKIMA
           do j=jstr,jend
             do i=istr,iend
               t(i,j,k,nnew,itrc)=t(i,j,k,nnew,itrc) -dt*pm(i,j)
-     &                              *pn(i,j)*( FX(i+1,j)-FX(i,j)
-     &                                          +FE(i,j+1)-FE(i,j)
-# ifdef TSOURCE /* AH15: add tracer source at rho-point */
-     &                                          -T_src(i,j,k,itrc)
-# endif /* TSOURCE */
-     &                                                           )
+     &                             *pn(i,j)*( FX(i+1,j)-FX(i,j)
+     &                                      +FE(i,j+1)-FE(i,j))
             enddo
           enddo                 !-->  discard FX,FE
 # ifdef PHYS_FLUX_ANALYSIS
@@ -125,9 +121,19 @@ c--# define AKIMA
              enddo
           end if
 # endif /* PHYS_FLUX_ANALYSIS */
-
+! Add 3D sources
+! AH16
+# ifdef TSOURCE
+          do k=1,N
+            do i=istr,iend
+              t(i,j,k,nnew,itrc)=t(i,j,k,nnew,itrc) +dt*pm(i,j)*pn(i,j)
+     &                                               *T_src(i,j,k,itrc)
+            enddo
+          enddo
+        enddo
+      enddo
+# endif /* TSOURCE */
 ! Add surface fluxes
-
 # if defined PASSIVE_TRACER && defined AGE_DYE_TRACER
 !DL: do this except for age tracers. Age tracers are dealt with in pre_step3d
           if (itrc.le.indxT+ntrc_salt .or. itrc.gt.indxT+ntrc_salt+ntrc_pas 
@@ -140,23 +146,17 @@ c--# define AKIMA
           endif ! itrc.le.indxT+ntrc_salt .or. ...
 # endif
 # if defined LMD_KPP && defined ICEOBS
-! AH15: KPP has problems under sea ice. Distributing salt 
-! fluxes due to melting and freezing uniformly over
-! kbl until one layer below (see Duffy et al. 1999)
+! AH15: Distributing salt fluxes due freezing uniformly over
+! kbl until one layer below to mimic brine plume convection
+! (see Duffy et al. 1999)
           if (itrc .eq. isalt) then
             do i=istr,iend
               if (freezing(i,j).gt.0) then
-                t(i,j,N,nnew,itrc)=t(i,j,N,nnew,itrc)-dt*freezing(i,j)
-!                t(i,j,N,nnew,itrc)=t(i,j,N,nnew,itrc)-dt*melting(i,j)
                 do k=N,(kbl(i,j)-1),-1
                   t(i,j,k,nnew,itrc)=t(i,j,k,nnew,itrc)
      &                  +(dt*freezing(i,j)
      &                  *Hz(i,j,k)/(z_w(i,j,N)-z_w(i,j,kbl(i,j)-2)))
-!                  t(i,j,k,nnew,itrc)=t(i,j,k,nnew,itrc)
-!     &                  +(dt*melting(i,j)
-!     &                  *Hz(i,j,k)/(z_w(i,j,N)-z_w(i,j,kbl(i,j)-2)))
                 enddo
-!                t(i,j,kbl(i,j)-1,nnew,itrc)=t(i,j,kbl(i,j)-1,nnew,itrc)+dt*freezing(i,j)
               endif
             enddo
           endif

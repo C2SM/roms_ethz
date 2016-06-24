@@ -75,32 +75,19 @@
 ! AH: tracer sources:
 #if defined TSOURCE
 !
-! Qu_fldsrc(i,j,k)   Mass transport profile (m3/s) of field Sources/Sinks in u on u-point.
-! Qubar_fldsrc(i,j)  Vertically integrated Qu_fldsrc (m3/s)
-! Qv_fldsrc(i,j,k)   Mass transport profile (m3/s) of field Sources/Sinks in v on v-point.
-! Qvbar_fldsrc(i,j)  Vertically integrated Qv_fldsrc (m3/s)
-! T_src(i,j,k,NT) Tracer (tracer units times m3 s-1) field Sources/Sinks on rho-point
+! T_src(i,j,k,0:NT)  Tracer (tracer units times m3 s-1) field Sources/Sinks on rho-point
 ! AH15: note that for temperature/salinity the unit must be degC/PSU m3 s-1
-!      real Qubar_fldsrc(GLOBAL_2D_ARRAY), Qvbar_fldsrc(GLOBAL_2D_ARRAY)
-!CSDISTRIBUTE_RESHAPE  Qubar_fldsrc(BLOCK_PATTERN,*) BLOCK_CLAUSE
-!CSDISTRIBUTE_RESHAPE  Qvbar_fldsrc(BLOCK_PATTERN,*) BLOCK_CLAUSE
-!      real Qu_fldsrc(GLOBAL_2D_ARRAY,N), Qv_fldsrc(GLOBAL_2D_ARRAY,N)
-!CSDISTRIBUTE_RESHAPE  Qu_fldsrc(BLOCK_PATTERN,*) BLOCK_CLAUSE
-!CSDISTRIBUTE_RESHAPE  Qv_fldsrc(BLOCK_PATTERN,*) BLOCK_CLAUSE
-      real T_src(GLOBAL_2D_ARRAY,N,NT)
+      real T_src(GLOBAL_2D_ARRAY,N,0:NT)
 CSDISTRIBUTE_RESHAPE  T_src(BLOCK_PATTERN,*) BLOCK_CLAUSE
-!      common /sources_fld/ Qubar_fldsrc, Qvbar_fldsrc, Qu_fldsrc, Qv_fldsrc, T_fldsrc
       common /sources_fld/ T_src
       
       real tsrc_cycle, tsrc_time
       integer tsrc_ncycle,   tsrc_rec,    nttsrc,
-     &        tsrc_file_id,  tsrc_id(NT),
-!     &        tsrc_quid, tsrc_qvid, tsrc_qubarid, tsrc_qvbarid,
+     &        tsrc_file_id,  tsrc_id(0:NT),
      &        tsrc_tid
 
       common /tsrc_data/ tsrc_cycle,  tsrc_time,
      &        tsrc_ncycle,   tsrc_rec,    nttsrc,
      &        tsrc_file_id,  tsrc_id,
-!     &        tsrc_quid, tsrc_qvid, tsrc_qubarid, tsrc_qvbarid,
      &        tsrc_tid
 #endif /* TSOURCE */

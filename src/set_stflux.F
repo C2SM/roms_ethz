@@ -103,7 +103,9 @@
               stflx(i,j,isalt)=(cff*stflxg(i,j,itstf(isalt),isalt)
      &                                       *t(i,j,N,nrhs,isalt))
 #  ifdef ICEOBS
-     &                                +freezing(i,j)+melting(i,j)
+     &                                               +melting(i,j)
+!AH16: Note that salt from freezing is added later to the subsurface
+!      to mimic brine convection through the mixed layer
 #  endif
             enddo
           enddo

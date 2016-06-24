@@ -56,6 +56,11 @@
             MPI_master_only write(*,1) 'tsrc_time'
           endif
           ierr_all=ierr_all+ierr
+          ierr=nf_inq_varid (ncid, 'volflux', tsrc_id(0))
+          if (ierr.ne.nf_noerr) then
+            MPI_master_only write(*,1) 'volflux'
+          endif
+          ierr_all=ierr_all+ierr
           do itrc = 1, NT
              lvar=lenstr(vname(1,indxT+itrc-1))
              ierr=nf_inq_varid (ncid, vname(1,indxT+itrc-1)(1:lvar),
@@ -94,6 +99,13 @@
           if (ierr.eq.nf_noerr) then
             tsrc_time=cff*day2sec + tsrc_cycle*tsrc_ncycle
             ierr_all=0
+            ierr=ncdf_read(ncid, tsrc_id(0), tsrc_rec, r_var,
+     &                    T_src(START_2D_ARRAY,1,0), N)
+            if (ierr.ne.nf_noerr)  then
+              MPI_master_only write(*,2)
+     &                       vname(1,indxT+itrc-1)(1:lvar)
+              ierr_all=ierr_all+ierr
+            end if
             do itrc=1, NT
                tsrc_set = .false.
                lvar=lenstr(vname(1,indxT+itrc-1))
