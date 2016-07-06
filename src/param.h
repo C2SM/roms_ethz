@@ -256,14 +256,14 @@ c     &      NSUB_X=2, NSUB_E=8  ! <-- iswake 768x192
       integer, parameter :: padd_X=(Lm+2)/2-(Lm+1)/2,
      &                      padd_E=(Mm+2)/2-(Mm+1)/2
 #ifdef SOLVE3D
-     &       , itemp=1
 # ifdef PASSIVE_TRACER
-     &, ntrc_pas=4
-! in pre 2015 code:     &, itpas(ntrc_pas)
-! in pre 2015 code:     common /pass_tracer/ itpas
+     &, ntrc_pas=1
+!     &, itpas(ntrc_pas)
+!      common /pass_tracer/ itpas
 # else 
      &, ntrc_pas=0
 # endif /* PASSIVE_TRACER */
+     &       , itemp=1
 # ifdef SALINITY
      &       , isalt=2, ntrc_salt=1
      &       , itrc_bio=itemp+ntrc_salt+ntrc_pas+1 

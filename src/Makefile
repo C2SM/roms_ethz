@@ -65,7 +65,8 @@ IOSRC = checkdims.F	find_record.F	insert_node.F	ncdf_read_write.F\
 	get_forces.F	get_stflux.F	get_bry_all.F	set_forces.F\
 	set_smflux.F	set_stflux.F	nf_read_bry.F	bulk_flux_COAMS.F\
 	set_seaice.F	get_tides.F	set_tides.F	set_srflux.F\
-	get_ssh.F	get_tclima.F	get_uclima.F	closecdf.F
+	get_ssh.F	get_tclima.F	get_uclima.F	closecdf.F\
+	init_agedye.F   get_agedye.F    set_cycle.F
 
 OBSOLETE_SRC = \
 	get_ssh.F	get_srflux.F get_sst.F	get_dqdt.F	get_sss.F	get_stress_magn.F

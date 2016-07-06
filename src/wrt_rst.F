@@ -234,15 +234,15 @@
         endif
       enddo
 #  endif /* SEDIMENT_BIOLOGY */
-#  if defined BIOLOGY_BEC || define BIOLOGY_BEC2 || (defined BIOLOGY_NPZDOC && \
-    defined OXYGEN && defined CARBON)
+#  if  defined BIOLOGY_BEC || defined BIOLOGY_BEC2 || \
+      (defined BIOLOGY_NPZDOC && defined OXYGEN && defined CARBON)
 
 ! pH:
 
       ierr=nf_fwrite (ph_hist, ncrst, rstPH, record, r2dvar)
       if (ierr .ne. nf_noerr) then
-         lvar=lenstr(vname(1,indxPH_rst))
-         write(*,1) vname(1,indxPH_rst)(1:lvar), record,
+         lvar=lenstr(vname(1,indxPH))
+         write(*,1) vname(1,indxPH)(1:lvar), record,
      &        ierr, nf_strerror(ierr) MYID
          goto 99                !--> ERROR
       endif
@@ -251,24 +251,24 @@
 
       ierr=nf_fwrite (pCO2sw, ncrst, rstPCO2, record, r2dvar)
       if (ierr .ne. nf_noerr) then
-         lvar=lenstr(vname(1,indxPCO2_rst))
-         write(*,1) vname(1,indxPCO2_rst)(1:lvar), record,
+         lvar=lenstr(vname(1,indxPCO2))
+         write(*,1) vname(1,indxPCO2)(1:lvar), record,
      &        ierr, nf_strerror(ierr) MYID
          goto 99                !--> ERROR
       endif
-#  ifdef OUTPUT_PCO2AIR_RST
+#   ifdef OUTPUT_PCO2AIR_RST
 
 ! pCO2air:
 
       ierr=nf_fwrite (pCO2air, ncrst, rstPCO2air, record, r2dvar)
       if (ierr .ne. nf_noerr) then
-         lvar=lenstr(vname(1,indxPCO2air_rst))
-         write(*,1) vname(1,indxPCO2air_rst)(1:lvar), record,
+         lvar=lenstr(vname(1,indxPCO2air))
+         write(*,1) vname(1,indxPCO2air)(1:lvar), record,
      &        ierr, nf_strerror(ierr) MYID
          goto 99                !--> ERROR
       endif
-#  endif /* OUTPUT_PCO2AIR_RST */
-# endif /* BIOLOGY_BEC || (BIOLOGY_NPZDOC && OXYGEN && CARBON) */
+#   endif
+#  endif
 
 # if defined BIOLOGY_BEC2 && defined BEC2_DIAG
 
@@ -305,8 +305,8 @@
 
       ierr=nf_fwrite (PAR, ncrst, rstPAR, record, r3dvar)
       if (ierr .ne. nf_noerr) then
-         lvar=lenstr(vname(1,indxPAR_rst))
-         write(*,1) vname(1,indxPAR_rst)(1:lvar), record,
+         lvar=lenstr(vname(1,indxPAR))
+         write(*,1) vname(1,indxPAR)(1:lvar), record,
      &        ierr, nf_strerror(ierr) MYID
          goto 99                !--> ERROR
       endif

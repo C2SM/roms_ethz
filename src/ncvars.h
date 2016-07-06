@@ -278,9 +278,6 @@
 # include "bio_diag.h"
 #endif
 
-      integer, parameter :: max_indx = LAST_I
-
-
       character*42  vname(4,LAST_I)
       common /cncvars/ vname
 

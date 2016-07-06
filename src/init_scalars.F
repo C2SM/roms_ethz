@@ -214,9 +214,9 @@ CR      write(*,'(1x,A,I3)') 'indxS = ', indxS
       vname(3,indxS)='PSU'
 # endif
 # ifdef PASSIVE_TRACER
-      do itrc = 1, ntrc_pas
-         itpas(itrc) = itemp + ntrc_salt + itrc
-      end do
+!      do itrc = 1, ntrc_pas
+!         itpas(itrc) = itemp + ntrc_salt + itrc
+!      end do
 !
       do itrc = indxT+ntrc_salt+1,indxT+ntrc_salt+ntrc_pas
          if (itrc-indxT-ntrc_salt .lt. 10) then
