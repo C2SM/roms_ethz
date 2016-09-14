@@ -272,7 +272,7 @@
      &                    , indxFi= indxCi+1 ! melting
      &                    , indxMi= indxFi+1 ! freezing
 # undef LAST_I
-# define LAST_I indxCi
+# define LAST_I indxMi
 #endif
 #ifdef BIOLOGY
 # include "bio_diag.h"
