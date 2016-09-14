@@ -197,6 +197,7 @@
                 write(*,11) trim(vname_bry),
      &               bry_file(ibry)(1:lsrc) MYID
                 t_west_id(itrc) = 0
+                ierr=nf_noerr
 #    else
                 write(*,1) trim(vname_bry),bry_file(ibry)(1:lsrc)
                 ierr_all=ierr_all+ierr
@@ -268,6 +269,7 @@
                 write(*,11) trim(vname_bry),
      &               bry_file(ibry)(1:lsrc) MYID
                 t_east_id(itrc) = 0
+                ierr=nf_noerr
 #    else
                 write(*,1) trim(vname_bry),bry_file(ibry)(1:lsrc)
                 ierr_all=ierr_all+ierr
@@ -339,6 +341,7 @@
                 write(*,11) trim(vname_bry),
      &               bry_file(ibry)(1:lsrc) MYID
                 t_south_id(itrc) = 0
+                ierr=nf_noerr
 #    else
                 write(*,1) trim(vname_bry),bry_file(ibry)(1:lsrc)
                 ierr_all=ierr_all+ierr
@@ -410,6 +413,7 @@
               write(*,11) trim(vname_bry),
      &               bry_file(ibry)(1:lsrc) MYID
               t_north_id(itrc) = -1
+              ierr=nf_noerr
 #    else
               write(*,1) trim(vname_bry),bry_file(ibry)(1:lsrc)
               ierr_all=ierr_all+ierr
@@ -623,7 +627,6 @@
                   ierr=read_bry_NS(bry_id, t_north_id(itrc),  bry_rec,
      &                           r_var, t_north_dt(0,1,itbry,itrc), N)
                   else
-                    print *,'No id for tracer No: ',itrc
                     ierr=-1
                   endif
 #    ifdef DEFAULT_BRY_VALUES
@@ -673,7 +676,7 @@
 !  2   format(/1x,'### ERROR get_bry_all: Cannot read variable ''',
 !     &                                                     A, '''.')
  3    format(1x,'--- WARNING get_bry_all: Using default for ''',
-     &          A,''' Sample value = ',g9.2,' (Tile ',i3,')'
+     &          ''''/10x,' Sample value = ',g9.2,' (',A,i3,')'
      &          ,' itrc = ',i3,A,i5)
       if (ierr_ext == nf_noerr) ierr_ext=ierr_all
 # ifdef VERBOSE
@@ -939,7 +942,7 @@
         endif
 # endif
         if (cff1<0. .or. cff2<0.) then
-           write(*,'(/3A/3(1x,A,F16.10)/)')            '### WARNING: ',
+           write(*,'(/3A/3(1x,A,D16.9)/)')            '### WARNING: ',
      &      'set_bry_all_tile :: current model time is out of bounds ',
      &      'of ''bry_time''.', 'bry_tstart =', bry_time(it1)*sec2day,
      &      'tdays =',  tdays,  'bry_tend =',   bry_time(it2)*sec2day

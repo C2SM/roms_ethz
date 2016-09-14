@@ -283,14 +283,10 @@ c??         enddo
          end do
 # endif /* PHYS_FLUX_ANALYSIS & VERT_DIFF_ANALYSIS */
 
-# ifdef BIOLOGY
-#  ifdef SALINITY
+# ifdef SALINITY
           iAkt=min(itrc,isalt)
-#  else
-          iAkt=min(itrc,itemp)
-#  endif
 # else
-          iAkt=itrc
+          iAkt=min(itrc,itemp)
 # endif
           do i=istr,iend
             DC(i,0)=dt*pm(i,j)*pn(i,j) !<--horizontal metric
