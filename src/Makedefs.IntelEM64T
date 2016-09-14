@@ -23,7 +23,7 @@
 # the standard CPP is not aware of this.
 
 #      CPP = /lib/cpp -traditional -D__IFC
-      CPP = fpp -e
+      CPP = fpp -e -D__IFC
  CPPFLAGS = -I${MPI_ROOT}/include
 
 # Compiler settings:  -fpp2 is required only if -openmp is present.

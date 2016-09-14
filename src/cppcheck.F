@@ -156,6 +156,9 @@ c**         enddo
               ie=iend(k)                ! conditional CPP-command.
               ln=ie-is+1
               status=.false.
+!#ifdef UCLA_CPPDEFS_STYLE
+              status=.true.
+!#endif
 
               if (ln == 6 .and. string(is:ie) == 'define') then
                 command=.true. ; status=.true.
@@ -289,13 +292,15 @@ c**  &                              '''<', fname(ifile)(1:ln), '>'''
      &             'if (ie >= max_opt_size) goto 99',
      &             'cpps(is:ie)=''<', fname(ifile)(1:ln), '>''',
      &             'cpps(ie+1:ie+1)='' '''
-       print*,'ifile= ',ifile,' fswitch(ifile)=',fswtch(ifile)
+       print*,' fswitch(',ifile,')=',fswtch(ifile)
+       print*,' fswitch(',ifile+1,')=',fswtch(ifile+1)
 
         do i=fswtch(ifile),fswtch(ifile+1)-1
           ln=size(i)
-          if (ifile == 1) write(iout,'(A,1x,A)') '#ifdef',
+!sasha          if (ifile == 1) write(iout,'(A,1x,A)') '#ifdef',
+          write(iout,'(A,1x,A)') '#ifdef',
      &                                        switch(i)(1:ln)
-          if (ifile == 1 .or. state(i)) then
+!sasha          if (ifile == 1 .or. state(i)) then
             if (i <= nexample) write(iout,'(6x,A)')
      &                                 'iexample=iexample+1'
             if (ln > 10) then
@@ -307,8 +312,9 @@ c**  &                              '''<', fname(ifile)(1:ln), '>'''
      &                 'if (ie >= max_opt_size) goto 99',
      &                 'cpps(is:ie)=''', switch(i)(1:ln), '''',
      &                 'cpps(ie+1:ie+1)='' '''
-          endif
-          if (ifile == 1) write(iout,'(A)')  '#endif'
+!sasha          endif
+!sasha          if (ifile == 1) write(iout,'(A)')  '#endif'
+          write(iout,'(A)')  '#endif'
         enddo
       enddo
 #ifdef UCLA_CPPDEFS_STYLE

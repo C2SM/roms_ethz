@@ -43,7 +43,7 @@
 ! the error flag.
 
       implicit none
-      character(len=24) bffr(3)
+      character(len=36) bffr(3)
       integer is,ie, i,nwd, lbffr(3)
 #include "strings.h"
       write(*,'(/1x,A)') 'Activated CPP configuration switches:'
