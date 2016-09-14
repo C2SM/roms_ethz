@@ -155,6 +155,7 @@ c# endif
 !
 ! Yusuke Uchiyama, 2009: UTC correction based on lonr is added.
 !                      [ocean_]time should be in UTC.
+      eps = 0.001 ! Don't modulate for solar elevations smaller that this
 
 # define UTC_CORRECTION
 
