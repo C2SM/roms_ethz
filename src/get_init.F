@@ -605,18 +605,22 @@ c--#define VERBOSE
             goto 99                                       !--> ERROR
           endif
         else
-# if defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC2
-          if (itrc >= 3) then
-            MPI_master_only write(*,3) vname(1,indxT+itrc-1)(1:lvar)
-     &                                 , trim(ininame)
-     &                                 , ' => Initialized to 0.' 
-          else
-# endif
+# if defined PASSIVE_TRACER || defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC2
+          if (itrc <= itemp+ntrc_salt) then ! temperature and salt(s) always require inital condition
             MPI_master_only write(*,1) vname(1,indxT+itrc-1)(1:lvar)
      &                          , trim(ininame), nf_strerror(ierr)
             goto 99                                         !--> ERROR
-# ifdef BIOLOGY_BEC2
+          else
+            t(GLOBAL_2D_ARRAY,1,tindx,itrc) = 0.0
+            MPI_master_only write(*,*) ' --- WARNING: '
+     &         , vname(1,indxT+itrc-1)(1:lvar)
+     &         , ' not in initial file.  Initialized to 0.0'
+            ierr=nf_noerr
           endif
+# else /* .not. PASSIVE_TRACER || defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC2 */
+          MPI_master_only write(*,1) vname(1,indxT+itrc-1)(1:lvar)
+     &                          , trim(ininame), nf_strerror(ierr)
+          goto 99                                         !--> ERROR
 # endif
         endif
       enddo
