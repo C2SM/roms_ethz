@@ -224,8 +224,8 @@
 ! Sediment tracer variables.
 
       do itrc=1,NT_sed
-        ierr=nf_fwrite (t_sed(START_2D_ARRAY,itrc), ncrst,
-     &                              rstTsed(itrc), record, r2dvar)
+        ierr=ncdf_write(ncrst,  rstTsed(itrc), record, r_var,
+     &                  t_sed(START_2D_ARRAY,itrc), 1)
         if (ierr .ne. nf_noerr) then
           lvar=lenstr(vname(1,indxSedOrgN+itrc-1))
           write(*,1) vname(1,indxSedOrgN+itrc-1)(1:lvar), 
@@ -239,7 +239,8 @@
 
 ! pH:
 
-      ierr=nf_fwrite (ph_hist, ncrst, rstPH, record, r2dvar)
+      ierr=ncdf_write(ncrst, rstPH,  record,  r_var,
+     &                 rstPH, 1)
       if (ierr .ne. nf_noerr) then
          lvar=lenstr(vname(1,indxPH))
          write(*,1) vname(1,indxPH)(1:lvar), record,
@@ -249,7 +250,7 @@
 
 ! pCO2:
 
-      ierr=nf_fwrite (pCO2sw, ncrst, rstPCO2, record, r2dvar)
+      ierr=ncdf_write(ncrst, rstPCO2,  record,  r_var, pCO2sw, 1)
       if (ierr .ne. nf_noerr) then
          lvar=lenstr(vname(1,indxPCO2))
          write(*,1) vname(1,indxPCO2)(1:lvar), record,
@@ -260,7 +261,7 @@
 
 ! pCO2air:
 
-      ierr=nf_fwrite (pCO2air, ncrst, rstPCO2air, record, r2dvar)
+      ierr=ncdf_write(ncrst, rstPCO2air,  record,  r_var, pCO2air, 1)
       if (ierr .ne. nf_noerr) then
          lvar=lenstr(vname(1,indxPCO2air))
          write(*,1) vname(1,indxPCO2air)(1:lvar), record,
@@ -275,8 +276,8 @@
 ! 2d diagnostics:
 
       do itrc=1,nr_bec2_diag_2d
-         ierr=nf_fwrite (bec2_diag_2d(START_2D_ARRAY,itrc), ncrst,
-     &                              rstT_bec2_diag(itrc), record, r2dvar)
+         ierr=ncdf_write(ncrst, rstT_bec2_diag(itrc), record,  r_var, 
+     &                   bec2_diag_2d(START_2D_ARRAY,itrc), 1)
         if (ierr .ne. nf_noerr) then
           lvar=lenstr(vname_bec2_diag_2d(1,itrc))
           write(*,1) vname_bec2_diag_2d(1,itrc)(1:lvar), record,
@@ -288,8 +289,8 @@
 ! 3d diagnostics:
 
       do itrc=1,nr_bec2_diag_3d
-         ierr=nf_fwrite (bec2_diag_3d(START_2D_ARRAY,1,itrc), ncrst,
-     &                   rstT_bec2_diag(nr_bec2_diag_2d+itrc), record, r3dvar)
+         ierr=ncdf_write(ncrst, rstT_bec2_diag(nr_bec2_diag_2d+itrc), 
+     &           record,  r_var, bec2_diag_3d(START_2D_ARRAY,1,itrc), N)
         if (ierr .ne. nf_noerr) then
           lvar=lenstr(vname_bec2_diag_3d(1,itrc))
           write(*,1) vname_bec2_diag_3d(1,itrc)(1:lvar), record,
@@ -303,7 +304,7 @@
 
 ! PAR:
 
-      ierr=nf_fwrite (PAR, ncrst, rstPAR, record, r3dvar)
+      ierr=ncdf_write(ncrst, rstPAR, record,  r_var, PAR, N)
       if (ierr .ne. nf_noerr) then
          lvar=lenstr(vname(1,indxPAR))
          write(*,1) vname(1,indxPAR)(1:lvar), record,

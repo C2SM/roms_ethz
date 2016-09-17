@@ -14,7 +14,7 @@
       implicit none
 #include "netcdf.inc"
       integer ierr, record, lstr, lvar, lenstr
-     &  , start(2), count(2), ibuff(4), nf_fwrite, iflux            
+     &  , start(2), count(2), ibuff(4), ncdf_write, iflux
 
 # if defined MPI && !defined PARALLEL_FILES
 # include "mpif.h"
@@ -86,8 +86,8 @@
 ! Barotropic mode variable: free-surface
 ! Always include this in the output so that depths of sigma levels
 ! can be computed
-      ierr=nf_fwrite (zeta_phys_flux_avg(START_2D_ARRAY), 
-     &     ncid_phys_flux_avg, phys_flux_avgZ,record, r2dvar)
+      ierr=ncdf_write(nchis, phys_flux_avgZ, record,  r_var,
+     &                  zeta_phys_flux_avg(START_2D_ARRAY), 1)
       if (ierr .ne. nf_noerr) then
          lvar=lenstr(vname(1,indxZ))
          write(stdout,1) vname(1,indxZ)(1:lvar), record, ierr
@@ -98,8 +98,8 @@
 ! horizontal advective fluxes (xi-direction)
       do iflux = 1, NT_PFA
          if (wrtavg(indxT+iflux-1)) then
-         ierr = nf_fwrite(HorXAdvFlux_avg(START_2D_ARRAY,1,iflux), 
-     &        ncid_phys_flux_avg, avgHorXAdvFlux(iflux), record, r3dvar)
+           ierr=ncdf_write(nchis, avgHorXAdvFlux(iflux), record,  r_var,
+     &                  HorXAdvFlux_avg(START_2D_ARRAY,1,iflux), N)
          if (ierr .ne. nf_noerr) then
             lvar=lenstr(vname_phys(1,indxHorXAdvFlux+iflux-1))
             write(stdout,1) 
@@ -112,8 +112,8 @@
 ! horizontal advective fluxes (eta-direction)
       do iflux = 1, NT_PFA
          if (wrtavg(indxT+iflux-1)) then
-         ierr = nf_fwrite(HorYAdvFlux_avg(START_2D_ARRAY,1,iflux), 
-     &        ncid_phys_flux_avg, avgHorYAdvFlux(iflux), record, r3dvar)
+           ierr=ncdf_write(nchis, avgHorYAdvFlux(iflux), record,  r_var,
+     &                  HorYAdvFlux_avg(START_2D_ARRAY,1,iflux), N)
          if (ierr .ne. nf_noerr) then
             lvar=lenstr(vname_phys(1,indxHorYAdvFlux+iflux-1))
             write(stdout,1) 
@@ -126,9 +126,8 @@
 ! vertical advective fluxes
       do iflux = 1, NT_PFA
          if (wrtavg(indxT+iflux-1)) then
-         ierr = nf_fwrite(VertAdvFlux_avg(START_2D_ARRAY,
-     &        0,iflux), 
-     &        ncid_phys_flux_avg, avgVertAdvFlux(iflux), record, w3dvar)
+           ierr=ncdf_write(nchis, avgVertAdvFlux(iflux), record,  r_var,
+     &                  VertAdvFlux_avg(START_2D_ARRAY,0,iflux), N+1)
          if (ierr .ne. nf_noerr) then
             lvar=lenstr(vname_phys(1,indxVertAdvFlux+iflux-1))
             write(stdout,1) 
@@ -142,9 +141,8 @@
 ! vertical diffusive fluxes
       do iflux = 1, NT_PFA
          if (wrtavg(indxT+iflux-1)) then
-         ierr = nf_fwrite(VertDiffFlux_avg(START_2D_ARRAY,0,iflux), 
-     &        ncid_phys_flux_avg, avgVertDiffFlux(iflux), 
-     &        record, w3dvar)
+           ierr=ncdf_write(nchis, avgVertDiffFlux(iflux), record, r_var,
+     &                  VertDiffFlux_avg(START_2D_ARRAY,0,iflux), N+1)
          if (ierr .ne. nf_noerr) then
             lvar=lenstr(vname_phys(1,indxVertDiffFlux+iflux-1))
             write(stdout,1) 
@@ -159,8 +157,8 @@
 ! top fluxes
       do iflux = 1, NT_PFA
          if (wrtavg(indxT+iflux-1)) then
-         ierr = nf_fwrite(TopFlux_avg(START_2D_ARRAY,iflux), 
-     &        ncid_phys_flux_avg, avgTopFlux(iflux), record, r2dvar)
+           ierr=ncdf_write(nchis, avgTopFlux(iflux), record, r_var,
+     &                  TopFlux_avg(START_2D_ARRAY,iflux), N+1)
          if (ierr .ne. nf_noerr) then
             lvar=lenstr(vname(1,indxTopFlux+iflux-1))
             write(stdout,1) vname(1,indxTopFlux+iflux-1)(1:lvar), 
@@ -169,10 +167,10 @@
          end if
          end if
       end do
-! shortwave radiation absorption flux !AH15
+! shortwave radiation absorption flux
       if (wrtavg(indxT+itemp-1)) then
-         ierr = nf_fwrite(SRAbsFlux_avg(START_2D_ARRAY,1), 
-     &        ncid_phys_flux_avg, avgSRAbsFlux, record, r3dvar)
+           ierr=ncdf_write(nchis, avgSRAbsFlux, record, r_var,
+     &                  SRAbsFlux_avg(START_2D_ARRAY,1), N)
          if (ierr .ne. nf_noerr) then
             lvar=lenstr(vname_phys(1,indxSRAbsFlux))
             write(stdout,1) 
@@ -181,12 +179,12 @@
             goto 99
          end if
       end if
-#if !defined SELECTED_FLUX_ANALYSIS /* AH */
+#if !defined SELECTED_FLUX_ANALYSIS
 ! bottom fluxes
       do iflux = 1, NT_PFA
          if (wrtavg(indxT+iflux-1)) then
-         ierr = nf_fwrite(BottomFlux_avg(START_2D_ARRAY,iflux), 
-     &        ncid_phys_flux_avg, avgBottomFlux(iflux), record, r2dvar)
+           ierr=ncdf_write(nchis, avgBottomFlux(iflux), record, r_var,
+     &                  BottomFlux_avg(START_2D_ARRAY,iflux), 1)
          if (ierr .ne. nf_noerr) then
             lvar=lenstr(vname(1,indxBottomFlux+iflux-1))
             write(stdout,1) vname(1,indxBottomFlux+iflux-1)(1:lvar),
@@ -198,8 +196,8 @@
 ! horizontal mixing fluxes (xi-direction)
       do iflux = 1, NT_PFA
          if (wrtavg(indxT+iflux-1)) then
-         ierr = nf_fwrite(HorXMixFlux_avg(START_2D_ARRAY,1,iflux), 
-     &        ncid_phys_flux_avg, avgHorXMixFlux(iflux), record, r3dvar)
+           ierr=ncdf_write(nchis, avgHorXMixFlux(iflux), record, r_var,
+     &                  HorXMixFlux_avg(START_2D_ARRAY,1,iflux), N)
          if (ierr .ne. nf_noerr) then
             lvar=lenstr(vname(1,indxHorXMixFlux+iflux-1))
             write(stdout,1) vname(1,indxHorXMixFlux+iflux-1)(1:lvar), 
@@ -211,8 +209,8 @@
 ! horizontal mixing fluxes (eta-direction)
       do iflux = 1, NT_PFA
          if (wrtavg(indxT+iflux-1)) then
-         ierr = nf_fwrite(HorYMixFlux_avg(START_2D_ARRAY,1,iflux), 
-     &        ncid_phys_flux_avg, avgHorYMixFlux(iflux), record, r3dvar)
+           ierr=ncdf_write(nchis, avgHorYMixFlux(iflux), record, r_var,
+     &                  HorYMixFlux_avg(START_2D_ARRAY,1,iflux), N)
          if (ierr .ne. nf_noerr) then
             lvar=lenstr(vname(1,indxHorYMixFlux+iflux-1))
             write(stdout,1) vname(1,indxHorYMixFlux+iflux-1)(1:lvar), 
@@ -224,9 +222,8 @@
 ! vertical mixing fluxes
       do iflux = 1, NT_PFA
          if (wrtavg(indxT+iflux-1)) then
-         ierr = nf_fwrite(VertMixFlux_avg(START_2D_ARRAY,
-     &        0,iflux), 
-     &        ncid_phys_flux_avg, avgVertMixFlux(iflux), record, w3dvar)
+           ierr=ncdf_write(nchis, avgVertMixFlux(iflux), record, r_var,
+     &                  VertMixFlux_avg(START_2D_ARRAY,0,iflux), N+1)
          if (ierr .ne. nf_noerr) then
             lvar=lenstr(vname(1,indxVertMixFlux+iflux-1))
             write(stdout,1) vname(1,indxVertMixFlux+iflux-1)(1:lvar), 
@@ -238,9 +235,8 @@
 ! nudging divergences
       do iflux = 1, NT_PFA
          if (wrtavg(indxT+iflux-1)) then
-         ierr = nf_fwrite(NudgingFlux_avg(START_2D_ARRAY,
-     &        1,iflux), 
-     &        ncid_phys_flux_avg, avgNudgingFlux(iflux), record, r3dvar)
+           ierr=ncdf_write(nchis, avgNudgingFlux(iflux), record, r_var,
+     &                  NudgingFlux_avg(START_2D_ARRAY,1,iflux), N)
          if (ierr .ne. nf_noerr) then
             lvar=lenstr(vname(1,indxNudgingFlux+iflux-1))
             write(stdout,1) vname(1,indxNudgingFlux+iflux-1)(1:lvar), 

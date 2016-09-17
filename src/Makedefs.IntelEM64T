@@ -103,3 +103,5 @@
   libncar = -lncarg -lncarg_gks -lncarg_c -lXpm -lX11 -lXext -lpng -lz
   LIBNCAR = -L$(NCARG_ROOT)/lib -L/usr/lib64 $(libncar)
 
+ COMP_FILES=*__genmod.f90 *__genmod.mod
+

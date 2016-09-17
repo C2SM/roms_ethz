@@ -163,14 +163,6 @@ CR      write(*,*) 'wrt_his:  wrtV  ' MYID
           ierr=ncdf_write(nchis,  hisT(itrc), record, r_var,
      &                    t(START_2D_ARRAY,1,nstp,itrc), N)
 
-
-c          write(*,*) 'Replacing T,S with rho1,qp1.'
-c          if (itrc == 1) then
-c            ierr=ncdf_write(nchis, hisT(itrc), record, r_var, rho1, N)
-c          elseif (itrc == 2) then
-c            ierr=ncdf_write(nchis, hisT(itrc), record, r_var,  qp1, N)
-c          endif
-
           if (ierr /= nf_noerr) then
             lvar=lenstr(vname(1,indxT+itrc-1))
             write(*,1) vname(1,indxT+itrc-1)(1:lvar),
@@ -186,8 +178,8 @@ CR      write(*,*) 'wrt_his:  wrtT  ' MYID
 
       do itrc=1,NT_sed
         if (wrthis(indxSedOrgN+itrc-1)) then
-          ierr=nf_fwrite(t_sed(START_2D_ARRAY,itrc), nchis,
-     &                                hisTsed(itrc), record, r2dvar)
+          ierr=ncdf_write(nchis,  hisTsed(itrc), record, r_var,
+     &                    t_sed(START_2D_ARRAY,itrc), 1)
           if (ierr /= nf_noerr) then
             lvar=lenstr(vname(1,indxSedOrgN+itrc-1))
             write(*,1) vname(1,indxSedOrgN+itrc-1)(1:lvar),
@@ -202,8 +194,7 @@ CR      write(*,*) 'wrt_his:  wrtT  ' MYID
 
       if (wrthis(indxR)) then
 # ifdef SPLIT_EOS
-!2015:        ierr=nf_fwrite (rho1, nchis, hisR, record, r3dvar)
-        ierr=ncdf_write(nchis, hisR, record, r_var, rho1, N) ! sasha 2016-03
+        ierr=ncdf_write(nchis, hisR, record, r_var, rho1, N)
 # else
         ierr=ncdf_write(nchis, hisR, record, r_var, rho,  N)
 # endif
@@ -321,8 +312,8 @@ CR      write(*,*) 'wrt_his:  wrtHbBL' MYID
 
 ! Write out averaged pH:
 
-      ierr=nf_fwrite (ph_hist(START_2D_ARRAY), nchis,
-     &                              hisPH, record, r2dvar)
+      ierr=ncdf_write(nchis, hisPH, record, r_var,
+     &                  ph_hist(START_2D_ARRAY), 1)
       if (ierr /= nf_noerr) then
         lvar=lenstr(vname(1,indxPH_rst))
         write(*,1) vname(1,indxPH_rst)(1:lvar), record MYID
@@ -331,8 +322,8 @@ CR      write(*,*) 'wrt_his:  wrtHbBL' MYID
 
 ! Write out averaged pCO2:
 
-      ierr=nf_fwrite (pCO2sw(START_2D_ARRAY), nchis,
-     &                              hisPCO2, record, r2dvar)
+      ierr=ncdf_write(nchis, hisPCO2, record, r_var,
+     &                  pCO2sw(START_2D_ARRAY), 1)
       if (ierr /= nf_noerr) then
         lvar=lenstr(vname(1,indxPCO2_rst))
         write(*,1) vname(1,indxPCO2_rst)(1:lvar), record MYID
@@ -342,8 +333,8 @@ CR      write(*,*) 'wrt_his:  wrtHbBL' MYID
 
 ! Write out averaged pCO2air:
 
-      ierr=nf_fwrite (pCO2air(START_2D_ARRAY), nchis,
-     &                              hisPCO2air, record, r2dvar)
+      ierr=ncdf_write(nchis, hisPCO2air, record, r_var,
+     &                  pCO2air(START_2D_ARRAY), 1)
       if (ierr /= nf_noerr) then
         lvar=lenstr(vname(1,indxPCO2air_rst))
         write(*,1) vname(1,indxPCO2air_rst)(1:lvar), record MYID
@@ -354,8 +345,8 @@ CR      write(*,*) 'wrt_his:  wrtHbBL' MYID
 
 ! PARinc:
 
-      ierr=nf_fwrite (PARinc(START_2D_ARRAY), nchis,
-     &     hisPARinc, record, r2dvar)
+      ierr=ncdf_write(nchis, hisPARinc, record, r_var,
+     &                  PARinc(START_2D_ARRAY), 1)
       if (ierr /= nf_noerr) then
         lvar=lenstr(vname(1,indxPARinc_rst))
         write(*,1) vname(1,indxPARinc_rst)(1:lvar), record MYID
@@ -364,8 +355,8 @@ CR      write(*,*) 'wrt_his:  wrtHbBL' MYID
 
 ! PAR:
 
-      ierr=nf_fwrite (PAR(START_2D_ARRAY,1), nchis,
-     &                              hisPAR, record, r3dvar)
+      ierr=ncdf_write(nchis, hisPAR, record, r_var,
+     &                  PAR(START_2D_ARRAY,1), N)
       if (ierr /= nf_noerr) then
         lvar=lenstr(vname(1,indxPAR_rst))
         write(*,1) vname(1,indxPAR_rst)(1:lvar), record MYID
@@ -378,8 +369,8 @@ CR      write(*,*) 'wrt_his:  wrtHbBL' MYID
 ! 2d diagnostics:
 
       do itrc=1,nr_bec2_diag_2d
-         ierr=nf_fwrite (bec2_diag_2d(START_2D_ARRAY,itrc), nchis,
-     &                   hisT_bec2_diag(itrc), record, r2dvar)
+         ierr=ncdf_write(nchis, hisT_bec2_diag(itrc), record, r_var,
+     &                  Pbec2_diag_2d(START_2D_ARRAY,itrc), 1)
          if (ierr /= nf_noerr) then
            lvar=lenstr(vname_bec2_diag_2d(1,itrc))
            write(*,1) vname_bec2_diag_2d(1,itrc)(1:lvar), record MYID
@@ -390,8 +381,8 @@ CR      write(*,*) 'wrt_his:  wrtHbBL' MYID
 ! 3d diagnostics:
 
       do itrc=1,nr_bec2_diag_3d
-         ierr=nf_fwrite (bec2_diag_3d(START_2D_ARRAY,1,itrc), nchis,
-     &                   hisT_bec2_diag(nr_bec2_diag_2d+itrc), record, r3dvar)
+         ierr=ncdf_write(nchis, hisT_bec2_diag(nr_bec2_diag_2d+itrc), 
+     &                  record, r_var, bec2_diag_3d(START_2D_ARRAY,1,itrc), N)
          if (ierr /= nf_noerr) then
            lvar=lenstr(vname_bec2_diag_3d(1,itrc))
            write(*,1) vname_bec2_diag_3d(1,itrc)(1:lvar), record MYID
@@ -405,8 +396,8 @@ CR      write(*,*) 'wrt_his:  wrtHbBL' MYID
 
 ! depths of rho points:
 
-      ierr=nf_fwrite (z_r(START_2D_ARRAY,1), nchis,
-     &                              hisz_r, record, r3dvar)
+      ierr=ncdf_write(nchis, hisz_r, record, r_var,
+     &                  z_r(START_2D_ARRAY,1), N)
       if (ierr /= nf_noerr) then
         lvar=lenstr(vname(1,indxz_r))
         write(*,1) vname(1,indxz_r)(1:lvar), record MYID
@@ -415,8 +406,8 @@ CR      write(*,*) 'wrt_his:  wrtHbBL' MYID
 
 ! depths at w points:
 
-      ierr=nf_fwrite (z_w(START_2D_ARRAY,0), nchis,
-     &                              hisz_w, record, w3dvar)
+      ierr=ncdf_write(nchis, hisz_w, record, r_var,
+     &                  z_w(START_2D_ARRAY,0), N+1)
       if (ierr /= nf_noerr) then
         lvar=lenstr(vname(1,indxz_w))
         write(*,1) vname(1,indxz_w)(1:lvar), record MYID
@@ -425,8 +416,8 @@ CR      write(*,*) 'wrt_his:  wrtHbBL' MYID
 
 ! thicknesses of sigma layers:
 
-      ierr=nf_fwrite (Hz(START_2D_ARRAY,1), nchis,
-     &                              hisHz, record, r3dvar)
+      ierr=ncdf_write(nchis, hisHz, record, r_var,
+     &                  Hz(START_2D_ARRAY,1), N)
       if (ierr /= nf_noerr) then
         lvar=lenstr(vname(1,indxHz))
         write(*,1) vname(1,indxHz)(1:lvar), record MYID
@@ -438,9 +429,8 @@ CR      write(*,*) 'wrt_his:  wrtHbBL' MYID
 
 # if defined BIOLOGY_NPZDOC && defined OXYGEN
       do itrc = 1, NumGasExcTerms
-         ierr = nf_fwrite(GasExcFlux(START_2D_ARRAY,itrc), 
-     &        nchis, hisGasExcFlux(itrc), 
-     &        record, r2dvar)
+         ierr=ncdf_write(nchis, hisGasExcFlux(itrc), record, r_var,
+     &                  GasExcFlux(START_2D_ARRAY,itrc), 1)
          if (ierr /= nf_noerr) then
             lvar=lenstr(vname_GasExcFlux(1,itrc))
             write(*,1) 
