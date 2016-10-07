@@ -240,7 +240,7 @@
 ! pH:
 
       ierr=ncdf_write(ncrst, rstPH,  record,  r_var,
-     &                 rstPH, 1)
+     &                 ph_hist, 1)
       if (ierr .ne. nf_noerr) then
          lvar=lenstr(vname(1,indxPH))
          write(*,1) vname(1,indxPH)(1:lvar), record,

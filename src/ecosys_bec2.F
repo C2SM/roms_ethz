@@ -825,8 +825,9 @@ c$$$       enddo
 
        REAL, DIMENSION(istr:iend) ::
      &    Tfunc,           ! temp response function GD98 (non-dim)
+     &    Tfunc_diat,      ! temp response function GD98 (non-dim) for diatoms
 # ifdef BEC_COCCO
-!     &    Tfunc_cocco,     ! temp response function GD98 (non-dim) for coccos
+     &    Tfunc_cocco,     ! temp response function GD98 (non-dim) for coccos
      &    light_lim_calc,  ! light limitation factor for calc of coccos
 # endif
      &    PAR_in,          ! photosynthetically available radiation (W/m^2)
@@ -1098,8 +1099,7 @@ c$$$       enddo
           if (CaCO3_ind(auto_ind) > 0) then
 #  ifdef BEC_COCCO
              if (exp_calcifier(auto_ind)) then
-                QCaCO3(istr:iend,auto_ind) = 0.433
-                !QCaCO3(istr:iend,auto_ind) = 0.04
+                QCaCO3(istr:iend,auto_ind) = 1.00  ! 0.433
              else 
                 QCaCO3(istr:iend,auto_ind) = 
      &              min( CaCO3_loc(istr:iend,auto_ind) 
@@ -1181,6 +1181,9 @@ c$$$       enddo
     !-----------------------------------------------------------------------
 
        Tfunc = Q_10**(((temp + T0_Kelvin) - (Tref + T0_Kelvin)) / c10)
+       Tfunc_cocco = 1.45**(((temp + T0_Kelvin) - (Tref + T0_Kelvin)) / c10)
+       Tfunc_diat  = 1.55**(((temp + T0_Kelvin) - (Tref + T0_Kelvin)) / c10)
+
 !# ifdef BEC_COCCO
 !       Tfunc_cocco = Q_10**(((temp + T0_Kelvin) - (Tref + T0_Kelvin)) / c10)
 !# endif
@@ -1316,7 +1319,17 @@ c$$$       enddo
 !          endif
 !# endif /* BEC_COCCO */
 
-          PCmax = PCref(auto_ind) * f_nut * Tfunc
+! CN: apply different Tfunc for coccos and diat
+          if (auto_ind==cocco_ind) then
+             PCmax = PCref(auto_ind) * f_nut * Tfunc_cocco
+          else if (auto_ind==diat_ind) then
+             PCmax = PCref(auto_ind) * f_nut * Tfunc_diat
+          else
+             PCmax = PCref(auto_ind) * f_nut * Tfunc
+          endif
+
+
+
 !# ifdef BEC_COCCO
 !! smoother function to scale down Tfunc below critical temp
 !          if (auto_ind==cocco_ind) then
@@ -1553,7 +1566,13 @@ c$$$       enddo
     !  autotroph agg loss
     !-----------------------------------------------------------------------
 
+       if (auto_ind == cocco_ind) then
+          auto_loss(istr:iend,auto_ind) =  mort(auto_ind) * Pprime(istr:iend,auto_ind) * Tfunc_cocco
+       elseif (auto_ind == diat_ind) then
+          auto_loss(istr:iend,auto_ind) =  mort(auto_ind) * Pprime(istr:iend,auto_ind) * Tfunc_diat
+       else
           auto_loss(istr:iend,auto_ind) =  mort(auto_ind) * Pprime(istr:iend,auto_ind) * Tfunc
+       endif
 
           auto_agg(istr:iend,auto_ind) = min(agg_rate_max(auto_ind) * dps * Pprime(istr:iend,auto_ind), 
      &                               mort2(auto_ind) * Pprime(istr:iend,auto_ind) * Pprime(istr:iend,auto_ind))

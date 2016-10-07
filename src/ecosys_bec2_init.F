@@ -78,7 +78,7 @@
       gQfe_0 = (/ 20.0e-6, 20.0e-6, 60.0e-6, 20.0e-6 /)
       gQfe_min = (/ 3.0e-6, 3.0e-6, 12.0e-6, 3.0e-6 /)
       alphaPI = (/ 0.465*dps, 0.465*dps, 0.4*dps, 0.42*dps /)  ! 0.6, 0.465, 0.4, 0.6 cBEC,  0.54, 0.42, 0.5 in CESM  Chl. specific initial slope of P_I curve (GD98) (mmol C m^2/(mg Chl W sec))
-      PCref = (/ 4*dps, 5.3*dps, 0.9*dps, 5*dps /) ! 3, 5, 0.7, 4.6 in cBEC;  5.3, 5.3, 0.9 in CESM
+      PCref = (/ 3.8*dps, 5*dps, 0.9*dps, 4*dps /) ! 3, 5, 0.7, 4.6 in cBEC;  5.3, 5.3, 0.9 in CESM
       thetaN_max = (/ 2.5, 4.0, 2.5, 2.5 /)
       loss_thres = (/ 0.04, 0.04, 0.022, 0.04 /)
       loss_thres2 = (/ 0.0, 0.0, 0.001, 0.0 /)
@@ -95,9 +95,6 @@
       loss_poc = (/ 0.0, 0.0, 0.0, 1.0 /)
       f_zoo_detr = (/ 0.15, 0.2, 0.15, 0.2 /)
 
-      ! Some more default parameters for small phytoplankton:
-      imp_calcifier(auto_ind) = .false.
-      CaCO3_ind(auto_ind)     = 0 !spCaCO3_ind_t
 # else /* case not BEC_COCCO */
       parm_BSIbury           = 0.65 ! x1 default
       parm_fe_scavenge_rate0 = 3.0  ! x1 default
@@ -137,9 +134,6 @@
       loss_poc = (/ 0.0, 0.0, 0.0 /)
       f_zoo_detr = (/ 0.15, 0.2, 0.15 /)
 
-      ! Some more default parameters for small phytoplankton:
-      imp_calcifier(auto_ind) = .true.
-      CaCO3_ind(auto_ind)     = spCaCO3_ind_t
 # endif
 
       auto_ind = sp_ind
@@ -152,6 +146,8 @@
       Chl_ind(auto_ind)       = spChl_ind_t
       Fe_ind(auto_ind)        = spFe_ind_t
       Si_ind(auto_ind)        = 0
+      imp_calcifier(auto_ind) = .true. ! this is over-written in case of BEC_COCCO
+      CaCO3_ind(auto_ind)     = spCaCO3_ind_t
 
       ! More default parameters for diatoms:
       auto_ind = diat_ind
@@ -182,6 +178,10 @@
       CaCO3_ind(auto_ind)     = 0
 
 #ifdef BEC_COCCO
+      ! over-write sp information: no implicit calcifiers in this case    
+      imp_calcifier(sp_ind) = .false.
+      CaCO3_ind(sp_ind)     = 0
+
       ! Some more default parameters for coccolithophores:
       auto_ind = cocco_ind
       sname(auto_ind)         = 'cocco'
@@ -299,7 +299,7 @@
 #endif
       lsource_sink  = .TRUE.  
 
-      where(rmask ==1)
+      where(rmask==1)
          landmask=.TRUE.
       elsewhere 
          landmask=.FALSE.
