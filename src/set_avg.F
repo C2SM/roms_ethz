@@ -22,10 +22,21 @@
 #  define t_AVR(i,j,k,itrc) t_avg(i,j,k,itrc)
 #  define hbl_AVR hbl_avg
 #  define hbbl_AVR hbbl_avg
+#  if defined KPP_DIAGNOSE
+#   define kpprichm_AVR(i,j,k) kpprichm_avg(i,j,k)
+#   define kppricht_AVR(i,j,k) kppricht_avg(i,j,k)
+#   define kppsblsh_AVR(i,j,k) kppsblsh_avg(i,j,k)
+#   define kppsblst_AVR(i,j,k) kppsblst_avg(i,j,k)
+#   define kppsblrot_AVR(i,j,k) kppsblrot_avg(i,j,k)
+#   define kppsblent_AVR(i,j,k) kppsblent_avg(i,j,k)
+#  endif
 #  define rho_AVR(i,j,k) rho_avg(i,j,k)
 #  define aks_AVR(i,j,k) aks_avg(i,j,k)
 #  define akt_AVR(i,j,k) akt_avg(i,j,k)
 #  define akv_AVR(i,j,k) akv_avg(i,j,k)
+#  if defined WRITE_HEATFLX
+#   define heatflx_AVR(i,j) heatflx_avg(i,j)
+#  endif
 #  if defined WRITE_TEMP_REST
 #   define restflx_temp_AVR(i,j) restflx_temp_avg(i,j)
 #  endif
@@ -186,7 +197,8 @@
 # endif
 
 # if (defined BIOLOGY_NPZDOC && defined PCO2AIR_FORCING) || \
-     defined WRITE_TEMP_REST || defined WRITE_SALT_REST
+     defined WRITE_TEMP_REST || defined WRITE_SALT_REST || \
+     defined WRITE_HEATFLX
 #  include "forces.h"
 # endif
 # ifdef BIOLOGY_NPZDOC
@@ -357,6 +369,15 @@
             ENDKLOOP
           endif
 #  endif
+#  if defined WRITE_HEATFLX
+          if (wrtAVR(indxHeatflx)) then
+            do j=jstrR,jendR
+              do i=istrR,iendR
+                heatflx_AVR(i,j)=cff1*heatflx_AVR(i,j) +cff*Heatflx(i,j)
+              enddo
+            enddo
+          endif
+#  endif
 #  if defined WRITE_TEMP_REST
           if (wrtAVR(indxRestflxTemp)) then
             do j=jstrR,jendR
@@ -365,7 +386,7 @@
               enddo
             enddo
           endif
-#  endif /* WRITE_TEMP_REST */
+#  endif
 #  if defined WRITE_SALT_REST
           if (wrtAVR(indxRestflxSalt)) then
             do j=jstrR,jendR
@@ -374,7 +395,7 @@
               enddo
             enddo
           endif
-#  endif /* WRITE_SALT_REST */
+#  endif
 #  ifdef LMD_KPP
         if (wrtAVR(indxHbls)) then
             do j=jstrR,jendR
@@ -392,6 +413,63 @@
             enddo
           enddo
         endif
+#  endif
+#  ifdef KPP_DIAGNOSE
+! KppRichm KppRicht KppSblSh KppSblSt KppSblRot KppSblEnt
+          if (wrtAVR(indxKppRichm)) then
+            KLOOP(0)
+              do j=jstrR,jendR
+                do i=istrR,iendR
+                  kpprichm_AVR(i,j,k)=cff1*kpprichm_AVR(i,j,k)+cff*KppRichm(i,j,KLEVEL)
+                enddo
+              enddo
+            ENDKLOOP
+          endif
+          if (wrtAVR(indxKppRicht)) then
+            KLOOP(0)
+              do j=jstrR,jendR
+                do i=istrR,iendR
+                  kppricht_AVR(i,j,k)=cff1*kppricht_AVR(i,j,k)+cff*KppRicht(i,j,KLEVEL)
+                enddo
+              enddo
+            ENDKLOOP
+          endif
+          if (wrtAVR(indxKppSblSh)) then
+            KLOOP(0)
+              do j=jstrR,jendR
+                do i=istrR,iendR
+                  kppsblsh_AVR(i,j,k)=cff1*kppsblsh_AVR(i,j,k)+cff*KppSblSh(i,j,KLEVEL)
+                enddo
+              enddo
+            ENDKLOOP
+          endif
+          if (wrtAVR(indxKppSblSt)) then
+            KLOOP(0)
+              do j=jstrR,jendR
+                do i=istrR,iendR
+                  kppsblst_AVR(i,j,k)=cff1*kppsblst_AVR(i,j,k)+cff*KppSblSt(i,j,KLEVEL)
+                enddo
+              enddo
+            ENDKLOOP
+          endif
+          if (wrtAVR(indxKppSblRot)) then
+            KLOOP(0)
+              do j=jstrR,jendR
+                do i=istrR,iendR
+                  kppsblrot_AVR(i,j,k)=cff1*kppsblrot_AVR(i,j,k)+cff*KppSblRot(i,j,KLEVEL)
+                enddo
+              enddo
+            ENDKLOOP
+          endif
+          if (wrtAVR(indxKppSblEnt)) then
+            KLOOP(0)
+              do j=jstrR,jendR
+                do i=istrR,iendR
+                  kppsblent_AVR(i,j,k)=cff1*kppsblent_AVR(i,j,k)+cff*KppSblEnt(i,j,KLEVEL)
+                enddo
+              enddo
+            ENDKLOOP
+          endif
 #  endif
 
 # ifdef WRITE_DEPTHS
@@ -504,17 +582,26 @@
 # undef t_AVR
 # undef hbl_AVR
 # undef hbbl_AVR
+# if defined KPP_DIAGNOSE
+#  undef kpprichm_AVR
+#  undef kppricht_AVR
+#  undef kppsblsh_AVR
+#  undef kppsblst_AVR
+#  undef kppsblrot_AVR
+#  undef kppsblent_AVR
+# endif
 # undef rho_AVR
 # undef aks_AVR
 # undef akt_AVR
+# if defined WRITE_HEATFLX
+#  undef heatflx_AVR
+# endif
 # if defined WRITE_TEMP_REST
 #  undef restflx_temp_AVR
 # endif
 # if defined WRITE_SALT_REST
 #  undef restflx_salt_AVR
 # endif
-# undef rich_AVR
-# undef richN_AVR
 # undef swr_frac_AVR
 # undef akv_AVR
 # undef KLOOP

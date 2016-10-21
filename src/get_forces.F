@@ -43,7 +43,7 @@ c--#define VERBOSE
       call get_tides(ierr)
 #endif
 #ifdef ICEOBS
-      call get_seaice (ierr)
+      call get_seaice(ierr)
 #endif
 #ifndef ANA_SMFLUX
       call get_wind(ierr)

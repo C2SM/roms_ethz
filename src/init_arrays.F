@@ -425,6 +425,42 @@
         enddo
       enddo
 # endif
+
+# ifdef KPP_DIAGNOSE
+      do k=0,N
+        do j=jstrR,jendR
+          do i=istrR,iendR
+            KppRichm(i,j,k)=init
+            KppRicht(i,j,k)=init
+            KppSblSh(i,j,k)=init
+            KppSblSt(i,j,k)=init
+            KppSblRot(i,j,k)=init
+            KppSblEnt(i,j,k)=init
+# ifdef AVERAGES
+            kpprichm_avg(i,j,k)=init
+            kppricht_avg(i,j,k)=init
+            kppsblsh_avg(i,j,k)=init
+            kppsblst_avg(i,j,k)=init
+            kppsblrot_avg(i,j,k)=init
+            kppsblent_avg(i,j,k)=init
+# endif
+          enddo
+        enddo
+      enddo
+# endif
+
+!AH16:
+# if defined WRITE_HEATFLX
+! Surface heat flux
+      do j=jstrR,jendR
+        do i=istrR,iendR
+          Heatflx(i,j)=0.  ! init
+#  ifdef AVERAGES
+          heatflx_avg(i,j)=init
+#  endif
+        enddo
+      enddo
+# endif
 !AH16:
 # if defined WRITE_TEMP_REST
 ! Restoring flux for temperature

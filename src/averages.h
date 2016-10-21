@@ -36,6 +36,11 @@ CSDISTRIBUTE_RESHAPE akt_avg(BLOCK_PATTERN,*) BLOCK_CLAUSE
 CSDISTRIBUTE_RESHAPE aks_avg(BLOCK_PATTERN,*) BLOCK_CLAUSE
       common /avg_aks/aks_avg
 #  endif
+#  ifdef WRITE_HEATFLX
+      real heatflx_avg(GLOBAL_2D_ARRAY)
+CSDISTRIBUTE_RESHAPE heatflx_avg(BLOCK_PATTERN) BLOCK_CLAUSE
+      common /avg_heatflx/heatflx_avg
+#  endif
 #  if defined QCORRECTION && defined WRITE_TEMP_REST
       real restflx_temp_avg(GLOBAL_2D_ARRAY)
 CSDISTRIBUTE_RESHAPE restflx_temp_avg(BLOCK_PATTERN) BLOCK_CLAUSE
@@ -57,9 +62,63 @@ CSDISTRIBUTE_RESHAPE hbbl_avg(BLOCK_PATTERN,*) BLOCK_CLAUSE
       common /avg_hbbl/hbbl_avg
 #  endif
 #  ifdef KPP_DIAGNOSE
-! kpp_wavm kpp_wavt kpp_richm kpp_richt kpp_con kpp_ddt kpp_dds
-! kpp_bblm kpp_bblt kpp_bbls kpp_sblm kpp_sblt
-! kpp_sbl_sh kpp_sbl_st kpp_sbl_rot kpp_sbl_ent
+! kppwavm kppwavt kppcon kppddt kppdds
+! kppbblm kppbblt kppbbls kppsblm kppsblt kppsbls
+!      real kppwavm_avg(GLOBAL_2D_ARRAY,0:N)
+!CSDISTRIBUTE_RESHAPE kppwavm_avg(BLOCK_PATTERN) BLOCK_CLAUSE
+!      common /avg_kppwavm/kppwavm_avg
+!      real kppwavt_avg(GLOBAL_2D_ARRAY,0:N)
+!CSDISTRIBUTE_RESHAPE kppwavt_avg(BLOCK_PATTERN) BLOCK_CLAUSE
+!      common /avg_kppwavt/kppwavt_avg
+!      real kppcon_avg(GLOBAL_2D_ARRAY,0:N)
+!CSDISTRIBUTE_RESHAPE kppcon_avg(BLOCK_PATTERN) BLOCK_CLAUSE
+!      common /avg_kppcon/kppcon_avg
+!      real kppddt_avg(GLOBAL_2D_ARRAY,0:N)
+!CSDISTRIBUTE_RESHAPE kppddt_avg(BLOCK_PATTERN) BLOCK_CLAUSE
+!      common /avg_kppddt/kppddt_avg
+!      real kppdds_avg(GLOBAL_2D_ARRAY,0:N)
+!CSDISTRIBUTE_RESHAPE kppdds_avg(BLOCK_PATTERN) BLOCK_CLAUSE
+!      common /avg_kppdds/kppdds_avg
+!      real kppbblm_avg(GLOBAL_2D_ARRAY,0:N)
+!CSDISTRIBUTE_RESHAPE kppbblm_avg(BLOCK_PATTERN) BLOCK_CLAUSE
+!      common /avg_kppbblm/kppbblm_avg
+!      real kppbblt_avg(GLOBAL_2D_ARRAY,0:N)
+!CSDISTRIBUTE_RESHAPE kppbblt_avg(BLOCK_PATTERN) BLOCK_CLAUSE
+!      common /avg_kppbblt/kppbblt_avg
+!      real kppbbls_avg(GLOBAL_2D_ARRAY,0:N)
+!CSDISTRIBUTE_RESHAPE kppbbls_avg(BLOCK_PATTERN) BLOCK_CLAUSE
+!      common /avg_kppbbls/kppbbls_avg
+!      real kppsblm_avg(GLOBAL_2D_ARRAY,0:N)
+!CSDISTRIBUTE_RESHAPE kppsblm_avg(BLOCK_PATTERN) BLOCK_CLAUSE
+!      common /avg_kppsblm/kppsblm_avg
+!      real kppsblt_avg(GLOBAL_2D_ARRAY,0:N)
+!CSDISTRIBUTE_RESHAPE kppsblt_avg(BLOCK_PATTERN) BLOCK_CLAUSE
+!      common /avg_kppsblt/kppsblt_avg
+!      real kppsbls_avg(GLOBAL_2D_ARRAY,0:N)
+!CSDISTRIBUTE_RESHAPE kppsbls_avg(BLOCK_PATTERN) BLOCK_CLAUSE
+!      common /avg_kppsbls/kppsbls_avg
+!
+! kpprichm kppricht
+! kppsblsh kppsblst kppsblrot kppsblent
+!
+      real kpprichm_avg(GLOBAL_2D_ARRAY,0:N)
+CSDISTRIBUTE_RESHAPE kpprichm_avg(BLOCK_PATTERN) BLOCK_CLAUSE
+      common /avg_kpprichm/kpprichm_avg
+      real kppricht_avg(GLOBAL_2D_ARRAY,0:N)
+CSDISTRIBUTE_RESHAPE kppricht_avg(BLOCK_PATTERN) BLOCK_CLAUSE
+      common /avg_kppricht/kppricht_avg
+      real kppsblsh_avg(GLOBAL_2D_ARRAY,0:N)
+CSDISTRIBUTE_RESHAPE kppsblsh_avg(BLOCK_PATTERN) BLOCK_CLAUSE
+      common /avg_kppsblsh/kppsblsh_avg
+      real kppsblst_avg(GLOBAL_2D_ARRAY,0:N)
+CSDISTRIBUTE_RESHAPE kppsblst_avg(BLOCK_PATTERN) BLOCK_CLAUSE
+      common /avg_kppsblst/kppsblst_avg
+      real kppsblrot_avg(GLOBAL_2D_ARRAY,0:N)
+CSDISTRIBUTE_RESHAPE kppsblrot_avg(BLOCK_PATTERN) BLOCK_CLAUSE
+      common /avg_kppsblrot/kppsblrot_avg
+      real kppsblent_avg(GLOBAL_2D_ARRAY,0:N)
+CSDISTRIBUTE_RESHAPE kppsblent_avg(BLOCK_PATTERN) BLOCK_CLAUSE
+      common /avg_kppsblent/kppsblent_avg
 #  endif
 !DL:
 #  ifdef WRITE_DEPTHS
@@ -104,15 +163,6 @@ CSDISTRIBUTE_RESHAPE w_slavg(BLOCK_PATTERN) BLOCK_CLAUSE
       real akt_slavg(GLOBAL_2D_ARRAY)
 CSDISTRIBUTE_RESHAPE akt_slavg(BLOCK_PATTERN) BLOCK_CLAUSE
       common /slavg_akv/akv_slavg /slavg_akt/akt_slavg
-#ifdef KPP_DIAGNOSE
-      real rich_slavg(GLOBAL_2D_ARRAY)
-CSDISTRIBUTE_RESHAPE rich_slavg(BLOCK_PATTERN) BLOCK_CLAUSE
-      real richN_slavg(GLOBAL_2D_ARRAY)
-CSDISTRIBUTE_RESHAPE richN_slavg(BLOCK_PATTERN) BLOCK_CLAUSE
-      real swr_frac_slavg(GLOBAL_2D_ARRAY)
-CSDISTRIBUTE_RESHAPE swr_frac_slavg(BLOCK_PATTERN) BLOCK_CLAUSE
-      common /rich_akt/rich_slavg, richN_slavg, swr_frac_slavg
-#endif
 #  ifdef SALINITY
       real aks_slavg(GLOBAL_2D_ARRAY)
 CSDISTRIBUTE_RESHAPE aks_slavg(BLOCK_PATTERN) BLOCK_CLAUSE

@@ -145,17 +145,25 @@ c--# define AKIMA
 # if defined PASSIVE_TRACER && defined AGE_DYE_TRACER
           endif ! itrc.le.indxT+ntrc_salt .or. ...
 # endif
-# if defined LMD_KPP && defined ICEOBS
+!# if defined LMD_KPP && defined ICEOBS && defined BRINE_PLUMES2
+!          if (itrc .eq. isalt) then
+!            do i=istr,iend
+!              if (freezing(i,j).gt.0) then
+!                t(i,j,N,nnew,itrc)=t(i,j,N,nnew,itrc)+dt*freezing(i,j,itrc)
+!              endif
+!            enddo
+!          endif
+!# endif
+# if defined LMD_KPP && defined ICEOBS && defined BRINE_PLUMES
 ! AH15: Distributing salt fluxes due freezing uniformly over
-! kbl until one layer below to mimic brine plume convection
-! (see Duffy et al. 1999)
+! kbl to mimic brine plume convection (see Duffy et al. 1999)
           if (itrc .eq. isalt) then
             do i=istr,iend
-              if (freezing(i,j).gt.0) then
-                do k=N,(kbl(i,j)-1),-1
+              if (freezing(i,j)>0) then
+                do k=N,kbl(i,j),-1
                   t(i,j,k,nnew,itrc)=t(i,j,k,nnew,itrc)
      &                  +(dt*freezing(i,j)
-     &                  *Hz(i,j,k)/(z_w(i,j,N)-z_w(i,j,kbl(i,j)-2)))
+     &                  *Hz(i,j,k)/(z_w(i,j,N)-z_w(i,j,kbl(i,j)-1)))
                 enddo
               endif
             enddo

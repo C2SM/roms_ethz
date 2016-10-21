@@ -13,7 +13,7 @@
 #include "scoord.h"
 #include "scalars.h"
 #include "ncvars.h"
-#if defined WRITE_TEMP_REST || defined WRITE_SALT_REST
+#if defined WRITE_TEMP_REST || defined WRITE_SALT_REST || defined WRITE_HEATFLX
 # include "forces.h"
 #endif
 #include "boundary.h"
@@ -746,6 +746,9 @@ c-->    elseif (keyword(1:kwlen) == 'nudg_cof') then
 # ifdef LMD_BKPP
      &                                            ,  wrthis(indxHbbl)
 # endif
+# if defined WRITE_HEATFLX
+     &                                            ,  wrthis(indxHeatflx)
+# endif
 # if defined WRITE_TEMP_REST
      &                                            ,  wrthis(indxRestflxTemp)
 # endif
@@ -765,6 +768,9 @@ c-->    elseif (keyword(1:kwlen) == 'nudg_cof') then
       naux=naux+1
 # endif
 # ifdef LMD_BKPP
+      naux=naux+1
+# endif
+# if defined WRITE_HEATFLX
       naux=naux+1
 # endif
 # if defined WRITE_TEMP_REST
@@ -845,6 +851,17 @@ c-->    elseif (keyword(1:kwlen) == 'nudg_cof') then
 # ifdef LMD_BKPP
      &                                            ,  wrtavg(indxHbbl)
 # endif
+# ifdef KPP_DIAGNOSE
+     &                                            ,  wrtavg(indxKppRichm)
+     &                                            ,  wrtavg(indxKppRicht)
+     &                                            ,  wrtavg(indxKppSblSh)
+     &                                            ,  wrtavg(indxKppSblSt)
+     &                                            ,  wrtavg(indxKppSblRot)
+     &                                            ,  wrtavg(indxKppSblEnt)
+# endif
+# if defined WRITE_HEATFLX
+     &                                            ,  wrtavg(indxHeatflx)
+# endif
 # if defined WRITE_TEMP_REST
      &                                            ,  wrtavg(indxRestflxTemp)
 # endif
@@ -863,6 +880,12 @@ c-->    elseif (keyword(1:kwlen) == 'nudg_cof') then
       naux=naux+1
 # endif
 # ifdef LMD_BKPP
+      naux=naux+1
+# endif
+# ifdef KPP_DIAGNOSE
+      naux=naux+6
+# endif
+# if defined WRITE_HEATFLX
       naux=naux+1
 # endif
 # if defined WRITE_TEMP_REST

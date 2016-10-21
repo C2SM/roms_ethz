@@ -2,8 +2,12 @@
    ==== == ============ ===== ============= ====
 */
                      /* 1/2 degree setup (SO_d05) */
-#define GRID_SIZE LLm=720, MMm=216, N=64
-#define DOMAIN_TILING NP_XI=8, NP_ETA=36, NSUB_X=1, NSUB_E=1
+/* #define GRID_SIZE LLm=720, MMm=216, N=64 */
+/* #define DOMAIN_TILING NP_XI=8, NP_ETA=36, NSUB_X=1, NSUB_E=1 */
+
+                     /* 1/4 degree setup (SO_d025) */
+#define GRID_SIZE LLm=1440, MMm=432, N=64
+#define DOMAIN_TILING NP_XI=16, NP_ETA=72, NSUB_X=1, NSUB_E=1
 
                      /*  Dynamics */
 # define SOLVE3D
@@ -17,12 +21,12 @@
 # define SALINITY
 
                      /*  Forcing and Climatology */
-# define QCORRECTION
-# define SFLX_CORR
+/* # define QCORRECTION */
+/* # define SFLX_CORR */
 # define DIURNAL_SRFLUX
-# define SALINITY_MASK
-# define SALINITY_MASKLATSTR -48.0
-# define SALINITY_MASKLATEND -53.01
+/* # define SALINITY_MASK */
+/* # define SALINITY_MASKLATSTR -48.0 */
+/* # define SALINITY_MASKLATEND -53.01 */
 # define T_FRC_BRY
 # define Z_FRC_BRY
 # define M3_FRC_BRY
@@ -81,8 +85,8 @@
 # define AVERAGES
 /* # define SLICE_AVG*/                                         /* switched off, does not work anymore in v5 */
 # define WRITE_HEATFLX
-# define WRITE_SALT_REST
-# define WRITE_TEMP_REST
+/* # define WRITE_SALT_REST */
+/* # define WRITE_TEMP_REST */
 # define COMPUTE_SPEED_DIAGNOSE
 /* # define KPP_DIAGNOSE */
 /* # define PASSIVE_TRACER */                                         /* switched off, does not work anymore: merge with v3 */

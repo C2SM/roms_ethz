@@ -55,13 +55,13 @@
       real, parameter ::     ! Critical gradient Richardson number
      &      Ri0=0.7,         ! below which shear instabilty occurs.
 
-     &      nu0m=50.e-4,     ! Maximum viscosity and diffusivity
-     &      nu0s=50.e-4,     ! due to shear instability [m^2/s];
+     &      nu0m=0.01,     ! Maximum viscosity and diffusivity !AH16: was 50.e-4
+     &      nu0s=0.01,     ! due to shear instability [m^2/s]; !AH16: was 50.e-4
 
      &      nuwm=1.0e-4,     ! Interior viscosity and diffusivity
      &      nuws=0.1e-4,     ! due to wave breaking, [m^2/s]
 
-     &      nu0c=0.1,        ! Convective adjustment [m^2/s];
+     &      nu0c=0.01,        ! Convective adjustment [m^2/s]; !AH: was 0.1
 
      &      lmd_nu=1.5e-6,   ! Molecular viscosity [m^2/s];
 
@@ -148,8 +148,10 @@
             dvdz=cff*( v(i,j  ,k+1,tind)-v(i,j  ,k,tind)
      &                +v(i,j+1,k+1,tind)-v(i,j+1,k,tind))
 
+!            Rig(i,j,k)=bvf(i,j,k)/( Ri0*max(
+!     &                    dudz*dudz+dvdz*dvdz, 1.E-10 )) !AH16: changed to below
             Rig(i,j,k)=bvf(i,j,k)/( Ri0*max(
-     &                    dudz*dudz+dvdz*dvdz, 1.E-10 ))
+     &                    dudz*dudz+dvdz*dvdz, 1.E-20 ))!AH16
           enddo
         enddo
 
@@ -247,26 +249,26 @@
             Kv(i,j,k)=nuwm + nu0m*nu_sx
             Kt(i,j,k)=nuws + nu0s*nu_sx
 #  ifdef KPP_DIAGNOSE
-            kpp_wavm(i,j,k) = nuwm
-            kpp_wavt(i,j,k) = nuws
-            kpp_richm(i,j,k) = nu0m*nu_sx
-            kpp_richt(i,j,k) = nu0s*nu_sx
+!            KppWavm(i,j,k) = nuwm
+!            KppWavt(i,j,k) = nuws
+            KppRichm(i,j,k) = nu0m*nu_sx
+            KppRicht(i,j,k) = nu0s*nu_sx
 #  endif
 # else
             Kv(i,j,k)=nuwm                    ! internal waves
             Kt(i,j,k)=nuws                    ! only
-#  ifdef KPP_DIAGNOSE
-            kpp_wavm(i,j,k) = nuwm
-            kpp_wavt(i,j,k) = nuws
-#  endif
+!#  ifdef KPP_DIAGNOSE
+!            KppWavm(i,j,k) = nuwm
+!            KppWavt(i,j,k) = nuws
+!#  endif
 # endif
 # if defined LMD_CONVEC && (!defined LMD_KPP && !defined LMD_BKPP)
             if (Rig(i,j,k) < 0.) then         ! In the case of KPP
               Kv(i,j,k)=Kv(i,j,k) + nu0c      ! convective adjustment
               Kt(i,j,k)=Kt(i,j,k) + nu0c      ! will be added later
-#  ifdef KPP_DIAGNOSE
-              kpp_con(i,j,k) = nu0c
-#  endif
+!#  ifdef KPP_DIAGNOSE
+!              KppCon(i,j,k) = nu0c
+!#  endif
             endif                             ! and only below HBL
 # endif
             Ks(i,j,k)=Kt(i,j,k)
@@ -352,10 +354,10 @@
 
             Kt(i,j,k)=Kt(i,j,k)+nu_ddt
             Ks(i,j,k)=Ks(i,j,k)+nu_dds
-#  ifdef KPP_DIAGNOSE
-            kpp_ddt(i,j,k)=nu_ddt
-            kpp_dds(i,j,k)=nu_dds
-#  endif
+!#  ifdef KPP_DIAGNOSE
+!            KppDdt(i,j,k)=nu_ddt
+!            KppDds(i,j,k)=nu_dds
+!#  endif
           enddo
         enddo
 # endif /* LMD_DDMIX */
@@ -375,20 +377,20 @@
           Ks(i,j,0)=Ks(i,j,  1)
           Kt(i,j,0)=Kt(i,j,  1)
 #  ifdef KPP_DIAGNOSE
-          kpp_wavm(i,j,N)=kpp_wavm(i,j,N-1)
-          kpp_wavt(i,j,N)=kpp_wavt(i,j,N-1)
-          kpp_richm(i,j,N)=kpp_richm(i,j,N-1)
-          kpp_richt(i,j,N)=kpp_richt(i,j,N-1)
-          kpp_con(i,j,N)=kpp_con(i,j,N-1)
-          kpp_ddt(i,j,N)=kpp_ddt(i,j,N-1)
-          kpp_dds(i,j,N)=kpp_dds(i,j,N-1)
-          kpp_wavm(i,j,0)=kpp_wavm(i,j,0)
-          kpp_wavt(i,j,0)=kpp_wavt(i,j,0)
-          kpp_richm(i,j,0)=kpp_richm(i,j,0)
-          kpp_richt(i,j,0)=kpp_richt(i,j,0)
-          kpp_con(i,j,0)=kpp_con(i,j,0)
-          kpp_ddt(i,j,0)=kpp_ddt(i,j,0)
-          kpp_dds(i,j,0)=kpp_dds(i,j,0)
+!          KppWavm(i,j,N)=KppWavm(i,j,N-1)
+!          KppWavt(i,j,N)=KppWavt(i,j,N-1)
+          KppRichm(i,j,N)=KppRichm(i,j,N-1)
+          KppRicht(i,j,N)=KppRicht(i,j,N-1)
+!          KppCon(i,j,N)=KppCon(i,j,N-1)
+!          KppDdt(i,j,N)=KppDdt(i,j,N-1)
+!          KppDds(i,j,N)=KppDds(i,j,N-1)
+!          KppWavm(i,j,0)=KppWavm(i,j,0)
+!          KppWavt(i,j,0)=KppWavt(i,j,0)
+          KppRichm(i,j,0)=KppRichm(i,j,0)
+          KppRicht(i,j,0)=KppRicht(i,j,0)
+!          KppCon(i,j,0)=KppCon(i,j,0)
+!          KppDdt(i,j,0)=KppDdt(i,j,0)
+!          KppDds(i,j,0)=KppDds(i,j,0)
 #  endif
         enddo
       enddo

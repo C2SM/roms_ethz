@@ -62,6 +62,18 @@
 #  undef indxX
 #  define indxX indxHbbl
 # endif
+# ifdef KPP_DIAGNOSE
+      integer, parameter :: indxKppRichm=indxX+1, indxKppRicht=indxX+2
+     &           , indxKppSblSh=indxX+3, indxKppSblSt=indxX+4
+     &           , indxKppSblRot=indxX+5, indxKppSblEnt=indxX+6
+#  undef indxX
+#  define indxX indxKppSblEnt
+# endif
+# if defined WRITE_HEATFLX
+     &                    , indxHeatflx=indxX+1
+#   undef indxX
+#   define indxX indxHeatflx
+# endif
 # if defined WRITE_TEMP_REST
      &                    , indxRestflxTemp=indxX+1
 #   undef indxX
@@ -458,6 +470,12 @@
      &      , slavgf_graze_CaCO3_remin, slavgQ_BEC2, slavgDONrefract
 #endif /* BIOLOGY_BEC2 && BEC2_DIAG */
 
+# if defined WRITE_HEATFLX
+     &      , hisHeatflx
+#  ifdef AVERAGES
+     &      , avgHeatflx
+#  endif
+# endif /* WRITE_HEATFLX */
 # if defined WRITE_TEMP_REST
      &      , hisRestflxTemp
 #  ifdef AVERAGES
@@ -500,6 +518,12 @@
 #  endif /* CH_CARBON_DEPTH */
 # endif /* BIOLOGY_NPZDOC || BIOLOGY_BEC */
 
+# if defined WRITE_HEATFLX
+     &      , hisHeatflx
+#  ifdef AVERAGES
+     &      , avgHeatflx
+#  endif
+# endif /* WRITE_HEATFLX */
 # if defined WRITE_TEMP_REST
      &      , hisRestflxTemp
 #  ifdef AVERAGES
@@ -533,6 +557,20 @@
       integer rstHbbl, hisHbbl
       common /ncvars/ rstHbbl, hisHbbl
 # endif
+#  ifdef KPP_DIAGNOSE
+      integer hisKppRichm, hisKppRicht
+      integer hisKppSblSh, hisKppSblSt
+      integer hisKppSblRot, hisKppSblEnt
+      common /ncvars/ hisKppRichm, hisKppRicht
+      common /ncvars/ hisKppSblSh, hisKppSblSt
+      common /ncvars/ hisKppSblRot, hisKppSblEnt
+      integer rstKppRichm, rstKppRicht
+      integer rstKppSblSh, rstKppSblSt
+      integer rstKppSblRot, rstKppSblEnt
+      common /ncvars/ rstKppRichm, rstKppRicht
+      common /ncvars/ rstKppSblSh, rstKppSblSt
+      common /ncvars/ rstKppSblRot, rstKppSblEnt
+#  endif
 #endif /* SOLVE3D */
 
 #ifdef AVERAGES
@@ -557,6 +595,14 @@
 #  ifdef LMD_BKPP
       integer avgHbbl
       common /ncvars/ avgHbbl
+#  endif
+#  ifdef KPP_DIAGNOSE
+      integer avgKppRichm, avgKppRicht
+      integer avgKppSblSh, avgKppSblSt
+      integer avgKppSblRot, avgKppSblEnt
+      common /ncvars/ avgKppRichm, avgKppRicht
+      common /ncvars/ avgKppSblSh, avgKppSblSt
+      common /ncvars/ avgKppSblRot, avgKppSblEnt
 #  endif
 #  ifdef SLICE_AVG
       integer ncslavg, nrecslavg,  nrpfslavg,

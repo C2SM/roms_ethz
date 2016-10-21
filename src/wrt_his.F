@@ -16,7 +16,8 @@
 # include "bgcflux.h"
 #endif
 #if defined PCO2AIR_FORCING || \
-        defined WRITE_TEMP_REST || defined WRITE_SALT_REST
+        defined WRITE_TEMP_REST || defined WRITE_SALT_REST || \
+        defined WRITE_HEATFLX
 ! pCO2air and Restflx are here:
 # include "forces.h"
 #endif
@@ -318,6 +319,20 @@ CR      write(*,*) 'wrt_his:  wrtHbBL' MYID
       endif
 # endif
 ! AH16:
+# if defined WRITE_HEATFLX
+
+! Surface heat flux
+
+      if (wrthis(indxHeatflx)) then
+        ierr=ncdf_write(nchis, hisHeatflx, record, r_var,
+     &                  Heatflx(START_2D_ARRAY), 1)
+        if (ierr /= nf_noerr) then
+          lvar=lenstr(vname(1,indxHeatflx))
+          write(*,1) vname(1,indxHeatflx)(1:lvar), record MYID
+          goto 99                                         !--> ERROR
+        endif
+      endif
+# endif
 # if defined WRITE_TEMP_REST
 
 ! Restoring flux for temperature
@@ -331,7 +346,7 @@ CR      write(*,*) 'wrt_his:  wrtHbBL' MYID
           goto 99                                         !--> ERROR
         endif
       endif
-# endif /* WRITE_TEMP_REST */
+# endif
 # if defined WRITE_SALT_REST
 
 ! Restoring flux for salinity
@@ -345,7 +360,7 @@ CR      write(*,*) 'wrt_his:  wrtHbBL' MYID
           goto 99                                         !--> ERROR
         endif
       endif
-# endif /* WRITE_SALT_REST */
+# endif
 # if defined BIOLOGY_BEC || (defined BIOLOGY_NPZDOC && \
     defined OXYGEN && defined CARBON)
 

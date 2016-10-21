@@ -282,16 +282,21 @@ CR      write(*,'(1x,A,I3)') 'indxAks =',indxAks
       vname(3,indxAks)='meter2 second-1'
 # endif
 !AH16:
+# if defined WRITE_HEATFLX
+      vname(1,indxHeatflx)='Heatflx'
+      vname(2,indxHeatflx)='Net surface heat flux'
+      vname(3,indxHeatflx)='W m-2'
+# endif
 # if defined WRITE_TEMP_REST
       vname(1,indxRestflxTemp)='RestflxTemp'
       vname(2,indxRestflxTemp)='Restoring flux for temperature'
       vname(3,indxRestflxTemp)='W m-2'
-# endif /* WRITE_TEMP_REST */
+# endif
 # if defined WRITE_SALT_REST
       vname(1,indxRestflxSalt)='RestflxSalt'
       vname(2,indxRestflxSalt)='Restoring flux for salinity'
       vname(3,indxRestflxSalt)='centimeter day-1'
-# endif /* WRITE_SALT_REST */
+# endif
 # ifdef LMD_KPP
 CR      write(*,'(1x,A,I3)') 'indxHbls =',indxHbls
       vname(1,indxHbls)='hbls'
@@ -303,6 +308,31 @@ CR      write(*,'(1x,A,I3)') 'indxHbbl =',indxHbbl
       vname(1,indxHbbl)='hbbl'
       vname(2,indxHbbl)='Thickness of KPP bottom boundary layer'
       vname(3,indxHbbl)='meter'
+# endif
+# ifdef KPP_DIAGNOSE
+      vname(1,indxKppRichm)='KppRichm'
+      vname(2,indxKppRichm)='Viscosity due to vert. shear instability'
+      vname(3,indxKppRichm)='meter second-2'
+
+      vname(1,indxKppRicht)='KppRicht'
+      vname(2,indxKppRicht)='Diffusivity due to vert. shear instability'
+      vname(3,indxKppRicht)='meter second-2'
+
+      vname(1,indxKppSblSh)='KppSblSh'
+      vname(2,indxKppSblSh)='Destabilizing mean shear component of HBLS'
+      vname(3,indxKppSblSh)='meter second-2'
+
+      vname(1,indxKppSblSt)='KppSblSt'
+      vname(2,indxKppSblSt)='Stabilizing stratification component of HBLS'
+      vname(3,indxKppSblSt)='meter second-2'
+
+      vname(1,indxKppSblRot)='KppSblRot'
+      vname(2,indxKppSblRot)='Stabilizing rotation component of HBLS'
+      vname(3,indxKppSblRot)='meter second-2'
+
+      vname(1,indxKppSblEnt)='KppSblEnt'
+      vname(2,indxKppSblEnt)='Destabilizing turb. entr. component of HBLS'
+      vname(3,indxKppSblEnt)='meter second-2'
 # endif
 #endif
 

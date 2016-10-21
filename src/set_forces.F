@@ -110,6 +110,9 @@ c***              no code here
 # ifdef BULK_FLUX
       call bulk_flux_tile(istr,iend,jstr,jend)
 # else
+#  if defined SALINITY && defined ICEOBS
+      call set_seaice_tile(istr,iend,jstr,jend,ierr)
+#  endif
 #  ifdef ANA_STFLUX
       call ana_stflux_tile(istr,iend,jstr,jend, itemp)
 #  else
@@ -119,9 +122,6 @@ c***              no code here
 #   ifdef ANA_SSFLUX
       call ana_stflux_tile(istr,iend,jstr,jend, isalt)
 #   else
-#    ifdef ICEOBS
-      call set_seaice_tile(istr,iend,jstr,jend,ierr)
-#    endif
       call set_stflux_tile(istr,iend,jstr,jend, isalt, ierr)
 #   endif
 #   if defined VFLX_CORR
@@ -136,7 +136,7 @@ c***              no code here
                if (rmask(i,j) .eq. 1) then
 #   endif
                stflx(i,j,itrc)=       (stflx(i,j,isalt)
-#   ifdef ICEOBS
+#   if defined LMD_KPP && defined ICEOBS && defined BRINE_PLUMES
      &                                   +freezing(i,j)
 #   endif
      &                                               )*
