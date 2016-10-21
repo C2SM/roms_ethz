@@ -73,12 +73,12 @@
       kDOP = (/ 0.26, 0.9, 0.09, 0.2 /)          ! 
       kNO3 = (/ 0.1, 0.5, 1.0, 0.2 /)            ! mmol N/m3   ! 0.11 0.45  8
       kNH4 = (/ 0.01, 0.05, 0.15, 0.02 /)         ! mmol N/m3  ! 0.01 0.04  0.8
-      kSiO3 = (/ 0.0, 0.8, 0.0, 0.0 /)           ! mmol SiO3/m3
+      kSiO3 = (/ 0.0, 1, 0.0, 0.0 /)           ! mmol SiO3/m3
       Qp = (/ 0.00855, 0.00855, 0.002735, 0.00855 /)
       gQfe_0 = (/ 20.0e-6, 20.0e-6, 60.0e-6, 20.0e-6 /)
       gQfe_min = (/ 3.0e-6, 3.0e-6, 12.0e-6, 3.0e-6 /)
-      alphaPI = (/ 0.465*dps, 0.465*dps, 0.4*dps, 0.42*dps /)  ! 0.6, 0.465, 0.4, 0.6 cBEC,  0.54, 0.42, 0.5 in CESM  Chl. specific initial slope of P_I curve (GD98) (mmol C m^2/(mg Chl W sec))
-      PCref = (/ 3.8*dps, 5*dps, 0.9*dps, 4*dps /) ! 3, 5, 0.7, 4.6 in cBEC;  5.3, 5.3, 0.9 in CESM
+      alphaPI = (/ 0.46*dps, 0.46*dps, 0.4*dps, 0.42*dps /)  ! 0.6, 0.465, 0.4, 0.6 cBEC,  0.54, 0.42, 0.5 in CESM  Chl. specific initial slope of P_I curve (GD98) (mmol C m^2/(mg Chl W sec))
+      PCref = (/ 3.8*dps, 4.8*dps, 0.9*dps, 4*dps /) ! 3, 5, 0.7, 4.6 in cBEC;  5.3, 5.3, 0.9 in CESM
       thetaN_max = (/ 2.5, 4.0, 2.5, 2.5 /)
       loss_thres = (/ 0.04, 0.04, 0.022, 0.04 /)
       loss_thres2 = (/ 0.0, 0.0, 0.001, 0.0 /)

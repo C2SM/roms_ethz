@@ -7,10 +7,11 @@
 
      /* 1/2 degree setup (SO_d05) */
 #define GRID_SIZE LLm=720, MMm=216, N=42   ! SO_d05 1/2 deg setup
+!--#define GRID_SIZE LLm=720, MMm=216, N=64   ! SO_d05 1/2 deg setup
 !-- 288 cpus: 
-#define  DOMAIN_TILING NP_XI=8, NP_ETA=36, NSUB_X=1, NSUB_E=1
+!-- #define  DOMAIN_TILING NP_XI=8, NP_ETA=36, NSUB_X=1, NSUB_E=1
 !-- 24 cpus: 
-!-- #define  DOMAIN_TILING NP_XI=4, NP_ETA=6, NSUB_X=1, NSUB_E=1
+#define  DOMAIN_TILING NP_XI=4, NP_ETA=6, NSUB_X=1, NSUB_E=1
 
     /* 1/4 degree setup (SO_d025) */
 !-- #define GRID_SIZE LLm=1440, MMm=416, N=42      ! SO_d025 1/4  deg resolution
@@ -38,6 +39,9 @@
 # define OBC_TORLANSKI /* Tracer BC: OBC_TORLANSKI, OBC_TSPECIFIED */
 
 
+# define LMD_LIMIT_STABLE
+
+
      /* Output */
 #define AVERAGES
 #define SLICE_AVG
@@ -47,11 +51,12 @@
 !-- #define VERBOSE
 #ifdef BIOLOGY_BEC2
 # define BEC_COCCO
+# define KILL_THE_WINNER  /* if defined, use Vallina 2014 parametrization for grazing */
 # define BIOLOGY
 #endif
 
-#define PASSIVE_TRACER
-#define AGE_DYE_TRACER
+!-- #define PASSIVE_TRACER
+!-- #define AGE_DYE_TRACER
 #define DEFAULT_BRY_VALUES
 
 !-- # define BEC2_DIAG

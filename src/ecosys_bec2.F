@@ -1181,7 +1181,9 @@ c$$$       enddo
     !-----------------------------------------------------------------------
 
        Tfunc = Q_10**(((temp + T0_Kelvin) - (Tref + T0_Kelvin)) / c10)
+# ifdef BEC_COCCO
        Tfunc_cocco = 1.45**(((temp + T0_Kelvin) - (Tref + T0_Kelvin)) / c10)
+# endif /* BEC_COCCO */
        Tfunc_diat  = 1.55**(((temp + T0_Kelvin) - (Tref + T0_Kelvin)) / c10)
 
 !# ifdef BEC_COCCO
@@ -1320,10 +1322,12 @@ c$$$       enddo
 !# endif /* BEC_COCCO */
 
 ! CN: apply different Tfunc for coccos and diat
-          if (auto_ind==cocco_ind) then
-             PCmax = PCref(auto_ind) * f_nut * Tfunc_cocco
-          else if (auto_ind==diat_ind) then
+          if (auto_ind==diat_ind) then
              PCmax = PCref(auto_ind) * f_nut * Tfunc_diat
+# ifdef BEC_COCCO
+          else if (auto_ind==cocco_ind) then
+             PCmax = PCref(auto_ind) * f_nut * Tfunc_cocco
+# endif /* BEC_COCCO */
           else
              PCmax = PCref(auto_ind) * f_nut * Tfunc
           endif
@@ -1524,8 +1528,8 @@ c$$$       enddo
      &                     * C_loc(istr:iend,auto_ind) / CaCO3_sp_thres),
      &                    (f_photosp_CaCO3 * photoC(istr:iend,auto_ind)))
 !# ifdef BEC_COCCO
-!          endif
-!          if (exp_calcifier(auto_ind)) then
+          endif
+          if (exp_calcifier(auto_ind)) then
 !!  calcification: use different light_lim than for photosynthesis (see
 !!  Zondervan 2007)
 !             QCaCO3(istr:iend,auto_ind) = QCaCO3(istr:iend,auto_ind)*light_lim_calc
@@ -1566,10 +1570,13 @@ c$$$       enddo
     !  autotroph agg loss
     !-----------------------------------------------------------------------
 
-       if (auto_ind == cocco_ind) then
-          auto_loss(istr:iend,auto_ind) =  mort(auto_ind) * Pprime(istr:iend,auto_ind) * Tfunc_cocco
-       elseif (auto_ind == diat_ind) then
+
+       if (auto_ind == diat_ind) then
           auto_loss(istr:iend,auto_ind) =  mort(auto_ind) * Pprime(istr:iend,auto_ind) * Tfunc_diat
+# ifdef BEC_COCCO
+       elseif (auto_ind == cocco_ind) then
+          auto_loss(istr:iend,auto_ind) =  mort(auto_ind) * Pprime(istr:iend,auto_ind) * Tfunc_cocco
+# endif /* BEC_COCCO */
        else
           auto_loss(istr:iend,auto_ind) =  mort(auto_ind) * Pprime(istr:iend,auto_ind) * Tfunc
        endif
@@ -2460,6 +2467,7 @@ c$$$       enddo
      &   dust_remin,    ! remineralization of dust (base units/m^3/sec)
      &   SED_DENITRIF,  ! sedimentary denitrification (mmolN/m^3/s)
      &   OTHER_REMIN,   ! sedimentary remin not due to oxic or denitrification
+     &   flux_oxidated, ! carbon oxidation rate in sediment
      &   FESEDFLUX,     ! sedimentary Fe inputs
      &   TfuncS         ! temperature scaling from soft POM remin
 
@@ -2595,6 +2603,7 @@ c$$$       enddo
 
        do i = istr, iend
           dz_loc = Hz(i,j,k)
+         ! dzr_loc = c1/dz_loc ! moved this line out of the if-loop
           if (LANDMASK(i,j)) then
              dzr_loc = c1 / dz_loc
              poc_diss_loc = POC_diss
@@ -2794,41 +2803,6 @@ c$$$       enddo
     !  Also add in Fe source from sediments if applicable to this cell.
     !-----------------------------------------------------------------------
 
-             ! Set Fe remin flux from sediments (no input in ROMS):
-# ifdef FE_SEDFLUX
-             !-------------------------------------------------------------------
-             !
-             ! CN: this comment is taken from ecosys_bec.F
-             !
-             ! Add diffusive iron flux if depth < 1100.0m, based on
-             ! Johnson et al.1999, value of 5.0 umolFe/m2/day.
-             !
-             ! 0.5 umolFe/m2/day,  5.78704e-7 nmolFe/cm2/sec.
-             ! 1.0 umolFe/m2/day,  1.1574e-6  nmolFe/cm2/sec.
-             ! 2.0 umolFe/m2/day,  2.3148e-6  nmolFe/cm2/sec
-             !-----------------------------------------------------------------
-             ! CN: test with value from Moore 2004 (in mmolFe/m2/sec,
-             ! see old BEC code)
-             if (k==1) then
-              if (z_r(i,j,k) < 1100.) then
-                FESEDFLUX(i) = 2.3148e-8
-              endif
-             endif
-# else
-             FESEDFLUX(i) = c0
-# endif
-
-          ! CN (Sep 2015): test new formulation for FESEDFLUX (Dale2015)
-          ! this is done directly in bottom cell part!
-
-             P_Iron_remin(i,j) = P_Iron_remin(i,j)
-     &           + dust_remin(i) * dust_to_Fe
-     &           + (FESEDFLUX(i) * dzr_loc)
-
-! P_Iron_remin is updated further down for bottom cell (when FESEDFLUX becomes >0)!!
-# ifdef BEC2_DIAG
-             bec2_diag_3d(i,j,k,pironremin_idx_t) = P_Iron_remin(i,j)
-# endif
 
              P_iron_hflux_out(i,j) = P_iron_hflux_in(i,j)
 
@@ -2933,6 +2907,33 @@ c$$$       enddo
      &                (flux - POC_sed_loss(i,j) - (SED_DENITRIF(i)*dz_loc*denitrif_C_N))
               endif
 
+# ifdef CONSTANT_FE_SEDFLUX
+             ! Add diffusive iron flux if depth < 1100.0m, based on
+             ! Johnson et al.1999, value of 5.0 umolFe/m2/day.
+             !
+             ! 2.0 umolFe/m2/day,  2.3148e-6  nmolFe/cm2/sec
+             ! 2.0 umolFe/m2/day,  2.3148e-3  mmolFe/m2/sec
+             !-----------------------------------------------------------------
+             ! CN: take value from Moore 2004 (in mmolFe/m2/sec,see old BEC code)
+              if (z_r(i,j,k) < 1100.) then
+                FESEDFLUX(i) = 2.0*0.001/86400
+              endif
+#  else
+            ! CN (Sep 2015): FESEDFLUX parametrization from Dale 2015
+            ! carbon oxidation rate in mmol m-2 s-1 
+            flux_oxidated(i) = flux - POC_sed_loss(i,j)
+
+            ! convert from mmol m-2 s-1 to mmol m-2 d-1
+            flux_oxidated(i) = flux_oxidated(i) * 86400  ! day2sec=86400
+
+            ! constant 170 in umol m-2 d-1, flux_oxidated in mmol m-2
+            ! day-1, o2 in muM
+            if (flux_oxidated(i) > 0) then
+                FESEDFLUX(i) = 170 * tanh(flux_oxidated(i)/O2_loc(i))
+            endif
+            ! convert from umol m-2 d-1 to mmol m-2 s-1
+            FESEDFLUX(i) = FESEDFLUX(i)*0.001/86400.     !sec2day=1/86400
+# endif
             endif  ! flux > c0
 
             flux = P_SiO2_sflux_out(i,j)+P_SiO2_hflux_out(i,j)
@@ -3243,7 +3244,7 @@ c$$$       enddo
 ! needed for c0
 #include "param_bec2.h"
        integer::istr,iend,jstr,jend
-         LOGICAL,DIMENSION(istr:iend,jstr:jend) :: landmask
+       LOGICAL,DIMENSION(istr:iend,jstr:jend) :: landmask
 
     !---------------------------------------------------------------------------
     !

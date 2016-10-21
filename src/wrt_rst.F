@@ -234,7 +234,8 @@
         endif
       enddo
 #  endif /* SEDIMENT_BIOLOGY */
-#  if  defined BIOLOGY_BEC || defined BIOLOGY_BEC2 || \
+#  if EXACT_RESTART
+#   if  defined BIOLOGY_BEC || defined BIOLOGY_BEC2 || \
       (defined BIOLOGY_NPZDOC && defined OXYGEN && defined CARBON)
 
 ! pH:
@@ -268,6 +269,7 @@
      &        ierr, nf_strerror(ierr) MYID
          goto 99                !--> ERROR
       endif
+#    endif
 #   endif
 #  endif
 

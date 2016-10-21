@@ -28,6 +28,9 @@ c--# define MERGE_OVERLAP
       real, dimension(PRIVATE_2D_SCRATCH_ARRAY,0:N) :: Kv, Kt, Ks
       real, dimension(PRIVATE_2D_SCRATCH_ARRAY) :: ustar, Bo, Bosol
      &                                                  , hbl, bbl
+# if defined LMD_LIMIT_STABLE && defined ICEOBS
+     &                                            , alpha0
+# endif
 # ifdef SMOOTH_HBL
      &                                              , FX, FE, FE1
 # else
@@ -70,7 +73,7 @@ c--# define MERGE_OVERLAP
       real Cg, ustar3, Bfsfc, zscale, zetahat, ws,wm, Kern, Vtc,Vtsq,
      &         ssgm, z_bl, Av_bl,dAv_bl, At_bl,dAt_bl,  As_bl,dAs_bl,
      &                         f1,a1,a2,a3,  cff,cff1, cff_up,cff_dn
-# ifdef LIMIT_MO_DEPTH
+# if defined LIMIT_MO_DEPTH || defined LMD_LIMIT_STABLE
      &                                               , h_MO
 #  ifdef INT_AT_RHO_POINTS
      &                                               , z_up
@@ -159,6 +162,10 @@ c--# define MERGE_OVERLAP
       do j=J_EXT_RANGE
         do i=I_EXT_RANGE
 # ifdef LMD_KPP
+#  if defined LMD_LIMIT_STABLE && defined ICEOBS
+!          Bosol_day(i,j)=g*alpha(i,j)*srflx_dailyavg(i,j)
+          alpha0(i,j)=alpha(i,j)
+#  endif
           Bo(i,j)=g*( alpha(i,j)*(stflx(i,j,itemp)-srflx(i,j))
 #  ifdef SALINITY
      &                              -beta(i,j)*stflx(i,j,isalt)
@@ -196,7 +203,7 @@ c--# define MERGE_OVERLAP
           bbl(i,j)=hbbl(i,j,tind)     ! the initial guess
 #  endif
           kbls(i)=0
-#  ifdef LIMIT_MO_DEPTH
+#  if defined LIMIT_MO_DEPTH || defined LMD_LIMIT_STABLE
 #   define C_h_MO Gm1
           kmo(i)=0
           C_h_MO(i)=C_MO*ustar(i,j)**3/vonKar
@@ -400,7 +407,7 @@ c--         Vtsq=Vtc*ws*sqrt(max(0., 0.5*(bvf(i,j,k)+bvf(i,j,k-1)) ))
             Cr(i,k)=FC(i,k)+Vtsq
 
             if (kbls(i) == 0 .and. Cr(i,k) < 0.) kbls(i)=k
-#   ifdef LIMIT_MO_DEPTH
+#   if defined LIMIT_MO_DEPTH || defined LMD_LIMIT_STABLE
             if (kmo(i) == 0 .and. Bfsfc*(z_w(i,j,N)-z_r(i,j,k))
      &                                   > C_h_MO(i) ) kmo(i)=k
 #   endif
@@ -420,7 +427,7 @@ c--         Vtsq=Vtc*ws*sqrt(max(0., 0.5*(bvf(i,j,k)+bvf(i,j,k-1)) ))
           else
             hbl(i,j)=z_w(i,j,N)-z_w(i,j,0)
           endif
-#   ifdef LIMIT_MO_DEPTH
+#   if defined  LIMIT_MO_DEiPTH || defined LMD_LIMIT_STABLE
           if (kmo(i) > 0) then
             k=kmo(i)
             if (k==N) then
@@ -435,10 +442,45 @@ c--         Vtsq=Vtc*ws*sqrt(max(0., 0.5*(bvf(i,j,k)+bvf(i,j,k-1)) ))
             h_MO=z_w(i,j,N)+C_h_MO(i)*(cff_up*z_up-cff_dn*z_r(i,j,k))
      &                             /( cff_up*cff_dn*(z_up-z_r(i,j,k))
      &                                  + C_h_MO(i)*(cff_dn-cff_up) )
+#    if defined LMD_LIMIT_STABLE && defined ICEOBS
+!    If neutral and stable, let depth of surface boundary
+!    layer be set to Niiler-Krauss wind mixing min depth (and then
+!    limited to Ekman depth or Monin-Obukov if that turns out to be
+!    shallower), but only if solar forcing is really weak (1 W/m^2
+!    ~ 1.43e-10).
+!            if
+!            ((ustar(i,j).gt.0.).and.((Bo(i,j)+Bosol(i,j)).gt.0.).and.
+!     &         (alpha0(i,j).lt.8.E-5).and.(hbl(i,j).lt.max(h_MO,0.)))
+!     then
+            if ((ustar(i,j)>0.).and.((Bo(i,j)+Bosol(i,j))>0.).and.
+     &         (hbl(i,j)<hbls(i,j,tind)).and.(hbl(i,j)<max(h_MO,0.))) then
+!              hbl(i,j)=hbl(i,j)+max(min(dt*hrest,0.5)*(h_MO-hbls(i,j,tind)),0.)
+              hbl(i,j)=max(hbl(i,j),0.8*h_MO*min(exp(-hbls(i,j,tind)/20.),1.))
+!see Markus 1999
+!              hbl(i,j)=hbl(i,j)+max(min(dt*hrest,0.5)*(h_MO-hbls(i,j,tind)),0.)
+!              hbl(i,j)=max(hbl(i,j),h_MO*min(exp(-hbls(i,j,tind)/20.),1.))
+!              !see Markus 1999
+!              hbl(i,j)=hbl(i,j)+max(min(dt*hrest,0.5)*(h_MO-hbls(i,j,tind)),0.)
+!              hbl(i,j)=max(hbl(i,j),h_MO*min(exp(-hbl(i,j)/30.),1.))
+!              !see Markus 1999
+!              hbl(i,j)=max(hbl(i,j),hbls(i,j,tind)*min(exp(-hbl(i,j)/30.),1.))
+!              !see Markus 1999
+!              hbl(i,j)=max(hbl(i,j),hbls(i,j,tind)*min(exp(-hbl(i,j)/(10.*day2sec)*dt),1.))
+!              K0mo(i,j)=nu0mo
+!            else
+!              K0mo(i,j)=0.
+            endif
+            hbl(i,j)=max(hbl(i,j),0.)
+            hbl(i,j)=min(hbl(i,j),abs(z_w(i,j,0)))
+#    endif /* LMD_LIMIT_STABLE && ICEOBS */
+#    if defined LIMIT_MO_DEPTH
+!    Compare "hbl" with physically limiting cases (Ekman depth
+!    and Monin-Obukhov depth) and correct.
             hbl(i,j)=min(hbl(i,j), max(h_MO,0.))
+#    endif
           endif
 #    undef C_h_MO
-#   endif
+#   endif /* LIMIT_MO_DEPTH || LMD_LIMIT_STABLE */
 #   ifdef LIMIT_MIN_HBLS
           hbl(i,j)=max(LIMIT_MIN_HBLS, hbl(i,j))
 #   endif
