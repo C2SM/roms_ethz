@@ -41,6 +41,9 @@ c--#define nf_def_var my_nf_def_var
 #include "param.h"
 #include "scalars.h"
 #include "ncvars.h"
+#if defined WRITE_SALT_REST || defined WRITE_TEMP_REST || defined WRITE_HEATFLX
+# include "forces.h"
+#endif
 #include "netcdf.inc"
       logical create_new_file
       integer lenstr, checkdims, my_nf_def_dim
@@ -124,6 +127,15 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
 # define vidW hisW
 # define vidAkv hisAkv
 # define vidAkt hisAkt
+# if defined WRITE_HEATFLX
+#  define vidHeatflx hisHeatflx
+# endif
+# if defined WRITE_TEMP_REST
+#  define vidRestflxTemp hisRestflxTemp
+# endif
+# if defined WRITE_SALT_REST
+#  define vidRestflxSalt hisRestflxSalt
+# endif
 # define NVDIM 4
 # define RGRD r3dgrd
 # define UGRD u3dgrd
@@ -132,6 +144,14 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
 # define vidAks hisAks
 # define vidHbls hisHbls
 # define vidHbbl hisHbbl
+# ifdef KPP_DIAGNOSE
+#  define vidKppRichm hisKppRichm
+#  define vidKppRicht hisKppRicht
+#  define vidKppSblSh hisKppSblSh
+#  define vidKppSblSt hisKppSblSt
+#  define vidKppSblRot hisKppSblRot
+#  define vidKppSblEnt hisKppSblEnt
+# endif
 # ifdef WKB_WWAVE
 #  define vidWKB hisWKB
 # endif
@@ -194,6 +214,15 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
 # define vidW avgW
 # define vidAkv avgAkv
 # define vidAkt avgAkt
+# if defined WRITE_HEATFLX
+#  define vidHeatflx avgHeatflx
+# endif
+# if defined WRITE_TEMP_REST
+#  define vidRestflxTemp avgRestflxTemp
+# endif
+# if defined WRITE_SALT_REST
+#  define vidRestflxSalt avgRestflxSalt
+# endif
 # define NVDIM 4
 # define RGRD r3dgrd
 # define UGRD u3dgrd
@@ -202,6 +231,14 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
 # define vidAks avgAks
 # define vidHbls avgHbls
 # define vidHbbl avgHbbl
+# ifdef KPP_DIAGNOSE
+#  define vidKppRichm avgKppRichm
+#  define vidKppRicht avgKppRicht
+#  define vidKppSblSh avgKppSblSh
+#  define vidKppSblSt avgKppSblSt
+#  define vidKppSblRot avgKppSblRot
+#  define vidKppSblEnt avgKppSblEnt
+# endif
 # if defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC
 #  if defined CH_CARBON_DEPTH
 #   define vidPHd avgPHd
@@ -270,14 +307,17 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
 #  define UGRD u2dgrd
 #  define VGRD v2dgrd
 #  define WGRD r2dgrd
-#  ifdef KPP_DIAGNOSE
-#   define vidRich slavgRich
-#   define vidRichN slavgRichN
-#   define vidSwrF slavgSwrF
-#  endif
 #  define vidAks slavgAks
 #  define vidHbls slavgHbls
 #  define vidHbbl slavgHbbl
+# ifdef KPP_DIAGNOSE
+#  define vidKppRichm slavgKppRichm
+#  define vidKppRicht slavgKppRicht
+#  define vidKppSblSh slavgKppSblSh
+#  define vidKppSblSt slavgKppSblSt
+#  define vidKppSblRot slavgKppSblRot
+#  define vidKppSblEnt slavgKppSblEnt
+# endif
 #  if defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC
 #   if defined CH_CARBON_DEPTH
 #    define vidPHd slavgPHd
@@ -889,6 +929,96 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
 #endif
         endif
 # endif /* SALINITY */
+!AH16:
+# if defined WRITE_HEATFLX
+! Heat flux
+        if (wrt(indxHeatflx) .and. ierr == nf_noerr) then
+          lvar=lenstr(vname(1,indxHeatflx))
+          ierr=nf_def_var (ncid, vname(1,indxHeatflx)(1:lvar),
+     &                           NF_FOUT, 3, r2dgrd, vidHeatflx)
+#  ifdef AVRH
+          text='averaged '/ /vname(2,indxHeatflx)
+#  else
+          text=vname(2,indxHeatflx)
+#  endif
+          lvar=lenstr(text)
+          ierr=nf_put_att_text (ncid, vidHeatflx, 'long_name', lvar,
+     &                                              text(1:lvar))
+          lvar=lenstr(vname(3,indxHeatflx))
+          ierr=nf_put_att_text (ncid, vidHeatflx, 'units',     lvar,
+     &                                 vname(3,indxHeatflx)(1:lvar))
+          ierr=nf_put_att_text (ncid, vidHeatflx, 'coordinates',15,
+     &                              'lon_rho lat_rho') 
+#  ifdef MASK_LAND_DATA 
+          ierr=nf_put_att_FOUT (ncid, vidHeatflx, '_FillValue',
+     &                                   NF_FOUT, 1, spv_set)
+#  endif
+#  ifdef NCCOMPRESS
+          ierr=nf_def_var_deflate(ncid, vidHeatflx, ncshuff, ncdefl, nclev)
+          ierr=nf_def_var_chunking(ncid, vidHeatflx, ncctg, ncrchnk2)
+#  endif
+        endif
+# endif /* WRITE_HEATFLX */
+!AH16:
+# if defined WRITE_TEMP_REST
+! Restoring flux for temperature
+        if (wrt(indxRestflxTemp) .and. ierr == nf_noerr) then
+          lvar=lenstr(vname(1,indxRestflxTemp))
+          ierr=nf_def_var (ncid, vname(1,indxRestflxTemp)(1:lvar),
+     &                           NF_FOUT, 3, r2dgrd, vidRestflxTemp)
+#  ifdef AVRH
+          text='averaged '/ /vname(2,indxRestflxTemp)
+#  else
+          text=vname(2,indxRestflxTemp)
+#  endif
+          lvar=lenstr(text)
+          ierr=nf_put_att_text (ncid, vidRestflxTemp, 'long_name', lvar,
+     &                                              text(1:lvar))
+          lvar=lenstr(vname(3,indxRestflxTemp))
+          ierr=nf_put_att_text (ncid, vidRestflxTemp, 'units',     lvar,
+     &                                 vname(3,indxRestflxTemp)(1:lvar))
+          ierr=nf_put_att_text (ncid, vidRestflxTemp, 'coordinates',15,
+     &                              'lon_rho lat_rho') 
+#  ifdef MASK_LAND_DATA 
+          ierr=nf_put_att_FOUT (ncid, vidRestflxTemp, '_FillValue',
+     &                                   NF_FOUT, 1, spv_set)
+#  endif
+#  ifdef NCCOMPRESS
+          ierr=nf_def_var_deflate(ncid, vidRestflxTemp, ncshuff, ncdefl, nclev)
+          ierr=nf_def_var_chunking(ncid, vidRestflxTemp, ncctg, ncrchnk2)
+#  endif
+        endif
+# endif /* WRITE_TEMP_REST */
+!AH16:
+# if defined WRITE_SALT_REST
+! Restoring flux for salinity
+        if (wrt(indxRestflxSalt) .and. ierr == nf_noerr) then
+          lvar=lenstr(vname(1,indxRestflxSalt))
+          ierr=nf_def_var (ncid, vname(1,indxRestflxSalt)(1:lvar),
+     &                           NF_FOUT, 3, r2dgrd, vidRestflxSalt)
+#  ifdef AVRH
+          text='averaged '/ /vname(2,indxRestflxSalt)
+#  else
+          text=vname(2,indxRestflxSalt)
+#  endif
+          lvar=lenstr(text)
+          ierr=nf_put_att_text (ncid, vidRestflxSalt, 'long_name', lvar,
+     &                                              text(1:lvar))
+          lvar=lenstr(vname(3,indxRestflxSalt))
+          ierr=nf_put_att_text (ncid, vidRestflxSalt, 'units',     lvar,
+     &                                 vname(3,indxRestflxSalt)(1:lvar))
+          ierr=nf_put_att_text (ncid, vidRestflxSalt, 'coordinates',15,
+     &                              'lon_rho lat_rho') 
+#  ifdef MASK_LAND_DATA 
+          ierr=nf_put_att_FOUT (ncid, vidRestflxSalt, '_FillValue',
+     &                                   NF_FOUT, 1, spv_set)
+#  endif
+#  ifdef NCCOMPRESS
+          ierr=nf_def_var_deflate(ncid, vidRestflxSalt, ncshuff, ncdefl, nclev)
+          ierr=nf_def_var_chunking(ncid, vidRestflxSalt, ncctg, ncrchnk2)
+#  endif
+        endif
+# endif /* WRITE_SALT_REST */
 # ifdef LMD_KPP
 ! Depth of surface planetary boundary layer.
 
@@ -945,6 +1075,158 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
 #  endif
         endif
 # endif /* LMD_BKPP */
+# ifdef KPP_DIAGNOSE
+!KppRichm
+        if (wrt(indxKppRichm) .and. ierr == nf_noerr) then
+          lvar=lenstr(vname(1,indxKppRichm))
+          ierr=nf_def_var (ncid, vname(1,indxKppRichm)(1:lvar), NF_FOUT,
+     &                                           NVDIM, WGRD, vidKppRichm)
+#  ifdef AVRH
+          text='averaged '/ /vname(2,indxKppRichm)
+#  endif
+          lvar=lenstr(text)
+          ierr=nf_put_att_text (ncid, vidKppRichm, 'long_name', lvar,
+     &                                              text(1:lvar))
+          lvar=lenstr(vname(3,indxKppRichm))
+          ierr=nf_put_att_text (ncid, vidKppRichm, 'units',     lvar,
+     &                                  vname(3,indxKppRichm)(1:lvar))
+          ierr=nf_put_att_text (ncid, vidKppRichm, 'coordinates',15,
+     &                              'lon_rho lat_rho') 
+#  ifdef MASK_LAND_DATA 
+          ierr=nf_put_att_FOUT (ncid, vidKppRichm, '_FillValue', NF_FOUT,
+     &                                                   1, spv_set)
+#  endif
+#  ifdef NCCOMPRESS
+          ierr=nf_def_var_deflate(ncid, vidKppRichm, ncshuff, ncdefl, nclev)
+          ierr=nf_def_var_chunking(ncid, vidKppRichm, ncctg, ncrchnk3)
+#  endif
+        endif
+!KppRicht
+        if (wrt(indxKppRicht) .and. ierr == nf_noerr) then
+          lvar=lenstr(vname(1,indxKppRicht))
+          ierr=nf_def_var (ncid, vname(1,indxKppRicht)(1:lvar), NF_FOUT,
+     &                                           NVDIM, WGRD, vidKppRicht)
+#  ifdef AVRH
+          text='averaged '/ /vname(2,indxKppRicht)
+#  endif
+          lvar=lenstr(text)
+          ierr=nf_put_att_text (ncid, vidKppRicht, 'long_name', lvar,
+     &                                              text(1:lvar))
+          lvar=lenstr(vname(3,indxKppRicht))
+          ierr=nf_put_att_text (ncid, vidKppRicht, 'units',     lvar,
+     &                                  vname(3,indxKppRicht)(1:lvar))
+          ierr=nf_put_att_text (ncid, vidKppRicht, 'coordinates',15,
+     &                              'lon_rho lat_rho') 
+#  ifdef MASK_LAND_DATA 
+          ierr=nf_put_att_FOUT (ncid, vidKppRicht, '_FillValue', NF_FOUT,
+     &                                                   1, spv_set)
+#  endif
+#  ifdef NCCOMPRESS
+          ierr=nf_def_var_deflate(ncid, vidKppRicht, ncshuff, ncdefl, nclev)
+          ierr=nf_def_var_chunking(ncid, vidKppRicht, ncctg, ncrchnk3)
+#  endif
+        endif
+!KppSblSh
+        if (wrt(indxKppSblSh) .and. ierr == nf_noerr) then
+          lvar=lenstr(vname(1,indxKppSblSh))
+          ierr=nf_def_var (ncid, vname(1,indxKppSblSh)(1:lvar), NF_FOUT,
+     &                                           NVDIM, WGRD, vidKppSblSh)
+#  ifdef AVRH
+          text='averaged '/ /vname(2,indxKppSblSh)
+#  endif
+          lvar=lenstr(text)
+          ierr=nf_put_att_text (ncid, vidKppSblSh, 'long_name', lvar,
+     &                                              text(1:lvar))
+          lvar=lenstr(vname(3,indxKppSblSh))
+          ierr=nf_put_att_text (ncid, vidKppSblSh, 'units',     lvar,
+     &                                  vname(3,indxKppSblSh)(1:lvar))
+          ierr=nf_put_att_text (ncid, vidKppSblSh, 'coordinates',15,
+     &                              'lon_rho lat_rho') 
+#  ifdef MASK_LAND_DATA 
+          ierr=nf_put_att_FOUT (ncid, vidKppSblSh, '_FillValue', NF_FOUT,
+     &                                                   1, spv_set)
+#  endif
+#  ifdef NCCOMPRESS
+          ierr=nf_def_var_deflate(ncid, vidKppSblSh, ncshuff, ncdefl, nclev)
+          ierr=nf_def_var_chunking(ncid, vidKppSblSh, ncctg, ncrchnk3)
+#  endif
+        endif
+!KppSblSt
+        if (wrt(indxKppSblSt) .and. ierr == nf_noerr) then
+          lvar=lenstr(vname(1,indxKppSblSt))
+          ierr=nf_def_var (ncid, vname(1,indxKppSblSt)(1:lvar), NF_FOUT,
+     &                                           NVDIM, WGRD, vidKppSblSt)
+#  ifdef AVRH
+          text='averaged '/ /vname(2,indxKppSblSt)
+#  endif
+          lvar=lenstr(text)
+          ierr=nf_put_att_text (ncid, vidKppSblSt, 'long_name', lvar,
+     &                                              text(1:lvar))
+          lvar=lenstr(vname(3,indxKppSblSt))
+          ierr=nf_put_att_text (ncid, vidKppSblSt, 'units',     lvar,
+     &                                  vname(3,indxKppSblSt)(1:lvar))
+          ierr=nf_put_att_text (ncid, vidKppSblSt, 'coordinates',15,
+     &                              'lon_rho lat_rho') 
+#  ifdef MASK_LAND_DATA 
+          ierr=nf_put_att_FOUT (ncid, vidKppSblSt, '_FillValue', NF_FOUT,
+     &                                                   1, spv_set)
+#  endif
+#  ifdef NCCOMPRESS
+          ierr=nf_def_var_deflate(ncid, vidKppSblSt, ncshuff, ncdefl, nclev)
+          ierr=nf_def_var_chunking(ncid, vidKppSblSt, ncctg, ncrchnk3)
+#  endif
+        endif
+!KppSblRot
+        if (wrt(indxKppSblRot) .and. ierr == nf_noerr) then
+          lvar=lenstr(vname(1,indxKppSblRot))
+          ierr=nf_def_var (ncid, vname(1,indxKppSblRot)(1:lvar), NF_FOUT,
+     &                                           NVDIM, WGRD, vidKppSblRot)
+#  ifdef AVRH
+          text='averaged '/ /vname(2,indxKppSblRot)
+#  endif
+          lvar=lenstr(text)
+          ierr=nf_put_att_text (ncid, vidKppSblRot, 'long_name', lvar,
+     &                                              text(1:lvar))
+          lvar=lenstr(vname(3,indxKppSblRot))
+          ierr=nf_put_att_text (ncid, vidKppSblRot, 'units',     lvar,
+     &                                  vname(3,indxKppSblRot)(1:lvar))
+          ierr=nf_put_att_text (ncid, vidKppSblRot, 'coordinates',15,
+     &                              'lon_rho lat_rho') 
+#  ifdef MASK_LAND_DATA 
+          ierr=nf_put_att_FOUT (ncid, vidKppSblRot, '_FillValue', NF_FOUT,
+     &                                                   1, spv_set)
+#  endif
+#  ifdef NCCOMPRESS
+          ierr=nf_def_var_deflate(ncid, vidKppSblRot, ncshuff, ncdefl, nclev)
+          ierr=nf_def_var_chunking(ncid, vidKppSblRot, ncctg, ncrchnk3)
+#  endif
+        endif
+!KppSblEnt
+        if (wrt(indxKppSblEnt) .and. ierr == nf_noerr) then
+          lvar=lenstr(vname(1,indxKppSblEnt))
+          ierr=nf_def_var (ncid, vname(1,indxKppSblEnt)(1:lvar), NF_FOUT,
+     &                                           NVDIM, WGRD, vidKppSblEnt)
+#  ifdef AVRH
+          text='averaged '/ /vname(2,indxKppSblEnt)
+#  endif
+          lvar=lenstr(text)
+          ierr=nf_put_att_text (ncid, vidKppSblEnt, 'long_name', lvar,
+     &                                              text(1:lvar))
+          lvar=lenstr(vname(3,indxKppSblEnt))
+          ierr=nf_put_att_text (ncid, vidKppSblEnt, 'units',     lvar,
+     &                                  vname(3,indxKppSblEnt)(1:lvar))
+          ierr=nf_put_att_text (ncid, vidKppSblEnt, 'coordinates',15,
+     &                              'lon_rho lat_rho') 
+#  ifdef MASK_LAND_DATA 
+          ierr=nf_put_att_FOUT (ncid, vidKppSblEnt, '_FillValue', NF_FOUT,
+     &                                                   1, spv_set)
+#  endif
+#  ifdef NCCOMPRESS
+          ierr=nf_def_var_deflate(ncid, vidKppSblEnt, ncshuff, ncdefl, nclev)
+          ierr=nf_def_var_chunking(ncid, vidKppSblEnt, ncctg, ncrchnk3)
+#  endif
+        endif
+# endif /* KPP_DIAGNOSE */
 
 # if defined BIOLOGY_BEC || (defined BIOLOGY_NPZDOC && \
     defined OXYGEN && defined CARBON)
@@ -1562,6 +1844,36 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
      &                                                fname(1:lfnm)
         endif
 # endif
+!AH16:
+# if defined WRITE_HEATFLX
+! Heat flux
+        if (wrt(indxHeatflx) .and. ierr == nf_noerr) then
+          lvar=lenstr(vname(1,indxHeatflx))
+          ierr=nf_inq_varid(ncid,vname(1,indxHeatflx)(1:lvar), vidHeatflx)
+          if (ierr /= nf_noerr) write(*,1) vname(1,indxHeatflx)(1:lvar),
+     &                                                 fname(1:lfnm)
+        endif
+# endif /* WRITE_HEATFLX */
+!AH16:
+# if defined WRITE_TEMP_REST
+! Restoring flux for temperature
+        if (wrt(indxRestflxTemp) .and. ierr == nf_noerr) then
+          lvar=lenstr(vname(1,indxRestflxTemp))
+          ierr=nf_inq_varid(ncid,vname(1,indxRestflxTemp)(1:lvar), vidRestflxTemp)
+          if (ierr /= nf_noerr) write(*,1) vname(1,indxRestflxTemp)(1:lvar),
+     &                                                 fname(1:lfnm)
+        endif
+# endif /* WRITE_TEMP_REST */
+!AH16:
+# if defined WRITE_SALT_REST
+! Restoring flux for salinity
+        if (wrt(indxRestflxSalt) .and. ierr == nf_noerr) then
+          lvar=lenstr(vname(1,indxRestflxSalt))
+          ierr=nf_inq_varid(ncid,vname(1,indxRestflxSalt)(1:lvar), vidRestflxSalt)
+          if (ierr /= nf_noerr) write(*,1) vname(1,indxRestflxSalt)(1:lvar),
+     &                                                 fname(1:lfnm)
+        endif
+# endif /* WRITE_SALT_REST */
 # ifdef LMD_KPP
 ! Depth of surface planetary boundary layer.
 
@@ -1580,6 +1892,44 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
           ierr=nf_inq_varid(ncid,vname(1,indxHbbl)(1:lvar), vidHbbl)
           if (ierr /= nf_noerr) write(*,1) vname(1,indxHbbl)(1:lvar),
      &                                                 fname(1:lfnm)
+        endif
+# endif
+# ifdef KPP_DIAGNOSE
+        if (wrt(indxKppRichm) .and. ierr == nf_noerr) then
+          lvar=lenstr(vname(1,indxKppRichm))
+          ierr=nf_inq_varid(ncid,vname(1,indxKppRichm)(1:lvar), vidKppRichm)
+          if (ierr /= nf_noerr) write(*,1) vname(1,indxKppRichm)(1:lvar),
+     &                                                fname(1:lfnm)
+        endif
+        if (wrt(indxKppRicht) .and. ierr == nf_noerr) then
+          lvar=lenstr(vname(1,indxKppRicht))
+          ierr=nf_inq_varid(ncid,vname(1,indxKppRicht)(1:lvar), vidKppRicht)
+          if (ierr /= nf_noerr) write(*,1) vname(1,indxKppRicht)(1:lvar),
+     &                                                fname(1:lfnm)
+        endif
+        if (wrt(indxKppSblSh) .and. ierr == nf_noerr) then
+          lvar=lenstr(vname(1,indxKppSblSh))
+          ierr=nf_inq_varid(ncid,vname(1,indxKppSblSh)(1:lvar), vidKppSblSh)
+          if (ierr /= nf_noerr) write(*,1) vname(1,indxKppSblSh)(1:lvar),
+     &                                                fname(1:lfnm)
+        endif
+        if (wrt(indxKppSblSt) .and. ierr == nf_noerr) then
+          lvar=lenstr(vname(1,indxKppSblSt))
+          ierr=nf_inq_varid(ncid,vname(1,indxKppSblSt)(1:lvar), vidKppSblSt)
+          if (ierr /= nf_noerr) write(*,1) vname(1,indxKppSblSt)(1:lvar),
+     &                                                fname(1:lfnm)
+        endif
+        if (wrt(indxKppSblRot) .and. ierr == nf_noerr) then
+          lvar=lenstr(vname(1,indxKppSblRot))
+          ierr=nf_inq_varid(ncid,vname(1,indxKppSblRot)(1:lvar), vidKppSblRot)
+          if (ierr /= nf_noerr) write(*,1) vname(1,indxKppSblRot)(1:lvar),
+     &                                                fname(1:lfnm)
+        endif
+        if (wrt(indxKppSblEnt) .and. ierr == nf_noerr) then
+          lvar=lenstr(vname(1,indxKppSblEnt))
+          ierr=nf_inq_varid(ncid,vname(1,indxKppSblEnt)(1:lvar), vidKppSblEnt)
+          if (ierr /= nf_noerr) write(*,1) vname(1,indxKppSblEnt)(1:lvar),
+     &                                                fname(1:lfnm)
         endif
 # endif
 
@@ -1857,8 +2207,25 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
 #undef vidAkv
 #undef vidAkt
 #undef vidAks
+#if defined WRITE_HEATFLX
+# undef vidHeatflx
+#endif
+#if defined WRITE_TEMP_REST
+# undef vidRestflxTemp
+#endif
+#if defined WRITE_SALT_REST
+# undef vidRestflxSalt
+#endif
 #undef vidHbls
 #undef vidHbbl
+#ifdef KPP_DIAGNOSE
+# undef vidKppRichm
+# undef vidKppRicht
+# undef vidKppSblSh
+# undef vidKppSblSt
+# undef vidKppSblSot
+# undef vidKppSblEnt
+#endif
 #ifdef WKB_WWAVE
 # undef vidWKB
 #endif

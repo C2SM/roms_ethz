@@ -12,7 +12,6 @@
 # include "param.h"
 # include "scalars.h"
 # include "ocean3d.h"
-
 # define STFLUX_DATA
 # if defined QCORRECTION && !defined ANA_SST
       integer it3,it4, it5,it6
@@ -25,13 +24,16 @@
       real cff7,cff8, dSdt
 #  define SSS_DATA
 # endif
+# ifdef ICEOBS
+      integer  k,k1,k2
+# endif
 # include "forces.h"
 
 # ifndef ICE_MODEL
 ! hbls (in mixing.h) is needed for surface flux limitation if SST falls below freezing
 #  include "mixing.h"
 # endif
-# ifdef ICEOBS
+# if defined ICEOBS || (defined SALINITY_MASKLATSTR && defined SALINITY_MASKLATEND)
 #  include "grid.h"
 # endif
 # include "compute_extended_bounds.h"
@@ -83,7 +85,7 @@
       if (cff7 < dt .and. ntstf(itrc) > 1) synchro_flag=.true.
       cff=1./(cff7+cff8)
       cff7=cff7*cff ; cff8=cff8*cff
-      dSdt=1./(90.*day2sec) ! relaxation time for surface salinity
+!      dSdt=1./(90.*day2sec) ! relaxation time for surface salinity
       dSdt=1./(45.*day2sec) ! relaxation time for surface salinity
 !      dSdt=1./(9000.*day2sec) ! relaxation time for surface salinity
 # endif
@@ -98,13 +100,19 @@
           enddo
 # ifdef SALINITY
         elseif (itrc == isalt) then
-          cff=0.01/86400.
+          cff=0.01/day2sec
           do j=jstrR,jendR
             do i=istrR,iendR
-              stflx(i,j,isalt)=cff*stflxg(i,j,itstf(isalt),isalt)
-     &                                       *t(i,j,N,nrhs,isalt)
+              stflx(i,j,isalt)=(cff*stflxg(i,j,itstf(isalt),isalt)
+     &                                       *t(i,j,N,nrhs,isalt))
 #  ifdef ICEOBS
-     &                                +freezing(i,j)+melting(i,j)
+     &                                               +melting(i,j)
+#   if !defined BRINE_PLUMES
+!AH16: Note that if BRINE_PLUMES is defined salt from freezing is
+!      added later to the subsurface to mimic brine convection through 
+!      the mixed layer, else it is added here
+     &                                               +freezing(i,j)
+#   endif
 #  endif
             enddo
           enddo
@@ -112,101 +120,142 @@
         endif                          ! Interpolate surface
       else                             ! tracer fluxes in time
         if (itrc == itemp) then
+# if defined WRITE_TEMP_REST
+          cff=rho0*Cp
+# endif
           do j=jstrR,jendR
             do i=istrR,iendR
               stflx(i,j,itemp)=cff1*stflxg(i,j,it1,itemp)
      &                        +cff2*stflxg(i,j,it2,itemp)
-
-# if defined QCORRECTION && !defined ANA_SST
-     &         +(cff5*dqdtg(i,j,it5)+cff6*dqdtg(i,j,it6))
-     &         *( t(i,j,N,nrhs,itemp) -cff3*sstg(i,j,it3)
-     &                                -cff4*sstg(i,j,it4)
-     &                                                  )
-
-!#  if defined PACIFIC || defined STFLX_LIM
-
-#  if !defined ICE_MODEL
-#   ifdef ICEOBS
-
+# if !defined ICE_MODEL
+#  ifdef ICEOBS
 ! If there is net sea-ice freezing in the grid box we assume a freezing point
 ! skin temperature for the entire grid box and recalculate heat fluxes
 ! based on Markus (1999). Note that this overwrites any surface forcing
-! heat flux in grid cells with net freezing. !AH15
-!
-!Option1:
-               stflx(i,j,itemp)=(stflx(i,j,itemp)*(1.-sic(i,j)))
-     &           +(0.006        ! Stanton number under ice
+! heat flux in grid cells with net freezing. !AH16
+!Option1: Markus (1999)
+              stflx(i,j,itemp)=stflx(i,j,itemp) !stflx(i,j,itemp)*(1.-sic(i,j)) this is done in the forcing
+     &           +min(0.,
+!     &           max((-9.7737e-6/(sic(i,j)+1.)
+!     &           +(melting(i,j)/t(i,j,N,nrhs,isalt)*81.6)),!latent heat of melting!334e3*1000/1027/3985
+!-3.91e-6,    !-16 W m-2 /(rho0*Cp)
+     &           0.006        ! Stanton number under ice
      &                                 *sqrt( sqrt( 0.333333333333*(
      &      sustr(i,j)**2 + sustr(i+1,j)**2 + sustr(i,j)*sustr(i+1,j)
      &     +svstr(i,j)**2 + svstr(i,j+1)**2 + svstr(i,j)*svstr(i,j+1)
      &                                                            )))
      &           *(-0.0543*t(i,j,N,nrhs,isalt)-t(i,j,N,nrhs,itemp))
+!     &           )
      &           *sic(i,j))
-!Option2:
-!              if ((freezing(i,j)+melting(i,j)).gt.0.) then
-!                stflx(i,j,itemp)=0.006        ! Stanton number under ice
-!     &                                 *sqrt( sqrt( 0.333333333333*(
-!     &      sustr(i,j)**2 + sustr(i+1,j)**2 + sustr(i,j)*sustr(i+1,j)
-!     &     +svstr(i,j)**2 + svstr(i,j+1)**2 + svstr(i,j)*svstr(i,j+1)
-!     &                                                            )))
-!     &           *(-0.0543*t(i,j,N,nrhs,isalt)-t(i,j,N,nrhs,itemp))
-!              endif
-!Option3:
-!                stflx(i,j,itemp)=(stflx(i,j,itemp)
-!     &           *abs(min(0.,(real(ceiling(freezing(i,j)+melting(i,j)))-1.)))!0=freezing,1=no freezing
-!!     &           *(1.-sic(i,j))
-!     &           )
-!     &           +(0.006        ! Stanton number under ice
-!     &                                 *sqrt( sqrt( 0.333333333333*(
-!     &      sustr(i,j)**2 + sustr(i+1,j)**2 + sustr(i,j)*sustr(i+1,j)
-!     &     +svstr(i,j)**2 + svstr(i,j+1)**2 + svstr(i,j)*svstr(i,j+1)
-!     &                                                            )))
-!     &           *(-0.0543*t(i,j,N,nrhs,isalt)-t(i,j,N,nrhs,itemp))
-!!     &           *max(min(1.,real(ceiling(freezing(i,j)))),sic(i,j))!1=freezing,0=no freezing
-!     &           *min(1.,real(ceiling(freezing(i,j))))!1=freezing,0=no freezing
-!!     &           *sic(i,j)
-!     &           )
-#   endif  /* ICEOBS */
-
-! Restrict stflx to prevent surface temperature to go below surface 
-! freezing point t_freez=-0.0543*salinity [C] (Steele et al. 1989)
-
-              stflx(i,j,itemp)=max( stflx(i,j,itemp),
-#   ifdef LMD_KPP
-     &                          max(hbls(i,j,nstp), Hz(i,j,N))
-#   else
-     &                                               Hz(i,j,N)
-#   endif
-     &            *(-0.0543*t(i,j,N,nrhs,isalt)-t(i,j,N,nrhs,itemp))/dt
-     &                                                       )
+!Option2: Martinson (1990) + Markus (1999)
+!!              k1=N
+!!              k2=N
+!!              do k=N,1,-1
+!!                if (k1 <= k2) then
+!!                  if (sqrt(max(0., bvf(i,j,k) )) 
+!!     &              .le. sqrt(max(0., bvf(i,j,k-1) ))) then
+!!                    k1=k
+!!                  endif
+!!                  if (sqrt(max(0., bvf(i,j,k) )) 
+!!     &              .ge. sqrt(max(0., bvf(i,j,k-1) ))) then
+!!                    k2=k
+!!                  endif
+!!                endif
+!!              enddo
+!!              if ((k1==k2).or.(k2>=kbl(i,j))) then
+!!                k2=max(1,kbl(i,j)-1)
+!!              endif
+!              k1=N
+!              k2=max(1,kbl(i,j)-1)
+!              stflx(i,j,itemp)=(stflx(i,j,itemp)*(1.-sic(i,j)))
+!     &           + min(0.,
+!     &             max((-(freezing(i,j)+melting(i,j))
+!     &                   *(t(i,j,k2,nrhs,itemp)
+!     &                     -t(i,j,k1,nrhs,itemp))
+!     &                   /(t(i,j,k2,nrhs,isalt)
+!     &                     -t(i,j,k1,nrhs,isalt)))
+!     &                 ,(0.006*sqrt( sqrt( 0.333333333333*(
+!     &                         sustr(i,j)**2 + sustr(i+1,j)**2 
+!     &                          + sustr(i,j)*sustr(i+1,j)
+!     &                       + svstr(i,j)**2 + svstr(i,j+1)**2
+!     &                          + svstr(i,j)*svstr(i,j+1))))
+!     &                   *(-0.0543*t(i,j,N,nrhs,isalt)
+!     &                     -t(i,j,N,nrhs,itemp)))
+!     &                 )*sic(i,j))
+#  endif  /* ICEOBS */
+# endif  /* !ICE_MODEL */
+# if defined QCORRECTION && !defined ANA_SST
+!#  if defined PACIFIC || defined STFLX_LIM
+              stflx(i,j,itemp)=stflx(i,j,itemp)
+     &         +(cff5*dqdtg(i,j,it5)+cff6*dqdtg(i,j,it6))
+     &         *( t(i,j,N,nrhs,itemp) -cff3*sstg(i,j,it3)
+     &                                -cff4*sstg(i,j,it4)
+     &                                                  )
+#  ifdef WRITE_TEMP_REST
+              RestFlxTemp(i,j)=cff
+     &         *((cff5*dqdtg(i,j,it5)+cff6*dqdtg(i,j,it6))
+     &          *( t(i,j,N,nrhs,itemp) -cff3*sstg(i,j,it3)
+     &                                 -cff4*sstg(i,j,it4)
+     &                                                  ))
 #  endif
 # endif
-
+# if !defined ICE_MODEL
+! Restrict stflx to prevent surface temperature to go below surface 
+! freezing point t_freez=-0.0543*salinity [C] (Steele et al. 1989)
+              stflx(i,j,itemp)=max(stflx(i,j,itemp)
+     &            ,Hz(i,j,N)*(-0.0543*t(i,j,N,nrhs,isalt)
+     &                          -t(i,j,N,nrhs,itemp))/dt)
+# endif
+# ifdef WRITE_HEATFLX
+              Heatflx(i,j)=cff*stflx(i,j,itemp)
+# endif
             enddo
           enddo
 # ifdef SALINITY
         elseif (itrc == isalt) then      ! convert fresh-water flux
+#  if defined WRITE_SALT_REST
+          cff=day2sec/0.01
+#  endif
           do j=jstrR,jendR
             do i=istrR,iendR
-              stflx(i,j,isalt)=t(i,j,N,nrhs,isalt)*(
+              stflx(i,j,isalt)=(t(i,j,N,nrhs,isalt)*(
      &                     cff1*stflxg(i,j,it1,isalt)
-     &                    +cff2*stflxg(i,j,it2,isalt)
-     &                                              )
-
+     &                  +cff2*stflxg(i,j,it2,isalt)))
+#  ifdef ICEOBS
+     &                                  +melting(i,j)
+#   if !defined BRINE_PLUMES
+!AH16: Note that if BRINE_PLUMES is defined salt from freezing is
+!      added later to the subsurface to mimic brine convection through 
+!      the mixed layer, else it is added here
+     &                                 +freezing(i,j)
+#   endif
 ! Add relaxation of surface salinity back to climatological value
 ! to avoid long-term drift
-
 #  if defined SFLX_CORR && defined SALINITY
-
 #   ifdef SALINITY_MASK
               if (sssg(i,j,it7) > 0. .and. sssg(i,j,it8) > 0.) then
 #   endif
-             stflx(i,j,isalt)=stflx(i,j,isalt) -dSdt*Hz(i,j,N)*(
-     &                                   t(i,j,N,nrhs,isalt)
-c**  &                                    -tclm(i,j,N,isalt)
-
-     &              -(cff7*sssg(i,j,it7)+cff8*sssg(i,j,it8))
-     &                                                     )
+#   ifdef WRITE_SALT_REST
+                RestFlxSalt(i,j)=stflx(i,j,isalt)
+#   endif
+                stflx(i,j,isalt)=stflx(i,j,isalt)-(dSdt*Hz(i,j,N)*(
+     &                                       t(i,j,N,nrhs,isalt)
+c**  &                                        -tclm(i,j,N,isalt)
+     &                  -(cff7*sssg(i,j,it7)+cff8*sssg(i,j,it8))
+     &                                                         )
+#   if defined SALINITY_MASKLATSTR && defined SALINITY_MASKLATEND
+     &          *max(max(min(abs(latr(i,j)-(SALINITY_MASKLATEND))
+     & /abs((SALINITY_MASKLATSTR)-(SALINITY_MASKLATEND)),1.),0.0)
+     &   ,min(max(real(floor(abs(latr(i,j)-(SALINITY_MASKLATEND))
+     &        /abs((SALINITY_MASKLATSTR)-(SALINITY_MASKLATEND))))
+     &           ,real(floor(abs(latr(i,j)-(SALINITY_MASKLATSTR))
+     & /abs((SALINITY_MASKLATSTR)-(SALINITY_MASKLATEND))))),1.0))
+#   endif
+     &                                                         )
+#   ifdef WRITE_SALT_REST
+                RestFlxSalt(i,j)=cff*(stflx(i,j,isalt)
+     &                  -RestFlxSalt(i,j))/t(i,j,N,nrhs,isalt)
+#   endif
 #   ifdef SALINITY_MASK
               endif
 #   endif

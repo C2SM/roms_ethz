@@ -23,7 +23,10 @@
      /* Forcing */
 
 #define SALINITY_MASK
-#define TSOURCE
+# define SALINITY_MASKLATSTR -48.0
+# define SALINITY_MASKLATEND -53.01
+
+!-- #define TSOURCE
 #define ICEOBS
 
      /* Open Boundaries */
@@ -33,13 +36,19 @@
      /* Open Boundary Conditions */
 #define OBC_M2FLATHER  
 !-- new only indic/pacific, see below #define OBC_M2SPECIFIED /* special for SO */
-# define OBC_NORTH_M2SPECIFIED_TILESTR 280 /* OBC_M2SPECIFIED for a certain range of tiles */
-# define OBC_NORTH_M2SPECIFIED_TILEEND 285 /* OBC_M2SPECIFIED for a certain range of tiles */
-# define OBC_M3ORLANSKI /* Baroclin. BC: OBC_M3ORLANSKI, OBC_M3SPECIFIED */
-# define OBC_TORLANSKI /* Tracer BC: OBC_TORLANSKI, OBC_TSPECIFIED */
+#define OBC_NORTH_M2SPECIFIED_TILESTR 280 /* OBC_M2SPECIFIED for a certain range of tiles */
+#define OBC_NORTH_M2SPECIFIED_TILEEND 285 /* OBC_M2SPECIFIED for a certain range of tiles */
+#define OBC_M3ORLANSKI /* Baroclin. BC: OBC_M3ORLANSKI, OBC_M3SPECIFIED */
+#define OBC_TORLANSKI /* Tracer BC: OBC_TORLANSKI, OBC_TSPECIFIED */
 
-
-# define LMD_LIMIT_STABLE
+     /* Vertical Mixing */
+#define LMD_LIMIT_STABLE
+#define LMD_DDMIX
+#define LMD_BKPP
+!-- #define SO_AH16
+#ifdef SO_AH16
+# undef LMD_CONVEC
+#endif
 
 
      /* Output */
@@ -63,9 +72,7 @@
 !-- # define RIVER_LOAD_N
 !-- # define RIVER_LOAD_P
 !-- # define PCO2AIR_FORCING
-# define VFLX_CORR
-
+#define VFLX_CORR
 
 
 #include "set_global_definitions.h"
-

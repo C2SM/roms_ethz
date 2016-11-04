@@ -2,8 +2,12 @@
    ==== == ============ ===== ============= ====
 */
                      /* 1/2 degree setup (SO_d05) */
-#define GRID_SIZE LLm=720, MMm=216, N=64
-#define DOMAIN_TILING NP_XI=8, NP_ETA=36, NSUB_X=1, NSUB_E=1
+/* #define GRID_SIZE LLm=720, MMm=216, N=64 */
+/* #define DOMAIN_TILING NP_XI=8, NP_ETA=36, NSUB_X=1, NSUB_E=1 */
+
+                     /* 1/4 degree setup (SO_d025) */
+#define GRID_SIZE LLm=1440, MMm=432, N=64
+#define DOMAIN_TILING NP_XI=16, NP_ETA=72, NSUB_X=1, NSUB_E=1
 
                      /*  Dynamics */
 # define SOLVE3D
@@ -64,8 +68,8 @@
 # define EW_PERIODIC
 # define OBC_NORTH
 # define OBC_M2FLATHER /* Barotop. BC: OBC_M2FLATHER, OBC_M2ORLANSKI, OBC_M2SPECIFIED */
-# define OBC_NORTH_M2SPECIFIED_TILESTR 280 /* OBC_M2SPECIFIED for a certain range of tiles */
-# define OBC_NORTH_M2SPECIFIED_TILEEND 285 /* OBC_M2SPECIFIED for a certain range of tiles */
+# define OBC_NORTH_M2SPECIFIED_TILESTR 1136 /* OBC_M2SPECIFIED for a certain range of tiles */
+# define OBC_NORTH_M2SPECIFIED_TILEEND 1147 /* OBC_M2SPECIFIED for a certain range of tiles */
 # define OBC_M3ORLANSKI /* Baroclin. BC: OBC_M3ORLANSKI, OBC_M3SPECIFIED */
 # define OBC_TORLANSKI /* Tracer BC: OBC_TORLANSKI, OBC_TSPECIFIED */
 # define SPONGE

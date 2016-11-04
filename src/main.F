@@ -238,13 +238,13 @@ C$OMP END MASTER
       endif    !<-- nrrec>0
 #endif
 C$OMP BARRIER
-
 #if defined PASSIVE_TRACER && defined AGE_DYE_TRACER
       do tile=my_tile_range
          call init_agedye(tile)
       enddo
-#endif
+C$OMP BARRIER
       if (may_day_flag /= 0) goto 99      !--> ERROR
+#endif
 CR      write(*,*) ' -5' MYID
                               ! Set initial model clock: at this
       time=start_time         ! moment "start_time" (global scalar)
@@ -311,8 +311,7 @@ CR      write(*,*) ' -1' MYID
 ! just above.
 !
 
-#if defined SALINITY && (defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC || defined BIOLOGY_BEC2) \
-    && defined VFLX_CORR && defined USE_GLOBAL_SRF_SUM
+#if defined SALINITY && defined VFLX_CORR && defined USE_GLOBAL_SRF_SUM
         call reset_global_srf_sum()
 ! If the virtual flux correction is used, globally averaged concentrations
 ! for the surface cells must be available for subroutine set_stflux_tile
@@ -324,7 +323,7 @@ C$OMP PARALLEL DO PRIVATE(tile)
 
 ! Keep this routine out of the parallel region
         call scale_global_srf_sum()
-#endif /* SALINITY && (BIOLOGY_NPZDOC || BIOLOGY_BEC || BIOLOGY_BEC2) && VFLX_CORR ..*/
+#endif /* SALINITY && VFLX_CORR ..*/
 
 #ifdef BIOLOGY_NPZDOC
 C$OMP PARALLEL DO PRIVATE(tile)

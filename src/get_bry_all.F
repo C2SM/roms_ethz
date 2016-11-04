@@ -624,7 +624,7 @@
 #   ifdef T_FRC_BRY
                 do itrc=1,NT
                   if (t_north_id(itrc) >= 0 ) then
-                  ierr=read_bry_NS(bry_id, t_north_id(itrc),  bry_rec,
+                    ierr=read_bry_NS(bry_id, t_north_id(itrc),  bry_rec,
      &                           r_var, t_north_dt(0,1,itbry,itrc), N)
                   else
                     ierr=-1
@@ -965,8 +965,10 @@
 
       if (itrc == itemp) then
         t_bry_dt(:,:,itbry,itrc) = 5.0 ! default temperature
+#  ifdef SALINITY
       else if (itrc == isalt) then
         t_bry_dt(:,:,itbry,itrc) = 35.0 ! default salinity
+#  endif
 #  ifdef BIOLOGY_NPZDOC
       elseif (itrc == iNO3_) then
         cff=20./3.

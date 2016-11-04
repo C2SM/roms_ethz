@@ -17,7 +17,7 @@
 # include "ncvars.h"
 # include "sources.h"
       real cff
-      integer ierr, ierr_all, itsrc, lstr, lenstr, nf_fread, varid, ncid, itrc, lvar
+      integer ierr, ierr_all, itsrc, lstr, lenstr, ncdf_read, varid, ncid, itrc, lvar
       character units*64
       logical tsrc_set
 
@@ -44,7 +44,7 @@
           if (ierr.eq.nf_noerr) then
             ncidtsrc(itsrc)=ncid
           else
-            MPI_master_only write(stdout,'(/1x,4A/)')
+            MPI_master_only write(*,'(/1x,4A/)')
      &           '### ERROR in get_tsource: can ',
      &           'not open netCDF file ''', tsrc_file(1:lstr), '''.'
           endif
@@ -53,7 +53,12 @@
           ierr_all=0 
           ierr=nf_inq_varid (ncid, 'tsrc_time',  tsrc_tid)
           if (ierr.ne.nf_noerr) then
-            MPI_master_only write(stdout,1) 'tsrc_time'
+            MPI_master_only write(*,1) 'tsrc_time'
+          endif
+          ierr_all=ierr_all+ierr
+          ierr=nf_inq_varid (ncid, 'volflux', tsrc_id(0))
+          if (ierr.ne.nf_noerr) then
+            MPI_master_only write(*,1) 'volflux'
           endif
           ierr_all=ierr_all+ierr
           do itrc = 1, NT
@@ -61,7 +66,7 @@
              ierr=nf_inq_varid (ncid, vname(1,indxT+itrc-1)(1:lvar),
      &            tsrc_id(itrc))
              if (ierr.ne.nf_noerr) then
-                MPI_master_only write(stdout,11) vname(1,indxT+itrc-1)(1:lvar)
+                MPI_master_only write(*,11) vname(1,indxT+itrc-1)(1:lvar)
                 tsrc_id(itrc) = 0
              endif
           enddo
@@ -72,7 +77,7 @@
             itsrc=1
             tsrc_time=-1.E+20
           else
-            MPI_master_only write(stdout,'(8x,4A)') '### ERROR(s) occur while ',
+            MPI_master_only write(*,'(8x,4A)') '### ERROR(s) occur while ',
      &                   'examining content of netCDF file ''',
      &                    tsrc_file(1:lstr), '''.'
           endif
@@ -94,16 +99,22 @@
           if (ierr.eq.nf_noerr) then
             tsrc_time=cff*day2sec + tsrc_cycle*tsrc_ncycle
             ierr_all=0
+            ierr=ncdf_read(ncid, tsrc_id(0), tsrc_rec, r_var,
+     &                    T_src(START_2D_ARRAY,1,0), N)
+            if (ierr.ne.nf_noerr)  then
+              MPI_master_only write(*,2)
+     &                       vname(1,indxT+itrc-1)(1:lvar)
+              ierr_all=ierr_all+ierr
+            end if
             do itrc=1, NT
                tsrc_set = .false.
                lvar=lenstr(vname(1,indxT+itrc-1))
                if (tsrc_id(itrc) .gt. 0) then
-                  ierr=nf_fread (T_src(START_2D_ARRAY,1,itrc),
-     &                                         ncid, tsrc_id(itrc),
-     &                                         tsrc_rec, r3dvar)
+                  ierr=ncdf_read(ncid, tsrc_id(itrc), tsrc_rec, r_var,
+     &                    T_src(START_2D_ARRAY,1,itrc), N)
                   if (ierr.ne.nf_noerr)  then
                      if (itrc .le. 1 + ntrc_salt) then
-                        MPI_master_only write(stdout,2)
+                        MPI_master_only write(*,2)
      &                       vname(1,indxT+itrc-1)(1:lvar)
                         ierr_all=ierr_all+ierr
                      end if
@@ -113,26 +124,26 @@
                endif
                if (.not. tsrc_set .and. itrc .gt. 1 + ntrc_salt) then
                   ierr = 0
-                  MPI_master_only write(stdout,3)
+                  MPI_master_only write(*,3)
      &                 vname(1,indxT+itrc-1)(1:lvar)
                   T_src(:,:,:,itrc) = 0.0
                endif
             enddo
             ierr=ierr_all
             if (ierr.eq.0) then
-              MPI_master_only write(stdout,'(6x,A,2x,A,F12.4,2(1x,A,I4))')
+              MPI_master_only write(*,'(6x,A,2x,A,F12.4,2(1x,A,I4))')
      &            'get_tsource -- read tracer sources for all fields',
      &            'tsrc_time =', cff, 'rec =', tsrc_rec MYID
             else
-              MPI_master_only write(stdout,'(1x,2A,I4/8x,3A)')
+              MPI_master_only write(*,'(1x,2A,I4/8x,3A)')
      &           '### ERROR(s) occur while trying to read record ',
      &             tsrc_rec,  'in file ''',tsrc_file(1:lstr),'''.'
             endif 
           else
-            MPI_master_only write(stdout,2) 'tsrc_time'
+            MPI_master_only write(*,2) 'tsrc_time'
           endif
         else
-           MPI_master_only write(stdout,'(/1x,A,I4,1x,A,I4/7x,4A/7x,2(A,G12.4)/)')
+           MPI_master_only write(*,'(/1x,A,I4,1x,A,I4/7x,4A/7x,2(A,G12.4)/)')
      &    'ERROR in get_tsource: requested time record ',  tsrc_rec,
      &    'exeeds the last record', nttsrc,  'available in netCDF ',
      &    'file ''',   tsrc_file(1:lstr),  '''',  'tdays = ', tdays,

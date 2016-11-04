@@ -45,19 +45,33 @@ c--# define MERGE_OVERLAP
 # endif
 
       real, parameter ::
+# ifdef SO_AH16
+     &   Ricr=0.3,      ! Critical bulk Richardson number (0.3)
+# else
      &   Ricr=0.45,     ! Critical bulk Richardson number (0.3)
+# endif
      &   Ri_inv=1./Ricr,
      &   epssfc=0.1,    ! nondimensional extent of the surface layer
      &   betaT=-0.2,    ! ratio of entrainment flux to surface buoyancy
                         !      forcing flux (the "20% convectin rule")
      &   nubl=0.01,     ! maximum allowed boundary layer
+# ifdef SO_AH16
+     &   nu0c=0.01,     ! convective adjustment for viscosity and
+                        !                      diffusivity [m^2/s]
+# else
      &   nu0c=0.1,      ! convective adjustment for viscosity and
                         !                      diffusivity [m^2/s]
+# endif
      &   Cv=1.8,        ! ratio of interior Brunt-Vaisala frequency
                         ! "N" to that at the entrainment depth "he".
      &   C_MO=1.,       ! constant for computaion Monin-Obukhov depth.
+# ifdef SO_AH16
+     &   C_Ek=211.,     ! constant for computating stabilization term
+                        !    due to Coriolis force (Ekman depth limit)
+# else
      &   C_Ek=258.,     ! constant for computating stabilization term
                         !    due to Coriolis force (Ekman depth limit)
+# endif
      &   Cstar=10.,     ! proportionality coefficient parameterizing
                         !                         nonlocal transport
      &   zeta_m=-0.2,   ! Maximum stability parameters "zeta"
@@ -78,6 +92,9 @@ c--# define MERGE_OVERLAP
 #  ifdef INT_AT_RHO_POINTS
      &                                               , z_up
 #  endif
+# endif
+# ifdef LMD_NEWENTRAIN
+     &                                               , Cv2
 # endif
 # ifdef LMD_BKPP
       real Kv0, Kt0, Ks0, wmb,wsb, sgmb
@@ -136,7 +153,7 @@ c--# define MERGE_OVERLAP
 ! Nondimensional constants for computing non-local flux and convective
 ! deepening of surface boundary layer. The only reason why they are not
 ! parameters and computed here is because of power function involved.
-
+!      hrest=1./(5.*day2sec) !AH16: remove again
       Cg=Cstar * vonKar * (c_s*vonKar*epssfc)**(1./3.)
       Vtc=Cv * sqrt(-betaT/(c_s*epssfc)) / (Ricr*vonKar**2)
 # endif
@@ -210,6 +227,16 @@ c--# define MERGE_OVERLAP
 #  endif
           Cr(i,N)=0.
           Cr(i,0)=0.
+#  ifdef KPP_DIAGNOSE
+          KppSblSh(i,j,N)=0.
+          KppSblSh(i,j,0)=0.
+          KppSblSt(i,j,N)=0.
+          KppSblSt(i,j,0)=0.
+          KppSblRot(i,j,N)=0.
+          KppSblRot(i,j,0)=0.
+          KppSblEnt(i,j,N)=0.
+          KppSblEnt(i,j,0)=0.
+#  endif
 # endif /* LMD_KPP */
           FC(i,N)=0.
         enddo  !--> discard alpha,beta; keep Bo,Bosol to the very end.
@@ -362,6 +389,18 @@ c**     &                          k, Cr(i,k), Cr(i,k-1), hbl(i,j)
 
      &                                            +C_Ek*f(i,j)*f(i,j)
      &                                                             ))
+#  ifdef KPP_DIAGNOSE
+            KppSblSh(i,j,k)=KppSblSh(i,j,k+1) + Kern*(
+     &                0.5*( ( u(i,j,k+1,tind)+u(i+1,j,k+1,tind)
+     &                       -u(i,j,k  ,tind)-u(i+1,j,k  ,tind) )**2
+     &                     +( v(i,j,k+1,tind)+v(i,j+1,k+1,tind)
+     &                       -v(i,j,k  ,tind)-v(i,j+1,k  ,tind) )**2
+     &                      )/(Hz(i,j,k)+Hz(i,j,k+1)))
+            KppSblSt(i,j,k)=KppSblSt(i,j,k+1) + Kern*(
+     &             -0.5*(Hz(i,j,k)+Hz(i,j,k+1))*(Ri_inv*bvf(i,j,k)))
+            KppSblRot(i,j,k)=KppSblRot(i,j,k+1) + Kern*(
+     &            -0.5*(Hz(i,j,k)+Hz(i,j,k+1))*(C_Ek*f(i,j)*f(i,j)))
+#  endif
           enddo
         enddo
 
@@ -380,13 +419,23 @@ c**     &                          k, Cr(i,k), Cr(i,k-1), hbl(i,j)
           cff_dn=(z_bl-z_w(i,j,0))**2
           Kern=cff_dn/(cff_dn +(epssfc*bbl(i,j))**2)
 #  endif
-            FC(i,0)=FC(i,1) + Kern*(
+          FC(i,0)=FC(i,1) + Kern*(
      &                   0.5*( (u(i,j,1,tind)+u(i+1,j,1,tind))**2
      &                        +(v(i,j,1,tind)+v(i,j+1,1,tind))**2
      &                       )/Hz(i,j,1)
      &                  -0.5*Hz(i,j,1)*( Ri_inv*bvf(i,j,1)
      &                                  +C_Ek*f(i,j)*f(i,j)
      &                                                       ))
+#  ifdef KPP_DIAGNOSE
+          KppSblSh(i,j,0)=KppSblSh(i,j,1) + Kern*(
+     &                   0.5*( (u(i,j,1,tind)+u(i+1,j,1,tind))**2
+     &                        +(v(i,j,1,tind)+v(i,j+1,1,tind))**2
+     &                       )/Hz(i,j,1))
+          KppSblSt(i,j,0)=KppSblSt(i,j,1) + Kern*(
+     &                  -0.5*Hz(i,j,1)*(Ri_inv*bvf(i,j,1)))
+          KppSblRot(i,j,0)=KppSblRot(i,j,1) + Kern*(
+     &                  -0.5*Hz(i,j,1)*(C_Ek*f(i,j)*f(i,j)))
+#  endif
         enddo
 
 #  ifdef LMD_KPP
@@ -399,12 +448,25 @@ c**     &                          k, Cr(i,k), Cr(i,k-1), hbl(i,j)
             Bfsfc=Bo(i,j)+Bosol(i,j)*(1.-swdk_r(i,k))
 
 #   include "lmd_wscale_ws_only.h"
+#   ifdef LMD_NEWENTRAIN
+            Cv2=Cv
+            if (ws < 0.004) then
+              Cv2=Cv2 + 0.8 - (200. * ws)
+            endif
+!            if (sqrt(max(0., bvf(i,j,k-1) )) < 0.002) then
+!              Cv2=Cv2 + 0.4 - (200. * sqrt(max(0., bvf(i,j,k-1) )))
+!            endif
+            Vtc=Cv2 * sqrt(-betaT/(c_s*epssfc)) / (Ricr*vonKar**2)
+#   endif
 
 c--         Vtsq=Vtc*ws*sqrt(max(0., 0.5*(bvf(i,j,k)+bvf(i,j,k-1)) ))
 
             Vtsq=Vtc*ws*sqrt(max(0., bvf(i,j,k-1) ))  !<-- fix by Gokhan
 
             Cr(i,k)=FC(i,k)+Vtsq
+#   ifdef KPP_DIAGNOSE
+            KppSblEnt(i,j,k)=Vtsq
+#   endif
 
             if (kbls(i) == 0 .and. Cr(i,k) < 0.) kbls(i)=k
 #   if defined LIMIT_MO_DEPTH || defined LMD_LIMIT_STABLE
@@ -427,7 +489,7 @@ c--         Vtsq=Vtc*ws*sqrt(max(0., 0.5*(bvf(i,j,k)+bvf(i,j,k-1)) ))
           else
             hbl(i,j)=z_w(i,j,N)-z_w(i,j,0)
           endif
-#   if defined  LIMIT_MO_DEiPTH || defined LMD_LIMIT_STABLE
+#   if defined LIMIT_MO_DEPTH || defined LMD_LIMIT_STABLE
           if (kmo(i) > 0) then
             k=kmo(i)
             if (k==N) then
@@ -444,27 +506,16 @@ c--         Vtsq=Vtc*ws*sqrt(max(0., 0.5*(bvf(i,j,k)+bvf(i,j,k-1)) ))
      &                                  + C_h_MO(i)*(cff_dn-cff_up) )
 #    if defined LMD_LIMIT_STABLE && defined ICEOBS
 !    If neutral and stable, let depth of surface boundary
-!    layer be set to Niiler-Krauss wind mixing min depth (and then
-!    limited to Ekman depth or Monin-Obukov if that turns out to be
-!    shallower), but only if solar forcing is really weak (1 W/m^2
-!    ~ 1.43e-10).
-!            if
-!            ((ustar(i,j).gt.0.).and.((Bo(i,j)+Bosol(i,j)).gt.0.).and.
-!     &         (alpha0(i,j).lt.8.E-5).and.(hbl(i,j).lt.max(h_MO,0.)))
-!     then
-            if ((ustar(i,j)>0.).and.((Bo(i,j)+Bosol(i,j))>0.).and.
+!    layer be set to Niiler-Krauss wind mixing min depth.
+            if ((ustar(i,j).gt.0.).and.((Bo(i,j)+Bosol(i,j)).gt.0.).and.
      &         (hbl(i,j)<hbls(i,j,tind)).and.(hbl(i,j)<max(h_MO,0.))) then
+!            if ((ustar(i,j).gt.0.).and.((Bo(i,j)+Bosol(i,j)).gt.0.).and.
+!     &         (alpha0(i,j).lt.8.E-5).and.(hbl(i,j).lt.max(h_MO,0.))) then
+!            if ((hbl(i,j)<hbls(i,j,tind)).and.(hbl(i,j)<max(h_MO,0.))) then
+              hbl(i,j)=max(hbl(i,j),h_MO*min(exp(-hbls(i,j,tind)/10.),1.)) !see Lemke1987,Markus 1999
 !              hbl(i,j)=hbl(i,j)+max(min(dt*hrest,0.5)*(h_MO-hbls(i,j,tind)),0.)
-              hbl(i,j)=max(hbl(i,j),0.8*h_MO*min(exp(-hbls(i,j,tind)/20.),1.))
-!see Markus 1999
-!              hbl(i,j)=hbl(i,j)+max(min(dt*hrest,0.5)*(h_MO-hbls(i,j,tind)),0.)
-!              hbl(i,j)=max(hbl(i,j),h_MO*min(exp(-hbls(i,j,tind)/20.),1.))
-!              !see Markus 1999
-!              hbl(i,j)=hbl(i,j)+max(min(dt*hrest,0.5)*(h_MO-hbls(i,j,tind)),0.)
-!              hbl(i,j)=max(hbl(i,j),h_MO*min(exp(-hbl(i,j)/30.),1.))
-!              !see Markus 1999
+!              hbl(i,j)=max(hbl(i,j),h_MO*min(exp(-hbl(i,j)/20.),1.))
 !              hbl(i,j)=max(hbl(i,j),hbls(i,j,tind)*min(exp(-hbl(i,j)/30.),1.))
-!              !see Markus 1999
 !              hbl(i,j)=max(hbl(i,j),hbls(i,j,tind)*min(exp(-hbl(i,j)/(10.*day2sec)*dt),1.))
 !              K0mo(i,j)=nu0mo
 !            else
@@ -481,6 +532,18 @@ c--         Vtsq=Vtc*ws*sqrt(max(0., 0.5*(bvf(i,j,k)+bvf(i,j,k-1)) ))
           endif
 #    undef C_h_MO
 #   endif /* LIMIT_MO_DEPTH || LMD_LIMIT_STABLE */
+!#   ifdef LMD_LIMIT_STABLE2
+!    If stable surface forcing and thinning hbls,
+!    let depth of surface boundary layer be restored to
+!    Niiler-Krauss wind mixing min depth
+!    (see Markus 1999)
+!          if (((Bo(i,j)+Bosol(i,j)).gt.0.).and.
+!     &         (hbl(i,j).lt.hbls(i,j,tind))) then
+!            hbl(i,j)=max(hbl(i,j),0.8*h_MO*min(exp(-hbls(i,j,tind)/20.),1.)) !see Markus 1999
+!          endif
+!          hbl(i,j)=hbl(i,j)+max(dt*1./(10.*day2sec)*(hbl(i,j)-hbls(i,j,tind)),0.) !AH16: remove again
+!          hbl(i,j)=hbl(i,j)+max(0.,(hbls(i,j,tind)-hbl(i,j))*(1.-hrest*dt))! Ah16: remove again
+!#   endif /* LMD_LIMIT_STABLE2 */
 #   ifdef LIMIT_MIN_HBLS
           hbl(i,j)=max(LIMIT_MIN_HBLS, hbl(i,j))
 #   endif
@@ -688,12 +751,13 @@ c--         Vtsq=Vtc*ws*sqrt(max(0., 0.5*(bvf(i,j,k)+bvf(i,j,k-1)) ))
 #  endif
 ===> */
               cff=cff + ssgm*(1.-ssgm)**2
+!              cff=cff + (1.5*ssgm*(1.-ssgm)**2.) + (0.5*ssgm*(1.-ssgm)**0.5)
+!              cff=cff + (0.2*(1.-ssgm)) + (0.4*ssgm*(1.-ssgm)**1.5)
               Kv(i,j,k)=Kv(i,j,k) + wm*hbl(i,j)*cff
               Kt(i,j,k)=Kt(i,j,k) + ws*hbl(i,j)*cff
 #  ifdef SALINITY
               Ks(i,j,k)=Ks(i,j,k) + ws*hbl(i,j)*cff
 #  endif
-
 #  ifdef LMD_NONLOCAL
               if (Bfsfc < 0.) then
                 ghat(i,j,k)=Cg * ssgm*(1.-ssgm)**2
@@ -702,16 +766,35 @@ c--         Vtsq=Vtc*ws*sqrt(max(0., 0.5*(bvf(i,j,k)+bvf(i,j,k-1)) ))
               endif
 #  endif
             else
+#  ifdef LMD_MIN_KPP
+              if (kbls(i)==N .and. k == (N-1)) then
+                Kv(i,j,k)=Kv(i,j,k) + wm*hbl(i,j)*epssfc
+                Kt(i,j,k)=Kt(i,j,k) + ws*hbl(i,j)*epssfc
+#   ifdef SALINITY
+                Ks(i,j,k)=Ks(i,j,k) + ws*hbl(i,j)*epssfc
+#   endif
+#   ifdef LMD_NONLOCAL
+                if (Bfsfc < 0.) then
+                  ghat(i,j,k)=Cg * epssfc
+                else
+                  ghat(i,j,k)=0.
+                endif
+#   endif
+              else
+#  endif
 #  ifdef LMD_NONLOCAL
-              ghat(i,j,k)=0.
+                ghat(i,j,k)=0.
 #  endif
 #  ifdef LMD_CONVEC
-              if (bvf(i,j,k) < 0.) then      ! Add convective
-                Kv(i,j,k)=Kv(i,j,k) + nu0c   ! adjustment
-                Kt(i,j,k)=Kt(i,j,k) + nu0c
+                if (bvf(i,j,k) < 0.) then      ! Add convective
+                  Kv(i,j,k)=Kv(i,j,k) + nu0c   ! adjustment
+                  Kt(i,j,k)=Kt(i,j,k) + nu0c
 #   ifdef SALINITY
-                Ks(i,j,k)=Ks(i,j,k) + nu0c
+                  Ks(i,j,k)=Ks(i,j,k) + nu0c
 #   endif
+                endif
+#  endif
+#  ifdef LMD_MIN_KPP
               endif
 #  endif
             endif
@@ -781,7 +864,6 @@ c*   &                                                ) ) )
             if (sgmb < 1.) then
 
               cff1=sgmb*(1.-sgmb)**2
-
 c              Kv(i,j,k)=Kv(i,j,k) + wmb*bbl(i,j)*cff1
 c              Kt(i,j,k)=Kt(i,j,k) + wsb*bbl(i,j)*cff1
 #  ifdef SALINITY
@@ -793,7 +875,6 @@ c              Ks(i,j,k)=Ks(i,j,k) + wsb*bbl(i,j)*cff1
 #  ifdef SALINITY
               Ks(i,j,k)=sqrt( Ks(i,j,k)**2 + (wsb*bbl(i,j)*cff1)**2 )
 #  endif
-
 
 #  ifdef OLD_AND_MESSY_WAY
               a1=sgmb-2.

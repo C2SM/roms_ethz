@@ -389,7 +389,6 @@
           enddo
         enddo
       enddo
-
 # if defined LMD_KPP && defined LMD_NONLOCAL
       do k=1,N
         do j=jstrR,jendR
@@ -401,7 +400,6 @@
 # endif
 # ifdef LMD_KPP
 ! Depth of surface planetary boundary layer.
-
       do j=jstrR,jendR
         do i=istrR,iendR
           hbls(i,j,1)=0.  ! init
@@ -417,7 +415,6 @@
 # endif
 # ifdef LMD_BKPP
 ! Thickness of bottom boundary layer.
-
       do j=jstrR,jendR
         do i=istrR,iendR
           hbbl(i,j,1)=0.  ! init
@@ -428,6 +425,67 @@
         enddo
       enddo
 # endif
+
+# ifdef KPP_DIAGNOSE
+      do k=0,N
+        do j=jstrR,jendR
+          do i=istrR,iendR
+            KppRichm(i,j,k)=init
+            KppRicht(i,j,k)=init
+            KppSblSh(i,j,k)=init
+            KppSblSt(i,j,k)=init
+            KppSblRot(i,j,k)=init
+            KppSblEnt(i,j,k)=init
+# ifdef AVERAGES
+            kpprichm_avg(i,j,k)=init
+            kppricht_avg(i,j,k)=init
+            kppsblsh_avg(i,j,k)=init
+            kppsblst_avg(i,j,k)=init
+            kppsblrot_avg(i,j,k)=init
+            kppsblent_avg(i,j,k)=init
+# endif
+          enddo
+        enddo
+      enddo
+# endif
+
+!AH16:
+# if defined WRITE_HEATFLX
+! Surface heat flux
+      do j=jstrR,jendR
+        do i=istrR,iendR
+          Heatflx(i,j)=0.  ! init
+#  ifdef AVERAGES
+          heatflx_avg(i,j)=init
+#  endif
+        enddo
+      enddo
+# endif
+!AH16:
+# if defined WRITE_TEMP_REST
+! Restoring flux for temperature
+      do j=jstrR,jendR
+        do i=istrR,iendR
+          RestflxTemp(i,j)=0.  ! init
+#  ifdef AVERAGES
+          restflx_temp_avg(i,j)=init
+#  endif
+        enddo
+      enddo
+# endif
+!AH16:
+# if defined WRITE_SALT_REST
+! Restoring flux for salinity
+      do j=jstrR,jendR
+        do i=istrR,iendR
+          RestflxSalt(i,j)=0.  ! init
+#  ifdef AVERAGES
+          restflx_salt_avg(i,j)=init
+#  endif
+        enddo
+      enddo
+# endif
+
 # ifdef SEDIMENT_BIOLOGY
 ! Initialize sediment array:
 

@@ -82,7 +82,6 @@ CSDISTRIBUTE_RESHAPE hbls(BLOCK_PATTERN,*) BLOCK_CLAUSE
 CSDISTRIBUTE_RESHAPE kbl(BLOCK_PATTERN,*) BLOCK_CLAUSE
       common /kpp_kbl/kbl
 #  endif
-
       real swr_frac(GLOBAL_2D_ARRAY,0:N)
 CSDISTRIBUTE_RESHAPE swr_frac(BLOCK_PATTERN,*) BLOCK_CLAUSE
       common /kpp_swr_frac/swr_frac
@@ -96,6 +95,27 @@ CSDISTRIBUTE_RESHAPE ghat(BLOCK_PATTERN,*) BLOCK_CLAUSE
       real hbbl(GLOBAL_2D_ARRAY,2)
 CSDISTRIBUTE_RESHAPE hbbl(BLOCK_PATTERN,*) BLOCK_CLAUSE
       common /kpp_hbbl/hbbl
+# endif /* LMD_BKPP */
+# ifdef KPP_DIAGNOSE
+! KppRichm KppRicht KppSblSh KppSblSt KppSblRot KppSblEnt
+      real KppRichm(GLOBAL_2D_ARRAY,0:N)
+CSDISTRIBUTE_RESHAPE KppRichm(BLOCK_PATTERN,*) BLOCK_CLAUSE
+      common /kpp_diag_richm/KppRichm
+      real KppRicht(GLOBAL_2D_ARRAY,0:N)
+CSDISTRIBUTE_RESHAPE KppRicht(BLOCK_PATTERN,*) BLOCK_CLAUSE
+      common /kpp_diag_richt/KppRicht
+      real KppSblSh(GLOBAL_2D_ARRAY,0:N)
+CSDISTRIBUTE_RESHAPE KppSblSh(BLOCK_PATTERN,*) BLOCK_CLAUSE
+      common /kpp_diag_sblsh/KppSblSh
+      real KppSblSt(GLOBAL_2D_ARRAY,0:N)
+CSDISTRIBUTE_RESHAPE KppSblSt(BLOCK_PATTERN,*) BLOCK_CLAUSE
+      common /kpp_diag_sblst/KppSblSt
+      real KppSblRot(GLOBAL_2D_ARRAY,0:N)
+CSDISTRIBUTE_RESHAPE KppSblRot(BLOCK_PATTERN,*) BLOCK_CLAUSE
+      common /kpp_diag_sblrot/KppSblRot
+      real KppSblEnt(GLOBAL_2D_ARRAY,0:N)
+CSDISTRIBUTE_RESHAPE KppSblEnt(BLOCK_PATTERN,*) BLOCK_CLAUSE
+      common /kpp_diag_sblent/KppSblEnt
 # endif /* LMD_BKPP */
 #endif /* SOLVE3D */
 

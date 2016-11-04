@@ -219,7 +219,7 @@
         endif
       enddo
 
-#  ifdef SEDIMENT_BIOLOGY
+# ifdef SEDIMENT_BIOLOGY
 
 ! Sediment tracer variables.
 
@@ -233,9 +233,10 @@
           goto 99                                         !--> ERROR
         endif
       enddo
-#  endif /* SEDIMENT_BIOLOGY */
-#  if EXACT_RESTART
-#   if  defined BIOLOGY_BEC || defined BIOLOGY_BEC2 || \
+# endif /* SEDIMENT_BIOLOGY */
+# if 0
+# ifdef EXACT_RESTART
+#  if  defined BIOLOGY_BEC || defined BIOLOGY_BEC2 || \
       (defined BIOLOGY_NPZDOC && defined OXYGEN && defined CARBON)
 
 ! pH:
@@ -269,9 +270,10 @@
      &        ierr, nf_strerror(ierr) MYID
          goto 99                !--> ERROR
       endif
-#    endif
 #   endif
 #  endif
+#  endif /* if 0 */
+# endif
 
 # if defined BIOLOGY_BEC2 && defined BEC2_DIAG
 

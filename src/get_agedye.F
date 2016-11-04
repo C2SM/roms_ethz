@@ -93,10 +93,6 @@
             ad_time(is,it_ad(is))=cff*day2sec + ad_cycle(is)*ad_ncycle(is)
             ierr=ncdf_read(ncid_ad(is), bcVal_id(is), ad_rec(is), r_var,
      &                    bc_valg(START_2D_ARRAY,1,it_ad(is),is), N)
-
-!            ierr=nf_fread (bc_valg(START_2D_ARRAY,1,it_ad(is),is)
-!     &                                , ncid_ad(is), bcVal_id(is),
-!     &                                      ad_rec(is), r3dvar)
             if (ierr .eq. nf_noerr) then
               MPI_master_only write(*,
      &        '(6x,2A,I2,A,F12.4,2(1x,A,I4))') 'get_agedye ',

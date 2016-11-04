@@ -29,9 +29,8 @@
 # include "ncvars.h"
 # include "sources.h"
 !
-      integer Istr,Iend,Jstr,Jend,ierr, lenstr, i, j, k, is, lstr
+      integer Istr,Iend,Jstr,Jend,ierr, lenstr, i, j, k, is, lstr, ncdf_read
       integer type_bc_ad_id, switch_on_ad_id, switch_off_ad_id
-     &      , ncdf_read  !, nf_fread
       real type_bc_ad(GLOBAL_2D_ARRAY,N), switch_off_ad(GLOBAL_2D_ARRAY,N)
       real switch_on_ad(GLOBAL_2D_ARRAY,N)
       character fname*80, tracer_type*10, tracer_bc*10, tnum*3, units_att*20
@@ -83,8 +82,6 @@
          end if
          ierr=ncdf_read(ncid_ad(is), type_bc_ad_id, 1, r_var,
      &                    type_bc_ad(START_2D_ARRAY,1), N)
-
-!         ierr = nf_fread(type_bc_ad(START_2D_ARRAY,1),ncid_ad(is),type_bc_ad_id,1,r3dvar)
          if (ierr .ne. nf_noerr) then
             write(*,'(1x,3a)') '### ERROR in init_agedye: ',
      &           'cannot read type_bc_ad from file', fname(1:lstr)
@@ -104,7 +101,6 @@
          else
             ierr=ncdf_read(ncid_ad(is), switch_on_ad_id, 1, r_var,
      &                    switch_on_ad(START_2D_ARRAY,1), N)
-!            ierr = nf_fread(switch_on_ad(START_2D_ARRAY,1),ncid_ad(is),switch_on_ad_id,1,r3dvar)
             if (ierr .ne. nf_noerr) then
                write(*,'(1x,3a)') '### ERROR in init_agedye: ',
      &           'cannot read switch_on_ad from file', fname(1:lstr)
@@ -142,7 +138,6 @@
          else
             ierr=ncdf_read(ncid_ad(is), switch_off_ad_id, 1, r_var,
      &                    switch_off_ad(START_2D_ARRAY,1), N)
-!            ierr = nf_fread(switch_off_ad(START_2D_ARRAY,1),ncid_ad(is),switch_off_ad_id,1,r3dvar)
             if (ierr .ne. nf_noerr) then
                write(*,'(1x,3a)') '### ERROR in init_agedye: ',
      &           'cannot read switch_off_ad from file', fname(1:lstr)

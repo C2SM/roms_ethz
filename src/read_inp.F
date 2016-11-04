@@ -13,6 +13,9 @@
 #include "scoord.h"
 #include "scalars.h"
 #include "ncvars.h"
+#if defined WRITE_TEMP_REST || defined WRITE_SALT_REST || defined WRITE_HEATFLX
+# include "forces.h"
+#endif
 #include "boundary.h"
 #ifndef NONLIN_EOS
 # include "eos_vars.h"
@@ -743,6 +746,15 @@ c-->    elseif (keyword(1:kwlen) == 'nudg_cof') then
 # ifdef LMD_BKPP
      &                                            ,  wrthis(indxHbbl)
 # endif
+# if defined WRITE_HEATFLX
+     &                                            ,  wrthis(indxHeatflx)
+# endif
+# if defined WRITE_TEMP_REST
+     &                                            ,  wrthis(indxRestflxTemp)
+# endif
+# if defined WRITE_SALT_REST
+     &                                            ,  wrthis(indxRestflxSalt)
+# endif
 
       BEGIN_MPI_MASTER
       naux=3 ! omega, w, rho
@@ -756,6 +768,15 @@ c-->    elseif (keyword(1:kwlen) == 'nudg_cof') then
       naux=naux+1
 # endif
 # ifdef LMD_BKPP
+      naux=naux+1
+# endif
+# if defined WRITE_HEATFLX
+      naux=naux+1
+# endif
+# if defined WRITE_TEMP_REST
+      naux=naux+1
+# endif
+# if defined WRITE_SALT_REST
       naux=naux+1
 # endif
       call echo_to_write(wrthis(indxAkv), naux,'mixing'
@@ -830,6 +851,23 @@ c-->    elseif (keyword(1:kwlen) == 'nudg_cof') then
 # ifdef LMD_BKPP
      &                                            ,  wrtavg(indxHbbl)
 # endif
+# ifdef KPP_DIAGNOSE
+     &                                            ,  wrtavg(indxKppRichm)
+     &                                            ,  wrtavg(indxKppRicht)
+     &                                            ,  wrtavg(indxKppSblSh)
+     &                                            ,  wrtavg(indxKppSblSt)
+     &                                            ,  wrtavg(indxKppSblRot)
+     &                                            ,  wrtavg(indxKppSblEnt)
+# endif
+# if defined WRITE_HEATFLX
+     &                                            ,  wrtavg(indxHeatflx)
+# endif
+# if defined WRITE_TEMP_REST
+     &                                            ,  wrtavg(indxRestflxTemp)
+# endif
+# if defined WRITE_SALT_REST
+     &                                            ,  wrtavg(indxRestflxSalt)
+# endif
       BEGIN_MPI_MASTER
       naux=3 ! omega, w, rho
       call echo_to_write(wrtavg(indxO), naux,'auxiliary'
@@ -842,6 +880,18 @@ c-->    elseif (keyword(1:kwlen) == 'nudg_cof') then
       naux=naux+1
 # endif
 # ifdef LMD_BKPP
+      naux=naux+1
+# endif
+# ifdef KPP_DIAGNOSE
+      naux=naux+6
+# endif
+# if defined WRITE_HEATFLX
+      naux=naux+1
+# endif
+# if defined WRITE_TEMP_REST
+      naux=naux+1
+# endif
+# if defined WRITE_SALT_REST
       naux=naux+1
 # endif
       call echo_to_write(wrtavg(indxAkv), naux,'mixing'

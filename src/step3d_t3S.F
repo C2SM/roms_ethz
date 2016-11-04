@@ -64,12 +64,8 @@ c--# define AKIMA
           do j=jstr,jend
             do i=istr,iend
               t(i,j,k,nnew,itrc)=t(i,j,k,nnew,itrc) -dt*pm(i,j)
-     &                              *pn(i,j)*( FX(i+1,j)-FX(i,j)
-     &                                          +FE(i,j+1)-FE(i,j)
-# ifdef TSOURCE /* AH15: add tracer source at rho-point */
-     &                                          -T_src(i,j,k,itrc)
-# endif /* TSOURCE */
-     &                                                           )
+     &                             *pn(i,j)*( FX(i+1,j)-FX(i,j)
+     &                                      +FE(i,j+1)-FE(i,j))
             enddo
           enddo                 !-->  discard FX,FE
 # ifdef PHYS_FLUX_ANALYSIS
@@ -125,9 +121,19 @@ c--# define AKIMA
              enddo
           end if
 # endif /* PHYS_FLUX_ANALYSIS */
-
+! Add 3D sources
+! AH16
+# ifdef TSOURCE
+          do k=1,N
+            do i=istr,iend
+              t(i,j,k,nnew,itrc)=t(i,j,k,nnew,itrc) +dt*pm(i,j)*pn(i,j)
+     &                                               *T_src(i,j,k,itrc)
+            enddo
+          enddo
+        enddo
+      enddo
+# endif /* TSOURCE */
 ! Add surface fluxes
-
 # if defined PASSIVE_TRACER && defined AGE_DYE_TRACER
 !DL: do this except for age tracers. Age tracers are dealt with in pre_step3d
           if (itrc.le.indxT+ntrc_salt .or. itrc.gt.indxT+ntrc_salt+ntrc_pas 
@@ -139,24 +145,26 @@ c--# define AKIMA
 # if defined PASSIVE_TRACER && defined AGE_DYE_TRACER
           endif ! itrc.le.indxT+ntrc_salt .or. ...
 # endif
-# if defined LMD_KPP && defined ICEOBS
-! AH15: KPP has problems under sea ice. Distributing salt 
-! fluxes due to melting and freezing uniformly over
-! kbl until one layer below (see Duffy et al. 1999)
+!# if defined LMD_KPP && defined ICEOBS && defined BRINE_PLUMES2
+!          if (itrc .eq. isalt) then
+!            do i=istr,iend
+!              if (freezing(i,j).gt.0) then
+!                t(i,j,N,nnew,itrc)=t(i,j,N,nnew,itrc)+dt*freezing(i,j,itrc)
+!              endif
+!            enddo
+!          endif
+!# endif
+# if defined LMD_KPP && defined ICEOBS && defined BRINE_PLUMES
+! AH15: Distributing salt fluxes due freezing uniformly over
+! kbl to mimic brine plume convection (see Duffy et al. 1999)
           if (itrc .eq. isalt) then
             do i=istr,iend
-              if (freezing(i,j).gt.0) then
-                t(i,j,N,nnew,itrc)=t(i,j,N,nnew,itrc)-dt*freezing(i,j)
-!                t(i,j,N,nnew,itrc)=t(i,j,N,nnew,itrc)-dt*melting(i,j)
-                do k=N,(kbl(i,j)-1),-1
+              if (freezing(i,j)>0) then
+                do k=N,kbl(i,j),-1
                   t(i,j,k,nnew,itrc)=t(i,j,k,nnew,itrc)
      &                  +(dt*freezing(i,j)
-     &                  *Hz(i,j,k)/(z_w(i,j,N)-z_w(i,j,kbl(i,j)-2)))
-!                  t(i,j,k,nnew,itrc)=t(i,j,k,nnew,itrc)
-!     &                  +(dt*melting(i,j)
-!     &                  *Hz(i,j,k)/(z_w(i,j,N)-z_w(i,j,kbl(i,j)-2)))
+     &                  *Hz(i,j,k)/(z_w(i,j,N)-z_w(i,j,kbl(i,j)-1)))
                 enddo
-!                t(i,j,kbl(i,j)-1,nnew,itrc)=t(i,j,kbl(i,j)-1,nnew,itrc)+dt*freezing(i,j)
               endif
             enddo
           endif
@@ -480,13 +488,11 @@ c??         enddo
           call t3dbc_closed_tile (istr,iend,jstr,jend, itrc)
         else
 # endif /* PASSIVE_TRACER && AGE_DYE_TRACER */
-          call t3dbc_tile (istr,iend,jstr,jend, itrc, WORK)
+          call t3dbc_tile (istr,iend,jstr,jend, itrc, wrk1)
 # if defined PASSIVE_TRACER && defined AGE_DYE_TRACER
         endif
 # endif /* PASSIVE_TRACER && AGE_DYE_TRACER */
 
-      do itrc=1,NT
-        call t3dbc_tile (istr,iend,jstr,jend, itrc, wrk1)
 # if defined MASKING || defined TCLIMATOLOGY
 #  ifdef EW_PERIODIC
 #   define I_RANGE istr,iend
@@ -500,14 +506,6 @@ c??         enddo
 #  endif
 # endif
 
-# if defined MOORE_BEC
-      enddo                                    ! Multi-Group species
-                                               ! biological Model (MGM)
-      call ecosys_tile (istr,iend,jstr,jend)
-      call mgm_avg_tile (istr,iend,jstr,jend)
-      call ecosys_vst_tile (istr,iend,jstr,jend, nnew,dt)
-
-      do itrc=1,NT
 # if defined BIOLOGY_BEC
       enddo                                    ! Biogeochemical
                                                ! Elemental Cycles
@@ -555,6 +553,7 @@ c??         enddo
 #  undef I_RANGE
 #  undef J_RANGE
 # endif
+
       enddo  ! <-- itrc
 
 ! Exchange computational margins and/or periodic boundaries:

@@ -11,6 +11,7 @@
 ! indxAkv,Akt,Aks vertical viscosity/diffusivity coefficients
 ! indxHbls      depth of planetary boundary layer in KPP model
 ! indxHbbl      depth of bottom boundary layer in BKPP model
+! indxRestflx   restoring flux for salinity
 
 ! indxAi        fraction of cell covered by ice
 ! indxUi,Vi     U,V-components of sea ice velocity
@@ -19,6 +20,13 @@
 
 ! indxBSD,BSS bottom sediment grain Density and Size.
 ! indxWWA,WWD,WWP  wind induced wave Amplitude, Direction,and Period
+
+! indxSUSTR,indxSVSTR  surface U-, V-momentum stress (wind forcing)
+! indxSHFl        net surface heat flux.
+! indxSWRad       shortwave radiation flux
+! indxSST         sea surface temperature
+! indxdQdSST      Q-correction coefficient dQdSST
+! indxSSFl        surface fresh water flux
 
       integer, parameter :: indxTime=1, indxZ=2, indxUb=3, indxVb=4
 #ifdef SOLVE3D
@@ -52,6 +60,49 @@
 #  undef LAST_I
 #  define LAST_I indxHBBl
 # endif
+
+# ifdef KPP_DIAGNOSE
+      integer, parameter :: indxKppRichm=LAST_I+1, indxKppRicht=LAST_I+2
+     &           , indxKppSblSh=LAST_I+3, indxKppSblSt=LAST_I+4
+     &           , indxKppSblRot=LAST_I+5, indxKppSblEnt=LAST_I+6
+#  undef LAST_I
+#  define LAST_I indxKppSblEnt
+# endif
+# if defined WRITE_HEATFLX
+     &                    , indxHeatflx=LAST_I+1
+#   undef LAST_I
+#   define LAST_I indxHeatflx
+# endif
+# if defined WRITE_TEMP_REST
+     &                    , indxRestflxTemp=LAST_I+1
+#   undef LAST_I
+#   define LAST_I indxRestflxTemp
+# endif
+# if defined WRITE_SALT_REST
+     &                    , indxRestflxSalt=LAST_I+1
+#   undef LAST_I
+#   define LAST_I indxRestflxSalt
+# endif
+# ifdef WRITE_DEPTHS
+     &                    , indxz_r=LAST_I+1,  indxz_w=LAST_I+2
+     &                    , indxHz=LAST_I+3
+#  undef LAST_I
+#  define LAST_I indxHz
+# endif
+     &                    , indxSUSTR=LAST_I+1
+     &                    , indxSVSTR=indxSUSTR+1, indxSHFl=indxSUSTR+2
+     &                    , indxSWRad=indxSHFl+1
+# undef LAST_I
+# define LAST_I indxSWRad
+# ifdef SALINITY
+     &                    , indxSSFl=LAST_I+1, indxSSS=LAST_I+2
+#  undef LAST_I
+#  define LAST_I indxSSS
+# endif
+     &                    , indxSST=LAST_I+1
+     &                    , indxdQdSST=indxSST+1
+# undef LAST_I
+# define LAST_I indxdQdSST
 
 # ifdef SG_BBL96
 #  ifndef ANA_WWAVE
@@ -160,7 +211,7 @@
       integer rstHbbl, hisHbbl
       common /ncvars/ rstHbbl, hisHbbl
 # endif
-#endif
+#endif /* SOLVE3D */
 
 #ifdef AVERAGES
       integer ncavg, nrecavg, nrpfavg,  avgTime, avgZ, avgUb, avgVb
@@ -179,8 +230,8 @@
       integer avgHbbl
       common /ncvars/ avgHbbl
 #  endif
-# endif
-#endif
+# endif /* SOLVE3D */
+#endif /* AVERAGES */
 
 #ifdef STATIONS
       integer nstation,  ispos(NS), jspos(NS),
@@ -200,11 +251,12 @@
       integer stnHbbl
       common /ncvars/ stnHbbl
 #  endif
-# endif
-#endif
+# endif /* SOLVE3D */
+#endif /* STATIONS */
 
 #ifdef SOLVE3D
 # define NWRTHIS 16+NT-2
+!mm old: # define NWRTHIS 100+NT
 #endif
       logical ldefhis, wrthis(NWRTHIS)
       common /ncvars/ ldefhis, wrthis
@@ -251,10 +303,6 @@
       character(len=max_name_size) avgname
       common /cncvars/ avgname
 #endif
-!#if (defined TCLIMATOLOGY && !defined ANA_TCLIMA) || !defined ANA_SSH
-      !character(len=max_name_size) clm_file
-      !common /cncvars/ clm_file
-!#endif
 #if defined T_FRC_BRY  || defined M2_FRC_BRY || \
     defined M3_FRC_BRY || defined Z_FRC_BRY
       integer, parameter :: max_bry_files=8
@@ -265,6 +313,10 @@
 #ifdef STATIONS
       character(len=max_name_size) staname
       common /cncvars/ staname
+#endif
+#ifdef ASSIMILATION
+      character(len=max_name_size) aparnam, assname
+      common /cncvars/ aparnam, assname
 #endif
 
 #ifdef ICEOBS
@@ -296,6 +348,74 @@
       common /cncvars/ tsrc_file
 #endif
 
+#ifdef SOLVE3D
+# ifdef KPP_DIAGNOSE
+      integer hisKppRichm, hisKppRicht
+     &      , hisKppSblSh, hisKppSblSt
+     &      , hisKppSblRot, hisKppSblEnt
+      common /ncvars/ hisKppRichm, hisKppRicht
+     &              , hisKppSblSh, hisKppSblSt
+     &              , hisKppSblRot, hisKppSblEnt
+      integer rstKppRichm, rstKppRicht
+     &      , rstKppSblSh, rstKppSblSt
+     &      , rstKppSblRot, rstKppSblEnt
+      common /ncvars/ rstKppRichm, rstKppRicht
+     &              , rstKppSblSh, rstKppSblSt
+     &              , rstKppSblRot, rstKppSblEnt
+#  ifdef AVERAGES
+      integer avgKppRichm, avgKppRicht
+     &      , avgKppSblSh, avgKppSblSt
+     &      , avgKppSblRot, avgKppSblEnt
+      common /ncvars/ avgKppRichm, avgKppRicht
+     &              , avgKppSblSh, avgKppSblSt
+     &              ,avgKppSblRot, avgKppSblEnt
+#  endif
+# endif
+#endif /* SOLVE3D */
+
+# ifdef WRITE_HEATFLX
+      integer hisHeatflx
+#  ifdef AVERAGES
+     &      , avgHeatflx
+#  endif
+      common /ncvars/ hisHeatflx
+#  ifdef AVERAGES
+     &      , avgHeatflx
+#  endif
+# endif /* WRITE_HEATFLX */
+
+# ifdef WRITE_TEMP_REST
+      integer hisRestflxTemp
+#  ifdef AVERAGES
+     &      , avgRestflxTemp
+#  endif
+      common /ncvars/ hisRestflxTemp
+#  ifdef AVERAGES
+     &              , avgRestflxTemp
+#  endif
+# endif /* WRITE_TEMP_REST */
+
+# ifdef WRITE_SALT_REST
+      integer hisRestflxSalt
+#  ifdef AVERAGES
+     &      , avgRestflxSalt
+#  endif
+      common /ncvars/ hisRestflxSalt
+#  ifdef AVERAGES
+     &              , avgRestflxSalt
+#  endif
+# endif /* WRITE_SALT_REST */
+
+# ifdef WRITE_DEPTHS
+      integer hisz_r, hisz_w, hisHz
+#  ifdef AVERAGES
+     &      , avgz_r, avgz_w, avgHz
+#  endif
+      common /ncvars/ hisz_r, hisz_w, hisHz
+#  ifdef AVERAGES
+     &              , avgz_r, avgz_w, avgHz
+#  endif
+# endif /* WRITE_DEPTHS */
 
 
 #if defined PASSIVE_TRACER && defined AGE_DYE_TRACER
