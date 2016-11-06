@@ -36,6 +36,11 @@ CSDISTRIBUTE_RESHAPE akt_avg(BLOCK_PATTERN,*) BLOCK_CLAUSE
 CSDISTRIBUTE_RESHAPE aks_avg(BLOCK_PATTERN,*) BLOCK_CLAUSE
       common /avg_aks/aks_avg
 #  endif
+#  ifdef WRITE_CO2FLX
+      real co2flx_avg(GLOBAL_2D_ARRAY)
+CSDISTRIBUTE_RESHAPE co2flx_avg(BLOCK_PATTERN) BLOCK_CLAUSE
+      common /avg_co2flx/co2flx_avg
+#  endif
 #  ifdef WRITE_HEATFLX
       real heatflx_avg(GLOBAL_2D_ARRAY)
 CSDISTRIBUTE_RESHAPE heatflx_avg(BLOCK_PATTERN) BLOCK_CLAUSE
@@ -58,7 +63,7 @@ CSDISTRIBUTE_RESHAPE hbl_avg(BLOCK_PATTERN) BLOCK_CLAUSE
 #  endif
 #  ifdef LMD_BKPP
       real hbbl_avg(GLOBAL_2D_ARRAY)
-CSDISTRIBUTE_RESHAPE hbbl_avg(BLOCK_PATTERN,*) BLOCK_CLAUSE
+CSDISTRIBUTE_RESHAPE hbbl_avg(BLOCK_PATTERN) BLOCK_CLAUSE
       common /avg_hbbl/hbbl_avg
 #  endif
 #  ifdef KPP_DIAGNOSE
@@ -167,6 +172,11 @@ CSDISTRIBUTE_RESHAPE akt_slavg(BLOCK_PATTERN) BLOCK_CLAUSE
       real aks_slavg(GLOBAL_2D_ARRAY)
 CSDISTRIBUTE_RESHAPE aks_slavg(BLOCK_PATTERN) BLOCK_CLAUSE
       common /slavg_aks/aks_slavg
+#  endif
+#  ifdef WRITE_CO2FLX
+      real co2flx_slavg(GLOBAL_2D_ARRAY)
+CSDISTRIBUTE_RESHAPE co2flx_slavg(BLOCK_PATTERN) BLOCK_CLAUSE
+      common /slavg_co2flx/co2flx_slavg
 #  endif
 #  ifdef WRITE_HEATFLX
       real heatflx_slavg(GLOBAL_2D_ARRAY)

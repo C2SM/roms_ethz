@@ -540,6 +540,9 @@ c$$$       enddo
           bec2_diag_2d(istr:iend,jstr:jend,fgco2_idx_t) = FLUX(istr:iend,jstr:jend)
 #  endif
 # endif
+# ifdef WRITE_CO2FLX
+          CO2flx(istr:iend,jstr:jend) = FLUX(istr:iend,jstr:jend)
+# endif
        ENDIF  ! lflux_gas_co2
 
     !---------------------------------------------------------------------

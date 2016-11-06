@@ -17,8 +17,7 @@
 #endif
 #if defined PCO2AIR_FORCING || \
         defined WRITE_TEMP_REST || defined WRITE_SALT_REST || \
-        defined WRITE_HEATFLX
-! pCO2air and Restflx are here:
+        defined WRITE_HEATFLX || defined WRITE_CO2FLX
 # include "forces.h"
 #endif
 #ifdef BIOLOGY_BEC
@@ -307,6 +306,21 @@ CR      write(*,*) 'wrt_his:  wrtHBL' MYID
           goto 99                                         !--> ERROR
         endif
 CR      write(*,*) 'wrt_his:  wrtHbBL' MYID
+      endif
+# endif
+! AH16:
+# if defined WRITE_CO2FLX
+
+! Surface CO2 flux
+
+      if (wrthis(indxCO2flx)) then
+        ierr=ncdf_write(nchis, hisCO2flx, record, r_var,
+     &                  CO2flx(START_2D_ARRAY), 1)
+        if (ierr /= nf_noerr) then
+          lvar=lenstr(vname(1,indxCO2flx))
+          write(*,1) vname(1,indxCO2flx)(1:lvar), record MYID
+          goto 99                                         !--> ERROR
+        endif
       endif
 # endif
 ! AH16:

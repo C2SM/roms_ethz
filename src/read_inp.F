@@ -13,7 +13,7 @@
 #include "scoord.h"
 #include "scalars.h"
 #include "ncvars.h"
-#if defined WRITE_TEMP_REST || defined WRITE_SALT_REST || defined WRITE_HEATFLX
+#if defined WRITE_TEMP_REST || defined WRITE_SALT_REST || defined WRITE_HEATFLX || defined WRITE_CO2FLX
 # include "forces.h"
 #endif
 #include "boundary.h"

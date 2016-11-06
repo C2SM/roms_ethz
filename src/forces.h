@@ -205,6 +205,7 @@ CSDISTRIBUTE_RESHAPE lwflxg(BLOCK_PATTERN,*) BLOCK_CLAUSE
 !          - temperature; [PSU m/s] - salinity.
 !  stflxg  two-time level surface tracer flux grided data.
 !  tstflx  time of surface tracer flux.
+!  CO2flx Net surface CO2 flux
 !  Heatflx Net surface heat flux
 !  RestflxTemp restoring flux for temperature
 !  RestflxSalt restoring flux for salinity
@@ -212,6 +213,11 @@ CSDISTRIBUTE_RESHAPE lwflxg(BLOCK_PATTERN,*) BLOCK_CLAUSE
       real stflx(GLOBAL_2D_ARRAY,NT)
 CSDISTRIBUTE_RESHAPE stflx(BLOCK_PATTERN,*) BLOCK_CLAUSE
       common /frc_stflx/stflx
+# if defined WRITE_CO2FLX
+      real CO2flx(GLOBAL_2D_ARRAY)
+CSDISTRIBUTE_RESHAPE CO2flx(BLOCK_PATTERN) BLOCK_CLAUSE
+      common /frc_co2flx/CO2flx
+# endif
 # if defined WRITE_HEATFLX
       real Heatflx(GLOBAL_2D_ARRAY)
 CSDISTRIBUTE_RESHAPE Heatflx(BLOCK_PATTERN,*) BLOCK_CLAUSE

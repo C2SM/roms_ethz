@@ -282,6 +282,11 @@ CR      write(*,'(1x,A,I3)') 'indxAks =',indxAks
       vname(3,indxAks)='meter2 second-1'
 # endif
 !AH16:
+# ifdef WRITE_CO2FLX
+      vname(1,indxCO2flx)='CO2flx'
+      vname(2,indxCO2flx)='Net surface CO2 flux'
+      vname(3,indxCO2flx)='mmol m-2'
+# endif
 # if defined WRITE_HEATFLX
       vname(1,indxHeatflx)='Heatflx'
       vname(2,indxHeatflx)='Net surface heat flux'

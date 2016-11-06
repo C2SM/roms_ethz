@@ -68,6 +68,11 @@
 #  undef LAST_I
 #  define LAST_I indxKppSblEnt
 # endif
+# if defined WRITE_CO2FLX
+      integer, parameter :: indxCO2flx=LAST_I+1
+#   undef LAST_I
+#   define LAST_I indxCO2flx
+# endif
 # if defined WRITE_HEATFLX
      &                    , indxHeatflx=LAST_I+1
 #   undef LAST_I
@@ -372,6 +377,23 @@
 #  endif
 # endif
 #endif /* SOLVE3D */
+
+# ifdef WRITE_CO2FLX
+      integer hisCO2flx
+#  ifdef AVERAGES
+     &      , avgCO2flx
+#  endif
+#  ifdef SLICE_AVG
+     &      , slavgCO2flx
+#  endif
+      common /ncvars/ hisCO2flx
+#  ifdef AVERAGES
+     &      , avgCO2flx
+#  endif
+#  ifdef SLICE_AVG
+     &      , slavgCO2flx
+#  endif
+# endif /* WRITE_CO2FLX */
 
 # ifdef WRITE_HEATFLX
       integer hisHeatflx

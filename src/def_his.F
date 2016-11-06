@@ -41,7 +41,8 @@ c--#define nf_def_var my_nf_def_var
 #include "param.h"
 #include "scalars.h"
 #include "ncvars.h"
-#if defined WRITE_SALT_REST || defined WRITE_TEMP_REST || defined WRITE_HEATFLX
+#if defined WRITE_SALT_REST || defined WRITE_TEMP_REST || \
+    defined WRITE_HEATFLX   || defined WRITE_CO2FLX
 # include "forces.h"
 #endif
 #include "netcdf.inc"
@@ -127,6 +128,9 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
 # define vidW hisW
 # define vidAkv hisAkv
 # define vidAkt hisAkt
+# if defined WRITE_CO2FLX
+#  define vidCO2flx hisCO2flx
+# endif
 # if defined WRITE_HEATFLX
 #  define vidHeatflx hisHeatflx
 # endif
@@ -214,6 +218,9 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
 # define vidW avgW
 # define vidAkv avgAkv
 # define vidAkt avgAkt
+# if defined WRITE_CO2FLX
+#  define vidCO2flx avgCO2flx
+# endif
 # if defined WRITE_HEATFLX
 #  define vidHeatflx avgHeatflx
 # endif
@@ -304,6 +311,9 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
 #  define vidAkt slavgAkt
 # if defined WRITE_HEATFLX
 #  define vidHeatflx slavgHeatflx
+# endif
+# if defined WRITE_CO2FLX
+#  define vidCO2flx slavgCO2flx
 # endif
 # if defined WRITE_TEMP_REST
 #  define vidRestflxTemp slavgRestflxTemp
@@ -938,6 +948,36 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
 #endif
         endif
 # endif /* SALINITY */
+!AH16:
+# if defined WRITE_CO2FLX
+! CO2 flux
+        if (wrt(indxCO2flx) .and. ierr == nf_noerr) then
+          lvar=lenstr(vname(1,indxCO2flx))
+          ierr=nf_def_var (ncid, vname(1,indxCO2flx)(1:lvar),
+     &                           NF_FOUT, 3, r2dgrd, vidCO2flx)
+#  ifdef AVRH
+          text='averaged '/ /vname(2,indxCO2flx)
+#  else
+          text=vname(2,indxCO2flx)
+#  endif
+          lvar=lenstr(text)
+          ierr=nf_put_att_text (ncid, vidCO2flx, 'long_name', lvar,
+     &                                              text(1:lvar))
+          lvar=lenstr(vname(3,indxCO2flx))
+          ierr=nf_put_att_text (ncid, vidCO2flx, 'units',     lvar,
+     &                                 vname(3,indxCO2flx)(1:lvar))
+          ierr=nf_put_att_text (ncid, vidCO2flx, 'coordinates',15,
+     &                              'lon_rho lat_rho') 
+#  ifdef MASK_LAND_DATA 
+          ierr=nf_put_att_FOUT (ncid, vidCO2flx, '_FillValue',
+     &                                   NF_FOUT, 1, spv_set)
+#  endif
+#  ifdef NCCOMPRESS
+          ierr=nf_def_var_deflate(ncid, vidCO2flx, ncshuff, ncdefl, nclev)
+          ierr=nf_def_var_chunking(ncid, vidCO2flx, ncctg, ncrchnk2)
+#  endif
+        endif
+# endif /* WRITE_CO2FLX */
 !AH16:
 # if defined WRITE_HEATFLX
 ! Heat flux
@@ -1854,6 +1894,16 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
         endif
 # endif
 !AH16:
+# if defined WRITE_CO2FLX
+! CO2 flux
+        if (wrt(indxCO2flx) .and. ierr == nf_noerr) then
+          lvar=lenstr(vname(1,indxCO2flx))
+          ierr=nf_inq_varid(ncid,vname(1,indxCO2flx)(1:lvar), vidCO2flx)
+          if (ierr /= nf_noerr) write(*,1) vname(1,indxCO2flx)(1:lvar),
+     &                                                 fname(1:lfnm)
+        endif
+# endif /* WRITE_CO2FLX */
+!AH16:
 # if defined WRITE_HEATFLX
 ! Heat flux
         if (wrt(indxHeatflx) .and. ierr == nf_noerr) then
@@ -2216,6 +2266,9 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
 #undef vidAkv
 #undef vidAkt
 #undef vidAks
+#if defined WRITE_CO2FLX
+# undef vidCO2flx
+#endif
 #if defined WRITE_HEATFLX
 # undef vidHeatflx
 #endif

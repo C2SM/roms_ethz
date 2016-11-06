@@ -450,6 +450,17 @@
 # endif
 
 !AH16:
+# if defined WRITE_CO2FLX
+! Surface CO2 flux
+      do j=jstrR,jendR
+        do i=istrR,iendR
+          CO2flx(i,j)=0.  ! init
+#  ifdef AVERAGES
+          co2flx_avg(i,j)=init
+#  endif
+        enddo
+      enddo
+# endif
 # if defined WRITE_HEATFLX
 ! Surface heat flux
       do j=jstrR,jendR

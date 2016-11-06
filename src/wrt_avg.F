@@ -36,7 +36,8 @@
 # ifdef SEDIMENT_BIOLOGY
 #  include "bgcflux.h"
 # endif
-# if defined WRITE_TEMP_REST || defined WRITE_SALT_REST || defined WRITE_HEATFLX
+# if defined WRITE_TEMP_REST || defined WRITE_SALT_REST || \
+        defined WRITE_HEATFLX || defined WRITE_CO2FLX
 #  include "forces.h"
 # endif
 # ifdef BIOLOGY_BEC
@@ -327,6 +328,20 @@ CR      write(*,*) 'wrt_ AVR :  wrtT_sed  ' MYID
         endif
       endif
 #  endif /* KPP_DIAGNOSE */
+! AH16:
+# if defined WRITE_CO2FLX
+
+! Surface CO2 flux
+
+      if (wrt AVR (indxCO2flx) .and. ierr == nf_noerr) then
+        ierr=ncdf_write(nc AVR ,  AVR CO2flx, record, r_var,
+     &                  co2flx_ AVR (START_2D_ARRAY), 1)
+        if (ierr /= nf_noerr) then
+          lvar=lenstr(vname(1,indxCO2flx))
+          write(*,1) vname(1,indxCO2flx)(1:lvar), record MYID
+        endif
+      endif
+# endif
 ! AH16:
 # if defined WRITE_HEATFLX
 
