@@ -162,6 +162,9 @@ c$$$       enddo
 !
 ! Gas exchange:
 !
+#ifdef ICEOBS
+# define IFRAC sic /* Ice fraction has differend name in this case */
+#endif
        FICE_USED(istr:iend,jstr:jend) = IFRAC(istr:iend,jstr:jend)
        call WS(sustr_rho(istr:iend,jstr:jend),
      &    svstr_rho(istr:iend,jstr:jend),landmask(istr:iend,jstr:jend),

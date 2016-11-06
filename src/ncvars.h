@@ -58,7 +58,7 @@
 # ifdef LMD_BKPP
      &                    , indxHbbl=LAST_I+1
 #  undef LAST_I
-#  define LAST_I indxHBBl
+#  define LAST_I indxHbbl
 # endif
 
 # ifdef KPP_DIAGNOSE

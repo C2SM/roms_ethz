@@ -26,7 +26,7 @@
 # define SALINITY_MASKLATSTR -48.0
 # define SALINITY_MASKLATEND -53.01
 
-!-- #define TSOURCE
+#define TSOURCE
 #define ICEOBS
 
      /* Open Boundaries */
@@ -48,6 +48,8 @@
 !-- #define SO_AH16
 #ifdef SO_AH16
 # undef LMD_CONVEC
+# define LMD_MIN_KPP
+# define BRINE_PLUMES
 #endif
 
 

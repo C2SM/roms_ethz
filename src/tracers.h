@@ -11,7 +11,7 @@
 # ifdef OXYGEN
      &           , indxO2 = LAST_I+1
 #  undef LAST_I
-#  define LAST_I indxLDet
+#  define LAST_I indxO2
 #  ifdef CARBON
       integer, parameter :: indxDIC=LAST_I+1
      &           , indxTALK=indxDIC+1
@@ -19,7 +19,7 @@
      &           , indxLDetC=indxSDetC+1
      &           , indxCaCO3=indxLDetC+1
 #   undef LAST_I
-#   define LAST_I CaCO3
+#   define LAST_I indxCaCO3
 #  endif /* CARBON */
 # endif /* OXYGEN */
 #endif /* BIOLOGY_NPZDOC || LEGACY_NPZD*/
@@ -49,4 +49,5 @@
 #  define LAST_I indxCal
 # endif
 #endif /* BIOLOGY_BEC2 */
+
 
