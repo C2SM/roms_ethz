@@ -10,7 +10,7 @@
       implicit none
 #include "netcdf.inc"
       integer ierr, record, lstr, lvar, lenstr
-     &  , start(2), count(2), ibuff(4), nf_fwrite, iflux
+     &  , start(2), count(2), ibuff(4), ncf_fwrite, iflux
 
 # if defined MPI && !defined PARALLEL_FILES
 #     include "mpif.h"
@@ -80,8 +80,8 @@
 ! Barotropic mode variable: free-surface
 ! Always include this in the output so that depths of sigma levels
 ! can be computed
-      ierr=nf_fwrite (zeta_bgc_flux_avg(START_2D_ARRAY), 
-     &     ncid_bgc_flux_avg, bgc_flux_avgZ,record, r2dvar)
+      ierr=ncf_fwrite (zeta_bgc_flux_avg(START_2D_ARRAY), 
+     &     ncid_bgc_flux_avg, bgc_flux_avgZ,record, r_var, 1)
       if (ierr .ne. nf_noerr) then
          lvar=lenstr(vname(1,indxZ))
          write(stdout,1) vname(1,indxZ)(1:lvar), record, ierr
@@ -90,8 +90,8 @@
       endif
 #   ifdef OXYGEN
 !      if (wrtavg(indxU10)) then
-        ierr=nf_fwrite (u10_avg, ncid_bgc_flux_avg, avgU10, record, 
-     &     r2dvar)
+        ierr=ncf_fwrite (u10_avg, ncid_bgc_flux_avg, avgU10, record, 
+     &     r_var, 1)
         if (ierr .ne. nf_noerr) then
           lvar=lenstr(vname_bgcflux(1,indxU10))
           write(stdout,1) vname_bgcflux(1,indxU10)(1:lvar), record, 
@@ -101,8 +101,8 @@
 CR      write(*,*) 'wrt_avg:  wrtU10' MYID
 !      endif
 !      if (wrtavg(indxKvO2)) then
-        ierr=nf_fwrite (Kv_O2_avg, ncid_bgc_flux_avg, avgKvO2, record, 
-     &       r2dvar)
+        ierr=ncf_fwrite (Kv_O2_avg, ncid_bgc_flux_avg, avgKvO2, record, 
+     &       r_var, 1)
         if (ierr .ne. nf_noerr) then
           lvar=lenstr(vname_bgcflux(1,indxKvO2))
           write(stdout,1) vname_bgcflux(1,indxKvO2)(1:lvar), record,
@@ -112,8 +112,8 @@ CR      write(*,*) 'wrt_avg:  wrtU10' MYID
 CR      write(*,*) 'wrt_avg:  wrtKvO2' MYID
 !      endif
 !      if (wrtavg(indxO2sat)) then
-        ierr=nf_fwrite (O2satu_avg, ncid_bgc_flux_avg, avgO2sat, record, 
-     &       r2dvar)
+        ierr=ncf_fwrite (O2satu_avg, ncid_bgc_flux_avg, avgO2sat, record, 
+     &       r_var, 1)
         if (ierr .ne. nf_noerr) then
           lvar=lenstr(vname_bgcflux(1,indxO2sat))
           write(stdout,1) vname_bgcflux(1,indxO2sat)(1:lvar), record,
@@ -124,8 +124,8 @@ CR      write(*,*) 'wrt_avg:  wrtO2sat' MYID
 !      endif
 #    ifdef CARBON
 !      if (wrtavg(indxKvCO2)) then
-        ierr=nf_fwrite (Kv_CO2_avg, ncid_bgc_flux_avg, avgKvCO2, record, 
-     &       r2dvar)
+        ierr=ncf_fwrite (Kv_CO2_avg, ncid_bgc_flux_avg, avgKvCO2, record, 
+     &       r_var, 1)
         if (ierr .ne. nf_noerr) then
           lvar=lenstr(vname_bgcflux(1,indxKvCO2))
           write(stdout,1) vname_bgcflux(1,indxKvCO2)(1:lvar), record,
@@ -135,8 +135,8 @@ CR      write(*,*) 'wrt_avg:  wrtO2sat' MYID
 CR      write(*,*) 'wrt_avg:  wrtKvO2' MYID
 !      endif
 !      if (wrtavg(indxCO2sol)) then
-        ierr=nf_fwrite (CO2sol_avg, ncid_bgc_flux_avg, avgCO2sol, 
-     &       record, r2dvar)
+        ierr=ncf_fwrite (CO2sol_avg, ncid_bgc_flux_avg, avgCO2sol, 
+     &       record, r_var, 1)
         if (ierr .ne. nf_noerr) then
           lvar=lenstr(vname_bgcflux(1,indxCO2sol))
           write(stdout,1) vname_bgcflux(1,indxCO2sol)(1:lvar), record,
@@ -149,8 +149,8 @@ CR      write(*,*) 'wrt_avg:  wrtKvO2' MYID
 !  Write out surface pCO2 (ppm)
 !
 !      if (wrtavg(indxPCO2)) then
-!DL        ierr=nf_fwrite (pco2_avg(START_2D_ARRAY), ncid_bgc_flux_avg, 
-!DL     &       avgPCO2, record, r2dvar)
+!DL        ierr=ncf_fwrite (pco2_avg(START_2D_ARRAY), ncid_bgc_flux_avg, 
+!DL     &       avgPCO2, record, r_var, 1)
 !DL        if (ierr .ne. nf_noerr) then
 !DL          lvar=lenstr(vname_bgcflux(1,indxPCO2))
 !DL          write(stdout,1) vname_bgcflux(1,indxPCO2)(1:lvar), record,
@@ -159,8 +159,8 @@ CR      write(*,*) 'wrt_avg:  wrtKvO2' MYID
 !DL        endif
 !DL!      endif
 !DL!      if (wrtavg(indxPCO2air)) then
-!DL        ierr=nf_fwrite(pCO2air_avg, ncid_bgc_flux_avg, avgPCO2air, 
-!DL     &       record,r2dvar)
+!DL        ierr=ncf_fwrite(pCO2air_avg, ncid_bgc_flux_avg, avgPCO2air, 
+!DL     &       record,r_var, 1)
 !DL        if (ierr .ne. nf_noerr) then
 !DL          lvar=lenstr(vname_bgcflux(1,indxPCO2air))
 !DL          write(stdout,1) vname_bgcflux(1,indxPCO2air)(1:lvar), record,
@@ -173,8 +173,8 @@ CR      write(*,*) 'wrt_avg:  wrtKvO2' MYID
 !  Write out surface pH
 !
 !      if (wrtavg(indxPH)) then
-!DL        ierr=nf_fwrite (pH_avg(START_2D_ARRAY), ncid_bgc_flux_avg,
-!DL     &                                           avgPH, record, r2dvar)
+!DL        ierr=ncf_fwrite (pH_avg(START_2D_ARRAY), ncid_bgc_flux_avg,
+!DL     &                                           avgPH, record, r_var, 1)
 !DL        if (ierr .ne. nf_noerr) then
 !DL          lvar=lenstr(vname_bgcflux(1,indxPH))
 !DL          write(stdout,1) vname_bgcflux(1,indxPH)(1:lvar), record, ierr,
@@ -188,16 +188,16 @@ CR      write(*,*) 'wrt_avg:  wrtKvO2' MYID
 !  Write out PAR (W m-2)
 !
       if (wrtavg(indxPAR)) then
-        ierr=nf_fwrite (PAR_flux_avg(START_2D_ARRAY,1),
-     &        ncid_bgc_flux_avg, avgPAR_flux, record, r3dvar)
+        ierr=ncf_fwrite (PAR_flux_avg(START_2D_ARRAY,1),
+     &        ncid_bgc_flux_avg, avgPAR_flux, record, r_var, N)
         if (ierr .ne. nf_noerr) then
           lvar=lenstr(vname_bgcflux(1,indxPAR))
           write(stdout,1) vname_bgcflux(1,indxPAR)(1:lvar), record,
      &         ierr, nf_strerror(ierr) MYID
           goto 99                                         !--> ERROR
         endif
-        ierr=nf_fwrite (PARinc_flux_avg(START_2D_ARRAY), 
-     &        ncid_bgc_flux_avg, avgPARinc_flux, record, r2dvar)
+        ierr=ncf_fwrite (PARinc_flux_avg(START_2D_ARRAY), 
+     &        ncid_bgc_flux_avg, avgPARinc_flux, record, r_var, 1)
         if (ierr .ne. nf_noerr) then
           lvar=lenstr(vname_bgcflux(1,indxPARinc))
           write(stdout,1) vname_bgcflux(1,indxPARinc)(1:lvar), record,
@@ -209,8 +209,8 @@ CR      write(*,*) 'wrt_avg:  wrtKvO2' MYID
 
 ! Flux terms
       do iflux = 1, NumFluxTerms
-         ierr = nf_fwrite(Flux_avg(START_2D_ARRAY,1,iflux), 
-     &        ncid_bgc_flux_avg, avgFlux(iflux), record, r3dvar)
+         ierr = ncf_fwrite(Flux_avg(START_2D_ARRAY,1,iflux), 
+     &        ncid_bgc_flux_avg, avgFlux(iflux), record, r_var, N)
          if (ierr .ne. nf_noerr) then
             lvar=lenstr(vname_bgcflux(1,indxFlux+iflux-1))
             write(stdout,1) vname_bgcflux(1,indxFlux+iflux-1)(1:lvar), 
@@ -222,9 +222,9 @@ CR      write(*,*) 'wrt_avg:  wrtKvO2' MYID
 !# ifdef OXYGEN
 !! gas exchange fluxes
 !      do iflux = 1, NumGasExcTerms
-!         ierr = nf_fwrite(GasExcFlux_avg(START_2D_ARRAY,iflux), 
+!         ierr = ncf_fwrite(GasExcFlux_avg(START_2D_ARRAY,iflux), 
 !     &        ncid_bgc_flux_avg, avgGasExcFlux(iflux), 
-!     &        record, r2dvar)
+!     &        record, r_var, 1)
 !         if (ierr .ne. nf_noerr) then
 !            lvar=lenstr(vname_bgcflux(1,indxGasExcFlux+iflux-1))
 !            write(stdout,1) 
@@ -236,7 +236,7 @@ CR      write(*,*) 'wrt_avg:  wrtKvO2' MYID
 !# endif /* OXYGEN */
 ! vertical sinking fluxes
       do iflux = 1, NumVSinkTerms
-         ierr = nf_fwrite(VSinkFlux_avg(START_2D_ARRAY,0,iflux), 
+         ierr = ncf_fwrite(VSinkFlux_avg(START_2D_ARRAY,0,iflux), 
      &        ncid_bgc_flux_avg, avgVSinkFlux(iflux), record, w3dvar)
          if (ierr .ne. nf_noerr) then
             lvar=lenstr(vname_bgcflux(1,indxVSinkFlux+iflux-1))
@@ -249,8 +249,8 @@ CR      write(*,*) 'wrt_avg:  wrtKvO2' MYID
 # ifdef SEDIMENT_BIOLOGY
 ! sediment-related fluxes
       do iflux = 1, NumSedFluxTerms
-         ierr = nf_fwrite(SedFlux_avg(START_2D_ARRAY,iflux), 
-     &        ncid_bgc_flux_avg, avgSedFlux(iflux), record, r2dvar)
+         ierr = ncf_fwrite(SedFlux_avg(START_2D_ARRAY,iflux), 
+     &        ncid_bgc_flux_avg, avgSedFlux(iflux), record, r_var, 1)
          if (ierr .ne. nf_noerr) then
             lvar=lenstr(vname_bgcflux(1,indxSedFlux+iflux-1))
             write(stdout,1)vname_bgcflux(1,indxSedFlux+iflux-1)(1:lvar),

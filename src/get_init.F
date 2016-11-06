@@ -633,8 +633,8 @@ c--#define VERBOSE
         ierr=nf_inq_varid (ncid, 
      &       vname(1,indxSedOrgN+itrc-1)(1:lvar), varid)
         if (ierr .eq. nf_noerr) then
-          ierr=nf_fread (t_sed(START_2D_ARRAY,itrc), ncid,  varid,
-     &                                               record, r2dvar)
+          ierr=ncdf_read (ncid,  varid, record, r_var
+     &                   , t_sed(START_2D_ARRAY,itrc), 1)
           if (ierr .ne. nf_noerr) then
             write(*,2) vname(1,indxSedOrgN+itrc-1)(1:lvar),
      &            record,  trim(ininame)
@@ -663,8 +663,8 @@ CHF          goto 99                                         !--> ERROR
       lvar=lenstr(vname(1,indxPH_rst))
       ierr=nf_inq_varid (ncid, vname(1,indxPH_rst)(1:lvar), varid)
       if (ierr .eq. nf_noerr) then
-         ierr=nf_fread (ph_hist(START_2D_ARRAY), ncid,  varid,
-     &                                               record, r2dvar)
+         ierr=ncdf_read (ncid,  varid, record, r_var
+     &                 , ph_hist(START_2D_ARRAY), 1)
          if (ierr .ne. nf_noerr) then
             write(*,2) vname(1,indxPH_rst)(1:lvar), record,
      &           trim(ininame)
@@ -681,8 +681,8 @@ CHF          goto 99                                         !--> ERROR
       lvar=lenstr(vname(1,indxPCO2_rst))
       ierr=nf_inq_varid (ncid, vname(1,indxPCO2_rst)(1:lvar), varid)
       if (ierr .eq. nf_noerr) then
-         ierr=nf_fread (pCO2sw(START_2D_ARRAY), ncid,  varid,
-     &                                               record, r2dvar)
+         ierr=ncdf_read (ncid,  varid, record, r_var
+     &                  , pCO2sw(START_2D_ARRAY), 1)
          if (ierr .ne. nf_noerr) then
             write(*,2) vname(1,indxPCO2_rst)(1:lvar), record,
      &           trim(ininame)
@@ -699,8 +699,8 @@ CHF          goto 99                                         !--> ERROR
       lvar=lenstr(vname(1,indxPCO2air_rst))
       ierr=nf_inq_varid (ncid, vname(1,indxPCO2air_rst)(1:lvar), varid)
       if (ierr .eq. nf_noerr) then
-         ierr=nf_fread (pCO2air(START_2D_ARRAY), ncid,  varid,
-     &                                               record, r2dvar)
+         ierr=ncdff_read (ncid,  varid, record, r_var
+     *                 , pCO2air(START_2D_ARRAY), 1)
          if (ierr .ne. nf_noerr) then
             write(*,2) vname(1,indxPCO2air_rst)(1:lvar), record,
      &           trim(ininame)
@@ -721,8 +721,8 @@ CHF          goto 99                                         !--> ERROR
          lvar=lenstr(vname_bec2_diag_2d(1,itrc))
          ierr=nf_inq_varid (ncid, vname_bec2_diag_2d(1,itrc)(1:lvar), varid)
          if (ierr .eq. nf_noerr) then
-            ierr=nf_fread (bec2_diag_2d(START_2D_ARRAY,itrc), ncid,  varid,
-     &                                               record, r2dvar)
+            ierr=ncdf_read (ncid,  varid, record, r_var
+     &                     , bec2_diag_2d(START_2D_ARRAY,itrc), 1)
             if (ierr .ne. nf_noerr) then
                write(*,2) vname_bec2_diag_2d(1,itrc)(1:lvar), record,
      &              trim(ininame)
@@ -739,8 +739,8 @@ CHF          goto 99                                         !--> ERROR
          lvar=lenstr(vname_bec2_diag_3d(1,itrc))
          ierr=nf_inq_varid (ncid, vname_bec2_diag_3d(1,itrc)(1:lvar), varid)
          if (ierr .eq. nf_noerr) then
-            ierr=nf_fread (bec2_diag_3d(START_2D_ARRAY,1,itrc), ncid,  varid,
-     &                                               record, r3dvar)
+            ierr=ncdf_read (ncid,  varid, record, r_var
+     &                    , bec2_diag_3d(START_2D_ARRAY,1,itrc), N)
             if (ierr .ne. nf_noerr) then
                write(*,2) vname_bec2_diag_3d(1,itrc)(1:lvar), record,
      &              trim(ininame)
@@ -759,8 +759,8 @@ CHF          goto 99                                         !--> ERROR
       lvar=lenstr(vname(1,indxPAR_rst))
       ierr=nf_inq_varid (ncid, vname(1,indxPAR_rst)(1:lvar), varid)
       if (ierr .eq. nf_noerr) then
-         ierr=nf_fread (PAR(START_2D_ARRAY,1), ncid,  varid,
-     &                                               record, r2dvar)
+         ierr=ncdf_read (ncid,  varid, record, r_var
+     &                  , PAR(START_2D_ARRAY,1), r2dvar)
          if (ierr .ne. nf_noerr) then
             write(*,2) vname(1,indxPAR_rst)(1:lvar), record,
      &           trim(ininame)

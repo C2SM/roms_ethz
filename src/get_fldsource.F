@@ -17,7 +17,8 @@
 # include "ncvars.h"
 # include "sources.h"
       real cff
-      integer ierr, ifldsrc, lstr, lenstr, nf_fread, varid, ncid, itrc, lvar
+      integer ierr, ifldsrc, lstr, lenstr, ncdf_read, varid, ncid
+     &      , itrc, lvar
       character units*64
 
 !
@@ -108,34 +109,34 @@
           ierr=nf_get_var1_FTYPE (ncid, fldsrc_tid, fldsrc_rec, cff)
           if (ierr .eq. nf_noerr) then
             fldsrc_time=cff*day2sec + fldsrc_cycle*fldsrc_ncycle
-            ierr=nf_fread (Qu_fldsrc(START_2D_ARRAY,1), ncid, fldsrc_quid,
-     &                                         fldsrc_rec, u3dvar)
+            ierr=ncdf_read (ncid, fldsrc_quid, fldsrc_rec, u_var
+     &                     , Qu_fldsrc(START_2D_ARRAY), N)
             if (ierr .eq. nf_noerr) then
               MPI_master_only write(stdout,
      &        '(6x,2A,F12.4,2(1x,A,I4))') 'get_fldsource    ',
-     &                '-- read field sources                      for time =',
+     &          '-- read field sources                      for time =',
      &                   cff, 'rec =', fldsrc_rec MYID
             else
               write(*,2) 'qu',   fldsrc_rec,
      &               fldsrc_file(1:lstr), nf_strerror(ierr)
               goto 99                                         !--> ERROR
             endif
-            ierr=nf_fread (Qubar_fldsrc(START_2D_ARRAY), ncid, fldsrc_qubarid,
-     &                                         fldsrc_rec, u2dvar)
+            ierr=ncdf_read (ncid, fldsrc_qubarid, fldsrc_rec, u_var
+     &                     , Qubar_fldsrc(START_2D_ARRAY), 1)
             if (ierr .ne. nf_noerr) then
               write(*,2) 'qubar',   fldsrc_rec,
      &               fldsrc_file(1:lstr), nf_strerror(ierr)
               goto 99                                         !--> ERROR
             endif
-            ierr=nf_fread (Qv_fldsrc(START_2D_ARRAY,1), ncid, fldsrc_qvid,
-     &                                         fldsrc_rec, v3dvar)
+            ierr=ncdf_read (ncid, fldsrc_qvid, fldsrc_rec, v_var
+     &                     , Qv_fldsrc(START_2D_ARRAY), N)
             if (ierr .ne. nf_noerr) then
               write(*,2) 'qv',   fldsrc_rec,
      &               fldsrc_file(1:lstr), nf_strerror(ierr)
               goto 99                                         !--> ERROR
             endif
-            ierr=nf_fread (Qvbar_fldsrc(START_2D_ARRAY), ncid, fldsrc_qvbarid,
-     &                                         fldsrc_rec, v2dvar)
+            ierr=ncdf_read (ncid, fldsrc_qvbarid, fldsrc_rec, v_var
+     &                     , Qvbar_fldsrc(START_2D_ARRAY), 1)
             if (ierr .ne. nf_noerr) then
               write(*,2) 'qvbar',   fldsrc_rec,
      &               fldsrc_file(1:lstr), nf_strerror(ierr)
@@ -143,8 +144,8 @@
             endif
             do itrc=1,NT
               lvar=lenstr(vname(1,indxT+itrc-1))
-              ierr=nf_fread (T_fldsrc(START_2D_ARRAY,1,itrc), ncid, fldsrc_id(itrc),
-     &                                         fldsrc_rec, r3dvar)
+              ierr=ncdf_read (ncid, fldsrc_id(itrc), fldsrc_rec, r_var
+     &                       , T_fldsrc(START_2D_ARRAY,1,itrc), N)
               if (ierr .ne. nf_noerr) then
                 MPI_master_only write(*,1) vname(1,indxT+itrc-1)(1:lvar), 
      &                           fldsrc_file(1:lstr)!, nf_strerror(ierr)

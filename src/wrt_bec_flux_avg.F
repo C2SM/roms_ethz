@@ -12,7 +12,7 @@
 #include "ncvars.h"
 
       integer ierr,  record, lstr, lvar, lenstr,itrc
-     &   , start(2), count(2), ibuff(4), nf_fwrite
+     &   , start(2), count(2), ibuff(4), ncf_fwrite
      &   ,varid
       REAL,DIMENSION(GLOBAL_2D_ARRAY,1)::WORK
    
@@ -71,8 +71,8 @@
 ! Barotropic mode variable: free-surface
 ! Always include this in the output so that depths of sigma levels
 ! can be computed
-      ierr=nf_fwrite (zeta_bgc_flux_avg(START_2D_ARRAY), 
-     &     ncid_bgc_flux_avg, bgc_flux_avgZ,record, r2dvar)
+      ierr=ncf_fwrite (zeta_bgc_flux_avg(START_2D_ARRAY), 
+     &     ncid_bgc_flux_avg, bgc_flux_avgZ,record, r_var, 1)
       if (ierr .ne. nf_noerr) then
          lvar=lenstr(vname(1,indxZ))
          write(stdout,1) vname(1,indxZ)(1:lvar), record, ierr
@@ -81,8 +81,8 @@
       endif
 
        itrc=1
-          ierr=nf_fwrite(ws_avg(START_2D_ARRAY), ncid_bgc_flux_avg,
-     &                 vid_bec_flux_avg(itrc), record, r2dvar)
+          ierr=ncf_fwrite(ws_avg(START_2D_ARRAY), ncid_bgc_flux_avg,
+     &                 vid_bec_flux_avg(itrc), record, r_var, 1)
             if (ierr .ne. nf_noerr) then
             lvar=lenstr(vname_bgcflux(1,itrc))
             write(stdout,1) vname_bgcflux(1,itrc)(1:lvar), record,
@@ -92,8 +92,8 @@
          
 
        itrc=itrc+1
-          ierr=nf_fwrite(xkw_avg(START_2D_ARRAY), ncid_bgc_flux_avg,
-     &                          vid_bec_flux_avg(itrc), record, r2dvar)
+          ierr=ncf_fwrite(xkw_avg(START_2D_ARRAY), ncid_bgc_flux_avg,
+     &                          vid_bec_flux_avg(itrc), record, r_var, 1)
           if (ierr .ne. nf_noerr) then
             lvar=lenstr(vname_bgcflux(1,itrc))
             write(stdout,1) vname_bgcflux(1,itrc)(1:lvar), record,
@@ -102,8 +102,8 @@
           endif
 
        itrc=itrc+1
-          ierr=nf_fwrite(ap_avg(START_2D_ARRAY), ncid_bgc_flux_avg,
-     &                          vid_bec_flux_avg(itrc), record, r2dvar)
+          ierr=ncf_fwrite(ap_avg(START_2D_ARRAY), ncid_bgc_flux_avg,
+     &                          vid_bec_flux_avg(itrc), record, r_var, 1)
           if (ierr .ne. nf_noerr) then
             lvar=lenstr(vname_bgcflux(1,itrc))
             write(stdout,1) vname_bgcflux(1,itrc)(1:lvar), record,
@@ -112,8 +112,8 @@
           endif
 
        itrc=itrc+1
-       ierr=nf_fwrite(schmidt_o2_avg(START_2D_ARRAY), ncid_bgc_flux_avg,
-     &                          vid_bec_flux_avg(itrc), record, r2dvar)
+       ierr=ncf_fwrite(schmidt_o2_avg(START_2D_ARRAY), ncid_bgc_flux_avg,
+     &                          vid_bec_flux_avg(itrc), record, r_var, 1)
           if (ierr .ne. nf_noerr) then
             lvar=lenstr(vname_bgcflux(1,itrc))
             write(stdout,1) vname_bgcflux(1,itrc)(1:lvar), record,
@@ -124,8 +124,8 @@
        
 
         itrc=itrc+1
-          ierr=nf_fwrite(o2sat_avg(START_2D_ARRAY), ncid_bgc_flux_avg,
-     &                          vid_bec_flux_avg(itrc), record, r2dvar)
+          ierr=ncf_fwrite(o2sat_avg(START_2D_ARRAY), ncid_bgc_flux_avg,
+     &                          vid_bec_flux_avg(itrc), record, r_var, 1)
           if (ierr .ne. nf_noerr) then
             lvar=lenstr(vname_bgcflux(1,itrc))
             write(stdout,1) vname_bgcflux(1,itrc)(1:lvar), record,
@@ -134,8 +134,8 @@
           endif
 
        itrc=itrc+1
-          ierr=nf_fwrite(fg_o2_avg(START_2D_ARRAY), ncid_bgc_flux_avg,
-     &                          vid_bec_flux_avg(itrc), record, r2dvar)
+          ierr=ncf_fwrite(fg_o2_avg(START_2D_ARRAY), ncid_bgc_flux_avg,
+     &                          vid_bec_flux_avg(itrc), record, r_var, 1)
           if (ierr .ne. nf_noerr) then
             lvar=lenstr(vname_bgcflux(1,itrc))
             write(stdout,1) vname_bgcflux(1,itrc)(1:lvar), record,
@@ -146,8 +146,8 @@
 
 # ifdef NOT_USED___NEEDS_RECODING_IF_USED
        itrc=itrc+1
-          ierr=nf_fwrite(ph_avg(START_2D_ARRAY), ncid_bgc_flux_avg,
-     &                          vid_bec_flux_avg(itrc), record, r2dvar)
+          ierr=ncf_fwrite(ph_avg(START_2D_ARRAY), ncid_bgc_flux_avg,
+     &                          vid_bec_flux_avg(itrc), record, r_var, 1)
           if (ierr .ne. nf_noerr) then
             lvar=lenstr(vname_bgcflux(1,itrc))
             write(stdout,1) vname_bgcflux(1,itrc)(1:lvar), record,
@@ -156,8 +156,8 @@
           endif
 
        itrc=itrc+1
-       ierr=nf_fwrite(pco2surf_avg(START_2D_ARRAY), ncid_bgc_flux_avg,
-     &                          vid_bec_flux_avg(itrc), record, r2dvar)
+       ierr=ncf_fwrite(pco2surf_avg(START_2D_ARRAY), ncid_bgc_flux_avg,
+     &                          vid_bec_flux_avg(itrc), record, r_var, 1)
           if (ierr .ne. nf_noerr) then
             lvar=lenstr(vname_bgcflux(1,itrc))
             write(stdout,1) vname_bgcflux(1,itrc)(1:lvar), record,
@@ -166,8 +166,8 @@
           endif
 
        itrc=itrc+1
-          ierr=nf_fwrite(dpco2_avg(START_2D_ARRAY), ncid_bgc_flux_avg,
-     &                          vid_bec_flux_avg(itrc), record, r2dvar)
+          ierr=ncf_fwrite(dpco2_avg(START_2D_ARRAY), ncid_bgc_flux_avg,
+     &                          vid_bec_flux_avg(itrc), record, r_var, 1)
           if (ierr .ne. nf_noerr) then
             lvar=lenstr(vname_bgcflux(1,itrc))
             write(stdout,1) vname_bgcflux(1,itrc)(1:lvar), record,
@@ -177,8 +177,8 @@
 # endif /* NOT_USED___NEEDS_RECODING_IF_USED */
 
        itrc=itrc+1
-       ierr=nf_fwrite(schmidt_co2_avg(START_2D_ARRAY),ncid_bgc_flux_avg,
-     &                          vid_bec_flux_avg(itrc), record, r2dvar)
+       ierr=ncf_fwrite(schmidt_co2_avg(START_2D_ARRAY),ncid_bgc_flux_avg,
+     &                          vid_bec_flux_avg(itrc), record, r_var, 1)
           if (ierr .ne. nf_noerr) then
             lvar=lenstr(vname_bgcflux(1,itrc))
             write(stdout,1) vname_bgcflux(1,itrc)(1:lvar), record,
@@ -187,8 +187,8 @@
           endif
 
        itrc=itrc+1
-          ierr=nf_fwrite(co2star_avg(START_2D_ARRAY), ncid_bgc_flux_avg,
-     &                          vid_bec_flux_avg(itrc), record, r2dvar)
+          ierr=ncf_fwrite(co2star_avg(START_2D_ARRAY), ncid_bgc_flux_avg,
+     &                          vid_bec_flux_avg(itrc), record, r_var, 1)
           if (ierr .ne. nf_noerr) then
             lvar=lenstr(vname_bgcflux(1,itrc))
             write(stdout,1) vname_bgcflux(1,itrc)(1:lvar), record,
@@ -197,8 +197,8 @@
           endif
 
        itrc=itrc+1
-       ierr=nf_fwrite(dco2star_avg(START_2D_ARRAY), ncid_bgc_flux_avg,
-     &                          vid_bec_flux_avg(itrc), record, r2dvar)
+       ierr=ncf_fwrite(dco2star_avg(START_2D_ARRAY), ncid_bgc_flux_avg,
+     &                          vid_bec_flux_avg(itrc), record, r_var, 1)
           if (ierr .ne. nf_noerr) then
             lvar=lenstr(vname_bgcflux(1,itrc))
             write(stdout,1) vname_bgcflux(1,itrc)(1:lvar), record,
@@ -207,8 +207,8 @@
           endif
 
        itrc=itrc+1
-          ierr=nf_fwrite(fg_co2_avg(START_2D_ARRAY), ncid_bgc_flux_avg,
-     &                          vid_bec_flux_avg(itrc), record, r2dvar)
+          ierr=ncf_fwrite(fg_co2_avg(START_2D_ARRAY), ncid_bgc_flux_avg,
+     &                          vid_bec_flux_avg(itrc), record, r_var, 1)
           if (ierr .ne. nf_noerr) then
             lvar=lenstr(vname_bgcflux(1,itrc))
             write(stdout,1) vname_bgcflux(1,itrc)(1:lvar), record,
@@ -217,8 +217,8 @@
           endif
 
        itrc=itrc+1
-       ierr=nf_fwrite(iron_flux_avg(START_2D_ARRAY), ncid_bgc_flux_avg,
-     &                          vid_bec_flux_avg(itrc), record, r2dvar)
+       ierr=ncf_fwrite(iron_flux_avg(START_2D_ARRAY), ncid_bgc_flux_avg,
+     &                          vid_bec_flux_avg(itrc), record, r_var, 1)
           if (ierr .ne. nf_noerr) then
             lvar=lenstr(vname_bgcflux(1,itrc))
             write(stdout,1) vname_bgcflux(1,itrc)(1:lvar), record,
@@ -227,8 +227,8 @@
           endif
 
        itrc=itrc+1
-       ierr=nf_fwrite(PARinc_flux_avg(START_2D_ARRAY),ncid_bgc_flux_avg,
-     &      vid_bec_flux_avg(itrc), record, r2dvar)
+       ierr=ncf_fwrite(PARinc_flux_avg(START_2D_ARRAY),ncid_bgc_flux_avg,
+     &      vid_bec_flux_avg(itrc), record, r_var, 1)
        if (ierr .ne. nf_noerr) then
           lvar=lenstr(vname_bgcflux(1,itrc))
           write(stdout,1) vname_bgcflux(1,itrc)(1:lvar), record,
@@ -239,8 +239,8 @@
 !write 3d fluxes
 
        itrc=itrc+1
-       ierr=nf_fwrite(po4_restore_avg(START_2D_ARRAY,1), 
-     &      ncid_bgc_flux_avg, vid_bec_flux_avg(itrc), record, r3dvar)
+       ierr=ncf_fwrite(po4_restore_avg(START_2D_ARRAY,1), 
+     &      ncid_bgc_flux_avg, vid_bec_flux_avg(itrc), record, r_var, N)
           if (ierr .ne. nf_noerr) then
             lvar=lenstr(vname_bgcflux(1,itrc))
             write(stdout,1) vname_bgcflux(1,itrc)(1:lvar), record,
@@ -249,8 +249,8 @@
           endif
 
        itrc=itrc+1
-       ierr=nf_fwrite(no3_restore_avg(START_2D_ARRAY,1), 
-     &      ncid_bgc_flux_avg,vid_bec_flux_avg(itrc), record, r3dvar)
+       ierr=ncf_fwrite(no3_restore_avg(START_2D_ARRAY,1), 
+     &      ncid_bgc_flux_avg,vid_bec_flux_avg(itrc), record, r_var, N)
           if (ierr .ne. nf_noerr) then
             lvar=lenstr(vname_bgcflux(1,itrc))
             write(stdout,1) vname_bgcflux(1,itrc)(1:lvar), record,
@@ -259,38 +259,8 @@
           endif
 
        itrc=itrc+1
-       ierr=nf_fwrite(sio3_restore_avg(START_2D_ARRAY,1), 
-     &      ncid_bgc_flux_avg,vid_bec_flux_avg(itrc), record, r3dvar)
-          if (ierr .ne. nf_noerr) then
-            lvar=lenstr(vname_bgcflux(1,itrc))
-            write(stdout,1) vname_bgcflux(1,itrc)(1:lvar), record,
-     &                      ierr MYID
-            goto 99                                       !--> ERROR
-          endif
-
-        itrc=itrc+1
-        ierr=nf_fwrite(par_flux_avg(START_2D_ARRAY,1),ncid_bgc_flux_avg,
-     &                          vid_bec_flux_avg(itrc), record, r3dvar)
-          if (ierr .ne. nf_noerr) then
-            lvar=lenstr(vname_bgcflux(1,itrc))
-            write(stdout,1) vname_bgcflux(1,itrc)(1:lvar), record,
-     &                      ierr MYID
-            goto 99                                       !--> ERROR
-          endif
-
-       itrc=itrc+1
-       ierr=nf_fwrite(po4star_avg(START_2D_ARRAY,1), ncid_bgc_flux_avg,
-     &                          vid_bec_flux_avg(itrc), record, r3dvar)
-          if (ierr .ne. nf_noerr) then
-            lvar=lenstr(vname_bgcflux(1,itrc))
-            write(stdout,1) vname_bgcflux(1,itrc)(1:lvar), record,
-     &                      ierr MYID
-            goto 99                                       !--> ERROR
-          endif
-
-       itrc=itrc+1
-       ierr=nf_fwrite(poc_flux_in_avg(START_2D_ARRAY,1), 
-     &      ncid_bgc_flux_avg,vid_bec_flux_avg(itrc), record, r3dvar)
+       ierr=ncf_fwrite(sio3_restore_avg(START_2D_ARRAY,1), 
+     &      ncid_bgc_flux_avg,vid_bec_flux_avg(itrc), record, r_var, N)
           if (ierr .ne. nf_noerr) then
             lvar=lenstr(vname_bgcflux(1,itrc))
             write(stdout,1) vname_bgcflux(1,itrc)(1:lvar), record,
@@ -299,17 +269,8 @@
           endif
 
         itrc=itrc+1
-          ierr=nf_fwrite(poc_prod_avg(START_2D_ARRAY,1), 
-     &       ncid_bgc_flux_avg,vid_bec_flux_avg(itrc), record, r3dvar)
-          if (ierr .ne. nf_noerr) then
-            lvar=lenstr(vname_bgcflux(1,itrc))
-            write(stdout,1) vname_bgcflux(1,itrc)(1:lvar), record,
-     &                      ierr MYID
-            goto 99                                       !--> ERROR
-          endif
-       itrc=itrc+1
-          ierr=nf_fwrite(poc_remin_avg(START_2D_ARRAY,1), 
-     &      ncid_bgc_flux_avg,vid_bec_flux_avg(itrc), record, r3dvar)
+        ierr=ncf_fwrite(par_flux_avg(START_2D_ARRAY,1),ncid_bgc_flux_avg,
+     &                          vid_bec_flux_avg(itrc), record, r_var, N)
           if (ierr .ne. nf_noerr) then
             lvar=lenstr(vname_bgcflux(1,itrc))
             write(stdout,1) vname_bgcflux(1,itrc)(1:lvar), record,
@@ -318,8 +279,8 @@
           endif
 
        itrc=itrc+1
-          ierr=nf_fwrite(caco3_flux_in_avg(START_2D_ARRAY,1),
-     &      ncid_bgc_flux_avg,vid_bec_flux_avg(itrc), record, r3dvar)
+       ierr=ncf_fwrite(po4star_avg(START_2D_ARRAY,1), ncid_bgc_flux_avg,
+     &                          vid_bec_flux_avg(itrc), record, r_var, N)
           if (ierr .ne. nf_noerr) then
             lvar=lenstr(vname_bgcflux(1,itrc))
             write(stdout,1) vname_bgcflux(1,itrc)(1:lvar), record,
@@ -328,8 +289,27 @@
           endif
 
        itrc=itrc+1
-       ierr=nf_fwrite(caco3_prod_avg(START_2D_ARRAY,1), 
-     &      ncid_bgc_flux_avg,vid_bec_flux_avg(itrc), record, r3dvar)
+       ierr=ncf_fwrite(poc_flux_in_avg(START_2D_ARRAY,1), 
+     &      ncid_bgc_flux_avg,vid_bec_flux_avg(itrc), record, r_var, N)
+          if (ierr .ne. nf_noerr) then
+            lvar=lenstr(vname_bgcflux(1,itrc))
+            write(stdout,1) vname_bgcflux(1,itrc)(1:lvar), record,
+     &                      ierr MYID
+            goto 99                                       !--> ERROR
+          endif
+
+        itrc=itrc+1
+          ierr=ncf_fwrite(poc_prod_avg(START_2D_ARRAY,1), 
+     &       ncid_bgc_flux_avg,vid_bec_flux_avg(itrc), record, r_var, N)
+          if (ierr .ne. nf_noerr) then
+            lvar=lenstr(vname_bgcflux(1,itrc))
+            write(stdout,1) vname_bgcflux(1,itrc)(1:lvar), record,
+     &                      ierr MYID
+            goto 99                                       !--> ERROR
+          endif
+       itrc=itrc+1
+          ierr=ncf_fwrite(poc_remin_avg(START_2D_ARRAY,1), 
+     &      ncid_bgc_flux_avg,vid_bec_flux_avg(itrc), record, r_var, N)
           if (ierr .ne. nf_noerr) then
             lvar=lenstr(vname_bgcflux(1,itrc))
             write(stdout,1) vname_bgcflux(1,itrc)(1:lvar), record,
@@ -338,8 +318,8 @@
           endif
 
        itrc=itrc+1
-          ierr=nf_fwrite(caco3_remin_avg(START_2D_ARRAY,1), 
-     &      ncid_bgc_flux_avg,vid_bec_flux_avg(itrc), record, r3dvar)
+          ierr=ncf_fwrite(caco3_flux_in_avg(START_2D_ARRAY,1),
+     &      ncid_bgc_flux_avg,vid_bec_flux_avg(itrc), record, r_var, N)
           if (ierr .ne. nf_noerr) then
             lvar=lenstr(vname_bgcflux(1,itrc))
             write(stdout,1) vname_bgcflux(1,itrc)(1:lvar), record,
@@ -348,8 +328,28 @@
           endif
 
        itrc=itrc+1
-          ierr=nf_fwrite(sio2_flux_in_avg(START_2D_ARRAY,1), 
-     &      ncid_bgc_flux_avg,vid_bec_flux_avg(itrc), record, r3dvar)
+       ierr=ncf_fwrite(caco3_prod_avg(START_2D_ARRAY,1), 
+     &      ncid_bgc_flux_avg,vid_bec_flux_avg(itrc), record, r_var, N)
+          if (ierr .ne. nf_noerr) then
+            lvar=lenstr(vname_bgcflux(1,itrc))
+            write(stdout,1) vname_bgcflux(1,itrc)(1:lvar), record,
+     &                      ierr MYID
+            goto 99                                       !--> ERROR
+          endif
+
+       itrc=itrc+1
+          ierr=ncf_fwrite(caco3_remin_avg(START_2D_ARRAY,1), 
+     &      ncid_bgc_flux_avg,vid_bec_flux_avg(itrc), record, r_var, N)
+          if (ierr .ne. nf_noerr) then
+            lvar=lenstr(vname_bgcflux(1,itrc))
+            write(stdout,1) vname_bgcflux(1,itrc)(1:lvar), record,
+     &                      ierr MYID
+            goto 99                                       !--> ERROR
+          endif
+
+       itrc=itrc+1
+          ierr=ncf_fwrite(sio2_flux_in_avg(START_2D_ARRAY,1), 
+     &      ncid_bgc_flux_avg,vid_bec_flux_avg(itrc), record, r_var, N)
           if (ierr .ne. nf_noerr) then
             lvar=lenstr(vname_bgcflux(1,itrc))
             write(stdout,1) vname_bgcflux(1,itrc)(1:lvar), record,
@@ -357,8 +357,8 @@
             goto 99                                       !--> ERROR
           endif
         itrc=itrc+1
-          ierr=nf_fwrite(sio2_prod_avg(START_2D_ARRAY,1), 
-     &       ncid_bgc_flux_avg,vid_bec_flux_avg(itrc), record, r3dvar)
+          ierr=ncf_fwrite(sio2_prod_avg(START_2D_ARRAY,1), 
+     &       ncid_bgc_flux_avg,vid_bec_flux_avg(itrc), record, r_var, N)
           if (ierr .ne. nf_noerr) then
             lvar=lenstr(vname_bgcflux(1,itrc))
             write(stdout,1) vname_bgcflux(1,itrc)(1:lvar), record,
@@ -366,8 +366,8 @@
             goto 99                                       !--> ERROR
           endif
        itrc=itrc+1
-       ierr=nf_fwrite(sio2_remin_avg(START_2D_ARRAY,1), 
-     &      ncid_bgc_flux_avg,vid_bec_flux_avg(itrc), record, r3dvar)
+       ierr=ncf_fwrite(sio2_remin_avg(START_2D_ARRAY,1), 
+     &      ncid_bgc_flux_avg,vid_bec_flux_avg(itrc), record, r_var, N)
           if (ierr .ne. nf_noerr) then
             lvar=lenstr(vname_bgcflux(1,itrc))
             write(stdout,1) vname_bgcflux(1,itrc)(1:lvar), record,
@@ -376,8 +376,8 @@
           endif
 
        itrc=itrc+1
-       ierr=nf_fwrite(dust_flux_in_avg(START_2D_ARRAY,1), 
-     &      ncid_bgc_flux_avg,vid_bec_flux_avg(itrc), record, r3dvar)
+       ierr=ncf_fwrite(dust_flux_in_avg(START_2D_ARRAY,1), 
+     &      ncid_bgc_flux_avg,vid_bec_flux_avg(itrc), record, r_var, N)
           if (ierr .ne. nf_noerr) then
             lvar=lenstr(vname_bgcflux(1,itrc))
             write(stdout,1) vname_bgcflux(1,itrc)(1:lvar), record,
@@ -385,8 +385,8 @@
             goto 99                                       !--> ERROR
           endif
          itrc=itrc+1
-         ierr=nf_fwrite(dust_remin_avg(START_2D_ARRAY,1), 
-     &        ncid_bgc_flux_avg,vid_bec_flux_avg(itrc), record, r3dvar)
+         ierr=ncf_fwrite(dust_remin_avg(START_2D_ARRAY,1), 
+     &        ncid_bgc_flux_avg,vid_bec_flux_avg(itrc), record, r_var, N)
           if (ierr .ne. nf_noerr) then
             lvar=lenstr(vname_bgcflux(1,itrc))
             write(stdout,1) vname_bgcflux(1,itrc)(1:lvar), record,
@@ -394,8 +394,8 @@
             goto 99                                       !--> ERROR
           endif
           itrc=itrc+1
-          ierr=nf_fwrite(p_iron_flux_in_avg(START_2D_ARRAY,1), 
-     &         ncid_bgc_flux_avg,vid_bec_flux_avg(itrc), record, r3dvar)
+          ierr=ncf_fwrite(p_iron_flux_in_avg(START_2D_ARRAY,1), 
+     &         ncid_bgc_flux_avg,vid_bec_flux_avg(itrc), record, r_var, N)
           if (ierr .ne. nf_noerr) then
             lvar=lenstr(vname_bgcflux(1,itrc))
             write(stdout,1) vname_bgcflux(1,itrc)(1:lvar), record,
@@ -403,8 +403,8 @@
             goto 99                                       !--> ERROR
           endif
         itrc=itrc+1
-        ierr=nf_fwrite(p_iron_prod_avg(START_2D_ARRAY,1), 
-     &       ncid_bgc_flux_avg,vid_bec_flux_avg(itrc), record, r3dvar)
+        ierr=ncf_fwrite(p_iron_prod_avg(START_2D_ARRAY,1), 
+     &       ncid_bgc_flux_avg,vid_bec_flux_avg(itrc), record, r_var, N)
           if (ierr .ne. nf_noerr) then
             lvar=lenstr(vname_bgcflux(1,itrc))
             write(stdout,1) vname_bgcflux(1,itrc)(1:lvar), record,
@@ -412,8 +412,8 @@
             goto 99                                       !--> ERROR
           endif
           itrc=itrc+1
-          ierr=nf_fwrite(p_iron_remin_avg(START_2D_ARRAY,1), 
-     &         ncid_bgc_flux_avg,vid_bec_flux_avg(itrc), record, r3dvar)
+          ierr=ncf_fwrite(p_iron_remin_avg(START_2D_ARRAY,1), 
+     &         ncid_bgc_flux_avg,vid_bec_flux_avg(itrc), record, r_var, N)
           if (ierr .ne. nf_noerr) then
             lvar=lenstr(vname_bgcflux(1,itrc))
             write(stdout,1) vname_bgcflux(1,itrc)(1:lvar), record,
@@ -421,8 +421,8 @@
             goto 99                                       !--> ERROR
           endif
           itrc=itrc+1
-          ierr=nf_fwrite(graze_sp_avg(START_2D_ARRAY,1), 
-     &         ncid_bgc_flux_avg,vid_bec_flux_avg(itrc), record, r3dvar)
+          ierr=ncf_fwrite(graze_sp_avg(START_2D_ARRAY,1), 
+     &         ncid_bgc_flux_avg,vid_bec_flux_avg(itrc), record, r_var, N)
           if (ierr .ne. nf_noerr) then
             lvar=lenstr(vname_bgcflux(1,itrc))
             write(stdout,1) vname_bgcflux(1,itrc)(1:lvar), record,
@@ -430,8 +430,8 @@
             goto 99                                       !--> ERROR
           endif
           itrc=itrc+1
-          ierr=nf_fwrite(graze_diat_avg(START_2D_ARRAY,1), 
-     &         ncid_bgc_flux_avg,vid_bec_flux_avg(itrc), record, r3dvar)
+          ierr=ncf_fwrite(graze_diat_avg(START_2D_ARRAY,1), 
+     &         ncid_bgc_flux_avg,vid_bec_flux_avg(itrc), record, r_var, N)
           if (ierr .ne. nf_noerr) then
             lvar=lenstr(vname_bgcflux(1,itrc))
             write(stdout,1) vname_bgcflux(1,itrc)(1:lvar), record,
@@ -439,8 +439,8 @@
             goto 99                                       !--> ERROR
           endif
           itrc=itrc+1
-          ierr=nf_fwrite(graze_tot_avg(START_2D_ARRAY,1), 
-     &         ncid_bgc_flux_avg,vid_bec_flux_avg(itrc), record, r3dvar)
+          ierr=ncf_fwrite(graze_tot_avg(START_2D_ARRAY,1), 
+     &         ncid_bgc_flux_avg,vid_bec_flux_avg(itrc), record, r_var, N)
           if (ierr .ne. nf_noerr) then
             lvar=lenstr(vname_bgcflux(1,itrc))
             write(stdout,1) vname_bgcflux(1,itrc)(1:lvar), record,
@@ -448,8 +448,8 @@
             goto 99                                       !--> ERROR
           endif
           itrc=itrc+1
-          ierr=nf_fwrite(sp_loss_avg(START_2D_ARRAY,1), 
-     &         ncid_bgc_flux_avg,vid_bec_flux_avg(itrc), record, r3dvar)
+          ierr=ncf_fwrite(sp_loss_avg(START_2D_ARRAY,1), 
+     &         ncid_bgc_flux_avg,vid_bec_flux_avg(itrc), record, r_var, N)
           if (ierr .ne. nf_noerr) then
             lvar=lenstr(vname_bgcflux(1,itrc))
             write(stdout,1) vname_bgcflux(1,itrc)(1:lvar), record,
@@ -457,8 +457,8 @@
             goto 99                                       !--> ERROR
           endif
           itrc=itrc+1
-          ierr=nf_fwrite(diat_loss_avg(START_2D_ARRAY,1), 
-     &         ncid_bgc_flux_avg,vid_bec_flux_avg(itrc), record, r3dvar)
+          ierr=ncf_fwrite(diat_loss_avg(START_2D_ARRAY,1), 
+     &         ncid_bgc_flux_avg,vid_bec_flux_avg(itrc), record, r_var, N)
           if (ierr .ne. nf_noerr) then
             lvar=lenstr(vname_bgcflux(1,itrc))
             write(stdout,1) vname_bgcflux(1,itrc)(1:lvar), record,
@@ -466,8 +466,8 @@
             goto 99                                       !--> ERROR
           endif
           itrc=itrc+1
-          ierr=nf_fwrite(zoo_loss_avg(START_2D_ARRAY,1), 
-     &         ncid_bgc_flux_avg,vid_bec_flux_avg(itrc), record, r3dvar)
+          ierr=ncf_fwrite(zoo_loss_avg(START_2D_ARRAY,1), 
+     &         ncid_bgc_flux_avg,vid_bec_flux_avg(itrc), record, r_var, N)
           if (ierr .ne. nf_noerr) then
             lvar=lenstr(vname_bgcflux(1,itrc))
             write(stdout,1) vname_bgcflux(1,itrc)(1:lvar), record,
@@ -475,8 +475,8 @@
             goto 99                                       !--> ERROR
           endif
        itrc=itrc+1
-       ierr=nf_fwrite(sp_agg_avg(START_2D_ARRAY,1), ncid_bgc_flux_avg,
-     &                          vid_bec_flux_avg(itrc), record, r3dvar)
+       ierr=ncf_fwrite(sp_agg_avg(START_2D_ARRAY,1), ncid_bgc_flux_avg,
+     &                          vid_bec_flux_avg(itrc), record, r_var, N)
           if (ierr .ne. nf_noerr) then
             lvar=lenstr(vname_bgcflux(1,itrc))
             write(stdout,1) vname_bgcflux(1,itrc)(1:lvar), record,
@@ -484,8 +484,8 @@
             goto 99                                       !--> ERROR
           endif
           itrc=itrc+1
-          ierr=nf_fwrite(diat_agg_avg(START_2D_ARRAY,1), 
-     &         ncid_bgc_flux_avg,vid_bec_flux_avg(itrc), record, r3dvar)
+          ierr=ncf_fwrite(diat_agg_avg(START_2D_ARRAY,1), 
+     &         ncid_bgc_flux_avg,vid_bec_flux_avg(itrc), record, r_var, N)
           if (ierr .ne. nf_noerr) then
             lvar=lenstr(vname_bgcflux(1,itrc))
             write(stdout,1) vname_bgcflux(1,itrc)(1:lvar), record,
@@ -493,8 +493,8 @@
             goto 99                                       !--> ERROR
           endif
           itrc=itrc+1
-          ierr=nf_fwrite(photoc_sp_avg(START_2D_ARRAY,1), 
-     &         ncid_bgc_flux_avg,vid_bec_flux_avg(itrc), record, r3dvar)
+          ierr=ncf_fwrite(photoc_sp_avg(START_2D_ARRAY,1), 
+     &         ncid_bgc_flux_avg,vid_bec_flux_avg(itrc), record, r_var, N)
           if (ierr .ne. nf_noerr) then
             lvar=lenstr(vname_bgcflux(1,itrc))
             write(stdout,1) vname_bgcflux(1,itrc)(1:lvar), record,
@@ -502,8 +502,8 @@
             goto 99                                       !--> ERROR
           endif
           itrc=itrc+1
-          ierr=nf_fwrite(photoc_diat_avg(START_2D_ARRAY,1), 
-     &         ncid_bgc_flux_avg,vid_bec_flux_avg(itrc), record, r3dvar)
+          ierr=ncf_fwrite(photoc_diat_avg(START_2D_ARRAY,1), 
+     &         ncid_bgc_flux_avg,vid_bec_flux_avg(itrc), record, r_var, N)
           if (ierr .ne. nf_noerr) then
             lvar=lenstr(vname_bgcflux(1,itrc))
             write(stdout,1) vname_bgcflux(1,itrc)(1:lvar), record,
@@ -511,8 +511,8 @@
             goto 99                                       !--> ERROR
           endif
           itrc=itrc+1
-          ierr=nf_fwrite(tot_prod_avg(START_2D_ARRAY,1), 
-     &         ncid_bgc_flux_avg,vid_bec_flux_avg(itrc), record, r3dvar)
+          ierr=ncf_fwrite(tot_prod_avg(START_2D_ARRAY,1), 
+     &         ncid_bgc_flux_avg,vid_bec_flux_avg(itrc), record, r_var, N)
           if (ierr .ne. nf_noerr) then
             lvar=lenstr(vname_bgcflux(1,itrc))
             write(stdout,1) vname_bgcflux(1,itrc)(1:lvar), record,
@@ -520,8 +520,8 @@
             goto 99                                       !--> ERROR
           endif
           itrc=itrc+1
-          ierr=nf_fwrite(doc_prod_avg(START_2D_ARRAY,1), 
-     &         ncid_bgc_flux_avg,vid_bec_flux_avg(itrc), record, r3dvar)
+          ierr=ncf_fwrite(doc_prod_avg(START_2D_ARRAY,1), 
+     &         ncid_bgc_flux_avg,vid_bec_flux_avg(itrc), record, r_var, N)
           if (ierr .ne. nf_noerr) then
             lvar=lenstr(vname_bgcflux(1,itrc))
             write(stdout,1) vname_bgcflux(1,itrc)(1:lvar), record,
@@ -529,8 +529,8 @@
             goto 99                                       !--> ERROR
           endif
           itrc=itrc+1
-          ierr=nf_fwrite(doc_remin_avg(START_2D_ARRAY,1), 
-     &         ncid_bgc_flux_avg,vid_bec_flux_avg(itrc), record, r3dvar)
+          ierr=ncf_fwrite(doc_remin_avg(START_2D_ARRAY,1), 
+     &         ncid_bgc_flux_avg,vid_bec_flux_avg(itrc), record, r_var, N)
           if (ierr .ne. nf_noerr) then
             lvar=lenstr(vname_bgcflux(1,itrc))
             write(stdout,1) vname_bgcflux(1,itrc)(1:lvar), record,
@@ -538,8 +538,8 @@
             goto 99                                       !--> ERROR
           endif
           itrc=itrc+1
-          ierr=nf_fwrite(fe_scavenge_avg(START_2D_ARRAY,1), 
-     &         ncid_bgc_flux_avg,vid_bec_flux_avg(itrc), record, r3dvar)
+          ierr=ncf_fwrite(fe_scavenge_avg(START_2D_ARRAY,1), 
+     &         ncid_bgc_flux_avg,vid_bec_flux_avg(itrc), record, r_var, N)
           if (ierr .ne. nf_noerr) then
             lvar=lenstr(vname_bgcflux(1,itrc))
             write(stdout,1) vname_bgcflux(1,itrc)(1:lvar), record,
@@ -547,8 +547,8 @@
             goto 99                                       !--> ERROR
           endif
           itrc=itrc+1
-          ierr=nf_fwrite(sp_n_lim_avg(START_2D_ARRAY,1), 
-     &         ncid_bgc_flux_avg,vid_bec_flux_avg(itrc), record, r3dvar)
+          ierr=ncf_fwrite(sp_n_lim_avg(START_2D_ARRAY,1), 
+     &         ncid_bgc_flux_avg,vid_bec_flux_avg(itrc), record, r_var, N)
           if (ierr .ne. nf_noerr) then
             lvar=lenstr(vname_bgcflux(1,itrc))
             write(stdout,1) vname_bgcflux(1,itrc)(1:lvar), record,
@@ -556,8 +556,8 @@
             goto 99                                       !--> ERROR
           endif
           itrc=itrc+1
-          ierr=nf_fwrite(sp_fe_lim_avg(START_2D_ARRAY,1), 
-     &         ncid_bgc_flux_avg,vid_bec_flux_avg(itrc), record, r3dvar)
+          ierr=ncf_fwrite(sp_fe_lim_avg(START_2D_ARRAY,1), 
+     &         ncid_bgc_flux_avg,vid_bec_flux_avg(itrc), record, r_var, N)
           if (ierr .ne. nf_noerr) then
             lvar=lenstr(vname_bgcflux(1,itrc))
             write(stdout,1) vname_bgcflux(1,itrc)(1:lvar), record,
@@ -565,8 +565,8 @@
             goto 99                                       !--> ERROR
           endif
           itrc=itrc+1
-          ierr=nf_fwrite(sp_po4_lim_avg(START_2D_ARRAY,1), 
-     &         ncid_bgc_flux_avg,vid_bec_flux_avg(itrc), record, r3dvar)
+          ierr=ncf_fwrite(sp_po4_lim_avg(START_2D_ARRAY,1), 
+     &         ncid_bgc_flux_avg,vid_bec_flux_avg(itrc), record, r_var, N)
           if (ierr .ne. nf_noerr) then
             lvar=lenstr(vname_bgcflux(1,itrc))
             write(stdout,1) vname_bgcflux(1,itrc)(1:lvar), record,
@@ -574,8 +574,8 @@
             goto 99                                       !--> ERROR
           endif
           itrc=itrc+1
-          ierr=nf_fwrite(sp_light_lim_avg(START_2D_ARRAY,1), 
-     &         ncid_bgc_flux_avg,vid_bec_flux_avg(itrc), record, r3dvar)
+          ierr=ncf_fwrite(sp_light_lim_avg(START_2D_ARRAY,1), 
+     &         ncid_bgc_flux_avg,vid_bec_flux_avg(itrc), record, r_var, N)
           if (ierr .ne. nf_noerr) then
             lvar=lenstr(vname_bgcflux(1,itrc))
             write(stdout,1) vname_bgcflux(1,itrc)(1:lvar), record,
@@ -583,8 +583,8 @@
             goto 99                                       !--> ERROR
           endif
           itrc=itrc+1
-          ierr=nf_fwrite(diat_n_lim_avg(START_2D_ARRAY,1), 
-     &         ncid_bgc_flux_avg,vid_bec_flux_avg(itrc), record, r3dvar)
+          ierr=ncf_fwrite(diat_n_lim_avg(START_2D_ARRAY,1), 
+     &         ncid_bgc_flux_avg,vid_bec_flux_avg(itrc), record, r_var, N)
           if (ierr .ne. nf_noerr) then
             lvar=lenstr(vname_bgcflux(1,itrc))
             write(stdout,1) vname_bgcflux(1,itrc)(1:lvar), record,
@@ -592,8 +592,8 @@
             goto 99                                       !--> ERROR
           endif
           itrc=itrc+1
-          ierr=nf_fwrite(diat_fe_lim_avg(START_2D_ARRAY,1), 
-     &         ncid_bgc_flux_avg,vid_bec_flux_avg(itrc), record, r3dvar)
+          ierr=ncf_fwrite(diat_fe_lim_avg(START_2D_ARRAY,1), 
+     &         ncid_bgc_flux_avg,vid_bec_flux_avg(itrc), record, r_var, N)
           if (ierr .ne. nf_noerr) then
             lvar=lenstr(vname_bgcflux(1,itrc))
             write(stdout,1) vname_bgcflux(1,itrc)(1:lvar), record,
@@ -601,8 +601,8 @@
             goto 99                                       !--> ERROR
           endif
           itrc=itrc+1
-          ierr=nf_fwrite(diat_po4_lim_avg(START_2D_ARRAY,1), 
-     &         ncid_bgc_flux_avg,vid_bec_flux_avg(itrc), record, r3dvar)
+          ierr=ncf_fwrite(diat_po4_lim_avg(START_2D_ARRAY,1), 
+     &         ncid_bgc_flux_avg,vid_bec_flux_avg(itrc), record, r_var, N)
           if (ierr .ne. nf_noerr) then
             lvar=lenstr(vname_bgcflux(1,itrc))
             write(stdout,1) vname_bgcflux(1,itrc)(1:lvar), record,
@@ -610,8 +610,8 @@
             goto 99                                       !--> ERROR
           endif
           itrc=itrc+1
-          ierr=nf_fwrite(diat_sio3_lim_avg(START_2D_ARRAY,1),
-     &         ncid_bgc_flux_avg,vid_bec_flux_avg(itrc), record, r3dvar)
+          ierr=ncf_fwrite(diat_sio3_lim_avg(START_2D_ARRAY,1),
+     &         ncid_bgc_flux_avg,vid_bec_flux_avg(itrc), record, r_var, N)
           if (ierr .ne. nf_noerr) then
             lvar=lenstr(vname_bgcflux(1,itrc))
             write(stdout,1) vname_bgcflux(1,itrc)(1:lvar), record,
@@ -619,8 +619,8 @@
             goto 99                                       !--> ERROR
           endif
           itrc=itrc+1
-          ierr=nf_fwrite(diat_light_lim_avg(START_2D_ARRAY,1), 
-     &         ncid_bgc_flux_avg,vid_bec_flux_avg(itrc), record, r3dvar)
+          ierr=ncf_fwrite(diat_light_lim_avg(START_2D_ARRAY,1), 
+     &         ncid_bgc_flux_avg,vid_bec_flux_avg(itrc), record, r_var, N)
           if (ierr .ne. nf_noerr) then
             lvar=lenstr(vname_bgcflux(1,itrc))
             write(stdout,1) vname_bgcflux(1,itrc)(1:lvar), record,
@@ -628,8 +628,8 @@
             goto 99                                       !--> ERROR
           endif
           itrc=itrc+1
-          ierr=nf_fwrite(caco3_form_avg(START_2D_ARRAY,1), 
-     &         ncid_bgc_flux_avg,vid_bec_flux_avg(itrc), record, r3dvar)
+          ierr=ncf_fwrite(caco3_form_avg(START_2D_ARRAY,1), 
+     &         ncid_bgc_flux_avg,vid_bec_flux_avg(itrc), record, r_var, N)
           if (ierr .ne. nf_noerr) then
             lvar=lenstr(vname_bgcflux(1,itrc))
             write(stdout,1) vname_bgcflux(1,itrc)(1:lvar), record,
@@ -637,8 +637,8 @@
             goto 99                                       !--> ERROR
           endif
           itrc=itrc+1
-          ierr=nf_fwrite(diaz_nfix_avg(START_2D_ARRAY,1), 
-     &         ncid_bgc_flux_avg,vid_bec_flux_avg(itrc), record, r3dvar)
+          ierr=ncf_fwrite(diaz_nfix_avg(START_2D_ARRAY,1), 
+     &         ncid_bgc_flux_avg,vid_bec_flux_avg(itrc), record, r_var, N)
           if (ierr .ne. nf_noerr) then
             lvar=lenstr(vname_bgcflux(1,itrc))
             write(stdout,1) vname_bgcflux(1,itrc)(1:lvar), record,
@@ -646,8 +646,8 @@
             goto 99                                       !--> ERROR
           endif
           itrc=itrc+1
-          ierr=nf_fwrite(graze_diaz_avg(START_2D_ARRAY,1), 
-     &         ncid_bgc_flux_avg,vid_bec_flux_avg(itrc), record, r3dvar)
+          ierr=ncf_fwrite(graze_diaz_avg(START_2D_ARRAY,1), 
+     &         ncid_bgc_flux_avg,vid_bec_flux_avg(itrc), record, r_var, N)
           if (ierr .ne. nf_noerr) then
             lvar=lenstr(vname_bgcflux(1,itrc))
             write(stdout,1) vname_bgcflux(1,itrc)(1:lvar), record,
@@ -655,8 +655,8 @@
             goto 99                                       !--> ERROR
           endif
           itrc=itrc+1
-          ierr=nf_fwrite(diaz_loss_avg(START_2D_ARRAY,1), 
-     &         ncid_bgc_flux_avg,vid_bec_flux_avg(itrc), record, r3dvar)
+          ierr=ncf_fwrite(diaz_loss_avg(START_2D_ARRAY,1), 
+     &         ncid_bgc_flux_avg,vid_bec_flux_avg(itrc), record, r_var, N)
           if (ierr .ne. nf_noerr) then
             lvar=lenstr(vname_bgcflux(1,itrc))
             write(stdout,1) vname_bgcflux(1,itrc)(1:lvar), record,
@@ -664,8 +664,8 @@
             goto 99                                       !--> ERROR
           endif
           itrc=itrc+1
-          ierr=nf_fwrite(photoc_diaz_avg(START_2D_ARRAY,1), 
-     &         ncid_bgc_flux_avg,vid_bec_flux_avg(itrc), record, r3dvar)
+          ierr=ncf_fwrite(photoc_diaz_avg(START_2D_ARRAY,1), 
+     &         ncid_bgc_flux_avg,vid_bec_flux_avg(itrc), record, r_var, N)
           if (ierr .ne. nf_noerr) then
             lvar=lenstr(vname_bgcflux(1,itrc))
             write(stdout,1) vname_bgcflux(1,itrc)(1:lvar), record,
@@ -673,8 +673,8 @@
             goto 99                                       !--> ERROR
           endif
           itrc=itrc+1
-          ierr=nf_fwrite(diaz_p_lim_avg(START_2D_ARRAY,1), 
-     &         ncid_bgc_flux_avg,vid_bec_flux_avg(itrc), record, r3dvar)
+          ierr=ncf_fwrite(diaz_p_lim_avg(START_2D_ARRAY,1), 
+     &         ncid_bgc_flux_avg,vid_bec_flux_avg(itrc), record, r_var, N)
           if (ierr .ne. nf_noerr) then
             lvar=lenstr(vname_bgcflux(1,itrc))
             write(stdout,1) vname_bgcflux(1,itrc)(1:lvar), record,
@@ -682,8 +682,8 @@
             goto 99                                       !--> ERROR
           endif
           itrc=itrc+1
-          ierr=nf_fwrite(diaz_fe_lim_avg(START_2D_ARRAY,1), 
-     &         ncid_bgc_flux_avg,vid_bec_flux_avg(itrc), record, r3dvar)
+          ierr=ncf_fwrite(diaz_fe_lim_avg(START_2D_ARRAY,1), 
+     &         ncid_bgc_flux_avg,vid_bec_flux_avg(itrc), record, r_var, N)
           if (ierr .ne. nf_noerr) then
             lvar=lenstr(vname_bgcflux(1,itrc))
             write(stdout,1) vname_bgcflux(1,itrc)(1:lvar), record,
@@ -691,8 +691,8 @@
             goto 99                                       !--> ERROR
           endif
           itrc=itrc+1
-          ierr=nf_fwrite(diaz_light_lim_avg(START_2D_ARRAY,1),
-     &         ncid_bgc_flux_avg,vid_bec_flux_avg(itrc), record, r3dvar)
+          ierr=ncf_fwrite(diaz_light_lim_avg(START_2D_ARRAY,1),
+     &         ncid_bgc_flux_avg,vid_bec_flux_avg(itrc), record, r_var, N)
           if (ierr .ne. nf_noerr) then
             lvar=lenstr(vname_bgcflux(1,itrc))
             write(stdout,1) vname_bgcflux(1,itrc)(1:lvar), record,
@@ -700,8 +700,8 @@
             goto 99                                       !--> ERROR
           endif
           itrc=itrc+1
-          ierr=nf_fwrite(fe_scavenge_rate_avg(START_2D_ARRAY,1), 
-     &         ncid_bgc_flux_avg,vid_bec_flux_avg(itrc), record, r3dvar)
+          ierr=ncf_fwrite(fe_scavenge_rate_avg(START_2D_ARRAY,1), 
+     &         ncid_bgc_flux_avg,vid_bec_flux_avg(itrc), record, r_var, N)
           if (ierr .ne. nf_noerr) then
             lvar=lenstr(vname_bgcflux(1,itrc))
             write(stdout,1) vname_bgcflux(1,itrc)(1:lvar), record,
@@ -709,8 +709,8 @@
             goto 99                                       !--> ERROR
           endif
           itrc=itrc+1
-          ierr=nf_fwrite(don_prod_avg(START_2D_ARRAY,1), 
-     &         ncid_bgc_flux_avg,vid_bec_flux_avg(itrc), record, r3dvar)
+          ierr=ncf_fwrite(don_prod_avg(START_2D_ARRAY,1), 
+     &         ncid_bgc_flux_avg,vid_bec_flux_avg(itrc), record, r_var, N)
           if (ierr .ne. nf_noerr) then
             lvar=lenstr(vname_bgcflux(1,itrc))
             write(stdout,1) vname_bgcflux(1,itrc)(1:lvar), record,
@@ -718,8 +718,8 @@
             goto 99                                       !--> ERROR
           endif
           itrc=itrc+1
-           ierr=nf_fwrite(don_remin_avg(START_2D_ARRAY,1), 
-     &         ncid_bgc_flux_avg,vid_bec_flux_avg(itrc), record, r3dvar)
+           ierr=ncf_fwrite(don_remin_avg(START_2D_ARRAY,1), 
+     &         ncid_bgc_flux_avg,vid_bec_flux_avg(itrc), record, r_var, N)
           if (ierr .ne. nf_noerr) then
             lvar=lenstr(vname_bgcflux(1,itrc))
             write(stdout,1) vname_bgcflux(1,itrc)(1:lvar), record,
@@ -727,8 +727,8 @@
             goto 99                                       !--> ERROR
           endif
           itrc=itrc+1
-          ierr=nf_fwrite(dofe_prod_avg(START_2D_ARRAY,1), 
-     &         ncid_bgc_flux_avg,vid_bec_flux_avg(itrc), record, r3dvar)
+          ierr=ncf_fwrite(dofe_prod_avg(START_2D_ARRAY,1), 
+     &         ncid_bgc_flux_avg,vid_bec_flux_avg(itrc), record, r_var, N)
           if (ierr .ne. nf_noerr) then
             lvar=lenstr(vname_bgcflux(1,itrc))
             write(stdout,1) vname_bgcflux(1,itrc)(1:lvar), record,
@@ -736,8 +736,8 @@
             goto 99                                       !--> ERROR
           endif
           itrc=itrc+1
-          ierr=nf_fwrite(dofe_remin_avg(START_2D_ARRAY,1), 
-     &         ncid_bgc_flux_avg,vid_bec_flux_avg(itrc), record, r3dvar)
+          ierr=ncf_fwrite(dofe_remin_avg(START_2D_ARRAY,1), 
+     &         ncid_bgc_flux_avg,vid_bec_flux_avg(itrc), record, r_var, N)
           if (ierr .ne. nf_noerr) then
             lvar=lenstr(vname_bgcflux(1,itrc))
             write(stdout,1) vname_bgcflux(1,itrc)(1:lvar), record,
@@ -745,8 +745,8 @@
             goto 99                                       !--> ERROR
           endif
           itrc=itrc+1
-          ierr=nf_fwrite(dop_prod_avg(START_2D_ARRAY,1), 
-     &         ncid_bgc_flux_avg,vid_bec_flux_avg(itrc), record, r3dvar)
+          ierr=ncf_fwrite(dop_prod_avg(START_2D_ARRAY,1), 
+     &         ncid_bgc_flux_avg,vid_bec_flux_avg(itrc), record, r_var, N)
           if (ierr .ne. nf_noerr) then
             lvar=lenstr(vname_bgcflux(1,itrc))
             write(stdout,1) vname_bgcflux(1,itrc)(1:lvar), record,
@@ -754,8 +754,8 @@
             goto 99                                       !--> ERROR
           endif
           itrc=itrc+1
-           ierr=nf_fwrite(dop_remin_avg(START_2D_ARRAY,1), 
-     &         ncid_bgc_flux_avg,vid_bec_flux_avg(itrc), record, r3dvar)
+           ierr=ncf_fwrite(dop_remin_avg(START_2D_ARRAY,1), 
+     &         ncid_bgc_flux_avg,vid_bec_flux_avg(itrc), record, r_var, N)
           if (ierr .ne. nf_noerr) then
             lvar=lenstr(vname_bgcflux(1,itrc))
             write(stdout,1) vname_bgcflux(1,itrc)(1:lvar), record,
@@ -763,8 +763,8 @@
             goto 99                                       !--> ERROR
           endif
           itrc=itrc+1
-          ierr=nf_fwrite(bsi_form_avg(START_2D_ARRAY,1), 
-     &         ncid_bgc_flux_avg,vid_bec_flux_avg(itrc), record, r3dvar)
+          ierr=ncf_fwrite(bsi_form_avg(START_2D_ARRAY,1), 
+     &         ncid_bgc_flux_avg,vid_bec_flux_avg(itrc), record, r_var, N)
           if (ierr .ne. nf_noerr) then
             lvar=lenstr(vname_bgcflux(1,itrc))
             write(stdout,1) vname_bgcflux(1,itrc)(1:lvar), record,
@@ -772,8 +772,8 @@
             goto 99                                       !--> ERROR
           endif
           itrc=itrc+1
-          ierr=nf_fwrite(photofe_diaz_avg(START_2D_ARRAY,1), 
-     &         ncid_bgc_flux_avg,vid_bec_flux_avg(itrc), record, r3dvar)
+          ierr=ncf_fwrite(photofe_diaz_avg(START_2D_ARRAY,1), 
+     &         ncid_bgc_flux_avg,vid_bec_flux_avg(itrc), record, r_var, N)
           if (ierr .ne. nf_noerr) then
             lvar=lenstr(vname_bgcflux(1,itrc))
             write(stdout,1) vname_bgcflux(1,itrc)(1:lvar), record,
@@ -781,8 +781,8 @@
             goto 99                                       !--> ERROR
           endif
           itrc=itrc+1
-          ierr=nf_fwrite(photofe_diat_avg(START_2D_ARRAY,1), 
-     &         ncid_bgc_flux_avg,vid_bec_flux_avg(itrc), record, r3dvar)
+          ierr=ncf_fwrite(photofe_diat_avg(START_2D_ARRAY,1), 
+     &         ncid_bgc_flux_avg,vid_bec_flux_avg(itrc), record, r_var, N)
           if (ierr .ne. nf_noerr) then
             lvar=lenstr(vname_bgcflux(1,itrc))
             write(stdout,1) vname_bgcflux(1,itrc)(1:lvar), record,
@@ -790,8 +790,8 @@
             goto 99                                       !--> ERROR
           endif
           itrc=itrc+1
-          ierr=nf_fwrite(photofe_sp_avg(START_2D_ARRAY,1), 
-     &         ncid_bgc_flux_avg,vid_bec_flux_avg(itrc), record, r3dvar)
+          ierr=ncf_fwrite(photofe_sp_avg(START_2D_ARRAY,1), 
+     &         ncid_bgc_flux_avg,vid_bec_flux_avg(itrc), record, r_var, N)
           if (ierr .ne. nf_noerr) then
             lvar=lenstr(vname_bgcflux(1,itrc))
             write(stdout,1) vname_bgcflux(1,itrc)(1:lvar), record,
@@ -799,8 +799,8 @@
             goto 99                                       !--> ERROR
           endif
           itrc=itrc+1
-          ierr=nf_fwrite(nitrif_avg(START_2D_ARRAY,1),ncid_bgc_flux_avg,
-     &                          vid_bec_flux_avg(itrc), record, r3dvar)
+          ierr=ncf_fwrite(nitrif_avg(START_2D_ARRAY,1),ncid_bgc_flux_avg,
+     &                          vid_bec_flux_avg(itrc), record, r_var, N)
           if (ierr .ne. nf_noerr) then
             lvar=lenstr(vname_bgcflux(1,itrc))
             write(stdout,1) vname_bgcflux(1,itrc)(1:lvar), record,
@@ -809,8 +809,8 @@
           endif
 #ifdef OXYLIM_BEC
           itrc=itrc+1
-          ierr=nf_fwrite(denitr_DOC_avg(START_2D_ARRAY,1),ncid_bgc_flux_avg,
-     &                          vid_bec_flux_avg(itrc), record, r3dvar)
+          ierr=ncf_fwrite(denitr_DOC_avg(START_2D_ARRAY,1),ncid_bgc_flux_avg,
+     &                          vid_bec_flux_avg(itrc), record, r_var, N)
           if (ierr .ne. nf_noerr) then
             lvar=lenstr(vname_bgcflux(1,itrc))
             write(stdout,1) vname_bgcflux(1,itrc)(1:lvar), record,
@@ -818,8 +818,8 @@
             goto 99                                       !--> ERROR
           endif
           itrc=itrc+1
-          ierr=nf_fwrite(denitr_POC_avg(START_2D_ARRAY,1),ncid_bgc_flux_avg,
-     &                          vid_bec_flux_avg(itrc), record, r3dvar)
+          ierr=ncf_fwrite(denitr_POC_avg(START_2D_ARRAY,1),ncid_bgc_flux_avg,
+     &                          vid_bec_flux_avg(itrc), record, r_var, N)
           if (ierr .ne. nf_noerr) then
             lvar=lenstr(vname_bgcflux(1,itrc))
             write(stdout,1) vname_bgcflux(1,itrc)(1:lvar), record,

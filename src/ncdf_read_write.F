@@ -3,6 +3,24 @@
 
       function ncdf_read(ncid, varid, record, horiz_type, A, nmax)
 #else
+!=================
+! Wrapper function for argument order of ncdf_write. Note that this 
+!    function one has one more argument, "nmax" than the old 
+!    "nf_fwrite". It exists solely out of lazyness me, mm,
+!    to edit by hand over 100 calls to nf_fwrite or write some script 
+!    to edit the nf_fwrite calls in the wrt_bec_flux
+!    routines, which are about to be rewritten anyways.
+!
+!     *** Hopefully is soon becomes obsolete. ***
+!
+      function    ncf_fwrite(A, ncid, varid, record, horiz_type, nmax)
+      integer ::  ncf_fwrite  , ncid, varid, record, horiz_type, nmax
+#include "param.h"
+      real A(GLOBAL_2D_ARRAY,nmax)
+      ncf_fwrite = ncdf_write(ncid, varid, record, horiz_type, A, nmax)
+      return
+      end
+!=================
       function ncdf_write(ncid, varid, record, horiz_type, A, nmax)
 #endif
 
