@@ -302,6 +302,15 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
 #  define vidW slavgW
 #  define vidAkv slavgAkv
 #  define vidAkt slavgAkt
+# if defined WRITE_HEATFLX
+#  define vidHeatflx slavgHeatflx
+# endif
+# if defined WRITE_TEMP_REST
+#  define vidRestflxTemp slavgRestflxTemp
+# endif
+# if defined WRITE_SALT_REST
+#  define vidRestflxSalt slavgRestflxSalt
+# endif
 #  define NVDIM 3
 #  define RGRD r2dgrd
 #  define UGRD u2dgrd

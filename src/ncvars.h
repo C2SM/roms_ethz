@@ -255,7 +255,7 @@
 #endif /* STATIONS */
 
 #ifdef SOLVE3D
-# define NWRTHIS 16+NT-2
+# define NWRTHIS 16+NT-2+4  /* +4 to accomodate writing of Heatflx, TEMP-, SALT REST, CO2FLX */
 !mm old: # define NWRTHIS 100+NT
 #endif
       logical ldefhis, wrthis(NWRTHIS)
@@ -378,6 +378,9 @@
 #  ifdef AVERAGES
      &      , avgHeatflx
 #  endif
+#ifdef SLICE_AVG
+     &      , slavgHeatflx
+#  endif
       common /ncvars/ hisHeatflx
 #  ifdef AVERAGES
      &      , avgHeatflx
@@ -389,10 +392,15 @@
 #  ifdef AVERAGES
      &      , avgRestflxTemp
 #  endif
+#ifdef SLICE_AVG
+     &      , slavgRestflxTemp
+#  endif
       common /ncvars/ hisRestflxTemp
 #  ifdef AVERAGES
      &              , avgRestflxTemp
 #  endif
+#ifdef SLICE_AVG
+     &      , slavgRestflxTemp
 # endif /* WRITE_TEMP_REST */
 
 # ifdef WRITE_SALT_REST
@@ -400,10 +408,15 @@
 #  ifdef AVERAGES
      &      , avgRestflxSalt
 #  endif
+#ifdef SLICE_AVG
+     &      , slavgRestflxSalt
+# endif /* WRITE_SALT_REST */
       common /ncvars/ hisRestflxSalt
 #  ifdef AVERAGES
      &              , avgRestflxSalt
 #  endif
+#ifdef SLICE_AVG
+     &      , slavgRestflxSalt
 # endif /* WRITE_SALT_REST */
 
 # ifdef WRITE_DEPTHS
@@ -411,9 +424,15 @@
 #  ifdef AVERAGES
      &      , avgz_r, avgz_w, avgHz
 #  endif
+#  ifdef SLICE_AVG
+     &      , slavgz_r, slavgz_w, slavgHz
+#  endif
       common /ncvars/ hisz_r, hisz_w, hisHz
 #  ifdef AVERAGES
      &              , avgz_r, avgz_w, avgHz
+#  endif
+#  ifdef SLICE_AVG
+     &      , slavgz_r, slavgz_w, slavgHz
 #  endif
 # endif /* WRITE_DEPTHS */
 

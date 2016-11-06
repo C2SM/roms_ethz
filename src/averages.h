@@ -168,6 +168,21 @@ CSDISTRIBUTE_RESHAPE akt_slavg(BLOCK_PATTERN) BLOCK_CLAUSE
 CSDISTRIBUTE_RESHAPE aks_slavg(BLOCK_PATTERN) BLOCK_CLAUSE
       common /slavg_aks/aks_slavg
 #  endif
+#  ifdef WRITE_HEATFLX
+      real heatflx_slavg(GLOBAL_2D_ARRAY)
+CSDISTRIBUTE_RESHAPE heatflx_slavg(BLOCK_PATTERN) BLOCK_CLAUSE
+      common /slavg_heatflx/heatflx_slavg
+#  endif
+#  if defined QCORRECTION && defined WRITE_TEMP_REST
+      real restflx_temp_slavg(GLOBAL_2D_ARRAY)
+CSDISTRIBUTE_RESHAPE restflx_temp_slavg(BLOCK_PATTERN) BLOCK_CLAUSE
+      common /slavg_restflx_temp/restflx_temp_slavg
+#  endif /* QCORRECTION && WRITE_TEMP_REST */
+#  if defined SFLX_CORR && defined WRITE_SALT_REST
+      real restflx_salt_slavg(GLOBAL_2D_ARRAY)
+CSDISTRIBUTE_RESHAPE restflx_salt_slavg(BLOCK_PATTERN) BLOCK_CLAUSE
+      common /slavg_restflx_salt/restflx_salt_slavg
+#  endif /* SFLX_CORR && WRITE_SALT_REST */
 #  ifdef LMD_KPP
       real hbl_slavg(GLOBAL_2D_ARRAY)
 CSDISTRIBUTE_RESHAPE hbl_slavg(BLOCK_PATTERN) BLOCK_CLAUSE

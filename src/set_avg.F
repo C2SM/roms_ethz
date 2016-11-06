@@ -97,6 +97,15 @@
 #  define aks_AVR(i,j,k) aks_slavg(i,j)
 #  define akt_AVR(i,j,k) akt_slavg(i,j)
 #  define akv_AVR(i,j,k) akv_slavg(i,j)
+#  if defined WRITE_HEATFLX
+#   define heatflx_AVR(i,j) heatflx_slavg(i,j)
+#  endif
+#  if defined WRITE_TEMP_REST
+#   define restflx_temp_AVR(i,j) restflx_temp_slavg(i,j)
+#  endif
+#  if defined WRITE_SALT_REST
+#   define restflx_salt_AVR(i,j) restflx_salt_slavg(i,j)
+#  endif
 #  define rich_AVR(i,j,k) rich_slavg(i,j)
 #  define richN_AVR(i,j,k) richN_slavg(i,j)
 #  define swr_frac_AVR(i,j,k) swr_frac_slavg(i,j)

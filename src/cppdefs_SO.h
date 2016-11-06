@@ -45,7 +45,7 @@
 #define LMD_LIMIT_STABLE
 #define LMD_DDMIX
 #define LMD_BKPP
-!-- #define SO_AH16
+#define SO_AH16
 #ifdef SO_AH16
 # undef LMD_CONVEC
 # define LMD_MIN_KPP
@@ -56,6 +56,10 @@
      /* Output */
 #define AVERAGES
 #define SLICE_AVG
+#define WRITE_HEATFLX
+#define WRITE_SALT_REST
+#define WRITE_TEMP_REST
+#define WRITE_CO2FLX
 
      /* Biology */
 #define BIOLOGY_BEC2
