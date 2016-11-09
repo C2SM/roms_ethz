@@ -755,6 +755,9 @@ c-->    elseif (keyword(1:kwlen) == 'nudg_cof') then
 # if defined WRITE_SALT_REST
      &                                            ,  wrthis(indxRestflxSalt)
 # endif
+# if defined  WRITE_CO2FLX
+     &                                            ,  wrthis(indxCO2flx)
+# endif
 
       BEGIN_MPI_MASTER
       naux=3 ! omega, w, rho
