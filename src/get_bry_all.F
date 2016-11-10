@@ -492,7 +492,7 @@
 #    ifdef DEFAULT_BRY_VALUES
                   if (ierr /= nf_noerr)  then
                     call set_bry_defaults(t_west_dt,itrc,itbry,Mm+1)
-                    print 3, trim(vname(1,indxT-1+itrc)
+                    print 3, trim(vname(1,indxT-1+itrc))
      &                   , t_west_dt(0,1,itbry,itrc) MYID
                     ierr=nf_noerr
                   endif
@@ -537,7 +537,7 @@
 #    ifdef DEFAULT_BRY_VALUES
                   if (ierr /= nf_noerr)  then
                     call set_bry_defaults(t_east_dt,itrc,itbry,Mm+1)
-                    print 3, trim(vname(1,indxT-1+itrc)
+                    print 3, trim(vname(1,indxT-1+itrc))
      &                   , t_east_dt(0,1,itbry,itrc) MYID
                     ierr=nf_noerr
                   endif
@@ -583,7 +583,7 @@
 #    ifdef DEFAULT_BRY_VALUES
                   if (ierr /= nf_noerr)  then
                     call set_bry_defaults(t_south_dt,itrc,itbry,Lm+1)
-                    print 3, trim(vname(1,indxT-1+itrc)
+                    print 3, trim(vname(1,indxT-1+itrc))
      &                   , t_south_dt(0,1,itbry,itrc) MYID
                     ierr=nf_noerr
                   endif
