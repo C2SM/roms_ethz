@@ -34,16 +34,16 @@
 #  define aks_AVR(i,j,k) aks_avg(i,j,k)
 #  define akt_AVR(i,j,k) akt_avg(i,j,k)
 #  define akv_AVR(i,j,k) akv_avg(i,j,k)
-#  if defined WRITE_CO2FLX
+#  ifdef WRITE_CO2FLX
 #   define co2flx_AVR(i,j) co2flx_avg(i,j)
 #  endif
-#  if defined WRITE_HEATFLX
+#  ifdef WRITE_HEATFLX
 #   define heatflx_AVR(i,j) heatflx_avg(i,j)
 #  endif
-#  if defined WRITE_TEMP_REST
+#  ifdef WRITE_TEMP_REST
 #   define restflx_temp_AVR(i,j) restflx_temp_avg(i,j)
 #  endif
-#  if defined WRITE_SALT_REST
+#  ifdef WRITE_SALT_REST
 #   define restflx_salt_AVR(i,j) restflx_salt_avg(i,j)
 #  endif
 #  define rich_AVR(i,j,k) rich_avg(i,j,k)
@@ -71,9 +71,9 @@
 #   define PARinc_AVR PARinc_avg
 #  endif /* BIOLOGY_BEC */
 #  ifdef WRITE_DEPTHS
-#    define Hz_AVR Hz_avg
-#    define z_r_AVR z_r_avg
-#    define z_w_AVR z_w_avg
+#   define Hz_AVR Hz_avg
+#   define z_r_AVR z_r_avg
+#   define z_w_AVR z_w_avg
 #  endif /* WRITE_DEPTHS */
 #  if defined BIOLOGY_BEC2 && defined BEC2_DIAG
 #   define bec2_diag_2d_AVR bec2_diag_2d_avg
@@ -100,16 +100,16 @@
 #  define aks_AVR(i,j,k) aks_slavg(i,j)
 #  define akt_AVR(i,j,k) akt_slavg(i,j)
 #  define akv_AVR(i,j,k) akv_slavg(i,j)
-#  if defined WRITE_CO2FLX
+#  ifdef WRITE_CO2FLX
 #   define co2flx_AVR(i,j) co2flx_slavg(i,j)
 #  endif
-#  if defined WRITE_HEATFLX
+#  ifdef WRITE_HEATFLX
 #   define heatflx_AVR(i,j) heatflx_slavg(i,j)
 #  endif
-#  if defined WRITE_TEMP_REST
+#  ifdef WRITE_TEMP_REST
 #   define restflx_temp_AVR(i,j) restflx_temp_slavg(i,j)
 #  endif
-#  if defined WRITE_SALT_REST
+#  ifdef WRITE_SALT_REST
 #   define restflx_salt_AVR(i,j) restflx_salt_slavg(i,j)
 #  endif
 #  define rich_AVR(i,j,k) rich_slavg(i,j)
@@ -137,15 +137,15 @@
 #   define PARinc_AVR PARinc_slavg
 #  endif /* BIOLOGY_BEC */
 #  ifdef WRITE_DEPTHS
-#    define Hz_AVR(i,j,k) Hz_slavg(i,j)
-#    define z_r_AVR(i,j,k) z_r_slavg(i,j)
-#    define z_w_AVR(i,j,k) z_w_slavg(i,j)
+#   define Hz_AVR(i,j,k) Hz_slavg(i,j)
+#   define z_r_AVR(i,j,k) z_r_slavg(i,j)
+#   define z_w_AVR(i,j,k) z_w_slavg(i,j)
 #  endif /* WRITE_DEPTHS */
 #  if defined BIOLOGY_BEC2 && defined BEC2_DIAG
 #   define bec2_diag_2d_AVR bec2_diag_2d_slavg
 #   define bec2_diag_3d_AVR(i,j,k,itrc) bec2_diag_3d_slavg(i,j,itrc)
 #  endif /* BIOLOGY_BEC2 && BEC2_DIAG */
-# endif
+# endif /* AVRSLICE */
  
       subroutine set_AVR (tile)
       implicit none
@@ -195,7 +195,7 @@
      &                       , itrc
 #  ifndef AVRSLICE
      &                       , k
-# endif
+#  endif
 # endif
       real cff,cff1
 # include "param.h"
@@ -224,24 +224,24 @@
 #  include "ecosys_bec.h"
 #  include "bec_avg.h"
 # endif
-#if defined BIOLOGY_BEC2 && defined BEC2_DIAG
-# include "ecosys_bec2.h"
-#endif
+# if defined BIOLOGY_BEC2 && defined BEC2_DIAG
+#  include "ecosys_bec2.h"
+# endif
 
-#include "compute_auxiliary_bounds.h"
+# include "compute_auxiliary_bounds.h"
 
       if (iic>ntsAVR) then
         cff=1./dble(nAVR) !<-- scaling
         if (mod(iic-ntsAVR,nAVR)==1) then
           if (ZEROTH_TILE) then
             mpi_master_only write(*,'(7x,A,I8,2x,A,I8,2x,A,I5)')
-#ifdef AVRSLICE
+# ifdef AVRSLICE
      &          'set_slavg :: started slice averaging at iic=', iic,
      &                          'ntsslavg=', ntsAVR, 'nslavg=', nAVR
-#else
+# else
      &               'set_avg :: started averaging at iic=', iic,
      &                          'ntsavg=', ntsAVR, 'navg=', nAVR
-#endif
+# endif
           endif
           cff1=0.   !--> initialize
         else
@@ -496,7 +496,7 @@
           endif
 #  endif
 
-# ifdef WRITE_DEPTHS
+#  ifdef WRITE_DEPTHS
         KLOOP(1)
               do j=jstrR,jendR
                 do i=istrR,iendR
@@ -512,7 +512,7 @@
                 enddo
               enddo
         ENDKLOOP
-# endif /* WRITE_DEPTHS */
+#  endif /* WRITE_DEPTHS */
 
 #  if defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC
              do j=jstrR,jendR
@@ -546,7 +546,7 @@
                   enddo
 #   endif /* OXYGEN */
 
-#ifdef SEDIMENT_BIOLOGY
+#   ifdef SEDIMENT_BIOLOGY
           do itrc=1,NT_sed
              if (wrtAVR(indxSedOrgN+itrc-1)) then
                 do j=jstrR,jendR
@@ -556,7 +556,7 @@
                 enddo
              endif
           enddo
-#endif /* SEDIMENT_BIOLOGY */
+#   endif /* SEDIMENT_BIOLOGY */
 #  endif /* BIOLOGY_NPZDOC || BIOLOGY_BEC */
 #  if defined BIOLOGY_BEC2 && defined BEC2_DIAG
           do itrc=1,nr_bec2_diag_2d
@@ -636,6 +636,8 @@
 # endif
 # undef swr_frac_AVR
 # undef akv_AVR
+# undef rich_AVR
+# undef richN_AVR
 # undef KLOOP
 # undef ENDKLOOP
 # undef KLEVEL
@@ -650,10 +652,10 @@
 #   undef GasExcFlux_AVR
 #  endif
 # endif
-#  if defined BIOLOGY_BEC2 && defined BEC2_DIAG
-#   undef bec2_diag_2d_AVR
-#   undef bec2_diag_3d_AVR
-#  endif /* BIOLOGY_BEC2 && BEC2_DIAG */
+# if defined BIOLOGY_BEC2 && defined BEC2_DIAG
+#  undef bec2_diag_2d_AVR
+#  undef bec2_diag_3d_AVR
+# endif /* BIOLOGY_BEC2 && BEC2_DIAG */
 # ifdef SLICE_AVG
 #  ifndef AVRSLICE
 #   define AVRSLICE

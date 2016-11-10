@@ -30,98 +30,97 @@
 
       integer, parameter :: indxTime=1, indxZ=2, indxUb=3, indxVb=4
 #ifdef SOLVE3D
-     &                    , indxU=5, indxV=6, indxO=7, indxW=8
-     &                    , indxR=9, indxT=10
+     &       , indxU=5, indxV=6, indxO=7, indxW=8
+     &       , indxR=9, indxT=10
 # undef LAST_I
 # define LAST_I indxT
 # ifdef SALINITY
-     &                    , indxS=indxT+1
+     &       , indxS=indxT+1
 #  undef LAST_I
 #  define LAST_I indxS
 # endif
 # ifdef BIOLOGY
 #  include "tracers.h"
 # endif
-     &                    , indxAkv=indxT+NT,   indxAkt=indxAkv+1
+     &       , indxAkv=indxT+NT,   indxAkt=indxAkv+1
 # undef LAST_I
 # define LAST_I indxAkt
 # ifdef SALINITY
-     &                    , indxAks=LAST_I+1
+     &       , indxAks=LAST_I+1
 #  undef LAST_I
 #  define LAST_I indxAks
 # endif
 # ifdef LMD_KPP
-     &                    , indxHbls=LAST_I+1
+     &       , indxHbls=LAST_I+1
 #  undef LAST_I
 #  define LAST_I indxHbls
 # endif
 # ifdef LMD_BKPP
-     &                    , indxHbbl=LAST_I+1
+     &       , indxHbbl=LAST_I+1
 #  undef LAST_I
 #  define LAST_I indxHbbl
 # endif
-
 # ifdef KPP_DIAGNOSE
-      integer, parameter :: indxKppRichm=LAST_I+1, indxKppRicht=LAST_I+2
-     &           , indxKppSblSh=LAST_I+3, indxKppSblSt=LAST_I+4
-     &           , indxKppSblRot=LAST_I+5, indxKppSblEnt=LAST_I+6
+     &       , indxKppRichm=LAST_I+1, indxKppRicht=LAST_I+2
+     &       , indxKppSblSh=LAST_I+3, indxKppSblSt=LAST_I+4
+     &       , indxKppSblRot=LAST_I+5, indxKppSblEnt=LAST_I+6
 #  undef LAST_I
 #  define LAST_I indxKppSblEnt
 # endif
 # if defined WRITE_CO2FLX
-      integer, parameter :: indxCO2flx=LAST_I+1
+     &       , indxCO2flx=LAST_I+1
 #   undef LAST_I
 #   define LAST_I indxCO2flx
 # endif
 # if defined WRITE_HEATFLX
-     &                    , indxHeatflx=LAST_I+1
+     &       , indxHeatflx=LAST_I+1
 #   undef LAST_I
 #   define LAST_I indxHeatflx
 # endif
 # if defined WRITE_TEMP_REST
-     &                    , indxRestflxTemp=LAST_I+1
+     &       , indxRestflxTemp=LAST_I+1
 #   undef LAST_I
 #   define LAST_I indxRestflxTemp
 # endif
 # if defined WRITE_SALT_REST
-     &                    , indxRestflxSalt=LAST_I+1
+     &       , indxRestflxSalt=LAST_I+1
 #   undef LAST_I
 #   define LAST_I indxRestflxSalt
 # endif
 # ifdef WRITE_DEPTHS
-     &                    , indxz_r=LAST_I+1,  indxz_w=LAST_I+2
-     &                    , indxHz=LAST_I+3
+     &       , indxz_r=LAST_I+1,  indxz_w=LAST_I+2
+     &       , indxHz=LAST_I+3
 #  undef LAST_I
 #  define LAST_I indxHz
 # endif
-     &                    , indxSUSTR=LAST_I+1
-     &                    , indxSVSTR=indxSUSTR+1, indxSHFl=indxSUSTR+2
-     &                    , indxSWRad=indxSHFl+1
+     &       , indxSUSTR=LAST_I+1
+     &       , indxSVSTR=indxSUSTR+1, indxSHFl=indxSUSTR+2
+     &       , indxSWRad=indxSHFl+1
 # undef LAST_I
 # define LAST_I indxSWRad
 # ifdef SALINITY
-     &                    , indxSSFl=LAST_I+1, indxSSS=LAST_I+2
+     &       , indxSSFl=LAST_I+1, indxSSS=LAST_I+2
 #  undef LAST_I
 #  define LAST_I indxSSS
 # endif
-     &                    , indxSST=LAST_I+1
-     &                    , indxdQdSST=indxSST+1
+     &       , indxSST=LAST_I+1
+     &       , indxdQdSST=indxSST+1
 # undef LAST_I
 # define LAST_I indxdQdSST
 
 # ifdef SG_BBL96
 #  ifndef ANA_WWAVE
-     &                    , indxWWA=LAST_I+1, indxWWD=indxWWA+1
-     &                    , indxWWP=indxWWA+2
+     &       , indxWWA=LAST_I+1, indxWWD=indxWWA+1
+     &       , indxWWP=indxWWA+2
 #   undef LAST_I
 #   define LAST_I indxWWP
 #  endif
 # endif /* SG_BBL96 */
 #endif /* SOLVE3D */
 #ifdef ICE
-      integer, parameter :: indxAi=LAST_I+1     indxUi=indxAi+1,
-     &                    , indxVi=indxAi+2, indxHi=indxAi+3,
-     &                      indxHS=indxAi+4, indxTIsrf=indxAi+5
+      integer, parameter :: indxAi=LAST_I+1, indxUi=indxAi+1
+     &       , indxVi=indxAi+2, indxHi=indxAi+3
+     &       , indxHS=indxAi+4, indxTIsrf=indxAi+5
 # undef LAST_I
 # define LAST_I indxTIsrf
 #endif
@@ -129,7 +128,6 @@
 ! Length of netCDF variable "time_step"
 
       integer, parameter :: iaux=6
-
 
 ! Naming conventions for indices, variable IDs, etc...
 !------- ----------- --- -------- -------- ---- ------
@@ -407,6 +405,9 @@
 #  ifdef AVERAGES
      &      , avgHeatflx
 #  endif
+#  ifdef SLICE_AVG
+     &      , slavgHeatflx
+#  endif
 # endif /* WRITE_HEATFLX */
 
 # ifdef WRITE_TEMP_REST
@@ -414,15 +415,16 @@
 #  ifdef AVERAGES
      &      , avgRestflxTemp
 #  endif
-#ifdef SLICE_AVG
+#  ifdef SLICE_AVG
      &      , slavgRestflxTemp
 #  endif
       common /ncvars/ hisRestflxTemp
 #  ifdef AVERAGES
      &              , avgRestflxTemp
 #  endif
-#ifdef SLICE_AVG
+#  ifdef SLICE_AVG
      &      , slavgRestflxTemp
+#  endif
 # endif /* WRITE_TEMP_REST */
 
 # ifdef WRITE_SALT_REST
@@ -430,15 +432,16 @@
 #  ifdef AVERAGES
      &      , avgRestflxSalt
 #  endif
-#ifdef SLICE_AVG
+#  ifdef SLICE_AVG
      &      , slavgRestflxSalt
-# endif /* WRITE_SALT_REST */
+#  endif
       common /ncvars/ hisRestflxSalt
 #  ifdef AVERAGES
      &              , avgRestflxSalt
 #  endif
-#ifdef SLICE_AVG
+#  ifdef SLICE_AVG
      &      , slavgRestflxSalt
+#  endif /* WRITE_SALT_REST */
 # endif /* WRITE_SALT_REST */
 
 # ifdef WRITE_DEPTHS

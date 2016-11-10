@@ -231,6 +231,7 @@
 #   endif
 ! Add relaxation of surface salinity back to climatological value
 ! to avoid long-term drift
+#  endif
 #  if defined SFLX_CORR && defined SALINITY
 #   ifdef SALINITY_MASK
               if (sssg(i,j,it7) > 0. .and. sssg(i,j,it8) > 0.) then
