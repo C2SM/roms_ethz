@@ -6,6 +6,8 @@
      /* Include standard CPP switches for UP ETH Zurich */
 #include "cppdefs_UP.h"
 
+#define SO_AH16 /* Activar all switches for Southen Ocean setup */
+
      /* 1st  grid used  for amazon*/
 #define GRID_SIZE LLm=367, MMm=338, N=32
 #define  DOMAIN_TILING NP_XI=8, NP_ETA=8, NSUB_X=1, NSUB_E=1
@@ -13,16 +15,24 @@
      /* Forcing */
 
 #define SALINITY_MASK
-!--SO # define SALINITY_MASKLATSTR -48.0
-!--SO # define SALINITY_MASKLATEND -53.01
+#ifdef SO_AH16
+# define SALINITY_MASKLATSTR -48.0
+# define SALINITY_MASKLATEND -53.01
+#endif
 
 #define TSOURCE
-!--SO #define ICEOBS
+#ifdef SO_AH16
+# define ICEOBS
+#endif
 
      /* Open Boundaries */
-!--SO #define EW_PERIODIC
+#ifdef SO_AH16
+# define EW_PERIODIC
+#endif
 #define OBC_NORTH
-#define OBC_EAST
+#ifndef SO_AH16
+# define OBC_EAST
+#endif
 
      /* Open Boundary Conditions */
 #define OBC_M2FLATHER
@@ -35,7 +45,6 @@
 #define LMD_LIMIT_STABLE
 #define LMD_DDMIX
 #define LMD_BKPP
-!--SO #define SO_AH16
 #ifdef SO_AH16
 # undef LMD_CONVEC
 # define LMD_MIN_KPP
@@ -45,10 +54,12 @@
      /* Output */
 #define AVERAGES
 #define SLICE_AVG
-!--SO #define WRITE_HEATFLX
-!--SO #define WRITE_SALT_REST
-!--SO #define WRITE_TEMP_REST
-!--SO #define WRITE_CO2FLX
+#ifdef SO_AH16
+# define WRITE_HEATFLX
+# define WRITE_SALT_REST
+# define WRITE_TEMP_REST
+# define WRITE_CO2FLX
+#endif
 
      /* Biology */
 #define BIOLOGY_BEC2

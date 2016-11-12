@@ -398,7 +398,7 @@
 #  ifdef AVERAGES
      &      , avgHeatflx
 #  endif
-#ifdef SLICE_AVG
+#  ifdef SLICE_AVG
      &      , slavgHeatflx
 #  endif
       common /ncvars/ hisHeatflx
@@ -420,7 +420,7 @@
 #  endif
       common /ncvars/ hisRestflxTemp
 #  ifdef AVERAGES
-     &              , avgRestflxTemp
+     &      , avgRestflxTemp
 #  endif
 #  ifdef SLICE_AVG
      &      , slavgRestflxTemp
@@ -437,11 +437,11 @@
 #  endif
       common /ncvars/ hisRestflxSalt
 #  ifdef AVERAGES
-     &              , avgRestflxSalt
+     &      , avgRestflxSalt
 #  endif
 #  ifdef SLICE_AVG
      &      , slavgRestflxSalt
-#  endif /* WRITE_SALT_REST */
+#  endif
 # endif /* WRITE_SALT_REST */
 
 # ifdef WRITE_DEPTHS

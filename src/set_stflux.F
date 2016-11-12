@@ -229,6 +229,7 @@
 !      the mixed layer, else it is added here
      &                                 +freezing(i,j)
 #   endif
+#  endif
 ! Add relaxation of surface salinity back to climatological value
 ! to avoid long-term drift
 #  endif
