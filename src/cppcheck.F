@@ -70,11 +70,11 @@
         stop
       endif
 
-       write(*,'(/1x,2A/)') 'This is cppcheck: Creating new ',
+       write(*,'(/1x,2A)') 'This is cppcheck: Creating new ',
      &                      'version of "check_switches1.F".'
       do ifile=1,nfiles
         call getarg(ifile,fname(ifile))
-        write(*,'(/1x,2A/)') 'Processing ', fname(ifile)
+        write(*,'(1x,2A)') '   - processing: ', fname(ifile)
         open(unit=iin,file=fname(ifile),status='old',form='formatted')
         ierr=0
         count=0                 ! Reset error flag, line counter and,
@@ -226,6 +226,7 @@ c**         enddo
         fswtch(ifile+1)=nswtchs+1         ! defined.)
       enddo  !<-- ifile
 
+#ifdef VERBOSE
       write(*,'(/A,I4)')  'nswtchs =', nswtchs  ! Print out catalog.
       do ifile=1,nfiles
         write(*,'(/A)') fname(ifile)
@@ -234,6 +235,7 @@ c**         enddo
           write(*,'(10x,I4,I4,2x,A)') line(i), ln, switch(i)(1:ln)
         enddo
       enddo
+#endif
 
 ! Generate CPP-checking subroutine.
 
@@ -292,8 +294,8 @@ c**  &                              '''<', fname(ifile)(1:ln), '>'''
      &             'if (ie >= max_opt_size) goto 99',
      &             'cpps(is:ie)=''<', fname(ifile)(1:ln), '>''',
      &             'cpps(ie+1:ie+1)='' '''
-       print*,' fswitch(',ifile,')=',fswtch(ifile)
-       print*,' fswitch(',ifile+1,')=',fswtch(ifile+1)
+!mm       print*,' fswitch(',ifile,')=',fswtch(ifile)
+!mm       print*,' fswitch(',ifile+1,')=',fswtch(ifile+1)
 
         do i=fswtch(ifile),fswtch(ifile+1)-1
           ln=size(i)
@@ -337,4 +339,5 @@ c**  &                              '''<', fname(ifile)(1:ln), '>'''
      &                    '''Increase the size it and recompile.'''
       write(iout,'(6x,A,2(/6x,A))') 'ierr=ierr+1', 'return', 'end'
       close(unit=iout)
+      print *
       end

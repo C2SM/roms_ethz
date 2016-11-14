@@ -15,6 +15,7 @@
 !
       function    ncf_fwrite(A, ncid, varid, record, horiz_type, nmax)
       integer ::  ncf_fwrite  , ncid, varid, record, horiz_type, nmax
+     &         , ncdf_write
 #include "param.h"
       real A(GLOBAL_2D_ARRAY,nmax)
       ncf_fwrite = ncdf_write(ncid, varid, record, horiz_type, A, nmax)

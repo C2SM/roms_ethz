@@ -91,12 +91,15 @@ FLTSRC = init_floats.F	init_arrays_floats.F	get_init_flts.F\
 
 # ROMS excutable
 
-$(SBIN): mpc $(OBJS)
-	$(LDR) $(FFLAGS) $(LDFLAGS) -o a.out $(OBJS) $(LCDF) $(LMPI)
+$(SBIN): mpc Make.depend $(OBJS) print_cppswitches
+	make tools
+	./print_cppswitches
+	$(LDR) $(FFLAGS) $(LDFLAGS) -o $@ $(OBJS) $(LCDF) $(LMPI)
+# sasha	$(LDR) $(FFLAGS) $(LDFLAGS) -o a.out $(OBJS) $(LCDF) $(LMPI)
 
 #$(SBIN): $(LROMS)
 #	$(LDR) $(FFLAGS) $(LDFLAGS) -o a.out $(LROMS) $(LCDF) $(LMPI)
-	mv a.out $(SBIN)
+# sasha	mv a.out $(SBIN)
 2level: $(OBJS) $(LROMS2)
 	$(LDR) $(FFLAGS) $(LDFLAGS) -o a.out $(OBJS) $(LROMS2) $(LCDF) $(LMPI)
 	mv a.out $(SBIN)
@@ -126,7 +129,7 @@ check_forces: check_forces.o $(SBIN)
 	mv a.out check_forces
 
 # Everything
-all: mpc tools depend $(SBIN)
+all: mpc tools Make.depend $(SBIN)
 
 # A program to test MPI halo exchange routines.
 # - ------- -- ---- --- ---- -------- ---------
@@ -179,18 +182,22 @@ redefs: redefs.o
 checkdefs: check_switches1.F setup_kwds.F
 
 check_switches1.F: cppcheck cppdefs_UP.h cppdefs.h set_global_definitions.h
-	./cppcheck cppdefs.h cppdefs_UP.h
+	./cppcheck cppdefs_UP.h cppdefs.h
 #mm sasha:	./cppcheck cppdefs.h
 check_srcs.F: srcscheck Makefile
 	./srcscheck
 setup_kwds.F: checkkwds read_inp.F
 	./checkkwds
 
-depend:  # Note: cross_matrix is external here and should be in path
+Make.depend:  # Note: cross_matrix is external here and should be in path
 	cross_matrix *.F
+	echo include Make.depend >> Makefile
 
 plotter: plotter.o
 	$(CFT) -o plotter plotter.o $(LIBNCAR)
+
+print_cppswitches: print_cppswitches.o check_switches1.o
+	$(CFT) $(FFLAGS) $(LDFLAGS) -o $@ print_cppswitches.o check_switches1.o
 
 # Target to create tar file.
 # ------ -- ------ --- -----
@@ -211,8 +218,8 @@ clobber: clean
 	/bin/rm -f $(SBIN) $(TOOLS) nsub
 	/bin/rm -f core core.*
 	/bin/rm -f *_genmod.mod *_genmod.f90
+	/bin/rm -f print_cppswitches
+	/bin/rm -f Make.depend
+	sed -i '/^include Make.depend/ d' Makefile
 
 # Automatically generated dependency list:
-
-include Make.depend
-

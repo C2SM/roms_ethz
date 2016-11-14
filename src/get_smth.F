@@ -45,7 +45,7 @@
 !                                      fourth fields;
 
 !   timevarid   variable ID for the associated timing variable;
-!      record   record index for data to be read;
+!     irecord   record index for data to be read;
 !
 !      ntsmth   number of time records for the variable in netCDF file;
 !      itsmth   time index index of array var(:,:,itsmth);
@@ -112,7 +112,7 @@
 !      file_id         -- are essentially for internal book-keeping
 !      varid,             needed by this routine itself, but not to
 !      timevarid          be accessed from outside.  Basically when
-!      record             this routine is called again and again it
+!      irecord            this routine is called again and again it
 !      ntsmth             needs to do just a single-record read of
 !      icycle             time and the 2D field to keep them current
 !      cycle_length       with the model time.
@@ -163,7 +163,7 @@
 ! IDs the variable itself and for the associated timing variable;
 ! Determine whether there is cycling to reuse the input data and what
 ! is cycling period "cycle_length", set initial cycling index "icycle",
-! record index "record", time index "itsmth".
+! irecord index "record", time index "itsmth".
 
 #ifdef VERBOSE
       write(*,*) 'entering get_smth' MYID
@@ -179,16 +179,16 @@
 
       if (iic == ntstart) then
         itsmth=1  ; timevar(1)=-1.E+33
-        record=-1 ; timevar(2)=-1.E+33
+        irecord=-1 ; timevar(2)=-1.E+33
       endif
-                                ! Note: negative record is used here
+                                ! Note: negative irecord is used here
       ifrc=max(file_id,1)       ! to signal that time records bounding
  100  ncid=ncfrc(ifrc)          ! model time are not found yet.  It can
       frcname=frcfile(ifrc)     ! occur for two reasons: initialization
       lfrc=lenstr(frcname)      ! and switch-over of consecutive files
                                 ! in time sequence.
       ierr=nf_noerr
-      if (record < 0) then      !<-- initialization or file switch
+      if (irecord < 0) then      !<-- initialization or file switch
         if (ncid == -1) then
           ierr=nf_open(frcname(1:lfrc), nf_nowrite, ncid)
           if (ierr == nf_noerr) then
@@ -277,9 +277,9 @@
 #ifdef MPI_SILENT_MODE
                     endif
 #endif
-                    call find_record(ncid, timevarid,  record, ntsmth,
+                    call find_record(ncid, timevarid,  irecord, ntsmth,
      &                   icycle, cycle_length,  ifrc, max_frc,  ierr)
-                    if (record < 0) then
+                    if (irecord < 0) then
 c**                   ierr=nf_close(ncid) ; ncfrc(ifrc)=-1
                       ifrc=ifrc+1 ; goto 100  !--> to the next file
                     endif
@@ -317,7 +317,7 @@ c**                   ierr=nf_close(ncid) ; ncfrc(ifrc)=-1
 # endif
 #endif
 c**         ierr=nf_close(ncid) ; ncfrc(ifrc)=-1
-            record=-1 ; ifrc=ifrc+1 ; goto 100   !--> next file
+            irecord=-1 ; ifrc=ifrc+1 ; goto 100   !--> next file
           else
             write(*,2) varname, frcname(1:lfrc)
           endif
@@ -338,18 +338,18 @@ c**         ierr=nf_close(ncid) ; ncfrc(ifrc)=-1
 
 ! Read data from the file: Check if model time is bounded by the past
 !----- ---- ---- --- ----- and the future data times: if not, increment
-! record and cycling indices, flip time index and read a new portion of
+! irecord and cycling indices, flip time index and read a new portion of
 ! the data. Repeat until model time falls between the two data times.
 
       do while( timevar(itsmth) < time+0.5*dt .and. ierr == nf_noerr )
-        call advance_record(record, ntsmth,  icycle, cycle_length,
+        call advance_record(irecord, ntsmth,  icycle, cycle_length,
      &                                       ifrc, max_frc,  ierr)
-        if (record < 0) then
+        if (irecord < 0) then
 c**       ierr=nf_close(ncid) ; ncfrc(ifrc)=-1
           ifrc=ifrc+1         ; goto 100   !-->  next file
 
         else if (ierr == nf_noerr) then
-          ierr=nf_get_var1_FTYPE(ncid, timevarid, record, dtime)
+          ierr=nf_get_var1_FTYPE(ncid, timevarid, irecord, dtime)
           if (ierr == nf_noerr) then
             itsmth=3-itsmth
             timevar(itsmth)=dtime*day2sec + cycle_length*icycle
@@ -357,14 +357,14 @@ c**       ierr=nf_close(ncid) ; ncfrc(ifrc)=-1
 #ifndef VAR_GRD_TYPE
 # define VAR_GRD_TYPE r_var
 #endif
-            ierr=ncdf_read(ncid, varid, record, VAR_GRD_TYPE,
+            ierr=ncdf_read(ncid, varid, irecord, VAR_GRD_TYPE,
      &                           var(START_2D_ARRAY,itsmth), 1)
             if (ierr == nf_noerr) then
 #ifdef varname2
 # ifndef VAR_GRD_TYPE2
 #  define VAR_GRD_TYPE2 r_var
 # endif
-              ierr=ncdf_read(ncid, varid2, record, VAR_GRD_TYPE2,
+              ierr=ncdf_read(ncid, varid2, irecord, VAR_GRD_TYPE2,
      &                           var2(START_2D_ARRAY,itsmth), 1)
               if (ierr == nf_noerr) then
 #endif
@@ -372,7 +372,7 @@ c**       ierr=nf_close(ncid) ; ncfrc(ifrc)=-1
 # ifndef VAR_GRD_TYPE3
 #  define VAR_GRD_TYPE3 r_var
 # endif
-                ierr=ncdf_read(ncid, varid3, record, VAR_GRD_TYPE3,
+                ierr=ncdf_read(ncid, varid3, irecord, VAR_GRD_TYPE3,
      &                             var3(START_2D_ARRAY,itsmth), 1)
                 if (ierr == nf_noerr) then
 #endif
@@ -380,7 +380,7 @@ c**       ierr=nf_close(ncid) ; ncfrc(ifrc)=-1
 # ifndef VAR_GRD_TYPE4
 #  define VAR_GRD_TYPE4 r_var
 # endif
-                  ierr=ncdf_read(ncid, varid4, record, VAR_GRD_TYPE4,
+                  ierr=ncdf_read(ncid, varid4, irecord, VAR_GRD_TYPE4,
      &                               var4(START_2D_ARRAY,itsmth), 1)
                   if (ierr == nf_noerr) then
 #endif
@@ -410,38 +410,38 @@ c**       ierr=nf_close(ncid) ; ncfrc(ifrc)=-1
 #else
      &                     , tname(1:ltvr),
 #endif
-     &                      ' =', dtime, 'rec =', record MYID
+     &                      ' =', dtime, 'rec =', irecord MYID
 #ifdef MPI_SILENT_MODE
                     endif
 #endif
 #ifdef varname4
                   else
-                    write(*,4) varname4, record, nf_strerror(ierr)
+                    write(*,4) varname4, irecord, nf_strerror(ierr)
                   endif
 #endif
 #ifdef varname3
                 else
-                  write(*,4) varname3, record, nf_strerror(ierr)
+                  write(*,4) varname3, irecord, nf_strerror(ierr)
                 endif
 #endif
 #ifdef varname2
               else
-                write(*,4) varname2, record, nf_strerror(ierr)
+                write(*,4) varname2, irecord, nf_strerror(ierr)
               endif
 #endif
             else
-              write(*,4) varname, record, nf_strerror(ierr)
+              write(*,4) varname, irecord, nf_strerror(ierr)
             endif
           else
 #ifdef timename
-            write(*,4) timename,      record, nf_strerror(ierr)
+            write(*,4) timename,      irecord, nf_strerror(ierr)
 #else
-            write(*,4) tname(1:ltvr), record, nf_strerror(ierr)
+            write(*,4) tname(1:ltvr), irecord, nf_strerror(ierr)
 #endif
           endif
         else
           write(*,'(/2(1x,A,I5)/8x,4A/7x,2(A,G12.4)/)')
-     &    '### ERROR: get_smth :: requested time record ',  record,
+     &    '### ERROR: get_smth :: requested time record ',  irecord,
      &    'exceeds the last record', ntsmth, 'available in forcing ',
      &    'netCDF file ''',   frcname(1:lfrc),   '''',   'tdays = ',
      &     tdays,        '  but the last available  time =',
@@ -464,7 +464,7 @@ c**       ierr=nf_close(ncid) ; ncfrc(ifrc)=-1
 #endif
 #undef timevar
 #undef timevarid
-#undef record
+#undef irecord
 #undef ntsmth
 #undef itsmth
 #undef icycle
