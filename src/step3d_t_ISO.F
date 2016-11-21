@@ -83,6 +83,7 @@ c--# define CONST_TRACERS
 # include "climat.h"
 # include "scalars.h"
 # include "eos_vars.h"
+# include "sources.h"
 
 # include "compute_auxiliary_bounds.h"
 
@@ -690,6 +691,16 @@ c--#  define ntdf nrhs
             enddo
           enddo
 
+
+! Add 3D sources
+# ifdef TSOURCE
+          do k=1,N
+            do i=istr,iend
+              t(i,j,k,nnew,itrc)=t(i,j,k,nnew,itrc) +dt*pm(i,j)*pn(i,j)
+     &                                               *T_src(i,j,k,itrc)
+            enddo
+          enddo
+# endif /* TSOURCE */
 
 ! Start computation of vertical diffusion: add surface forcing fluxes
 

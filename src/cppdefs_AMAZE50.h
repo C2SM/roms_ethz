@@ -16,7 +16,7 @@
 !--SO # define SALINITY_MASKLATSTR -48.0
 !--SO # define SALINITY_MASKLATEND -53.01
 
-!-- #define TSOURCE
+#define TSOURCE
 !--SO #define ICEOBS
 
      /* Open Boundaries */
@@ -43,6 +43,7 @@
 # define WRITE_SALT_REST
 !--SO #define WRITE_TEMP_REST
 !--SO #define WRITE_CO2FLX
+!--#define FULL_PHYS_FLUX_ANALYSIS
 
      /* Biology */
 !--#define BIOLOGY_BEC2
