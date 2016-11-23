@@ -27,7 +27,12 @@
 # else /* CCHEM_MOCSY */
       parameter( nr_cchem_mocsy_2d=0, nr_cchem_mocsy_3d=0 )
 # endif /* CCHEM_MOCSY */
-      parameter( nr_bec2_diag_3d=88+nr_cchem_mocsy_3d, nr_bec2_diag_2d=18+nr_cchem_mocsy_2d )
+# ifdef USE_EXPLICIT_VSINK
+      parameter( nr_bec2_diag_3d=88+nr_cchem_mocsy_3d+10,
+# else
+      parameter( nr_bec2_diag_3d=88+nr_cchem_mocsy_3d+5,
+# endif
+     &           nr_bec2_diag_2d=18+nr_cchem_mocsy_2d )
       parameter( nr_bec2_diag=nr_bec2_diag_2d+nr_bec2_diag_3d )
 # ifdef BEC2_DIAG_USER
       real, pointer, dimension(:,:,:,:) :: bec2_diag_3d
@@ -91,10 +96,21 @@
      &   diatczero_idx_t=par_idx_t+80,diazczero_idx_t=par_idx_t+81,doczero_idx_t=par_idx_t+82,
      &   zooczero_idx_t=par_idx_t+83,spcaco3zero_idx_t=par_idx_t+84,donrremin_idx_t=par_idx_t+85,
      &   totchl_idx_t=par_idx_t+86,totphytoc_idx_t=par_idx_t+87
+# ifdef USE_EXPLICIT_VSINK
+     &   ,pironhardremin_idx_t=par_idx_t+88, caco3hardremin_idx_t=par_idx_t+89, sio2hardremin_idx_t=par_idx_t+90
+     &   ,pochardremin_idx_t=par_idx_t+91, dusthardremin_idx_t=par_idx_t+92
+     &   ,pironsoftremin_idx_t=par_idx_t+93, caco3softremin_idx_t=par_idx_t+94, sio2softremin_idx_t=par_idx_t+95
+     &   ,pocsoftremin_idx_t=par_idx_t+96, dustsoftremin_idx_t=par_idx_t+97
 #  undef LAST_I
-#  define LAST_I totphytoc_idx_t
+#  define LAST_I dustsoftremin_idx_t
+# else /* USE_EXPLICIT_VSINK */
+     &   ,pironremin_idx_t=par_idx_t+88, caco3remin_idx_t=par_idx_t+89, sio2remin_idx_t=par_idx_t+90
+     &   ,pocremin_idx_t=par_idx_t+91, dustremin_idx_t=par_idx_t+92
+#  undef LAST_I
+#  define LAST_I dustremin_idx_t
+# endif /* USE_EXPLICIT_VSINK */
 # if defined CCHEM_MOCSY && defined CCHEM_TODEPTH
-     &   ,ph_idx_t=par_idx_t+88, pco2oc_idx_t=ph_idx_t+1, co3_idx_t=ph_idx_t+2
+     &   ,ph_idx_t=LAST_I+1, pco2oc_idx_t=ph_idx_t+1, co3_idx_t=ph_idx_t+2
      &   ,hco3_idx_t=ph_idx_t+3, co2star_idx_t=ph_idx_t+4
      &   ,omega_calc_idx_t=ph_idx_t+5, omega_arag_idx_t=ph_idx_t+6
 #  undef LAST_I
@@ -220,11 +236,23 @@
      &    o2_ind_t=6, dic_ind_t=7, alk_ind_t=8, doc_ind_t=9, don_ind_t=10, dofe_ind_t=11,
      &    dop_ind_t=12, dopr_ind_t=13, donr_ind_t=14, zooc_ind_t=15, spchl_ind_t=16,
      &    spc_ind_t=17, spfe_ind_t=18, spcaco3_ind_t=19, diatchl_ind_t=20, diatc_ind_t=21,
-     &    diatfe_ind_t=22, diatsi_ind_t=23, diazchl_ind_t=24, diazc_ind_t=25, diazfe_ind_t=26 )
-# ifdef BEC_COCCO
+     &    diatfe_ind_t=22, diatsi_ind_t=23, diazchl_ind_t=24, diazc_ind_t=25, diazfe_ind_t=26
+# undef LAST_I
+# define LAST_I diazfe_ind_t
+     &)
+#ifdef BEC_COCCO
       integer, parameter ::
      &     coccoc_ind_t=27, coccochl_ind_t=28, coccocal_ind_t=29, coccofe_ind_t=30, cal_ind_t=31
-# endif
+#  undef LAST_I
+#  define LAST_I cal_ind_t
+#endif
+#ifdef USE_EXPLICIT_VSINK
+      integer, parameter ::
+     &     dusthard_ind_t=LAST_I+1, pochard_ind_t=LAST_I+2, pcaco3hard_ind_t=LAST_I+3,
+     &     psio2hard_ind_t=LAST_I+4, pironhard_ind_t=LAST_I+5,
+     &     dustsoft_ind_t=LAST_I+6, pocsoft_ind_t=LAST_I+7, pcaco3soft_ind_t=LAST_I+8,
+     &     psio2soft_ind_t=LAST_I+9, pironsoft_ind_t=LAST_I+10
+#endif
 
 !
 ! Parameters related to sinking particles:
@@ -246,11 +274,25 @@
      &   dust_mass,      ! base units are already grams
      &   dust_rho,       ! QA mass ratio for dust
      &   P_iron_gamma    ! prod frac -> hard subclass
+#ifdef USE_EXPLICIT_VSINK
+     &   ,POC_gamma       ! prod frac -> hard subclass
+#endif
 
 
-      common /sinking_particles1/ POC_diss,POC_mass,P_CaCO3_diss,P_CaCO3_gamma,
-     &   P_CaCO3_mass,P_CaCO3_rho,P_SiO2_diss,P_SiO2_gamma,P_SiO2_mass,P_SiO2_rho,
-     &   dust_diss,dust_gamma,dust_mass,dust_rho,P_iron_gamma
+      common /sinking_particles1/ POC_diss,POC_mass,P_CaCO3_diss,
+     &   P_CaCO3_mass,P_CaCO3_rho,P_SiO2_diss,P_SiO2_mass,P_SiO2_rho,
+     &   dust_diss,dust_mass,dust_rho
+#ifdef USE_EXPLICIT_VSINK
+      ! Since with explicit sinking init_particulate_terms is not called
+      ! in ecosys_set_interior, the gamma parameters are set here:
+      parameter( POC_gamma=0.5, P_CaCO3_gamma=0.30, P_SiO2_gamma=0.030,
+     &           dust_gamma=0.97, P_iron_gamma=0.0 )
+#else
+      ! The gamma parameters are set init_particulate_terms and so they
+      ! need to be in a common block:
+      common /sinking_particles1/ P_CaCO3_gamma, P_SiO2_gamma,
+     &   dust_gamma, P_iron_gamma
+#endif
 !
 ! Arrays related to sinking particles:
 !
@@ -262,6 +304,7 @@
 !  *_remin: remineralization term (base units/m^3/sec)
 
       real, dimension(GLOBAL_2D_ARRAY) ::
+#ifndef USE_EXPLICIT_VSINK
      &   P_CaCO3_sflux_out, P_CaCO3_hflux_out, P_CaCO3_sed_loss,
      &   P_SiO2_sflux_out, P_SiO2_hflux_out, P_SiO2_sed_loss,
      &   dust_sflux_out, dust_hflux_out, dust_sed_loss,
@@ -272,10 +315,19 @@
      &   dust_sflux_in, dust_hflux_in,
      &   P_iron_sflux_in, P_iron_hflux_in,
      &   POC_sflux_in, POC_hflux_in,
-     &   POC_remin, P_iron_remin, P_SiO2_remin,
-     &   DOP_remin, DOPr_remin, P_CaCO3_remin
+#endif
+     &   DOP_remin, DOPr_remin
+#ifdef USE_EXPLICIT_VSINK
+     &   ,dusthard_remin, POChard_remin, P_CaCO3hard_remin
+     &   ,P_SiO2hard_remin, P_ironhard_remin
+     &   ,dustsoft_remin, POCsoft_remin, P_CaCO3soft_remin
+     &   ,P_SiO2soft_remin, P_ironsoft_remin
+#else
+     &   ,POC_remin, P_iron_remin, P_SiO2_remin, P_CaCO3_remin
+#endif
 
       common /sinking_particles2/
+#ifndef USE_EXPLICIT_VSINK
      &   P_CaCO3_sflux_out, P_CaCO3_hflux_out, P_CaCO3_sed_loss,
      &   P_SiO2_sflux_out, P_SiO2_hflux_out, P_SiO2_sed_loss,
      &   dust_sflux_out, dust_hflux_out, dust_sed_loss,
@@ -286,8 +338,31 @@
      &   dust_sflux_in, dust_hflux_in,
      &   P_iron_sflux_in, P_iron_hflux_in,
      &   POC_sflux_in, POC_hflux_in,
-     &   POC_remin, P_iron_remin, P_SiO2_remin,
-     &   DOP_remin, DOPr_remin, P_CaCO3_remin
+#endif
+     &   DOP_remin, DOPr_remin
+#ifdef USE_EXPLICIT_VSINK
+     &   ,dusthard_remin, POChard_remin, P_CaCO3hard_remin
+     &   ,P_SiO2hard_remin, P_ironhard_remin
+     &   ,dustsoft_remin, POCsoft_remin, P_CaCO3soft_remin
+     &   ,P_SiO2soft_remin, P_ironsoft_remin
+#else
+     &   ,POC_remin, P_iron_remin, P_SiO2_remin, P_CaCO3_remin
+#endif
+
+!
+! VSinkFlux array and related indices:
+!
+#ifdef USE_EXPLICIT_VSINK
+      ! Number of sinking components:
+      integer, parameter :: nsink=10
+      ! Vertical sink fluxes [mmol m-2 s-1], upward flux is positive
+      real VSinkFlux(GLOBAL_2D_ARRAY,0:N,nsink)
+      ! Indices of sinking variables in temprorary array tracer (used in ecosys_bec2.F):
+!      integer, dimension(nsink), parameter :: 
+!     &    tidx_vsink = (/ dust_ind_t, poc_ind_t, 
+!     &        pcaco3_ind_t, psio2_ind_t, piron_ind_t /)
+      common /bec2_vsink/ VSinkFlux
+#endif
 
 !
 ! Arrays related to carbon chemistry: these are in bec2_diag_2d or
@@ -324,3 +399,4 @@
       character*10 optcon, optt, optp, optb, optkf, optk1k2, optgas
       common /mocsy_opt/  optcon, optt, optp, optb, optkf, optk1k2, optgas
 #endif
+

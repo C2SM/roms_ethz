@@ -155,8 +155,8 @@ c**  &               LLm=126,  MMm=254, N=20    ! USWEST grid 16
 
 # endif /* GRID_LEVEL */
 #elif defined USWC_CENTRAL
-     &               LLm=20, MMm=40, N=32        ! 60km config
-c**     &               LLm=80, MMm=168, N=32       ! 15km config
+!     &               LLm=20, MMm=40, N=32        ! 60km config
+     &               LLm=80, MMm=168, N=32       ! 15km config
 c**     &               LLm=248, MMm=504, N=32      ! 5km config
 c**     &               LLm=248, MMm=504, N=42      ! 5km config
 #elif defined PACTC
@@ -198,12 +198,10 @@ c**     &               LLm=248, MMm=504, N=42      ! 5km config
      &    NP_XI=4, NP_ETA=16, NSUB_X=1, NSUB_E=1
 # elif defined USWC_CENTRAL
 !    &    NP_XI=1, NP_ETA=4, NSUB_X=1, NSUB_E=1
-     &    NP_XI=10, NP_ETA=24, NSUB_X=1, NSUB_E=1
+!     &    NP_XI=10, NP_ETA=24, NSUB_X=1, NSUB_E=1
+     &    NP_XI=2, NP_ETA=12, NSUB_X=1, NSUB_E=1
 # elif defined PACSG
      &    NP_XI=10, NP_ETA=24, NSUB_X=1, NSUB_E=1
-# elif defined USWC_CENTRAL
-     &    NP_XI=2, NP_ETA=4, NSUB_X=1, NSUB_E=1  ! 60km 
-c     &    NP_XI=4, NP_ETA=24, NSUB_X=1, NSUB_E=1  ! 15km & 5km 
 # elif defined USTC90
      &    NP_XI=8, NP_ETA=12, NSUB_X=1, NSUB_E=1
 #elif defined SO_d05
@@ -222,7 +220,9 @@ c     &      NSUB_X=4, NSUB_E=26  ! <-- 384x128 soliton
 c     &      NSUB_X=4, NSUB_E=52
 c     &      NSUB_X=2, NSUB_E=8  ! <-- iswake 768x192
 # endif /* DOMAIN_TILING */
-#endif
+#else /* MPI */
+         integer, parameter :: NSUB_X=1, NSUB_E=1
+#endif /* MPI */
 
 ! Array dimensions and bounds of the used portions of sub-arrays
 
@@ -317,20 +317,35 @@ c     &      NSUB_X=2, NSUB_E=8  ! <-- iswake 768x192
      &       , iALK=iPO4+7, iDOC=iPO4+8, iDON=iPO4+9
      &       , iDOFE=iPO4+10, iDOP=iPO4+11, iDOPR=iPO4+12
      &       , iDONR=iPO4+13, iZOOC=iPO4+14
-     &       , iSPCHL=iPO4+15, iSPC=iPO4+16
+     &       , iSPC=iPO4+15, iSPCHL=iPO4+16
      &       , iSPFE=iPO4+17, iSPCACO3=iPO4+18
-     &       , iDIATCHL=iPO4+19, iDIATC=iPO4+20
+     &       , iDIATC=iPO4+19, iDIATCHL=iPO4+20
      &       , iDIATFE=iPO4+21, iDIATSI=iPO4+22
-     &       , iDIAZCHL=iPO4+23, iDIAZC=iPO4+24
+     &       , iDIAZC=iPO4+23, iDIAZCHL=iPO4+24
      &       , iDIAZFE=iPO4+25
+     &       , ntrc_bio_base=26
 #   ifdef BEC_COCCO
      &       , iCOCCOC=iPO4+26, iCOCCOCHL=iPO4+27
      &       , iCOCCOCAL=iPO4+28, iCOCCOFE=iPO4+29
      &       , iCAL=iPO4+30
-     &       , ntrc_bio=31
+     &       , ntrc_bio_cocco=5
+#    undef LAST_I
+#    define LAST_I iCAL
 #   else /* case not BEC_COCCO */
-     &       , ntrc_bio=26
+     &       , ntrc_bio_cocco=0
+#    undef LAST_I
+#    define LAST_I iDIAZFE
 #   endif /* BEC_COCCO */
+#   ifdef USE_EXPLICIT_VSINK
+     &       , iDUSTHARD=LAST_I+1, iPOCHARD=LAST_I+2
+     &       , iPCACO3HARD=LAST_I+3, iPSIO2HARD=LAST_I+4
+     &       , iPIRONHARD=LAST_I+5, iDUSTSOFT=LAST_I+6
+     &       , iPOCSOFT=LAST_I+7, iPCACO3SOFT=LAST_I+8
+     &       , iPSIO2SOFT=LAST_I+9, iPIRONSOFT=LAST_I+10
+     &       , ntrc_bio=ntrc_bio_base+ntrc_bio_cocco+10
+#   else /* USE_EXPLICIT_VSINK */
+     &       , ntrc_bio=ntrc_bio_base+ntrc_bio_cocco
+#   endif /* USE_EXPLICIT_VSINK */
 #  else  /* no  BIOLOGY */
      &       , ntrc_bio=0
 #  endif /* ifdef LEGACY_NPZD */

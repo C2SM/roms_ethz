@@ -75,6 +75,11 @@ c            cff=stflx(i,j,itemp)-srflx(i,j)  ! subtract shortwave
 c            srflx(i,j)=srflx(i,j)*phase      ! radiatin from the net,
 c            stflx(i,j,itemp)=cff+srflx(i,j)  ! modulate and add back
 c# endif
+# if defined DAILYPAR_PHOTOINHIBITION || defined DAILYPAR_BEC
+! save the daily average value for the evaluation of photoinhibited 
+! nitrification
+            srflx_dailyavg(i,j)=srflx(i,j)
+# endif
           enddo
         enddo
         if (cff1 < 0. .or. cff2 < 0.) then
