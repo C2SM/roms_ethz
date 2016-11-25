@@ -65,8 +65,14 @@ CSDISTRIBUTE_RESHAPE windmag(BLOCK_PATTERN,*) BLOCK_CLAUSE
 ! swradg  two-time-level grided data for surface [Watts/m^2]
 
       real srflx(GLOBAL_2D_ARRAY)
+#if defined DAILYPAR_PHOTOINHIBITION || defined DAILYPAR_BEC
+      real srflx_dailyavg(GLOBAL_2D_ARRAY)
+#endif
 CSDISTRIBUTE_RESHAPE srflx(BLOCK_PATTERN) BLOCK_CLAUSE
       common /frc_srflx/srflx
+#if defined DAILYPAR_PHOTOINHIBITION || defined DAILYPAR_BEC
+     &       , srflx_dailyavg
+#endif
 # ifndef ANA_SRFLUX
 #  if defined SWRAD_DATA || defined ALL_DATA
 #   undef SWRAD_DATA

@@ -33,11 +33,11 @@
      &          , indxDon=indxPO4+9, indxDOFe=indxPO4+10
      &          , indxDop=indxPO4+11, indxDOPr=indxPO4+12
      &          , indxDonr=indxPO4+13, indxZooC=indxPO4+14
-     &          , indxSpchl=indxPO4+15, indxSpC=indxPO4+16
+     &          , indxSpC=indxPO4+15, indxSpchl=indxPO4+16
      &          , indxSpfe=indxPO4+17, indxSpCaCO3=indxPO4+18
-     &          , indxDiatchl=indxPO4+19, indxDiatC=indxPO4+20
+     &          , indxDiatC=indxPO4+19, indxDiatchl=indxPO4+20
      &          , indxDiatfe=indxPO4+21, indxDiatSi=indxPO4+22
-     &          , indxDiazchl=indxPO4+23, indxDiazC=indxPO4+24
+     &          , indxDiazC=indxPO4+23, indxDiazchl=indxPO4+24
      &          , indxDiazfe=indxPO4+25
 # undef LAST_I
 # define LAST_I indxDiazfe
@@ -47,6 +47,15 @@
      &          , indxCal=indxPO4+30
 #  undef LAST_I
 #  define LAST_I indxCal
+# endif
+# ifdef USE_EXPLICIT_VSINK
+     &          , indxdusthard=LAST_I+1, indxpochard=indxdusthard+1
+     &          , indxpcaco3hard=indxdusthard+2, indxpsio2hard=indxdusthard+3
+     &          , indxpironhard=indxdusthard+4, indxdustsoft=indxdusthard+5
+     &          , indxpocsoft=indxdusthard+6, indxpcaco3soft=indxdusthard+7
+     &          , indxpsio2soft=indxdusthard+8, indxpironsoft=indxdusthard+9
+#  undef LAST_I
+#  define LAST_I indxpironsoft
 # endif
 #endif /* BIOLOGY_BEC2 */
 
