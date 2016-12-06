@@ -204,6 +204,8 @@ print_cppswitches: print_cppswitches.o check_switches1.o
 tarfile: clean
 	tar cvf roms.tar Make* *.F *.h etalon_data.* README.*  *.in*
 
+.PHONY: all clean clobber allclean 
+
 # Cleaning targets
 # -------- -------
 clean:
