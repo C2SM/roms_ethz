@@ -2810,13 +2810,6 @@ c$$$       enddo
     !-----------------------------------------------------------------------
 
 
-             P_Iron_remin(i,j) = P_Iron_remin(i,j)
-     &           + dust_remin(i) * dust_to_Fe
-
-# ifdef BEC2_DIAG
-             bec2_diag_3d(i,j,k,pironremin_idx_t) = P_Iron_remin(i,j)
-# endif
-
              P_iron_hflux_out(i,j) = P_iron_hflux_in(i,j)
 
           else  ! LANDMASK(i,j)
@@ -2961,7 +2954,6 @@ c$$$       enddo
 
 # ifdef BEC2_DIAG
             bec2_diag_2d(i,j,sio2fluxtosed_idx_t) = flux
-            bec2_diag_2d(i,j,sio2sedloss_idx_t) = P_SiO2_sed_loss(i,j)
 # endif
 
             flux = c0  ! set flux back to zero
@@ -2971,8 +2963,9 @@ c$$$       enddo
             endif
 
 # ifdef BEC2_DIAG
-            bec2_diag_2d(i,j,caco3fluxtosed_idx_t) = flux
-            bec2_diag_2d(i,j,caco3sedloss_idx_t) = P_CaCO3_sed_loss(i,j)
+             bec2_diag_2d(i,j,caco3fluxtosed_idx_t) = flux
+             bec2_diag_2d(i,j,caco3sedloss_idx_t) = P_CaCO3_sed_loss(i,j)
+             bec2_diag_2d(i,j,sio2sedloss_idx_t) = P_SiO2_sed_loss(i,j)
 # endif
 
     !----------------------------------------------------------------------------------
@@ -3010,10 +3003,13 @@ c$$$       enddo
                P_iron_sed_loss(i,j) = flux
             endif
 
+# ifdef BEC2_DIAG
+             bec2_diag_2d(i,j,pironfluxtosed_idx_t) = flux
+# endif
+
             dust_sed_loss(i,j) = dust_sflux_out(i,j) + dust_hflux_out(i,j)
 
 # ifdef BEC2_DIAG
-             bec2_diag_2d(i,j,pironfluxtosed_idx_t) = flux
              bec2_diag_2d(i,j,dustfluxtosed_idx_t) = dust_sed_loss(i,j)
 # endif
 
@@ -3038,9 +3034,15 @@ c$$$       enddo
                P_iron_hflux_out(i,j) = c0
             endif
 
+         end if  ! LANDMASK(i,j) .and. (k == 1)
+
+! CN: update P_Iron_remin here with FESEDFLUX
              P_Iron_remin(i,j) = P_Iron_remin(i,j)
      &           + (FESEDFLUX(i) * dzr_loc)
-         end if  ! LANDMASK(i,j) .and. (k == 1)
+
+# ifdef BEC2_DIAG
+             bec2_diag_3d(i,j,k,pironremin_idx_t) = P_Iron_remin(i,j)
+# endif
 
        end do  ! i = istr, iend
 
