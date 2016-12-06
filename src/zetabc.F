@@ -164,6 +164,21 @@ c          if (cx < 0.) cx=0.
 #  endif
         enddo
 # endif  /* OBC_SOUTH */
+# if defined OBC_SOUTH_M2SPECIFIED_TILESTR && defined OBC_SOUTH_M2SPECIFIED_TILEEND
+!
+!   Force OBC_M2SPECIFIED as southern boundary condition
+!   in the specified tile range! MF (following northern bry MM & AH)
+!
+        if ((mynode.ge.OBC_SOUTH_M2SPECIFIED_TILESTR)
+     &                       .and. (mynode.le.OBC_SOUTH_M2SPECIFIED_TILEEND)) then
+          do i=istrU-1,iend
+            zeta_new(i,jstr-1)=zeta_new(i,jstr)       ! gradient BC
+#  ifdef MASKING
+     &                       *rmask(i,jstr-1)
+#  endif
+          enddo
+        endif
+# endif /* OBC_SOUTH_M2SPECIFIED_TILESTR */
       endif
 
 

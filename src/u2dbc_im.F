@@ -402,6 +402,25 @@ c--#endif
 #   endif
         enddo
 #  endif
+#  if defined OBC_SOUTH_M2SPECIFIED_TILESTR && defined OBC_SOUTH_M2SPECIFIED_TILEEND
+!
+!   Force OBC_M2SPECIFIED as southern boundary condition
+!   in the specified tile range! MF (following northern bry MM & AH)
+!
+        if ((mynode.ge.OBC_SOUTH_M2SPECIFIED_TILESTR)
+     &                       .and. (mynode.le.OBC_SOUTH_M2SPECIFIED_TILEEND)) then
+          do i=istrU,iend
+#   ifdef M2_FRC_BRY
+            ubar(i,jstr-1,knew)=ubar_south(i)
+#   else
+            ubar(i,jstr-1,knew)=ubclm(i,jstr-1)
+#   endif
+#   ifdef MASKING
+            ubar(i,jstr-1,knew)=ubar(i,jstr-1,knew)*umask(i,jstr-1)
+#   endif
+          enddo
+        endif
+#  endif /* OBC_SOUTH_M2SPECIFIED_TILESTR */
 # else
 #  ifdef EW_PERIODIC
 #   define I_RANGE istrU,iend

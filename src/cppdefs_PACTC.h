@@ -2,54 +2,69 @@
   UP ETH Pacific Telescopic Setup - USWC Focus
   == === ======= ========== ===== = ==== =====
 */
-         /* Include standard CPP switches for UP ETH Zurich */  
+
+     /* Include standard CPP switches for UP ETH Zurich */  
 #include "cppdefs_UP.h"
 
-!--> #define GRID_SIZE LLm=416, MMm=346, N=42      ! pacsg 5km-66km telescopic
 #define GRID_SIZE LLm=602, MMm=516, N=42      ! pactcs30 4.1-65km telescopic up to Antarctica
-#define DOMAIN_TILING NP_XI=10, NP_ETA=24, NSUB_X=1, NSUB_E=1 ! Euler
-!--> #define DOMAIN_TILING NP_XI=4, NP_ETA=6, NSUB_X=1, NSUB_E=1  !ch4
+#define DOMAIN_TILING NP_XI=8, NP_ETA=48, NSUB_X=1, NSUB_E=1 ! Euler
 
-         /* Open Boundaries */
-!--> Testing!! #define OBC_SOUTH
-#define SPONGE
+     /* Open Boundaries */
+#define OBC_SOUTH
+
+     /* Open Boundary Conditions */
+!-- Try to treat inflow/outflow of ACC differently! (not yet tested, so far I used M2FLATHER)
+!-- new only indic/pacific, see below #define OBC_M2SPECIFIED /* special for SO */
+!-- #define OBC_SOUTH_M2SPECIFIED_TILESTR 000 /* OBC_M2SPECIFIED for a certain range of tiles */
+!-- #define OBC_SOUTH_M2SPECIFIED_TILEEND 004 /* OBC_M2SPECIFIED for a certain range of tiles */
+!-- #define OBC_M3ORLANSKI /* Baroclin. BC: OBC_M3ORLANSKI, OBC_M3SPECIFIED */
+!-- #define OBC_TORLANSKI /* Tracer BC: OBC_TORLANSKI, OBC_TSPECIFIED */
+
+! MF 11/11/2016: Run without sponge as I have before...
+#undef SPONGE
+#undef SPONGE_WIDTH 
 
 
-                      /* Open Boundary Conditions */
+     /* Open Boundary Conditions */
 !-- #define CLMFORING
 
 
-#ifdef CLMFORCING    /*  Use CLM Files */
-# define TCLIMATOLOGY
-# define UCLIMATOLOGY
-# define TNUDGING
-# define M3NUDGING
-# define M2NUDGING
-# ifdef TCLIMATOLOGY
-#      define CLIMAT_TS_MIXH
-# endif
-  /* undefine default BRY settings */
-# undef T_FRC_BRY
-# undef Z_FRC_BRY
-# undef M3_FRC_BRY
-# undef M2_FRC_BRY
---> #else                /* Default: Use BRY Files*/
---> # undef SPONGE /* note: UP ETH before 8/2015 did not use SPONGE with BRY */
-#endif
+    /*  Use CLM Files */
+!-- #ifdef CLMFORCING   
+!-- # define TCLIMATOLOGY
+!-- # define UCLIMATOLOGY
+!-- # define TNUDGING
+!-- # define M3NUDGING
+!-- # define M2NUDGING
+!-- # ifdef TCLIMATOLOGY
+!-- #      define CLIMAT_TS_MIXH
+!-- # endif
+!--   /* undefine default BRY settings */
+!-- # undef T_FRC_BRY
+!-- # undef Z_FRC_BRY
+!-- # undef M3_FRC_BRY
+!-- # undef M2_FRC_BRY
+!--> #else                /* Default: Use BRY Files*/
+!--> # undef SPONGE /* note: UP ETH before 8/2015 did not use SPONGE with BRY */
+!-- #endif
 
 
 !--> #undef OBC_M2FLATHER  /* undefine default in cppdefs_UP.h */
 !--> #define OBC_M2SPECIFIED
 
-                      /* Output */
+     /* Seaice SSS masking and read seaice conc */
+!--> # define SALINITY_MASK
+!--> # define ICEOBS
+
+     /* Output */
 #define AVERAGES
 #define SLICE_AVG
-#define CALENDAR '360_day'     /* netCDF CF-convention CALENDAR attribute default: '360_day' */
+#define CALENDAR '365_day'     /* netCDF CF-convention CALENDAR attribute default: '360_day' */
 !--> #define STARTDATE '0001-01-01' /* part of netCDF CF-convention time units attribute default: '0001-01-01'*/
 
 !--> #define ADV_ISONEUTRAL
 
-                      /* Biology */
+     /* Biology */
 !--> #define BIOLOGY_NPZDOC
 !--> # define BIOLOGY_BEC2
 
@@ -64,7 +79,7 @@
 #endif /* BIOLOGY_BEC2 */
 
 
-                      /* Flux Analysis */
+    /* Flux Analysis */
 !!# define BGC_FLUX_ANALYSIS
 !!#define BGC_FLUX_EXT_HIS_OUTPUT
 !# define PHYS_FLUX_ANALYSIS

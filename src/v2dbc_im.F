@@ -145,6 +145,25 @@
 #   endif
         enddo
 #  endif
+#  if defined OBC_NORTH_M2SPECIFIED_TILESTR && defined OBC_NORTH_M2SPECIFIED_TILEEND
+!
+!   Force OBC_M2SPECIFIED as southern boundary condition
+!   in the specified tile range! MF (following northern bry MM & AH)
+!
+        if ((mynode.ge.OBC_SOUTH_M2SPECIFIED_TILESTR)
+     &                       .and. (mynode.le.OBC_SOUTH_M2SPECIFIED_TILEEND)) then
+          do i=istr,iend
+#   ifdef M2_FRC_BRY
+            vbar(i,jstr,knew)=vbar_south(i)
+#   else
+            vbar(i,jstr,knew)=vbclm(i,jstr)
+#   endif
+#   ifdef MASKING
+     &                         *vmask(i,jstr)
+#   endif
+          enddo
+        endif
+#  endif /* OBC_SOUTH_M2SPECIFIED_TILESTR */
 # else
         do i=istr,iend                        ! Southern edge closed
           vbar(i,jstr,knew)=0.                ! ======== ==== ======
