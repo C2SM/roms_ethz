@@ -31,6 +31,9 @@ c--#define VERBOSE
 # if ( defined TCLIMATOLOGY ||( defined TNUDGING && \
        defined T_FRC_BRY )) && !defined ANA_TCLIMA
       call get_tclima(ierr)
+#  ifdef TNUDGE_WEIGHTS
+      call get_nudg_weights(ierr)
+#  endif
 # endif
 #endif
 #if  defined T_FRC_BRY  || defined M2_FRC_BRY || \
@@ -188,9 +191,34 @@ c--#define VERBOSE
 # define itsmth itssh
 # define icycle ssh_ncycle
 # define cycle_length ssh_cycle
+# define SET_SMTH set_ssh
+# define VAR_CFF 1.0
+# define VAR_NOW ssh
 # include "get_smth.F"
 #endif
 
+#ifdef TNUDGE_WEIGHTS
+! Tracer Restoring weights 
+!---- ------- ------ ----- ------------
+# define get_smth get_nudg_weights
+# define varname 'nudg_weights'
+# define timename 'nudg_time'
+# define NUDG_WEIGHTS_DATA
+# define var NudgWeightsg 
+# define timevar nudg_time
+# define file_id ncidclm
+# define varid nudg_id
+# define timevarid nudg_tid
+# define irecord nudg_rec
+# define ntsmth ntnudg
+# define itsmth itnudg
+# define icycle nudg_ncycle
+# define cycle_length nudg_cycle
+# define SET_SMTH set_NudgWeights
+# define VAR_CFF 1.0
+# define VAR_NOW NudgWeights
+# include "get_smth.F"
+#endif
 
 #ifdef SOLVE3D
 # ifndef ANA_SRFLUX
@@ -387,17 +415,10 @@ c--#  define timename 'dqdt_time'
 #  define itsmth itdust
 #  define icycle dust_ncycle
 #  define cycle_length dust_cycle
-#  include "get_smth.F"
-#  define DUST_DATA
-#  define varname 'dust'
-#  define var dustg
-#  define timevar dust_time
-#  define ntsmth ntdust
-#  define itsmth itdust
 #  define SET_SMTH set_dust
 #  define VAR_CFF 1.0
 #  define VAR_NOW dust
-#  include "set_smth.F"
+#  include "get_smth.F"
 ! iron flux
 ! ---- ---- 
 #  define get_smth get_iron
@@ -414,16 +435,9 @@ c--#  define timename 'dqdt_time'
 #  define itsmth itiron
 #  define icycle iron_ncycle
 #  define cycle_length iron_cycle
-#  include "get_smth.F"
-#  define IRON_DATA
-#  define varname 'iron'
-#  define var irong
-#  define timevar iron_time
-#  define ntsmth ntiron
-#  define itsmth itiron
 #  define SET_SMTH set_iron
 #  define VAR_CFF 1.0
 #  define VAR_NOW iron
-#  include "set_smth.F"
+#  include "get_smth.F"
 # endif
 #endif /* SOLVE3D */

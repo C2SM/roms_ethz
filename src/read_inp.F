@@ -622,25 +622,26 @@ c-->    elseif (keyword(1:kwlen) == 'nudg_cof') then
           call cancel_kwd (keyword(1:kwlen), ierr)
           max_clm=0
           lstr=1
-          do while (lstr > 0 .and. max_clm < max_clm_files+1)
-          read(input,'(A)',err=95) fname
-          lstr=lenstr(fname)
+            do while (lstr > 0 .and. max_clm < max_clm_files+1)
+            read(input,'(A)',err=95) fname
+            lstr=lenstr(fname)
+            if (lstr > 0) then
 # if defined MPI && defined PARALLEL_FILES
-          call insert_node(fname, lstr, mynode, NNODES, ierr)
+              call insert_node(fname, lstr, mynode, NNODES, ierr)
 # endif
-          open(testunit, file=fname(1:lstr), status='old', err=97)
-          close(testunit)
-          if (max_clm < max_frc_files) then
-            max_clm=max_clm+1
-            clm_files(max_clm)=fname(1:lstr)
+              open(testunit, file=fname(1:lstr), status='old', err=97)
+              close(testunit)
+              if (max_clm < max_frc_files) then
+                max_clm=max_clm+1
+                clm_file(max_clm)=fname(1:lstr)
 # ifdef MPI_SILENT_MODE
                 if (mynode == 0) then
 # endif
                   if (max_clm == 1) then
                     write(*,'(1x,2A)') 'climatology data file(s): ',
-     &                                 clm_files(max_clm)(1:lstr)
+     &                                 clm_file(max_clm)(1:lstr)
                   else
-                    write(*,'(23x,A)') clm_files(max_clm)(1:lstr)
+                    write(*,'(23x,A)') clm_file(max_clm)(1:lstr)
                   endif
 
 # ifdef MPI_SILENT_MODE

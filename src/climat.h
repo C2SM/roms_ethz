@@ -24,21 +24,27 @@ CSDISTRIBUTE_RESHAPE sshg(BLOCK_PATTERN,*) BLOCK_CLAUSE
       common /climat_zdat/         ssh_time,     ssh_cycle,
      &        ssh_ncycle, ssh_rec, itssh, ntssh, ssh_tid, ssh_id
  
-#   undef SSH_DATA
+#   ifndef SET_SMTH
+#    undef SSH_DATA
+#   endif
 #  endif /* SSH_DATA */
 # endif /* !ANA_SSH */
 #endif
 !
 ! Temperature, salinity climatology:
 !------------- -------- ------------
-!   tclm       climatology for tracer variables at current time-step.
-!   Tnudgcof   inverse relaxation time [1/sec] for nudging toward
+!   tclm         climatology for tracer variables at current time-step.
+!   Tnudgcof     inverse relaxation time [1/sec] for nudging toward
 !                                       tracer climatological fields.
-!   tclima     two-time-level array to hold climatological data for
+!   tclima       two-time-level array to hold climatological data for
 !                                               tracer variables.
-!   ttclm      time of read in climatology for tracer type variables.
+!   ttclm        time of read in climatology for tracer type variables.
+!   NudgWeights  2D mask with weights defining where to restore temp
+!                                       and salinity (MF)
+!   NudgWeightsg two-time-level array holding climatological data for
+!                                       partial restoring of TS (MF)
 !
-! WARNING: CPP-switch TNUDGING introduces forcing at the boundary
+! CPP-switch TNUDGING introduces forcing at the boundary
 ! only, while TCLIMATOLOGY activates spatially nonuniform nudging
 ! inside the domain using Tnudgcof specified in set_nudgcof.
 !
@@ -51,6 +57,27 @@ CSDISTRIBUTE_RESHAPE tclm(BLOCK_PATTERN,*,*) BLOCK_CLAUSE
       real Tnudgcof(GLOBAL_2D_ARRAY,NT)
 CSDISTRIBUTE_RESHAPE Tnudgcof(BLOCK_PATTERN,*) BLOCK_CLAUSE
       common /climat_Tnudgcof/Tnudgcof
+
+#   ifdef NUDG_WEIGHTS_DATA
+#    ifndef SET_SMTH
+#     undef NUDG_WEIGHTS_DATA
+#    endif
+      real NudgWeights(GLOBAL_2D_ARRAY)
+CSDISTRIBUTE_RESHAPE NudgWeights(BLOCK_PATTERN) BLOCK_CLAUSE
+      common /climat_NudgWeights/NudgWeights
+#    if defined TCLIMA_DATA || defined ALL_DATA
+      real NudgWeightsg(GLOBAL_2D_ARRAY,2)
+CSDISTRIBUTE_RESHAPE NudgWeightsg(BLOCK_PATTERN,*) BLOCK_CLAUSE
+      common /climat_NudgWeightsg/NudgWeightsg
+
+      real nudg_time(2), nudg_cycle
+      integer nudg_ncycle, nudg_rec, itnudg, ntnudg, nudg_tid, nudg_id
+      common /climat_nudgdat/         nudg_time,     nudg_cycle,
+     &        nudg_ncycle, nudg_rec, itnudg, ntnudg, nudg_tid, nudg_id
+
+#    endif
+#   endif /* NUDG_WEIGHTS_DATA */
+
 #  endif
 #  ifndef ANA_TCLIMA
 #   if defined TCLIMA_DATA || defined ALL_DATA

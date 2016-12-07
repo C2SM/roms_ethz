@@ -129,6 +129,19 @@ C$OMP THREADPRIVATE(/priv_scalars/)
 # endif
 */
 #endif
+
+/* MF */
+#ifdef TCLIMATOLOGY
+      real tauT_out
+#   ifdef TNUDGE_WEIGHTS /* MF */
+      integer, parameter :: mxnudg=itemp+ntrc_salt  ! only nudge temp and salts
+#   else
+      integer, parameter :: mxnudg=NT               ! nudge all tracers including  BIOLOGY variables
+#   endif /* MF */
+      common /scalars_main/ tauT_out
+#endif
+/* MF */
+
 !DL: variables for varying atm pCO2:
 #if defined BIOLOGY_BEC || defined BIOLOGY_BEC2 || defined BIOLOGY_NPZDOC
 # ifdef VARIABLE_ANN_ATM_PCO2

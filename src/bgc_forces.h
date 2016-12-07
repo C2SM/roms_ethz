@@ -29,7 +29,9 @@ CSDISTRIBUTE_RESHAPE  pCO2airg(BLOCK_PATTERN,*) BLOCK_CLAUSE
 CSDISTRIBUTE_RESHAPE  dust(BLOCK_PATTERN) BLOCK_CLAUSE
            common /frc_dust/dust
 # if defined DUST_DATA || defined ALL_DATA
-#  undef DUST_DATA
+#  ifndef SET_SMTH
+#   undef DUST_DATA
+#  endif
       real dustg(GLOBAL_2D_ARRAY,2)
 CSDISTRIBUTE_RESHAPE  dustg(BLOCK_PATTERN,*) BLOCK_CLAUSE
       common /dustg_dat/dustg
@@ -49,7 +51,9 @@ CSDISTRIBUTE_RESHAPE  dustg(BLOCK_PATTERN,*) BLOCK_CLAUSE
 CSDISTRIBUTE_RESHAPE  iron(BLOCK_PATTERN) BLOCK_CLAUSE
            common /frc_iron/iron
 # if defined IRON_DATA || defined ALL_DATA
-#  undef IRON_DATA
+#  ifndef SET_SMTH
+#   undef IRON_DATA
+#  endif
       real irong(GLOBAL_2D_ARRAY,2)
 CSDISTRIBUTE_RESHAPE  irong(BLOCK_PATTERN,*) BLOCK_CLAUSE
       common /irong_dat/irong

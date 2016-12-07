@@ -31,7 +31,8 @@
 !   SMTH_DATA   a macro to access the specific portion of "forces.h"
 !               containing relevant variables and indices; All of the
 !               following macros must be defined to match specific
-!               variable names from that portion of "forces.h";
+!               variable names from that portion of "forces.h"
+!               or "climat.h".
 
 !         var   name of array from "forces.h" to hold the data;
 !  [ var2,3,4 ] optional, name(s) of arrays from "forces.h" to hold
@@ -131,7 +132,7 @@
 #include "param.h"
 #include "scalars.h"
 #include "ncvars.h"
-#ifdef SSH_DATA
+#if defined SSH_DATA || defined TCLIMA_DATA /* MF */
 # include "climat.h"
 #else
 # include "forces.h"
@@ -456,6 +457,11 @@ c**       ierr=nf_close(ncid) ; ncfrc(ifrc)=-1
       write(*,*) '...leaving get_smth' MYID
 #endif
       end
+
+#ifdef SET_SMTH
+# undef KEEP_DATA_DEFINED
+# include "set_smth.F"
+#endif
 
 #undef get_smth
 #undef file_id

@@ -33,10 +33,10 @@
         uclm_time(2)=-1.E+20
 
         if (ncidclm==-1) then
-          ierr=nf_open (clm_file(1:lstr)(1), nf_nowrite, ncidclm)
+          ierr=nf_open (clm_file(1:lstr), nf_nowrite, ncidclm)
           if (ierr /= nf_noerr) write(*,'(/1x,4A/)') '### ERROR: ',
      &                    'get_uclima :: Cannot open netCDF file ''',
-     &                                     clm_file(1:lstr)(1),   '''.'
+     &                                     clm_file(1:lstr),   '''.'
         endif
         if (ierr==nf_noerr) then
           ierr=nf_inq_varid (ncidclm, 'uclm_time', uclm_tid)
@@ -64,23 +64,23 @@
 # ifdef SOLVE3D
                   else
                     write(*,1) vname(1,indxV)(1:lvar),
-     &                                     clm_file(1:lstr)(1)
+     &                                     clm_file(1:lstr)
                   endif
                 else
                   write(*,1) vname(1,indxU)(1:lvar),
-     &                                     clm_file(1:lstr)(1)
+     &                                     clm_file(1:lstr)
                 endif
 # endif
               else
                 write(*,1) vname(1,indxVb)(1:lvar),
-     &                                    clm_file(1:lstr)(1)
+     &                                    clm_file(1:lstr)
               endif
             else
               write(*,1) vname(1,indxUb)(1:lvar),
-     &                                    clm_file(1:lstr)(1)
+     &                                    clm_file(1:lstr)
             endif
           else
-            write(*,1) 'uclm_time', clm_file(1:lstr)(1)
+            write(*,1) 'uclm_time', clm_file(1:lstr)
           endif
         endif
       endif
@@ -150,7 +150,7 @@
            write(*,'(/1x,A,I4,1x,A,I4/7x,4A/7x,2(A,G12.4)/)')
      &    '### ERROR: get_uclima :: requested time record', uclm_rec,
      &    'exeeds the last record',  ntuclm,  'available in netCDF ',
-     &    'file ''',    clm_file(1:lstr)(1),  '''',   'tdays = ', tdays,
+     &    'file ''',    clm_file(1:lstr),  '''',   'tdays = ', tdays,
      &    '  but the last available  uclm_time =',
      &                                   uclm_time(ituclm)*sec2day
         endif

@@ -1,4 +1,5 @@
       subroutine SET_SMTH _tile(istr,iend,jstr,jend, ierr)
+#undef SET_SMTH
 !
 ! Set surface forcing at current time by interpolating 
 ! outside forcing in time
@@ -6,13 +7,17 @@
       implicit none
       integer istr,iend,jstr,jend, ierr, i,j, it1,it2
       real cff, cff1, cff2, cff3, cff4
-# include "param.h"
-# include "scalars.h"
-# include "grid.h"
+#include "param.h"
+#include "scalars.h"
+#include "grid.h"
+#if defined SSH_DATA || defined TCLIMA_DATA /* MF */
+# include "climat.h"
+#else
 # include "forces.h"
-# include "ocean3d.h"
+#endif
+#include "ocean3d.h"
  
-# include "compute_extended_bounds.h"
+#include "compute_extended_bounds.h"
  
 
 ! Set coefficients for interpolation. Check that for the next time
@@ -58,11 +63,10 @@
       endif
       return
       end
-#undef varname
-#undef var
-#undef timevar
-#undef ntsmth 
-#undef itsmth 
-#undef SET_SMTH
+!-- #undef varname
+!-- #undef var
+!-- #undef timevar
+!-- #undef ntsmth 
+!-- #undef itsmth 
 #undef VAR_CFF
 #undef VAR_NOW
