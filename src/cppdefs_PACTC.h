@@ -6,8 +6,9 @@
      /* Include standard CPP switches for UP ETH Zurich */  
 #include "cppdefs_UP.h"
 
-#define GRID_SIZE LLm=602, MMm=516, N=42      ! pactcs30 4.1-65km telescopic up to Antarctica
+#define GRID_SIZE LLm=602, MMm=516, N=64      ! pactcs30 4.1-65km telescopic up to Antarctica
 #define DOMAIN_TILING NP_XI=8, NP_ETA=48, NSUB_X=1, NSUB_E=1 ! Euler
+!#define DOMAIN_TILING NP_XI=4, NP_ETA=8, NSUB_X=1, NSUB_E=1 ! Euler
 
      /* Open Boundaries */
 #define OBC_SOUTH
@@ -15,10 +16,10 @@
      /* Open Boundary Conditions */
 !-- Try to treat inflow/outflow of ACC differently! (not yet tested, so far I used M2FLATHER)
 !-- new only indic/pacific, see below #define OBC_M2SPECIFIED /* special for SO */
-!-- #define OBC_SOUTH_M2SPECIFIED_TILESTR 000 /* OBC_M2SPECIFIED for a certain range of tiles */
-!-- #define OBC_SOUTH_M2SPECIFIED_TILEEND 004 /* OBC_M2SPECIFIED for a certain range of tiles */
-!-- #define OBC_M3ORLANSKI /* Baroclin. BC: OBC_M3ORLANSKI, OBC_M3SPECIFIED */
-!-- #define OBC_TORLANSKI /* Tracer BC: OBC_TORLANSKI, OBC_TSPECIFIED */
+#define OBC_SOUTH_M2SPECIFIED_TILESTR 000 /* OBC_M2SPECIFIED for a certain range of tiles */
+#define OBC_SOUTH_M2SPECIFIED_TILEEND 004 /* OBC_M2SPECIFIED for a certain range of tiles */
+#define OBC_M3ORLANSKI /* Baroclin. BC: OBC_M3ORLANSKI, OBC_M3SPECIFIED */
+#define OBC_TORLANSKI /* Tracer BC: OBC_TORLANSKI, OBC_TSPECIFIED */
 
 ! MF 11/11/2016: Run without sponge as I have before...
 #undef SPONGE
@@ -26,19 +27,21 @@
 
 
      /* Open Boundary Conditions */
-!-- #define CLMFORING
+!-- #define CLMFORCING
 
 
     /*  Use CLM Files */
 !-- #ifdef CLMFORCING   
-!-- # define TCLIMATOLOGY
+# define TCLIMATOLOGY
+/* Partial restoring of TS in user-defined region via 2D field nudg_weights in clm file (MF)*/
+# define TNUDGE_WEIGHTS /* TCLIMATOLOGY must be defined */
 !-- # define UCLIMATOLOGY
 !-- # define TNUDGING
 !-- # define M3NUDGING
 !-- # define M2NUDGING
-!-- # ifdef TCLIMATOLOGY
-!-- #      define CLIMAT_TS_MIXH
-!-- # endif
+# ifdef TCLIMATOLOGY
+#      define CLIMAT_TS_MIXH
+# endif
 !--   /* undefine default BRY settings */
 !-- # undef T_FRC_BRY
 !-- # undef Z_FRC_BRY
@@ -58,7 +61,7 @@
 
      /* Output */
 #define AVERAGES
-#define SLICE_AVG
+!#define SLICE_AVG
 #define CALENDAR '365_day'     /* netCDF CF-convention CALENDAR attribute default: '360_day' */
 !--> #define STARTDATE '0001-01-01' /* part of netCDF CF-convention time units attribute default: '0001-01-01'*/
 

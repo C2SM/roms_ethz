@@ -10,7 +10,7 @@
 # include "netcdf.inc"
 # include "climat.h"
       real cff
-      integer i, lstr,lvar,lenstr, ierr, ncdf_read
+      integer ncid, i, iclm, lvar, lenstr, ierr, ncdf_read
 
 ! Initialization:  Check, whether climatological data file is already
 !----------------  opened, and if not, open it.  Find and save netCDF
@@ -21,68 +21,72 @@
 ! artificial values, so that it will trigger the logic in reading
 ! part below.
 
-!mm *****MERGE NOTE****
-!       For now velocities are assumed to reside in the 1s clm file
-!       THIS RESTRICTION SHOULD BE FIXED
 
       ierr=nf_noerr
-      lstr=lenstr(clm_file(1))
       if (iic==ntstart) then
         ituclm=1
         uclm_time(1)=-1.E+20
         uclm_time(2)=-1.E+20
 
-        if (ncidclm==-1) then
-          ierr=nf_open (clm_file(1:lstr), nf_nowrite, ncidclm)
-          if (ierr /= nf_noerr) write(*,'(/1x,4A/)') '### ERROR: ',
+        do iclm=1,max_clm
+          ncid=ncidclm(iclm)
+
+          if (ncid==-1) then
+            ierr=nf_open (trim(clm_file(iclm)), nf_nowrite, ncid)
+            if (ierr == nf_noerr) then
+              ncidclm(iclm)=ncid
+            else
+              write(*,'(/1x,4A/)') '### ERROR: ',
      &                    'get_uclima :: Cannot open netCDF file ''',
-     &                                     clm_file(1:lstr),   '''.'
-        endif
-        if (ierr==nf_noerr) then
-          ierr=nf_inq_varid (ncidclm, 'uclm_time', uclm_tid)
+     &                                     trim(clm_file(iclm)),   '''.'
+            endif
+          endif
           if (ierr==nf_noerr) then
-            lvar=lenstr(vname(1,indxUb))
-            ierr=nf_inq_varid (ncidclm, vname(1,indxUb)(1:lvar),
-     &                                                 ubclm_id)
+            ierr=nf_inq_varid (ncid, 'uclm_time', uclm_tid)
             if (ierr==nf_noerr) then
-              lvar=lenstr(vname(1,indxVb))
-              ierr=nf_inq_varid (ncidclm, vname(1,indxVb)(1:lvar),
-     &                                                  vbclm_id)
+              lvar=lenstr(vname(1,indxUb))
+              ierr=nf_inq_varid (ncid, vname(1,indxUb)(1:lvar),
+     &                                                 ubclm_id)
               if (ierr==nf_noerr) then
-# ifdef SOLVE3D
-                lvar=lenstr(vname(1,indxU))
-                ierr=nf_inq_varid (ncidclm, vname(1,indxU)(1:lvar),
-     &                                                     uclm_id)
+                lvar=lenstr(vname(1,indxVb))
+                ierr=nf_inq_varid (ncid, vname(1,indxVb)(1:lvar),
+     &                                                  vbclm_id)
                 if (ierr==nf_noerr) then
-                  lvar=lenstr(vname(1,indxV))
-                  ierr=nf_inq_varid (ncidclm, vname(1,indxV)(1:lvar),
-     &                                                      vclm_id)
+# ifdef SOLVE3D
+                  lvar=lenstr(vname(1,indxU))
+                  ierr=nf_inq_varid (ncid, vname(1,indxU)(1:lvar),
+     &                                                     uclm_id)
                   if (ierr==nf_noerr) then
+                    lvar=lenstr(vname(1,indxV))
+                    ierr=nf_inq_varid (ncid, vname(1,indxV)(1:lvar),
+     &                                                      vclm_id)
+                    if (ierr==nf_noerr) then
 # endif
-                    call find_record(ncidclm,uclm_tid, uclm_rec,ntuclm,
+                      call find_record(ncid,uclm_tid, uclm_rec,ntuclm,
      &                             uclm_ncycle,uclm_cycle,  1,1, ierr)
 # ifdef SOLVE3D
+                    else
+                      write(*,1) vname(1,indxV)(1:lvar),
+     &                                     trim(clm_file(iclm))
+                    endif
                   else
-                    write(*,1) vname(1,indxV)(1:lvar),
-     &                                     clm_file(1:lstr)
+                    write(*,1) vname(1,indxU)(1:lvar),
+     &                                     trim(clm_file(iclm))
                   endif
-                else
-                  write(*,1) vname(1,indxU)(1:lvar),
-     &                                     clm_file(1:lstr)
-                endif
 # endif
+                else
+                  write(*,1) vname(1,indxVb)(1:lvar),
+     &                                    trim(clm_file(iclm))
+                endif
               else
-                write(*,1) vname(1,indxVb)(1:lvar),
-     &                                    clm_file(1:lstr)
+                write(*,1) vname(1,indxUb)(1:lvar),
+     &                                    trim(clm_file(iclm))
               endif
             else
-              write(*,1) vname(1,indxUb)(1:lvar),
-     &                                    clm_file(1:lstr)
+              write(*,1) 'uclm_time', trim(clm_file(iclm))
             endif
-          else
-            write(*,1) 'uclm_time', clm_file(1:lstr)
           endif
-        endif
+        enddo 
       endif
   1   format(1x,'### ERROR: get_uclima :: Cannot find variable ''',
      &                               A, ''' in file ''', A, '''.')
@@ -92,68 +96,72 @@
 ! record and cycling indices, flip time index and read a new portion of
 ! the data. Repeat until model time falls between the two data times.
 
-      do while(uclm_time(ituclm) < time+0.5*dt .and. ierr == nf_noerr)
-        call advance_record(uclm_rec,ntuclm, uclm_ncycle,uclm_cycle,
+      do iclm=1,max_clm
+        ncid=ncidclm(iclm)
+
+        do while(uclm_time(ituclm) < time+0.5*dt .and. ierr == nf_noerr)
+          call advance_record(uclm_rec,ntuclm, uclm_ncycle,uclm_cycle,
      &                                                    1,1, ierr)
 
-        if (ierr == nf_noerr) then
-          ierr=nf_get_var1_FTYPE(ncidclm, uclm_tid, uclm_rec, cff)
           if (ierr == nf_noerr) then
-            ituclm=min(3-ituclm,ntuclm)
-            uclm_time(ituclm)=cff*day2sec + uclm_cycle*uclm_ncycle
-            ierr=ncdf_read(ncidclm, ubclm_id, uclm_rec, u_var,
-     &                     ubclima(START_2D_ARRAY,ituclm), 1)
+            ierr=nf_get_var1_FTYPE(ncid, uclm_tid, uclm_rec, cff)
             if (ierr == nf_noerr) then
-              ierr=ncdf_read(ncidclm, vbclm_id, uclm_rec, v_var,
-     &                       vbclima(START_2D_ARRAY,ituclm), 1)
+              ituclm=min(3-ituclm,ntuclm)
+              uclm_time(ituclm)=cff*day2sec + uclm_cycle*uclm_ncycle
+              ierr=ncdf_read(ncid, ubclm_id, uclm_rec, u_var,
+     &                     ubclima(START_2D_ARRAY,ituclm), 1)
               if (ierr == nf_noerr) then
-# ifdef SOLVE3D
-                ierr=ncdf_read(ncidclm, uclm_id,  uclm_rec,  u_var,
-     &                         uclima(START_2D_ARRAY,1,ituclm), N)
+                ierr=ncdf_read(ncid, vbclm_id, uclm_rec, v_var,
+     &                       vbclima(START_2D_ARRAY,ituclm), 1)
                 if (ierr == nf_noerr) then
-                  ierr=ncdf_read(ncidclm, vclm_id,  uclm_rec,  v_var,
-     &                           vclima(START_2D_ARRAY,1,ituclm), N)
+# ifdef SOLVE3D
+                  ierr=ncdf_read(ncid, uclm_id,  uclm_rec,  u_var,
+     &                         uclima(START_2D_ARRAY,1,ituclm), N)
                   if (ierr == nf_noerr) then
+                    ierr=ncdf_read(ncid, vclm_id,  uclm_rec,  v_var,
+     &                           vclima(START_2D_ARRAY,1,ituclm), N)
+                    if (ierr == nf_noerr) then
 # endif
 #ifdef MPI_SILENT_MODE
-                    if (mynode == 0) then
+                      if (mynode == 0) then
 #endif
-                      write(*,'(4x,A,5x,A,G12.4,2(1x,A,I4))')
-     &               'get_uclima :: read momentum climatology',
-     &               'uclm_time =',cff, 'rec =',uclm_rec MYID
+                        write(*,'(4x,A,5x,A,G12.4,2(1x,A,I4))')
+     &                 'get_uclima :: read momentum climatology',
+     &                 'uclm_time =',cff, 'rec =',uclm_rec MYID
 # ifdef MPI_SILENT_MODE
-                    endif
+                      endif
 # endif
-                    if (ntuclm == 1) return
+                      if (ntuclm == 1) return
 # ifdef SOLVE3D
+                    else
+                      lvar=lenstr(vname(1,indxV))
+                      write(*,2) vname(1,indxV)(1:lvar), uclm_rec
+                    endif
                   else
-                    lvar=lenstr(vname(1,indxV))
-                    write(*,2) vname(1,indxV)(1:lvar), uclm_rec
+                    lvar=lenstr(vname(1,indxU))
+                    write(*,2) vname(1,indxU)(1:lvar), uclm_rec
                   endif
-                else
-                  lvar=lenstr(vname(1,indxU))
-                  write(*,2) vname(1,indxU)(1:lvar), uclm_rec
-                endif
 # endif
+                else
+                  lvar=lenstr(vname(1,indxVb))
+                  write(*,2) vname(1,indxVb)(1:lvar), uclm_rec
+                endif
               else
-                lvar=lenstr(vname(1,indxVb))
-                write(*,2) vname(1,indxVb)(1:lvar), uclm_rec
+                lvar=lenstr(vname(1,indxUb))
+                write(*,2) vname(1,indxUb)(1:lvar), uclm_rec
               endif
             else
-              lvar=lenstr(vname(1,indxUb))
-              write(*,2) vname(1,indxUb)(1:lvar), uclm_rec
+              write(*,2) 'clm_time', uclm_rec
             endif
           else
-            write(*,2) 'clm_time', uclm_rec
-          endif
-        else
-           write(*,'(/1x,A,I4,1x,A,I4/7x,4A/7x,2(A,G12.4)/)')
-     &    '### ERROR: get_uclima :: requested time record', uclm_rec,
-     &    'exeeds the last record',  ntuclm,  'available in netCDF ',
-     &    'file ''',    clm_file(1:lstr),  '''',   'tdays = ', tdays,
-     &    '  but the last available  uclm_time =',
+             write(*,'(/1x,A,I4,1x,A,I4/7x,4A/7x,2(A,G12.4)/)')
+     &      '### ERROR: get_uclima :: requested time record', uclm_rec,
+     &      'exeeds the last record',  ntuclm,  'available in netCDF ',
+     &      'file ''',    trim(clm_file(iclm)),  '''',   'tdays = ', tdays,
+     &      '  but the last available  uclm_time =',
      &                                   uclm_time(ituclm)*sec2day
-        endif
+          endif
+        enddo
       enddo
   2   format(/1x,'ERROR in get_uclima: cannot read variable ''',
      &                                 A, ''' for record ', I4/)

@@ -119,28 +119,26 @@ C$OMP THREADPRIVATE(/priv_scalars/)
       real ubind
       common /scalars_main/ ubind
 
+! MF: read in nudging coefficients
 
-/* --> OBSOLETE
-      real tauM2_in, tauM2_out
-      common /scalars_main/ tauM2_in, tauM2_out
+      real attnM2
+      common /scalars_main/ attnM2
 # ifdef SOLVE3D
-      real tauM3_in, tauM3_out,  tauT_in, tauT_out
-      common /scalars_main/ tauM3_in,tauM3_out, tauT_in,tauT_out
+      real tauT_out
+      common /scalars_main/ tauT_out
 # endif
-*/
+! MF: end change
 #endif
 
-/* MF */
+! MF: define nudging tracers
 #ifdef TCLIMATOLOGY
-      real tauT_out
-#   ifdef TNUDGE_WEIGHTS /* MF */
+# ifdef TNUDGE_WEIGHTS
       integer, parameter :: mxnudg=itemp+ntrc_salt  ! only nudge temp and salts
-#   else
+# else
       integer, parameter :: mxnudg=NT               ! nudge all tracers including  BIOLOGY variables
-#   endif /* MF */
-      common /scalars_main/ tauT_out
+# endif
 #endif
-/* MF */
+! MF: end change
 
 !DL: variables for varying atm pCO2:
 #if defined BIOLOGY_BEC || defined BIOLOGY_BEC2 || defined BIOLOGY_NPZDOC

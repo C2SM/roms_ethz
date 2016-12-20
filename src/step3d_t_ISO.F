@@ -857,6 +857,24 @@ c??         enddo
             enddo
           enddo
 # endif
+
+# ifdef TCLIMATOLOGY
+          do k=1,mxnudg
+            do i=istr,iend
+              t(i,j,k,nnew,itrc)=( t(i,j,k,nnew,itrc)
+     &          +dt*Tnudgcof(i,j,itrc)
+#  ifdef TNUDGE_WEIGHTS
+     &          *nudgweights(i,j)
+#  endif 
+     &          *(tclm(i,j,k,itrc)-t(i,j,k,nnew,itrc))
+     &                                               )
+#  ifdef MASKING
+     &                                   *rmask(i,j)
+#  endif
+            enddo
+          enddo
+# endif /* TCLIMATOLOGY */
+
         enddo      !<-- j
         call t3dbc_tile (istr,iend,jstr,jend, itrc, wrk1)
       enddo     !<-- itrc

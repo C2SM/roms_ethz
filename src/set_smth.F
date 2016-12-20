@@ -10,7 +10,7 @@
 #include "param.h"
 #include "scalars.h"
 #include "grid.h"
-#if defined SSH_DATA || defined TCLIMA_DATA /* MF */
+#if defined SSH_DATA || defined TCLIMA_DATA || defined NUDG_WEIGHTS_DATA  /* MF */
 # include "climat.h"
 #else
 # include "forces.h"
@@ -31,8 +31,9 @@
       it1=3- itsmth
       it2= itsmth
       cff= VAR_CFF                           ! conversion factor 
-      cff1= timevar (it2)-time
-      cff2=time- timevar (it1)
+      cff1=timevar(it2)-time
+      cff2=time-timevar(it1)
+
       if (cff1.lt.dt) synchro_flag=.true.
  
       if (ntsmth.eq.1) then                  ! Load time-invariant
@@ -46,7 +47,7 @@
       elseif (cff1.ge.0. .and. cff2.ge.0.) then     ! Interpolate in time.
         cff3=cff1*cff
         cff4=cff2*cff
-        cff=1./(cff1+cff2)
+        cff=1./(cff3+cff4)
         cff1=cff1*cff
         cff2=cff2*cff
         do j=jstrR,jendR

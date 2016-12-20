@@ -143,6 +143,8 @@ c--#define VERBOSE
 # define var2 vwind
 # define timevar wnd_time
 # define file_id wnd_file_id
+# define NC_ID_LIST ncfrc
+# define NC_FILE_LIST frcfile
 # define varid uwndid
 # define varid2 vwndid
 # define timevarid wnd_tid
@@ -183,7 +185,9 @@ c--#define VERBOSE
 # define SSH_DATA
 # define var sshg 
 # define timevar ssh_time
-# define file_id ncidclm
+# define file_id ssh_file_id
+# define NC_ID_LIST ncidclm
+# define NC_FILE_LIST clm_file
 # define varid ssh_id
 # define timevarid ssh_tid
 # define irecord ssh_rec
@@ -204,9 +208,11 @@ c--#define VERBOSE
 # define varname 'nudg_weights'
 # define timename 'nudg_time'
 # define NUDG_WEIGHTS_DATA
-# define var NudgWeightsg 
+# define var nudgweightsg 
 # define timevar nudg_time
-# define file_id ncidclm
+# define file_id nudg_file_id
+# define NC_ID_LIST ncidclm
+# define NC_FILE_LIST clm_file
 # define varid nudg_id
 # define timevarid nudg_tid
 # define irecord nudg_rec
@@ -214,9 +220,9 @@ c--#define VERBOSE
 # define itsmth itnudg
 # define icycle nudg_ncycle
 # define cycle_length nudg_cycle
-# define SET_SMTH set_NudgWeights
+# define SET_SMTH set_nudg_weights
 # define VAR_CFF 1.0
-# define VAR_NOW NudgWeights
+# define VAR_NOW nudgweights
 # include "get_smth.F"
 #endif
 
@@ -231,6 +237,8 @@ c--#define VERBOSE
 #  define var swradg
 #  define timevar  srf_time
 #  define file_id srf_file_id
+# define NC_ID_LIST ncfrc
+# define NC_FILE_LIST frcfile
 #  define varid srf_id
 #  define timevarid srf_tid
 #  define irecord srf_rec
@@ -328,6 +336,8 @@ c--#define VERBOSE
 #  define var sstg
 #  define timevar sst_time
 #  define file_id sst_file_id
+#  define NC_ID_LIST ncfrc
+#  define NC_FILE_LIST frcfile
 #  define varid sst_id
 #  define timevarid sst_tid
 #  define irecord sst_rec
@@ -344,6 +354,8 @@ c--#  define timename 'dqdt_time'
 #  define var dqdtg
 #  define timevar dqdt_time
 #  define file_id dqdt_file_id
+#  define NC_ID_LIST ncfrc
+#  define NC_FILE_LIST frcfile
 #  define varid dqdt_id
 #  define timevarid dqdt_tid
 #  define irecord dqdt_rec
@@ -362,6 +374,8 @@ c--#  define timename 'dqdt_time'
 #  define var sssg
 #  define timevar sss_time
 #  define file_id sss_file_id
+#  define NC_ID_LIST ncfrc
+#  define NC_FILE_LIST frcfile
 #  define varid sss_id
 #  define timevarid sss_tid
 #  define irecord sss_rec
@@ -386,6 +400,8 @@ c--#  define timename 'dqdt_time'
 #  define var3 meltingg
 #  define timevar ice_time
 #  define file_id ice_file_id
+#  define NC_ID_LIST ncfrc
+#  define NC_FILE_LIST frcfile
 #  define varid sic_id
 #  define varid2 freez_id
 #  define varid3 melt_id
@@ -408,6 +424,8 @@ c--#  define timename 'dqdt_time'
 #  define var dustg
 #  define timevar dust_time
 #  define file_id dust_file_id
+#  define NC_ID_LIST ncfrc
+#  define NC_FILE_LIST frcfile
 #  define varid dust_id
 #  define timevarid dust_tid
 #  define irecord dust_rec
@@ -428,6 +446,8 @@ c--#  define timename 'dqdt_time'
 #  define var irong
 #  define timevar iron_time
 #  define file_id iron_file_id
+#  define NC_ID_LIST ncfrc
+#  define NC_FILE_LIST frcfile
 #  define varid iron_id
 #  define timevarid iron_tid
 #  define irecord iron_rec

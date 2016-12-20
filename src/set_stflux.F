@@ -232,39 +232,38 @@
 #  endif
 ! Add relaxation of surface salinity back to climatological value
 ! to avoid long-term drift
-#  endif
-#  if defined SFLX_CORR && defined SALINITY
-#   ifdef SALINITY_MASK
+# endif
+# if defined SFLX_CORR && defined SALINITY
+#  ifdef SALINITY_MASK
               if (sssg(i,j,it7) > 0. .and. sssg(i,j,it8) > 0.) then
-#   endif
-#   ifdef WRITE_SALT_REST
+#  endif
+#  ifdef WRITE_SALT_REST
                 RestFlxSalt(i,j)=stflx(i,j,isalt)
-#   endif
+#  endif
                 stflx(i,j,isalt)=stflx(i,j,isalt)-(dSdt*Hz(i,j,N)*(
      &                                       t(i,j,N,nrhs,isalt)
 c**  &                                        -tclm(i,j,N,isalt)
      &                  -(cff7*sssg(i,j,it7)+cff8*sssg(i,j,it8))
      &                                                         )
-#   if defined SALINITY_MASKLATSTR && defined SALINITY_MASKLATEND
+#  if defined SALINITY_MASKLATSTR && defined SALINITY_MASKLATEND
      &          *max(max(min(abs(latr(i,j)-(SALINITY_MASKLATEND))
      & /abs((SALINITY_MASKLATSTR)-(SALINITY_MASKLATEND)),1.),0.0)
      &   ,min(max(real(floor(abs(latr(i,j)-(SALINITY_MASKLATEND))
      &        /abs((SALINITY_MASKLATSTR)-(SALINITY_MASKLATEND))))
      &           ,real(floor(abs(latr(i,j)-(SALINITY_MASKLATSTR))
      & /abs((SALINITY_MASKLATSTR)-(SALINITY_MASKLATEND))))),1.0))
-#   endif
+#  endif
      &                                                         )
-#   ifdef WRITE_SALT_REST
+#  ifdef WRITE_SALT_REST
                 RestFlxSalt(i,j)=cff*(stflx(i,j,isalt)
      &                  -RestFlxSalt(i,j))/t(i,j,N,nrhs,isalt)
-#   endif
-#   ifdef SALINITY_MASK
-              endif
-#   endif
 #  endif
+#  ifdef SALINITY_MASK
+              endif
+#  endif
+# endif
             enddo
           enddo
-# endif
         endif  !<-- itemp or isalt
 
 

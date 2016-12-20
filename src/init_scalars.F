@@ -129,8 +129,19 @@ c      v3bc_max=0.
 # if defined SFLX_CORR && defined SALINITY
       sss_file_id=-1
 # endif
+! MF: initialize ncid macro for (get_forces/get_smth)
+# ifdef SSH_DATA
+      ssh_file_id=-1
+# endif
+! MF: initialize ncid macro for (get_forces/get_smth)
+# ifdef TNUDG_WEIGHTS_DATA
+      nudg_file_id=-1
+# endif
 #endif
-      ncidclm=-1
+! MF: initialize array of clm files
+      do i=1,max_clm_files
+        ncidclm(i)=-1
+      enddo
 #ifndef ANA_BRY
        bry_id=-1
 #endif

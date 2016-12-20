@@ -132,7 +132,7 @@
 #include "param.h"
 #include "scalars.h"
 #include "ncvars.h"
-#if defined SSH_DATA || defined TCLIMA_DATA /* MF */
+#if defined SSH_DATA || defined TCLIMA_DATA || defined NUDG_WEIGHTS_DATA
 # include "climat.h"
 #else
 # include "forces.h"
@@ -184,8 +184,14 @@
       endif
                                 ! Note: negative irecord is used here
       ifrc=max(file_id,1)       ! to signal that time records bounding
- 100  ncid=ncfrc(ifrc)          ! model time are not found yet.  It can
-      frcname=frcfile(ifrc)     ! occur for two reasons: initialization
+
+
+
+ 100  ncid=NC_ID_LIST(ifrc)          ! model time are not found yet.  It can
+      frcname=NC_FILE_LIST(ifrc)     ! occur for two reasons: initialization
+
+
+
       lfrc=lenstr(frcname)      ! and switch-over of consecutive files
                                 ! in time sequence.
       ierr=nf_noerr
@@ -193,7 +199,7 @@
         if (ncid == -1) then
           ierr=nf_open(frcname(1:lfrc), nf_nowrite, ncid)
           if (ierr == nf_noerr) then
-            ncfrc(ifrc)=ncid
+            NC_ID_LIST(ifrc)=ncid
           else
             write(*,'(/1x,4A/12x,A/)')  '### ERROR: get_smth :: ',
      &                     'Cannot open file ''', frcname(1:lfrc),
@@ -465,6 +471,8 @@ c**       ierr=nf_close(ncid) ; ncfrc(ifrc)=-1
 
 #undef get_smth
 #undef file_id
+#undef NC_ID_LIST
+#undef NC_FILE_LIST
 #ifdef timename
 # undef timename
 #endif

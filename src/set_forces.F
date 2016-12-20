@@ -87,6 +87,9 @@ c***              no code here
       call ana_tclima_tile(istr,iend,jstr,jend)
 # else
       call set_tclima_tile(istr,iend,jstr,jend, ierr)
+#  ifdef TNUDGE_WEIGHTS
+      call set_nudg_weights_tile(istr,iend,jstr,jend, ierr)
+#  endif
 # endif
 #endif
 

@@ -178,10 +178,6 @@ c      enddo
 #  endif
         enddo
       enddo
-#  if defined SOLVE3D && defined TCLIMATOLOGY && defined TNUDGE_WEIGHTS
-      call set_NudgWeights(istr,iend,jstr,jend, ierr)
-!--      if (ierr /= 0) may_day_flag=2
-#  endif
 
       do j=jstrR,jendR
         do i=istrR,iendR
@@ -202,9 +198,6 @@ c        endif
 #  endif
 #  if defined SOLVE3D && defined TCLIMATOLOGY
           Tnudgcof(i,j,itemp)=tauT_out*wrk(i,j)
-#   ifdef TNUDGE_WEIGHTS /* MF */
-     &                        *NudgWeights(i,j)
-#   endif /* MF */
 #  endif
         enddo
       enddo

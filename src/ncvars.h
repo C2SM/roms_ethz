@@ -165,7 +165,7 @@
 
       integer, parameter :: max_frc_files=360
       integer max_frc, ncfrc(max_frc_files), nrst,  ncrst,   nrecrst,
-     &      nrrec, nrpfrst, ncidclm, nwrt,  nchis, nrechis, nrpfhis
+     &      nrrec, nrpfrst, nwrt,  nchis, nrechis, nrpfhis
       common /ncvars/       max_frc, ncfrc, nrst,  ncrst,   nrecrst,
      &      nrrec, nrpfrst, ncidclm, nwrt,  nchis, nrechis, nrpfhis
 #ifdef AVERAGES
@@ -495,7 +495,9 @@
 #endif /* SLICE_AVG */
 
 #if (defined TCLIMATOLOGY && !defined ANA_TCLIMA) || !defined ANA_SSH
-      integer, parameter :: max_clm_files=30
+      integer, parameter :: max_clm_files=8
+      integer ncidclm(max_clm_files)
+      common /ncvars/ncidclm
       integer max_clm
       character(len=max_name_size) clm_file(max_clm_files)
       common /cncvars/ max_clm, clm_file

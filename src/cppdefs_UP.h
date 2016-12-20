@@ -1,5 +1,7 @@
 /*
    Standard UP ETH Zurich Settings for Regional and Basin Configurations
+   #### PLEASE do not change but use undef in cppdefs.h to undefine 
+   #### what as needed e.g., put #undef SPONGE in your personal cppdefs.h
 */
                      /* Basics */
 #define SOLVE3D
