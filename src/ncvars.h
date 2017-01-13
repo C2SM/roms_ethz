@@ -167,7 +167,7 @@
       integer max_frc, ncfrc(max_frc_files), nrst,  ncrst,   nrecrst,
      &      nrrec, nrpfrst, nwrt,  nchis, nrechis, nrpfhis
       common /ncvars/       max_frc, ncfrc, nrst,  ncrst,   nrecrst,
-     &      nrrec, nrpfrst, ncidclm, nwrt,  nchis, nrechis, nrpfhis
+     &      nrrec, nrpfrst, nwrt,  nchis, nrechis, nrpfhis
 #ifdef AVERAGES
       integer ntsavg,  navg
       common /ncvars/ ntsavg, navg
