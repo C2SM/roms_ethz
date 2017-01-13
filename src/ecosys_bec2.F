@@ -756,6 +756,13 @@ c$$$       enddo
 !          print *, 'NO3 conc new: ', t(15,11,32,nnew,1+ntrc_salt+ntrc_pas+2)
 !       endif
 
+# ifdef USE_EXPLICIT_VSINK
+    !---------------------------------------------------------------------
+    ! Compute vertical sinking:
+    !---------------------------------------------------------------------
+       call vert_sinking_bec2(istr,iend,jstr,jend)
+# endif
+
        end subroutine ecosys_bec2_tile
 
 
@@ -871,6 +878,10 @@ c$$$       enddo
      &    P_iron_prod,     ! P iron production (base units = mmol Fe)
      &    Fe_scavenge_rate, ! annual scavenging rate of iron as % of ambient
      &    WORK1,WORK2      ! temporary arrays
+# ifdef USE_EXPLICIT_VSINK
+     &    ,POC_remin        ! POC remineralization
+     &    ,P_iron_remin, P_SiO2_remin, P_CaCO3_remin
+# endif
 
        REAL, DIMENSION(istr:iend,autotroph_cnt) ::
      &    gQfe,            ! fe/C for growth
@@ -1147,7 +1158,9 @@ c$$$       enddo
 # else
           PARinc(istr:iend,j) = PAR_out(istr:iend)
 # endif
+# ifndef USE_EXPLICIT_VSINK
           CALL init_particulate_terms(QA_dust_def,istr,iend,j,dust_flux)
+# endif
        end if
 
     !-----------------------------------------------------------------------
@@ -2020,11 +2033,22 @@ c$$$       enddo
 
        Fe_scavenge_rate = parm_Fe_scavenge_rate0
 
+# ifdef USE_EXPLICIT_VSINK
+       ! Note that VSinkFlux is negative if particles sink, therefore the minus
+       ! is necessary:
+       Fe_scavenge_rate = -Fe_scavenge_rate *
+     &     ( VSinkFlux(istr:iend,j,k,2)*120.1 +
+     &       VSinkFlux(istr:iend,j,k,3)*P_CaCO3_mass +
+     &       VSinkFlux(istr:iend,j,k,4)*P_SiO2_mass +
+     &       VSinkFlux(istr:iend,j,k,1)*dust_fescav_scale )
+# else
+       ! Here the fluxes are positive if particles sink.
        Fe_scavenge_rate = Fe_scavenge_rate *
      &     ((POC_sflux_out(istr:iend,j) + POC_hflux_out(istr:iend,j)) * 120.1 +
      &      (P_CaCO3_sflux_out(istr:iend,j) + P_CaCO3_hflux_out(istr:iend,j)) * P_CaCO3_mass +
      &      (P_SiO2_sflux_out(istr:iend,j) + P_SiO2_hflux_out(istr:iend,j)) * P_SiO2_mass +
      &      (dust_sflux_out(istr:iend,j) + dust_hflux_out(istr:iend,j)) * dust_fescav_scale)
+# endif
 
        where (Fe_loc > Fe_scavenge_thres1)
           Fe_scavenge_rate = Fe_scavenge_rate + 
@@ -2055,8 +2079,39 @@ c$$$       enddo
 #  endif
 # endif
 
+# ifndef USE_EXPLICIT_VSINK
        call compute_particulate_terms(k,QA_dust_def, TEMP, O2_loc, NO3_loc,POC_prod,
      &        P_iron_prod,P_CaCO3_prod,P_SiO2_prod,SED_DENITRIF, OTHER_REMIN,istr,iend,j)
+# else
+       ! Compute remineralization of particulate pools:
+       ! The parameters param_dust_remin etc. are in 1/day, so convert to 1/s.
+       dusthard_remin(istr:iend,j) = param_dusthard_remin/(24.*3600.) * tracer(istr:iend,j,k,dusthard_ind_t)
+       POChard_remin(istr:iend,j) = param_pochard_remin/(24.*3600.) * tracer(istr:iend,j,k,pochard_ind_t)
+       P_CaCO3hard_remin(istr:iend,j) = param_pcaco3hard_remin/(24.*3600.) * tracer(istr:iend,j,k,pcaco3hard_ind_t)
+       P_SiO2hard_remin(istr:iend,j) = param_psio2hard_remin/(24.*3600.) * tracer(istr:iend,j,k,psio2hard_ind_t)
+       P_ironhard_remin(istr:iend,j) = param_pironhard_remin/(24.*3600.) * tracer(istr:iend,j,k,pironhard_ind_t)
+       dustsoft_remin(istr:iend,j) = param_dustsoft_remin/(24.*3600.) * tracer(istr:iend,j,k,dustsoft_ind_t)
+       POCsoft_remin(istr:iend,j) = param_pocsoft_remin/(24.*3600.) * tracer(istr:iend,j,k,pocsoft_ind_t)
+       P_CaCO3soft_remin(istr:iend,j) = param_pcaco3soft_remin/(24.*3600.) * tracer(istr:iend,j,k,pcaco3soft_ind_t)
+       P_SiO2soft_remin(istr:iend,j) = param_psio2soft_remin/(24.*3600.) * tracer(istr:iend,j,k,psio2soft_ind_t)
+       P_ironsoft_remin(istr:iend,j) = param_pironsoft_remin/(24.*3600.) * tracer(istr:iend,j,k,pironsoft_ind_t)
+       POC_remin = POChard_remin(istr:iend,j) + POCsoft_remin(istr:iend,j)
+       P_iron_remin = P_ironhard_remin(istr:iend,j)+ P_ironsoft_remin(istr:iend,j)
+       P_SiO2_remin = P_SiO2hard_remin(istr:iend,j) + P_SiO2soft_remin(istr:iend,j)
+       P_CaCO3_remin = P_CaCO3hard_remin(istr:iend,j) + P_CaCO3soft_remin(istr:iend,j)
+#  ifdef BEC2_DIAG
+       bec2_diag_3d(istr:iend,j,k,pironhardremin_idx_t) = P_Ironhard_remin(istr:iend,j)
+       bec2_diag_3d(istr:iend,j,k,caco3hardremin_idx_t) = P_CaCO3hard_remin(istr:iend,j)
+       bec2_diag_3d(istr:iend,j,k,sio2hardremin_idx_t) = P_SiO2hard_remin(istr:iend,j)
+       bec2_diag_3d(istr:iend,j,k,pochardremin_idx_t) = POChard_remin(istr:iend,j)
+       bec2_diag_3d(istr:iend,j,k,dusthardremin_idx_t) = dusthard_remin(istr:iend,j)
+       bec2_diag_3d(istr:iend,j,k,pironsoftremin_idx_t) = P_Ironsoft_remin(istr:iend,j)
+       bec2_diag_3d(istr:iend,j,k,caco3softremin_idx_t) = P_CaCO3soft_remin(istr:iend,j)
+       bec2_diag_3d(istr:iend,j,k,sio2softremin_idx_t) = P_SiO2soft_remin(istr:iend,j)
+       bec2_diag_3d(istr:iend,j,k,pocsoftremin_idx_t) = POCsoft_remin(istr:iend,j)
+       bec2_diag_3d(istr:iend,j,k,dustsoftremin_idx_t) = dustsoft_remin(istr:iend,j)
+#  endif
+# endif /* USE_EXPLICIT_VSINK */
 
     !-----------------------------------------------------------------------
     !  nitrate & ammonium
@@ -2099,8 +2154,13 @@ c$$$       enddo
        ! CN: See Simon's code: under low NO3, DENITRIF is reduced!
        ! NO3min=2
 
-       DENITRIF = WORK1 * ((DOC_remin + POC_remin(istr:iend,j) - OTHER_REMIN) / denitrif_C_N
-     &                  - SED_DENITRIF)
+       DENITRIF = WORK1 * ((DOC_remin
+# ifdef USE_EXPLICIT_VSINK
+     &                  + POC_remin
+# else
+     &                  + POC_remin(istr:iend,j)
+# endif
+     &                  - OTHER_REMIN) / denitrif_C_N - SED_DENITRIF)
 
        where (NO3_loc < parm_denitrif_NO3_limit)
             DENITRIF = 1/parm_denitrif_NO3_limit * NO3_loc * DENITRIF
@@ -2129,7 +2189,12 @@ c$$$       enddo
 
        DTRACER_MODULE(istr:iend,j,k,nh4_ind_t) = -sum(NH4_V, dim=2) - NITRIF + DON_remin + DONr_remin
      &     + Q * (zoo_loss_dic + sum(auto_loss_dic, dim=2) + sum(auto_graze_dic, dim=2)
-     &        + POC_remin(istr:iend,j) * (c1 - DONrefract))
+# ifdef USE_EXPLICIT_VSINK
+     &     + POC_remin
+# else
+     &     + POC_remin(istr:iend,j)
+# endif
+     &     * (c1 - DONrefract))
 
        do auto_ind = 1, autotroph_cnt
           if (Nfixer(auto_ind))
@@ -2141,7 +2206,11 @@ c$$$       enddo
     !  dissolved iron
     !-----------------------------------------------------------------------
 
+# ifdef USE_EXPLICIT_VSINK
+       DTRACER_MODULE(istr:iend,j,k,fe_ind_t) = P_iron_remin
+# else
        DTRACER_MODULE(istr:iend,j,k,fe_ind_t) = P_iron_remin(istr:iend,j)
+# endif
      &           + (Qfe_zoo * zoo_loss_dic) + DOFe_remin - sum(photoFe, dim=2) - Fe_scavenge
 
        do auto_ind = 1, autotroph_cnt
@@ -2154,7 +2223,11 @@ c$$$       enddo
     !  dissolved SiO3
     !-----------------------------------------------------------------------
 
+# ifdef USE_EXPLICIT_VSINK
+       DTRACER_MODULE(istr:iend,j,k,sio3_ind_t) = P_SiO2_remin
+# else
        DTRACER_MODULE(istr:iend,j,k,sio3_ind_t) = P_SiO2_remin(istr:iend,j)
+# endif
 
        do auto_ind = 1, autotroph_cnt
           if (kSiO3(auto_ind) > 0) then
@@ -2171,7 +2244,13 @@ c$$$       enddo
 
        DTRACER_MODULE(istr:iend,j,k,po4_ind_t) = DOP_remin(istr:iend,j) + DOPr_remin(istr:iend,j) 
      &     - sum(PO4_V, dim=2)
-     &     + Qp_zoo_pom * ((c1 - DOPrefract) * POC_remin(istr:iend,j) + zoo_loss_dic)
+     &     + Qp_zoo_pom * ((c1 - DOPrefract)
+# ifdef USE_EXPLICIT_VSINK
+     &     * POC_remin
+# else
+     &     * POC_remin(istr:iend,j)
+# endif
+     &     + zoo_loss_dic)
 
        do auto_ind = 1, autotroph_cnt
           if (Qp(auto_ind) == Qp_zoo_pom) then
@@ -2231,13 +2310,23 @@ c$$$       enddo
        DTRACER_MODULE(istr:iend,j,k,don_ind_t) = (DON_prod * (c1 - DONrefract)) - DON_remin
 
        DTRACER_MODULE(istr:iend,j,k,donr_ind_t) = (DON_prod * DONrefract) - DONr_remin
-     &         + (POC_remin(istr:iend,j) * DONrefract * Q)
+# ifdef USE_EXPLICIT_VSINK
+     &         + ( POC_remin
+# else
+     &         + ( POC_remin(istr:iend,j)
+# endif
+     &         * DONrefract * Q)
 
        DTRACER_MODULE(istr:iend,j,k,dop_ind_t) = (DOP_prod * (c1 - DOPrefract)) - DOP_remin(istr:iend,j)
      &         - sum(DOP_V, dim=2)
 
        DTRACER_MODULE(istr:iend,j,k,dopr_ind_t) = (DOP_prod * DOPrefract) - DOPr_remin(istr:iend,j)
-     &         + (POC_remin(istr:iend,j) * DOPrefract * Qp_zoo_pom)
+# ifdef USE_EXPLICIT_VSINK
+     &         + ( POC_remin
+# else
+     &         + ( POC_remin(istr:iend,j)
+# endif
+     &         * DOPrefract * Qp_zoo_pom)
 
        DTRACER_MODULE(istr:iend,j,k,dofe_ind_t) = DOFe_prod - DOFe_remin
 
@@ -2247,8 +2336,13 @@ c$$$       enddo
 
        DTRACER_MODULE(istr:iend,j,k,dic_ind_t) =
      &       sum(auto_loss_dic, dim=2) + sum(auto_graze_dic, dim=2) - sum(photoC, dim=2)
-     &       + DOC_remin + POC_remin(istr:iend,j) + zoo_loss_dic
-     &       + P_CaCO3_remin(istr:iend,j)
+     &       + DOC_remin
+# ifdef USE_EXPLICIT_VSINK
+     &       + POC_remin + P_CaCO3_remin
+# else
+     &       + POC_remin(istr:iend,j) + P_CaCO3_remin(istr:iend,j)
+# endif
+     &       + zoo_loss_dic
 
        do auto_ind = 1, autotroph_cnt
           if (CaCO3_ind(auto_ind) > 0)
@@ -2262,7 +2356,12 @@ c$$$       enddo
     !-----------------------------------------------------------------------
 
        DTRACER_MODULE(istr:iend,j,k,alk_ind_t) = -DTRACER_MODULE(istr:iend,j,k,no3_ind_t) +
-     &                  DTRACER_MODULE(istr:iend,j,k,nh4_ind_t) + c2 * P_CaCO3_remin(istr:iend,j)
+     &                  DTRACER_MODULE(istr:iend,j,k,nh4_ind_t) + c2
+# ifdef USE_EXPLICIT_VSINK
+     &     * P_CaCO3_remin
+# else
+     &     * P_CaCO3_remin(istr:iend,j)
+# endif
 
        do auto_ind = 1, autotroph_cnt
           if (CaCO3_ind(auto_ind) > 0)
@@ -2302,7 +2401,13 @@ c$$$       enddo
        WORK1 = (O2_loc - parm_o2_min) / parm_o2_min_delta
        WORK1 = min(max(WORK1,c0),c1)
        O2_CONSUMPTION = WORK1 *
-     &  ((POC_remin(istr:iend,j) + DOC_remin - (SED_DENITRIF*denitrif_C_N) - OTHER_REMIN + zoo_loss_dic
+     &  ((
+# ifdef USE_EXPLICIT_VSINK
+     &   POC_remin
+# else
+     &   POC_remin(istr:iend,j)
+# endif
+     &   + DOC_remin - (SED_DENITRIF*denitrif_C_N) - OTHER_REMIN + zoo_loss_dic
      &   + sum(auto_loss_dic, dim=2) + sum(auto_graze_dic, dim=2)) / parm_Remin_D_C_O2 + (c2 * NITRIF))
 
        DTRACER_MODULE(istr:iend,j,k,o2_ind_t) = O2_PRODUCTION - O2_CONSUMPTION
@@ -2327,10 +2432,29 @@ c$$$       enddo
        end do
 # endif /* BEC_COCCO */
 
+# ifdef USE_EXPLICIT_VSINK
+    !-----------------------------------------------------------------------
+    !  Particulate pools
+    !-----------------------------------------------------------------------
+
+       DTRACER_MODULE(istr:iend,j,k,dusthard_ind_t) = -dusthard_remin(istr:iend,j)
+       DTRACER_MODULE(istr:iend,j,k,pochard_ind_t) = POC_gamma*POC_prod - POChard_remin(istr:iend,j)
+       DTRACER_MODULE(istr:iend,j,k,pcaco3hard_ind_t) = P_CaCO3_gamma*P_CaCO3_prod - P_CaCO3hard_remin(istr:iend,j)
+       DTRACER_MODULE(istr:iend,j,k,psio2hard_ind_t) = P_SiO2_gamma*P_SiO2_prod - P_SiO2hard_remin(istr:iend,j)
+       DTRACER_MODULE(istr:iend,j,k,pironhard_ind_t) = P_iron_gamma*P_iron_prod - P_ironhard_remin(istr:iend,j)
+       DTRACER_MODULE(istr:iend,j,k,dustsoft_ind_t) = -dustsoft_remin(istr:iend,j)
+       DTRACER_MODULE(istr:iend,j,k,pocsoft_ind_t) = (c1-POC_gamma)*POC_prod - POCsoft_remin(istr:iend,j)
+       DTRACER_MODULE(istr:iend,j,k,pcaco3soft_ind_t) = (c1-P_CaCO3_gamma)*P_CaCO3_prod - 
+     &                                                  P_CaCO3soft_remin(istr:iend,j)
+       DTRACER_MODULE(istr:iend,j,k,psio2soft_ind_t) = (c1-P_SiO2_gamma)*P_SiO2_prod - P_SiO2soft_remin(istr:iend,j)
+       DTRACER_MODULE(istr:iend,j,k,pironsoft_ind_t) = (c1-P_iron_gamma)*P_iron_prod - P_ironsoft_remin(istr:iend,j)
+# endif /* USE_EXPLICIT_VSINK */
+
        return
        end subroutine ecosys_set_interior
 
 
+#ifndef USE_EXPLICIT_VSINK
 !-------------------------------------------------------------------------
 !
 !     ************   SUBROUTINE INIT_PARTICULATE_TERMS   ****************
@@ -2445,8 +2569,10 @@ c$$$       enddo
 
         return
         end subroutine init_particulate_terms
+# endif /* USE_EXPLICIT_VSINK */
 
 
+#ifndef USE_EXPLICIT_VSINK
 !-------------------------------------------------------------------------
 !
 !     ************   SUBROUTINE COMPUTE_PARTICULATE_TERMS   ****************
@@ -3067,6 +3193,7 @@ c$$$       enddo
 
        return
        end subroutine compute_particulate_terms
+# endif /* USE_EXPLICIT_VSINK */
 
 
 

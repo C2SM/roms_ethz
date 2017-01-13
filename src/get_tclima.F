@@ -489,6 +489,10 @@
               tclm(:,:,:,iDOFE)=0.0 ! 5.47e-9
            else if (itrc == iDOP) then
               tclm(:,:,:,iDOP)=0.0 ! 8.55e-4
+#  ifdef USE_EXPLICIT_VSINK
+           else if (itrc .ge. iDUST .and. itrc .le. iPIRON) then
+              tclm(:,:,:,itrc)=0.0
+#  endif
 # endif /* BIOLOGY_BEC || BIOLOGY_BEC2 */
 ! Provide default values for additional tracers in the later version of BEC:
 # ifdef BIOLOGY_BEC2

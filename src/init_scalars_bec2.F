@@ -261,6 +261,54 @@ CR      write(*,'(1x,A,I3)') 'indxNH4 =',indxNH4
       vname(4,indxPAR)='  '
 # endif /* !BEC2_DIAG */
 
+# ifdef USE_EXPLICIT_VSINK
+! For output files:
+      vname(1,indxdusthard)='dust_hard                             '
+      vname(2,indxdusthard)='Hard component of dust                '
+      vname(3,indxdusthard)='kg m-3                                '
+      vname(4,indxdusthard)='  '
+      vname(1,indxdustsoft)='dust_soft                             '
+      vname(2,indxdustsoft)='Soft component of dust                '
+      vname(3,indxdustsoft)='kg m-3                                '
+      vname(4,indxdustsoft)='  '
+
+      vname(1,indxpochard)='POC_hard'
+      vname(2,indxpochard)='Hard component of POC'
+      vname(3,indxpochard)='mmol C/m^3'
+      vname(4,indxpochard)='  '
+      vname(1,indxpocsoft)='POC_soft'
+      vname(2,indxpocsoft)='Soft component of POC'
+      vname(3,indxpocsoft)='mmol C/m^3'
+      vname(4,indxpocsoft)='  '
+
+      vname(1,indxpcaco3hard)='PCaCO3_hard'
+      vname(2,indxpcaco3hard)='Hard component of particulate CaCO3'
+      vname(3,indxpcaco3hard)='mmol CaCO3/m^3'
+      vname(4,indxpcaco3hard)='  '
+      vname(1,indxpcaco3soft)='PCaCO3_soft'
+      vname(2,indxpcaco3soft)='Soft component of particulate CaCO3'
+      vname(3,indxpcaco3soft)='mmol CaCO3/m^3'
+      vname(4,indxpcaco3soft)='  '
+
+      vname(1,indxpsio2hard)='PSiO2_hard'
+      vname(2,indxpsio2hard)='Hard component of particulate SiO2'
+      vname(3,indxpsio2hard)='mmol Si/m^3'
+      vname(4,indxpsio2hard)='  '
+      vname(1,indxpsio2soft)='PSiO2_soft'
+      vname(2,indxpsio2soft)='Soft component of particulate SiO2'
+      vname(3,indxpsio2soft)='mmol Si/m^3'
+      vname(4,indxpsio2soft)='  '
+
+      vname(1,indxpironhard)='PFe_hard'
+      vname(2,indxpironhard)='Hard component of particulate iron'
+      vname(3,indxpironhard)='mmol Fe/m^3'
+      vname(4,indxpironhard)='  '
+      vname(1,indxpironsoft)='PFe_soft'
+      vname(2,indxpironsoft)='Soft component of particulate iron'
+      vname(3,indxpironsoft)='mmol Fe/m^3'
+      vname(4,indxpironsoft)='  '
+# endif /* USE_EXPLICIT_VSINK */
+
 # ifdef BEC2_DIAG
       !
       ! 2d diagnotics:

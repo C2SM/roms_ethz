@@ -195,6 +195,10 @@ c***              no code here
 # if defined PASSIVE_TRACER && defined AGE_DYE_TRACER
       call set_agedye_tile(istr,iend,jstr,jend,ierr)
 # endif
+# if defined BIOLOGY_BEC || defined BIOLOGY_BEC2
+      call set_iron_tile (Istr,Iend,Jstr,Jend,ierr) 
+      call set_dust_tile (Istr,Iend,Jstr,Jend,ierr) 
+# endif
 #endif  /* SOLVE3D */
 
                                  
