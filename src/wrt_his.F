@@ -429,7 +429,7 @@ CR      write(*,*) 'wrt_his:  wrtHbBL' MYID
 
       do itrc=1,nr_bec2_diag_2d
          ierr=ncdf_write(nchis, hisT_bec2_diag(itrc), record, r_var,
-     &                  Pbec2_diag_2d(START_2D_ARRAY,itrc), 1)
+     &                  bec2_diag_2d(START_2D_ARRAY,itrc), 1)   ! Pbec2 before
          if (ierr /= nf_noerr) then
            lvar=lenstr(vname_bec2_diag_2d(1,itrc))
            write(*,1) vname_bec2_diag_2d(1,itrc)(1:lvar), record MYID

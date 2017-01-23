@@ -163,7 +163,7 @@ c$$$       enddo
 ! Gas exchange:
 !
 #ifdef ICEOBS
-# define IFRAC sic /* Ice fraction has differend name in this case */
+# define IFRAC sic /* Ice fraction has different name in this case */
 #endif
        FICE_USED(istr:iend,jstr:jend) = IFRAC(istr:iend,jstr:jend)
        call WS(sustr_rho(istr:iend,jstr:jend),
@@ -722,11 +722,11 @@ c$$$     &         *dt/Hz(istr:iend,jstr:jend,N)
 
 ! total chl
 # ifdef BEC2_DIAG
-       bec2_diag_3d(istr:iend,jstr:jend,k,totchl_idx_t) =  NEED_FIX_TRACER_INDICES!!
-     &    tracer(istr:iend,jstr:jend,k,16) + dt*DTRACER_MODULE(istr:iend,jstr:jend,k,16) 
-     &    + tracer(istr:iend,jstr:jend,k,20) + dt*DTRACER_MODULE(istr:iend,jstr:jend,k,20) 
-     &    + tracer(istr:iend,jstr:jend,k,24) + dt*DTRACER_MODULE(istr:iend,jstr:jend,k,24) 
-     &    + tracer(istr:iend,jstr:jend,k,28) + dt*DTRACER_MODULE(istr:iend,jstr:jend,k,28)
+!       bec2_diag_3d(istr:iend,jstr:jend,k,totchl_idx_t) =  !! NEED_FIX_TRACER_INDICES!!
+!     &    tracer(istr:iend,jstr:jend,k,16) + dt*DTRACER_MODULE(istr:iend,jstr:jend,k,16) 
+!     &    + tracer(istr:iend,jstr:jend,k,20) + dt*DTRACER_MODULE(istr:iend,jstr:jend,k,20) 
+!     &    + tracer(istr:iend,jstr:jend,k,24) + dt*DTRACER_MODULE(istr:iend,jstr:jend,k,24) 
+!     &    + tracer(istr:iend,jstr:jend,k,26) + dt*DTRACER_MODULE(istr:iend,jstr:jend,k,28)
 # endif
 
        enddo
@@ -1148,6 +1148,10 @@ c$$$       enddo
 # ifdef MASKING
      &            * rmask(istr:iend,j)
 # endif
+
+!          if (mynode==124) then
+!             print*,'PAR_inc',PAR_out
+!          end if
 # ifdef BEC2_DIAG
 #  ifdef BEC2_DIAG_USER
           if (bec2_diag_2d_l(parinc_idx_t))
@@ -1170,7 +1174,12 @@ c$$$       enddo
 
        do i = istr, iend
           PAR_in(i) = PAR_out(i)
+# ifdef BEC_COCCO
+          KPARdz(i) = max(spChl_loc(i)+diatChl_loc(i)+diazChl_loc(i)
+     &        +coccoChl_loc(i), 0.02)
+# else
           KPARdz(i) = max(spChl_loc(i)+diatChl_loc(i)+diazChl_loc(i), 0.02)
+# endif
           ! DL: in the following computation of KPARdz, it was taken into 
           ! account that Hz is in m
           if (KPARdz(i) < 0.13224) then
@@ -3046,6 +3055,10 @@ c$$$       enddo
      &                (flux - POC_sed_loss(i,j) - (SED_DENITRIF(i)*dz_loc*denitrif_C_N))
               endif
 
+#ifdef BEC2_DIAG
+               bec2_diag_2d(i,j,otherremin_idx_t) = OTHER_REMIN(i)
+#endif
+
 # ifdef CONSTANT_FE_SEDFLUX
              ! Add diffusive iron flux if depth < 1100.0m, based on
              ! Johnson et al.1999, value of 5.0 umolFe/m2/day.
@@ -3072,6 +3085,9 @@ c$$$       enddo
             endif
             ! convert from umol m-2 d-1 to mmol m-2 s-1
             FESEDFLUX(i) = FESEDFLUX(i)*0.001/86400.     !sec2day=1/86400
+# endif
+# ifdef BEC2_DIAG
+             bec2_diag_2d(i,j,fesedflux_idx_t) = FESEDFLUX(i)
 # endif
             endif  ! flux > c0
 

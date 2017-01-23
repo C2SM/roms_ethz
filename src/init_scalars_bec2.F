@@ -17,10 +17,13 @@
 #include "comm_vars.h"
 #include "ncroms_bgcflux.h"
 
-#ifdef NEVER_DEF
+! CN: take this part out of the NEVER_DEF part
 #ifdef BEC2_DIAG
 # include "ecosys_bec2.h"
 #endif
+
+#ifdef NEVER_DEF
+
 !
 ! Find out how many threads are created and check whether the number
 ! of threads exceeds maximum allowed, as well as check if the number
@@ -261,53 +264,7 @@ CR      write(*,'(1x,A,I3)') 'indxNH4 =',indxNH4
       vname(4,indxPAR)='  '
 # endif /* !BEC2_DIAG */
 
-# ifdef USE_EXPLICIT_VSINK
-! For output files:
-      vname(1,indxdusthard)='dust_hard                             '
-      vname(2,indxdusthard)='Hard component of dust                '
-      vname(3,indxdusthard)='kg m-3                                '
-      vname(4,indxdusthard)='  '
-      vname(1,indxdustsoft)='dust_soft                             '
-      vname(2,indxdustsoft)='Soft component of dust                '
-      vname(3,indxdustsoft)='kg m-3                                '
-      vname(4,indxdustsoft)='  '
 
-      vname(1,indxpochard)='POC_hard'
-      vname(2,indxpochard)='Hard component of POC'
-      vname(3,indxpochard)='mmol C/m^3'
-      vname(4,indxpochard)='  '
-      vname(1,indxpocsoft)='POC_soft'
-      vname(2,indxpocsoft)='Soft component of POC'
-      vname(3,indxpocsoft)='mmol C/m^3'
-      vname(4,indxpocsoft)='  '
-
-      vname(1,indxpcaco3hard)='PCaCO3_hard'
-      vname(2,indxpcaco3hard)='Hard component of particulate CaCO3'
-      vname(3,indxpcaco3hard)='mmol CaCO3/m^3'
-      vname(4,indxpcaco3hard)='  '
-      vname(1,indxpcaco3soft)='PCaCO3_soft'
-      vname(2,indxpcaco3soft)='Soft component of particulate CaCO3'
-      vname(3,indxpcaco3soft)='mmol CaCO3/m^3'
-      vname(4,indxpcaco3soft)='  '
-
-      vname(1,indxpsio2hard)='PSiO2_hard'
-      vname(2,indxpsio2hard)='Hard component of particulate SiO2'
-      vname(3,indxpsio2hard)='mmol Si/m^3'
-      vname(4,indxpsio2hard)='  '
-      vname(1,indxpsio2soft)='PSiO2_soft'
-      vname(2,indxpsio2soft)='Soft component of particulate SiO2'
-      vname(3,indxpsio2soft)='mmol Si/m^3'
-      vname(4,indxpsio2soft)='  '
-
-      vname(1,indxpironhard)='PFe_hard'
-      vname(2,indxpironhard)='Hard component of particulate iron'
-      vname(3,indxpironhard)='mmol Fe/m^3'
-      vname(4,indxpironhard)='  '
-      vname(1,indxpironsoft)='PFe_soft'
-      vname(2,indxpironsoft)='Soft component of particulate iron'
-      vname(3,indxpironsoft)='mmol Fe/m^3'
-      vname(4,indxpironsoft)='  '
-# endif /* USE_EXPLICIT_VSINK */
 
 # ifdef BEC2_DIAG
       !
@@ -400,6 +357,11 @@ CR      write(*,'(1x,A,I3)') 'indxNH4 =',indxNH4
       vname_bec2_diag_2d(2,indxDCO2STAR)='DCO2STAR'
       vname_bec2_diag_2d(3,indxDCO2STAR)='mmol/m3'
       vname_bec2_diag_2d(4,indxDCO2STAR)=' '
+
+      vname_bec2_diag_2d(1,indxPCO2OC)='PCO2OC'
+      vname_bec2_diag_2d(2,indxPCO2OC)='PCO2OC'
+      vname_bec2_diag_2d(3,indxPCO2OC)='not looked up yet '
+      vname_bec2_diag_2d(4,indxPCO2OC)=' '
 
       vname_bec2_diag_2d(1,indxIRONFLUX)='IRON_FLUX'
       vname_bec2_diag_2d(2,indxIRONFLUX)='Iron surface flux'
@@ -496,20 +458,13 @@ CR      write(*,'(1x,A,I3)') 'indxNH4 =',indxNH4
       vname_bec2_diag_2d(4,indxSIO2SEDLOSS)=' '
 
 
-!      ! MF: Control BEC2_DIAG Output vars
-!      wrtavg_bec2_diag_2d=(/.false.,.true.,.false.,.true.,.false.,  !PH, pCO2sw, pCO2air, PARinc,FG_O2,
-!     &                     .true.,.false.,.false.,.false.,.false.,  !FG_CO2, WS10m, XKW, ATM_PRESS,SCHMIDT_O2,
-!     &                     .false.,.false.,.false.,.false.,.false., !O2SA, SCHMIDT_CO2, PV_O2,PV_CO2, CO2STAR,
-!     &                     .false.,.false.,.true./)                 !DCO2STAR, IRON_FLUX,SED_DENITRI
-
       ! MF: Control BEC2_DIAG Output vars
-      wrtavg_bec2_diag_2d=(/.true.,.true.,.false.,.true.,.false.,  !PH, pCO2sw, pCO2air, PARinc,FG_O2,
-     &                     .true.,.false.,.false.,.false.,.false.,  !FG_CO2, WS10m, XKW, ATM_PRESS,SCHMIDT_O2,
-     &                     .false.,.false.,.false.,.false.,.false., !O2SA, SCHMIDT_CO2, PV_O2,PV_CO2, CO2STAR,
-     &                     .false.,.false.,.true.,.true.,          !DCO2STAR, IRON_FLUX,SED_DENITRI,FESEDFLUX
-     &                     .true.,.true.,.true.,.true.,.true.,         ! FLUX_TO_SED,CACO3_FLUX_TO_SED,SIO2_FLUX_TO_SED,PIRON_FLUX_TO_SED,DUST_FLUX_TO_SED
-     &                     .true.,.true.,.true.,.true./)         ! POC_SED_LOSS, OTHER_REMIN,CaCO3_sed_loss,P_SiO2_sed_loss
-
+      wrtavg_bec2_diag_2d=(/.true.,.true.,.true.,.true.,.true.,  ! pCO2air, PARinc,FG_O2,FG_CO2, WS10m
+     &                     .true.,.true.,.true.,.true.,.true.,   ! XKW, ATM_PRESS,SCHMIDT_O2,O2SAT, SCHMIDT_CO2
+     &                     .true.,.true.,.true.,.true.,.true.,   ! PV_O2,PV_CO2,IRON_FLUX, SED_DENITRI, PH
+     &                     .true.,.true.,.true.,.true.,          ! PCO2, CO2STAR, PCO2OC, DCO2STAR
+     &                     .true.,.true.,.true.,.true.,.true.,   ! FE_SED_FLUX,FLUX_TO_SED,CACO3_FLUX_TO_SED,SIO2_FLUX_TO_SED,PIRON_FLUX_TO_SED
+     &                     .true.,.true.,.true.,.true.,.true./)  ! DUST_FLUX_SED, POC_SED_LOSS, OTHER_REMIN,CaCO3_sed_loss,P_SiO2_sed_loss
 
       !
       ! More 3d diagnostics:
@@ -970,6 +925,42 @@ CR      write(*,'(1x,A,I3)') 'indxNH4 =',indxNH4
       vname_bec2_diag_3d(3,indxSPCACO3ZERO)='mMol CaCO3/m3/s'
       vname_bec2_diag_3d(4,indxSPCACO3ZERO)=' '
 
+      vname_bec2_diag_3d(1,indxDONRREMIN) = 'DONr_REMIN'
+      vname_bec2_diag_3d(2,indxDONRREMIN)=
+     &  'Portion of refractory DON remineralized'
+      vname_bec2_diag_3d(3,indxDONRREMIN)='mMol N/m3/s'
+      vname_bec2_diag_3d(4,indxDONRREMIN)=' '
+
+      vname_bec2_diag_3d(1,indxTOTCHL)='TOT_CHL'
+      vname_bec2_diag_3d(2,indxTOTCHL)=
+     &  'Total Chlorophyll'
+      vname_bec2_diag_3d(3,indxTOTCHL)='mg Chl/m3'
+      vname_bec2_diag_3d(4,indxTOTCHL)=' '
+
+      vname_bec2_diag_3d(1,indxTOTPHYTOC)='TOT_PHYTOC'
+      vname_bec2_diag_3d(2,indxTOTPHYTOC)=
+     &  'Total Phytoplankton Carbon'
+      vname_bec2_diag_3d(3,indxTOTPHYTOC)='mMol C/m3'
+      vname_bec2_diag_3d(4,indxTOTPHYTOC)=' '
+
+      vname_bec2_diag_3d(1,indxSPPLIM)='SP_P_LIM'
+      vname_bec2_diag_3d(2,indxSPPLIM)=
+     &  'Small phytoplankton P limitation (PO4 + DOP)'
+      vname_bec2_diag_3d(3,indxSPPLIM)=' '
+      vname_bec2_diag_3d(4,indxSPPLIM)=' '
+
+      vname_bec2_diag_3d(1,indxDIATPLIM)='DIAT_P_LIM'
+      vname_bec2_diag_3d(2,indxDIATPLIM)=
+     &  'Diatom P limitation (PO4 + DOP)'
+      vname_bec2_diag_3d(3,indxDIATPLIM)=' '
+      vname_bec2_diag_3d(4,indxDIATPLIM)=' '
+
+      vname_bec2_diag_3d(1,indxDIAZPLIM)='DIAZ_P_LIM'
+      vname_bec2_diag_3d(2,indxDIAZPLIM)=
+     &  'Diazotroph P limitation (PO4 + DOP)'
+      vname_bec2_diag_3d(3,indxDIAZPLIM)=' '
+      vname_bec2_diag_3d(4,indxDIAZPLIM)=' '
+
 # ifdef BEC_COCCO
       vname_bec2_diag_3d(1,indxGRAZECOCCO)='GRAZE_COCCO'
       vname_bec2_diag_3d(2,indxGRAZECOCCO)=
@@ -1070,43 +1061,6 @@ CR      write(*,'(1x,A,I3)') 'indxNH4 =',indxNH4
      &  'Chl synthesis in photoadaptation for Coccos'
       vname_bec2_diag_3d(3,indxCOCCOPHOTOACC)='mg Chl/m3/s'
       vname_bec2_diag_3d(4,indxCOCCOPHOTOACC)=' '
-# endif BEC_COCCO
-
-      vname_bec2_diag_3d(1,indxDONRREMIN) = 'DONr_REMIN'
-      vname_bec2_diag_3d(2,indxDONRREMIN)=
-     &  'Portion of refractory DON remineralized'
-      vname_bec2_diag_3d(3,indxDONRREMIN)='mMol N/m3/s'
-      vname_bec2_diag_3d(4,indxDONRREMIN)=' '
-
-      vname_bec2_diag_3d(1,indxTOTCHL)='TOT_CHL'
-      vname_bec2_diag_3d(2,indxTOTCHL)=
-     &  'Total Chlorophyll'
-      vname_bec2_diag_3d(3,indxTOTCHL)='mg Chl/m3'
-      vname_bec2_diag_3d(4,indxTOTCHL)=' '
-
-      vname_bec2_diag_3d(1,indxTOTPHYTOC)='TOT_PHYTOC'
-      vname_bec2_diag_3d(2,indxTOTPHYTOC)=
-     &  'Total Phytoplankton Carbon'
-      vname_bec2_diag_3d(3,indxTOTPHYTOC)='mMol C/m3'
-      vname_bec2_diag_3d(4,indxTOTPHYTOC)=' '
-
-      vname_bec2_diag_3d(1,indxSPPLIM)='SP_P_LIM'
-      vname_bec2_diag_3d(2,indxSPPLIM)=
-     &  'Small phytoplankton P limitation (PO4 + DOP)'
-      vname_bec2_diag_3d(3,indxSPPLIM)=' '
-      vname_bec2_diag_3d(4,indxSPPLIM)=' '
-
-      vname_bec2_diag_3d(1,indxDIATPLIM)='DIAT_P_LIM'
-      vname_bec2_diag_3d(2,indxDIATPLIM)=
-     &  'Diatom P limitation (PO4 + DOP)'
-      vname_bec2_diag_3d(3,indxDIATPLIM)=' '
-      vname_bec2_diag_3d(4,indxDIATPLIM)=' '
-
-      vname_bec2_diag_3d(1,indxDIAZPLIM)='DIAZ_P_LIM'
-      vname_bec2_diag_3d(2,indxDIAZPLIM)=
-     &  'Diazotroph P limitation (PO4 + DOP)'
-      vname_bec2_diag_3d(3,indxDIAZPLIM)=' '
-      vname_bec2_diag_3d(4,indxDIAZPLIM)=' '
 
       vname_bec2_diag_3d(1,indxCOCCOPLIM)='COCCO_P_LIM'
       vname_bec2_diag_3d(2,indxCOCCOPLIM)=
@@ -1114,45 +1068,157 @@ CR      write(*,'(1x,A,I3)') 'indxNH4 =',indxNH4
       vname_bec2_diag_3d(3,indxCOCCOPLIM)=' '
       vname_bec2_diag_3d(4,indxCOCCOPLIM)=' '
 
+# endif BEC_COCCO
 
+# ifdef USE_EXPLICIT_VSINK
+! For output files:
+      vname(1,indxdusthard)='dust_hard                             '
+      vname(2,indxdusthard)='Hard component of dust                '
+      vname(3,indxdusthard)='kg m-3                                '
+      vname(4,indxdusthard)='  '
+      vname(1,indxdustsoft)='dust_soft                             '
+      vname(2,indxdustsoft)='Soft component of dust                '
+      vname(3,indxdustsoft)='kg m-3                                '
+      vname(4,indxdustsoft)='  '
 
-!     &                     .true.,.true.,.true.,.true.,.true.,       !GRAZE_SP, GRAZE_DIA.true.,GRAZE_DIAZ, SP_LOSS, DIAT_LOSS,
-!     &                     .true.,.true.,.true.,.true.,.true.,       !ZOO_LOSS, SP_AGG, DIAT_AGG,PHOTOC_SP, PHOTOC_DIA.true.,
-!     &                     .false.,.true.,.true.,.false.,.false.,    !TOT_PROD, DOC_PROD,DOC_REMIN, FE_SCAVENGE, SP_N_LIM, 
-!     &                     .false.,.false.,.false.,.false.,.false.,  !SP_FE_LIM, SP_PO4_LIM,SP_LIGHT_LIM, DIAT_N_LIM, DIAT_FE_LIM,
-!     &                     .false.,.false.,.false.,.true.,.false.,   !DIAT_PO4_LIM, DIAT_SIO3_LIM,DIAT_LIGHT_LIM, CACO3_PROD, DIAZ_NFIX,
-!     &                     .true.,.true.,.false.,.false.,.false.,    !DIAZ_LOSS, PHOTOC_DIAZ,DIAZ_PO4_LIM, DIAZ_FE_LIM, DIAZ_LIGHT_LIM,
-!     &                     .false.,.true.,.true.,.false.,.false.,    !FE_SCAVENGE_RATE, DON_PROD,DON_REMIN, DOFE_PROD, DOFE_REMIN,
-!     &                     .false.,.false.,.false.,.false.,.false.,  !DOP_PROD, DOP_REMIN,DIAT_SI_UPTAKE, PHOTOFE_SP, PHOTOFE_DIA.true.,  
-!     &                     .false.,.true.,.true.,.true.,.true.,      !PHOTOFE_DIAZ, NITRI.false.,DENITRI.false.,SP_NO3_UPTAKE,DIAT_NO3_UPTAKE,  
-!     &                     .true.,.true.,.true.,.true.,.true.,       !DIAZ_NO3_UPTAKE,SP_NH4_UPTAKE, DIAT_NH4_UPTAKE,DIAZ_NH4_UPTAKE,SP_GRAZE_DIC,  
-!     &                     .true.,.true.,.true.,.true.,.true.,       !DIAT_GRAZE_DIC,DIAZ_GRAZE_DIC, SP_LOSS_DIC,DIAT_LOSS_DIC,DIAZ_LOSS_DIC,  
-!     &                     .true.,.true.,.true.,.true.,.true.,       !ZOO_LOSS_DIC, DIAZ_AGG,GRAZE_SP_ZOO, GRAZE_DIAT_ZOO, GRAZE_DIAZ_ZOO, 
-!     &                     .true.,.false.,.false.,.false./)          !QCACO3,PHOTOACC_SP,PHOTOACC_DIA.true., PHOTOACC_DIAZ,
+      vname(1,indxpochard)='POC_hard'
+      vname(2,indxpochard)='Hard component of POC'
+      vname(3,indxpochard)='mmol C/m^3'
+      vname(4,indxpochard)='  '
+      vname(1,indxpocsoft)='POC_soft'
+      vname(2,indxpocsoft)='Soft component of POC'
+      vname(3,indxpocsoft)='mmol C/m^3'
+      vname(4,indxpocsoft)='  '
+
+      vname(1,indxpcaco3hard)='PCaCO3_hard'
+      vname(2,indxpcaco3hard)='Hard component of particulate CaCO3'
+      vname(3,indxpcaco3hard)='mmol CaCO3/m^3'
+      vname(4,indxpcaco3hard)='  '
+      vname(1,indxpcaco3soft)='PCaCO3_soft'
+      vname(2,indxpcaco3soft)='Soft component of particulate CaCO3'
+      vname(3,indxpcaco3soft)='mmol CaCO3/m^3'
+      vname(4,indxpcaco3soft)='  '
+
+      vname(1,indxpsio2hard)='PSiO2_hard'
+      vname(2,indxpsio2hard)='Hard component of particulate SiO2'
+      vname(3,indxpsio2hard)='mmol Si/m^3'
+      vname(4,indxpsio2hard)='  '
+      vname(1,indxpsio2soft)='PSiO2_soft'
+      vname(2,indxpsio2soft)='Soft component of particulate SiO2'
+      vname(3,indxpsio2soft)='mmol Si/m^3'
+      vname(4,indxpsio2soft)='  '
+
+      vname(1,indxpironhard)='PFe_hard'
+      vname(2,indxpironhard)='Hard component of particulate iron'
+      vname(3,indxpironhard)='mmol Fe/m^3'
+      vname(4,indxpironhard)='  '
+      vname(1,indxpironsoft)='PFe_soft'
+      vname(2,indxpironsoft)='Soft component of particulate iron'
+      vname(3,indxpironsoft)='mmol Fe/m^3'
+      vname(4,indxpironsoft)='  '
+      
+# if defined BEC2_DIAG
+      vname_bec2_diag_3d(1,indxDUSTHARDREMIN)='dust_hard_remin       '
+      vname_bec2_diag_3d(2,indxDUSTHARDREMIN)=
+     &       'Remin of Hard component of dust'
+      vname_bec2_diag_3d(3,indxDUSTHARDREMIN)='kg m-3 s-1 (check) '
+      vname_bec2_diag_3d(4,indxDUSTHARDREMIN)='  '
+
+      vname_bec2_diag_3d(1,indxDUSTSOFTREMIN)='dust_soft_remin        '
+      vname_bec2_diag_3d(2,indxDUSTSOFTREMIN)=
+     &       'Remin of Soft component of dust'
+      vname_bec2_diag_3d(3,indxDUSTSOFTREMIN)='kg m-3 s-1 (check)   '
+      vname_bec2_diag_3d(4,indxDUSTSOFTREMIN)='  '
+
+      vname_bec2_diag_3d(1,indxPOCHARDREMIN)='POC_hard_remin'
+      vname_bec2_diag_3d(2,indxPOCHARDREMIN)=
+     &        'Remin of Hard component of POC'
+      vname_bec2_diag_3d(3,indxPOCHARDREMIN)='mmol C m-3 s-1'
+      vname_bec2_diag_3d(4,indxPOCHARDREMIN)='  '
+
+      vname_bec2_diag_3d(1,indxPOCSOFTREMIN)='POC_soft_remin'
+      vname_bec2_diag_3d(2,indxPOCSOFTREMIN)=
+     &        'Remin of Soft component of POC'
+      vname_bec2_diag_3d(3,indxPOCSOFTREMIN)='mmol C m-3 s-1'
+      vname_bec2_diag_3d(4,indxPOCSOFTREMIN)='  '
+
+      vname_bec2_diag_3d(1,indxCACO3HARDREMIN)='CaCO3_hard_remin'
+      vname_bec2_diag_3d(2,indxCACO3HARDREMIN)=
+     &       'Remin of Hard component of CaCO3'
+      vname_bec2_diag_3d(3,indxCACO3HARDREMIN)='mmol CaCO3 m-3 s-1'
+      vname_bec2_diag_3d(4,indxCACO3HARDREMIN)='  '
+
+      vname_bec2_diag_3d(1,indxCACO3SOFTREMIN)='CaCO3_soft_remin'
+      vname_bec2_diag_3d(2,indxCACO3SOFTREMIN)=
+     &        'Remin of Soft component of CaCO3'
+      vname_bec2_diag_3d(3,indxCACO3SOFTREMIN)='mmol CaCO3 m-3 s-1'
+      vname_bec2_diag_3d(4,indxCACO3SOFTREMIN)='  '
+
+      vname_bec2_diag_3d(1,indxSIO2HARDREMIN)='SiO2_hard_remin'
+      vname_bec2_diag_3d(2,indxSIO2HARDREMIN)=
+     &         'Remin of Hard component of SiO2'
+      vname_bec2_diag_3d(3,indxSIO2HARDREMIN)='mmol Si m-3 s-1'
+      vname_bec2_diag_3d(4,indxSIO2HARDREMIN)='  '
+
+      vname_bec2_diag_3d(1,indxSIO2SOFTREMIN)='SiO2_soft_remin'
+      vname_bec2_diag_3d(2,indxSIO2SOFTREMIN)=
+     &       'Remin of Soft component of SiO2'
+      vname_bec2_diag_3d(3,indxSIO2SOFTREMIN)='mmol Si m-3 s-1'
+      vname_bec2_diag_3d(4,indxSIO2SOFTREMIN)='  '
+
+      vname_bec2_diag_3d(1,indxPIRONHARDREMIN)='PFe_hard_remin'
+      vname_bec2_diag_3d(2,indxPIRONHARDREMIN)=
+     &        'Remin of Hard component of piron'
+      vname_bec2_diag_3d(3,indxPIRONHARDREMIN)='mmol Fe m-3 s-1'
+      vname_bec2_diag_3d(4,indxPIRONHARDREMIN)='  '
+
+      vname_bec2_diag_3d(1,indxPIRONSOFTREMIN)='PFe_soft_remin'
+      vname_bec2_diag_3d(2,indxPIRONSOFTREMIN)=
+     &        'Remin of Soft component of piron'
+      vname_bec2_diag_3d(3,indxPIRONSOFTREMIN)='mmol Fe m-3 s-1'
+      vname_bec2_diag_3d(4,indxPIRONSOFTREMIN)='  '
+
+# endif /* BEC2_DIAG */
+# endif /* USE_EXPLICIT_VSINK */
 
 
         ! MF: Control BEC2_DIAG Output vars
-      wrtavg_bec2_diag_3d=(/.true.,.true.,.true.,.true.,.true.,   !PAR, POC_FLUX_IN, POC_Prod,POC_REMIN, CACO3_FLUX_IN,
-     &                     .true.,.true.,.true.,.true.,.true.,   !PCACO3_PROD, CACO3_REMIN,SIO2_FLUX_IN, SIO2_PROD, SIO2_REMIN,
-     &                     .false.,.true.,.false.,.true.,.true.,  !DUST_FLUX_IN, DUST_REMIN,P_IRON_FLUX_IN, P_IRON_PROD, P_IRON_REMIN,
+      wrtavg_bec2_diag_3d=(/.true.,.true.,.true.,.true.,.true., !PAR, POC_FLUX_IN, POC_Prod,POC_REMIN, CACO3_FLUX_IN,
+     &                     .true.,.true.,.true.,.true.,.true.,  !PCACO3_PROD, CACO3_REMIN,SIO2_FLUX_IN, SIO2_PROD, SIO2_REMIN,
+     &                     .true.,.true.,.true.,.true.,.true.,  !DUST_FLUX_IN, DUST_REMIN,P_IRON_FLUX_IN, P_IRON_PROD, P_IRON_REMIN,
      &                     .true.,.true.,.true.,.true.,.true.,  !GRAZE_SP, GRAZE_DIAT,GRAZE_DIAZ, SP_LOSS, DIAT_LOSS,
      &                     .true.,.true.,.true.,.true.,.true.,  !ZOO_LOSS, SP_AGG, DIAT_AGG,PHOTOC_SP, PHOTOC_DIA,
-     &                     .true.,.true.,.true.,.true.,.true.,    !TOT_PROD, DOC_PROD,DOC_REMIN, FE_SCAVENGE, SP_N_LIM, 
+     &                     .true.,.true.,.true.,.true.,.true.,  !TOT_PROD, DOC_PROD,DOC_REMIN, FE_SCAVENGE, SP_N_LIM, 
      &                     .true.,.true.,.true.,.true.,.true.,  !SP_FE_LIM, SP_PO4_LIM,SP_LIGHT_LIM, DIAT_N_LIM, DIAT_FE_LIM,
-     &                     .true.,.true.,.true.,.true.,.true.,   !DIAT_PO4_LIM, DIAT_SIO3_LIM,DIAT_LIGHT_LIM, CACO3_PROD, DIAZ_NFIX,
-     &                     .true.,.true.,.true.,.true.,.true.,    !DIAZ_LOSS, PHOTOC_DIAZ,DIAZ_PO4_LIM, DIAZ_FE_LIM, DIAZ_LIGHT_LIM,
-     &                     .true.,.false.,.false.,.false.,.false.,    !FE_SCAVENGE_RATE, DON_PROD,DON_REMIN, DOFE_PROD, DOFE_REMIN,
-     &                     .false.,.false.,.true.,.false.,.false.,  !DOP_PROD, DOP_REMIN,DIAT_SI_UPTAKE, PHOTOFE_SP, PHOTOFE_DIA.true.,  
-     &                     .false.,.true.,.true.,.true.,.true.,  !PHOTOFE_DIAZ, NITRI,DENITRI,SP_NO3_UPTAKE,DIAT_NO3_UPTAKE,  
-     &                     .true.,.true.,.true.,.true.,.false.,  !DIAZ_NO3_UPTAKE,SP_NH4_UPTAKE, DIAT_NH4_UPTAKE,DIAZ_NH4_UPTAKE,SP_GRAZE_DIC,  
-     &                     .false.,.false.,.false.,.false.,.false.,  !DIAT_GRAZE_DIC,DIAZ_GRAZE_DIC, SP_LOSS_DIC,DIAT_LOSS_DIC,DIAZ_LOSS_DIC,  
-     &                     .false.,.true.,.false.,.false.,.false.,  !ZOO_LOSS_DIC, DIAZ_AGG,GRAZE_SP_ZOO, GRAZE_DIAT_ZOO, GRAZE_DIAZ_ZOO, 
-     &                     .false.,.false.,.false.,.false.,          !QCACO3,PHOTOACC_SP,PHOTOACC_DIA, PHOTOACC_DIAZ,
-     &                     .true.,.true.,.true.,.true.,.true.,       !GRAZE_COCCO, COCCO_LOSS, COCCO_AGG, PHOTOC_COCCO, COCCO_N_LIM
-     &                     .true.,.true.,.true.,.true.,.false.,     ! COCCO_PO4_LIM, COCCO_FE_LIM, COCCO_LIGHT_LIM, CACO3_PROD_COCCO,PHOTOFE_COCCO
-     &                     .true.,.true.,.false.,.false.,         ! COCCO_NO3_UPTAKE, COCCO_NH4_UPTAKE, COCCO_GRAZE_DIC,CCOCCO_LOSS_DIC
-     &                     .false.,.true.,.false.,.true.,          !GRAZE_COCCO_ZOO, QCACO3_COCCO, PHOTOACC_COCCO, TOT_CHL
-     &                     .true.,.true.,.true.,.true./)    ! SP_P_LIM, DIAT_P_LIM, DIAZ_P_LIM, COCCO_P_LIM
+     &                     .true.,.true.,.true.,.true.,.true.,  !DIAT_PO4_LIM, DIAT_SIO3_LIM,DIAT_LIGHT_LIM, CACO3_PROD, DIAZ_NFIX,
+     &                     .true.,.true.,.true.,.true.,.true.,  !DIAZ_LOSS, PHOTOC_DIAZ,DIAZ_PO4_LIM, DIAZ_FE_LIM, DIAZ_LIGHT_LIM,
+     &                     .true.,.true.,.true.,.true.,.true.,  !FE_SCAVENGE_RATE, DON_PROD,DON_REMIN, DOFE_PROD, DOFE_REMIN,
+     &                     .true.,.true.,.true.,.true.,.true.,  !DOP_PROD, DOP_REMIN,DIAT_SI_UPTAKE, PHOTOFE_SP, PHOTOFE_DIA,  
+     &                     .true.,.true.,.true.,.true.,.true.,  !PHOTOFE_DIAZ, NITRI,DENITRI,SP_NO3_UPTAKE,DIAT_NO3_UPTAKE,  
+     &                     .true.,.true.,.true.,.true.,.true.,  !DIAZ_NO3_UPTAKE,SP_NH4_UPTAKE, DIAT_NH4_UPTAKE,DIAZ_NH4_UPTAKE,SP_GRAZE_DIC,  
+     &                     .true.,.true.,.true.,.true.,.true.,  !DIAT_GRAZE_DIC,DIAZ_GRAZE_DIC, SP_LOSS_DIC,DIAT_LOSS_DIC,DIAZ_LOSS_DIC,  
+     &                     .true.,.true.,.true.,.true.,.true.,  !ZOO_LOSS_DIC, DIAZ_AGG,GRAZE_SP_ZOO, GRAZE_DIAT_ZOO, GRAZE_DIAZ_ZOO, 
+     &                     .true.,.true.,.true.,.true.,         !SPQCACO3,PHOTOACC_SP,PHOTOACC_DIAT, PHOTOACC_DIAZ,
+     &                     .true.,.true.,.true.,.true.,.true.,  !SPC_ZERO, DIATC_ZERO, DIAZC_ZERO, DOC_ZERO, ZOOC_ZERO
+     &                     .true.,.true.,.true.,.true.,         !SPCACO3_ZERO, DONR_REMIN, TOTCHL, SP_P_LIM 
+     &                     .true.,.true.,.true.                 !DIAT_P_LIM,DIAZ_P_LIM, TOT_PHYTO_C
+     ! 91 tracer
+# ifdef BEC_COCCO 
+     ! + 18 -> 109 tracer
+     &                     ,.true., ! GRAZE_COCCO
+     &                     .true.,.true.,.true.,.true., ! COCCO_LOSS,COCCO_AGG, PHOTOC_COCCO, COCCO_N_LIM
+     &                     .true.,.true.,.true.,.true., ! COCCO_PO4_LIM, COCCO_FE_LIM, COCCO_LIGHT_LIM, CACO3_PROD_COCCO 
+     &                     .true.,.true.,.true.,.true., ! IRON_UPTAKE_COCCO, COCCO_NO3_UPTAKE, COCCO_NH4_UPTAKE, COCCO_GRAZE_DIC 
+     &                     .true.,.true.,.true.,.true., ! COCCO_LOSS_DIC, GRAZE_COCCO_ZOO, QCACO3_COCCO, COCCO_PHOTOACC 
+     &                     .true.   ! COCCO_P_LIM
+# endif
+# ifdef USE_EXPLICIT_VSINK
+     ! +10 -> 101 tracer (w/ coccos) or 98 tracer (w/o coccos)
+     &                     ,.true.,.true.,.true.,.true.,.true.,  ! PIRON_HARD_REMIN, CACO3_HARD_REMIN, SIO2_HARD_REMIN, POC_HARD_REMIN,DUST_HARD_REMIN
+     &                     .true.,.true.,.true.,.true.,.true.    ! PIRON_SOFT_REMIN, CACO3_SOFT_REMIN, SIO2_SOFT_REMIN, POC_SOFT_REMIN,DUST_SOFT_REMIN
+# endif
+     &                     /)
+     
 
 
 

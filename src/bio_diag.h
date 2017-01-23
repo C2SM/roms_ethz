@@ -23,28 +23,51 @@
 #ifdef BIOLOGY_BEC2
       integer, parameter :: indxdust=LAST_I+1
      &            , indxiron=LAST_I+2
+#ifndef BEC2_DIAG
      &            , indxPH=LAST_I+3, indxPCO2=LAST_I+4
      &            , indxPCO2air=LAST_I+5, indxPARinc=LAST_I+6
      &            , indxPAR=LAST_I+7
 # undef LAST_I
 # define LAST_I indxPAR
+#endif /* !BEC2_DIAG */
 
 # ifdef BEC2_DIAG
   ! Indices to be used in vname_bec2_diag_2d only:
       integer, parameter :: indxPCO2air=1,indxPARinc=indxPCO2air+1
      &            , indxFGO2=indxPCO2air+2,indxFGCO2=indxPCO2air+3,indxWS10m=indxPCO2air+4
-     &            , indxXKW=indxPCO2air+5,indxATMPRESS=indxPCO2air+6,indxSCHMIDTO2=indxPCO2air+7
-     &            , indxO2SAT=indxPCO2air+8,indxSCHMIDTCO2=indxPCO2air+9,indxPVO2=indxPCO2air+10
-     &            , indxPVCO2=indxPCO2air+11,indxDCO2STAR=indxPCO2air+12
-     &            , indxIRONFLUX=indxPCO2air+13,indxSEDDENITRIF=indxPCO2air+14
+     &            , indxXKW=indxPCO2air+5,indxATMPRESS=indxPCO2air+6
+     &            , indxSCHMIDTO2=indxPCO2air+7
+     &            , indxO2SAT=indxPCO2air+8,indxSCHMIDTCO2=indxPCO2air+9
+     &            , indxPVO2=indxPCO2air+10
+     &            , indxPVCO2=indxPCO2air+11,indxIRONFLUX=indxPCO2air+12
+     &            , indxSEDDENITRIF=indxPCO2air+13,indxPH=indxPCO2air+14
+     &            , indxPCO2=indxPCO2air+15,indxCO2STAR=indxPCO2air+16
+     &            , indxPCO2OC=indxPCO2air+17
+     &            , indxDCO2STAR=indxPCO2air+18
+# undef LAST_I
+# define LAST_I indxDCO2STAR
 #  ifdef CCHEM_MOCSY
 #   if !defined CCHEM_TODEPTH
-     &            , indxPH=indxPCO2air+15, indxPCO2=indxPH+1, indxCO3=indxPH+2
-     &            , indxHCO3=indxPH+3, indxCO2STAR=indxPH+4
+     &            , indxPH=LAST_I+1, indxPCO2=LAST_I+2, indxCO3=LAST_I+3
+     &            , indxHCO3=LAST_I+4, indxCO2STAR=LAST_I+5
+# undef LAST_I
+# define LAST_I indxCO2STAR
 #   endif
 #  else /* CCHEM_MOCSY */
-     &            , indxPH=indxPCO2air+15, indxPCO2=indxPH+1, indxCO2STAR=indxPH+2
+!     &            , indxPH=LAST_I+1, indxPCO2=LAST_I+2, indxCO2STAR=LAST_I+3
+!# undef LAST_I
+!# define LAST_I indxCO2STAR
 #  endif /* CCHEM_MOCSY */
+     &            , indxFESEDFLUX=LAST_I+1,indxFLUXTOSED=LAST_I+2,indxCACO3FLUXTOSED=LAST_I+3
+     &            , indxSIO2FLUXTOSED=LAST_I+4,indxPIRONFLUXTOSED=LAST_I+5
+     &            , indxDUSTFLUXTOSED=LAST_I+6,indxPOCSEDLOSS=LAST_I+7
+     &            , indxOTHERREMIN=LAST_I+8,indxCACO3SEDLOSS=LAST_I+9
+     &            , indxSIO2SEDLOSS=LAST_I+10
+# undef LAST_I
+# define LAST_I indxSIO2SEDLOSS
+
+
+
    ! Indices to be used in vname_bec2_diag_3d only:
       integer, parameter :: indxPAR=1,indxPOCFLUXIN=indxPAR+1,indxPOCPROD=indxPAR+2
      &            , indxPOCREMIN=indxPAR+3,indxCACO3FLUXIN=indxPAR+4,indxPCACO3PROD=indxPAR+5
@@ -75,12 +98,45 @@
      &            , indxDIAZPHOTOACC=indxPAR+78,indxSPCZERO=indxPAR+79,indxDIATCZERO=indxPAR+80
      &            , indxDIAZCZERO=indxPAR+81,indxDOCZERO=indxPAR+82,indxZOOCZERO=indxPAR+83
      &            , indxSPCACO3ZERO=indxPAR+84,indxDONRREMIN=indxPAR+85, indxTOTCHL=indxPAR+86
-     &            , indxTOTPHYTOC=indxPAR+87
+     &            , indxSPPLIM=indxPAR+87,indxDIATPLIM=indxPAR+88,indxDIAZPLIM=indxPAR+89
+     &            , indxTOTPHYTOC=indxPAR+90
+#  undef LAST_I
+#  define LAST_I indxTOTPHYTOC
 #  if defined CCHEM_MOCSY && defined CCHEM_TODEPTH
-     &            , indxPH=indxPAR+88, indxPCO2=indxPH+1, indxCO3=indxPH+2
+     &            , indxPH=indxPAR+91, indxPCO2=indxPH+1, indxCO3=indxPH+2
      &            , indxHCO3=indxPH+3, indxCO2STAR=indxPH+4
      &            , indxOMEGACALC=indxPH+5, indxOMEGAARAG=indxPH+6
+#  undef LAST_I
+#  define LAST_I indxOMEGAARAG
 #  endif
+# ifdef USE_EXPLICIT_VSINK
+     &            , indxPIRONHARDREMIN=LAST_I+1,indxCACO3HARDREMIN=LAST_I+2
+     &            , indxSIO2HARDREMIN=LAST_I+3
+     &            , indxPOCHARDREMIN=LAST_I+4,indxDUSTHARDREMIN=LAST_I+5
+     &            , indxPIRONSOFTREMIN=LAST_I+6,indxCACO3SOFTREMIN=LAST_I+7
+     &            , indxSIO2SOFTREMIN=LAST_I+8
+     &            , indxPOCSOFTREMIN=LAST_I+9,indxDUSTSOFTREMIN=LAST_I+10
+#  undef LAST_I
+#  define LAST_I indxDUSTSOFTREMIN
+# else /* USE_EXPLICIT_VSINK */
+! already defined above
+# endif /* USE_EXPLICIT_VSINK */
+# ifdef BEC_COCCO
+     &            , indxGRAZECOCCO=LAST_I+1,indxCOCCOLOSS=LAST_I+2
+     &            , indxCOCCOAGG=LAST_I+3,indxPHOTOCCOCCO=LAST_I+4,indxCOCCONLIM=LAST_I+5
+     &            , indxCOCCOPO4UPTAKE=LAST_I+6,indxCOCCOFEUPTAKE=LAST_I+7
+     &            , indxCOCCOLIGHTLIM=LAST_I+8,indxCACO3PRODCOCCO=LAST_I+9
+     &            , indxIRONUPTAKECOCCO=LAST_I+10,indxCOCCONO3UPTAKE=LAST_I+11
+     &            , indxCOCCONH4UPTAKE=LAST_I+12,indxCOCCOGRAZEDIC=LAST_I+13 
+     &            , indxCOCCOLOSSDIC=LAST_I+14,indxGRAZECOCCOZOO=LAST_I+15
+     &            , indxQCACO3COCCO=LAST_I+16,indxCOCCOPHOTOACC=LAST_I+17
+     &            , indxCOCCOPLIM=LAST_I+18
+#  undef LAST_I
+#  define LAST_I indxCOCCOPLIM
+# endif
+
+
+
 # endif /* BEC2_DIAG */
 #endif /* BIOLOGY_BEC2 */
 

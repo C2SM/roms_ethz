@@ -25,7 +25,7 @@
 #endif /* BIOLOGY_NPZDOC || LEGACY_NPZD*/
 
 #ifdef BIOLOGY_BEC2
-      integer, parameter :: indxPo4=LAST_I+1
+      integer, parameter :: indxPO4=LAST_I+1
      &          , indxNo3=indxPO4+1, indxSiO3=indxPO4+2
      &          , indxNh4=indxPO4+3, indxFe=indxPO4+4
      &          , indxO2=indxPO4+5,  indxDic=indxPO4+6

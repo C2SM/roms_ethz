@@ -559,19 +559,24 @@
 #   endif /* SEDIMENT_BIOLOGY */
 #  endif /* BIOLOGY_NPZDOC || BIOLOGY_BEC */
 #  if defined BIOLOGY_BEC2 && defined BEC2_DIAG
+       !   MPI_master_only write(*,*),'cff1',cff1
+       !   MPI_master_only write(*,*),'cff',cff
           do itrc=1,nr_bec2_diag_2d
+      !    MPI_master_only write(*,*),'2D:itrc',itrc
              do j=jstrR,jendR
                 do i=istrR,iendR
-                   bec2_diag_2d_AVR(i,j,itrc) = bec2_diag_2d_AVR(i,j,itrc) + bec2_diag_2d(i,j,itrc)
+                   bec2_diag_2d_AVR(i,j,itrc) = cff1*bec2_diag_2d_AVR(i,j,itrc) 
+     &                                         + cff*bec2_diag_2d(i,j,itrc)
                 end do
              end do
           end do
           do itrc=1,nr_bec2_diag_3d
+      !    MPI_master_only write(*,*),'3D:itrc',itrc
              KLOOP(1)
              do j=jstrR,jendR
                 do i=istrR,iendR
                    bec2_diag_3d_AVR(i,j,k,itrc) = cff1*bec2_diag_3d_AVR(i,j,KLEVEL,itrc) 
-     &                                           + bec2_diag_3d(i,j,KLEVEL,itrc)
+     &                                           + cff*bec2_diag_3d(i,j,KLEVEL,itrc)
                 end do
              end do
              ENDKLOOP

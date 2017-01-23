@@ -28,11 +28,22 @@
       parameter( nr_cchem_mocsy_2d=0, nr_cchem_mocsy_3d=0 )
 # endif /* CCHEM_MOCSY */
 # ifdef USE_EXPLICIT_VSINK
-      parameter( nr_bec2_diag_3d=88+nr_cchem_mocsy_3d+10,
+# ifdef BEC_COCCO
+      parameter( nr_bec2_diag_3d=91+nr_cchem_mocsy_3d+28,  ! 10 from expl sinking, 18 from coccos
 # else
-      parameter( nr_bec2_diag_3d=88+nr_cchem_mocsy_3d+5,
-# endif
-     &           nr_bec2_diag_2d=18+nr_cchem_mocsy_2d )
+      parameter( nr_bec2_diag_3d=91+nr_cchem_mocsy_3d+10,
+# endif /* BEC_COCCO */
+# else ! impl sinking
+# ifdef BEC_COCCO
+      parameter( nr_bec2_diag_3d=91+nr_cchem_mocsy_3d+18,  ! 18 from coccos, 0 from impl sinking
+# else
+      parameter( nr_bec2_diag_3d=91+nr_cchem_mocsy_3d,   ! CN: took "+5" away, these were included in the 91
+# endif /* BEC_COCCO */
+
+# endif /* USE_EXPLICIT_VSINK */
+     &           nr_bec2_diag_2d=29+nr_cchem_mocsy_2d )  ! CN: added 11 tracers, see bio_diag.h
+
+
       parameter( nr_bec2_diag=nr_bec2_diag_2d+nr_bec2_diag_3d )
 # ifdef BEC2_DIAG_USER
       real, pointer, dimension(:,:,:,:) :: bec2_diag_3d
@@ -54,7 +65,7 @@
       ! Indices to be used in bec2_diag_2d or bec2_diag_3d: these are 3d in space if
       ! MOCSY is selected and the C chemistry is computed at depth. Otherwise they are
       ! 2d in space.
-      integer ph_idx_t, pco2oc_idx_t, co2star_idx_t
+!      integer ph_idx_t, pco2oc_idx_t, co2star_idx_t
 # ifdef CCHEM_MOCSY
       ! Additional variables if if MOCSY is used instead of the OCMIP code for carbon
       ! chemistry. The numbers of these variables are given by nr_cchem_mocsy_2d and
@@ -64,6 +75,12 @@
      &        , omega_calc_idx_t, omega_arag_idx_t
 #  endif
 # endif /* CCHEM_MOCSY */
+
+  ! MF: Control BEC2_DIAG Output vars
+      logical wrtavg_bec2_diag_2d(nr_bec2_diag_2d)
+      logical wrtavg_bec2_diag_3d(nr_bec2_diag_3d)
+
+      common wrtavg_bec2_diag_2d, wrtavg_bec2_diag_3d
 
       ! Indices to be used in bec2_diag_3d only:
       integer, parameter :: par_idx_t=1,pocfluxin_idx_t=par_idx_t+1,
@@ -95,19 +112,20 @@
      &   diatphotoacc_idx_t=par_idx_t+77,diazphotoacc_idx_t=par_idx_t+78,spczero_idx_t=par_idx_t+79,
      &   diatczero_idx_t=par_idx_t+80,diazczero_idx_t=par_idx_t+81,doczero_idx_t=par_idx_t+82,
      &   zooczero_idx_t=par_idx_t+83,spcaco3zero_idx_t=par_idx_t+84,donrremin_idx_t=par_idx_t+85,
-     &   totchl_idx_t=par_idx_t+86,totphytoc_idx_t=par_idx_t+87
+     &   totchl_idx_t=par_idx_t+86,
+     &   spplim_idx_t=par_idx_t+87,diatplim_idx_t=par_idx_t+88,diazplim_idx_t=par_idx_t+89,
+     &   totphytoc_idx_t=par_idx_t+90
+#  undef LAST_I
+#  define LAST_I totphytoc_idx_t
 # ifdef USE_EXPLICIT_VSINK
-     &   ,pironhardremin_idx_t=par_idx_t+88, caco3hardremin_idx_t=par_idx_t+89, sio2hardremin_idx_t=par_idx_t+90
-     &   ,pochardremin_idx_t=par_idx_t+91, dusthardremin_idx_t=par_idx_t+92
-     &   ,pironsoftremin_idx_t=par_idx_t+93, caco3softremin_idx_t=par_idx_t+94, sio2softremin_idx_t=par_idx_t+95
-     &   ,pocsoftremin_idx_t=par_idx_t+96, dustsoftremin_idx_t=par_idx_t+97
-#  undef LAST_I
-#  define LAST_I dustsoftremin_idx_t
+     &   ,pironhardremin_idx_t=LAST_I+1, caco3hardremin_idx_t=LAST_I+2, sio2hardremin_idx_t=LAST_I+3
+     &   ,pochardremin_idx_t=LAST_I+4, dusthardremin_idx_t=LAST_I+5
+     &   ,pironsoftremin_idx_t=LAST_I+6, caco3softremin_idx_t=LAST_I+7, sio2softremin_idx_t=LAST_I+8
+     &   ,pocsoftremin_idx_t=LAST_I+9, dustsoftremin_idx_t=LAST_I+10
+# undef LAST_I
+# define LAST_I dustsoftremin_idx_t
 # else /* USE_EXPLICIT_VSINK */
-     &   ,pironremin_idx_t=par_idx_t+88, caco3remin_idx_t=par_idx_t+89, sio2remin_idx_t=par_idx_t+90
-     &   ,pocremin_idx_t=par_idx_t+91, dustremin_idx_t=par_idx_t+92
-#  undef LAST_I
-#  define LAST_I dustremin_idx_t
+! already defined above,no additional diagnostics
 # endif /* USE_EXPLICIT_VSINK */
 # if defined CCHEM_MOCSY && defined CCHEM_TODEPTH
      &   ,ph_idx_t=LAST_I+1, pco2oc_idx_t=ph_idx_t+1, co3_idx_t=ph_idx_t+2
@@ -117,14 +135,18 @@
 #  define LAST_I omega_arag_idx_t
 # endif
 # ifdef BEC_COCCO
-     &   grazecocco_idx_t=LAST_I+1,coccoloss_idx_t=LAST_I+2,
-     &   coccoagg_idx_t=LAST_I+3,photoccocco_idx_t=LAST_I+4,cocconlim_idx_t=LAST_I+5,
-     &   coccopo4uptake_idx_t=LAST_I+6,coccofeuptake_idx_t=LAST_I+7,coccolightlim_idx_t=LAST_I+8,
-     &   caco3prodcocco_idx_t=LAST_I+9,ironuptakecocco_idx_t=LAST_I+10,coccono3uptake_idx_t=LAST_I+11,
-     &   cocconh4uptake_idx_t=LAST_I+12,coccograzedic_idx_t=LAST_I+13,
-     &   coccolossdic_idx_t=LAST_I+14,grazecoccozoo_idx_t=LAST_I+15,coccoqcaco3_idx_t=LAST_I+16,
-     &   coccophotoacc_idx_t=LAST_I+17,totchl_idx_t=LAST_I+18,spplim_idx_t=LAST_I+19,
-     &   diatplim_idx_t=LAST_I+20,diazplim_idx_t=LAST_I+21,coccoplim_idx_t=LAST_I+22 
+      integer, parameter :: grazecocco_idx_t=LAST_I+1,coccoloss_idx_t=LAST_I+2,
+     &   coccoagg_idx_t=LAST_I+3,photoccocco_idx_t=LAST_I+4,
+     &   cocconlim_idx_t=LAST_I+5,
+     &   coccopo4uptake_idx_t=LAST_I+6,coccofeuptake_idx_t=LAST_I+7,
+     &   coccolightlim_idx_t=LAST_I+8,
+     &   caco3prodcocco_idx_t=LAST_I+9,ironuptakecocco_idx_t=LAST_I+10,
+     &   coccono3uptake_idx_t=LAST_I+11,cocconh4uptake_idx_t=LAST_I+12,
+     &   coccograzedic_idx_t=LAST_I+13,
+     &   coccolossdic_idx_t=LAST_I+14,grazecoccozoo_idx_t=LAST_I+15,
+     &   coccoqcaco3_idx_t=LAST_I+16,
+     &   coccophotoacc_idx_t=LAST_I+17,
+     &   coccoplim_idx_t=LAST_I+18
 # endif        
 
 
@@ -134,18 +156,20 @@
      &   ws10m_idx_t=pco2air_idx_t+4, xkw_idx_t=pco2air_idx_t+5, atmpress_idx_t=pco2air_idx_t+6,
      &   schmidto2_idx_t=pco2air_idx_t+7, o2sat_idx_t=pco2air_idx_t+8, schmidtco2_idx_t=pco2air_idx_t+9,
      &   pvo2_idx_t=pco2air_idx_t+10,pvco2_idx_t=pco2air_idx_t+11,ironflux_idx_t=pco2air_idx_t+12,
-     &   seddenitrif_idx_t=pco2air_idx_t+13,dco2star_idx_t=pco2air_idx_t+14
+     &   seddenitrif_idx_t=pco2air_idx_t+13,ph_idx_t=pco2air_idx_t+14,pco2_idx_t=pco2air_idx_t+15,
+     &   co2star_idx_t=pco2air_idx_t+16,pco2oc_idx_t=pco2air_idx_t+17,dco2star_idx_t=pco2air_idx_t+18
 # undef LAST_I
 # define LAST_I dco2star_idx_t
 # ifdef CCHEM_MOCSY
-     &   ,ph_idx_t=pco2air_idx_t+15, pco2oc_idx_t=ph_idx_t+1, co3_idx_t=ph_idx_t+2
+     &   ,ph_idx_t=pco2air_idx_t+16, pco2oc_idx_t=ph_idx_t+1, co3_idx_t=ph_idx_t+2
 #  ifndef CCHEM_TODEPTH
      &   ,hco3_idx_t=ph_idx_t+3, co2star_idx_t=ph_idx_t+4
-#  endif
-# endif /* CCHEM_MOCSY */
 # undef LAST_I
 # define LAST_I co2star_idx_t
-     &   fesedflux_idx_t=LAST_I+1,fluxtosed_idx_t=LAST_I+2,caco3fluxtosed_idx_t=LAST_I+3,
+#  endif
+# endif /* CCHEM_MOCSY */
+      integer, parameter :: fesedflux_idx_t=LAST_I+1,
+     &   fluxtosed_idx_t=LAST_I+2,caco3fluxtosed_idx_t=LAST_I+3,
      &   sio2fluxtosed_idx_t=LAST_I+4,pironfluxtosed_idx_t=LAST_I+5,dustfluxtosed_idx_t=LAST_I+6,
      &   pocsedloss_idx_t=LAST_I+7,otherremin_idx_t=LAST_I+8,caco3sedloss_idx_t=LAST_I+9,
      &   sio2sedloss_idx_t=LAST_I+10 
