@@ -656,13 +656,15 @@ c$$$       enddo
 # endif /* RIVER_LOAD_SI_ALK_DIC */
 
 
-       !DL: note that iron fluxes are in mmol Fe/m^2/s (see get_iron.F).
+       !CN: iron fluxes in forcing file are in nmol Fe cm-2 s-1
+       !     BEC needs them in mmol Fe m-2 s-1, convert here 
+       !     (used to be done in get_iron.F)
        if (liron_flux) then
           FLUX(istr:iend,jstr:jend)=iron(istr:iend,jstr:jend)
        else
           FLUX = c0
        endif 
-       FLUX = FLUX * parm_Fe_bioavail
+       FLUX = FLUX * parm_Fe_bioavail * nmol_cm2_to_mmol_m2 
        STF(istr:iend,jstr:jend,fe_ind_t) = FLUX(istr:iend,jstr:jend)
        tracer(istr:iend,jstr:jend,N,fe_ind_t) =
      &         tracer(istr:iend,jstr:jend,N,fe_ind_t) +
