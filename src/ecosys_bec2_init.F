@@ -49,7 +49,7 @@
       !   default namelist settings
       !---------------------------------------------------------------------------
 
-      parm_Fe_bioavail       = 1.0
+      parm_Fe_bioavail       = 0.02
       !parm_o2_min            = 4.0  ! mmol/m^3 = nmol/cm^3
       parm_o2_min            = 1.0  ! mmol/m^3 = nmol/cm^3 (MF 11.11.2016: Taking down DENITRIF following discussion with SY (Babbin et al. 2014))
       parm_o2_min_delta      = 2.0  ! mmol/m^3 = nmol/cm^3
