@@ -428,24 +428,28 @@ CR      write(*,*) 'wrt_his:  wrtHbBL' MYID
 ! 2d diagnostics:
 
       do itrc=1,nr_bec2_diag_2d
-         ierr=ncdf_write(nchis, hisT_bec2_diag(itrc), record, r_var,
+         if (wrtavg_bec2_diag_2d(itrc)) then
+           ierr=ncdf_write(nchis, hisT_bec2_diag(itrc), record, r_var,
      &                  bec2_diag_2d(START_2D_ARRAY,itrc), 1)   ! Pbec2 before
-         if (ierr /= nf_noerr) then
-           lvar=lenstr(vname_bec2_diag_2d(1,itrc))
-           write(*,1) vname_bec2_diag_2d(1,itrc)(1:lvar), record MYID
-           goto 99                                         !--> ERROR
+           if (ierr /= nf_noerr) then
+            lvar=lenstr(vname_bec2_diag_2d(1,itrc))
+            write(*,1) vname_bec2_diag_2d(1,itrc)(1:lvar), record MYID
+            goto 99                                         !--> ERROR
+           endif
          endif
       end do
 
 ! 3d diagnostics:
 
       do itrc=1,nr_bec2_diag_3d
-         ierr=ncdf_write(nchis, hisT_bec2_diag(nr_bec2_diag_2d+itrc), 
+         if (wrtavg_bec2_diag_3d(itrc)) then
+           ierr=ncdf_write(nchis, hisT_bec2_diag(nr_bec2_diag_2d+itrc), 
      &                  record, r_var, bec2_diag_3d(START_2D_ARRAY,1,itrc), N)
-         if (ierr /= nf_noerr) then
-           lvar=lenstr(vname_bec2_diag_3d(1,itrc))
-           write(*,1) vname_bec2_diag_3d(1,itrc)(1:lvar), record MYID
-           goto 99                                         !--> ERROR
+           if (ierr /= nf_noerr) then
+            lvar=lenstr(vname_bec2_diag_3d(1,itrc))
+            write(*,1) vname_bec2_diag_3d(1,itrc)(1:lvar), record MYID
+            goto 99                                         !--> ERROR
+           endif
          endif
       end do
 # endif /* BIOLOGY_BEC2 && BEC2_DIAG */

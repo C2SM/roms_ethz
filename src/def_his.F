@@ -1456,67 +1456,71 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
 ! 2d diagnostics:
 !
         do itrc=1,nr_bec2_diag_2d
-           lvar=lenstr(vname_bec2_diag_2d(1,itrc))
-           ierr=nf_def_var (ncid, vname_bec2_diag_2d(1,itrc)(1:lvar), NF_FOUT,
+           if (wrtavg_bec2_diag_2d(itrc)) then
+              lvar=lenstr(vname_bec2_diag_2d(1,itrc))
+              ierr=nf_def_var (ncid, vname_bec2_diag_2d(1,itrc)(1:lvar), NF_FOUT,
      &                                           3, r2dgrd, vidT_bec2(itrc))
 # ifdef AVRH
-            text='averaged '/ /vname_bec2_diag_2d(2,itrc)
+               text='averaged '/ /vname_bec2_diag_2d(2,itrc)
 # else
-            text=vname_bec2_diag_2d(2,itrc)
+               text=vname_bec2_diag_2d(2,itrc)
 # endif
-            lvar=lenstr(text)
-            ierr=nf_put_att_text (ncid, vidT_bec2(itrc), 'long_name',
+               lvar=lenstr(text)
+               ierr=nf_put_att_text (ncid, vidT_bec2(itrc), 'long_name',
      &                                          lvar, text(1:lvar))
-            lvar=lenstr(vname_bec2_diag_2d(3,itrc))
-            ierr=nf_put_att_text (ncid, vidT_bec2(itrc), 'units', lvar,
+               lvar=lenstr(vname_bec2_diag_2d(3,itrc))
+               ierr=nf_put_att_text (ncid, vidT_bec2(itrc), 'units', lvar,
      &                               vname_bec2_diag_2d(3,itrc)(1:lvar))
-          ierr=nf_put_att_text (ncid, vidT_bec2(itrc), 'coordinates',15,
+              ierr=nf_put_att_text (ncid, vidT_bec2(itrc), 'coordinates',15,
      &                              'lon_rho lat_rho') 
 # ifdef MASK_LAND_DATA
-            ierr=nf_put_att_FOUT (ncid, vidT_bec2(itrc), '_FillValue',
+               ierr=nf_put_att_FOUT (ncid, vidT_bec2(itrc), '_FillValue',
      &                                       NF_FOUT, 1, spv_set)
 # endif
 # ifdef NCCOMPRESS
-          ierr=nf_def_var_deflate(ncid, vidT_bec2(itrc), ncshuff, ncdefl, nclev )
-          ierr=nf_def_var_chunking(ncid, vidT_bec2(itrc), ncctg, ncrchnk3)
+             ierr=nf_def_var_deflate(ncid, vidT_bec2(itrc), ncshuff, ncdefl, nclev )
+             ierr=nf_def_var_chunking(ncid, vidT_bec2(itrc), ncctg, ncrchnk3)
 # endif
 # ifdef HFREQ_2D_AVERAGES
-            ierr=nf_put_att_text (ncid, vidT_bec2(itrc), 'sigma-level',
+               ierr=nf_put_att_text (ncid, vidT_bec2(itrc), 'sigma-level',
      &                                          lvar, 'top')
 # endif
+           endif
         enddo
 !
 ! 3d diagnostics:
 !
         do itrc=1,nr_bec2_diag_3d
-           lvar=lenstr(vname_bec2_diag_3d(1,itrc))
-           ierr=nf_def_var (ncid, vname_bec2_diag_3d(1,itrc)(1:lvar), NF_FOUT,
+           if (wrtavg_bec2_diag_3d(itrc)) then
+              lvar=lenstr(vname_bec2_diag_3d(1,itrc))
+              ierr=nf_def_var (ncid, vname_bec2_diag_3d(1,itrc)(1:lvar), NF_FOUT,
      &                                           NVDIM, RGRD, vidT_bec2(nr_bec2_diag_2d+itrc))
 # ifdef AVRH
-            text='averaged '/ /vname_bec2_diag_3d(2,itrc)
+                text='averaged '/ /vname_bec2_diag_3d(2,itrc)
 # else
-            text=vname_bec2_diag_3d(2,itrc)
+               text=vname_bec2_diag_3d(2,itrc)
 # endif
-            lvar=lenstr(text)
-            ierr=nf_put_att_text (ncid, vidT_bec2(nr_bec2_diag_2d+itrc), 'long_name',
+               lvar=lenstr(text)
+               ierr=nf_put_att_text (ncid, vidT_bec2(nr_bec2_diag_2d+itrc), 'long_name',
      &                                          lvar, text(1:lvar))
-            lvar=lenstr(vname_bec2_diag_3d(3,itrc))
-            ierr=nf_put_att_text (ncid, vidT_bec2(nr_bec2_diag_2d+itrc), 'units', lvar,
+               lvar=lenstr(vname_bec2_diag_3d(3,itrc))
+               ierr=nf_put_att_text (ncid, vidT_bec2(nr_bec2_diag_2d+itrc), 'units', lvar,
      &                               vname_bec2_diag_3d(3,itrc)(1:lvar))
-          ierr=nf_put_att_text (ncid, vidT_bec2(nr_bec2_diag_2d+itrc), 'coordinates',15,
+             ierr=nf_put_att_text (ncid, vidT_bec2(nr_bec2_diag_2d+itrc), 'coordinates',15,
      &                              'lon_rho lat_rho') 
 # ifdef MASK_LAND_DATA
-            ierr=nf_put_att_FOUT (ncid, vidT_bec2(nr_bec2_diag_2d+itrc), '_FillValue',
+               ierr=nf_put_att_FOUT (ncid, vidT_bec2(nr_bec2_diag_2d+itrc), '_FillValue',
      &                                       NF_FOUT, 1, spv_set)
 # endif
 # ifdef NCCOMPRESS
-          ierr=nf_def_var_deflate(ncid, vidT_bec2(nr_bec2_diag_2d+itrc), ncshuff, ncdefl, nclev )
-          ierr=nf_def_var_chunking(ncid, vidT_bec2(nr_bec2_diag_2d+itrc), ncctg, ncrchnk3)
+             ierr=nf_def_var_deflate(ncid, vidT_bec2(nr_bec2_diag_2d+itrc), ncshuff, ncdefl, nclev )
+             ierr=nf_def_var_chunking(ncid, vidT_bec2(nr_bec2_diag_2d+itrc), ncctg, ncrchnk3)
 # endif
 # ifdef HFREQ_2D_AVERAGES
-            ierr=nf_put_att_text (ncid, vidT_bec2(nr_bec2_diag_2d+itrc), 'sigma-level',
+               ierr=nf_put_att_text (ncid, vidT_bec2(nr_bec2_diag_2d+itrc), 'sigma-level',
      &                                          lvar, 'top')
 # endif
+           endif
         enddo
 #endif /* BIOLOGY_BEC2 && BEC2_DIAG */
 
@@ -2074,26 +2078,30 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
 ! 2d diagnostics:
 !
         do itrc=1,nr_bec2_diag_2d
-           lvar=lenstr(vname_bec2_diag_2d(1,itrc))
-           ierr=nf_inq_varid (ncid,vname_bec2_diag_2d(1,itrc)(1:lvar), 
+           if (wrtavg_bec2_diag_2d(itrc)) then
+              lvar=lenstr(vname_bec2_diag_2d(1,itrc))
+              ierr=nf_inq_varid (ncid,vname_bec2_diag_2d(1,itrc)(1:lvar), 
      &                        vidT_bec2(itrc))
-           if (ierr .ne. nf_noerr) then
-              write(*,1) vname_bec2_diag_2d(1,itrc)(1:lvar), 
+              if (ierr .ne. nf_noerr) then
+                 write(*,1) vname_bec2_diag_2d(1,itrc)(1:lvar), 
      &             fname(1:lfnm)
-              goto 99                                       !--> ERROR
+                 goto 99                                       !--> ERROR
+              endif
            endif
         end do
 !
 ! 3d diagnostics:
 !
         do itrc=1,nr_bec2_diag_3d
-           lvar=lenstr(vname_bec2_diag_3d(1,itrc))
-           ierr=nf_inq_varid (ncid,vname_bec2_diag_3d(1,itrc)(1:lvar), 
+           if (wrtavg_bec2_diag_3d(itrc)) then
+              lvar=lenstr(vname_bec2_diag_3d(1,itrc))
+              ierr=nf_inq_varid (ncid,vname_bec2_diag_3d(1,itrc)(1:lvar), 
      &                        vidT_bec2(nr_bec2_diag_2d+itrc))
-           if (ierr .ne. nf_noerr) then
-              write(*,1) vname_bec2_diag_3d(1,itrc)(1:lvar), 
+              if (ierr .ne. nf_noerr) then
+                 write(*,1) vname_bec2_diag_3d(1,itrc)(1:lvar), 
      &             fname(1:lfnm)
-              goto 99                                       !--> ERROR
+                 goto 99                                       !--> ERROR
+              endif
            endif
         end do
 # endif /* BIOLOGY_BEC2 && defined BEC2_DIAG */

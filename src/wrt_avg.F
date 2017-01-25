@@ -447,25 +447,29 @@ CR      write(*,*) 'wrt_ AVR :  wrtT_sed  ' MYID
 ! 2d diagnostics:
 
       do itrc=1,nr_bec2_diag_2d
+         if (wrtavg_bec2_diag_2d(itrc)) then
 !        if (wrt AVR T_bec2_diag(itrc)) .and. ierr == nf_noerr) then
-          ierr=ncdf_write(nc AVR ,   AVR T_bec2_diag(itrc),  record,  r_var,
+           ierr=ncdf_write(nc AVR ,   AVR T_bec2_diag(itrc),  record,  r_var,
      &                  bec2_diag_2d_ AVR (START_2D_ARRAY,itrc), 1)  !itrc added
-          if (ierr /= nf_noerr) then
-            lvar=lenstr(vname_bec2_diag_2d(1,itrc))
-            write(*,1) vname_bec2_diag_2d(1,itrc)(1:lvar), record MYID
-          endif
+           if (ierr /= nf_noerr) then
+             lvar=lenstr(vname_bec2_diag_2d(1,itrc))
+             write(*,1) vname_bec2_diag_2d(1,itrc)(1:lvar), record MYID
+           endif
+         endif
 !        endif
       enddo
 
 ! 3d diagnostics:
 
       do itrc=1,nr_bec2_diag_3d
+          if (wrtavg_bec2_diag_3d(itrc)) then
 !        if (wrt AVR T_bec2_diag(itrc)) .and. ierr == nf_noerr) then
-          ierr=ncdf_write(nc AVR ,   AVR T_bec2_diag(nr_bec2_diag_2d+itrc),  record,  r_var,
+            ierr=ncdf_write(nc AVR ,   AVR T_bec2_diag(nr_bec2_diag_2d+itrc),  record,  r_var,
      &                  bec2_diag_3d_ AVR (START_3D_ARRAY_K1,itrc), N) ! itrc added
-          if (ierr /= nf_noerr) then
-            lvar=lenstr(vname_bec2_diag_3d(1,itrc))
-            write(*,1) vname_bec2_diag_3d(1,itrc)(1:lvar), record MYID
+            if (ierr /= nf_noerr) then
+             lvar=lenstr(vname_bec2_diag_3d(1,itrc))
+             write(*,1) vname_bec2_diag_3d(1,itrc)(1:lvar), record MYID
+            endif
           endif
 !        endif
       enddo
