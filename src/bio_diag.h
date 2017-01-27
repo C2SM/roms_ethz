@@ -140,7 +140,18 @@
 #  undef LAST_I
 #  define LAST_I indxPOCPRODCOCCO
 # endif
-
+# ifdef BEC_PHAEO
+     &            , indxGRAZEPHAEO=LAST_I+1,indxPHAEOLOSS=LAST_I+2
+     &            , indxPHAEOAGG=LAST_I+3,indxPHOTOCPHAEO=LAST_I+4,indxPHAEONLIM=LAST_I+5
+     &            , indxPHAEOPO4UPTAKE=LAST_I+6,indxPHAEOFEUPTAKE=LAST_I+7
+     &            , indxPHAEOLIGHTLIM=LAST_I+8
+     &            , indxIRONUPTAKEPHAEO=LAST_I+9,indxPHAEONO3UPTAKE=LAST_I+10
+     &            , indxPHAEONH4UPTAKE=LAST_I+11,indxPHAEOGRAZEDIC=LAST_I+12 
+     &            , indxPHAEOLOSSDIC=LAST_I+13,indxGRAZEPHAEOZOO=LAST_I+14
+     &            , indxPHAEOPHOTOACC=LAST_I+15,indxPHAEOPLIM=LAST_I+16
+#  undef LAST_I
+#  define LAST_I indxCOCCOPLIM
+# endif
 
 
 # endif /* BEC2_DIAG */

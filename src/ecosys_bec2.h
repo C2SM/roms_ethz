@@ -27,23 +27,51 @@
 # else /* CCHEM_MOCSY */
       parameter( nr_cchem_mocsy_2d=0, nr_cchem_mocsy_3d=0 )
 # endif /* CCHEM_MOCSY */
+!
 # ifdef USE_EXPLICIT_VSINK
 # ifdef BEC_COCCO
-      parameter( nr_bec2_diag_3d=95+nr_cchem_mocsy_3d+29,  ! 10 from expl sinking, 19 from coccos
+! <<<<<<< HEAD
+!       parameter( nr_bec2_diag_3d=95+nr_cchem_mocsy_3d+29,  ! 10 from expl sinking, 19 from coccos
+! # else
+!       parameter( nr_bec2_diag_3d=95+nr_cchem_mocsy_3d+10,
+! =======
+# ifdef BEC_PHAEO
+      parameter( nr_bec2_diag_3d=91+nr_cchem_mocsy_3d+44,  ! 10 from expl sinking, 18 from coccos, 16 from phaeo
 # else
-      parameter( nr_bec2_diag_3d=95+nr_cchem_mocsy_3d+10,
+      parameter( nr_bec2_diag_3d=91+nr_cchem_mocsy_3d+28,  ! 10 from expl sinking, 18 from coccos
+# endif
+# else
+# ifdef BEC_PHAEO
+      parameter( nr_bec2_diag_3d=91+nr_cchem_mocsy_3d+26,  ! 10 from expl sinking, 16 from phaeo
+# else
+      parameter( nr_bec2_diag_3d=91+nr_cchem_mocsy_3d+10,  ! 10 from expl sinking
+# endif
+! >>>>>>> BEC_PHAEO: Phaeocystis as an additional PFT
 # endif /* BEC_COCCO */
-# else ! impl sinking
+!
+# else /* impl sinking */
+!
 # ifdef BEC_COCCO
-      parameter( nr_bec2_diag_3d=95+nr_cchem_mocsy_3d+19,  ! 19 from coccos, 0 from impl sinking
+! <<<<<<< HEAD
+!       parameter( nr_bec2_diag_3d=95+nr_cchem_mocsy_3d+19,  ! 19 from coccos, 0 from impl sinking
+! # else
+!       parameter( nr_bec2_diag_3d=95+nr_cchem_mocsy_3d,   ! CN: took "+5" away, these were included in the 91
+! =======
+# ifdef BEC_PHAEO
+      parameter( nr_bec2_diag_3d=91+nr_cchem_mocsy_3d+34,  ! 18 from coccos, 0 from impl sinking, 16 from phaeo
 # else
-      parameter( nr_bec2_diag_3d=95+nr_cchem_mocsy_3d,   ! CN: took "+5" away, these were included in the 91
+      parameter( nr_bec2_diag_3d=91+nr_cchem_mocsy_3d+18,  ! 18 from coccos, 0 from impl sinking
+# endif
+# else
+# ifdef BEC_PHAEO
+      parameter( nr_bec2_diag_3d=91+nr_cchem_mocsy_3d+16,   ! 16 from phaeo, 0 from impl sinking
+# else
+      parameter( nr_bec2_diag_3d=91+nr_cchem_mocsy_3d,   ! 0 from impl sinking
+# endif
+! >>>>>>> BEC_PHAEO: Phaeocystis as an additional PFT
 # endif /* BEC_COCCO */
-
 # endif /* USE_EXPLICIT_VSINK */
      &           nr_bec2_diag_2d=29+nr_cchem_mocsy_2d )  ! CN: added 11 tracers, see bio_diag.h
-
-
       parameter( nr_bec2_diag=nr_bec2_diag_2d+nr_bec2_diag_3d )
 # ifdef BEC2_DIAG_USER
       real, pointer, dimension(:,:,:,:) :: bec2_diag_3d
@@ -152,7 +180,21 @@
 #  undef LAST_I
 #  define LAST_I pocprodcocco_idx_t
 # endif        
-
+# ifdef BEC_PHAEO
+      integer, parameter :: grazephaeo_idx_t=LAST_I+1,phaeoloss_idx_t=LAST_I+2,
+     &   phaeoagg_idx_t=LAST_I+3,photocphaeo_idx_t=LAST_I+4,
+     &   phaeonlim_idx_t=LAST_I+5,
+     &   phaeopo4uptake_idx_t=LAST_I+6,phaeofeuptake_idx_t=LAST_I+7,
+     &   phaeolightlim_idx_t=LAST_I+8,
+     &   ironuptakephaeo_idx_t=LAST_I+9,
+     &   phaeono3uptake_idx_t=LAST_I+10,phaeonh4uptake_idx_t=LAST_I+11,
+     &   phaeograzedic_idx_t=LAST_I+12,
+     &   phaeolossdic_idx_t=LAST_I+13,grazephaeozoo_idx_t=LAST_I+14,
+     &   phaeophotoacc_idx_t=LAST_I+15,
+     &   phaeoplim_idx_t=LAST_I+16
+#  undef LAST_I
+#  define LAST_I phaeoplim_idx_t
+# endif        
 
       ! Indices to be used in bec2_diag_2d only:
       integer, parameter :: pco2air_idx_t=1,
@@ -274,6 +316,12 @@
      &     coccofe_ind_t=LAST_I+4, cal_ind_t=LAST_I+5
 #  undef LAST_I
 #  define LAST_I cal_ind_t
+#endif
+#ifdef BEC_PHAEO
+      integer, parameter ::
+     &     phaeoc_ind_t=LAST_I+1, phaeochl_ind_t=LAST_I+2, phaeofe_ind_t=LAST_I+3
+#  undef LAST_I
+#  define LAST_I phaeofe_ind_t
 #endif
 #ifdef USE_EXPLICIT_VSINK
       integer, parameter ::

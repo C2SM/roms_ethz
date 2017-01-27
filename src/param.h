@@ -316,18 +316,25 @@ c     &      NSUB_X=2, NSUB_E=8  ! <-- iswake 768x192
 #    define LAST_I iCAL
 #   else /* case not BEC_COCCO */
      &       , ntrc_bio_cocco=0
-#    undef LAST_I
-#    define LAST_I iDIAZFE
 #   endif /* BEC_COCCO */
+#   ifdef BEC_PHAEO
+     &       , iPHAEOC=LAST_I+1, iPHAEOCHL=LAST_I+2
+     &       , iPHAEOFE=LAST_I+3
+     &       , ntrc_bio_phaeo=3
+#    undef LAST_I
+#    define LAST_I iPHAEOFE
+#   else /* case not BEC_PHAEO */
+     &       , ntrc_bio_phaeo=0
+#   endif /* BEC_PHAEO */
 #   ifdef USE_EXPLICIT_VSINK
      &       , iDUSTHARD=LAST_I+1, iPOCHARD=LAST_I+2
      &       , iPCACO3HARD=LAST_I+3, iPSIO2HARD=LAST_I+4
      &       , iPIRONHARD=LAST_I+5, iDUSTSOFT=LAST_I+6
      &       , iPOCSOFT=LAST_I+7, iPCACO3SOFT=LAST_I+8
      &       , iPSIO2SOFT=LAST_I+9, iPIRONSOFT=LAST_I+10
-     &       , ntrc_bio=ntrc_bio_base+ntrc_bio_cocco+10
+     &       , ntrc_bio=ntrc_bio_base+ntrc_bio_cocco+ntrc_bio_phaeo+10
 #   else /* USE_EXPLICIT_VSINK */
-     &       , ntrc_bio=ntrc_bio_base+ntrc_bio_cocco
+     &       , ntrc_bio=ntrc_bio_base+ntrc_bio_cocco+ntrc_bio_phaeo
 #   endif /* USE_EXPLICIT_VSINK */
 #  else  /* no  BIOLOGY */
      &       , ntrc_bio=0

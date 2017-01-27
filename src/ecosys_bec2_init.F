@@ -68,6 +68,35 @@
       parm_CaCO3_diss        = 400.0  ! 150 in cBEC, 400
       parm_scalelen_z    = (/ 100.0, 250.0, 500.0, 750.0 /) ! DL: converted to m    ! 130, 290, 670, 1700 in cBEC; 100 250  500 750  
       parm_scalelen_vals = (/     1.0,     2.9,    5.6,      5.7 /) ! x1 default     ! 1, 2.9, 4.8, 8 in cBEC; 1  2.9  5.6 5.7      
+# ifdef BEC_PHAEO 
+      ! The following arrays give parameters in this order: sp, diat, diaz, coccos,phaeo
+      kFe = (/ 0.04e-3, 0.06e-3, 0.04e-3, 0.045e-3,0.25e-3 /) ! mmol Fe/m3 
+      kPO4 = (/ 0.01, 0.05, 0.02, 0.02, 0.1 /)         ! mmol P/m3
+      kDOP = (/ 0.26, 0.9, 0.09, 0.2, 0.9 /)          ! 
+      kNO3 = (/ 0.1, 0.5, 1.0, 0.2, 0.8 /)            ! mmol N/m3   ! 0.11 0.45  8
+      kNH4 = (/ 0.01, 0.05, 0.15, 0.02, 0.05 /)         ! mmol N/m3  ! 0.01 0.04  0.8
+      kSiO3 = (/ 0.0, 1, 0.0, 0.0, 0.0 /)           ! mmol SiO3/m3
+      Qp = (/ 0.00855, 0.00855, 0.002735, 0.00855, 0.00855 /)
+      gQfe_0 = (/ 20.0e-6, 20.0e-6, 60.0e-6, 20.0e-6, 20.0e-6 /)
+      gQfe_min = (/ 3.0e-6, 3.0e-6, 12.0e-6, 3.0e-6, 3.0e-6 /)
+      alphaPI = (/ 0.46*dps, 0.46*dps, 0.4*dps, 0.42*dps, 0.47*dps /)  ! 0.6, 0.465, 0.4, 0.6 cBEC,  0.54, 0.42, 0.5 in CESM  Chl. specific initial slope of P_I curve (GD98) (mmol C m^2/(mg Chl W sec))
+      PCref = (/ 3.8*dps, 4.8*dps, 0.9*dps, 4*dps, 4.8*dps /) ! 3, 5, 0.7, 4.6 in cBEC;  5.3, 5.3, 0.9 in CESM
+      thetaN_max = (/ 2.5, 4.0, 2.5, 2.5, 2.5 /)
+      loss_thres = (/ 0.04, 0.04, 0.022, 0.04, 0.04 /)
+      loss_thres2 = (/ 0.0, 0.0, 0.001, 0.0, 0.0 /)
+      temp_thres = (/ -10.0, -10.0, 14.0, -10.0, 8.0 /)
+      mort = (/ 0.12*dps, 0.12*dps, 0.15*dps, 0.12*dps, 0.35*dps /)  ! non-grazing mortality (1/sec)
+      mort2 = (/ 0.001*dps, 0.001*dps, 0.0, 0.001*dps, 0.001*dps /)
+      agg_rate_max = (/ 0.9, 0.9, 0.0, 0.9, 0.9 /)
+      agg_rate_min = (/ 0.01, 0.02, 0.0, 0.01, 0.02 /)
+      z_umax_0 = (/ 3.15*dps, 2.95*dps, 1.6*dps, 3.15*dps, 5.0*dps /) ! 3.07,2.86, 1.6 CESM  ; 3.3 3.08 0.6 3.28 cBEC  incr SP,dIAT,COCCO by 0.2
+      z_grz = (/ 1.05, 1.0, 1.2, 1.05, 1.0 /)      ! grazing coefficient (mmol C/m^3)
+      graze_zoo = (/ 0.3, 0.3, 0.3, 0.3, 0.3 /)
+      graze_poc = (/ 0.05, 0.42, 0.05, 0.42, 0.42 /) 
+      graze_doc = (/ 0.15, 0.15, 0.15, 0.15, 0.15 /)
+      loss_poc = (/ 0.0, 0.0, 0.0, 1.0, 0.0 /)
+      f_zoo_detr = (/ 0.15, 0.2, 0.15, 0.2, 0.2 /)
+# else /* case not BEC_PHAEO */
       ! The following arrays give parameters in this order: sp, diat, diaz, coccos
       kFe = (/ 0.04e-3, 0.06e-3, 0.04e-3, 0.045e-3 /) ! mmol Fe/m3 
       kPO4 = (/ 0.01, 0.05, 0.02, 0.02 /)         ! mmol P/m3
@@ -95,6 +124,7 @@
       graze_doc = (/ 0.15, 0.15, 0.15, 0.15 /)
       loss_poc = (/ 0.0, 0.0, 0.0, 0.2 /)
       f_zoo_detr = (/ 0.15, 0.2, 0.15, 0.2 /)
+#endif 
 
 # else /* case not BEC_COCCO */
       parm_BSIbury           = 0.65 ! x1 default
@@ -113,6 +143,36 @@
       parm_scalelen_vals = (/     1.0,     3.0,     5.0,      9.0 /) ! x1 default
 # endif
 
+      
+# ifdef BEC_PHAEO
+      ! The following arrays give parameters in this order: sp, diat, diaz, phaeo
+      kFe = (/ 0.04e-3, 0.06e-3, 0.04e-3, 0.25e-3 /) ! mmol Fe/m3
+      kPO4 = (/ 0.01, 0.05, 0.02, 0.1 /)         ! mmol P/m3
+      kDOP = (/ 0.26, 0.9, 0.09, 0.9 /)          ! 
+      kNO3 = (/ 0.1, 0.5, 1.0, 0.8 /)            ! mmol N/m3
+      kNH4 = (/ 0.01, 0.05, 0.15, 0.05 /)         ! mmol N/m3
+      kSiO3 = (/ 0.0, 0.8, 0.0, 0.0 /)           ! mmol SiO3/m3
+      Qp = (/ 0.00855, 0.00855, 0.002735, 0.00855 /)
+      gQfe_0 = (/ 20.0e-6, 20.0e-6, 60.0e-6, 20.0e-6 /)
+      gQfe_min = (/ 3.0e-6, 3.0e-6, 12.0e-6, 3.0e-6 /)
+      alphaPI = (/ 0.6*dps, 0.465*dps, 0.4*dps, 0.47*dps /)  ! Chl. specific initial slope of P_I curve (GD98) (mmol C m^2/(mg Chl W sec))
+      PCref = (/ 5.5*dps, 5.5*dps, 0.7*dps, 4.8*dps /)
+      thetaN_max = (/ 2.5, 4.0, 2.5, 2.5 /)
+      loss_thres = (/ 0.04, 0.04, 0.022, 0.04 /)
+      loss_thres2 = (/ 0.0, 0.0, 0.001, 0.0 /)
+      temp_thres = (/ -10.0, -10.0, 14.0, 8.0 /)
+      mort = (/ 0.12*dps, 0.12*dps, 0.15*dps, 0.35*dps /)  ! non-grazing mortality (1/sec)
+      mort2 = (/ 0.001*dps, 0.001*dps, 0.0, 0.001*dps /)
+      agg_rate_max = (/ 0.9, 0.9, 0.0, 0.9 /)
+      agg_rate_min = (/ 0.01, 0.02, 0.0, 0.02 /)
+      z_umax_0 = (/ 3.3*dps, 3.08*dps, 0.6*dps, 5.0*dps /)
+      z_grz = (/ 1.05, 1.0, 1.2, 1.0 /)      ! grazing coefficient (mmol C/m^3)
+      graze_zoo = (/ 0.3, 0.3, 0.3, 0.3 /)
+      graze_poc = (/ 0.0, 0.42, 0.05, 0.42 /)
+      graze_doc = (/ 0.15, 0.15, 0.15, 0.15 /)
+      loss_poc = (/ 0.0, 0.0, 0.0, 0.0 /)
+      f_zoo_detr = (/ 0.15, 0.2, 0.15, 0.2 /)
+# else /* case not BEC_PHAEO */
       ! The following arrays give parameters in this order: sp, diat, diaz
       ! MF: The following half-saturation values are 250% of what I started from. This
       ! helped me to reduce basin scale productivity biases, while CalCS
@@ -152,6 +212,8 @@
       f_zoo_detr = (/ 0.15, 0.2, 0.15 /)
 
 # endif
+
+! merge # endif
 
       auto_ind = sp_ind
       sname(auto_ind)         = 'sp'
@@ -212,6 +274,22 @@
       Fe_ind(auto_ind)        = coccoFe_ind_t
       Si_ind(auto_ind)        = 0
       CaCO3_ind(auto_ind)     = coccoCal_ind_t
+#endif
+
+#ifdef BEC_PHAEO
+      ! Some more default parameters for phaeocystis:
+      auto_ind = phaeo_ind
+      sname(auto_ind)         = 'phaeo'
+      lname(auto_ind)         = 'Phaeocystis'
+      Nfixer(auto_ind)        = .false.
+      imp_calcifier(auto_ind) = .false.
+      exp_calcifier(auto_ind) = .false.
+      grazee_ind(auto_ind)    = auto_ind
+      C_ind(auto_ind)         = phaeoC_ind_t
+      Chl_ind(auto_ind)       = phaeoChl_ind_t
+      Fe_ind(auto_ind)        = phaeoFe_ind_t
+      Si_ind(auto_ind)        = 0
+      CaCO3_ind(auto_ind)     = 0
 #endif
 
 #ifdef BIOPAR_NAMELIST

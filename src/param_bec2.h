@@ -13,12 +13,22 @@
 #ifdef BEC_COCCO
      &          +1
 #endif
+#ifdef BEC_PHAEO
+     &          +1
+#endif
        integer, parameter ::
      &   sp_ind   = 1,  ! small phytoplankton
      &   diat_ind = 2,  ! diatoms
      &   diaz_ind = 3   ! diazotrophs
 #ifdef BEC_COCCO
      &  ,cocco_ind = 4  ! Coccolithophores
+#endif
+#ifdef BEC_PHAEO
+#ifdef BEC_COCCO
+     &  ,phaeo_ind = 5  ! Phaeocystis Antarctica (colonial form only for now)
+# else /* case without coccos */
+     &  ,phaeo_ind = 4  ! Phaeocystis Antarctica (colonial form only for now)
+#endif
 #endif
 
 !
