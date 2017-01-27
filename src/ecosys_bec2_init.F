@@ -294,6 +294,8 @@
 # endif /* BEC2_DIAG_USER */
       bec2_diag_2d = c0
       bec2_diag_3d = c0
+      bec2_diag_2d_avg = c0  ! initialize diagnostic fields with zero!
+      bec2_diag_3d_avg = c0
 #else /* BEC2_DIAG */
       ph_hist = c0
 #endif /* BEC2_DIAG */
