@@ -2,6 +2,12 @@
   UP ETH Southern Ocean Setup 
   == === ======== ===== =====
 */
+/* 
+ * biology must be defined before reading standard UP setting 
+ * Otherwise UP standard biolology setting are not activated
+ */
+#define BIOLOGY_BEC2
+
      /* Include standard CPP switches for UP ETH Zurich */                   
 #include "cppdefs_UP.h"
 
@@ -55,30 +61,26 @@
 
      /* Output */
 #define AVERAGES
-#define SLICE_AVG
+!-- #define SLICE_AVG
 #define WRITE_HEATFLX
 #define WRITE_SALT_REST
 #define WRITE_TEMP_REST
 #define WRITE_CO2FLX
 
      /* Biology */
-#define BIOLOGY_BEC2
-!-- #define VERBOSE
 #ifdef BIOLOGY_BEC2
 # define BEC_COCCO
 # define KILL_THE_WINNER  /* if defined, use Vallina 2014 parametrization for grazing */
-# define BIOLOGY
+# define BEC2_DIAG
 #endif
 
 !-- #define PASSIVE_TRACER
 !-- #define AGE_DYE_TRACER
 #define DEFAULT_BRY_VALUES
 
-!-- # define BEC2_DIAG
 !-- # define RIVER_LOAD_N
 !-- # define RIVER_LOAD_P
 !-- # define PCO2AIR_FORCING
 #define VFLX_CORR
-
 
 #include "set_global_definitions.h"

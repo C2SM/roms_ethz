@@ -50,4 +50,11 @@
 #define OBC_M3ORLANSKI
 #define OBC_TORLANSKI
 
+        /* Biology Settings */
+#ifdef BIOLOGY_BEC2
+# define BIOLOGY
+# define DAILYPAR_BEC
+#endif
+
+
 /* End of UP ETH Standard Settings */
