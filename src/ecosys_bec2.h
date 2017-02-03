@@ -258,9 +258,9 @@
      &        diatc_ind_t, diatfe_ind_t, diatsi_ind_t, diazchl_ind_t, diazc_ind_t, diazfe_ind_t
       parameter( po4_ind_t=1, no3_ind_t=2, sio3_ind_t=3, nh4_ind_t=4, fe_ind_t=5,
      &    o2_ind_t=6, dic_ind_t=7, alk_ind_t=8, doc_ind_t=9, don_ind_t=10, dofe_ind_t=11,
-     &    dop_ind_t=12, dopr_ind_t=13, donr_ind_t=14, zooc_ind_t=15, spchl_ind_t=16,
-     &    spc_ind_t=17, spfe_ind_t=18, spcaco3_ind_t=19, diatchl_ind_t=20, diatc_ind_t=21,
-     &    diatfe_ind_t=22, diatsi_ind_t=23, diazchl_ind_t=24, diazc_ind_t=25, diazfe_ind_t=26
+     &    dop_ind_t=12, dopr_ind_t=13, donr_ind_t=14, zooc_ind_t=15, spc_ind_t=16,
+     &    spchl_ind_t=17, spfe_ind_t=18, spcaco3_ind_t=19, diatc_ind_t=20, diatchl_ind_t=21,
+     &    diatfe_ind_t=22, diatsi_ind_t=23, diazc_ind_t=24, diazchl_ind_t=25, diazfe_ind_t=26
 # undef LAST_I
 # define LAST_I diazfe_ind_t
      &)
