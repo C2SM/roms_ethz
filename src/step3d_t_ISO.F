@@ -84,6 +84,18 @@ c--# define CONST_TRACERS
 # include "scalars.h"
 # include "eos_vars.h"
 # include "sources.h"
+#ifdef PHYS_FLUX_ANALYSIS
+# include "physflux.h"
+#endif
+#if defined PASSIVE_TRACER && defined AGE_DYE_TRACER
+# include "ncvars.h"
+      integer is
+      logical source_active
+#endif
+#ifdef PHYS_FLUX_ANALYSIS
+! temporary variable for calculation of vertical diffusive flux
+      real ThisVDF(PRIVATE_2D_SCRATCH_ARRAY,0:N)
+# endif /* PHYS_FLUX_ANALYSIS */
 
 # include "compute_auxiliary_bounds.h"
 
@@ -462,6 +474,29 @@ c--#  define ntdf nrhs
           if (k>0) then
 # else
           do k=1,N
+# ifdef PHYS_FLUX_ANALYSIS
+          if (itrc .le. NT_PFA) then
+! separate do loops (for better efficiency) to store the fluxes
+             j_loop2: do j=Jstr,Jend
+                do i=Istr,Iend+1
+                                ! unit: mmol / s
+                   HorXAdvFlux(i,j,k,itrc) = FX(i,j)
+# ifdef MASKING
+     &                  * rmask(i,j)
+# endif
+                end do
+             end do j_loop2
+             j_loop3: do j=Jstr,Jend+1
+                do i=Istr,Iend
+                                ! unit: mmol / s
+                   HorYAdvFlux(i,j,k,itrc) = FE(i,j)
+# ifdef MASKING
+     &                  * rmask(i,j)
+# endif
+                enddo
+             end do j_loop3
+          end if
+# endif /* PHYS_FLUX_ANALYSIS */
 # endif  /* ADV_ISONEUTRAL */
 
 ! Compute and add in contribution due to horizontal advection fluxes.
@@ -691,7 +726,21 @@ c--#  define ntdf nrhs
             enddo
           enddo
 
-
+# ifdef PHYS_FLUX_ANALYSIS
+          if (itrc .le. NT_PFA) then
+! separate do loop (for better efficiency) to store the fluxes
+             do k=0,N
+                do i=Istr,Iend
+               ! unit: mmol / (m2 s)
+                   VertAdvFlux(i,j,k,itrc) = FC(i,k)
+     &                  * pm(i,j) * pn(i,j)
+# ifdef MASKING
+     &                  * rmask(i,j)
+# endif
+                enddo
+             enddo
+          end if
+# endif /* PHYS_FLUX_ANALYSIS */
 ! Add 3D sources
 # ifdef TSOURCE
           do k=1,N
@@ -703,10 +752,62 @@ c--#  define ntdf nrhs
 # endif /* TSOURCE */
 
 ! Start computation of vertical diffusion: add surface forcing fluxes
-
+# if defined PASSIVE_TRACER && defined AGE_DYE_TRACER
+!DL: do this except for age tracers. Age tracers are dealt with in pre_step3d
+          if (itrc.le.indxT+ntrc_salt .or. itrc.gt.indxT+ntrc_salt+ntrc_pas 
+     &        .or. .not.Age(itrc-(indxT+ntrc_salt))) then
+# endif
           do i=istr,iend
             t(i,j,N,nnew,itrc)=t(i,j,N,nnew,itrc)+dt*stflx(i,j,itrc)
           enddo
+# if defined PASSIVE_TRACER && defined AGE_DYE_TRACER
+          endif ! itrc.le.indxT+ntrc_salt .or. ...
+# endif
+!# if defined LMD_KPP && defined ICEOBS && defined BRINE_PLUMES2
+!          if (itrc .eq. isalt) then
+!            do i=istr,iend
+!              if (freezing(i,j).gt.0) then
+!                t(i,j,N,nnew,itrc)=t(i,j,N,nnew,itrc)+dt*freezing(i,j,itrc)
+!              endif
+!            enddo
+!          endif
+!# endif
+# if defined LMD_KPP && defined ICEOBS && defined BRINE_PLUMES
+! AH15: Distributing salt fluxes due freezing uniformly over
+! kbl to mimic brine plume convection (see Duffy et al. 1999)
+          if (itrc .eq. isalt) then
+            do i=istr,iend
+              if (freezing(i,j)>0) then
+                do k=N,kbl(i,j),-1
+                  t(i,j,k,nnew,itrc)=t(i,j,k,nnew,itrc)
+     &                  +(dt*freezing(i,j)
+     &                  *Hz(i,j,k)/(z_w(i,j,N)-z_w(i,j,kbl(i,j)-1)))
+                enddo
+              endif
+            enddo
+          endif
+# endif
+# ifdef FULL_PHYS_FLUX_ANALYSIS
+          if (itrc .le. NT_PFA) then
+! separate do loops (for better efficiency) to store the fluxes
+             do i=Istr,Iend
+             ! unit = mmol / (m2 s)
+                TopFlux(i,j,itrc) = stflx(i,j,itrc)
+#  ifdef MASKING
+     &               * rmask(i,j)
+#  endif
+             enddo
+#if !defined SELECTED_FLUX_ANALYSIS /* AH */
+             do i=Istr,Iend
+             ! unit = mmol / (m2 s)
+                BottomFlux(i,j,itrc) = 0. !-btflx(i,j,itrc)
+#   ifdef MASKING
+     &               * rmask(i,j)
+#   endif
+             enddo
+#endif /* SELECTED_FLUX_ANALYSIS */
+          end if
+# endif /* FULL_PHYS_FLUX_ANALYSIS */
 
 # ifdef LMD_KPP
 ! Add the solar radiation flux in temperature equation. Also compute
@@ -714,7 +815,12 @@ c--#  define ntdf nrhs
 ! conditions into matrix DC when using the Large et al. 1994 KPP
 ! scheme.
 
-          if (itrc==itemp) then
+          if (itrc == itemp) then
+# ifdef FULL_PHYS_FLUX_ANALYSIS
+            do i=istr,iend
+             SRAbsFlux(i,j,N)=0.
+            enddo
+# endif /* FULL_PHYS_FLUX_ANALYSIS */
             do k=N-1,1,-1
               do i=istr,iend
                 cff=srflx(i,j)*swr_frac(i,j,k)
@@ -723,6 +829,10 @@ c--#  define ntdf nrhs
 #  endif
                 t(i,j,k+1,nnew,itemp)=t(i,j,k+1,nnew,itemp) -dt*cff
                 t(i,j,k  ,nnew,itemp)=t(i,j,k  ,nnew,itemp) +dt*cff
+# ifdef FULL_PHYS_FLUX_ANALYSIS
+                SRAbsFlux(i,j,k+1)=SRAbsFlux(i,j,k+1)-cff
+                SRAbsFlux(i,j,k  )=cff
+# endif /* FULL_PHYS_FLUX_ANALYSIS */
               enddo
             enddo
 
@@ -788,6 +898,17 @@ c??         enddo
 ! the content of array t(:,:,:,nnew,itrc) has meaning of Hz*tracer.
 ! After the implicit step it becomes just tracer.
 
+# if defined PHYS_FLUX_ANALYSIS && defined VERT_DIFF_ANALYSIS
+! The vertical diffusive flux is not added in a step like the other fluxes,
+! so we store the old concentration (depth is already factored in here) first, 
+! and then add the new concentration.
+          do k=1,N
+            do i=Istr,Iend
+               ThisVDF(i, j, k) = t(i,j,k,nnew,itrc)
+            end do
+         end do
+# endif /* PHYS_FLUX_ANALYSIS & VERT_DIFF_ANALYSIS */
+
 # ifdef SALINITY
           iAkt=min(itrc,isalt)
 # else
@@ -850,13 +971,50 @@ c??         enddo
             enddo
           enddo           !--> discard FC,WC,CF,DC
 
+# if defined PHYS_FLUX_ANALYSIS && defined VERT_DIFF_ANALYSIS
+          do k=1,N
+            do i=Istr,Iend
+               ! ThisVDF is the old concentration times depth
+               ThisVDF(i,j,k) = 
+     &              (ThisVDF(i,j,k) - t(i,j,k,nnew,itrc) * Hz(i,j,k))
+     &              / dt
+# ifdef MASKING
+     &              * rmask(i,j)
+# endif
+
+
+            enddo
+          enddo
+          if (itrc .le. NT_PFA) then
+             do i=Istr,Iend
+             ! unit: mmol / (m2 s)
+                VertDiffFlux(i,j,0,itrc) = 0.0 ! Neumann b.c. at bottom
+                do k=1,N-1
+                   VertDiffFlux(i,j,k,itrc) = ThisVDF(i,j,k) +
+     &                  VertDiffFlux(i,j,k-1,itrc)
+                end do
+                VertDiffFlux(i,j,N,itrc) = 0.0 ! Neumann b.c. at top
+             end do
+          end if
+# endif /* PHYS_FLUX_ANALYSIS & VERT_DIFF_ANALYSIS */
+
 # ifdef CONST_TRACERS
           do k=1,N
             do i=istr,iend
               t(i,j,k,nnew,itrc)=t(i,j,k,nstp,itrc)
             enddo
           enddo
+#  if defined PHYS_FLUX_ANALYSIS && defined VERT_DIFF_ANALYSIS
+          if (itrc .le. NT_PFA) then
+             do k=1,N
+                do i=Istr,Iend
+                   VertDiffFlux(i,j,k,itrc) = 0.0
+                enddo
+             enddo
+          end if
+#  endif /* PHYS_FLUX_ANALYSIS & VERT_DIFF_ANALYSIS */
 # endif
+
 
 # ifdef TCLIMATOLOGY
           do k=1,mxnudg
@@ -871,13 +1029,128 @@ c??         enddo
 #  ifdef MASKING
      &                                   *rmask(i,j)
 #  endif
+#  ifdef FULL_PHYS_FLUX_ANALYSIS
+#   if !defined SELECTED_FLUX_ANALYSIS /* AH */
+          if (itrc .le. NT_PFA) then
+               NudgingFlux(i,j,k,itrc) = Tnudgcof(i,j,itrc) *
+     &              ( tclm(i,j,k,itrc) - t(i,j,k,nnew,itrc) )
+#    ifdef TNUDGE_WEIGHTS
+     &          *nudgweights(i,j)
+#    endif 
+#    ifdef MASKING
+     &              * rmask(i,j)
+#    endif
+            end if
+#   endif /* SELECTED_FLUX_ANALYSIS */
+#  endif /* FULL_PHYS_FLUX_ANALYSIS */
             enddo
           enddo
 # endif /* TCLIMATOLOGY */
 
         enddo      !<-- j
+# ifdef AGE_DYE_TRACER
+        is=itrc-itemp-ntrc_salt
+        if(is> 0 .and. Age(is)) then
+          call t3dbc_closed_tile (istr,iend,jstr,jend, itrc)
+        else
+          call t3dbc_tile (istr,iend,jstr,jend, itrc, wrk1)
+        endif
+# else
         call t3dbc_tile (istr,iend,jstr,jend, itrc, wrk1)
+# endif
       enddo     !<-- itrc
+!DL:
+# if defined PASSIVE_TRACER && defined AGE_DYE_TRACER
+      do itrc=itemp+ntrc_salt+1,itemp+ntrc_salt+N_agedye ! loop over age/dye tracers
+         is=itrc-(itemp+ntrc_salt) ! is = number of age/dye tracer
+         if (.not.Age(is).and..not.Restore_ad(is)) then
+            do l=1,Nsrc_ad(is)     ! loop over sources of tracer is
+               ! Get i, j, k indices of this source:
+               i = Isrc_ad(is,l)
+               j = Jsrc_ad(is,l)
+               k = Ksrc_ad(is,l)
+               ! Check whether this source is still active:
+               source_active = .false.
+               if (switch_is_days_ad(is) .and.
+     &             time*sec2day.ge.Switch_on_src_ad(is,l) .and.
+     &             time*sec2day.lt.Switch_off_src_ad(is,l)) then
+                  source_active = .true.
+               endif
+               if (.not.switch_is_days_ad(is) .and.
+     &             iic.ge.Switch_on_src_ad(is,l) .and.
+     &             iic.lt.Switch_off_src_ad(is,l)) then
+                  source_active = .true.
+               endif
+               if (source_active) then
+                  ! Now add source term:
+                  t(i,j,k,nnew,itrc) = t(i,j,k,nnew,itrc) + dt*Ssrc_ad(is,l)
+               endif
+            enddo
+         endif
+         if (.not.Age(is).and.Restore_ad(is)) then
+            ! apply restoring bc
+            do l=1,Nsrc_ad(is)  ! loop over sources of tracer is
+               i = Isrc_ad(is,l)
+               j = Jsrc_ad(is,l)
+               k = Ksrc_ad(is,l)
+               ! Check whether this source is still active:
+               source_active = .false.
+               if (switch_is_days_ad(is) .and.
+     &             time*sec2day.ge.Switch_on_src_ad(is,l) .and.
+     &             time*sec2day.lt.Switch_off_src_ad(is,l)) then
+                  source_active = .true.
+               endif
+               if (.not.switch_is_days_ad(is) .and.
+     &             iic.ge.Switch_on_src_ad(is,l) .and.
+     &             iic.lt.Switch_off_src_ad(is,l)) then
+                  source_active = .true.
+               endif
+               if (source_active) then
+                  t(i,j,k,nnew,itrc) = Ssrc_ad(is,l)
+               endif
+            enddo
+         endif ! .not.Age(is).and.Restore_ad(is)
+         if (Age(is)) then
+            do k=1,N-1          ! exclude surface k=N
+               do j=jstrR,jendR
+                  do i=istrR,iendR
+                     t(i,j,k,nnew,itrc) = t(i,j,k,nnew,itrc) 
+#  ifdef USE_REAL_YEAR
+     &                    + dt/(day2sec*365)
+#  else
+     &                    + dt/(day2sec*360)
+#  endif
+                  enddo
+               enddo
+            enddo ! k=1,N-1
+         endif ! Age(is)
+      enddo ! itrc
+# endif /* PASSIVE_TRACER && AGE_DYE_TRACER */
+
+!
+!DL: Set surface fluxes for age tracers such that the new surface tracer
+! concentration is zero:
+!
+# if defined PASSIVE_TRACER && defined AGE_DYE_TRACER
+      do is=1,N_agedye
+         itrc = itemp+ntrc_salt+is
+         if (Age(is)) then
+            do i=istrR,iendR
+               do j=jstrR,jendR
+                 stflx(i,j,itrc) = -t(i,j,N,nnew,itrc)/dt
+#  ifdef MASKING
+     &                               * rmask(i,j)
+#  endif
+               enddo
+            enddo
+            do i=istrR,iendR
+               do j=jstrR,jendR
+                 t(i,j,N,nnew,itrc) = 0.0
+               enddo
+            enddo
+         endif ! Age(is)
+      enddo ! is=1,N_agedye
+# endif /* PASSIVE_TRACER && AGE_DYE_TRACER */
 
 # if defined BIOLOGY_BEC
       call ecosys_tile (istr,iend,jstr,jend)      ! BEC of about 2006
@@ -899,7 +1172,6 @@ c??         enddo
       endif
 # endif
       end
-
 
       subroutine check_step_t_switches(ierr)
 

@@ -57,7 +57,8 @@
       parameter (Max_src_ad=5000)
       integer Isrc_ad(ntrc_pas,Max_src_ad), Jsrc_ad(ntrc_pas,Max_src_ad)
       integer Ksrc_ad(ntrc_pas,Max_src_ad)
-      integer inode, jnode, k_ad, l, it_ad(ntrc_pas)
+!      integer inode, jnode, k_ad ! no longer used
+      integer l, it_ad(ntrc_pas)
       logical Age(ntrc_pas), Restore_ad(ntrc_pas)
       real Ssrc_ad(ntrc_pas,Max_src_ad), Switch_off_src_ad(ntrc_pas,Max_src_ad)
       real Switch_on_src_ad(ntrc_pas,Max_src_ad)

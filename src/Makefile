@@ -31,6 +31,7 @@ KRNSRC = main.F		step2D_FB.F	read_inp.F	read_sta_pos.F\
 \
 	zetabc.F	u2dbc_im.F	v2dbc_im.F	obc_volcons.F\
 	u3dbc_im.F	v3dbc_im.F	t3dbc_im.F	exchange.F\
+        t3dbc_closed_im.F\
 \
 	rho_eos.F	ab_ratio.F	alfabeta.F\
 \
