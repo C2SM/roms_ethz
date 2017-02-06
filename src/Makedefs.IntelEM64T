@@ -92,10 +92,11 @@
 
 
    LCDF = -L$(NETCDF)/../serial/lib -lnetcdff -lnetcdf
-   LCDF = -lnetcdff
+#   LCDF = -lnetcdff
 ##   LCDF = -L${NETCDF}/lib -lnetcdf
 #   LCDF = -lnetcdf -lhdf5 -lhdf5_hl
 #    LCDF = -L/opt/netcdf-4.2.1.1_largemem/lib -lnetcdff
+#   LCDF = -lnetcdff -lnetcdf
 
 #    LCDF = /opt/netcdf-4.2.1.1_largemem/lib/libnetcdff.a  /opt/netcdf-4.2.1.1_largemem/lib/libnetcdf.a
 

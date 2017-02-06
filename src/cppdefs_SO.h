@@ -66,12 +66,15 @@
 #define WRITE_SALT_REST
 #define WRITE_TEMP_REST
 #define WRITE_CO2FLX
+!-- #define PHYS_FLUX_ANALYSIS
+!-- #define FULL_PHYS_FLUX_ANALYSIS
 
      /* Biology */
 #ifdef BIOLOGY_BEC2
 # define BEC_COCCO
 # define KILL_THE_WINNER  /* if defined, use Vallina 2014 parametrization for grazing */
-# define BEC2_DIAG
+@-- # define BEC2_DIAG
+!-- # undef DAILYPAR_BEC
 #endif
 
 !-- #define PASSIVE_TRACER
