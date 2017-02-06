@@ -234,11 +234,12 @@
         cff=1./dble(nAVR) !<-- scaling
         if (mod(iic-ntsAVR,nAVR)==1) then
           if (ZEROTH_TILE) then
-            mpi_master_only write(*,'(7x,A,I8,2x,A,I8,2x,A,I5)')
 # ifdef AVRSLICE
+            mpi_master_only write(*,'(7x,A,I8,2x,A,I8,2x,A,I5,2x,A,I4)')
      &          'set_slavg :: started slice averaging at iic=', iic,
-     &                          'ntsslavg=', ntsAVR, 'nslavg=', nAVR
+     &          'ntsslavg=', ntsAVR, 'nslavg=', nAVR, 'k_slice=', ksl
 # else
+            mpi_master_only write(*,'(7x,A,I8,2x,A,I8,2x,A,I5)')
      &               'set_avg :: started averaging at iic=', iic,
      &                          'ntsavg=', ntsAVR, 'navg=', nAVR
 # endif
