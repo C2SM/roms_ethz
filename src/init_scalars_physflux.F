@@ -29,7 +29,7 @@ C$OMP CRITICAL (isca_cr_rgn)
 C$    numthreads=omp_get_num_threads()
 C$OMP END CRITICAL (isca_cr_rgn)
 C$OMP END PARALLEL
-      MPI_master_only write(stdout,'(1x,A,3(1x,A,I3),A)') 'NUMBER',
+      MPI_master_only write(*,'(1x,A,3(1x,A,I3),A)') 'NUMBER',
      &    'OF THREADS:',numthreads,'BLOCKING:',NSUB_X,'x',NSUB_E,'.'
 
 #ifdef MPI
@@ -38,11 +38,11 @@ C$OMP END PARALLEL
 # define NUMPROC 1
 #endif
       if (numthreads.gt.NUMPROC) then
-        MPI_master_only write(stdout,'(/1x,A,I3/)')
+        MPI_master_only write(*,'(/1x,A,I3/)')
      &    'ERROR: Requested number of threads exceeds setting: ',NUMPROC
         ierr=ierr+1                                      !--> ERROR
       elseif (mod(NSUB_X*NSUB_E,numthreads).ne.0) then
-        MPI_master_only write(stdout,
+        MPI_master_only write(*,
      &                '(/1x,A,1x,A,I3,4x,A,I3,4x,A,I4,A)') 'ERROR:',
      &                'wrong choice of numthreads =', numthreads,
      &                'NSUB_X =', NSUB_X, 'NSUB_E =', NSUB_E, '.'

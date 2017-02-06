@@ -352,6 +352,10 @@
 #endif
 
 #ifdef SOLVE3D
+# if defined PHYS_FLUX_ANALYSIS
+      integer rstTstepFA
+      common /ncvars/ rstTstepFA
+# endif
 # ifdef KPP_DIAGNOSE
       integer hisKppRichm, hisKppRicht
      &      , hisKppSblSh, hisKppSblSt

@@ -92,7 +92,7 @@
 #if defined BGC_FLUX_ANALYSIS || defined PHYS_FLUX_ANALYSIS
 ! Time record numbers for flux analysis:
       ! default values: 0; replace where appropriate
-      ibuff = (/0, 0, 0, 0/)
+      ibuff = (/0, 0, 0, 0, 0, 0/)
 # ifdef BGC_FLUX_ANALYSIS
       ibuff(1) = nrec_bgc_flux_his
 #  ifdef AVERAGES

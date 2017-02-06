@@ -64,7 +64,7 @@
       ierr=nf_put_vara_int(ncid_phys_flux_his, phys_flux_hisTstep,  
      &     start, count, ibuff)
       if (ierr .ne. nf_noerr) then
-        write(stdout,1) 'time_step', record,ierr, nf_strerror(ierr)
+        write(*,1) 'time_step', record,ierr, nf_strerror(ierr)
      &        MYID
         goto 99                                           !--> ERROR
       endif
@@ -75,7 +75,7 @@
      &     record, time)
       if (ierr .ne. nf_noerr) then
         lvar=lenstr(vname(1,indxTime))
-        write(stdout,1) vname(1,indxTime)(1:lvar), record, ierr, 
+        write(*,1) vname(1,indxTime)(1:lvar), record, ierr, 
      &       nf_strerror(ierr) MYID
         goto 99                                           !--> ERROR
       endif
@@ -87,7 +87,7 @@
      &                  zeta(START_2D_ARRAY,knew), 1)
       if (ierr .ne. nf_noerr) then
          lvar=lenstr(vname(1,indxZ))
-         write(stdout,1) vname(1,indxZ)(1:lvar), record, ierr,
+         write(*,1) vname(1,indxZ)(1:lvar), record, ierr,
      &        nf_strerror(ierr) MYID
          goto 99                !--> ERROR
       endif
@@ -98,7 +98,7 @@
      &                  HorXAdvFlux(START_2D_ARRAY,1,iflux), N)
          if (ierr .ne. nf_noerr) then
             lvar=lenstr(vname_phys(1,indxHorXAdvFlux+iflux-1))
-            write(stdout,1) 
+            write(*,1) 
      &           vname_phys(1,indxHorXAdvFlux+iflux-1)(1:lvar), 
      &           record, ierr, nf_strerror(ierr) MYID 
             goto 99
@@ -110,7 +110,7 @@
      &                  HorYAdvFlux(START_2D_ARRAY,1,iflux), N)
          if (ierr .ne. nf_noerr) then
             lvar=lenstr(vname_phys(1,indxHorYAdvFlux+iflux-1))
-            write(stdout,1) 
+            write(*,1) 
      &           vname_phys(1,indxHorYAdvFlux+iflux-1)(1:lvar), 
      &           record, ierr, nf_strerror(ierr) MYID 
             goto 99
@@ -122,7 +122,7 @@
      &                  VertAdvFlux(START_2D_ARRAY,0,iflux), N+1)
          if (ierr .ne. nf_noerr) then
             lvar=lenstr(vname_phys(1,indxVertAdvFlux+iflux-1))
-            write(stdout,1) 
+            write(*,1) 
      &           vname_phys(1,indxVertAdvFlux+iflux-1)(1:lvar), 
      &           record, ierr, nf_strerror(ierr) MYID 
             goto 99
@@ -135,7 +135,7 @@
      &                  VertDiffFlux(START_2D_ARRAY,0,iflux), N+1)
          if (ierr .ne. nf_noerr) then
             lvar=lenstr(vname_phys(1,indxVertDiffFlux+iflux-1))
-            write(stdout,1) 
+            write(*,1) 
      &           vname_phys(1,indxVertDiffFlux+iflux-1)(1:lvar), 
      &           record, ierr, nf_strerror(ierr) MYID 
             goto 99
@@ -149,7 +149,7 @@
      &                  TopFlux(START_2D_ARRAY,iflux), 1)
          if (ierr .ne. nf_noerr) then
             lvar=lenstr(vname(1,indxTopFlux+iflux-1))
-            write(stdout,1) vname(1,indxTopFlux+iflux-1)(1:lvar), 
+            write(*,1) vname(1,indxTopFlux+iflux-1)(1:lvar), 
      &           record, ierr, nf_strerror(ierr) MYID 
             goto 99
          end if
@@ -161,7 +161,7 @@
      &                  BottomFlux(START_2D_ARRAY,iflux), 1)
          if (ierr .ne. nf_noerr) then
             lvar=lenstr(vname(1,indxBottomFlux+iflux-1))
-            write(stdout,1) vname(1,indxBottomFlux+iflux-1)(1:lvar),
+            write(*,1) vname(1,indxBottomFlux+iflux-1)(1:lvar),
      &           record, ierr, nf_strerror(ierr) MYID 
             goto 99
          end if
@@ -172,7 +172,7 @@
      &                  HorXMixFlux(START_2D_ARRAY,1,iflux), N)
          if (ierr .ne. nf_noerr) then
             lvar=lenstr(vname(1,indxHorXMixFlux+iflux-1))
-            write(stdout,1) vname(1,indxHorXMixFlux+iflux-1)(1:lvar), 
+            write(*,1) vname(1,indxHorXMixFlux+iflux-1)(1:lvar), 
      &           record, ierr, nf_strerror(ierr) MYID 
             goto 99
          end if
@@ -183,7 +183,7 @@
      &                  HorYMixFlux(START_2D_ARRAY,1,iflux), N)
          if (ierr .ne. nf_noerr) then
             lvar=lenstr(vname(1,indxHorYMixFlux+iflux-1))
-            write(stdout,1) vname(1,indxHorYMixFlux+iflux-1)(1:lvar), 
+            write(*,1) vname(1,indxHorYMixFlux+iflux-1)(1:lvar), 
      &           record, ierr, nf_strerror(ierr) MYID 
             goto 99
          end if
@@ -194,7 +194,7 @@
      &                  VertMixFlux(START_2D_ARRAY,0,iflux), N+1)
          if (ierr .ne. nf_noerr) then
             lvar=lenstr(vname(1,indxVertMixFlux+iflux-1))
-            write(stdout,1) vname(1,indxVertMixFlux+iflux-1)(1:lvar), 
+            write(*,1) vname(1,indxVertMixFlux+iflux-1)(1:lvar), 
      &           record, ierr, nf_strerror(ierr) MYID 
             goto 99
          end if
@@ -205,7 +205,7 @@
      &                  NudgingFlux(START_2D_ARRAY,1,iflux), N)
          if (ierr .ne. nf_noerr) then
             lvar=lenstr(vname(1,indxNudgingFlux+iflux-1))
-            write(stdout,1) vname(1,indxNudgingFlux+iflux-1)(1:lvar), 
+            write(*,1) vname(1,indxNudgingFlux+iflux-1)(1:lvar), 
      &           record, ierr, nf_strerror(ierr) MYID 
             goto 99
          end if
@@ -239,12 +239,12 @@
       endif
 # endif
       if (ierr .eq. nf_noerr) then
-        MPI_master_only write(stdout,'(6x,A,2(A,I4,1x),A,I3)') 
+        MPI_master_only write(*,'(6x,A,2(A,I4,1x),A,I3)') 
      &        'WRT_PHYS_FLUX_HIS -- wrote ',
      &        'phys flux fields into time record =', record, '/',
      &        nrec_phys_flux_his  MYID
       else
-        write(stdout,'(/1x,2A/)') 
+        write(*,'(/1x,2A/)') 
      &        'WRT_PHYS_FLUX_HIS ERROR: Cannot ',
      &        'synchronize/close phys fluxes netCDF file.'
         may_day_flag=3
