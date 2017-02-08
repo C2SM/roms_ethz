@@ -26,7 +26,7 @@
      &    parm_labile_ratio,
      &    parm_POMbury,
      &    parm_BSIbury,
-     &    parm_fe_scavenge_rate0,
+     &    parm_Fe_scavenge_rate0,
      &    parm_f_prod_sp_CaCO3,
      &    parm_POC_diss,
      &    parm_SiO2_diss,
@@ -61,7 +61,7 @@
       parm_POMbury           = 1.4 ! x1 default
 # ifdef BEC_COCCO
       parm_BSIbury           = 0.45 ! x1 default
-      parm_fe_scavenge_rate0 = 1.3 ! x1 default     2.8
+      parm_Fe_scavenge_rate0 = 1.3 ! x1 default     2.8
       parm_f_prod_sp_CaCO3   = 0.055 ! x1 default   0.04
       parm_POC_diss          = 82.0   ! 88 in cBEC, 82
       parm_SiO2_diss         = 360.0  ! 250 in cBEC, 360
@@ -98,7 +98,7 @@
 
 # else /* case not BEC_COCCO */
       parm_BSIbury           = 0.65 ! x1 default
-      parm_fe_scavenge_rate0 = 3.0  ! x1 default
+      parm_Fe_scavenge_rate0 = 3.0  ! x1 default
       parm_f_prod_sp_CaCO3   = 0.055 ! x1 default
       parm_POC_diss          = 88.0
       parm_SiO2_diss         = 250.0

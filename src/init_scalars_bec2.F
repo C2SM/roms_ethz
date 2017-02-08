@@ -1069,6 +1069,7 @@ CR      write(*,'(1x,A,I3)') 'indxNH4 =',indxNH4
       vname_bec2_diag_3d(4,indxCOCCOPLIM)=' '
 
 # endif BEC_COCCO
+# endif /* BEC2_DIAG */
 
 # ifdef USE_EXPLICIT_VSINK
 ! For output files:
@@ -1182,6 +1183,8 @@ CR      write(*,'(1x,A,I3)') 'indxNH4 =',indxNH4
 # endif /* USE_EXPLICIT_VSINK */
 
 
+# ifdef BEC2_DIAG
+
         ! MF: Control BEC2_DIAG Output vars
       wrtavg_bec2_diag_3d=(/.true.,.true.,.true.,.true.,.true.,      !PAR, POC_FLUX_IN, POC_Prod,POC_REMIN, CACO3_FLUX_IN,
      &                     .true.,.true.,.true.,.true.,.true.,       !PCACO3_PROD, CACO3_REMIN,SIO2_FLUX_IN, SIO2_PROD, SIO2_REMIN,
@@ -1218,9 +1221,6 @@ CR      write(*,'(1x,A,I3)') 'indxNH4 =',indxNH4
      &                     .true.   ! COCCO_P_LIM
 # endif
      &                     /)
-     
-
-
 
 # endif /* BEC2_DIAG */
 

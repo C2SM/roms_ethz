@@ -309,7 +309,7 @@
 #ifdef USE_EXPLICIT_VSINK
       ! Since with explicit sinking init_particulate_terms is not called
       ! in ecosys_set_interior, the gamma parameters are set here:
-      parameter( POC_gamma=0.5, P_CaCO3_gamma=0.30, P_SiO2_gamma=0.030,
+      parameter( POC_gamma=0.0, P_CaCO3_gamma=0.30, P_SiO2_gamma=0.030,
      &           dust_gamma=0.97, P_iron_gamma=0.0 )
 #else
       ! The gamma parameters are set init_particulate_terms and so they
@@ -329,39 +329,53 @@
 
       real, dimension(GLOBAL_2D_ARRAY) ::
 #ifndef USE_EXPLICIT_VSINK
-     &   P_CaCO3_sflux_out, P_CaCO3_hflux_out, P_CaCO3_sed_loss,
-     &   P_SiO2_sflux_out, P_SiO2_hflux_out, P_SiO2_sed_loss,
-     &   dust_sflux_out, dust_hflux_out, dust_sed_loss,
-     &   P_iron_sflux_out, P_iron_hflux_out, P_iron_sed_loss,
-     &   POC_sflux_out, POC_hflux_out, POC_sed_loss,
+     &   P_CaCO3_sflux_out, P_CaCO3_hflux_out,
+     &   P_SiO2_sflux_out, P_SiO2_hflux_out,
+     &   dust_sflux_out, dust_hflux_out,
+     &   P_iron_sflux_out, P_iron_hflux_out,
+     &   POC_sflux_out, POC_hflux_out, 
      &   P_CaCO3_sflux_in, P_CaCO3_hflux_in,
      &   P_SiO2_sflux_in, P_SiO2_hflux_in, 
      &   dust_sflux_in, dust_hflux_in,
      &   P_iron_sflux_in, P_iron_hflux_in,
      &   POC_sflux_in, POC_hflux_in,
+     &   P_CaCO3_sed_loss, P_SiO2_sed_loss, 
+     &   P_iron_sed_loss,POC_sed_loss,
+     &   dust_sed_loss,
 #endif
      &   DOP_remin, DOPr_remin
 #ifdef USE_EXPLICIT_VSINK
-     &   ,dusthard_remin, POChard_remin, P_CaCO3hard_remin
-     &   ,P_SiO2hard_remin, P_ironhard_remin
-     &   ,dustsoft_remin, POCsoft_remin, P_CaCO3soft_remin
-     &   ,P_SiO2soft_remin, P_ironsoft_remin
+      real, dimension(GLOBAL_XI_ARRAY,N) ::
+     &   dusthard_remin, POChard_remin, P_CaCO3hard_remin,
+     &   P_SiO2hard_remin, P_ironhard_remin,
+     &   dustsoft_remin, POCsoft_remin, P_CaCO3soft_remin,
+     &   P_SiO2soft_remin, P_ironsoft_remin,
+     &   POC_remin, P_iron_remin, P_SiO2_remin, P_CaCO3_remin
+      real, dimension(GLOBAL_XI_ARRAY) ::
+     &   P_CaCO3_sed_loss, P_SiO2_sed_loss, 
+     &   P_iron_sed_loss,POC_sed_loss,
+     &   dust_sed_loss,
+     &   SED_DENITRIF, OTHER_REMIN
 #else
-     &   ,POC_remin, P_iron_remin, P_SiO2_remin, P_CaCO3_remin
+      real, dimension(GLOBAL_2D_ARRAY) ::
+     &   POC_remin, P_iron_remin, P_SiO2_remin, P_CaCO3_remin
 #endif
 
       common /sinking_particles2/
 #ifndef USE_EXPLICIT_VSINK
-     &   P_CaCO3_sflux_out, P_CaCO3_hflux_out, P_CaCO3_sed_loss,
-     &   P_SiO2_sflux_out, P_SiO2_hflux_out, P_SiO2_sed_loss,
-     &   dust_sflux_out, dust_hflux_out, dust_sed_loss,
-     &   P_iron_sflux_out, P_iron_hflux_out, P_iron_sed_loss,
-     &   POC_sflux_out, POC_hflux_out, POC_sed_loss,
+     &   P_CaCO3_sflux_out, P_CaCO3_hflux_out,
+     &   P_SiO2_sflux_out, P_SiO2_hflux_out,
+     &   dust_sflux_out, dust_hflux_out,
+     &   P_iron_sflux_out, P_iron_hflux_out,
+     &   POC_sflux_out, POC_hflux_out,
      &   P_CaCO3_sflux_in, P_CaCO3_hflux_in,
      &   P_SiO2_sflux_in, P_SiO2_hflux_in, 
      &   dust_sflux_in, dust_hflux_in,
      &   P_iron_sflux_in, P_iron_hflux_in,
      &   POC_sflux_in, POC_hflux_in,
+     &   P_CaCO3_sed_loss, P_SiO2_sed_loss, 
+     &   P_iron_sed_loss,POC_sed_loss,
+     &   dust_sed_loss,
 #endif
      &   DOP_remin, DOPr_remin
 #ifdef USE_EXPLICIT_VSINK
@@ -369,6 +383,11 @@
      &   ,P_SiO2hard_remin, P_ironhard_remin
      &   ,dustsoft_remin, POCsoft_remin, P_CaCO3soft_remin
      &   ,P_SiO2soft_remin, P_ironsoft_remin
+     &   ,POC_remin, P_iron_remin, P_SiO2_remin, P_CaCO3_remin
+     &   ,P_CaCO3_sed_loss, P_SiO2_sed_loss 
+     &   ,P_iron_sed_loss,POC_sed_loss
+     &   ,dust_sed_loss
+     &   ,SED_DENITRIF,OTHER_REMIN
 #else
      &   ,POC_remin, P_iron_remin, P_SiO2_remin, P_CaCO3_remin
 #endif
@@ -378,7 +397,12 @@
 !
 #ifdef USE_EXPLICIT_VSINK
       ! Number of sinking components:
-      integer, parameter :: nsink=10
+      ! Indices to be used in VSinkFlux only (!!)
+      integer, parameter :: nsink=10,iDUSTHARD_VSink=1,iPOCHARD_VSink=iDUSTHARD_VSink+1,
+     &   iPCACO3HARD_VSink=iDUSTHARD_VSink+2,iPSIO2HARD_VSink=iDUSTHARD_VSink+3,  
+     &   iPIRONHARD_VSink=iDUSTHARD_VSink+4,iDUSTSOFT_VSink=iDUSTHARD_VSink+5,  
+     &   iPOCSOFT_VSink=iDUSTHARD_VSink+6,iPCACO3SOFT_VSink=iDUSTHARD_VSink+7,  
+     &   iPSIO2SOFT_VSink=iDUSTHARD_VSink+8,iPIRONSOFT_VSink=iDUSTHARD_VSink+9  
       ! Vertical sink fluxes [mmol m-2 s-1], upward flux is positive
       real VSinkFlux(GLOBAL_2D_ARRAY,0:N,nsink)
       ! Indices of sinking variables in temprorary array tracer (used in ecosys_bec2.F):
