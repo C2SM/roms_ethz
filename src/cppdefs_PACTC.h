@@ -7,8 +7,8 @@
 #include "cppdefs_UP.h"
 
 #define GRID_SIZE LLm=602, MMm=516, N=64      ! pactcs30 4.1-65km telescopic up to Antarctica
-#define DOMAIN_TILING NP_XI=8, NP_ETA=48, NSUB_X=1, NSUB_E=1 ! Euler
-!#define DOMAIN_TILING NP_XI=4, NP_ETA=8, NSUB_X=1, NSUB_E=1 ! Euler
+!-- #define DOMAIN_TILING NP_XI=8, NP_ETA=48, NSUB_X=1, NSUB_E=1 ! Euler
+#define DOMAIN_TILING NP_XI=4, NP_ETA=4, NSUB_X=1, NSUB_E=1 ! Euler
 
      /* Open Boundaries */
 #define OBC_SOUTH
@@ -69,9 +69,10 @@
 
      /* Biology */
 !--> #define BIOLOGY_NPZDOC
-!--> # define BIOLOGY_BEC2
+# define BIOLOGY_BEC2
 
 #ifdef BIOLOGY_BEC2
+# define BIOLOGY
 # define DEFAULT_BRY_VALUES
 !--> # define MULT_CLIM_FILES
 !--> # define VFLX_CORR
