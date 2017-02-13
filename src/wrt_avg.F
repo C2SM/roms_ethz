@@ -6,6 +6,8 @@
 #  define START_3D_ARRAY_K1 START_2D_ARRAY,1
 #  define AVR avg 
 #  define CAVR 'avg'
+#  define N3D N
+#  define NW3D N+1
 ! By defining AVR as avg we make use of the fact that
 ! compiler will ignore spaced e.g., wrt_ avg -> wrt_avg
 ! This makes that *.f a bit less readable but saves a lot of #define
@@ -14,10 +16,8 @@
 #  define START_3D_ARRAY_K1 START_2D_ARRAY
 #  define AVR slavg
 #  define CAVR 'slavg'
-#  define R3DVAR r2dvar
-#  define U3DVAR u2dvar
-#  define V3DVAR v2dvar
-#  define W3DVAR r2dvar
+#  define N3D 1
+#  define NW3D 1
 # endif /* ifndef SLICE_AVG */
 
       subroutine wrt_ AVR              ! Write time-averaged fields
@@ -139,7 +139,7 @@ CR      mpi_master_only print *, '--- NOTE: Executing ', wrt_ AVR
 
       if (wrt AVR (indxU) .and. ierr == nf_noerr) then
         ierr=ncdf_write(nc AVR ,  AVR U, record, u_var,
-     &                  u_ AVR (START_3D_ARRAY_K1), N)
+     &                  u_ AVR (START_3D_ARRAY_K1), N3D)
         if (ierr /= nf_noerr) then
           lvar=lenstr(vname(1,indxU))
           write(*,1) vname(1,indxU)(1:lvar), record MYID
@@ -148,7 +148,7 @@ CR      mpi_master_only print *, '--- NOTE: Executing ', wrt_ AVR
 
       if (wrt AVR (indxV) .and. ierr == nf_noerr) then
         ierr=ncdf_write(nc AVR ,  AVR V, record, v_var,
-     &                  v_ AVR (START_3D_ARRAY_K1), N)
+     &                  v_ AVR (START_3D_ARRAY_K1), N3D)
         if (ierr /= nf_noerr) then
         lvar=lenstr(vname(1,indxV))
           write(*,1) vname(1,indxV)(1:lvar), record MYID
@@ -160,7 +160,7 @@ CR      mpi_master_only print *, '--- NOTE: Executing ', wrt_ AVR
       do itrc=1,NT
         if (wrt AVR (indxT+itrc-1) .and. ierr == nf_noerr) then
           ierr=ncdf_write(nc AVR ,  AVR T(itrc), record, r_var,
-     &                    t_ AVR (START_3D_ARRAY_K1,itrc), N)
+     &                    t_ AVR (START_3D_ARRAY_K1,itrc), N3D)
           if (ierr /= nf_noerr) then
             lvar=lenstr(vname(1,indxT+itrc-1))
             write(*,1) vname(1,indxT+itrc-1)(1:lvar),record MYID
@@ -174,7 +174,7 @@ CR      mpi_master_only print *, '--- NOTE: Executing ', wrt_ AVR
       do itrc=1,NT_sed
         if (wrt AVR (indxSedOrgN+itrc-1)) then
           ierr=ncdf_write(nc AVR ,  AVR T(itrc), record, r_var,
-     &                    t_sed_ AVR (START_3D_ARRAY_K1,itrc), N)
+     &                    t_sed_ AVR (START_3D_ARRAY_K1,itrc), N3D)
           if (ierr /= nf_noerr) then
             lvar=lenstr(vname(1,indxSedOrgN+itrc-1))
             write(*,1) vname(1,indxSedOrgN+itrc-1)(1:lvar), record,
@@ -190,7 +190,7 @@ CR      write(*,*) 'wrt_ AVR :  wrtT_sed  ' MYID
 
       if (wrt AVR (indxR) .and. ierr == nf_noerr) then
         ierr=ncdf_write(nc AVR ,  AVR R, record, r_var,
-     &                  rho_ AVR (START_3D_ARRAY_K1), N)
+     &                  rho_ AVR (START_3D_ARRAY_K1), N3D)
         if (ierr /= nf_noerr) then
           lvar=lenstr(vname(1,indxR))
           write(*,1) vname(1,indxR)(1:lvar), record  MYID
@@ -200,7 +200,7 @@ CR      write(*,*) 'wrt_ AVR :  wrtT_sed  ' MYID
 ! S-coordinate omega vertical velocity (m/s).
 
       if (wrt AVR (indxO) .and. ierr == nf_noerr) then
-        ierr=ncdf_write(nc AVR ,  AVR O, record, r_var, w_ AVR , N+1)
+        ierr=ncdf_write(nc AVR ,  AVR O, record, r_var, w_ AVR , NW3D)
         if (ierr /= nf_noerr) then
           lvar=lenstr(vname(1,indxO))
           write(*,1) vname(1,indxO)(1:lvar), record  MYID
@@ -210,7 +210,7 @@ CR      write(*,*) 'wrt_ AVR :  wrtT_sed  ' MYID
 ! True vertical velocity (m/s).
 
       if (wrt AVR (indxW) .and. ierr == nf_noerr) then
-        ierr=ncdf_write(nc AVR ,  AVR W, record, r_var, wvl_ AVR , N)
+        ierr=ncdf_write(nc AVR ,  AVR W, record, r_var, wvl_ AVR , N3D)
         if (ierr /= nf_noerr) then
           lvar=lenstr(vname(1,indxW))
           write(*,1) vname(1,indxW)(1:lvar), record MYID
@@ -221,7 +221,7 @@ CR      write(*,*) 'wrt_ AVR :  wrtT_sed  ' MYID
 
       if (wrt AVR (indxAkv) .and. ierr == nf_noerr) then
         ierr=ncdf_write(nc AVR ,   AVR Akv,  record,  r_var,
-     &                  akv_ AVR (START_3D_ARRAY_K0), N+1)
+     &                  akv_ AVR (START_3D_ARRAY_K0), NW3D)
         if (ierr /= nf_noerr) then
           lvar=lenstr(vname(1,indxAkv))
           write(*,1) vname(1,indxAkv)(1:lvar), record MYID
@@ -232,7 +232,7 @@ CR      write(*,*) 'wrt_ AVR :  wrtT_sed  ' MYID
 
       if (wrt AVR (indxAkt) .and. ierr == nf_noerr) then
         ierr=ncdf_write(nc AVR ,   AVR Akt,  record,  r_var,
-     &                  akt_ AVR (START_3D_ARRAY_K0), N+1)
+     &                  akt_ AVR (START_3D_ARRAY_K0), NW3D)
         if (ierr /= nf_noerr) then
           lvar=lenstr(vname(1,indxAkt))
           write(*,1) vname(1,indxAkt)(1:lvar), record MYID
@@ -244,7 +244,7 @@ CR      write(*,*) 'wrt_ AVR :  wrtT_sed  ' MYID
 
       if (wrt AVR (indxAks) .and. ierr == nf_noerr) then
         ierr=ncdf_write(nc AVR ,   AVR Aks,  record,  r_var,
-     &                  Aks_ AVR (START_3D_ARRAY_K0), N+1)
+     &                  Aks_ AVR (START_3D_ARRAY_K0), NW3D)
         if (ierr /= nf_noerr) then
           lvar=lenstr(vname(1,indxAks))
           write(*,1) vname(1,indxAks)(1:lvar), record MYID
@@ -281,7 +281,7 @@ CR      write(*,*) 'wrt_ AVR :  wrtT_sed  ' MYID
 ! KppRichm KppRicht KppSblSh KppSblSt KppSblRot KppSblEnt
       if (wrt AVR (indxKppRichm) .and. ierr == nf_noerr) then
         ierr=ncdf_write(nc AVR ,   AVR kpprichm,  record,  r_var,
-     &                  kpprichm_ AVR (START_2D_ARRAY,0), N+1)
+     &                  kpprichm_ AVR (START_2D_ARRAY,0), NW3D)
         if (ierr /= nf_noerr) then
           lvar=lenstr(vname(1,indxKppRichm))
           write(*,1) vname(1,indxKppRichm)(1:lvar), record MYID
@@ -289,7 +289,7 @@ CR      write(*,*) 'wrt_ AVR :  wrtT_sed  ' MYID
       endif
       if (wrt AVR (indxKppRicht) .and. ierr == nf_noerr) then
         ierr=ncdf_write(nc AVR ,   AVR kppricht,  record,  r_var,
-     &                  kppricht_ AVR (START_2D_ARRAY,0), N+1)
+     &                  kppricht_ AVR (START_2D_ARRAY,0), NW3D)
         if (ierr /= nf_noerr) then
           lvar=lenstr(vname(1,indxKppRicht))
           write(*,1) vname(1,indxKppRicht)(1:lvar), record MYID
@@ -297,7 +297,7 @@ CR      write(*,*) 'wrt_ AVR :  wrtT_sed  ' MYID
       endif
       if (wrt AVR (indxKppSblSh) .and. ierr == nf_noerr) then
         ierr=ncdf_write(nc AVR ,   AVR kppsblsh,  record,  r_var,
-     &                  kppsblsh_ AVR (START_2D_ARRAY,0), N+1)
+     &                  kppsblsh_ AVR (START_2D_ARRAY,0), NW3D)
         if (ierr /= nf_noerr) then
           lvar=lenstr(vname(1,indxKppSblSh))
           write(*,1) vname(1,indxKppSblSh)(1:lvar), record MYID
@@ -305,7 +305,7 @@ CR      write(*,*) 'wrt_ AVR :  wrtT_sed  ' MYID
       endif
       if (wrt AVR (indxKppSblSt) .and. ierr == nf_noerr) then
         ierr=ncdf_write(nc AVR ,   AVR kppsblst,  record,  r_var,
-     &                  kppsblst_ AVR (START_2D_ARRAY,0), N+1)
+     &                  kppsblst_ AVR (START_2D_ARRAY,0), NW3D)
         if (ierr /= nf_noerr) then
           lvar=lenstr(vname(1,indxKppSblSt))
           write(*,1) vname(1,indxKppSblSt)(1:lvar), record MYID
@@ -313,7 +313,7 @@ CR      write(*,*) 'wrt_ AVR :  wrtT_sed  ' MYID
       endif
       if (wrt AVR (indxKppSblRot) .and. ierr == nf_noerr) then
         ierr=ncdf_write(nc AVR ,   AVR kppsblrot,  record,  r_var,
-     &                  kppsblrot_ AVR (START_2D_ARRAY,0), N+1)
+     &                  kppsblrot_ AVR (START_2D_ARRAY,0), NW3D)
         if (ierr /= nf_noerr) then
           lvar=lenstr(vname(1,indxKppSblRot))
           write(*,1) vname(1,indxKppSblRot)(1:lvar), record MYID
@@ -321,7 +321,7 @@ CR      write(*,*) 'wrt_ AVR :  wrtT_sed  ' MYID
       endif
       if (wrt AVR (indxKppSblEnt) .and. ierr == nf_noerr) then
         ierr=ncdf_write(nc AVR ,   AVR kppsblent,  record,  r_var,
-     &                  kppsblent_ AVR (START_2D_ARRAY,0), N+1)
+     &                  kppsblent_ AVR (START_2D_ARRAY,0), NW3D)
         if (ierr /= nf_noerr) then
           lvar=lenstr(vname(1,indxKppSblEnt))
           write(*,1) vname(1,indxKppSblEnt)(1:lvar), record MYID
@@ -465,7 +465,7 @@ CR      write(*,*) 'wrt_ AVR :  wrtT_sed  ' MYID
           if (wrtavg_bec2_diag_3d(itrc)) then
 !        if (wrt AVR T_bec2_diag(itrc)) .and. ierr == nf_noerr) then
             ierr=ncdf_write(nc AVR ,   AVR T_bec2_diag(nr_bec2_diag_2d+itrc),  record,  r_var,
-     &                  bec2_diag_3d_ AVR (START_3D_ARRAY_K1,itrc), N) ! itrc added
+     &                  bec2_diag_3d_ AVR (START_3D_ARRAY_K1,itrc), N3D) ! itrc added
             if (ierr /= nf_noerr) then
              lvar=lenstr(vname_bec2_diag_3d(1,itrc))
              write(*,1) vname_bec2_diag_3d(1,itrc)(1:lvar), record MYID
@@ -480,7 +480,7 @@ CR      write(*,*) 'wrt_ AVR :  wrtT_sed  ' MYID
 ! depths of rho points:
 
       ierr=ncdf_write(nc AVR ,   AVR z_r,  record,  r_var,
-     &                  z_r_ AVR (START_3D_ARRAY_K1), N)
+     &                  z_r_ AVR (START_3D_ARRAY_K1), N3D)
       if (ierr /= nf_noerr) then
         lvar=lenstr(vname(1,indxz_r))
         write(*,1) vname(1,indxz_r)(1:lvar), record, ierr,
@@ -491,7 +491,7 @@ CR      write(*,*) 'wrt_ AVR :  wrtT_sed  ' MYID
 ! depths at w points:
 
       ierr=ncdf_write(nc AVR, AVR z_w,  record,  r_var,
-     &                  z_w_ AVR (START_3D_ARRAY_K0), N)
+     &                  z_w_ AVR (START_3D_ARRAY_K0), N3D)
       if (ierr .ne. nf_noerr) then
         lvar=lenstr(vname(1,indxz_w))
         write(*,1) vname(1,indxz_w)(1:lvar), record, ierr,
@@ -502,7 +502,7 @@ CR      write(*,*) 'wrt_ AVR :  wrtT_sed  ' MYID
 ! thicknesses of sigma layers:
 
       ierr=ncdf_write(nc AVR,   AVR Hz,  record,  r_var,
-     &                  Hz_ AVR (START_3D_ARRAY_K1), N)
+     &                  Hz_ AVR (START_3D_ARRAY_K1), N3D)
       if (ierr .ne. nf_noerr) then
         lvar=lenstr(vname(1,indxHz))
         write(*,1) vname(1,indxHz)(1:lvar), record, ierr,
@@ -577,9 +577,10 @@ CR      write(*,*) 'wrt_ AVR :  wrtT_sed  ' MYID
 # ifndef SLICE_AVR
 #  undef START_3D_ARRAY_K0
 #  undef START_3D_ARRAY_K1
-#  undef  AVR 
+#  undef AVR 
 #  undef CAVR
-#  undef WRTROUTINE
+#  undef N3D N
+#  undef NW3D N+1
 #  undef NOPARWRT
 #  if defined  SLICE_AVG && !defined SLICE_AVR /* also create wrt_slice_avg */
 #   define SLICE_AVR
