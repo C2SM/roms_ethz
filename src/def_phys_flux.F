@@ -697,7 +697,7 @@
           MPI_master_only write(*,'(1x,2A,1x,A,I3)') 
      &          'Opened existing phys_flux_his file ',
      &          ncname(1:lstr), 'ncid =', ncid
-          ierr=checkdims (ncid, ncname(1:lstr), lstr, rec)
+          ierr=checkdims (ncid, ncname, rec)
           if (ierr .eq. nf_noerr) then
             if (rec_per_file.eq.0) then
               ierr=rec+1 - total_rec
