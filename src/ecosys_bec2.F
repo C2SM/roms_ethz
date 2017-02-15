@@ -187,7 +187,7 @@ c$$$       enddo
 
     !----------------------------------------------------------------------
     !   Set bad AP values to 1. This is necessary for runs restarting off
-    !   a run in which the flux coupler didn't restart on AP correctly.
+    !   a run in which the flux coupler didnt restart on AP correctly.
     !----------------------------------------------------------------------
        WHERE (AP_USED(istr:iend,jstr:jend) > 1.5 .OR. AP_USED(istr:iend,jstr:jend) < 0.5)
           AP_USED(istr:iend,jstr:jend) = c1
@@ -701,11 +701,6 @@ c$$$     &         *dt/Hz(istr:iend,jstr:jend,N)
 
        do j = jstr, jend
 
-       ! MF
-       !mpi_master_only write(*,*) 'Calling vert_sinking_bec2...'
-       !mpi_master_only write(*,*) 'jstr,jend:', jstr, jend
-       !mpi_master_only write(*,*) 'istr,iend:', istr, iend
-
 # ifdef USE_EXPLICIT_VSINK
     !---------------------------------------------------------------------
     ! Compute vertical sinking:
@@ -713,9 +708,6 @@ c$$$     &         *dt/Hz(istr:iend,jstr:jend,N)
           call vert_sinking_bec2(istr,iend,j)
 # endif
           do k = N,1,-1
-
-          ! MF
-          !mpi_master_only write(*,*) 'Calling ecosys_set_interior... k=',k 
 
           call ecosys_set_interior(k,t(istr:iend,j,k,nnew,1),
      &             SHF_QSW(istr:iend,j),  
@@ -841,10 +833,8 @@ c$$$       enddo
      &    QA_dust_def,     ! incoming deficit in the QA(dust) POC flux
      &    NITRIF,          ! nitrification (NH4 -> NO3) (mmol N/m^3/sec)
      &    DENITRIF,        ! water column nitrification (NO3 -> N2) (mmol N/m^3/sec)
-# ifndef USE_EXPLICIT_VSINK /* in this case they are defined in ecosys_bec2.h */
      &    SED_DENITRIF,    ! sedimentary denitrification (mmol N/m^3/sec)
      &    OTHER_REMIN,     ! organic C remin not due oxic or denitrif (mmolC/m^3/sec)
-# endif
      &    flux_oxidated,   ! carbon oxidation rate in sediment
      &    O2_CONSUMPTION,  ! O2 consumption
      &    O2_PRODUCTION    ! O2 production
@@ -1171,11 +1161,8 @@ c$$$       enddo
 # else
           PARinc(istr:iend,j) = PAR_out(istr:iend)
 # endif
-# ifndef USE_EXPLICIT_VSINK
           CALL init_particulate_terms(QA_dust_def,istr,iend,j,dust_flux)
-# endif
-       end if
-
+       end if   
     !-----------------------------------------------------------------------
     !  compute PAR related quantities
     !  Morel, Maritorena, JGR, Vol 106, No. C4, pp 7163--7180, 2001
@@ -2051,22 +2038,11 @@ c$$$       enddo
 
        Fe_scavenge_rate = parm_Fe_scavenge_rate0
 
-# ifdef USE_EXPLICIT_VSINK
-       ! Note that VSinkFlux is negative if particles sink, therefore the minus
-       ! is necessary:
-       Fe_scavenge_rate = -Fe_scavenge_rate *
-     &     ( (VSinkFlux(istr:iend,j,k,iPOCHARD_VSink)+VSinkFlux(istr:iend,j,k,iPOCSOFT_VSink))*120.1 +
-     &       (VSinkFlux(istr:iend,j,k,iPCACO3HARD_VSink)+VSinkFlux(istr:iend,j,k,iPCACO3SOFT_VSink))*P_CaCO3_mass +
-     &       (VSinkFlux(istr:iend,j,k,iPSIO2HARD_VSink)+VSinkFlux(istr:iend,j,k,iPSIO2SOFT_VSink))*P_SiO2_mass +
-     &       (VSinkFlux(istr:iend,j,k,iDUSTHARD_VSink)+VSinkFlux(istr:iend,j,k,iDUSTSOFT_VSink))*dust_fescav_scale )
-# else
-       ! Here the fluxes are positive if particles sink.
        Fe_scavenge_rate = Fe_scavenge_rate *
      &     ((POC_sflux_out(istr:iend,j) + POC_hflux_out(istr:iend,j)) * 120.1 +
      &      (P_CaCO3_sflux_out(istr:iend,j) + P_CaCO3_hflux_out(istr:iend,j)) * P_CaCO3_mass +
      &      (P_SiO2_sflux_out(istr:iend,j) + P_SiO2_hflux_out(istr:iend,j)) * P_SiO2_mass +
      &      (dust_sflux_out(istr:iend,j) + dust_hflux_out(istr:iend,j)) * dust_fescav_scale)
-# endif
 
        where (Fe_loc > Fe_scavenge_thres1)
           Fe_scavenge_rate = Fe_scavenge_rate + 
@@ -2074,6 +2050,8 @@ c$$$       enddo
        end where
 
        Fe_scavenge = yps * Fe_loc * Fe_scavenge_rate
+       ! MF: Debugging, try Fe_scavenge=0
+       !Fe_scavenge(istr:iend) = c0
 
        P_iron_prod = (zoo_loss * f_zoo_detr_loc * Qfe_zoo) + Fe_scavenge
 
@@ -2097,7 +2075,10 @@ c$$$       enddo
 #  endif
 # endif
 
-# ifndef USE_EXPLICIT_VSINK
+# ifdef USE_EXPLICIT_VSINK
+       call compute_particulate_terms_explicit(k,QA_dust_def, TEMP, O2_loc, NO3_loc,POC_prod,
+     &        P_iron_prod,P_CaCO3_prod,P_SiO2_prod,SED_DENITRIF, OTHER_REMIN,istr,iend,j)
+# else
        call compute_particulate_terms(k,QA_dust_def, TEMP, O2_loc, NO3_loc,POC_prod,
      &        P_iron_prod,P_CaCO3_prod,P_SiO2_prod,SED_DENITRIF, OTHER_REMIN,istr,iend,j)
 # endif /* USE_EXPLICIT_VSINK */
@@ -2144,13 +2125,8 @@ c$$$       enddo
        ! NO3min=2
 
        DENITRIF = WORK1 * ((DOC_remin
-# ifdef USE_EXPLICIT_VSINK
-     &                  + POC_remin(istr:iend,k)
-     &                  - OTHER_REMIN(istr:iend)) / denitrif_C_N - SED_DENITRIF(istr:iend))
-# else
      &                  + POC_remin(istr:iend,j)
      &                  - OTHER_REMIN) / denitrif_C_N - SED_DENITRIF)
-# endif
 
        where (NO3_loc < parm_denitrif_NO3_limit)
             DENITRIF = 1/parm_denitrif_NO3_limit * NO3_loc * DENITRIF
@@ -2175,19 +2151,11 @@ c$$$       enddo
     !-----------------------------------------------------------------------
 
        DTRACER_MODULE(istr:iend,j,k,no3_ind_t) = NITRIF - DENITRIF - 
-# ifdef USE_EXPLICIT_VSINK
-     &                                 SED_DENITRIF(istr:iend) - sum(NO3_V, dim=2)
-# else
      &                                 SED_DENITRIF - sum(NO3_V, dim=2)
-# endif
 
        DTRACER_MODULE(istr:iend,j,k,nh4_ind_t) = -sum(NH4_V, dim=2) - NITRIF + DON_remin + DONr_remin
      &     + Q * (zoo_loss_dic + sum(auto_loss_dic, dim=2) + sum(auto_graze_dic, dim=2)
-# ifdef USE_EXPLICIT_VSINK
-     &     + POC_remin(istr:iend,k)
-# else
      &     + POC_remin(istr:iend,j)
-# endif
      &     * (c1 - DONrefract))
 
        do auto_ind = 1, autotroph_cnt
@@ -2200,11 +2168,7 @@ c$$$       enddo
     !  dissolved iron
     !-----------------------------------------------------------------------
 
-# ifdef USE_EXPLICIT_VSINK
-       DTRACER_MODULE(istr:iend,j,k,fe_ind_t) = P_iron_remin(istr:iend,k)
-# else
        DTRACER_MODULE(istr:iend,j,k,fe_ind_t) = P_iron_remin(istr:iend,j)
-# endif
      &           + (Qfe_zoo * zoo_loss_dic) + DOFe_remin - sum(photoFe, dim=2) - Fe_scavenge
 
        do auto_ind = 1, autotroph_cnt
@@ -2217,11 +2181,7 @@ c$$$       enddo
     !  dissolved SiO3
     !-----------------------------------------------------------------------
 
-# ifdef USE_EXPLICIT_VSINK
-       DTRACER_MODULE(istr:iend,j,k,sio3_ind_t) = P_SiO2_remin(istr:iend,k)
-# else
        DTRACER_MODULE(istr:iend,j,k,sio3_ind_t) = P_SiO2_remin(istr:iend,j)
-# endif
 
        do auto_ind = 1, autotroph_cnt
           if (kSiO3(auto_ind) > 0) then
@@ -2239,11 +2199,7 @@ c$$$       enddo
        DTRACER_MODULE(istr:iend,j,k,po4_ind_t) = DOP_remin(istr:iend,j) + DOPr_remin(istr:iend,j) 
      &     - sum(PO4_V, dim=2)
      &     + Qp_zoo_pom * ((c1 - DOPrefract)
-# ifdef USE_EXPLICIT_VSINK
-     &     * POC_remin(istr:iend,k)
-# else
      &     * POC_remin(istr:iend,j)
-# endif
      &     + zoo_loss_dic)
 
        do auto_ind = 1, autotroph_cnt
@@ -2304,22 +2260,14 @@ c$$$       enddo
        DTRACER_MODULE(istr:iend,j,k,don_ind_t) = (DON_prod * (c1 - DONrefract)) - DON_remin
 
        DTRACER_MODULE(istr:iend,j,k,donr_ind_t) = (DON_prod * DONrefract) - DONr_remin
-# ifdef USE_EXPLICIT_VSINK
-     &         + ( POC_remin(istr:iend,k)
-# else
      &         + ( POC_remin(istr:iend,j)
-# endif
      &         * DONrefract * Q)
 
        DTRACER_MODULE(istr:iend,j,k,dop_ind_t) = (DOP_prod * (c1 - DOPrefract)) - DOP_remin(istr:iend,j)
      &         - sum(DOP_V, dim=2)
 
        DTRACER_MODULE(istr:iend,j,k,dopr_ind_t) = (DOP_prod * DOPrefract) - DOPr_remin(istr:iend,j)
-# ifdef USE_EXPLICIT_VSINK
-     &         + ( POC_remin(istr:iend,k)
-# else
      &         + ( POC_remin(istr:iend,j)
-# endif
      &         * DOPrefract * Qp_zoo_pom)
 
        DTRACER_MODULE(istr:iend,j,k,dofe_ind_t) = DOFe_prod - DOFe_remin
@@ -2331,11 +2279,7 @@ c$$$       enddo
        DTRACER_MODULE(istr:iend,j,k,dic_ind_t) =
      &       sum(auto_loss_dic, dim=2) + sum(auto_graze_dic, dim=2) - sum(photoC, dim=2)
      &       + DOC_remin
-# ifdef USE_EXPLICIT_VSINK
-     &       + POC_remin(istr:iend,k) + P_CaCO3_remin(istr:iend,k)
-# else
      &       + POC_remin(istr:iend,j) + P_CaCO3_remin(istr:iend,j)
-# endif
      &       + zoo_loss_dic
 
        do auto_ind = 1, autotroph_cnt
@@ -2351,11 +2295,7 @@ c$$$       enddo
 
        DTRACER_MODULE(istr:iend,j,k,alk_ind_t) = -DTRACER_MODULE(istr:iend,j,k,no3_ind_t) +
      &                  DTRACER_MODULE(istr:iend,j,k,nh4_ind_t) + c2
-# ifdef USE_EXPLICIT_VSINK
-     &     * P_CaCO3_remin(istr:iend,k)
-# else
      &     * P_CaCO3_remin(istr:iend,j)
-# endif
 
        do auto_ind = 1, autotroph_cnt
           if (CaCO3_ind(auto_ind) > 0)
@@ -2396,15 +2336,9 @@ c$$$       enddo
        WORK1 = min(max(WORK1,c0),c1)
        O2_CONSUMPTION = WORK1 *
      &  ((
-# ifdef USE_EXPLICIT_VSINK
-     &   POC_remin(istr:iend,k)
-     &   + DOC_remin - (SED_DENITRIF(istr:iend)*denitrif_C_N) - OTHER_REMIN(istr:iend) + zoo_loss_dic
-     &   + sum(auto_loss_dic, dim=2) + sum(auto_graze_dic, dim=2)) / parm_Remin_D_C_O2 + (c2 * NITRIF))
-# else
      &   POC_remin(istr:iend,j)
      &   + DOC_remin - (SED_DENITRIF*denitrif_C_N) - OTHER_REMIN + zoo_loss_dic
      &   + sum(auto_loss_dic, dim=2) + sum(auto_graze_dic, dim=2)) / parm_Remin_D_C_O2 + (c2 * NITRIF))
-# endif
 
        DTRACER_MODULE(istr:iend,j,k,o2_ind_t) = O2_PRODUCTION - O2_CONSUMPTION
 # ifdef BEC_COCCO
@@ -2433,28 +2367,23 @@ c$$$       enddo
     !  Particulate pools
     !-----------------------------------------------------------------------
 
-       ! MF
-       !mpi_master_only write(*,*) 'Updating DTRACER_MODULE...'
-
-
-       DTRACER_MODULE(istr:iend,j,k,dusthard_ind_t) = -dusthard_remin(istr:iend,k)
-       DTRACER_MODULE(istr:iend,j,k,pochard_ind_t) = POC_gamma*POC_prod - POChard_remin(istr:iend,k)
-       DTRACER_MODULE(istr:iend,j,k,pcaco3hard_ind_t) = P_CaCO3_gamma*P_CaCO3_prod - P_CaCO3hard_remin(istr:iend,k)
-       DTRACER_MODULE(istr:iend,j,k,psio2hard_ind_t) = P_SiO2_gamma*P_SiO2_prod - P_SiO2hard_remin(istr:iend,k)
-       DTRACER_MODULE(istr:iend,j,k,pironhard_ind_t) = P_iron_gamma*P_iron_prod - P_ironhard_remin(istr:iend,k)
-       DTRACER_MODULE(istr:iend,j,k,dustsoft_ind_t) = -dustsoft_remin(istr:iend,k)
-       DTRACER_MODULE(istr:iend,j,k,pocsoft_ind_t) = (c1-POC_gamma)*POC_prod - POCsoft_remin(istr:iend,k)
+       DTRACER_MODULE(istr:iend,j,k,dusthard_ind_t) = -dusthard_remin(istr:iend,j)
+       DTRACER_MODULE(istr:iend,j,k,pochard_ind_t) = POC_gamma*POC_prod - POChard_remin(istr:iend,j)
+       DTRACER_MODULE(istr:iend,j,k,pcaco3hard_ind_t) = P_CaCO3_gamma*P_CaCO3_prod - P_CaCO3hard_remin(istr:iend,j)
+       DTRACER_MODULE(istr:iend,j,k,psio2hard_ind_t) = P_SiO2_gamma*P_SiO2_prod - P_SiO2hard_remin(istr:iend,j)
+       DTRACER_MODULE(istr:iend,j,k,pironhard_ind_t) = P_iron_gamma*P_iron_prod - P_ironhard_remin(istr:iend,j)
+       DTRACER_MODULE(istr:iend,j,k,dustsoft_ind_t) = -dustsoft_remin(istr:iend,j)
+       DTRACER_MODULE(istr:iend,j,k,pocsoft_ind_t) = (c1-POC_gamma)*POC_prod - POCsoft_remin(istr:iend,j)
        DTRACER_MODULE(istr:iend,j,k,pcaco3soft_ind_t) = (c1-P_CaCO3_gamma)*P_CaCO3_prod - 
-     &                                                  P_CaCO3soft_remin(istr:iend,k)
-       DTRACER_MODULE(istr:iend,j,k,psio2soft_ind_t) = (c1-P_SiO2_gamma)*P_SiO2_prod - P_SiO2soft_remin(istr:iend,k)
-       DTRACER_MODULE(istr:iend,j,k,pironsoft_ind_t) = (c1-P_iron_gamma)*P_iron_prod - P_ironsoft_remin(istr:iend,k)
+     &                                                  P_CaCO3soft_remin(istr:iend,j)
+       DTRACER_MODULE(istr:iend,j,k,psio2soft_ind_t) = (c1-P_SiO2_gamma)*P_SiO2_prod - P_SiO2soft_remin(istr:iend,j)
+       DTRACER_MODULE(istr:iend,j,k,pironsoft_ind_t) = (c1-P_iron_gamma)*P_iron_prod - P_ironsoft_remin(istr:iend,j)
 # endif /* USE_EXPLICIT_VSINK */
 
        return
        end subroutine ecosys_set_interior
 
 
-#ifndef USE_EXPLICIT_VSINK
 !-------------------------------------------------------------------------
 !
 !     ************   SUBROUTINE INIT_PARTICULATE_TERMS   ****************
@@ -2468,6 +2397,8 @@ c$$$       enddo
 #include "param.h" 
 #include "param_bec2.h"
 #include "ecosys_bec2.h"
+#include "scalars.h"
+#include "ocean3d.h"
 
     !---------------------------------------------------------------------------
     !   Set incoming fluxes (put into outgoing flux for first level usage).
@@ -2521,6 +2452,7 @@ c$$$       enddo
 
         POC_diss      = parm_POC_diss   ! diss. length (m), modified by TEMP
         POC_mass      = 12.01           ! molecular weight of POC
+        POC_gamma     = c0
 
         P_CaCO3_diss  = parm_CaCO3_diss ! diss. length (m)
         P_CaCO3_gamma = 0.30            ! prod frac -> hard subclass
@@ -2576,9 +2508,19 @@ c$$$       enddo
 
         QA_dust_def = dust_rho * (dust_sflux_out(istr:iend,j) + dust_hflux_out(istr:iend,j))
 
+    !-----------------------------------------------------------------------
+    !  Apply dust forcing to surface layer (only if explicitly tracking
+    !  dust as a tracer)
+    !-----------------------------------------------------------------------
+# ifdef USE_EXPLICIT_VSINK
+        tracer(istr:iend,j,N,dusthard_ind_t) = tracer(istr:iend,j,N,dusthard_ind_t)
+     &                       + dt*dust_gamma*net_dust_in/Hz(istr:iend,j,N)
+        tracer(istr:iend,j,N,dustsoft_ind_t) = tracer(istr:iend,j,N,dustsoft_ind_t)
+     &                       + dt*(c1-dust_gamma)*net_dust_in/Hz(istr:iend,j,N)
+# endif
+
         return
         end subroutine init_particulate_terms
-# endif /* USE_EXPLICIT_VSINK */
 
 
 #ifndef USE_EXPLICIT_VSINK
@@ -3215,6 +3157,742 @@ c$$$       enddo
        return
        end subroutine compute_particulate_terms
 # endif /* USE_EXPLICIT_VSINK */
+
+
+
+
+!-------------------------------------------------------------------------
+!
+! * MF: The following is my test version of explicit sinking processes!! *
+!
+!-------------------------------------------------------------------------
+
+!-------------------------------------------------------------------------
+!
+!     *******   SUBROUTINE COMPUTE_PARTICULATE_TERMS_EXPLICIT  ***********
+!
+!-------------------------------------------------------------------------
+
+!-------------------------------------------------------------------------
+!
+! * MF: The following is my test version of explicit sinking processes!! *
+!
+!-------------------------------------------------------------------------
+
+
+
+
+#ifdef USE_EXPLICIT_VSINK
+!-------------------------------------------------------------------------
+!
+!     *******   SUBROUTINE COMPUTE_PARTICULATE_TERMS_EXPLICIT  ***********
+!
+!-------------------------------------------------------------------------
+
+       subroutine compute_particulate_terms_explicit(k,QA_dust_def, TEMP, 
+     &        O2_loc, NO3_loc, POC_prod,P_iron_prod,P_CaCO3_prod,
+     &        P_SiO2_prod,SED_DENITRIF, OTHER_REMIN,istr,iend,j)
+
+       implicit none
+#include "param.h"
+#include "ecosys_bec2.h"
+#include "param_bec2.h"
+#include "ocean3d.h"
+
+       integer istr, iend, i, j, k, n_loc, iB
+       real, dimension(istr:iend) ::
+     &   temp, O2_loc, NO3_loc,
+     &   POC_prod,P_CaCO3_prod,P_SiO2_prod,P_iron_prod,
+     &   QA_dust_def,   ! incoming deficit in the QA (dust) POC flux
+     &   dust_remin,    ! remineralization of dust (base units/m^3/sec)
+     &   SED_DENITRIF,  ! sedimentary denitrification (mmolN/m^3/s)
+     &   OTHER_REMIN,   ! sedimentary remin not due to oxic or denitrification
+     &   flux_oxidated, ! carbon oxidation rate in sediment
+     &   FESEDFLUX     ! sedimentary Fe inputs
+
+       real
+     &   POC_PROD_avail,    ! POC production available for excess POC flux (mmol/m^3/s)
+     &   new_QA_dust_def,   ! outgoing deficit in the QA(dust) POC flux
+     &   flux, flux_alt,    ! temp variables used to update sinking flux
+     &   dz_loc, dzr_loc    ! Hz and its inverse at a particular i,j,k location
+
+       logical
+     &   poc_error      ! POC error flag
+
+    !-----------------------------------------------------------------------
+    !  incoming fluxes are outgoing fluxes from previous level
+    !-----------------------------------------------------------------------
+
+       P_CaCO3_sflux_in(istr:iend,j) = P_CaCO3_sflux_out(istr:iend,j)
+       P_CaCO3_hflux_in(istr:iend,j) = P_CaCO3_hflux_out(istr:iend,j)
+# ifdef BEC2_DIAG
+#  ifdef BEC2_DIAG_USER
+       if (bec2_diag_3d_l(caco3fluxin_idx_t))
+     &    bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(caco3fluxin_idx_t)) = P_CaCO3_sflux_in(istr:iend,j)
+     &          + P_CaCO3_hflux_in(istr:iend,j)
+#  else
+       bec2_diag_3d(istr:iend,j,k,caco3fluxin_idx_t) = P_CaCO3_sflux_in(istr:iend,j)
+     &          + P_CaCO3_hflux_in(istr:iend,j)
+#  endif
+# endif
+
+       P_SiO2_sflux_in(istr:iend,j) = P_SiO2_sflux_out(istr:iend,j)
+       P_SiO2_hflux_in(istr:iend,j) = P_SiO2_hflux_out(istr:iend,j)
+# ifdef BEC2_DIAG
+#  ifdef BEC2_DIAG_USER
+       if (bec2_diag_3d_l(sio2fluxin_idx_t))
+     &    bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(sio2fluxin_idx_t)) = P_SiO2_sflux_in(istr:iend,j)
+     &          + P_SiO2_hflux_in(istr:iend,j)
+#  else
+       bec2_diag_3d(istr:iend,j,k,sio2fluxin_idx_t) = P_SiO2_sflux_in(istr:iend,j)
+     &          + P_SiO2_hflux_in(istr:iend,j)
+#  endif
+# endif
+
+       dust_sflux_in(istr:iend,j) = dust_sflux_out(istr:iend,j)
+       dust_hflux_in(istr:iend,j) = dust_hflux_out(istr:iend,j)
+# ifdef BEC2_DIAG
+#  ifdef BEC2_DIAG_USER
+       if (bec2_diag_3d_l(dustfluxin_idx_t))
+     &    bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(dustfluxin_idx_t)) = dust_sflux_in(istr:iend,j)
+     &          + dust_hflux_in(istr:iend,j)
+#  else
+       bec2_diag_3d(istr:iend,j,k,dustfluxin_idx_t) = dust_sflux_in(istr:iend,j)
+     &          + dust_hflux_in(istr:iend,j)
+#  endif
+# endif
+
+       POC_sflux_in(istr:iend,j) = POC_sflux_out(istr:iend,j)
+       POC_hflux_in(istr:iend,j) = POC_hflux_out(istr:iend,j)
+# ifdef BEC2_DIAG
+#  ifdef BEC2_DIAG_USER
+       if (bec2_diag_3d_l(pocfluxin_idx_t))
+     &    bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(pocfluxin_idx_t)) = POC_sflux_in(istr:iend,j)
+     &          + POC_hflux_in(istr:iend,j)
+#  else
+       bec2_diag_3d(istr:iend,j,k,pocfluxin_idx_t) = POC_sflux_in(istr:iend,j)
+     &          + POC_hflux_in(istr:iend,j)
+#  endif
+# endif
+
+       P_iron_sflux_in(istr:iend,j) = P_iron_sflux_out(istr:iend,j)
+       P_iron_hflux_in(istr:iend,j) = P_iron_hflux_out(istr:iend,j)
+# ifdef BEC2_DIAG
+#  ifdef BEC2_DIAG_USER
+       if (bec2_diag_3d_l(pironfluxin_idx_t))
+     &    bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(pironfluxin_idx_t)) = P_iron_sflux_in(istr:iend,j)
+     &          + P_iron_hflux_in(istr:iend,j)
+#  else
+       bec2_diag_3d(istr:iend,j,k,pironfluxin_idx_t) = P_iron_sflux_in(istr:iend,j)
+     &          + P_iron_hflux_in(istr:iend,j)
+#  endif
+# endif
+
+    !-----------------------------------------------------------------------
+    !  initialize loss to sediments = 0 and local copy of percent sed
+    !-----------------------------------------------------------------------
+
+       P_iron_sed_loss(istr:iend,j) = c0
+       POC_sed_loss(istr:iend,j) = c0
+       P_CaCO3_sed_loss(istr:iend,j) = c0
+       P_SiO2_sed_loss(istr:iend,j) = c0
+       dust_sed_loss(istr:iend,j) = c0
+       ! MF: FESEDFLUX needs to be initialized to 0 in the explicit
+       ! case. Causes problems if not.
+       FESEDFLUX(istr:iend) = c0
+       SED_DENITRIF = c0
+       OTHER_REMIN = c0
+
+# if 0 /* MF: Debugging, try without any processes applied to particulate pool */
+       ! MF: Debugging, try without any processes applied to particulate
+       ! pool. Just set outgoing fluxes from VSinkFlux.
+       do i = istr, iend
+       P_CaCO3_sflux_out(i,j) = -VSinkFlux(i,j,k-1,iPCACO3SOFT_VSink)
+       P_CaCO3_hflux_out(i,j) = -VSinkFlux(i,j,k-1,iPCACO3HARD_VSink)
+       
+       P_SiO2_sflux_out(i,j) = -VSinkFlux(i,j,k-1,iPSIO2SOFT_VSink)
+       P_SiO2_hflux_out(i,j) = -VSinkFlux(i,j,k-1,iPSIO2HARD_VSink)
+       
+       P_iron_sflux_out(i,j) = -VSinkFlux(i,j,k-1,iPIRONSOFT_VSink)
+       P_iron_hflux_out(i,j) = -VSinkFlux(i,j,k-1,iPIRONHARD_VSink)
+       
+       dust_sflux_out(i,j) = -VSinkFlux(i,j,k-1,iDUSTSOFT_VSink)
+       dust_hflux_out(i,j) = -VSinkFlux(i,j,k-1,iDUSTHARD_VSink)
+
+       POC_sflux_out(i,j) = -VSinkFlux(i,j,k-1,iPOCSOFT_VSink)
+       POC_hflux_out(i,j) = -VSinkFlux(i,j,k-1,iPOCHARD_VSink)
+
+       P_CaCO3hard_remin(i,j) = c0
+       P_CaCO3soft_remin(i,j) = c0
+       P_CaCO3_remin(i,j) = P_CaCO3hard_remin(i,j)+P_CaCO3soft_remin(i,j)
+       
+       POChard_remin(i,j) = c0
+       POCsoft_remin(i,j) = c0
+       POC_remin(i,j) = POChard_remin(i,j)+POCsoft_remin(i,j)
+       
+       P_SiO2hard_remin(i,j) = c0
+       P_SiO2soft_remin(i,j) = c0
+       P_SiO2_remin(i,j) = P_SiO2hard_remin(i,j)+P_SiO2soft_remin(i,j)
+       
+       P_ironhard_remin(i,j) = c0
+       P_ironsoft_remin(i,j) = c0
+       P_iron_remin(i,j) = P_ironhard_remin(i,j)+P_ironsoft_remin(i,j)
+       
+       dusthard_remin(i,j) = c0
+       dustsoft_remin(i,j) = c0
+       dust_remin(i) = dusthard_remin(i,j)+dustsoft_remin(i,j)
+       enddo
+       ! MF: END Debugging, try without any processes applied to particulate
+       ! pool. Just set outgoing fluxes from VSinkFlux.
+# endif /* MF: Debugging, try without any processes applied to particulate pool */
+
+# if 1 /* MF: Debugging, try without any processes applied to particulate pools */
+       do i = istr, iend
+          dz_loc = Hz(i,j,k)
+          !dzr_loc = c1/dz_loc
+          if (LANDMASK(i,j)) then
+             dzr_loc = c1/dz_loc
+
+    !-----------------------------------------------------------------------
+    !  Set outgoing fluxes.
+    !  In the case of explicit sinking, these are actually computed in
+    !  vsink_BEC2.F and stored in VSinkFlux(:,:,N+1,nsink) at w levels.
+    !  Incoming fluxes for level n at VSinkFlux(:,:,n,sink_tracer) and
+    !  outgoing fluxes for level n at VSinkFlux(:,:,n-1,sink_tracer).
+    !  It is assumed that there is no sub-surface dust production.
+    !  Downward fluxes are negative in VSinkFlux!
+    !-----------------------------------------------------------------------
+
+             P_CaCO3_sflux_out(i,j) = -VSinkFlux(i,j,k-1,iPCACO3SOFT_VSink)
+             P_CaCO3_hflux_out(i,j) = -VSinkFlux(i,j,k-1,iPCACO3HARD_VSink)
+
+             P_SiO2_sflux_out(i,j) = -VSinkFlux(i,j,k-1,iPSIO2SOFT_VSink)
+             P_SiO2_hflux_out(i,j) = -VSinkFlux(i,j,k-1,iPSIO2HARD_VSink)
+
+             P_iron_sflux_out(i,j) = -VSinkFlux(i,j,k-1,iPIRONSOFT_VSink)
+             P_iron_hflux_out(i,j) = -VSinkFlux(i,j,k-1,iPIRONHARD_VSink)
+
+             dust_sflux_out(i,j) = -VSinkFlux(i,j,k-1,iDUSTSOFT_VSink)
+             dust_hflux_out(i,j) = -VSinkFlux(i,j,k-1,iDUSTHARD_VSink)
+
+    !-----------------------------------------------------------------------
+    !  Compute how much POC_PROD is available for deficit reduction
+    !  and excess POC flux after subtracting off fraction of non-dust
+    !  ballast production from net POC_PROD.
+    !-----------------------------------------------------------------------
+
+             POC_PROD_avail = POC_prod(i) -
+     &          P_CaCO3_rho * P_CaCO3_prod(i) -
+     &          P_SiO2_rho * P_SiO2_prod(i)
+
+    !-----------------------------------------------------------------------
+    !  Check for POC production bounds violations
+    !-----------------------------------------------------------------------
+
+             if (POC_PROD_avail < c0) then
+                print *, 'subroutine compute_particulate_terms:',
+     &            ' non_dust ballast production exceeds POC production'
+                print*,'k',k
+                print *, 'POC_prod_avail: ', POC_prod_avail
+                print*,'POC_prod(i)',POC_prod(i)
+                print*,'P_CaCO3_rho*P_CaCO3_prod(i)',P_CaCO3_rho * P_CaCO3_prod(i)
+                print*,'P_SiO2_rho * P_SiO2_prod(i)',P_SiO2_rho * P_SiO2_prod(i)
+                poc_error = .true.
+             endif
+
+    !-----------------------------------------------------------------------
+    !  new QA_dust_def is the QA_dust deficit leaving the cell. 
+    !  Ignore POC_PROD_avail at this stage.
+    !-----------------------------------------------------------------------
+
+             ! MF: I am not sure about this in the explicit case?
+             if (QA_dust_def(i) > 0) then
+                new_QA_dust_def = dust_rho * (dust_sflux_out(i,j) + dust_hflux_out(i,j))
+    !            new_QA_dust_def = QA_dust_def(i) *
+    ! &             (dust_sflux_out(i,j) + dust_hflux_out(i,j)) / 
+    ! &             (dust_sflux_in(i,j) + dust_hflux_in(i,j))
+             else
+                new_QA_dust_def = c0
+             endif
+
+    !-----------------------------------------------------------------------
+    !  Use POC_PROD_avail to reduce new_QA_dust_def.
+    !-----------------------------------------------------------------------
+
+             if (new_QA_dust_def > c0) then
+                new_QA_dust_def = new_QA_dust_def - POC_PROD_avail * dz_loc
+                if (new_QA_dust_def < c0) then
+                   POC_PROD_avail = -new_QA_dust_def * dzr_loc
+                   new_QA_dust_def = c0
+                else
+                   POC_PROD_avail = c0
+                endif
+             endif
+
+             QA_dust_def(i) = new_QA_dust_def
+
+    !-----------------------------------------------------------------------
+    !  Compute outgoing POC fluxes. QA POC flux is computing using
+    !  ballast fluxes and new_QA_dust_def. If no QA POC flux came in
+    !  and no production occured, then no QA POC flux goes out. This
+    !  shortcut is present to avoid roundoff cancellation errors from
+    !  the dust_rho * dust_flux_out - QA_dust_def computation.
+    !  Any POC_PROD_avail still remaining goes into excess POC flux.
+    !-----------------------------------------------------------------------
+        
+        ! HOW DO I DEAL WITH THIS???? I am not sure how this section
+        ! would be dealt with in the explicit case. Since POChard is not
+        ! actually produced (POC_gamma=0) it is assembeled from the
+        ! different rho fractions of ballast material, so I assume this
+        ! calculation is 'OK'?!? How about POCsoft, can I just read it
+        ! from VSinkFlux, and/or whats the contribution of
+        ! POC_PROD_avail???
+
+             if (POC_hflux_in(i,j) == c0 .and. POC_prod(i) == c0) then
+                POC_hflux_out(i,j) = c0
+             else
+                ! MF: Why does it not take into account the flux into
+                ! the cell, i.e. POC_hflux_in ??? Maybe I need to move
+                ! this into vsink_BEC2.F (constructing QA POC from all
+                ! the other fluxes). But would that work as a tracer because
+                ! different ballast materials have different sinking
+                ! speeds etc.?
+                POC_hflux_out(i,j) = P_CaCO3_rho *
+     &             (P_CaCO3_sflux_out(i,j) + P_CaCO3_hflux_out(i,j)) +
+     &             P_SiO2_rho *
+     &             (P_SiO2_sflux_out(i,j) + P_SiO2_hflux_out(i,j)) +
+     &             dust_rho *
+     &             (dust_sflux_out(i,j) + dust_hflux_out(i,j)) -
+     &             new_QA_dust_def
+                POC_hflux_out(i,j) = max(POC_hflux_out(i,j), c0)
+             endif
+
+         ! AND THIS ???? JUST PUT DUMMY CALC HERE TO TRY COMPILING. 
+             POC_sflux_out(i,j) = -VSinkFlux(i,j,k-1,iPOCSOFT_VSink)
+    !         POC_sflux_out(i,j) = POC_sflux_in(i,j) * decay_POC_E +
+    ! &          POC_PROD_avail *((c1 - decay_POC_E) *
+    ! &          poc_diss)
+
+    !-----------------------------------------------------------------------
+    !  Compute remineralization terms. It is assumed that there is no
+    !  sub-surface dust production.
+    !-----------------------------------------------------------------------
+
+             P_CaCO3hard_remin(i,j) = param_pcaco3hard_remin *
+     &                      dps * tracer(i,j,k,pcaco3hard_ind_t)
+             P_CaCO3soft_remin(i,j) = param_pcaco3soft_remin *
+     &                      dps * tracer(i,j,k,pcaco3soft_ind_t)
+             P_CaCO3_remin(i,j) = P_CaCO3hard_remin(i,j)+P_CaCO3soft_remin(i,j)
+
+             POChard_remin(i,j) = param_pochard_remin *
+     &                      dps * tracer(i,j,k,pochard_ind_t)
+             POCsoft_remin(i,j) = param_pocsoft_remin *
+     &                      dps * tracer(i,j,k,pocsoft_ind_t)
+             POC_remin(i,j) = POChard_remin(i,j)+POCsoft_remin(i,j)
+
+             P_SiO2hard_remin(i,j) = param_psio2hard_remin *
+     &                      dps * tracer(i,j,k,psio2hard_ind_t)
+             P_SiO2soft_remin(i,j) = param_psio2soft_remin *
+     &                      dps * tracer(i,j,k,psio2soft_ind_t)
+             P_SiO2_remin(i,j) = P_SiO2hard_remin(i,j)+P_SiO2soft_remin(i,j)
+
+             P_ironhard_remin(i,j) = param_pironhard_remin *
+     &                      dps * tracer(i,j,k,pironhard_ind_t)
+             P_ironsoft_remin(i,j) = param_pironsoft_remin *
+     &                      dps * tracer(i,j,k,pironsoft_ind_t)
+             P_iron_remin(i,j) = P_ironhard_remin(i,j)+P_ironsoft_remin(i,j)
+
+             dusthard_remin(i,j) = param_dusthard_remin *
+     &                      dps * tracer(i,j,k,dusthard_ind_t)
+             dustsoft_remin(i,j) = param_dustsoft_remin *
+     &                      dps * tracer(i,j,k,dustsoft_ind_t)
+             dust_remin(i) = dusthard_remin(i,j)+dustsoft_remin(i,j)
+
+# if 0 /* MF: Debugging, trying with zero remin fluxes */
+        ! MF: For debugging purposes, set remin=0
+             P_CaCO3hard_remin(i,j) = c0
+             P_CaCO3soft_remin(i,j) = c0
+             P_CaCO3_remin(i,j) = P_CaCO3hard_remin(i,j)+P_CaCO3soft_remin(i,j)
+
+             POChard_remin(i,j) = c0
+             POCsoft_remin(i,j) = c0
+             POC_remin(i,j) = POChard_remin(i,j)+POCsoft_remin(i,j)
+
+             P_SiO2hard_remin(i,j) = c0
+             P_SiO2soft_remin(i,j) = c0
+             P_SiO2_remin(i,j) = P_SiO2hard_remin(i,j)+P_SiO2soft_remin(i,j)
+
+             P_ironhard_remin(i,j) = c0
+             P_ironsoft_remin(i,j) = c0
+             P_iron_remin(i,j) = P_ironhard_remin(i,j)+P_ironsoft_remin(i,j)
+
+             dusthard_remin(i,j) = c0
+             dustsoft_remin(i,j) = c0
+             dust_remin(i) = dusthard_remin(i,j)+dustsoft_remin(i,j)
+# endif /* MF: Debugging, trying with zero remin fluxes */
+
+
+    !-----------------------------------------------------------------------
+    !  Compute additional iron remineralization from POC
+    !-----------------------------------------------------------------------
+
+        ! MF: try more explicit treatement of iron!
+             P_iron_remin(i,j) = P_iron_remin(i,j) + POC_remin(i,j)*parm_Red_Fe_C
+
+
+        ! NOT sure yet whether we treat Fe remin correctly in the
+        ! explicit case ?!? I am sticking with the calculation from the
+        ! implicit case for now!!
+
+# if 0 /* MF: try an alternative formulation of this implicit treatement */
+             if ((POC_sflux_in(i,j)+POC_hflux_in(i,j)) == c0) then
+                P_Iron_remin(i,j) = (POC_remin(i,j) * parm_Red_Fe_C)
+             else
+                P_Iron_remin(i,j) = (POC_remin(i,j) *
+     &             (P_iron_sflux_in(i,j) + P_iron_hflux_in(i,j)) /
+     &             (POC_sflux_in(i,j) + POC_hflux_in(i,j)))
+             endif
+             P_Iron_remin(i,j) = P_Iron_remin(i,j)
+     &             + P_iron_sflux_in(i,j) * 1.5e-5
+             ! MF: What does the hard-coded 1.5e-5 stand for? Applied to
+             ! a flux of mmol Fe m-2 s-1? CESM BEC says Fe desorption
+             ! from particulate pool. If this is the case, shouldnt it
+             ! be treate like the other mineral pools with a dissolution
+             ! length and an associated decay?
+
+             ! The following piece does not really pertain to explicit
+             ! sinking of particulate Fe?!?
+             if (P_iron_sflux_out(i,j) < c0) then
+                P_iron_sflux_out(i,j) = c0
+                P_Iron_remin(i,j) = P_iron_sflux_in(i,j) * dzr_loc +
+     &            (c1 - P_iron_gamma) * P_iron_prod(i)
+             endif
+# endif /*MF */
+             
+    !-----------------------------------------------------------------------
+    !  Compute iron release from dust remin/dissolution
+    !
+    !  dust remin gDust = 0.035 / 55.847 * 1.0e9 = 626712.0 nmolFe
+    !                      gFe     molFe     nmolFe
+    !  Also add in Fe source from sediments if applicable to this cell.
+    !-----------------------------------------------------------------------
+
+
+             P_Iron_remin(i,j) = P_Iron_remin(i,j)
+     &           + dust_remin(i) * dust_to_Fe
+
+# ifdef BEC2_DIAG
+             bec2_diag_3d(i,j,k,pironremin_idx_t) = P_Iron_remin(i,j)
+# endif
+
+             P_iron_hflux_out(i,j) = P_iron_hflux_in(i,j)
+
+          else  ! LANDMASK(i,j)
+             P_CaCO3_sflux_out(i,j) = c0
+             P_CaCO3_hflux_out(i,j) = c0
+             P_CaCO3_remin(i,j) = c0
+
+             P_SiO2_sflux_out(i,j) = c0
+             P_SiO2_hflux_out(i,j) = c0
+             P_SiO2_remin(i,j) = c0
+
+             dust_sflux_out(i,j) = c0
+             dust_hflux_out(i,j) = c0
+             dust_remin(i) = c0
+
+             POC_sflux_out(i,j) = c0
+             POC_hflux_out(i,j) = c0
+             POC_remin(i,j) = c0
+
+             P_iron_sflux_out(i,j) = c0
+             P_iron_hflux_out(i,j) = c0
+             P_Iron_remin(i,j) = c0
+          endif  ! LANDMASK(i,j)
+
+    !-----------------------------------------------------------------------
+    !  Bottom Sediments Cell?
+    !  If so compute sedimentary burial and denitrification N losses.
+    !  Using empirical relations from Bohlen et al., 2012 (doi:10.1029/2011GB004198) for Sed Denitrification
+    !  OTHER_REMIN estimates organic matter remineralized in the sediments
+    !      by the processes other than oxic remin and denitrification (SO4 and CO2,
+    !      etc..)
+    !      based on Soetaert et al., 1996, varies between 10% and 50%
+    !      0.4_r8 is a coefficient with units mmolC/cm2/yr sinking flux,
+    !      OTHER_REMIN is 50% above this high flux value,
+    !      In special case where bottom O2 has been depleted to < 1.0 uM,
+    !               all sedimentary remin is due to DENITRIFICATION + OTHER_REMIN
+    !  POC burial from Dunne et al. 2007 (doi:10.1029/2006GB002907), maximum of 80% burial efficiency imposed
+    !  Bsi preservation in sediments based on
+    !     Ragueneau et al. 2000 (doi:10.1016/S0921-8181(00)00052-7)
+    !  Calcite is preserved in sediments above the lysocline, dissolves below.
+    !       Here a constant depth is used for lysocline.
+    !-----------------------------------------------------------------------
+
+# if 1 /* MF Debugging: Run without bottom processes */
+  
+          if (LANDMASK(i,j) .and. (k == 1)) then
+
+             flux = POC_sflux_out(i,j)+POC_hflux_out(i,j) ! mmol C/m^2/s
+
+             if (flux > c0) then
+                flux_alt = flux*spd ! convert to mmol C/m^2/day
+
+                POC_sed_loss(i,j) = flux * min(0.8, parm_POMbury
+     &               * (0.013 + 0.53 * flux_alt*flux_alt / (7.0 + flux_alt)**2))
+
+            ! CN: set denitr to zero if NO3<=0 in bottom water (to not
+            ! further deplete already not existing NO3)
+            ! if this works: actually, this might still take out too
+            ! much NO3 if NO3_BW is just slightly above zero. Include
+            ! something like "if SED_DENITRIF > NO3_loc,
+            ! reduce SED_DENITRIF to available NO3"
+            ! check: is some NO3 threshold implemented for water col
+            ! denitrif? could also cause neg NO3...
+            ! FOR NOW: NO3min=5 (see Simon's draft!! he uses 2, but said
+            ! it's kind of arbitrary...), below this
+            ! sed_denitr is reduced! same for water column denitrf!
+
+            ! CN (Oct 2015): constrain SED_DENITRIF by what is left to
+            ! be remineralized after POC_sed_loss
+                if (NO3_loc(i) < parm_sed_denitrif_NO3_limit) then
+                   SED_DENITRIF(i) = dzr_loc * min(flux * (0.06 + 0.19 *
+     &                 0.99**(O2_loc(i)-NO3_loc(i))),
+     &                 flux-POC_sed_loss(i,j)*denitrif_C_N)
+                   SED_DENITRIF(i) = 1/parm_sed_denitrif_NO3_limit*NO3_loc(i)*SED_DENITRIF(i)
+                else
+                   SED_DENITRIF(i) = dzr_loc * min(flux * (0.06 + 0.19 *
+     &                 0.99**(O2_loc(i)-NO3_loc(i))),
+     &                 flux-POC_sed_loss(i,j)*denitrif_C_N)
+                endif
+
+#ifdef BEC2_DIAG
+# ifdef BEC2_DIAG_USER
+                if (bec2_diag_2d_l(seddenitrif_idx_t))
+     &             bec2_diag_2d(i,j,bec2_diag_2d_idx(seddenitrif_idx_t)) = SED_DENITRIF(i)
+# else
+                bec2_diag_2d(i,j,seddenitrif_idx_t) = SED_DENITRIF(i)
+                bec2_diag_2d(i,j,fluxtosed_idx_t) = flux
+                bec2_diag_2d(i,j,pocsedloss_idx_t) = POC_sed_loss(i,j)
+# endif
+#endif
+
+                flux_alt = flux*1e-4*spd*365.0 ! convert to mmol C/cm^2/year
+                OTHER_REMIN(i) = dzr_loc
+     &               * min(min(0.1 + flux_alt,0.5) * (flux - POC_sed_loss(i,j)),
+     &               (flux - POC_sed_loss(i,j) - (SED_DENITRIF(i)*dz_loc*denitrif_C_N)))
+
+    !----------------------------------------------------------------------------------
+    !     if bottom water O2 is depleted, assume all remin is denitrif + other               
+    !----------------------------------------------------------------------------------
+
+                if (O2_loc(i) < c1) then
+                   OTHER_REMIN(i) = dzr_loc *
+     &             (flux - POC_sed_loss(i,j) - (SED_DENITRIF(i)*dz_loc*denitrif_C_N))
+                endif
+
+#ifdef BEC2_DIAG
+                bec2_diag_2d(i,j,otherremin_idx_t) = OTHER_REMIN(i)
+#endif
+
+# ifdef CONSTANT_FE_SEDFLUX
+             ! Add diffusive iron flux if depth < 1100.0m, based on
+             ! Johnson et al.1999, value of 5.0 umolFe/m2/day.
+             !
+             ! 2.0 umolFe/m2/day,  2.3148e-6  nmolFe/cm2/sec
+             ! 2.0 umolFe/m2/day,  2.3148e-3  mmolFe/m2/sec
+             !-----------------------------------------------------------------
+             ! CN: take value from Moore 2004 (in mmolFe/m2/sec,see old BEC code)
+               if (z_r(i,j,k) < 1100.) then
+                  FESEDFLUX(i) = 2.0*0.001/86400
+               endif
+#  else
+            ! CN (Sep 2015): FESEDFLUX parametrization from Dale 2015
+            ! carbon oxidation rate in mmol m-2 s-1 
+               flux_oxidated(i) = flux - POC_sed_loss(i,j)
+
+            ! convert from mmol m-2 s-1 to mmol m-2 d-1
+               flux_oxidated(i) = flux_oxidated(i) * 86400  ! day2sec=86400
+
+            ! constant 170 in umol m-2 d-1, flux_oxidated in mmol m-2
+            ! day-1, o2 in muM
+               if (flux_oxidated(i) > 0) then
+                  FESEDFLUX(i) = 170 * tanh(flux_oxidated(i)/O2_loc(i))
+               endif
+            ! convert from umol m-2 d-1 to mmol m-2 s-1
+               FESEDFLUX(i) = FESEDFLUX(i)*0.001/86400.     !sec2day=1/86400
+# endif
+# ifdef BEC2_DIAG
+               bec2_diag_2d(i,j,fesedflux_idx_t) = FESEDFLUX(i)
+# endif
+            endif  ! flux > c0
+
+            flux = P_SiO2_sflux_out(i,j)+P_SiO2_hflux_out(i,j)
+            flux_alt = flux*spd ! convert to mmol/m^2/day
+            ! first compute burial efficiency, then compute loss to sediments
+            if (flux_alt > c1) then
+               P_SiO2_sed_loss(i,j) = 0.3 * flux_alt - 0.06
+            else
+               P_SiO2_sed_loss(i,j) = 0.04
+            endif
+            P_SiO2_sed_loss(i,j) = flux * parm_BSIbury * P_SiO2_sed_loss(i,j)
+
+# ifdef BEC2_DIAG
+            bec2_diag_2d(i,j,sio2fluxtosed_idx_t) = flux
+            bec2_diag_2d(i,j,sio2sedloss_idx_t) = P_SiO2_sed_loss(i,j)
+# endif
+
+            flux = c0  ! set flux back to zero
+            if (-z_w(i,j,k) < 3300.0) then
+               flux = P_CaCO3_sflux_out(i,j) + P_CaCO3_hflux_out(i,j)
+               P_CaCO3_sed_loss(i,j) = flux
+            endif
+
+# ifdef BEC2_DIAG
+            bec2_diag_2d(i,j,caco3fluxtosed_idx_t) = flux
+            bec2_diag_2d(i,j,caco3sedloss_idx_t) = P_CaCO3_sed_loss(i,j)
+# endif
+
+    !----------------------------------------------------------------------------------
+    !  Update sinking fluxes and remin fluxes, accounting for sediments.
+    !  flux used to hold sinking fluxes before update.
+    !----------------------------------------------------------------------------------
+
+            flux = P_CaCO3_sflux_out(i,j) + P_CaCO3_hflux_out(i,j)
+            if (flux > c0) then
+               P_CaCO3_remin(i,j) = P_CaCO3_remin(i,j)
+     &             + ((flux - P_CaCO3_sed_loss(i,j)) * dzr_loc)
+            endif
+
+            flux = P_SiO2_sflux_out(i,j) + P_SiO2_hflux_out(i,j)
+            if (flux > c0) then
+               P_SiO2_remin(i,j) = P_SiO2_remin(i,j)
+     &             + ((flux - P_SiO2_sed_loss(i,j)) * dzr_loc)
+            endif
+
+            flux = POC_sflux_out(i,j) + POC_hflux_out(i,j)
+            if (flux > c0) then
+               POC_remin(i,j) = POC_remin(i,j)
+     &             + ((flux - POC_sed_loss(i,j)) * dzr_loc)
+            endif
+
+    !-----------------------------------------------------------------------
+    !   Remove all Piron and dust that hits bottom, sedimentary Fe source 
+    !   accounted for by FESEDFLUX elsewhere.
+    !-----------------------------------------------------------------------
+
+
+            flux = c0  ! set flux back to zero
+            flux = (P_iron_sflux_out(i,j) + P_iron_hflux_out(i,j))
+            if (flux > c0) then
+               P_iron_sed_loss(i,j) = flux
+            endif
+
+            dust_sed_loss(i,j) = dust_sflux_out(i,j) + dust_hflux_out(i,j)
+
+# ifdef BEC2_DIAG
+            bec2_diag_2d(i,j,pironfluxtosed_idx_t) = flux
+            bec2_diag_2d(i,j,dustfluxtosed_idx_t) = dust_sed_loss(i,j)
+# endif
+
+    !-----------------------------------------------------------------------
+    !   Bottom layer: set all outgoing fluxes to 0.0
+    !-----------------------------------------------------------------------
+
+            if (k == 1) then
+               P_CaCO3_sflux_out(i,j) = c0
+               P_CaCO3_hflux_out(i,j) = c0
+
+               P_SiO2_sflux_out(i,j) = c0
+               P_SiO2_hflux_out(i,j) = c0
+
+               dust_sflux_out(i,j) = c0
+               dust_hflux_out(i,j) = c0
+
+               POC_sflux_out(i,j) = c0
+               POC_hflux_out(i,j) = c0
+
+               P_iron_sflux_out(i,j) = c0
+               P_iron_hflux_out(i,j) = c0
+ 
+             endif
+
+             P_Iron_remin(i,j) = P_Iron_remin(i,j)
+     &            + (FESEDFLUX(i) * dzr_loc)
+          end if  ! LANDMASK(i,j) .and. (k == 1)
+
+# endif /* MF Debugging: run without bottom processes */          
+
+# ifdef BEC2_DIAG
+            bec2_diag_3d(i,j,k,pironhardremin_idx_t) = P_Ironhard_remin(i,j)
+            bec2_diag_3d(i,j,k,caco3hardremin_idx_t) = P_CaCO3hard_remin(i,j)
+            bec2_diag_3d(i,j,k,sio2hardremin_idx_t) = P_SiO2hard_remin(i,j)
+            bec2_diag_3d(i,j,k,pochardremin_idx_t) = POChard_remin(i,j)
+            bec2_diag_3d(i,j,k,dusthardremin_idx_t) = dusthard_remin(i,j)
+            bec2_diag_3d(i,j,k,pironsoftremin_idx_t) = P_Ironsoft_remin(i,j)
+            bec2_diag_3d(i,j,k,caco3softremin_idx_t) = P_CaCO3soft_remin(i,j)
+            bec2_diag_3d(i,j,k,sio2softremin_idx_t) = P_SiO2soft_remin(i,j)
+            bec2_diag_3d(i,j,k,pocsoftremin_idx_t) = POCsoft_remin(i,j)
+            bec2_diag_3d(i,j,k,dustsoftremin_idx_t) = dustsoft_remin(i,j)
+#  endif         
+
+       end do  ! i = istr, iend
+
+
+# endif /* if 0 MF: Debugging, try without any processes applied to particulate pools */
+
+# ifdef BEC2_DIAG
+#  ifdef BEC2_DIAG_USER
+       if (bec2_diag_3d_l(pironremin_idx_t))
+     &    bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(pironremin_idx_t)) = P_Iron_remin(istr:iend,j)
+       if (bec2_diag_3d_l(caco3remin_idx_t))
+     &    bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(caco3remin_idx_t)) = P_CaCO3_remin(istr:iend,j)
+       if (bec2_diag_3d_l(sio2remin_idx_t))
+     &    bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(sio2remin_idx_t)) = P_SiO2_remin(istr:iend,j)
+       if (bec2_diag_3d_l(pocremin_idx_t))
+     &    bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(pocremin_idx_t)) = POC_remin(istr:iend,j)
+       if (bec2_diag_3d_l(dustremin_idx_t))
+     &    bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(dustremin_idx_t)) = dust_remin(istr:iend)
+#  else
+       bec2_diag_3d(istr:iend,j,k,pironremin_idx_t) = P_Iron_remin(istr:iend,j)
+       bec2_diag_3d(istr:iend,j,k,caco3remin_idx_t) = P_CaCO3_remin(istr:iend,j)
+       bec2_diag_3d(istr:iend,j,k,sio2remin_idx_t) = P_SiO2_remin(istr:iend,j)
+       bec2_diag_3d(istr:iend,j,k,pocremin_idx_t) = POC_remin(istr:iend,j)
+       bec2_diag_3d(istr:iend,j,k,dustremin_idx_t) = dust_remin(istr:iend)
+#  endif
+# endif
+
+       return
+       end subroutine compute_particulate_terms_explicit
+# endif /* USE_EXPLICIT_VSINK */
+
+!-------------------------------------------------------------------------
+!
+! * MF: End test version of explicit sinking processes!! *
+!
+!-------------------------------------------------------------------------
+
+!-------------------------------------------------------------------------
+!
+!     ***** END SUBROUTINE COMPUTE_PARTICULATE_TERMS_EXPLICIT  ***********
+!
+!-------------------------------------------------------------------------
+
+!-------------------------------------------------------------------------
+!
+! * MF: End test version of explicit sinking processes!! *
+!
+!-------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
 
 
 

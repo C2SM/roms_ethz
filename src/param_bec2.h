@@ -113,7 +113,7 @@
      &   parm_labile_ratio,      ! fraction of loss to DOC that routed directly to DIC (non-dimensional)
      &   parm_POMbury,           ! scale factor for burial of POC, PON, and POP
      &   parm_BSIbury,           ! scale factor burial of bSi
-     &   parm_fe_scavenge_rate0, ! base scavenging rate
+     &   parm_Fe_scavenge_rate0, ! base scavenging rate
      &   parm_f_prod_sp_CaCO3,   ! fraction of sp prod. as CaCO3 prod.
      &   parm_POC_diss,          ! base POC diss len scale
      &   parm_SiO2_diss,         ! base SiO2 diss len scale
@@ -125,7 +125,7 @@
 
        common /ecosys_bec2/ parm_Fe_bioavail, parm_o2_min, parm_o2_min_delta, parm_kappa_nitrif,
      &   parm_nitrif_par_lim, parm_z_mort_0, parm_z_mort2_0, parm_labile_ratio, parm_POMbury,
-     &   parm_BSIbury, parm_fe_scavenge_rate0, parm_f_prod_sp_CaCO3, parm_POC_diss,
+     &   parm_BSIbury, parm_Fe_scavenge_rate0, parm_f_prod_sp_CaCO3, parm_POC_diss,
      &   parm_SiO2_diss, parm_CaCO3_diss,
      &   parm_scalelen_z, parm_scalelen_vals
 
@@ -298,14 +298,14 @@
 #ifdef USE_EXPLICIT_VSINK
        real wDustHard, wPOCHard, wPCaCO3Hard, wPSiO2Hard, wPIronHard
        real wDustSoft, wPOCSoft, wPCaCO3Soft, wPSiO2Soft, wPIronSoft
-       parameter( wDustHard=10.0,  wPOCHard=100., wPCaCO3Hard=100., wPSiO2Hard=100., wPIronHard=100. )
-       parameter( wDustSoft=10.0,  wPOCSoft=10., wPCaCO3Soft=100., wPSiO2Soft=100., wPIronSoft=100. )
+       parameter( wDustHard=10.0,  wPOCHard=20., wPCaCO3Hard=20., wPSiO2Hard=20., wPIronHard=20. )
+       parameter( wDustSoft=10.0,  wPOCSoft=10., wPCaCO3Soft=20., wPSiO2Soft=20., wPIronSoft=20. )
        real param_dusthard_remin, param_pochard_remin, param_pcaco3hard_remin,
      &   param_psio2hard_remin, param_pironhard_remin
        real param_dustsoft_remin, param_pocsoft_remin, param_pcaco3soft_remin,
      &   param_psio2soft_remin, param_pironsoft_remin
-       parameter( param_dusthard_remin=8.0e-5, param_pochard_remin=0.0025, param_pcaco3hard_remin=0.0025,
-     &   param_psio2hard_remin=0.0025, param_pironhard_remin=0.0025 )
-       parameter( param_dustsoft_remin=8.0e-5, param_pocsoft_remin=0.1, param_pcaco3soft_remin=0.25,
-     &   param_psio2soft_remin=0.27, param_pironsoft_remin=0.06 )
+       parameter( param_dusthard_remin=8.0e-5, param_pochard_remin=0.0005, param_pcaco3hard_remin=0.0005,
+     &   param_psio2hard_remin=0.0005, param_pironhard_remin=0.0005 )
+       parameter( param_dustsoft_remin=8.0e-5, param_pocsoft_remin=0.1, param_pcaco3soft_remin=0.05,
+     &   param_psio2soft_remin=0.05, param_pironsoft_remin=0.05 )
 #endif
