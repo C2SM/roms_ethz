@@ -459,10 +459,10 @@ CR      write(*,'(1x,A,I3)') 'indxNH4 =',indxNH4
 
 
       ! MF: Control BEC2_DIAG Output vars
-      wrtavg_bec2_diag_2d=(/.true.,.true.,.true.,.true.,.true.,  ! pCO2air, PARinc,FG_O2,FG_CO2, WS10m
-     &                     .true.,.true.,.true.,.true.,.true.,   ! XKW, ATM_PRESS,SCHMIDT_O2,O2SAT, SCHMIDT_CO2
-     &                     .true.,.true.,.true.,.true.,.true.,   ! PV_O2,PV_CO2,IRON_FLUX, SED_DENITRI, PH
-     &                     .true.,.true.,.true.,.true.,          ! PCO2, CO2STAR, PCO2OC, DCO2STAR
+      wrtavg_bec2_diag_2d=(/.false.,.false.,.false.,.false.,.false.,  ! pCO2air, PARinc,FG_O2,FG_CO2, WS10m
+     &                     .false.,.false.,.false.,.false.,.false.,   ! XKW, ATM_PRESS,SCHMIDT_O2,O2SAT, SCHMIDT_CO2
+     &                     .false.,.false.,.false.,.true.,.false.,   ! PV_O2,PV_CO2,IRON_FLUX, SED_DENITRI, PH
+     &                     .false.,.false.,.false.,.false.,          ! PCO2, CO2STAR, PCO2OC, DCO2STAR
      &                     .true.,.true.,.true.,.true.,.true.,   ! FE_SED_FLUX,FLUX_TO_SED,CACO3_FLUX_TO_SED,SIO2_FLUX_TO_SED,PIRON_FLUX_TO_SED
      &                     .true.,.true.,.true.,.true.,.true./)  ! DUST_FLUX_SED, POC_SED_LOSS, OTHER_REMIN,CaCO3_sed_loss,P_SiO2_sed_loss
 
@@ -1186,29 +1186,29 @@ CR      write(*,'(1x,A,I3)') 'indxNH4 =',indxNH4
 # ifdef BEC2_DIAG
 
         ! MF: Control BEC2_DIAG Output vars
-      wrtavg_bec2_diag_3d=(/.true.,.true.,.true.,.true.,.true.,      !PAR, POC_FLUX_IN, POC_Prod,POC_REMIN, CACO3_FLUX_IN,
+      wrtavg_bec2_diag_3d=(/.false.,.true.,.true.,.true.,.true.,      !PAR, POC_FLUX_IN, POC_Prod,POC_REMIN, CACO3_FLUX_IN,
      &                     .true.,.true.,.true.,.true.,.true.,       !PCACO3_PROD, CACO3_REMIN,SIO2_FLUX_IN, SIO2_PROD, SIO2_REMIN,
      &                     .true.,.true.,.true.,.true.,.true.,       !DUST_FLUX_IN, DUST_REMIN,P_IRON_FLUX_IN, P_IRON_PROD, P_IRON_REMIN,
-     &                     .true.,.true.,.true.,.true.,.true.,       !GRAZE_SP, GRAZE_DIAT,GRAZE_DIAZ, SP_LOSS, DIAT_LOSS,
-     &                     .true.,.true.,.true.,.true.,.true.,       !ZOO_LOSS, SP_AGG, DIAT_AGG,PHOTOC_SP, PHOTOC_DIA,
-     &                     .true.,.true.,.true.,.true.,.true.,       !TOT_PROD, DOC_PROD,DOC_REMIN, FE_SCAVENGE, SP_N_LIM, 
-     &                     .true.,.true.,.true.,.true.,.true.,       !SP_FE_LIM, SP_PO4_LIM,SP_LIGHT_LIM, DIAT_N_LIM, DIAT_FE_LIM,
-     &                     .true.,.true.,.true.,.true.,.true.,       !DIAT_PO4_LIM, DIAT_SIO3_LIM,DIAT_LIGHT_LIM, CACO3_PROD, DIAZ_NFIX,
-     &                     .true.,.true.,.true.,.true.,.true.,       !DIAZ_LOSS, PHOTOC_DIAZ,DIAZ_PO4_LIM, DIAZ_FE_LIM, DIAZ_LIGHT_LIM,
-     &                     .true.,.true.,.true.,.true.,.true.,       !FE_SCAVENGE_RATE, DON_PROD,DON_REMIN, DOFE_PROD, DOFE_REMIN,
-     &                     .true.,.true.,.true.,.true.,.true.,     !DOP_PROD, DOP_REMIN,DIAT_SI_UPTAKE, PHOTOFE_SP, PHOTOFE_DIA,  
-     &                     .true.,.true.,.true.,.true.,.true.,    !PHOTOFE_DIAZ, NITRI,DENITRI,SP_NO3_UPTAKE,DIAT_NO3_UPTAKE,  
-     &                     .true.,.true.,.true.,.true.,.true.,  !DIAZ_NO3_UPTAKE,SP_NH4_UPTAKE, DIAT_NH4_UPTAKE,DIAZ_NH4_UPTAKE,SP_GRAZE_DIC,  
-     &                     .true.,.true.,.true.,.true.,.true.,  !DIAT_GRAZE_DIC,DIAZ_GRAZE_DIC, SP_LOSS_DIC,DIAT_LOSS_DIC,DIAZ_LOSS_DIC,  
-     &                     .true.,.true.,.true.,.true.,.true.,  !ZOO_LOSS_DIC, DIAZ_AGG,GRAZE_SP_ZOO, GRAZE_DIAT_ZOO, GRAZE_DIAZ_ZOO, 
-     &                     .true.,.true.,.true.,.true.,          !SPQCACO3,PHOTOACC_SP,PHOTOACC_DIAT, PHOTOACC_DIAZ,
-     &                     .true.,.true.,.true.,.true.,.true.,  !SPC_ZERO, DIATC_ZERO, DIAZC_ZERO, DOC_ZERO, ZOOC_ZERO
-     &                     .true.,.true.,.true.,.true.,           !SPCACO3_ZERO, DONR_REMIN, TOTCHL, SP_P_LIM 
-     &                     .true.,.true.,.true.                     !DIAT_P_LIM,DIAZ_P_LIM, TOT_PHYTO_C
+     &                     .false.,.false.,.false.,.false.,.false.,       !GRAZE_SP, GRAZE_DIAT,GRAZE_DIAZ, SP_LOSS, DIAT_LOSS,
+     &                     .false.,.false.,.false.,.false.,.false.,       !ZOO_LOSS, SP_AGG, DIAT_AGG,PHOTOC_SP, PHOTOC_DIA,
+     &                     .true.,.false.,.false.,.true.,.false.,       !TOT_PROD, DOC_PROD,DOC_REMIN, FE_SCAVENGE, SP_N_LIM, 
+     &                     .false.,.false.,.false.,.false.,.false.,       !SP_FE_LIM, SP_PO4_LIM,SP_LIGHT_LIM, DIAT_N_LIM, DIAT_FE_LIM,
+     &                     .false.,.false.,.false.,.false.,.false.,       !DIAT_PO4_LIM, DIAT_SIO3_LIM,DIAT_LIGHT_LIM, CACO3_PROD, DIAZ_NFIX,
+     &                     .false.,.false.,.false.,.false.,.false.,       !DIAZ_LOSS, PHOTOC_DIAZ,DIAZ_PO4_LIM, DIAZ_FE_LIM, DIAZ_LIGHT_LIM,
+     &                     .true.,.false.,.false.,.false.,.false.,       !FE_SCAVENGE_RATE, DON_PROD,DON_REMIN, DOFE_PROD, DOFE_REMIN,
+     &                     .false.,.false.,.false.,.false.,.false.,     !DOP_PROD, DOP_REMIN,DIAT_SI_UPTAKE, PHOTOFE_SP, PHOTOFE_DIA,  
+     &                     .false.,.true.,.true.,.false.,.false.,    !PHOTOFE_DIAZ, NITRI,DENITRI,SP_NO3_UPTAKE,DIAT_NO3_UPTAKE,  
+     &                     .false.,.false.,.false.,.false.,.false.,  !DIAZ_NO3_UPTAKE,SP_NH4_UPTAKE, DIAT_NH4_UPTAKE,DIAZ_NH4_UPTAKE,SP_GRAZE_DIC,  
+     &                     .false.,.false.,.false.,.false.,.false.,  !DIAT_GRAZE_DIC,DIAZ_GRAZE_DIC, SP_LOSS_DIC,DIAT_LOSS_DIC,DIAZ_LOSS_DIC,  
+     &                     .false.,.false.,.false.,.false.,.false.,  !ZOO_LOSS_DIC, DIAZ_AGG,GRAZE_SP_ZOO, GRAZE_DIAT_ZOO, GRAZE_DIAZ_ZOO, 
+     &                     .false.,.false.,.false.,.false.,          !SPQCACO3,PHOTOACC_SP,PHOTOACC_DIAT, PHOTOACC_DIAZ,
+     &                     .false.,.false.,.false.,.false.,.false.,  !SPC_ZERO, DIATC_ZERO, DIAZC_ZERO, DOC_ZERO, ZOOC_ZERO
+     &                     .false.,.false.,.true.,.false.,           !SPCACO3_ZERO, DONR_REMIN, TOTCHL, SP_P_LIM 
+     &                     .false.,.false.,.true.                     !DIAT_P_LIM,DIAZ_P_LIM, TOT_PHYTO_C
      ! 91 tracer
 # ifdef USE_EXPLICIT_VSINK
      ! +10 -> 101 tracer 
-     &                     ,.true.,.true.,.true.,.true.,.true.,  ! PIRON_HARD_REMIN, CACO3_HARD_REMIN, SIO2_HARD_REMIN, POC_HARD_REMIN,DUST_HARD_REMIN
+     &                     ,.false.,.true.,.true.,.false.,.true.,  ! PIRON_HARD_REMIN, CACO3_HARD_REMIN, SIO2_HARD_REMIN, POC_HARD_REMIN,DUST_HARD_REMIN
      &                     .true.,.true.,.true.,.true.,.true.    ! PIRON_SOFT_REMIN, CACO3_SOFT_REMIN, SIO2_SOFT_REMIN, POC_SOFT_REMIN,DUST_SOFT_REMIN
 # endif
 # ifdef BEC_COCCO 
