@@ -56,11 +56,7 @@ c--#define KEEP_CLOSED
 c--#define AUTORENICE
 c--#define VERBOSE
 #define AUTORENICE
-#ifdef NETCDF4
-# define NCFILEFORMAT nf_netcdf4
-#else
-# define NCFILEFORMAT nf_64bit_offset
-#endif
+#define NCFILEFORMAT nf_netcdf4
 
 
       implicit none

@@ -87,3 +87,8 @@
 #define VFLX_CORR
 
 #include "set_global_definitions.h"
+#
+#  PARALLEL_FILES is set in set_global_definitions.h
+#  Switch it off, if not desired
+!-- #undef PARALLEL_FILES
+

@@ -73,7 +73,7 @@ c--# define VERBOSE
 !---------------------------------
 
   10  if (create_new_file) then
-        ierr=nf_create(staname(1:lncn), nf_clobber+nf_64bit_offset,
+        ierr=nf_create(staname(1:lncn), nf_clobber+NCFILEFORMAT,
      &                                                         ncid)
         if (ierr /= nf_noerr) then
           write(*,'(/1x,4A/12x,A/)')  '### ERROR: def_stn :: Cannot ',

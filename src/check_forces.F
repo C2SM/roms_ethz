@@ -387,7 +387,7 @@ C$OMP BARRIER
       if (ierr /= 0) goto 99
 
   10  if (create_new_file) then
-        ierr=nf_create(hisname(1:lfnm), nf_clobber+nf_64bit_offset,
+        ierr=nf_create(hisname(1:lfnm), nf_clobber+NCFILEFORMAT,
      &                                                     nchis)
         if (ierr == nf_noerr) then
           ierr=nf_set_fill(nchis, nf_nofill, prev_fill_mode)

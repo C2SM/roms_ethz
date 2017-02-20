@@ -411,6 +411,7 @@ c-# define TANH dtanh
  precision of the code.  */
  
 /* #define HIS_DOUBLE */
+#define NCFILEFORMAT nf_netcdf4 /* or nf_64bit_offset */
 #undef PUT_GRID_INTO_RESTART
 #define PUT_GRID_INTO_HISTORY
 #define PUT_GRID_INTO_AVERAGES
