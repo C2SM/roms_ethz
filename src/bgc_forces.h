@@ -3,22 +3,73 @@
 ! ------- -------------
 !     pCO2air: pCO2air concentraion [ppm]
 
-      real pCO2air(GLOBAL_2D_ARRAY) 
-      common /frc_pCO2air/ pCO2air
+      real pco2air(GLOBAL_2D_ARRAY) 
+      common /frc_pco2air/ pco2air
 CSDISTRIBUTE_RESHAPE  pCO2air(BLOCK_PATTERN,*) BLOCK_CLAUSE
 # if defined PCO2AIR_DATA || defined ALL_DATA
+# ifndef SET_SMTH
 #  undef PCO2AIR_DATA
-      real pCO2airg(GLOBAL_2D_ARRAY,2)
-CSDISTRIBUTE_RESHAPE  pCO2airg(BLOCK_PATTERN,*) BLOCK_CLAUSE
-      common /pCO2airg_dat/ pCO2airg
-
-      real pCO2air_time(2),pCO2air_cycle
-      integer itpCO2air, ntpCO2air, pCO2air_id,
-     &       pCO2air_ncycle,pCO2air_rec,pCO2air_tid
-      common/pCO2airdat/ itpCO2air, ntpCO2air, pCO2air_id,
-     &       pCO2air_ncycle,pCO2air_rec,pCO2air_tid
+# endif
+      real pco2airg(GLOBAL_2D_ARRAY,2)
+CSDISTRIBUTE_RESHAPE  pco2airg(BLOCK_PATTERN,*) BLOCK_CLAUSE
+      common /pco2airg_dat/ pco2airg
+      real pco2air_cycle, pco2air_time(2)
+      integer pco2air_ncycle,  pco2air_rec, itpco2air, ntpco2air,
+     &        pco2air_file_id, pco2air_id,  pco2air_tid
+      common /pco2airdat/ pco2air_cycle,    pco2air_time,
+     &        pco2air_ncycle,  pco2air_rec, itpco2air, ntpco2air,
+     &        pco2air_file_id, pco2air_id,  pco2air_tid
 # endif
 #endif /* PCO2AIR_FORCING */
+
+!--------- NHY_FORCING_START
+
+#ifdef NHY_FORCING
+! NHY flux
+! --- ----
+
+      real nhy(GLOBAL_2D_ARRAY) 
+      common /frc_nhy/ nhy
+CSDISTRIBUTE_RESHAPE  nhy(BLOCK_PATTERN,*) BLOCK_CLAUSE
+# if defined NHY_DATA || defined ALL_DATA
+# ifndef SET_SMTH
+#  undef NHY_DATA
+# endif
+      real nhyg(GLOBAL_2D_ARRAY,2)
+CSDISTRIBUTE_RESHAPE  nhyg(BLOCK_PATTERN,*) BLOCK_CLAUSE
+      common /nhyg_dat/ nhyg
+      real nhy_cycle, nhy_time(2)
+      integer nhy_ncycle,  nhy_rec, itnhy, ntnhy,
+     &        nhy_file_id, nhy_id, nhy_tid
+      common /nhydat/ nhy_cycle, nhy_time,
+     &        nhy_ncycle, nhy_rec, itnhy, ntnhy,
+     &        nhy_file_id, nhy_id, nhy_tid
+# endif
+#endif /* NHY_FORCING */
+!--------- NHY_FORCING_END
+
+#ifdef NOX_FORCING
+! NOX flux
+! --- ----
+
+      real nox(GLOBAL_2D_ARRAY) 
+      common /frc_nox/ nox
+CSDISTRIBUTE_RESHAPE  nox(BLOCK_PATTERN,*) BLOCK_CLAUSE
+# if defined NOX_DATA || defined ALL_DATA
+# ifndef SET_SMTH
+#  undef NOX_DATA
+# endif
+      real noxg(GLOBAL_2D_ARRAY,2)
+CSDISTRIBUTE_RESHAPE  noxg(BLOCK_PATTERN,*) BLOCK_CLAUSE
+      common /noxg_dat/ noxg
+      real nox_cycle, nox_time(2)
+      integer nox_ncycle,  nox_rec, itnox, ntnox,
+     &        nox_file_id, nox_id, nox_tid
+      common /noxdat/ nox_cycle, nox_time,
+     &        nox_ncycle, nox_rec, itnox, ntnox,
+     &        nox_file_id, nox_id, nox_tid
+# endif
+#endif /* NOX_FORCING */
 
 #if defined BIOLOGY_BEC || defined BIOLOGY_BEC2
 ! dust flux
@@ -64,7 +115,8 @@ CSDISTRIBUTE_RESHAPE  irong(BLOCK_PATTERN,*) BLOCK_CLAUSE
      &        iron_ncycle,  iron_rec, itiron, ntiron,
      &        iron_file_id, iron_id,  iron_tid
 # endif /* defined IRON_DATA || defined ALL_DATA */
-# ifdef RIVER_SURFACE_FLUX
+
+# if defined  RIVER_LOAD_N || defined RIVER_LOAD_P
 ! river input: DIN, DIP from rivers as surface flux
 !        din_river, dip_river
       real, dimension(GLOBAL_2D_ARRAY) :: din_river, dip_river
@@ -87,6 +139,7 @@ CSDISTRIBUTE_RESHAPE  dip_riverg(BLOCK_PATTERN,*) BLOCK_CLAUSE
      &        din_river_file_id, din_river_id,  din_river_tid,
      &        dip_river_ncycle,  dip_river_rec, itdip_river, ntdip_river,
      &        dip_river_file_id, dip_river_id,  dip_river_tid
-#  endif /* defined RIVER_DATA || defined ALL_DATA */
-# endif /* RIVER_SURFACE_FLUX */
+# if defined RIVER_DATA || defined ALL_DATA
+#  ifndef SET_SMTH
+# endif /* defined RIVER_DATA || defined ALL_DATA */
 #endif /* BIOLOG_BEC || BIOLOG_BEC2 */ 

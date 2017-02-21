@@ -301,7 +301,8 @@ CSDISTRIBUTE_RESHAPE  sstg(BLOCK_PATTERN,*) BLOCK_CLAUSE
 #  endif /* SST_DATA */
 # endif /* QCORRECTION && !ANA_SST */
 
-# if defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC || defined BIOLOGY_BEC2
+
+# if defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC || defined BIOLOGY_BEC2 || defined PCO2AIR_FORCING
 #include "bgc_forces.h"
 # endif /* BIOLOG_BEC || BIOLOG_BEC2 */ 
 

@@ -394,10 +394,15 @@
 !
 #ifndef BEC2_DIAG
       real, dimension(GLOBAL_2D_ARRAY) ::
-     &   ph_hist, pCO2sw, pCO2air, PARinc
+     &   ph_hist, pCO2sw, PARinc
       real, dimension(GLOBAL_2D_ARRAY,N) ::
      &   PAR
-      common /c_chem/ ph_hist, pCO2sw, pCO2air, PARinc, PAR
+      common /c_chem/ ph_hist, pCO2sw, PARinc, PAR
+# ifndef PCO2AIR_FORCING
+!     otherwise defined in bgc_forces.h
+      real pco2air
+      common /c_chem/pco2air
+# endif
 
       real, dimension(GLOBAL_2D_ARRAY) ::
      &   ph_avg, pCO2_avg, pCO2air_avg, PARinc_avg

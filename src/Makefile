@@ -55,10 +55,7 @@ BIOSRC = CalcPar.F  carbon.F  co2calc_SWS.F  def_bgc_flux.F\
 	init_scalars_bec2.F ecosys_bec2.F ecosys_bec2_init.F\
 	init_scalars_bec.F ecosys_bec.F ecosys_bec_init.F\
 	set_bec_flux_avg.F wrt_bec_flux_avg.F wrt_bec_flux_his.F\
-	init_scalars_becflux.F def_bec_flux.F get_pco2air.F vsink_BEC2.F\
-#	get_din_river.F
-#	get_nox.F       get_nhy.F       get_din_river.F
-
+	init_scalars_becflux.F def_bec_flux.F vsink_BEC2.F\
 
 IOSRC = checkdims.F	find_record.F	insert_node.F	ncdf_read_write.F\
 	get_grid.F	get_init.F	wrt_grid.F	put_global_atts.F\

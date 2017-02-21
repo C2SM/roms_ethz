@@ -144,11 +144,6 @@
 ! Integer NetCDF IDs for BIOLOGY variables
 !
 
-#ifdef BIOLOGY_BEC2
-      integer ntnox, ntnhy, ntdin_river, ntdip_river
-      common /ncvars/ ntnox, ntnhy, ntdin_river, ntdip_river
-#endif
-
 #if defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC2
       integer rstPH, rstPCO2, rstPCO2air, rstPAR
      &      , hisPH, hisPCO2, hisPCO2air, hisPARinc, hisPAR
