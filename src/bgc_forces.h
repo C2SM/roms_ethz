@@ -124,6 +124,9 @@ CSDISTRIBUTE_RESHAPE  irong(BLOCK_PATTERN,*) BLOCK_CLAUSE
 CSDISTRIBUTE_RESHAPE  din_river(BLOCK_PATTERN) BLOCK_CLAUSE
 CSDISTRIBUTE_RESHAPE  dip_river(BLOCK_PATTERN) BLOCK_CLAUSE
 #  if defined RIVER_DATA || defined ALL_DATA
+#   ifndef SET_SMTH
+#    undef RIVER_DATA
+#   endif
       real, dimension(GLOBAL_2D_ARRAY,2) :: din_riverg, dip_riverg
 CSDISTRIBUTE_RESHAPE  din_riverg(BLOCK_PATTERN,*) BLOCK_CLAUSE
 CSDISTRIBUTE_RESHAPE  dip_riverg(BLOCK_PATTERN,*) BLOCK_CLAUSE
@@ -139,7 +142,6 @@ CSDISTRIBUTE_RESHAPE  dip_riverg(BLOCK_PATTERN,*) BLOCK_CLAUSE
      &        din_river_file_id, din_river_id,  din_river_tid,
      &        dip_river_ncycle,  dip_river_rec, itdip_river, ntdip_river,
      &        dip_river_file_id, dip_river_id,  dip_river_tid
-# if defined RIVER_DATA || defined ALL_DATA
-#  ifndef SET_SMTH
-# endif /* defined RIVER_DATA || defined ALL_DATA */
+#  endif /* defined RIVER_DATA || defined ALL_DATA */
+# endif /* RIVER_LOAD_N || RIVER_LOAD_P */
 #endif /* BIOLOG_BEC || BIOLOG_BEC2 */ 
