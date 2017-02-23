@@ -286,23 +286,23 @@
      & )
 
 #ifdef USE_EXPLICIT_VSINK
-  !---------------------------------------------------------------------
-  !  Vertical sinking speeds used for explicit sinking (in m/day)
-  !  Remineralization rates (in day^{-1})
-  !
-  !  MF:
-  !  hard/soft components are both mineral associated (except for POC) 
-  !  and thus have the same sinking speed, but different remineralization rates.
-  !  Set values to reflect what we had in implicit sinking. Iron desorption
-  !  following Moore and Braucher 2008.
-  ! 
-  !  With sinking speeds (w) and remin rates (k) I tried to represent more or
-  !  less what the implicit sinking parameter for dissolution length (D=w/k)
-  !  is set to: D(SiO2)=360, D(CaCO3)=400, D(POC)=82
-  !  NOTE: This only applies to soft components! Hard components are more resistant
-  !        to dissolution and should have approx. D=40000m (Moore 2013, Lima 2014)
-  !
-  !---------------------------------------------------------------------
+   !---------------------------------------------------------------------
+   !  Vertical sinking speeds used for explicit sinking (in m/day)
+   !  Remineralization rates (in day^{-1})
+   !
+   !  MF:
+   !  hard/soft components are both mineral associated (except for POC) 
+   !  and thus have the same sinking speed, but different remineralization rates.
+   !  Set values to reflect what we had in implicit sinking. Iron desorption
+   !  following Moore and Braucher 2008.
+   ! 
+   !  With sinking speeds (w) and remin rates (k) I tried to represent more or
+   !  less what the implicit sinking parameter for dissolution length (D=w/k)
+   !  is set to: D(SiO2)=360, D(CaCO3)=400, D(POC)=82
+   !  NOTE: This only applies to soft components! Hard components are more resistant
+   !        to dissolution and should have approx. D=40000m (Moore 2013, Lima 2014)
+   !
+   !---------------------------------------------------------------------
        real wDustHard, wPOCHard, wPCaCO3Hard, wPSiO2Hard, wPIronHard
        real wDustSoft, wPOCSoft, wPCaCO3Soft, wPSiO2Soft, wPIronSoft
        parameter( wDustHard=50.0,  wPOCHard=10., wPCaCO3Hard=50., wPSiO2Hard=50., wPIronHard=50. )

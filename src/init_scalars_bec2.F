@@ -459,10 +459,10 @@ CR      write(*,'(1x,A,I3)') 'indxNH4 =',indxNH4
 
 
       ! MF: Control BEC2_DIAG Output vars
-      wrtavg_bec2_diag_2d=(/.false.,.false.,.false.,.false.,.false.,  ! pCO2air, PARinc,FG_O2,FG_CO2, WS10m
+      wrtavg_bec2_diag_2d=(/.true.,.false.,.false.,.false.,.false.,  ! pCO2air, PARinc,FG_O2,FG_CO2, WS10m
      &                     .false.,.false.,.false.,.false.,.false.,   ! XKW, ATM_PRESS,SCHMIDT_O2,O2SAT, SCHMIDT_CO2
      &                     .false.,.false.,.false.,.true.,.false.,   ! PV_O2,PV_CO2,IRON_FLUX, SED_DENITRI, PH
-     &                     .false.,.false.,.false.,.false.,          ! PCO2, CO2STAR, PCO2OC, DCO2STAR
+     &                     .true.,.false.,.false.,.false.,          ! PCO2, CO2STAR, PCO2OC, DCO2STAR
      &                     .true.,.true.,.true.,.true.,.true.,   ! FE_SED_FLUX,FLUX_TO_SED,CACO3_FLUX_TO_SED,SIO2_FLUX_TO_SED,PIRON_FLUX_TO_SED
      &                     .true.,.true.,.true.,.true.,.true./)  ! DUST_FLUX_SED, POC_SED_LOSS, OTHER_REMIN,CaCO3_sed_loss,P_SiO2_sed_loss
 

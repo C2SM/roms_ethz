@@ -470,7 +470,7 @@ c--#  define timename 'dqdt_time'
 !  din river flux
 !  --- ----- ---- 
 #  define get_smth get_din_river
-#  define varname 'din_river'
+#  define varname 'din_river_flux'
 #  define timename 'din_time'
 #  define RIVER_DATA
 #  define var din_riverg
@@ -495,7 +495,7 @@ c--#  define timename 'dqdt_time'
 !  dip river flux
 !  --------- ---- 
 #  define get_smth get_dip_river
-#  define varname 'dip_river'
+#  define varname 'dip_river_flux'
 #  define timename 'dip_time'
 #  define RIVER_DATA
 #  define var dip_riverg

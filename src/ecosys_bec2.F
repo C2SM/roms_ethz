@@ -670,16 +670,22 @@ c$$$       enddo
      &         tracer(istr:iend,jstr:jend,N,fe_ind_t) +
      &         stf(istr:iend,jstr:jend,fe_ind_t)
      &         *dt/Hz(istr:iend,jstr:jend,N)
-c$$$       ! NOx: added to nitrate
-c$$$       tracer(istr:iend,jstr:jend,N,no3_ind_t) =
-c$$$     &         tracer(istr:iend,jstr:jend,N,no3_ind_t) +
-c$$$     &         nox(istr:iend,jstr:jend)
-c$$$     &         *dt/Hz(istr:iend,jstr:jend,N)
-c$$$       ! NHy: added to ammonium:
-c$$$       tracer(istr:iend,jstr:jend,N,nh4_ind_t) =
-c$$$     &         tracer(istr:iend,jstr:jend,N,nh4_ind_t) +
-c$$$     &         nhy(istr:iend,jstr:jend)
-c$$$     &         *dt/Hz(istr:iend,jstr:jend,N)
+
+# ifdef NOX_FORCING
+       ! NOx: added to nitrate (convert units from kg N to mmol N)
+       tracer(istr:iend,jstr:jend,N,no3_ind_t) =
+     &         tracer(istr:iend,jstr:jend,N,no3_ind_t) +
+     &         nox(istr:iend,jstr:jend)*71394.200220751
+     &         *dt/Hz(istr:iend,jstr:jend,N)
+# endif
+# ifdef NHY_FORCING
+       ! NHy: added to ammonium (convert units from kg N to mmol N)        
+       tracer(istr:iend,jstr:jend,N,nh4_ind_t) =
+     &         tracer(istr:iend,jstr:jend,N,nh4_ind_t) +
+     &         nhy(istr:iend,jstr:jend)*71394.200220751
+     &         *dt/Hz(istr:iend,jstr:jend,N)
+# endif
+
 # ifdef BEC2_DIAG
 #  ifdef BEC2_DIAG_USER
        if (bec2_diag_2d_l(ironflux_idx_t))
