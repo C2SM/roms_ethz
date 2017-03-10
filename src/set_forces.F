@@ -93,7 +93,21 @@ c***              no code here
 # endif
 #endif
 
-                                        !--> Surface fluxes
+# ifdef PCO2AIR_FORCING
+      call set_pco2air_tile(istr,iend,jstr,jend,ierr)
+# endif
+# ifdef RIVER_LOAD_N
+      call set_din_river_tile(istr,iend,jstr,jend,ierr)
+# endif
+# ifdef RIVER_LOAD_P
+      call set_dip_river_tile(istr,iend,jstr,jend,ierr)
+# endif
+# ifdef NHY_FORCING
+      call set_nhy_tile(istr,iend,jstr,jend,ierr)
+# endif
+# ifdef NOX_FORCING
+      call set_nox_tile(istr,iend,jstr,jend,ierr)
+# endif
 
 
 #ifdef ANA_SMFLUX

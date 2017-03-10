@@ -340,7 +340,7 @@ c$$$       enddo
 
 ! MF (added treatment of pCO2air forcing)
 # ifdef PCO2AIR_FORCING
-             XCO2(istr:iend) = pCO2air(istr:iend,j)
+             XCO2(istr:iend) = pco2air(istr:iend,j)
 # endif /* PCO2AIR_FORCING */
 
 # ifdef CCHEM_MOCSY

@@ -89,7 +89,7 @@ c--#define VERBOSE
       call get_iron(ierr)
 # endif
 # ifdef PCO2AIR_FORCING
-        if (ierr.eq.0)  call get_pCO2air(ierr)
+      call get_pco2air(ierr)
 # endif
 # ifdef BIOLOGY_BEC2
 #  ifdef NOX_FORCING
@@ -100,6 +100,9 @@ c--#define VERBOSE
 #  endif
 #  ifdef RIVER_LOAD_N
       call get_din_river(ierr)
+#  endif
+#  ifdef RIVER_LOAD_P
+      call get_dip_river(ierr)
 #  endif
 # endif
 # if defined PASSIVE_TRACER && defined AGE_DYE_TRACER

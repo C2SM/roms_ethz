@@ -98,27 +98,37 @@
 
 # else /* case not BEC_COCCO */
       parm_BSIbury           = 0.65 ! x1 default
-      parm_Fe_scavenge_rate0 = 3.0  ! x1 default
+      parm_Fe_scavenge_rate0 = 3.0  ! previous default
+      !parm_Fe_scavenge_rate0 = 4.0  ! MF: sensitivity test
       parm_f_prod_sp_CaCO3   = 0.055 ! x1 default
       parm_POC_diss          = 88.0
       parm_SiO2_diss         = 250.0
       parm_CaCO3_diss        = 150.0
 
+# ifdef USE_EXPLICIT_VSINK
+      parm_scalelen_z    = (/ 130.0, 290.0, 670.0, 1700.0 /) 
+      parm_scalelen_vals = (/     1.0,     1.8,     3.8,      8.0 /) ! MF: try new parametrization for explicit sinking
+# else
       parm_scalelen_z    = (/ 130.0, 290.0, 670.0, 1700.0 /) ! DL: converted to m
       parm_scalelen_vals = (/     1.0,     3.0,     5.0,      9.0 /) ! x1 default
-      
+# endif
+
       ! The following arrays give parameters in this order: sp, diat, diaz
-      kFe = (/ 0.04e-3, 0.06e-3, 0.04e-3 /) ! mmol Fe/m3
-      kPO4 = (/ 0.01, 0.05, 0.02 /)         ! mmol P/m3
-      kDOP = (/ 0.26, 0.9, 0.09 /)          ! 
-      kNO3 = (/ 0.1, 0.5, 1.0 /)            ! mmol N/m3
-      kNH4 = (/ 0.01, 0.05, 0.15 /)         ! mmol N/m3
-      kSiO3 = (/ 0.0, 0.8, 0.0 /)           ! mmol SiO3/m3
+      kFe = (/ 0.10e-3, 0.15e-3, 0.10e-3 /) ! mmol Fe/m3 
+      kPO4 = (/ 0.025, 0.125, 0.05 /)         ! mmol P/m3
+      kDOP = (/ 0.65, 2.25, 0.225 /)          ! 
+      kNO3 = (/ 0.25, 1.25, 2.5 /)            ! mmol N/m3   ! 0.11 0.45  8
+      kNH4 = (/ 0.025, 0.125, 0.38 /)         ! mmol N/m3  ! 0.01 0.04  0.8
+      kSiO3 = (/ 0.0, 2.5, 0.0 /)           ! mmol SiO3/m3
       Qp = (/ 0.00855, 0.00855, 0.002735 /)
       gQfe_0 = (/ 20.0e-6, 20.0e-6, 60.0e-6 /)
       gQfe_min = (/ 3.0e-6, 3.0e-6, 12.0e-6 /)
-      alphaPI = (/ 0.6*dps, 0.465*dps, 0.4*dps /)  ! Chl. specific initial slope of P_I curve (GD98) (mmol C m^2/(mg Chl W sec))
-      PCref = (/ 5.5*dps, 5.5*dps, 0.7*dps /)
+      alphaPI = (/ 0.6*dps, 0.465*dps, 0.4*dps /)  ! previous defaults, Chl. specific initial slope of P_I curve (GD98) (mmol C m^2/(mg Chl W sec))
+      !alphaPI = (/ 0.45*dps, 0.348*dps, 0.3*dps /)  ! MF: sensitivity tests
+      !PCref = (/ 5.5*dps, 5.5*dps, 0.7*dps /) ! MF: previous defaults
+      !PCref = (/ 4.4*dps, 4.4*dps, 0.56*dps /) ! MF: sensitivity tests 80%
+      !PCref = (/ 4.1*dps, 4.1*dps, 0.52*dps /) ! MF: sensitivity tests 75%
+      PCref = (/ 3.85*dps, 3.85*dps, 0.5*dps /) ! MF: sensitivity tests 70%
       thetaN_max = (/ 2.5, 4.0, 2.5 /)
       loss_thres = (/ 0.04, 0.04, 0.022 /)
       loss_thres2 = (/ 0.0, 0.0, 0.001 /)
@@ -127,7 +137,10 @@
       mort2 = (/ 0.001*dps, 0.001*dps, 0.0 /)
       agg_rate_max = (/ 0.9, 0.9, 0.0 /)
       agg_rate_min = (/ 0.01, 0.02, 0.0 /)
-      z_umax_0 = (/ 3.3*dps, 3.08*dps, 0.6*dps /)
+      !z_umax_0 = (/ 3.3*dps, 3.08*dps, 0.6*dps /) ! previous defaults
+      z_umax_0 = (/ 2.64*dps, 2.46*dps, 0.48*dps /) ! MF: sensitivity test 80%
+      !z_umax_0 = (/ 2.47*dps, 2.31*dps, 0.45*dps /) ! MF: sensitivity test 75%
+      !z_umax_0 = (/ 2.8*dps, 2.6*dps, 0.51*dps /) ! MF: sensitivity test 85%
       z_grz = (/ 1.05, 1.0, 1.2 /)      ! grazing coefficient (mmol C/m^3)
       graze_zoo = (/ 0.3, 0.3, 0.3 /)
       graze_poc = (/ 0.0, 0.42, 0.05 /)

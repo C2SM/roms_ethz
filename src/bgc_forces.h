@@ -133,15 +133,17 @@ CSDISTRIBUTE_RESHAPE  dip_riverg(BLOCK_PATTERN,*) BLOCK_CLAUSE
       common /riverg_dat/din_riverg,dip_riverg
       real din_river_cycle, din_river_time(2),
      &     dip_river_cycle, dip_river_time(2)
-      integer din_river_ncycle,  din_river_rec, itdin_river, ntdin_river,
-     &        din_river_file_id, din_river_id,  din_river_tid,
-     &        dip_river_ncycle,  dip_river_rec, itdip_river, ntdip_river,
+      integer din_river_ncycle, din_river_rec, itdin_river, ntdin_river,
+     &        din_river_file_id, din_river_id, din_river_tid,
+     &        dip_river_ncycle, dip_river_rec, itdip_river, ntdip_river,
      &        dip_river_file_id, dip_river_id,  dip_river_tid
       common/riverdat/ 
-     &        din_river_ncycle,  din_river_rec, itdin_river, ntdin_river,
-     &        din_river_file_id, din_river_id,  din_river_tid,
-     &        dip_river_ncycle,  dip_river_rec, itdip_river, ntdip_river,
-     &        dip_river_file_id, dip_river_id,  dip_river_tid
+     &        din_river_cycle, din_river_time, 
+     &        dip_river_cycle, dip_river_time,
+     &        din_river_ncycle, din_river_rec, itdin_river, ntdin_river,
+     &        din_river_file_id, din_river_id, din_river_tid,
+     &        dip_river_ncycle, dip_river_rec, itdip_river, ntdip_river,
+     &        dip_river_file_id, dip_river_id, dip_river_tid
 #  endif /* defined RIVER_DATA || defined ALL_DATA */
 # endif /* RIVER_LOAD_N || RIVER_LOAD_P */
 #endif /* BIOLOG_BEC || BIOLOG_BEC2 */ 
