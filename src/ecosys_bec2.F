@@ -482,7 +482,9 @@ c$$$       enddo
 #  else /* BEC2_DIAG */
              ph_hist(istr:iend,j) = PH_NEW(istr:iend)
              pCO2sw(istr:iend,j) = pco2oc_ROW(istr:iend)
+#   ifdef PCO2AIR_FORCING
              pCO2air(istr:iend,j) = XCO2(istr:iend)
+#   endif
 #  endif /* BEC2_DIAG */
 # endif /* CCHEM_MOCSY */
 
