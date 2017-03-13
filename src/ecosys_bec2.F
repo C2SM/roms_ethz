@@ -1307,13 +1307,11 @@ c$$$       enddo
 #   ifdef BEC_COCCO
           else if (auto_ind == cocco_ind) then
              bec2_diag_3d(istr:iend,j,k,coccofeuptake_idx_t) = VFe
-             bec2_diag_3d(istr:iend,j,k,coccopo4uptake_idx_t) =VPO4(istr:iend,diaz_ind)
+             bec2_diag_3d(istr:iend,j,k,coccopo4uptake_idx_t) =VPO4(istr:iend,cocco_ind)
 #   endif
           else
              bec2_diag_3d(istr:iend,j,k,diazfeuptake_idx_t) = VFe
-#   ifdef BEC_COCCO
-             bec2_diag_3d(istr:iend,j,k,diazpo4uptake_idx_t) =VPO4(istr:iend,cocco_ind)
-#   endif
+             bec2_diag_3d(istr:iend,j,k,diazpo4uptake_idx_t) =VPO4(istr:iend,diaz_ind)
           end if
 #  endif
 # endif

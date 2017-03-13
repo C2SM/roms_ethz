@@ -107,13 +107,16 @@
 
 # ifdef USE_EXPLICIT_VSINK
       parm_scalelen_z    = (/ 130.0, 290.0, 670.0, 1700.0 /) 
-      parm_scalelen_vals = (/     1.0,     1.8,     3.8,      8.0 /) ! MF: try new parametrization for explicit sinking
+      parm_scalelen_vals = (/     1.0,     1.6,     3.5,      8.0 /) ! MF: try new parametrization for explicit sinking
 # else
       parm_scalelen_z    = (/ 130.0, 290.0, 670.0, 1700.0 /) ! DL: converted to m
       parm_scalelen_vals = (/     1.0,     3.0,     5.0,      9.0 /) ! x1 default
 # endif
 
       ! The following arrays give parameters in this order: sp, diat, diaz
+      ! MF: The following half-saturation values are 250% of what I started from. This
+      ! helped me to reduce basin scale productivity biases, while CalCS
+      ! is still ok! (13.3.17)
       kFe = (/ 0.10e-3, 0.15e-3, 0.10e-3 /) ! mmol Fe/m3 
       kPO4 = (/ 0.025, 0.125, 0.05 /)         ! mmol P/m3
       kDOP = (/ 0.65, 2.25, 0.225 /)          ! 
@@ -138,8 +141,8 @@
       agg_rate_max = (/ 0.9, 0.9, 0.0 /)
       agg_rate_min = (/ 0.01, 0.02, 0.0 /)
       !z_umax_0 = (/ 3.3*dps, 3.08*dps, 0.6*dps /) ! previous defaults
-      z_umax_0 = (/ 2.64*dps, 2.46*dps, 0.48*dps /) ! MF: sensitivity test 80%
-      !z_umax_0 = (/ 2.47*dps, 2.31*dps, 0.45*dps /) ! MF: sensitivity test 75%
+      !z_umax_0 = (/ 2.64*dps, 2.46*dps, 0.48*dps /) ! MF: sensitivity test 80%
+      z_umax_0 = (/ 2.47*dps, 2.31*dps, 0.45*dps /) ! MF: sensitivity test 75%
       !z_umax_0 = (/ 2.8*dps, 2.6*dps, 0.51*dps /) ! MF: sensitivity test 85%
       z_grz = (/ 1.05, 1.0, 1.2 /)      ! grazing coefficient (mmol C/m^3)
       graze_zoo = (/ 0.3, 0.3, 0.3 /)
