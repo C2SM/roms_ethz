@@ -743,12 +743,23 @@ c--#  define ntdf nrhs
 # endif /* PHYS_FLUX_ANALYSIS */
 ! Add 3D sources
 # ifdef TSOURCE
+!          if (itrc < 3) then
           do k=1,N
             do i=istr,iend
               t(i,j,k,nnew,itrc)=t(i,j,k,nnew,itrc) +dt*pm(i,j)*pn(i,j)
      &                                               *T_src(i,j,k,itrc)
+     &                                               /Hz(i,j,k)**2
             enddo
+! Debugging Domitille
+!               if (mynode == 6) then
+!               if (itrc .gt. 1 + ntrc_salt .and. k .eq. 31) then
+!               write(*,*) 'PO4 in step3d =',T_src(35,11,31,itrc)
+!               endif
+!               endif
+! End Domitille
+
           enddo
+!          endif
 # endif /* TSOURCE */
 
 ! Start computation of vertical diffusion: add surface forcing fluxes

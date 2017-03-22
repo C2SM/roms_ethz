@@ -370,3 +370,7 @@ c     &      NSUB_X=2, NSUB_E=8  ! <-- iswake 768x192
 #ifdef FLOATS
      &       , Mfloats=32000 ! Maximum number of floats
 #endif
+#ifdef TSOURCE
+     &       , ntrc_tsrc=2
+     &       , NTS=itemp+ntrc_pas+ntrc_tsrc
+#endif
