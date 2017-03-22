@@ -1,10 +1,9 @@
-! Compute vertical sinking fluxes.
 
 #include "cppdefs.h"
 
 #if defined BIOLOGY_BEC2 && defined USE_EXPLICIT_VSINK
 
-      subroutine vert_sinking_bec2(Istr,Iend,Jstr,Jend)
+      subroutine vert_sinking_bec2(Istr,Iend,j)
 
          implicit none
 
@@ -17,27 +16,16 @@
 ! For rmask:
 #include "grid.h"
 
-         integer, intent(in) :: Istr, Iend, Jstr, Jend
+         integer, intent(in) :: Istr, Iend, j
 
          ! Local variables:
-         integer i, j, k, iB, iflux
+         integer i, k, iB, iflux
          real cff, cff1, cff2, cff6, cu, aL, aR, dtdays
          real FC(0:N), SB(N,nsink), dSB(0:N,nsink), wSB(nsink)
          real ColumnMassOld(nsink), ColumnMassNew(nsink)
          real ThisVSinkFlux(N,nsink), LastVSinkFlux
 
-!
-! Apply forcing fluxes to dust:
-!
-         do j=jstr,jend
-            do i=istr,iend
-               t(i,j,N,nnew,iDUSTHARD) = t(i,j,N,nnew,iDUSTHARD) 
-     &                                   + dt*dust_gamma*dust(i,j)/Hz(i,j,N)
-               t(i,j,N,nnew,iDUSTSOFT) = t(i,j,N,nnew,iDUSTSOFT) 
-     &                                   + dt*(1-dust_gamma)*dust(i,j)/Hz(i,j,N)
-            end do
-         end do
-!
+
          dtdays=dt/(24.*3600.)  ! time step as fraction of day.
 !
 ! Sinking velocities:
@@ -56,15 +44,12 @@
 ! Vertical sinking: Vertical advection algorithm based on monotonic,
 ! continuous conservative parabolic splines.
 !
-         do j=jstr,jend
          do i=istr,iend
          k_loop4: do k=1,N
            do iB=1,nsink
-             SB(k,iB)=t(i,j,k,nnew,iDUSTHARD+iB-1)
+             SB(k,iB)=tracer(i,j,k,dusthard_ind_t+iB-1)
            end do
          end do k_loop4
-!         end do
-!         end do
 
          iB_loop: do iB=1,nsink
 
@@ -146,11 +131,11 @@
             ColumnMassNew(iB) = 0.0
             do k=1,N
                ColumnMassOld(iB) = ColumnMassOld(iB) +
-     &           t(i,j,k,nnew,iDUSTHARD+iB-1)*Hz(i,j,k)
-               ThisVSinkFlux(k,iB) = t(i,j,k,nnew,iDUSTHARD+iB-1)-SB(k,iB)
-               t(i,j,k,nnew,iDUSTHARD+iB-1) = SB(k,iB)
+     &           tracer(i,j,k,dusthard_ind_t+iB-1)*Hz(i,j,k)
+               ThisVSinkFlux(k,iB) = tracer(i,j,k,dusthard_ind_t+iB-1)-SB(k,iB)
+               tracer(i,j,k,dusthard_ind_t+iB-1) = SB(k,iB)
                ColumnMassNew(iB) = ColumnMassNew(iB) +
-     &           t(i,j,k,nnew,iDUSTHARD+iB-1)*Hz(i,j,k)
+     &           tracer(i,j,k,dusthard_ind_t+iB-1)*Hz(i,j,k)
             end do
             VSinkFlux(i,j,0,iB) = ( ColumnMassNew(iB) -
      &          ColumnMassOld(iB) ) / dt
@@ -168,10 +153,12 @@
             end do ! k
          end do ! iB
          end do ! i
-         end do ! j
+
+         return
+         end subroutine vert_sinking_bec2
 
 #else /* BIOLOGY_BEC2 && USE_EXPLICIT_VSINK */
       subroutine vert_sinking_bec2()
-#endif /* BIOLOGY_BEC2 && USE_EXPLICIT_VSINK */
       return
       end
+#endif /* BIOLOGY_BEC2 && USE_EXPLICIT_VSINK */

@@ -187,7 +187,7 @@ c$$$       enddo
 
     !----------------------------------------------------------------------
     !   Set bad AP values to 1. This is necessary for runs restarting off
-    !   a run in which the flux coupler didn't restart on AP correctly.
+    !   a run in which the flux coupler didnt restart on AP correctly.
     !----------------------------------------------------------------------
        WHERE (AP_USED(istr:iend,jstr:jend) > 1.5 .OR. AP_USED(istr:iend,jstr:jend) < 0.5)
           AP_USED(istr:iend,jstr:jend) = c1
@@ -340,7 +340,7 @@ c$$$       enddo
 
 ! MF (added treatment of pCO2air forcing)
 # ifdef PCO2AIR_FORCING
-             XCO2(istr:iend) = pCO2air(istr:iend,j)
+             XCO2(istr:iend) = pco2air(istr:iend,j)
 # endif /* PCO2AIR_FORCING */
 
 # ifdef CCHEM_MOCSY
@@ -482,7 +482,9 @@ c$$$       enddo
 #  else /* BEC2_DIAG */
              ph_hist(istr:iend,j) = PH_NEW(istr:iend)
              pCO2sw(istr:iend,j) = pco2oc_ROW(istr:iend)
+#   ifdef PCO2AIR_FORCING
              pCO2air(istr:iend,j) = XCO2(istr:iend)
+#   endif
 #  endif /* BEC2_DIAG */
 # endif /* CCHEM_MOCSY */
 
@@ -670,16 +672,22 @@ c$$$       enddo
      &         tracer(istr:iend,jstr:jend,N,fe_ind_t) +
      &         stf(istr:iend,jstr:jend,fe_ind_t)
      &         *dt/Hz(istr:iend,jstr:jend,N)
-c$$$       ! NOx: added to nitrate
-c$$$       tracer(istr:iend,jstr:jend,N,no3_ind_t) =
-c$$$     &         tracer(istr:iend,jstr:jend,N,no3_ind_t) +
-c$$$     &         nox(istr:iend,jstr:jend)
-c$$$     &         *dt/Hz(istr:iend,jstr:jend,N)
-c$$$       ! NHy: added to ammonium:
-c$$$       tracer(istr:iend,jstr:jend,N,nh4_ind_t) =
-c$$$     &         tracer(istr:iend,jstr:jend,N,nh4_ind_t) +
-c$$$     &         nhy(istr:iend,jstr:jend)
-c$$$     &         *dt/Hz(istr:iend,jstr:jend,N)
+
+# ifdef NOX_FORCING
+       ! NOx: added to nitrate (convert units from kg N to mmol N)
+       tracer(istr:iend,jstr:jend,N,no3_ind_t) =
+     &         tracer(istr:iend,jstr:jend,N,no3_ind_t) +
+     &         nox(istr:iend,jstr:jend)*71394.200220751
+     &         *dt/Hz(istr:iend,jstr:jend,N)
+# endif
+# ifdef NHY_FORCING
+       ! NHy: added to ammonium (convert units from kg N to mmol N)        
+       tracer(istr:iend,jstr:jend,N,nh4_ind_t) =
+     &         tracer(istr:iend,jstr:jend,N,nh4_ind_t) +
+     &         nhy(istr:iend,jstr:jend)*71394.200220751
+     &         *dt/Hz(istr:iend,jstr:jend,N)
+# endif
+
 # ifdef BEC2_DIAG
 #  ifdef BEC2_DIAG_USER
        if (bec2_diag_2d_l(ironflux_idx_t))
@@ -700,8 +708,16 @@ c$$$     &         *dt/Hz(istr:iend,jstr:jend,N)
     !---------------------------------------------------------------------
 
        do j = jstr, jend
+
+# ifdef USE_EXPLICIT_VSINK
+    !---------------------------------------------------------------------
+    ! Compute vertical sinking:
+    !---------------------------------------------------------------------
+          call vert_sinking_bec2(istr,iend,j)
+# endif
           do k = N,1,-1
-             call ecosys_set_interior(k,t(istr:iend,j,k,nnew,1),
+
+          call ecosys_set_interior(k,t(istr:iend,j,k,nnew,1),
      &             SHF_QSW(istr:iend,j),  
      &             PAR_out(istr:iend,j),
      &             qa_dust_def(istr:iend,j),istr,iend,j,
@@ -757,13 +773,6 @@ c$$$       enddo
 !       if (mynode==15) then
 !          print *, 'NO3 conc new: ', t(15,11,32,nnew,1+ntrc_salt+ntrc_pas+2)
 !       endif
-
-# ifdef USE_EXPLICIT_VSINK
-    !---------------------------------------------------------------------
-    ! Compute vertical sinking:
-    !---------------------------------------------------------------------
-       call vert_sinking_bec2(istr,iend,jstr,jend)
-# endif
 
        end subroutine ecosys_bec2_tile
 
@@ -880,10 +889,6 @@ c$$$       enddo
      &    P_iron_prod,     ! P iron production (base units = mmol Fe)
      &    Fe_scavenge_rate, ! annual scavenging rate of iron as % of ambient
      &    WORK1,WORK2      ! temporary arrays
-# ifdef USE_EXPLICIT_VSINK
-     &    ,POC_remin        ! POC remineralization
-     &    ,P_iron_remin, P_SiO2_remin, P_CaCO3_remin
-# endif
 
        REAL, DIMENSION(istr:iend,autotroph_cnt) ::
      &    gQfe,            ! fe/C for growth
@@ -1164,11 +1169,8 @@ c$$$       enddo
 # else
           PARinc(istr:iend,j) = PAR_out(istr:iend)
 # endif
-# ifndef USE_EXPLICIT_VSINK
           CALL init_particulate_terms(QA_dust_def,istr,iend,j,dust_flux)
-# endif
-       end if
-
+       end if   
     !-----------------------------------------------------------------------
     !  compute PAR related quantities
     !  Morel, Maritorena, JGR, Vol 106, No. C4, pp 7163--7180, 2001
@@ -1307,13 +1309,11 @@ c$$$       enddo
 #   ifdef BEC_COCCO
           else if (auto_ind == cocco_ind) then
              bec2_diag_3d(istr:iend,j,k,coccofeuptake_idx_t) = VFe
-             bec2_diag_3d(istr:iend,j,k,coccopo4uptake_idx_t) =VPO4(istr:iend,diaz_ind)
+             bec2_diag_3d(istr:iend,j,k,coccopo4uptake_idx_t) =VPO4(istr:iend,cocco_ind)
 #   endif
           else
              bec2_diag_3d(istr:iend,j,k,diazfeuptake_idx_t) = VFe
-#   ifdef BEC_COCCO
-             bec2_diag_3d(istr:iend,j,k,diazpo4uptake_idx_t) =VPO4(istr:iend,cocco_ind)
-#   endif
+             bec2_diag_3d(istr:iend,j,k,diazpo4uptake_idx_t) =VPO4(istr:iend,diaz_ind)
           end if
 #  endif
 # endif
@@ -1557,9 +1557,7 @@ c$$$       enddo
      &          CaCO3_PROD(istr:iend,auto_ind) = min((CaCO3_PROD(istr:iend,auto_ind)
      &                     * C_loc(istr:iend,auto_ind) / CaCO3_sp_thres),
      &                    (f_photosp_CaCO3 * photoC(istr:iend,auto_ind)))
-!# ifdef BEC_COCCO
-          endif
-          if (exp_calcifier(auto_ind)) then
+          elseif (exp_calcifier(auto_ind)) then
 !!  calcification: use different light_lim than for photosynthesis (see
 !!  Zondervan 2007)
 !             QCaCO3(istr:iend,auto_ind) = QCaCO3(istr:iend,auto_ind)*light_lim_calc
@@ -1574,7 +1572,6 @@ c$$$       enddo
           !     print*,'CaCO3_PROD',CaCO3_PROD(istr:iend,auto_ind)
           !   endif
           !   endif
-! endif /* BEC_COCCO */
           else
              CaCO3_PROD(istr:iend,auto_ind) = c0
           endif
@@ -2044,22 +2041,11 @@ c$$$       enddo
 
        Fe_scavenge_rate = parm_Fe_scavenge_rate0
 
-# ifdef USE_EXPLICIT_VSINK
-       ! Note that VSinkFlux is negative if particles sink, therefore the minus
-       ! is necessary:
-       Fe_scavenge_rate = -Fe_scavenge_rate *
-     &     ( VSinkFlux(istr:iend,j,k,2)*120.1 +
-     &       VSinkFlux(istr:iend,j,k,3)*P_CaCO3_mass +
-     &       VSinkFlux(istr:iend,j,k,4)*P_SiO2_mass +
-     &       VSinkFlux(istr:iend,j,k,1)*dust_fescav_scale )
-# else
-       ! Here the fluxes are positive if particles sink.
        Fe_scavenge_rate = Fe_scavenge_rate *
      &     ((POC_sflux_out(istr:iend,j) + POC_hflux_out(istr:iend,j)) * 120.1 +
      &      (P_CaCO3_sflux_out(istr:iend,j) + P_CaCO3_hflux_out(istr:iend,j)) * P_CaCO3_mass +
      &      (P_SiO2_sflux_out(istr:iend,j) + P_SiO2_hflux_out(istr:iend,j)) * P_SiO2_mass +
      &      (dust_sflux_out(istr:iend,j) + dust_hflux_out(istr:iend,j)) * dust_fescav_scale)
-# endif
 
        where (Fe_loc > Fe_scavenge_thres1)
           Fe_scavenge_rate = Fe_scavenge_rate + 
@@ -2067,6 +2053,8 @@ c$$$       enddo
        end where
 
        Fe_scavenge = yps * Fe_loc * Fe_scavenge_rate
+       ! MF: Debugging, try Fe_scavenge=0
+       !Fe_scavenge(istr:iend) = c0
 
        P_iron_prod = (zoo_loss * f_zoo_detr_loc * Qfe_zoo) + Fe_scavenge
 
@@ -2090,39 +2078,8 @@ c$$$       enddo
 #  endif
 # endif
 
-# ifndef USE_EXPLICIT_VSINK
        call compute_particulate_terms(k,QA_dust_def, TEMP, O2_loc, NO3_loc,POC_prod,
      &        P_iron_prod,P_CaCO3_prod,P_SiO2_prod,SED_DENITRIF, OTHER_REMIN,istr,iend,j)
-# else
-       ! Compute remineralization of particulate pools:
-       ! The parameters param_dust_remin etc. are in 1/day, so convert to 1/s.
-       dusthard_remin(istr:iend,j) = param_dusthard_remin/(24.*3600.) * tracer(istr:iend,j,k,dusthard_ind_t)
-       POChard_remin(istr:iend,j) = param_pochard_remin/(24.*3600.) * tracer(istr:iend,j,k,pochard_ind_t)
-       P_CaCO3hard_remin(istr:iend,j) = param_pcaco3hard_remin/(24.*3600.) * tracer(istr:iend,j,k,pcaco3hard_ind_t)
-       P_SiO2hard_remin(istr:iend,j) = param_psio2hard_remin/(24.*3600.) * tracer(istr:iend,j,k,psio2hard_ind_t)
-       P_ironhard_remin(istr:iend,j) = param_pironhard_remin/(24.*3600.) * tracer(istr:iend,j,k,pironhard_ind_t)
-       dustsoft_remin(istr:iend,j) = param_dustsoft_remin/(24.*3600.) * tracer(istr:iend,j,k,dustsoft_ind_t)
-       POCsoft_remin(istr:iend,j) = param_pocsoft_remin/(24.*3600.) * tracer(istr:iend,j,k,pocsoft_ind_t)
-       P_CaCO3soft_remin(istr:iend,j) = param_pcaco3soft_remin/(24.*3600.) * tracer(istr:iend,j,k,pcaco3soft_ind_t)
-       P_SiO2soft_remin(istr:iend,j) = param_psio2soft_remin/(24.*3600.) * tracer(istr:iend,j,k,psio2soft_ind_t)
-       P_ironsoft_remin(istr:iend,j) = param_pironsoft_remin/(24.*3600.) * tracer(istr:iend,j,k,pironsoft_ind_t)
-       POC_remin = POChard_remin(istr:iend,j) + POCsoft_remin(istr:iend,j)
-       P_iron_remin = P_ironhard_remin(istr:iend,j)+ P_ironsoft_remin(istr:iend,j)
-       P_SiO2_remin = P_SiO2hard_remin(istr:iend,j) + P_SiO2soft_remin(istr:iend,j)
-       P_CaCO3_remin = P_CaCO3hard_remin(istr:iend,j) + P_CaCO3soft_remin(istr:iend,j)
-#  ifdef BEC2_DIAG
-       bec2_diag_3d(istr:iend,j,k,pironhardremin_idx_t) = P_Ironhard_remin(istr:iend,j)
-       bec2_diag_3d(istr:iend,j,k,caco3hardremin_idx_t) = P_CaCO3hard_remin(istr:iend,j)
-       bec2_diag_3d(istr:iend,j,k,sio2hardremin_idx_t) = P_SiO2hard_remin(istr:iend,j)
-       bec2_diag_3d(istr:iend,j,k,pochardremin_idx_t) = POChard_remin(istr:iend,j)
-       bec2_diag_3d(istr:iend,j,k,dusthardremin_idx_t) = dusthard_remin(istr:iend,j)
-       bec2_diag_3d(istr:iend,j,k,pironsoftremin_idx_t) = P_Ironsoft_remin(istr:iend,j)
-       bec2_diag_3d(istr:iend,j,k,caco3softremin_idx_t) = P_CaCO3soft_remin(istr:iend,j)
-       bec2_diag_3d(istr:iend,j,k,sio2softremin_idx_t) = P_SiO2soft_remin(istr:iend,j)
-       bec2_diag_3d(istr:iend,j,k,pocsoftremin_idx_t) = POCsoft_remin(istr:iend,j)
-       bec2_diag_3d(istr:iend,j,k,dustsoftremin_idx_t) = dustsoft_remin(istr:iend,j)
-#  endif
-# endif /* USE_EXPLICIT_VSINK */
 
     !-----------------------------------------------------------------------
     !  nitrate & ammonium
@@ -2166,11 +2123,7 @@ c$$$       enddo
        ! NO3min=2
 
        DENITRIF = WORK1 * ((DOC_remin
-# ifdef USE_EXPLICIT_VSINK
-     &                  + POC_remin
-# else
      &                  + POC_remin(istr:iend,j)
-# endif
      &                  - OTHER_REMIN) / denitrif_C_N - SED_DENITRIF)
 
        where (NO3_loc < parm_denitrif_NO3_limit)
@@ -2200,11 +2153,7 @@ c$$$       enddo
 
        DTRACER_MODULE(istr:iend,j,k,nh4_ind_t) = -sum(NH4_V, dim=2) - NITRIF + DON_remin + DONr_remin
      &     + Q * (zoo_loss_dic + sum(auto_loss_dic, dim=2) + sum(auto_graze_dic, dim=2)
-# ifdef USE_EXPLICIT_VSINK
-     &     + POC_remin
-# else
      &     + POC_remin(istr:iend,j)
-# endif
      &     * (c1 - DONrefract))
 
        do auto_ind = 1, autotroph_cnt
@@ -2217,11 +2166,7 @@ c$$$       enddo
     !  dissolved iron
     !-----------------------------------------------------------------------
 
-# ifdef USE_EXPLICIT_VSINK
-       DTRACER_MODULE(istr:iend,j,k,fe_ind_t) = P_iron_remin
-# else
        DTRACER_MODULE(istr:iend,j,k,fe_ind_t) = P_iron_remin(istr:iend,j)
-# endif
      &           + (Qfe_zoo * zoo_loss_dic) + DOFe_remin - sum(photoFe, dim=2) - Fe_scavenge
 
        do auto_ind = 1, autotroph_cnt
@@ -2234,11 +2179,7 @@ c$$$       enddo
     !  dissolved SiO3
     !-----------------------------------------------------------------------
 
-# ifdef USE_EXPLICIT_VSINK
-       DTRACER_MODULE(istr:iend,j,k,sio3_ind_t) = P_SiO2_remin
-# else
        DTRACER_MODULE(istr:iend,j,k,sio3_ind_t) = P_SiO2_remin(istr:iend,j)
-# endif
 
        do auto_ind = 1, autotroph_cnt
           if (kSiO3(auto_ind) > 0) then
@@ -2256,11 +2197,7 @@ c$$$       enddo
        DTRACER_MODULE(istr:iend,j,k,po4_ind_t) = DOP_remin(istr:iend,j) + DOPr_remin(istr:iend,j) 
      &     - sum(PO4_V, dim=2)
      &     + Qp_zoo_pom * ((c1 - DOPrefract)
-# ifdef USE_EXPLICIT_VSINK
-     &     * POC_remin
-# else
      &     * POC_remin(istr:iend,j)
-# endif
      &     + zoo_loss_dic)
 
        do auto_ind = 1, autotroph_cnt
@@ -2321,22 +2258,14 @@ c$$$       enddo
        DTRACER_MODULE(istr:iend,j,k,don_ind_t) = (DON_prod * (c1 - DONrefract)) - DON_remin
 
        DTRACER_MODULE(istr:iend,j,k,donr_ind_t) = (DON_prod * DONrefract) - DONr_remin
-# ifdef USE_EXPLICIT_VSINK
-     &         + ( POC_remin
-# else
      &         + ( POC_remin(istr:iend,j)
-# endif
      &         * DONrefract * Q)
 
        DTRACER_MODULE(istr:iend,j,k,dop_ind_t) = (DOP_prod * (c1 - DOPrefract)) - DOP_remin(istr:iend,j)
      &         - sum(DOP_V, dim=2)
 
        DTRACER_MODULE(istr:iend,j,k,dopr_ind_t) = (DOP_prod * DOPrefract) - DOPr_remin(istr:iend,j)
-# ifdef USE_EXPLICIT_VSINK
-     &         + ( POC_remin
-# else
      &         + ( POC_remin(istr:iend,j)
-# endif
      &         * DOPrefract * Qp_zoo_pom)
 
        DTRACER_MODULE(istr:iend,j,k,dofe_ind_t) = DOFe_prod - DOFe_remin
@@ -2348,11 +2277,7 @@ c$$$       enddo
        DTRACER_MODULE(istr:iend,j,k,dic_ind_t) =
      &       sum(auto_loss_dic, dim=2) + sum(auto_graze_dic, dim=2) - sum(photoC, dim=2)
      &       + DOC_remin
-# ifdef USE_EXPLICIT_VSINK
-     &       + POC_remin + P_CaCO3_remin
-# else
      &       + POC_remin(istr:iend,j) + P_CaCO3_remin(istr:iend,j)
-# endif
      &       + zoo_loss_dic
 
        do auto_ind = 1, autotroph_cnt
@@ -2368,11 +2293,7 @@ c$$$       enddo
 
        DTRACER_MODULE(istr:iend,j,k,alk_ind_t) = -DTRACER_MODULE(istr:iend,j,k,no3_ind_t) +
      &                  DTRACER_MODULE(istr:iend,j,k,nh4_ind_t) + c2
-# ifdef USE_EXPLICIT_VSINK
-     &     * P_CaCO3_remin
-# else
      &     * P_CaCO3_remin(istr:iend,j)
-# endif
 
        do auto_ind = 1, autotroph_cnt
           if (CaCO3_ind(auto_ind) > 0)
@@ -2413,11 +2334,7 @@ c$$$       enddo
        WORK1 = min(max(WORK1,c0),c1)
        O2_CONSUMPTION = WORK1 *
      &  ((
-# ifdef USE_EXPLICIT_VSINK
-     &   POC_remin
-# else
      &   POC_remin(istr:iend,j)
-# endif
      &   + DOC_remin - (SED_DENITRIF*denitrif_C_N) - OTHER_REMIN + zoo_loss_dic
      &   + sum(auto_loss_dic, dim=2) + sum(auto_graze_dic, dim=2)) / parm_Remin_D_C_O2 + (c2 * NITRIF))
 
@@ -2465,7 +2382,6 @@ c$$$       enddo
        end subroutine ecosys_set_interior
 
 
-#ifndef USE_EXPLICIT_VSINK
 !-------------------------------------------------------------------------
 !
 !     ************   SUBROUTINE INIT_PARTICULATE_TERMS   ****************
@@ -2479,6 +2395,8 @@ c$$$       enddo
 #include "param.h" 
 #include "param_bec2.h"
 #include "ecosys_bec2.h"
+#include "scalars.h"
+#include "ocean3d.h"
 
     !---------------------------------------------------------------------------
     !   Set incoming fluxes (put into outgoing flux for first level usage).
@@ -2532,6 +2450,7 @@ c$$$       enddo
 
         POC_diss      = parm_POC_diss   ! diss. length (m), modified by TEMP
         POC_mass      = 12.01           ! molecular weight of POC
+        POC_gamma     = c0
 
         P_CaCO3_diss  = parm_CaCO3_diss ! diss. length (m)
         P_CaCO3_gamma = 0.30            ! prod frac -> hard subclass
@@ -2559,14 +2478,23 @@ c$$$       enddo
         P_SiO2_sflux_out  = c0
         P_SiO2_hflux_out  = c0
 
-        dust_sflux_out(istr:iend,j) = (c1 - dust_gamma) * NET_DUST_IN
-        dust_hflux_out(istr:iend,j) = dust_gamma * NET_DUST_IN
+        dust_sflux_out(istr:iend,j) = (c1 - dust_gamma) * net_dust_in
+        dust_hflux_out(istr:iend,j) = dust_gamma * net_dust_in
 
         P_iron_sflux_out = c0
         P_iron_hflux_out = c0
 
     !-----------------------------------------------------------------------
     !  Hard POC is QA flux and soft POC is excess POC.
+    !
+    !  Note (MF):
+    !  These names are convenient given the mineral associated soft and
+    !  hard components, but rather confusing when reading about the
+    !  particulate/ballast models in Armstrong et al 2002, and Lima et
+    !  al 2014 (there is no such thing as POC hard, POC_gamma
+    !  doesnt exist here or is set to c0 in CESM BEC). Soft/Hard actually
+    !  applies only to the mineral associated components. Think about 
+    !  POC_hflux as being the QA component of POC and POC_sflux the excess POC.
     !-----------------------------------------------------------------------
 
         POC_sflux_out = c0
@@ -2578,12 +2506,21 @@ c$$$       enddo
 
         QA_dust_def = dust_rho * (dust_sflux_out(istr:iend,j) + dust_hflux_out(istr:iend,j))
 
+    !-----------------------------------------------------------------------
+    !  Apply dust forcing to surface layer (only if explicitly tracking
+    !  dust as a tracer)
+    !-----------------------------------------------------------------------
+# ifdef USE_EXPLICIT_VSINK
+        tracer(istr:iend,j,N,dusthard_ind_t) = tracer(istr:iend,j,N,dusthard_ind_t)
+     &                       + dt*dust_gamma*net_dust_in/Hz(istr:iend,j,N)
+        tracer(istr:iend,j,N,dustsoft_ind_t) = tracer(istr:iend,j,N,dustsoft_ind_t)
+     &                       + dt*(c1-dust_gamma)*net_dust_in/Hz(istr:iend,j,N)
+# endif
+
         return
         end subroutine init_particulate_terms
-# endif /* USE_EXPLICIT_VSINK */
 
 
-#ifndef USE_EXPLICIT_VSINK
 !-------------------------------------------------------------------------
 !
 !     ************   SUBROUTINE COMPUTE_PARTICULATE_TERMS   ****************
@@ -2600,21 +2537,24 @@ c$$$       enddo
 #include "param_bec2.h"
 #include "ocean3d.h"
 
-       integer istr, iend, i, j, k, n_loc
+       integer istr, iend, i, j, k, n_loc, iB
        real, dimension(istr:iend) ::
-     &   temp, O2_loc, NO3_loc,
-     &   scalelength,POC_prod,P_CaCO3_prod,P_SiO2_prod,P_iron_prod,
-     &   DECAY_Hard,       ! scaling factor for dissolution of Hard Ballast
-     &   DECAY_HardDust,   ! scaling factor for dissolution of Hard dust
-     &   QA_dust_def,   ! incoming deficit in the QA (dust) POC flux
-     &   dust_remin,    ! remineralization of dust (base units/m^3/sec)
-     &   SED_DENITRIF,  ! sedimentary denitrification (mmolN/m^3/s)
-     &   OTHER_REMIN,   ! sedimentary remin not due to oxic or denitrification
-     &   flux_oxidated, ! carbon oxidation rate in sediment
-     &   FESEDFLUX,     ! sedimentary Fe inputs
-     &   TfuncS         ! temperature scaling from soft POM remin
-
+     &   temp, O2_loc, NO3_loc
+     &   ,POC_prod,P_CaCO3_prod,P_SiO2_prod,P_iron_prod
+     &   ,QA_dust_def   ! incoming deficit in the QA (dust) POC flux
+     &   ,dust_remin    ! remineralization of dust (base units/m^3/sec)
+     &   ,SED_DENITRIF  ! sedimentary denitrification (mmolN/m^3/s)
+     &   ,OTHER_REMIN   ! sedimentary remin not due to oxic or denitrification
+     &   ,flux_oxidated ! carbon oxidation rate in sediment
+     &   ,FESEDFLUX     ! sedimentary Fe inputs
+     &   ,scalelength       
+     &   ,TfuncS         ! temperature scaling from soft POM remin
+# ifndef USE_EXPLICIT_VSINK
+     &   ,DECAY_Hard       ! scaling factor for dissolution of Hard Ballast
+     &   ,DECAY_HardDust   ! scaling factor for dissolution of Hard dust
+# endif
        real
+# ifndef USE_EXPLICIT_VSINK
      &   poc_diss_loc,      ! diss. length used (m)
      &   sio2_diss_loc,     ! diss. length varies spatially with O2 (m)
      &   caco3_diss_loc,
@@ -2623,6 +2563,13 @@ c$$$       enddo
      &   decay_SiO2,        ! scaling factor for dissolution of SiO2
      &   decay_CaCO3,       ! scaling factor for dissolution of CaCO3
      &   decay_dust,        ! scaling factor for dissolution of dust
+# else
+     &   pocsoft_remin_loc, pochard_remin_loc,  ! Local remin rates subject to adjustments
+     &   pcaco3soft_remin_loc, pcaco3hard_remin_loc,
+     &   psio2soft_remin_loc, psio2hard_remin_loc,
+     &   pironsoft_remin_loc, pironhard_remin_loc,
+     &   dustsoft_remin_loc, dusthard_remin_loc,
+# endif
      &   POC_PROD_avail,    ! POC production available for excess POC flux (mmol/m^3/s)
      &   new_QA_dust_def,   ! outgoing deficit in the QA(dust) POC flux
      &   flux, flux_alt,    ! temp variables used to update sinking flux
@@ -2711,6 +2658,9 @@ c$$$       enddo
        dust_sed_loss(istr:iend,j) = c0
        SED_DENITRIF = c0
        OTHER_REMIN = c0
+# ifdef USE_EXPLICIT_VSINK
+       FESEDFLUX(istr:iend) = c0
+# endif
 
     !-----------------------------------------------------------------------
     !  compute scalelength and decay factors
@@ -2732,8 +2682,10 @@ c$$$       enddo
                 endif
              end do
           endif
+# ifndef USE_EXPLICIT_VSINK      
           DECAY_Hard(i)     = exp(-Hz(i,j,k) / 4.0e4)  ! DL: denominator converted to m
           DECAY_HardDust(i) = exp(-Hz(i,j,k) / 1.2e5)  ! DL: denominator converted to m
+# endif      
        end do
 
     !----------------------------------------------------------------------
@@ -2749,40 +2701,80 @@ c$$$       enddo
          ! dzr_loc = c1/dz_loc ! moved this line out of the if-loop
           if (LANDMASK(i,j)) then
              dzr_loc = c1 / dz_loc
+
+# ifdef USE_EXPLICIT_VSINK             
+             ! MF: Create local copies of remineralization lengths
+             ! to adjust later on. Only soft components get adjusted
+             ! to environmental conditions later! 
+             pochard_remin_loc = param_pochard_remin
+             pocsoft_remin_loc = param_pocsoft_remin
+             psio2hard_remin_loc = param_psio2hard_remin
+             psio2soft_remin_loc = param_psio2soft_remin
+             pcaco3hard_remin_loc = param_pcaco3hard_remin
+             pcaco3soft_remin_loc = param_pcaco3soft_remin
+             pironhard_remin_loc = param_pironhard_remin
+             pironsoft_remin_loc = param_pironsoft_remin
+             dusthard_remin_loc = param_dusthard_remin
+             dustsoft_remin_loc = param_dustsoft_remin
+# else
              poc_diss_loc = POC_diss
              sio2_diss_loc = P_SiO2_diss
              caco3_diss_loc = P_CaCO3_diss
              dust_diss_loc = dust_diss
+# endif
 
     !-----------------------------------------------------------------------
     !  increase POC diss length scale where O2 concentrations are low
     !-----------------------------------------------------------------------
 
              if ((O2_loc(i) >= 5.0) .and. (O2_loc(i) < 40.0)) then
+# ifdef USE_EXPLICIT_VSINK             
+                pocsoft_remin_loc = pocsoft_remin_loc/(c1+(3.3-c1)*(40.0 - O2_loc(i))/35.0)
+# else
                 poc_diss_loc = POC_diss*(c1+(3.3-c1)*(40.0 - O2_loc(i))/35.0)
+# endif
              else if (O2_loc(i) < 5.0) then
+# ifdef USE_EXPLICIT_VSINK             
+                pocsoft_remin_loc = pocsoft_remin_loc / 3.3
+# else
                 poc_diss_loc = POC_diss * 3.3
+# endif                
              endif
 
     !-----------------------------------------------------------------------
     !  apply scalelength factor to length scales
     !-----------------------------------------------------------------------
 
+# ifdef USE_EXPLICIT_VSINK             
+             pocsoft_remin_loc = pocsoft_remin_loc / scalelength(i)
+             pcaco3soft_remin_loc = pcaco3soft_remin_loc / scalelength(i)
+             psio2soft_remin_loc = psio2soft_remin_loc / scalelength(i)
+             pironsoft_remin_loc = pironsoft_remin_loc / scalelength(i)
+             dustsoft_remin_loc = dustsoft_remin_loc / scalelength(i)
+# else    
              poc_diss_loc = scalelength(i) * poc_diss_loc
              sio2_diss_loc = scalelength(i) * sio2_diss_loc
              caco3_diss_loc = scalelength(i) * caco3_diss_loc
              dust_diss_loc = scalelength(i) * dust_diss_loc
+# endif
 
     !-----------------------------------------------------------------------
     !  apply temperature dependence to sio2_diss length scale
     !-----------------------------------------------------------------------
-
+             ! MF: Not sure whether this should still be done? In CESM
+             ! BEC, they dont do this anymore, but only apply the
+             ! scaling factors, which in the end also represent some
+             ! kind of temperature dependence!
+# ifdef USE_EXPLICIT_VSINK             
+             psio2soft_remin_loc = psio2soft_remin_loc * TfuncS(i)
+# else    
              sio2_diss_loc = sio2_diss_loc / TfuncS(i)
-
+# endif
     !-----------------------------------------------------------------------
     !  decay_POC_E and decay_SiO2 set locally, modified by O2
     !-----------------------------------------------------------------------
 
+# ifndef USE_EXPLICIT_VSINK             
              decay_POC_E = exp(-dz_loc / poc_diss_loc)
              decay_SiO2  = exp(-dz_loc / sio2_diss_loc)
              decay_CaCO3 = exp(-dz_loc / caco3_diss_loc)
@@ -2814,12 +2806,38 @@ c$$$       enddo
 
              dust_hflux_out(i,j) = dust_hflux_in(i,j) * DECAY_HardDust(i)
 
+# else
+
+    !-----------------------------------------------------------------------
+    !  Set outgoing fluxes.
+    !  In the case of explicit sinking, these are actually computed in
+    !  vsink_BEC2.F and stored in VSinkFlux(:,:,N+1,nsink) at w levels.
+    !  Incoming fluxes for level n at VSinkFlux(:,:,n,sink_tracer) and
+    !  outgoing fluxes for level n at VSinkFlux(:,:,n-1,sink_tracer).
+    !  It is assumed that there is no sub-surface dust production.
+    !  Downward fluxes are negative in VSinkFlux!
+    !-----------------------------------------------------------------------
+
+             P_CaCO3_sflux_out(i,j) = -VSinkFlux(i,j,k-1,iPCACO3SOFT_VSink)
+             P_CaCO3_hflux_out(i,j) = -VSinkFlux(i,j,k-1,iPCACO3HARD_VSink)
+
+             P_SiO2_sflux_out(i,j) = -VSinkFlux(i,j,k-1,iPSIO2SOFT_VSink)
+             P_SiO2_hflux_out(i,j) = -VSinkFlux(i,j,k-1,iPSIO2HARD_VSink)
+
+             P_iron_sflux_out(i,j) = -VSinkFlux(i,j,k-1,iPIRONSOFT_VSink)
+             P_iron_hflux_out(i,j) = -VSinkFlux(i,j,k-1,iPIRONHARD_VSink)
+
+             dust_sflux_out(i,j) = -VSinkFlux(i,j,k-1,iDUSTSOFT_VSink)
+             dust_hflux_out(i,j) = -VSinkFlux(i,j,k-1,iDUSTHARD_VSink)
+
+# endif /* USE_EXPLICIT_VSINK */
+
     !-----------------------------------------------------------------------
     !  Compute how much POC_PROD is available for deficit reduction
     !  and excess POC flux after subtracting off fraction of non-dust
     !  ballast production from net POC_PROD.
     !-----------------------------------------------------------------------
-
+ 
              POC_PROD_avail = POC_prod(i) -
      &          P_CaCO3_rho * P_CaCO3_prod(i) -
      &          P_SiO2_rho * P_SiO2_prod(i)
@@ -2841,13 +2859,20 @@ c$$$       enddo
 
     !-----------------------------------------------------------------------
     !  Compute 1st approximation to new QA_dust_def, the QA_dust
-    !  deficit leaving the cell. Ignore POC_PROD_avail at this stage.
+    !  deficit leaving the cell (implicit). In the case of explicit 
+    !  sinking, new_QA_dust_def equals dust flux leaving the layer.
+    !  Ignore POC_PROD_avail at this stage.
     !-----------------------------------------------------------------------
 
              if (QA_dust_def(i) > 0) then
+# ifdef USE_EXPLICIT_VSINK
+                new_QA_dust_def = dust_rho * (dust_sflux_out(i,j) +
+     &                            dust_hflux_out(i,j))
+# else
                 new_QA_dust_def = QA_dust_def(i) *
      &             (dust_sflux_out(i,j) + dust_hflux_out(i,j)) / 
      &             (dust_sflux_in(i,j) + dust_hflux_in(i,j))
+# endif
              else
                 new_QA_dust_def = c0
              endif
@@ -2855,6 +2880,9 @@ c$$$       enddo
     !-----------------------------------------------------------------------
     !  Use POC_PROD_avail to reduce new_QA_dust_def.
     !-----------------------------------------------------------------------
+
+        ! MF: Discuss the whole QA_dust_def treatment for the explicit
+        ! case !!!
 
              if (new_QA_dust_def > c0) then
                 new_QA_dust_def = new_QA_dust_def - POC_PROD_avail * dz_loc
@@ -2877,6 +2905,14 @@ c$$$       enddo
     !  Any POC_PROD_avail still remaining goes into excess POC flux.
     !-----------------------------------------------------------------------
 
+        ! HOW DO I DEAL WITH THIS???? I am not sure how this section
+        ! would be dealt with in the explicit case. Since
+        ! POChard is not actually produced (POC_gamma=0) it is
+        ! assembeled from the different rho fractions of ballast
+        ! material, so I assume this calculation is 'OK'?!? How
+        ! about POCsoft, can I just read it from VSinkFlux, and/or
+        ! whats the contribution of POC_PROD_avail???
+
              if (POC_hflux_in(i,j) == c0 .and. POC_prod(i) == c0) then
                 POC_hflux_out(i,j) = c0
              else
@@ -2890,15 +2926,50 @@ c$$$       enddo
                 POC_hflux_out(i,j) = max(POC_hflux_out(i,j), c0)
              endif
 
+# ifdef USE_EXPLICIT_VSINK
+             POC_sflux_out(i,j) = -VSinkFlux(i,j,k-1,iPOCSOFT_VSink)
+# else             
              POC_sflux_out(i,j) = POC_sflux_in(i,j) * decay_POC_E +
      &          POC_PROD_avail *((c1 - decay_POC_E) *
      &          poc_diss)
+# endif
 
     !-----------------------------------------------------------------------
     !  Compute remineralization terms. It is assumed that there is no
     !  sub-surface dust production.
     !-----------------------------------------------------------------------
 
+# ifdef USE_EXPLICIT_VSINK
+             P_CaCO3hard_remin(i,j) = pcaco3hard_remin_loc *
+     &                      dps * tracer(i,j,k,pcaco3hard_ind_t)
+             P_CaCO3soft_remin(i,j) = pcaco3soft_remin_loc *
+     &                      dps * tracer(i,j,k,pcaco3soft_ind_t)
+             P_CaCO3_remin(i,j) = P_CaCO3hard_remin(i,j)+P_CaCO3soft_remin(i,j)
+
+             POChard_remin(i,j) = pochard_remin_loc *
+     &                      dps * tracer(i,j,k,pochard_ind_t)
+             POCsoft_remin(i,j) = pocsoft_remin_loc *
+     &                      dps * tracer(i,j,k,pocsoft_ind_t)
+             POC_remin(i,j) = POChard_remin(i,j)+POCsoft_remin(i,j)
+
+             P_SiO2hard_remin(i,j) = psio2hard_remin_loc *
+     &                      dps * tracer(i,j,k,psio2hard_ind_t)
+             P_SiO2soft_remin(i,j) = psio2soft_remin_loc *
+     &                      dps * tracer(i,j,k,psio2soft_ind_t)
+             P_SiO2_remin(i,j) = P_SiO2hard_remin(i,j)+P_SiO2soft_remin(i,j)
+
+             P_ironhard_remin(i,j) = pironhard_remin_loc *
+     &                      dps * tracer(i,j,k,pironhard_ind_t)
+             P_ironsoft_remin(i,j) = pironsoft_remin_loc *
+     &                      dps * tracer(i,j,k,pironsoft_ind_t)
+             P_iron_remin(i,j) = P_ironhard_remin(i,j)+P_ironsoft_remin(i,j)
+
+             dusthard_remin(i,j) = dusthard_remin_loc *
+     &                      dps * tracer(i,j,k,dusthard_ind_t)
+             dustsoft_remin(i,j) = dustsoft_remin_loc *
+     &                      dps * tracer(i,j,k,dustsoft_ind_t)
+             dust_remin(i) = dusthard_remin(i,j)+dustsoft_remin(i,j)
+# else    
              P_CaCO3_remin(i,j) = P_CaCO3_prod(i) +
      &          ((P_CaCO3_sflux_in(i,j) - P_CaCO3_sflux_out(i,j)) +
      &          (P_CaCO3_hflux_in(i,j) - P_CaCO3_hflux_out(i,j))) * dzr_loc
@@ -2914,11 +2985,18 @@ c$$$       enddo
              dust_remin(i) =
      &          ((dust_sflux_in(i,j) - dust_sflux_out(i,j)) +
      &          (dust_hflux_in(i,j) - dust_hflux_out(i,j))) * dzr_loc
+# endif /* USE_EXPLICIT_VSINK */
+
 
     !-----------------------------------------------------------------------
     !  Compute iron remineralization and flux out.
     !-----------------------------------------------------------------------
+        
+        ! MF: Discuss Fe remin in the case of explicit sinking
 
+# ifdef USE_EXPLICIT_VSINK
+             P_iron_remin(i,j) = P_iron_remin(i,j) + POC_remin(i,j)*parm_Red_Fe_C
+# else
              if ((POC_sflux_in(i,j)+POC_hflux_in(i,j)) == c0) then
                 P_Iron_remin(i,j) = (POC_remin(i,j) * parm_Red_Fe_C)
              else
@@ -2928,15 +3006,23 @@ c$$$       enddo
              endif
              P_Iron_remin(i,j) = P_Iron_remin(i,j)
      &             + P_iron_sflux_in(i,j) * 1.5e-5
+             ! MF: What does the hard-coded 1.5e-5 stand for? Applied to
+             ! a flux of mmol Fe m-2 s-1? CESM BEC says Fe desorption
+             ! from particulate pool. If this is the case, shouldnt it
+             ! be treate like the other mineral pools with a dissolution
+             ! length and an associated decay?
 
              P_iron_sflux_out(i,j) = P_iron_sflux_in(i,j) + dz_loc *
      &           ((c1 - P_iron_gamma) * P_iron_prod(i) - P_Iron_remin(i,j))
 
+             ! MF: The following piece does not really pertain to explicit
+             ! sinking of particulate Fe?!?
              if (P_iron_sflux_out(i,j) < c0) then
                 P_iron_sflux_out(i,j) = c0
                 P_Iron_remin(i,j) = P_iron_sflux_in(i,j) * dzr_loc +
      &            (c1 - P_iron_gamma) * P_iron_prod(i)
              endif
+# endif 
 
     !-----------------------------------------------------------------------
     !  Compute iron release from dust remin/dissolution
@@ -3211,8 +3297,6 @@ c$$$       enddo
 
        return
        end subroutine compute_particulate_terms
-# endif /* USE_EXPLICIT_VSINK */
-
 
 
 !-------------------------------------------------------------------------

@@ -185,7 +185,7 @@
 !
   10  create_new_file_if: if (create_new_file) then
 #ifdef LARGE_BGC_FILES
-        ierr=nf_create(ncname(1:lstr), or(nf_clobber,nf_64bit_offset),
+        ierr=nf_create(ncname(1:lstr), or(nf_clobber,NCFILEFORMAT),
      &        ncid)
 #else
         ierr=nf_create(ncname(1:lstr), nf_clobber, ncid)
@@ -947,7 +947,7 @@
       elseif (ncid.eq.-1) then create_new_file_if
         ierr=nf_open (ncname(1:lstr), nf_write, ncid)
         if (ierr. eq. nf_noerr) then
-          ierr=checkdims (ncid, ncname(1:lstr), lstr, rec) 
+          ierr=checkdims (ncid, ncname, rec) 
           if (ierr .eq. nf_noerr) then
             if (rec_per_file.eq.0) then
               ierr=rec+1 - total_rec

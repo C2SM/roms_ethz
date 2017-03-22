@@ -366,15 +366,15 @@ c--#define VERBOSE
      &                          ' ---> ', ntsavg + ntstart-1
           ntsavg=ntsavg + ntstart-1
 # ifdef BGC_FLUX_ANALYSIS
-          MPI_master_only write(*,'(/4x,A,I5,A,I5/)')
-     &         'Adjusting averaging phase nts_bgc_flux_avg =', nts_bgc_flux_avg,
-     &                          ' ---> ', nts_bgc_flux_avg + ntstart-1
+          MPI_master_only write(*,'(/4x,A,I5,A,I8/)')
+     &       'Adjusting averaging phase nts_bgc_flux_avg ='
+     &       , nts_bgc_flux_avg, ' ---> ', nts_bgc_flux_avg + ntstart-1
           nts_bgc_flux_avg = nts_bgc_flux_avg + ntstart-1
 # endif
 # ifdef PHYS_FLUX_ANALYSIS
-          MPI_master_only write(*,'(/4x,A,I5,A,I5/)')
-     &         'Adjusting averaging phase nts_phys_flux_avg =', nts_phys_flux_avg,
-     &                          ' ---> ', nts_phys_flux_avg + ntstart-1
+          MPI_master_only write(*,'(/4x,A,I5,A,I8/)')
+     &      'Adjusting averaging phase nts_phys_flux_avg ='
+     &      , nts_phys_flux_avg, ' ---> ', nts_phys_flux_avg + ntstart-1
           nts_phys_flux_avg = nts_phys_flux_avg + ntstart-1
 # endif
         endif

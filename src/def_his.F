@@ -9,7 +9,6 @@
 #  define DEF_FOUT def_slavg
 # endif
 #endif
-!--> # define NETCDF4
 !--> # define NCCOMPRESS
 
       subroutine DEF_FOUT (total_rec, ierr)
@@ -438,13 +437,8 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
 ! ====== === ======= ======== =====    define all the variables.
 
    10 if (create_new_file) then
-#ifdef NETCDF4
         ierr=nf_create(fname(1:lfnm), 
-     &                 or(nf_clobber,nf_globber+nf_netcdf4), ncid)
-#else
-        ierr=nf_create(fname(1:lfnm), nf_clobber+nf_64bit_offset,
-     &                                                     ncid)
-#endif
+     &                 or(nf_clobber,nf_clobber+NCFILEFORMAT), ncid)
         if (ierr == nf_noerr) then
           ierr=nf_set_fill(ncid, nf_nofill, prev_fill_mode)
           if (ierr /= nf_noerr) then

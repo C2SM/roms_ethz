@@ -465,7 +465,6 @@ c**       ierr=nf_close(ncid) ; ncfrc(ifrc)=-1
       end
 
 #ifdef SET_SMTH
-# undef KEEP_DATA_DEFINED
 # include "set_smth.F"
 #endif
 

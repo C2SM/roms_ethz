@@ -25,7 +25,7 @@
       if (mynode == 0) then
 #  endif
 # endif
-        ierr=nf_create(fname, nf_clobber+nf_64bit_offset, ncid)
+        ierr=nf_create(fname, nf_clobber+NCFILEFORMAT, ncid)
         if (ierr == nf_noerr) then
           call put_global_atts (ncid, ierr)
 

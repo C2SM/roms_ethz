@@ -145,22 +145,27 @@ c--# define IMPLICIT_BOTTOM_DRAG
  
 #ifdef MPI
 # define GLOBAL_2D_ARRAY -1:Lm+2+padd_X,-1:Mm+2+padd_E
+# define GLOBAL_XI_ARRAY -1:Lm+2+padd_X
 # define START_2D_ARRAY -1,-1
 #else
 # ifdef EW_PERIODIC
 #  ifdef NS_PERIODIC
 #   define GLOBAL_2D_ARRAY -1:Lm+2+padd_X,-1:Mm+2+padd_E
+#   define GLOBAL_XI_ARRAY -1:Lm+2+padd_X
 #   define START_2D_ARRAY -1,-1
 #  else
 #   define GLOBAL_2D_ARRAY -1:Lm+2+padd_X,0:Mm+1+padd_E
+#   define GLOBAL_XI_ARRAY -1:Lm+2+padd_X
 #   define START_2D_ARRAY -1,0
 #  endif
 # else
 #  ifdef NS_PERIODIC
 #   define GLOBAL_2D_ARRAY 0:Lm+1+padd_X,-1:Mm+2+padd_E
+#   define GLOBAL_XI_ARRAY 0:Lm+1+padd_X
 #   define START_2D_ARRAY 0,-1
 #  else
 #   define GLOBAL_2D_ARRAY 0:Lm+1+padd_X,0:Mm+1+padd_E
+#   define GLOBAL_XI_ARRAY 0:Lm+1+padd_X
 #   define START_2D_ARRAY 0,0
 #  endif
 # endif
@@ -411,6 +416,7 @@ c-# define TANH dtanh
  precision of the code.  */
  
 /* #define HIS_DOUBLE */
+#define NCFILEFORMAT nf_netcdf4 /* or nf_64bit_offset */
 #undef PUT_GRID_INTO_RESTART
 #define PUT_GRID_INTO_HISTORY
 #define PUT_GRID_INTO_AVERAGES

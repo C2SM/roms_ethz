@@ -92,7 +92,7 @@
 !======= === ======= =====    and define all variables.
 
   10  if (create_new_file) then
-        ierr=nf_create(rstname(1:lrst), nf_clobber+nf_64bit_offset,
+        ierr=nf_create(rstname(1:lrst), nf_clobber+NCFILEFORMAT,
      &                                                        ncrst)
         if (ierr == nf_noerr) then
           ierr=nf_set_fill(ncrst, nf_nofill, prev_fill_mode)

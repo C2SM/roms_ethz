@@ -32,9 +32,9 @@
 
     /*  Use CLM Files */
 !-- #ifdef CLMFORCING   
-# define TCLIMATOLOGY
+!-- # define TCLIMATOLOGY
 /* Partial restoring of TS in user-defined region via 2D field nudg_weights in clm file (MF)*/
-# define TNUDGE_WEIGHTS /* TCLIMATOLOGY must be defined */
+!-- # define TNUDGE_WEIGHTS /* TCLIMATOLOGY must be defined */
 !-- # define UCLIMATOLOGY
 !-- # define TNUDGING
 !-- # define M3NUDGING
@@ -75,11 +75,13 @@
 # define BIOLOGY
 # define DEFAULT_BRY_VALUES
 !--> # define MULT_CLIM_FILES
-!--> # define VFLX_CORR
+# define VFLX_CORR
 !--> # define BEC2_DIAG
-!# define RIVER_LOAD_N
-!# define RIVER_LOAD_P
-!--> # define PCO2AIR_FORCING
+!-- # define RIVER_LOAD_N
+!-- # define RIVER_LOAD_P
+!-- # define NHY_FORCING
+!-- # define NOX_FORCING
+!-- # define PCO2AIR_FORCING
 #endif /* BIOLOGY_BEC2 */
 
 

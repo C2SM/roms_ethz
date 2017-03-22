@@ -35,7 +35,7 @@ c--#define VERBOSE
       call get_nudg_weights(ierr)
 #  endif
 # endif
-#endif
+#endif /* SOLVE3D */
 #if  defined T_FRC_BRY  || defined M2_FRC_BRY || \
       defined M3_FRC_BRY || defined Z_FRC_BRY
 # ifndef ANA_BRY
@@ -81,26 +81,35 @@ c--#define VERBOSE
 # ifdef SFLX_CORR
       call get_sss(ierr)
 # endif
-#if defined TSOURCE
+# if defined TSOURCE
       call get_tsource(ierr)
-#endif
+# endif
 # if defined BIOLOGY_BEC || defined BIOLOGY_BEC2
       call get_dust(ierr)
       call get_iron(ierr)
 # endif
 # ifdef PCO2AIR_FORCING
-        if (ierr.eq.0)  call get_pCO2air(ierr)
+      call get_pco2air(ierr)
 # endif
-!# ifdef BIOLOGY_BEC2
-!      call get_nox(ierr)
-!      call get_nhy(ierr)
-!      call get_din_river(ierr)
-!# endif
+# ifdef BIOLOGY_BEC2
+#  ifdef NOX_FORCING
+      call get_nox(ierr)
+#  endif
+#  ifdef NOX_FORCING
+      call get_nhy(ierr)
+#  endif
+#  ifdef RIVER_LOAD_N
+      call get_din_river(ierr)
+#  endif
+#  ifdef RIVER_LOAD_P
+      call get_dip_river(ierr)
+#  endif
+# endif
 # if defined PASSIVE_TRACER && defined AGE_DYE_TRACER
       call get_agedye(ierr)
 # endif
-#endif
-#if defined SG_BBL96
+#endif /* SOLVE3D */
+#ifdef SG_BBL96
 # ifndef ANA_WWAVE
       call get_wwave(ierr)
 # endif
@@ -226,238 +235,361 @@ c--#define VERBOSE
 # include "get_smth.F"
 #endif
 
-#ifdef SOLVE3D
-# ifndef ANA_SRFLUX
+#ifndef ANA_SRFLUX
 ! Solar short-wave radiation flux [Watts/m^2]
 !------ ---------- --------- ---- ------------
-#  define get_smth get_swrad
-#  define varname 'swrad'
-#  define timename 'srf_time'
-#  define SWRAD_DATA
-#  define var swradg
-#  define timevar  srf_time
-#  define file_id srf_file_id
+# define get_smth get_swrad
+# define varname 'swrad'
+# define timename 'srf_time'
+# define SWRAD_DATA
+# define var swradg
+# define timevar  srf_time
+# define file_id srf_file_id
 # define NC_ID_LIST ncfrc
 # define NC_FILE_LIST frcfile
-#  define varid srf_id
-#  define timevarid srf_tid
-#  define irecord srf_rec
-#  define ntsmth ntsrf
-#  define itsmth itsrf
-#  define icycle srf_ncycle
-#  define cycle_length srf_cycle
-#  include "get_smth.F"
-# endif
+# define varid srf_id
+# define timevarid srf_tid
+# define irecord srf_rec
+# define ntsmth ntsrf
+# define itsmth itsrf
+# define icycle srf_ncycle
+# define cycle_length srf_cycle
+# include "get_smth.F"
+#endif
 
 
-# ifdef BULK_FLUX
+#ifdef BULK_FLUX
 ! Long-wave radiation flux [Watts/m^2]
 !---------- ------ -- ---- -----------
-#  define get_smth get_lwrad
-#  define varname 'lwrad_down'
-#  define timename 'lrf_time'
-#  define LWRAD_DATA
-#  define var lwradg
-#  define timevar  lrf_time
-#  define file_id lrf_file_id
-#  define varid lrf_id
-#  define timevarid lrf_tid
-#  define irecord lrf_rec
-#  define ntsmth ntlrf
-#  define itsmth itlrf
-#  define icycle lrf_ncycle
-#  define cycle_length lrf_cycle
-#  include "get_smth.F"
+# define get_smth get_lwrad
+# define varname 'lwrad_down'
+# define timename 'lrf_time'
+# define LWRAD_DATA
+# define var lwradg
+# define timevar  lrf_time
+# define file_id lrf_file_id
+# define varid lrf_id
+# define timevarid lrf_tid
+# define irecord lrf_rec
+# define ntsmth ntlrf
+# define itsmth itlrf
+# define icycle lrf_ncycle
+# define cycle_length lrf_cycle
+# include "get_smth.F"
 
 ! Air temperature [degree Celsius] at 2m above ocean surface
 !---- ----------- ------- -------- -- -- ----- ----- --------
-#  define get_smth get_tair
-#  define varname 'Tair'
-#  define timename 'tair_time'
-#  define TAIR_DATA
-#  define var tairg
-#  define timevar tair_time
-#  define file_id tair_file_id
-#  define varid tair_id
-#  define timevarid tair_tid
-#  define irecord tair_rec
-#  define ntsmth nttair
-#  define itsmth ittair
-#  define icycle tair_ncycle
-#  define cycle_length tair_cycle
-#  include "get_smth.F"
+# define get_smth get_tair
+# define varname 'Tair'
+# define timename 'tair_time'
+# define TAIR_DATA
+# define var tairg
+# define timevar tair_time
+# define file_id tair_file_id
+# define varid tair_id
+# define timevarid tair_tid
+# define irecord tair_rec
+# define ntsmth nttair
+# define itsmth ittair
+# define icycle tair_ncycle
+# define cycle_length tair_cycle
+# include "get_smth.F"
 
 ! Relative humidity of air [fraction] at 2m above ocean surface
 !--------- -------- -- --- ---------- -- -- ----- ------ -------
-#  define get_smth get_rhum
-#  define varname 'Qair'
-#  define timename 'qair_time'
-#  define RHUM_DATA
-#  define var rhumg
-#  define timevar rhum_time
-#  define file_id rhum_file_id
-#  define varid rhum_id
-#  define timevarid rhum_tid
-#  define irecord rhum_rec
-#  define ntsmth ntrhum
-#  define itsmth itrhum
-#  define icycle rhum_ncycle
-#  define cycle_length rhum_cycle
-#  include "get_smth.F"
+# define get_smth get_rhum
+# define varname 'Qair'
+# define timename 'qair_time'
+# define RHUM_DATA
+# define var rhumg
+# define timevar rhum_time
+# define file_id rhum_file_id
+# define varid rhum_id
+# define timevarid rhum_tid
+# define irecord rhum_rec
+# define ntsmth ntrhum
+# define itsmth itrhum
+# define icycle rhum_ncycle
+# define cycle_length rhum_cycle
+# include "get_smth.F"
 
 ! Precifitation rate (a.k.a. rain fall), [cm day-1]
 !-------------- ---- ------- ---- ------ -----------
-#  define get_smth get_prate
-#  define varname 'rain'
-#  define timename 'rain_time'
-#  define PRATE_DATA
-#  define var prateg
-#  define timevar prate_time
-#  define file_id prate_file_id
-#  define varid prate_id
-#  define timevarid prate_tid
-#  define irecord prate_rec
-#  define ntsmth ntprate
-#  define itsmth itprate
-#  define icycle prate_ncycle
-#  define cycle_length prate_cycle
-#  include "get_smth.F"
+# define get_smth get_prate
+# define varname 'rain'
+# define timename 'rain_time'
+# define PRATE_DATA
+# define var prateg
+# define timevar prate_time
+# define file_id prate_file_id
+# define varid prate_id
+# define timevarid prate_tid
+# define irecord prate_rec
+# define ntsmth ntprate
+# define itsmth itprate
+# define icycle prate_ncycle
+# define cycle_length prate_cycle
+# include "get_smth.F"
 
-#  ifdef SST_SKIN
+# ifdef SST_SKIN
           'sst_skin'
-#  endif
-# endif  /* BULK_FLUX */
-
-# if defined QCORRECTION && !defined ANA_SST
-#  define get_smth get_sst
-#  define varname 'SST'
-#  define timename 'sst_time'
-#  define SST_DATA
-#  define var sstg
-#  define timevar sst_time
-#  define file_id sst_file_id
-#  define NC_ID_LIST ncfrc
-#  define NC_FILE_LIST frcfile
-#  define varid sst_id
-#  define timevarid sst_tid
-#  define irecord sst_rec
-#  define ntsmth ntsst
-#  define itsmth itsst
-#  define icycle sst_ncycle
-#  define cycle_length sst_cycle
-#  include "get_smth.F"
-
-#  define get_smth get_dqdt
-#  define varname 'dQdSST'
-c--#  define timename 'dqdt_time'
-#  define DQDT_DATA
-#  define var dqdtg
-#  define timevar dqdt_time
-#  define file_id dqdt_file_id
-#  define NC_ID_LIST ncfrc
-#  define NC_FILE_LIST frcfile
-#  define varid dqdt_id
-#  define timevarid dqdt_tid
-#  define irecord dqdt_rec
-#  define ntsmth ntdqdt
-#  define itsmth itdqdt
-#  define icycle dqdt_ncycle
-#  define cycle_length dqdt_cycle
-#  include "get_smth.F"
-# endif /* QCORRECTION */
-
-# ifdef SFLX_CORR
-#  define get_smth get_sss
-#  define varname 'SSS'
-#  define timename 'sss_time'
-#  define SSS_DATA
-#  define var sssg
-#  define timevar sss_time
-#  define file_id sss_file_id
-#  define NC_ID_LIST ncfrc
-#  define NC_FILE_LIST frcfile
-#  define varid sss_id
-#  define timevarid sss_tid
-#  define irecord sss_rec
-#  define ntsmth ntsss
-#  define itsmth itsss
-#  define icycle sss_ncycle
-#  define cycle_length sss_cycle
-#  include "get_smth.F"
 # endif
+#endif  /* BULK_FLUX */
 
-# ifdef ICEOBS
+#if defined QCORRECTION && !defined ANA_SST
+# define get_smth get_sst
+# define varname 'SST'
+# define timename 'sst_time'
+# define SST_DATA
+# define var sstg
+# define timevar sst_time
+# define file_id sst_file_id
+# define NC_ID_LIST ncfrc
+# define NC_FILE_LIST frcfile
+# define varid sst_id
+# define timevarid sst_tid
+# define irecord sst_rec
+# define ntsmth ntsst
+# define itsmth itsst
+# define icycle sst_ncycle
+# define cycle_length sst_cycle
+# include "get_smth.F"
+
+# define get_smth get_dqdt
+# define varname 'dQdSST'
+c--#  define timename 'dqdt_time'
+# define DQDT_DATA
+# define var dqdtg
+# define timevar dqdt_time
+# define file_id dqdt_file_id
+# define NC_ID_LIST ncfrc
+# define NC_FILE_LIST frcfile
+# define varid dqdt_id
+# define timevarid dqdt_tid
+# define irecord dqdt_rec
+# define ntsmth ntdqdt
+# define itsmth itdqdt
+# define icycle dqdt_ncycle
+# define cycle_length dqdt_cycle
+# include "get_smth.F"
+#endif /* QCORRECTION */
+
+#ifdef SFLX_CORR
+# define get_smth get_sss
+# define varname 'SSS'
+# define timename 'sss_time'
+# define SSS_DATA
+# define var sssg
+# define timevar sss_time
+# define file_id sss_file_id
+# define NC_ID_LIST ncfrc
+# define NC_FILE_LIST frcfile
+# define varid sss_id
+# define timevarid sss_tid
+# define irecord sss_rec
+# define ntsmth ntsss
+# define itsmth itsss
+# define icycle sss_ncycle
+# define cycle_length sss_cycle
+# include "get_smth.F"
+#endif
+
+#ifdef ICEOBS
 ! Sea ice concentration, melting, and freezing flux
 ! --- --- -------------- -------- --- -------- ----
-#  define get_smth get_seaice
-#  define timename 'ice_time'
-#  define varname 'seaice'
-#  define varname2 'freezing'
-#  define varname3 'melting'
-#  define ICEOBS_DATA
-#  define var sicg
-#  define var2 freezingg
-#  define var3 meltingg
-#  define timevar ice_time
-#  define file_id ice_file_id
+# define get_smth get_seaice
+# define timename 'ice_time'
+# define varname 'seaice'
+# define varname2 'freezing'
+# define varname3 'melting'
+# define ICEOBS_DATA
+# define var sicg
+# define var2 freezingg
+# define var3 meltingg
+# define timevar ice_time
+# define file_id ice_file_id
+# define NC_ID_LIST ncfrc
+# define NC_FILE_LIST frcfile
+# define varid sic_id
+# define varid2 freez_id
+# define varid3 melt_id
+# define timevarid ice_tid
+# define irecord ice_rec
+# define ntsmth ntice
+# define itsmth itice
+# define icycle ice_ncycle
+# define cycle_length ice_cycle
+# include "get_smth.F"
+#endif
+
+#if defined BIOLOGY_BEC ||  defined BIOLOGY_BEC2
+! dust flux
+! ---- ---- 
+# define get_smth get_dust
+# define DUST_DATA
+# define varname 'dust'
+# define timename 'dust_time'
+# define var dustg
+# define timevar dust_time
+# define file_id dust_file_id
+# define NC_ID_LIST ncfrc
+# define NC_FILE_LIST frcfile
+# define varid dust_id
+# define timevarid dust_tid
+# define irecord dust_rec
+# define ntsmth ntdust
+# define itsmth itdust
+# define icycle dust_ncycle
+# define cycle_length dust_cycle
+# define SET_SMTH set_dust
+# define VAR_CFF 1.0
+# define VAR_NOW dust
+# include "get_smth.F"
+! iron flux
+! ---- ---- 
+# define get_smth get_iron
+# define varname 'iron'
+# define timename 'iron_time'
+# define IRON_DATA
+# define var irong
+# define timevar iron_time
+# define file_id iron_file_id
+# define NC_ID_LIST ncfrc
+# define NC_FILE_LIST frcfile
+# define varid iron_id
+# define timevarid iron_tid
+# define irecord iron_rec
+# define ntsmth ntiron
+# define itsmth itiron
+# define icycle iron_ncycle
+# define cycle_length iron_cycle
+# define SET_SMTH set_iron
+# define VAR_CFF 1.0
+# define VAR_NOW iron
+# include "get_smth.F"
+#endif
+
+# ifdef RIVER_LOAD_N
+!  din river flux
+!  --- ----- ---- 
+#  define get_smth get_din_river
+#  define varname 'din_river_flux'
+#  define timename 'din_river_time'
+#  define RIVER_DATA
+#  define var din_riverg
+#  define timevar din_river_time
+#  define file_id din_river_file_id
 #  define NC_ID_LIST ncfrc
 #  define NC_FILE_LIST frcfile
-#  define varid sic_id
-#  define varid2 freez_id
-#  define varid3 melt_id
-#  define timevarid ice_tid
-#  define irecord ice_rec
-#  define ntsmth ntice
-#  define itsmth itice
-#  define icycle ice_ncycle
-#  define cycle_length ice_cycle
+#  define varid din_river_id
+#  define timevarid din_river_tid
+#  define irecord din_river_rec
+#  define ntsmth ntdin_river
+#  define itsmth itdin_river
+#  define icycle din_river_ncycle
+#  define cycle_length din_river_cycle
+#  define SET_SMTH set_din_river
+#  define VAR_CFF 1.0
+#  define VAR_NOW din_river
 #  include "get_smth.F"
 # endif
 
-# if defined BIOLOGY_BEC ||  defined BIOLOGY_BEC2
-! dust flux
-! ---- ---- 
-#  define get_smth get_dust
-#  define DUST_DATA
-#  define varname 'dust'
-#  define timename 'dust_time'
-#  define var dustg
-#  define timevar dust_time
-#  define file_id dust_file_id
+# ifdef RIVER_LOAD_P
+!  dip river flux
+!  --------- ---- 
+#  define get_smth get_dip_river
+#  define varname 'dip_river_flux'
+#  define timename 'dip_river_time'
+#  define RIVER_DATA
+#  define var dip_riverg
+#  define timevar dip_river_time
+#  define file_id dip_river_file_id
 #  define NC_ID_LIST ncfrc
 #  define NC_FILE_LIST frcfile
-#  define varid dust_id
-#  define timevarid dust_tid
-#  define irecord dust_rec
-#  define ntsmth ntdust
-#  define itsmth itdust
-#  define icycle dust_ncycle
-#  define cycle_length dust_cycle
-#  define SET_SMTH set_dust
+#  define varid dip_river_id
+#  define timevarid dip_river_tid
+#  define irecord dip_river_rec
+#  define ntsmth ntdip_river
+#  define itsmth itdip_river
+#  define icycle dip_river_ncycle
+#  define cycle_length dip_river_cycle
+#  define SET_SMTH set_dip_river
 #  define VAR_CFF 1.0
-#  define VAR_NOW dust
-#  include "get_smth.F"
-! iron flux
-! ---- ---- 
-#  define get_smth get_iron
-#  define varname 'iron'
-#  define timename 'iron_time'
-#  define IRON_DATA
-#  define var irong
-#  define timevar iron_time
-#  define file_id iron_file_id
-#  define NC_ID_LIST ncfrc
-#  define NC_FILE_LIST frcfile
-#  define varid iron_id
-#  define timevarid iron_tid
-#  define irecord iron_rec
-#  define ntsmth ntiron
-#  define itsmth itiron
-#  define icycle iron_ncycle
-#  define cycle_length iron_cycle
-#  define SET_SMTH set_iron
-#  define VAR_CFF 1.0
-#  define VAR_NOW iron
+#  define VAR_NOW dip_river
 #  include "get_smth.F"
 # endif
-#endif /* SOLVE3D */
+
+# ifdef NHY_FORCING
+!  NHY flux
+!  --- ---- 
+#  define get_smth get_nhy
+#  define varname 'nhy_flux'
+#  define timename 'nhy_time'
+#  define NHY_DATA
+#  define var nhyg
+#  define timevar nhy_time
+#  define file_id nhy_file_id
+#  define NC_ID_LIST ncfrc
+#  define NC_FILE_LIST frcfile
+#  define varid nhy_id
+#  define timevarid nhy_tid
+#  define irecord nhy_rec
+#  define ntsmth ntnhy
+#  define itsmth itnhy
+#  define icycle nhy_ncycle
+#  define cycle_length nhy_cycle
+#  define SET_SMTH set_nhy
+#  define VAR_CFF 1.0
+#  define VAR_NOW nhy
+#  include "get_smth.F"
+# endif
+
+# ifdef NOX_FORCING
+!  NOX flux
+!  --- ---- 
+#  define get_smth get_nox
+#  define varname 'nox_flux'
+#  define timename 'nox_time'
+#  define NOX_DATA
+#  define var noxg
+#  define timevar nox_time
+#  define file_id nox_file_id
+#  define NC_ID_LIST ncfrc
+#  define NC_FILE_LIST frcfile
+#  define varid nox_id
+#  define timevarid nox_tid
+#  define irecord nox_rec
+#  define ntsmth ntnox
+#  define itsmth itnox
+#  define icycle nox_ncycle
+#  define cycle_length nox_cycle
+#  define SET_SMTH set_nox
+#  define VAR_CFF 1.0
+#  define VAR_NOW nox
+#  include "get_smth.F"
+# endif
+
+# ifdef PCO2AIR_FORCING
+!  pco2air flux
+!  ------- ---- 
+#  define get_smth get_pco2air
+#  define varname 'pco2_air'
+#  define timename 'pco2_time'
+#  define PCO2AIR_DATA
+#  define var pco2airg
+#  define timevar pco2air_time
+#  define file_id pco2air_file_id
+#  define NC_ID_LIST ncfrc
+#  define NC_FILE_LIST frcfile
+#  define varid pco2air_id
+#  define timevarid pco2air_tid
+#  define irecord pco2air_rec
+#  define ntsmth ntpco2air
+#  define itsmth itpco2air
+#  define icycle pco2air_ncycle
+#  define cycle_length pco2air_cycle
+#  define SET_SMTH set_pco2air
+#  define VAR_CFF 1.0
+#  define VAR_NOW pco2air
+#  include "get_smth.F"
+# endif

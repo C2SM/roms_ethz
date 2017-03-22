@@ -743,7 +743,7 @@ c--#  define ntdf nrhs
 # endif /* PHYS_FLUX_ANALYSIS */
 ! Add 3D sources
 # ifdef TSOURCE
-!          if (itrc < 3) then
+
           do k=1,N
             do i=istr,iend
               t(i,j,k,nnew,itrc)=t(i,j,k,nnew,itrc) +dt*pm(i,j)*pn(i,j)
