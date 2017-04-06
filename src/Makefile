@@ -190,9 +190,8 @@ check_srcs.F: srcscheck Makefile
 setup_kwds.F: checkkwds read_inp.F
 	./checkkwds
 
-Make.depend:  # Note: cross_matrix is external here and should be in path
+Make.depend:  cross_matrix.o # Note: cross_matrix is external here and should be in path
 	cross_matrix *.F
-	echo include Make.depend >> Makefile
 
 plotter: plotter.o
 	$(CFT) -o plotter plotter.o $(LIBNCAR)
@@ -225,14 +224,5 @@ clobber: clean
 	/bin/rm -f Make.depend
 	sed -i '/^include Make.depend/ d' Makefile
 
-# Automatically generated dependency list:
-# ifeq ($(wildcard Make.depend),) 
-# Make.depend: check_switches1.F setup_kwds.F cross_matrix
-# 	./cross_matrix *.F
-# 	@echo  -----------------------------------------
-# 	@echo  Missing prerequisite Make.depend created. 
-# 	@echo  Please rerun make!                
-# 	@echo  -----------------------------------------
-# endif
-# include Make.depend
-include Make.depend
+# Include dependency file (created e.g., by cross_matrix)
+-include Make.depend
