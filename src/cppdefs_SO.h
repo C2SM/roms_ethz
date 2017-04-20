@@ -9,12 +9,29 @@
 #include "cppdefs_UP.h"
 
 
+#define SO_AH  /* Config. Alex (SO_AH) or Cara (SO_CN) */
+
+
                      /* Resolution */
 #define SO_d025 /* SO_d05, SO_d025, SO_d0125, SO_d01 */
 
-#define SALINITY_MASK
-# define SALINITY_MASKLATSTR -48.0
-# define SALINITY_MASKLATEND -53.01
+#ifdef SO_d05        /*                     - 1/2 degree setup (SO_d05) */
+# define GRID_SIZE LLm=720, MMm=216, N=64
+# define DOMAIN_TILING NP_XI=8, NP_ETA=36, NSUB_X=1, NSUB_E=1
+#endif
+#ifdef SO_d025       /*                     - 1/4 degree setup (SO_d025) */
+# define GRID_SIZE LLm=1440, MMm=432, N=64
+# define DOMAIN_TILING NP_XI=16, NP_ETA=36, NSUB_X=1, NSUB_E=1
+#endif
+#ifdef SO_d0125      /*                     - 1/8 degree setup (SO_d0125) */
+#define GRID_SIZE LLm=2880, MMm=864, N=64
+#define DOMAIN_TILING NP_XI=32, NP_ETA=24, NSUB_X=1, NSUB_E=1
+#endif
+#ifdef SO_d01        /*                     - 1/10 degree setup (SO_d01) */
+#define GRID_SIZE LLm=3600, MMm=1080, N=64
+#define DOMAIN_TILING NP_XI=40, NP_ETA=24, NSUB_X=1, NSUB_E=1
+#endif
+/* NOTE: for more or less cores increase NP_ETA and change M2SPECIFIED tile range below */
 
 
                      /*  Dynamics */
@@ -34,14 +51,14 @@
 #define DEFAULT_BRY_VALUES
 #define TSOURCE
 
+
                      /* Restart */
 #define EXACT_RESTART
 
-     /* Vertical Mixing */
-#define LMD_LIMIT_STABLE
+
+                     /* Vertical Mixing */
 #define LMD_DDMIX
 #define LMD_BKPP
-
 #ifdef SO_AH
 # undef LMD_CONVEC
 # define LMD_MIN_KPP
@@ -51,6 +68,7 @@
 !-- # define LMD_NEWENTRAIN
 !-- # define MLCONVEC
 #endif
+
 
                       /* Open Boundary Conditions */
 #define EW_PERIODIC
@@ -81,8 +99,8 @@
 # define WRITE_HEATFLX
 # define WRITE_SALT_REST
 # define WRITE_TEMP_REST
-/* # define WRITE_CO2FLX */
-/* # define KPP_DIAGNOSE */
+!-- # define WRITE_CO2FLX
+!-- # define KPP_DIAGNOSE
 #endif
 
 
@@ -106,6 +124,7 @@
 !-- #define RIVER_LOAD_P
 !-- # define PCO2AIR_FORCING
 !-- # define VARIABLE_ATM_PCO2
+
 
                       /* Other tracers */
 !-- #define PASSIVE_TRACER
