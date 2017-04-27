@@ -35,7 +35,7 @@
       implicit none
       integer tile, ierr
 #include "param.h"
-#if defined VFLX_CORR || defined TSOURCE
+#if defined VFLX_CORR
       integer itrc, i, j, k
 # include "comm_vars.h"
 # include "forces.h"
@@ -44,9 +44,6 @@
 # ifdef MASKING
 #  include "grid.h"
 # endif
-#endif
-#if defined TSOURCE
-# include "sources.h"
 #endif
 
 #include "compute_tile_bounds.h"
@@ -176,36 +173,6 @@ c***              no code here
 #   endif /* VFLX_CORR */
 #  endif /* SALINITY */
 # endif
-! Set 3D sources
-! AH16: Dillute all tracers except temperature with 
-! volume of water add (T_src(i,j,k,0) in [m3 * sec-1]).
-! If the volume of water added has a predefined
-! concentration, i.e. salinity or nutrients this
-! property of the source water is set in T_src(i,j,k,itrc)
-! (in [tracer unit * m3 * sec-1]) in the input file. This
-! loop only updates T_src with the dillution effect and
-! the source is added in ste3d_t3S as for the surface
-! flux.
-# ifdef TSOURCE
-      do k=1,N
-        do j=jstr,jend
-          do i=istr,iend
-            do itrc=itemp+1,NT
-#  ifdef MASKING
-              if (rmask(i,j) .eq. 1) then
-#  endif
-                T_src(i,j,k,itrc)=T_src(i,j,k,itrc)-
-     &            (T_src(i,j,k,0)*t(i,j,k,nrhs,itrc))
-#  ifdef MASKING
-              else ! rmask(i,j) .eq. 1
-                T_src(i,j,k,itrc)=0.0
-              endif
-#  endif
-            enddo
-          enddo
-        enddo
-      enddo
-# endif /* TSOURCE */
 # if defined PASSIVE_TRACER && defined AGE_DYE_TRACER
       call set_agedye_tile(istr,iend,jstr,jend,ierr)
 # endif

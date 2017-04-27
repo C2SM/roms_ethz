@@ -742,8 +742,16 @@ c--#  define ntdf nrhs
           end if
 # endif /* PHYS_FLUX_ANALYSIS */
 ! Add 3D sources
+! AH17: Add source and dillute all tracers except 
+! for temperature with volume of water added
+! (T_src(i,j,k,0) in [m3 * sec-1]).
+! If the volume of water added has a predefined
+! concentration, i.e. salinity or nutrients this
+! property of the source water is set in T_src(i,j,k,itrc)
+! (in [tracer unit * m3 * sec-1]) in the input file. The
+! dillution corresponds to the way that dillution occurs
+! due to the surface flux is set_forces.
 # ifdef TSOURCE
-
           do k=1,N
             do i=istr,iend
               t(i,j,k,nnew,itrc)=t(i,j,k,nnew,itrc) +dt*pm(i,j)*pn(i,j)
@@ -760,8 +768,30 @@ c--#  define ntdf nrhs
 
           enddo
 !          endif
+! No dillution for temperature:
+          if (itrc .eq. itemp) then
+            do k=1,N
+              do i=istr,iend
+                t(i,j,k,nnew,itrc)=t(i,j,k,nnew,itrc)
+     &                            +dt*pm(i,j)*pn(i,j)
+     &                            *T_src(i,j,k,itrc)
+              enddo
+            enddo
+! With dillution for all tracers other than temperature
+! (note: t at position nnew is multiplied by Hz and t at
+! all other positions, i.e. also nstp, not):
+          else
+            do k=1,N
+              do i=istr,iend
+                t(i,j,k,nnew,itrc)=t(i,j,k,nnew,itrc)
+     &                            +dt*pm(i,j)*pn(i,j)
+     &                            *(T_src(i,j,k,itrc)
+     &                            -(T_src(i,j,k,0)
+     &                            *t(i,j,k,nstp,itrc)))
+              enddo
+            enddo
+          endif
 # endif /* TSOURCE */
-
 ! Start computation of vertical diffusion: add surface forcing fluxes
 # if defined PASSIVE_TRACER && defined AGE_DYE_TRACER
 !DL: do this except for age tracers. Age tracers are dealt with in pre_step3d

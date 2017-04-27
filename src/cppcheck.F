@@ -55,8 +55,18 @@
 #ifdef INT_IARGC
       integer iargc
 #endif
-      example=.true. ; nswtchs=0     ! Initialize catalog: reset/blank
-      nexample=0     ; fswtch(1)=1   ! out all counters, arraysof macro
+#ifdef UCLA_CPPDEFS_STYLE
+      example=.true. ; nexample=0    ! UCLA stores all setups in on cppdefs.h file
+                                     ! and needs one setup switch defined
+                                     ! As long as no setup switch is defined
+                                     ! all cpp switches are treated as an example
+                                     ! nexample below counts these setups
+#else
+      example=.false. ; nexample=1   ! ETHZ uses setup specific cppdef.h files
+                                     ! All cpp switches must be taken into account
+#endif
+      nswtchs=0                      ! Initialize catalog: reset/blank
+      fswtch(1)=1                    ! out all counters, arraysof macro
       do i=1,max_switches            ! names, and name sizes.
         size(i)=0
         switch(i)='                                '
@@ -155,10 +165,11 @@ c**         enddo
               is=istr(k)                ! when encounter the first
               ie=iend(k)                ! conditional CPP-command.
               ln=ie-is+1
+#ifdef UCLA_CPPDEFS_STYLE
               status=.false.
-!#ifdef UCLA_CPPDEFS_STYLE
+#else /* ETHZ */
               status=.true.
-!#endif
+#endif 
 
               if (ln == 6 .and. string(is:ie) == 'define') then
                 command=.true. ; status=.true.
@@ -200,16 +211,16 @@ c**         enddo
                 is=istr(k)                ! found in the present line.
                 ie=iend(k)                ! If no match is found, add
                 ln=ie-is+1
-                if (ifile > 1 .and. nstdpth > 0) then
-                  new=.false.
-                else                      ! the new switch to catalog.
+!mm                if (ifile > 1 .and. nstdpth > 0) then
+!mm                  new=.false.
+!mm                else                      ! the new switch to catalog.
                   new=.true.
                   do i=fswtch(ifile),nswtchs
                     if (ln == size(i)) then
                      if (string(is:ie) == switch(i)(1:ln)) new=.false.
                     endif
                   enddo                   ! Note that CPP-switches
-                endif                     ! found prior to the first
+!mm                endif                     ! found prior to the first
                 if (new) then             ! conditional CPP-command
                   nswtchs=nswtchs+1       ! correspond to predefined
                   size(nswtchs)=ln
@@ -257,7 +268,9 @@ c**         enddo
      &  '!!!!!! as an independent program, or use commands','!!!!!!',
      &  '!!!!!! "make checkdefs" or "make depend".',        '!!!!!!'
       write(iout,'(A,20x,I3,1x,A/A,23x,I3,1x,A)')
+#ifdef UCLA_CPPDEFS_STYLE
      &  '!!!!!! Number of Configuration Choices:',nexample, '!!!!!!',
+#endif
      &  '!!!!!! Total number of CPP-switches:', nswtchs,  '!!!!!!'
       write(iout,'(2(/6x,A),5(/A),4(/6x,A))')
      &  'implicit none',        'integer ierr, is,ie, iexample',
