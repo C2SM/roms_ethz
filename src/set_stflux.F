@@ -33,8 +33,11 @@
 ! hbls (in mixing.h) is needed for surface flux limitation if SST falls below freezing
 #  include "mixing.h"
 # endif
-# if defined ICEOBS || (defined SALINITY_MASKLATSTR && defined SALINITY_MASKLATEND)
+# if defined ICEOBS || (defined SALINITY_MASKLATSTR && defined SALINITY_MASKLATEND) || defined WRITE_SALT_REST
 #  include "grid.h"
+# endif
+# ifdef WRITE_SALT_REST
+      real, parameter :: eps=1.e-33
 # endif
 # include "compute_extended_bounds.h"
 
@@ -197,6 +200,9 @@
      &          *( t(i,j,N,nrhs,itemp) -cff3*sstg(i,j,it3)
      &                                 -cff4*sstg(i,j,it4)
      &                                                  ))
+#   ifdef MASKING
+     &                                 *rmask(i,j)
+#   endif
 #  endif
 # endif
 # if !defined ICE_MODEL
@@ -208,6 +214,9 @@
 # endif
 # ifdef WRITE_HEATFLX
               Heatflx(i,j)=cff*stflx(i,j,itemp)
+#   ifdef MASKING
+     &                                 *rmask(i,j)
+#   endif
 # endif
             enddo
           enddo
@@ -255,8 +264,11 @@ c**  &                                        -tclm(i,j,N,isalt)
 #  endif
      &                                                         )
 #  ifdef WRITE_SALT_REST
-                RestFlxSalt(i,j)=cff*(stflx(i,j,isalt)
-     &                  -RestFlxSalt(i,j))/t(i,j,N,nrhs,isalt)
+                RestFlxSalt(i,j)=( cff*(stflx(i,j,isalt)
+     &              -RestFlxSalt(i,j))/max(t(i,j,N,nrhs,isalt),eps) )
+#   ifdef MASKING
+     &                                 *rmask(i,j)
+#   endif
 #  endif
 #  ifdef SALINITY_MASK
               endif

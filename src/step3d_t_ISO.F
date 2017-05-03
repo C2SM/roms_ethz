@@ -752,22 +752,6 @@ c--#  define ntdf nrhs
 ! dillution corresponds to the way that dillution occurs
 ! due to the surface flux is set_forces.
 # ifdef TSOURCE
-          do k=1,N
-            do i=istr,iend
-              t(i,j,k,nnew,itrc)=t(i,j,k,nnew,itrc) +dt*pm(i,j)*pn(i,j)
-     &                                               *T_src(i,j,k,itrc)
-     &                                               /Hz(i,j,k)**2
-            enddo
-! Debugging Domitille
-!               if (mynode == 6) then
-!               if (itrc .gt. 1 + ntrc_salt .and. k .eq. 31) then
-!               write(*,*) 'PO4 in step3d =',T_src(35,11,31,itrc)
-!               endif
-!               endif
-! End Domitille
-
-          enddo
-!          endif
 ! No dillution for temperature:
           if (itrc .eq. itemp) then
             do k=1,N
@@ -784,10 +768,10 @@ c--#  define ntdf nrhs
             do k=1,N
               do i=istr,iend
                 t(i,j,k,nnew,itrc)=t(i,j,k,nnew,itrc)
-     &                            +dt*pm(i,j)*pn(i,j)
-     &                            *(T_src(i,j,k,itrc)
-     &                            -(T_src(i,j,k,0)
-     &                            *t(i,j,k,nstp,itrc)))
+     &                               +dt*pm(i,j)*pn(i,j)
+     &                                *( T_src(i,j,k,itrc)
+     &                                  -(T_src(i,j,k,0)
+     &                                    *t(i,j,k,nstp,itrc)) )
               enddo
             enddo
           endif
