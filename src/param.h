@@ -96,6 +96,11 @@ c     &                LLm=60,  MMm=240,  N=24
 c     &                LLm=191, MMm=399, N=32       ! HBCS 15km setup
 c     &                LLm=90, MMm=198, N=32        !HBCS 30km setup
 c     &                LLm=46, MMm=98, N=32         !HBCS 60km setup
+#elif defined humpac30                                
+     &               LLm=349, MMm=504, N=42       ! Humboldt telescopic 8-80km setup
+#elif defined humpac15                                
+     &               LLm=699, MMm=1007, N=42       ! Humboldt telescopic 4-40km setup
+
 #elif defined USWEST
 # ifdef GRID_LEVEL
 #  if GRID_LEVEL == 1
@@ -152,9 +157,13 @@ cc      parameter (NP_XI=6, NP_ETA=32, NSUB_X=1, NSUB_E=1) ! PACBIG newcluster
 # elif defined HBCS5
       parameter (NP_XI=8, NP_ETA=8, NSUB_X=1, NSUB_E=1)    
 # elif defined SAWC
-      parameter (NP_XI=4, NP_ETA=16,NSUB_X=1, NSUB_E=1)
+      parameter (NP_XI=12, NP_ETA=16,NSUB_X=1, NSUB_E=1)
 c      parameter (NP_XI=2, NP_ETA=8, NSUB_X=1, NSUB_E=1)
 c      parameter (NP_XI=1, NP_ETA=4, NSUB_X=1, NSUB_E=1)
+# elif defined humpac30
+      parameter (NP_XI=12, NP_ETA=16, NSUB_X=1, NSUB_E=1)
+# elif defined humpac15
+      parameter (NP_XI=8, NP_ETA=48, NSUB_X=1, NSUB_E=1)
 # elif defined USWC_CENTRAL
 !      parameter (NP_XI=1, NP_ETA=4, NSUB_X=1, NSUB_E=1)
 !      parameter (NP_XI=2, NP_ETA=12, NSUB_X=1, NSUB_E=1)

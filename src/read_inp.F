@@ -758,8 +758,8 @@ c--      fname='roms.in.US_West'
 # endif
      &       ) wrthis(indxTime)=.true.
  
-          MPI_master_only print *
-     &    ,  wrthis(indxR),  'write RHO  ', 'Density anomaly'
+          MPI_master_only write(stdout,'(7(/6x,l1,2x,A,1x,A))')
+     &    , wrthis(indxR),  'write RHO  ', 'Density anomaly'
      &    , wrthis(indxO),  'write Omega', 'Omega vertical velocity.'
      &    , wrthis(indxW),  'write W    ', 'True vertical velocity.'
      &    , wrthis(indxAkv),'write Akv  ', 'Vertical viscosity'
@@ -922,8 +922,8 @@ c--      fname='roms.in.US_West'
      &       ) wrtavg(indxTime)=.true.
  
 #  ifndef SLICE_AVG
-          MPI_master_only print*,
-     &    , wrtavg(indxR),  'write RHO  ', 'Density anomaly'
+          MPI_master_only write(stdout,'(7(/6x,l1,2x,A,1x,A))')
+     &      wrtavg(indxR),  'write RHO  ', 'Density anomaly'
      &    , wrtavg(indxO),  'write Omega', 'Omega vertical velocity.'
      &    , wrtavg(indxW),  'write W    ', 'True vertical velocity.'
      &    , wrtavg(indxAkv),'write Akv  ', 'Vertical viscosity'

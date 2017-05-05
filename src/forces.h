@@ -135,9 +135,9 @@ CSDISTRIBUTE_RESHAPE  dustg(BLOCK_PATTERN,*) BLOCK_CLAUSE
 
         real dustp(2), dust_time(2),dust_cycle, scldqdt
         integer itdust,dust_id,ldustgrd ,dust_ncycle,
-     &  dust_rec,dust_tid
+     &  dust_rec,dust_tid,dust_file_id
        common/dustdat/itdust,dust_id,ldustgrd,
-     &  dust_ncycle,dust_rec,dust_tid
+     &  dust_ncycle,dust_rec,dust_tid,dust_file_id
        common/dustdat1/dustp,dust_time,dust_cycle,scldqdt
 
 
@@ -151,11 +151,11 @@ CSDISTRIBUTE_RESHAPE irong(BLOCK_PATTERN,*) BLOCK_CLAUSE
      
        real ironp(2),iron_time(2),iron_cycle
        integer itiron,iron_id,lirongrd,iron_ncycle,
-     &  iron_rec,iron_tid
+     &  iron_rec,iron_tid,iron_file_id
 
        common/irondat/ironp,iron_time,iron_cycle
        common/irondat1/itiron,iron_id,lirongrd,
-     &  iron_ncycle,iron_rec,iron_tid
+     &  iron_ncycle,iron_rec,iron_tid,iron_file_id
 
 #endif
 !

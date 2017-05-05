@@ -474,6 +474,26 @@ C$   &                                                   , proc(2)
                   check_line(i:ie-1)=check_line(i+1:ie)
                   check_line(ie:ie)=' '
                   ie=ie-1
+! Appearance of any non-digit character other than blank,"+", "-", or
+! "." indicates floating point exception condition (usually caused by
+! blowup).    Force writing history file at every time step and set
+! may_day_flag to signal termination.  The code behavior in this
+! situation is to write the last state of all variables into history
+! file and quit.
+
+                elseif (check_line(i:i)<'0' .or. check_line(i:i)>'9') then
+                    if ( check_line(i:i) /= ' ' .and.
+     &                 check_line(i:i) /= '+'  .and.
+     &                 check_line(i:i) /= '-'  .and.
+     &                 check_line(i:i) /= '.') then
+                       nwrt=1
+                       
+                       if (may_day_flag == 0) then
+                           write(*,*) '--->setting may day flag'
+                           may_day_flag=1  !-->   !BLOW UP
+                       endif
+                    endif
+
                 elseif (ichar(check_line(i:i)).lt.48 .or.
      &                  ichar(check_line(i:i)).gt.57) then
                   if (check_line(i:i).ne.' ' .and.

@@ -219,13 +219,14 @@
 ! Set a default value for pCO2 in the air. Will be overwritten if 
 ! VARIABLE_ANN_ATM_PCO2 and/or VARIABLE_ATM_PCO2 is defined:
 ! 
-
-! For 2050
-!          pCO2air_loc = 550.0 
+! For 2090 rcp8.5 use 840.9, for rcp2.6 use 428.1
+          pCO2air_loc = 428.1
+! For 2050 rcp8.5 use 538.5 for rcp2.6 use 442.4
+!          pCO2air_loc = 442.4 
 ! For present day
-           pCO2air_loc = 370.0
-! For preindustrial
-!          pCO2air_loc = 278.0
+!           pCO2air_loc = 370.0
+! For preindustrial. For year 1870 use 286.0
+!           pCO2air_loc = 286
 # ifdef VARIABLE_ANN_ATM_PCO2
            ! Compute number of simulated days since the start of the simulation:
            tdays_pco2 = time*sec2day

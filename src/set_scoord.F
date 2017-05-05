@@ -23,7 +23,7 @@
 ! (like the temperature).
  
       integer ncidclm_loc, Csr_id, scr_id, ths_id, thb_id
-      character(len=80) clm_file_loc
+      character(len=100) clm_file_loc
       integer k, ierr, ncid, varid, lstr, lenstr, checkdims, nf_fread
             
       integer start

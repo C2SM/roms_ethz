@@ -23,8 +23,9 @@
 ! large negative artificial values, so that it will trigger logic in
 ! reading part below.
 !
-      ifrc=1
- 100  ncid=ncidfrc(ifrc)
+!      ifrc=1
+      ifrc=max(iron_file_id,1) 
+100   ncid=ncidfrc(ifrc)
       frcname=frcfile(ifrc)
       ierr=nf_noerr
 
@@ -47,6 +48,7 @@
             ierr=nf_inq_varid (ncid, vname(1,indxiron)(1:lvar),
      &                                                   iron_id)
             if (ierr .eq. nf_noerr) then
+              iron_file_id=ifrc
               call set_cycle (ncid, iron_tid, ntiron, iron_cycle,
      &                                 iron_ncycle, iron_rec, ierr)
               itiron=1
