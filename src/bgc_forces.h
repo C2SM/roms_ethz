@@ -147,3 +147,4 @@ CSDISTRIBUTE_RESHAPE  dip_riverg(BLOCK_PATTERN,*) BLOCK_CLAUSE
 #  endif /* defined RIVER_DATA || defined ALL_DATA */
 # endif /* RIVER_LOAD_N || RIVER_LOAD_P */
 #endif /* BIOLOG_BEC || BIOLOG_BEC2 */ 
+# endif

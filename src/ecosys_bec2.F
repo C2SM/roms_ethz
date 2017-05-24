@@ -796,6 +796,9 @@ c$$$       enddo
 
        integer istr,iend,i,j,k,n_loc,auto_ind,auto_ind2
        real dt2,tmp1,tmp2,tmp3,tmp4
+# ifdef BEC_PHAEO
+       real tcrit1,tfunc_tcrit1,tfunc_2,tfunc_3 ! for reduction of growth between 6-10degC
+# endif
        real temp(istr:iend), SHF_QSW(istr:iend),
      &    PAR_out(istr:iend), dust_flux(istr:iend)
 
@@ -1409,6 +1412,12 @@ c$$$       enddo
           else
              bec2_diag_3d(istr:iend,j,k,diazfeuptake_idx_t) = VFe
              bec2_diag_3d(istr:iend,j,k,diazpo4uptake_idx_t) =VPO4(istr:iend,diaz_ind)
+!#   ifdef BEC_COCCO
+!             bec2_diag_3d(istr:iend,j,k,coccopo4uptake_idx_t) =VPO4(istr:iend,cocco_ind)
+!#   endif
+!#   ifdef BEC_PHAEO
+!             bec2_diag_3d(istr:iend,j,k,phaeopo4uptake_idx_t) =VPO4(istr:iend,phaeo_ind)
+!#   endif
           end if
 #  endif
 # endif
@@ -1445,6 +1454,26 @@ c$$$       enddo
 !             PCmax = PCref(auto_ind) * f_nut * Tfunc 
 !          endif
 !# endif /* BEC_COCCO */
+
+
+# ifdef BEC_PHAEO 
+       ! reduce phaeo growth linearly above 6degC
+          if (auto_ind==phaeo_ind) then
+          tcrit1 = 5.0
+          do i=istr,iend
+             if (temp(i)>tcrit1) then
+                tfunc_tcrit1 = 1.5**(((tcrit1 + T0_Kelvin) - (Tref + T0_Kelvin)) / c10)  ! Tfunc at tcrit1
+                tfunc_2 = -1.0*tfunc_tcrit1/(temp_thres(phaeo_ind)-tcrit1)  ! slope
+                tfunc_3 = tfunc_tcrit1-(tcrit1*tfunc_2)  ! y-Achsenabschnitt
+                Tfunc_phaeo(i) = max(0.0,(tfunc_2*temp(i)+tfunc_3)*PCref(phaeo_ind))
+             endif
+          enddo
+        ! Phaeo cease to grow above 10degC
+          where (temp > temp_thres(auto_ind)) Tfunc_phaeo = c0
+          endif
+# endif /* BEC_PHAEO */
+
+
 
 ! CN: apply different Tfunc for coccos and diat
           if (auto_ind==diat_ind) then
@@ -1715,7 +1744,10 @@ c$$$       enddo
 # endif /* BEC_COCCO */
 # ifdef BEC_PHAEO
        elseif (auto_ind == phaeo_ind) then
-          auto_loss(istr:iend,auto_ind) =  mort(auto_ind) * Pprime(istr:iend,auto_ind) * Tfunc_phaeo
+          !auto_loss(istr:iend,auto_ind) =  mort(auto_ind) * Pprime(istr:iend,auto_ind) * Tfunc_phaeo
+          auto_loss(istr:iend,auto_ind) = mort(auto_ind)*(2.0-min(f_nut,light_lim))*
+     &                    Pprime(istr:iend,auto_ind) * Tfunc_phaeo
+
 # endif /* BEC_PHAEO */
        else
           auto_loss(istr:iend,auto_ind) =  mort(auto_ind) * Pprime(istr:iend,auto_ind) * Tfunc
