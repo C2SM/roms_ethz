@@ -45,12 +45,12 @@
                       /* Restart */
 !--> #define EXACT_RESTART
 
-         /* Open Boundary Conditions */
-#define OBC_M2FLATHER
-#define OBC_M3ORLANSKI
-#define OBC_TORLANSKI
+                      /* Open Boundary Conditions */
+#define OBC_M2FLATHER  /* Barotop. BC: OBC_M2FLATHER, OBC_M2ORLANSKI, OBC_M2SPECIFIED */
+#define OBC_M3ORLANSKI /* Baroclin. BC: OBC_M3ORLANSKI, OBC_M3SPECIFIED */
+#define OBC_TORLANSKI  /* Tracer BC: OBC_TORLANSKI, OBC_TSPECIFIED */
 
-        /* Biology Settings */
+                      /* Biology Settings */
 #ifdef BIOLOGY_BEC2
 # define BIOLOGY
 # define DAILYPAR_BEC

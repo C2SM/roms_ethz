@@ -9,11 +9,12 @@
 #include "cppdefs_UP.h"
 
 
-#define SO_AH  /* Config. Alex (SO_AH) or Cara (SO_CN) */
+!-- #define SO_CN  /* Config. Cara (SO_CN) */
+#define SO_AH  /* Config. Alex (SO_AH)  */
 
 
                      /* Resolution */
-#define SO_d025 /* SO_d05, SO_d025, SO_d0125, SO_d01 */
+#define SO_d05 /* SO_d05, SO_d025, SO_d0125, SO_d01 */
 
 #ifdef SO_d05        /*                     - 1/2 degree setup (SO_d05) */
 # define GRID_SIZE LLm=720, MMm=216, N=64
@@ -57,16 +58,15 @@
 
 
                      /* Vertical Mixing */
+#define SO_KPP     /* note that this option sets important KPP parameters */
 #define LMD_DDMIX
 #define LMD_BKPP
-#ifdef SO_AH
+#ifdef SO_KPP
 # undef LMD_CONVEC
 # define LMD_MIN_KPP
 # define BRINE_PLUMES
 # define LMD_LIMIT_STABLE
-!-- # define BRINE_PLUMES2
 !-- # define LMD_NEWENTRAIN
-!-- # define MLCONVEC
 #endif
 
 
@@ -82,33 +82,35 @@
 # define OBC_NORTH_M2SPECIFIED_TILEEND 571 /* OBC_M2SPECIFIED for a certain range of tiles */
 #endif
 #ifdef SO_d0125       /*                     - 1/8 degree setup (SO_d0125) */
-# define OBC_NORTH_M2SPECIFIED_TILESTR XX /* OBC_M2SPECIFIED for a certain range of tiles */
-# define OBC_NORTH_M2SPECIFIED_TILEEND XX /* OBC_M2SPECIFIED for a certain range of tiles */
+# define OBC_NORTH_M2SPECIFIED_TILESTR XXX /* OBC_M2SPECIFIED for a certain range of tiles */
+# define OBC_NORTH_M2SPECIFIED_TILEEND XXX /* OBC_M2SPECIFIED for a certain range of tiles */
 #endif
 #ifdef SO_d01       /*                     - 1/10 degree setup (SO_d01) */
-# define OBC_NORTH_M2SPECIFIED_TILESTR XX /* OBC_M2SPECIFIED for a certain range of tiles */
-# define OBC_NORTH_M2SPECIFIED_TILEEND XX /* OBC_M2SPECIFIED for a certain range of tiles */
+# define OBC_NORTH_M2SPECIFIED_TILESTR XXX /* OBC_M2SPECIFIED for a certain range of tiles */
+# define OBC_NORTH_M2SPECIFIED_TILEEND XXX /* OBC_M2SPECIFIED for a certain range of tiles */
 #endif
 
 
                       /* Output */
-#define MASK_LAND_DATA
 #define AVERAGES
 !-- #define SLICE_AVG
 #ifdef SO_AH
 # define WRITE_HEATFLX
 # define WRITE_SALT_REST
 # define WRITE_TEMP_REST
-!-- # define WRITE_CO2FLX
+# ifdef BIOLOGY_BEC2
+#  define WRITE_CO2FLX
+# endif
 !-- # define KPP_DIAGNOSE
+!-- # define COMPUTE_SPEED_DIAGNOSE
 #endif
 
 
                       /* Flux Analysis */
-!-- #define PHYS_FLUX_ANALYSIS
-!-- #define FULL_PHYS_FLUX_ANALYSIS
-!-- #define VERT_DIFF_ANALYSIS
-!-- #define SELECTED_FLUX_ANALYSIS
+!--#define PHYS_FLUX_ANALYSIS
+!--#define FULL_PHYS_FLUX_ANALYSIS
+!--#define VERT_DIFF_ANALYSIS
+!--#define SELECTED_FLUX_ANALYSIS
 
 
                       /* Biology (SO specific) */
@@ -136,4 +138,3 @@
 !  PARALLEL_FILES is set in set_global_definitions.h
 !  Switch it off, if not desired
 !-- #undef PARALLEL_FILES
-
