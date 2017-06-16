@@ -136,55 +136,15 @@
 ! skin temperature for the entire grid box and recalculate heat fluxes
 ! based on Markus (1999). Note that this overwrites any surface forcing
 ! heat flux in grid cells with net freezing. !AH16
-!Option1: Markus (1999)
-              stflx(i,j,itemp)=stflx(i,j,itemp) !stflx(i,j,itemp)*(1.-sic(i,j)) this is done in the forcing
+              stflx(i,j,itemp)=stflx(i,j,itemp) !Note: stflx(i,j,itemp)*(1.-sic(i,j)) this is done in the forcing
      &           +min(0.,
-!     &           max((-9.7737e-6/(sic(i,j)+1.)
-!     &           +(melting(i,j)/t(i,j,N,nrhs,isalt)*81.6)),!latent heat of melting!334e3*1000/1027/3985
-!-3.91e-6,    !-16 W m-2 /(rho0*Cp)
-     &           0.006        ! Stanton number under ice
+     &           0.0055        ! Stanton number under ice, range 0.005-0.006 (McPhee 1992)
      &                                 *sqrt( sqrt( 0.333333333333*(
      &      sustr(i,j)**2 + sustr(i+1,j)**2 + sustr(i,j)*sustr(i+1,j)
      &     +svstr(i,j)**2 + svstr(i,j+1)**2 + svstr(i,j)*svstr(i,j+1)
      &                                                            )))
      &           *(-0.0543*t(i,j,N,nrhs,isalt)-t(i,j,N,nrhs,itemp))
-!     &           )
      &           *sic(i,j))
-!Option2: Martinson (1990) + Markus (1999)
-!!              k1=N
-!!              k2=N
-!!              do k=N,1,-1
-!!                if (k1 <= k2) then
-!!                  if (sqrt(max(0., bvf(i,j,k) )) 
-!!     &              .le. sqrt(max(0., bvf(i,j,k-1) ))) then
-!!                    k1=k
-!!                  endif
-!!                  if (sqrt(max(0., bvf(i,j,k) )) 
-!!     &              .ge. sqrt(max(0., bvf(i,j,k-1) ))) then
-!!                    k2=k
-!!                  endif
-!!                endif
-!!              enddo
-!!              if ((k1==k2).or.(k2>=kbl(i,j))) then
-!!                k2=max(1,kbl(i,j)-1)
-!!              endif
-!              k1=N
-!              k2=max(1,kbl(i,j)-1)
-!              stflx(i,j,itemp)=(stflx(i,j,itemp)*(1.-sic(i,j)))
-!     &           + min(0.,
-!     &             max((-(freezing(i,j)+melting(i,j))
-!     &                   *(t(i,j,k2,nrhs,itemp)
-!     &                     -t(i,j,k1,nrhs,itemp))
-!     &                   /(t(i,j,k2,nrhs,isalt)
-!     &                     -t(i,j,k1,nrhs,isalt)))
-!     &                 ,(0.006*sqrt( sqrt( 0.333333333333*(
-!     &                         sustr(i,j)**2 + sustr(i+1,j)**2 
-!     &                          + sustr(i,j)*sustr(i+1,j)
-!     &                       + svstr(i,j)**2 + svstr(i,j+1)**2
-!     &                          + svstr(i,j)*svstr(i,j+1))))
-!     &                   *(-0.0543*t(i,j,N,nrhs,isalt)
-!     &                     -t(i,j,N,nrhs,itemp)))
-!     &                 )*sic(i,j))
 #  endif  /* ICEOBS */
 # endif  /* !ICE_MODEL */
 # if defined QCORRECTION && !defined ANA_SST
