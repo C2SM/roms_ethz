@@ -35,7 +35,7 @@
       implicit none
       integer tile, ierr
 #include "param.h"
-#if defined VFLX_CORR
+#if defined VFLX_CORR || defined TSOURCE
       integer itrc, i, j, k
 # include "comm_vars.h"
 # include "forces.h"
@@ -44,6 +44,9 @@
 # ifdef MASKING
 #  include "grid.h"
 # endif
+#endif
+#if defined TSOURCE
+# include "sources.h"
 #endif
 
 #include "compute_tile_bounds.h"
@@ -136,9 +139,6 @@ c***              no code here
 #   ifdef ANA_SSFLUX
       call ana_stflux_tile(istr,iend,jstr,jend, isalt)
 #   else
-# ifdef ICEOBS
-      call set_seaice_tile(istr,iend,jstr,jend,ierr)
-# endif
       call set_stflux_tile(istr,iend,jstr,jend, isalt, ierr)
 #   endif
 #   if defined VFLX_CORR
@@ -173,6 +173,26 @@ c***              no code here
 #   endif /* VFLX_CORR */
 #  endif /* SALINITY */
 # endif
+# ifdef TSOURCE
+! AH17: Compute tracer flux Tflx from 3D source
+! The tracer flux of the source is computed from 
+! a certain volume flux (T_src(i,j,k,0) in [m3 * sec-1])
+! with a predefined tracer concentration (T_src(i,j,k,itrc)
+! in [tracer unit]) and accounting for dillution of the tracers,
+! which corresponds to the way that dillution occurs
+! due to the surface flux for all tracers.
+! Tflx is added to the tracer in step3d_t_ISO.F.
+      do itrc=1,NT
+        do j=jstr,jend
+          do i=istr,iend
+            do k=1,N
+              Tflx(i,j,k,itrc)=pm(i,j)*pn(i,j)*T_src(i,j,k,0)
+     &                *(T_src(i,j,k,itrc)-t(i,j,k,nrhs,itrc))
+            enddo
+          enddo
+        enddo
+      enddo
+# endif /* TSOURCE */
 # if defined PASSIVE_TRACER && defined AGE_DYE_TRACER
       call set_agedye_tile(istr,iend,jstr,jend,ierr)
 # endif

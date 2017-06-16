@@ -741,40 +741,22 @@ c--#  define ntdf nrhs
              enddo
           end if
 # endif /* PHYS_FLUX_ANALYSIS */
-! Add 3D sources
-! AH17: Add source and dillute all tracers except 
-! for temperature with volume of water added
-! (T_src(i,j,k,0) in [m3 * sec-1]).
-! If the volume of water added has a predefined
-! concentration, i.e. salinity or nutrients this
-! property of the source water is set in T_src(i,j,k,itrc)
-! (in [tracer unit * m3 * sec-1]) in the input file. The
-! dillution corresponds to the way that dillution occurs
-! due to the surface flux is set_forces.
 # ifdef TSOURCE
-! No dillution for temperature:
-          if (itrc .eq. itemp) then
-            do k=1,N
-              do i=istr,iend
-                t(i,j,k,nnew,itrc)=t(i,j,k,nnew,itrc)
-     &                            +dt*pm(i,j)*pn(i,j)
-     &                            *T_src(i,j,k,itrc)
-              enddo
+! AH17: Add tracer sources
+! Add source and dillute all tracers with volume of water 
+! added. Note that tracer flux Tflx is computed by set_forces.F. 
+! Note1: t at position nnew is multiplied by Hz)
+! Note2: If in future there should be a need to implement
+! a tracer source that is not associated with a volume
+! flux, consider an additional option to add the tracer
+! directly without dillution: t(i,j,k,nnew,itrc)=t(i,j,k,nnew,itrc)
+! +dt*T_src(i,j,k,itrc)*Hz(i,j,k)
+! whereas T_src would need the unit of the tracer per second.
+          do k=1,N
+            do i=istr,iend
+              t(i,j,k,nnew,itrc)=t(i,j,k,nnew,itrc)+dt*Tflx(i,j,k,itrc)
             enddo
-! With dillution for all tracers other than temperature
-! (note: t at position nnew is multiplied by Hz and t at
-! all other positions, i.e. also nstp, not):
-          else
-            do k=1,N
-              do i=istr,iend
-                t(i,j,k,nnew,itrc)=t(i,j,k,nnew,itrc)
-     &                               +dt*pm(i,j)*pn(i,j)
-     &                                *( T_src(i,j,k,itrc)
-     &                                  -(T_src(i,j,k,0)
-     &                                    *t(i,j,k,nstp,itrc)) )
-              enddo
-            enddo
-          endif
+          enddo
 # endif /* TSOURCE */
 ! Start computation of vertical diffusion: add surface forcing fluxes
 # if defined PASSIVE_TRACER && defined AGE_DYE_TRACER
@@ -788,15 +770,6 @@ c--#  define ntdf nrhs
 # if defined PASSIVE_TRACER && defined AGE_DYE_TRACER
           endif ! itrc.le.indxT+ntrc_salt .or. ...
 # endif
-!# if defined LMD_KPP && defined ICEOBS && defined BRINE_PLUMES2
-!          if (itrc .eq. isalt) then
-!            do i=istr,iend
-!              if (freezing(i,j).gt.0) then
-!                t(i,j,N,nnew,itrc)=t(i,j,N,nnew,itrc)+dt*freezing(i,j,itrc)
-!              endif
-!            enddo
-!          endif
-!# endif
 # if defined LMD_KPP && defined ICEOBS && defined BRINE_PLUMES
 ! AH15: Distributing salt fluxes due freezing uniformly over
 ! kbl to mimic brine plume convection (see Duffy et al. 1999)

@@ -121,17 +121,22 @@ c--# define AKIMA
              enddo
           end if
 # endif /* PHYS_FLUX_ANALYSIS */
-! Add 3D sources
-! AH16
 # ifdef TSOURCE
+! AH17: Add tracer sources
+! Add source and dillute all tracers with volume of water 
+! added. Note that tracer flux Tflx is computed by set_forces.F. 
+! Note1: t at position nnew is multiplied by Hz)
+! Note2: If in future there should be a need to implement
+! a tracer source that is not associated with a volume
+! flux, consider an additional option to add the tracer
+! directly without dillution: t(i,j,k,nnew,itrc)=t(i,j,k,nnew,itrc)
+! +dt*T_src(i,j,k,itrc)*Hz(i,j,k)
+! whereas T_src would need the unit of the tracer per second.
           do k=1,N
             do i=istr,iend
-              t(i,j,k,nnew,itrc)=t(i,j,k,nnew,itrc) +dt*pm(i,j)*pn(i,j)
-     &                                               *T_src(i,j,k,itrc)
+              t(i,j,k,nnew,itrc)=t(i,j,k,nnew,itrc)+dt*Tflx(i,j,k,itrc)
             enddo
           enddo
-        enddo
-      enddo
 # endif /* TSOURCE */
 ! Add surface fluxes
 # if defined PASSIVE_TRACER && defined AGE_DYE_TRACER
@@ -145,15 +150,6 @@ c--# define AKIMA
 # if defined PASSIVE_TRACER && defined AGE_DYE_TRACER
           endif ! itrc.le.indxT+ntrc_salt .or. ...
 # endif
-!# if defined LMD_KPP && defined ICEOBS && defined BRINE_PLUMES2
-!          if (itrc .eq. isalt) then
-!            do i=istr,iend
-!              if (freezing(i,j).gt.0) then
-!                t(i,j,N,nnew,itrc)=t(i,j,N,nnew,itrc)+dt*freezing(i,j,itrc)
-!              endif
-!            enddo
-!          endif
-!# endif
 # if defined LMD_KPP && defined ICEOBS && defined BRINE_PLUMES
 ! AH15: Distributing salt fluxes due freezing uniformly over
 ! kbl to mimic brine plume convection (see Duffy et al. 1999)

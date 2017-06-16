@@ -22,10 +22,9 @@
       logical tsrc_set
 
 !
-! Initialization: Check, whether forcing netCDF file is already
+! Initialization: Check, whether TSOURCE netCDF file is already
 !===============  opened, an if not, open it. Find and save netCDF
-! IDs for relevant variables, and determine whether tsrc data exists
-! as 2D field or scalar. After that determine whether there is
+! IDs for relevant variables. After that determine whether there is
 ! cycling to reuse the input data and what is cycling period
 ! "tsrc_cycle", set initial cycling index "tsrc_ncycle", record index
 ! "tsrc_rec", and time to
@@ -163,4 +162,3 @@
       subroutine get_tsource_empty
       end
 #endif /* TSOURCE */
-

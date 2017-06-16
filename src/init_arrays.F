@@ -182,16 +182,31 @@
 # ifdef AVERAGES
               t_avg(i,j,k,itrc)=init
 # endif
-# ifdef TSOURCE
-              T_src(i,j,k,itrc)=init
-# endif
             enddo
           enddo
         enddo
-# ifdef TSOURCE
-        tsrc_id(itrc)=0
-# endif
       enddo
+# ifdef TSOURCE
+      do itrc=0,NT
+        do k=1,N
+          do j=jstrR,jendR
+            do i=istrR,iendR
+              T_src(i,j,k,itrc)=init
+            enddo
+          enddo
+        enddo
+        tsrc_id(itrc)=0
+      enddo
+      do itrc=1,NT
+        do k=1,N
+          do j=jstrR,jendR
+            do i=istrR,iendR
+              Tflx(i,j,k,itrc)=init
+            enddo
+          enddo
+        enddo
+      enddo
+# endif
 #endif /* SOLVE3D */
 
 ! Initialize forcing arrays (see "forces.h").

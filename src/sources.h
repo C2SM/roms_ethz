@@ -76,11 +76,17 @@
 ! AH: tracer sources:
 #if defined TSOURCE
 !
-! T_src(i,j,k,0:NT)  Tracer (tracer units times m3 s-1) field Sources/Sinks on rho-point
-! AH15: note that for temperature/salinity the unit must be degC/PSU m3 s-1
+! T_src(i,j,k,0:NT): Tracer sources/sinks on rho-point (in tracer units).
+!                             Position 0 in the third dimension corresponds to the
+!                             associated volume flux (in m3 s-1)
+!
       real T_src(GLOBAL_2D_ARRAY,N,0:NT)
 CSDISTRIBUTE_RESHAPE  T_src(BLOCK_PATTERN,*) BLOCK_CLAUSE
       common /sources_fld/ T_src
+      
+      real Tflx(GLOBAL_2D_ARRAY,N,1:NT)
+CSDISTRIBUTE_RESHAPE  Tflx(BLOCK_PATTERN,*) BLOCK_CLAUSE
+      common /sources_fld/ Tflx
       
       real tsrc_cycle, tsrc_time
       integer tsrc_ncycle,   tsrc_rec,    nttsrc,
