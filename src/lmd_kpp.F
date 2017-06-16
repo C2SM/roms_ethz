@@ -28,9 +28,6 @@ c--# define MERGE_OVERLAP
       real, dimension(PRIVATE_2D_SCRATCH_ARRAY,0:N) :: Kv, Kt, Ks
       real, dimension(PRIVATE_2D_SCRATCH_ARRAY) :: ustar, Bo, Bosol
      &                                                  , hbl, bbl
-# if defined LMD_LIMIT_STABLE && defined ICEOBS
-     &                                            , alpha0
-# endif
 # ifdef SMOOTH_HBL
      &                                              , FX, FE, FE1
 # else
@@ -44,46 +41,9 @@ c--# define MERGE_OVERLAP
      &                                                    , kbbl
 # endif
 
-      real, parameter ::
-# ifdef SO_AH16
-     &   Ricr=0.3,      ! Critical bulk Richardson number (0.3)
-# else
-     &   Ricr=0.45,     ! Critical bulk Richardson number (0.3)
-# endif
-     &   Ri_inv=1./Ricr,
-     &   epssfc=0.1,    ! nondimensional extent of the surface layer
-     &   betaT=-0.2,    ! ratio of entrainment flux to surface buoyancy
-                        !      forcing flux (the "20% convectin rule")
-     &   nubl=0.01,     ! maximum allowed boundary layer
-# ifdef SO_AH16
-     &   nu0c=0.01,     ! convective adjustment for viscosity and
-                        !                      diffusivity [m^2/s]
-# else
-     &   nu0c=0.1,      ! convective adjustment for viscosity and
-                        !                      diffusivity [m^2/s]
-# endif
-     &   Cv=1.8,        ! ratio of interior Brunt-Vaisala frequency
-                        ! "N" to that at the entrainment depth "he".
-     &   C_MO=1.,       ! constant for computaion Monin-Obukhov depth.
-# ifdef SO_AH16
-     &   C_Ek=211.,     ! constant for computating stabilization term
-                        !    due to Coriolis force (Ekman depth limit)
-# else
-     &   C_Ek=258.,     ! constant for computating stabilization term
-                        !    due to Coriolis force (Ekman depth limit)
-# endif
-     &   Cstar=10.,     ! proportionality coefficient parameterizing
-                        !                         nonlocal transport
-     &   zeta_m=-0.2,   ! Maximum stability parameters "zeta"
-     &   a_m=1.257,     ! value of the 1/3 power law regime of
-     &   c_m=8.360,     ! flux profile for momentum and tracers
-     &   zeta_s=-1.0,   ! and coefficients of flux profile for
-     &   a_s=-28.86,    ! momentum and tracers in their 1/3-power
-     &   c_s=98.96      ! law regime;
-
-      real, parameter :: r2=0.5, r3=1./3., r4=0.25, EPS=1.E-20
-
-
+# include "lmd_param.h"
+      real, parameter :: EPS=1.E-20
+      
       real Cg, ustar3, Bfsfc, zscale, zetahat, ws,wm, Kern, Vtc,Vtsq,
      &         ssgm, z_bl, Av_bl,dAv_bl, At_bl,dAt_bl,  As_bl,dAs_bl,
      &                         f1,a1,a2,a3,  cff,cff1, cff_up,cff_dn
@@ -153,7 +113,6 @@ c--# define MERGE_OVERLAP
 ! Nondimensional constants for computing non-local flux and convective
 ! deepening of surface boundary layer. The only reason why they are not
 ! parameters and computed here is because of power function involved.
-!      hrest=1./(5.*day2sec) !AH16: remove again
       Cg=Cstar * vonKar * (c_s*vonKar*epssfc)**(1./3.)
       Vtc=Cv * sqrt(-betaT/(c_s*epssfc)) / (Ricr*vonKar**2)
 # endif
@@ -179,10 +138,6 @@ c--# define MERGE_OVERLAP
       do j=J_EXT_RANGE
         do i=I_EXT_RANGE
 # ifdef LMD_KPP
-#  if defined LMD_LIMIT_STABLE && defined ICEOBS
-!          Bosol_day(i,j)=g*alpha(i,j)*srflx_dailyavg(i,j)
-          alpha0(i,j)=alpha(i,j)
-#  endif
           Bo(i,j)=g*( alpha(i,j)*(stflx(i,j,itemp)-srflx(i,j))
 #  ifdef SALINITY
      &                              -beta(i,j)*stflx(i,j,isalt)
@@ -453,9 +408,6 @@ c**     &                          k, Cr(i,k), Cr(i,k-1), hbl(i,j)
             if (ws < 0.004) then
               Cv2=Cv2 + 0.8 - (200. * ws)
             endif
-!            if (sqrt(max(0., bvf(i,j,k-1) )) < 0.002) then
-!              Cv2=Cv2 + 0.4 - (200. * sqrt(max(0., bvf(i,j,k-1) )))
-!            endif
             Vtc=Cv2 * sqrt(-betaT/(c_s*epssfc)) / (Ricr*vonKar**2)
 #   endif
 
@@ -504,26 +456,17 @@ c--         Vtsq=Vtc*ws*sqrt(max(0., 0.5*(bvf(i,j,k)+bvf(i,j,k-1)) ))
             h_MO=z_w(i,j,N)+C_h_MO(i)*(cff_up*z_up-cff_dn*z_r(i,j,k))
      &                             /( cff_up*cff_dn*(z_up-z_r(i,j,k))
      &                                  + C_h_MO(i)*(cff_dn-cff_up) )
-#    if defined LMD_LIMIT_STABLE && defined ICEOBS
+#    if defined LMD_LIMIT_STABLE && defined SO_KPP
 !    If neutral and stable, let depth of surface boundary
 !    layer be set to Niiler-Krauss wind mixing min depth.
+!    (see Lemke1987, Markus 1999)
             if ((ustar(i,j).gt.0.).and.((Bo(i,j)+Bosol(i,j)).gt.0.).and.
      &         (hbl(i,j)<hbls(i,j,tind)).and.(hbl(i,j)<max(h_MO,0.))) then
-!            if ((ustar(i,j).gt.0.).and.((Bo(i,j)+Bosol(i,j)).gt.0.).and.
-!     &         (alpha0(i,j).lt.8.E-5).and.(hbl(i,j).lt.max(h_MO,0.))) then
-!            if ((hbl(i,j)<hbls(i,j,tind)).and.(hbl(i,j)<max(h_MO,0.))) then
-              hbl(i,j)=max(hbl(i,j),h_MO*min(exp(-hbls(i,j,tind)/10.),1.)) !see Lemke1987,Markus 1999
-!              hbl(i,j)=hbl(i,j)+max(min(dt*hrest,0.5)*(h_MO-hbls(i,j,tind)),0.)
-!              hbl(i,j)=max(hbl(i,j),h_MO*min(exp(-hbl(i,j)/20.),1.))
-!              hbl(i,j)=max(hbl(i,j),hbls(i,j,tind)*min(exp(-hbl(i,j)/30.),1.))
-!              hbl(i,j)=max(hbl(i,j),hbls(i,j,tind)*min(exp(-hbl(i,j)/(10.*day2sec)*dt),1.))
-!              K0mo(i,j)=nu0mo
-!            else
-!              K0mo(i,j)=0.
+              hbl(i,j)=max(hbl(i,j),h_MO*dc0*min(exp(-hbls(i,j,tind)/dh0),1.)) 
             endif
             hbl(i,j)=max(hbl(i,j),0.)
             hbl(i,j)=min(hbl(i,j),abs(z_w(i,j,0)))
-#    endif /* LMD_LIMIT_STABLE && ICEOBS */
+#    endif /* LMD_LIMIT_STABLE && SO_KPP  */
 #    if defined LIMIT_MO_DEPTH
 !    Compare "hbl" with physically limiting cases (Ekman depth
 !    and Monin-Obukhov depth) and correct.
@@ -532,18 +475,6 @@ c--         Vtsq=Vtc*ws*sqrt(max(0., 0.5*(bvf(i,j,k)+bvf(i,j,k-1)) ))
           endif
 #    undef C_h_MO
 #   endif /* LIMIT_MO_DEPTH || LMD_LIMIT_STABLE */
-!#   ifdef LMD_LIMIT_STABLE2
-!    If stable surface forcing and thinning hbls,
-!    let depth of surface boundary layer be restored to
-!    Niiler-Krauss wind mixing min depth
-!    (see Markus 1999)
-!          if (((Bo(i,j)+Bosol(i,j)).gt.0.).and.
-!     &         (hbl(i,j).lt.hbls(i,j,tind))) then
-!            hbl(i,j)=max(hbl(i,j),0.8*h_MO*min(exp(-hbls(i,j,tind)/20.),1.)) !see Markus 1999
-!          endif
-!          hbl(i,j)=hbl(i,j)+max(dt*1./(10.*day2sec)*(hbl(i,j)-hbls(i,j,tind)),0.) !AH16: remove again
-!          hbl(i,j)=hbl(i,j)+max(0.,(hbls(i,j,tind)-hbl(i,j))*(1.-hrest*dt))! Ah16: remove again
-!#   endif /* LMD_LIMIT_STABLE2 */
 #   ifdef LIMIT_MIN_HBLS
           hbl(i,j)=max(LIMIT_MIN_HBLS, hbl(i,j))
 #   endif
@@ -751,8 +682,6 @@ c--         Vtsq=Vtc*ws*sqrt(max(0., 0.5*(bvf(i,j,k)+bvf(i,j,k-1)) ))
 #  endif
 ===> */
               cff=cff + ssgm*(1.-ssgm)**2
-!              cff=cff + (1.5*ssgm*(1.-ssgm)**2.) + (0.5*ssgm*(1.-ssgm)**0.5)
-!              cff=cff + (0.2*(1.-ssgm)) + (0.4*ssgm*(1.-ssgm)**1.5)
               Kv(i,j,k)=Kv(i,j,k) + wm*hbl(i,j)*cff
               Kt(i,j,k)=Kt(i,j,k) + ws*hbl(i,j)*cff
 #  ifdef SALINITY

@@ -50,52 +50,20 @@
 # include "mixing.h"
 # include "scalars.h"
 
-
       real nu_sx, cff,cff1, dudz,dvdz
-      real, parameter ::     ! Critical gradient Richardson number
-     &      Ri0=0.7,         ! below which shear instabilty occurs.
 
-# ifdef SO_AH16
-     &      nu0m=0.01,       ! Maximum viscosity and diffusivity
-     &      nu0s=0.01,       ! due to shear instability [m^2/s];
-# else
-     &      nu0m=50.e-4,     ! Maximum viscosity and diffusivity
-     &      nu0s=50.e-4,     ! due to shear instability [m^2/s];
-# endif
-
-     &      nuwm=1.0e-4,     ! Interior viscosity and diffusivity
-     &      nuws=0.1e-4,     ! due to wave breaking, [m^2/s]
-
-# ifdef SO_AH16
-     &      nu0c=0.01,       ! Convective adjustment [m^2/s];
-# else
-     &      nu0c=0.1,        ! Convective adjustment [m^2/s];
-# endif
-
-     &      lmd_nu=1.5e-6,   ! Molecular viscosity [m^2/s];
-
-                             ! Value of double-diffusive density
-     &      lmd_Rrho0=1.9,   ! ratio where diffusivity goes to zero
-                             !                     in salt fingering.
-     &      lmd_nuf=10.0e-4, ! Scaling factors for double diffusion
-     &      lmd_fdd=0.7,     ! coefficient in salt fingering.
-
-     &      lmd_tdd1=0.909,
-     &      lmd_tdd2=4.6,    ! Double diffusion constants for
-     &      lmd_tdd3=0.54,   ! temperature (Marmorino and Caldwell,
-     &      lmd_sdd1=0.15,   ! 1976) and salinity (Fedorov, 1988)
-     &      lmd_sdd2=1.85,
-     &      lmd_sdd3=0.85,
-     &      eps=1.E-14
-
-# ifdef LMD_DDMIX
-      real Rrho, ddDS, ddDT, nu_dds, nu_ddt, alfaobeta, Tt, Ts, Tp
+# include "lmd_param.h"
+      real, parameter :: eps=1.E-14
+      
+#  ifdef LMD_DDMIX
       real, parameter ::   A0=+0.665157E-01,    A1=+0.170907E-01,
      &      A2=-0.203814E-03,  A3=+0.298357E-05,  A4=-0.255019E-07,
      &      B0=+0.378110E-02,  B1=-0.846960E-04,  C0=-0.678662E-05,
      &      D0=+0.380374E-04,  D1=-0.933746E-06,  D2=+0.791325E-08,
      &      E0=-0.164759E-06,  F0=-0.251520E-11,  G0=+0.512857E-12,
-     &      H0=-0.302285E-13,  Smean=35.0
+     &      H0=-0.302285E-13
+
+      real Rrho, ddDS, ddDT, nu_dds, nu_ddt, alfaobeta, Tt, Ts, Tp
 # endif
 
 # ifdef LMD_RIMIX
@@ -157,7 +125,7 @@
             dvdz=cff*( v(i,j  ,k+1,tind)-v(i,j  ,k,tind)
      &                +v(i,j+1,k+1,tind)-v(i,j+1,k,tind))
 
-#  ifdef SO_AH16
+#  ifdef SO_KPP
             Rig(i,j,k)=bvf(i,j,k)/( Ri0*max(
      &                    dudz*dudz+dvdz*dvdz, 1.E-20 ))
 #  else
