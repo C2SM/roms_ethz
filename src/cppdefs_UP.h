@@ -53,7 +53,6 @@
                       /* Biology Settings */
 #ifdef BIOLOGY_BEC2
 # define BIOLOGY
-# define DAILYPAR_BEC
 #endif
 
 
