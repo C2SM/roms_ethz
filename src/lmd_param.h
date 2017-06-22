@@ -15,10 +15,10 @@
      &      nuwm=1.0e-4,      ! Interior viscosity and diffusivity
      &      nuws=0.1e-4,       ! due to wave breaking, [m^2/s]
 
-     &      lmd_nu=1.5e-6,    ! Molecular viscosity [m^2/s];
+     &      lmd_nu=1.5e-6     ! Molecular viscosity [m^2/s];
 
 #  ifdef LMD_DDMIX
-                                           ! Value of double-diffusive density
+      real, parameter ::         ! Value of double-diffusive density
      &      lmd_Rrho0=1.9,   ! ratio where diffusivity goes to zero
                                            ! in salt fingering.
      &      lmd_nuf=10.0e-4, ! Scaling factors for double diffusion
