@@ -1794,12 +1794,15 @@ c$$$       enddo
        bec2_diag_3d(istr:iend,j,k,grazesp_idx_t) = auto_graze(istr:iend,sp_ind)
        bec2_diag_3d(istr:iend,j,k,grazediat_idx_t) = auto_graze(istr:iend,diat_ind)
        bec2_diag_3d(istr:iend,j,k,grazediaz_idx_t) = auto_graze(istr:iend,diaz_ind)
+       bec2_diag_3d(istr:iend,j,k,phytograze_idx_t) = sum(auto_graze,dim=2)
        bec2_diag_3d(istr:iend,j,k,sploss_idx_t) = auto_loss(istr:iend,sp_ind)
        bec2_diag_3d(istr:iend,j,k,diatloss_idx_t) = auto_loss(istr:iend,diat_ind)
        bec2_diag_3d(istr:iend,j,k,diazloss_idx_t) = auto_loss(istr:iend,diaz_ind)
+       bec2_diag_3d(istr:iend,j,k,phytoloss_idx_t) = sum(auto_loss,dim=2)
        bec2_diag_3d(istr:iend,j,k,spagg_idx_t) = auto_agg(istr:iend,sp_ind)
        bec2_diag_3d(istr:iend,j,k,diatagg_idx_t) = auto_agg(istr:iend,diat_ind)
        bec2_diag_3d(istr:iend,j,k,diazagg_idx_t) = auto_agg(istr:iend,diaz_ind)
+       bec2_diag_3d(istr:iend,j,k,phytoagg_idx_t) = sum(auto_agg,dim=2)
        bec2_diag_3d(istr:iend,j,k,photocsp_idx_t) = photoC(istr:iend,sp_ind)
        bec2_diag_3d(istr:iend,j,k,photocdiat_idx_t) = photoC(istr:iend,diat_ind)
        bec2_diag_3d(istr:iend,j,k,photocdiaz_idx_t) = photoC(istr:iend,diaz_ind)
@@ -1812,18 +1815,23 @@ c$$$       enddo
        bec2_diag_3d(istr:iend,j,k,spno3uptake_idx_t) = NO3_V(istr:iend,sp_ind)
        bec2_diag_3d(istr:iend,j,k,diatno3uptake_idx_t) = NO3_V(istr:iend,diat_ind)
        bec2_diag_3d(istr:iend,j,k,diazno3uptake_idx_t) = NO3_V(istr:iend,diaz_ind)
+       bec2_diag_3d(istr:iend,j,k,phytono3uptake_idx_t) = sum(NO3_V,dim=2)
        bec2_diag_3d(istr:iend,j,k,spnh4uptake_idx_t) = NH4_V(istr:iend,sp_ind)
        bec2_diag_3d(istr:iend,j,k,diatnh4uptake_idx_t) = NH4_V(istr:iend,diat_ind)
        bec2_diag_3d(istr:iend,j,k,diaznh4uptake_idx_t) = NH4_V(istr:iend,diaz_ind)
+       bec2_diag_3d(istr:iend,j,k,phytonh4uptake_idx_t) = sum(NH4_V,dim=2)
        bec2_diag_3d(istr:iend,j,k,grazedicsp_idx_t) = auto_graze_dic(istr:iend,sp_ind)
        bec2_diag_3d(istr:iend,j,k,grazedicdiat_idx_t) = auto_graze_dic(istr:iend,diat_ind)
        bec2_diag_3d(istr:iend,j,k,grazedicdiaz_idx_t) = auto_graze_dic(istr:iend,diaz_ind)
+       bec2_diag_3d(istr:iend,j,k,phytograzedic_idx_t) = sum(auto_graze_dic,dim=2)
        bec2_diag_3d(istr:iend,j,k,lossdicsp_idx_t) = auto_loss_dic(istr:iend,sp_ind)
        bec2_diag_3d(istr:iend,j,k,lossdicdiat_idx_t) = auto_loss_dic(istr:iend,diat_ind)
        bec2_diag_3d(istr:iend,j,k,lossdicdiaz_idx_t) = auto_loss_dic(istr:iend,diaz_ind)
+       bec2_diag_3d(istr:iend,j,k,phytolossdic_idx_t) = sum(auto_loss_dic,dim=2)
        bec2_diag_3d(istr:iend,j,k,grazespzoo_idx_t) = auto_graze_zoo(istr:iend,sp_ind)
        bec2_diag_3d(istr:iend,j,k,grazediatzoo_idx_t) = auto_graze_zoo(istr:iend,diat_ind)
        bec2_diag_3d(istr:iend,j,k,grazediazzoo_idx_t) = auto_graze_zoo(istr:iend,diaz_ind)
+       bec2_diag_3d(istr:iend,j,k,phytograzezoo_idx_t) = sum(auto_graze_zoo,dim=2)
 #   ifdef BEC_COCCO
        bec2_diag_3d(istr:iend,j,k,grazecocco_idx_t) = auto_graze(istr:iend,cocco_ind)
        bec2_diag_3d(istr:iend,j,k,coccoloss_idx_t) = auto_loss(istr:iend,cocco_ind)
@@ -2366,7 +2374,7 @@ c$$$       enddo
     !-----------------------------------------------------------------------
 
        DTRACER_MODULE(istr:iend,j,k,dusthard_ind_t) = -dusthard_remin(istr:iend,j)
-       DTRACER_MODULE(istr:iend,j,k,pochard_ind_t) = POC_gamma*POC_prod - POChard_remin(istr:iend,j)
+       ! DTRACER_MODULE(istr:iend,j,k,pochard_ind_t) = POC_gamma*POC_prod - POChard_remin(istr:iend,j)
        DTRACER_MODULE(istr:iend,j,k,pcaco3hard_ind_t) = P_CaCO3_gamma*P_CaCO3_prod - P_CaCO3hard_remin(istr:iend,j)
        DTRACER_MODULE(istr:iend,j,k,psio2hard_ind_t) = P_SiO2_gamma*P_SiO2_prod - P_SiO2hard_remin(istr:iend,j)
        DTRACER_MODULE(istr:iend,j,k,pironhard_ind_t) = P_iron_gamma*P_iron_prod - P_ironhard_remin(istr:iend,j)
@@ -2376,6 +2384,16 @@ c$$$       enddo
      &                                                  P_CaCO3soft_remin(istr:iend,j)
        DTRACER_MODULE(istr:iend,j,k,psio2soft_ind_t) = (c1-P_SiO2_gamma)*P_SiO2_prod - P_SiO2soft_remin(istr:iend,j)
        DTRACER_MODULE(istr:iend,j,k,pironsoft_ind_t) = (c1-P_iron_gamma)*P_iron_prod - P_ironsoft_remin(istr:iend,j)
+
+       ! POC hard (QA) is diagnosed from different rho fractions of
+       ! sinking components.
+       DTRACER_MODULE(istr:iend,j,k,pochard_ind_t) =   P_CaCO3_rho*(P_CaCO3_gamma*P_CaCO3_prod - P_CaCO3hard_remin(istr:iend,j)
+     &                                               + (c1-P_CaCO3_gamma)*P_CaCO3_prod - P_CaCO3soft_remin(istr:iend,j)) 
+     &                                               + P_SiO2_rho*(P_SiO2_gamma*P_SiO2_prod - P_SiO2hard_remin(istr:iend,j)
+     &                                               + (c1-P_SiO2_gamma)*P_SiO2_prod - P_SiO2soft_remin(istr:iend,j))
+     &                                               + dust_rho*(-dusthard_remin(istr:iend,j)-dustsoft_remin(istr:iend,j))
+       
+
 # endif /* USE_EXPLICIT_VSINK */
 
        return

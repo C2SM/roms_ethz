@@ -29,15 +29,15 @@
 # endif /* CCHEM_MOCSY */
 # ifdef USE_EXPLICIT_VSINK
 # ifdef BEC_COCCO
-      parameter( nr_bec2_diag_3d=91+nr_cchem_mocsy_3d+28,  ! 10 from expl sinking, 18 from coccos
+      parameter( nr_bec2_diag_3d=99+nr_cchem_mocsy_3d+28,  ! 10 from expl sinking, 18 from coccos
 # else
-      parameter( nr_bec2_diag_3d=91+nr_cchem_mocsy_3d+10,
+      parameter( nr_bec2_diag_3d=99+nr_cchem_mocsy_3d+10,
 # endif /* BEC_COCCO */
 # else ! impl sinking
 # ifdef BEC_COCCO
-      parameter( nr_bec2_diag_3d=91+nr_cchem_mocsy_3d+18,  ! 18 from coccos, 0 from impl sinking
+      parameter( nr_bec2_diag_3d=99+nr_cchem_mocsy_3d+18,  ! 18 from coccos, 0 from impl sinking
 # else
-      parameter( nr_bec2_diag_3d=91+nr_cchem_mocsy_3d,   ! CN: took "+5" away, these were included in the 91
+      parameter( nr_bec2_diag_3d=99+nr_cchem_mocsy_3d,   ! CN: took "+5" away, these were included in the 99
 # endif /* BEC_COCCO */
 
 # endif /* USE_EXPLICIT_VSINK */
@@ -114,13 +114,19 @@
      &   zooczero_idx_t=par_idx_t+83,spcaco3zero_idx_t=par_idx_t+84,donrremin_idx_t=par_idx_t+85,
      &   totchl_idx_t=par_idx_t+86,
      &   spplim_idx_t=par_idx_t+87,diatplim_idx_t=par_idx_t+88,diazplim_idx_t=par_idx_t+89,
-     &   totphytoc_idx_t=par_idx_t+90
+     &   totphytoc_idx_t=par_idx_t+90,phytograze_idx_t=par_idx_t+91,phytoagg_idx_t=par_idx_t+92,
+     &   phytoloss_idx_t=par_idx_t+93,phytono3uptake_idx_t=par_idx_t+94,phytonh4uptake_idx_t=par_idx_t+95,
+     &   phytograzedic_idx_t=par_idx_t+96,phytograzezoo_idx_t=par_idx_t+97,
+     &   phytolossdic_idx_t=par_idx_t+98
+
 #  undef LAST_I
-#  define LAST_I totphytoc_idx_t
+#  define LAST_I phytolossdic_idx_t
 # ifdef USE_EXPLICIT_VSINK
-     &   ,pironhardremin_idx_t=LAST_I+1, caco3hardremin_idx_t=LAST_I+2, sio2hardremin_idx_t=LAST_I+3
+     &   ,pironhardremin_idx_t=LAST_I+1, caco3hardremin_idx_t=LAST_I+2
+     &   ,sio2hardremin_idx_t=LAST_I+3
      &   ,pochardremin_idx_t=LAST_I+4, dusthardremin_idx_t=LAST_I+5
-     &   ,pironsoftremin_idx_t=LAST_I+6, caco3softremin_idx_t=LAST_I+7, sio2softremin_idx_t=LAST_I+8
+     &   ,pironsoftremin_idx_t=LAST_I+6, caco3softremin_idx_t=LAST_I+7
+     &   ,sio2softremin_idx_t=LAST_I+8
      &   ,pocsoftremin_idx_t=LAST_I+9, dustsoftremin_idx_t=LAST_I+10
 # undef LAST_I
 # define LAST_I dustsoftremin_idx_t

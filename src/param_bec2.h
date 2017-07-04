@@ -305,14 +305,20 @@
    !---------------------------------------------------------------------
        real wDustHard, wPOCHard, wPCaCO3Hard, wPSiO2Hard, wPIronHard
        real wDustSoft, wPOCSoft, wPCaCO3Soft, wPSiO2Soft, wPIronSoft
-       parameter( wDustHard=50.0,  wPOCHard=10., wPCaCO3Hard=50., wPSiO2Hard=50., wPIronHard=50. )
-       parameter( wDustSoft=50.0,  wPOCSoft=10., wPCaCO3Soft=50., wPSiO2Soft=50., wPIronSoft=50. )
+       !parameter( wDustHard=50.0,  wPOCHard=10., wPCaCO3Hard=50., wPSiO2Hard=50., wPIronHard=25. )
+       !parameter( wDustSoft=50.0,  wPOCSoft=10., wPCaCO3Soft=50., wPSiO2Soft=50., wPIronSoft=25. )
+       parameter( wDustHard=25.0,  wPOCHard=25., wPCaCO3Hard=25., wPSiO2Hard=25., wPIronHard=25. )
+       parameter( wDustSoft=25.0,  wPOCSoft=10., wPCaCO3Soft=25., wPSiO2Soft=25., wPIronSoft=25. )
        real param_dusthard_remin, param_pochard_remin, param_pcaco3hard_remin,
      &   param_psio2hard_remin, param_pironhard_remin
        real param_dustsoft_remin, param_pocsoft_remin, param_pcaco3soft_remin,
      &   param_psio2soft_remin, param_pironsoft_remin
-       parameter( param_dusthard_remin=8.0e-5, param_pochard_remin=0.0005, param_pcaco3hard_remin=0.00125,
-     &   param_psio2hard_remin=0.00125, param_pironhard_remin=0.00125 )
-       parameter( param_dustsoft_remin=8.0e-5, param_pocsoft_remin=0.125, param_pcaco3soft_remin=0.125,
-     &   param_psio2soft_remin=0.125, param_pironsoft_remin=0.125 )
+   !    parameter( param_dusthard_remin=8.0e-5, param_pochard_remin=0.00125, param_pcaco3hard_remin=0.00125,
+   !  &   param_psio2hard_remin=0.00125, param_pironhard_remin=0.00125 )
+   !    parameter( param_dustsoft_remin=8.0e-5, param_pocsoft_remin=0.125, param_pcaco3soft_remin=0.125,
+   !  &   param_psio2soft_remin=0.125, param_pironsoft_remin=0.125 )
+       parameter( param_dusthard_remin=8.0e-5, param_pochard_remin=0.0025, param_pcaco3hard_remin=0.0025,
+     &   param_psio2hard_remin=0.0025, param_pironhard_remin=0.0025 )
+       parameter( param_dustsoft_remin=8.0e-5, param_pocsoft_remin=0.125, param_pcaco3soft_remin=0.25,
+     &   param_psio2soft_remin=0.25, param_pironsoft_remin=0.25 )
 #endif
