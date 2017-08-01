@@ -42,8 +42,8 @@
                      /*  Forcing */
                      /*          - surface */
 #define SALINITY_MASK
-#define SALINITY_MASKLATSTR -48.0
-#define SALINITY_MASKLATEND -53.01
+!-- #define SALINITY_MASKLATSTR -48.0
+!-- #define SALINITY_MASKLATEND -53.01
 !-- #define SALINITY_MASKLATSTR -40.0
 !-- #define SALINITY_MASKLATEND -45.01
 #define ICEOBS
