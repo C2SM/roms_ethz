@@ -231,6 +231,8 @@ c**  &                                        -tclm(i,j,N,isalt)
 #   endif
 #  endif
 #  ifdef SALINITY_MASK
+              else
+                RestFlxSalt(i,j)=0.
               endif
 #  endif
 # endif
