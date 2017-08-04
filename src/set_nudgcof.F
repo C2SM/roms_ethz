@@ -127,6 +127,8 @@ c      enddo
       isp=(LLm+1)/16
 #  elif defined USWC
       isp=(LLm+1)/40
+#  elif defined SOUTHERNOCEAN
+      isp=MMm/10.8
 #  elif defined SPONGE_WIDTH
 !     number of sponge points is an input parameter "n_sponge"
       isp=n_sponge 

@@ -8,7 +8,7 @@
 !-- #define BIOLOGY_BEC2
 #include "cppdefs_UP.h"
 
-
+#define SOUTHERNOCEAN
 !-- #define SO_CN  /* Config. Cara (SO_CN) */
 #define SO_AH  /* Config. Alex (SO_AH)  */
 
@@ -32,7 +32,6 @@
 #define GRID_SIZE LLm=3600, MMm=1080, N=64
 #define DOMAIN_TILING NP_XI=40, NP_ETA=24, NSUB_X=1, NSUB_E=1
 #endif
-/* NOTE: for more or less cores increase NP_ETA and change M2SPECIFIED tile range below */
 
 
                      /*  Dynamics */
@@ -42,10 +41,12 @@
                      /*  Forcing */
                      /*          - surface */
 #define SALINITY_MASK
+#ifdef SO_AH
 !-- #define SALINITY_MASKLATSTR -48.0
 !-- #define SALINITY_MASKLATEND -53.01
 !-- #define SALINITY_MASKLATSTR -40.0
 !-- #define SALINITY_MASKLATEND -45.01
+#endif
 #define ICEOBS
 #define VFLX_CORR
                      /*          - lateral */
@@ -75,6 +76,7 @@
 #define OBC_NORTH
 #define OBC_N_M2SPEC_STR (NP_XI*(NP_ETA-1.)) /* OBC_M2SPECIFIED for a certain range of tiles */
 #define OBC_N_M2SPEC_END ((NP_XI*(NP_ETA-1.))+(NP_XI*0.75)-1.) /* OBC_M2SPECIFIED for a certain range of tiles */
+#undef SPONGE_WIDTH  /* calculated in set_nudgcof.F */
 
 
                       /* Output */
@@ -93,10 +95,12 @@
 
 
                       /* Flux Analysis */
-!--#define PHYS_FLUX_ANALYSIS
-!--#define FULL_PHYS_FLUX_ANALYSIS
-!--#define VERT_DIFF_ANALYSIS
-!--#define SELECTED_FLUX_ANALYSIS
+#ifdef SO_AH
+!-- # define PHYS_FLUX_ANALYSIS
+!-- # define FULL_PHYS_FLUX_ANALYSIS
+!-- # define VERT_DIFF_ANALYSIS
+!-- # define SELECTED_FLUX_ANALYSIS
+#endif
 
 
                       /* Biology (SO specific) */
