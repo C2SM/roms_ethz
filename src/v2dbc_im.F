@@ -145,7 +145,7 @@
 #   endif
         enddo
 #  endif
-#  if defined OBC_NORTH_M2SPECIFIED_TILESTR && defined OBC_NORTH_M2SPECIFIED_TILEEND
+#  if defined OBC_SOUTH_M2SPECIFIED_TILESTR && defined OBC_SOUTH_M2SPECIFIED_TILEEND
 !
 !   Force OBC_M2SPECIFIED as southern boundary condition
 !   in the specified tile range! MF (following northern bry MM & AH)
