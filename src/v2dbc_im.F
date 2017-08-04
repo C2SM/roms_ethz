@@ -306,25 +306,6 @@
           enddo
         endif
 #  endif /* OBC_NORTH_M2SPECIFIED_TILESTR */
-#  if defined OBC_NORTH_M2SPECIFIED_TILESTR2 && defined OBC_NORTH_M2SPECIFIED_TILEEND2
-!
-!   Force OBC_M2SPECIFIED as northern boundary condition
-!   in the second specified tile range !MM & AH15
-!
-        if ((mynode.ge.OBC_NORTH_M2SPECIFIED_TILESTR2)
-     &                       .and. (mynode.le.OBC_NORTH_M2SPECIFIED_TILEEND2)) then
-          do i=istr,iend
-#   ifdef M2_FRC_BRY
-            vbar(i,jend+1,knew)=vbar_north(i)
-#   else
-            vbar(i,jend+1,knew)=vbclm(i,jend+1)
-#   endif
-#   ifdef MASKING
-     &                         *vmask(i,jend+1)
-#   endif
-          enddo
-        endif
-#  endif /* OBC_NORTH_M2SPECIFIED_TILESTR2 */
 # else
         do i=istr,iend                        ! Northern edge closed
           vbar(i,jend+1,knew)=0.              ! ======== ==== ======

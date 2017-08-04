@@ -562,26 +562,6 @@ c--#endif
           enddo
         endif
 #  endif /* OBC_NORTH_M2SPECIFIED_TILESTR */
-#  if defined OBC_NORTH_M2SPECIFIED_TILESTR2 && defined OBC_NORTH_M2SPECIFIED_TILEEND2
-!
-!   Force OBC_M2SPECIFIED as northern boundary condition
-!   in the second specified tile range !MM & AH15
-!
-        if ((mynode.ge.OBC_NORTH_M2SPECIFIED_TILESTR2)
-     &                       .and. (mynode.le.OBC_NORTH_M2SPECIFIED_TILEEND2)) then
-
-          do i=istrU,iend
-#   ifdef M2_FRC_BRY
-            ubar(i,jend+1,knew)=ubar_north(i)
-#   else
-            ubar(i,jend+1,knew)=ubclm(i,jend+1)
-#   endif
-#   ifdef MASKING
-            ubar(i,jend+1,knew)=ubar(i,jend+1,knew)*umask(i,jend+1)
-#   endif
-          enddo
-        endif
-#  endif /* OBC_NORTH_M2SPECIFIED_TILESTR2 */
 # else
 #  ifdef EW_PERIODIC
 #   define I_RANGE istrU,iend

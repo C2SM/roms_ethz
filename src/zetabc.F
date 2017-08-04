@@ -232,21 +232,6 @@ c          if (cx < 0.) cx=0.
           enddo
         endif
 # endif /* OBC_NORTH_M2SPECIFIED_TILESTR */
-# if defined OBC_NORTH_M2SPECIFIED_TILESTR2 && defined OBC_NORTH_M2SPECIFIED_TILEEND2
-!
-!   Force OBC_M2SPECIFIED as northern boundary condition
-!   in the second specified tile range !MM & AH15
-!
-        if ((mynode.ge.OBC_NORTH_M2SPECIFIED_TILESTR2)
-     &                       .and. (mynode.le.OBC_NORTH_M2SPECIFIED_TILEEND2)) then
-          do i=istrU-1,iend
-            zeta_new(i,jend+1)=zeta_new(i,jend)       ! gradient BC
-#  ifdef MASKING
-     &                       *rmask(i,jend+1)
-#  endif
-          enddo
-        endif
-# endif /* OBC_NORTH_M2SPECIFIED_TILESTR2 */
       endif
 #endif       /* !NS_PERIODIC */
 
