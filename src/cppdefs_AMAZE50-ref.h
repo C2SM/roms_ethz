@@ -10,8 +10,8 @@
 
 
          /* Open Boundary Conditions */
-#define OBC_NORTH_M2SPECIFIED_TILESTR
-#define OBC_NORTH_M2SPECIFIED_TILESTR2
+#define OBC_N_M2SPEC_STR
+#define OBC_N_M2SPEC_STR2
 #define OBC_M3ORLANSKI
 #define OBC_TORLANSKI
 

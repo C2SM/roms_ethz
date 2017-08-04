@@ -145,13 +145,13 @@
 #   endif
         enddo
 #  endif
-#  if defined OBC_SOUTH_M2SPECIFIED_TILESTR && defined OBC_SOUTH_M2SPECIFIED_TILEEND
+#  if defined OBC_S_M2SPEC_STR && defined OBC_S_M2SPEC_END
 !
 !   Force OBC_M2SPECIFIED as southern boundary condition
 !   in the specified tile range! MF (following northern bry MM & AH)
 !
-        if ((mynode.ge.OBC_SOUTH_M2SPECIFIED_TILESTR)
-     &                       .and. (mynode.le.OBC_SOUTH_M2SPECIFIED_TILEEND)) then
+        if ((mynode.ge.OBC_S_M2SPEC_STR)
+     &                       .and. (mynode.le.OBC_S_M2SPEC_END)) then
           do i=istr,iend
 #   ifdef M2_FRC_BRY
             vbar(i,jstr,knew)=vbar_south(i)
@@ -163,7 +163,7 @@
 #   endif
           enddo
         endif
-#  endif /* OBC_SOUTH_M2SPECIFIED_TILESTR */
+#  endif /* OBC_S_M2SPEC_STR */
 # else
         do i=istr,iend                        ! Southern edge closed
           vbar(i,jstr,knew)=0.                ! ======== ==== ======
@@ -287,13 +287,13 @@
 #   endif
         enddo
 #  endif /* OBC_M2FLATHER, OBC_M2ORLANSKI, OBC_M2SPECIFIED or ELSE */
-#  if defined OBC_NORTH_M2SPECIFIED_TILESTR && defined OBC_NORTH_M2SPECIFIED_TILEEND
+#  if defined OBC_N_M2SPEC_STR && defined OBC_N_M2SPEC_END
 !
 !   Force OBC_M2SPECIFIED as northern boundary condition
 !   in the specified tile range !MM & AH15
 !
-        if ((mynode.ge.OBC_NORTH_M2SPECIFIED_TILESTR)
-     &                       .and. (mynode.le.OBC_NORTH_M2SPECIFIED_TILEEND)) then
+        if ((mynode.ge.OBC_N_M2SPEC_STR)
+     &                       .and. (mynode.le.OBC_N_M2SPEC_END)) then
           do i=istr,iend
 #   ifdef M2_FRC_BRY
             vbar(i,jend+1,knew)=vbar_north(i)
@@ -305,7 +305,7 @@
 #   endif
           enddo
         endif
-#  endif /* OBC_NORTH_M2SPECIFIED_TILESTR */
+#  endif /* OBC_N_M2SPEC_STR */
 # else
         do i=istr,iend                        ! Northern edge closed
           vbar(i,jend+1,knew)=0.              ! ======== ==== ======

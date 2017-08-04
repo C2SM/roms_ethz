@@ -73,22 +73,8 @@
                       /* Open Boundary Conditions */
 #define EW_PERIODIC
 #define OBC_NORTH
-#ifdef SO_d05        /*                     - 1/2 degree setup (SO_d05) */
-# define OBC_NORTH_M2SPECIFIED_TILESTR 280 /* OBC_M2SPECIFIED for a certain range of tiles */
-# define OBC_NORTH_M2SPECIFIED_TILEEND 285 /* OBC_M2SPECIFIED for a certain range of tiles */
-#endif
-#ifdef SO_d025       /*                     - 1/4 degree setup (SO_d025) */
-# define OBC_NORTH_M2SPECIFIED_TILESTR 560 /* OBC_M2SPECIFIED for a certain range of tiles */
-# define OBC_NORTH_M2SPECIFIED_TILEEND 571 /* OBC_M2SPECIFIED for a certain range of tiles */
-#endif
-#ifdef SO_d0125       /*                     - 1/8 degree setup (SO_d0125) */
-# define OBC_NORTH_M2SPECIFIED_TILESTR XXX /* OBC_M2SPECIFIED for a certain range of tiles */
-# define OBC_NORTH_M2SPECIFIED_TILEEND XXX /* OBC_M2SPECIFIED for a certain range of tiles */
-#endif
-#ifdef SO_d01       /*                     - 1/10 degree setup (SO_d01) */
-# define OBC_NORTH_M2SPECIFIED_TILESTR XXX /* OBC_M2SPECIFIED for a certain range of tiles */
-# define OBC_NORTH_M2SPECIFIED_TILEEND XXX /* OBC_M2SPECIFIED for a certain range of tiles */
-#endif
+#define OBC_N_M2SPEC_STR (NP_XI*(NP_ETA-1.)) /* OBC_M2SPECIFIED for a certain range of tiles */
+#define OBC_N_M2SPEC_END ((NP_XI*(NP_ETA-1.))+(NP_XI*0.75)-1.) /* OBC_M2SPECIFIED for a certain range of tiles */
 
 
                       /* Output */

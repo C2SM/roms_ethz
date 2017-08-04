@@ -28,8 +28,8 @@
 !--#define OBC_EAST
 
      /* Open Boundary Conditions */
-!--SO #define OBC_NORTH_M2SPECIFIED_TILESTR 1 /* OBC_M2SPECIFIED for a certain range of tiles */
-!--SO #define OBC_NORTH_M2SPECIFIED_TILEEND 367 /* OBC_M2SPECIFIED for a certain ran*/
+!--SO #define OBC_N_M2SPEC_STR 1 /* OBC_M2SPECIFIED for a certain range of tiles */
+!--SO #define OBC_N_M2SPEC_END 367 /* OBC_M2SPECIFIED for a certain ran*/
 
      /* Vertical Mixing */
 !-- #define LMD_LIMIT_STABLE / KPP fix for shallow mixing layer

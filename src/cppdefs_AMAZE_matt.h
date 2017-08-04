@@ -26,8 +26,8 @@
 
      /* Open Boundary Conditions */
 #define OBC_M2FLATHER
-# define OBC_NORTH_M2SPECIFIED_TILESTR 1 /* OBC_M2SPECIFIED for a certain range of tiles */
-# define OBC_NORTH_M2SPECIFIED_TILEEND 367 /* OBC_M2SPECIFIED for a certain ran
+# define OBC_N_M2SPEC_STR 1 /* OBC_M2SPECIFIED for a certain range of tiles */
+# define OBC_N_M2SPEC_END 367 /* OBC_M2SPECIFIED for a certain ran
 #define OBC_M3ORLANSKI /* Baroclin. BC: OBC_M3ORLANSKI, OBC_M3SPECIFIED */
 #define OBC_TORLANSKI /* Tracer BC: OBC_TORLANSKI, OBC_TSPECIFIED */
 

@@ -16,8 +16,8 @@
      /* Open Boundary Conditions */
 !-- Try to treat inflow/outflow of ACC differently! (not yet tested, so far I used M2FLATHER)
 !-- new only indic/pacific, see below #define OBC_M2SPECIFIED /* special for SO */
-#define OBC_SOUTH_M2SPECIFIED_TILESTR 000 /* OBC_M2SPECIFIED for a certain range of tiles */
-#define OBC_SOUTH_M2SPECIFIED_TILEEND 004 /* OBC_M2SPECIFIED for a certain range of tiles */
+#define OBC_S_M2SPEC_STR 000 /* OBC_M2SPECIFIED for a certain range of tiles */
+#define OBC_S_M2SPEC_END 004 /* OBC_M2SPECIFIED for a certain range of tiles */
 #define OBC_M3ORLANSKI /* Baroclin. BC: OBC_M3ORLANSKI, OBC_M3SPECIFIED */
 #define OBC_TORLANSKI /* Tracer BC: OBC_TORLANSKI, OBC_TSPECIFIED */
 
