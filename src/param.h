@@ -117,14 +117,6 @@ c     &                LLm=384, MMm=480, N=32      ! GranCan
      &               LLm=399, MMm=616, N=32       ! 5km setup
 #elif defined SAWC
      &               LLm=384, MMm=800, N=30       ! HBCS 7.5km setup
-c================   ALEX
-#elif defined SO_d05
-     &               LLm=720,  MMm=216, N=42     ! SO_d05
-#elif defined SO_d025
-     &               LLm=1440, MMm=432, N=42     ! SO_d025
-#elif defined SO_d0125
-     &               LLm=2880, MMm=864, N=42     ! SO_d0125
-c================
 #elif defined USWC
 c     &    LLm=400,  MMm=512, N=40  ! US West Coast 2010 (L1, 5km)
 c     &    LLm=512,  MMm=400, N=40  ! US West Coast 2010 (L2, 1km)
@@ -177,13 +169,7 @@ c**     &               LLm=248, MMm=504, N=42      ! 5km config
 #ifdef MPI
       integer, parameter ::
 # ifdef DOMAIN_TILING /* tiling parameter are set in cppdefs */
-     &  DOMAIN_TILING 
-# elif defined SO_d05
-     &   NP_XI=8, NP_ETA=36, NSUB_X=1, NSUB_E=1
-# elif defined SO_d025
-     &   NP_XI=16, NP_ETA=24, NSUB_X=1, NSUB_E=1
-# elif defined SO_d0125
-     &   NP_XI=32, NP_ETA=12, NSUB_X=1, NSUB_E=1
+     &   DOMAIN_TILING
 # elif defined ATLTC25 || ATLEL25
      &   NP_XI=12, NP_ETA=16, NSUB_X=1, NSUB_E=1
 # elif defined ATLSMA
@@ -204,13 +190,6 @@ c**     &               LLm=248, MMm=504, N=42      ! 5km config
      &    NP_XI=10, NP_ETA=24, NSUB_X=1, NSUB_E=1
 # elif defined USTC90
      &    NP_XI=8, NP_ETA=12, NSUB_X=1, NSUB_E=1
-#elif defined SO_d05
-     &               LLm=720,  MMm=216, N=42     ! SO_d05
-#elif defined SO_d025
-     &               LLm=1440, MMm=432, N=42     ! SO_d025
-#elif defined SO_d0125
-     &               LLm=2880, MMm=864, N=42     ! SO_d0125
-     &      NP_XI=8, NP_ETA=32, NSUB_X=1, NSUB_E=3
 #else
 c     &      NSUB_X=4, NSUB_E=40  ! PAC44
 c     &      NSUB_X=8, NSUB_E=80   ! PAC22
