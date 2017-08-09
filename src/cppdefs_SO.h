@@ -119,9 +119,10 @@
 
 
                       /* Other tracers */
-!-- #define PASSIVE_TRACER
-!-- #define AGE_DYE_TRACER
-
+#ifdef SO_AH
+# define PASSIVE_TRACER
+# define AGE_DYE_TRACER
+#endif
 
 #include "set_global_definitions.h"
 !
