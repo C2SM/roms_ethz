@@ -83,7 +83,9 @@ c--# define CONST_TRACERS
 # include "climat.h"
 # include "scalars.h"
 # include "eos_vars.h"
+#if defined TSOURCE || defined AGE_DYE_TRACER
 # include "sources.h"
+#endif
 #ifdef PHYS_FLUX_ANALYSIS
 # include "physflux.h"
 #endif
@@ -460,7 +462,7 @@ c--#  define ntdf nrhs
             enddo
           enddo
         endif
-#  endif
+#  endif /* !EW_PERIODIC */
 #  ifndef NS_PERIODIC
         if (SOUTHERN_EDGE) then
           do k=1,N
@@ -554,6 +556,19 @@ c--#  define ntdf nrhs
      &                                                           )
               enddo
             enddo
+# ifdef PHYS_FLUX_ANALYSIS
+            if (itrc >= NT_PFA) then
+              do j=Jstr,Jend
+                do i=Istr,Iend+1
+                                ! unit: mmol / s
+                  HorXAdvFlux(i,j,k,itrc) = FX(i,j)
+#  ifdef MASKING
+     &                  * rmask(i,j)
+#  endif
+               enddo
+             enddo
+           endif
+# endif /* PHYS_FLUX_ANALYSIS */
 
             do j=jstr,jend+1
               do i=istr,iend
@@ -570,6 +585,19 @@ c--#  define ntdf nrhs
      &                                                           )
               enddo
             enddo
+# ifdef PHYS_FLUX_ANALYSIS
+           if (itrc >= NT_PFA) then
+             do j=Jstr,Jend+1
+               do i=Istr,Iend
+                                ! unit: mmol / s
+                 HorYAdvFlux(i,j,k,itrc) = FE(i,j)
+# ifdef MASKING
+     &                  * rmask(i,j)
+# endif
+               enddo
+             enddo
+           endif
+# endif /* PHYS_FLUX_ANALYSIS */
 
             if (k < N) then    ! Compute the vertical component...
               do j=jstr,jend
@@ -788,6 +816,10 @@ c**               cff=1./(z_r(i,j,k+1)-z_r(i,j,k))
             enddo
           enddo
 
+
+! Start computation of vertical diffusion: add surface forcing fluxes
+
+# if defined PASSIVE_TRACER && defined AGE_DYE_TRACER
 # ifdef PHYS_FLUX_ANALYSIS
           if (itrc .le. NT_PFA) then
 ! separate do loop (for better efficiency) to store the fluxes
@@ -979,6 +1011,17 @@ c??         enddo
 ! the content of array t(:,:,:,nnew,itrc) has meaning of Hz*tracer.
 ! After the implicit step it becomes just tracer.
 
+# if defined PHYS_FLUX_ANALYSIS && defined VERT_DIFF_ANALYSIS
+! The vertical diffusive flux is not added in a step like the other fluxes,
+! so we store the old concentration (depth is already factored in here) first,
+! and then add the new concentration.
+          do k=1,N
+            do i=Istr,Iend
+               ThisVDF(i, j, k) = t(i,j,k,nnew,itrc)
+            end do
+         end do
+# endif /* PHYS_FLUX_ANALYSIS & VERT_DIFF_ANALYSIS */
+
 # ifdef BIOLOGY
 #  ifdef SALINITY
           iAkt=min(itrc,isalt)
@@ -1090,12 +1133,12 @@ c??         enddo
 # endif
 # ifdef AMAZON
        if (EASTERN_EDGE) then
-           if (itrc==itemp .OR. itrc==isalt) then
+         if (itrc==itemp .OR. itrc==isalt) then
 # endif
 # ifdef TCLIMATOLOGY
-            do k=1,N
-              do i=istr,iend
-              t(i,j,k,nnew,itrc)=(t(i,j,k,nnew,itrc)
+          do k=1,mxnudg
+            do i=istr,iend
+              t(i,j,k,nnew,itrc)=( t(i,j,k,nnew,itrc)
      &          +dt*Tnudgcof(i,j,itrc)
 #  ifdef TNUDGE_WEIGHTS
      &          *nudgweights(i,j)
@@ -1120,10 +1163,10 @@ c??         enddo
 #   endif /* SELECTED_FLUX_ANALYSIS */
 #  endif /* FULL_PHYS_FLUX_ANALYSIS */
             enddo
-           enddo
+          enddo
 # endif /* TCLIMATOLOGY */
 # ifdef AMAZON
-       endif
+         endif
        endif
 # endif
 
