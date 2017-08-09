@@ -28,9 +28,9 @@
 # endif
 # ifdef ADV_ISONEUTRAL
 #  include "eos_vars.h"
-      real dRz,dRx_max, dpth
+      real dRz,dRx_max, dpth, r0g, cfs,cfb
       real, parameter :: epsil=1.E-33
-#  define  ALPHA_MAX 6.
+#  define  ALPHA_MAX 4.
 #  define GAMMA 0.0833333333333
 # endif
 # ifdef PSOURCE
@@ -494,15 +494,25 @@ c>># define DELTA 0.5790
           enddo
 # ifdef ADV_ISONEUTRAL
           if (j <= jend) then
+            r0g=rho0/g
             do k=1,N-1
               do i=istr,iend
-#  ifdef SPLIT_EOS
+#  define ISO
+#  ifdef ISO
+#    ifdef SPLIT_EOS
                 dpth=-0.5*(z_r(i,j,k+1)+z_r(i,j,k))
-                dRz=rho1(i,j,k+1)-rho1(i,j,k)+(qp1(i,j,k+1)-qp1(i,j,k))
-     &                                           *dpth*(1.-2.*qp2*dpth)
+                dRz=rho1(i,j,k)-rho1(i,j,k+1)+(qp1(i,j,k)-qp1(i,j,k+1))
+     &                                      *dpth*(1.-2.*qp2*dpth)
+#    else
+                dRz=rho(i,j,k)-rho(i,j,k+1)
+#    endif
+                dRz=max(dRz,0.) +r0g*f(i,j)**2
+     &                        *(z_r(i,j,k+1)-z_r(i,j,k))
 #  else
-                dRz=rho(i,j,k+1)-rho(i,j,k)
+                dRz=z_r(i,j,k+1)-z_r(i,j,k)
 #  endif
+
+
 c*              dRx_max=(z_r(i,j,k+1)-z_r(i,j,k))*max(
 c*   &                        abs(dRdx(i,j,k  )), abs(dRdx(i+1,j,k  )),
 c*   &                        abs(dRdx(i,j,k+1)), abs(dRdx(i+1,j,k+1)),
@@ -521,20 +531,36 @@ c*   &                                                               )
      &                                                               )
 
 
-
+/*
                 cff=(z_w(i,j,N)-z_w(i,j,k))/max( hbls(i,j,3-nstp),
 c**  &                                     z_w(i,j,N)-z_w(i,j,N-5) )
 c??     &                                     z_w(i,j,N)-z_w(i,j,N-1) )
 c??     &                                      20. ) !<-- 20 meters
      &                                      50. ) !<-- 50 meters
-
                 if (cff < 1.) then
                   cff=ALPHA_MAX*cff*cff*(3.-2.*cff)
                 else
                   cff=ALPHA_MAX
                 endif
 
-                idRz(i,j,k)=-cff/max( -cff*dRz, dRx_max, epsil)
+                cff=ALPHA_MAX*cff*cff*(3.-2.*cff)
+*/
+
+
+                cfs=min(1., (z_w(i,j,N)-z_w(i,j,k))/max( 50.,
+     &                                    hbls(i,j,3-nstp) ))
+                cfb=min(1., (z_w(i,j,k)-z_w(i,j,0))/max( 50.,
+     &                                    hbbl(i,j,3-nstp) ))
+
+                cff=ALPHA_MAX*cfs*(2.-cfs) * cfb*(2.-cfb)
+
+
+c               idRz(i,j,k)=1./dRz
+
+               idRz(i,j,k)=cff/max(cff*dRz, dRx_max, epsil)
+
+c             idRz(i,j,k)=ALPHA_MAX/max(ALPHA_MAX*dRz,dRx_max,epsil)
+
               enddo
             enddo
           endif      !<-- j <= jend
@@ -612,7 +638,7 @@ c??     &                                      20. ) !<-- 20 meters
 # ifdef ALPHA_MAX
       write(tmpstr,'(F16.12)') ALPHA_MAX
       lstr=lenstr(tmpstr)
-      do while(tmpstr(lstr:lstr)=='0' .and. lstr>3)
+      do while(tmpstr(lstr:lstr) == '0' .and. lstr > 3)
         lstr=lstr-1
       enddo
       is=ie+2 ; ie=is+9+lstr
