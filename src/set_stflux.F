@@ -132,10 +132,9 @@
      &                        +cff2*stflxg(i,j,it2,itemp)
 # if !defined ICE_MODEL
 #  ifdef ICEOBS
-! If there is net sea-ice freezing in the grid box we assume a freezing point
-! skin temperature for the entire grid box and recalculate heat fluxes
-! based on Markus (1999). Note that this overwrites any surface forcing
-! heat flux in grid cells with net freezing. !AH16
+! Recalculate heat fluxes based on Markus (1999) for sea-ice covered
+! part of the grid box. Note that this overwrites any surface forcing
+! heat flux in grid cells with sea ice. !AH16
               stflx(i,j,itemp)=stflx(i,j,itemp) !Note: stflx(i,j,itemp)*(1.-sic(i,j)) this is done in the forcing
      &           +min(0.,
      &           0.0055        ! Stanton number under ice, range 0.005-0.006 (McPhee 1992)
