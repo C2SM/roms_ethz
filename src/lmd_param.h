@@ -67,7 +67,7 @@
                                             ! due to Coriolis force (Ekman depth limit)
 #  endif
 #  if defined LMD_LIMIT_STABLE && defined SO_KPP
-     &   dh0=10.,                   ! dissipation length scale [m] (Markus 1999)
+     &   dh0=15.,                   ! dissipation length scale [m] (Markus 1999)
      &   dc0=1.,                     ! constant (Markus 1999)
 #  endif
      &   Cstar=10.,                ! proportionality coefficient parameterizing
