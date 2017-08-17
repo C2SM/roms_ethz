@@ -1130,7 +1130,7 @@ c$$$       enddo
           if (CaCO3_ind(auto_ind) > 0) then
 #  ifdef BEC_COCCO
              if (exp_calcifier(auto_ind)) then
-                QCaCO3(istr:iend,auto_ind) = 1.00  ! 0.433
+                QCaCO3(istr:iend,auto_ind) = 0.2  ! 0.433
              else 
                 QCaCO3(istr:iend,auto_ind) = 
      &              min( CaCO3_loc(istr:iend,auto_ind) 

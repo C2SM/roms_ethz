@@ -91,9 +91,9 @@
       z_umax_0 = (/ 3.15*dps, 2.95*dps, 1.6*dps, 3.15*dps /) ! 3.07,2.86, 1.6 CESM  ; 3.3 3.08 0.6 3.28 cBEC  incr SP,dIAT,COCCO by 0.2
       z_grz = (/ 1.05, 1.0, 1.2, 1.05 /)      ! grazing coefficient (mmol C/m^3)
       graze_zoo = (/ 0.3, 0.3, 0.3, 0.3 /)
-      graze_poc = (/ 0.05, 0.42, 0.05, 0.42 /) 
+      graze_poc = (/ 0.05, 0.42, 0.05, 0.20 /) 
       graze_doc = (/ 0.15, 0.15, 0.15, 0.15 /)
-      loss_poc = (/ 0.0, 0.0, 0.0, 1.0 /)
+      loss_poc = (/ 0.0, 0.0, 0.0, 0.2 /)
       f_zoo_detr = (/ 0.15, 0.2, 0.15, 0.2 /)
 
 # else /* case not BEC_COCCO */
