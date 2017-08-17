@@ -104,11 +104,12 @@
      &            , indxDIAZCZERO=indxPAR+81,indxDOCZERO=indxPAR+82,indxZOOCZERO=indxPAR+83
      &            , indxSPCACO3ZERO=indxPAR+84,indxDONRREMIN=indxPAR+85, indxTOTCHL=indxPAR+86
      &            , indxSPPLIM=indxPAR+87,indxDIATPLIM=indxPAR+88,indxDIAZPLIM=indxPAR+89
-     &            , indxTOTPHYTOC=indxPAR+90
+     &            , indxTOTPHYTOC=indxPAR+90,indxPOCPRODZOOLOSS=indxPAR+91
+     &            , indxPOCPRODDIAT=indxPAR+92,indxPOCPRODSP=indxPAR+93,indxPOCPRODDIAZ=indxPAR+94
 #  undef LAST_I
-#  define LAST_I indxTOTPHYTOC
+#  define LAST_I indxPOCPRODDIAZ
 #  if defined CCHEM_MOCSY && defined CCHEM_TODEPTH
-     &            , indxPH=indxPAR+91, indxPCO2=indxPH+1, indxCO3=indxPH+2
+     &            , indxPH=LAST_I+1, indxPCO2=indxPH+1, indxCO3=indxPH+2
      &            , indxHCO3=indxPH+3, indxCO2STAR=indxPH+4
      &            , indxOMEGACALC=indxPH+5, indxOMEGAARAG=indxPH+6
 #  undef LAST_I

@@ -961,6 +961,26 @@ CR      write(*,'(1x,A,I3)') 'indxNH4 =',indxNH4
       vname_bec2_diag_3d(3,indxDIAZPLIM)=' '
       vname_bec2_diag_3d(4,indxDIAZPLIM)=' '
 
+      vname_bec2_diag_3d(1,indxPOCPRODZOOLOSS)='POC_PROD_ZOO_LOSS'
+      vname_bec2_diag_3d(2,indxPOCPRODZOOLOSS)=
+     &  'POC PROD due to Zoo loss'
+      vname_bec2_diag_3d(3,indxPOCPRODZOOLOSS)='mMol C m-3 s-1'
+
+      vname_bec2_diag_3d(1,indxPOCPRODDIAT)='POC_PROD_DIAT'
+      vname_bec2_diag_3d(2,indxPOCPRODDIAT)=
+     &  'POC PROD due to Diat grz/agg/loss'
+      vname_bec2_diag_3d(3,indxPOCPRODDIAT)='mMol C m-3 s-1'
+
+      vname_bec2_diag_3d(1,indxPOCPRODSP)='POC_PROD_SP'
+      vname_bec2_diag_3d(2,indxPOCPRODSP)=
+     &  'POC PROD due to SP grz/agg/loss'
+      vname_bec2_diag_3d(3,indxPOCPRODSP)='mMol C m-3 s-1'
+
+      vname_bec2_diag_3d(1,indxPOCPRODDIAZ)='POC_PROD_DIAZ'
+      vname_bec2_diag_3d(2,indxPOCPRODDIAZ)=
+     &  'POC PROD due to Diaz grz/agg/loss'
+      vname_bec2_diag_3d(3,indxPOCPRODDIAZ)='mMol C m-3 s-1'
+
 # ifdef BEC_COCCO
       vname_bec2_diag_3d(1,indxGRAZECOCCO)='GRAZE_COCCO'
       vname_bec2_diag_3d(2,indxGRAZECOCCO)=
@@ -1067,6 +1087,12 @@ CR      write(*,'(1x,A,I3)') 'indxNH4 =',indxNH4
      &  'Cocco P limitation (PO4 + DOP)'
       vname_bec2_diag_3d(3,indxCOCCOPLIM)=' '
       vname_bec2_diag_3d(4,indxCOCCOPLIM)=' '
+
+      vname_bec2_diag_3d(1,indxPOCPRODCOCCO)='POC_PROD_COCCO'
+      vname_bec2_diag_3d(2,indxPOCPRODCOCCO)=
+     &  'POC PROD due to Cocco grz/agg/loss'
+      vname_bec2_diag_3d(3,indxPOCPRODCOCCO)='mMol C m-3 s-1'
+      vname_bec2_diag_3d(4,indxPOCPRODCOCCO)=' '
 
 # endif BEC_COCCO
 # endif /* BEC2_DIAG */

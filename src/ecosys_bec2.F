@@ -883,6 +883,13 @@ c$$$       enddo
      &    DOFe_remin,      ! portion of DOFe remineralized
      &    DONr_remin,      ! portion of refractory DON remineralized
      &    POC_prod,        ! POC production (mmol C/m^3/sec)
+     &    POC_prod_zoo_loss, ! POC production in Zoo loss (mmol C/m^3/sec)
+     &    POC_prod_diat,   ! POC production in Diat grz/agg/loss (mmol C/m^3/sec)
+     &    POC_prod_sp,     ! POC production in SP grz/agg/loss (mmol C/m^3/sec)
+     &    POC_prod_diaz,   ! POC production in Diaz grz/agg/loss (mmol C/m^3/sec)
+# ifdef BEC_COCCO
+     &    POC_prod_cocco,  ! POC production in Cocco grz/agg/loss (mmol C/m^3/sec)
+# endif
      &    P_CaCO3_prod,    ! large detritus CaCO3, base units = mmol CaCO3
      &    P_SiO2_prod,     ! prod. of large detritus SiO2
      &    Fe_scavenge,     ! loss of dissolved iron, scavenging (mmol Fe/m^3/sec)
@@ -1972,11 +1979,33 @@ c$$$       enddo
        POC_prod = f_zoo_detr_loc * zoo_loss + sum(auto_graze_poc, dim=2)
      &            + sum(auto_agg, dim=2) + sum(auto_loss_poc, dim=2)
 # ifdef BEC2_DIAG
+! split POC_prod into PFT contributions
+       POC_prod_zoo_loss = f_zoo_detr_loc * zoo_loss
+       POC_prod_diat = auto_graze_poc(istr:iend,diat_ind)
+     &            + auto_agg(istr:iend,diat_ind) + auto_loss_poc(istr:iend,diat_ind)
+       POC_prod_sp = auto_graze_poc(istr:iend,sp_ind)
+     &            + auto_agg(istr:iend,sp_ind) + auto_loss_poc(istr:iend,sp_ind)
+       POC_prod_diaz = auto_graze_poc(istr:iend,diaz_ind)
+     &            + auto_agg(istr:iend,diaz_ind) + auto_loss_poc(istr:iend,diaz_ind)
+# ifdef BEC_COCCO
+       POC_prod_cocco = auto_graze_poc(istr:iend,cocco_ind)
+     &            + auto_agg(istr:iend,cocco_ind) + auto_loss_poc(istr:iend,cocco_ind)
+# endif
+# endif
+
+# ifdef BEC2_DIAG
 #  ifdef BEC2_DIAG_USER
        if (bec2_diag_3d_l(pocprod_idx_t))
      &    bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(pocprod_idx_t)) = POC_prod(istr:iend)
 #  else
        bec2_diag_3d(istr:iend,j,k,pocprod_idx_t) = POC_prod(istr:iend)
+       bec2_diag_3d(istr:iend,j,k,pocprodzooloss_idx_t) = POC_prod_zoo_loss(istr:iend)
+       bec2_diag_3d(istr:iend,j,k,pocproddiat_idx_t) = POC_prod_diat(istr:iend)
+       bec2_diag_3d(istr:iend,j,k,pocprodsp_idx_t) = POC_prod_sp(istr:iend)
+       bec2_diag_3d(istr:iend,j,k,pocproddiaz_idx_t) = POC_prod_diaz(istr:iend)
+# ifdef BEC_COCCO
+       bec2_diag_3d(istr:iend,j,k,pocprodcocco_idx_t) = POC_prod_cocco(istr:iend)
+# endif
 #  endif
 # endif
 

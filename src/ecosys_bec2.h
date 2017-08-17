@@ -29,15 +29,15 @@
 # endif /* CCHEM_MOCSY */
 # ifdef USE_EXPLICIT_VSINK
 # ifdef BEC_COCCO
-      parameter( nr_bec2_diag_3d=91+nr_cchem_mocsy_3d+28,  ! 10 from expl sinking, 18 from coccos
+      parameter( nr_bec2_diag_3d=95+nr_cchem_mocsy_3d+29,  ! 10 from expl sinking, 19 from coccos
 # else
-      parameter( nr_bec2_diag_3d=91+nr_cchem_mocsy_3d+10,
+      parameter( nr_bec2_diag_3d=95+nr_cchem_mocsy_3d+10,
 # endif /* BEC_COCCO */
 # else ! impl sinking
 # ifdef BEC_COCCO
-      parameter( nr_bec2_diag_3d=91+nr_cchem_mocsy_3d+18,  ! 18 from coccos, 0 from impl sinking
+      parameter( nr_bec2_diag_3d=95+nr_cchem_mocsy_3d+19,  ! 19 from coccos, 0 from impl sinking
 # else
-      parameter( nr_bec2_diag_3d=91+nr_cchem_mocsy_3d,   ! CN: took "+5" away, these were included in the 91
+      parameter( nr_bec2_diag_3d=95+nr_cchem_mocsy_3d,   ! CN: took "+5" away, these were included in the 91
 # endif /* BEC_COCCO */
 
 # endif /* USE_EXPLICIT_VSINK */
@@ -114,9 +114,10 @@
      &   zooczero_idx_t=par_idx_t+83,spcaco3zero_idx_t=par_idx_t+84,donrremin_idx_t=par_idx_t+85,
      &   totchl_idx_t=par_idx_t+86,
      &   spplim_idx_t=par_idx_t+87,diatplim_idx_t=par_idx_t+88,diazplim_idx_t=par_idx_t+89,
-     &   totphytoc_idx_t=par_idx_t+90
+     &   totphytoc_idx_t=par_idx_t+90,pocprodzooloss_idx_t=par_idx_t+91,pocproddiat_idx_t=par_idx_t+92,
+     &   pocprodsp_idx_t=par_idx_t+93,pocproddiaz_idx_t=par_idx_t+94
 #  undef LAST_I
-#  define LAST_I totphytoc_idx_t
+#  define LAST_I pocproddiaz_idx_t
 # ifdef USE_EXPLICIT_VSINK
      &   ,pironhardremin_idx_t=LAST_I+1, caco3hardremin_idx_t=LAST_I+2, sio2hardremin_idx_t=LAST_I+3
      &   ,pochardremin_idx_t=LAST_I+4, dusthardremin_idx_t=LAST_I+5
