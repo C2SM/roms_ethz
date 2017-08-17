@@ -1369,47 +1369,23 @@ c$$$       enddo
              PCmax = PCref(auto_ind) * f_nut * Tfunc
           endif
 
-
-
-!# ifdef BEC_COCCO
-!! smoother function to scale down Tfunc below critical temp
-!          if (auto_ind==cocco_ind) then
-!             PCmax = PCref(auto_ind) * f_nut * Tfunc *
-!     &            ((temp+2)**10)/((temp+2)**10 + (8)**10)
-!          elseif (auto_ind==diaz_ind) then
-!             PCmax = PCref(auto_ind) * f_nut * Tfunc * 
-!     &            ((temp+2)**10)/((temp+2)**10 + (17)**10)
-!          else
-!             PCmax = PCref(auto_ind) * f_nut * Tfunc 
-!          endif
-!# endif /* BEC_COCCO */
           where (temp < temp_thres(auto_ind)) PCmax = c0
 
           light_lim = c1 - exp((-c1 * alphaPI(auto_ind) * thetaC(istr:iend,auto_ind) * PAR_lay) /
      &                      (PCmax + epsTinv))
-          PCphoto = PCmax * light_lim
 # ifdef BEC_COCCO
           if (auto_ind==cocco_ind) then
-!            light_lim = (PAR_lay**4/(0.06**4 + PAR_lay**4))*(c1 - 
-!     &                   exp((-c1 * alphaPI(auto_ind) * thetaC(istr:iend,auto_ind) * PAR_lay) /
-!     &                   (PCmax + epsTinv)))
           ! set growth to zero at PAR<10 (this aims especially at deeper
           ! layers!!
-             where (PAR_lay < 10) light_lim = c0
-
-!  calcification: use different light_lim than for photosynthesis (see
-!  Zondervan 2007)
-!            light_lim_calc = (PAR_lay**4/(0.06**4 + PAR_lay**4))*(c1 - 
-!     &                   exp((-c1 * 1.1*alphaPI(auto_ind) * thetaC(istr:iend,auto_ind) * PAR_lay) /
-!     &                   (PCmax + epsTinv)))
-
-             PCphoto = PCmax * light_lim
-
+             where (PAR_lay < 1) light_lim = c0
+          end if
+# endif /* BEC_COCCO */
+          PCphoto = PCmax * light_lim
+# ifdef BEC_COCCO
 !   reduce cocco growth at low temperatures
              where (temp < CaCO3_temp_thres1)
      &          PCphoto =PCphoto * max((temp-CaCO3_temp_thres2), c0) /
      &                    (CaCO3_temp_thres1-CaCO3_temp_thres2)
-          end if
 # endif /* BEC_COCCO */
           photoC(istr:iend,auto_ind) = PCphoto * C_loc(istr:iend,auto_ind)
 # ifdef BEC2_DIAG
