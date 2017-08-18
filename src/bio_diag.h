@@ -136,9 +136,9 @@
      &            , indxCOCCONH4UPTAKE=LAST_I+12,indxCOCCOGRAZEDIC=LAST_I+13 
      &            , indxCOCCOLOSSDIC=LAST_I+14,indxGRAZECOCCOZOO=LAST_I+15
      &            , indxQCACO3COCCO=LAST_I+16,indxCOCCOPHOTOACC=LAST_I+17
-     &            , indxCOCCOPLIM=LAST_I+18
+     &            , indxCOCCOPLIM=LAST_I+18,indxPOCPRODCOCCO=LAST_I+19
 #  undef LAST_I
-#  define LAST_I indxCOCCOPLIM
+#  define LAST_I indxPOCPRODCOCCO
 # endif
 
 

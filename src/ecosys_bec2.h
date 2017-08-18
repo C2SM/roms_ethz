@@ -147,7 +147,10 @@
      &   coccolossdic_idx_t=LAST_I+14,grazecoccozoo_idx_t=LAST_I+15,
      &   coccoqcaco3_idx_t=LAST_I+16,
      &   coccophotoacc_idx_t=LAST_I+17,
-     &   coccoplim_idx_t=LAST_I+18
+     &   coccoplim_idx_t=LAST_I+18,
+     &   pocprodcocco_idx_t=LAST_I+19
+#  undef LAST_I
+#  define LAST_I pocprodcocco_idx_t
 # endif        
 
 
