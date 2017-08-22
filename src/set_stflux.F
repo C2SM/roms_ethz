@@ -230,8 +230,10 @@ c**  &                                        -tclm(i,j,N,isalt)
 #   endif
 #  endif
 #  ifdef SALINITY_MASK
+#   ifdef WRITE_SALT_REST
               else
                 RestFlxSalt(i,j)=0.
+#   endif
               endif
 #  endif
 # endif
