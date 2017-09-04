@@ -45,11 +45,6 @@
       integer ierr, is,ie,  kwlen, lstr, lenstr, nbasic, naux
 #ifdef SOLVE3D
      &        , itrc
-#if defined MULT_CLIM_FILES &&\
-     ( defined TCLIMATOLOGY ||( defined TNUDGING &&\
-                        defined T_FRC_BRY )) && !defined ANA_TCLIMA
-     &        , i
-# endif
 #endif
 #if (defined BIOLOGY_BEC || defined BIOLOGY_BEC2 || defined BIOLOGY_NPZDOC)\
     && defined VARIABLE_ANN_ATM_PCO2
@@ -797,6 +792,10 @@ c--      fname='roms.in.US_West'
 # ifdef SOLVE3D
      &                      ,  wrtavg(indxU),     wrtavg(indxV)
      &                      , (wrtavg(indxT+itrc-1), itrc=1,NT)
+# ifdef SEDIMENT_BIOLOGY
+     &                      , (wrtavg(itrc), 
+     &                         itrc=indxSedOrgN,indxSedOrgN+NT_sed-1)
+# endif /* SEDIMENT_BIOLOGY */
 # endif
       if (any(wrtavg)) wrtavg(indxTime)=.true.
 
@@ -806,12 +805,12 @@ c--      fname='roms.in.US_West'
 # ifdef SOLVE3D
       nbasic=nbasic+2 ! u, v
 # endif
-      call echo_to_write(wrthis(indxZ), nbasic,'primary'
+      call echo_to_write(wrtavg(indxZ), nbasic,'primary'
      &         , 'averages',vname(1,indxZ))
-      call echo_to_write(wrthis(indxT), NT,'tracer'
+      call echo_to_write(wrtavg(indxT), NT,'tracer'
      &         , 'averages',vname(1,indxT))
 # ifdef SEDIMENT_BIOLOGY
-      call echo_to_write(wrthis(indxSedOrgN), NT_sed,'sediment'
+      call echo_to_write(wrtavg(indxSedOrgN), NT_sed,'sediment'
      &         , 'averages',vname(1,indxSedOrgN))
 # endif /* SEDIMENT_BIOLOGY */
       END_MPI_MASTER

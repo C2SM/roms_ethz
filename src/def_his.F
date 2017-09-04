@@ -758,11 +758,16 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
             lvar=lenstr(vname(3,indxSedOrgN+itrc-1))
             ierr=nf_put_att_text (ncid, vidTsed(itrc), 'units', lvar,
      &           vname(3,indxSedOrgN+itrc-1)(1:lvar))
-          ierr=nf_put_att_text (ncid, vidTsed, 'coordinates',
+            ierr=nf_put_att_text (ncid, vidTsed, 'coordinates',
      &                            15, 'lon_rho lat_rho') 
-            ! lvar=lenstr(vname(4,indxSedOrgN+itrc-1))
-            ! ierr=nf_put_att_text (ncid, vidTsed(itrc), 'field', lvar,
-     ! &           vname(4,indxSedOrgN+itrc-1)(1:lvar))
+# ifdef MASK_LAND_DATA
+            ierr=nf_put_att_FOUT (ncid, vidTsed(itrc), '_FillValue',
+     &                                       NF_FOUT, 1, spv_set)
+# endif
+# ifdef NCCOMPRESS
+          ierr=nf_def_var_deflate(ncid, vidTsed, ncshuff, ncdefl, nclev )
+          ierr=nf_def_var_chunking(ncid, vidTsed, ncctg, ncrchnk3)
+# endif
           endif
         enddo
 # endif /* SEDIMENT_BIOLOGY */
@@ -1087,8 +1092,8 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
      &                                   NF_FOUT, 1, spv_set)
 #endif
 #ifdef NCCOMPRESS
-          ierr=nf_def_var_deflate(ncid, vidHbl, ncshuff, ncdefl, nclev)
-          ierr=nf_def_var_chunking(ncid, vidHbl, ncctg, ncrchnk2)
+          ierr=nf_def_var_deflate(ncid, vidHbls, ncshuff, ncdefl, nclev)
+          ierr=nf_def_var_chunking(ncid, vidHbls, ncctg, ncrchnk2)
 #endif
         endif
 # endif /* LMD_KPP */
@@ -1575,7 +1580,7 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
 !
         lvar=lenstr(vname(1,indxz_r))
         ierr=nf_def_var (ncid, vname(1,indxz_r)(1:lvar), NF_FOUT,
-     &                                           4, r3dgrd, vidz_r)
+     &                                           NVDIM, RGRD, vidz_r)
 #  ifdef AVRH
         text='averaged '/ /vname(2,indxz_r)
 #  else
@@ -1598,7 +1603,7 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
 !
         lvar=lenstr(vname(1,indxz_w))
         ierr=nf_def_var (ncid, vname(1,indxz_w)(1:lvar), NF_FOUT,
-     &                                           4, w3dgrd, vidz_w)
+     &                                           NVDIM, WGRD, vidz_w)
 #  ifdef AVRH
         text='averaged '/ /vname(2,indxz_w)
 #  else
@@ -1621,7 +1626,7 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
 !
         lvar=lenstr(vname(1,indxHz))
         ierr=nf_def_var (ncid, vname(1,indxHz)(1:lvar), NF_FOUT,
-     &                                           4, r3dgrd, vidHz)
+     &                                           NVDIM, RGRD, vidHz)
 #  ifdef AVRH
         text='averaged '/ /vname(2,indxHz)
 #  else

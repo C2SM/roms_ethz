@@ -173,7 +173,7 @@
       if (wrtavg(indxT+itemp-1)) then
            ierr=ncdf_write(ncid_phys_flux_avg, avgSRAbsFlux,
      &                  record, r_var,
-     &                  SRAbsFlux_avg(START_2D_ARRAY,1), 1)
+     &                  SRAbsFlux_avg(START_2D_ARRAY,1), N)
          if (ierr .ne. nf_noerr) then
             lvar=lenstr(vname_phys(1,indxSRAbsFlux))
             write(*,1) 

@@ -237,7 +237,7 @@ CR      write(*,*) 'wrt_avg:  wrtKvO2' MYID
 ! vertical sinking fluxes
       do iflux = 1, NumVSinkTerms
          ierr = ncf_fwrite(VSinkFlux_avg(START_2D_ARRAY,0,iflux), 
-     &        ncid_bgc_flux_avg, avgVSinkFlux(iflux), record, w3dvar)
+     &        ncid_bgc_flux_avg, avgVSinkFlux(iflux), record, r_var,N+1)
          if (ierr .ne. nf_noerr) then
             lvar=lenstr(vname_bgcflux(1,indxVSinkFlux+iflux-1))
             write(stdout,1) 
@@ -284,7 +284,7 @@ CR      write(*,*) 'wrt_avg:  wrtKvO2' MYID
       endif
 # endif
       if (ierr .eq. nf_noerr) then
-        write(stdout,'(6x,A,2(A,I4,1x),A,I3)') 
+        MPI_master_only write(stdout,'(6x,A,2(A,I4,1x),A,I3)') 
      &        'WRT_BGC_FLUX_AVG -- wrote ',
      &            'averaged fields into time record =', record, '/',
      &             nrec_bgc_flux_avg  MYID

@@ -22,6 +22,13 @@
 #   define LAST_I indxCaCO3
 #  endif /* CARBON */
 # endif /* OXYGEN */
+# ifdef SEDIMENT_BIOLOGY
+      integer, parameter :: indxSedOrgN=LAST_I+1
+     &           , indxSedOrgC=indxSedOrgN+1
+     &           , indxSedCaCO3=indxSedOrgC+1
+#  undef LAST_I
+#  define LAST_I indxSedCaCO3
+# endif /* SEDIMENT_BIOLOGY */
 #endif /* BIOLOGY_NPZDOC || LEGACY_NPZD*/
 
 #ifdef BIOLOGY_BEC2

@@ -263,6 +263,7 @@
       integer ndims, dimids(8), varid, vtype, size,
      &               i,j, ierr,  lvar, lfile, lenstr
 # include "netcdf.inc"
+# include "param.h"
 
       lvar=lenstr(vname) ; lfile=lenstr(fname)
 
@@ -319,7 +320,8 @@
             endif
           endif
         else
-          write(*,'(/1x,6A/14x,A/)')   '### WARNING: read_nc1dat :: ',
+          MPI_master_only write(*,'(/1x,6A/14x,A/)')
+     &        '### WARNING: read_nc1dat :: ',
      &            'Cannot determine netCDF ID for ''',  vname(1:lvar),
      &      ''' in file ''', fname(1:lfile), '''.', nf_strerror(ierr)
         endif

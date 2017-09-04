@@ -95,10 +95,12 @@ CSDISTRIBUTE_RESHAPE tclima(BLOCK_PATTERN,*,*,*) BLOCK_CLAUSE
  
       real tclm_cycle(NT), tclm_time(2,NT)
       integer tclm_ncycle(NT), tclm_rec(NT), ittclm(NT),
-     &        nttclm(NT),      tclm_tid(NT), tclm_id(NT)
+     &        nttclm(NT),      tclm_tid(NT), tclm_id(NT),
+     &        tclm_clmidx(NT)
       common /climat_tdat/     tclm_cycle,   tclm_time,
      &        tclm_ncycle,     tclm_rec,     ittclm,
-     &        nttclm,          tclm_tid,     tclm_id
+     &        nttclm,          tclm_tid,     tclm_id,
+     &        tclm_clmidx
 #    undef TCLIMA_DATA
 #   endif
 #  endif

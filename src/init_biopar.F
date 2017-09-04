@@ -81,8 +81,9 @@
          end if
          close(71)
       else
-         print *, 'Biology parameter namelist file was not found'
-         print *, 'Default values will be used.'
+         MPI_master_only print *, 
+     &      'Biology parameter namelist file was not found'
+         MPI_master_only print *, 'Default values will be used.'
       end if
 
 #ifdef WRITE_BIOPAR

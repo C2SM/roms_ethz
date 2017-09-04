@@ -3,12 +3,13 @@
 ! It must be define in ncvars.h and should be redefined accordingly
 ! at the end of this include file
 
-#ifdef WRITE_DEPTHS
-     &            , indxz_r=LAST_I+1, indxz_w=indxz_r+1
-     &            , indxHz=indxz_w+1
-# undef LAST_I
-# define LAST_I indxHz
-#endif
+!#ifdef WRITE_DEPTHS
+!       integer, parameter :: indxz_r=LAST_I+1
+!     &            , indxz_w=indxz_r+1
+!     &            , indxHz=indxz_w+1
+!# undef LAST_I
+!# define LAST_I indxHz
+!#endif
 
 #ifdef BIOLOGY_NPZDOC
 # ifdef CARBON
@@ -18,6 +19,10 @@
 #  undef LAST_I
 #  define LAST_I indxPCO2air_rst
 # endif
+       integer, parameter :: indxPAR_rst=LAST_I+1
+     &                   , indxPARinc_rst=indxPAR_rst+1
+# undef LAST_I
+# define LAST_I indxPARinc_rst
 #endif /* BIOLOGY_NPZDOC */
 
 #ifdef BIOLOGY_BEC2
@@ -193,7 +198,7 @@
      &       , avgTsed
 # endif
 # ifdef SLICE_AVG
-     &       , slavgTset
+     &       , slavgTsed
 # endif
       common /ncvars/ rstTsed, hisTsed
 # ifdef AVERAGES

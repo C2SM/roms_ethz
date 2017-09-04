@@ -48,7 +48,7 @@ BIOSRC = CalcPar.F  carbon.F  co2calc_SWS.F  def_bgc_flux.F\
 	drtsafe.F  init_biopar.F  init_scalars_bgcflux.F  init_scalars_npzdoc.F\
 	init_scalars_physflux.F o2sato.F set_bgc_flux_avg.F\
 	ta_iter_SWS.F wrt_bgc_flux_avg.F wrt_bgc_flux_his.F\
-	def_phys_flux.F\
+	def_phys_flux.F bio_npzdoc.F\
 	set_phys_flux_avg.F wrt_phys_flux_his.F wrt_phys_flux_avg.F\
 	biology.F  bio_diag.F atm_pco2.F calendar.F\
 \

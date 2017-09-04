@@ -1228,7 +1228,7 @@
 # endif /* SEDIMENT_BIOLOGY */
 # endif /* AVRH || BGC_FLUX_EXT_HIS_OUTPUT */
         
-        write(*,'(6x,2A,i4,1x,A,i4)') 
+        MPI_master_only write(*,'(6x,2A,i4,1x,A,i4)') 
 #ifdef AVRH
      &       'DEF_BGC_FLUX_AVG -- Opened ',
 #else

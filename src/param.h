@@ -234,6 +234,8 @@ c     &      NSUB_X=2, NSUB_E=8  ! <-- iswake 768x192
 
       integer, parameter :: padd_X=(Lm+2)/2-(Lm+1)/2,
      &                      padd_E=(Mm+2)/2-(Mm+1)/2
+! Standard output file descriptor:
+      integer, parameter :: stdout=6
 #ifdef SOLVE3D
 # ifdef PASSIVE_TRACER
      &, ntrc_pas=1

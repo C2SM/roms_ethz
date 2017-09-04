@@ -173,8 +173,8 @@ CR      mpi_master_only print *, '--- NOTE: Executing ', wrt_ AVR
 
       do itrc=1,NT_sed
         if (wrt AVR (indxSedOrgN+itrc-1)) then
-          ierr=ncdf_write(nc AVR ,  AVR T(itrc), record, r_var,
-     &                    t_sed_ AVR (START_3D_ARRAY_K1,itrc), N3D)
+          ierr=ncdf_write(nc AVR ,  AVR Tsed(itrc), record, r_var,
+     &                    t_sed_ AVR (START_2D_ARRAY,itrc), 1)
           if (ierr /= nf_noerr) then
             lvar=lenstr(vname(1,indxSedOrgN+itrc-1))
             write(*,1) vname(1,indxSedOrgN+itrc-1)(1:lvar), record,
@@ -387,57 +387,62 @@ CR      write(*,*) 'wrt_ AVR :  wrtT_sed  ' MYID
 
 ! pH:
 
-      if (wrt AVR (indxpH) .and. ierr == nf_noerr) then
+!      if (wrt AVR (indxpH_rst) .and. ierr == nf_noerr) then
+      if (ierr == nf_noerr) then
         ierr=ncdf_write(nc AVR ,   AVR PH,  record,  r_var,
      &                  pH_ AVR (START_2D_ARRAY), 1)
         if (ierr /= nf_noerr) then
-          lvar=lenstr(vname(1,indxPH))
-          write(*,1) vname(1,indxPH)(1:lvar), record MYID
+          lvar=lenstr(vname(1,indxPH_rst))
+          write(*,1) vname(1,indxPH_rst)(1:lvar), record MYID
         endif
       endif
 
 ! pCO2:
 
-      if (wrt AVR (indxpCO2) .and. ierr == nf_noerr) then
+!      if (wrt AVR (indxpCO2_rst) .and. ierr == nf_noerr) then
+      if (ierr == nf_noerr) then
         ierr=ncdf_write(nc AVR ,   AVR pCO2,  record,  r_var,
      &                  pCO2_ AVR (START_2D_ARRAY), 1)
         if (ierr /= nf_noerr) then
-          lvar=lenstr(vname(1,indxpCO2))
-          write(*,1) vname(1,indxpCO2)(1:lvar), record MYID
+          lvar=lenstr(vname(1,indxpCO2_rst))
+          write(*,1) vname(1,indxpCO2_rst)(1:lvar), record MYID
         endif
       endif
 
 ! pCO2air:
 
-      if (wrt AVR (indxpCO2air) .and. ierr == nf_noerr) then
+!      if (wrt AVR (indxpCO2air_rst) .and. ierr == nf_noerr) then
+      if (ierr == nf_noerr) then
         ierr=ncdf_write(nc AVR ,   AVR pCO2air,  record,  r_var,
      &                  pCO2air_ AVR (START_2D_ARRAY), 1)
         if (ierr /= nf_noerr) then
-          lvar=lenstr(vname(1,indxpCO2air))
-          write(*,1) vname(1,indxpCO2air)(1:lvar), record MYID
+          lvar=lenstr(vname(1,indxpCO2air_rst))
+          write(*,1) vname(1,indxpCO2air_rst)(1:lvar), record MYID
         endif
       endif
 
 ! incoming PAR:
 
-      if (wrt AVR (indxPARinc) .and. ierr == nf_noerr) then
+!      if (wrt AVR (indxPARinc_rst) .and. ierr == nf_noerr) then
+      if (ierr == nf_noerr) then
         ierr=ncdf_write(nc AVR ,   AVR PARinc,  record,  r_var,
      &                  PARinc_ AVR (START_2D_ARRAY), 1)
         if (ierr /= nf_noerr) then
-          lvar=lenstr(vname(1,indxPARinc))
-          write(*,1) vname(1,indxPARinc)(1:lvar), record MYID
+          lvar=lenstr(vname(1,indxPARinc_rst))
+          write(*,1) vname(1,indxPARinc_rst)(1:lvar), record MYID
         endif
       endif
 
 #  ifndef NOPARWRT
 ! PAR:
 
-      if (wrt AVR (indxPAR) .and. ierr == nf_noerr) then
+!      if (wrt AVR (indxPAR_rst) .and. ierr == nf_noerr) then
+      if (ierr == nf_noerr) then
         ierr=ncdf_write(nc AVR ,   AVR PAR,  record,  r_var,
-     &                  PAR_ AVR (START_2D_ARRAY), 1)
+     &                  PAR_ AVR (START_3D_ARRAY_K1), N3D)
         if (ierr /= nf_noerr) then
-          lvar=lenstr(vname(1,indxPAR))
-          write(*,1) vname(1,indxPAR)(1:lvar), record MYID
+          lvar=lenstr(vname(1,indxPAR_rst))
+          write(*,1) vname(1,indxPAR_rst)(1:lvar), record MYID
         endif
       endif
 #  endif
@@ -516,7 +521,7 @@ CR      write(*,*) 'wrt_ AVR :  wrtT_sed  ' MYID
 # if defined BIOLOGY_NPZDOC && defined OXYGEN
       do itrc = 1, NumGasExcTerms
         ierr=ncdf_write(nc AVR, AVR GasExcFlux(itrc), record, r_var,
-     &                  Hz_ AVR(START_2D_ARRAY,itrc), 1)
+     &                 GasExcFlux_ AVR(START_2D_ARRAY,itrc), 1)
          if (ierr /= nf_noerr) then
             lvar=lenstr(vname_GasExcFlux(1,itrc))
             write(*,1) 

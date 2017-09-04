@@ -55,6 +55,10 @@
 # define BIOLOGY
 # define DAILYPAR_BEC
 #endif
+#ifdef BIOLOGY_NPZDOC
+# define BIOLOGY
+# define DAILYPAR_PHOTOINHIBITION
+#endif
 
 
 /* End of UP ETH Standard Settings */

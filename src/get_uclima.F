@@ -27,8 +27,12 @@
         ituclm=1
         uclm_time(1)=-1.E+20
         uclm_time(2)=-1.E+20
+        uclm_rec = -1
 
         do iclm=1,max_clm
+          ! Stop looping over clm files if data has been found:
+          if (uclm_rec > 0) exit
+
           ncid=ncidclm(iclm)
 
           if (ncid==-1) then

@@ -641,15 +641,9 @@ c--#define VERBOSE
             goto 99                                       !--> ERROR
           endif
         else
-          MPI_master_only write(*,1) 
-     &                         vname(1,indxSedOrgN+itrc-1)(1:lvar),
-     &                                    trim(ininame)
-     &            ,' => Initialized to 0.' 
-!          MPI_master_only write(*,'(1x,2a/1x,a)') 
-!     &         'Note: Previous versions of ROMS did ',
-!     &         'not include sediment biology.'
-!     &         'Starting with 0 concentration.'
-CHF          goto 99                                         !--> ERROR
+          MPI_master_only write(*,*) ' --- WARNING: '
+     &         , vname(1,indxSedOrgN+itrc-1)(1:lvar)
+     &         , ' not in initial file.  Initialized to 0.0'
         endif
       enddo
 # endif /* SEDIMENT_BIOLOGY */
@@ -671,8 +665,8 @@ CHF          goto 99                                         !--> ERROR
             goto 99             !--> ERROR
          endif
       else
-         MPI_master_only write(*,*)
-     &        'pH field not in init/rst file, initialize to 0'
+         MPI_master_only write(*,*) ' --- WARNING: '
+     &         , 'pH not in initial file.  Initialized to 0.0'
       endif
 
       !
@@ -689,8 +683,8 @@ CHF          goto 99                                         !--> ERROR
             goto 99             !--> ERROR
          endif
       else
-         MPI_master_only write(*,*) 
-     &        'PCO2 not in init/rst file, initialize to 0'
+         MPI_master_only write(*,*) ' --- WARNING: '
+     &        , 'PCO2 not in initial file.  Initialized to 0.0'
       endif
 
 #  ifndef PCO2AIR_FORCING /* if pCO2air is not a 2D forcing field */
@@ -699,7 +693,7 @@ CHF          goto 99                                         !--> ERROR
       lvar=lenstr(vname(1,indxPCO2air_rst))
       ierr=nf_inq_varid (ncid, vname(1,indxPCO2air_rst)(1:lvar), varid)
       if (ierr .eq. nf_noerr) then
-         ierr=ncdff_read (ncid,  varid, record, r_var
+         ierr=ncdf_read (ncid,  varid, record, r_var
      *                 , pCO2air(START_2D_ARRAY), 1)
          if (ierr .ne. nf_noerr) then
             write(*,2) vname(1,indxPCO2air_rst)(1:lvar), record,
@@ -707,8 +701,8 @@ CHF          goto 99                                         !--> ERROR
             goto 99             !--> ERROR
          endif
       else
-         MPI_master_only write(*,*) 
-     &        'PCO2air not in init/rst file, initialize to 0'
+         MPI_master_only write(*,*) ' --- WARNING: '
+     &        , 'PCO2air not in initial file.  Initialized to 0.0'
       endif
 #  endif
 # endif /* BIOLOGY_BEC || (BIOLOGY_NPZDOC && OXYGEN && CARBON) */
@@ -790,15 +784,15 @@ CHF          goto 99                                         !--> ERROR
       ierr=nf_inq_varid (ncid, vname(1,indxPAR_rst)(1:lvar), varid)
       if (ierr .eq. nf_noerr) then
          ierr=ncdf_read (ncid,  varid, record, r_var
-     &                  , PAR(START_2D_ARRAY,1), r2dvar)
+     &                  , PAR(START_2D_ARRAY,1), N)
          if (ierr .ne. nf_noerr) then
             write(*,2) vname(1,indxPAR_rst)(1:lvar), record,
      &           trim(ininame)
             goto 99             !--> ERROR
          endif
       else
-         MPI_master_only write(*,*) 
-     &        'PAR not in init/rst file, initialize to 0'
+         MPI_master_only write(*,*) ' --- WARNING: '
+     &        , 'PAR not in initial file.  Initialized to 0.0'
       endif
 # endif /* BIOLOGY_BEC || BIOLOGY_NPZDOC */
 # ifdef LMD_KPP
@@ -888,7 +882,7 @@ CHF          goto 99                                         !--> ERROR
   1   format(/1x,'### ERROR: get_init :: Cannot find variable ''', A,
      &                 '''' /12x, 'in netCDF file ''', A, ''''/12x,A)
   2   format(/1x,'### ERROR: get_init :: Cannot read variable ''', A,
-     &               '''' /12x, 'from netCDF file ''', A, ''''/12x,A)
+     &               '''' /12x, 'record ',I8,' from netCDF file ''', A, '''')
   3   format(/1x,'### WARNING get_init :: Cannot read variable ''', A,
      &               '''' /12x, 'from netCDF file ''', A, ''''/12x,A)
       end
