@@ -270,7 +270,8 @@
      &)
 #ifdef BEC_COCCO
       integer, parameter ::
-     &     coccoc_ind_t=27, coccochl_ind_t=28, coccocal_ind_t=29, coccofe_ind_t=30, cal_ind_t=31
+     &     coccoc_ind_t=LAST_I+1, coccochl_ind_t=LAST_I+2, coccocal_ind_t=LAST_I+3, 
+     &     coccofe_ind_t=LAST_I+4, cal_ind_t=LAST_I+5
 #  undef LAST_I
 #  define LAST_I cal_ind_t
 #endif

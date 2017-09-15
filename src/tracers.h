@@ -49,9 +49,9 @@
 # undef LAST_I
 # define LAST_I indxDiazfe
 # ifdef BEC_COCCO
-     &          , indxCoccoc=indxPO4+26, indxCoccochl=indxPO4+27
-     &          , indxCoccocal=indxPO4+28, indxCoccofe=indxPO4+29
-     &          , indxCal=indxPO4+30
+     &          , indxCoccoc=LAST_I+1, indxCoccochl=LAST_I+2
+     &          , indxCoccocal=LAST_I+3, indxCoccofe=LAST_I+4
+     &          , indxCal=LAST_I+5
 #  undef LAST_I
 #  define LAST_I indxCal
 # endif

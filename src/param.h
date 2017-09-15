@@ -305,10 +305,12 @@ c     &      NSUB_X=2, NSUB_E=8  ! <-- iswake 768x192
      &       , iDIAZC=iPO4+23, iDIAZCHL=iPO4+24
      &       , iDIAZFE=iPO4+25
      &       , ntrc_bio_base=26
+#    undef LAST_I
+#    define LAST_I iDIAZFE
 #   ifdef BEC_COCCO
-     &       , iCOCCOC=iPO4+26, iCOCCOCHL=iPO4+27
-     &       , iCOCCOCAL=iPO4+28, iCOCCOFE=iPO4+29
-     &       , iCAL=iPO4+30
+     &       , iCOCCOC=LAST_I+1, iCOCCOCHL=LAST_I+2
+     &       , iCOCCOCAL=LAST_I+3, iCOCCOFE=LAST_I+4
+     &       , iCAL=LAST_I+5
      &       , ntrc_bio_cocco=5
 #    undef LAST_I
 #    define LAST_I iCAL
