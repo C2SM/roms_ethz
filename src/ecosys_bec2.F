@@ -1148,6 +1148,9 @@ c$$$       enddo
      &     bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(spqcaco3_idx_t)) = QCaCO3(istr:iend,sp_ind)
 #  else
        bec2_diag_3d(istr:iend,j,k,spqcaco3_idx_t) = QCaCO3(istr:iend,sp_ind)
+#  ifdef BEC_COCCO
+       bec2_diag_3d(istr:iend,j,k,coccoqcaco3_idx_t) = QCaCO3(istr:iend,cocco_ind)
+#  endif /* BEC_COCCO */
 #  endif
 # endif
 
@@ -1383,9 +1386,11 @@ c$$$       enddo
           PCphoto = PCmax * light_lim
 # ifdef BEC_COCCO
 !   reduce cocco growth at low temperatures
+          if (auto_ind==cocco_ind) then
              where (temp < CaCO3_temp_thres1)
      &          PCphoto =PCphoto * max((temp-CaCO3_temp_thres2), c0) /
      &                    (CaCO3_temp_thres1-CaCO3_temp_thres2)
+          endif
 # endif /* BEC_COCCO */
           photoC(istr:iend,auto_ind) = PCphoto * C_loc(istr:iend,auto_ind)
 # ifdef BEC2_DIAG
