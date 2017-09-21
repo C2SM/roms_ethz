@@ -770,21 +770,6 @@ c--#  define ntdf nrhs
 # if defined PASSIVE_TRACER && defined AGE_DYE_TRACER
           endif ! itrc.le.indxT+ntrc_salt .or. ...
 # endif
-# if defined LMD_KPP && defined ICEOBS && defined BRINE_PLUMES
-! AH15: Distributing salt fluxes due freezing uniformly over
-! kbl to mimic brine plume convection (see Duffy et al. 1999)
-          if (itrc .eq. isalt) then
-            do i=istr,iend
-              if (freezing(i,j)>0) then
-                do k=N,kbl(i,j),-1
-                  t(i,j,k,nnew,itrc)=t(i,j,k,nnew,itrc)
-     &                  +(dt*freezing(i,j)
-     &                  *Hz(i,j,k)/(z_w(i,j,N)-z_w(i,j,kbl(i,j)-1)))
-                enddo
-              endif
-            enddo
-          endif
-# endif
 # ifdef FULL_PHYS_FLUX_ANALYSIS
           if (itrc .le. NT_PFA) then
 ! separate do loops (for better efficiency) to store the fluxes
@@ -795,7 +780,7 @@ c--#  define ntdf nrhs
      &               * rmask(i,j)
 #  endif
              enddo
-#if !defined SELECTED_FLUX_ANALYSIS /* AH */
+#  if !defined SELECTED_FLUX_ANALYSIS /* AH */
              do i=Istr,Iend
              ! unit = mmol / (m2 s)
                 BottomFlux(i,j,itrc) = 0. !-btflx(i,j,itrc)
@@ -803,9 +788,45 @@ c--#  define ntdf nrhs
      &               * rmask(i,j)
 #   endif
              enddo
-#endif /* SELECTED_FLUX_ANALYSIS */
+#  endif /* SELECTED_FLUX_ANALYSIS */
           end if
 # endif /* FULL_PHYS_FLUX_ANALYSIS */
+
+# if defined PHYS_FLUX_ANALYSIS && defined VERT_DIFF_ANALYSIS
+! The vertical diffusive flux is not added in a step like the other fluxes,
+! so we store the old concentration (depth is already factored in here) first, 
+! and then add the new concentration.
+          do k=1,N
+            do i=Istr,Iend
+               ThisVDF(i, j, k) = t(i,j,k,nnew,itrc)
+            end do
+         end do
+# endif /* PHYS_FLUX_ANALYSIS & VERT_DIFF_ANALYSIS */
+
+# if defined LMD_KPP && defined ICEOBS && defined BRINE_PLUMES
+! AH15: Distributing salt fluxes due freezing uniformly over
+! kbl to mimic brine plume convection (see Duffy et al. 1999)
+          if (itrc .eq. isalt) then
+            do i=istr,iend
+              if (freezing(i,j)>0) then
+#  if defined FULL_PHYS_FLUX_ANALYSIS
+                TopFlux(i,j,itrc) = TopFlux(i,j,itrc)+freezing(i,j)
+#   ifdef MASKING
+     &               * rmask(i,j)
+#   endif
+#  endif /* FULL_PHYS_FLUX_ANALYSIS */
+#  if defined PHYS_FLUX_ANALYSIS && defined VERT_DIFF_ANALYSIS
+                ThisVDF(i, j, N) = ThisVDF(i, j, N)+dt*freezing(i,j)
+#  endif /* PHYS_FLUX_ANALYSIS & VERT_DIFF_ANALYSIS */
+                do k=N,kbl(i,j),-1 !k=kbl(i,j),N,+1
+                  t(i,j,k,nnew,itrc)=t(i,j,k,nnew,itrc)+(dt*freezing(i,j)
+     &                  *Hz(i,j,k)/(z_w(i,j,N)-z_w(i,j,kbl(i,j)-1)))
+!     &                  *(z_w(i,j,k)-z_w(i,j,k-1))/(z_w(i,j,N)-z_w(i,j,kbl(i,j)-1)))
+                enddo
+              endif
+            enddo
+          endif
+# endif
 
 # ifdef LMD_KPP
 ! Add the solar radiation flux in temperature equation. Also compute
@@ -895,17 +916,6 @@ c??         enddo
 ! tracer concentration throughout the water column. At this moment
 ! the content of array t(:,:,:,nnew,itrc) has meaning of Hz*tracer.
 ! After the implicit step it becomes just tracer.
-
-# if defined PHYS_FLUX_ANALYSIS && defined VERT_DIFF_ANALYSIS
-! The vertical diffusive flux is not added in a step like the other fluxes,
-! so we store the old concentration (depth is already factored in here) first, 
-! and then add the new concentration.
-          do k=1,N
-            do i=Istr,Iend
-               ThisVDF(i, j, k) = t(i,j,k,nnew,itrc)
-            end do
-         end do
-# endif /* PHYS_FLUX_ANALYSIS & VERT_DIFF_ANALYSIS */
 
 # ifdef SALINITY
           iAkt=min(itrc,isalt)
@@ -1012,7 +1022,6 @@ c??         enddo
           end if
 #  endif /* PHYS_FLUX_ANALYSIS & VERT_DIFF_ANALYSIS */
 # endif
-
 
 # ifdef TCLIMATOLOGY
           do k=1,mxnudg
