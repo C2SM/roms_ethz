@@ -287,6 +287,25 @@ c--#endif
 #   endif
         enddo
 #  endif
+#  if defined OBC_EAST_M2SPECIFIED_TILESTR && defined OBC_EAST_M2SPECIFIED_TILEEND
+!
+!   Force OBC_M2SPECIFIED as southern boundary condition
+!   in the specified tile range! DL (following northern bry MM & AH)
+!
+        if ((mynode.ge.OBC_EAST_M2SPECIFIED_TILESTR)
+     &                       .and. (mynode.le.OBC_EAST_M2SPECIFIED_TILEEND)) then
+          do j=jstr,jend
+#   ifdef M2_FRC_BRY
+            ubar(iend+1,j,knew)=ubar_east(j)
+#   else
+            ubar(iend+1,j,knew)=ubclm(iend+1,j)
+#   endif
+#   ifdef MASKING
+     &                         *umask(iend+1,j)
+#   endif
+          enddo
+        endif
+#  endif /* OBC_EAST_M2SPECIFIED_TILESTR */
 # else
         do j=jstr,jend                       ! Eastern edge closed BC
           ubar(iend+1,j,knew)=0.             ! ======= ==== ====== ==

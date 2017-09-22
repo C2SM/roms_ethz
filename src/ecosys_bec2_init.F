@@ -74,6 +74,8 @@
 ! Martin's values
 !      parm_scalelen_z    = (/ 130.0, 290.0, 670.0, 1700.0 /) ! DL: converted to m
 !      parm_scalelen_vals = (/     1.0,     3.0,     5.0,      9.0 /) ! x1 default
+
+      parm_scalelen_vals = (/     1.0,     3.0,     5.0,      9.0 /) ! x1 default
 # endif
 
 ! Parameters for small phytoplankton
@@ -274,6 +276,47 @@
       agg_rate_max(auto_ind)  = 0.9
       agg_rate_min(auto_ind)  = 0.02
       z_umax_0(auto_ind)      = 3.6*dps
+      z_grz(auto_ind)         = 1.0
+      graze_zoo(auto_ind)     = 0.3
+      graze_poc(auto_ind)     = 0.42
+      graze_doc(auto_ind)     = 0.15
+      loss_poc(auto_ind)      = 0.0
+      f_zoo_detr(auto_ind)    = 0.2
+#endif
+#ifdef BEC_DDA
+      ! Some more default parameters for diatom-diazotroph assemblages:
+      auto_ind = dda_ind
+      sname(auto_ind)         = 'dda'
+      lname(auto_ind)         = 'Diatom-diazotroph assemblages'
+      Nfixer(auto_ind)        = .true.
+      imp_calcifier(auto_ind) = .false.
+      exp_calcifier(auto_ind) = .false.
+      grazee_ind(auto_ind)    = auto_ind
+      C_ind(auto_ind)         = ddaC_ind_t
+      Chl_ind(auto_ind)       = ddaChl_ind_t
+      Fe_ind(auto_ind)        = ddaFe_ind_t
+      Si_ind(auto_ind)        = ddaSi_ind_t
+      CaCO3_ind(auto_ind)     = 0
+      kFe(auto_ind)           = 0.12e-3
+      kPO4(auto_ind)          = 0.05
+      kDOP(auto_ind)          = 0.9
+      kNO3(auto_ind)          = 0.5
+      kNH4(auto_ind)          = 0.05
+      kSiO3(auto_ind)         = 1.0
+      Qp(auto_ind)            = 0.00855
+      gQfe_0(auto_ind)        = 20e-6
+      gQfe_min(auto_ind)      = 3.0e-6
+      alphaPI(auto_ind)       = 0.44
+      PCref(auto_ind)         = 4.6*dps
+      thetaN_max(auto_ind)    = 4.0
+      loss_thres(auto_ind)   = 0.04
+      loss_thres2(auto_ind)  = 0.0
+      temp_thres(auto_ind)   = -10.0
+      mort(auto_ind)          = 0.12*dps
+      mort2(auto_ind)         = 0.001*dps
+      agg_rate_max(auto_ind)  = 0.9
+      agg_rate_min(auto_ind)  = 0.02
+      z_umax_0(auto_ind)      = 3.8*dps
       z_grz(auto_ind)         = 1.0
       graze_zoo(auto_ind)     = 0.3
       graze_poc(auto_ind)     = 0.42

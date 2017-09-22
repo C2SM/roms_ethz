@@ -313,6 +313,11 @@
      &     phaeoc_ind_t=LAST_I+1, phaeochl_ind_t=LAST_I+2, phaeofe_ind_t=LAST_I+3
 #  undef LAST_I
 #  define LAST_I phaeofe_ind_t
+#ifdef BEC_DDA
+      integer, parameter ::
+     &     ddac_ind_t=LAST_I+1, ddachl_ind_t=LAST_I+2, ddasi_ind_t=LAST_I+3, ddafe_ind_t=LAST_I+4
+#  undef LAST_I
+#  define LAST_I ddafe_ind_t
 #endif
 #ifdef USE_EXPLICIT_VSINK
       integer, parameter ::

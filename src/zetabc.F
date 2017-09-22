@@ -95,6 +95,24 @@ c*******
 
             c
 
+            
+# if defined OBC_EAST_M2SPECIFIED_TILESTR && defined OBC_EAST_M2SPECIFIED_TILEEND
+!
+!   Force OBC_M2SPECIFIED as eastern boundary condition
+!   in the specified tile range! DL (following northern bry MM & AH)
+!
+        if ((mynode.ge.OBC_EAST_M2SPECIFIED_TILESTR)
+     &                       .and. (mynode.le.OBC_EAST_M2SPECIFIED_TILEEND)) then
+          do i=jstrV-1,jend 
+            zeta_new(iend,j+1)=zeta_new(iend,j)       ! gradient BC
+#  ifdef MASKING
+     &                       *rmask(iend,j+1)
+#  endif
+          enddo
+        endif
+# endif /* OBC_EAST_M2SPECIFIED_TILESTR */
+
+
 XXXX TO BE DEVELOPED
 
 

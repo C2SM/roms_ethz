@@ -845,6 +845,11 @@ c$$$       enddo
      &    phaeoC_loc,      ! local copy of model phaeoC
      &    phaeoChl_loc,    ! local copy of model phaeoChl
      &    phaeoFe_loc,     ! local copy of model phaeoFe
+# ifdef BEC_DDA
+     &    ddaC_loc,        ! local copy of model ddaC
+     &    ddaChl_loc,      ! local copy of model ddaChl
+     &    ddaSi_loc,       ! local copy of model ddaCal
+     &    ddaFe_loc,       ! local copy of model ddaFe
 # endif
      &    QA_dust_def,     ! incoming deficit in the QA(dust) POC flux
      &    NITRIF,          ! nitrification (NH4 -> NO3) (mmol N/m^3/sec)
@@ -865,6 +870,9 @@ c$$$       enddo
 # ifdef BEC_PHAEO
      &    Tfunc_phaeo,     ! temp response function GD98 (non-dim) for phaeo
 # endif
+# ifdef BEC_DDA
+     &    Tfunc_dda,       ! temp response function GD98 (non-dim) for ddas
+#endif
      &    PAR_in,          ! photosynthetically available radiation (W/m^2)
      &    KPARdz,          ! PAR adsorption coefficient (non-dim)
      &    PAR_lay,         ! average PAR over layer depth (W/m^2)
@@ -1000,6 +1008,11 @@ c$$$       enddo
        phaeoC_loc = MAX(c0, TRACER(istr:iend,j,k,phaeoc_ind_t))
        phaeoChl_loc = MAX(c0, TRACER(istr:iend,j,k,phaeochl_ind_t))
        phaeoFe_loc = MAX(c0, TRACER(istr:iend,j,k,phaeofe_ind_t))
+# ifdef BEC_DDA
+       ddaC_loc = MAX(c0, TRACER(istr:iend,j,k,ddac_ind_t))
+       ddaChl_loc = MAX(c0, TRACER(istr:iend,j,k,ddachl_ind_t))
+       ddaSi_loc = MAX(c0, TRACER(istr:iend,j,k,ddasi_ind_t))
+       ddaFe_loc = MAX(c0, TRACER(istr:iend,j,k,ddafe_ind_t))
 # endif
 #ifdef BEC2_DIAG
 # ifdef BEC2_DIAG_USER
@@ -1085,6 +1098,15 @@ c$$$       enddo
        END WHERE
 # endif
 
+# ifdef BEC_DDA
+       WHERE (ddaC_loc == c0 .OR. ddaChl_loc == c0 .OR. ddaFe_loc == c0)
+          ddaC_loc = c0
+          ddaChl_loc = c0
+          ddaSi_loc = c0
+          ddaFe_loc = c0
+       END WHERE
+# endif
+
     !---------------------------------------------------------------------------
     ! Initialize C_loc, Chl_loc, CaCO3_loc, autoFe_loc:
     !---------------------------------------------------------------------------
@@ -1117,6 +1139,14 @@ c$$$       enddo
        CaCO3_loc(istr:iend,phaeo_ind) = c0
        Si_loc(istr:iend,phaeo_ind) = c0
        autoFe_loc(istr:iend,phaeo_ind) = phaeoFe_loc
+# endif
+
+# ifdef BEC_DDA
+       C_loc(istr:iend,dda_ind) = ddaC_loc
+       Chl_loc(istr:iend,dda_ind) = ddaChl_loc
+       CaCO3_loc(istr:iend,dda_ind) = c0
+       Si_loc(istr:iend,dda_ind) = ddaSi_loc
+       autoFe_loc(istr:iend,dda_ind) = ddaFe_loc
 # endif
 
     !---------------------------------------------------------------------------
@@ -1235,6 +1265,9 @@ c$$$       enddo
 # ifdef BEC_PHAEO
      &        +phaeoChl_loc(i)
 # endif
+# ifdef BEC_DDA
+     &        +ddaChl_loc(i)
+# endif
      &        ,0.02)
 
           ! DL: in the following computation of KPARdz, it was taken into 
@@ -1272,8 +1305,10 @@ c$$$       enddo
 # ifdef BEC_PHAEO
        Tfunc_phaeo = 1.5**(((temp + T0_Kelvin) - (Tref + T0_Kelvin)) / c10)
 # endif /* BEC_PHAEO */
+# ifdef BEC_DDA
+       Tfunc_dda = 1.55**(((temp + T0_Kelvin) - (Tref + T0_Kelvin)) / c10)
+# endif /* BEC_DDA */
        Tfunc_diat  = 1.55**(((temp + T0_Kelvin) - (Tref + T0_Kelvin)) / c10)
-
 !# ifdef BEC_COCCO
 !       Tfunc_cocco = Q_10**(((temp + T0_Kelvin) - (Tref + T0_Kelvin)) / c10)
 !# endif
@@ -1383,6 +1418,10 @@ c$$$       enddo
           else if (auto_ind == phaeo_ind) then
              bec2_diag_3d(istr:iend,j,k,phaeofeuptake_idx_t) = VFe
              bec2_diag_3d(istr:iend,j,k,phaeopo4uptake_idx_t) =VPO4(istr:iend,phaeo_ind)
+#   ifdef BEC_DDA
+          else if (auto_ind == dda_ind) then
+             bec2_diag_3d(istr:iend,j,k,ddafeuptake_idx_t) = VFe
+             bec2_diag_3d(istr:iend,j,k,ddapo4uptake_idx_t) =VPO4(istr:iend,dda_ind)
 #   endif
           else
              bec2_diag_3d(istr:iend,j,k,diazfeuptake_idx_t) = VFe
@@ -1439,6 +1478,10 @@ c$$$       enddo
           else if (auto_ind==phaeo_ind) then
              PCmax = PCref(auto_ind) * f_nut * Tfunc_phaeo
 # endif /* BEC_PHAEO */
+# ifdef BEC_DDA
+          else if (auto_ind==dda_ind) then
+             PCmax = PCref(auto_ind) * f_nut * Tfunc_dda
+# endif /* BEC_DDA */
           else
              PCmax = PCref(auto_ind) * f_nut * Tfunc
           endif
@@ -1553,6 +1596,7 @@ c$$$       enddo
 #  endif
 # endif
 
+
     !-----------------------------------------------------------------------
     !  Get nutrient uptake by diatoms based on C fixation
     !-----------------------------------------------------------------------
@@ -1604,6 +1648,7 @@ c$$$       enddo
 #   ifdef BEC_COCCO
           bec2_diag_3d(istr:iend,j,k,coccophotoacc_idx_t) = photoacc(istr:iend,cocco_ind)
 #   endif
+<<<<<<< HEAD
 #   ifdef BEC_PHAEO
           bec2_diag_3d(istr:iend,j,k,phaeophotoacc_idx_t) = photoacc(istr:iend,phaeo_ind)
 #   endif
@@ -1688,6 +1733,10 @@ c$$$       enddo
      &                    Pprime(istr:iend,auto_ind) * Tfunc_phaeo
 
 # endif /* BEC_PHAEO */
+# ifdef BEC_DDA
+       elseif (auto_ind == dda_ind) then
+          auto_loss(istr:iend,auto_ind) =  mort(auto_ind) * Pprime(istr:iend,auto_ind) * Tfunc_dda
+# endif /* BEC_DDA */
        else
           auto_loss(istr:iend,auto_ind) =  mort(auto_ind) * Pprime(istr:iend,auto_ind) * Tfunc
        endif
@@ -1735,14 +1784,25 @@ c$$$       enddo
     !-----------------------------------------------------------------------
     !  Get N fixation by diazotrophs based on C fixation,
     !  Diazotrophs fix more than they need then 20% is excreted
+    !  DL: for DDAs --> no excretion
     !-----------------------------------------------------------------------
 
           if (Nfixer(auto_ind)) then
              WORK1 = photoC(istr:iend,auto_ind) * Q
+!# ifdef BEC_DDA    
+!          if (Nfixer(dda_ind)) then
+!             WORK2 = photoC(istr:iend,auto_ind) * Q
+!             Nfix(istr:iend,auto_ind)     = (WORK2 * r_Nfix_photo_dda) - NO3_V(istr:iend,auto_ind) 
+!     &                 - NH4_V(istr:iend,auto_ind)
+!          else
+!# endif
              Nfix(istr:iend,auto_ind)     = (WORK1 * r_Nfix_photo) - NO3_V(istr:iend,auto_ind)
      &                 - NH4_V(istr:iend,auto_ind)
              Nexcrete(istr:iend,auto_ind) = Nfix(istr:iend,auto_ind) + NO3_V(istr:iend,auto_ind)
      &                 + NH4_V(istr:iend,auto_ind) - WORK1
+!# ifdef BEC_DDA
+!          endif
+!# endif
           endif
 # ifdef BEC2_DIAG
 #  ifdef BEC2_DIAG_USER
@@ -1934,6 +1994,18 @@ c$$$       enddo
        bec2_diag_3d(istr:iend,j,k,phaeolossdic_idx_t) = auto_loss_dic(istr:iend,phaeo_ind)
        bec2_diag_3d(istr:iend,j,k,grazephaeozoo_idx_t) = auto_graze_zoo(istr:iend,phaeo_ind)
 #   endif /* BEC_PHAEO */
+#   ifdef BEC_DDA
+       bec2_diag_3d(istr:iend,j,k,grazedda_idx_t) = auto_graze(istr:iend,dda_ind)
+       bec2_diag_3d(istr:iend,j,k,ddaloss_idx_t) = auto_loss(istr:iend,dda_ind)
+       bec2_diag_3d(istr:iend,j,k,ddaagg_idx_t) = auto_agg(istr:iend,dda_ind)
+       bec2_diag_3d(istr:iend,j,k,photocdda_idx_t) = photoC(istr:iend,dda_ind)
+       bec2_diag_3d(istr:iend,j,k,ddaplim_idx_t) = VPtot(istr:iend,dda_ind)
+       bec2_diag_3d(istr:iend,j,k,ddano3uptake_idx_t) = NO3_V(istr:iend,dda_ind)
+       bec2_diag_3d(istr:iend,j,k,ddanh4uptake_idx_t) = NH4_V(istr:iend,dda_ind)
+       bec2_diag_3d(istr:iend,j,k,ddagrazedic_idx_t) = auto_graze_dic(istr:iend,dda_ind)
+       bec2_diag_3d(istr:iend,j,k,ddalossdic_idx_t) = auto_loss_dic(istr:iend,dda_ind)
+       bec2_diag_3d(istr:iend,j,k,grazeddazoo_idx_t) = auto_graze_zoo(istr:iend,dda_ind)
+#   endif /* BEC_DDA */
 #  endif
 # endif /* BEC2_DIAG */
 
