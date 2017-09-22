@@ -113,6 +113,37 @@
       parm_scalelen_vals = (/     1.0,     3.0,     5.0,      9.0 /) ! x1 default
 # endif
 
+# ifdef BEC_DDA
+      ! The following arrays give parameters in this order: sp, diat, diaz, dda
+      kFe = (/ 0.10e-3, 0.15e-3, 0.10e-3, 0.15e-3 /) ! mmol Fe/m3
+      kPO4 = (/ 0.025, 0.125, 0.05, 0.125 /)         ! mmol P/m3
+      kDOP = (/ 0.65, 2.25, 0.225, 2.25 /)          !
+      kNO3 = (/ 0.25, 0.5, 0.2, 0.02 /)            ! mmol N/m3
+      kNH4 = (/ 0.025, 0.125, 0.38, 0.125 /)         ! mmol N/m3
+      kSiO3 = (/ 0.0, 0.8, 0.0, 0.8 /)           ! mmol SiO3/m3
+      Qp = (/ 0.00855, 0.00855, 0.002735, 0.00855 /)
+      gQfe_0 = (/ 20.0e-6, 20.0e-6, 60.0e-6, 20.0e-6 /)
+      gQfe_min = (/ 3.0e-6, 3.0e-6, 12.0e-6, 3.0e-6 /)
+      alphaPI = (/ 0.46*dps, 0.465*dps, 0.4*dps, 0.47*dps /)  ! Chl. specific initial slope of P_I curve (GD98) (mmol C m^2/(mg Chl W sec))
+      PCref = (/ 3.8*dps, 4.8*dps, 0.5*dps, 3.5*dps /)
+      thetaN_max = (/ 2.5, 4.0, 2.5, 2.5 /)
+      loss_thres = (/ 0.04, 0.04, 0.022, 0.04 /)
+      loss_thres2 = (/ 0.0, 0.0, 0.001, 0.0 /)
+      temp_thres = (/ -10.0, -10.0, 14.0, -10.0 /)
+      mort = (/ 0.12*dps, 0.12*dps, 0.15*dps, 0.12*dps /)  ! non-grazing mortality (1/sec)
+      mort2 = (/ 0.001*dps, 0.001*dps, 0.0, 0.001*dps /)
+      agg_rate_max = (/ 0.9, 0.9, 0.0, 0.9 /)
+      agg_rate_min = (/ 0.01, 0.02, 0.0, 0.02 /)
+      z_umax_0 = (/ 3.3*dps, 3.08*dps, 0.6*dps, 3.0*dps /)
+      z_grz = (/ 1.05, 1.0, 1.2, 1.0 /)      ! grazing coefficient (mmol C/m^3)
+      graze_zoo = (/ 0.3, 0.3, 0.3, 0.3 /)
+      graze_poc = (/ 0.0, 0.42, 0.05, 0.42 /)
+      graze_doc = (/ 0.15, 0.15, 0.15, 0.15 /)
+      loss_poc = (/ 0.0, 0.0, 0.0, 0.0 /)
+      f_zoo_detr = (/ 0.15, 0.2, 0.15, 0.2 /)
+# else /* case not BEC_DDA */
+
+
       ! The following arrays give parameters in this order: sp, diat, diaz
       ! MF: The following half-saturation values are 250% of what I started from. This
       ! helped me to reduce basin scale productivity biases, while CalCS
@@ -150,7 +181,7 @@
       graze_doc = (/ 0.15, 0.15, 0.15 /)
       loss_poc = (/ 0.0, 0.0, 0.0 /)
       f_zoo_detr = (/ 0.15, 0.2, 0.15 /)
-
+# endif
 # endif
 
       auto_ind = sp_ind
@@ -213,6 +244,23 @@
       Si_ind(auto_ind)        = 0
       CaCO3_ind(auto_ind)     = coccoCal_ind_t
 #endif
+
+#ifdef BEC_DDA
+      ! Some more default parameters for diatom-diazotroph assemblages:
+      auto_ind = dda_ind
+      sname(auto_ind)         = 'dda'
+      lname(auto_ind)         = 'Diatom-diazotroph assemblages'
+      Nfixer(auto_ind)        = .true.
+      imp_calcifier(auto_ind) = .false.
+      exp_calcifier(auto_ind) = .false.
+      grazee_ind(auto_ind)    = auto_ind
+      C_ind(auto_ind)         = ddaC_ind_t
+      Chl_ind(auto_ind)       = ddaChl_ind_t
+      Fe_ind(auto_ind)        = ddaFe_ind_t
+      Si_ind(auto_ind)        = ddaSi_ind_t
+      CaCO3_ind(auto_ind)     = 0
+#endif
+
 
 #ifdef BIOPAR_NAMELIST
       !---------------------------------------------------------------------------

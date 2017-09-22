@@ -275,6 +275,12 @@
 #  undef LAST_I
 #  define LAST_I cal_ind_t
 #endif
+#ifdef BEC_DDA
+      integer, parameter ::
+     &     ddac_ind_t=LAST_I+1, ddachl_ind_t=LAST_I+2, ddasi_ind_t=LAST_I+3, ddafe_ind_t=LAST_I+4
+#  undef LAST_I
+#  define LAST_I ddafe_ind_t
+#endif
 #ifdef USE_EXPLICIT_VSINK
       integer, parameter ::
      &     dusthard_ind_t=LAST_I+1, pochard_ind_t=LAST_I+2, pcaco3hard_ind_t=LAST_I+3,

@@ -204,6 +204,28 @@
           enddo
         enddo
 #   endif
+#  if defined OBC_EAST_M3SPECIFIED_TILESTR && defined OBC_EAST_M3SPECIFIED_TILEEND
+!
+!   Force OBC_M2SPECIFIED as eastern boundary condition
+!   in the specified tile range! DL (following northern bry MM & AH)
+!
+        if ((mynode.ge.OBC_EAST_M3SPECIFIED_TILESTR)
+     &                       .and. (mynode.le.OBC_EAST_M3SPECIFIED_TILEEND)) then
+          do k=1,N
+             do j=jstr,jend
+#   ifdef M3_FRC_BRY
+            u(iend+1,j,k,nnew)=u_east(j,k)
+#   else
+            u(iend+1,j,k,nnew)=uclm(iend+1,j,k)
+#   endif
+#    ifdef MASKING
+     &                         *umask(iend+1,j)
+#    endif
+          enddo
+        enddo
+
+        endif                                      !<-- EASTERN_EDGE
+#  endif /* OBC_EAST_M3SPECIFIED_TILEEND */
 #  else
         do k=1,N                                ! Eastern edge closed
           do j=jstr,jend                        ! ======= ==== ======
@@ -320,6 +342,29 @@
           enddo
         enddo
 #   endif
+
+#  if defined OBC_SOUTH_M3SPECIFIED_TILESTR && defined OBC_SOUTH_M3SPECIFIED_TILEEND
+!
+!   Force OBC_M2SPECIFIED as southern boundary condition
+!   in the specified tile range! MF (following northern bry MM & AH)
+!
+        if ((mynode.ge.OBC_SOUTH_M3SPECIFIED_TILESTR)
+     &                       .and. (mynode.le.OBC_SOUTH_M3SPECIFIED_TILEEND)) then
+          do k=1,N
+             do i=istrU,iend
+#   ifdef M3_FRC_BRY
+            u(i,jstr-1,k,nnew)=u_south(i,k)
+#   else
+            u(i,jstr-1,k,nnew)=uclm(i,jstr-1,k)
+#   endif
+#    ifdef MASKING
+     &                         *umask(i,jstr-1)
+#    endif
+          enddo
+        enddo
+
+        endif                                      !<-- SOUTHERN_EDGE
+#  endif /* OBC_SOUTH_M3SPECIFIED_TILEEND */
 #  else
 #   ifdef EW_PERIODIC
 #    define I_RANGE istrU,iend
@@ -336,8 +381,7 @@
         enddo
 #   undef I_RANGE
 #  endif
-      endif              !<-- SOUTHERN_EDGE
-
+      endif
 
 
       if (NORTHERN_EDGE) then

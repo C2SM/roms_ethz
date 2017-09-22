@@ -423,6 +423,7 @@ c****
 #   endif
         enddo
 #  endif
+
 # else
 #  ifdef NS_PERIODIC
 #   define J_RANGE jstrV,jend
@@ -544,6 +545,25 @@ c****
 #   endif
         enddo
 #  endif
+#  if defined OBC_EAST_M2SPECIFIED_TILESTR && defined OBC_EAST_M2SPECIFIED_TILEEND
+!
+!   Force OBC_M2SPECIFIED as eastern boundary condition
+!   in the specified tile range! DL (following northern bry MM & AH)
+!
+        if ((mynode.ge.OBC_EAST_M2SPECIFIED_TILESTR)
+     &                       .and. (mynode.le.OBC_EAST_M2SPECIFIED_TILEEND)) then
+          do j=jstrV,jend
+#   ifdef M2_FRC_BRY
+            vbar(iend+1,j,knew)=vbar_east(j)
+#   else
+            vbar(iend+1,j,knew)=vbclm(iend+1,j)
+#   endif
+#   ifdef MASKING
+     &                                         *vmask(iend+1,j)
+#   endif
+          enddo
+        endif
+#  endif /* OBC_EAST_M2SPECIFIED_TILESTR */
 # else
 #  ifdef NS_PERIODIC
 #   define J_RANGE jstrV,jend

@@ -112,6 +112,27 @@
           enddo
         enddo
 #   endif
+#  if defined OBC_SOUTH_M3SPECIFIED_TILESTR && defined OBC_SOUTH_M3SPECIFIED_TILEEND
+!
+!   Force OBC_M2SPECIFIED as southern boundary condition
+!   in the specified tile range! MF (following northern bry MM & AH)
+!
+        if ((mynode.ge.OBC_SOUTH_M3SPECIFIED_TILESTR)
+     &                       .and. (mynode.le.OBC_SOUTH_M3SPECIFIED_TILEEND)) then
+        do k=1,N
+          do i=istr,iend
+#   ifdef M3_FRC_BRY
+            v(i,jstr,k,nnew)=v_south(i,k)
+#   else
+            v(i,jstr,k,nnew)=vclm(i,jstr,k)
+#   endif
+#   ifdef MASKING
+     &                         *vmask(i,jstr)
+#   endif
+          enddo
+          enddo
+        endif
+#  endif /* OBC_SOUTH_M3SPECIFIED_TILESTR */
 #  else
         do k=1,N                               ! Southern edge closed
           do i=istr,iend                       ! ======== ==== ======
@@ -443,6 +464,27 @@
           enddo
         enddo
 #   endif
+#  if defined OBC_EAST_M3SPECIFIED_TILESTR && defined OBC_EAST_M3SPECIFIED_TILEEND
+!
+!   Force OBC_M2SPECIFIED as eastern boundary condition
+!   in the specified tile range! DL (following northern bry MM & AH)
+!
+        if ((mynode.ge.OBC_EAST_M3SPECIFIED_TILESTR)
+     &                       .and. (mynode.le.OBC_EAST_M3SPECIFIED_TILEEND)) then
+        do k=1,N
+          do j=jstr,jend
+#   ifdef M3_FRC_BRY
+            v(iend+1,j,k,nnew)=v_east(j,k)
+#   else
+            v(iend+1,j,k,nnew)=vclm(iend+1,j,k)
+#   endif
+#   ifdef MASKING
+     &                         *vmask(iend+1,j)
+#   endif
+          enddo
+          enddo
+        endif
+#  endif /* OBC_EAST_M3SPECIFIED_TILESTR */
 #  else
 #   ifdef NS_PERIODIC
 #    define J_RANGE jstrV,jend

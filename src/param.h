@@ -319,15 +319,24 @@ c     &      NSUB_X=2, NSUB_E=8  ! <-- iswake 768x192
 #    undef LAST_I
 #    define LAST_I iDIAZFE
 #   endif /* BEC_COCCO */
+#   ifdef BEC_DDA
+     &       , iDDAC=LAST_I+1, iDDACHL=LAST_I+2
+     &       , iDDASI=LAST_I+3, iDDAFE=LAST_I+4
+     &       , ntrc_bio_dda=4
+#    undef LAST_I
+#    define LAST_I iDDAFE
+#   else /* case not BEC_DDA */
+     &       , ntrc_bio_dda=0
+#   endif /* BEC_DDA */
 #   ifdef USE_EXPLICIT_VSINK
      &       , iDUSTHARD=LAST_I+1, iPOCHARD=LAST_I+2
      &       , iPCACO3HARD=LAST_I+3, iPSIO2HARD=LAST_I+4
      &       , iPIRONHARD=LAST_I+5, iDUSTSOFT=LAST_I+6
      &       , iPOCSOFT=LAST_I+7, iPCACO3SOFT=LAST_I+8
      &       , iPSIO2SOFT=LAST_I+9, iPIRONSOFT=LAST_I+10
-     &       , ntrc_bio=ntrc_bio_base+ntrc_bio_cocco+10
+     &       , ntrc_bio=ntrc_bio_base+ntrc_bio_cocco+ntrc_bio_dda+10
 #   else /* USE_EXPLICIT_VSINK */
-     &       , ntrc_bio=ntrc_bio_base+ntrc_bio_cocco
+     &       , ntrc_bio=ntrc_bio_base+ntrc_bio_cocco+ntrc_bio_dda
 #   endif /* USE_EXPLICIT_VSINK */
 #  else  /* no  BIOLOGY */
      &       , ntrc_bio=0
@@ -352,4 +361,8 @@ c     &      NSUB_X=2, NSUB_E=8  ! <-- iswake 768x192
 #endif
 #ifdef FLOATS
      &       , Mfloats=32000 ! Maximum number of floats
+#endif
+#ifdef TSOURCE
+     &       , ntrc_tsrc=2
+     &       , NTS=itemp+ntrc_pas+ntrc_tsrc
 #endif

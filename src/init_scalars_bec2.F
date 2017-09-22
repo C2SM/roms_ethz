@@ -228,6 +228,27 @@ CR      write(*,'(1x,A,I3)') 'indxNH4 =',indxNH4
       vname(3,indxCal)='mMol CaCO3 m-3                         '
       vname(4,indxCal)='  '
 # endif 
+# ifdef BEC_DDA
+      vname(1,indxDdac)='DDAC                                   '
+      vname(2,indxDdac)='Diatom-diazotroph assemblages Carbon        '
+      vname(3,indxDdac)='mMol C m-3                              '
+      vname(4,indxDdac)='  '
+
+      vname(1,indxDdachl)='DDACHL                                 '
+      vname(2,indxDdachl)='Diatom-diazotroph assemblages Chlorophyll '
+      vname(3,indxDdachl)='mg Chl-a m-3                              '
+      vname(4,indxDdachl)='  '
+
+      vname(1,indxDdasi)='DDASI                                '
+      vname(2,indxDdasi)='Diatom-diazotroph assemblages Silicon    '
+      vname(3,indxDdasi)='mMol Si m-3                          '
+      vname(4,indxDdasi)='  '
+
+      vname(1,indxDdafe)='DDAFE                                   '
+      vname(2,indxDdafe)='Diatom-diazotroph assemblages iron       '
+      vname(3,indxDdafe)='mMol Fe m-3                              '
+      vname(4,indxDdafe)='  '
+# endif
 
       vname(1,indxdust)='dust                                       '
       vname(2,indxdust)='dust flux                      '

@@ -838,6 +838,12 @@ c$$$       enddo
      &    coccoFe_loc,     ! local copy of model coccoFe
      &    cal_loc,         ! local copy of model cal
 # endif
+# ifdef BEC_DDA
+     &    ddaC_loc,        ! local copy of model ddaC
+     &    ddaChl_loc,      ! local copy of model ddaChl
+     &    ddaSi_loc,       ! local copy of model ddaCal
+     &    ddaFe_loc,       ! local copy of model ddaFe
+# endif
      &    QA_dust_def,     ! incoming deficit in the QA(dust) POC flux
      &    NITRIF,          ! nitrification (NH4 -> NO3) (mmol N/m^3/sec)
      &    DENITRIF,        ! water column nitrification (NO3 -> N2) (mmol N/m^3/sec)
@@ -854,6 +860,9 @@ c$$$       enddo
      &    Tfunc_cocco,     ! temp response function GD98 (non-dim) for coccos
      &    light_lim_calc,  ! light limitation factor for calc of coccos
 # endif
+# ifdef BEC_DDA
+     &    Tfunc_dda,     ! temp response function GD98 (non-dim) for ddas
+#endif
      &    PAR_in,          ! photosynthetically available radiation (W/m^2)
      &    KPARdz,          ! PAR adsorption coefficient (non-dim)
      &    PAR_lay,         ! average PAR over layer depth (W/m^2)
@@ -982,6 +991,12 @@ c$$$       enddo
        coccoFe_loc = MAX(c0, TRACER(istr:iend,j,k,coccofe_ind_t))
        cal_loc = MAX(c0, TRACER(istr:iend,j,k,cal_ind_t))
 # endif
+# ifdef BEC_DDA
+       ddaC_loc = MAX(c0, TRACER(istr:iend,j,k,ddac_ind_t))
+       ddaChl_loc = MAX(c0, TRACER(istr:iend,j,k,ddachl_ind_t))
+       ddaSi_loc = MAX(c0, TRACER(istr:iend,j,k,ddasi_ind_t))
+       ddaFe_loc = MAX(c0, TRACER(istr:iend,j,k,ddafe_ind_t))
+# endif
 #ifdef BEC2_DIAG
 # ifdef BEC2_DIAG_USER
        if (bec2_diag_3d_l(totchl_idx_t))
@@ -1003,6 +1018,19 @@ c$$$       enddo
        if (bec2_diag_3d_l(spcaco3zero_idx_t))
      &     bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(spcaco3zero_idx_t)) = max(c0,-TRACER(istr:iend,j,k,spCaCO3_ind_t))/dt
 # else
+# ifdef BEC_DDA
+       bec2_diag_3d(istr:iend,j,k,totchl_idx_t) = tracer(istr:iend,j,k,spchl_ind_t)
+     &     + tracer(istr:iend,j,k,diatchl_ind_t) + tracer(istr:iend,j,k,diazchl_ind_t)
+     &     + tracer(istr:iend,j,k,ddachl_ind_t)
+       bec2_diag_3d(istr:iend,j,k,totphytoc_idx_t) = tracer(istr:iend,j,k,spc_ind_t)
+     &     + tracer(istr:iend,j,k,diatc_ind_t) + tracer(istr:iend,j,k,diazc_ind_t)
+     &     + tracer(istr:iend,j,k,ddaoc_ind_t)
+# else
+       bec2_diag_3d(istr:iend,j,k,totchl_idx_t) = tracer(istr:iend,j,k,spchl_ind_t)
+     &     + tracer(istr:iend,j,k,diatchl_ind_t) + tracer(istr:iend,j,k,diazchl_ind_t)
+       bec2_diag_3d(istr:iend,j,k,totphytoc_idx_t) = tracer(istr:iend,j,k,spc_ind_t)
+     &     + tracer(istr:iend,j,k,diatc_ind_t) + tracer(istr:iend,j,k,diazc_ind_t)
+# endif
        bec2_diag_3d(istr:iend,j,k,totchl_idx_t) = tracer(istr:iend,j,k,spchl_ind_t)
      &     + tracer(istr:iend,j,k,diatchl_ind_t) + tracer(istr:iend,j,k,diazchl_ind_t)
        bec2_diag_3d(istr:iend,j,k,totphytoc_idx_t) = tracer(istr:iend,j,k,spc_ind_t)
@@ -1051,6 +1079,14 @@ c$$$       enddo
           coccoFe_loc = c0
        END WHERE
 # endif
+# ifdef BEC_DDA
+       WHERE (ddaC_loc == c0 .OR. ddaChl_loc == c0 .OR. ddaFe_loc == c0)
+          ddaC_loc = c0
+          ddaChl_loc = c0
+          ddaSi_loc = c0
+          ddaFe_loc = c0
+       END WHERE
+# endif
 
     !---------------------------------------------------------------------------
     ! Initialize C_loc, Chl_loc, CaCO3_loc, autoFe_loc:
@@ -1077,6 +1113,14 @@ c$$$       enddo
        CaCO3_loc(istr:iend,cocco_ind) = coccoCal_loc
        Si_loc(istr:iend,cocco_ind) = c0
        autoFe_loc(istr:iend,cocco_ind) = coccoFe_loc
+# endif
+
+# ifdef BEC_DDA
+       C_loc(istr:iend,dda_ind) = ddaC_loc
+       Chl_loc(istr:iend,dda_ind) = ddaChl_loc
+       CaCO3_loc(istr:iend,dda_ind) = c0
+       Si_loc(istr:iend,dda_ind) = ddaSi_loc
+       autoFe_loc(istr:iend,dda_ind) = ddaFe_loc
 # endif
 
     !---------------------------------------------------------------------------
@@ -1192,7 +1236,12 @@ c$$$       enddo
           KPARdz(i) = max(spChl_loc(i)+diatChl_loc(i)+diazChl_loc(i)
      &        +coccoChl_loc(i), 0.02)
 # else
+# ifdef BEC_DDA
+          KPARdz(i) = max(spChl_loc(i)+diatChl_loc(i)+diazChl_loc(i)
+     &      +ddaChl_loc(i), 0.02)
+# else
           KPARdz(i) = max(spChl_loc(i)+diatChl_loc(i)+diazChl_loc(i), 0.02)
+# endif
 # endif
           ! DL: in the following computation of KPARdz, it was taken into 
           ! account that Hz is in m
@@ -1226,6 +1275,9 @@ c$$$       enddo
 # ifdef BEC_COCCO
        Tfunc_cocco = 1.45**(((temp + T0_Kelvin) - (Tref + T0_Kelvin)) / c10)
 # endif /* BEC_COCCO */
+# ifdef BEC_DDA
+       Tfunc_dda = 1.55**(((temp + T0_Kelvin) - (Tref + T0_Kelvin)) / c10)
+# endif /* BEC_DDA */
        Tfunc_diat  = 1.55**(((temp + T0_Kelvin) - (Tref + T0_Kelvin)) / c10)
 
 !# ifdef BEC_COCCO
@@ -1321,6 +1373,11 @@ c$$$       enddo
              bec2_diag_3d(istr:iend,j,k,coccofeuptake_idx_t) = VFe
              bec2_diag_3d(istr:iend,j,k,coccopo4uptake_idx_t) =VPO4(istr:iend,cocco_ind)
 #   endif
+#   ifdef BEC_DDA
+          else if (auto_ind == dda_ind) then
+             bec2_diag_3d(istr:iend,j,k,ddafeuptake_idx_t) = VFe
+             bec2_diag_3d(istr:iend,j,k,ddapo4uptake_idx_t) =VPO4(istr:iend,dda_ind)
+#   endif
           else
              bec2_diag_3d(istr:iend,j,k,diazfeuptake_idx_t) = VFe
              bec2_diag_3d(istr:iend,j,k,diazpo4uptake_idx_t) =VPO4(istr:iend,diaz_ind)
@@ -1368,6 +1425,10 @@ c$$$       enddo
           else if (auto_ind==cocco_ind) then
              PCmax = PCref(auto_ind) * f_nut * Tfunc_cocco
 # endif /* BEC_COCCO */
+# ifdef BEC_DDA
+          else if (auto_ind==dda_ind) then
+             PCmax = PCref(auto_ind) * f_nut * Tfunc_dda
+# endif /* BEC_DDA */
           else
              PCmax = PCref(auto_ind) * f_nut * Tfunc
           endif
@@ -1412,6 +1473,10 @@ c$$$       enddo
           else if (auto_ind == cocco_ind) then
              bec2_diag_3d(istr:iend,j,k,coccolightlim_idx_t) = light_lim
 #   endif
+#   ifdef BEC_DDA
+          else if (auto_ind == dda_ind) then
+             bec2_diag_3d(istr:iend,j,k,ddalightlim_idx_t) = light_lim
+#   endif
           else
              ! Diazotrophs:
              bec2_diag_3d(istr:iend,j,k,diazlightlim_idx_t) = light_lim
@@ -1451,21 +1516,24 @@ c$$$       enddo
           if (bec2_diag_3d_l(ironuptakesp_idx_t+auto_ind-1))
      &        bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(ironuptakesp_idx_t+auto_ind-1)) = photoFe(istr:iend,auto_ind)
 #  else
-#   ifdef BEC_COCCO
           if (auto_ind == sp_ind) then
             bec2_diag_3d(istr:iend,j,k,ironuptakesp_idx_t) = photoFe(istr:iend,sp_ind)
           else if (auto_ind == diat_ind) then
             bec2_diag_3d(istr:iend,j,k,ironuptakediat_idx_t) = photoFe(istr:iend,diat_ind)
+# ifdef BEC_COCCO
           else if (auto_ind == cocco_ind) then
             bec2_diag_3d(istr:iend,j,k,ironuptakecocco_idx_t) = photoFe(istr:iend,cocco_ind)
+# endif
+# ifdef BEC_DDA
+          else if (auto_ind == dda_ind) then
+            bec2_diag_3d(istr:iend,j,k,ironuptakedda_idx_t) = photoFe(istr:iend,dda_ind)
+# endif
           else
             bec2_diag_3d(istr:iend,j,k,ironuptakediaz_idx_t) = photoFe(istr:iend,diaz_ind)
           endif
-#   else /* case not BEC_COCCO */
-          bec2_diag_3d(istr:iend,j,k,ironuptakesp_idx_t+auto_ind-1) = photoFe(istr:iend,auto_ind)
-#   endif
 #  endif
 # endif
+
 
     !-----------------------------------------------------------------------
     !  Get nutrient uptake by diatoms based on C fixation
@@ -1517,6 +1585,9 @@ c$$$       enddo
           bec2_diag_3d(istr:iend,j,k,diazphotoacc_idx_t) = photoacc(istr:iend,diaz_ind)
 #   ifdef BEC_COCCO
           bec2_diag_3d(istr:iend,j,k,coccophotoacc_idx_t) = photoacc(istr:iend,cocco_ind)
+#   endif
+#   ifdef BEC_DDA
+          bec2_diag_3d(istr:iend,j,k,ddaphotoacc_idx_t) = photoacc(istr:iend,dda_ind)
 #   endif
 #  endif
 # endif
@@ -1592,6 +1663,10 @@ c$$$       enddo
        elseif (auto_ind == cocco_ind) then
           auto_loss(istr:iend,auto_ind) =  mort(auto_ind) * Pprime(istr:iend,auto_ind) * Tfunc_cocco
 # endif /* BEC_COCCO */
+# ifdef BEC_DDA
+       elseif (auto_ind == dda_ind) then
+          auto_loss(istr:iend,auto_ind) =  mort(auto_ind) * Pprime(istr:iend,auto_ind) * Tfunc_dda
+# endif /* BEC_DDA */
        else
           auto_loss(istr:iend,auto_ind) =  mort(auto_ind) * Pprime(istr:iend,auto_ind) * Tfunc
        endif
@@ -1639,14 +1714,25 @@ c$$$       enddo
     !-----------------------------------------------------------------------
     !  Get N fixation by diazotrophs based on C fixation,
     !  Diazotrophs fix more than they need then 20% is excreted
+    !  DL: for DDAs --> no excretion
     !-----------------------------------------------------------------------
 
           if (Nfixer(auto_ind)) then
              WORK1 = photoC(istr:iend,auto_ind) * Q
+!# ifdef BEC_DDA
+!          if (Nfixer(dda_ind)) then
+!             WORK2 = photoC(istr:iend,auto_ind) * Q
+!             Nfix(istr:iend,auto_ind)     = (WORK2 * r_Nfix_photo_dda) - NO3_V(istr:iend,auto_ind)
+!     &                 - NH4_V(istr:iend,auto_ind)
+!          else
+!# endif
              Nfix(istr:iend,auto_ind)     = (WORK1 * r_Nfix_photo) - NO3_V(istr:iend,auto_ind)
      &                 - NH4_V(istr:iend,auto_ind)
              Nexcrete(istr:iend,auto_ind) = Nfix(istr:iend,auto_ind) + NO3_V(istr:iend,auto_ind)
      &                 + NH4_V(istr:iend,auto_ind) - WORK1
+!# ifdef BEC_DDA
+!          endif
+!# endif
           endif
 # ifdef BEC2_DIAG
 #  ifdef BEC2_DIAG_USER
@@ -1825,6 +1911,18 @@ c$$$       enddo
        bec2_diag_3d(istr:iend,j,k,coccolossdic_idx_t) = auto_loss_dic(istr:iend,cocco_ind)
        bec2_diag_3d(istr:iend,j,k,grazecoccozoo_idx_t) = auto_graze_zoo(istr:iend,cocco_ind)
 #   endif /* BEC_COCCO */
+#   ifdef BEC_DDA
+       bec2_diag_3d(istr:iend,j,k,grazedda_idx_t) = auto_graze(istr:iend,dda_ind)
+       bec2_diag_3d(istr:iend,j,k,ddaloss_idx_t) = auto_loss(istr:iend,dda_ind)
+       bec2_diag_3d(istr:iend,j,k,ddaagg_idx_t) = auto_agg(istr:iend,dda_ind)
+       bec2_diag_3d(istr:iend,j,k,photocdda_idx_t) = photoC(istr:iend,dda_ind)
+       bec2_diag_3d(istr:iend,j,k,ddaplim_idx_t) = VPtot(istr:iend,dda_ind)
+       bec2_diag_3d(istr:iend,j,k,ddano3uptake_idx_t) = NO3_V(istr:iend,dda_ind)
+       bec2_diag_3d(istr:iend,j,k,ddanh4uptake_idx_t) = NH4_V(istr:iend,dda_ind)
+       bec2_diag_3d(istr:iend,j,k,ddagrazedic_idx_t) = auto_graze_dic(istr:iend,dda_ind)
+       bec2_diag_3d(istr:iend,j,k,ddalossdic_idx_t) = auto_loss_dic(istr:iend,dda_ind)
+       bec2_diag_3d(istr:iend,j,k,grazeddazoo_idx_t) = auto_graze_zoo(istr:iend,dda_ind)
+#   endif /* BEC_DDA */
 #  endif
 # endif /* BEC2_DIAG */
 

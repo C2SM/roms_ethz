@@ -55,6 +55,13 @@
 #  undef LAST_I
 #  define LAST_I indxCal
 # endif
+# ifdef BEC_DDA
+     &          , indxDdac=LAST_I+1, indxDdachl=LAST_I+2
+     &          , indxDdasi=LAST_I+3, indxDdafe=LAST_I+4
+#  undef LAST_I
+#  define LAST_I indxDdafe
+#endif
+
 # ifdef USE_EXPLICIT_VSINK
      &          , indxdusthard=LAST_I+1, indxpochard=indxdusthard+1
      &          , indxpcaco3hard=indxdusthard+2, indxpsio2hard=indxdusthard+3

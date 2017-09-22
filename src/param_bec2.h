@@ -13,6 +13,9 @@
 #ifdef BEC_COCCO
      &          +1
 #endif
+#ifdef BEC_DDA
+     &          +1
+#endif
        integer, parameter ::
      &   sp_ind   = 1,  ! small phytoplankton
      &   diat_ind = 2,  ! diatoms
@@ -20,6 +23,10 @@
 #ifdef BEC_COCCO
      &  ,cocco_ind = 4  ! Coccolithophores
 #endif
+#ifdef BEC_DDA
+     &  ,dda_ind = 4  ! diatom-diazotroph assemblages
+#endif
+
 
 !
 ! The following arrays contain one parameter for all of the 3 or 4 autotrophs, in the
@@ -28,7 +35,8 @@
 !  2 --> diatoms
 !  3 --> diazotrophs
 !  4 --> coccolithophores
-!
+!  5 --> diatom-diazotroph assemblages
+
        character*24 sname(autotroph_cnt)     ! short name of each autotroph
        character*80 lname(autotroph_cnt)     ! long name of each autotroph
        integer
@@ -191,6 +199,11 @@
 
        real r_Nfix_photo
        parameter(r_Nfix_photo=1.25)         ! N fix relative to C fix (non-dim)
+
+# ifdef BEC_DDA
+      real r_Nfix_photo_dda
+      parameter(r_Nfix_photo_dda=1.25)      ! N fix relative to C fix (non-dim) for DDAs
+# endif
 
   !-----------------------------------------------------------------------
   !     SET FIXED RATIOS for N/C, P/C, SiO3/C, Fe/C
