@@ -101,7 +101,7 @@
 # else /* case not BEC_COCCO */
       parm_BSIbury           = 0.65 ! x1 default
       !parm_Fe_scavenge_rate0 = 3.0  ! previous default
-      parm_Fe_scavenge_rate0 = 1.5  ! MF: sensitivity test
+      parm_Fe_scavenge_rate0 = 1.3  ! MF: sensitivity test
       parm_f_prod_sp_CaCO3   = 0.055 ! x1 default
       parm_POC_diss          = 88.0
       parm_SiO2_diss         = 250.0
@@ -131,7 +131,8 @@
 
       alphaPI = (/ 0.6*dps, 0.465*dps, 0.4*dps /)  ! Chl. specific initial slope of P_I curve (GD98) (mmol C m^2/(mg Chl W sec))
       !alphaPI = (/ 0.8*dps, 0.6*dps, 0.6*dps /)  ! MF: changes
-      PCref = (/ 5.5*dps, 5.5*dps, 0.7*dps /) ! previous defaults
+      !PCref = (/ 5.5*dps, 5.5*dps, 0.7*dps /) ! previous defaults
+      PCref = (/ 5.25*dps, 5.25*dps, 0.68*dps /) ! previous defaults
       !PCref = (/ 3.3*dps, 3.3*dps, 0.5*dps /) ! MF: changes
 
       thetaN_max = (/ 2.5, 4.0, 2.5 /)
