@@ -20,16 +20,24 @@
      &   sp_ind   = 1,  ! small phytoplankton
      &   diat_ind = 2,  ! diatoms
      &   diaz_ind = 3   ! diazotrophs
+#  undef LAST_I
+#  define LAST_I diaz_ind
 #ifdef BEC_COCCO
-     &  ,cocco_ind = 4  ! Coccolithophores
+     &  ,cocco_ind = LAST_I+1  ! Coccolithophores
+#  undef LAST_I
+#  define LAST_I cocco_ind
 #endif
 #ifdef BEC_PHAEO
-#ifdef BEC_COCCO
-     &  ,phaeo_ind = 5  ! Phaeocystis Antarctica (colonial form only for now)
-# else /* case without coccos */
-     &  ,phaeo_ind = 4  ! Phaeocystis Antarctica (colonial form only for now)
+     &  ,phaeo_ind = LAST_I+1  ! Phaeocystis Antarctica (colonial form only for now)
+#  undef LAST_I
+#  define LAST_I phaeo_ind
+!#ifdef BEC_COCCO
+!     &  ,phaeo_ind = 5  ! Phaeocystis Antarctica (colonial form only for now)
+!    # else /* case without coccos */
+!     &  ,phaeo_ind = 4  ! Phaeocystis Antarctica (colonial form only for now)
+!#endif
 #endif
-#endif
+#  undef LAST_I
 
 !
 ! The following arrays contain one parameter for all of the 3 or 4 autotrophs, in the

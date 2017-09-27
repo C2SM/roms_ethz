@@ -1022,35 +1022,14 @@ c$$$       enddo
        if (bec2_diag_3d_l(spcaco3zero_idx_t))
      &     bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(spcaco3zero_idx_t)) = max(c0,-TRACER(istr:iend,j,k,spCaCO3_ind_t))/dt
 # else
+       bec2_diag_3d(istr:iend,j,k,totchl_idx_t) = tracer(istr:iend,j,k,spchl_ind_t)
+     &     + tracer(istr:iend,j,k,diatchl_ind_t) + tracer(istr:iend,j,k,diazchl_ind_t)
 # ifdef BEC_COCCO
-# ifdef BEC_PHAEO
-       bec2_diag_3d(istr:iend,j,k,totchl_idx_t) = tracer(istr:iend,j,k,spchl_ind_t)
-     &     + tracer(istr:iend,j,k,diatchl_ind_t) + tracer(istr:iend,j,k,diazchl_ind_t)
-     &     + tracer(istr:iend,j,k,coccochl_ind_t) + tracer(istr:iend,j,k,phaeochl_ind_t)
-       bec2_diag_3d(istr:iend,j,k,totphytoc_idx_t) = tracer(istr:iend,j,k,spc_ind_t)
-     &     + tracer(istr:iend,j,k,diatc_ind_t) + tracer(istr:iend,j,k,diazc_ind_t)
-     &     + tracer(istr:iend,j,k,coccoc_ind_t) + tracer(istr:iend,j,k,phaeoc_ind_t)
-# else
-       bec2_diag_3d(istr:iend,j,k,totchl_idx_t) = tracer(istr:iend,j,k,spchl_ind_t)
-     &     + tracer(istr:iend,j,k,diatchl_ind_t) + tracer(istr:iend,j,k,diazchl_ind_t)
      &     + tracer(istr:iend,j,k,coccochl_ind_t)
-       bec2_diag_3d(istr:iend,j,k,totphytoc_idx_t) = tracer(istr:iend,j,k,spc_ind_t)
-     &     + tracer(istr:iend,j,k,diatc_ind_t) + tracer(istr:iend,j,k,diazc_ind_t)
-     &     + tracer(istr:iend,j,k,coccoc_ind_t)
 # endif
-# else
 # ifdef BEC_PHAEO
-       bec2_diag_3d(istr:iend,j,k,totchl_idx_t) = tracer(istr:iend,j,k,spchl_ind_t)
-     &     + tracer(istr:iend,j,k,diatchl_ind_t) + tracer(istr:iend,j,k,diazchl_ind_t)
      &     + tracer(istr:iend,j,k,phaeochl_ind_t)
-       bec2_diag_3d(istr:iend,j,k,totphytoc_idx_t) = tracer(istr:iend,j,k,spc_ind_t)
-     &     + tracer(istr:iend,j,k,diatc_ind_t) + tracer(istr:iend,j,k,diazc_ind_t)
-     &     + tracer(istr:iend,j,k,phaeoc_ind_t)
-# else
-       bec2_diag_3d(istr:iend,j,k,totchl_idx_t) = tracer(istr:iend,j,k,spchl_ind_t)
-     &     + tracer(istr:iend,j,k,diatchl_ind_t) + tracer(istr:iend,j,k,diazchl_ind_t)
-       bec2_diag_3d(istr:iend,j,k,totphytoc_idx_t) = tracer(istr:iend,j,k,spc_ind_t)
-     &     + tracer(istr:iend,j,k,diatc_ind_t) + tracer(istr:iend,j,k,diazc_ind_t)
+# endif
 # endif
 # endif
        bec2_diag_3d(istr:iend,j,k,spczero_idx_t) = max(c0,-TRACER(istr:iend,j,k,spC_ind_t))/dt
@@ -1249,22 +1228,15 @@ c$$$       enddo
 
        do i = istr, iend
           PAR_in(i) = PAR_out(i)
+          KPARdz(i) = max(spChl_loc(i)+diatChl_loc(i)+diazChl_loc(i)
 # ifdef BEC_COCCO
-# ifdef BEC_PHAEO
-          KPARdz(i) = max(spChl_loc(i)+diatChl_loc(i)+diazChl_loc(i)
-     &        +coccoChl_loc(i)+phaeoChl_loc(i), 0.02)
-# else
-          KPARdz(i) = max(spChl_loc(i)+diatChl_loc(i)+diazChl_loc(i)
-     &        +coccoChl_loc(i), 0.02)
+     &        ,+coccoChl_loc(i)
 # endif
-# else /* case not COCCO */
-# ifdef BEC_PHAEO
-          KPARdz(i) = max(spChl_loc(i)+diatChl_loc(i)+diazChl_loc(i)
-     &      +phaeoChl_loc(i), 0.02)
-# else 
-          KPARdz(i) = max(spChl_loc(i)+diatChl_loc(i)+diazChl_loc(i), 0.02)
+# ifdef BEC_COCCO
+     &        ,+phaeoChl_loc(i)
 # endif
-# endif
+     &        ,0.02)
+
           ! DL: in the following computation of KPARdz, it was taken into 
           ! account that Hz is in m
           if (KPARdz(i) < 0.13224) then
