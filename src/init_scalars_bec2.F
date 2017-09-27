@@ -1206,6 +1206,13 @@ CR      write(*,'(1x,A,I3)') 'indxNH4 =',indxNH4
      &  'Phaeo P limitation (PO4 + DOP)'
       vname_bec2_diag_3d(3,indxPHAEOPLIM)=' '
       vname_bec2_diag_3d(4,indxPHAEOPLIM)=' '
+
+      vname_bec2_diag_3d(1,indxPOCPRODPHAEO)='POC_PROD_PHAEO'
+      vname_bec2_diag_3d(2,indxPOCPRODPHAEO)=
+     &  'POC PROD due to Phaeo grz/agg/loss'
+      vname_bec2_diag_3d(3,indxPOCPRODPHAEO)='mMol C m-3 s-1'
+      vname_bec2_diag_3d(4,indxPOCPRODPHAEO)=' '
+
 # endif /* BEC_PHAEO */
 # endif /* BEC2_DIAG */
 
@@ -1360,13 +1367,13 @@ CR      write(*,'(1x,A,I3)') 'indxNH4 =',indxNH4
      &                     .true.,.true.   ! COCCO_P_LIM,POC_PROD_COCCO
 # endif
 # ifdef BEC_PHAEO
-     ! + 16
+     ! + 17
      &                     ,.false., ! GRAZE_PHAEO
      &                     .false.,.false.,.true.,.true.,     ! PHAEO_LOSS,PHAEO_AGG, PHOTOC_PHAEO, PHAEO_N_LIM
      &                     .false.,.true.,.true.,     ! PHAEO_PO4_LIM, PHAEO_FE_LIM, PHAEO_LIGHT_LIM
      &                     .false.,.false.,.false.,.false., ! IRON_UPTAKE_PHAEO, PHAEO_NO3_UPTAKE, PHAEO_NH4_UPTAKE, PHAEO_GRAZE_DIC 
      &                     .false.,.false.,.false.,    ! PHAEO_LOSS_DIC, GRAZE_PHAEO_ZOO, PHAEO_PHOTOACC 
-     &                     .true.   ! PHAEO_P_LIM
+     &                     .true.,.true.        ! PHAEO_P_LIM,POCPRODPHAEO
 # endif
      &                     /)
 
