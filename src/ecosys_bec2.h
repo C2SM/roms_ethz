@@ -29,48 +29,36 @@
 # endif /* CCHEM_MOCSY */
 !
 # ifdef USE_EXPLICIT_VSINK
+
 # ifdef BEC_COCCO
-! <<<<<<< HEAD
-!       parameter( nr_bec2_diag_3d=95+nr_cchem_mocsy_3d+29,  ! 10 from expl sinking, 19 from coccos
-! # else
-!       parameter( nr_bec2_diag_3d=95+nr_cchem_mocsy_3d+10,
-! =======
 # ifdef BEC_PHAEO
-      parameter( nr_bec2_diag_3d=91+nr_cchem_mocsy_3d+44,  ! 10 from expl sinking, 18 from coccos, 16 from phaeo
+      parameter( nr_bec2_diag_3d=95+nr_cchem_mocsy_3d+45,  ! 10 from expl sinking, 19 from coccos, 16 from phaeo
 # else
-      parameter( nr_bec2_diag_3d=91+nr_cchem_mocsy_3d+28,  ! 10 from expl sinking, 18 from coccos
+      parameter( nr_bec2_diag_3d=95+nr_cchem_mocsy_3d+29,  ! 10 from expl sinking, 19 from coccos
 # endif
 # else
 # ifdef BEC_PHAEO
-      parameter( nr_bec2_diag_3d=91+nr_cchem_mocsy_3d+26,  ! 10 from expl sinking, 16 from phaeo
+      parameter( nr_bec2_diag_3d=95+nr_cchem_mocsy_3d+26,  ! 10 from expl sinking, 16 from phaeo
 # else
-      parameter( nr_bec2_diag_3d=91+nr_cchem_mocsy_3d+10,  ! 10 from expl sinking
+      parameter( nr_bec2_diag_3d=95+nr_cchem_mocsy_3d+10,  ! 10 from expl sinking
 # endif
-! >>>>>>> BEC_PHAEO: Phaeocystis as an additional PFT
 # endif /* BEC_COCCO */
-!
 # else /* impl sinking */
-!
 # ifdef BEC_COCCO
-! <<<<<<< HEAD
-!       parameter( nr_bec2_diag_3d=95+nr_cchem_mocsy_3d+19,  ! 19 from coccos, 0 from impl sinking
-! # else
-!       parameter( nr_bec2_diag_3d=95+nr_cchem_mocsy_3d,   ! CN: took "+5" away, these were included in the 91
-! =======
 # ifdef BEC_PHAEO
-      parameter( nr_bec2_diag_3d=91+nr_cchem_mocsy_3d+34,  ! 18 from coccos, 0 from impl sinking, 16 from phaeo
+      parameter( nr_bec2_diag_3d=95+nr_cchem_mocsy_3d+35,  ! 19 from coccos, 0 from impl sinking, 16 from phaeo
 # else
-      parameter( nr_bec2_diag_3d=91+nr_cchem_mocsy_3d+18,  ! 18 from coccos, 0 from impl sinking
+      parameter( nr_bec2_diag_3d=95+nr_cchem_mocsy_3d+19,  ! 19 from coccos, 0 from impl sinking
 # endif
 # else
 # ifdef BEC_PHAEO
-      parameter( nr_bec2_diag_3d=91+nr_cchem_mocsy_3d+16,   ! 16 from phaeo, 0 from impl sinking
+      parameter( nr_bec2_diag_3d=95+nr_cchem_mocsy_3d+16,   ! 16 from phaeo, 0 from impl sinking
 # else
-      parameter( nr_bec2_diag_3d=91+nr_cchem_mocsy_3d,   ! 0 from impl sinking
+      parameter( nr_bec2_diag_3d=95+nr_cchem_mocsy_3d,   ! 0 from impl sinking
 # endif
-! >>>>>>> BEC_PHAEO: Phaeocystis as an additional PFT
 # endif /* BEC_COCCO */
 # endif /* USE_EXPLICIT_VSINK */
+
      &           nr_bec2_diag_2d=29+nr_cchem_mocsy_2d )  ! CN: added 11 tracers, see bio_diag.h
       parameter( nr_bec2_diag=nr_bec2_diag_2d+nr_bec2_diag_3d )
 # ifdef BEC2_DIAG_USER

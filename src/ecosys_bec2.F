@@ -1412,12 +1412,6 @@ c$$$       enddo
           else
              bec2_diag_3d(istr:iend,j,k,diazfeuptake_idx_t) = VFe
              bec2_diag_3d(istr:iend,j,k,diazpo4uptake_idx_t) =VPO4(istr:iend,diaz_ind)
-!#   ifdef BEC_COCCO
-!             bec2_diag_3d(istr:iend,j,k,coccopo4uptake_idx_t) =VPO4(istr:iend,cocco_ind)
-!#   endif
-!#   ifdef BEC_PHAEO
-!             bec2_diag_3d(istr:iend,j,k,phaeopo4uptake_idx_t) =VPO4(istr:iend,phaeo_ind)
-!#   endif
           end if
 #  endif
 # endif
@@ -1440,21 +1434,6 @@ c$$$       enddo
     !-----------------------------------------------------------------------
     !     get photosynth. rate, phyto C biomass change, photoadapt
     !-----------------------------------------------------------------------
-!# ifdef BEC_COCCO
-! CN: reduce cocco growth below 3 deg C following PlankTOM10 (they use 10 degC)
-      !    do i=istr,iend
-      !        if (temp(i) < 3.0) then 
-      !          Tfunc_cocco(i) = Tfunc_cocco(i) * max(c0,(0.2+0.8*(temp(i)/3.0)))
-      !        endif
-      !    enddo
-
-!          if (auto_ind==cocco_ind) then
-!             PCmax = PCref(auto_ind) * f_nut * Tfunc  ! Tfunc_cocco
-!          else
-!             PCmax = PCref(auto_ind) * f_nut * Tfunc 
-!          endif
-!# endif /* BEC_COCCO */
-
 
 # ifdef BEC_PHAEO 
        ! reduce phaeo growth linearly above 6degC
@@ -1474,7 +1453,6 @@ c$$$       enddo
 # endif /* BEC_PHAEO */
 
 
-
 ! CN: apply different Tfunc for coccos and diat
           if (auto_ind==diat_ind) then
              PCmax = PCref(auto_ind) * f_nut * Tfunc_diat
@@ -1490,21 +1468,7 @@ c$$$       enddo
              PCmax = PCref(auto_ind) * f_nut * Tfunc
           endif
 
-
-
-!# ifdef BEC_COCCO
-!! smoother function to scale down Tfunc below critical temp
-!          if (auto_ind==cocco_ind) then
-!             PCmax = PCref(auto_ind) * f_nut * Tfunc *
-!     &            ((temp+2)**10)/((temp+2)**10 + (8)**10)
-!          elseif (auto_ind==diaz_ind) then
-!             PCmax = PCref(auto_ind) * f_nut * Tfunc * 
-!     &            ((temp+2)**10)/((temp+2)**10 + (17)**10)
-!          else
-!             PCmax = PCref(auto_ind) * f_nut * Tfunc 
-!          endif
-!# endif /* BEC_COCCO */
-
+! apply temp_threshold below/above PFT doesn't grow anymore
 # ifdef BEC_PHAEO
           if (auto_ind==phaeo_ind) then ! restrict growth above this temp
              where (temp > temp_thres(auto_ind)) PCmax = c0
