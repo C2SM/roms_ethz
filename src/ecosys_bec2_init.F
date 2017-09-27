@@ -50,7 +50,6 @@
       !---------------------------------------------------------------------------
 
       parm_Fe_bioavail       = 0.02
-      !parm_o2_min            = 4.0  ! mmol/m^3 = nmol/cm^3
       parm_o2_min            = 1.0  ! mmol/m^3 = nmol/cm^3 (MF 11.11.2016: Taking down DENITRIF following discussion with SY (Babbin et al. 2014))
       parm_o2_min_delta      = 2.0  ! mmol/m^3 = nmol/cm^3
       parm_kappa_nitrif      = 0.06 * dps ! (= 1/( days))
@@ -63,81 +62,21 @@
       parm_Fe_scavenge_rate0 = 1.3 ! x1 default     2.8
       parm_f_prod_sp_CaCO3   = 0.055 ! x1 default   0.04
       parm_POC_diss          = 82.0   ! 88 in cBEC, 82
-      parm_SiO2_diss         = 180.0  ! 250 in cBEC, 360
+      parm_SiO2_diss         = 360.0  ! 250 in cBEC, 360
       parm_CaCO3_diss        = 400.0  ! 150 in cBEC, 400
 # ifdef USE_EXPLICIT_VSINK
       parm_scalelen_z    = (/ 130.0, 290.0, 670.0, 1700.0 /) 
       parm_scalelen_vals = (/     1.0,     1.6,     3.5,      8.0 /) ! MF: try new parametrization for explicit sinking
 # else
-      parm_scalelen_z    = (/ 100.0, 250.0, 500.0, 750.0 /) ! DL: converted to m    ! 130, 290, 670, 1700 in cBEC; 100 250  500 750  
-      parm_scalelen_vals = (/     1.0,     2.9,    5.6,      5.7 /) ! x1 default     ! 1, 2.9, 4.8, 8 in cBEC; 1  2.9  5.6 5.7      
+! Cara's values
+      parm_scalelen_z    = (/ 100.0, 250.0, 500.0, 750.0 /) ! DL: converted to m
+      parm_scalelen_vals = (/     1.0,     2.9,     5.6,      5.7 /) ! x1 default
+! Martin's values
 !      parm_scalelen_z    = (/ 130.0, 290.0, 670.0, 1700.0 /) ! DL: converted to m
 !      parm_scalelen_vals = (/     1.0,     3.0,     5.0,      9.0 /) ! x1 default
 # endif
 
-# ifdef BEC_COCCO
-# ifdef BEC_PHAEO 
-      ! The following arrays give parameters in this order: sp, diat, diaz, coccos,phaeo
-      kFe = (/ 0.08e-3, 0.12e-3, 0.08e-3, 0.09e-3,0.18e-3 /) ! mmol Fe/m3 
-      kPO4 = (/ 0.01, 0.05, 0.02, 0.02, 0.1 /)         ! mmol P/m3
-      kDOP = (/ 0.26, 0.9, 0.09, 0.2, 0.9 /)          ! 
-      kNO3 = (/ 0.1, 0.5, 1.0, 0.2, 0.8 /)            ! mmol N/m3   ! 0.11 0.45  8
-      kNH4 = (/ 0.01, 0.05, 0.15, 0.02, 0.05 /)         ! mmol N/m3  ! 0.01 0.04  0.8
-      kSiO3 = (/ 0.0, 1.0, 0.0, 0.0, 0.0 /)           ! mmol SiO3/m3
-      Qp = (/ 0.00855, 0.00855, 0.002735, 0.00855, 0.00855 /)
-      gQfe_0 = (/ 20.0e-6, 20.0e-6, 60.0e-6, 20.0e-6, 20.0e-6 /)
-      gQfe_min = (/ 3.0e-6, 3.0e-6, 12.0e-6, 3.0e-6, 3.0e-6 /)
-      alphaPI = (/ 0.42*dps,0.44*dps,0.38*dps,0.4*dps,0.5*dps /)  ! Chl. specific initial slope of P_I curve (GD98) (mmol C m^2/(mg Chl W sec))
-      PCref = (/ 3.6*dps, 4.8*dps, 0.9*dps, 4*dps, 4.8*dps /) ! 3, 5, 0.7, 4.6 in cBEC;  5.3, 5.3, 0.9 in CESM
-      thetaN_max = (/ 2.5, 4.0, 2.5, 2.5, 2.5 /)
-      loss_thres = (/ 0.04, 0.04, 0.022, 0.04, 0.04 /)
-      loss_thres2 = (/ 0.0, 0.0, 0.001, 0.0, 0.0 /)
-      temp_thres = (/ -10.0, -10.0, 14.0, -10.0, 8.0 /)
-      mort = (/ 0.12*dps, 0.12*dps, 0.15*dps, 0.12*dps, 0.12*dps /)  ! non-grazing mortality (1/sec)
-      mort2 = (/ 0.001*dps, 0.001*dps, 0.0, 0.001*dps, 0.001*dps /)
-      agg_rate_max = (/ 0.9, 0.9, 0.0, 0.9, 0.9 /)
-      agg_rate_min = (/ 0.01, 0.02, 0.0, 0.01, 0.02 /)
-      z_umax_0 = (/ 3.6*dps, 3.4*dps, 1.76*dps, 3.5*dps, 3.0*dps /) ! 3.07,2.86, 1.6 CESM  ; 3.3 3.08 0.6 3.28 cBEC  incr SP,dIAT,COCCO by 0.2
-      z_grz = (/ 1.05, 1.0, 1.2, 1.05, 1.0 /)      ! grazing coefficient (mmol C/m^3)
-      graze_zoo = (/ 0.3, 0.3, 0.3, 0.3, 0.3 /)
-      graze_poc = (/ 0.05, 0.42, 0.05, 0.42, 0.42 /) 
-      graze_doc = (/ 0.15, 0.15, 0.15, 0.15, 0.15 /)
-      loss_poc = (/ 0.0, 0.0, 0.0, 1.0, 0.0 /)
-      f_zoo_detr = (/ 0.15, 0.2, 0.15, 0.2, 0.2 /)
-# else /* case not BEC_PHAEO */
-      ! The following arrays give parameters in this order: sp, diat, diaz, coccos
-      kFe = (/ 0.04e-3, 0.06e-3, 0.04e-3, 0.045e-3 /) ! mmol Fe/m3 
-      kPO4 = (/ 0.01, 0.05, 0.02, 0.02 /)         ! mmol P/m3
-      kDOP = (/ 0.26, 0.9, 0.09, 0.2 /)          ! 
-      kNO3 = (/ 0.1, 0.5, 1.0, 0.2 /)            ! mmol N/m3   ! 0.11 0.45  8
-      kNH4 = (/ 0.01, 0.05, 0.15, 0.02 /)         ! mmol N/m3  ! 0.01 0.04  0.8
-      kSiO3 = (/ 0.0, 1.0, 0.0, 0.0 /)           ! mmol SiO3/m3
-      Qp = (/ 0.00855, 0.00855, 0.002735, 0.00855 /)
-      gQfe_0 = (/ 20.0e-6, 20.0e-6, 60.0e-6, 20.0e-6 /)
-      gQfe_min = (/ 3.0e-6, 3.0e-6, 12.0e-6, 3.0e-6 /)
-      alphaPI = (/ 0.46*dps, 0.46*dps, 0.4*dps, 0.42*dps /)  ! 0.6, 0.465, 0.4, 0.6 cBEC,  0.54, 0.42, 0.5 in CESM  Chl. specific initial slope of P_I curve (GD98) (mmol C m^2/(mg Chl W sec))
-      PCref = (/ 3.8*dps, 4.8*dps, 0.9*dps, 4*dps /) ! 3, 5, 0.7, 4.6 in cBEC;  5.3, 5.3, 0.9 in CESM
-      thetaN_max = (/ 2.5, 4.0, 2.5, 2.5 /)
-      loss_thres = (/ 0.04, 0.04, 0.022, 0.04 /)
-      loss_thres2 = (/ 0.0, 0.0, 0.001, 0.0 /)
-      temp_thres = (/ -10.0, -10.0, 14.0, -10.0 /)
-      mort = (/ 0.12*dps, 0.12*dps, 0.15*dps, 0.12*dps /)  ! non-grazing mortality (1/sec)
-      mort2 = (/ 0.001*dps, 0.001*dps, 0.0, 0.001*dps /)
-      agg_rate_max = (/ 0.9, 0.9, 0.0, 0.9 /)
-      agg_rate_min = (/ 0.01, 0.02, 0.0, 0.01 /)
-      z_umax_0 = (/ 3.15*dps, 2.95*dps, 1.6*dps, 3.15*dps /) ! 3.07,2.86, 1.6 CESM  ; 3.3 3.08 0.6 3.28 cBEC  incr SP,dIAT,COCCO by 0.2
-      z_grz = (/ 1.05, 1.0, 1.2, 1.05 /)      ! grazing coefficient (mmol C/m^3)
-      graze_zoo = (/ 0.3, 0.3, 0.3, 0.3 /)
-      graze_poc = (/ 0.05, 0.42, 0.05, 0.20 /) 
-      graze_doc = (/ 0.15, 0.15, 0.15, 0.15 /)
-      loss_poc = (/ 0.0, 0.0, 0.0, 0.2 /)
-      f_zoo_detr = (/ 0.15, 0.2, 0.15, 0.2 /)
-# endif 
-# else /* case not BEC_COCCO */
-# endif
-
-! merge # endif
-
+! Parameters for small phytoplankton
       auto_ind = sp_ind
       sname(auto_ind)         = 'sp'
       lname(auto_ind)         = 'Small Phyto'
@@ -150,8 +89,34 @@
       Si_ind(auto_ind)        = 0
       imp_calcifier(auto_ind) = .true. ! this is over-written in case of BEC_COCCO
       CaCO3_ind(auto_ind)     = spCaCO3_ind_t
+      kFe(auto_ind)           = 0.08e-3
+      kPO4(auto_ind)          = 0.01
+      kDOP(auto_ind)          = 0.26
+      kNO3(auto_ind)          = 0.1
+      kNH4(auto_ind)          = 0.01
+      kSiO3(auto_ind)         = 0.0
+      Qp(auto_ind)            = 0.00855
+      gQfe_0(auto_ind)        = 20e-6
+      gQfe_min(auto_ind)      = 3.0e-6
+      alphaPI(auto_ind)       = 0.44
+      PCref(auto_ind)         = 3.6*dps
+      thetaN_max(auto_ind)    = 2.5
+      loss_thres(auto_ind)   = 0.04
+      loss_thres2(auto_ind)  = 0.0
+      temp_thres(auto_ind)   = -10.0
+      mort(auto_ind)          = 0.12*dps
+      mort2(auto_ind)         = 0.001*dps
+      agg_rate_max(auto_ind)  = 0.9
+      agg_rate_min(auto_ind)  = 0.01
+      z_umax_0(auto_ind)      = 4.4*dps
+      z_grz(auto_ind)         = 1.05
+      graze_zoo(auto_ind)     = 0.3
+      graze_poc(auto_ind)     = 0.05
+      graze_doc(auto_ind)     = 0.15
+      loss_poc(auto_ind)      = 0.0
+      f_zoo_detr(auto_ind)    = 0.15
 
-      ! More default parameters for diatoms:
+! Parameters for diatoms
       auto_ind = diat_ind
       sname(auto_ind)         = 'diat'
       lname(auto_ind)         = 'Diatom'
@@ -164,8 +129,34 @@
       Fe_ind(auto_ind)        = diatFe_ind_t
       Si_ind(auto_ind)        = diatSi_ind_t
       CaCO3_ind(auto_ind)     = 0
+      kFe(auto_ind)           = 0.12e-3
+      kPO4(auto_ind)          = 0.05
+      kDOP(auto_ind)          = 0.9
+      kNO3(auto_ind)          = 0.5
+      kNH4(auto_ind)          = 0.05
+      kSiO3(auto_ind)         = 1.0
+      Qp(auto_ind)            = 0.00855
+      gQfe_0(auto_ind)        = 20e-6
+      gQfe_min(auto_ind)      = 3.0e-6
+      alphaPI(auto_ind)       = 0.44
+      PCref(auto_ind)         = 4.6*dps
+      thetaN_max(auto_ind)    = 4.0
+      loss_thres(auto_ind)   = 0.04
+      loss_thres2(auto_ind)  = 0.0
+      temp_thres(auto_ind)   = -10.0
+      mort(auto_ind)          = 0.12*dps
+      mort2(auto_ind)         = 0.001*dps
+      agg_rate_max(auto_ind)  = 0.9
+      agg_rate_min(auto_ind)  = 0.02
+      z_umax_0(auto_ind)      = 3.8*dps
+      z_grz(auto_ind)         = 1.0
+      graze_zoo(auto_ind)     = 0.3
+      graze_poc(auto_ind)     = 0.42
+      graze_doc(auto_ind)     = 0.15
+      loss_poc(auto_ind)      = 0.0
+      f_zoo_detr(auto_ind)    = 0.2
 
-      ! More default parameters for diazotrophs:
+! Parameters for diazotrophs
       auto_ind = diaz_ind
       sname(auto_ind)         = 'diaz'
       lname(auto_ind)         = 'Diazotroph'
@@ -178,13 +169,38 @@
       Fe_ind(auto_ind)        = diazFe_ind_t
       Si_ind(auto_ind)        = 0
       CaCO3_ind(auto_ind)     = 0
+      kFe(auto_ind)           = 0.08e-3
+      kPO4(auto_ind)          = 0.02
+      kDOP(auto_ind)          = 0.09
+      kNO3(auto_ind)          = 1.0
+      kNH4(auto_ind)          = 0.15
+      kSiO3(auto_ind)         = 0.0
+      Qp(auto_ind)            = 0.002735
+      gQfe_0(auto_ind)        = 60e-6
+      gQfe_min(auto_ind)      = 12.0e-6
+      alphaPI(auto_ind)       = 0.38
+      PCref(auto_ind)         = 0.9*dps
+      thetaN_max(auto_ind)    = 2.5
+      loss_thres(auto_ind)   = 0.022
+      loss_thres2(auto_ind)  = 0.001
+      temp_thres(auto_ind)   = 14.0
+      mort(auto_ind)          = 0.15*dps
+      mort2(auto_ind)         = 0.0*dps
+      agg_rate_max(auto_ind)  = 0.0
+      agg_rate_min(auto_ind)  = 0.0
+      z_umax_0(auto_ind)      = 2.0*dps
+      z_grz(auto_ind)         = 1.2
+      graze_zoo(auto_ind)     = 0.3
+      graze_poc(auto_ind)     = 0.05
+      graze_doc(auto_ind)     = 0.15
+      loss_poc(auto_ind)      = 0.0
+      f_zoo_detr(auto_ind)    = 0.15
 
 #ifdef BEC_COCCO
       ! over-write sp information: no implicit calcifiers in this case    
       imp_calcifier(sp_ind) = .false.
       CaCO3_ind(sp_ind)     = 0
-
-      ! Some more default parameters for coccolithophores:
+! Parameters for coccos
       auto_ind = cocco_ind
       sname(auto_ind)         = 'cocco'
       lname(auto_ind)         = 'Coccolithophores'
@@ -197,10 +213,35 @@
       Fe_ind(auto_ind)        = coccoFe_ind_t
       Si_ind(auto_ind)        = 0
       CaCO3_ind(auto_ind)     = coccoCal_ind_t
+      kFe(auto_ind)           = 0.10e-3
+      kPO4(auto_ind)          = 0.03
+      kDOP(auto_ind)          = 0.3
+      kNO3(auto_ind)          = 0.3
+      kNH4(auto_ind)          = 0.03
+      kSiO3(auto_ind)         = 0.0
+      Qp(auto_ind)            = 0.00855
+      gQfe_0(auto_ind)        = 20e-6
+      gQfe_min(auto_ind)      = 3.0e-6
+      alphaPI(auto_ind)       = 0.4
+      PCref(auto_ind)         = 3.8*dps
+      thetaN_max(auto_ind)    = 2.5
+      loss_thres(auto_ind)   = 0.04
+      loss_thres2(auto_ind)  = 0.0
+      temp_thres(auto_ind)   = -10.0
+      mort(auto_ind)          = 0.12*dps
+      mort2(auto_ind)         = 0.001*dps
+      agg_rate_max(auto_ind)  = 0.9
+      agg_rate_min(auto_ind)  = 0.01
+      z_umax_0(auto_ind)      = 4.4*dps
+      z_grz(auto_ind)         = 1.05
+      graze_zoo(auto_ind)     = 0.3
+      graze_poc(auto_ind)     = 0.20
+      graze_doc(auto_ind)     = 0.15
+      loss_poc(auto_ind)      = 0.2
+      f_zoo_detr(auto_ind)    = 0.2
 #endif
-
 #ifdef BEC_PHAEO
-      ! Some more default parameters for phaeocystis:
+! Parameters for Phaeocystis AA
       auto_ind = phaeo_ind
       sname(auto_ind)         = 'phaeo'
       lname(auto_ind)         = 'Phaeocystis'
@@ -213,6 +254,32 @@
       Fe_ind(auto_ind)        = phaeoFe_ind_t
       Si_ind(auto_ind)        = 0
       CaCO3_ind(auto_ind)     = 0
+      kFe(auto_ind)           = 0.18e-3
+      kPO4(auto_ind)          = 0.1
+      kDOP(auto_ind)          = 0.9
+      kNO3(auto_ind)          = 0.8
+      kNH4(auto_ind)          = 0.05
+      kSiO3(auto_ind)         = 0.0
+      Qp(auto_ind)            = 0.00855
+      gQfe_0(auto_ind)        = 20e-6
+      gQfe_min(auto_ind)      = 3.0e-6
+      alphaPI(auto_ind)       = 0.5
+      PCref(auto_ind)         = 4.6*dps
+      thetaN_max(auto_ind)    = 2.5
+      loss_thres(auto_ind)   = 0.04
+      loss_thres2(auto_ind)  = 0.0
+      temp_thres(auto_ind)   = 8.0
+      mort(auto_ind)          = 0.12*dps
+      mort2(auto_ind)         = 0.001*dps
+      agg_rate_max(auto_ind)  = 0.9
+      agg_rate_min(auto_ind)  = 0.02
+      z_umax_0(auto_ind)      = 3.6*dps
+      z_grz(auto_ind)         = 1.0
+      graze_zoo(auto_ind)     = 0.3
+      graze_poc(auto_ind)     = 0.42
+      graze_doc(auto_ind)     = 0.15
+      loss_poc(auto_ind)      = 0.0
+      f_zoo_detr(auto_ind)    = 0.2
 #endif
 
 #ifdef BIOPAR_NAMELIST
@@ -295,8 +362,6 @@
 # endif /* BEC2_DIAG_USER */
       bec2_diag_2d = c0
       bec2_diag_3d = c0
-      bec2_diag_2d_avg = c0  ! initialize diagnostic fields with zero!
-      bec2_diag_3d_avg = c0
 #else /* BEC2_DIAG */
       ph_hist = c0
 #endif /* BEC2_DIAG */
