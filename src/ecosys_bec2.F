@@ -2778,7 +2778,8 @@ c$$$       enddo
 # ifdef USE_EXPLICIT_VSINK             
              psio2soft_remin_loc = psio2soft_remin_loc * TfuncS(i)
 # else    
-             sio2_diss_loc = sio2_diss_loc / TfuncS(i)
+! CN: only apply change of remin length scale with depth, not with temperature
+!             sio2_diss_loc = sio2_diss_loc / TfuncS(i)
 # endif
     !-----------------------------------------------------------------------
     !  decay_POC_E and decay_SiO2 set locally, modified by O2
