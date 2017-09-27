@@ -1230,10 +1230,10 @@ c$$$       enddo
           PAR_in(i) = PAR_out(i)
           KPARdz(i) = max(spChl_loc(i)+diatChl_loc(i)+diazChl_loc(i)
 # ifdef BEC_COCCO
-     &        ,+coccoChl_loc(i)
+     &        +coccoChl_loc(i)
 # endif
-# ifdef BEC_COCCO
-     &        ,+phaeoChl_loc(i)
+# ifdef BEC_PHAEO
+     &        +phaeoChl_loc(i)
 # endif
      &        ,0.02)
 
