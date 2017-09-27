@@ -901,6 +901,9 @@ c$$$       enddo
 # ifdef BEC_COCCO
      &    POC_prod_cocco,  ! POC production in Cocco grz/agg/loss (mmol C/m^3/sec)
 # endif
+# ifdef BEC_PHAEO
+     &    POC_prod_phaeo,  ! POC production in Phaeo grz/agg/loss (mmol C/m^3/sec)
+# endif
      &    P_CaCO3_prod,    ! large detritus CaCO3, base units = mmol CaCO3
      &    P_SiO2_prod,     ! prod. of large detritus SiO2
      &    Fe_scavenge,     ! loss of dissolved iron, scavenging (mmol Fe/m^3/sec)
@@ -2106,6 +2109,10 @@ c$$$       enddo
        POC_prod_cocco = auto_graze_poc(istr:iend,cocco_ind)
      &            + auto_agg(istr:iend,cocco_ind) + auto_loss_poc(istr:iend,cocco_ind)
 # endif
+# ifdef BEC_PHAEO
+       POC_prod_phaeo = auto_graze_poc(istr:iend,phaeo_ind)
+     &            + auto_agg(istr:iend,phaeo_ind) + auto_loss_poc(istr:iend,phaeo_ind)
+# endif
 # endif
 
 # ifdef BEC2_DIAG
@@ -2120,6 +2127,9 @@ c$$$       enddo
        bec2_diag_3d(istr:iend,j,k,pocproddiaz_idx_t) = POC_prod_diaz(istr:iend)
 # ifdef BEC_COCCO
        bec2_diag_3d(istr:iend,j,k,pocprodcocco_idx_t) = POC_prod_cocco(istr:iend)
+# endif
+# ifdef BEC_PHAEO
+       bec2_diag_3d(istr:iend,j,k,pocprodphaeo_idx_t) = POC_prod_phaeo(istr:iend)
 # endif
 #  endif
 # endif

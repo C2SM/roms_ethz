@@ -32,13 +32,13 @@
 
 # ifdef BEC_COCCO
 # ifdef BEC_PHAEO
-      parameter( nr_bec2_diag_3d=95+nr_cchem_mocsy_3d+45,  ! 10 from expl sinking, 19 from coccos, 16 from phaeo
+      parameter( nr_bec2_diag_3d=95+nr_cchem_mocsy_3d+46,  ! 10 from expl sinking, 19 from coccos, 17 from phaeo
 # else
       parameter( nr_bec2_diag_3d=95+nr_cchem_mocsy_3d+29,  ! 10 from expl sinking, 19 from coccos
 # endif
 # else
 # ifdef BEC_PHAEO
-      parameter( nr_bec2_diag_3d=95+nr_cchem_mocsy_3d+26,  ! 10 from expl sinking, 16 from phaeo
+      parameter( nr_bec2_diag_3d=95+nr_cchem_mocsy_3d+27,  ! 10 from expl sinking, 17 from phaeo
 # else
       parameter( nr_bec2_diag_3d=95+nr_cchem_mocsy_3d+10,  ! 10 from expl sinking
 # endif
@@ -46,13 +46,13 @@
 # else /* impl sinking */
 # ifdef BEC_COCCO
 # ifdef BEC_PHAEO
-      parameter( nr_bec2_diag_3d=95+nr_cchem_mocsy_3d+35,  ! 19 from coccos, 0 from impl sinking, 16 from phaeo
+      parameter( nr_bec2_diag_3d=95+nr_cchem_mocsy_3d+36,  ! 19 from coccos, 0 from impl sinking, 17 from phaeo
 # else
       parameter( nr_bec2_diag_3d=95+nr_cchem_mocsy_3d+19,  ! 19 from coccos, 0 from impl sinking
 # endif
 # else
 # ifdef BEC_PHAEO
-      parameter( nr_bec2_diag_3d=95+nr_cchem_mocsy_3d+16,   ! 16 from phaeo, 0 from impl sinking
+      parameter( nr_bec2_diag_3d=95+nr_cchem_mocsy_3d+17,   ! 17 from phaeo, 0 from impl sinking
 # else
       parameter( nr_bec2_diag_3d=95+nr_cchem_mocsy_3d,   ! 0 from impl sinking
 # endif
@@ -179,9 +179,12 @@
      &   phaeograzedic_idx_t=LAST_I+12,
      &   phaeolossdic_idx_t=LAST_I+13,grazephaeozoo_idx_t=LAST_I+14,
      &   phaeophotoacc_idx_t=LAST_I+15,
-     &   phaeoplim_idx_t=LAST_I+16
+     &   phaeoplim_idx_t=LAST_I+16,
+!#  undef LAST_I
+!#  define LAST_I phaeoplim_idx_t
+     &   pocprodphaeo_idx_t=LAST_I+17
 #  undef LAST_I
-#  define LAST_I phaeoplim_idx_t
+#  define LAST_I pocprodphaeo_idx_t
 # endif        
 
       ! Indices to be used in bec2_diag_2d only:

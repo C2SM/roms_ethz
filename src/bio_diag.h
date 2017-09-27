@@ -149,8 +149,9 @@
      &            , indxPHAEONH4UPTAKE=LAST_I+11,indxPHAEOGRAZEDIC=LAST_I+12 
      &            , indxPHAEOLOSSDIC=LAST_I+13,indxGRAZEPHAEOZOO=LAST_I+14
      &            , indxPHAEOPHOTOACC=LAST_I+15,indxPHAEOPLIM=LAST_I+16
+     &            , indxPOCPRODPHAEO=LAST_I+17
 #  undef LAST_I
-#  define LAST_I indxCOCCOPLIM
+#  define LAST_I indxPOCPRODPHAEO
 # endif
 
 
