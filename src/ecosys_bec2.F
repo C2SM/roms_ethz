@@ -845,6 +845,7 @@ c$$$       enddo
      &    phaeoC_loc,      ! local copy of model phaeoC
      &    phaeoChl_loc,    ! local copy of model phaeoChl
      &    phaeoFe_loc,     ! local copy of model phaeoFe
+# endif
 # ifdef BEC_DDA
      &    ddaC_loc,        ! local copy of model ddaC
      &    ddaChl_loc,      ! local copy of model ddaChl
@@ -1008,6 +1009,7 @@ c$$$       enddo
        phaeoC_loc = MAX(c0, TRACER(istr:iend,j,k,phaeoc_ind_t))
        phaeoChl_loc = MAX(c0, TRACER(istr:iend,j,k,phaeochl_ind_t))
        phaeoFe_loc = MAX(c0, TRACER(istr:iend,j,k,phaeofe_ind_t))
+# endif
 # ifdef BEC_DDA
        ddaC_loc = MAX(c0, TRACER(istr:iend,j,k,ddac_ind_t))
        ddaChl_loc = MAX(c0, TRACER(istr:iend,j,k,ddachl_ind_t))
@@ -1043,8 +1045,8 @@ c$$$       enddo
 # ifdef BEC_PHAEO
      &     + tracer(istr:iend,j,k,phaeochl_ind_t)
 # endif
-# endif
-# endif
+!----# endif
+!----# endif
        bec2_diag_3d(istr:iend,j,k,spczero_idx_t) = max(c0,-TRACER(istr:iend,j,k,spC_ind_t))/dt
        bec2_diag_3d(istr:iend,j,k,diatczero_idx_t) = max(c0,-TRACER(istr:iend,j,k,diatC_ind_t))/dt
        bec2_diag_3d(istr:iend,j,k,diazczero_idx_t) = max(c0,-TRACER(istr:iend,j,k,diazC_ind_t))/dt
@@ -1053,7 +1055,6 @@ c$$$       enddo
        bec2_diag_3d(istr:iend,j,k,spcaco3zero_idx_t) = max(c0,-TRACER(istr:iend,j,k,spCaCO3_ind_t))/dt
 # endif
 #endif
-
     !---------------------------------------------------------------------------
     !   If any phyto box are zero, set others to zeros.
     !---------------------------------------------------------------------------
@@ -1418,6 +1419,7 @@ c$$$       enddo
           else if (auto_ind == phaeo_ind) then
              bec2_diag_3d(istr:iend,j,k,phaeofeuptake_idx_t) = VFe
              bec2_diag_3d(istr:iend,j,k,phaeopo4uptake_idx_t) =VPO4(istr:iend,phaeo_ind)
+#   endif
 #   ifdef BEC_DDA
           else if (auto_ind == dda_ind) then
              bec2_diag_3d(istr:iend,j,k,ddafeuptake_idx_t) = VFe
@@ -1648,7 +1650,6 @@ c$$$       enddo
 #   ifdef BEC_COCCO
           bec2_diag_3d(istr:iend,j,k,coccophotoacc_idx_t) = photoacc(istr:iend,cocco_ind)
 #   endif
-<<<<<<< HEAD
 #   ifdef BEC_PHAEO
           bec2_diag_3d(istr:iend,j,k,phaeophotoacc_idx_t) = photoacc(istr:iend,phaeo_ind)
 #   endif
@@ -1789,20 +1790,10 @@ c$$$       enddo
 
           if (Nfixer(auto_ind)) then
              WORK1 = photoC(istr:iend,auto_ind) * Q
-!# ifdef BEC_DDA    
-!          if (Nfixer(dda_ind)) then
-!             WORK2 = photoC(istr:iend,auto_ind) * Q
-!             Nfix(istr:iend,auto_ind)     = (WORK2 * r_Nfix_photo_dda) - NO3_V(istr:iend,auto_ind) 
-!     &                 - NH4_V(istr:iend,auto_ind)
-!          else
-!# endif
              Nfix(istr:iend,auto_ind)     = (WORK1 * r_Nfix_photo) - NO3_V(istr:iend,auto_ind)
      &                 - NH4_V(istr:iend,auto_ind)
              Nexcrete(istr:iend,auto_ind) = Nfix(istr:iend,auto_ind) + NO3_V(istr:iend,auto_ind)
      &                 + NH4_V(istr:iend,auto_ind) - WORK1
-!# ifdef BEC_DDA
-!          endif
-!# endif
           endif
 # ifdef BEC2_DIAG
 #  ifdef BEC2_DIAG_USER

@@ -359,7 +359,6 @@ c     &      NSUB_X=2, NSUB_E=8  ! <-- iswake 768x192
 # endif
 #endif
      &       , NT=itemp+ntrc_salt+ntrc_pas+ntrc_bio
-
 #ifdef PSOURCE
      &       , Msrc=10   ! Number of point sources
 #endif

@@ -27,39 +27,20 @@
 # else /* CCHEM_MOCSY */
       parameter( nr_cchem_mocsy_2d=0, nr_cchem_mocsy_3d=0 )
 # endif /* CCHEM_MOCSY */
-!
+      parameter( nr_bec2_diag_3d=95+nr_cchem_mocsy_3d
 # ifdef USE_EXPLICIT_VSINK
-
+     &    +10
+# endif
 # ifdef BEC_COCCO
-# ifdef BEC_PHAEO
-      parameter( nr_bec2_diag_3d=95+nr_cchem_mocsy_3d+46,  ! 10 from expl sinking, 19 from coccos, 17 from phaeo
-# else
-      parameter( nr_bec2_diag_3d=95+nr_cchem_mocsy_3d+29,  ! 10 from expl sinking, 19 from coccos
+     &    +19
 # endif
-# else
 # ifdef BEC_PHAEO
-      parameter( nr_bec2_diag_3d=95+nr_cchem_mocsy_3d+27,  ! 10 from expl sinking, 17 from phaeo
-# else
-      parameter( nr_bec2_diag_3d=95+nr_cchem_mocsy_3d+10,  ! 10 from expl sinking
+     &    +17
 # endif
-# endif /* BEC_COCCO */
-# else /* impl sinking */
-# ifdef BEC_COCCO
-# ifdef BEC_PHAEO
-      parameter( nr_bec2_diag_3d=95+nr_cchem_mocsy_3d+36,  ! 19 from coccos, 0 from impl sinking, 17 from phaeo
-# else
-      parameter( nr_bec2_diag_3d=95+nr_cchem_mocsy_3d+19,  ! 19 from coccos, 0 from impl sinking
+# ifdef BEC_DDA
+     &    +16
 # endif
-# else
-# ifdef BEC_PHAEO
-      parameter( nr_bec2_diag_3d=95+nr_cchem_mocsy_3d+17,   ! 17 from phaeo, 0 from impl sinking
-# else
-      parameter( nr_bec2_diag_3d=95+nr_cchem_mocsy_3d,   ! 0 from impl sinking
-# endif
-# endif /* BEC_COCCO */
-# endif /* USE_EXPLICIT_VSINK */
-
-     &           nr_bec2_diag_2d=29+nr_cchem_mocsy_2d )  ! CN: added 11 tracers, see bio_diag.h
+     &          ,nr_bec2_diag_2d=29+nr_cchem_mocsy_2d )  
       parameter( nr_bec2_diag=nr_bec2_diag_2d+nr_bec2_diag_3d )
 # ifdef BEC2_DIAG_USER
       real, pointer, dimension(:,:,:,:) :: bec2_diag_3d
@@ -185,6 +166,21 @@
      &   pocprodphaeo_idx_t=LAST_I+17
 #  undef LAST_I
 #  define LAST_I pocprodphaeo_idx_t
+# endif        
+# ifdef BEC_DDA
+      integer, parameter :: grazedda_idx_t=LAST_I+1,ddaloss_idx_t=LAST_I+2,
+     &   ddaagg_idx_t=LAST_I+3,photocdda_idx_t=LAST_I+4,
+     &   ddanlim_idx_t=LAST_I+5,
+     &   ddapo4uptake_idx_t=LAST_I+6,ddafeuptake_idx_t=LAST_I+7,
+     &   ddalightlim_idx_t=LAST_I+8,
+     &   ironuptakedda_idx_t=LAST_I+9,
+     &   ddano3uptake_idx_t=LAST_I+10,ddanh4uptake_idx_t=LAST_I+11,
+     &   ddagrazedic_idx_t=LAST_I+12,
+     &   ddalossdic_idx_t=LAST_I+13,grazeddazoo_idx_t=LAST_I+14,
+     &   ddaphotoacc_idx_t=LAST_I+15,
+     &   ddaplim_idx_t=LAST_I+16
+#  undef LAST_I
+#  define LAST_I ddaplim_idx_t
 # endif        
 
       ! Indices to be used in bec2_diag_2d only:
@@ -313,6 +309,7 @@
      &     phaeoc_ind_t=LAST_I+1, phaeochl_ind_t=LAST_I+2, phaeofe_ind_t=LAST_I+3
 #  undef LAST_I
 #  define LAST_I phaeofe_ind_t
+#endif
 #ifdef BEC_DDA
       integer, parameter ::
      &     ddac_ind_t=LAST_I+1, ddachl_ind_t=LAST_I+2, ddasi_ind_t=LAST_I+3, ddafe_ind_t=LAST_I+4

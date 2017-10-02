@@ -74,8 +74,6 @@
 ! Martin's values
 !      parm_scalelen_z    = (/ 130.0, 290.0, 670.0, 1700.0 /) ! DL: converted to m
 !      parm_scalelen_vals = (/     1.0,     3.0,     5.0,      9.0 /) ! x1 default
-
-      parm_scalelen_vals = (/     1.0,     3.0,     5.0,      9.0 /) ! x1 default
 # endif
 
 ! Parameters for small phytoplankton
@@ -284,10 +282,9 @@
       f_zoo_detr(auto_ind)    = 0.2
 #endif
 #ifdef BEC_DDA
-      ! Some more default parameters for diatom-diazotroph assemblages:
-      auto_ind = dda_ind
+      auto_ind = diat_ind
       sname(auto_ind)         = 'dda'
-      lname(auto_ind)         = 'Diatom-diazotroph assemblages'
+      lname(auto_ind)         = 'Diatom Diazotroph Assemblages'
       Nfixer(auto_ind)        = .true.
       imp_calcifier(auto_ind) = .false.
       exp_calcifier(auto_ind) = .false.
@@ -323,7 +320,7 @@
       graze_doc(auto_ind)     = 0.15
       loss_poc(auto_ind)      = 0.0
       f_zoo_detr(auto_ind)    = 0.2
-#endif
+#endif 
 
 #ifdef BIOPAR_NAMELIST
       !---------------------------------------------------------------------------

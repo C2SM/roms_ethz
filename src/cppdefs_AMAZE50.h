@@ -29,14 +29,6 @@
 #define OBC_SOUTH
 
      /* Open Boundary Conditions */
-#define OBC_SOUTH_M2SPECIFIED_TILESTR 1 /* OBC_M2SPECIFIED for a certain range of tiles */
-#define OBC_SOUTH_M2SPECIFIED_TILEEND 10 /* OBC_M2SPECIFIED for a certain ran*/
-#define OBC_SOUTH_M3SPECIFIED_TILESTR 1 /* OBC_M2SPECIFIED for a certain range of tiles */
-#define OBC_SOUTH_M3SPECIFIED_TILEEND 10 /* OBC_M2SPECIFIED for a certain ran*/
-#define OBC_EAST_M2SPECIFIED_TILESTR 8 /* OBC_M2SPECIFIED for a certain range of tiles */
-#define OBC_EAST_M2SPECIFIED_TILEEND 18 /* OBC_M2SPECIFIED for a certain ran*/
-#define OBC_EAST_M3SPECIFIED_TILESTR 8 /* OBC_M2SPECIFIED for a certain range of tiles */
-#define OBC_EAST_M3SPECIFIED_TILEEND 18 /* OBC_M2SPECIFIED for a certain ran*/
 
 
      /* Vertical Mixing */
@@ -66,7 +58,7 @@
 !-- #define AGE_DYE_TRACER
 #define DEFAULT_BRY_VALUES
 
-!-- # define BEC2_DIAG
+# define BEC2_DIAG
 !-- # define RIVER_LOAD_N
 !-- # define RIVER_LOAD_P
 !-- # define PCO2AIR_FORCING

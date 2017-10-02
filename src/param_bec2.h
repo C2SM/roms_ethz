@@ -42,6 +42,8 @@
 #endif
 #ifdef BEC_DDA
      &  ,dda_ind =LAST_I+1! diatom-diazotroph assemblages
+#  undef LAST_I
+#  define LAST_I dda_ind
 #endif
 #  undef LAST_I
 
