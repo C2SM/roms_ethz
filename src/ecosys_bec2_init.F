@@ -282,7 +282,7 @@
       f_zoo_detr(auto_ind)    = 0.2
 #endif
 #ifdef BEC_DDA
-      auto_ind = diat_ind
+      auto_ind = dda_ind
       sname(auto_ind)         = 'dda'
       lname(auto_ind)         = 'Diatom Diazotroph Assemblages'
       Nfixer(auto_ind)        = .true.

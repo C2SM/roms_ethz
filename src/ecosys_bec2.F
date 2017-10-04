@@ -1175,7 +1175,17 @@ c$$$       enddo
      &           max((gQfe(istr:iend,auto_ind) * Fe_loc / (cks * kFe(auto_ind))),
      &           gQfe_min(auto_ind))
           end where
-
+!---------- Deguging DALi
+         if (auto_ind .eq. dda_ind) then
+          if (k .eq. 32) then
+             write(*,*) 'gQfe of DDA = ',gQfe(istr:iend,dda_ind)
+             write(*,*) 'Fe_loc of DDA = ',Fe_loc
+             write(*,*) 'kFe of DDA = ',kFe(dda_ind)
+             write(*,*) 'gQfe of DIAT = ',gQfe(istr:iend,diat_ind)
+             write(*,*) 'kFe of DIAT = ',kFe(diat_ind)
+          endif
+         endif
+!---------- End Debuging 
           if (kSiO3(auto_ind) > c0) then
              gQsi(istr:iend,auto_ind) = gQsi_0
              where ((Fe_loc < cksi * kFe(auto_ind)) .and. (Fe_loc > c0) .and.

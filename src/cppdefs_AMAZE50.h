@@ -10,7 +10,7 @@
 !--#define GRID_SIZE LLm=367, MMm=148, N=32
 !--#define  DOMAIN_TILING NP_XI=4, NP_ETA=8, NSUB_X=1, NSUB_E=1
 
-#define GRID_SIZE LLm=345, MMm=331, N=32
+#define GRID_SIZE LLm=345, MMm=138, N=32
 #define  DOMAIN_TILING NP_XI=8, NP_ETA=8, NSUB_X=1, NSUB_E=1
 
      /* Forcing */
@@ -49,7 +49,8 @@
 #define BIOLOGY_BEC2
 #ifdef BIOLOGY_BEC2
 # define BEC_DDA
-# undef BEC_COCCO
+# define BEC_PHAEO
+# define BEC_COCCO
 # define KILL_THE_WINNER  /* if defined, use Vallina 2014 parametrization for grazing */
 # define BIOLOGY
 #endif
