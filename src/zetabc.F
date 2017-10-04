@@ -57,6 +57,22 @@ c--#define OBC_Z2ORLANSKI
 #  endif
         enddo
 # endif
+# if defined OBC_W_M2SPEC_STR && defined OBC_W_M2SPEC_END
+
+!   Force OBC_M2SPECIFIED as western boundary condition
+!   in the specified tile range! DAL (following northern bry MM & AH)
+
+        if ((mynode.ge.OBC_W_M2SPEC_STR)
+     &                       .and. (mynode.le.OBC_W_M2SPEC_END)) then
+          do i=jstrV-1,jend
+          zeta_new(istr-1,j)=zeta_new(istr,j)          
+#  ifdef MASKING
+     &                        *rmask(istr-1,j)
+#  endif
+          enddo
+        endif
+# endif /* OBC_W_M2SPEC_STR */
+
       endif
 
 c*******
@@ -95,23 +111,6 @@ c*******
 
             c
 
-            
-# if defined OBC_EAST_M2SPECIFIED_TILESTR && defined OBC_EAST_M2SPECIFIED_TILEEND
-!
-!   Force OBC_M2SPECIFIED as eastern boundary condition
-!   in the specified tile range! DL (following northern bry MM & AH)
-!
-        if ((mynode.ge.OBC_EAST_M2SPECIFIED_TILESTR)
-     &                       .and. (mynode.le.OBC_EAST_M2SPECIFIED_TILEEND)) then
-          do i=jstrV-1,jend 
-            zeta_new(iend,j+1)=zeta_new(iend,j)       ! gradient BC
-#  ifdef MASKING
-     &                       *rmask(iend,j+1)
-#  endif
-          enddo
-        endif
-# endif /* OBC_EAST_M2SPECIFIED_TILESTR */
-
 
 XXXX TO BE DEVELOPED
 
@@ -141,6 +140,23 @@ c          if (cx < 0.) cx=0.
 #  endif
         enddo
 # endif
+
+# if defined OBC_E_M2SPEC_STR && defined OBC_E_M2SPEC_END
+
+!   Force OBC_M2SPECIFIED as eastern boundary condition
+!   in the specified tile range! DAL (following northern bry MM & AH)
+
+        if ((mynode.ge.OBC_E_M2SPEC_STR)
+     &                       .and. (mynode.le.OBC_E_M2SPEC_END)) then  
+          do i=jstrV-1,jend
+            zeta_new(iend+1,j)=zeta_new(iend,j)       ! gradient BC
+#  ifdef MASKING
+     &                       *rmask(iend+1,j)
+#  endif
+          enddo
+        endif
+# endif /* OBC_E_M2SPEC_STR */
+
       endif
 #endif        /* !EW_PERIODIC */
 
