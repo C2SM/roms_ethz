@@ -163,6 +163,9 @@ partit_t: partit_t.f insert_node.o lenstr.o
 partit: partit_t partit.o insert_node.o lenstr.o
 	$(CFT) $(FFLAGS) $(LDFLAGS) -o partit partit.o insert_node.o lenstr.o $(LCDF)
 
+ncjoin: ncjoin.o lenstr.o
+	$(CFT) -o $@ $(FFLAGS) $(LDFLAGS) $< lenstr.o $(LCDF)
+
 ncextract: ncextract.o
 	$(CFT) $(FFLAGS) $(LDFLAGS) -o ncextract ncextract.o
 
