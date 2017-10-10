@@ -4,6 +4,12 @@
   -- comments marked by SO are optins used in the Southern Ocean setup --
 */
 
+#define BIOLOGY_BEC2
+
+/* Include standard CPP switches for UP ETH Zurich */
+#include "cppdefs_UP.h"
+
+
      /* Resolution*/
      
 #define FULLGRID /* CLIPPED140 CLIPPED210 */
@@ -18,7 +24,7 @@
 #endif
 #ifdef FULLGRID
 #define GRID_SIZE LLm=345, MMm=331, N=32
-#define  DOMAIN_TILING NP_XI=12, NP_ETA=12, NSUB_X=1, NSUB_E=1
+#define  DOMAIN_TILING NP_XI=8, NP_ETA=24, NSUB_X=1, NSUB_E=1
 #endif
 
      /* Forcing */
@@ -42,19 +48,19 @@
 
      /* Open Boundary Conditions */
 #define OBC_S_M2SPEC_STR 1
-#define OBC_S_M2SPEC_END 12
+#define OBC_S_M2SPEC_END 12 
 #define OBC_E_M2SPEC_STR 1
-#define OBC_E_M2SPEC_END 3
+#define OBC_E_M2SPEC_END 10
 
      /* Vertical Mixing */
-#define LMD_LIMIT_STABLE / KPP fix for shallow mixing layer
-!--#define LMD_DDMIX
+!--#define LMD_LIMIT_STABLE / KPP fix for shallow mixing layer
+#define LMD_DDMIX
 #define LMD_BKPP
 
      /* Biology */
-#define BIOLOGY_BEC2
 #ifdef BIOLOGY_BEC2
-# define BEC_DDA
+# define BEC2_DIAG
+!--# define BEC_DDA
 !-- # define KILL_THE_WINNER  /* parametrization for grazing, not working for the moment */
 #endif 
 
@@ -72,8 +78,7 @@
 
      /* Diagnostics */
 !--#define PHYS_FLUX_ANALYSIS
-# define KPP_DIAGNOSE
-# define BEC2_DIAG
+!--# define KPP_DIAGNOSE
 !--SO #define COMPUTE_SPEED_DIAGNOSE
 
      /*Tides*/
@@ -82,8 +87,6 @@
 
 !-- #define MMDEBUG
 
-/* Include standard CPP switches for UP ETH Zurich */
-#include "cppdefs_UP.h"
 
 #include "set_global_definitions.h"
 !
