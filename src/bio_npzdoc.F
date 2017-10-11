@@ -1201,7 +1201,7 @@
       end do j_loop
 
 #else /* BIOLOGY_NPZDOC */
-      subroutine biology_empty ()
+      subroutine biology_empty2 ()
 #endif /* BIOLOGY_NPZDOC */
       return
       end
