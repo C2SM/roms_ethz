@@ -25,7 +25,8 @@ LDR = $(FC)
 #CPPFLAGS = -D__IFC ${MAKEINC} -I${NETCDFROOT}/fortran/include -I${MPI_ROOT}/include
 CPPFLAGS = -DPGI ${MAKEINC} -I${NETCDFROOT}/include
 #DL FFLAGS = -mcmodel=medium -fast -O3 -tp shanghai-64,k8-64e,k8-64 -I${MPI_ROOT}/include
-FFLAGS = -O3 -tp=amd64e 
+FFLAGS = -O3 -fp-model source
+#FFLAGS = -O3 -tp=amd64e
 #FFLAGS = -O2 -tp=amd64e
 #FFLAGS = -O1 -xavx -g -I${MPI_ROOT}/include
 #FFLAGS = -mcmodel=medium -fast -O0 -I${MPI_ROOT}/include
