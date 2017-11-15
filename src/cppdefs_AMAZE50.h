@@ -4,7 +4,7 @@
   -- comments marked by SO are optins used in the Southern Ocean setup --
 */
 
-#define BIOLOGY_BEC2
+!--#define BIOLOGY_BEC2
 
 /* Include standard CPP switches for UP ETH Zurich */
 #include "cppdefs_UP.h"
@@ -12,7 +12,7 @@
 
      /* Resolution*/
 
-#define FULLGRID /* CLIPPED140 CLIPPED210 */
+#define FULLGRID /*FULLGRID CLIPPED140 CLIPPED210 */
 
 #ifdef CLIPPED140
 #define GRID_SIZE LLm=345, MMm=138, N=32
@@ -59,8 +59,8 @@
 
      /* Biology */
 #ifdef BIOLOGY_BEC2
-# define BEC2_DIAG
-!--# define BEC_DDA
+!--# define BEC2_DIAG
+# define BEC_DDA
 !-- # define KILL_THE_WINNER  /* parametrization for grazing, not working for the moment */
 #endif
 
@@ -92,4 +92,4 @@
 !
 !  PARALLEL_FILES is set in set_global_definitions.h
 !  Switch it off, if not desired
-!-- #undef PARALLEL_FILES
+!--#undef PARALLEL_FILES
