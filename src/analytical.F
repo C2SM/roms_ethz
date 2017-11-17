@@ -170,7 +170,7 @@
 # ifdef DOUBLE_GYRE
       if (FIRST_TIME_STEP) then    ! Wind is constant in time, so
         TauX=(0.1/1000.)           ! initialize it during the first
-        cff=2.*pi/el               ! time step, and use thereafter. 
+        cff=2.*pi/el               ! time step, and use thereafter.
         do j=jstrR,jendR
           sustr(istr,j)=TauX*(1.-cos(cff*yr(istr,j)))
           do i=istr+1,iendR

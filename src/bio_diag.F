@@ -216,7 +216,7 @@ C$OMP END CRITICAL (bio_cr_rgn)
 
 ! calculates the global surface volume and concentrations for one tile
       subroutine calc_global_srf_sum_tile(Istr,Iend,Jstr,Jend)
-      
+
 !      USE param
 !      USE scalars
 !      USE grid
@@ -239,13 +239,13 @@ C$OMP END CRITICAL (bio_cr_rgn)
          do i=Istr,Iend
 # ifdef MASKING
            cff1=rmask(i,j)/(pm(i,j)*pn(i,j))  ! <-- grid box area
-# else 
+# else
            cff1=1./(pm(i,j)*pn(i,j))
 # endif
            my_srf_sum(0)=my_srf_sum(0) + cff1*Hz(i,j,N) ! accumulate volume
            do itrc=1,NT
               my_srf_sum(itrc) = my_srf_sum(itrc) +
-     &             cff1 * Hz(i,j,N) * t(i,j,N,nstp,itrc) 
+     &             cff1 * Hz(i,j,N) * t(i,j,N,nstp,itrc)
            enddo
 
            if (SINGLE_TILE_MODE) then
@@ -259,12 +259,12 @@ C$OMP END CRITICAL (bio_cr_rgn)
 ! Summation over OpenMP threads:
 C$OMP CRITICAL (bio_diag_rgn)
       do itrc = 0, NT
-         global_srf_sum(itrc) = global_srf_sum(itrc) + 
+         global_srf_sum(itrc) = global_srf_sum(itrc) +
      &             my_srf_sum(itrc)
       enddo
 C$OMP END CRITICAL (bio_diag_rgn)
 
-      return 
+      return
       end
 
 
@@ -322,7 +322,7 @@ C$OMP END CRITICAL (bio_diag_rgn)
       return
       end
 #endif /* SALINITY && VFLX_CORR */
- 
+
 #else /* LEGACY_NPZD */
       subroutine bio_diag_empty
       end

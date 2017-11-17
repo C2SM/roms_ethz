@@ -11,20 +11,20 @@ c                supplied by OCMIP2 (J. Orr)
 c
 c
 c     VARIABLES:
-c 
+c
 c     IN:  through modules
 c           pert_time : perturbation time (real years)
 c
 c     OUT: atmco2_t
 c
-c     AUTHOR:  Nicolas Gruber (gruber@splash.princeton.edu)  
+c     AUTHOR:  Nicolas Gruber (gruber@splash.princeton.edu)
 c
 c     VERSION: MOM3
 c
 c     REVISIONS:
 c
 c     date     author   remarks
-c     
+c
 c     07.12.98  ng      started coding, adapted from update_bc written
 c                         by Rick Slater
 c     14.12.98  ng      consider using subroutine timeinterp.F
@@ -33,10 +33,10 @@ c     March/April 2009 dl small modifications to get it working in ROMS.
 c                       Last argument (previously called pert_atmco2) is now
 c                       the atmospheric CO2 conc. at time pert_time (previously
 c                       it was the difference to the preindustrial conc)
-c      
+c
 c =====================================================================
 c
-      subroutine get_atmco2(pert_time,atmco2_out) 
+      subroutine get_atmco2(pert_time,atmco2_out)
 c
 c-----------------------------------------------------------------------
 c     modules (have to come first)
@@ -58,14 +58,14 @@ c-----------------------------------------------------------------------
 c
       integer maxrec
       parameter (maxrec=1200)
-      
+
       real, intent(in)       :: pert_time
 c      character*4, intent(in):: futr_scen
       real, intent(out)       :: atmco2_out
-      
+
       integer, save  :: nrec_co2
       real, save :: year_co2(maxrec), atmco2(maxrec)
-  
+
       integer :: n
 
 !DL: the following change is necessary due to mpc, the version with
@@ -85,7 +85,7 @@ c     Counter "ientry" for number of entries in this SUBROUTINE
 c     (Read atmospheric records on 1st entry ONLY)
 c     use CIS9 scenario
 c-----------------------------------------------------------------------
-c 
+c
       ientry = ientry + 1
 
       if (ientry .eq. 1) then
@@ -96,39 +96,39 @@ c
 c-----------------------------------------------------------------------
 c     assign perturbation time (real years e.g. 1935.67)
 c-----------------------------------------------------------------------
-c 
+c
       yrco2min = year_co2(1)
       yrco2max = year_co2(nrec_co2)
-      if (pert_time .lt. yrco2min) then 
+      if (pert_time .lt. yrco2min) then
          yr = yrco2min
-      else if((pert_time .ge. yrco2min)  .and.  
-     *        (pert_time .le. yrco2max)) then 
+      else if((pert_time .ge. yrco2min)  .and.
+     *        (pert_time .le. yrco2max)) then
          yr = pert_time
-      else if (pert_time .gt. yrco2max) then 
+      else if (pert_time .gt. yrco2max) then
          yr = yrco2max
-      end if 
+      end if
 c
 c-----------------------------------------------------------------------
 c     Find relative POSITION n for pert_time in CO2 record
 c-----------------------------------------------------------------------
-c 
+c
       call locate(year_co2,nrec_co2, yr, n)
 c
 c-----------------------------------------------------------------------
 c     Determine linear interpolation factor "x"
 c-----------------------------------------------------------------------
-c 
+c
       x = (yr - year_co2(n)) / (year_co2(n+1) - year_co2(n))
 c
 c-----------------------------------------------------------------------
 c     Perform temporal interpolation for atmospheric CO2, subtract
 c      pre-industrial concentration to get perturbation CO2
 c-----------------------------------------------------------------------
-c    
+c
 !DL      pert_atmco2 = (atmco2(n) * (1. - x) + atmco2(n+1) * x) -
 !     *     atmco2(1)
       atmco2_out = atmco2(n) * (1. - x) + atmco2(n+1) * x
-c     
+c
 c-----------------------------------------------------------------------
 c     end of subroutine
 c-----------------------------------------------------------------------
@@ -154,34 +154,34 @@ c     -------
 c     [cs]  futr_scen  = IPCC future scenario: either S350, S450, S550,
 c                        S650, S750, DS450, or DS550 from Enting et al.
 c                        (1994), or CIS9 signifying c-IS92A for
-c                        IPCC (2000) run.  From 1765-1990.5, it 
-c                        doesn't matter which scenario you use, i.e., 
+c                        IPCC (2000) run.  From 1765-1990.5, it
+c                        doesn't matter which scenario you use, i.e.,
 c                        atmospheric CO2 will be the same (from a
 c                        spline fit to Siple Ice core and Mauna Loa
-c                        data.  Subsequently, atmospheric CO2 is 
+c                        data.  Subsequently, atmospheric CO2 is
 c                        different, according to the choice given above.
 c
-c     OUTPUT: 
+c     OUTPUT:
 c     -------
 c     [is]  nco2rec    =  Number of records (years) for atmospheric CO2
 c                         from historical (splco2.dat) plus
 c                         future (stab.dat) records
 c     [ra]  yrco2rec   =  sequential list of times (in decimal years)
 c                         for WHEN atmospheric CO2 data is available
-c     [ra]  atmco2rec  =  corresponding sequential list of atmospheric 
+c     [ra]  atmco2rec  =  corresponding sequential list of atmospheric
 c                         co2 (ppm).
 c                         This record is from Enting et al. (1994).
 c     ==================================================================
-c     
+c
 c     Reference
 c     ---------
-c     Enting, I.G., T. M. L. Wigley, M. Heimann, 1994. Future emissions 
-c     and concentrations of carbon dioxide: key ocean / atmosphere / 
-c     land analyses, CSIRO Aust. Div. Atmos. Res., Tech. Pap. No. 31, 
+c     Enting, I.G., T. M. L. Wigley, M. Heimann, 1994. Future emissions
+c     and concentrations of carbon dioxide: key ocean / atmosphere /
+c     land analyses, CSIRO Aust. Div. Atmos. Res., Tech. Pap. No. 31,
 c     118 pp.
 c     ------------------------------------------------------------------
 c
-c     AUTHOR:  Nicolas Gruber (gruber@splash.princeton.edu)  
+c     AUTHOR:  Nicolas Gruber (gruber@splash.princeton.edu)
 c                 based on OCMIP2 code supplied by Jim Orr
 c
 c     VERSION: MOM3
@@ -189,12 +189,12 @@ c
 c     REVISIONS:
 c
 c     date     author   remarks
-c     
+c
 c     08.01.00  ng      started coding
-c      
+c
 c =====================================================================
 c
- 
+
       subroutine read_co2atm(nco2rec, yrco2rec, atmco2rec)
 c
       implicit none
@@ -205,18 +205,18 @@ c-----------------------------------------------------------------------
 c
       integer maxrec
       parameter (maxrec=1200)
-      
+
       integer , intent(out)  :: nco2rec
       real, intent(out) :: yrco2rec(maxrec), atmco2rec(maxrec)
       integer irec
-      
+
 c      integer :: lun(3), irec
 c      integer is, ifuture, ireadf
 c      integer nsipl, nstab
-      
+
 c      real futco2(nmxr,8)
 c      real dummy
-      
+
 c
 c =====================================================================
 c     begin of executable code
@@ -233,9 +233,9 @@ c
 c-----------------------------------------------------------------------
 c     give info
 c-----------------------------------------------------------------------
-c      
+c
 !      write(*,*) '  '
-!      write(*,'(a)') 'File atm_pco2.dat opened.'      
+!      write(*,'(a)') 'File atm_pco2.dat opened.'
 c
 c-----------------------------------------------------------------------
 c     read data from file (pairs year, pco2)
@@ -247,7 +247,7 @@ c
             nco2rec = nco2rec + 1
       end do
       go to 222
-      
+
  219  write (*,'(a,1x,a)') 'File(s) with atmospheric pCO2 data could',
      &   'not be opened!'
       stop
@@ -280,7 +280,7 @@ c              returned to indicate that X is out of range.
 c
 c
 c     VARIABLES:
-c 
+c
 c     IN:  xx  : array
 c          n   : length of array
 c          x   : value for which index is sought
@@ -294,9 +294,9 @@ c
 c     REVISIONS:
 c
 c     date     author   remarks
-c     
+c
 c     08.01.00  ng      adapted from Rick Slater
-c      
+c
 c =====================================================================
 c
 
@@ -305,7 +305,7 @@ c
 c-----------------------------------------------------------------------
 c     local variables
 c-----------------------------------------------------------------------
-c       
+c
        integer, intent(in)       :: n
        real, intent(in)       :: x
        real, dimension(n), intent(in)       :: xx
@@ -314,7 +314,7 @@ c
 c =====================================================================
 c     begin of executable code
 c =====================================================================
-c       
+c
        jl = 0
        ju = n+1
  10    continue
@@ -328,7 +328,7 @@ c
        go to 10
        endif
        j = jl
-c     
+c
 c-----------------------------------------------------------------------
 c     end of subroutine
 c-----------------------------------------------------------------------
@@ -346,20 +346,20 @@ c                supplied by OCMIP2 (J. Orr)
 c
 c
 c     VARIABLES:
-c 
+c
 c     IN:  through modules
 c           pert_time : perturbation time (real years)
 c
 c     OUT: atmco2_t
 c
-c     AUTHOR:  Nicolas Gruber (gruber@splash.princeton.edu)  
+c     AUTHOR:  Nicolas Gruber (gruber@splash.princeton.edu)
 c
 c     VERSION: MOM3
 c
 c     REVISIONS:
 c
 c     date     author   remarks
-c     
+c
 c     07.12.98  ng      started coding, adapted from update_bc written
 c                         by Rick Slater
 c     14.12.98  ng      consider using subroutine timeinterp.F
@@ -368,10 +368,10 @@ c     March/April 2009 dl small modifications to get it working in ROMS.
 c                       Last argument (previously called pert_atmco2) is now
 c                       the atmospheric CO2 conc. at time pert_time (previously
 c                       it was the difference to the preindustrial conc)
-c      
+c
 c =====================================================================
 c
-      subroutine get_atmco2(pert_time,futr_scen,atmco2_out) 
+      subroutine get_atmco2(pert_time,futr_scen,atmco2_out)
 c
 c-----------------------------------------------------------------------
 c     modules (have to come first)
@@ -393,14 +393,14 @@ c-----------------------------------------------------------------------
 c
       integer maxrec
       parameter (maxrec=1200)
-      
+
       real, intent(in) :: pert_time
       character*4, intent(in):: futr_scen
       real, intent(out) :: atmco2_out
-      
+
       integer, save :: nrec_co2
       real, save :: year_co2(maxrec), atmco2(maxrec)
-  
+
       integer :: n
 
 !DL: the following change is necessary due to mpc, the version with
@@ -419,7 +419,7 @@ c     Counter "ientry" for number of entries in this SUBROUTINE
 c     (Read atmospheric records on 1st entry ONLY)
 c     use CIS9 scenario
 c-----------------------------------------------------------------------
-c 
+c
       ientry = ientry + 1
 
       if (ientry .eq. 1) then
@@ -430,37 +430,37 @@ c
 c-----------------------------------------------------------------------
 c     assign perturbation time (real years e.g. 1935.67)
 c-----------------------------------------------------------------------
-c 
-      if (pert_time .lt. yrco2min) then 
+c
+      if (pert_time .lt. yrco2min) then
          yr = yrco2min
-      else if((pert_time .ge. yrco2min)  .and.  
-     *        (pert_time .le. yrco2max)) then 
+      else if((pert_time .ge. yrco2min)  .and.
+     *        (pert_time .le. yrco2max)) then
          yr = pert_time
-      else if (pert_time .gt. yrco2max) then 
+      else if (pert_time .gt. yrco2max) then
          yr = yrco2max
-      end if 
+      end if
 c
 c-----------------------------------------------------------------------
 c     Find relative POSITION n for pert_time in CO2 record
 c-----------------------------------------------------------------------
-c 
+c
       call locate(year_co2,nrec_co2, yr, n)
 c
 c-----------------------------------------------------------------------
 c     Determine linear interpolation factor "x"
 c-----------------------------------------------------------------------
-c 
+c
       x = (yr - year_co2(n)) / (year_co2(n+1) - year_co2(n))
 c
 c-----------------------------------------------------------------------
 c     Perform temporal interpolation for atmospheric CO2, subtract
 c      pre-industrial concentration to get perturbation CO2
 c-----------------------------------------------------------------------
-c    
+c
 !DL      pert_atmco2 = (atmco2(n) * (1. - x) + atmco2(n+1) * x) -
 !     *     atmco2(1)
       atmco2_out = atmco2(n) * (1. - x) + atmco2(n+1) * x
-c     
+c
 c-----------------------------------------------------------------------
 c     end of subroutine
 c-----------------------------------------------------------------------
@@ -486,34 +486,34 @@ c     -------
 c     [cs]  futr_scen  = IPCC future scenario: either S350, S450, S550,
 c                        S650, S750, DS450, or DS550 from Enting et al.
 c                        (1994), or CIS9 signifying c-IS92A for
-c                        IPCC (2000) run.  From 1765-1990.5, it 
-c                        doesn't matter which scenario you use, i.e., 
+c                        IPCC (2000) run.  From 1765-1990.5, it
+c                        doesn't matter which scenario you use, i.e.,
 c                        atmospheric CO2 will be the same (from a
 c                        spline fit to Siple Ice core and Mauna Loa
-c                        data.  Subsequently, atmospheric CO2 is 
+c                        data.  Subsequently, atmospheric CO2 is
 c                        different, according to the choice given above.
 c
-c     OUTPUT: 
+c     OUTPUT:
 c     -------
 c     [is]  nco2rec    =  Number of records (years) for atmospheric CO2
 c                         from historical (splco2.dat) plus
 c                         future (stab.dat) records
 c     [ra]  yrco2rec   =  sequential list of times (in decimal years)
 c                         for WHEN atmospheric CO2 data is available
-c     [ra]  atmco2rec  =  corresponding sequential list of atmospheric 
+c     [ra]  atmco2rec  =  corresponding sequential list of atmospheric
 c                         co2 (ppm).
 c                         This record is from Enting et al. (1994).
 c     ==================================================================
-c     
+c
 c     Reference
 c     ---------
-c     Enting, I.G., T. M. L. Wigley, M. Heimann, 1994. Future emissions 
-c     and concentrations of carbon dioxide: key ocean / atmosphere / 
-c     land analyses, CSIRO Aust. Div. Atmos. Res., Tech. Pap. No. 31, 
+c     Enting, I.G., T. M. L. Wigley, M. Heimann, 1994. Future emissions
+c     and concentrations of carbon dioxide: key ocean / atmosphere /
+c     land analyses, CSIRO Aust. Div. Atmos. Res., Tech. Pap. No. 31,
 c     118 pp.
 c     ------------------------------------------------------------------
 c
-c     AUTHOR:  Nicolas Gruber (gruber@splash.princeton.edu)  
+c     AUTHOR:  Nicolas Gruber (gruber@splash.princeton.edu)
 c                 based on OCMIP2 code supplied by Jim Orr
 c
 c     VERSION: MOM3
@@ -521,12 +521,12 @@ c
 c     REVISIONS:
 c
 c     date     author   remarks
-c     
+c
 c     08.01.00  ng      started coding
-c      
+c
 c =====================================================================
 c
- 
+
       subroutine read_co2atm(futr_scen, nco2rec, yrco2rec, atmco2rec)
 c
       implicit none
@@ -537,26 +537,26 @@ c-----------------------------------------------------------------------
 c
       integer maxrec, nmxr
       parameter (maxrec=1200, nmxr=700)
-      
+
       character(len=4), intent(in) :: futr_scen
       integer , intent(out)  :: nco2rec
       real, intent(out) :: yrco2rec(maxrec), atmco2rec(maxrec)
-      
+
       integer :: lun(3), irec
       integer is, ifuture, ireadf
       integer nsipl, nstab
-      
+
       real futco2(nmxr,8)
       real dummy
-      
+
       character*4 ipcc_scen(8)
-      
+
 c     note that the 1st 7 future scenarios are in file "stab.dat";
 c     the last scenario "cis9" is short for "cis92a" (see "cis92a.dat").
-      
-      data ipcc_scen/'S350', 'S450', 'S550', 'S650', 'S750',  
+
+      data ipcc_scen/'S350', 'S450', 'S550', 'S650', 'S750',
      *               'DS45', 'DS55', 'CIS9'/
-      
+
 c
 c =====================================================================
 c     begin of executable code
@@ -579,9 +579,9 @@ c     check to be sure that chosen scenario is from allowed ipcc list
 c-----------------------------------------------------------------------
 c
       if (ifuture .eq. 0) then
-         write(*,*) 'improper 1st argument for read_co2atm.F: ' 
+         write(*,*) 'improper 1st argument for read_co2atm.F: '
      *        , futr_scen(1:4)
-         write(*,'(a,7(1x,a))') 'you must chose from '  
+         write(*,'(a,7(1x,a))') 'you must chose from '
      *        , (ipcc_scen(is), is=1,8)
          write(*,*)
      *      ' for ocmip-2, s650 and cis9 are the only accetable choices'
@@ -589,7 +589,7 @@ c
       else
          write(*,'(2a)') 'read_co2atm: you have chosen ipcc scenario '
      *        , ipcc_scen(ifuture)
-      end if 
+      end if
 c
 c-----------------------------------------------------------------------
 c     open file
@@ -611,18 +611,18 @@ c
 c-----------------------------------------------------------------------
 c     give info
 c-----------------------------------------------------------------------
-c      
+c
       write(*,*) '  '
       write(*,*) '--------------------------------------------------'
       write(*,*) 'atm. co2 from spline fit to siple-mauna loa record'
       write(*,*) ' and ipcc scenario ', futr_scen(1:4)
       write(*,*) '--------------------------------------------------'
-      
+
 c
 c-----------------------------------------------------------------------
 c     skip first lines in historical data
 c-----------------------------------------------------------------------
-c      
+c
       read(lun(1),'(4/)')
       ireadf = 0
       nsipl = 0
@@ -643,7 +643,7 @@ c     read from splco2.dat (historical emissions)
 c-----------------------------------------------------------------------
 c
          if (ireadf .eq. 0) then
-            read(lun(1),*,err=220,end=220) yrco2rec(irec), 
+            read(lun(1),*,err=220,end=220) yrco2rec(irec),
      &                                     atmco2rec(irec)
             nsipl = nsipl + 1
 c
@@ -652,7 +652,7 @@ c     read from stab.dat (future atm co2 scenario)
 c-----------------------------------------------------------------------
 c
          else if (ireadf .eq. 1) then
-            
+
             read(lun(2),*,err=222,end=222) yrco2rec(irec)
      *           , (futco2(irec-nsipl,is), is=1,7)
             atmco2rec(irec) = futco2(irec-nsipl,ifuture)
@@ -662,31 +662,31 @@ c-----------------------------------------------------------------------
 c     read from cis92a
 c-----------------------------------------------------------------------
 c
-         else if (ireadf .eq. 2) then 
+         else if (ireadf .eq. 2) then
             read(lun(3),*,err=222,end=222) yrco2rec(irec)
      *           , futco2(irec-nsipl,8), dummy
             atmco2rec(irec) = futco2(irec-nsipl,8)
             nstab = nstab + 1
          endif
-         
+
          go to 221
 c
 c-----------------------------------------------------------------------
 c     when end of historical co2 reached, turn on read ability
-c     (ireadf>0) for future file, go back to read one or the other, 
-c     then continue reading chosen future file until it endsc     
+c     (ireadf>0) for future file, go back to read one or the other,
+c     then continue reading chosen future file until it endsc
 c-----------------------------------------------------------------------
-c         
+c
  220     continue
          if (ifuture .gt. 0 .and. ifuture .le. 7) then
             ireadf = 1
 c
 c-----------------------------------------------------------------------
 c     read over 1st 5 lines of description + 1st line of data
-c     in future file that is repeated from siple recorddetermine index 
+c     in future file that is repeated from siple recorddetermine index
 c     for future scenario
 c-----------------------------------------------------------------------
-c           
+c
             read (lun(2),'(4/)')
             go to 210
          elseif (ifuture .eq. 8) then
@@ -694,20 +694,20 @@ c
 c
 c-----------------------------------------------------------------------
 c       read over 1 header line in future file cis92a.dat
-c       note that 
+c       note that
 c         - 1st line is 1990 (not identical to historical run)
-c         - records are yearly, not every 6 months as for 
-c           1 <= ifuture <=7      
+c         - records are yearly, not every 6 months as for
+c           1 <= ifuture <=7
 c       read first line of data (same year as last line in splco2.dat)
-c     then for cis92a only, replace that with 
+c     then for cis92a only, replace that with
 c-----------------------------------------------------------------------
-c                                
+c
             read(lun(3),'(1x)')
 c
 c-----------------------------------------------------------------------
-c     then for cis92a only, replace that with 
+c     then for cis92a only, replace that with
 c-----------------------------------------------------------------------
-c                                
+c
             write (*,*) 'replace: nsipl = ', nsipl
             read(lun(3),*)yrco2rec(nsipl), atmco2rec(nsipl), dummy
             write(*,*)yrco2rec(nsipl), atmco2rec(nsipl), dummy
@@ -720,7 +720,7 @@ c 221    nco2rec = nsipl + nstab
          nco2rec = irec
       end do
       go to 222
-      
+
  219  write (*,'(a,1x,a)') 'File(s) with atmospheric pCO2 data could',
      &   'not be opened!'
       stop
@@ -729,9 +729,9 @@ c
 c-----------------------------------------------------------------------
 c      write(0,*) 'number records in splco2.dat:', nsipl
 c      write(0,*) 'number records in future (stab.dat or cis92a.dat):', nstab
-c      write(0,*) 'sum                          ', nstab + nsiplc     
+c      write(0,*) 'sum                          ', nstab + nsiplc
 c-----------------------------------------------------------------------
-c                 
+c
 !DL      write(*,*) 'atm. co2:  no. of entries for 1-box atmosphere =',
 !     *     nco2rec
 c
@@ -768,7 +768,7 @@ c              returned to indicate that X is out of range.
 c
 c
 c     VARIABLES:
-c 
+c
 c     IN:  xx  : array
 c          n   : length of array
 c          x   : value for which index is sought
@@ -782,9 +782,9 @@ c
 c     REVISIONS:
 c
 c     date     author   remarks
-c     
+c
 c     08.01.00  ng      adapted from Rick Slater
-c      
+c
 c =====================================================================
 c
 
@@ -793,7 +793,7 @@ c
 c-----------------------------------------------------------------------
 c     local variables
 c-----------------------------------------------------------------------
-c       
+c
       integer, intent(in) :: n
       real, intent(in) :: x
       real, dimension(n), intent(in) :: xx
@@ -802,7 +802,7 @@ c
 c =====================================================================
 c     begin of executable code
 c =====================================================================
-c      
+c
       jl = 0
       ju = n+1
  10   continue
@@ -816,7 +816,7 @@ c
           go to 10
         endif
       j = jl
-c     
+c
 c-----------------------------------------------------------------------
 c     end of subroutine
 c-----------------------------------------------------------------------

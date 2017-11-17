@@ -139,7 +139,7 @@ CSDISTRIBUTE_RESHAPE kppsblent_avg(BLOCK_PATTERN) BLOCK_CLAUSE
 
 # endif /* SOLVE3D */
 !--> #endif /* AVERAGES */
- 
+
 # ifdef SLICE_AVG
       real zeta_slavg(GLOBAL_2D_ARRAY)
 CSDISTRIBUTE_RESHAPE zeta_slavg(BLOCK_PATTERN) BLOCK_CLAUSE
@@ -219,4 +219,4 @@ CSDISTRIBUTE_RESHAPE hbbl_slavg(BLOCK_PATTERN) BLOCK_CLAUSE
 # endif /* SOLVE3D */
 # endif /* SLICE_AVG */
 #endif /* AVERAGES */
- 
+

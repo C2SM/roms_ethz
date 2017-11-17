@@ -3,7 +3,7 @@
 ! ------- -------------
 !     pCO2air: pCO2air concentraion [ppm]
 
-      real pco2air(GLOBAL_2D_ARRAY) 
+      real pco2air(GLOBAL_2D_ARRAY)
       common /frc_pco2air/ pco2air
 CSDISTRIBUTE_RESHAPE  pCO2air(BLOCK_PATTERN,*) BLOCK_CLAUSE
 # if defined PCO2AIR_DATA || defined ALL_DATA
@@ -28,7 +28,7 @@ CSDISTRIBUTE_RESHAPE  pco2airg(BLOCK_PATTERN,*) BLOCK_CLAUSE
 ! NHY flux
 ! --- ----
 
-      real nhy(GLOBAL_2D_ARRAY) 
+      real nhy(GLOBAL_2D_ARRAY)
       common /frc_nhy/ nhy
 CSDISTRIBUTE_RESHAPE  nhy(BLOCK_PATTERN,*) BLOCK_CLAUSE
 # if defined NHY_DATA || defined ALL_DATA
@@ -52,7 +52,7 @@ CSDISTRIBUTE_RESHAPE  nhyg(BLOCK_PATTERN,*) BLOCK_CLAUSE
 ! NOX flux
 ! --- ----
 
-      real nox(GLOBAL_2D_ARRAY) 
+      real nox(GLOBAL_2D_ARRAY)
       common /frc_nox/ nox
 CSDISTRIBUTE_RESHAPE  nox(BLOCK_PATTERN,*) BLOCK_CLAUSE
 # if defined NOX_DATA || defined ALL_DATA
@@ -76,7 +76,7 @@ CSDISTRIBUTE_RESHAPE  noxg(BLOCK_PATTERN,*) BLOCK_CLAUSE
 ! ---- ----
 !      dust: dust flux [kg m-2 s-1]
 
-      real dust(GLOBAL_2D_ARRAY) 
+      real dust(GLOBAL_2D_ARRAY)
 CSDISTRIBUTE_RESHAPE  dust(BLOCK_PATTERN) BLOCK_CLAUSE
            common /frc_dust/dust
 # if defined DUST_DATA || defined ALL_DATA
@@ -98,7 +98,7 @@ CSDISTRIBUTE_RESHAPE  dustg(BLOCK_PATTERN,*) BLOCK_CLAUSE
 ! ---- ----
 !     iron: iron flux [nmol cm-2 s-1]
 
-      real iron(GLOBAL_2D_ARRAY) 
+      real iron(GLOBAL_2D_ARRAY)
 CSDISTRIBUTE_RESHAPE  iron(BLOCK_PATTERN) BLOCK_CLAUSE
            common /frc_iron/iron
 # if defined IRON_DATA || defined ALL_DATA
@@ -137,8 +137,8 @@ CSDISTRIBUTE_RESHAPE  dip_riverg(BLOCK_PATTERN,*) BLOCK_CLAUSE
      &        din_river_file_id, din_river_id, din_river_tid,
      &        dip_river_ncycle, dip_river_rec, itdip_river, ntdip_river,
      &        dip_river_file_id, dip_river_id,  dip_river_tid
-      common/riverdat/ 
-     &        din_river_cycle, din_river_time, 
+      common/riverdat/
+     &        din_river_cycle, din_river_time,
      &        dip_river_cycle, dip_river_time,
      &        din_river_ncycle, din_river_rec, itdin_river, ntdin_river,
      &        din_river_file_id, din_river_id, din_river_tid,
@@ -146,4 +146,4 @@ CSDISTRIBUTE_RESHAPE  dip_riverg(BLOCK_PATTERN,*) BLOCK_CLAUSE
      &        dip_river_file_id, dip_river_id, dip_river_tid
 #  endif /* defined RIVER_DATA || defined ALL_DATA */
 # endif /* RIVER_LOAD_N || RIVER_LOAD_P */
-#endif /* BIOLOG_BEC || BIOLOG_BEC2 */ 
+#endif /* BIOLOG_BEC || BIOLOG_BEC2 */

@@ -20,4 +20,4 @@
      &     Ssize(0:L,0:M), Ub(0:L,0:M),    UstarC(0:L,0:M)
       common /fbblm/ Ab, Awave, Cr, Dwave, Pwave,
      &                   Sdens, Ssize, Ub, UstarC
- 
+

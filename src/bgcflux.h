@@ -1,4 +1,4 @@
-! This header file contains all variables for the 
+! This header file contains all variables for the
 ! computation of biogeochemical fluxes.
 ! It must always be included in the biology and some other routines.
 ! The variables for the netcdf output are in ncroms_bgcflux.h, which
@@ -16,7 +16,7 @@
       integer NumFluxTermsN, NumFluxTerms
       integer NFlux_Theta, NFlux_PhytoLimTemp, NFlux_PhytoLimNO3
       integer NFlux_PhytoLimNH4, NFlux_PhytoLimTempLight
-      ! DL: number of volume fluxes: does not include diagnostics related 
+      ! DL: number of volume fluxes: does not include diagnostics related
       ! related to phyto growth
       integer NumFluxTermsVol
 
@@ -30,7 +30,7 @@
       parameter(NFlux_Zexcr = 8)     ! Zoopl. excretion (Zoo. -> NH4)
       parameter(NFlux_ZmortS = 9)     ! Zoopl. mortality (Zoo. -> SDetN)
       parameter(NFlux_ZmortL = 10)    ! Zoopl. mortality (Zoo. -> LDetN)
-      parameter(NFlux_DetCoagP = 11)  ! Coagul. of detr. (Phy. -> LDetN) 
+      parameter(NFlux_DetCoagP = 11)  ! Coagul. of detr. (Phy. -> LDetN)
       parameter(NFlux_DetCoagD = 12) ! Coagul. of detr. (SDetN -> LDetN)
       parameter(NFlux_ReminS = 13)   ! Remineralization (SDetN -> NH4)
       parameter(NFlux_ReminL = 14)   ! Remineralization (LDetN -> NH4)
@@ -76,7 +76,7 @@
       parameter(NumFluxTerms = NumFluxTermsVol + 5)
 
 !DL: moved since the gas exchange fluxes are always output
-!      integer NumGasExcTerms 
+!      integer NumGasExcTerms
 !#   ifdef OXYGEN
 !      ! gas exchange fluxes
 !      integer OFlux_GasExc
@@ -90,7 +90,7 @@
 !#    endif /* CARBON */
 !#   else /* OXYGEN */
 !      parameter(NumGasExcTerms = 0)
-!#   endif /* OXYGEN */  
+!#   endif /* OXYGEN */
 
       ! vertical sinking fluxes
       integer PFlux_VSink, SDNFlux_VSink, LDNFlux_VSink, NumVSinkTerms
@@ -230,7 +230,7 @@
       real pco2_avg(GLOBAL_2D_ARRAY)
       real pCO2air_avg(GLOBAL_2D_ARRAY)
       real pH_avg(GLOBAL_2D_ARRAY)
-      common /gasexc_co2_avg/ Kv_CO2_avg, CO2sol_avg, pco2_avg, 
+      common /gasexc_co2_avg/ Kv_CO2_avg, CO2sol_avg, pco2_avg,
      &     pCO2air_avg, pH_avg
 #    ifdef SLICE_AVG
       real Kv_CO2_slavg(GLOBAL_2D_ARRAY)
@@ -238,7 +238,7 @@
       real pco2_slavg(GLOBAL_2D_ARRAY)
       real pCO2air_slavg(GLOBAL_2D_ARRAY)
       real pH_slavg(GLOBAL_2D_ARRAY)
-      common /gasexc_co2_slavg/ Kv_CO2_slavg, CO2sol_slavg, 
+      common /gasexc_co2_slavg/ Kv_CO2_slavg, CO2sol_slavg,
      &        pco2_slavg, pCO2air_slavg, pH_slavg
 #    endif /* SLICE_AVG */
 #   endif /* CARBON */
