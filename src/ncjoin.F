@@ -61,7 +61,7 @@ c--#define VERBOSE
 
       implicit none
 #include "netcdf.inc"
-      integer, parameter :: maxdims=32, maxvars=320
+      integer, parameter :: maxdims=32, maxvars=256
       integer, parameter :: part_XI=1,  part_ETA=2, part_2D=3
 
       logical complete, clean_set,  digit,  var_mask,  lnewvar

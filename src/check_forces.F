@@ -208,7 +208,6 @@ C$OMP BARRIER
       do tile=my_tile_range                 ! interpolate forcing
         call set_forces(tile)               ! data to model time and
       enddo
-#endif
 C$OMP BARRIER
 
 ! Output block: write files.

@@ -140,31 +140,9 @@
 #  undef LAST_I
 #  define LAST_I indxPOCPRODCOCCO
 # endif
-# ifdef BEC_PHAEO
-     &            , indxGRAZEPHAEO=LAST_I+1,indxPHAEOLOSS=LAST_I+2
-     &            , indxPHAEOAGG=LAST_I+3,indxPHOTOCPHAEO=LAST_I+4,indxPHAEONLIM=LAST_I+5
-     &            , indxPHAEOPO4UPTAKE=LAST_I+6,indxPHAEOFEUPTAKE=LAST_I+7
-     &            , indxPHAEOLIGHTLIM=LAST_I+8
-     &            , indxIRONUPTAKEPHAEO=LAST_I+9,indxPHAEONO3UPTAKE=LAST_I+10
-     &            , indxPHAEONH4UPTAKE=LAST_I+11,indxPHAEOGRAZEDIC=LAST_I+12 
-     &            , indxPHAEOLOSSDIC=LAST_I+13,indxGRAZEPHAEOZOO=LAST_I+14
-     &            , indxPHAEOPHOTOACC=LAST_I+15,indxPHAEOPLIM=LAST_I+16
-     &            , indxPOCPRODPHAEO=LAST_I+17
-#  undef LAST_I
-#  define LAST_I indxPOCPRODPHAEO
-# endif
-# ifdef BEC_DDA
-     &            , indxGRAZEDDA=LAST_I+1,indxDDALOSS=LAST_I+2
-     &            , indxDDAAGG=LAST_I+3,indxPHOTOCDDA=LAST_I+4,indxDDANLIM=LAST_I+5
-     &            , indxDDAPO4UPTAKE=LAST_I+6,indxDDAFEUPTAKE=LAST_I+7
-     &            , indxDDALIGHTLIM=LAST_I+8
-     &            , indxIRONUPTAKEDDA=LAST_I+9,indxDDANO3UPTAKE=LAST_I+10
-     &            , indxDDANH4UPTAKE=LAST_I+11,indxDDAGRAZEDIC=LAST_I+12 
-     &            , indxDDALOSSDIC=LAST_I+13,indxGRAZEDDAZOO=LAST_I+14
-     &            , indxDDAPHOTOACC=LAST_I+15,indxDDAPLIM=LAST_I+16
-#  undef LAST_I
-#  define LAST_I indxDDAPLIM
-# endif
+
+
+
 # endif /* BEC2_DIAG */
 #endif /* BIOLOGY_BEC2 */
 

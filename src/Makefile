@@ -2,9 +2,8 @@
 #========== ======= =========== ======== === ==== =====
 # Set machine dependent definitions and rules.
 
-include Makedefs
 #include Makedefs.Intel
-#include Makedefs.IntelEM64T
+include Makedefs.IntelEM64T
 #include Makedefs.Intel_MPI
 #include Makedefs.CMPI
 #include Makedefs.GCC
@@ -43,12 +42,13 @@ KRNSRC = main.F		step2D_FB.F	read_inp.F	read_sta_pos.F\
         get_date.F	ext_copy_prv2shr.F		check_switches2.F\
 \
 	mpi_setup.F	mpi_exchange8TA.F
+#mpi_exchange4.F	mpi_exchange8TA.F\
 
 BIOSRC = CalcPar.F  carbon.F  co2calc_SWS.F  def_bgc_flux.F\
 	drtsafe.F  init_biopar.F  init_scalars_bgcflux.F  init_scalars_npzdoc.F\
 	init_scalars_physflux.F o2sato.F set_bgc_flux_avg.F\
 	ta_iter_SWS.F wrt_bgc_flux_avg.F wrt_bgc_flux_his.F\
-	def_phys_flux.F\
+	def_phys_flux.F bio_npzdoc.F\
 	set_phys_flux_avg.F wrt_phys_flux_his.F wrt_phys_flux_avg.F\
 	biology.F  bio_diag.F atm_pco2.F calendar.F\
 \
@@ -66,6 +66,7 @@ IOSRC = checkdims.F	find_record.F	insert_node.F	ncdf_read_write.F\
 	set_seaice.F	get_tides.F	set_tides.F	set_srflux.F\
 	get_tclima.F	get_uclima.F	closecdf.F\
 	init_agedye.F   get_agedye.F    set_cycle.F     get_tsource.F
+#	get_ssh.F	get_tclima.F	get_uclima.F	closecdf.F\
 
 
 OBSOLETE_SRC = \
@@ -77,11 +78,12 @@ FLTSRC = init_floats.F	init_arrays_floats.F	get_init_flts.F\
 	interp_rho.F	rhs_floats.F	step_floats.F\
 	def_floats.F	wrt_floats.F
 
+# old/obsolete/non-parallelized stuff
 #       pp_vmix.F	get_wwave.F	smol_adv.F	get_bsedim.F
 
   SRCS = $(KRNSRC) $(IOSRC) $(BIOSRC)
-   RCS = $(SRCS:.F=.for)
-  OBJS = $(RCS:.for=.o)
+   RCS = $(SRCS:.F=.f)
+  OBJS = $(RCS:.f=.o)
   SBIN = roms
  LROMS = libroms.a
  LROMS2 = 2/$(LROMS)
@@ -90,10 +92,11 @@ FLTSRC = init_floats.F	init_arrays_floats.F	get_init_flts.F\
 
 # ROMS excutable
 
-
-$(SBIN): mpc print_cppswitches $(OBJS)
-	@./print_cppswitches
+$(SBIN): mpc Make.depend $(OBJS) print_cppswitches
+	make tools
+	./print_cppswitches
 	$(LDR) $(FFLAGS) $(LDFLAGS) -o $@ $(OBJS) $(LCDF) $(LMPI)
+# sasha	$(LDR) $(FFLAGS) $(LDFLAGS) -o a.out $(OBJS) $(LCDF) $(LMPI)
 
 #$(SBIN): $(LROMS)
 #	$(LDR) $(FFLAGS) $(LDFLAGS) -o a.out $(LROMS) $(LCDF) $(LMPI)
@@ -113,8 +116,8 @@ $(SBIN): mpc print_cppswitches $(OBJS)
 $(LROMS): $(OBJS)
 	/bin/rm -f $(LROMS)
 	ar r $(LROMS) $(OBJS)
-#mm 2/$(LROMS): $(SRCS)
-#mm 	cd 2; make -f ./Makefile $(LROMS); cd ..
+2/$(LROMS): $(SRCS)
+	cd 2; make -f ./Makefile $(LROMS); cd ..
 #$(LROMS3): $(SRCS) $(LROMS2)
 #cd 3; make $(LROMS); cd ..
 #$(LROMS4): $(SRCS) $(LROMS3)
@@ -127,14 +130,14 @@ check_forces: check_forces.o $(SBIN)
 	mv a.out check_forces
 
 # Everything
-all: mpc tools $(SBIN)
+all: mpc tools Make.depend $(SBIN)
 
 # A program to test MPI halo exchange routines.
 # - ------- -- ---- --- ---- -------- ---------
 MPI_TEST = mpi_test.F	mpi_setup.F	exchange.F	mpi_exchange4.F\
 							mpi_exchange8WA.F
-MPI_TEST_RCS = $(MPI_TEST:.F=.for)
-MPI_TEST_OBJ = $(MPI_TEST_RCS:.for=.o)
+MPI_TEST_RCS = $(MPI_TEST:.F=.f)
+MPI_TEST_OBJ = $(MPI_TEST_RCS:.f=.o)
 
 mpi_test: $(MPI_TEST_OBJ)
 	$(LDR) $(FFLAGS) $(LDFLAGS) -o mpi_test $(MPI_TEST_OBJ) $(LCDF) $(LMPI)
@@ -144,20 +147,21 @@ mpi_test: $(MPI_TEST_OBJ)
  TOOLS = mpc cppcheck srcscheck checkkwds ncextract redefs
 
 tools: $(TOOLS)
-mpc: mpc.F
-	$(FC) $(CPPFLAGS) -o $@ mpc.F
-#cross_matrix: cross_matrix.F
-#	$(FC) -o $@ cross_matrix.F
-partit_t.for: partit.F
-	$(CPP) -P $(CPPFLAGS) -DTRANSPOSED_MPI_NODE_ORDER partit.F| mpc > partit_t.for
-partit_t: partit_t.for insert_node.o lenstr.o
-	$(CFT) $(FFLAGS) $(LDFLAGS) -o partit_t partit_t.for insert_node.o lenstr.o $(LCDF)
+
+    TMP = .
+
+mpc: mpc.F Makefile
+	$(CPP) $(CPPFLAGS) -P mpc.F > $(TMP)/mpc.f
+	$(CFT) $(FFLAGS) $(LDFLAGS) -o mpc $(TMP)/mpc.f
+#	/bin/rm -rf $(TMP)/mpc.f
+
+partit_t.f: partit.F
+	$(CPP) -P $(CPPFLAGS) -DTRANSPOSED_MPI_NODE_ORDER partit.F| mpc > partit_t.f
+partit_t: partit_t.f insert_node.o lenstr.o
+	$(CFT) $(FFLAGS) $(LDFLAGS) -o partit_t partit_t.f insert_node.o lenstr.o $(LCDF)
 
 partit: partit_t partit.o insert_node.o lenstr.o
 	$(CFT) $(FFLAGS) $(LDFLAGS) -o partit partit.o insert_node.o lenstr.o $(LCDF)
-
-ncjoin: ncjoin.o lenstr.o
-	$(CFT) -o $@ $(FFLAGS) $(LDFLAGS) $< lenstr.o $(LCDF)
 
 ncextract: ncextract.o
 	$(CFT) $(FFLAGS) $(LDFLAGS) -o ncextract ncextract.o
@@ -174,18 +178,20 @@ checkkwds: checkkwds.o
 redefs: redefs.o
 	$(CFT) $(FFLAGS) $(LDFLAGS) -o redefs redefs.o
 
+
+
 checkdefs: check_switches1.F setup_kwds.F
 
 check_switches1.F: cppcheck cppdefs_UP.h cppdefs.h set_global_definitions.h
 	./cppcheck cppdefs_UP.h cppdefs.h
+#mm sasha:	./cppcheck cppdefs.h
 check_srcs.F: srcscheck Makefile
 	./srcscheck
 setup_kwds.F: checkkwds read_inp.F
 	./checkkwds
 
-depend:  cross_matrix # Note: cross_matrix is external here and should be in path
+Make.depend:  cross_matrix.o # Note: cross_matrix is external here and should be in path
 	cross_matrix *.F
-
 
 plotter: plotter.o
 	$(CFT) -o plotter plotter.o $(LIBNCAR)
@@ -198,26 +204,25 @@ print_cppswitches: print_cppswitches.o check_switches1.o
 tarfile: clean
 	tar cvf roms.tar Make* *.F *.h etalon_data.* README.*  *.in*
 
-.PHONY: all clean clobber allclean dependencies
+.PHONY: all clean clobber allclean 
 
 # Cleaning targets
 # -------- -------
 clean:
-	/bin/rm -f *.f *.o *.d *.a *.s *.trace *~ $(COMP_FILES)
+	/bin/rm -rf *.f *.o *.a *.s *.trace *~ $(COMP_FILES)
+allclean: clean
+	cd 2; make -f ./Makefile clean; cd ..
+	cd 3; make -f ./Makefile clean; cd ..
+	cd 4; make -f ./Makefile clean; cd ..
 
 clobber: clean
-	/bin/rm -f check_switches1.F setup_kwds.F check_srcs.F \
-	$(SBIN) $(TOOLS) nsub core* *_genmod.mod *_genmod.f90 \
-	print_cppswitches Make.depend dependencies
+	/bin/rm -f check_switches1.F setup_kwds.F check_srcs.F
+	/bin/rm -f $(SBIN) $(TOOLS) nsub
+	/bin/rm -f core core.*
+	/bin/rm -f *_genmod.mod *_genmod.f90
+	/bin/rm -f print_cppswitches
+	/bin/rm -f Make.depend
+	sed -i '/^include Make.depend/ d' Makefile
 
-SRC := $(wildcard *.F)
--include $(SRC:.F=.d)
-%.d: %.F
-	$(CPP) $(CPPFLAGS) -MM -MG $< > $@
-
-#Make.depend: $(SRC)
-#	depend.sh $(CFLAGS) $(SRC) > $@
-
+# Include dependency file (created e.g., by cross_matrix)
 -include Make.depend
-
-

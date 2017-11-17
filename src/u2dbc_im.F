@@ -161,25 +161,6 @@
 #   endif
         enddo
 #  endif
-#  if defined OBC_W_M2SPEC_STR && defined OBC_W_M2SPEC_END
-!
-!   Force OBC_M2SPECIFIED as western boundary condition
-!   in the specified tile range! DAL (following northern bry MM & AH)
-!
-        if ((mynode.ge.OBC_W_M2SPEC_STR)
-     &                       .and. (mynode.le.OBC_W_M2SPEC_END)) then
-          do j=jstr,jend
-#   ifdef M2_FRC_BRY
-          ubar(istr,j,knew)=ubar_west(j)
-#   else
-          ubar(istr,j,knew)=ubclm(istr,j)
-#   endif
-#   ifdef MASKING
-     &                     *umask(istr,j)
-#   endif
-          enddo
-        endif
-#  endif /* OBC_W_M2SPEC_STR */
 # else
         do j=jstr,jend                          ! Western edge closed
           ubar(istr,j,knew)=0.                  ! ======= ==== ======
@@ -306,25 +287,6 @@ c--#endif
 #   endif
         enddo
 #  endif
-#  if defined OBC_E_M2SPEC_STR && defined OBC_E_M2SPEC_END
-!
-!   Force OBC_M2SPECIFIED as eastern boundary condition
-!   in the specified tile range! DAL (following northern bry MM & AH)
-!
-        if ((mynode.ge.OBC_E_M2SPEC_STR)
-     &                       .and. (mynode.le.OBC_E_M2SPEC_END)) then
-          do j=jstr,jend
-#   ifdef M2_FRC_BRY
-            ubar(iend+1,j,knew)=ubar_east(j)
-#   else
-            ubar(iend+1,j,knew)=ubclm(iend+1,j)
-#   endif
-#   ifdef MASKING
-     &                         *umask(iend+1,j)
-#   endif
-          enddo
-        endif
-#  endif /* OBC_E_M2SPEC_STR */
 # else
         do j=jstr,jend                       ! Eastern edge closed BC
           ubar(iend+1,j,knew)=0.             ! ======= ==== ====== ==

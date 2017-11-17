@@ -423,25 +423,6 @@ c****
 #   endif
         enddo
 #  endif
-#  if defined OBC_W_M2SPEC_STR && defined OBC_W_M2SPEC_END
-!
-!   Force OBC_M2SPECIFIED as western boundary condition
-!   in the specified tile range! DAL (following northern bry MM & AH)
-!
-        if ((mynode.ge.OBC_W_M2SPEC_STR)
-     &                       .and. (mynode.le.OBC_W_M2SPEC_END)) then
-          do j=jstrV,jend
-#   ifdef M2_FRC_BRY
-          vbar(istr-1,j,knew)=vbar_west(j)
-#   else
-          vbar(istr-1,j,knew)=vbclm(istr-1,j)
-#   endif
-#   ifdef MASKING
-          vbar(istr-1,j,knew)=vbar(istr-1,j,knew)*vmask(istr-1,j)
-#   endif
-          enddo
-        endif
-#  endif /* OBC_W_M2SPEC_STR */
 # else
 #  ifdef NS_PERIODIC
 #   define J_RANGE jstrV,jend
@@ -563,25 +544,6 @@ c****
 #   endif
         enddo
 #  endif
-#  if defined OBC_E_M2SPEC_STR && defined OBC_E_M2SPEC_END
-!
-!   Force OBC_M2SPECIFIED as eastern boundary condition
-!   in the specified tile range! DAL (following northern bry MM & AH)
-!
-        if ((mynode.ge.OBC_E_M2SPEC_STR)
-     &                       .and. (mynode.le.OBC_E_M2SPEC_END)) then
-          do j=jstrV,jend
-#   ifdef M2_FRC_BRY
-            vbar(iend+1,j,knew)=vbar_east(j)
-#   else
-            vbar(iend+1,j,knew)=vbclm(iend+1,j)
-#   endif
-#   ifdef MASKING
-            vbar(iend+1,j,knew)=vbar(iend+1,j,knew)*vmask(iend+1,j)
-#   endif
-          enddo
-        endif
-#  endif /* OBC_E_M2SPEC_STR */
 # else
 #  ifdef NS_PERIODIC
 #   define J_RANGE jstrV,jend

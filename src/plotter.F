@@ -94,8 +94,8 @@ c        emax=0.3E-3   ! among 30.XXXh
         emax=0.0007
         emin=0.00035
       endif
-!#else
-!#error No application specified: Check main switch in "cppdefs.h".
+#else
+#error No application specified: Check main switch in "cppdefs.h".
 #endif
 
       ne=7
