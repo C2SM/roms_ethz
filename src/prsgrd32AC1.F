@@ -13,7 +13,8 @@
      &                                                      A3d(1,4),
 # endif
      &                        A2d(1,1), A2d(1,2),
-     &                        A2d(1,1), A2d(1,2), A2d(1,3), A2d(1,4))
+     &                        A2d(1,1), A2d(1,2), A2d(1,3), A2d(1,4)
+     &                                                             )
       end
 
       subroutine prsgrd32AC1_tile(istr,iend,jstr,jend, ru,rv, P,
@@ -35,6 +36,9 @@
       real grho, HalfGRho, cff, cfr
       real, parameter :: OneFifth=0.2, OneTwelfth=1./12., epsil=0.
 
+# ifdef ADV_ISONEUTRAL
+      real r0g
+# endif
 # include "grid.h"
 # include "ocean3d.h"
 # include "eos_vars.h"
@@ -149,7 +153,7 @@ c**         dpth=z_w(i,j,N)-0.5*(z_r(i,j,k+1)+z_r(i,j,k))
             dZ(i,k)=cff/(dZ(i,k)+dZ(i,k-1))
 
             cfr=2.*dR(i,k)*dR(i,k-1)
-            if (cfr>epsil) then
+            if (cfr > epsil) then
               dR(i,k)=cfr/(dR(i,k)+dR(i,k-1))
             else
               dR(i,k)=0.
@@ -225,27 +229,17 @@ c**   &               -z_r(i,j,k)-z_r(i-1,j,k))
         endif
 # endif
 
-# ifdef ADV_ISONEUTRAL
-        if (CORR_STAGE) then   !<-- corrector stage only
-          do j=jstr,jend
-            do i=istr,iendR
-              dRdx(i,j,k)=0.5*(pm(i,j)+pm(i-1,j))*rx(i,j)
-            enddo
-          enddo
-        endif
-# endif
-
         do j=jstr,jend
           do i=istrU-1,iend
             cff=2.*FC(i,j)*FC(i+1,j)
-            if (cff>epsil) then
+            if (cff > epsil) then
               dZx(i,j)=cff/(FC(i,j)+FC(i+1,j))
             else
               dZx(i,j)=0.
             endif
 
             cfr=2.*rx(i,j)*rx(i+1,j)
-            if (cfr>epsil) then
+            if (cfr > epsil) then
               dRx(i,j)=cfr/(rx(i,j)+rx(i+1,j))
             else
               dRx(i,j)=0.
@@ -270,6 +264,41 @@ c**   &               -z_r(i,j,k)-z_r(i-1,j,k))
      &                                                            )))
           enddo
         enddo
+
+# ifdef ADV_ISONEUTRAL
+        if (CORR_STAGE) then   !<-- corrector stage only
+          r0g=rho0/g
+          do j=jstr,jend
+            do i=istr,iendR
+#define ISO
+#  ifdef ISO
+c              dRdx(i,j,k)=-0.5*(pm(i,j)+pm(i-1,j))*rx(i,j)
+
+              dRdx(i,j,k)=0.5*(pm(i,j)+pm(i-1,j))*(
+     &                     r0g*0.25*(f(i,j)+f(i-1,j))**2
+     &                        *(z_r(i,j,k)-z_r(i-1,j,k))
+
+c    &                  -rx(i,j)
+
+c    &          -0.5*rx(i,j)-0.25*(dRx(i,j)+dRx(i-1,j))
+
+c    &                       -0.5*(dRx(i,j)+dRx(i-1,j))
+
+     &          -0.5*rx(i,j)-0.25*(rx(i-1,j)+rx(i+1,j))
+
+c    &        -0.75*rx(i,j)-0.125*(rx(i-1,j)+rx(i+1,j))
+
+     &                                                )
+#  else
+              dRdx(i,j,k)=0.5*(pm(i,j)+pm(i-1,j))
+     &                 *(z_r(i,j,k)-z_r(i-1,j,k))
+#  endif
+            enddo
+          enddo
+        endif
+# endif
+
+
 
 ! ETA-component of pressure gradient term:
 !-------------- -- -------- -------- -----
@@ -312,27 +341,18 @@ c**  &                -z_r(i,j,k)-z_r(i,j-1,k))
           enddo
         endif
 # endif
-# ifdef ADV_ISONEUTRAL
-        if (CORR_STAGE) then   !<-- corrector stage only
-          do j=jstr,jendR
-            do i=istr,iend
-              dRde(i,j,k)=0.5*(pn(i,j)+pn(i,j-1))*rx(i,j)
-            enddo
-          enddo
-        endif
-# endif
 
         do j=jstrV-1,jend
           do i=istr,iend
             cff=2.*FC(i,j)*FC(i,j+1)
-            if (cff>epsil) then
+            if (cff > epsil) then
               dZx(i,j)=cff/(FC(i,j)+FC(i,j+1))
             else
               dZx(i,j)=0.
             endif
 
             cfr=2.*rx(i,j)*rx(i,j+1)
-            if (cfr>epsil) then
+            if (cfr > epsil) then
               dRx(i,j)=cfr/(rx(i,j)+rx(i,j+1))
             else
               dRx(i,j)=0.
@@ -359,6 +379,39 @@ c**  &                -z_r(i,j,k)-z_r(i,j-1,k))
             enddo
           endif
         enddo   ! <-- j
+
+
+# ifdef ADV_ISONEUTRAL
+        if (CORR_STAGE) then   !<-- corrector stage only
+          r0g=rho0/g
+          do j=jstr,jendR
+            do i=istr,iend
+#ifdef ISO
+c              dRde(i,j,k)=-0.5*(pn(i,j)+pn(i,j-1))*rx(i,j)
+
+              dRde(i,j,k)=0.5*(pn(i,j)+pn(i,j-1))*(
+     &                      r0g*0.25*(f(i,j)+f(i,j-1))**2
+     &                        *(z_r(i,j,k)-z_r(i,j-1,k))
+
+c    &                -rx(i,j)
+
+c    &            -0.5*rx(i,j)-0.25*(dRx(i,j)+dRx(i,j-1))
+
+c    &                         -0.5*(dRx(i,j)+dRx(i,j-1))
+
+     &            -0.5*rx(i,j)-0.25*(rx(i,j-1)+rx(i,j+1))
+
+c    &            -0.75*rx(i,j)-0.125*(rx(i,j-1)+rx(i,j+1))
+
+     &                                                    )
+#else
+              dRde(i,j,k)=0.5*(pn(i,j)+pn(i,j-1))
+     &                 *(z_r(i,j,k)-z_r(i,j-1,k))
+#endif
+            enddo
+          enddo
+        endif
+# endif
       enddo   !<-- k
       end
 #else

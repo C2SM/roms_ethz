@@ -280,6 +280,17 @@ c     &              +30./(1.+exp((-200.-z_r(i,j,k))/200.))
       enddo   !<-- j                           ! Tcoef=0.2.
 #  endif
 
+# elif defined SLOSH
+      cff=pi/xl
+      do j=jstrR,jendR
+        do i=istrR,iendR
+          zeta(i,j,1)=cos(cff*xr(i,j))
+          zeta(i,j,2)=zeta(i,j,1)
+        enddo
+      enddo
+
+
+
 # elif defined COLD_FILAMENT
 #  ifdef VISC_TERM_WIND_BALANCE
 #   define I_EXT_RANGE istrU-1,iend+1
@@ -289,7 +300,7 @@ c     &              +30./(1.+exp((-200.-z_r(i,j,k))/200.))
 #   define J_EXT_RANGE jstr,jend+1
 #  endif
 
-      x0=xl/2. !<-- sets fillament to thhe middle of the domain
+      x0=xl/2. !<-- sets fillament to the middle of the domain
 
       do j=J_EXT_RANGE
         do i=I_EXT_RANGE

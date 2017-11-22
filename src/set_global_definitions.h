@@ -9,8 +9,8 @@
  create its own output file (this switch has no effect if MPI is not
  defined).  */
 
-#define MPI
-#define PARALLEL_FILES
+c#define MPI
+c#define PARALLEL_FILES
 
 /* Turn OFF printout (other than error messages) from MPI nodes with
  rank > 0.   This does not affect the model results other than making
@@ -27,7 +27,7 @@
  increases sizes of scratch arrays declared in "private_scratch.h" to
  accommodate enough workspace accordingly.  Useful for debugging
  purposes only. Normally should be kept undefined. */
- 
+
 c--#define ALLOW_SINGLE_BLOCK_MODE
 #ifdef ALLOW_SINGLE_BLOCK_MODE
 # define SINGLE NSUB_X*NSUB_E,NSUB_X*NSUB_E !!!
@@ -68,8 +68,8 @@ c--#define ALLOW_SINGLE_BLOCK_MODE
  switch makes implicit no-slip b.c. at bottom be an integral part of
  the tri-diagonal solver as opposite to computing it explicitly from
  whatever latest velocity values available. */
- 
-c--# define IMPLICIT_BOTTOM_DRAG
+
+c-# define IMPLICIT_BOTTOM_DRAG
 # define IMPLCT_NO_SLIP_BTTM_BC
 
 
@@ -77,7 +77,7 @@ c--# define IMPLICIT_BOTTOM_DRAG
  barotropic pressure-gradient terms.  If not activated, then constant
  density Shallow Water Equation SWE-like term is used. No effect for
  a pure 2D configuration. */
- 
+
 #define VAR_RHO_2D
 
 
@@ -130,9 +130,9 @@ c--# define IMPLICIT_BOTTOM_DRAG
  affects only on the correct choice of netCDF functions, see below)
  and the use QUAD precision for global summation variables, which is
  always desirable, but some compilers do not support it.  */
- 
+
 #define DBLEPREC
- 
+
 /* Define standard dimensions for the model arrays (vertical dimensions
  are inserted explicitly in the code, when needed).  Periodic and
  non-periodic versions may differ by the number of ghost points on each
@@ -142,38 +142,33 @@ c--# define IMPLICIT_BOTTOM_DRAG
  to the whole domain), so two ghost zones are always provided on the
  each side. These data for these two ghost zones is then exchanged by
  message passing.  */
- 
+
 #ifdef MPI
 # define GLOBAL_2D_ARRAY -1:Lm+2+padd_X,-1:Mm+2+padd_E
-# define GLOBAL_XI_ARRAY -1:Lm+2+padd_X
 # define START_2D_ARRAY -1,-1
 #else
 # ifdef EW_PERIODIC
 #  ifdef NS_PERIODIC
 #   define GLOBAL_2D_ARRAY -1:Lm+2+padd_X,-1:Mm+2+padd_E
-#   define GLOBAL_XI_ARRAY -1:Lm+2+padd_X
 #   define START_2D_ARRAY -1,-1
 #  else
 #   define GLOBAL_2D_ARRAY -1:Lm+2+padd_X,0:Mm+1+padd_E
-#   define GLOBAL_XI_ARRAY -1:Lm+2+padd_X
 #   define START_2D_ARRAY -1,0
 #  endif
 # else
 #  ifdef NS_PERIODIC
 #   define GLOBAL_2D_ARRAY 0:Lm+1+padd_X,-1:Mm+2+padd_E
-#   define GLOBAL_XI_ARRAY 0:Lm+1+padd_X
 #   define START_2D_ARRAY 0,-1
 #  else
 #   define GLOBAL_2D_ARRAY 0:Lm+1+padd_X,0:Mm+1+padd_E
-#   define GLOBAL_XI_ARRAY 0:Lm+1+padd_X
 #   define START_2D_ARRAY 0,0
 #  endif
 # endif
 #endif
- 
+
 #define PRIVATE_1D_SCRATCH_ARRAY istr-2:iend+2
 #define PRIVATE_2D_SCRATCH_ARRAY istr-2:iend+2,jstr-2:jend+2
- 
+
 /* The following macros contain logical expressions which answer
  the question: ''Am I a thread working on subdomain (tile) which is
  adjacent to WESTERN[EASTERN, SOUTHERN, NORTHERN] edge (i.e. physical
@@ -186,12 +181,12 @@ c--# define IMPLICIT_BOTTOM_DRAG
  periodicity is handled the same way as MPI messages. They are left
  undefined to prevent their mistaken use as flags for proximity to
  the edge of the grid.  */
- 
+
 #ifndef EW_PERIODIC
-#ifdef MPI
+# ifdef MPI
 #  define WESTERN_EDGE istr==iwest .and. .not.west_exchng
 #  define EASTERN_EDGE iend==ieast .and. .not.east_exchng
-#else
+# else
 #  define WESTERN_EDGE istr==1
 #  define EASTERN_EDGE iend==Lm
 # endif
@@ -222,20 +217,20 @@ c--# define IMPLICIT_BOTTOM_DRAG
 # define SOUTH_MSG_EXCH south_msg_exch.and.jstr==jsouth
 # define NORTH_MSG_EXCH north_msg_exch.and.jend==jnorth
 
-#ifdef EW_PERIODIC
+# ifdef EW_PERIODIC
 #  define WEST_EXCHNG  istr==iwest
 #  define EAST_EXCHNG  iend==ieast
 # else
 #  define WEST_EXCHNG  west_exchng.and.istr==iwest
 #  define EAST_EXCHNG  east_exchng.and.iend==ieast
-#endif
-#ifdef NS_PERIODIC
+# endif
+# ifdef NS_PERIODIC
 #  define SOUTH_EXCHNG jstr==jsouth
 #  define NORTH_EXCHNG jend==jnorth
 # else
 #  define SOUTH_EXCHNG south_exchng.and.jstr==jsouth
 #  define NORTH_EXCHNG north_exchng.and.jend==jnorth
-#endif
+# endif
 #else
 # ifdef EW_PERIODIC
 #  define WEST_EXCHNG istr==1
@@ -274,7 +269,7 @@ c--# define IMPLICIT_BOTTOM_DRAG
 #if defined NS_PERIODIC || defined MPI
 # define EXCH_NORTH_SOUTH
 #endif
- 
+
 /* Sometimes an operation needs to be restricted to single MPI process
  (master process). Typically this happens when it is desirable to avoid
  redundant write of the same message by all MPI processes into stdout.
@@ -284,14 +279,14 @@ c--# define IMPLICIT_BOTTOM_DRAG
  print MPI-node number into printed message. To do it conditionally
  (MPI code only) add MYID (without preceding comma) into the end of
  the message to be printed.   */
- 
+
 #ifdef MPI
 # define mpi_master_only if (mynode==0)
 # define MPI_master_only if (mynode==0)
 # ifdef MPI_SILENT_MODE
 #  define mpi_nonexit_warn if (mynode==0)
 #  define MYID !
-#else
+# else
 #  define mpi_nonexit_warn
 #  define MYID ,' node =', mynode
 # endif
@@ -301,7 +296,7 @@ c--# define IMPLICIT_BOTTOM_DRAG
 # define mpi_nonexit_warn
 # define MYID !
 #endif
- 
+
 /* Similarly, if operation needed to be done by one thread only, e.g.,
  copy a redundantly computed private scalar into shared scalar, or to
  write an error message in situation where it is guaranteed that the
@@ -309,14 +304,14 @@ c--# define IMPLICIT_BOTTOM_DRAG
  the same for all) and only one needs to complain.  ZEROTH_TILE is
  intended to restrict the operation only to thread which is working
  on south-western tile.
- 
+
  Occasionally a subroutine designed to process a tile may be called
  to process the whole domain. If it is necessary to distinguish
  whether it is being called for the whole domain (SINGLE_TILE_MODE)
  or a tile.
- 
+
  All these switches are the same for MPI/nonMPI code.  */
- 
+
 #ifdef MPI
 # define ZEROTH_TILE (istr==iwest .and. jstr==jsouth)
 # define SINGLE_TILE_MODE (iend-istr==ieast-iwest .and. \
@@ -330,12 +325,12 @@ c--# define IMPLICIT_BOTTOM_DRAG
 /* Normally the initial condition exists only as a single time record
  at given time.  This requires the use of a two-time-level scheme
  "forw_start" to start time stepping (in our case a RK2 -- forward
- Euler + trapezoidal correction is used for the initial step). If
+ Euler + trapezoidal correction is used for the initial step).  If
  the run is interrupted and restarted from a single record, the use
  of forward step causes differences between the results obtained by
  a continuous run.  Macro EXACT_RESTART activates the option of
  saving two consecutive time steps into restart file allowing exact
- restart. */
+ restart.   */
 
 #ifdef EXACT_RESTART
 # define FIRST_TIME_STEP iic==forw_start
@@ -402,26 +397,25 @@ c-# define EXP dexp
 c-# define dtanh dtanh
 c-# define TANH dtanh
 #endif
- 
+
 /* Model netCDF input/output control: decide whether to put grid data
  into output files (separate choice for each output file) and select
  appropriate double/single precision types for netCDF input (controlled
  by NF_FTYPE) and netCDF output (NF_FOUT) functions.
- 
+
  Note: Even if the whole code is compiled with double precision
  accuracy, it is still possible to save history and averages netCDF
  files in single precision in order to save disk space. This happens
  if HIS_DOUBLE switch is undefined. Status of HIS_DOUBLE switch does
  not precision of restart file, which is always kept consistent with
  precision of the code.  */
- 
+
 /* #define HIS_DOUBLE */
-!#define HIS_DOUBLE
 #define NCFILEFORMAT nf_netcdf4 /* or nf_64bit_offset */
 #undef PUT_GRID_INTO_RESTART
 #define PUT_GRID_INTO_HISTORY
 #define PUT_GRID_INTO_AVERAGES
- 
+
 #ifdef DBLEPREC
 # define NF_FTYPE nf_double
 # define nf_get_var_FTYPE nf_get_var_double
@@ -449,7 +443,7 @@ c-# define TANH dtanh
 # define nf_put_att_FTYPE nf_put_att_real
 # define NF_FOUT nf_float
 #endif
- 
+
 /* The following definitions are machine dependent macros, compiler
  directives, etc. A proper set of definitions is activated by a proper
  choice C-preprocessor flag, i.e. -DSGI for an SGI computer or -DCRAY

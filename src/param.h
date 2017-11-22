@@ -36,10 +36,17 @@ c     &                LLm=800, MMm=2,   N=80
 c*   &               LLm=98,  MMm=206, N=12
      &               LLm=24,  MMm=34,  N=10
 c     &                LLm=800, MMm=2,  N=80
+#elif defined BLACK_SEA
+     &             LLm=1256,  MMm=768, N=40
 #elif defined ATLANTIC
-     &            LLm=1218,  MMm=896, N=50 !<-- 1.5km, full Gulf
-c     &             LLm=1536,  MMm=1024, N=50
-c     &           LLm=1024,  MMm=1536, N=60
+     &             LLm=840,  MMm=520, N=50   !<-- 5km Gulf Stream area
+c     &             LLm=1218,  MMm=896, N=50 !<-- 1.5km, full Gulf
+
+c     &              LLm=1536,  MMm=1024, N=50  !<-- 500m
+c     &             LLm=1024,  MMm=1536, N=60
+
+c     &              LLm=1494,  MMm=1088, N=50  ! LCE500 loop eddy nest
+c     &              LLm=1761,  MMm=1216, N=50  ! Eddy_west loop eddy nest
 
 
 #elif defined PACIFIC
@@ -49,15 +56,27 @@ c    &               LLm=392, MMm=288, N=30
 
 c    &               LLm=432, MMm=320, N=32
 c     &               LLm=488, MMm=360, N=40  ! PAC44
-     &                 LLm=976, MMm=720, N=40 ! PAC22
-
+c     &                 LLm=976, MMm=720, N=40 ! PAC22
 c     &               LLm=460, MMm=240, N=50  ! PACSMA grid
 #elif defined ONE_DIM
      &               LLm=2, MMm=2, N=32
 
+c     &               LLm=2660, MMm=970, N=65 ! Kaushek EQP 6.5 km grid
+
+c     &              LLm=3723, MMm=1166, N=65 ! Kaushik crazy EQP grid
+
+c     &              LLm=1250, MMm=2035, N=68
+
+c     &              LLm=1836,  MMm=1984, N=90 ! Kaushik SWPAC1p6
+
+c     &              LLm=930, MMm=1200, N=120 ! Kaushik Bismark Sea
+     &               LLm=992, MMm=1760, N=100 ! Vanatu islands
+
+
 #elif defined PACIFIC_2D
      &               LLm=768, MMm=512, N=1
 c    &               LLm=1520, MMm=1088, N=1
+
 
 #elif defined OVERFLOW
      &               LLm=4,   MMm=128, N=20
@@ -100,9 +119,9 @@ c     &                LLm=225, MMm=328, N=32      ! NEA_EXT
 c     &                LLm=384, MMm=480, N=32      ! GranCan
      &                LLm=1200, MMm=1800, N=42      ! UNPR
 #elif defined SPIRAL
-     &                LLm=694, MMm=972, N=84      ! SPIRAL
+     &                LLm=694, MMm=972, N=84        ! SPIRAL
 #elif defined PACBIG
-     &                LLm=1840, MMm=960, N=32      ! PAC_big
+     &                LLm=1840, MMm=960, N=32       ! PAC_big
 #elif defined ATLSMA
      &                LLm= 420, MMm= 560, N=42      ! ATLSMA
 
@@ -155,6 +174,8 @@ c**     &               LLm=248, MMm=504, N=42      ! 5km config
      &               LLm=416, MMm=346, N=42      ! 5km-66km telescopic
 #elif defined WAVE_RAD
      &              LLm=384,  MMm=384, N=1
+#elif defined SLOSH
+     &              LLm=128, MMm=2, N=20
 #else
      &                LLm=??, MMm=??, N=??
 #endif

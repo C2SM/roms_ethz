@@ -10,6 +10,7 @@
       implicit none
 # include "param.h"
 # include "forces.h"
+# define PSOURCE_DATA
 # include "sources.h"
 # include "scalars.h"
 # include "netcdf.inc"
@@ -17,17 +18,6 @@
 # ifdef MPI
 #  include "hidden_mpi_vars.h"
 # endif
-c**
-      character*64 psrc_file
-      integer QbarG_id
-      integer ncidfpsrc, ntpsrc,  psrc_tid, itpsrc, psrc_ncycle,
-     &                             psrc_rec, TsrcG_id(NT)
-      real psrc_time(2), psrc_cycle
-
-      real TsrcG(Msrc,2,NT)
-
-
-c**
       real cff, csum
       integer ierr, lstr,lvar,lenstr
       integer is, itrc, ncid, varid, i,k
@@ -46,13 +36,13 @@ c# define CR
 ! Initialization: Inquire about the contents of psource NetCDF file:
 !================  variables and dimensions. Check for consistency.
 
-      if (may_day_flag/=0) return      !-->  EXIT
+      if (may_day_flag /= 0) return      !-->  EXIT
 
       lstr=lenstr(psrc_file)
-      ncid=ncidfpsrc
+      ncid=ncidpsrcs
       ierr=nf_noerr
 
-      if (iic==ntstart) then
+      if (iic == ntstart) then
         itpsrc=1
         psrc_time(1)=-1.E+20
         psrc_time(2)=-1.E+20
@@ -61,10 +51,10 @@ c# define CR
 ! If not opened yet, open psource NetCDF file for reading.
 ! Find and save IDs for relevant variables.
 
-        if (ncid==-1) then
+        if (ncid == -1) then
           ierr=nf_open(psrc_file(1:lstr), nf_nowrite, ncid)
-          if (ierr==nf_noerr) then
-            ncidfpsrc=ncid
+          if (ierr == nf_noerr) then
+            ncidpsrcs=ncid
           else
             write(*,'(/1x,4A,1x,2A,I4 /)') '### ERROR: get_psrcs',
      &         ' :: Cannot open netCDF file ''', psrc_file(1:lstr),
@@ -73,15 +63,15 @@ c# define CR
           endif
         endif
 ! Nsrc: number of point sources
-        ierr=nf_inq_dimid (ncid, 'Nsrc', varid)
+        ierr=nf_inq_dimid(ncid, 'Nsrc', varid)
         if (ierr == nf_noerr) then
-          ierr=nf_inq_dimlen (ncid, varid, Nsrc)
+          ierr=nf_inq_dimlen(ncid, varid, Nsrc)
           if (ierr /= nf_noerr) then
             write(*,1) 'Nsrc', psrc_file(1:lstr)
             goto 99                                      !--> ERROR
           else
-            if (Nsrc>Msrc) then
-              write(*,*) 'FATAL ERROR: get_psrcs :: Found Nsrc > Msrc'
+            if (Nsrc > Msrc) then
+              write(*,*) '### ERROR: get_psrcs :: Found Nsrc > Msrc'
               goto 99                                    !--> ERROR
             endif
           endif
@@ -97,7 +87,7 @@ c        if (.not.allocated(D)) allocate (D(Nsrc,N))
         if (ierr == nf_noerr) then
           call find_record(ncid, psrc_tid,  psrc_rec, ntpsrc,
      &                   psrc_ncycle, psrc_cycle,  1,1, ierr)
-          
+
         else
           write(*,1) 'psrc_time', psrc_file(1:lstr)
           goto 99                                        !--> ERROR
@@ -219,7 +209,7 @@ CR          write(*,fmt) i,(Qshape(i,k),k=1,N)
 CR        enddo
 CR
 ! Qbar id
-        ierr=nf_inq_varid (ncid, 'Qbar', QbarG_id)
+        ierr=nf_inq_varid (ncid, 'Qbar', Qbar_id)
         if (ierr /= nf_noerr) then
           write(*,1) 'Qbar', psrc_file(1:lstr)
           goto 99                                        !--> ERROR
@@ -228,7 +218,7 @@ CR
         do itrc=1,NT
           lvar=lenstr(vname(1,indxT+itrc-1))
           ierr=nf_inq_varid (ncid, vname(1,indxT+itrc-1)(1:lvar),
-     &                                            TsrcG_id(itrc))
+     &                                            Tsrc_id(itrc))
           if (ierr /= nf_noerr) then
             write(*,1) vname(1,indxT+itrc-1)(1:lvar),
      &            psrc_file(1:lstr)
@@ -274,7 +264,7 @@ CR
             start(1)=1        ; count(1)=Nsrc
             start(2)=psrc_rec ; count(2)=1
 ! Qbar
-            ierr=nf_get_vara_FTYPE (ncid, QbarG_id, start, count,
+            ierr=nf_get_vara_FTYPE (ncid, Qbar_id, start, count,
      &                                           QbarG(1,itpsrc))
             if (ierr /= nf_noerr) then
               write(*,2) 'Qbar', psrc_rec, nf_strerror(ierr)
@@ -289,7 +279,7 @@ CR        write(*,fmt) (QbarG(i,itpsrc),i=1,Nsrc)
 ! Tsrc
             do itrc=1,NT
               lvar=lenstr(vname(1,indxT+itrc-1))
-              ierr=nf_get_vara_FTYPE (ncid, TsrcG_id(itrc), start,
+              ierr=nf_get_vara_FTYPE (ncid, Tsrc_id(itrc), start,
      &                                count,  TsrcG(1,itpsrc,itrc))
               if (ierr /= nf_noerr) then
                 write(*,2) vname(1,indxT+itrc-1)(1:lvar), psrc_rec,
@@ -328,7 +318,7 @@ CR
       end
 
 
-      subroutine set_psource_tile (istr,iend,jstr,jend, ierr)
+      subroutine set_psource_tile(istr,iend,jstr,jend, ierr)
 
 ! Set-up psource data for current tile.
 
@@ -338,28 +328,21 @@ CR
       real cff, cff1,cff2
 # include "param.h"
 # include "forces.h"
+# define PSOURCE_DATA
 # include "sources.h"
 # include "scalars.h"
 # include "ocean3d.h"
 
-c**
-         integer itpsrc
-         real psrc_time(2), psrc_cycle
-         real Tsrc0(Msrc,NT), TsrcG(Msrc,2,NT)
-
-c**
-
 # include "compute_extended_bounds.h"
 
-      it1=3-itpsrc
-      it2=itpsrc
+      it1=3-itpsrc ; it2=itpsrc
       cff=time+0.5*dt
       cff1=psrc_time(it2)-cff
       cff2=cff-psrc_time(it1)
 
 !  Load time invariant data.
 
-      if (psrc_cycle<0.) then
+      if (psrc_cycle < 0.) then
         if (FIRST_TIME_STEP) then
           do is=1,Nsrc
             Qbar(is)=QbarG(is,itpsrc)
@@ -367,62 +350,55 @@ c**
               Qsrc(is,k)=Qbar(is)*Qshape(is,k)
             enddo
             do itrc=1,NT
-
-                Tsrc0(is,itrc)=TsrcG(is,itpsrc,itrc)
-                do k=1,N
-                  Tsrc(is,k,itrc)=Tsrc0(is,itrc)
-                enddo
-
+              do k=1,N
+                Tsrc(is,k,itrc)=TsrcG(is,itpsrc,itrc)
+              enddo
             enddo
           enddo
         endif
 
-!  Time-interpolate Qbar and Tsrc0 from point data.
-!  Check that for the next time step [when time=time+dt] time+dt
-!  is still between psrc_time(it1) and psrc_time(it2); and if not,
-!  set synchro_flag top signal that the new forcing data should be
-!  read from the netCDF input file (master thread only).
+! Time-interpolate Qbar and Tsrc from point data.  Check that for
+! the next time step [when time=time+dt] time+dt is still between
+! psrc_time(it1) and psrc_time(it2); if not set set synchro_flag to
+! signal that the new forcing data should be  read from the netCDF
+! input file (master thread only).
 
-      elseif (cff1>=0. .and. cff2>=0.) then
-        if (cff1<dt) synchro_flag=.true.
+      elseif (cff1 >= 0. .and. cff2 >= 0.) then
+        if (cff1 < dt) synchro_flag=.true.
+c*        if (ZEROTH_TILE .and. cff1 < dt) synchro_flag=.TRUE.
 
         cff=1./(cff1+cff2)
-        cff1=cff1*cff
-        cff2=cff2*cff
+        cff1=cff1*cff ; cff2=cff2*cff
         do is=1,Nsrc
           Qbar(is)=cff1*QbarG(is,it1)+cff2*QbarG(is,it2)
-c*          if (QbarG(is,it1) == 0. .or. QbarG(is,it2) ==0) then
-c*              Qbar(is) = 0.  ! makes sure set_psource doesn't
-c*          endif              ! interpolate more flow than you want
+c*          if (QbarG(is,it1) == 0. .or. QbarG(is,it2) == 0) then
+c*              Qbar(is) = 0.    ! makes sure set_psource does not
+c*          endif                ! interpolate more flow than you want
           do k=1,N
             Qsrc(is,k)=Qbar(is)*Qshape(is,k)
           enddo
           do itrc=1,NT
-
-              Tsrc0(is,itrc)=cff1*TsrcG(is,it1,itrc)
-     &                     + cff2*TsrcG(is,it2,itrc)
-              do k=1,N
-                 Tsrc(is,k,itrc)=Tsrc0(is,itrc)
-              enddo
-
+            cff=cff1*TsrcG(is,it1,itrc)+cff2*TsrcG(is,it2,itrc)
+            do k=1,N
+               Tsrc(is,k,itrc)=cff
+            enddo
           enddo
         enddo
 
-!  Unable to set-up Qbar and Tsrc0:
+!  Unable to set-up Qbar and Tsrc:
 !  Complain about the error and signal to quit.
 
       else
         if (ZEROTH_TILE) then
-            write(*,'(/1x,3A/3(1x,A,F16.10)/)')      '### WARNING: ',
+          write(*,'(/1x,3A/3(1x,A,F16.10)/)')         '### WARNING: ',
      &    'set_psource_tile :: Current model time is outside bounds ',
-     &    'of ''psrc_time''.', 'psrc_tstart =', psrc_time(it1)*sec2day,
-     &                         'tdays =',       tdays,
-     &                         'psrc_tend =',   psrc_time(it2)*sec2day
+     &    'of ''psrc_time''.','psrc_tstart =',psrc_time(it1)*sec2day,
+     &                        'tdays =',      tdays,
+     &                        'psrc_tend =',  psrc_time(it2)*sec2day
           may_day_flag=2
         endif
         ierr=ierr+1
       endif
-      return
       end
 #else
       subroutine get_psource_empty

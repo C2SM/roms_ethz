@@ -14,7 +14,7 @@
       integer ncid, ifrc, ierr, lfrc,lvar,ltvar,lenstr, ncdf_read
       character(len=max_name_size) frcname
       character(len=8) stf_var, stf_time_var
-      real dtime
+      real(kind=8) dtime
       character(len=64) fmt
 
 # ifdef VERBOSE
@@ -127,14 +127,14 @@ c**         ierr=nf_close(ncid) ; ncfrc(ifrc)=-1 ; stf_rec(itrc)=-1
         call advance_record(   stf_rec(itrc), ntstf(itrc),
      &                      stf_ncycle(itrc), stf_cycle(itrc),
      &                                  ifrc, max_frc,  ierr)
-     &             
+     &
         if (stf_rec(itrc) < 0) then
 c**       ierr=nf_close(ncid) ; ncfrc(ifrc)=-1
           ifrc=ifrc+1 ; goto 100   !--> proceed to the next file
 
         elseif (ierr == nf_noerr) then
-          ierr=nf_get_var1_FTYPE(ncid, stf_tid(itrc), stf_rec(itrc),
-     &                                                       dtime)
+          ierr=nf_get_var1_double(ncid, stf_tid(itrc), stf_rec(itrc),
+     &                                                        dtime)
           if (ierr == nf_noerr) then
             itstf(itrc)=min(3-itstf(itrc),ntstf(itrc))
             stf_time(itstf(itrc),itrc)=dtime*day2sec

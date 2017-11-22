@@ -12,16 +12,18 @@
 #undef GRAV_ADJ        /* Graviational Adjustment */
 #undef ISWAKE          /* Island Wake Problem */
 #undef OVERFLOW        /* Graviational/Overflow */
-#undef ATLANTIC      /* Atlantic, Gulf of Mexico */
-#define PACIFIC         /* North-Equatorial Pacific */
+c--#define BLACK_SEA
+c--#define ATLANTIC      /* Atlantic, Gulf of Mexico */
+#undef PACIFIC         /* North-Equatorial Pacific */
 #undef PACIFIC_2D      /* Pacific Tsunami model */
 #undef RIVER           /* River runoff test problem */
 #undef SEAMOUNT        /* Seamount */
 #undef SOLITON         /* Equatorial Rossby Wave */
-#undef UPWELLING      /* Upwelling */
+#define UPWELLING      /* Upwelling */
 #undef USWC            /* US West Coast Yusuke 2010 */
 #undef USWEST          /* US West Coast */
 #undef WAVE_RAD        /* Test for wave radiation boundaries */
+#undef SLOSH
 
 /*
     Embedded (nested) grid configuration segment
@@ -236,9 +238,46 @@ c--# define OBC_M2ORLANSKI
 c--# define LMD_MIXING
 c--# define LMD_KPP
 
+#elif defined BLACK_SEA  /* Black Sea, an all-around closed basin */
+# define SOLVE3D
+# define UV_COR
+c---# define NON_TRADITIONAL
+# define UV_ADV
+# define CURVGRID
+# define SPHERICAL
+# define MASKING
+                        ! Equation of State
+# define SALINITY
+# define NONLIN_EOS
+                       ! Lateral Mixing
+# define UV_VIS2
+# undef VIS_GRID
+
+c--# define ADV_ISONEUTRAL
+# define TS_DIF2
+# undef DIF_GRID
+                        ! Forcing
+# define BULK_FLUX
+# define BULK_SM_UPDATE
+# define WIND_AT_RHO_POINTS
+
+c--# define QCORRECTION
+c--# define SFLX_CORR      /* salinity restoring at surface */
+c--# define SEA_ICE_NOFLUX
+
+# undef WIND_MAGN
+                       ! Vertical Mixing
+# define LMD_MIXING
+# define LMD_KPP
+# define LMD_BKPP
+# define LMD_RIMIX
+# define LMD_CONVEC
+# define LMD_NONLOCAL
+c--# define DIURNAL_SRFLUX
+# undef LMD_DDMIX
+
 
 #elif defined ATLANTIC  /* Atlantic, Gulf of Mexico */
-
 # define SOLVE3D
 # define UV_ADV
 # define UV_COR
@@ -247,19 +286,19 @@ c--# define LMD_KPP
 
 # define CURVGRID
 # define SPHERICAL
-# define WIND_AT_RHO_POINTS
 # define MASKING
 
 c--# define AVERAGES
+
+c--# define ADV_ISONEUTRAL
 # define UV_VIS2
 # define TS_DIF2
 
+c-# define WIND_AT_RHO_POINTS
+
 # define DIURNAL_SRFLUX
 
-c???# define ADV_ISONEUTRAL
-c?? define NSPLITDIF 4
 c?? define ROBUST_DIURNAL_SRFLUX
-
 # define QCORRECTION
 
 # define LMD_MIXING
@@ -269,10 +308,10 @@ c?? define ROBUST_DIURNAL_SRFLUX
 # define LMD_CONVEC
 # define LMD_NONLOCAL
 
-# define OBC_WEST
+c--# define OBC_WEST
 # define OBC_EAST
-# define OBC_SOUTH
-c--# define OBC_NORTH
+c-# define OBC_SOUTH
+# define OBC_NORTH
 
 # define OBC_M2FLATHER
 # define OBC_M3ORLANSKI
@@ -304,18 +343,16 @@ c--# define AVERAGES
 c--# define ADV_ISONEUTRAL
 # define TS_DIF2
 # undef DIF_GRID
-
                         ! Forcing 
-# define BULK_FLUX
-# define BULK_SM_UPDATE
-# define WIND_AT_RHO_POINTS
+c# define BULK_FLUX
+c# define BULK_SM_UPDATE
+c-# define WIND_AT_RHO_POINTS
 
-c--# define QCORRECTION
+# define QCORRECTION
 # define SFLX_CORR     /* salinity restoring at surface */
 # define SEA_ICE_NOFLUX
 
 # undef WIND_MAGN
-
                        ! Vertical Mixing
 # define LMD_MIXING
 # define LMD_KPP
@@ -323,12 +360,15 @@ c--# define QCORRECTION
 # define LMD_RIMIX
 # define LMD_CONVEC
 # define LMD_NONLOCAL
-c--# define DIURNAL_SRFLUX
-# undef LMD_DDMIX
+# define DIURNAL_SRFLUX
 
+# undef LMD_DDMIX
                        ! Open Boundary Conditions
 # define OBC_WEST
+# define OBC_EAST
 # define OBC_SOUTH
+# define OBC_NORTH
+
 # define OBC_M2FLATHER
 c--# define OBC_M2ORLANSKI
 # define OBC_M3ORLANSKI
@@ -339,7 +379,6 @@ c--# define OBC_M2ORLANSKI
 c>>># define TNUDGING
 c>>># define TCLIMATOLOGY
 c>>># define UCLIMATOLOGY
-
 
 # define Z_FRC_BRY
 # define M2_FRC_BRY
@@ -353,7 +392,7 @@ c--# define SSH_TIDES
 c--# define UV_TIDES
 
 
-#elif defined PACIFIC_2D   /* Pacific Tsynami model */
+#elif defined PACIFIC_2D   /* Pacific Tsunami model */
 # define UV_COR
 # define UV_ADV
 # define CURVGRID
@@ -735,10 +774,15 @@ c--# define OBC_M2ORLANSKI
 c--# define OBC_Z2ORLANSKI
 # define LEGACY_ORLANSKI
 
-
 # define ANA_BRY
 # define Z_FRC_BRY
 # define M2_FRC_BRY
+
+
+#elif defined SLOSH
+# define ANA_GRID
+# define ANA_INITIAL
+# define ANA_SMFLUX
 #endif
 
 #include "set_global_definitions.h"

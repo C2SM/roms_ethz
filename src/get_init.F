@@ -11,7 +11,7 @@
      &        ierr,  start(2), count(2), ibuff(iaux),
      &        linit, lvar, latt, lenstr, ncdf_read, checkdims
 #ifdef SOLVE3D
-     &                                          , itrc
+     &                                            , itrc
 #endif
       real time_scale
       integer init_type
@@ -25,7 +25,6 @@
       integer vid_rufrc, vid_rvfrc
 # endif
 #endif
-      character(len=64) units
 #include "ocean2d.h"
 #ifdef EXACT_RESTART
 # include "coupling.h"
@@ -115,7 +114,11 @@ c--#define VERBOSE
 ! Read in evolving model variables:
 !----- -- -------- ----- ----------
 ! Time: find netCDF id, read value, read attribute 'units' and set
-! starting time index and time clock in days.
+! starting time index and time clock in days.  Note that time units
+! read below also saved as vname(3,indxTime) and thereafter used to
+! control output time units literally copying it from the initial
+! condition to restart/history/averages output files and writing time
+! is seconds or days accordingly.
 !
 ! Note that if EXACT_RESTART CPP-switch is defined, make a "soft"
 ! attempt to do exact restart, where "soft" means that exact restart
@@ -129,8 +132,8 @@ c--#define VERBOSE
 ! is used as the initial time step.  "get_init" is expected to be
 ! called twice consecutively as
 !
-!           call get_init (req_rec=rec-1, tindx=2)
-!           call get_init (req_rec=rec,   tindx=1)
+!           call get_init(req_rec=rec-1, tindx=2)
+!           call get_init(req_rec=rec,   tindx=1)
 !
 ! where "rec" is record number in netCDF file which contains fields
 ! corresponding to time step "n" while "rec-1" corresponds to "n-1"
@@ -170,7 +173,7 @@ c--#define VERBOSE
 ! EXACT_RESTART.
 
       lvar=lenstr(vname(1,indxTime))
-      ierr=nf_inq_varid (ncid, vname(1,indxTime)(1:lvar), varid)
+      ierr=nf_inq_varid(ncid, vname(1,indxTime)(1:lvar), varid)
 
 ! The following is done for backward compatibility: normally time
 ! variable is named "time", but legacy startup files may name
@@ -187,14 +190,14 @@ c--#define VERBOSE
       endif
 
       if (ierr == nf_noerr) then
-        ierr=nf_get_var1_FTYPE (ncid, varid, record, start_time)
+        ierr=nf_get_var1_double(ncid, varid, record, start_time)
         if (ierr == nf_noerr) then
-          ierr=nf_get_att_text(ncid, varid, 'units', units)
+          ierr=nf_get_att_text(ncid, varid, 'units', vname(3,indxTime))
           if (ierr == nf_noerr) then
-            latt=lenstr(units)
-            if (units(1:6) == 'second') then
-              time_scale=1.
-            elseif (units(1:3) == 'day') then
+            latt=lenstr(vname(3,indxTime))
+            if (vname(3,indxTime)(1:6) == 'second') then
+              time_scale=1.D0
+            elseif (vname(3,indxTime)(1:3) == 'day') then
               time_scale=day2sec
             else
               write(*,'(/1x,4A/12x,3A/)')    '### ERROR: get_init :: ',
@@ -250,8 +253,8 @@ c--#define VERBOSE
           else
             write(*,'(/1x,4A/12x,3A/12x,A/)')  '### ERROR: get_init ',
      &           ':: Cannot read attribute ''units'' for variable ''',
-     &          vname(1,indxTime)(1:lvar),'''', 'from netCDF file ''',
-     &                    ininame(1:linit),  '''.', nf_strerror(ierr)
+     &         vname(1,indxTime)(1:lvar), '''', 'from netCDF file ''',
+     &                  ininame(1:linit),  '''.', nf_strerror(ierr)
           endif
         else
           write(*,2) vname(1,indxTime)(1:lvar), record,
@@ -835,8 +838,8 @@ c--#define VERBOSE
 # endif
 #endif /* SOLVE3D */
 
-! Close input NetCDF file and  write greeting message depending on
-! the the type of initial/restart procedure performed above.
+! Close input NetCDF file and  write greeting message depending
+! on the the type of initial/restart procedure performed above.
 
       ierr=nf_close(ncid)
 #ifdef MPI_SILENT_MODE

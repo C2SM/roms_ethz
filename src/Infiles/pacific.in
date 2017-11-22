@@ -3,29 +3,77 @@ title:
 
 
 time_stepping: NTIMES   dt[sec] NDTFAST  NINFO
-             12800000    2160      68      1
+            12800000    2700      84      1
 
-!              12800000    2700      84      1
+            12800000    2400      75      1
 
-!  12800000    2250      71      1 
+            12800000    1350      42      1
+
+!            12800000    2160      68      1
+!            12800000    2250      71      1
+!            12800000    2700      84      1
 
 
 
-
-S-coord: THETA_S,   THETA_B,    hc (m)
-           7.5D0     0.5D0     350.D0
+S-coord: THETA_S  THETA_B   hc (m)
+          7.5D0   0.5D0     350.D0
 
 grid:  filename
           pac23_grid.nc
 
 initial: NRREC  filename
-         1 
+           1
          pac23_ini.nc
 
+restart:  NRST, NRPFRST / filename
+           11520  -2   !<-- 360 days with dt=2700
+           rst.nc
+
+history: LDEFHIS NWRT NRPFHIS / filename
+            F  320  12 !<-- settings for 10-day output dt=2700
+             his.nc
+
+            F  640  12 !<-- settings for 10-day output dt=1350
+             his.nc
+
+
+
+
+
+
+!restart:  NRST, NRPFRST / filename
+           13149  -2   !<-- 365.25 days with dt=2400
+           rst.nc
+
+!history: LDEFHIS, NWRT, NRPFHIS / filename
+            F    360    12 !<-- settings for 10-day output dt=2400
+              his.nc
+
+averages: NTSAVG, NAVG, NRPFAVG / filename
+            1     360    18
+                 avg.nc
+
+primary_history_fields: zeta U,VBAR  U,V   wrtT(1:NT)
+                          T   T T    T T   T T
+
+auxiliary_history_fields: rho Omega W  Akv Akt Aks  HBL HBBL
+                           F   T    F   T   F   F    T   T
+
+primary_averages: zeta U,VBAR  U,V   wrtT(1:NT)
+                    T    T T   T T      T T
+
+auxiliary_averages: rho Omega W  Akv Akt Aks  HBL HBBL
+                     F    T   F   F   T   F    T   T
+
 boundary: filename
+     pac23_360bry.nc
+
          pac23_bry.nc
 
 forcing: filename
+         ncep_heat360.nc
+         ncep_winds_spline.nc
+
          ncep_heat.nc
          ncep_winds_spline.nc
       wind_y1958.nc
@@ -360,54 +408,21 @@ forcing: filename
          rain_y2012.nc
 
 
-
-
-
-
-
-
-
-restart:  NRST, NRPFRST / filename
-           13960  -2
-              rst.nc
-            40    -2
-                           rst.nc
-
-history: LDEFHIS, NWRT, NRPFHIS / filename 
-            F    400    12 !<-- settings for 10-day output dt=2160
-              his.nc
-
-
-
-
-averages: NTSAVG, NAVG, NRPFAVG / filename
-            1     360    18 
-                 avg.nc
-
-primary_history_fields: zeta U,VBAR  U,V   wrtT(1:NT)
-                          T   T T    T T   T T
-
-auxiliary_history_fields: rho Omega W  Akv Akt Aks  HBL HBBL
-                           F   T    F   T   F   F    T   T 
-
-primary_averages: zeta U,VBAR  U,V   wrtT(1:NT)
-                    T    T T   T T      T T
-
-auxiliary_averages: rho Omega W  Akv Akt Aks  HBL HBBL
-                     F    T   F   F   T   F    T   T 
-
 rho0:
       1027.8
 
-lateral_visc:   VISC2[m^2/sec]
+lateral_visc: visc2 [m^2/s]
                  0.
 
-tracer_diff2: TNU2(1:NT)           [m^2/sec for all]
+tracer_diff2: tnu2(1:NT) [m^2/s] for all
  0. 0. 0. 0. 0. 0. 0. 0. 0.
 
 
-bottom_drag:   RDRG [m/s],  RDRG2,  Zob [m]
-                 1.E-3         0.     0.    0.01
+SSS_correction: a.k.a. "piston velocity" [cm/day]
+          3.5
+
+bottom_drag:  rdrg[m/s]   rdrg2  Zob[m]
+                    0.      0.    0.01
 
 gamma2:
                  1.
@@ -417,10 +432,4 @@ v_sponge:           V_SPONGE [m^2/sec]
 
 ubind: OBC binding velocity scale [m/s]
        0.1
-
-
-! The following "nudg_cof" is no longer used. It is kept here for reference.
-
-nudg_cof: TauM2_in/out  attnM2   TauM3_in/out  TauT_in/out [days for all]
-             0.2  30.   0.005      1. 360.      1.  360.
 

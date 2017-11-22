@@ -225,25 +225,21 @@
         cff2=cff2*cff
         do j=jstrR,jendR
           do i=istrR,iendR
-            ubclm(i,j)=cff1*ubclima(i,j,it1)
-     &                +cff2*ubclima(i,j,it2)
-            vbclm(i,j)=cff1*vbclima(i,j,it1)
-     &                +cff2*vbclima(i,j,it2)
+            ubclm(i,j)=cff1*ubclima(i,j,it1)+cff2*ubclima(i,j,it2)
+            vbclm(i,j)=cff1*vbclima(i,j,it1)+cff2*vbclima(i,j,it2)
           enddo
         enddo
 # ifdef SOLVE3D
         do k=1,N
           do j=jstrR,jendR
             do i=istrR,iendR
-              uclm(i,j,k)=cff1*uclima(i,j,k,it1)
-     &                   +cff2*uclima(i,j,k,it2)
-              vclm(i,j,k)=cff1*vclima(i,j,k,it1)
-     &                   +cff2*vclima(i,j,k,it2)
+              uclm(i,j,k)=cff1*uclima(i,j,k,it1)+cff2*uclima(i,j,k,it2)
+              vclm(i,j,k)=cff1*vclima(i,j,k,it1)+cff2*vclima(i,j,k,it2)
             enddo
           enddo
         enddo
 # endif
-        if (cff1<0. .or. cff2<0.) then
+        if (cff1 < 0. .or. cff2 < 0.) then
           if (ZEROTH_TILE) then
             write(*,'(/1x,3A/3(1x,A,F16.10)/)')      '### WARNING: ',
      &   'set_uclima_tile :: Current model time is out of bounds of',
@@ -252,8 +248,24 @@
           endif
           ierr=ierr+1
         endif
+      elseif (iic == ntstart ) then         ! load time-invariant
+        do j=jstrR,jendR                    ! momentum climatology
+          do i=istrR,iendR
+            ubclm(i,j)=ubclima(i,j,ituclm)
+            vbclm(i,j)=vbclima(i,j,ituclm)
+          enddo
+        enddo
+# ifdef SOLVE3D
+        do k=1,N
+          do j=jstrR,jendR
+            do i=istrR,iendR
+              uclm(i,j,k)=uclima(i,j,k,ituclm)
+              vclm(i,j,k)=vclima(i,j,k,ituclm)
+            enddo
+          enddo
+        enddo
+# endif
       endif
-      return
       end
 #else
       subroutine get_uclima_empty

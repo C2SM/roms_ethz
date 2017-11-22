@@ -53,8 +53,8 @@
 
       ierr=0
 
-! External data to supply at open boundaries. Nnote that there are
-! two mutually exclussive mechanisms for each variable: either _BRY
+! External data to supply at open boundaries. Note that there are
+! two mutually exclusive mechanisms for each variable: either _BRY
 ! or climatological data. 
 
 #if defined T_FRC_BRY  || defined M2_FRC_BRY || \
@@ -119,17 +119,29 @@ c***              no code here
 #elif !defined BULK_SM_UPDATE
       call set_smflux_tile(istr,iend,jstr,jend, ierr)
 #endif
-#ifdef SOLVE3D
-# ifdef LMD_KPP
-#  ifdef ANA_SRFLUX
-      call ana_srflux_tile(istr,iend,jstr,jend)
-#  else
-      call set_srflux_tile(istr,iend,jstr,jend, ierr)
-#  endif
-# endif
 
+! Thermodynamic forcing: Note that BULK_FLUX requires computing the
+! short-wave radiation flux first because bulk flux routine performs
+! the final assembly of everything. Conversely if model is forced by
+! precomputed total flux (which includes daily averaged short-wave
+! radiation interpolated in time), then to introduce DIURNAL CYCLE
+! modulation set_srflux routine must interpolate short-wave flux in
+! time first, then subtract it from total, then modulate short-wave,
+! and, finally, add it back to total -- hence it must be called after.
+
+
+#ifdef SOLVE3D
 # ifdef BULK_FLUX
+#  ifdef LMD_KPP
+#   ifdef ANA_SRFLUX
+      call ana_srflux_tile(istr,iend,jstr,jend)
+#   else
+      call set_srflux_tile(istr,iend,jstr,jend, ierr)
+#   endif
+#  endif
+
       call bulk_flux_tile(istr,iend,jstr,jend)
+
 # else
 #  if defined SALINITY && defined ICEOBS
       call set_seaice_tile(istr,iend,jstr,jend,ierr)
@@ -138,6 +150,13 @@ c***              no code here
       call ana_stflux_tile(istr,iend,jstr,jend, itemp)
 #  else
       call set_stflux_tile(istr,iend,jstr,jend, itemp, ierr)
+#  endif
+#  ifdef LMD_KPP
+#   ifdef ANA_SRFLUX
+      call ana_srflux_tile(istr,iend,jstr,jend)
+#   else
+      call set_srflux_tile(istr,iend,jstr,jend, ierr)
+#   endif
 #  endif
 #  ifdef SALINITY
 #   ifdef ANA_SSFLUX

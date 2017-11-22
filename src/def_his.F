@@ -397,7 +397,7 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
       lfnm=lenstr(fname)
       if (rec_per_file > 0) then
         lvar=total_rec-(1+mod(total_rec-1, rec_per_file))
-        call insert_time_index (fname, lfnm, lvar, ierr)
+        call insert_time_index(fname, lfnm, lvar,  ierr)
         if (ierr /= 0) goto 99
       endif
 

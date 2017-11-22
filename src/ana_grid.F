@@ -80,6 +80,9 @@
 # elif defined RIVER
      &                  Size_XI=60.e+3,     Size_ETA=Size_XI*MMm/LLm,
      &                  depth=150.,         f0=1.E-4,      beta=0.
+# elif defined SLOSH
+     &                  Size_XI=200.,     Size_ETA=Size_XI*MMm/LLm,
+     &                  depth=20.,         f0=0.,      beta=0.
 # else
 #  error ANA_GRID CPP-switch is set, but grid parameters are missing.
 # endif

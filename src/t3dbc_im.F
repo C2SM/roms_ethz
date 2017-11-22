@@ -7,8 +7,8 @@
 
       implicit none
       integer istr,iend,jstr,jend, itrc, i,j,k
-      real grad(PRIVATE_2D_SCRATCH_ARRAY), dtfwd, cx,cy, cff, cext
-c-->     &                                            , dft,dfx,dfy
+      real grad(PRIVATE_2D_SCRATCH_ARRAY), cx,cy, cff, cext, dtfwd
+c-->     &                                           , dft,dfx,dfy
       real, parameter :: eps=1.E-33
 # include "param.h"
 # include "grid.h"
@@ -384,30 +384,30 @@ c-->     &                                            , dft,dfx,dfy
             dft=t(i,jend,k,nstp,itrc)-t(i,jend  ,k,nnew,itrc)
             dfx=t(i,jend,k,nnew,itrc)-t(i,jend-1,k,nnew,itrc)
 
-#   ifdef OBC_RAD_NORMAL
+#    ifdef OBC_RAD_NORMAL
             cy=0. ; cff=max(dfx*dfx, eps)
-#   else
+#    else
             if (dft*(grad(i,jend)+grad(i+1,jend)) > 0.) then
               dfy=grad(i,jend)
             else
               dfy=grad(i+1,jend)
             endif
             cff=max(dfx*dfx+dfy*dfy, eps)
-#    ifdef OBC_RAD_NPO
+#     ifdef OBC_RAD_NPO
             cy=0.
-#    else
+#     else
             cy=min(cff,max(dft*dfy,-cff))
+#     endif
 #    endif
-#   endif
 
             cx=dft*dfx
             if (cx < 0.) then     !--> cancel, if inflow
               cx=0. ; cy=0.
-#   if defined T_FRC_BRY || defined TNUDGING
+#    if defined T_FRC_BRY || defined TNUDGING
               cext=dtfwd*ubind * pn(i,jend+1)
             else
               cext=0.
-#   endif
+#    endif
             endif
 
             t(i,jend+1,k,nnew,itrc)=( cff*t(i,jend+1,k,nstp,itrc)

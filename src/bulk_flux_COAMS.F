@@ -89,67 +89,60 @@
 
       tmid=time+0.5*dt
 !> wind
-      it1=3-itwnd ; it2=itwnd
-      cff1=wnd_time(it2)-tmid  ; cff2=tmid-wnd_time(it1)
-      if (cff1 < dt .and. ntwnd > 1) synchro_flag=.true.
+      it2=itwnd ; cff1=wnd_time(it2)-tmid
+      it1=3-it2 ; cff2=tmid-wnd_time(it1)
+      if (cff1 < dt) synchro_flag=.true.
       cff=1./(cff1+cff2)
       cff1=cff1*cff ; cff2=cff2*cff
 
 !> tair
-      it3=3-ittair ; it4=ittair
-      cff3=tair_time(it4)-tmid ; cff4=tmid-tair_time(it3)
+      it4=ittair ; cff3=tair_time(it4)-tmid
+      it3=3-it4  ; cff4=tmid-tair_time(it3)
       if (cff3 < dt) synchro_flag=.true.
       cff=1./(cff3+cff4)
       cff3=cff3*cff ; cff4=cff4*cff
 
 !> rhum
-      it5=3-itrhum ; it6=itrhum
-      cff5=rhum_time(it6)-tmid ; cff6=tmid-rhum_time(it5)
+      it6=itrhum ; cff5=rhum_time(it6)-tmid
+      it5=3-it6  ; cff6=tmid-rhum_time(it5)
       if (cff5 < dt) synchro_flag=.true.
       cff=1./(cff5+cff6)
       cff5=cff5*cff ; cff6=cff6*cff
 
 !> prate
-      it7=3-itprate ; it8=itprate
-      cff7=prate_time(it8)-tmid ; cff8=tmid-prate_time(it7)
+      it8=itprate ; cff7=prate_time(it8)-tmid
+      it7=3-it8   ; cff8=tmid-prate_time(it7)
       if (cff7 < dt) synchro_flag=.true.
 
 ! Drakkar rain is in units of [kg/m^2/s^2]. convert it to [m/s]
-! using fresh water density.
+! using fresh water density rho=1000.
 
       cff=1./(1000.*(cff7+cff8))
       cff7=cff7*cff ; cff8=cff8*cff
 
 !> lwrad
-
-      it9=3-itlrf ; it10=itlrf
-      cff9=lrf_time(it10)-tmid ; cff10=tmid-lrf_time(it9)
+      it10=itlrf ; cff9=lrf_time(it10)-tmid
+      it9=3-it10 ; cff10=tmid-lrf_time(it9)
       if (cff9 < dt) synchro_flag=.true.
-      cff=1./(rho0*Cp*(cff9+cff10))    ! <-- convert [Watts/m^2] into
-      cff9=cff9*cff ; cff10=cff10*cff  !     kinematic flux [degC*m/s]
-
-
+      cff=1./(rho0*Cp*(cff9+cff10))     ! <-- convert [Watts/m^2] into
+      cff9=cff9*cff ; cff10=cff10*cff   !     kinematic flux [degC*m/s]
 
 # ifdef QCORRECTION
-      it11=3-itdqdt ; it12=itdqdt           ! Flux correction for
-      cff11=dqdt_time(it12)-tmid            ! net surface heat flux
-      cff12=tmid-dqdt_time(it11)            ! (relaxation toward
-      if (cff11 < dt) synchro_flag=.true.   ! observed SST data)
-      cff=1./(rho0*Cp*(cff11+cff12))        ! and, optionally,..
-      cff11=cff11*cff ; cff12=cff12*cff
+      it12=itdqdt ; cff11=dqdt_time(it12)-tmid  ! Flux correction for
+      it11=3-it12 ; cff12=tmid-dqdt_time(it11)  ! net surface heat flux
+      if (cff11 < dt) synchro_flag=.true.       ! (relaxation toward
+      cff=1./(rho0*Cp*(cff11+cff12))            ! observed SST data)
+      cff11=cff11*cff ; cff12=cff12*cff         ! and, optionally, ...
 
-      it13=3-itsst ; it14=itsst             ! same for surface
-      cff13=sst_time(it14)-tmid             ! freshwater flux
-      cff14=tmid-sst_time(it13)
+      it14=itsst  ; cff13=sst_time(it14)-tmid
+      it13=3-it14 ; cff14=tmid-sst_time(it13)
       if (cff13 < dt) synchro_flag=.true.
       cff=1/(cff13+cff14)
       cff13=cff13*cff ; cff14=cff14*cff
 # endif
-
 # ifdef SFLX_CORR
-      it15=3-itsss ; it16=itsss
-      cff15=sss_time(it16)-tmid
-      cff16=tmid-sss_time(it15)
+      it16=itsss  ; cff15=sss_time(it16)-tmid   ! the same for surface
+      it15=3-it16 ; cff16=tmid-sss_time(it15)   ! freshwater flux
       if (cff15 < dt) synchro_flag=.true.
       cff=1./(cff15+cff16)
       cff15=cff15*cff ; cff16=cff16*cff
@@ -292,13 +285,9 @@
      &           t(i,j,N,nrhs,itemp) -cff13*sstg(i,j,it13)
      &                               -cff14*sstg(i,j,it14)
      &                                                  )
-# elif defined SFLX_CORR
-                                 ! uniform restoring with
-          cff=-0.0555555*sec2day ! rate of 180 days for 10m
-                                 ! upper layer
 # endif
 # ifdef SFLX_CORR
-          stflx(i,j,isalt)=stflx(i,j,isalt) +cff*(
+          stflx(i,j,isalt)=stflx(i,j,isalt) -dSSSdt*(
      &           t(i,j,N,nrhs,isalt) -cff15*sssg(i,j,it15)
      &                               -cff16*sssg(i,j,it16)
      &                                                  )

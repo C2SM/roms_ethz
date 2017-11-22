@@ -3,32 +3,31 @@ Instructions how to use Makefile to build ROMS/UCLA model.
 There are three types of makefiles files associated with the
 ROMS/UCLA building procedure:
 
-  i. Makefile -- a universal machine independent makefile. This
-     file contains list of source code files which determine the
-     particular model configuration to be build. User is free to
-     add or delete files from this configuration list at his/her
-     own discretion without any restrictions, depending on
-     physical formulation of the problem. 
+  i. Makefile -- a universal machine independent makefile. This file
+     contains the list of source code files which determine the particular
+     model configuration to be build. User is free to add or delete files
+     from this configuration list at his/her own discretion without any
+     restrictions, depending on physical formulation of the problem.
 
- ii. Makedefs.machine_type (e.g., Makedefs.sgi, Makedefs.Linux):
-     These files contain definitions of rules, compilers and compiler
-     options, which are generally machine dependent. These files may
-     be edited by the user in order to insure optimal usage of the
-     compiler flags for a particular machine type or compiler.  
+ ii. Makedefs.machine_type (e.g., Makedefs.sgi, Makedefs.Linux): These files
+     contain definitions of rules, compilers and compiler options, which are
+     generally machine dependent. These files may be edited by the user in
+     order to insure optimal usage of the compiler flags for a particular
+     machine type or compiler.
 
-iii. Make.depend -- an automatically generated list of dependencies.
-     usually this list contains the names and dependencies of ALL
-     source codes in the directory regardless weather they are
-     actually needed in the present configuration or not. This file
-     is practically machine independent. This file should not be
-     edited by user under any circumstances.
+iii. Make.depend -- an automatically generated list of dependencies. Usually
+     this list contains the names and dependencies of ALL source codes in the
+     directory regardless weather they are actually needed in the present
+     configuration or not. This file is practically machine independent.
+     This file should not be edited by the user under any circumstances,
+     instead use "made depend" to update it, should it be needed.
 
 
 How to make Makefile work:
 === == ==== ======== =====
 
   1. Edit the include statements on the top of Makefile and chose an
-     appropriate one for your computer.  Simply comment/uncomment 
+     appropriate one for your computer.  Simply comment/uncomment
      Makedefs.machine_type file using pound symbol #. Note, only one 
      include should remain uncommented. 
 
@@ -81,7 +80,7 @@ How to make Makefile work:
      Type
              make
      or
-             make -j 2   (if you have a dual-processor Linux machine)
+             make -j 2   (if you have a multiple CPUs or cores Linux machine)
      or
              smake         (SGI machines only)
      or
@@ -90,20 +89,19 @@ How to make Makefile work:
                  [watch for lowercase "j" and uppercase "J" above]
      
  
-     to build the model. Here smake will make individual targets
-     in parallel, is multiple processors are available. -J stands
-     to specify the desired number of processors involved to override
-     the default, for example 8. 
+     to build the model. Here smake will make individual targets in parallel,
+     is multiple processors are available. -j -J stands to specify the desired
+     number of processors involved to override the default, for example 8.
 
-Final remark:
-===== =======
+Notes:
+======
 
  iv.  Once steps 1 and 2 are performed, one can simply type
 
                      make all
 
-     instead of steps 3,4,5. However, doing it in parallel, that
-     is "smake all" is not recommended, since the dependency file,
+     instead of steps 3,4,5. However, doing it in parallel, that is
+     "smake all" is not recommended, since the dependency file,
      "Make.depend", is being modified during this procedure.
 
   v. Command "make clean" is recommended when compiler options are
@@ -112,3 +110,95 @@ Final remark:
      codes and .h files were edited.
 
 
+Specifying libraries:
+========== ==========
+
+It is of ten the case that computer contains more than one version for each
+library: netCDF, HDF5, MPI, and their dependencies, as well as different
+versions of compilers.
+
+
+
+For ROMS it is always preferable to use Intel compiler for performance reasons.
+Especially if the machine Intel CPU.  Linux always comes with GCC compilers and
+they are available as default. In principle ROMS can be compiled using gfortran
+as well.  GCC/Gfortran is free, but Intel compiler is not (currently you can
+download free Intel compiler for Linux only if you are student, and Intel has
+way to verify this).
+
+It is desirable, but not strictly necessary that netCDF library (along with
+its dependencies) compiled using the same compiler, however sometimes it is
+not possible because compiler is not available (e.g., Intel Ifort Fortran
+compiler may or may not have matching C compiler installed on the
+machine.)
+
+Having N different version of libraries and M version of compilers in principle
+leads to N x M possibilities, some of which may be mutually incompatible,
+So...
+
+There are two ways to control which library is used when compiling ROMS
+or any other executable file:
+
+(1) specifying LD_LIBRARY_PATH
+
+(2) explicitly specifying path to library inside Makedefs.XXXX file
+
+
+The first one is kind of default; the second overrides it.  Note that ORDER
+of directories inside LD_LIBRARY_PATH DOES MATTER, as loader searches for the
+libraries by FORWARD scanning the sequence of directories and takes library
+on the first occasion.  Basically this means that if, say, file libnetcdff.so
+is present  in both /usr/lib64  (this is typically where Linux distribution
+puts it) AND in /usr/local/lib, and  LD_LIBRARY_PATH contains
+
+                    ..:/usr/lib64:/usr/local/lib:...
+
+among other things, loader takes the library from /usr/lib64 and ignores what
+is stored in the other directory.  This may or may not what one wants,
+depending on compiler you use.
+
+On all our machines all 3rd-party packages are located in /opt directory
+also known as /usr/local, and typically I compile everything there myself
+using Intel compiler.   On the other hand, libraries stored in /usr/lib64
+are compiled using GCC and come with Linux distribution.  This is to be
+kept in mind.
+
+Sometimes it is impossible to specify LD_LIBRARY_PATH  in .cshrc or .bashrc
+file because of conflicting demands, e.g., if one wants to use python which
+comes from Linux distribution and Python needs GCC-compiled netCDF library
+along with its dependencies.  At the same time he or she wantas to use
+Intel-compiled library for ROMS, so neither order of directories in
+LD_LIBRARY_PATH will suite for both.
+
+In this case your may set LD_LIBRARY_PATH  suitable for Python, but
+specify library directory inside Makedes.XXX file, say
+
+   LCDF = -L/opt/netcdf-4.2.1.1_largemem/lib -lnetcdff
+
+where -L option is the directory, and -l is library  name (meaning that
+the actual library file is called libnetcdff.so or  libnetcdff.a and file
+with such name (at least one or both) should be present in that directory.
+The rule is that when specifying -l the prefix "lib" and suffix ".so" or
+".a" should be omitted resulting in middle name, which is usually name of
+the package.
+
+Which file, .so or .a will be used by the loader: it depends on default
+policy setting, which is typically .so which is shared object (in windows
+world this is called dynamically shared library, or "dll").
+.so is not "compiled-in" into the executable, but is loaded at launch time.
+
+
+Another thing to know is that Linux loader actually looks first not for .so,
+or .a,  but rather for .la file, e.g., libnetcdff.la.  This is not the actual
+library, but it is a text file which contains library dependencies. It is for
+this reason one can get away with specifying only head library, while omitting
+all the dependencies: that is, the "ff" library is just fortran wrapper around
+C netCDF library, which itself needs hdf5 library, and hdf5 library netds zlib
+compression library, so the actual LCDF should look like
+
+  -L/opt/netcdf-4.3.3.1/lib -lnetcdff -lnetcdf -L/opt/hdf5-1.8.16/lib -lhdf5 \
+                                     -L/opt/zlib-1.2.8/lib -lz
+
+but instead one can get away with just specifying  -lnetcdff which is the first
+in the sequence. This is because -L/opt/netcdf-4.3.3.1/lib/libnetcdff.la file
+contains all the dependencies.

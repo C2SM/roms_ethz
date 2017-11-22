@@ -39,8 +39,8 @@
 # endif
 
 ! Determine which side(s) require boundary conditions and check
-! whether it is needed at all. Logical "need_bry" is used here as
-! a trigger variable: if it remains .false. for the current MPI
+! whether it is needed at all. Logical variable "need_bry" is used
+! as a trigger here: if it remains .false. for the current MPI
 ! subdomain it does not have edge adjacent to an open boundary.
 
       need_bry=.false.
@@ -453,7 +453,7 @@
         endif
 
         if (ierr == nf_noerr) then
-          ierr=nf_get_var1_FTYPE(bry_id, bry_time_id, bry_rec, dtime)
+          ierr=nf_get_var1_double(bry_id, bry_time_id, bry_rec, dtime)
           if (ierr == nf_noerr) then
             itbry=min(3-itbry,ntbry)
             bry_time(itbry)=dtime*day2sec + bry_cycle*bry_ncycle
@@ -550,7 +550,6 @@
 # endif
 
 # ifdef OBC_SOUTH
-!--> #  define CR
               if (south_bry_active) then
 #  ifdef Z_FRC_BRY
                 ierr=read_bry_NS(bry_id, zeta_south_id, bry_rec, r_var,
@@ -701,7 +700,7 @@
 # endif
 
       logical need_bry
-      real cff, cff1,cff2
+      real tmid, cff,cff1,cff2
 # include "param.h"
 # include "scalars.h"
 # include  "boundary.h"
@@ -763,20 +762,15 @@
         jmax=jend+1
       endif
 # endif
-
-      it1=3-itbry              ! Always set synchro_flag, regardless
-      it2=itbry                ! whether the boundary is needed or not:
-      cff=time+0.5*dt          ! this is necessary to make sure that
-      cff1=bry_time(it2)-cff   ! running out of data records condition
-      cff2=cff-bry_time(it1)   ! is the same for all MPI nodes.
-
-      if (cff1<dt) synchro_flag=.true.
-
+                                            ! Always set synchro_flag
+      tmid=time+0.5*dt                      ! regardless whether the
+      it2=itbry ; cff1=bry_time(it2)-tmid   ! boundary is needed or
+      it1=3-it2 ; cff2=tmid-bry_time(it1)   ! not: this is necessary
+      if (cff1 < dt) synchro_flag=.true.    ! to make sure that running
+      cff=1./(cff1+cff2)                    ! out of data records in
+      cff1=cff1*cff ; cff2=cff2*cff         ! the file is detected by
+                                            ! all MPI nodes.
       if (need_bry) then
-        cff=1./(cff1+cff2)                      ! interpolate boundary
-        cff1=cff1*cff                           ! values in time
-        cff2=cff2*cff
-
 # ifdef OBC_WEST
         if (WESTERN_EDGE) then
 #  ifdef Z_FRC_BRY
@@ -940,15 +934,19 @@
 #  endif
         endif
 # endif
+<<<<<<< HEAD
         if (cff1<0. .or. cff2<0.) then
            write(*,'(/3A/3(1x,A,D16.9)/)')            '### WARNING: ',
+=======
+        if (cff1 < 0. .or. cff2 < 0.) then
+           write(*,'(/3A/3(1x,A,F16.10)/)')            '### WARNING: ',
+>>>>>>> ROMS version of  Sasha as of 2017-07
      &      'set_bry_all_tile :: current model time is out of bounds ',
      &      'of ''bry_time''.', 'bry_tstart =', bry_time(it1)*sec2day,
      &      'tdays =',  tdays,  'bry_tend =',   bry_time(it2)*sec2day
           ierr=ierr+1
         endif
       endif  ! <-- need_bry
-      return
       end
 
 

@@ -57,8 +57,8 @@
         do while (ie<max_opt_size .and. cpps(ie:ie)/=' ')
           ie=ie+1
         enddo
-        if (cpps(ie:ie)==' ') ie=ie-1
-        if (cpps(is:is)=='<' .and. cpps(ie:ie)=='>') then
+        if (cpps(ie:ie) == ' ') ie=ie-1
+        if (cpps(is:is) == '<' .and. cpps(ie:ie) == '>') then
           if (nwd>0) then
             write(*,1) (bffr(i)(1:lbffr(i)), i=1,nwd)
             nwd=0

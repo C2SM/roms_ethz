@@ -1,20 +1,22 @@
 #include "cppdefs.h"
 #ifdef SOLVE3D
- 
+
 # define UPSTREAM_TS
 c--# define AKIMA
- 
-      subroutine step3d_t (tile)
-      implicit none
-      integer tile
+                                  ! Note that arrays A2d(1,1:4) within
+      subroutine step3d_t(tile)   ! the list of agruments in call below
+      implicit none               ! are repeated to use the same memory
+      integer tile                ! for vertical and horizontal scratch
+                                  ! arrays.
 # include "param.h"
 # include "private_scratch.h"
 # include "compute_tile_bounds.h"
+
       call step3d_t_tile( istr,iend,jstr,jend,
      &                    A2d(1,1), A2d(1,2), A2d(1,3), A2d(1,4),
-     &                               A2d(1,1), A2d(1,2), A2d(1,3))
+     &                    A2d(1,1), A2d(1,2), A2d(1,3)         )
       end
- 
+
       subroutine step3d_t_tile( istr,iend,jstr,jend, WC,FC,CF,DC,
      &                                                FX,FE,wrk1)
       implicit none
@@ -57,15 +59,16 @@ c--# define AKIMA
 ! and already MULTIPLIED by Hz(:,:,:) at "nstp" in "pre_step3d_tile".
 
       do k=1,N
-      do itrc=1,NT
- 
+        do itrc=1,NT
+
 # include "compute_horiz_tracer_fluxes.h"
- 
+
           do j=jstr,jend
             do i=istr,iend
               t(i,j,k,nnew,itrc)=t(i,j,k,nnew,itrc) -dt*pm(i,j)
-     &                             *pn(i,j)*( FX(i+1,j)-FX(i,j)
-     &                                      +FE(i,j+1)-FE(i,j))
+     &                              *pn(i,j)*( FX(i+1,j)-FX(i,j)
+     &                                        +FE(i,j+1)-FE(i,j)
+     &                                                         )
             enddo
           enddo                 !-->  discard FX,FE
 # ifdef PHYS_FLUX_ANALYSIS
@@ -93,16 +96,16 @@ c--# define AKIMA
 # endif /* PHYS_FLUX_ANALYSIS */
         enddo
       enddo
- 
+
       do j=jstr,jend                  ! Compute and add explicit part
         do itrc=1,NT                  ! of vertical advective fluxes.
- 
+
 # include "compute_vert_tracer_fluxes.h"
- 
+
           do k=1,N
             do i=istr,iend
               t(i,j,k,nnew,itrc)=t(i,j,k,nnew,itrc) -dt*pm(i,j)*pn(i,j)
-     &                                             *(FC(i,k)-FC(i,k-1))
+     &                                              *(FC(i,k)-FC(i,k-1))
             enddo
           enddo               !--> discard FC
 
@@ -228,7 +231,7 @@ c??           t(i,j,1,nnew,itemp)=t(i,j,1,nnew,itemp) -dt*cff
 c??         enddo
 
 #  if defined LMD_NONLOCAL && defined SALINITY
-          elseif (itrc==isalt) then
+          elseif (itrc == isalt) then
             do k=N-1,1,-1
               do i=istr,iend
                 cff=-dt*ghat(i,j,k)*stflx(i,j,isalt)
@@ -253,7 +256,7 @@ c??         enddo
 !                       -FC(k)*q_new(k+1) = Hz(k)*q_old(k)
 !
 !                dt*Akt(k)
-! where FC(k) = ----------- is normalized diffusivity coefficient 
+! where FC(k) = ----------- is normalized diffusivity coefficient
 !                  dz(k)
 !
 ! defined at W-points; q_new(k) is the new-time-step (unknown) tracer
@@ -274,7 +277,7 @@ c??         enddo
 ! be interpreted as that the implicit step merely redistributes the
 ! tracer concentration throughout the water column. At this moment
 ! the content of array t(:,:,:,nnew,itrc) has meaning of Hz*tracer.
-! After the implicit step it becomes just tracer. 
+! After the implicit step it becomes just tracer.
 !
 # if defined PHYS_FLUX_ANALYSIS && defined VERT_DIFF_ANALYSIS
 ! The vertical diffusive flux is not added in a step like the other fluxes,
@@ -287,10 +290,14 @@ c??         enddo
          end do
 # endif /* PHYS_FLUX_ANALYSIS & VERT_DIFF_ANALYSIS */
 
-# ifdef SALINITY
+# ifdef BIOLOGY
+#  ifdef SALINITY
           iAkt=min(itrc,isalt)
-# else
+#  else
           iAkt=min(itrc,itemp)
+#  endif
+# else
+          iAkt=itrc
 # endif
           do i=istr,iend
             DC(i,0)=dt*pm(i,j)*pn(i,j) !<--horizontal metric
@@ -324,10 +331,17 @@ c??         enddo
      &                   )/( Hz(i,j,N) +FC(i,N-1)-min(WC(i,N-1),0.)
      &                      -CF(i,N-1)*(FC(i,N-1)+max(WC(i,N-1),0.))
      &                                                             )
+# ifdef MASKING
+     &                                                  *rmask(i,j)
+# endif
           enddo
           do k=N-1,1,-1
             do i=istr,iend
-              t(i,j,k,nnew,itrc)=DC(i,k)+CF(i,k)*t(i,j,k+1,nnew,itrc)
+              t(i,j,k,nnew,itrc)=(DC(i,k)+CF(i,k)*t(i,j,k+1,nnew,itrc))
+# ifdef MASKING
+     &                                                      *rmask(i,j)
+# endif
+
             enddo
           enddo           !--> discard FC,WC,CF,DC
 
@@ -526,7 +540,7 @@ c??         enddo
             do i=istrR,iendR
 #  ifdef TCLIMATOLOGY
               t(i,j,k,nnew,itrc)=t(i,j,k,nnew,itrc)
-     &       +dt*Tnudgcof(i,j,itrc)*( tclm(i,j,k,itrc)
+     &           +dt*Tnudgcof(i,j,itrc)*( tclm(i,j,k,itrc)
      &                             -t(i,j,k,nnew,itrc))
 #  ifdef FULL_PHYS_FLUX_ANALYSIS
 #if !defined SELECTED_FLUX_ANALYSIS /* AH */
@@ -549,11 +563,10 @@ c??         enddo
 #  undef I_RANGE
 #  undef J_RANGE
 # endif
-
       enddo  ! <-- itrc
 
 ! Exchange computational margins and/or periodic boundaries:
-!--------- ------------- -------- ------ -------- ----------- 
+! -------- ------------- -------- ------ -------- ----------
 ! This is done only here if the code is configured without explicit
 ! lateral diffusion. If there is one, then the exchange routine is
 ! called from the diffusive routine which immediately follows this
@@ -583,9 +596,8 @@ c??         enddo
 # include "param.h"
 # include "strings.h"
       ie=lenstr(cpps)
-      is=ie+2
-      ie=is+13
-      if (ie>max_opt_size) goto 99
+      is=ie+2 ; ie=is+13
+      if (ie > max_opt_size) goto 99
       cpps(is:ie)='<step3d_t3S.F>'
 
 # include "track_advec_switches.h"
@@ -595,7 +607,6 @@ c??         enddo
      &  'Insufficient length of string "cpps" in file "strings.h".',
      &        'Increase parameter "max_opt_size" it and recompile.'
       ierr=ierr+1
-      return
       end
 #else
       subroutine step3d_t_empty

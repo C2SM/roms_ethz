@@ -7,8 +7,8 @@
 
       implicit none
       integer istr,iend,jstr,jend, i,j
-      real grad(PRIVATE_2D_SCRATCH_ARRAY), cx,cy, cff,
-     &         dft,dfx,dfy, cext, zx,hx
+      real grad(PRIVATE_2D_SCRATCH_ARRAY), cx,cy, cext, cff,
+     &                                     dft,dfx,dfy, zx,hx
       real, parameter :: eps=1.D-33
 #ifdef OBC_FLUX_CORR
       real uv_crss

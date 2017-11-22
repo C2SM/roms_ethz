@@ -1,19 +1,21 @@
       program transp_nodes
 
-! A program to automatically generate MPI machine file "machines.LINUX"
+! A program to automatically generate MPI machine file machines.LINUX
 ! for the optimal placement of MPI ranks to the actual hardware nodes
 ! (hosts) on a cluster made of multi-processor nodes. In takes an input
-! file (usually "lsb_hosts") which contains the list of hostnames of
-! compute nodes given to execute the job and rearranges it such a way
-! that MPI-nodes adjacent in ETA-direction are placed on the same multi
-! -processor compute node. The goal is to minimize sending MPI messages
-! across network interconnect (Infiniband or else) by directing as much
-! communication as possible  to be local within the multi-processor
-! compute nodes.
-!
+! file (usually  $PBS_NODEFILE or $LSB_HOSTS) which contains the list
+! of hostnames of compute nodes allocated to the batch job submitted
+! into the queue (obviously there is no way to know the hostnames until
+! the job actually starts) and rearranges it such a way that MPI-nodes
+! adjacent in ETA-direction are placed on the same multi-processor
+! compute node.  The goal is to minimize sending MPI messages across
+! the network interconnect (Infiniband or whatever) by directing as
+! much communication as possible to be internal within each multi-
+! processor compute node.
+
 ! For example, optimal placement for 6 quad-processor nodes (hence
 ! 24 CPUs total) configuration is with 3x8 sub-domain decomposition is
-!
+
 !   ==============     ==============     ==============     0 HOST_1
 !  |              |   |              |   |              |    1 HOST_2
 !  |   rank 21    |   |   rank 22    |   |   rank 23    |    2 HOST_3
@@ -49,29 +51,34 @@
 !  |    rank 0    |   |    rank 1    |   |    rank 2    |
 !  |              |   |              |   |              |
 !   ==============     ==============     ==============
-!
+
 ! where HOST_1, ..., HOST_6 are names of quad-processor compute hosts,
 ! while rank 0, ..., rank 23 are MPI-ranks working on individual MPI
 ! subdomains.  The table on the right shows the placement of each MPI
 ! rank (left column) to the physical node (right column, which is also
 ! the actual output file "machines.LINUX" of this program).
-
-! Input file "lsb_hosts" is expected to contain a single line listing
-! all the hosts separated by blank character, basically it is the
-! output of  "echo $LSB_HOSTS" command, so the overall usage of this
-! program is expected to be as follows:
 !
+! This program is expected to be used in batch script submitted to
+! queue as follows:
+!
+!        transp_nodes $PBS_NODEFILE
+!        mpirun_rsh -np 256 -hostfile machines.LINUX roms_exe
+! or
 !        echo $LSB_HOSTS > lsb_hosts
 !        transp_nodes lsb_hosts
-!        mpiexec -np N -machinefile machines.LINUX roms_executable
+!        mpiexec -np N -machinefile machines.LINUX roms_exe
 !
-! where "transp_nodes" takes "lsb_hosts" file and creates file
-! "machines.LINUX"  Since it relies on settings of NP_XI, NP_ETA to
-! know the grid partitioning geometry, "transp_nodes" is expected to
-! be compiled together with roms_executable (needs the same "param.h").
-! The number of CPUs (cores) per host is determined from the number of
-! repetitions of each individual hostname within the string LSB_HOSTS.
-
+! depending on the specific queueing system: some like PBS may provide
+! a file which already looks like machines.LINUX (listing one hostname
+! per line); others like LSB provide just an environmental variable --
+! a long character string containing all the node names allocated to
+! the current batch job.  Either way "transp_nodes" takes the list
+! provided by the queuing system and creates file "machines.LINUX"
+! specifically suitable for grid partitioning geometry NP_XI,NP_ETA
+! (thus "transp_nodes" is expected to be compiled together with roms
+! executable -- it needs the same "param.h"). The number of CPUs
+! (cores) per host is determined from the number of repetitions of
+! each individual hostname in the list
 
 
 #define VERBOSE
@@ -84,12 +91,12 @@
       integer, parameter :: iin=11, iout=12
       character(len=14), parameter :: machinefile = 'machines.LINUX'
       character(len=10) fmt
-      character(len=64) fname
-      character(len=:), allocatable :: string,   host(:)
+      character(len=64) fname, bffr
+      character(len=:), allocatable :: str, host(:)
       integer,          allocatable :: lhost(:), jhost(:), jrpts(:)
-      integer nhosts, nunique, npnode, max_name_size, is,ie, ierr,
-     &        inode, jnode,  n_xi_rpt, n_eta_rpt,  jinc, i,j, ii,jj,
-     &                                          lstr, lfnm, lenstr
+      integer nhosts, nunique, npnode, max_str_size, max_name_size,
+     &        is,ie, ierr, inode, jnode,  n_xi_rpt, n_eta_rpt, jinc,
+     &                        i,j, ii,jj, lstr, lbfr, lfnm, lenstr
       logical lswitch
 
 ! Function "iargc" is viewed as intrinsic by most modern compilers
@@ -100,40 +107,88 @@
 #ifdef INT_IARGC
       integer iargc
 #endif
-                                  ! Open hostname file, inquire about
-                                  ! its size, bytes, allocate character
-      if (iargc()>0) then         ! string of sufficient length, and
-        call getarg(1,fname)      ! read in content of the file...
+
+! Open hostname file, inquire about its size in bytes, allocate
+! a character string of sufficient length to accommodate the whole
+! file and try to read it. Because different type queueing system
+! may have supply it in two different formats -- (i) either a long
+! character string listing all the nodes, or (ii) a file listing
+! one node per line -- the code below is designed to handle both
+! contingencies automatically: at first it attempts to read the file
+! as would be a single string, checks whether the string contains
+! blanc characters separating the names: if not keep reading the
+! file line-by-line and add new names into the string -- the result
+! of this operation will be essentially the same for both cases --
+! a long string.
+
+      nhosts=0
+      if (iargc() == 1) then
+        call getarg(1,fname)
         lfnm=lenstr(fname)
-        open(unit=iin, file=fname(1:lfnm), status='old')
-        inquire(unit=iin, size=lstr)
-        allocate(character(len=lstr) :: string)
-        read(iin,'(A)') string
-        close(unit=iin)
+        open(unit=iin, file=fname(1:lfnm), status='old', iostat=ierr)
+        if (ierr == 0) then
+          inquire(unit=iin, size=max_str_size)
+          allocate(character(len=max_str_size) :: str)
+          read(iin,'(A)',iostat=ierr) str
+          if (ierr == 0) then
+            ie=lenstr(str)
+            nhosts=1
+            do i=2,ie-1
+              if (str(i:i) == ' ') nhosts=nhosts+1
+            enddo
+            if (nhosts == 1) then
+              do while(ierr == 0)
+                read(iin,'(A)',iostat=ierr) bffr
+                if (ierr == 0) then
+                  lbfr=lenstr(bffr)
+                  is=ie+2 ; ie=is+lbfr-1
+                  if (ie <= max_str_size) then
+                    str(is-1:is-1)=' '
+                    str(is:ie)=bffr(1:lbfr)
+                    nhosts=nhosts+1
+                  else
+                    write(*,'(/2A/)') '### ERROR: transp_nodes :: ',
+     &                      'insufficient length of buffer string.'
+                    stop
+                  endif
+                endif
+              enddo
+            endif
+          else
+            write(*,'(/4A/)')    '### ERROR: transp_nodes :: Cannot ',
+     &                  'read host name file ''', fname(1:lfnm), '''.'
+            stop
+          endif
+          close(unit=iin)
+        else
+          write(*,'(/4A/)') '### ERROR: transp_nodes :: Cannot open ',
+     &                       'host name file ''', fname(1:lfnm), '''.'
+          stop
+        endif
+        lstr=lenstr(str)
 # ifdef VERBOSE
-        write(*,'(3A,I8)') 'fname = ''',fname(1:lfnm),''' size =',lstr
-        write(*,'(3A)')   'content = ''',  string(1:lstr), ''''
+        write(*,'(3A,I7,1x,A,I5)') 'processing = ''', fname(1:lfnm),
+     &                        ''' size =', lstr, 'nhosts =', nhosts
+        write(*,'(/3A/)')   'hostnames = ''',  str(1:lstr), ''''
 # endif
       else
-        write(*,'(2A)') '### ERROR :: transp_nodes requires a single ',
-     &                              'argument -- filename is missing.'
+        write(*,'(/2A/)') '### ERROR: transp_nodes requires ',
+     &            'a single argument -- filename is missing.'
         stop
-      endif
-
-                                        ! Preprocessing: find how many
-      lstr=lenstr(string)               ! hostnames (words separated by
+      endif                             ! Preprocessing: find how many
+                                        ! hostnames (words separated by
       nhosts=0                          ! blank characters) are in the
       max_name_size=0                   ! string and find the maximum
       lswitch=.true.                    ! length among all words; use
       do i=1,lstr                       ! these two numbers to allocate
         if (lswitch) then               ! storage with appropriate size
-          if (string(i:i)/=' ') then    ! for further processing...
+          if (str(i:i) /= ' ') then     ! for further processing...
             is=i
             lswitch=.false.
           endif
         else
-          if (string(i:i)==' ' .or. i==lstr) then
-            if (i==lstr) then
+          if (str(i:i) == ' ' .or. i == lstr) then
+            if (i == lstr) then
               ie=lstr
             else
               ie=i-1
@@ -146,28 +201,26 @@
       enddo
 
       allocate(character(len=max_name_size) :: host(nhosts))
-      allocate(lhost(nhosts))
-      allocate(jhost(nhosts))
-      allocate(jrpts(nhosts))
+      allocate(lhost(nhosts),  jhost(nhosts), jrpts(nhosts))
 
-      lswitch=.true.                    ! Copy individual hostnames
-      j=0                               ! into indexed character array
-      do i=1,lstr                       ! "host" and also record length
-        if (lswitch) then               ! of each hostname
-          if (string(i:i)/=' ') then
+      lswitch=.true.                        ! Copy individual hostnames
+      j=0                                   ! into indexed character
+      do i=1,lstr                           ! array "host" and record
+        if (lswitch) then                   ! length of each hostname
+          if (str(i:i) /= ' ') then
             is=i
             lswitch=.false.
           endif
         else
-          if (string(i:i)==' ' .or. i==lstr) then
-            if (i==lstr) then
+          if (str(i:i) == ' ' .or. i == lstr) then
+            if (i == lstr) then
               ie=lstr
             else
               ie=i-1
             endif
             lswitch=.true.
             j=j+1
-            host(j)=string(is:ie)
+            host(j)=str(is:ie)
             lhost(j)=ie-is+1
           endif
         endif
@@ -176,17 +229,17 @@
         do i=lhost(j)+1,max_name_size
          host(j)(i:i)=' '
         enddo
-      enddo               !--> discard string
+      enddo         !--> discard str
 
-# define string illegal
-                                       ! Post-processing: determine
-      nunique=1                        ! unique names among all the
-      jhost(1)=1                       ! hostnames and record index
-      do i=1,nhosts                    ! of the first appearance
-        lswitch=.true.                 ! for each unique name...
+#define str illegal
+                                            ! Post-processing: find
+      nunique=1                             ! unique names among all
+      jhost(1)=1                            ! the hostnames and
+      do i=1,nhosts                         ! record index of the
+        lswitch=.true.                      ! first appearance...
         do j=1,nunique
-          if ( lhost(i)==lhost(jhost(j)) .and.
-     &          host(i)== host(jhost(j)) ) then
+          if ( lhost(i) == lhost(jhost(j)) .and.
+     &          host(i) ==  host(jhost(j)) ) then
             lswitch=.false.
           endif
         enddo
@@ -195,18 +248,18 @@
           jhost(nunique)=i
         endif
       enddo
-                                       ! determine how many times each
-      do j=1,nunique                   ! unique hostname is repeated
-        jrpts(j)=0
+                                             ! determine how many
+      do j=1,nunique                         ! times each unique
+        jrpts(j)=0                           ! hostname is repeated
         do i=1,nhosts
-          if ( lhost(i)==lhost(jhost(j)) .and.
-     &          host(i)== host(jhost(j)) ) then
+          if ( lhost(i) == lhost(jhost(j)) .and.
+     &          host(i) ==  host(jhost(j)) ) then
             jrpts(j)=jrpts(j)+1
           endif
-        enddo
-      enddo                            ! verify that that all unique
-                                       ! names are repeated the same
-      lswitch=.true.                   ! number of times
+        enddo                                ! verify that that all
+      enddo                                  ! unique names appear
+                                             ! exactly the same number
+      lswitch=.true.                         ! of times
       do j=2,nunique
         if (jrpts(j)/=jrpts(1)) lswitch=.false.
       enddo
@@ -246,7 +299,7 @@
         ierr=ierr+1
       endif
 
-      if (NP_ETA<npnode) then
+      if (NP_ETA < npnode) then
         n_xi_rpt=npnode/NP_ETA
         if (n_xi_rpt*NP_ETA /= npnode) then
           write(*,'(1x,2A,I5,2A,I5)')   '### ERROR :: Number of CPUs ',
@@ -273,7 +326,7 @@
         ierr=ierr+1
       endif
 
-      if (ierr==0) then
+      if (ierr == 0) then
         open(unit=iout, file=machinefile, form='formatted')
         do jnode=0,NP_ETA-1
           jj=jnode/npnode
@@ -294,19 +347,21 @@ c**         write(*,*) j, jhost(j)
         enddo                         ! in format of a 2D NP_XI*NP_ETA
         close(unit=iin)               ! matrix to visualize mapping.
 
-        write(*,'(1x,A,I4,2(3x,A,I4))')  'NP_XI =', NP_XI,  'NP_ETA =',
+        write(*,'(1x,A,I4,2(3x,A,I4))') 'NP_XI =', NP_XI, 'NP_ETA =',
      &           NP_ETA, 'Number of CPUs (cores) per node =', npnode
-      write(*,'(1x,2A)') '---------------------------------',
-     &                   '---------------------------------'
+        write(*,'(1x,2A)') '---------------------------------',
+     &                     '---------------------------------'
         write(fmt,'(A,I2,A)'), '(', NP_XI, '(1x,A))'
         do jnode=0,NP_ETA-1
           jj=jnode*NP_XI
           write(*,fmt) (host(i+jj)(1:lhost(i+jj)), i=1,NP_XI)
         enddo
+        write(*,'(1x,2A)') '---------------------------------',
+     &                     '---------------------------------'
 # endif
       endif
-      stop
       end
+# undef str
 # include "lenstr.F"
 #else
       end

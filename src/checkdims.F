@@ -2,19 +2,19 @@
 
       integer function checkdims(ncid, fname, max_rec)
 
-! Verify that all spatial dimensions in file with netCDF ID=ncid and
-! name=fname are consistent with the corresponding model dimensions and
-! find the current size of unlimited dimension.
+! Verify that all spatial dimensions in file with netCDF ID=ncid
+! and file name=fname are consistent with the corresponding model
+! dimensions and find the current size of unlimited dimension.
 !
-! input:  ncid      netCDF ID and file name of input netCDF file
-!         fname     [both arguments are assumed to be defined,
-!                   however fname is used only to write error
-!                   messages something goes wrong.]
+! input: ncid      netCDF ID and file name of input netCDF file
+!        fname     [both arguments are assumed to be defined,
+!                  however fname is used only to write error
+!                  messages something goes wrong.]
 !
-! output: checkdims  (returned value) error status [=nf_noerr=0,
+! output: checkdims (returned value) error status [=nf_noerr=0,
 !                                            if no error occurs]
-!         max_rec    current size of unlimited dimension
-!                    [=0, if there is no unlimited dimension].
+!         max_rec   current size of unlimited dimension
+!                   [=0, if there is no unlimited dimension].
 
       implicit none
       integer ncid, max_rec, ierr, icount, ndims, recdim,
@@ -45,40 +45,40 @@
           ierr=nf_inq_dim (ncid, id, dname, dsize)
           if (ierr == nf_noerr) then
             ldim=lenstr(dname)
-            if ((ldim==6 .and. dname(1:ldim)=='xi_rho') .or.
-     &          (ldim==4 .and. dname(1:ldim)=='xi_v'  )) then
+            if ( (ldim == 6 .and. dname(1:ldim) == 'xi_rho') .or.
+     &           (ldim == 4 .and. dname(1:ldim) == 'xi_v' ) ) then
               if (dsize/=xi_rho) then
                 write(*,1) dname(1:ldim), dsize,fname(1:lname),xi_rho
                 icount=icount+1
               endif
-            elseif ((ldim==4 .and.dname(1:ldim)=='xi_u'  ) .or.
-     &              (ldim==6 .and. dname(1:ldim)=='xi_psi')) then
-              if (dsize/=xi_u) then
+            elseif ( (ldim == 4 .and. dname(1:ldim) == 'xi_u'  ) .or.
+     &               (ldim == 6 .and. dname(1:ldim) == 'xi_psi') ) then
+              if (dsize /= xi_u) then
                 write(*,1) dname(1:ldim), dsize, fname(1:lname), xi_u
                 icount=icount+1
               endif
-            elseif ((ldim==7 .and. dname(1:ldim)=='eta_rho') .or.
-     &              (ldim==5 .and. dname(1:ldim)=='eta_u' )) then
+            elseif ( (ldim == 7 .and. dname(1:ldim) == 'eta_rho') .or.
+     &               (ldim == 5 .and. dname(1:ldim) == 'eta_u' ) ) then
               if (dsize/=eta_rho) then
                 write(*,1) dname(1:ldim), dsize,fname(1:lname),eta_rho
                 icount=icount+1
               endif
-            elseif ((ldim==5 .and.dname(1:ldim)=='eta_v') .or.
-     &              (ldim==7 .and.dname(1:ldim)=='eta_psi')) then
-              if (dsize/=eta_v) then
+            elseif ( (ldim == 5 .and. dname(1:ldim) == 'eta_v' ) .or.
+     &               (ldim == 7 .and. dname(1:ldim) =='eta_psi') ) then
+              if (dsize /= eta_v) then
                 write(*,1) dname(1:ldim), dsize, fname(1:lname), eta_v
                 icount=icount+1
               endif
 #ifdef SOLVE3D
-            elseif (ldim==3 .and. dname(1:ldim)=='s_w') then
+            elseif (ldim == 3 .and. dname(1:ldim) == 's_w') then
               chk_Cs_wr=chk_Cs_wr+1
-              if (dsize/=N+1) then
+              if (dsize /= N+1) then
                 write(*,1) dname(1:ldim), dsize, fname(1:lname), N+1
                 icount=icount+1
               endif
-            elseif (ldim==5 .and. dname(1:ldim)=='s_rho') then
+            elseif (ldim == 5 .and. dname(1:ldim) == 's_rho') then
               chk_Cs_wr=chk_Cs_wr+2
-              if (dsize/=N) then
+              if (dsize /= N) then
                 write(*,1) dname(1:ldim), dsize, fname(1:lname), N
                 icount=icount+1
               endif
@@ -112,13 +112,96 @@
       end
 
 
+      integer function check_vardims(ncid,fname, varid, horiz_type,n3)
+
+! Verify that spatial dimensions of a specified variable in netCDF
+! file match that expected by the running mode.
+!
+! input: ncid       netCDF ID and file name of input netCDF file
+!        fname      [both arguments are assumed to be defined, however
+!                   fname is used only for writing error messages if
+!                   something goes wrong.]
+!        varid      variable ID
+!        horiz_type horizontal type defining placement of the variable
+!                   in staggered grid [=0,1,2,3 matching the definition
+!                       of one of the named parameters in "ncvars.h"]
+!        n3         expected size of vertical dimension [=0 means do
+!                   not check this dimension]
+
+! returned value    error status [=nf_noerr when no mismatches]
+
+      implicit none
+      integer ncid, varid, horiz_type, n3
+      character(len=*) fname
+      character(len=32) vname
+      integer ierr, vtype, ndims, natts, dimid(8),
+     &                size, i, lfnm, lvar, lenstr
+#include "param.h"
+#include "netcdf.inc"
+#define NO_RECORD_CHECK
+#include "compute_starts_counts.h"
+#if defined MPI && !defined PARALLEL_FILES
+      count(1)=LLm+2-imin  !<-- dimensions of the variable
+      count(2)=MMm+2-jmin  !<-- on the entire physical grid
+#endif
+
+      lfnm=lenstr(fname)
+      ierr=nf_inq_var(ncid, varid, vname, vtype, ndims, dimid, natts)
+      if (ierr == nf_noerr) then
+        lvar=lenstr(vname)
+        do i=1,2
+          if (ierr == nf_noerr) then
+            ierr=nf_inq_dimlen(ncid, dimid(i), size)
+            if (ierr == nf_noerr) then
+              if (count(i) /= size) then
+                write(*,'(/2A,I3,1x,5A,2(I5,1x,A)/)')   '### ERROR: ',
+     &                    'checkvardims :: mismatch in dimension #', i,
+     &                    'for variable ''', vname(1:lvar), ''' in ''',
+     &                     fname(1:lfnm),  ''': expecting',   count(i),
+     &                              'instead of', size, 'in the file.'
+                ierr=nf_noerr-1
+              endif
+            else
+              write(*,'(/1x,2A,I3,1x,6A/)') '### ERROR: checkvardims ',
+     &                    ':: Cannot determine size of dimension #', i,
+     &                    'for variable ''', vname(1:lvar), ''' in ''',
+     &                       fname(1:lfnm), ''', ', nf_strerror(ierr)
+            endif
+          endif
+        enddo
+
+        if (n3 > 0 .and. ierr == nf_noerr) then
+          ierr=nf_inq_dimlen(ncid, dimid(3), size)
+          if (ierr == nf_noerr) then
+            if (n3 /= size) then
+              write(*,'(/6A,2(I4,1x,A)/)')  '### ERROR: checkvardims ',
+     &                    ':: mismatch in dimension #3 of variable ''',
+     &                        vname(1:lvar), ''' in ''', fname(1:lfnm),
+     &         ''': expecting', n3, 'instead of', size, 'in the file.'
+              ierr=nf_noerr-1
+            endif
+          else
+            write(*,'(/1x,7A/)')  '### ERROR: checkvardims :: Cannot ',
+     &                'determine size of dimension #3 for variable ''',
+     &                vname(1:lvar), ''' in ''', fname(1:lfnm), ''', ',
+     &                                               nf_strerror(ierr)
+          endif
+        endif ! <-- n3 > 0
+      else
+        write(*,'(/1x,2A,I3,1x,4A/)')    '### ERROR: checkvardims :: ',
+     &      'Cannot make inquiry for variable varid =', varid, 'in ''',
+     &                       fname(1:lfnm), ''', ', nf_strerror(ierr)
+      endif
+      check_vardims=ierr
+      end
+
 
 #ifdef SOLVE3D
 
-! The following function checks whether S-coordinate parameter hc, Cs_w- 
-! and Cs_r-curves found in netCDF file 'fname' match their counterparts
-! defined by the model. Print error messages and return non-zero status,
-! in the case of mismatch.
+! Check whether S-coordinate parameter hc, and Cs_w- Cs_r-curves found
+! in netCDF file "fname" match their counterparts in the running model.
+! Print error messages and return non-zero status, in the case of
+! mismatch.
 
       integer function check_scoord(ncid, fname, what_to_check)
       implicit none
@@ -233,27 +316,25 @@
 
       function read_nc1dat(ncid, fname, vname, nlen, value)
 
-! A basic function to retrieve a simple variable [stored as either a
-! scalar or fixed-size array], which can be stored in netCDF file as
-! a global attribute or a variable.
+! A basic function to retrieve a simple variable [stored as either
+! a scalar or fixed-size array], which can be stored in netCDF file
+! as a global attribute or a variable.
 !
-! input:  ncid      netCDF ID and name of input file [both arguments
-!         fname     are assumed to be defined at entry (hence the file
-!                   in already open state) however fname is used only
-!                   to write error messages something goes wrong.]
+! input: ncid     netCDF ID and name of input file [both arguments
+!        fname    are assumed to be defined at entry (hence the file
+!                 in already open state) however fname is used only
+!                 to write error messages something goes wrong.]
 !
-!         vname     name of the variable to be read and its expected
-!         nlen      length, which will be checked against the actual
-!                   size of the global attribute (or variable) in
-!                   the file.
+!        vname    name of the variable to be read and its expected
+!        nlen     length, which will be checked against the actual
+!                 size of the global attribute (or variable) in
+!                 the file.
 !
-! output: value     value(s, if array) of the variables. Note that
-!                   the value is read as a whole [there is no
-!                   provision to read a subset of values, a record.]
+! output: value   value(s, if array) of the variables. Note that
+!                 the value is read as a whole [there is no
+!                 provision to read a subset of values, a record.]
 !
-!       read_nc1dat (returned status) =0, if no error occurs, or
-!                   otherwise, if error. Also diagnose the cause and
-!                   write error messages, if any.
+! returned value  error status =0 means no error.
 
       implicit none
       integer read_nc1dat, ncid, nlen
@@ -262,19 +343,18 @@
 
       integer ndims, dimids(8), varid, vtype, size,
      &               i,j, ierr,  lvar, lfile, lenstr
-# include "netcdf.inc"
-# include "param.h"
+#include "netcdf.inc"
 
       lvar=lenstr(vname) ; lfile=lenstr(fname)
 
       ierr=nf_inq_att(ncid, nf_global, vname, vtype, size)
       if (ierr == nf_noerr) then
         if (size == nlen) then
-          ierr=nf_get_att_FTYPE(ncid,nf_global, vname(1:lvar),value)
+          ierr=nf_get_att_FTYPE(ncid, nf_global, vname(1:lvar), value)
           if (ierr /= nf_noerr) then
-            write(*,'(/1x,6A/12x,A/)')   '### ERROR: read_nc1dat :: ',
-     &         'Cannot retrieve global attribute ''',   vname(1:lvar),
-     &         ''' from ''', fname(1:lfile), '''.', nf_strerror(ierr)
+            write(*,'(/1x,6A/12x,A/)')    '### ERROR: read_nc1dat :: ',
+     &          'Cannot retrieve global attribute ''',   vname(1:lvar),
+     &          ''' from ''', fname(1:lfile), '''.', nf_strerror(ierr)
           endif
         endif
       else
@@ -294,7 +374,7 @@
                     size=size*j
                   endif
                 enddo
-                if (ierr/=nf_noerr) then
+                if (ierr /= nf_noerr) then
                   write(*,'(/1x,2A,I3,1x,3A/12x,A/)')    '### ERROR: ',
      &                'read_nc1dat :: Cannot find size of dimension #',
      &                 dimids(i),  'in file ''', fname(1:lfile), '''.',
@@ -337,19 +417,19 @@
       end
 
 
-! The following is just a wrap-around of the standard nf_def_dim
-! netCDF function instrumented solely to print out an error message,
-!  if something goes wrong.  This is needed because there is no error
-! handling code in the calling routine.
+! The following is just a wrap-around of the standard netCDF nf_def_dim
+! and nf_def_var functions instrumented solely to print out an error
+! message, if something goes wrong.  This is needed because there is no
+! error handling code in the calling routine.
 
       function my_nf_def_dim(ncid, name, len, dimid)
       implicit none
       integer my_nf_def_dim, ncid, len, dimid, ierr
       character(len=*) name
-# ifdef MPI
-#  include "param.h"       /* <-- needs "mynode" */
-# endif
-# include "netcdf.inc"
+#ifdef MPI
+# include "param.h"       /* <-- needs "mynode" */
+#endif
+#include "netcdf.inc"
       ierr=nf_def_dim(ncid, name, len, dimid)
       if (ierr /= nf_noerr) then
         write(*,'(/1x,2A,I3,3A,I4,A,I10/12x,2A,I3/)')   '#### ERROR: ',
@@ -364,7 +444,7 @@
       integer my_nf_def_var, ncid, type, ndims, dimids(ndims), varid
      &      , ierr, i
       character(len=*) name
-# include "netcdf.inc"
+#include "netcdf.inc"
       ierr=nf_def_var(ncid, name, type, ndims, dimids, varid)
       if (ierr == nf_noerr) then
         write(*,*) 'created variable ', name, ' varid =', varid
@@ -377,6 +457,3 @@
       endif
       my_nf_def_var=ierr
       end
-
-
-

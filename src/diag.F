@@ -22,13 +22,13 @@
 #define SUM_BY_PAIRS
 !--> #define ETALON_CHECK
 #define MAX_ADV_CFL
-#define MAX_BY_VERT_CFL_ONLY
+c--#define MAX_BY_VERT_CFL_ONLY
 
 #define REPORT_MAX_UV
 #define REPORT_POTEN_ENRG
 
 
-      subroutine diag (tile)
+      subroutine diag(tile)
       implicit none
       integer tile,   i,j
 #include "param.h"
@@ -210,17 +210,13 @@ C$    real*8 omp_get_wtime
 #  else
             if (cx > my_Cu_Adv) then
 #  endif
-              my_Cu_Adv=cx
-              my_Cu_W=cw
-              my_i_cmax=i
-              my_j_cmax=j
-              my_k_cmax=k
+              my_Cu_Adv=cx ; my_Cu_W=cw
+              my_i_cmax=i  ; my_j_cmax=j ; my_k_cmax=k
             endif
 # else
-            my_v3d_max =max(my_v3d_max,  v2)
-            my_v3bc_max=max(my_v3bc_max, v2bc)
+            my_v3d_max  = max(my_v3d_max,  v2  )
+            my_v3bc_max = max(my_v3bc_max, v2bc)
 # endif
-
             ke(i,j)=ke(i,j) + 0.5*v2*Hz(i,j,k)
 
             pe(i,j)=pe(i,j) + cff*Hz(i,j,k)

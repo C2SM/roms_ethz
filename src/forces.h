@@ -38,18 +38,18 @@ CSDISTRIBUTE_RESHAPE windmag(BLOCK_PATTERN,*) BLOCK_CLAUSE
       common /frc_wmag/windmag
 #  endif
 
-      real wnd_time(2), wnd_cycle
+      real(kind=8) wnd_cycle, wnd_time(2)
       integer wnd_ncycle,  wnd_rec, itwnd,  ntwnd,
      &        wnd_file_id, wnd_tid, uwndid, vwndid
-      common /wndat/ wnd_time,      wnd_cycle,
+      common /wndat/     wnd_cycle, wnd_time,
      &        wnd_ncycle,  wnd_rec, itwnd,  ntwnd,
      &        wnd_file_id, wnd_tid, uwndid, vwndid
 
 #  ifdef WIND_MAGN
-      real wmag_time(2), wmag_cycle,
+      real(kind=8) wmag_cycle, wmag_time(2)
       integer wmag_ncycle,  wmag_rec, itwmag, ntwmag,
      &        wmag_file_id, wmag_tid, wmag_id
-      common /wmagdat/  wmag_time,    wmag_cycle,
+      common /wmagdat/ wmag_cycle,    wmag_time,
      &        wmag_ncycle,  wmag_rec, itwmag, ntwmag,
      &        wmag_file_id, wmag_tid, wmag_id
 #  endif
@@ -80,10 +80,10 @@ CSDISTRIBUTE_RESHAPE srflx(BLOCK_PATTERN) BLOCK_CLAUSE
 CSDISTRIBUTE_RESHAPE swradg(BLOCK_PATTERN,*) BLOCK_CLAUSE
       common /srfdat_srflxg/swradg
 
-      real srf_time(2), srf_cycle
+      real(kind=8) srf_cycle, srf_time(2)
       integer srf_ncycle,  srf_rec, itsrf, ntsrf,
      &        srf_file_id, srf_tid, srf_id
-      common /srfdat/ srf_time, srf_cycle,
+      common /srfdat/ srf_cycle, srf_time,
      &        srf_ncycle,  srf_rec, itsrf, ntsrf,
      &        srf_file_id, srf_tid, srf_id
 
@@ -101,10 +101,10 @@ CSDISTRIBUTE_RESHAPE swradg(BLOCK_PATTERN,*) BLOCK_CLAUSE
 CSDISTRIBUTE_RESHAPE lwflxg(BLOCK_PATTERN,*) BLOCK_CLAUSE
       common /lwfdat_lwflxg/lwradg
 
-      real lrf_time(2), lrf_cycle
+      real(kind=8) lrf_cycle, lrf_time(2)
       integer lrf_ncycle,  lrf_rec, itlrf, ntlrf,
      &        lrf_file_id, lrf_tid, lrf_id
-      common /lrfdat/ lrf_time, lrf_cycle,
+      common /lrfdat/ lrf_cycle,    lrf_time,
      &        lrf_ncycle,  lrf_rec, itlrf, ntlrf,
      &        lrf_file_id, lrf_tid, lrf_id
 
@@ -131,10 +131,10 @@ CSDISTRIBUTE_RESHAPE lwflxg(BLOCK_PATTERN,*) BLOCK_CLAUSE
       real tairg(GLOBAL_2D_ARRAY,2)
       common /bulk_tair/ tairg
 
-      real tair_time(2), tair_cycle
+      real(kind=8) tair_cycle, tair_time(2)
       integer tair_ncycle,  ittair, nttair, tair_rec,
      &        tair_file_id, tair_tid, tair_id
-      common /tairdat/ tair_time,   tair_cycle,
+      common /tairdat/ tair_cycle, tair_time,
      &        tair_ncycle,  ittair, nttair, tair_rec,
      &        tair_file_id, tair_tid, tair_id
 #  endif
@@ -146,10 +146,10 @@ CSDISTRIBUTE_RESHAPE lwflxg(BLOCK_PATTERN,*) BLOCK_CLAUSE
       real rhumg(GLOBAL_2D_ARRAY,2)
       common /bulk_rhum/ rhumg
 
-      real rhum_time(2), rhum_cycle
+      real(kind=8) rhum_cycle, rhum_time(2)
       integer rhum_ncycle,  itrhum, ntrhum, rhum_rec,
      &        rhum_file_id, rhum_tid, rhum_id
-      common /rhumdat/ rhum_time,  rhum_cycle,
+      common /rhumdat/ rhum_cycle, rhum_time,
      &        rhum_ncycle,  itrhum, ntrhum, rhum_rec,
      &        rhum_file_id, rhum_tid, rhum_id
 #  endif
@@ -161,10 +161,10 @@ CSDISTRIBUTE_RESHAPE lwflxg(BLOCK_PATTERN,*) BLOCK_CLAUSE
       real prateg(GLOBAL_2D_ARRAY,2)
       common/bulk_prate/ prateg
 
-      real prate_time(2), prate_cycle
+      real(kind=8) prate_cycle, prate_time(2)
       integer prate_ncycle,  itprate, ntprate, prate_rec,
      &        prate_file_id, prate_tid, prate_id
-      common /pratedat/ prate_time,   prate_cycle,
+      common /pratedat/ prate_cycle,  prate_time,
      &        prate_ncycle,  itprate, ntprate, prate_rec,
      &        prate_file_id, prate_tid, prate_id
 #  endif
@@ -247,7 +247,7 @@ CSDISTRIBUTE_RESHAPE RestflxSalt(BLOCK_PATTERN,*) BLOCK_CLAUSE
 CSDISTRIBUTE_RESHAPE stflxg(BLOCK_PATTERN,*,*) BLOCK_CLAUSE
       common /stfdat_stflxg/stflxg
 
-      real stf_cycle(NT),      stf_time(2,NT)
+      real(kind=8) stf_cycle(NT),  stf_time(2,NT)
       integer stf_ncycle(NT),  stf_rec(NT), itstf(NT),  ntstf(NT),
      &        stf_file_id(NT), stf_id(NT),  stf_tid(NT)
 
@@ -271,7 +271,7 @@ CSDISTRIBUTE_RESHAPE stflxg(BLOCK_PATTERN,*,*) BLOCK_CLAUSE
       real dqdtg(GLOBAL_2D_ARRAY,2)
 CSDISTRIBUTE_RESHAPE dqdtg(BLOCK_PATTERN,*) BLOCK_CLAUSE
       common /dqdtg_dat/dqdtg
-      real dqdt_cycle, dqdt_time(2)
+      real(kind=8) dqdt_cycle, dqdt_time(2)
       integer dqdt_ncycle,  dqdt_rec, itdqdt, ntdqdt,
      &        dqdt_file_id, dqdt_id,  dqdt_tid
       common /dqdtdat/ dqdt_cycle,    dqdt_time,
@@ -291,7 +291,7 @@ CSDISTRIBUTE_RESHAPE dqdtg(BLOCK_PATTERN,*) BLOCK_CLAUSE
       real sstg(GLOBAL_2D_ARRAY,2)
 CSDISTRIBUTE_RESHAPE  sstg(BLOCK_PATTERN,*) BLOCK_CLAUSE
       common /sst_dat/sstg
-      real sst_cycle, sst_time(2)
+      real(kind=8) sst_cycle, sst_time(2)
       integer sst_ncycle,  sst_rec, itsst, ntsst,
      &        sst_file_id, sst_id,  sst_tid
       common /sstdat/ sst_cycle,    sst_time,
@@ -313,7 +313,7 @@ CSDISTRIBUTE_RESHAPE  sstg(BLOCK_PATTERN,*) BLOCK_CLAUSE
       real sssg(GLOBAL_2D_ARRAY,2)
 CSDISTRIBUTE_RESHAPE  sssg(BLOCK_PATTERN,*) BLOCK_CLAUSE
       common /sss_dat/sssg
-      real sss_cycle,  sss_time(2)
+      real(kind=8) sss_cycle,  sss_time(2)
       integer sss_ncycle,  itsss,  ntsss, sss_rec,
      &        sss_file_id, sss_id, sss_tid
       common /sssdat/  sss_cycle,  sss_time,

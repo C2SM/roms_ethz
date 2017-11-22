@@ -2,17 +2,16 @@
 #if defined M2NUDGING && !defined M2_FRC_BRY && !defined ANA_SSH
 
                                       ! Read Sea Surface Height (SSH)
-      subroutine get_ssh(ierr_ext)    ! at appropriate time from
-      implicit none                   ! climatological file.
-      integer ierr_ext
+      subroutine get_ssh(ierr_ext)    ! from climatological file.
+      implicit none
+      integer ierr_ext, ierr, lstr, lenstr, ncdf_read
+      real(kind=8) dtime
 # define SSH_DATA
 # include "param.h"
 # include "scalars.h"
 # include "ncvars.h"
 # include "netcdf.inc"
 # include "climat.h"
-      real cff
-      integer ierr, lstr, lenstr, ncdf_read, iclm
 
 ! Initialization:  Check, whether climatology netCDF file is already
 !----------------  opened, an if not, open it. Find and save netCDF
@@ -32,13 +31,12 @@
 
         itssh=1 ; ssh_time(1)=-1.E+33 ; ssh_time(2)=-1.E+33
 
-        iclm=1
- 100    lstr=lenstr(clm_file(iclm))   !<----- Start loop over clm_files
+        lstr=lenstr(clm_file)
         if (ncidclm == -1) then
-          ierr=nf_open(clm_file(1:lstr)(iclm), nf_nowrite, ncidclm)
+          ierr=nf_open(clm_file(1:lstr), nf_nowrite, ncidclm)
           if (ierr /= nf_noerr) write(*,'(/1x,4A/)') '### ERROR: ',
      &                    'get_ssh :: can not open netCDF file ''',
-     &                                     clm_file(1:lstr)(iclm), '''.'
+     &                                     clm_file(1:lstr), '''.'
         endif
         if (ierr == nf_noerr) then
           ierr=nf_inq_varid(ncidclm, 'ssh_time', ssh_tid)
@@ -50,20 +48,16 @@
             if (ierr == nf_noerr) then
               call find_record(ncidclm, ssh_tid,  ssh_rec, ntssh,
      &                         ssh_ncycle, ssh_cycle,  1,1, ierr)
-            elseif (iclm <= max_clm)
-              iclm=iclm+1
-              goto 100                !<----- End loop over clm_files
+
             else
-              write(*,'(1x,3A/,(12x,A/))')     '### ERROR: get_ssh :: ',
+              write(*,'(1x,5A/12x,A/)')     '### ERROR: get_ssh :: ',
      &          'Cannot get netCDF ID for variable "zeta" or "SSH" ',
-     &          'from files:', (clm_file(1:lstr)(iclm),iclm=1,max__clm),
-              write(*,'(1x,2A)') 'Last netCDF error: ', nf_strerror(ierr)
+     &          'from ''', clm_file(1:lstr),'''.', nf_strerror(ierr)
             endif
           else
             write(*,'(1x,5A/12x,A/)')       '### ERROR: get_ssh :: ',
-     &         'Cannot get netCDF ID for variable "ssh_time" ',
-     &         'from files:', ((clm_file(1:lstr)(iclm),iclm=1,max__clm),
-              write(*,'(1x,2A)') 'Last netCDF error: ', nf_strerror(ierr)
+     &        'Cannot get netCDF ID for variable "ssh_time" from ''',
+     &                    clm_file(1:lstr), '''.', nf_strerror(ierr)
           endif
         endif
       endif
@@ -77,15 +71,15 @@
         call advance_record(ssh_rec, ntssh,  ssh_ncycle, ssh_cycle,
      &                                                   1,1, ierr)
         if (ierr == nf_noerr) then
-          ierr=nf_get_var1_FTYPE(ncidclm, ssh_tid, ssh_rec, cff)
+          ierr=nf_get_var1_double(ncidclm, ssh_tid, ssh_rec, dtime)
           if (ierr == nf_noerr) then
             itssh=min(3-itssh,ntssh)
-            ssh_time(itssh)=cff*day2sec+ssh_cycle*ssh_ncycle
+            ssh_time(itssh)=dtime*day2sec+ssh_cycle*ssh_ncycle
             ierr=ncdf_read(ncidclm, ssh_id, ssh_rec, r_var,
      &                     sshg(START_2D_ARRAY,itssh), 1)
             if (ierr == nf_noerr) then
               mpi_nonexit_warn write(*,'(7x,A,27x,A,F12.4,2(1x,A,I4))')
-     &               'get_ssh :: read SSH', 'ssh_time =', cff,
+     &               'get_ssh :: read SSH', 'ssh_time =', dtime,
      &               'rec =', ssh_rec MYID
               if (ntssh == 1) return
             else
@@ -98,7 +92,7 @@
           write(*,'(/1x,A,I4,1x,A,I4/7x,4A/7x,2(A,G12.4)/)')
      &   '### ERROR: get_ssh :: Requested time record ',  ssh_rec,
      &   'exeeds the last record',  ntssh, 'available in netCDF ',
-     &   'file ''',  clm_file(1:lstr)(iclm),  '''',  'tdays = ',  tdays,
+     &   'file ''',  clm_file(1:lstr),  '''',  'tdays = ',  tdays,
      &   '  but the last available ssh_time =',
      &                                    ssh_time(itssh)*sec2day
         endif
@@ -122,7 +116,7 @@
 # include "param.h"
 # include "climat.h"
 # include "scalars.h"
-!
+
 # include "compute_extended_bounds.h"
 
 ! Set coefficients for interpolation. Check that for the next time
@@ -133,28 +127,20 @@
 ! or complain about error and signal to quit, if interpolation is
 ! needed, but not possible.
 
-      tmid=time+0.5*dt
-      it1=3-itssh ; it2=itssh
-      cff1=ssh_time(it2)-tmid
-      cff2=tmid-ssh_time(it1)
-      if (cff1 < dt .and. ntssh > 1) synchro_flag=.true.
-      cff=1./(cff1+cff2)
-      cff1=cff1*cff ; cff2=cff2*cff
+      if (ntssh > 1) then                  !--> interpolate ssh in time
+        tmid=time+0.5*dt
+        it2=itssh ; cff1=ssh_time(it2)-tmid
+        it1=3-it2 ; cff2=tmid-ssh_time(it1)
+        if (cff1 < dt) synchro_flag=.true.
+        cff=1./(cff1+cff2)
+        cff1=cff1*cff ; cff2=cff2*cff
 
-      if (ntssh == 1) then                   ! Load time-invariant
-        if (iic == ntstart) then             ! sea-surface height
-          do j=jstrR,jendR
-            do i=istrR,iendR
-              ssh(i,j)=sshg(i,j,itssh)
-            enddo
-          enddo
-        endif
-      else                                  ! Interpolate in time
         do j=jstrR,jendR
           do i=istrR,iendR
             ssh(i,j)=cff1*sshg(i,j,it1)+cff2*sshg(i,j,it2)
           enddo
         enddo
+
         if (cff1 < 0. .or. cff2 < 0.) then
           if (ZEROTH_TILE) then
             write(*,'(/1x,3A/3(1x,A,F16.10)/)')      '### WARNING: ',
@@ -165,6 +151,12 @@
           endif
           ierr=ierr+1
         endif
+      elseif (iic == ntstart) then        ! load time-invariant
+        do j=jstrR,jendR                  ! sea-surface height
+          do i=istrR,iendR
+            ssh(i,j)=sshg(i,j,itssh)
+          enddo
+        enddo
       endif
       end
 #else

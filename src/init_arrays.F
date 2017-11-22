@@ -1,6 +1,6 @@
 #include "cppdefs.h"
 
-      subroutine init_arrays (tile)
+      subroutine init_arrays(tile)
       implicit none
       integer tile, i,j
 #include "param.h"
@@ -24,18 +24,20 @@
         enddo
       enddo
 
-      call init_arrays_tile (istr,iend,jstr,jend)
+      call init_arrays_tile(istr,iend,jstr,jend)
       end
 
       subroutine init_arrays_tile (istr,iend,jstr,jend)
 
-! Initialize (first touch) globally accessable arrays. Most of them
-! are assigned to zeros, vertical mixing coefficients are assinged
-! to their background values. These will remain unchenged if no
-! vertical mixing scheme is applied. Because of the "first touch"
-! default data distribution policy, this operation actually performs
-! distribution of the shared arrays accross the cluster, unless
-! another distribution policy is specified to override the default.
+! This routine initialize "first-touches" model shared arrays. Most
+! of them are assigned to zeros, vertical mixing coefficients are set
+! to their background values and will remain unchanged if no vertical
+! mixing scheme is applied. The main point here is that because of the
+! "first touch" default data placement policy on Linux operating
+! system, this operation actually performs distribution of the shared
+! arrays accross the nun-uniform-access memory (NUMA) computer (i.e.,
+! within a cluster node) unless another distribution policy is
+! specified to override the default.
 
       implicit none
       integer istr,iend,jstr,jend, i,j,k,itrc
@@ -373,7 +375,7 @@
 
             Akv(i,j,k)=Akv_bak
 # else
-            Akv(i,j,k)=init
+            Akv(i,j,k)=0.
 # endif
 # ifdef AVERAGES
             akv_avg(i,j,k)=init
@@ -392,7 +394,7 @@
                          && !defined MY2_MIXING && !defined MY25_MIXING
               Akt(i,j,k,itrc)=Akt_bak(itrc)
 # else
-              Akt(i,j,k,itrc)=init
+              Akt(i,j,k,itrc)=0.
 # endif
 # ifdef AVERAGES
               akt_avg(i,j,k)=init

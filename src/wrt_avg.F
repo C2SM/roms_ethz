@@ -98,7 +98,12 @@ CR      mpi_master_only print *, '--- NOTE: Executing ', wrt_ AVR
 !
 ! Averaged time
 
-      ierr=nf_put_var1_FTYPE (nc AVR ,  AVR Time, record, time_ AVR )
+      if (vname(3,indxTime)(1:6) == 'second') then
+        ierr=nf_put_var1_double(ncavg, avgTime, record, time_avg)
+      else
+        time_avg=time_avg*sec2day
+        ierr=nf_put_var1_double(ncavg, avgTime, record, time_avg)
+      endif
       if (ierr /= nf_noerr) then
         lvar=lenstr(vname(1,indxTime))
         write(*,1) vname(1,indxTime)(1:lvar), record MYID

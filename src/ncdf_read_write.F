@@ -76,12 +76,19 @@ CSDISTRIBUTE_RESHAPE  A(BLOCK_PATTERN,nmax) BLOCK_CLAUSE
 !===== ===== ===== ==== === =====
 
 #ifndef WRITER
-      ierr=nf_get_vara_FTYPE(ncid, vid, start, count, buff)
+      ierr=nf_get_vara_FTYPE(ncid, vid, start,count, buff)
       if (ierr /= nf_noerr) then
         write(*,'(/1x,2A,3x,A,I4/)') '### ERROR: ncdf_read :: ',
      &             nf_strerror(ierr) MYID
       else
 #endif
+
+! Note that expression for "shft" is exactly the same in all five
+! cases below, while application of land mask is different for the
+! variables of different grid staggering; also note effectively .or.
+! rather than .and. logic in setting velocity values to infinity:
+! velocity components at the boundary (normal to it) are set to 0,
+! while the ones fully inside (between two land points) to spv.
 
 #ifdef MASK_LAND_DATA
         if (mask_land_data) then
@@ -192,7 +199,7 @@ CSDISTRIBUTE_RESHAPE  A(BLOCK_PATTERN,nmax) BLOCK_CLAUSE
 
 #ifdef WRITER
         ierr=nf_put_vara_FTYPE(ncid, vid, start, count, buff)
-        if (ierr/=nf_noerr) then
+        if (ierr /= nf_noerr) then
           write(*,'(/1x,2A,3x,A,I4/)')  '### ERROR: ncdf_write :: ',
      &             nf_strerror(ierr) MYID
           write(*,'(12x,A,I7,3x,A,I7/12x,A,I3,7I6)') 'ncid =', ncid,

@@ -42,6 +42,25 @@ In comparison the most recent, 2013/14 versions the mathematical kernel
    Thus, all temporal interpolations are integrated into the main subroutine,
    rather than relying on set_something routines.
 
+-> sea-surface-salinity restoring (CPP-switch SFLX_CORR) now expressed in
+   terms of user-specified "piston velocity" (via keyword SSS_correction in
+   roms.in, dimensioned in cm/day with "reasonable" values of order of 3 ...
+   10 cm/day or so).  This is more in line with climate modeling practices,
+   secifically CORE, http://www.clivar.org/clivar-panels/omdp/core-1
+
+   It should be noted that the previous ROMS practices of specifying it via
+   relaxation time (say 30 or 90 days) implicitly couple it to the vertical
+   length scale tied to the top-most grid-box height, which is spatially
+   variable in unclonrolled manner (depens on topography due to nature of
+   sigma-cordinate), as well as sensitive to change in vertical number of
+   grid points and setting of "hc".
+
+   At the same time, it was realized that applying "dqdt" rate of relaxation
+   to salinity (a typical practice in Agrif ROMS) results in way too strong
+   relaxation, as typical values of "dqdt" expressed in kinematic units (that
+   is rescaled by Cp and water density) are too strong -- about 70 cm/sec at
+   maximum, and having spatial distribution with little physical motivation.
+
 
 -> side boundary condition now use "binding velocity" instead of relaxation
    times tau_in/tau_out specified in roms.in.   This applies only to the normal
@@ -114,8 +133,26 @@ and reports them as errors. It also flags situations where length of 1D array
 in calling program overshoots its size in callee (fortunately it still accepts
 interpreting one-dimensional array as multidimensional inside a subroutine).
 
-So I have to change the code in few dozen places. All but one are trivial.
-Activate the flag and see where it complains.  The most painful is replacing
+For example, in older versions if ROMS code, this occurs when compiling
+checkdims.F: the use  of read_nc1dat causes compilation errors like this
+
+                    ierr=read_nc1dat(ncid, fname, 'theta_s', 1,  tst_val)
+                    -------------^
+              checkdims.f(1144): error #8284: If the actual argument is
+              scalar, the dummy argument shall be scalar unless the actual
+              argument is of type character or is an element of an array
+              that is not assumed shape, pointer, or polymorphic.  [VALUE]
+
+
+     In essense, the routine is designed to expect an array "val" (the last
+     argument) of a given size N (one-before the last) and, as one might think,
+     it would be OK to pass a scalar variable instead of an array and specify
+     its length as 1. However the compiler regects this.
+
+
+So I have to change the code in few dozen places. In all but one cases the
+procedure is simple enough: activate the flag and see where it complains --
+the remedies are self obvious. The most significant change is replacing
 
            ierr = nf_fread(A, ncid, varid, record, type)
 with
@@ -128,9 +165,20 @@ of array A in declaration inside ncdf_read.  This is what compiler wants --
 explicit dimension which it can check. (I deliberately changed name of the
 routine  rather than just add an argument to be able to search and make sure
 that none of the old remains; also made order of arguments be more in line
-with netCDF semantics);
+with netCDF semantics). It involves replacing the three files
+
+          ncdf_read_write.F   nf_read_bry.F   compute_starts_counts.h
+
+as a set; .  The first one replaces "nf_fread.F", which becomes obsolete,
+so also edit Makefile and replace "nf_fread.F" with "ncdf_read_write.F", as
+well as search-and-replace all calls nf_fread/nf_fwrite with ncdf_read/
+ncdf_write whereever they are called (the function names have been changed
+deliberately to avoid accidental use and mix-ups).
 
 Note that tools are kept to 2003 standard compliance for some time already;
+
+
+
 
 
 Compatibility with Cray Fortran compiler, XC30 series

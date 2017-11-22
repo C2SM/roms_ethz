@@ -1,10 +1,9 @@
 #include "cppdefs.h"
-#if defined SOLVE3D &&( defined TCLIMATOLOGY ||( defined TNUDGING &&\
-              defined T_FRC_BRY )) && !defined ANA_TCLIMA
-
+#if defined SOLVE3D && ( defined TCLIMATOLOGY || ( defined TNUDGING &&\
+                         defined T_FRC_BRY  )) && !defined ANA_TCLIMA
 
                                        ! Read climatology fields for
-      subroutine get_tclima (ierr)     ! tracers from climatological
+      subroutine get_tclima(ierr)      ! tracers from climatological
       implicit none                    ! file at appropriate time.
 
 # define TCLIMA_DATA
@@ -274,20 +273,23 @@
 !      enddo
   4   format(1x,'### ERROR: get_tclima :: Cannot read variable ''',
      &                     A, ''', itrc =', I3, ' for record', I3)
-      return
       end
 
 
-      subroutine set_tclima_tile (istr,iend,jstr,jend, ierr)
+      subroutine set_tclima_tile(istr,iend,jstr,jend, ierr)
 
 ! Set-up tracer climatology for current tile.
 
       implicit none
       integer istr,iend,jstr,jend, ierr, itrc,i,j,k, it1,it2
+<<<<<<< HEAD
       real cff, cff1, cff2
 # if defined PASSIVE_TRACER && defined AGE_DYE_TRACER
       integer is
 # endif
+=======
+      real tmid, cff, cff1, cff2
+>>>>>>> ROMS version of  Sasha as of 2017-07
 # define TCLIMA_DATA
 # include "param.h"
 # include "climat.h"
@@ -312,6 +314,7 @@
 ! or complain about error and signal to quit, if interpolation is
 ! needed, but not possible.
 
+<<<<<<< HEAD
       do itrc=1,mxnudg !NT
         if (tclm_tid(itrc)>0) then
           it1=3-ittclm(itrc)
@@ -321,21 +324,18 @@
           cff2=cff-tclm_time(it1,itrc)
 
           if (cff1<dt .and. nttclm(itrc)>1) synchro_flag=.true.
+=======
+      do itrc=1,NT
+        if (tclm_id(itrc) > 0) then    !--> available in input file
+          if (nttclm(itrc) > 1) then     !--> interpolate in time
+            tmid=time+0.5*dt
+            it2=ittclm(itrc) ; cff1=tclm_time(it2,itrc)-tmid
+            it1=3-it2        ; cff2=tmid-tclm_time(it1,itrc)
+            if (cff1 < dt) synchro_flag=.true.
+            cff=1./(cff1+cff2)
+            cff1=cff1*cff ; cff2=cff2*cff
+>>>>>>> ROMS version of  Sasha as of 2017-07
 
-          if (nttclm(itrc)==1) then         ! Load time-invariant
-            if (iic==0) then                ! tracer climatology.
-              do k=1,N
-                do j=jstrR,jendR
-                  do i=istrR,iendR
-                    tclm(i,j,k,itrc)=tclima(i,j,k,ittclm(itrc),itrc)
-                  enddo
-                enddo
-              enddo
-            endif
-          else
-            cff=1./(cff1+cff2)               ! Interpolate tracer
-            cff1=cff1*cff                    ! climatology in time.
-            cff2=cff2*cff
             do k=1,N
               do j=jstrR,jendR
                 do i=istrR,iendR
@@ -344,7 +344,8 @@
                 enddo
               enddo
             enddo
-            if (cff1<0. .or. cff2<0.) then
+
+            if (cff1 < 0. .or. cff2 < 0.) then
               if (ZEROTH_TILE) then
                 write(*,'(/1x,3A/3(1x,A,F16.10)/)')   '### WARNING: ',
      &            'set_tclima_tile :: Current model time is outside ',
@@ -354,24 +355,37 @@
               endif
               ierr=ierr+1
             endif
+          elseif (iic == ntstart) then        !--> load time-invariant
+            do k=1,N                          !    tracer climatology
+              do j=jstrR,jendR
+                do i=istrR,iendR
+                  tclm(i,j,k,itrc)=tclima(i,j,k,ittclm(itrc),itrc)
+                enddo
+              enddo
+            enddo
           endif
+<<<<<<< HEAD
 # if defined XXBIOLOGY || defined XXBIOLOGY_NPZDOC
+=======
+
+# ifdef BIOLOGY
+>>>>>>> ROMS version of  Sasha as of 2017-07
 #  define temp cff
 #  define SiO4 cff1
-        elseif (itrc==iNO3_) then     ! <-- analytical setup for
+        elseif (itrc == iNO3_) then     ! <-- analytical setup for
           do k=1,N                      ! climatology for biological
             do j=jstrR,jendR            ! constituents.
               do i=istrR,iendR
                 temp=tclm(i,j,k,itemp)
-                if (temp<8.) then
+                if (temp < 8.) then
                   SiO4=30.
-                elseif (temp>=8. .and. temp<=11.) then
+                elseif (temp >= 8. .and. temp <= 11.) then
                   SiO4=30.-((temp-8.)*(20./3.))
-                elseif (temp>11. .and. temp<=13.) then
+                elseif (temp > 11. .and. temp <= 13.) then
                   SiO4=10.-((temp-11.)*(8./2.))
-                elseif (temp>13. .and. temp<=16.) then
+                elseif (temp > 13. .and. temp <= 16.) then
                   SiO4=2.-((temp-13.)*(2./3.))
-                elseif (temp>16.) then
+                elseif (temp > 16.) then
                   SiO4=0.
                 endif
                      tclm(i,j,k,iNO3_)=1.67+0.5873*SiO4
@@ -570,7 +584,6 @@
 # endif /* PASSIVE_TRACER && AGE_DYE_TRACER */
         endif   ! <-- tclm_tid(itrc)>0
       enddo   ! <-- itrc
-      return
       end
 #else
       subroutine get_tclima_empty

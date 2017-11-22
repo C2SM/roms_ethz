@@ -8,8 +8,8 @@
 
       implicit none
       integer istr,iend,jstr,jend, i,j,k
-      real grad(PRIVATE_2D_SCRATCH_ARRAY), dtfwd, cx,cy, cff, cext
-     &                                             ,  dft,dfx,dfy
+      real grad(PRIVATE_2D_SCRATCH_ARRAY), cx,cy, cext, cff,
+     &                                     dtfwd, dft,dfx,dfy
       real, parameter :: eps=1.E-33
 # include "param.h"
 # include "scalars.h"
@@ -70,7 +70,12 @@
             if (cx < 0.) then     !--> cancel, if inflow
               cx=0. ; cy=0.
 #    if defined M3_FRC_BRY || defined M3NUDGING
-              cext=dtfwd*ubind * 0.5*(pm(istr-1,j)+pm(istr,j))
+              if (u_west(j,k) > 0.) then
+                cext=u_west(j,k)
+              else
+                cext=ubind
+              endif
+              cext=cext * dtfwd * 0.5*(pm(istr-1,j)+pm(istr,j))
             else
               cext=0.
 #    endif
@@ -162,7 +167,12 @@
             if (cx < 0.) then     !--> cancel, if inflow
               cx=0. ; cy=0.
 #    if defined M3_FRC_BRY || defined M3NUDGING
-              cext=dtfwd*ubind * 0.5*(pm(iend,j)+pm(iend+1,j))
+              if (u_east(j,k) < 0.) then
+                cext=-u_east(j,k)
+              else
+                cext=ubind
+              endif
+              cext=cext * dtfwd *0.5*(pm(iend,j)+pm(iend+1,j))
             else
               cext=0.
 #    endif

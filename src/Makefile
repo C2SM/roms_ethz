@@ -20,7 +20,7 @@ include Makedefs.IntelEM64T
 #   3) boundary conditions;        7) netCDF I/O routines;
 #   4) sea-water EOS routines;     8) model forcing routines;
 
-KRNSRC = main.F		step2D_FB.F	read_inp.F	read_sta_pos.F\
+KRNSRC = main.F		step2d_FB.F	read_inp.F	read_sta_pos.F\
 	set_weights.F	set_scoord.F	init_scalars.F	init_arrays.F\
 	ana_init.F	setup_grid1.F	setup_grid2.F	visc_rescale.F\
 	set_nudgcof.F	ana_grid.F	analytical.F\

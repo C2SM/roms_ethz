@@ -18,7 +18,7 @@
 #include "scalars.h"
 c--#define VERBOSE
 #ifdef VERBOSE
-      write(*,*) 'enter get_forces' MYID
+      write(*,*) 'entering get_forces' MYID
 #endif
       ierr=0
 #if defined M2NUDGING && !defined M2_FRC_BRY && !defined ANA_SSH
@@ -120,12 +120,7 @@ c--#define VERBOSE
       call get_bsedim(ierr)
 # endif
 #endif
-      if (ierr /= 0) then
-        may_day_flag=2
-        write(*,'(1x,2A,2x,A,I4)') '### ERROR: get_forces :: ',
-     &          'set may_day_flag = 2' MYID
-      endif
-
+      if (ierr /= 0) may_day_flag=2
 #ifdef VERBOSE
       write(*,*) 'leaving get_forces' MYID
 #endif

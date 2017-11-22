@@ -114,9 +114,19 @@
       endif
 #endif /* BGC_FLUX_ANALYSIS || PHYS_FLUX_ANALYSIS */
 
-! Time.
+! Time: Note that (1) time is always double precision; and (2) which
+! one to write into the file, time or tdays, is decided by attribute
+! "units" stored as vname(3,indxTime).  When computng time is always
+! in seconds, however it is more convenient to have it in days in all
+! the files; (3) this code is designed for politeness - it reads time
+! units from the initial condition file (see "get_init.F") and uses
+! it throughout the entire run.
 
-      ierr=nf_put_var1_FTYPE (ncrst, rstTime, record, time)
+      if (vname(3,indxTime)(1:6) == 'second') then
+        ierr=nf_put_var1_double(ncrst, rstTime, record, time)
+      else
+        ierr=nf_put_var1_double(ncrst, rstTime, record, tdays)
+      endif
       if (ierr /= nf_noerr) then
         lvar=lenstr(vname(1,indxTime))
         write(*,'(/1x,4A,i6/11x,A,3x,A,i4/)') '### ERROR: wrt_rst :: ',

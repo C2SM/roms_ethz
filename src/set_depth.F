@@ -1,16 +1,16 @@
 #include "cppdefs.h"
 #ifdef SOLVE3D
 
-      subroutine set_depth (tile)
+      subroutine set_depth(tile)
       implicit none
       integer tile
 # include "param.h"
 # include "private_scratch.h"
 # include "compute_tile_bounds.h"
-      call set_depth_tile (istr,iend,jstr,jend, A2d(1,1))
+      call set_depth_tile(istr,iend,jstr,jend, A2d(1,1))
       end
 
-      subroutine set_depth_tile (istr,iend,jstr,jend, dV)
+      subroutine set_depth_tile(istr,iend,jstr,jend, dV)
 
 ! Compute evolving z-coordinates "z_r" and "z_w" and the heights
 ! of vertical grid boxes "Hz" from fast-time-averaged free surface,
@@ -77,12 +77,10 @@
         enddo
       enddo                           ! The following segment computes
                                       ! sums of dV within the subdomain
-      lsumX=.true.                    ! tile using split-directional
-      lsumY=.true.                    ! reduction-by-pairs algorithm,
-      inc=1                           ! to avoid the  accumulation of
-      jnc=1                           ! roundoff errors.
-
-      do while (lsumX .or. lsumY)
+      lsumX=.true. ; inc=1            ! tile using split-directional
+      lsumY=.true. ; jnc=1            ! reduction-by-pairs algorithm,
+                                      ! to avoid the  accumulation of
+      do while (lsumX .or. lsumY)     ! roundoff errors.
         if (istr <= iend-inc) then
           do j=jstr,jend
             do i=istr,iend-inc,2*inc
@@ -133,7 +131,6 @@ c        write(*,*) 'ubar_xs = ', ubar_xs
       endif
 C$OMP END CRITICAL (obc_flux_corr_crgn)
 # endif  /* OBC_FLUX_CORR */
-
 
       ds=1.D0/dble(N)
       do j=jstrR,jendR
@@ -280,7 +277,7 @@ c-->#undef EXTRAP_BAR_FLUXES  /* <-- for testing purposes only */
           enddo
 #  ifdef EXTRAP_BAR_FLUXES
 ! PAC23 verified setting with theoretical alpha_max=1.0877.
-! This should match the simlar-labelled setting in step2D_FB.F.
+! This should match the simlar-labelled setting in step2d_FB.F.
 ! All the other settings below  are to be considered as
 ! experimental.
 
@@ -469,7 +466,7 @@ c-->#undef EXTRAP_BAR_FLUXES  /* <-- for testing purposes only */
 
 ! Note that the value of (NOW-MID+BAK-1.D0)/BAK should match
 ! the coefficient in front of DU_avg2 when computing DU_avg_bak
-! in step2D_FB.F. Put it into the signature for cross-checking.
+! in step2d_FB.F. Put it into the signature for cross-checking.
 
       write(tmpstr,'(F16.12)') (NOW-MID+BAK-1.D0)/BAK
       lstr=lenstr(tmpstr)
