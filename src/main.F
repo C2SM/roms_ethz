@@ -370,8 +370,7 @@ C$OMP END MASTER
       tdays=time*sec2day
 #ifdef SOLVE3D
       nstp=1+mod(iic-ntstart,2)
-      nrhs=nstp
-      nnew=3
+      nrhs=nstp ; nnew=3
 #endif
 
 #ifdef FLOATS
@@ -435,13 +434,12 @@ C$OMP BARRIER
 C$OMP BARRIER
 
 # ifdef CORR_COUPLED_MODE
-      do tile=my_tile_range
-        call set_HUV1(tile)
-      enddo
+      do tile=my_tile_range              ! This code segment is for
+        call set_HUV1(tile)              ! corrector-coupled version
+      enddo                              ! of time stepping only.
 C$OMP BARRIER
 
-      nrhs=3
-      nnew=3-nstp   !!! WARNING
+      nrhs=3 ; nnew=3-nstp   !!! WARNING
 
       do tile=my_tile_range
         call omega(tile)
@@ -577,12 +575,11 @@ C$OMP BARRIER
 
 # ifdef PRED_COUPLED_MODE
       do tile=my_tile_range              ! This code segment is for
-        call set_HUV1(tile)              ! predictor-coupled version.
-      enddo
+        call set_HUV1(tile)              ! predictor-coupled version
+      enddo                              ! of time stepping only. 
 C$OMP BARRIER
 
-      nrhs=3
-      nnew=3-nstp
+      nrhs=3 ; nnew=3-nstp
 
       do tile=my_tile_range
         call omega(tile)

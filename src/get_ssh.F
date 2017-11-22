@@ -2,17 +2,16 @@
 #if defined M2NUDGING && !defined M2_FRC_BRY && !defined ANA_SSH
 
                                       ! Read Sea Surface Height (SSH)
-      subroutine get_ssh(ierr_ext)    ! at appropriate time from
-      implicit none                   ! climatological file.
-      integer ierr_ext
+      subroutine get_ssh(ierr_ext)    ! from climatological file.
+      implicit none
+      integer ierr_ext, ierr, lstr, lenstr, ncdf_read
+      real(kind=8) dtime
 # define SSH_DATA
 # include "param.h"
 # include "scalars.h"
 # include "ncvars.h"
 # include "netcdf.inc"
 # include "climat.h"
-      real cff
-      integer ierr, lstr, lenstr, ncdf_read
 
 ! Initialization:  Check, whether climatology netCDF file is already
 !----------------  opened, an if not, open it. Find and save netCDF
@@ -72,15 +71,15 @@
         call advance_record(ssh_rec, ntssh,  ssh_ncycle, ssh_cycle,
      &                                                   1,1, ierr)
         if (ierr == nf_noerr) then
-          ierr=nf_get_var1_FTYPE(ncidclm, ssh_tid, ssh_rec, cff)
+          ierr=nf_get_var1_double(ncidclm, ssh_tid, ssh_rec, dtime)
           if (ierr == nf_noerr) then
             itssh=min(3-itssh,ntssh)
-            ssh_time(itssh)=cff*day2sec+ssh_cycle*ssh_ncycle
+            ssh_time(itssh)=dtime*day2sec+ssh_cycle*ssh_ncycle
             ierr=ncdf_read(ncidclm, ssh_id, ssh_rec, r_var,
      &                     sshg(START_2D_ARRAY,itssh), 1)
             if (ierr == nf_noerr) then
               mpi_nonexit_warn write(*,'(7x,A,27x,A,F12.4,2(1x,A,I4))')
-     &               'get_ssh :: read SSH', 'ssh_time =', cff,
+     &               'get_ssh :: read SSH', 'ssh_time =', dtime,
      &               'rec =', ssh_rec MYID
               if (ntssh == 1) return
             else
@@ -117,7 +116,7 @@
 # include "param.h"
 # include "climat.h"
 # include "scalars.h"
-!
+
 # include "compute_extended_bounds.h"
 
 ! Set coefficients for interpolation. Check that for the next time
@@ -128,28 +127,20 @@
 ! or complain about error and signal to quit, if interpolation is
 ! needed, but not possible.
 
-      tmid=time+0.5*dt
-      it1=3-itssh ; it2=itssh
-      cff1=ssh_time(it2)-tmid
-      cff2=tmid-ssh_time(it1)
-      if (cff1 < dt .and. ntssh > 1) synchro_flag=.true.
-      cff=1./(cff1+cff2)
-      cff1=cff1*cff ; cff2=cff2*cff
+      if (ntssh > 1) then                  !--> interpolate ssh in time
+        tmid=time+0.5*dt
+        it2=itssh ; cff1=ssh_time(it2)-tmid
+        it1=3-it2 ; cff2=tmid-ssh_time(it1)
+        if (cff1 < dt) synchro_flag=.true.
+        cff=1./(cff1+cff2)
+        cff1=cff1*cff ; cff2=cff2*cff
 
-      if (ntssh == 1) then                   ! Load time-invariant
-        if (iic == ntstart) then             ! sea-surface height
-          do j=jstrR,jendR
-            do i=istrR,iendR
-              ssh(i,j)=sshg(i,j,itssh)
-            enddo
-          enddo
-        endif
-      else                                  ! Interpolate in time
         do j=jstrR,jendR
           do i=istrR,iendR
             ssh(i,j)=cff1*sshg(i,j,it1)+cff2*sshg(i,j,it2)
           enddo
         enddo
+
         if (cff1 < 0. .or. cff2 < 0.) then
           if (ZEROTH_TILE) then
             write(*,'(/1x,3A/3(1x,A,F16.10)/)')      '### WARNING: ',
@@ -160,6 +151,12 @@
           endif
           ierr=ierr+1
         endif
+      elseif (iic == ntstart) then        ! load time-invariant
+        do j=jstrR,jendR                  ! sea-surface height
+          do i=istrR,iendR
+            ssh(i,j)=sshg(i,j,itssh)
+          enddo
+        enddo
       endif
       end
 #else

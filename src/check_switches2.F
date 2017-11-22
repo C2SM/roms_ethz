@@ -43,7 +43,7 @@
 ! the error flag.
 
       implicit none
-      character(len=24) bffr(3)
+      character(len=32) bffr(3)
       integer is,ie, i,nwd, lbffr(3)
 #include "strings.h"
       write(*,'(/1x,A)') 'Activated CPP configuration switches:'
@@ -57,8 +57,8 @@
         do while (ie<max_opt_size .and. cpps(ie:ie)/=' ')
           ie=ie+1
         enddo
-        if (cpps(ie:ie)==' ') ie=ie-1
-        if (cpps(is:is)=='<' .and. cpps(ie:ie)=='>') then
+        if (cpps(ie:ie) == ' ') ie=ie-1
+        if (cpps(is:is) == '<' .and. cpps(ie:ie) == '>') then
           if (nwd>0) then
             write(*,1) (bffr(i)(1:lbffr(i)), i=1,nwd)
             nwd=0

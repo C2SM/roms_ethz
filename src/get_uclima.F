@@ -1,16 +1,16 @@
 #include "cppdefs.h"
 #if defined UCLIMATOLOGY && !defined ANA_UCLIMA
 
-                                        ! Read momentum climatology
-      subroutine get_uclima (ierr)      ! fields from climatological
-      implicit none                     ! file at appropriate time.
+                                      ! Read momentum climatology
+      subroutine get_uclima(ierr)     ! fields from netCDF file
+      implicit none
+      integer ierr i, lstr,lvar,lenstr, ncdf_read
+      real(kind=8) dtime
 # include "param.h"
 # include "scalars.h"
 # include "ncvars.h"
 # include "netcdf.inc"
 # include "climat.h"
-      real cff
-      integer i, lstr,lvar,lenstr, ierr, ncdf_read
 
 ! Initialization:  Check, whether climatological data file is already
 !----------------  opened, and if not, open it.  Find and save netCDF
@@ -93,7 +93,7 @@
      &                                                    1,1, ierr)
 
         if (ierr == nf_noerr) then
-          ierr=nf_get_var1_FTYPE(ncidclm, uclm_tid, uclm_rec, cff)
+          ierr=nf_get_var1_double(ncidclm, uclm_tid, uclm_rec, cff)
           if (ierr == nf_noerr) then
             ituclm=min(3-ituclm,ntuclm)
             uclm_time(ituclm)=cff*day2sec + uclm_cycle*uclm_ncycle
@@ -177,58 +177,31 @@
 ! or complain about error and signal to quit, if interpolation is
 ! needed, but not possible.
 
-      it1=3-ituclm
-      it2=ituclm
-      cff=time+0.5*dt
-      cff1=uclm_time(it2)-cff
-      cff2=cff-uclm_time(it1)
+      if (ntuclm > 1) then                  !--> interpolate velocity
+        tmid=time+0.5*dt                       ! climatolog in time
+        it2=ituclm ; cff1=uclm_time(it2)-tmid
+        it1=3-it2  ; cff2=tmid-uclm_time(it1)
+        if (cff1 < dt) synchro_flag=.true.
+        cff=1./(cff1+cff2)
+        cff1=cff1*cff ; cff2=cff2*cff
 
-      if (cff1<dt .and. ntuclm>1) synchro_flag=.true.
-
-      if (ntuclm==1) then                 ! load time-invariant
-        if (iic==0) then                  ! momentum climatology.
-          do j=jstrR,jendR
-            do i=istrR,iendR
-              ubclm(i,j)=ubclima(i,j,ituclm)
-              vbclm(i,j)=vbclima(i,j,ituclm)
-            enddo
-          enddo
-# ifdef SOLVE3D
-          do k=1,N
-            do j=jstrR,jendR
-              do i=istrR,iendR
-                uclm(i,j,k)=uclima(i,j,k,ituclm)
-                vclm(i,j,k)=vclima(i,j,k,ituclm)
-              enddo
-            enddo
-          enddo
-# endif
-        endif
-      else
-        cff=1./(cff1+cff2)                  ! interpolate velocity
-        cff1=cff1*cff                       ! climatolog in time
-        cff2=cff2*cff
         do j=jstrR,jendR
           do i=istrR,iendR
-            ubclm(i,j)=cff1*ubclima(i,j,it1)
-     &                +cff2*ubclima(i,j,it2)
-            vbclm(i,j)=cff1*vbclima(i,j,it1)
-     &                +cff2*vbclima(i,j,it2)
+            ubclm(i,j)=cff1*ubclima(i,j,it1)+cff2*ubclima(i,j,it2)
+            vbclm(i,j)=cff1*vbclima(i,j,it1)+cff2*vbclima(i,j,it2)
           enddo
         enddo
 # ifdef SOLVE3D
         do k=1,N
           do j=jstrR,jendR
             do i=istrR,iendR
-              uclm(i,j,k)=cff1*uclima(i,j,k,it1)
-     &                   +cff2*uclima(i,j,k,it2)
-              vclm(i,j,k)=cff1*vclima(i,j,k,it1)
-     &                   +cff2*vclima(i,j,k,it2)
+              uclm(i,j,k)=cff1*uclima(i,j,k,it1)+cff2*uclima(i,j,k,it2)
+              vclm(i,j,k)=cff1*vclima(i,j,k,it1)+cff2*vclima(i,j,k,it2)
             enddo
           enddo
         enddo
 # endif
-        if (cff1<0. .or. cff2<0.) then
+        if (cff1 < 0. .or. cff2 < 0.) then
           if (ZEROTH_TILE) then
             write(*,'(/1x,3A/3(1x,A,F16.10)/)')      '### WARNING: ',
      &   'set_uclima_tile :: Current model time is out of bounds of',
@@ -237,8 +210,24 @@
           endif
           ierr=ierr+1
         endif
+      elseif (iic == ntstart ) then         ! load time-invariant 
+        do j=jstrR,jendR                    ! momentum climatology
+          do i=istrR,iendR
+            ubclm(i,j)=ubclima(i,j,ituclm)
+            vbclm(i,j)=vbclima(i,j,ituclm)
+          enddo
+        enddo
+# ifdef SOLVE3D
+        do k=1,N
+          do j=jstrR,jendR
+            do i=istrR,iendR
+              uclm(i,j,k)=uclima(i,j,k,ituclm)
+              vclm(i,j,k)=vclima(i,j,k,ituclm)
+            enddo
+          enddo
+        enddo
+# endif
       endif
-      return
       end
 #else
       subroutine get_uclima_empty

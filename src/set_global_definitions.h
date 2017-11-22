@@ -9,8 +9,8 @@
  create its own output file (this switch has no effect if MPI is not
  defined).  */
 
-#define MPI
-#define PARALLEL_FILES
+c#define MPI
+c#define PARALLEL_FILES
 
 /* Turn OFF printout (other than error messages) from MPI nodes with
  rank > 0.   This does not affect the model results other than making
@@ -69,7 +69,7 @@ c--#define ALLOW_SINGLE_BLOCK_MODE
  the tri-diagonal solver as opposite to computing it explicitly from
  whatever latest velocity values available. */
 
-c--# define IMPLICIT_BOTTOM_DRAG
+c-# define IMPLICIT_BOTTOM_DRAG
 # define IMPLCT_NO_SLIP_BTTM_BC
 
 

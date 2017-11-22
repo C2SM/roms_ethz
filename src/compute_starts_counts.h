@@ -71,16 +71,17 @@
       else
         jmax=jnorth
       endif
-#else            /* non-MPI --> */
-      imax=Lm+1
-      jmax=Mm+1
+#else                        /* non-MPI --> */
+      imax=Lm+1 ; jmax=Mm+1
 #endif
       count(1)=imax-imin+1
       count(2)=jmax-jmin+1
 
+#ifndef NO_RECORD_CHECK
       if (nmax > 1) then
         count(3)=nmax
         start(4)=record
       else
         start(3)=record
       endif
+#endif

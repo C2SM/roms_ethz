@@ -19,7 +19,6 @@
 # include "compute_tile_bounds.h"
       call set_tides_tile (istr,iend,jstr,jend, A2d(1,1), A2d(1,2),
      &                                          A2d(1,3), A2d(1,4))
-      return
       end
 
       subroutine set_tides_tile (istr,iend,jstr,jend, Cangle, Sangle,
@@ -280,7 +279,6 @@
 
         endif  !<--- period > 0
       enddo  !<-- itide
-      return
       end
 #else
       subroutine set_tides_empty

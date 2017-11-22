@@ -2,6 +2,7 @@
                                         ! Read and report model input
       subroutine read_inp(ierr)         ! parameters from keyword-based
       implicit none                     ! startup file.
+      integer ierr
 #include "param.h"
 #include "scoord.h"
 #include "scalars.h"
@@ -16,11 +17,12 @@
 #ifdef MPI
 # include "mpif.h"
 #endif
-      character(len=64) fname
-      character(len=32) keyword
+      integer, parameter :: input=15, testunit=40,
+     &                  max_fname=64, max_kwsize=32
+      character(len=max_fname)  :: fname
+      character(len=max_kwsize) :: keyword
       character(len=3), parameter :: end_signal='end'
-      integer, parameter :: kwsize=32, testunit=40, input=15
-      integer ierr, is,ie,  kwlen, lstr, lenstr
+      integer is,ie,  kwlen, lstr, lenstr
 #ifdef SOLVE3D
      &                                 , itrc
 #endif
@@ -136,16 +138,16 @@ c--      fname='roms.in.US_West'
       wrtsta(indxTime)=.true.
 #endif
 
-! Read in keyword: keep trying, until keyword is found.
-! ==== == ======== ==== ======= ===== ======= == ======
+! Read in keyword name: keep trying, until keyword is found.
+!----- -- ------- ----- ---- ------- ------ ------- ---------
 
       call setup_kwds(ierr)
-      open (input, file=fname, status='old', form='formatted', err=97)
+      open(input, file=fname, status='old', form='formatted', err=97)
    1   keyword='                                '
        read(input,'(A)',err=1,end=99) keyword
-       if (ichar(keyword(1:1))==33) goto 1
+       if (keyword(1:1) == '!') goto 1
        is=1
-   2   if (is == kwsize) then
+   2   if (is == max_kwsize) then
          goto 1
        elseif (keyword(is:is) == ' ') then
          is=is+1
@@ -155,7 +157,7 @@ c--      fname='roms.in.US_West'
    3   if (keyword(ie:ie) == ':') then
          keyword(ie:ie)=' '
          goto 4           !--> recognized keyword.
-       elseif (keyword(ie:ie) /= ' ' .and. ie < kwsize) then
+       elseif (keyword(ie:ie) /= ' ' .and. ie < max_kwsize) then
          ie=ie+1
          goto 3
        endif
@@ -164,12 +166,12 @@ c--      fname='roms.in.US_West'
        if (is > 1) keyword(1:kwlen)=keyword(is:is+kwlen-1)
 
 ! Read input parameters according to the keyword:
-! ==== ===== ========== ========= == === ========
+!----- ----- ---------- --------- --- ---- -------
 
 ! Title
 
         if (keyword(1:kwlen) == 'title') then
-          call cancel_kwd (keyword(1:kwlen), ierr)
+          call cancel_kwd(keyword(1:kwlen), ierr)
           read(input,'(A)',err=95) title
           lstr=lenstr(title)
           mpi_master_only write(*,'(/1x,A)') title(1:lstr)
@@ -177,7 +179,7 @@ c--      fname='roms.in.US_West'
 ! Time-stepping parameters
 
         elseif (keyword(1:kwlen) == 'time_stepping') then
-          call cancel_kwd (keyword(1:kwlen), ierr)
+          call cancel_kwd(keyword(1:kwlen), ierr)
           read(input,*,err=95) ntimes, dt, ndtfast, ninfo
           mpi_master_only write(*,
      &  '(5x,A,I10,3x,A/9x,A,F11.4,2x,A/4x,A,I10,3x,A/6x,A,I10,3x,2A)'
@@ -199,37 +201,37 @@ c--      fname='roms.in.US_West'
 
 #ifdef SOLVE3D
         elseif (keyword(1:kwlen) == 'S-coord') then
-          call cancel_kwd (keyword(1:kwlen), ierr)
+          call cancel_kwd(keyword(1:kwlen), ierr)
           read(input,*,err=95) theta_s, theta_b, hc
-          mpi_master_only write(*,'(2(/4x,A,F10.5,3x,A))')
+          mpi_master_only write(*,'(2(/4x,A,F10.7,2x,A))')
      &    'theta_s =', theta_s, 'vertical S-coordinate surface',
      &    'theta_b =', theta_b, 'and bottom stretching parameters'
           if (hc < 1000.) then
-            mpi_master_only write(*,'(9x,A,F10.5,3x,2A)')
+            mpi_master_only write(*,'(9x,A,F10.5,2x,2A)')
      &                   'hc =', hc, 'critical depth [m]'
           else
-            mpi_master_only write(*,'(9x,A,ES14.5,3x,2A)')
+            mpi_master_only write(*,'(9x,A,ES14.5,2x,2A)')
      &                   'hc =', hc, 'critical depth [m]'
           endif
 
 !--> Boussinesq  reference density.
 
         elseif (keyword(1:kwlen) == 'rho0') then
-          call cancel_kwd (keyword(1:kwlen), ierr)
+          call cancel_kwd(keyword(1:kwlen), ierr)
           read(input,*,err=95) rho0
-          mpi_master_only write(*,'(7x,A,F10.4,3x,A)')  'rho0 =',
+          mpi_master_only write(*,'(7x,A,F10.4,2x,A)')  'rho0 =',
      &            rho0, 'Boussinesq reference density [kg/m^3].'
 
 # ifndef NONLIN_EOS
 !--> Parameters for linear equations of state.
 
         elseif (keyword(1:kwlen) == 'lin_rho_eos') then
-          call cancel_kwd (keyword(1:kwlen), ierr)
+          call cancel_kwd(keyword(1:kwlen), ierr)
           read(input,*,err=95) Tcoef, T0
 #  ifdef SALINITY
      &                       , Scoef, S0
 #  endif
-          mpi_master_only write(*,'(4(6x,A,F10.4,3x,A/))')
+          mpi_master_only write(*,'(4(6x,A,F10.4,2x,A/))')
      &      'Tcoef =', Tcoef,  'thermal expansion [kg/m^3/deg C]'
      &    , '   T0 =',    T0,  'reference temperature [deg C]'
 #  ifdef SALINITY
@@ -244,20 +246,21 @@ c--      fname='roms.in.US_West'
 ! Lateral viscosity coefficients.
 
         elseif (keyword(1:kwlen) == 'lateral_visc') then
-          call cancel_kwd (keyword(1:kwlen), ierr)
+          call cancel_kwd(keyword(1:kwlen), ierr)
           read(input,*,err=95) visc2
-          mpi_master_only write(*,'(6x,A,ES10.3,3x,A)') 'visc2 =',
-     &    visc2, 'horizontal Laplacian kinematic viscosity [m2/s]'
+          mpi_master_only write(*,'(6x,A,ES10.3,2x,A)')   'visc2 =',
+     &    visc2, 'horizontal Laplacian kinematic viscosity [m^2/s]'
 
 
 # if !defined EW_PERIODIC || !defined NS_PERIODIC
 ! Lateral boundary slipperness.
 
         elseif (keyword(1:kwlen) == 'gamma2') then
-          call cancel_kwd (keyword(1:kwlen), ierr)
+          call cancel_kwd(keyword(1:kwlen), ierr)
           read(input,*,err=95) gamma2
-          mpi_master_only write(*,'(5x,A,F4.1,5x,A)') 'gamma2 =',gamma2
-     &     , 'slipperiness parameter: free-slip = +1, or no-slip = -1.'
+          mpi_master_only write(*,'(5x,A,ES10.3,2x,2A)') 'gamma2 =',
+     &                           gamma2, 'slipperiness parameter: ', 
+     &                           'free-slip = +1, or no-slip = -1.'
 # endif
 #endif
 #ifdef SOLVE3D
@@ -265,12 +268,18 @@ c--      fname='roms.in.US_West'
 ! Horizontal Laplacian mixing coefficients for tracers.
 
         elseif (keyword(1:kwlen) == 'tracer_diff2') then
-          call cancel_kwd (keyword(1:kwlen), ierr)
+          call cancel_kwd(keyword(1:kwlen), ierr)
           read(input,*,err=95) (tnu2(itrc),itrc=1,NT)
           do itrc=1,NT
-            mpi_master_only write(*,'(ES10.3,A,I2,2A/32x,A,I2,A)')
-     &      tnu2(itrc), '  tnu2(',itrc,')     Horizontal Laplacian ',
-     &      'diffusion coefficient (m2/s)', 'for tracer ',  itrc, '.'
+            if (itrc == itemp) then
+              mpi_master_only write(*,'(3x,A,I2,A,ES10.3,2x,2A,I2,A)')
+     &         'tnu2(',itrc,') =',tnu2(itrc),'horizontal Laplacian ',
+     &         'kinematic heat conductivity [m^2/s]'
+            else
+              mpi_master_only write(*,'(3x,A,I2,A,ES10.3,2x,2A,I2,A)')
+     &         'tnu2(',itrc,') =',tnu2(itrc),'horizontal Laplacian ',
+     &         'diffusion for tracer ', itrc, ', [m^2/s]'
+            endif
           enddo
 # endif
 #endif
@@ -278,16 +287,18 @@ c--      fname='roms.in.US_West'
 ! Bottom drag coefficients.
 
         elseif (keyword(1:kwlen) == 'bottom_drag') then
-          call cancel_kwd (keyword(1:kwlen), ierr)
+          call cancel_kwd(keyword(1:kwlen), ierr)
           read(input,*,err=95) rdrg, rdrg2
 #ifdef SOLVE3D
      &                             , Zob
 #endif
-          mpi_master_only write(*,'(3(/7x,A,ES10.3,3x,A))')
-     &    'rdrg =', rdrg,  'linear bottom drag coefficient [m/s]'
-     &  , 'rdrg2=', rdrg2, 'quadratic bottom drag coefficient, nondim'
+          mpi_master_only write(*,'(7x,A,ES10.3,2x,A)')
+     &     'rdrg =', rdrg,  'linear bottom drag coefficient [m/s]'
+          mpi_master_only write(*,'(6x,A,ES10.3,2x,A)')
+     &    'rdrg2 =', rdrg2, 'quadratic bottom drag coefficient, nondim'
 #ifdef SOLVE3D
-     &  , ' Zob =', Zob,   'bottom roughness height [m]'
+          mpi_master_only write(*,'(8x,A,ES10.3,2x,A)')
+     &  ,   'Zob =', Zob,   'bottom roughness height [m]'
 #endif
 
 #ifdef SOLVE3D
@@ -297,12 +308,12 @@ c--      fname='roms.in.US_West'
 ! Background vertical viscosity and mixing coefficients for tracers.
 
         elseif (keyword(1:kwlen) == 'vertical_mixing') then
-          call cancel_kwd (keyword(1:kwlen), ierr)
+          call cancel_kwd(keyword(1:kwlen), ierr)
           read(input,*,err=95) Akv_bak,(Akt_bak(itrc),itrc=1,NT)
-          mpi_master_only write(*,'(4x,A,ES10.3,3x,A)')  'Akv_bak =',
+          mpi_master_only write(*,'(4x,A,ES10.3,2x,A)')  'Akv_bak =',
      &               Akv_bak, 'background vertical viscosity [m^2/s]'
           do itrc=1,NT
-            mpi_master_only write(*,'(1x,A,I1,A,ES10.3,3x,2A)')
+            mpi_master_only write(*,'(1x,A,I1,A,ES10.3,2x,2A)')
      &                     'Akt_bak(',  itrc,  ') =',  Akt_bak(itrc),
      &                     'background vertical mixing [m^2/s] for ',
      &        vname(2,indxT+itrc-1)(1:lenstr(vname(2,indxT+itrc-1)))
@@ -312,20 +323,36 @@ c--      fname='roms.in.US_West'
 ! Mellor-Yamada Level 2.5 turbulent closure parameters.
 
         elseif (keyword(1:kwlen) == 'MY_bak_mixing') then
-          call cancel_kwd (keyword(1:kwlen), ierr)
+          call cancel_kwd(keyword(1:kwlen), ierr)
           read(input,*,err=95) Akq_bak, q2nu2, q2nu4
           mpi_master_only write(*,'(1x,A,ES10.3,1x,A)')  'Akq_bak =',
-     &          Akq_bak, 'Background vertical mixing for TKE, [m2/s]'
+     &        Akq_bak, 'Background vertical mixing for TKE, [m^2/s]'
 #  ifdef Q_DIF2
           mpi_master_only write(*,'(1x,A,ES10.3,1x,A)')    'q2nu2 =',
-     &           q2nu2, 'Horizontal Laplacian mixing for TKE, [m2/s]'
+     &         q2nu2, 'Horizontal Laplacian mixing for TKE, [m^2/s]'
 #  endif
 #  ifdef Q_DIF4
           mpi_master_only write(*,'(1x,A,ES10.3,1x,A)')    'q2nu4 =',
-     &          q2nu4, 'Horizontal biharmonic mixing for TKE, [m4/s]'
+     &        q2nu4, 'Horizontal biharmonic mixing for TKE, [m^4/s]'
 #  endif
 # endif
+
+# if defined SFLX_CORR && defined SALINITY
+
+        elseif (keyword(1:kwlen) == 'SSS_correction') then
+          call cancel_kwd(keyword(1:kwlen), ierr)
+          read(input,*,err=95) dSSSdt
+          mpi_master_only write(*,'(5x,A,ES10.3,2x,2A/38x,A)')
+     &   'dSSSdt =', dSSSdt, 'Sea-Surface Salinity correction ',
+     &                       'coefficient expressed',
+     &            'kinematically as "piston velocity" [cm/day]' 
+
+          dSSSdt=dSSSdt/(100.D0*day2sec)   !<-- convert to [m/s]
+           
+# endif
 #endif /* SOLVE3D */
+
+
 
 #if  defined T_FRC_BRY || defined M2_FRC_BRY || defined TNUDGING \
   || defined Z_FRC_BRY || defined M3_FRC_BRY || defined M2NUDGING \
@@ -334,8 +361,8 @@ c--      fname='roms.in.US_West'
         elseif (keyword(1:kwlen) == 'ubind') then
           call cancel_kwd(keyword(1:kwlen), ierr)
           read(input,*,err=95) ubind
-            mpi_master_only write(*,'(6x,A,ES10.3,A)') 'ubind =',
-     &              ubind, 'open boundary binding velcity [m/s]'
+            mpi_master_only write(*,'(6x,A,ES10.3,2x,A)')
+     &     'ubind =', ubind, 'open boundary binding velcity [m/s]'
 
 
 /* OBSOLETE --->
@@ -373,7 +400,7 @@ c-->    elseif (keyword(1:kwlen) == 'nudg_cof') then
           mpi_master_only write(*,'(6x,A,ES10.3,ES10.3,2A)')
      &          'tauM2 =', tauM2_in, tauM2_out, '(in/out)  Nudging ',
      &                                   'for barotropic mode [s^-1]'
-          mpi_master_only write(*,'(5x,A,ES10.3,3x,2A)') 'attnM2 =',
+          mpi_master_only write(*,'(5x,A,ES10.3,2x,2A)') 'attnM2 =',
      &    attnM2,'open boundary pressure-gradient attenuation [s^-1]'
 # ifdef SOLVE3D
           mpi_master_only write(*,'(6x,A,ES10.3,ES10.3,2A)')
@@ -391,18 +418,18 @@ c-->    elseif (keyword(1:kwlen) == 'nudg_cof') then
 ! Parameters for the sponge layers
 
         elseif (keyword(1:kwlen) == 'v_sponge') then
-          call cancel_kwd (keyword(1:kwlen), ierr)
+          call cancel_kwd(keyword(1:kwlen), ierr)
           read(input,*,err=95) v_sponge
           mpi_master_only write(*,'(3x,A,F10.2,2x,A)') 'v_sponge =',
-     &          v_sponge, 'Maximum viscosity in sponge layer [m2/s]'
+     &        v_sponge, 'maximum viscosity in sponge layer [m^2/s]'
 #endif
 #ifdef OBC_FLUX_CORR
         elseif (keyword(1:kwlen) == 'tau_obc') then
-          call cancel_kwd (keyword(1:kwlen), ierr)
+          call cancel_kwd(keyword(1:kwlen), ierr)
           read(input,*,err=95) tau_obc
           mpi_master_only write(*,'(1x,A,ES10.3,2x,2A)')
      &      'tau_obc =',  tau_obc, 'OBC volume constraint ',
-     &                              'relaxation period [days]'
+     &                           'relaxation period [days]'
           tau_obc=tau_obc*day2sec
 #endif
 
@@ -413,7 +440,7 @@ c-->    elseif (keyword(1:kwlen) == 'nudg_cof') then
 ! Grid file name. Check its availability.
 
         elseif (keyword(1:kwlen) == 'grid') then
-          call cancel_kwd (keyword(1:kwlen), ierr)
+          call cancel_kwd(keyword(1:kwlen), ierr)
           read(input,'(A)',err=95) fname
           lstr=lenstr(fname)
 # if defined MPI && defined PARALLEL_FILES
@@ -431,7 +458,7 @@ c-->    elseif (keyword(1:kwlen) == 'nudg_cof') then
 ! created internally and no file is needed).
 
         elseif (keyword(1:kwlen) == 'initial') then
-          call cancel_kwd (keyword(1:kwlen), ierr)
+          call cancel_kwd(keyword(1:kwlen), ierr)
           read(input,*,err=95) nrrec
 #ifdef ANA_INITIAL
           if (nrrec > 0) then
@@ -460,7 +487,7 @@ c-->    elseif (keyword(1:kwlen) == 'nudg_cof') then
 ! Forcing file name. Check its availability.
 
         elseif (keyword(1:kwlen) == 'forcing') then
-          call cancel_kwd (keyword(1:kwlen), ierr)
+          call cancel_kwd(keyword(1:kwlen), ierr)
           max_frc=0
           lstr=1
           do while(lstr > 0 .and. max_frc < max_frc_files+1)
@@ -563,7 +590,7 @@ c-->    elseif (keyword(1:kwlen) == 'nudg_cof') then
                         defined T_FRC_BRY )) && !defined ANA_TCLIMA
 
         elseif (keyword(1:kwlen) == 'climatology') then
-          call cancel_kwd (keyword(1:kwlen), ierr)
+          call cancel_kwd(keyword(1:kwlen), ierr)
           read(input,'(A)',err=95) fname
           lstr=lenstr(fname)
 # if defined MPI && defined PARALLEL_FILES
@@ -580,7 +607,7 @@ c-->    elseif (keyword(1:kwlen) == 'nudg_cof') then
 !------- ----- ---------
 
         elseif (keyword(1:kwlen) == 'restart') then
-          call cancel_kwd (keyword(1:kwlen), ierr)
+          call cancel_kwd(keyword(1:kwlen), ierr)
           read(input,*,err=95) nrst, nrpfrst
           read(input,'(A)',err=95)  fname
           lstr=lenstr(fname)
@@ -599,7 +626,7 @@ c-->    elseif (keyword(1:kwlen) == 'nudg_cof') then
 ! of reconds per file in sequence, and filename
 
         elseif (keyword(1:kwlen) == 'history') then
-          call cancel_kwd (keyword(1:kwlen), ierr)
+          call cancel_kwd(keyword(1:kwlen), ierr)
           read(input,*,err=95) ldefhis, nwrt, nrpfhis
           read(input,'(A)',err=95) fname
           lstr=lenstr(fname)
@@ -617,7 +644,7 @@ c-->    elseif (keyword(1:kwlen) == 'nudg_cof') then
 ! Which fields to be saved into history file.
 
         elseif (keyword(1:kwlen) == 'primary_history_fields') then
-          call cancel_kwd (keyword(1:kwlen), ierr)
+          call cancel_kwd(keyword(1:kwlen), ierr)
           read(input,*,err=95) wrthis(indxZ),  wrthis(indxUb)
      &                                      ,  wrthis(indxVb)
 #ifdef SOLVE3D
@@ -645,7 +672,7 @@ c-->    elseif (keyword(1:kwlen) == 'nudg_cof') then
           enddo
 
         elseif (keyword(1:kwlen) == 'auxiliary_history_fields') then
-          call cancel_kwd (keyword(1:kwlen), ierr)
+          call cancel_kwd(keyword(1:kwlen), ierr)
           read(input,*,err=95) wrthis(indxR), wrthis(indxO)
      &          ,  wrthis(indxW),  wrthis(indxAkv),  wrthis(indxAkt)
 # ifdef SALINITY
@@ -695,7 +722,7 @@ c-->    elseif (keyword(1:kwlen) == 'nudg_cof') then
 ! records per file, and output filename.
 
         elseif (keyword(1:kwlen) == 'averages') then
-          call cancel_kwd (keyword(1:kwlen), ierr)
+          call cancel_kwd(keyword(1:kwlen), ierr)
           read(input,*,err=95) ntsavg, navg, nrpfavg
           read(input,'(A)',err=95) fname
           lstr=lenstr(fname)
@@ -713,7 +740,7 @@ c-->    elseif (keyword(1:kwlen) == 'nudg_cof') then
 ! Switches for fields to compute averages.
 
         elseif (keyword(1:kwlen) == 'primary_averages') then
-          call cancel_kwd (keyword(1:kwlen), ierr)
+          call cancel_kwd(keyword(1:kwlen), ierr)
           read(input,*,err=95) wrtavg(indxZ),  wrtavg(indxUb)
      &                                        ,  wrtavg(indxVb)
 # ifdef SOLVE3D
@@ -741,7 +768,7 @@ c-->    elseif (keyword(1:kwlen) == 'nudg_cof') then
           enddo
 
         elseif (keyword(1:kwlen) == 'auxiliary_averages') then
-          call cancel_kwd (keyword(1:kwlen), ierr)
+          call cancel_kwd(keyword(1:kwlen), ierr)
           read(input,*,err=95) wrtavg(indxR), wrtavg(indxO)
      &          ,  wrtavg(indxW),  wrtavg(indxAkv),  wrtavg(indxAkt)
 #  ifdef SALINITY
@@ -789,7 +816,7 @@ c-->    elseif (keyword(1:kwlen) == 'nudg_cof') then
 ! interval and number of records per file; output filename:
 
         elseif (keyword(1:kwlen) == 'stations') then
-          call cancel_kwd (keyword(1:kwlen), ierr)
+          call cancel_kwd(keyword(1:kwlen), ierr)
           read(input,*,err=95) nsta, nrpfstn
           read(input,'(A)',err=95) fname
           read(input,'(A)',err=95) staname
@@ -805,7 +832,7 @@ c-->    elseif (keyword(1:kwlen) == 'nudg_cof') then
 ! Switches for fields to sample into stations file:
 
         elseif (keyword(1:kwlen) == 'primary_stations') then
-          call cancel_kwd (keyword(1:kwlen), ierr)
+          call cancel_kwd(keyword(1:kwlen), ierr)
           read(input,*,err=95) wrtsta(indxZ),  wrtsta(indxUb)
      &                                         , wrtsta(indxVb)
 # ifdef SOLVE3D
@@ -833,7 +860,7 @@ c-->    elseif (keyword(1:kwlen) == 'nudg_cof') then
           enddo
 
         elseif (keyword(1:kwlen) == 'auxiliary_stations') then
-          call cancel_kwd (keyword(1:kwlen), ierr)
+          call cancel_kwd(keyword(1:kwlen), ierr)
           read(input,*,err=95) wrtsta(indxR), wrtsta(indxO)
      &          ,  wrtsta(indxW),  wrtsta(indxAkv),  wrtsta(indxAkt)
 #  ifdef SALINITY
@@ -881,7 +908,7 @@ c-->    elseif (keyword(1:kwlen) == 'nudg_cof') then
 ! Floats file name.
 
       elseif (keyword(1:kwlen) == 'floats') then
-        call cancel_kwd (keyword(1:kwlen), ierr)
+        call cancel_kwd(keyword(1:kwlen), ierr)
           read(input,*,err=95) ldefflt, nflt, nrpfflt
           read(input,'(A)',err=95) fposnam
           read(input,'(A)',err=95) fltname
@@ -896,7 +923,7 @@ c-->    elseif (keyword(1:kwlen) == 'nudg_cof') then
 ! Switches for fields to be saved into floats output file.
 
       elseif (keyword(1:kwlen)=='float_fields') then
-        call cancel_kwd (keyword(1:kwlen), ierr)
+        call cancel_kwd(keyword(1:kwlen), ierr)
 # ifdef AGRIF
         if (Agrif_Root()) then
 # endif
@@ -919,7 +946,7 @@ c-->    elseif (keyword(1:kwlen) == 'nudg_cof') then
 
 #ifdef MOORE_BEC
         elseif (keyword(1:kwlen)=='mgm_history') then
-          call cancel_kwd (keyword(1:kwlen), ierr)
+          call cancel_kwd(keyword(1:kwlen), ierr)
           read(input,*,err=95) nwrtmgm,  nprfmgm
           read(input,'(A)',err=95) fname
           lstr=lenstr(fname)
@@ -933,7 +960,7 @@ c-->    elseif (keyword(1:kwlen) == 'nudg_cof') then
 
 
         elseif (keyword(1:kwlen)=='mgm_avg') then
-          call cancel_kwd (keyword(1:kwlen), ierr)
+          call cancel_kwd(keyword(1:kwlen), ierr)
           read(input,*,err=95) nwrtmgmavg,  nprfmgmavg
           read(input,'(A)',err=95) fname
           lstr=lenstr(fname)
@@ -983,7 +1010,7 @@ c-->    elseif (keyword(1:kwlen) == 'nudg_cof') then
       end
 
                                             ! Find place in the string
-      subroutine cancel_kwd (keyword, ierr) ! kwds(1:max_opt_size)
+      subroutine cancel_kwd(keyword, ierr)  ! kwds(1:max_opt_size)
       implicit none                         ! which matches the input
 #include "strings.h"
       character(len=*) keyword              ! keyword name and turn it

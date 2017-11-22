@@ -3,13 +3,15 @@
 
 # define UPSTREAM_TS
 c--# define AKIMA
-
-      subroutine step3d_t(tile)
-      implicit none
-      integer tile
+                                  ! Note that arrays A2d(1,1:4) within
+      subroutine step3d_t(tile)   ! the list of agruments in call below
+      implicit none               ! are repeated to use the same memory
+      integer tile                ! for vertical and horizontal scratch
+                                  ! arrays.
 # include "param.h"
 # include "private_scratch.h"
 # include "compute_tile_bounds.h"
+
       call step3d_t_tile( istr,iend,jstr,jend,
      &                    A2d(1,1), A2d(1,2), A2d(1,3), A2d(1,4),
      &                    A2d(1,1), A2d(1,2), A2d(1,3)         )
@@ -66,7 +68,7 @@ c--# define AKIMA
           do k=1,N
             do i=istr,iend
               t(i,j,k,nnew,itrc)=t(i,j,k,nnew,itrc) -dt*pm(i,j)*pn(i,j)
-     &                                             *(FC(i,k)-FC(i,k-1))
+     &                                              *(FC(i,k)-FC(i,k-1))
             enddo
           enddo               !--> discard FC
 
@@ -108,7 +110,7 @@ c??           t(i,j,1,nnew,itemp)=t(i,j,1,nnew,itemp) -dt*cff
 c??         enddo
 
 #  if defined LMD_NONLOCAL && defined SALINITY
-          elseif (itrc==isalt) then
+          elseif (itrc == isalt) then
             do k=N-1,1,-1
               do i=istr,iend
                 cff=-dt*ghat(i,j,k)*stflx(i,j,isalt)
@@ -197,10 +199,17 @@ c??         enddo
      &                   )/( Hz(i,j,N) +FC(i,N-1)-min(WC(i,N-1),0.)
      &                      -CF(i,N-1)*(FC(i,N-1)+max(WC(i,N-1),0.))
      &                                                             )
+# ifdef MASKING
+     &                                                  *rmask(i,j)
+# endif
           enddo
           do k=N-1,1,-1
             do i=istr,iend
-              t(i,j,k,nnew,itrc)=DC(i,k)+CF(i,k)*t(i,j,k+1,nnew,itrc)
+              t(i,j,k,nnew,itrc)=(DC(i,k)+CF(i,k)*t(i,j,k+1,nnew,itrc))
+# ifdef MASKING
+     &                                                      *rmask(i,j)
+# endif
+
             enddo
           enddo           !--> discard FC,WC,CF,DC
 
@@ -283,9 +292,8 @@ c??         enddo
 # include "param.h"
 # include "strings.h"
       ie=lenstr(cpps)
-      is=ie+2
-      ie=is+13
-      if (ie>max_opt_size) goto 99
+      is=ie+2 ; ie=is+13
+      if (ie > max_opt_size) goto 99
       cpps(is:ie)='<step3d_t3S.F>'
 
 # include "track_advec_switches.h"
@@ -295,7 +303,6 @@ c??         enddo
      &  'Insufficient length of string "cpps" in file "strings.h".',
      &        'Increase parameter "max_opt_size" it and recompile.'
       ierr=ierr+1
-      return
       end
 #else
       subroutine step3d_t_empty

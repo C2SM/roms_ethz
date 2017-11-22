@@ -8,7 +8,7 @@
 !   sshg       two-time-level array to hold climatological data for
 !                                                     free surface.
 !   tssh       time of read in sea surface height climatology.
-!
+
 #if defined M2NUDGING && !defined M2_FRC_BRY
       real ssh(GLOBAL_2D_ARRAY)
 CSDISTRIBUTE_RESHAPE ssh(BLOCK_PATTERN) BLOCK_CLAUSE
@@ -19,10 +19,10 @@ CSDISTRIBUTE_RESHAPE ssh(BLOCK_PATTERN) BLOCK_CLAUSE
 CSDISTRIBUTE_RESHAPE sshg(BLOCK_PATTERN,*) BLOCK_CLAUSE
       common /climat_sshg/sshg
  
-      real ssh_time(2), ssh_cycle
-      integer ssh_ncycle, ssh_rec, itssh, ntssh, ssh_tid, ssh_id
-      common /climat_zdat/         ssh_time,     ssh_cycle,
-     &        ssh_ncycle, ssh_rec, itssh, ntssh, ssh_tid, ssh_id
+      real(kind=8) ssh_cycle, ssh_time(2)
+      integer itssh, ntssh, ssh_ncycle, ssh_rec, ssh_id, ssh_tid
+      common /climat_zdat/  ssh_cycle,  ssh_time,
+     &        itssh, ntssh, ssh_ncycle, ssh_rec, ssh_id, ssh_tid
  
 #   undef SSH_DATA
 #  endif /* SSH_DATA */
@@ -58,7 +58,7 @@ CSDISTRIBUTE_RESHAPE Tnudgcof(BLOCK_PATTERN,*) BLOCK_CLAUSE
 CSDISTRIBUTE_RESHAPE tclima(BLOCK_PATTERN,*,*,*) BLOCK_CLAUSE
       common /climat_tclima/tclima
  
-      real tclm_cycle(NT), tclm_time(2,NT)
+      real(kind=8) tclm_cycle(NT), tclm_time(2,NT)
       integer tclm_ncycle(NT), tclm_rec(NT), ittclm(NT),
      &        nttclm(NT),      tclm_tid(NT), tclm_id(NT)
       common /climat_tdat/     tclm_cycle,   tclm_time,
@@ -107,10 +107,9 @@ CSDISTRIBUTE_RESHAPE vclima(BLOCK_PATTERN,*,*) BLOCK_CLAUSE
       common /climat_uclima/uclima /climat_vclima/vclima
 # endif
  
-      real uclm_cycle,  uclm_time(2)
+      real(kind=8) uclm_cycle,  uclm_time(2)
       integer uclm_ncycle,   uclm_rec,  ituclm,  ntuclm,
      &   uclm_tid, ubclm_id, vbclm_id,  uclm_id, vclm_id
- 
       common /climat_udat/   uclm_time, uclm_cycle,
      &        uclm_ncycle,   uclm_rec,  ituclm,  ntuclm,
      &   uclm_tid, ubclm_id, vbclm_id,  uclm_id, vclm_id

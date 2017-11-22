@@ -138,8 +138,8 @@
 #endif
 #include "netcdf.inc"
       character(len=max_name_size) frcname
-      integer ncid, ifrc, ierr, lfrc, lenstr, ncdf_read
-      real dtime
+      integer ncid, ifrc, ierr, lfrc, lenstr, check_vardims, ncdf_read
+      real(kind=8) dtime
       character(len=40) fmt
 #ifndef timename
       character(len=16) tname
@@ -254,16 +254,53 @@
                   endif
 #endif
                   if (ierr == nf_noerr) then
-#ifdef MPI_SILENT_MODE
-                    if (mynode == 0) then
+                    call find_record(ncid, timevarid,  record, ntsmth,
+     &                   icycle, cycle_length,  ifrc, max_frc,  ierr)
+                    if (record < 0) then
+c**                   ierr=nf_close(ncid) ; ncfrc(ifrc)=-1
+                      ifrc=ifrc+1 ; goto 100  !--> to the next file
+                    endif
+#ifndef VAR_GRD_TYPE
+# define VAR_GRD_TYPE r_var
 #endif
-                      write(*,'(1x,7A,I4)') 'Found ''', varname
+                    if (ierr == nf_noerr) then
+                      ierr=check_vardims(ncid, frcname, varid,
+     &                                         VAR_GRD_TYPE, 0)
 #ifdef varname2
-     &                                         / /','/ /varname2
+# ifndef VAR_GRD_TYPE2
+#  define VAR_GRD_TYPE2 r_var
+# endif
+                      if (ierr == nf_noerr) then
+                        ierr=check_vardims(ncid, frcname, varid2, 
+     &                                          VAR_GRD_TYPE2, 0)
 # ifdef varname3
-     &                                         / /','/ /varname3
+#  ifndef VAR_GRD_TYPE3
+#   define VAR_GRD_TYPE3 r_var
+#  endif
+                        if (ierr == nf_noerr) then
+                          ierr=check_vardims(ncid, frcname, varid3,
+     &                                            VAR_GRD_TYPE3, 0)
 #  ifdef varname4
-     &                                         / /','/ /varname4
+#   ifndef VAR_GRD_TYPE4
+#    define VAR_GRD_TYPE4 r_var
+#   endif
+                          if (ierr == nf_noerr) then
+                            ierr=check_vardims(ncid, frcname, varid4,
+     &                                             VAR_GRD_TYPE4, 0)
+#  endif
+# endif
+#endif
+                            if (ierr == nf_noerr) then
+#ifdef MPI_SILENT_MODE
+                              if (mynode == 0) then
+#endif
+                    write(*,'(1x,7A,I4,A,I5)') 'Found ''', varname
+#ifdef varname2
+     &                                            / /','/ /varname2
+# ifdef varname3
+     &                                            / /','/ /varname3
+#  ifdef varname4
+     &                                            / /','/ /varname4
 #  endif
 # endif
 #endif
@@ -273,15 +310,21 @@
 #else
      &                                  tname(1:ltvr),
 #endif
-     &         ''' in ''', frcname(1:lfrc), ''', ifrc =', ifrc
+     &          ''' in ''', frcname(1:lfrc), ''' ifrc =', ifrc,
+     &                                     '  rec =', record+1
 #ifdef MPI_SILENT_MODE
-                    endif
+                              endif
 #endif
-                    call find_record(ncid, timevarid,  record, ntsmth,
-     &                   icycle, cycle_length,  ifrc, max_frc,  ierr)
-                    if (record < 0) then
-c**                   ierr=nf_close(ncid) ; ncfrc(ifrc)=-1
-                      ifrc=ifrc+1 ; goto 100  !--> to the next file
+                            endif
+#ifdef varname2
+# ifdef varname3
+#  ifdef varname4
+                          endif
+#  endif
+                        endif
+# endif
+                      endif
+#endif
                     endif
 
                   else
@@ -349,40 +392,28 @@ c**       ierr=nf_close(ncid) ; ncfrc(ifrc)=-1
           ifrc=ifrc+1         ; goto 100   !-->  next file
 
         else if (ierr == nf_noerr) then
-          ierr=nf_get_var1_FTYPE(ncid, timevarid, record, dtime)
+          ierr=nf_get_var1_double(ncid, timevarid, record, dtime)
           if (ierr == nf_noerr) then
             itsmth=3-itsmth
             timevar(itsmth)=dtime*day2sec + cycle_length*icycle
 
-#ifndef VAR_GRD_TYPE
-# define VAR_GRD_TYPE r_var
-#endif
             ierr=ncdf_read(ncid, varid, record, VAR_GRD_TYPE,
      &                           var(START_2D_ARRAY,itsmth), 1)
             if (ierr == nf_noerr) then
 #ifdef varname2
-# ifndef VAR_GRD_TYPE2
-#  define VAR_GRD_TYPE2 r_var
-# endif
               ierr=ncdf_read(ncid, varid2, record, VAR_GRD_TYPE2,
      &                           var2(START_2D_ARRAY,itsmth), 1)
               if (ierr == nf_noerr) then
-#endif
-#ifdef varname3
-# ifndef VAR_GRD_TYPE3
-#  define VAR_GRD_TYPE3 r_var
-# endif
+# ifdef varname3
                 ierr=ncdf_read(ncid, varid3, record, VAR_GRD_TYPE3,
      &                             var3(START_2D_ARRAY,itsmth), 1)
                 if (ierr == nf_noerr) then
-#endif
-#ifdef varname4
-# ifndef VAR_GRD_TYPE4
-#  define VAR_GRD_TYPE4 r_var
-# endif
+#  ifdef varname4
                   ierr=ncdf_read(ncid, varid4, record, VAR_GRD_TYPE4,
      &                               var4(START_2D_ARRAY,itsmth), 1)
                   if (ierr == nf_noerr) then
+#  endif
+# endif
 #endif
 #ifdef MPI_SILENT_MODE
                     if (mynode == 0) then
@@ -414,17 +445,17 @@ c**       ierr=nf_close(ncid) ; ncfrc(ifrc)=-1
 #ifdef MPI_SILENT_MODE
                     endif
 #endif
-#ifdef varname3
+#ifdef varname2
+# ifdef varname3
+#  ifdef varname4
                   else
                     write(*,4) varname4, record, nf_strerror(ierr)
                   endif
-#endif
-#ifdef varname3
+#  endif
                 else
                   write(*,4) varname3, record, nf_strerror(ierr)
                 endif
-#endif
-#ifdef varname2
+# endif
               else
                 write(*,4) varname2, record, nf_strerror(ierr)
               endif

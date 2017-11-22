@@ -36,8 +36,9 @@
 # else
 #  include "eos_vars.h"
 # endif
-
+# ifdef NONLIN_EOS
       cff=1./rho0
+# endif
       do j=jmin,jmax
         do i=imin,imax
 # ifdef NONLIN_EOS

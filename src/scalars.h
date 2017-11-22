@@ -20,8 +20,8 @@
 ! make compiler issue a warning message (Sun, DEC Alpha) or even
 ! crash (Alpha).
 
-      real*4 cpu_init, cpu_net
-      real WallClock, time, tdays
+      real(kind=4) cpu_init, cpu_net
+      real(kind=8) WallClock, time, tdays
       integer proc(2), numthreads, iic, kstp, knew
 #ifdef SOLVE3D
      &                           , iif, nstp, nnew, nrhs
@@ -49,7 +49,7 @@ C$OMP THREADPRIVATE(/priv_scalars/)
 ! dt       Time step for 3D primitive equations [seconds];
 ! dtfast   Time step for 2D (barotropic) mode [seconds];
 
-! xl, el   Physical size[m] of the domain in XI- and ETA-directions
+! xl,el    Physical size[m] of the domain in XI- and ETA-directions
 
 ! rdrg,rdrg2    Linear and quadratic bottom drag coefficients.
 ! gamma2   Slipperiness parameter, either 1. (free-slip)
@@ -77,10 +77,11 @@ C$OMP THREADPRIVATE(/priv_scalars/)
 ! levsfrc  Deepest and shallowest level to apply surface momentum
 ! levbfrc                                stress as as bodyforce.
 
-      real start_time, dt, dtfast, time_avg, xl,el, rdrg,rdrg2,Zob,
-     &                                                 visc2,gamma2
-      common /scalars_main/ start_time, dt, dtfast, time_avg, xl,el,
-     &                                 rdrg,rdrg2,Zob, visc2,gamma2
+      real(kind=8) start_time, dt, dtfast, time_avg
+      real xl,el, rdrg,rdrg2,Zob, visc2,gamma2
+      common /scalars_main/ start_time, dt, dtfast, time_avg,
+     &                   xl,el, rdrg,rdrg2,Zob, visc2,gamma2
+
 #ifdef SOLVE3D
       real rho0, tnu2(NT)
       common /scalars_main/ rho0, tnu2
@@ -93,6 +94,10 @@ C$OMP THREADPRIVATE(/priv_scalars/)
 # ifdef MY25_MIXING
       real Akq_bak,   q2nu2,   q2nu4
       common /scalars_main/ Akq_bak, q2nu2, q2nu4
+# endif
+# if defined SFLX_CORR && defined SALINITY
+      real dSSSdt
+      common /scalars_main/ dSSSdt
 # endif
 #endif
 #ifdef SPONGE

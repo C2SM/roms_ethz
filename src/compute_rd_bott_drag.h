@@ -2,13 +2,15 @@
         if (Zob > 0.) then
           do j=jstrV-1,jend
             do i=istrU-1,iend
+# define nrdg nstp
               cff=sqrt( 0.333333333333*(
-     &              u(i,j,1,nrhs)**2 +u(i+1,j,1,nrhs)**2
-     &                     +u(i,j,1,nrhs)*u(i+1,j,1,nrhs)
-     &               +v(i,j,1,nrhs)**2+v(i,j+1,1,nrhs)**2
-     &                     +v(i,j,1,nrhs)*v(i,j+1,1,nrhs)
+     &              u(i,j,1,nrdg)**2 +u(i+1,j,1,nrdg)**2
+     &                     +u(i,j,1,nrdg)*u(i+1,j,1,nrdg)
+     &               +v(i,j,1,nrdg)**2+v(i,j+1,1,nrdg)**2
+     &                     +v(i,j,1,nrdg)*v(i,j+1,1,nrdg)
      &                                               ) )
 
+# undef nrdg
 
 ! Canonical log-layer drag law formula valid for Zob << Hz only.   It
 ! should NEVER be used as it may cause instability in extremely shallow
@@ -27,10 +29,10 @@ c**           rd(i,j)=rdrg + cff*(vonKar/log(Hz(i,j,1)/Zob))**2
 ! there: setting Zob=Hz makes [vonKar/(2*ln 2-1)]^2 = [vonKar/0.386]^2
 ! upper vs. [vonKar/ln(3/2)]^2 = [vonKar/0.405]^2 lower.
 
-c**           rd(i,j)=rdrg + cff*( vonKar/( (1.+Zob/Hz(i,j,1))
-c**                                   *log(1.+Hz(i,j,1)/Zob) -1. ))**2
+c**           rd(i,j)=rdrg + cff*(  vonKar/(   (1.+Zob/Hz(i,j,1))
+c**                                  *log(1.+Hz(i,j,1)/Zob) -1. ) )**2
 
-              rd(i,j)=rdrg + cff*(vonKar/log(1.+0.5*Hz(i,j,1)/Zob))**2
+              rd(i,j)=rdrg+cff*( vonKar/log(1.+0.5*Hz(i,j,1)/Zob) )**2
 
 
 ! A couple drag laws of academic interest.
@@ -73,5 +75,5 @@ c**           rd(i,j)=min(rd(i,j), Hz(i,j,1)/dt) !!! FOR_TEST_ONLY
 ! rows into its periodic and/or computational margins, so there is no
 ! need for exchange call.
 
-        call ext_copy_prv2shr_2d_tile (istr,iend,jstr,jend, rd,r_D)
+        call ext_copy_prv2shr_2d_tile(istr,iend,jstr,jend, rd,r_D)
 
