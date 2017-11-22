@@ -338,4 +338,3 @@ c--#define  POSTSCRIPT
       call gscr (1, icolor, R,G,B)
       call gsplci (icolor)
       end
-

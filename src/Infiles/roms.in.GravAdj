@@ -5,7 +5,7 @@ title:
  thought the corresponing barotropic Cu_max ends up being very small.
  dt=43.0 is the largest at which fully-explicit code remains stable
  on 160x40 grid with using parabolic spline vertical advection for
- tracers, although producing very large overshots.    
+ tracers, although producing very large overshots.
 
 
 time_stepping: ntimes  dt[sec]  ndtfast ninfo
@@ -154,5 +154,3 @@ bottom_drag:     rdrg[m/s]   rdrg2   Zob[m]
                     0.         0.     0.
 gamma2:
        +1.d0
-
-

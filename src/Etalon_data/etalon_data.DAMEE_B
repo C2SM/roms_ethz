@@ -1,6 +1,6 @@
 #if defined REST_STATE_TEST
 !
-! prsgrd32AC1, SPLIT_EOS, 
+! prsgrd32AC1, SPLIT_EOS,
 !
 
         check_point(1)=1
@@ -195,7 +195,7 @@
 ! prsgrd32AC1, time step 8640/60, nonlinear EOS with linear split
 ! compressibility effect rho(T,S,z)=rho1(T,S)+z*q1(T,S)
 ! Forward-Backward barotropic mode with p=2,q=4,r=0.25 power-law
-! filter. 
+! filter.
 !
         check_point( 1)=     1
         etalon_line( 1)=

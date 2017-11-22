@@ -15,7 +15,7 @@ In comparison the most recent, 2013/14 versions the mathematical kernel
 -> more flexible splitting of Coriolis and Advection terms between barotropic
    and baroclinic modes, e.g., now it is possible to keep recomputing of
    Coriolis terms at every barotropic time step, while not doing so for
-   advection and curvilinear metric. This is regulated by EXTRAP_BAR_FLUXES 
+   advection and curvilinear metric. This is regulated by EXTRAP_BAR_FLUXES
    and KEEP_CORIOLIS (meaningful setting are undef/undef; def/undef; def/def);
    The EXTRAP_BAR_FLUXES algorithm is redesigned to use 4-time-slice (vs. 2-
    before) Adams-Bashforth-type extrapolations, resulting in adding two extra
@@ -26,7 +26,7 @@ In comparison the most recent, 2013/14 versions the mathematical kernel
    for time step setting dt=2000 seconds and above.   DU_avg_bak,DV_avg_bak
    are computed in step2D_FB.F and are used in set_depth.F.  The associated
    coefficients are semi-stable at this time and a new article is now being
-   written.  Because of the different nature of DU_avg1 vs. DU_avg2 (i.e., 
+   written.  Because of the different nature of DU_avg1 vs. DU_avg2 (i.e.,
    quasi-instantaneous value" vs. interval-averaged between consecutive time
    steps), these coefficient does not mathematically fit into any known
    stepping algorithm, and the whole thing is kind of new.
@@ -84,7 +84,7 @@ In comparison the most recent, 2013/14 versions the mathematical kernel
    to the rate of incoming advection.
 
    Overall this should be viewed as a stop-gap measure: the goal is to develop
-   an algorithm which does not rely on user-supplied parameters at all. 
+   an algorithm which does not rely on user-supplied parameters at all.
 
    All boundary routines were extensively edited to straighten up  CPP logic,
    but this does not change them mathematically (other that stated above).
@@ -97,12 +97,12 @@ Stylistic changes
 As of July 2013 the entire code is converted to use Fortran-90-style
 declarations and logical expressions.
 
-   
+
 
 FORTRAN 2003 standard compliance:
 ------- ---- -------- -----------
 Intel FORTRAN compiler allows automatic checking of consistency of arguments
-for functions and subroutines between the calling program and the function or 
+for functions and subroutines between the calling program and the function or
 subroutine itself.  This is activated by setting
 
  FFLAGS = -warn all -g \
@@ -119,7 +119,7 @@ of inconsistencies, e.g., number and types of argument, length of arrays,
 etc. Obviously this is useful, but unfortunately somewhat over-restrictive.
 It flags silly  situations like
 
-   real cff                  
+   real cff
    call sub(cff, 1)  !<-- passing a scalar variable as array of length 1
    end
 
@@ -252,7 +252,7 @@ Thus:
                    section,
 
 All reconfigurable variable names, and algorithm are described in
-the preamble Of get_smth.F, so there is no need to repeat it here. 
+the preamble Of get_smth.F, so there is no need to repeat it here.
 
 Why not to create a generic subroutine? (like, say, Hernan did)
 There are few reasons:
@@ -280,7 +280,7 @@ There are few reasons:
     4. No need for catalog file or catalog array (e.g., see 3000-line
        init_scalars.F from  AGRIF code); In contrast, CPP consistently
        inserts character strings, which otherwise should be kept as
-       variables or parameters, assigned values, and computed length.       
+       variables or parameters, assigned values, and computed length.
 
 Thus, the way to create a new routine read a netCDF file, one just needs to
 
@@ -298,7 +298,7 @@ multiple get_smflux, get_sst, get_swrad, etc...) is that get_smth.F can
 be made very reach in diagnostics and report for all kind of error conditions
 because its code complexity is no longer needs to be compromised with its
 maintainability: in contrast, adding more checks into to multiple routine
-leads to a harder to maintain and modify code.  
+leads to a harder to maintain and modify code.
 
 Currently all input 2D fields are handled by the template mechanism;
 
@@ -312,7 +312,7 @@ The model can now handle it: suppose one needs to run a model using thousands
 of input record of high-frequency wind forcing, so it is not practical to put
 them into a single file. Then
 
-forcing: 
+forcing:
    wind_year1.nc
    wind_year2.nc
    wind_year3.nc
@@ -330,9 +330,9 @@ See "pacific.in" for an example.
 
 The basic rule is that files OF THE SAME KIND corresponding to earlier time
 should appear earlier in the list, but other than that it is pretty much does
-not matter, e.g.,  
+not matter, e.g.,
 
-forcing:  
+forcing:
    wind_year1.nc
      heat_year1.nc
    wind_year2.nc
@@ -347,7 +347,7 @@ forcing:
 
 yields the same result; and even semi-randomized
 
-forcing:  
+forcing:
      heat_year1.nc
    wind_year1.nc
    wind_year2.nc
@@ -359,22 +359,22 @@ forcing:
    wind_year5.nc
      heat_year4.nc
 
-is still OK.  Basically the logic of template get_smth.F is designed 
+is still OK.  Basically the logic of template get_smth.F is designed
 in such a way that if it searches for wind, in ignores all files which
-do not contain wind variables, and vice versa. 
+do not contain wind variables, and vice versa.
 
 TO DO: Making code accept wild cards instead of long lists of input
-       files is considered, but no action yet. 
+       files is considered, but no action yet.
 
 
 
 Error signalling and termination procedures
 ----- ---------- --- ----------- -----------
 Because ROMS is an MPI code, one cannot simply quit a process when a netCDF
-reading/writing error occurs.  Instead it has to go through orderly shut down 
+reading/writing error occurs.  Instead it has to go through orderly shut down
 procedure.  In ROMS it is done by reduce-broadcast sequence of "may_day_flag"
 implemented in diag.F.  This means that once a netCDF I/O error occurs in a
-particular subroutine, the code nevertheless proceeds with normal business 
+particular subroutine, the code nevertheless proceeds with normal business
 (just setting may_day_flag to nonzero in the subroutine where error occurs,
 but doing nothing about it until a certain moment -- this is when diag.F
 called, and once it occurs, there is a guarantee that may_day_flag has
@@ -408,7 +408,7 @@ messages, making it much harder to determine the original cause.
 
 Now all get_init, get_something are inspected and redesigned to insure that
 logically everything gets initialized even in the case of netCDF errors, and
-the sequence above becomes 
+the sequence above becomes
 
       ierr=0
       call sub1(ierr)
@@ -430,8 +430,8 @@ not touch "ierr" at all, so it retains its initial value which is zero;
 If errors occur, say in sub2 and sub3, then these particular routines print
 their error messages, may_day_flag will be set to status corresponding to the
 nature of error in sub2; (sub3 will not touch it, despite having error on its
-own); sub4 executes normally; and nobody downstream will complain.  
- 
+own); sub4 executes normally; and nobody downstream will complain.
+
 This is the rationale to be followed.
 
 
@@ -467,8 +467,8 @@ tracked automatically as long as they appear in "cppdefs.h". Another program
 reads Makefile and created another subroutine to track the source code file
 list. This subroutine is also compiled in into the executable.  Should user
 create his own source files (previously unknown) and add them into Makefile,
-this will the recorded as well without any additional steps from the user. 
-Both mechanisms are known to work for over a decade in UCLA and AGRIF codes. 
+this will the recorded as well without any additional steps from the user.
+Both mechanisms are known to work for over a decade in UCLA and AGRIF codes.
 
 At the same time, it is a policy of UCLA ROMS to prevent excessiveness of
 the scope for CPP switches by defining them locally in the files where they

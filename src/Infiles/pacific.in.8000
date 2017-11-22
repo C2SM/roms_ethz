@@ -1,17 +1,17 @@
 !
 ! Keyword-based startup file for
-! Pacific configuration. 
+! Pacific configuration.
 !
 title:
            Pacific, 0.5 degree resolution, 30 levels
 
 
 time_stepping: NTIMES   dt[sec]  NDTFAST  NINFO
-             1296000     8000.      80      1 
+             1296000     8000.      80      1
 
 
 !time_stepping: NTIMES   dt[sec]  NDTFAST  NINFO
-             1296000     22.       1      1 
+             1296000     22.       1      1
 
 
 
@@ -29,7 +29,7 @@ forcing: filename
 
 
 initial: NRREC  filename
-           0 
+           0
                   /work2/Pacific_new/pacific_z30_new_ini15.nc
                   ../Pacific/year1990_ini.nc
 
@@ -46,13 +46,13 @@ restart:          NRST, NRPFRST / filename
                            rst.nc
                           /work/Pcfc/rst.nc
 
-history: LDEFHIS, NWRT, NRPFHIS / filename 
-            T      162    24 
+history: LDEFHIS, NWRT, NRPFHIS / filename
+            T      162    24
               his.nc
                           /work/Pcfc/his.nc
 
 averages: NTSAVG, NAVG, NRPFAVG / filename
-            1      108    18 
+            1      108    18
                  avg.nc
                           /work/Pcfc/avg.nc
 
@@ -60,7 +60,7 @@ primary_history_fields: zeta U,VBAR  U,V   wrtT(1:NT)
                           T   T T    T T   T T
 
 auxiliary_history_fields: rho Omega  W  Akv  Akt  Aks  HBL
-                           F   F     T   F    T    F    T 
+                           F   F     T   F    T    F    T
 
 primary_averages: zeta U,VBAR  U,V   wrtT(1:NT)
                     T    T T   T T      T T
@@ -89,4 +89,3 @@ sponge:          X_SPONGE [m],    V_SPONGE [m^2/sec]
 
 nudg_cof:    TauM_in TauM_out   TauT_in TauT_out [days for all]
                 3.       360.      1.       360.
-

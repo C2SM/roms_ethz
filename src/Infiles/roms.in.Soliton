@@ -14,7 +14,7 @@ title:
                 2400    0.105      1      128  .107 stable, .108 not
 
  time_stepping: ntimes  dt[sec] ndtfast ninfo  FB,384x128
-                4800    0.060     1    128   .061 stable, .062 not 
+                4800    0.060     1    128   .061 stable, .062 not
 
 ! time_stepping: ntimes  dt[sec]  ndtfast ninfo  FB,576x192
                7200     0.040     1     128   .040 stable, .041 not

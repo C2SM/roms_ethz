@@ -36,6 +36,3 @@ c      integer, parameter :: first=1, last=16, ncores=2
       end
 
 #include "lenstr.F"
-
-
-

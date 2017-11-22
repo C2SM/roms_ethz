@@ -28,8 +28,8 @@ How to make Makefile work:
 
   1. Edit the include statements on the top of Makefile and chose an
      appropriate one for your computer.  Simply comment/uncomment
-     Makedefs.machine_type file using pound symbol #. Note, only one 
-     include should remain uncommented. 
+     Makedefs.machine_type file using pound symbol #. Note, only one
+     include should remain uncommented.
 
      If the file for the particular type of machine is not available
      create it, using one of the existing "Makedefs.machine" files
@@ -87,8 +87,8 @@ How to make Makefile work:
              smake -J 8    (SGI machines only)
 
                  [watch for lowercase "j" and uppercase "J" above]
-     
- 
+
+
      to build the model. Here smake will make individual targets in parallel,
      is multiple processors are available. -j -J stands to specify the desired
      number of processors involved to override the default, for example 8.

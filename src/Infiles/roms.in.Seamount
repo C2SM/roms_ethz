@@ -69,5 +69,3 @@ bottom_drag:     rdrg[m/s],   rdrg2,  Zob[m]
                  1.0d-3       0.d0    0.01
 gamma2:
        +1.d0
-
-

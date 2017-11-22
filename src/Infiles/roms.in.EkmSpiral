@@ -54,6 +54,3 @@ primary_stations: zeta UBAR VBAR  U  V   wrtT(1:NT)
 
 auxiliary_stations: rho Omega  W  Akv  Akt Aks  HBL
                      F    F    F   F    F   F    F
-
-
-

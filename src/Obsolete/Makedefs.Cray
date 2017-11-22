@@ -26,7 +26,7 @@
 
       CFT = ftn $(OMP_FLAG)
 
-      LDR = $(CFT) 
+      LDR = $(CFT)
 
    FFLAGS = -O3
 
@@ -37,4 +37,3 @@
  LCDF = -L/opt/cray/netcdf/4.3.2/CRAY/83/lib -lnetcdff -lnetcdf \
         -L/opt/cray/hdf5/1.8.13/CRAY/83/lib -lhdf5_hl -lhdf5 \
         -L/opt/cray/xc-sysroot/5.1.29/usr/lib64 -lz -ldl
-

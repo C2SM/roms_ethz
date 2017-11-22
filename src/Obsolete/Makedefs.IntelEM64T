@@ -39,10 +39,10 @@
 # Setting  FFLAGS = -O2 -mp (or lower optimization level) is needed
 # to pass ETALON_CHECK: -O3 causes roundoff-level differences from
 # the length of innermost i-loop (the results still pass ETALON_CHECK
-# if  NP_XI = NSUB_X = 1, regardless of partition in ETA-direction). 
+# if  NP_XI = NSUB_X = 1, regardless of partition in ETA-direction).
 # As of ifort v. 11.0.xxx -mp is superseeded by -fp-model <arg> flag.
 
-# Flags collected under LARGE_MEM_FLAG are needed only if exceeding 
+# Flags collected under LARGE_MEM_FLAG are needed only if exceeding
 # 2 GBytes of memory: both -mcmodel (sets size of addressing pointers)
 # and -i-dynamic (ensures proper linking with Intel dynamic libraries
 # must be specified.
@@ -67,12 +67,12 @@ LARGE_MEM_FLAG = -mcmodel=medium
      LDR = mpif90 $(OMP_FLAG) $(CFTFLAGS) $(LARGE_MEM_FLAG)
 
 
-#   FFLAGS = -O3 -IPF_fma -ip 
+#   FFLAGS = -O3 -IPF_fma -ip
 # -qopt-report=5 -qopt-report-phase=vec
 
    FFLAGS =  -O3 -fp-model source
 
-#   FFLAGS =  -fp-model precise -O3 
+#   FFLAGS =  -fp-model precise -O3
 #  FFLAGS =  -O2 -fp-model strict
 # -prof_gen
 
@@ -84,11 +84,11 @@ LARGE_MEM_FLAG = -mcmodel=medium
 #  FFLAGS = -O1
 
 
-    LDFLAGS = 
+    LDFLAGS =
 
  COMP_FILES = ifort?????* tmp?????*
 
-#    LMPI = ${MPI_ROOT}/lib/libmpich.a 
+#    LMPI = ${MPI_ROOT}/lib/libmpich.a
 
 
    LCDF = -L$(NETCDF)/../serial/lib -lnetcdff -lnetcdf
@@ -104,6 +104,9 @@ LARGE_MEM_FLAG = -mcmodel=medium
 # libncar = -lncarg -lncarg_gks -lncarg_c -lX11 -lm
   libncar = -lncarg -lncarg_gks -lncarg_c -lXpm -lX11 -lXext -lpng -lz
   LIBNCAR = -L$(NCARG_ROOT)/lib -L/usr/lib64 $(libncar)
+<<<<<<< HEAD:src/Makedefs.IntelEM64T
 
  COMP_FILES=*__genmod.f90 *__genmod.mod
 
+=======
+>>>>>>> Moved files to other directories to conform with ETH file layout:src/Obsolete/Makedefs.IntelEM64T

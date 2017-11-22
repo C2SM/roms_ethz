@@ -1,4 +1,4 @@
-# Platform-specific definitions for Linux using Fujitsu frt/f90/f95 
+# Platform-specific definitions for Linux using Fujitsu frt/f90/f95
 # ======== ======== =========== === ===== ===== =======  ==========
 
 .SUFFIXES: .o .f .F
@@ -33,5 +33,3 @@
  LIBNCAR = -L/usr/local/ncarg/lib -L/usr/X11R6/lib -lncarg -lncarg_gks -lncarg_c -lX11 -lm
 
 #  LPEPCD = -L/opt/intel/compiler50/ia32/lib  -lPEPCF90
-
-

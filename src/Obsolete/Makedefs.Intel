@@ -27,15 +27,15 @@
 #     CPP = fpp
 
       CPP = /lib/cpp -traditional
- CPPFLAGS = -D__IFC -I/usr/local/include
+ CPPFLAGS = -D__IFC
 
-#
+
 # NOTE: The actual Intel compiler name is either "ifc" (versions 5.x,
 # 6.x or 7.x), or "ifort" (starting with version 8.0; name "ifc" is
 # still accepted, but causes warning messages).   To make this setup
 # universal and silent, soft links are added to Intel compiler bin
 # directory with "f90" pointing to either "ifc" or "ifort" whichever
-# is more appropriate. 
+# is more appropriate.
 #
 # Compiler settings:  -fpp2 is required only if -openmp is present.
 # Not having -fpp2 here just causes compiler warning (-fpp is set to
@@ -60,37 +60,39 @@
 #
 # -qp  compiles and links for function profiling with  gprof(1);
 #      this is the same as specifying -p or -pg.
+#
+# Option -Vaxlib within LDFLAGS enables proper resolution of "iargc"
+# and "getarg" functions when using ifc 7.x and earlier compilers.
+# Starting with release version 8.0, Intel compiler treats them as
+# intrinsic procedures, so there is no need to specify this option.
 
 
 
-#      OMP_FLAG = -fpp2 -openmp
+ OMP_FLAG = -fpp2 -openmp
 
-#	CFT = ifc   $(OMP_FLAG) -pc80 -tpp7 -axW -xW -auto -stack_temps
-#	CFT = ifort $(OMP_FLAG) -pc80 -tpp7 -axN -xN -auto -stack_temps
-	CFT = ifort $(OMP_FLAG) -pc80 -tpp7 -axN -xN -align dcommon -auto -stack_temps
+#     CFT = ifc   $(OMP_FLAG) -pc80 -tpp7 -axW -xW
+#     CFT = ifort $(OMP_FLAG) -pc80 -tpp7 -axN -xN -auto -stack_temps
+      CFT = ifort $(OMP_FLAG) -pc80 -tpp7 -msse3 -align dcommon -auto -stack_temps
+      CFT = ifort $(OMP_FLAG)
 
+      LDR = $(CFT)
 
-      LDR = $(CFT) 
-
-   FFLAGS = -O3 -IPF_fma -ip 
+   FFLAGS = -O3 -IPF_fma -ip
+   FFLAGS = -O3 -arch pn3
 # -prof_gen
 #    FFLAGS = -O0             #  -CA check pointer; -CS check shape
-#  FFLAGS = -O3                       (not implemented in ifort8.1)
-#   FFLAGS = -g -CA -CB -CS -CU -CV 
-#   FFLAGS = -g  -CB -CU -CV
-#  FFLAGS = $(CPPFLAGS) -O0
-
-  LDFLAGS = -Vaxlib
+#
+# Flag setting for debugging: note that -CA check pointer,
+# and -CS check shape are not implemented in ifort8.1.xxx
+# and should not be used.
+#
+#   FFLAGS = -g -CA -CB -CS -CU -CV
+#  LDFLAGS = -Vaxlib
 
 
  COMP_FILES = work.pc work.pcl ifc??????
 
    LCDF = -lnetcdf
 
-# LCDF =/usr/local/lib/libnetcdf.a
 
  LIBNCAR = -L/usr/local/ncarg/lib -L/usr/X11R6/lib -lncarg -lncarg_gks -lncarg_c -lX11 -lm
-
- LMPI = /opt/mpich-1.2.6/lib/libmpich.a
-
-

@@ -201,7 +201,7 @@ c        bkw_new=0.6117  ; bkw=0.2886 ; bkw1=0.0877  ; bkw2=0.012
           do j=jstrR,jendR
             do i=istrR,iendR
 # ifdef EXTRAP_BAR_FLUXES
-! PAC23 verified setting with theoretical alpha_max=1.0877. 
+! PAC23 verified setting with theoretical alpha_max=1.0877.
 ! the number 0.1024390... is the ratio of delta/gamma=0.21/2.05
 ! this should match the simlarly-labelled setting of NOW MID BAK
 ! in set_depth.F.   All the other settings are to be considered
@@ -790,7 +790,7 @@ c<<     &     +cff*iA_v(i,j)
 # endif
 #endif
 #ifdef PSOURCE
-      do is=1,Nsrc                             ! Point sources due  
+      do is=1,Nsrc                             ! Point sources due
         i=Isrc(is) ; j=Jsrc(is)                ! to river runoff
         if (istrR <= i .and. i <= iendR .and.
      &      jstrR <= j .and. j <= jendR) then
