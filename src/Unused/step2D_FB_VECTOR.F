@@ -10,13 +10,13 @@ c**   contains
 #include "param.h"
 #include "private_scratch.h"
 #include "compute_tile_bounds.h"
-      call step2d_FB_tile (istr,iend,jstr,jend, A2d(1,1),  A2d(1,2),
+      call step2D_FB_tile (istr,iend,jstr,jend, A2d(1,1),  A2d(1,2),
      &                    A2d(1, 3), A2d(1, 4), A2d(1, 5), A2d(1, 6),
      &                    A2d(1, 7), A2d(1, 8), A2d(1, 9), A2d(1,10),
      &                               A2d(1,11), A2d(1,12), A2d(1,13))
       end subroutine step2d
 
-      subroutine step2d_FB_tile (istr,iend,jstr,jend, zeta_new,Dnew,
+      subroutine step2D_FB_tile (istr,iend,jstr,jend, zeta_new,Dnew,
      &                           rubar,rvbar, urhs,vrhs,  DUon,DVom,
      &                                        Drhs, UFx,UFe,VFx,VFe)
 
@@ -713,6 +713,6 @@ c       cff3=0.0088
      &                   vbar(START_2D_ARRAY,knew))
 
 #endif
-      end subroutine step2d_FB_tile
+      end subroutine step2D_FB_tile
 
 c**   end module step2d_mod

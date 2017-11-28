@@ -33,7 +33,9 @@
 # include "mixing.h"
 # include "climat.h"
 # include "scalars.h"
-
+# ifdef PHYS_FLUX_ANALYSIS
+#  include "physflux.h"
+# endif
 # include "compute_auxiliary_bounds.h"
 
 # ifdef MASKING
@@ -174,6 +176,44 @@ c**  &                                                             )
      &                                                   )/Hz(i,j,k)
             enddo
           enddo
+#  ifdef FULL_PHYS_FLUX_ANALYSIS
+#if !defined SELECTED_FLUX_ANALYSIS /* AH */
+        do j=Jstr,Jend
+           do i=Istr,Iend+1
+              ! unit: mmol/s
+              HorXMixFlux(i,j,k,itrc) = -FX(i,j)
+#   ifdef MASKING
+     &              * rmask(i,j)
+#   endif
+           end do
+        end do
+        do j=Jstr,Jend+1
+           do i=Istr,Iend+1
+              ! unit: mmol/s
+              HorYMixFlux(i,j,k,itrc) = -FE(i,j)
+#   ifdef MASKING
+     &              * rmask(i,j)
+#   endif
+           end do
+        end do
+        do j=Jstr,Jend
+           do i=Istr,Iend
+              ! unit: mmol/(m2 s)
+              ! reverse sign so that fluxes are positive upwards
+              VertMixFlux(i,j,k,itrc) = -FSC(i,j,k2)
+#   ifdef MASKING
+     &             * rmask(i,j)
+#   endif
+            enddo
+          enddo
+       else ! <-- k.gt.0
+          do j=Jstr,Jend+1
+             do i=Istr,Iend+1
+                VertMixFlux(i,j,k,itrc) = 0.0
+             end do
+          end do
+#endif /* SELECTED_FLUX_ANALYSIS */
+#  endif /* FULL_PHYS_FLUX_ANALYSIS */
         endif  ! <-- k>0
       enddo   ! --> k
 # endif /* T_DIF2 */
@@ -499,6 +539,44 @@ c**  &                                                             )
      &                        +FSC(i,j,k2)-FSC(i,j,k1)    )/Hz(i,j,k)
             enddo
           enddo
+#  ifdef FULL_PHYS_FLUX_ANALYSIS
+#if !defined SELECTED_FLUX_ANALYSIS /* AH */
+        do j=Jstr,Jend
+           do i=Istr,Iend+1
+              ! unit: mmol/s
+              HorXMixFlux(i,j,k,itrc) = -FX(i,j)
+#   ifdef MASKING
+     &              * rmask(i,j)
+#   endif
+           end do
+        end do
+        do j=Jstr,Jend+1
+           do i=Istr,Iend+1
+              ! unit: mmol/s
+              HorYMixFlux(i,j,k,itrc) = -FE(i,j)
+#   ifdef MASKING
+     &              * rmask(i,j)
+#   endif
+           end do
+        end do
+        do j=Jstr,Jend
+           do i=Istr,Iend
+              ! unit: mmol/(m2 s)
+              ! reverse sign so that fluxes are positive upwards
+              VertMixFlux(i,j,k,itrc) = -FSC(i,j,k2)
+#   ifdef MASKING
+     &             * rmask(i,j)
+#   endif
+            enddo
+          enddo
+       else ! <-- k.gt.0
+          do j=Jstr,Jend+1
+             do i=Istr,Iend+1
+                VertMixFlux(i,j,k,itrc) = 0.0
+             end do
+          end do
+#endif /* SELECTED_FLUX_ANALYSIS */
+#  endif /* FULL_PHYS_FLUX_ANALYSIS */
         endif  ! <-- k>0
       enddo   ! --> k
 # endif /* TS_DIF4 */

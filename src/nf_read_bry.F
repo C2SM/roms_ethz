@@ -51,13 +51,16 @@
 #endif
       else
         ierr=nf_inq_varname(ncid, varid, vname)
-        if (ierr == nf_noerr) then
+        ! Note that if some boundary data is not present in the bry
+        ! file, then varid may be 0, and nf_inq_varname may still return
+        ! nf_noerr. Therefore check for varid>0.
+        if (ierr == nf_noerr .and. varid>0) then
           lstr=lenstr(vname)
           write(*,'(1x,2A,I6,1x,3A,2x,A,2x,A,I4)')  '### ERROR: ',
      &            'read_bry_EW :: Cannot read rec =',   record,
      &            'of variable ''',  vname(1:lstr),  '''.',
      &             nf_strerror(ierr) MYID
-        else
+        else if (varid>0) then
           write(*,'(1x,2A,I6,1x,A,I4,2x,A,2x,A,I4)') '### ERROR: ',
      &            'read_bry_EW :: Cannot read rec =',   record,
      &            'of variable with netCDF ID =',  varid,
@@ -111,13 +114,16 @@
 #endif
       else
         ierr=nf_inq_varname (ncid, varid, vname)
-        if (ierr == nf_noerr) then
+        ! Note that if some boundary data is not present in the bry
+        ! file, then varid may be 0, and nf_inq_varname may still return
+        ! nf_noerr. Therefore check for varid>0.
+        if (ierr == nf_noerr .and. varid>0) then
           lstr=lenstr(vname)
           write(*,'(1x,2A,I6,1x,3A,2x,A,2x,A,I4)')  '### ERROR: ',
      &            'read_bry_NS :: Cannot read rec =',   record,
      &            'of variable ''',  vname(1:lstr),  '''.',
      &             nf_strerror(ierr) MYID
-        else
+        else  if (varid>0) then
           write(*,'(1x,2A,I6,1x,A,I4,2x,A,2x,A,I4)') '### ERROR: ',
      &            'read_bry_NS :: Cannot read rec =',   record,
      &            'of variable with netCDF ID =',  varid,

@@ -159,15 +159,11 @@
             enddo
           enddo            !--> discard FC
 
-# ifdef BIOLOGY
 #  ifdef SALINITY
           iAkt=min(itrc,isalt)
 #  else
           iAkt=min(itrc,itemp)
 #  endif
-# else
-          iAkt=itrc
-# endif
           do i=istr,iend
             FC(i,1)=2.*dtau*Akt(i,j,1,iAkt)/( Hz_fwd(i,j,2)
      &                                       +Hz_fwd(i,j,1))

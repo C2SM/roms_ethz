@@ -20,7 +20,7 @@
 #endif
 
 #define SUM_BY_PAIRS
-#define ETALON_CHECK
+!--> #define ETALON_CHECK
 #define MAX_ADV_CFL
 c--#define MAX_BY_VERT_CFL_ONLY
 
@@ -72,6 +72,11 @@ c--#define MAX_BY_VERT_CFL_ONLY
       integer size, step, itag, status(MPI_STATUS_SIZE)
       real*QUAD buff(16)
 #endif
+#ifdef  COMPUTE_SPEED_DIAGNOSE
+C$    real*8 omp_get_wtime  
+      real*8      wtime0, wtime1, wtime2
+      save wtime0, wtime1
+#endif
 #include "grid.h"
 #ifdef SOLVE3D
 # include "ocean3d.h"
@@ -118,28 +123,7 @@ c--#define MAX_BY_VERT_CFL_ONLY
         etalon_line(icheck)=' '        ! is needed because some of them
       enddo                            ! may be left uninitialized.
 
-# if defined SOLITON
-#  include "etalon_data.SOLITON"
-# elif defined WAVE_RAD
-#  include "etalon_data.WAVE_RAD"
-
-# elif defined SEAMOUNT
-#  include "etalon_data.SEAMOUNT"
-# elif defined GRAV_ADJ
-#  include "etalon_data.GRAV_ADJ"
-# elif defined ISWAKE
-#  include "etalon_data.ISWAKE"
-# elif defined UPWELLING
-#  include "etalon_data.UPWELLING"
-# elif defined DAMEE_B
-#  include "etalon_data.DAMEE_B"
-# elif defined USWEST
-#  include "etalon_data.USWEST"
-# elif defined PACIFIC
-#  include "etalon_data.PACIFIC"
-# elif defined DOUBLE_GYRE 
-#  include "etalon_data.DOUBLE_GYRE"
-# endif
+# include "Etalon_data/etalon_data.REF"
 #endif
 
       ierr=0
@@ -616,6 +600,15 @@ C$   &                                                 , 'trd'
      &                             avke, avpe, avke+avpe, avzeta
 C$   &                                                 , proc(2)
 #endif /* SOLVE3D */
+#ifdef  COMPUTE_SPEED_DIAGNOSE
+# ifdef MPI
+              wtime2=MPI_Wtime()
+            if (first_time.eq.0) then
+              wtime0=wtime2
+              wtime1=wtime2
+            endif
+# endif
+#endif
           ie=max_check_line
           do while (check_line(ie:ie)==' ' .and. ie>0)
             ie=ie-1
@@ -690,7 +683,8 @@ C$        ie=ie-3             ! <--  disregard thread number
           do icheck=1,ncheck
             if (iic-1 == check_point(icheck)) then
 # ifdef WRITE_ETALON
-              if (mcheck==0) open(unit=19, file='etalon_data.NEW')
+              if (mcheck==0) open(unit=19, 
+     &                         file='etalon_data.NEW')
               mcheck=mcheck+1
               write(19,'(8x,A,I2,A,I6,2x,A,2x,A,I2,A/5x,A,3x,3A)')
      &       'check_point(', mcheck, ')=', check_point(icheck), ';',

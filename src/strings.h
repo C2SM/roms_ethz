@@ -3,6 +3,7 @@
 ! Basically the names are pasted together consecutively into long
 ! strings and written as global attributes into output netCDF files.
 
+!mm old:      integer, parameter :: max_opt_size=1024
       integer, parameter :: max_opt_size=2048
       character*(max_opt_size) cpps, srcs, kwds
       common /strings/ cpps, srcs, kwds

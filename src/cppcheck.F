@@ -35,7 +35,7 @@
 ! Created by Alexander Shchepetkin <alex@atmos.ucla.edu> on May 2000.
 
       implicit none
-      integer, parameter :: max_str_size=80, max_switches=1024,
+      integer, parameter :: max_str_size=512, max_switches=1024,
      &                      iin=11, iout=12, nwords=16
 
       character(len=max_str_size) string
@@ -55,8 +55,18 @@
 #ifdef INT_IARGC
       integer iargc
 #endif
-      example=.true. ; nswtchs=0     ! Initialize catalog: reset/blank
-      nexample=0     ; fswtch(1)=1   ! out all counters, arraysof macro
+#ifdef UCLA_CPPDEFS_STYLE
+      example=.true. ; nexample=0    ! UCLA stores all setups in on cppdefs.h file
+                                     ! and needs one setup switch defined
+                                     ! As long as no setup switch is defined
+                                     ! all cpp switches are treated as an example
+                                     ! nexample below counts these setups
+#else
+      example=.false. ; nexample=1   ! ETHZ uses setup specific cppdef.h files
+                                     ! All cpp switches must be taken into account
+#endif
+      nswtchs=0                      ! Initialize catalog: reset/blank
+      fswtch(1)=1                    ! out all counters, arraysof macro
       do i=1,max_switches            ! names, and name sizes.
         size(i)=0
         switch(i)='                                '
@@ -70,11 +80,11 @@
         stop
       endif
 
-       write(*,'(/1x,2A/)') 'This is cppcheck: Creating new ',
+       write(*,'(/1x,2A)') 'This is cppcheck: Creating new ',
      &                      'version of "check_switches1.F".'
       do ifile=1,nfiles
         call getarg(ifile,fname(ifile))
-        write(*,'(/1x,2A/)') 'Processing ', fname(ifile)
+        write(*,'(1x,2A)') '   - processing: ', fname(ifile)
         open(unit=iin,file=fname(ifile),status='old',form='formatted')
         ierr=0
         count=0                 ! Reset error flag, line counter and,
@@ -155,7 +165,11 @@ c**         enddo
               is=istr(k)                ! when encounter the first
               ie=iend(k)                ! conditional CPP-command.
               ln=ie-is+1
+#ifdef UCLA_CPPDEFS_STYLE
               status=.false.
+#else /* ETHZ */
+              status=.true.
+#endif 
 
               if (ln == 6 .and. string(is:ie) == 'define') then
                 command=.true. ; status=.true.
@@ -197,16 +211,16 @@ c**         enddo
                 is=istr(k)                ! found in the present line.
                 ie=iend(k)                ! If no match is found, add
                 ln=ie-is+1
-                if (ifile > 1 .and. nstdpth > 0) then
-                  new=.false.
-                else                      ! the new switch to catalog.
+!mm                if (ifile > 1 .and. nstdpth > 0) then
+!mm                  new=.false.
+!mm                else                      ! the new switch to catalog.
                   new=.true.
                   do i=fswtch(ifile),nswtchs
                     if (ln == size(i)) then
                      if (string(is:ie) == switch(i)(1:ln)) new=.false.
                     endif
                   enddo                   ! Note that CPP-switches
-                endif                     ! found prior to the first
+!mm                endif                     ! found prior to the first
                 if (new) then             ! conditional CPP-command
                   nswtchs=nswtchs+1       ! correspond to predefined
                   size(nswtchs)=ln
@@ -223,6 +237,7 @@ c**         enddo
         fswtch(ifile+1)=nswtchs+1         ! defined.)
       enddo  !<-- ifile
 
+#ifdef VERBOSE
       write(*,'(/A,I4)')  'nswtchs =', nswtchs  ! Print out catalog.
       do ifile=1,nfiles
         write(*,'(/A)') fname(ifile)
@@ -231,6 +246,7 @@ c**         enddo
           write(*,'(10x,I4,I4,2x,A)') line(i), ln, switch(i)(1:ln)
         enddo
       enddo
+#endif
 
 ! Generate CPP-checking subroutine.
 
@@ -252,7 +268,9 @@ c**         enddo
      &  '!!!!!! as an independent program, or use commands','!!!!!!',
      &  '!!!!!! "make checkdefs" or "make depend".',        '!!!!!!'
       write(iout,'(A,20x,I3,1x,A/A,23x,I3,1x,A)')
+#ifdef UCLA_CPPDEFS_STYLE
      &  '!!!!!! Number of Configuration Choices:',nexample, '!!!!!!',
+#endif
      &  '!!!!!! Total number of CPP-switches:', nswtchs,  '!!!!!!'
       write(iout,'(2(/6x,A),5(/A),4(/6x,A))')
      &  'implicit none',        'integer ierr, is,ie, iexample',
@@ -289,12 +307,15 @@ c**  &                              '''<', fname(ifile)(1:ln), '>'''
      &             'if (ie >= max_opt_size) goto 99',
      &             'cpps(is:ie)=''<', fname(ifile)(1:ln), '>''',
      &             'cpps(ie+1:ie+1)='' '''
+!mm       print*,' fswitch(',ifile,')=',fswtch(ifile)
+!mm       print*,' fswitch(',ifile+1,')=',fswtch(ifile+1)
 
         do i=fswtch(ifile),fswtch(ifile+1)-1
           ln=size(i)
-          if (ifile == 1) write(iout,'(A,1x,A)') '#ifdef',
+!sasha          if (ifile == 1) write(iout,'(A,1x,A)') '#ifdef',
+          write(iout,'(A,1x,A)') '#ifdef',
      &                                        switch(i)(1:ln)
-          if (ifile == 1 .or. state(i)) then
+!sasha          if (ifile == 1 .or. state(i)) then
             if (i <= nexample) write(iout,'(6x,A)')
      &                                 'iexample=iexample+1'
             if (ln > 10) then
@@ -306,11 +327,12 @@ c**  &                              '''<', fname(ifile)(1:ln), '>'''
      &                 'if (ie >= max_opt_size) goto 99',
      &                 'cpps(is:ie)=''', switch(i)(1:ln), '''',
      &                 'cpps(ie+1:ie+1)='' '''
-          endif
-          if (ifile == 1) write(iout,'(A)')  '#endif'
+!sasha          endif
+!sasha          if (ifile == 1) write(iout,'(A)')  '#endif'
+          write(iout,'(A)')  '#endif'
         enddo
       enddo
-
+#ifdef UCLA_CPPDEFS_STYLE
       write(iout,'(6x,A/8x,A/5x,A1,1x,A/8x,A/6x,A)')
      &      'if (iexample == 0) then',
      &      'mpi_master_only write(*,''(/1x,A)'')', '&',
@@ -320,12 +342,15 @@ c**  &                              '''<', fname(ifile)(1:ln), '>'''
      &      'mpi_master_only write(*,''(/1x,2A/)'')', '&',
      &      '''### ERROR: More than one main configuration '',', '&',
      &      '''switch is defined in "cppdefs.h".''',   'ierr=ierr+1',
-     &                                             'endif', 'return'
-      write(iout,'(2x,A/5x,A1,2x,A,1x,A/5x,A1,2x,A,1x,A)')
+     &                                             'endif'
+#endif
+      write(iout,'(6x,A/2x,A/5x,A1,2x,A,1x,A/5x,A1,2x,A,1x,A)')
+     &      'return',
      &      '99  mpi_master_only write(*,''(/1x,2A/14x,A)'')',  '&',
      &      '''### ERROR: checkdefs :: Insufficient size of string',
      &      '"cpps" '',', '&', '''in file "strings.h".'',',
      &                    '''Increase the size it and recompile.'''
       write(iout,'(6x,A,2(/6x,A))') 'ierr=ierr+1', 'return', 'end'
       close(unit=iout)
+      print *
       end

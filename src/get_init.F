@@ -30,6 +30,23 @@
 # include "coupling.h"
 #endif
 #include "ocean3d.h"
+#ifdef BIOLOGY_BEC
+# include "ecosys_bec.h"
+!# include "ncroms_bgcflux.h"
+!HF not needed, only for debugging:
+# include "param_bec.h"
+#endif
+#if defined BIOLOGY_BEC2 && defined BEC2_DIAG
+# include "ecosys_bec2.h"
+#endif
+#ifdef PHYS_FLUX_ANALYSIS
+#  include "physflux.h"
+#  include "ncroms_physflux.h"
+#endif
+#ifdef BGC_FLUX_ANALYSIS
+# include "bgcflux.h"
+# include "ncroms_bgcflux.h"
+#endif
 #ifdef LMD_KPP
 # include "mixing.h"
 #endif
@@ -41,6 +58,10 @@ c--#define VERBOSE
       write(*,'(3(2x,A,I3))') 'enter get_init: req_rec =', req_rec,
      &            'tindx =', tindx, 'may_day_flag =', may_day_flag
 #endif
+
+#if defined BIOLOGY_NPZDOC && !defined BGC_FLUX_ANALYSIS
+# include "bgcflux.h"
+#endif 
       if (may_day_flag /= 0) return      !-->  EXIT
 
 ! Open conditions netCDF file for reading.  Check that all spatial
@@ -104,7 +125,7 @@ c--#define VERBOSE
 ! is done only when file of initial conditions contains sufficient
 ! data, i.e. two consecutive time records of evolving fields one time
 ! step apart from each other.  Thus, in order to accept the file for
-! exact restart, it must pass two consecutive checks: (i) ocean_time
+! exact restart, it must pass two consecutive checks: (i) time
 ! values in two consecutive values must differ by "dt" of current run,
 ! and (ii) "ntstart" from two consecutive records of netCDF structure
 ! "time_step" must differ by one.  If either check fails, forward step
@@ -155,9 +176,12 @@ c--#define VERBOSE
       ierr=nf_inq_varid(ncid, vname(1,indxTime)(1:lvar), varid)
 
 ! The following is done for backward compatibility: normally time
-! variable is named "ocean_time", but legacy startup files may name
-! it either "roms_time" or "scrum_time".
+! variable is named "time", but legacy startup files may name
+! it "ocean_time", "roms_time" or "scrum_time".
 
+      if (ierr /= nf_noerr) then
+        ierr=nf_inq_varid (ncid, 'ocean_time', varid)
+      endif
       if (ierr /= nf_noerr) then
         ierr=nf_inq_varid(ncid, 'roms_time', varid)
       endif
@@ -344,6 +368,18 @@ c--#define VERBOSE
      &         'Adjusting averaging phase ntsavg =',  ntsavg,
      &                          ' ---> ', ntsavg + ntstart-1
           ntsavg=ntsavg + ntstart-1
+# ifdef BGC_FLUX_ANALYSIS
+          MPI_master_only write(*,'(/4x,A,I5,A,I8/)')
+     &       'Adjusting averaging phase nts_bgc_flux_avg ='
+     &       , nts_bgc_flux_avg, ' ---> ', nts_bgc_flux_avg + ntstart-1
+          nts_bgc_flux_avg = nts_bgc_flux_avg + ntstart-1
+# endif
+# ifdef PHYS_FLUX_ANALYSIS
+          MPI_master_only write(*,'(/4x,A,I5,A,I8/)')
+     &      'Adjusting averaging phase nts_phys_flux_avg ='
+     &      , nts_phys_flux_avg, ' ---> ', nts_phys_flux_avg + ntstart-1
+          nts_phys_flux_avg = nts_phys_flux_avg + ntstart-1
+# endif
         endif
       endif
 #endif
@@ -351,6 +387,48 @@ c--#define VERBOSE
       write(*,'(1x,2A,F12.4,1x,A,I4)')   'get_init: reading initial ',
      &   'fields for time =', start_time*sec2day, 'record =', record
 #endif
+
+#if defined BGC_FLUX_ANALYSIS || defined PHYS_FLUX_ANALYSIS
+      ierr=nf_inq_varid (ncid, 'fa_time_step', varid)
+      if (ierr .eq. nf_noerr) then
+        start(1)=1
+        start(2)=record
+        count(1)=4
+        count(2)=1
+        ierr=nf_get_vara_int (ncid, varid, start, count, ibuff)
+        if (ierr .eq. nf_noerr) then
+# ifdef BGC_FLUX_ANALYSIS
+          nrec_bgc_flux_his=ibuff(1)
+          write(*,'(6x,A,I4)')
+     &         'GET_INITIAL: bgc_flux_his rec =',
+     &         nrec_bgc_flux_his
+#  ifdef AVERAGES
+          nrec_bgc_flux_avg=ibuff(2)
+          write(*,'(6x,A,I4)')
+     &         'GET_INITIAL: bgc_flux_avg rec =',
+     &         nrec_bgc_flux_avg
+#  endif
+# endif
+# ifdef PHYS_FLUX_ANALYSIS
+          nrec_phys_flux_his=ibuff(3)
+          write(*,'(6x,A,I4)')
+     &         'GET_INITIAL: phys_flux_his rec =',
+     &         nrec_phys_flux_his
+#  ifdef AVERAGES
+          nrec_phys_flux_avg=ibuff(4)
+          write(*,'(6x,A,I4)')
+     &         'GET_INITIAL: phys_flux_avg rec =',
+     &         nrec_phys_flux_avg
+#  endif
+# endif
+        else
+          write(*,'(/1x,2A/)') 'GET_INITIAL WARNING: Cannot ',
+     &          'read record indices for flux analysis.'
+!!!          goto 99                                         !--> ERROR
+        endif
+! no "else" needed, initialization to 0 in init_scalars...F routines
+      endif
+#endif /* BGC_FLUX_ANALYSIS || PHYS_FLUX_ANALYSIS */
 
 ! Read initial fields:
 !---------------------
@@ -530,11 +608,196 @@ c--#define VERBOSE
             goto 99                                       !--> ERROR
           endif
         else
-          write(*,1) vname(1,indxT+itrc-1)(1:lvar), ininame(1:linit),
-     &                                            nf_strerror(ierr)
+# if defined PASSIVE_TRACER || defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC2
+          if (itrc <= itemp+ntrc_salt) then ! temperature and salt(s) always require inital condition
+            MPI_master_only write(*,1) vname(1,indxT+itrc-1)(1:lvar)
+     &                          , trim(ininame), nf_strerror(ierr)
+            goto 99                                         !--> ERROR
+          else
+            t(GLOBAL_2D_ARRAY,1,tindx,itrc) = 0.0
+            MPI_master_only write(*,*) ' --- WARNING: '
+     &         , vname(1,indxT+itrc-1)(1:lvar)
+     &         , ' not in initial file.  Initialized to 0.0'
+            ierr=nf_noerr
+          endif
+# else /* .not. PASSIVE_TRACER || defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC2 */
+          MPI_master_only write(*,1) vname(1,indxT+itrc-1)(1:lvar)
+     &                          , trim(ininame), nf_strerror(ierr)
           goto 99                                         !--> ERROR
+# endif
         endif
       enddo
+# ifdef SEDIMENT_BIOLOGY
+!
+! Sediment tracer variables.
+!
+      do itrc=1,NT_sed
+        lvar=lenstr(vname(1,indxSedOrgN+itrc-1))
+        ierr=nf_inq_varid (ncid, 
+     &       vname(1,indxSedOrgN+itrc-1)(1:lvar), varid)
+        if (ierr .eq. nf_noerr) then
+          ierr=ncdf_read (ncid,  varid, record, r_var
+     &                   , t_sed(START_2D_ARRAY,itrc), 1)
+          if (ierr .ne. nf_noerr) then
+            write(*,2) vname(1,indxSedOrgN+itrc-1)(1:lvar),
+     &            record,  trim(ininame)
+            goto 99                                       !--> ERROR
+          endif
+        else
+          MPI_master_only write(*,*) ' --- WARNING: '
+     &         , vname(1,indxSedOrgN+itrc-1)(1:lvar)
+     &         , ' not in initial file.  Initialized to 0.0'
+        endif
+      enddo
+# endif /* SEDIMENT_BIOLOGY */
+# if defined BIOLOGY_BEC || (defined BIOLOGY_NPZDOC && \
+    defined OXYGEN && defined CARBON)
+
+
+      !
+      !pH
+      !
+      lvar=lenstr(vname(1,indxPH_rst))
+      ierr=nf_inq_varid (ncid, vname(1,indxPH_rst)(1:lvar), varid)
+      if (ierr .eq. nf_noerr) then
+         ierr=ncdf_read (ncid,  varid, record, r_var
+     &                 , ph_hist(START_2D_ARRAY), 1)
+         if (ierr .ne. nf_noerr) then
+            write(*,2) vname(1,indxPH_rst)(1:lvar), record,
+     &           trim(ininame)
+            goto 99             !--> ERROR
+         endif
+      else
+         MPI_master_only write(*,*) ' --- WARNING: '
+     &         , 'pH not in initial file.  Initialized to 0.0'
+      endif
+
+      !
+      ! pCO2:
+      !
+      lvar=lenstr(vname(1,indxPCO2_rst))
+      ierr=nf_inq_varid (ncid, vname(1,indxPCO2_rst)(1:lvar), varid)
+      if (ierr .eq. nf_noerr) then
+         ierr=ncdf_read (ncid,  varid, record, r_var
+     &                  , pCO2sw(START_2D_ARRAY), 1)
+         if (ierr .ne. nf_noerr) then
+            write(*,2) vname(1,indxPCO2_rst)(1:lvar), record,
+     &           trim(ininame)
+            goto 99             !--> ERROR
+         endif
+      else
+         MPI_master_only write(*,*) ' --- WARNING: '
+     &        , 'PCO2 not in initial file.  Initialized to 0.0'
+      endif
+
+#  ifndef PCO2AIR_FORCING /* if pCO2air is not a 2D forcing field */
+
+      ! pCO2 in the air:
+      lvar=lenstr(vname(1,indxPCO2air_rst))
+      ierr=nf_inq_varid (ncid, vname(1,indxPCO2air_rst)(1:lvar), varid)
+      if (ierr .eq. nf_noerr) then
+         ierr=ncdf_read (ncid,  varid, record, r_var
+     *                 , pCO2air(START_2D_ARRAY), 1)
+         if (ierr .ne. nf_noerr) then
+            write(*,2) vname(1,indxPCO2air_rst)(1:lvar), record,
+     &           trim(ininame)
+            goto 99             !--> ERROR
+         endif
+      else
+         MPI_master_only write(*,*) ' --- WARNING: '
+     &        , 'PCO2air not in initial file.  Initialized to 0.0'
+      endif
+#  endif
+# endif /* BIOLOGY_BEC || (BIOLOGY_NPZDOC && OXYGEN && CARBON) */
+# if defined BIOLOGY_BEC2 && defined BEC2_DIAG
+       MPI_master_only write(*,*),'total # of 2D diagnostics:',nr_bec2_diag_2d
+       MPI_master_only write(*,*),'total # of 3D diagnostics:',nr_bec2_diag_3d
+!# if defined NEVER_DEF
+      ! Read in 2d diagnostic variables:
+      do itrc=1,nr_bec2_diag_2d
+         lvar=lenstr(vname_bec2_diag_2d(1,itrc))
+      end do
+      do itrc=1,nr_bec2_diag_2d
+!         MPI_master_only write(*,*),'itrc',itrc
+!         MPI_master_only write(*,*),'size(vname_bec2_diag_2d,2)',size(vname_bec2_diag_2d,2)
+!         MPI_master_only write(*,*),'size(bec2_diag_2d,3)',size(bec2_diag_2d,3)
+!         MPI_master_only write(*,*),'shape(vname_bec2_diag_2d)',shape(vname_bec2_diag_2d)
+!         MPI_master_only write(*,*),'shape(bec2_diag_2d)',shape(bec2_diag_2d)
+!         MPI_master_only write(*,*),'START_2D_ARRAY',START_2D_ARRAY
+         lvar=lenstr(vname_bec2_diag_2d(1,itrc))
+         ierr=nf_inq_varid (ncid, vname_bec2_diag_2d(1,itrc)(1:lvar), varid)
+         if (ierr .eq. nf_noerr) then
+            ierr=ncdf_read (ncid,  varid, record, r_var
+     &                     , bec2_diag_2d(START_2D_ARRAY,itrc), 1)
+            if (ierr .ne. nf_noerr) then
+               write(*,2) vname_bec2_diag_2d(1,itrc)(1:lvar), record,
+     &              trim(ininame)
+               goto 99             !--> ERROR
+            endif
+         else
+! CN: replaced from tracer routine
+            bec2_diag_2d(GLOBAL_2D_ARRAY,itrc) = 0.0
+            MPI_master_only write(*,*) ' --- WARNING: '
+     &         , vname_bec2_diag_2d(1,itrc)(1:lvar)
+     &         , ' not in initial file.  Initialized to 0.0'
+            ierr=nf_noerr
+!            MPI_master_only write(*,1) vname_bec2_diag_2d(1,itrc)(1:lvar), 
+!     &                           trim(ininame)
+!     &            ,' => Initialized to 0.'
+         endif
+      end do
+
+!# if defined NEVER_DEF
+      ! Read in 3d diagnostic variables:
+      do itrc=1,nr_bec2_diag_3d 
+!         MPI_master_only write(*,*),'itrc',itrc
+!         MPI_master_only write(*,*),'size(vname_bec2_diag_3d,2)',size(vname_bec2_diag_3d,2)
+!         MPI_master_only write(*,*),'size(bec2_diag_3d,4)',size(bec2_diag_3d,4)
+!         MPI_master_only write(*,*),'shape(vname_bec2_diag_3d)',shape(vname_bec2_diag_3d)
+!         MPI_master_only write(*,*),'shape(bec2_diag_3d)',shape(bec2_diag_3d)
+         lvar=lenstr(vname_bec2_diag_3d(1,itrc))
+         ierr=nf_inq_varid (ncid, vname_bec2_diag_3d(1,itrc)(1:lvar), varid)
+         if (ierr == nf_noerr) then
+            ierr=ncdf_read (ncid,  varid, record, r_var
+     &                    , bec2_diag_3d(START_2D_ARRAY,1,itrc), N)
+            if (ierr /= nf_noerr) then
+               write(*,2) vname_bec2_diag_3d(1,itrc)(1:lvar), record,
+     &              trim(ininame)
+               goto 99             !--> ERROR
+            endif
+         else
+! CN: replaced from tracer routine
+            bec2_diag_3d(GLOBAL_2D_ARRAY,1,itrc) = 0.0
+            MPI_master_only write(*,*) ' --- WARNING: '
+     &         , vname_bec2_diag_3d(1,itrc)(1:lvar)
+     &         , ' not in initial file.  Initialized to 0.0'
+            ierr=nf_noerr
+!            MPI_master_only write(*,1) vname_bec2_diag_3d(1,itrc)(1:lvar), 
+!     &                           trim(ininame)
+!     &            ,' => Initialized to 0.'
+         endif
+      end do
+!# endif
+
+# endif /* BIOLOGY_BEC2 && BEC2_DIAG */
+
+# if defined BIOLOGY_BEC || defined BIOLOGY_NPZDOC
+      ! Photosynthetically available radiation:
+      lvar=lenstr(vname(1,indxPAR_rst))
+      ierr=nf_inq_varid (ncid, vname(1,indxPAR_rst)(1:lvar), varid)
+      if (ierr .eq. nf_noerr) then
+         ierr=ncdf_read (ncid,  varid, record, r_var
+     &                  , PAR(START_2D_ARRAY,1), N)
+         if (ierr .ne. nf_noerr) then
+            write(*,2) vname(1,indxPAR_rst)(1:lvar), record,
+     &           trim(ininame)
+            goto 99             !--> ERROR
+         endif
+      else
+         MPI_master_only write(*,*) ' --- WARNING: '
+     &        , 'PAR not in initial file.  Initialized to 0.0'
+      endif
+# endif /* BIOLOGY_BEC || BIOLOGY_NPZDOC */
 # ifdef LMD_KPP
       lvar=lenstr(vname(1,indxHbls))
       ierr=nf_inq_varid(ncid, vname(1,indxHbls)(1:lvar), varid)
@@ -622,5 +885,7 @@ c--#define VERBOSE
   1   format(/1x,'### ERROR: get_init :: Cannot find variable ''', A,
      &                 '''' /12x, 'in netCDF file ''', A, ''''/12x,A)
   2   format(/1x,'### ERROR: get_init :: Cannot read variable ''', A,
-     &        '''' /12x, 'rec =', I5, 1x, 'file = ''', A, ''''/12x,A)
+     &               '''' /12x, 'record ',I8,' from netCDF file ''', A, '''')
+  3   format(/1x,'### WARNING get_init :: Cannot read variable ''', A,
+     &               '''' /12x, 'from netCDF file ''', A, ''''/12x,A)
       end

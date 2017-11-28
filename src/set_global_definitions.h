@@ -9,8 +9,8 @@
  create its own output file (this switch has no effect if MPI is not
  defined).  */
 
-c#define MPI
-c#define PARALLEL_FILES
+#define MPI
+#define PARALLEL_FILES
 
 /* Turn OFF printout (other than error messages) from MPI nodes with
  rank > 0.   This does not affect the model results other than making
@@ -282,6 +282,7 @@ c-# define IMPLICIT_BOTTOM_DRAG
 
 #ifdef MPI
 # define mpi_master_only if (mynode==0)
+# define MPI_master_only if (mynode==0)
 # ifdef MPI_SILENT_MODE
 #  define mpi_nonexit_warn if (mynode==0)
 #  define MYID !
@@ -290,6 +291,7 @@ c-# define IMPLICIT_BOTTOM_DRAG
 #  define MYID ,' node =', mynode
 # endif
 #else
+# define MPI_master_only
 # define mpi_master_only
 # define mpi_nonexit_warn
 # define MYID !
@@ -409,6 +411,7 @@ c-# define TANH dtanh
  precision of the code.  */
 
 /* #define HIS_DOUBLE */
+#define NCFILEFORMAT nf_netcdf4 /* or nf_64bit_offset */
 #undef PUT_GRID_INTO_RESTART
 #define PUT_GRID_INTO_HISTORY
 #define PUT_GRID_INTO_AVERAGES
@@ -469,4 +472,9 @@ c-# define TANH dtanh
 #ifdef XLF
 # define flush flush_
 # define etime etime_
+#endif
+
+#ifdef SO
+/* Include AH's Southern Ocean mixed bry switches */
+# include "mixed_SO_bry.h"
 #endif

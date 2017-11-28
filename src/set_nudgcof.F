@@ -119,7 +119,7 @@ c      enddo
 !
 #  if defined BENGUELA
       isp=8              ! number of points in sponge layer
-#  elif defined PACIFIC
+#  elif defined PACIFIC || defined ONE_DIM
       isp=(LLm+1)/30
 #  elif defined SMSC || defined SMSC_SUB
       isp=(LLm+1)/16
@@ -127,6 +127,11 @@ c      enddo
       isp=(LLm+1)/16
 #  elif defined USWC
       isp=(LLm+1)/40
+#  elif defined SOUTHERNOCEAN
+      isp=MMm/10.8
+#  elif defined SPONGE_WIDTH
+!     number of sponge points is an input parameter "n_sponge"
+      isp=n_sponge 
 #  else
       isp=(LLm+1)/12
 #  endif
@@ -161,10 +166,17 @@ c      enddo
           ibnd=min(ibnd, Mm+1-j)
 #   endif
 #  endif
-#  ifdef PACIFIC
+#  if defined LINEAR_SPONGE_PROFILE
+          wrk(i,j)=float(isp-ibnd)/float(isp)
+#  elif defined PACIFIC /* For compatibility w. Sasha 2015-04 */
           wrk(i,j)=0.5 + 0.5*cos(pi*float(ibnd)/float(isp))
 #  else
-          wrk(i,j)=float(isp-ibnd)/float(isp)
+          if (isp<5) then
+            ! For a narrow sponge linear is appropriate
+            wrk(i,j)=float(isp-ibnd)/float(isp)
+          else
+            wrk(i,j)=0.5 + 0.5*cos(pi*float(ibnd)/float(isp))
+          endif
 #  endif
         enddo
       enddo
@@ -176,7 +188,7 @@ c      enddo
           visc2_r(i,j)=visc2_r(i,j)+v_sponge*wrk(i,j)
 #   endif
 #   if defined SOLVE3D && defined TS_DIF2
-#    ifdef PACIFIC
+#    if defined PACIFIC || defined ONE_DIM
           diff2(i,j,itemp)=diff2(i,j,itemp)+0.5*v_sponge*wrk(i,j)
 #    else
           diff2(i,j,itemp)=diff2(i,j,itemp)+v_sponge*wrk(i,j)
@@ -193,12 +205,12 @@ c        endif
       enddo
 
 #  if defined SOLVE3D && defined TCLIMATOLOGY
-      do itrc=2,NT               ! includes BIOLOGY variables
-        do j=jstrR,jendR
+      do itrc=1,mxnudg
+      do j=jstrR,jendR
           do i=istrR,iendR
             Tnudgcof(i,j,itrc)=Tnudgcof(i,j,itemp)
           enddo
-        enddo
+      enddo
       enddo
 #   if defined ROBUST_DIAG
       do j=jstrR,jendR         ! nudging everywhere
@@ -226,6 +238,7 @@ c        endif
         do j=jstrR,jendR
           do i=istrR,iendR
             diff2(i,j,itrc)=diff2(i,j,itemp)
+! Agrif Roms:            diff2(i,j,itrc)=diff2(i,j,itemp)+tnu2(itrc)
           enddo
         enddo
       enddo

@@ -164,6 +164,21 @@ c          if (cx < 0.) cx=0.
 #  endif
         enddo
 # endif  /* OBC_SOUTH */
+# if defined OBC_S_M2SPEC_STR && defined OBC_S_M2SPEC_END
+!
+!   Force OBC_M2SPECIFIED as southern boundary condition
+!   in the specified tile range! MF (following northern bry MM & AH)
+!
+        if ((mynode.ge.OBC_S_M2SPEC_STR)
+     &                       .and. (mynode.le.OBC_S_M2SPEC_END)) then
+          do i=istrU-1,iend
+            zeta_new(i,jstr-1)=zeta_new(i,jstr)       ! gradient BC
+#  ifdef MASKING
+     &                       *rmask(i,jstr-1)
+#  endif
+          enddo
+        endif
+# endif /* OBC_S_M2SPEC_STR */
       endif
 
 
@@ -178,7 +193,7 @@ c          if (cx < 0.) cx=0.
 #  endif
         enddo
 
-# elif defined OBC_EAST && defined OBC_Z2ORLANSKI
+# elif defined OBC_NORTH && defined OBC_Z2ORLANSKI
         do i=istrU-1,iend                             ! Northern edge
           dft=zeta(i,jend,kstp)-zeta_new(i,jend)      ! Radiation BC
           dfx=zeta_new(i,jend)-zeta_new(i,jend-1)
@@ -202,6 +217,21 @@ c          if (cx < 0.) cx=0.
 #  endif
         enddo
 # endif   /* OBC_NORTH */
+# if defined OBC_N_M2SPEC_STR && defined OBC_N_M2SPEC_END
+!
+!   Force OBC_M2SPECIFIED as northern boundary condition
+!   in the specified tile range !MM & AH15
+!
+        if ((mynode.ge.OBC_N_M2SPEC_STR)
+     &                       .and. (mynode.le.OBC_N_M2SPEC_END)) then
+          do i=istrU-1,iend
+            zeta_new(i,jend+1)=zeta_new(i,jend)       ! gradient BC
+#  ifdef MASKING
+     &                       *rmask(i,jend+1)
+#  endif
+          enddo
+        endif
+# endif /* OBC_N_M2SPEC_STR */
       endif
 #endif       /* !NS_PERIODIC */
 

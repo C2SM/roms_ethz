@@ -169,7 +169,12 @@ C$OMP BARRIER                          ! Here it is assumed that free
 C$OMP BARRIER                          ! slope parameters "rx0", "rx1".
 CR      write(*,*) ' -6' MYID
 #endif
+ 
 
+# ifdef BIOLOGY_BEC2
+      ! pH is initialized to 0 in ecosys_init
+      call ecosys2_init
+# endif
 #ifdef ANA_INITIAL
       do tile=my_tile_range            ! Set initial conditions for
         call set_forces(tile)          ! model prognostic variables,
@@ -200,7 +205,13 @@ C$OMP END MASTER
       endif    !<-- nrrec>0
 #endif
 C$OMP BARRIER
+#if defined PASSIVE_TRACER && defined AGE_DYE_TRACER
+      do tile=my_tile_range
+         call init_agedye(tile)
+      enddo
+C$OMP BARRIER
       if (may_day_flag /= 0) goto 99      !--> ERROR
+#endif
 CR      write(*,*) ' -5' MYID
                                   ! Set initial model clock: at this
       time=start_time             ! moment "start_time" (global scalar)
@@ -225,6 +236,9 @@ CR      write(*,*)  ' -3' MYID
       enddo
 C$OMP BARRIER
 CR      write(*,*)  ' -2' MYID
+# ifdef BIOLOGY_NPZDOC
+      call init_biopar               ! set up biogeochemical parameters
+# endif /* BIOLOGY_NPZDOC */
 #endif
 
 ! Set up climatological environment: Set nudging coefficient for
@@ -262,6 +276,28 @@ CR      write(*,*) ' -1' MYID
 ! from input netCDF files.  Note that CPP-logic here is mutually
 ! exclusive with respect to calls ana_tclima, ana_ssh, and ana_bsedim
 ! just above.
+!
+
+#if defined SALINITY && defined VFLX_CORR && defined USE_GLOBAL_SRF_SUM
+        call reset_global_srf_sum()
+! If the virtual flux correction is used, globally averaged concentrations
+! for the surface cells must be available for subroutine set_stflux_tile
+! (which is called by get_forces)
+C$OMP PARALLEL DO PRIVATE(tile)
+        do tile=0,NSUB_X*NSUB_E-1
+           call calc_global_srf_sum(tile)
+        enddo
+
+! Keep this routine out of the parallel region
+        call scale_global_srf_sum()
+#endif /* SALINITY && VFLX_CORR ..*/
+
+#ifdef BIOLOGY_NPZDOC
+C$OMP PARALLEL DO PRIVATE(tile)
+         do tile=0,NSUB_X*NSUB_E-1
+            call calcpar(tile)
+         enddo
+# endif /* BIOLOGY_NPZDOC */
 
 C$OMP MASTER
 #ifdef ANA_GRID
@@ -349,7 +385,18 @@ C$OMP END MASTER
 #ifdef GRID_LEVEL
       integer iter
 #endif
-
+#ifdef BGC_FLUX_ANALYSIS
+# include "bgcflux.h"
+# include "ncroms_bgcflux.h"
+#endif
+#ifdef PHYS_FLUX_ANALYSIS
+# include "physflux.h"
+# include "ncroms_physflux.h"
+#endif
+#ifdef BIOLOGY_BEC
+# include "bec_avg.h"
+#endif
+ 
       trd=proc(2)
       range=(NSUB_X*NSUB_E+numthreads-1)/numthreads
       my_first=trd*range
@@ -428,8 +475,21 @@ C$OMP BARRIER
 #  endif
 # endif
 # ifdef AVERAGES
-        call    set_avg(tile)
-# endif
+        call    set_avg (tile)
+#  ifdef SLICE_AVG
+        call    set_slavg (tile)
+#  endif
+#  ifdef BGC_FLUX_ANALYSIS
+#   ifdef BIOLOGY_NPZDOC
+        call set_bgc_flux_avg(tile)
+#   elif defined BIOLOGY_BEC
+        call set_bec_flux_avg(tile)
+#   endif
+#  endif
+#  ifdef PHYS_FLUX_ANALYSIS
+        call set_phys_flux_avg(tile)
+#  endif
+# endif /* AVERAGES */
       enddo
 C$OMP BARRIER
 
@@ -461,6 +521,32 @@ C$OMP BARRIER
 ! Output block: write restart/history files.
 !======= ====== ===== =============== ======
 
+!DL: place following block before writing of rst file:
+#ifdef BGC_FLUX_ANALYSIS
+      if (iic > ntstart .and. n_bgc_flux_his > 0 .and. 
+     &     mod(iic-ntstart, n_bgc_flux_his) == 0) then
+         nrec_bgc_flux_his = nrec_bgc_flux_his + 1
+      end if
+# ifdef AVERAGES
+      if (iic > ntstart .and. n_bgc_flux_avg > 0 .and. 
+     &     mod(iic-ntstart, n_bgc_flux_avg) == 0) then
+         nrec_bgc_flux_avg = nrec_bgc_flux_avg + 1
+      end if
+# endif
+#endif /* BGC_FLUX_ANALYSIS */
+#ifdef PHYS_FLUX_ANALYSIS
+      if (iic > ntstart .and. n_phys_flux_his > 0 .and. 
+     &     mod(iic-ntstart, n_phys_flux_his) == 0) then
+         nrec_phys_flux_his = nrec_phys_flux_his + 1
+      end if
+# ifdef AVERAGES
+      if (iic > ntstart .and. n_phys_flux_avg > 0 .and. 
+     &     mod(iic-ntstart, n_phys_flux_avg) == 0) then
+         nrec_phys_flux_avg = nrec_phys_flux_avg + 1
+      end if
+# endif
+#endif /* PHYS_FLUX_ANALYSIS */
+
       if ( iic > ntstart .and. ( mod(iic-ntstart,nrst) == 0
 #ifdef EXACT_RESTART
      &                         .or. mod(iic-ntstart+1,nrst) == 0
@@ -468,6 +554,22 @@ C$OMP BARRIER
      &   .or. (mod(iic-ntstart,nwrt) == 0 .and. wrthis(indxTime))
 #ifdef AVERAGES
      &   .or. (mod(iic-ntsavg,navg) == 0  .and. wrtavg(indxTime))
+# ifdef SLICE_AVG
+     &   .or. ( mod(iic-ntsslavg,nslavg) == 0  
+     &           .and. wrtslavg(indxTime) )
+# endif
+# ifdef BGC_FLUX_ANALYSIS
+     &   .or. ( mod(iic-nts_bgc_flux_avg,n_bgc_flux_avg)==0 )
+# endif
+# ifdef PHYS_FLUX_ANALYSIS
+     &   .or. ( mod(iic-nts_phys_flux_avg,n_phys_flux_avg)==0 )
+# endif
+#endif /* AVERAGES */
+#ifdef BGC_FLUX_ANALYSIS
+     &   .or. ( mod(iic-ntstart,n_bgc_flux_his)==0 )
+#endif
+#ifdef PHYS_FLUX_ANALYSIS
+     &   .or. ( mod(iic-ntstart,n_phys_flux_his)==0 )
 #endif
 #ifdef STATIONS
      &   .or. (mod(iic-ntstart,nsta) == 0 .and. nstation > 0)
@@ -485,6 +587,9 @@ C$OMP MASTER
         if (mod(iic-ntstart,nwrt) == 0) nrechis=nrechis+1
 #ifdef AVERAGES
         if (mod(iic-ntsavg,navg) == 0) nrecavg=nrecavg+1
+# ifdef SLICE_AVG
+        if (mod(iic-ntsslavg,nslavg) == 0) nrecslavg=nrecslavg+1
+# endif
 #endif
 #ifdef STATIONS
         if (mod(iic-ntstart,nsta) == 0) nrecstn=nrecstn+1
@@ -503,18 +608,56 @@ c          if (iic>60) nwrt=1 !<-- useful for debugging
         endif
 
 #ifdef AVERAGES
-        if (mod(iic-ntsavg,navg) ==0 .and. wrtavg(indxTime))
+# ifdef SLICE_AVG
+        if (mod(iic-ntsslavg,nslavg) == 0 .and. wrtslavg(indxTime))
+     &      call wrt_slavg
+# endif
+        if (mod(iic-ntsavg,navg) == 0 .and. wrtavg(indxTime))
      &      call wrt_avg
 #endif
 #ifdef STATIONS
-        if (mod(iic-ntstart,nsta)==0 .and. nstation>0)
+        if (mod(iic-ntstart,nsta) == 0 .and. nstation > 0)
      &      call wrt_statn
 #endif
 #ifdef FLOATS
-        if (mod(iic-ntstart,nflt)==0 .and. nfloats>0)
+        if (mod(iic-ntstart,nflt) == 0 .and. nfloats > 0)
      &      call wrt_floats
         diagfloats=.false.
 #endif
+
+#ifdef BGC_FLUX_ANALYSIS
+      if (iic > ntstart .and. n_bgc_flux_his > 0 .and. 
+     &     mod(iic-ntstart, n_bgc_flux_his) == 0) then
+# ifdef BIOLOGY_NPZDOC
+         call wrt_bgc_flux_his
+# elif defined BIOLOGY_BEC
+         call wrt_bec_flux_his
+# endif
+      end if
+# ifdef AVERAGES
+      if (iic > ntstart .and. n_bgc_flux_avg > 0 .and. 
+     &     mod(iic-nts_bgc_flux_avg, n_bgc_flux_avg) == 0) then
+# ifdef BIOLOGY_NPZDOC
+         call wrt_bgc_flux_avg
+# elif defined BIOLOGY_BEC
+         call wrt_bec_flux_avg
+# endif
+      end if
+# endif
+#endif /* BGC_FLUX_ANALYSIS */
+#ifdef PHYS_FLUX_ANALYSIS
+      if (iic > ntstart .and. n_phys_flux_his > 0 .and. 
+     &     mod(iic-ntstart, n_phys_flux_his) == 0) then
+         call wrt_phys_flux_his
+      end if
+# ifdef AVERAGES
+      if (iic > ntstart .and. n_phys_flux_avg > 0 .and. 
+     &     mod(iic-nts_phys_flux_avg, n_phys_flux_avg) == 0) then
+         call wrt_phys_flux_avg
+      end if
+# endif
+#endif /* PHYS_FLUX_ANALYSIS */
+
 C$OMP END MASTER
 C$OMP BARRIER
         if (iic-ntstart > ntimes) goto 99   !-->  DONE

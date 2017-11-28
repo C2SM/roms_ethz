@@ -62,6 +62,19 @@
 # endif
 #endif
 
+#ifdef SOLVE3D
+# ifdef BIOLOGY_NPZDOC
+#  include "bgcflux.h"
+# endif
+
+# if defined BIOLOGY_BEC && defined BGC_FLUX_ANALYSIS && defined AVERAGES
+#  include "bec_avg.h"
+# endif
+# ifdef TSOURCE
+#  include "sources.h"
+# endif
+#endif /* SOLVE3D */
+
 #include "compute_extended_bounds.h"
 
 #ifdef PRINT_TILE_RANGES
@@ -175,6 +188,27 @@
           enddo
         enddo
       enddo
+# ifdef TSOURCE
+      do itrc=0,NT
+        do k=1,N
+          do j=jstrR,jendR
+            do i=istrR,iendR
+              T_src(i,j,k,itrc)=init
+            enddo
+          enddo
+        enddo
+        tsrc_id(itrc)=0
+      enddo
+      do itrc=1,NT
+        do k=1,N
+          do j=jstrR,jendR
+            do i=istrR,iendR
+              Tflx(i,j,k,itrc)=init
+            enddo
+          enddo
+        enddo
+      enddo
+# endif
 #endif /* SOLVE3D */
 
 ! Initialize forcing arrays (see "forces.h").
@@ -215,6 +249,17 @@
 # ifndef ANA_SRFLUX
           swradg(i,j,1)=init
           swradg(i,j,2)=init
+# endif
+# ifdef ICEOBS
+          sic(i,j)=init
+          sicg(i,j,1)=init
+          sicg(i,j,2)=init
+          freezing(i,j)=init
+          freezingg(i,j,1)=init
+          freezingg(i,j,2)=init
+          melting(i,j)=init
+          meltingg(i,j,1)=init
+          meltingg(i,j,2)=init
 # endif
 # if defined SG_BBL96 && !defined ANA_WWAVE
           wwag(i,j,1)=init
@@ -342,7 +387,7 @@
 # endif
           enddo
         enddo
-        do itrc=1,NT
+        do itrc=1,min(NT,2)
           do j=jstrR,jendR
             do i=istrR,iendR
 # if !defined LMD_MIXING && !defined BVF_MIXING && !defined PP_MIXING\
@@ -361,7 +406,6 @@
           enddo
         enddo
       enddo
-
 # if defined LMD_KPP && defined LMD_NONLOCAL
       do k=1,N
         do j=jstrR,jendR
@@ -373,11 +417,13 @@
 # endif
 # ifdef LMD_KPP
 ! Depth of surface planetary boundary layer.
-
       do j=jstrR,jendR
         do i=istrR,iendR
           hbls(i,j,1)=0.  ! init
           hbls(i,j,2)=0.
+#  ifdef ICEOBS
+          kbl(i,j)=N
+#  endif
 #  ifdef AVERAGES
           hbl_avg(i,j)=init
 #  endif
@@ -386,7 +432,6 @@
 # endif
 # ifdef LMD_BKPP
 ! Thickness of bottom boundary layer.
-
       do j=jstrR,jendR
         do i=istrR,iendR
           hbbl(i,j,1)=0.  ! init
@@ -397,5 +442,157 @@
         enddo
       enddo
 # endif
+
+# ifdef KPP_DIAGNOSE
+      do k=0,N
+        do j=jstrR,jendR
+          do i=istrR,iendR
+            KppRichm(i,j,k)=init
+            KppRicht(i,j,k)=init
+            KppSblSh(i,j,k)=init
+            KppSblSt(i,j,k)=init
+            KppSblRot(i,j,k)=init
+            KppSblEnt(i,j,k)=init
+# ifdef AVERAGES
+            kpprichm_avg(i,j,k)=init
+            kppricht_avg(i,j,k)=init
+            kppsblsh_avg(i,j,k)=init
+            kppsblst_avg(i,j,k)=init
+            kppsblrot_avg(i,j,k)=init
+            kppsblent_avg(i,j,k)=init
+# endif
+          enddo
+        enddo
+      enddo
+# endif
+
+!AH16:
+# if defined WRITE_CO2FLX
+! Surface CO2 flux
+      do j=jstrR,jendR
+        do i=istrR,iendR
+          CO2flx(i,j)=0.  ! init
+#  ifdef AVERAGES
+          co2flx_avg(i,j)=init
+#  endif
+        enddo
+      enddo
+# endif
+# if defined WRITE_HEATFLX
+! Surface heat flux
+      do j=jstrR,jendR
+        do i=istrR,iendR
+          Heatflx(i,j)=0.  ! init
+#  ifdef AVERAGES
+          heatflx_avg(i,j)=init
+#  endif
+        enddo
+      enddo
+# endif
+!AH16:
+# if defined WRITE_TEMP_REST
+! Restoring flux for temperature
+      do j=jstrR,jendR
+        do i=istrR,iendR
+          RestflxTemp(i,j)=0.  ! init
+#  ifdef AVERAGES
+          restflx_temp_avg(i,j)=init
+#  endif
+        enddo
+      enddo
+# endif
+!AH16:
+# if defined WRITE_SALT_REST
+! Restoring flux for salinity
+      do j=jstrR,jendR
+        do i=istrR,iendR
+          RestflxSalt(i,j)=0.  ! init
+#  ifdef AVERAGES
+          restflx_salt_avg(i,j)=init
+#  endif
+        enddo
+      enddo
+# endif
+
+# ifdef SEDIMENT_BIOLOGY
+! Initialize sediment array:
+
+      do itrc=1,NT_sed
+         do k=1,N
+            do j=jstrR,jendR
+               do i=istrR,iendR
+                  t_sed(i,j,itrc) = init
+# ifdef AVERAGES
+                  t_sed_avg(i,j,itrc) = init
+# endif
+               enddo
+            enddo
+         enddo
+      enddo
+# endif /* SEDIMENT_BIOLOGY */
+
+! Initialize for NPZDOC model:
+
+# ifdef BIOLOGY_NPZDOC
+      do j=jstrR,jendR
+         do i=istrR,iendR
+#  if defined OXYGEN && defined CARBON
+           pH_hist(i,j)=0.
+           pCO2sw(i,j)=0.
+           pCO2air(i,j)=0.
+#  endif
+           PARinc(i,j)=0.
+#  ifdef AVERAGES
+#   if defined OXYGEN && defined CARBON
+           pH_avg(i,j)=init
+           pCO2_avg(i,j)=init
+           pCO2air_avg(i,j)=init
+#   endif
+           PARinc_avg(i,j)=init
+#  endif
+         end do
+      end do
+      do k=1,N
+         do j=jstrR,jendR
+           do i=istrR,iendR
+              PAR(i,j,k)=0.
+#  ifdef AVERAGES
+              PAR_avg(i,j,k)=init
+#  endif
+           end do
+         end do
+      end do
+# endif /* BIOLOGY_NPZDOC */
+# if defined BGC_FLUX_ANALYSIS && defined AVERAGES
+      do j=jstrR,jendR
+         do i=istrR,iendR
+           PARinc_flux_avg(i,j)=init
+         end do
+      end do
+      do k=1,N
+         do j=jstrR,jendR
+           do i=istrR,iendR
+              PAR_flux_avg(i,j,k)=init
+           end do
+         end do
+      end do
+# endif /* BGC_FLUX_ANALYSIS && AVERAGES */
+# if defined WRITE_DEPTHS && defined AVERAGES
+      do k=1,N
+         do j=jstrR,jendR
+           do i=istrR,iendR
+              z_r_avg(i,j,k)=init
+              Hz_avg(i,j,k)=init
+           end do
+         end do
+      end do
+      do k=0,N
+         do j=jstrR,jendR
+           do i=istrR,iendR
+              z_w_avg(i,j,k)=init
+           end do
+         end do
+      end do
+# endif /* WRITE_DEPTHS && AVERAGES */
 #endif /* SOLVE3D */
       end

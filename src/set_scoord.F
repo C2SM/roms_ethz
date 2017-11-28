@@ -1,8 +1,8 @@
 #include "cppdefs.h"
 #ifdef SOLVE3D
-                                         ! Setup S-coordinate system:
-      subroutine set_scoord              ! input: theta_s, theta_b, hc
-      implicit none                      ! output: Cs_w(0:N), Cs_r(1:N)
+                                     ! Setup S-coordinate system:
+      subroutine set_scoord          ! input:  theta_s, theta_b, hc
+      implicit none                  ! output: Cs_w(0:N), Cs_r(1:N) 
 # include "param.h"
 # include "scoord.h"
 # include "scalars.h"
@@ -22,7 +22,7 @@
         Cs_r(k)=CSF(sc, theta_s,theta_b)
       enddo
 
-
+ 
       mpi_master_only write(*,'(/1x,A/,/2x,A,7x,A/)')
      &        'Vertical S-coordinate system (z at W-points):',
      &             'level   S-coord    Cs-curve    Z at hmin',
@@ -54,7 +54,7 @@
      &         ':: Specified S-coordinate critical depth  hc   =', hc,
      &          'exceeds minimum unmasked topography.  hmin =', hmin
         may_day_flag=9
-      endif
+            endif
 # endif
       end
 
@@ -66,7 +66,7 @@
 ! formula was used in combination with legacy SH94 stretching curves),
 ! so for simplicity selection of SM09 stretching curve is tied with
 ! SM09 coordinate transform.
-
+ 
 
 
 # if defined VERT_COORD_TYPE_SM09 || defined VERT_COORD_TYPE_KAU
@@ -77,7 +77,7 @@
                                               ! logical branches.
       if (theta_s > 0.D0) then
         csrf=(1.D0-cosh(theta_s*sc))/(cosh(theta_s)-1.D0)
-      else
+       else
         csrf=-sc**2                           ! Reference: This form of
       endif                                   ! CSF corresponds exactly
       if (theta_b > 0.D0) then
@@ -97,21 +97,21 @@
 
       if (theta_s > 0.D0) then
         csrf=(1.D0-cosh(theta_s*sc))/(cosh(theta_s)-1.D0)
-      else
+        else
         csrf=-sc**2
       endif
 
       sc1=sc+1.D0
       if (theta_b > 0.D0) then
         cbot=sinh(theta_b*sc1)/sinh(theta_b)-1.D0
-      else
+        else
         cbot=sc
-      endif
+        endif
 
       wgth=sc1**alfa * ( 1.D0+ albt*(1.D0-sc1**beta) )
       CSF=wgth*csrf + (1.D0-wgth)*cbot
       end
-
+          
 
       function CSF (sc, theta_s,theta_b)
       implicit none
@@ -125,9 +125,9 @@
           cbot=sinh(theta_b*sc1)/sinh(theta_b)-1.D0
           wgth=sc1**alfa *( 1.D0 +  albt*( 1.D0-sc1**beta ))
           CSF=wgth*csrf + (1.D0-wgth)*cbot
-        else
+      else
           CSF=csrf
-        endif
+      endif
       else
         CSF=sc
       endif

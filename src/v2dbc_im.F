@@ -145,6 +145,25 @@
 #   endif
         enddo
 #  endif
+#  if defined OBC_S_M2SPEC_STR && defined OBC_S_M2SPEC_END
+!
+!   Force OBC_M2SPECIFIED as southern boundary condition
+!   in the specified tile range! MF (following northern bry MM & AH)
+!
+        if ((mynode.ge.OBC_S_M2SPEC_STR)
+     &                       .and. (mynode.le.OBC_S_M2SPEC_END)) then
+          do i=istr,iend
+#   ifdef M2_FRC_BRY
+            vbar(i,jstr,knew)=vbar_south(i)
+#   else
+            vbar(i,jstr,knew)=vbclm(i,jstr)
+#   endif
+#   ifdef MASKING
+     &                         *vmask(i,jstr)
+#   endif
+          enddo
+        endif
+#  endif /* OBC_S_M2SPEC_STR */
 # else
         do i=istr,iend                        ! Southern edge closed
           vbar(i,jstr,knew)=0.                ! ======== ==== ======
@@ -267,7 +286,26 @@
      &                         *vmask(i,jend+1)
 #   endif
         enddo
-#  endif
+#  endif /* OBC_M2FLATHER, OBC_M2ORLANSKI, OBC_M2SPECIFIED or ELSE */
+#  if defined OBC_N_M2SPEC_STR && defined OBC_N_M2SPEC_END
+!
+!   Force OBC_M2SPECIFIED as northern boundary condition
+!   in the specified tile range !MM & AH15
+!
+        if ((mynode.ge.OBC_N_M2SPEC_STR)
+     &                       .and. (mynode.le.OBC_N_M2SPEC_END)) then
+          do i=istr,iend
+#   ifdef M2_FRC_BRY
+            vbar(i,jend+1,knew)=vbar_north(i)
+#   else
+            vbar(i,jend+1,knew)=vbclm(i,jend+1)
+#   endif
+#   ifdef MASKING
+     &                         *vmask(i,jend+1)
+#   endif
+          enddo
+        endif
+#  endif /* OBC_N_M2SPEC_STR */
 # else
         do i=istr,iend                        ! Northern edge closed
           vbar(i,jend+1,knew)=0.              ! ======== ==== ======
@@ -281,10 +319,6 @@
 
 c****
 c****
-#ifdef OBC_M2FLATHER
-# undef OBC_M2FLATHER
-# define OBC_M2ORLANSKI
-#endif
 
 #ifndef EW_PERIODIC
       if (WESTERN_EDGE) then
@@ -405,14 +439,9 @@ c****
 #  undef J_RANGE
 # endif              /* OBC_WEST */
       endif       !<-- WESTERN_EDGE
-
-
-c--#ifdef ISWAKE_XXX
-c--# define OBC_M2ORLANSKI
-c--#endif
-
-
-
+ 
+ 
+ 
       if (EASTERN_EDGE) then
 # ifdef OBC_EAST
 #  if defined OBC_M2ORLANSKI

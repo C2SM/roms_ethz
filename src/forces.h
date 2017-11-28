@@ -6,7 +6,6 @@
 
 ! uwind  two-time level gridded data for XI- anf ETA-componets
 ! vwind  of wind stess (normally assumed to be in [Newton/m^2].
-
       real sustr(GLOBAL_2D_ARRAY)
 CSDISTRIBUTE_RESHAPE sustr(BLOCK_PATTERN) BLOCK_CLAUSE
       real svstr(GLOBAL_2D_ARRAY)
@@ -66,8 +65,14 @@ CSDISTRIBUTE_RESHAPE windmag(BLOCK_PATTERN,*) BLOCK_CLAUSE
 ! swradg  two-time-level grided data for surface [Watts/m^2]
 
       real srflx(GLOBAL_2D_ARRAY)
+#if defined DAILYPAR_PHOTOINHIBITION || defined DAILYPAR_BEC
+      real srflx_dailyavg(GLOBAL_2D_ARRAY)
+#endif
 CSDISTRIBUTE_RESHAPE srflx(BLOCK_PATTERN) BLOCK_CLAUSE
       common /frc_srflx/srflx
+#if defined DAILYPAR_PHOTOINHIBITION || defined DAILYPAR_BEC
+     &       , srflx_dailyavg
+#endif
 # ifndef ANA_SRFLUX
 #  if defined SWRAD_DATA || defined ALL_DATA
 #   undef SWRAD_DATA
@@ -206,10 +211,34 @@ CSDISTRIBUTE_RESHAPE lwflxg(BLOCK_PATTERN,*) BLOCK_CLAUSE
 !          - temperature; [PSU m/s] - salinity.
 !  stflxg  two-time level surface tracer flux grided data.
 !  tstflx  time of surface tracer flux.
+!  CO2flx Net surface CO2 flux
+!  Heatflx Net surface heat flux
+!  RestflxTemp restoring flux for temperature
+!  RestflxSalt restoring flux for salinity
 
       real stflx(GLOBAL_2D_ARRAY,NT)
 CSDISTRIBUTE_RESHAPE stflx(BLOCK_PATTERN,*) BLOCK_CLAUSE
       common /frc_stflx/stflx
+# if defined WRITE_CO2FLX
+      real CO2flx(GLOBAL_2D_ARRAY)
+CSDISTRIBUTE_RESHAPE CO2flx(BLOCK_PATTERN) BLOCK_CLAUSE
+      common /frc_co2flx/CO2flx
+# endif
+# if defined WRITE_HEATFLX
+      real Heatflx(GLOBAL_2D_ARRAY)
+CSDISTRIBUTE_RESHAPE Heatflx(BLOCK_PATTERN,*) BLOCK_CLAUSE
+      common /frc_heatflx/Heatflx
+# endif
+# if defined WRITE_TEMP_REST
+      real RestflxTemp(GLOBAL_2D_ARRAY)
+CSDISTRIBUTE_RESHAPE RestflxTemp(BLOCK_PATTERN,*) BLOCK_CLAUSE
+      common /frc_restflxtemp/RestflxTemp
+# endif
+# if defined WRITE_SALT_REST
+      real RestflxSalt(GLOBAL_2D_ARRAY)
+CSDISTRIBUTE_RESHAPE RestflxSalt(BLOCK_PATTERN,*) BLOCK_CLAUSE
+      common /frc_restflxsalt/RestflxSalt
+# endif
 # if !defined ANA_STFLUX || !defined ANA_SSFLUX
 #  if defined STFLUX_DATA || defined ALL_DATA
 #   undef STFLUX_DATA
@@ -273,6 +302,10 @@ CSDISTRIBUTE_RESHAPE  sstg(BLOCK_PATTERN,*) BLOCK_CLAUSE
 # endif /* QCORRECTION && !ANA_SST */
 
 
+# if defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC || defined BIOLOGY_BEC2 || defined PCO2AIR_FORCING
+#include "bgc_forces.h"
+# endif /* BIOLOG_BEC || BIOLOG_BEC2 */ 
+
 ! Sea-surface salinity (SSS) data
 
 # if defined SFLX_CORR && defined SALINITY
@@ -330,4 +363,35 @@ CSDISTRIBUTE_RESHAPE wwpg(BLOCK_PATTERN,*) BLOCK_CLAUSE
 #   undef WWAVE_DATA
 #  endif /* WWAVE_DATA */
 # endif /* SG_BBL96 && !ANA_WWAVE */
+
+# ifdef ICEOBS
+! Sea-ice observation data:
+! ------ ---------- --------- ------
+!      sic: sea ice fraction [-]
+! freezing: sea ice freezing [cm/day]
+!  melting: sea ice melting [cm/day]
+
+      real sic(GLOBAL_2D_ARRAY)
+CSDISTRIBUTE_RESHAPE sic(BLOCK_PATTERN) BLOCK_CLAUSE
+      real freezing(GLOBAL_2D_ARRAY)
+CSDISTRIBUTE_RESHAPE freezing(BLOCK_PATTERN) BLOCK_CLAUSE
+      real melting(GLOBAL_2D_ARRAY)
+CSDISTRIBUTE_RESHAPE melting(BLOCK_PATTERN) BLOCK_CLAUSE
+      common /frc_sic/sic /frc_freezing/freezing /frc_melting/melting
+#  if defined ICEOBS_DATA || defined ALL_DATA
+#   undef ICEOBS_DATA
+      real, dimension(GLOBAL_2D_ARRAY,2) :: sicg, freezingg, meltingg
+CSDISTRIBUTE_RESHAPE sicg(BLOCK_PATTERN,*) BLOCK_CLAUSE
+CSDISTRIBUTE_RESHAPE freezingg(BLOCK_PATTERN,*) BLOCK_CLAUSE
+CSDISTRIBUTE_RESHAPE meltingg(BLOCK_PATTERN,*) BLOCK_CLAUSE
+      common /forces_iceobs/sicg, freezingg, meltingg
+
+      real ice_time(2), ice_cycle
+      integer ice_ncycle,  ice_rec, itice, ntice,
+     &        ice_file_id, ice_tid, sic_id, freez_id, melt_id
+      common /icedat/ ice_time, ice_cycle,
+     &        ice_ncycle,  ice_rec, itice, ntice,
+     &        ice_file_id, ice_tid, sic_id, freez_id, melt_id
+#  endif /* defined ICEOBS_DATA || defined ALL_DATA */
+# endif /* ICEOBS */
 #endif /* SOLVE3D */

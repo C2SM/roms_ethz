@@ -12,6 +12,7 @@
 # include "ncvars.h"
 # include "netcdf.inc"
 # include "boundary.h"
+      character*15  vname_bry
       real dtime
       integer ierr, ierr_all, itrc, lsrc, lenstr
 # if defined OBC_WEST  || defined OBC_EAST
@@ -173,18 +174,36 @@
             endif
 #   endif
 #   ifdef T_FRC_BRY
+#    ifdef LEGACY_PHYSICS_ONLY
             ierr=nf_inq_varid(bry_id,'temp_west', t_west_id(itemp))
             if (ierr /= nf_noerr) then
               if (ierr_all == nf_noerr) ierr_all=ierr
               write(*,1) 'temp_west', bry_file(ibry)(1:lsrc)
             endif
-#    ifdef SALINITY
+#     ifdef SALINITY
             ierr=nf_inq_varid(bry_id, 'salt_west', t_west_id(isalt))
             if (ierr /= nf_noerr) then
               if (ierr_all == nf_noerr) ierr_all=ierr
               write(*,1) 'salt_west', bry_file(ibry)(1:lsrc)
             endif
+#     endif
 #    endif
+          do itrc = 1,NT
+             vname_bry = trim(vname(1,itrc+indxT-1))/ /'_west'
+
+             ierr=nf_inq_varid (bry_id, vname_bry, t_west_id(itrc))
+             if (ierr/=nf_noerr) then
+#    ifdef DEFAULT_BRY_VALUES
+                write(*,11) trim(vname_bry),
+     &               bry_file(ibry)(1:lsrc) MYID
+                t_west_id(itrc) = 0
+                ierr=nf_noerr
+#    else
+                write(*,1) trim(vname_bry),bry_file(ibry)(1:lsrc)
+                ierr_all=ierr_all+ierr
+#    endif
+             end if
+          end do
 #   endif
 #  endif
           endif !<-- west_bry_active
@@ -228,18 +247,35 @@
             endif
 #   endif
 #   ifdef T_FRC_BRY
+#    ifdef LEGACY_PHYSICS_ONLY
             ierr=nf_inq_varid(bry_id, 'temp_east', t_east_id(itemp))
             if (ierr /= nf_noerr) then
               if (ierr_all == nf_noerr) ierr_all=ierr
               write(*,1) 'temp_east', bry_file(ibry)(1:lsrc)
             endif
-#    ifdef SALINITY
+#     ifdef SALINITY
             ierr=nf_inq_varid(bry_id, 'salt_east', t_east_id(isalt))
             if (ierr /= nf_noerr) then
               if (ierr_all == nf_noerr) ierr_all=ierr
               write(*,1) 'salt_east', bry_file(ibry)(1:lsrc)
             endif
+#     endif
 #    endif
+            do itrc = 1, NT
+              vname_bry = trim(vname(1,itrc+indxT-1))/ /'_east'
+              ierr=nf_inq_varid (bry_id, vname_bry, t_east_id(itrc))
+              if (ierr/=nf_noerr) then
+#    ifdef DEFAULT_BRY_VALUES
+                write(*,11) trim(vname_bry),
+     &               bry_file(ibry)(1:lsrc) MYID
+                t_east_id(itrc) = 0
+                ierr=nf_noerr
+#    else
+                write(*,1) trim(vname_bry),bry_file(ibry)(1:lsrc)
+                ierr_all=ierr_all+ierr
+#    endif
+              endif
+            enddo
 #   endif
 #  endif
           endif  !<-- east_bry_active
@@ -283,18 +319,35 @@
             endif
 #   endif
 #   ifdef T_FRC_BRY
+#    ifdef LEGACY_PHYSICS_ONLY
             ierr=nf_inq_varid(bry_id,'temp_south',t_south_id(itemp))
             if (ierr /= nf_noerr) then
               if (ierr_all == nf_noerr) ierr_all=ierr
               write(*,1) 'temp_south', bry_file(ibry)(1:lsrc)
             endif
-#    ifdef SALINITY
+#     ifdef SALINITY
             ierr=nf_inq_varid(bry_id,'salt_south', t_south_id(isalt))
             if (ierr /= nf_noerr) then
               if (ierr_all == nf_noerr) ierr_all=ierr
               write(*,1) 'salt_south', bry_file(ibry)(1:lsrc)
             endif
+#     endif
 #    endif
+            do itrc = 1, NT
+              vname_bry = trim(vname(1,itrc+indxT-1))/ /'_south'
+              ierr=nf_inq_varid (bry_id, vname_bry, t_south_id(itrc))
+              if (ierr/=nf_noerr) then
+#    ifdef DEFAULT_BRY_VALUES
+                write(*,11) trim(vname_bry),
+     &               bry_file(ibry)(1:lsrc) MYID
+                t_south_id(itrc) = 0
+                ierr=nf_noerr
+#    else
+                write(*,1) trim(vname_bry),bry_file(ibry)(1:lsrc)
+                ierr_all=ierr_all+ierr
+#    endif
+              endif
+            enddo
 #   endif
 #  endif
           endif  !<-- south_bry_active
@@ -338,18 +391,35 @@
             endif
 #   endif
 #   ifdef T_FRC_BRY
+#    ifdef LEGACY_PHYSICS_ONLY
             ierr=nf_inq_varid(bry_id,'temp_north', t_north_id(itemp))
             if (ierr /= nf_noerr) then
               if (ierr_all == nf_noerr) ierr_all=ierr
               write(*,1) 'temp_north', bry_file(ibry)(1:lsrc)
             endif
-#    ifdef SALINITY
+#     ifdef SALINITY
             ierr=nf_inq_varid(bry_id,'salt_north', t_north_id(isalt))
             if (ierr /= nf_noerr) then
               if (ierr_all == nf_noerr) ierr_all=ierr
               write(*,1) 'salt_north', bry_file(ibry)(1:lsrc)
             endif
+#     endif
 #    endif
+          do itrc = 1, NT
+            vname_bry = trim(vname(1,itrc+indxT-1))/ /'_north'
+            ierr=nf_inq_varid(bry_id,trim(vname_bry),t_north_id(itrc))
+            if (ierr/=nf_noerr) then
+#    ifdef DEFAULT_BRY_VALUES
+              write(*,11) trim(vname_bry),
+     &               bry_file(ibry)(1:lsrc) MYID
+              t_north_id(itrc) = -1
+              ierr=nf_noerr
+#    else
+              write(*,1) trim(vname_bry),bry_file(ibry)(1:lsrc)
+              ierr_all=ierr_all+ierr
+#    endif
+            endif
+          enddo
 #   endif
 #  endif
           endif !<-- north_bry_active
@@ -359,6 +429,9 @@
 
   1   format(1x,'### ERROR: get_bry_all :: Cannot find variable ''',
      &                                A, ''' in file ''', A, '''.')
+  11  format(1x,'--- WARNING: get_bry_all :: Cannot find variable ''',
+     &                                A, ''' in file ''', A, '''.',
+     &       A,i5)
 
 ! Read data from the file:  Check if model time is bounded by past and
 !----- ---- ---- --- -----  future data times: if not, increment record
@@ -416,12 +489,20 @@
                 do itrc=1,NT
                   ierr=read_bry_EW(bry_id, t_west_id(itrc),  bry_rec,
      &                           r_var, t_west_dt(0,1,itbry,itrc), N)
+#    ifdef DEFAULT_BRY_VALUES
+                  if (ierr /= nf_noerr)  then
+                    call set_bry_defaults(t_west_dt,itrc,itbry,Mm+1)
+                    print 3, trim(vname(1,indxT-1+itrc))
+     &                   , t_west_dt(0,1,itbry,itrc) MYID
+                    ierr=nf_noerr
+                  endif
+#    endif /* DEFAULT_BRY_VALUES */
                   if (ierr_all == nf_noerr) ierr_all=ierr
                 enddo
-#   endif
-#  endif
-              endif
-# endif
+#   endif /* T_FRC_BRY */
+#  endif /* SOLVE3D */
+      endif ! east_bry_active
+# endif /* OBC_WEST */
 
 # ifdef OBC_EAST
               if (east_bry_active) then
@@ -453,6 +534,14 @@
                 do itrc=1,NT
                   ierr=read_bry_EW(bry_id, t_east_id(itrc),  bry_rec,
      &                           r_var, t_east_dt(0,1,itbry,itrc), N)
+#    ifdef DEFAULT_BRY_VALUES
+                  if (ierr /= nf_noerr)  then
+                    call set_bry_defaults(t_east_dt,itrc,itbry,Mm+1)
+                    print 3, trim(vname(1,indxT-1+itrc))
+     &                   , t_east_dt(0,1,itbry,itrc) MYID
+                    ierr=nf_noerr
+                  endif
+#     endif /* DEFAULT_BRY_VALUES */
                   if (ierr_all == nf_noerr) ierr_all=ierr
                 enddo
 #   endif
@@ -461,6 +550,7 @@
 # endif
 
 # ifdef OBC_SOUTH
+!--> #  define CR
               if (south_bry_active) then
 #  ifdef Z_FRC_BRY
                 ierr=read_bry_NS(bry_id, zeta_south_id, bry_rec, r_var,
@@ -490,6 +580,14 @@
                 do itrc=1,NT
                   ierr=read_bry_NS(bry_id, t_south_id(itrc),  bry_rec,
      &                           r_var, t_south_dt(0,1,itbry,itrc), N)
+#    ifdef DEFAULT_BRY_VALUES
+                  if (ierr /= nf_noerr)  then
+                    call set_bry_defaults(t_south_dt,itrc,itbry,Lm+1)
+                    print 3, trim(vname(1,indxT-1+itrc))
+     &                   , t_south_dt(0,1,itbry,itrc) MYID
+                    ierr=nf_noerr
+                  endif
+#     endif /* DEFAULT_BRY_VALUES */
                   if (ierr_all == nf_noerr) ierr_all=ierr
                 enddo
 #   endif
@@ -525,8 +623,20 @@
 #   endif
 #   ifdef T_FRC_BRY
                 do itrc=1,NT
-                  ierr=read_bry_NS(bry_id, t_north_id(itrc),  bry_rec,
+                  if (t_north_id(itrc) >= 0 ) then
+                    ierr=read_bry_NS(bry_id, t_north_id(itrc),  bry_rec,
      &                           r_var, t_north_dt(0,1,itbry,itrc), N)
+                  else
+                    ierr=-1
+                  endif
+#    ifdef DEFAULT_BRY_VALUES
+                  if (ierr /= nf_noerr)  then
+                    call set_bry_defaults(t_north_dt,itrc,itbry,Lm+1)
+                    print 3, trim(vname(1,indxT-1+itrc))
+     &                   , t_north_dt(0,1,itbry,itrc) MYID
+                    ierr=nf_noerr
+                  endif 
+#     endif /* DEFAULT_BRY_VALUES */
                   if (ierr_all == nf_noerr) ierr_all=ierr
                 enddo
 #   endif
@@ -563,6 +673,11 @@
      &                                   bry_time(itbry)*sec2day
         endif
       enddo
+!  2   format(/1x,'### ERROR get_bry_all: Cannot read variable ''',
+!     &                                                     A, '''.')
+ 3    format(1x,'--- WARNING get_bry_all: Using default for ''',
+     &          ''''/10x,' Sample value = ',g9.2,' (',A,i3,')'
+     &          ,' itrc = ',i3,A,i5)
       if (ierr_ext == nf_noerr) ierr_ext=ierr_all
 # ifdef VERBOSE
       write(*,*) 'leaving get_bry_all' MYID
@@ -821,8 +936,13 @@
 #  endif
         endif
 # endif
+<<<<<<< HEAD
         if (cff1 < 0. .or. cff2 < 0.) then
            write(*,'(/3A/3(1x,A,F16.10)/)')            '### WARNING: ',
+=======
+        if (cff1<0. .or. cff2<0.) then
+           write(*,'(/3A/3(1x,A,D16.9)/)')            '### WARNING: ',
+>>>>>>> iso_adv2017_11
      &      'set_bry_all_tile :: current model time is out of bounds ',
      &      'of ''bry_time''.', 'bry_tstart =', bry_time(it1)*sec2day,
      &      'tdays =',  tdays,  'bry_tend =',   bry_time(it2)*sec2day
@@ -830,8 +950,176 @@
         endif
       endif  ! <-- need_bry
       end
+
+
+# ifdef DEFAULT_BRY_VALUES
+      subroutine set_bry_defaults (t_bry_dt, itrc, itbry, LMmpp)
+      implicit none
+#  include "param.h"
+      real t_bry_dt(0:LMmpp,N,2,NT), cff,cff1
+      integer, intent(in):: LMmpp, itbry,itrc
+      integer :: ij, k
+#  define temp cff
+#  define SiO4 cff1
+
+      if (itrc == itemp) then
+        t_bry_dt(:,:,itbry,itrc) = 5.0 ! default temperature
+#  ifdef SALINITY
+      else if (itrc == isalt) then
+        t_bry_dt(:,:,itbry,itrc) = 35.0 ! default salinity
+#  endif
+#  ifdef BIOLOGY_NPZDOC
+      elseif (itrc == iNO3_) then
+        cff=20./3.
+        cff1=2./3.
+        do k=1,N
+          do ij=0,LMmpp
+            temp=t_bry_dt(j,k,itbry,itemp)
+              if (temp.lt.8.) then
+                SiO4=30.
+              elseif (temp.le.11.) then
+                SiO4=30.-((temp-8.)*cff)
+              elseif (temp.le.13.) then
+                SiO4=10.-((temp-11.)*4.)
+              elseif (temp.le.16.) then
+                SiO4=2.-((temp-13.)*cff1)
+              else
+                SiO4=0.
+              endif
+              t_bry_dt(j,k,itbry,itrc)=1.67+0.5873*SiO4
+     &             +0.0144*SiO4**2
+     &             +0.0003099*SiO4**3
+#   ifdef NO3_SFC_CUTOFF
+              t_bry_dt(ij,k,itbry,itrc)=t_bry_dt(ij,k,itbry,itrc)*
+     &             (1-.5*(tanh((z_r(iwest,ij,k)+100.)/8.)+1))
+#   endif /* NO3_SFC_CUTOFF */
+          enddo
+        enddo
+      elseif (itrc .eq. iNH4_) then
+        t_bry_dt(:,:,itbry,itrc) = 0.0
+      elseif (itrc .eq. iChla) then
+        t_bry_dt(:,:,itbry,itrc) = 0.10
+      elseif (itrc .eq. iPhyt) then
+        t_bry_dt(:,:,itbry,itrc) = 0.05
+      elseif (itrc .eq. iZoo_) then
+        t_bry_dt(:,:,itbry,itrc) = 0.02
+      elseif (itrc .eq. iSDet) then
+        t_bry_dt(:,:,itbry,itrc) = 0.0
+      elseif (itrc .eq. iLDet) then
+        t_bry_dt(:,:,itbry,itrc) = 0.0
+#   ifdef OXYGEN
+      elseif (itrc .eq. iO2) then
+        t_bry_dt(:,:,itbry,itrc) = 177.9  ! mmol/m3
+#    ifdef CARBON
+      elseif (itrc .eq. iDIC) then
+        t_bry_dt(:,:,itbry,itrc) = 2200.
+      elseif (itrc .eq. iTALK) then
+        t_bry_dt(:,:,itbry,itrc) = 2300.
+      elseif (itrc .eq. iSDetC) then
+        t_bry_dt(:,:,itbry,itrc) = 0.0
+      elseif (itrc .eq. iLDetC) then
+        t_bry_dt(:,:,itbry,itrc) = 0.0
+      elseif (itrc .eq. iCaCO3) then
+        t_bry_dt(:,:,itbry,itrc) = 0.0
+#    endif
+#   endif /* OXYGEN */
+#  endif /* BIOLOGY_NPZDOC */
+
+#    if defined BIOLOGY_BEC || defined BIOLOGY_BEC2
+! provide defaults for selected biogeochemical variables
+      elseif (itrc .eq. iNH4 .or. itrc .eq. iDOC .or.
+     &    itrc .eq. iDON .or. itrc. eq. iDOFE .or. 
+     &    itrc .eq. iDOP) then
+        t_bry_dt(:,:,itbry,itrc) = 0.0
+      else if (itrc .eq. iPO4) then
+        do k=1,N
+          do ij=0,LMmpp
+            temp=t_bry_dt(ij,k,itbry,itemp)
+            if (temp.lt.8.) then
+              SiO4=30.
+            elseif (temp.ge.8. .and. temp.le.11.) then
+              SiO4=30.-((temp-8.)*(20./3.))
+            elseif (temp.gt.11. .and. temp.le.13.) then
+              SiO4=10.-((temp-11.)*(8./2.))
+            elseif (temp.gt.13. .and. temp.le.16.) then
+              SiO4=2.-((temp-13.)*(2./3.))
+            elseif (temp.gt.16.) then
+              SiO4=0.
+            endif
+          t_bry_dt(ij,k,itbry,itrc)=(1.67+0.5873*SiO4
+     &         +0.0144*SiO4**2
+     &         +0.0003099*SiO4**3)/16
+#   ifdef NO3_SFC_CUTOFF 
+          t_bry_dt(ij,k,itbry,itrc)=t_bry_dt(ij,k,itbry,itrc)*
+     &                             (1-.5*(tanh((z_r(iwest,ij,k)+100.)/8.)+1))
+#   endif /* NO3_SFC_CUTOFF */
+          enddo
+        enddo
+      else if (itrc .eq. iNO3) then
+        t_bry_dt(:,:,itbry,itrc) = 16*t_bry_dt(:,:,itbry,iPO4)
+      else if (itrc .eq. iSiO3) then
+        t_bry_dt(:,:,itbry,itrc) = t_bry_dt(:,:,itbry,iNO3)
+      else if (itrc .eq. iFE) then
+        t_bry_dt(:,:,itbry,itrc) = 5.395e-4  ! mmol/m3
+      else if (itrc .eq. iO2) then
+        t_bry_dt(:,:,itbry,itrc) = 177.9  ! mmol/m3
+      else if (itrc .eq. iDIC) then
+        t_bry_dt(:,:,itbry,itrc) = 2255  ! mmol/m3
+      else if (itrc .eq. iALK) then
+        t_bry_dt(:,:,itbry,itrc) = 2363  ! mmol/m3
+      else if (itrc .eq. iSPC) then
+        t_bry_dt(:,:,itbry,itrc) = 0.10
+      else if (itrc .eq. iSPCHL) then
+        t_bry_dt(:,:,itbry,itrc) = 0.1 *
+     &     t_bry_dt(:,:,itbry,iSPC)  
+      else if (itrc .eq. iSPFE) then
+        t_bry_dt(:,:,itbry,itrc) = 4.d-5 *
+     &     t_bry_dt(:,:,itbry,iSPC)  
+      else if (itrc .eq. iSPCACO3) then
+        t_bry_dt(:,:,itbry,itrc) = 0.03 *
+     &     t_bry_dt(:,:,itbry,iSPC)  
+      else if (itrc .eq. iDIATC) then
+        t_bry_dt(:,:,itbry,itrc) = 0.10
+      else if (itrc .eq. iDIATCHL) then
+        t_bry_dt(:,:,itbry,itrc) = 0.1 *
+     &     t_bry_dt(:,:,itbry,iDIATC)  
+      else if (itrc .eq. iDIATSI) then
+        t_bry_dt(:,:,itbry,itrc) = 0.2 *
+     &     t_bry_dt(:,:,itbry,iDIATC)  
+      else if (itrc .eq. iDIATFE) then
+        t_bry_dt(:,:,itbry,itrc) = 3.d-5 *
+     &     t_bry_dt(:,:,itbry,iDIATC)  
+      else if (itrc .eq. iDIAZC) then
+        t_bry_dt(:,:,itbry,itrc) = 0.01
+      else if (itrc .eq. iDIAZCHL) then
+        t_bry_dt(:,:,itbry,itrc) = 0.1 *
+     &     t_bry_dt(:,:,itbry,iDIAZC)  
+      else if (itrc .eq. iDIAZFE) then
+        t_bry_dt(:,:,itbry,itrc) = 3.d-5 *
+     &     t_bry_dt(:,:,itbry,iDIAZC)  
+      else if (itrc .eq. iZOOC) then
+        t_bry_dt(:,:,itbry,itrc) = 0.05
+      else if (itrc >= itrc_bio) then
+        t_bry_dt(:,:,itbry,itrc) = 1e-30
+#    endif /* BIOLOGY_BEC */
+      else 
+        t_bry_dt(:,:,itbry,itrc) = 0.0
+      endif ! tracer cases
+      return
+      end
+# endif /* DEFAULT_BRY_VALUES */
+
 #else
-      subroutine get_bry_empty
+      subroutine get_bry_all(ierr_ext)     ! Read side boundary forcing
+      implicit none                        ! fields from boundary file
+      integer ierr_ext
+      return
+!      subroutine get_bry_empty
+      end
+      subroutine set_bry_all_tile (istr,iend,jstr,jend, ierr)
+      implicit none
+      integer istr,iend,jstr,jend, ierr
+      return
       end
 #endif
 

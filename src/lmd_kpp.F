@@ -41,40 +41,20 @@ c--# define MERGE_OVERLAP
      &                                                    , kbbl
 # endif
 
-      real, parameter ::
-     &   Ricr=0.45,     ! Critical bulk Richardson number (0.3)
-     &   Ri_inv=1./Ricr,
-     &   epssfc=0.1,    ! nondimensional extent of the surface layer
-     &   betaT=-0.2,    ! ratio of entrainment flux to surface buoyancy
-                        !      forcing flux (the "20% convectin rule")
-     &   nubl=0.01,     ! maximum allowed boundary layer
-     &   nu0c=0.1,      ! convective adjustment for viscosity and
-                        !                      diffusivity [m^2/s]
-     &   Cv=1.8,        ! ratio of interior Brunt-Vaisala frequency
-                        ! "N" to that at the entrainment depth "he".
-     &   C_MO=1.,       ! constant for computaion Monin-Obukhov depth.
-     &   C_Ek=258.,     ! constant for computating stabilization term
-                        !    due to Coriolis force (Ekman depth limit)
-     &   Cstar=10.,     ! proportionality coefficient parameterizing
-                        !                         nonlocal transport
-     &   zeta_m=-0.2,   ! Maximum stability parameters "zeta"
-     &   a_m=1.257,     ! value of the 1/3 power law regime of
-     &   c_m=8.360,     ! flux profile for momentum and tracers
-     &   zeta_s=-1.0,   ! and coefficients of flux profile for
-     &   a_s=-28.86,    ! momentum and tracers in their 1/3-power
-     &   c_s=98.96      ! law regime;
-
-      real, parameter :: r2=0.5, r3=1./3., r4=0.25, EPS=1.E-20
-
-
+# include "lmd_param.h"
+      real, parameter :: EPS=1.E-20
+      
       real Cg, ustar3, Bfsfc, zscale, zetahat, ws,wm, Kern, Vtc,Vtsq,
      &         ssgm, z_bl, Av_bl,dAv_bl, At_bl,dAt_bl,  As_bl,dAs_bl,
      &                         f1,a1,a2,a3,  cff,cff1, cff_up,cff_dn
-# ifdef LIMIT_MO_DEPTH
+# if defined LIMIT_MO_DEPTH || defined LMD_LIMIT_STABLE
      &                                               , h_MO
 #  ifdef INT_AT_RHO_POINTS
      &                                               , z_up
 #  endif
+# endif
+# ifdef LMD_NEWENTRAIN
+     &                                               , Cv2
 # endif
 # ifdef LMD_BKPP
       real Kv0, Kt0, Ks0, wmb,wsb, sgmb
@@ -86,7 +66,7 @@ c--# define MERGE_OVERLAP
 # include "forces.h"
 # include "mixing.h"
 # ifdef LMD_BKPP
-c>>>#  include "coupling.h"    /* <-- needs "r_D"  */
+#  include "coupling.h"    /* <-- needs "r_D"  */
 # endif
 # include "scalars.h"
 # define tind nstp
@@ -203,6 +183,16 @@ c>>>#  include "coupling.h"    /* <-- needs "r_D"  */
 #  endif
           Cr(i,N)=0.
           Cr(i,0)=0.
+#  ifdef KPP_DIAGNOSE
+          KppSblSh(i,j,N)=0.
+          KppSblSh(i,j,0)=0.
+          KppSblSt(i,j,N)=0.
+          KppSblSt(i,j,0)=0.
+          KppSblRot(i,j,N)=0.
+          KppSblRot(i,j,0)=0.
+          KppSblEnt(i,j,N)=0.
+          KppSblEnt(i,j,0)=0.
+#  endif
 # endif /* LMD_KPP */
           FC(i,N)=0.
         enddo  !--> discard alpha,beta; keep Bo,Bosol to the very end.
@@ -355,6 +345,18 @@ c**     &                          k, Cr(i,k), Cr(i,k-1), hbl(i,j)
 
      &                                            +C_Ek*f(i,j)*f(i,j)
      &                                                             ))
+#  ifdef KPP_DIAGNOSE
+            KppSblSh(i,j,k)=KppSblSh(i,j,k+1) + Kern*(
+     &                0.5*( ( u(i,j,k+1,tind)+u(i+1,j,k+1,tind)
+     &                       -u(i,j,k  ,tind)-u(i+1,j,k  ,tind) )**2
+     &                     +( v(i,j,k+1,tind)+v(i,j+1,k+1,tind)
+     &                       -v(i,j,k  ,tind)-v(i,j+1,k  ,tind) )**2
+     &                      )/(Hz(i,j,k)+Hz(i,j,k+1)))
+            KppSblSt(i,j,k)=KppSblSt(i,j,k+1) + Kern*(
+     &             -0.5*(Hz(i,j,k)+Hz(i,j,k+1))*(Ri_inv*bvf(i,j,k)))
+            KppSblRot(i,j,k)=KppSblRot(i,j,k+1) + Kern*(
+     &            -0.5*(Hz(i,j,k)+Hz(i,j,k+1))*(C_Ek*f(i,j)*f(i,j)))
+#  endif
           enddo
         enddo
 
@@ -380,6 +382,16 @@ c**     &                          k, Cr(i,k), Cr(i,k-1), hbl(i,j)
      &                  -0.5*Hz(i,j,1)*( Ri_inv*bvf(i,j,1)
      &                                  +C_Ek*f(i,j)*f(i,j)
      &                                                       ))
+#  ifdef KPP_DIAGNOSE
+          KppSblSh(i,j,0)=KppSblSh(i,j,1) + Kern*(
+     &                   0.5*( (u(i,j,1,tind)+u(i+1,j,1,tind))**2
+     &                        +(v(i,j,1,tind)+v(i,j+1,1,tind))**2
+     &                       )/Hz(i,j,1))
+          KppSblSt(i,j,0)=KppSblSt(i,j,1) + Kern*(
+     &                  -0.5*Hz(i,j,1)*(Ri_inv*bvf(i,j,1)))
+          KppSblRot(i,j,0)=KppSblRot(i,j,1) + Kern*(
+     &                  -0.5*Hz(i,j,1)*(C_Ek*f(i,j)*f(i,j)))
+#  endif
         enddo
 
 #  ifdef LMD_KPP
@@ -392,15 +404,25 @@ c**     &                          k, Cr(i,k), Cr(i,k-1), hbl(i,j)
             Bfsfc=Bo(i,j)+Bosol(i,j)*(1.-swdk_r(i,k))
 
 #   include "lmd_wscale_ws_only.h"
+#   ifdef LMD_NEWENTRAIN
+            Cv2=Cv
+            if (ws < 0.004) then
+              Cv2=Cv2 + 0.8 - (200. * ws)
+            endif
+            Vtc=Cv2 * sqrt(-betaT/(c_s*epssfc)) / (Ricr*vonKar**2)
+#   endif
 
 c--         Vtsq=Vtc*ws*sqrt(max(0., 0.5*(bvf(i,j,k)+bvf(i,j,k-1)) ))
 
             Vtsq=Vtc*ws*sqrt(max(0., bvf(i,j,k-1) ))  !<-- fix by Gokhan
 
             Cr(i,k)=FC(i,k)+Vtsq
+#   ifdef KPP_DIAGNOSE
+            KppSblEnt(i,j,k)=Vtsq
+#   endif
 
             if (kbls(i) == 0 .and. Cr(i,k) < 0.) kbls(i)=k
-#   ifdef LIMIT_MO_DEPTH
+#   if defined LIMIT_MO_DEPTH || defined LMD_LIMIT_STABLE
             if (kmo(i) == 0 .and. Bfsfc*(z_w(i,j,N)-z_r(i,j,k))
      &                                   > C_h_MO(i) ) kmo(i)=k
 #   endif
@@ -420,7 +442,7 @@ c--         Vtsq=Vtc*ws*sqrt(max(0., 0.5*(bvf(i,j,k)+bvf(i,j,k-1)) ))
           else
             hbl(i,j)=z_w(i,j,N)-z_w(i,j,0)
           endif
-#   ifdef LIMIT_MO_DEPTH
+#   if defined LIMIT_MO_DEPTH || defined LMD_LIMIT_STABLE
           if (kmo(i) > 0) then
             k=kmo(i)
             if (k==N) then
@@ -435,9 +457,27 @@ c--         Vtsq=Vtc*ws*sqrt(max(0., 0.5*(bvf(i,j,k)+bvf(i,j,k-1)) ))
             h_MO=z_w(i,j,N)+C_h_MO(i)*(cff_up*z_up-cff_dn*z_r(i,j,k))
      &                             /( cff_up*cff_dn*(z_up-z_r(i,j,k))
      &                                  + C_h_MO(i)*(cff_dn-cff_up) )
+#    if defined LMD_LIMIT_STABLE && defined SO_KPP
+!    If neutral and stable, let depth of surface boundary
+!    layer be set to Niiler-Krauss wind mixing min depth.
+!    (see Lemke1987, Markus 1999)
+            if ((ustar(i,j).gt.0.).and.((Bo(i,j)+Bosol(i,j)).gt.0.).and.
+     &         (hbl(i,j)<hbls(i,j,tind)).and.(hbl(i,j)<max(h_MO,0.))) then
+              hbl(i,j)=max(hbl(i,j),h_MO*dc0*min(exp(-hbls(i,j,tind)/dh0),1.)) 
+            endif
+            hbl(i,j)=max(hbl(i,j),0.)
+            hbl(i,j)=min(hbl(i,j),abs(z_w(i,j,0)))
+#    endif /* LMD_LIMIT_STABLE && SO_KPP  */
+#    if defined LIMIT_MO_DEPTH
+!    Compare "hbl" with physically limiting cases (Ekman depth
+!    and Monin-Obukhov depth) and correct.
             hbl(i,j)=min(hbl(i,j), max(h_MO,0.))
+#    endif
           endif
 #    undef C_h_MO
+#   endif /* LIMIT_MO_DEPTH || LMD_LIMIT_STABLE */
+#   ifdef LIMIT_MIN_HBLS
+          hbl(i,j)=max(LIMIT_MIN_HBLS, hbl(i,j))
 #   endif
 #   ifdef MASKING
           hbl(i,j)=hbl(i,j)*rmask(i,j)
@@ -673,6 +713,22 @@ c**            hbl(i,j)=0.5*(hbl(i,j) + hbls(i,j,nstp))
               endif
 #  endif
             else
+#  ifdef LMD_MIN_KPP
+              if (kbls(i)==N .and. k == (N-1)) then
+                Kv(i,j,k)=Kv(i,j,k) + wm*hbl(i,j)*epssfc
+                Kt(i,j,k)=Kt(i,j,k) + ws*hbl(i,j)*epssfc
+#   ifdef SALINITY
+                Ks(i,j,k)=Ks(i,j,k) + ws*hbl(i,j)*epssfc
+#   endif
+#   ifdef LMD_NONLOCAL
+                if (Bfsfc < 0.) then
+                  ghat(i,j,k)=Cg * epssfc
+                else
+                  ghat(i,j,k)=0.
+                endif
+#   endif
+              else
+#  endif
 #  ifdef LMD_NONLOCAL
               ghat(i,j,k)=0.
 #  endif
@@ -683,6 +739,9 @@ c**            hbl(i,j)=0.5*(hbl(i,j) + hbls(i,j,nstp))
 #   ifdef SALINITY
                 Ks(i,j,k)=Ks(i,j,k) + nu0c
 #   endif
+                endif
+#  endif
+#  ifdef LMD_MIN_KPP
               endif
 #  endif
             endif
@@ -852,23 +911,24 @@ c              Ks(i,j,k)=Ks(i,j,k) + wsb*bbl(i,j)*cff1
 # ifdef MASKING
           if (rmask(i,j) > 0.5) then
 # endif
-            if (FIRST_TIME_STEP) then
-              do k=0,N
-                Akv(i,j,k)=Kv(i,j,k)
-                Akt(i,j,k,itemp)=Kt(i,j,k)
-# ifdef SALINITY
-                Akt(i,j,k,isalt)=Ks(i,j,k)
+# ifdef ICEOBS
+          kbl(i,j)=kbls(i)
 # endif
-              enddo
-            else
-              do k=0,N
-                Akv(i,j,k)       = 0.5*Akv(i,j,k)       + 0.5*Kv(i,j,k)
-                Akt(i,j,k,itemp) = 0.5*Akt(i,j,k,itemp) + 0.5*Kt(i,j,k)
-# ifdef SALINITY
-                Akt(i,j,k,isalt) = 0.5*Akt(i,j,k,isalt) + 0.5*Ks(i,j,k)
+            do k=0,N
+              Akv(i,j,k)=Kv(i,j,k)
+# ifdef LIMIT_MIN_KT
+              Akt(i,j,k,itemp)=max(LIMIT_MIN_KT, Kt(i,j,k))
+# else
+              Akt(i,j,k,itemp)=Kt(i,j,k)
 # endif
-              enddo
-            endif  !<-- FIRST_TIME_STEP
+# ifdef SALINITY
+#  ifdef LIMIT_MIN_KS
+              Akt(i,j,k,isalt)=max(LIMIT_MIN_KS, Ks(i,j,k))
+#  else
+              Akt(i,j,k,isalt)=Ks(i,j,k)
+#  endif
+# endif
+            enddo
 # ifdef MASKING
           else
             do k=0,N
@@ -886,18 +946,28 @@ c              Ks(i,j,k)=Ks(i,j,k) + wsb*bbl(i,j)*cff1
 # ifdef LMD_KPP
       do j=jstr,jend                   ! Copy "hbl" into shared array
         do i=istr,iend                 ! and padd lateral ghost points
+#  ifdef SO
+          hbls(i,j,3-nstp)=0.5*(hbls(i,j,nstp)+hbl(i,j))
+#  else
           hbls(i,j,3-nstp)=hbl(i,j)
+#  endif /* SO */
         enddo
       enddo
 #  ifndef EW_PERIODIC
       if (WESTERN_EDGE) then
         do j=jstr,jend
           hbls(istr-1,j,3-nstp)=hbls(istr,j,3-nstp)
+#  ifdef ICEOBS
+          kbl(istr-1,j)=kbl(istr,j)
+#  endif
         enddo
       endif
       if (EASTERN_EDGE) then
         do j=jstr,jend
           hbls(iend+1,j,3-nstp)=hbls(iend,j,3-nstp)
+#  ifdef ICEOBS
+          kbl(iend+1,j)=kbl(iend,j)
+#  endif
         enddo
       endif
 #  endif
@@ -905,25 +975,43 @@ c              Ks(i,j,k)=Ks(i,j,k) + wsb*bbl(i,j)*cff1
       if (SOUTHERN_EDGE) then
         do i=istr,iend
           hbls(i,jstr-1,3-nstp)=hbls(i,jstr,3-nstp)
+#  ifdef ICEOBS
+          kbl(i,jstr-1)=kbl(i,jstr)
+#  endif
         enddo
       endif
       if (NORTHERN_EDGE) then
         do i=istr,iend
           hbls(i,jend+1,3-nstp)=hbls(i,jend,3-nstp)
+#  ifdef ICEOBS
+          kbl(i,jend+1)=kbl(i,jend)
+#  endif
         enddo
       endif
 #   ifndef EW_PERIODIC
       if (WESTERN_EDGE .and. SOUTHERN_EDGE) then
         hbls(istr-1,jstr-1,3-nstp)=hbls(istr,jstr,3-nstp)
+#   ifdef ICEOBS
+        kbl(istr-1,jstr-1)=kbl(istr,jstr)
+#   endif
       endif
       if (WESTERN_EDGE .and. NORTHERN_EDGE) then
         hbls(istr-1,jend+1,3-nstp)=hbls(istr,jend,3-nstp)
+#   ifdef ICEOBS
+        kbl(istr-1,jend+1)=kbl(istr,jend)
+#   endif
       endif
       if (EASTERN_EDGE .and. SOUTHERN_EDGE) then
         hbls(iend+1,jstr-1,3-nstp)=hbls(iend,jstr,3-nstp)
+#   ifdef ICEOBS
+        kbl(iend+1,jstr-1)=kbl(iend,jstr)
+#   endif
       endif
       if (EASTERN_EDGE .and. NORTHERN_EDGE) then
         hbls(iend+1,jend+1,3-nstp)=hbls(iend,jend,3-nstp)
+#   ifdef ICEOBS
+        kbl(iend+1,jend+1)=kbl(iend,jend)
+#   endif
       endif
 #   endif
 #  endif

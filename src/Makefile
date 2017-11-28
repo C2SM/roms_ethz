@@ -11,6 +11,7 @@ include Makedefs.IntelEM64T
 #include Makedefs.PGI_AMD64
 #include Makedefs.Fujitsu
 #include Makedefs.Cray
+#include Makedefs.IntelBrutus_ompi
 
 # Configuration for ROMS model:  All source code files are sorted into
 # ------------- --- ---- ------  eight groups separated by blanc lines:
@@ -30,6 +31,7 @@ KRNSRC = main.F		step2d_FB.F	read_inp.F	read_sta_pos.F\
 \
 	zetabc.F	u2dbc_im.F	v2dbc_im.F	obc_volcons.F\
 	u3dbc_im.F	v3dbc_im.F	t3dbc_im.F	exchange.F\
+        t3dbc_closed_im.F\
 \
 	rho_eos.F	ab_ratio.F	alfabeta.F\
 \
@@ -42,6 +44,18 @@ KRNSRC = main.F		step2d_FB.F	read_inp.F	read_sta_pos.F\
 	mpi_setup.F	mpi_exchange8TA.F
 #mpi_exchange4.F	mpi_exchange8TA.F\
 
+BIOSRC = CalcPar.F  carbon.F  co2calc_SWS.F  def_bgc_flux.F\
+	drtsafe.F  init_biopar.F  init_scalars_bgcflux.F  init_scalars_npzdoc.F\
+	init_scalars_physflux.F o2sato.F set_bgc_flux_avg.F\
+	ta_iter_SWS.F wrt_bgc_flux_avg.F wrt_bgc_flux_his.F\
+	def_phys_flux.F bio_npzdoc.F\
+	set_phys_flux_avg.F wrt_phys_flux_his.F wrt_phys_flux_avg.F\
+	biology.F  bio_diag.F atm_pco2.F calendar.F\
+\
+	init_scalars_bec2.F ecosys_bec2.F ecosys_bec2_init.F\
+	init_scalars_bec.F ecosys_bec.F ecosys_bec_init.F\
+	set_bec_flux_avg.F wrt_bec_flux_avg.F wrt_bec_flux_his.F\
+	init_scalars_becflux.F def_bec_flux.F vsink_BEC2.F\
 
 IOSRC = checkdims.F	find_record.F	insert_node.F	ncdf_read_write.F\
 	get_grid.F	get_init.F	wrt_grid.F	put_global_atts.F\
@@ -49,9 +63,14 @@ IOSRC = checkdims.F	find_record.F	insert_node.F	ncdf_read_write.F\
 	set_avg.F	wrt_avg.F	def_statn.F	wrt_statn.F\
 	get_forces.F	get_stflux.F	get_bry_all.F	set_forces.F\
 	set_smflux.F	set_stflux.F	nf_read_bry.F	bulk_flux_COAMS.F\
-	get_tides.F	set_tides.F	set_srflux.F\
-	get_ssh.F	get_tclima.F	get_uclima.F	closecdf.F
+	set_seaice.F	get_tides.F	set_tides.F	set_srflux.F\
+	get_tclima.F	get_uclima.F	closecdf.F\
+	init_agedye.F   get_agedye.F    set_cycle.F     get_tsource.F
+#	get_ssh.F	get_tclima.F	get_uclima.F	closecdf.F\
 
+
+OBSOLETE_SRC = \
+	get_ssh.F	get_srflux.F get_sst.F	get_dqdt.F	get_sss.F	get_stress_magn.F
 
 
 
@@ -62,7 +81,7 @@ FLTSRC = init_floats.F	init_arrays_floats.F	get_init_flts.F\
 # old/obsolete/non-parallelized stuff
 #       pp_vmix.F	get_wwave.F	smol_adv.F	get_bsedim.F
 
-  SRCS = $(KRNSRC) $(IOSRC)
+  SRCS = $(KRNSRC) $(IOSRC) $(BIOSRC)
    RCS = $(SRCS:.F=.f)
   OBJS = $(RCS:.f=.o)
   SBIN = roms
@@ -73,12 +92,15 @@ FLTSRC = init_floats.F	init_arrays_floats.F	get_init_flts.F\
 
 # ROMS excutable
 
-$(SBIN): mpc $(OBJS)
-	$(LDR) $(FFLAGS) $(LDFLAGS) -o a.out $(OBJS) $(LCDF) $(LMPI)
+$(SBIN): mpc Make.depend $(OBJS) print_cppswitches
+	make tools
+	./print_cppswitches
+	$(LDR) $(FFLAGS) $(LDFLAGS) -o $@ $(OBJS) $(LCDF) $(LMPI)
+# sasha	$(LDR) $(FFLAGS) $(LDFLAGS) -o a.out $(OBJS) $(LCDF) $(LMPI)
 
 #$(SBIN): $(LROMS)
 #	$(LDR) $(FFLAGS) $(LDFLAGS) -o a.out $(LROMS) $(LCDF) $(LMPI)
-	mv a.out $(SBIN)
+# sasha	mv a.out $(SBIN)
 2level: $(OBJS) $(LROMS2)
 	$(LDR) $(FFLAGS) $(LDFLAGS) -o a.out $(OBJS) $(LROMS2) $(LCDF) $(LMPI)
 	mv a.out $(SBIN)
@@ -108,7 +130,7 @@ check_forces: check_forces.o $(SBIN)
 	mv a.out check_forces
 
 # Everything
-all: mpc tools depend $(SBIN)
+all: mpc tools Make.depend $(SBIN)
 
 # A program to test MPI halo exchange routines.
 # - ------- -- ---- --- ---- -------- ---------
@@ -160,23 +182,29 @@ redefs: redefs.o
 
 checkdefs: check_switches1.F setup_kwds.F
 
-check_switches1.F: cppcheck cppdefs.h
-	./cppcheck cppdefs.h
+check_switches1.F: cppcheck cppdefs_UP.h cppdefs.h set_global_definitions.h
+	./cppcheck cppdefs_UP.h cppdefs.h
+#mm sasha:	./cppcheck cppdefs.h
 check_srcs.F: srcscheck Makefile
 	./srcscheck
 setup_kwds.F: checkkwds read_inp.F
 	./checkkwds
 
-depend:  # Note: cross_matrix is external here and should be in path
+Make.depend:  cross_matrix.o # Note: cross_matrix is external here and should be in path
 	cross_matrix *.F
 
 plotter: plotter.o
 	$(CFT) -o plotter plotter.o $(LIBNCAR)
 
+print_cppswitches: print_cppswitches.o check_switches1.o
+	$(CFT) $(FFLAGS) $(LDFLAGS) -o $@ print_cppswitches.o check_switches1.o
+
 # Target to create tar file.
 # ------ -- ------ --- -----
 tarfile: clean
 	tar cvf roms.tar Make* *.F *.h etalon_data.* README.*  *.in*
+
+.PHONY: all clean clobber allclean 
 
 # Cleaning targets
 # -------- -------
@@ -192,8 +220,9 @@ clobber: clean
 	/bin/rm -f $(SBIN) $(TOOLS) nsub
 	/bin/rm -f core core.*
 	/bin/rm -f *_genmod.mod *_genmod.f90
+	/bin/rm -f print_cppswitches
+	/bin/rm -f Make.depend
+	sed -i '/^include Make.depend/ d' Makefile
 
-# Automatically generated dependency list:
-
-include Make.depend
-
+# Include dependency file (created e.g., by cross_matrix)
+-include Make.depend

@@ -22,6 +22,21 @@
 #endif
 
 #include "netcdf.inc"
+#if defined BGC_FLUX_ANALYSIS || defined SEDIMENT_BIOLOGY
+# include "bgcflux.h"
+# include "ncroms_bgcflux.h"
+#endif
+#ifdef BIOLOGY_BEC
+# include "ecosys_bec.h"
+# include "bec_avg.h"
+#endif
+#ifdef BIOLOGY_BEC2
+# include "ecosys_bec2.h"
+#endif
+#ifdef PHYS_FLUX_ANALYSIS
+# include "physflux.h"
+# include "ncroms_physflux.h"
+#endif
 
 #if defined FLOATS
 # include "ncvars_floats.h"
@@ -74,6 +89,30 @@
      &       'rec =', record, nf_strerror(ierr) MYID
         goto 99                                           !--> ERROR
       endif
+#if defined BGC_FLUX_ANALYSIS || defined PHYS_FLUX_ANALYSIS
+! Time record numbers for flux analysis:
+      ! default values: 0; replace where appropriate
+      ibuff = (/0, 0, 0, 0, 0, 0/)
+# ifdef BGC_FLUX_ANALYSIS
+      ibuff(1) = nrec_bgc_flux_his
+#  ifdef AVERAGES
+      ibuff(2) = nrec_bgc_flux_avg
+#  endif
+# endif
+# ifdef PHYS_FLUX_ANALYSIS
+      ibuff(3) = nrec_phys_flux_his
+#  ifdef AVERAGES
+      ibuff(4) = nrec_phys_flux_avg
+#  endif
+# endif
+! start and count values are the same as for time_step
+      ierr=nf_put_vara_int (ncrst, rstTstepFA, start, count, ibuff)
+      if (ierr .ne. nf_noerr) then
+        write(*,1) 'fa_time_step', record, ierr
+     &                   MYID
+        goto 99                                           !--> ERROR
+      endif
+#endif /* BGC_FLUX_ANALYSIS || PHYS_FLUX_ANALYSIS */
 
 ! Time: Note that (1) time is always double precision; and (2) which
 ! one to write into the file, time or tdays, is decided by attribute
@@ -189,6 +228,104 @@
           goto 99                                         !--> ERROR
         endif
       enddo
+
+# ifdef SEDIMENT_BIOLOGY
+
+! Sediment tracer variables.
+
+      do itrc=1,NT_sed
+        ierr=ncdf_write(ncrst,  rstTsed(itrc), record, r_var,
+     &                  t_sed(START_2D_ARRAY,itrc), 1)
+        if (ierr .ne. nf_noerr) then
+          lvar=lenstr(vname(1,indxSedOrgN+itrc-1))
+          write(*,1) vname(1,indxSedOrgN+itrc-1)(1:lvar), 
+     &         record, ierr, nf_strerror(ierr) MYID
+          goto 99                                         !--> ERROR
+        endif
+      enddo
+# endif /* SEDIMENT_BIOLOGY */
+# if 0
+# ifdef EXACT_RESTART
+#  if  defined BIOLOGY_BEC || defined BIOLOGY_BEC2 || \
+      (defined BIOLOGY_NPZDOC && defined OXYGEN && defined CARBON)
+
+! pH:
+
+      ierr=ncdf_write(ncrst, rstPH,  record,  r_var,
+     &                 ph_hist, 1)
+      if (ierr .ne. nf_noerr) then
+         lvar=lenstr(vname(1,indxPH))
+         write(*,1) vname(1,indxPH)(1:lvar), record,
+     &        ierr, nf_strerror(ierr) MYID
+         goto 99                !--> ERROR
+      endif
+
+! pCO2:
+
+      ierr=ncdf_write(ncrst, rstPCO2,  record,  r_var, pCO2sw, 1)
+      if (ierr .ne. nf_noerr) then
+         lvar=lenstr(vname(1,indxPCO2))
+         write(*,1) vname(1,indxPCO2)(1:lvar), record,
+     &        ierr, nf_strerror(ierr) MYID
+         goto 99                !--> ERROR
+      endif
+#   ifdef OUTPUT_PCO2AIR_RST
+
+! pCO2air:
+
+      ierr=ncdf_write(ncrst, rstPCO2air,  record,  r_var, pCO2air, 1)
+      if (ierr .ne. nf_noerr) then
+         lvar=lenstr(vname(1,indxPCO2air))
+         write(*,1) vname(1,indxPCO2air)(1:lvar), record,
+     &        ierr, nf_strerror(ierr) MYID
+         goto 99                !--> ERROR
+      endif
+#   endif
+#  endif
+#  endif /* if 0 */
+# endif
+
+# if defined BIOLOGY_BEC2 && defined BEC2_DIAG
+
+! 2d diagnostics:
+
+      do itrc=1,nr_bec2_diag_2d
+         ierr=ncdf_write(ncrst, rstT_bec2_diag(itrc), record,  r_var, 
+     &                   bec2_diag_2d(START_2D_ARRAY,itrc), 1)
+        if (ierr .ne. nf_noerr) then
+          lvar=lenstr(vname_bec2_diag_2d(1,itrc))
+          write(*,1) vname_bec2_diag_2d(1,itrc)(1:lvar), record,
+     &              ierr, nf_strerror(ierr) MYID
+          goto 99                                         !--> ERROR
+        endif
+      enddo
+
+! 3d diagnostics:
+
+      do itrc=1,nr_bec2_diag_3d
+         ierr=ncdf_write(ncrst, rstT_bec2_diag(nr_bec2_diag_2d+itrc), 
+     &           record,  r_var, bec2_diag_3d(START_2D_ARRAY,1,itrc), N)
+        if (ierr .ne. nf_noerr) then
+          lvar=lenstr(vname_bec2_diag_3d(1,itrc))
+          write(*,1) vname_bec2_diag_3d(1,itrc)(1:lvar), record,
+     &              ierr, nf_strerror(ierr) MYID
+          goto 99                                         !--> ERROR
+        endif
+      enddo
+# endif /* BIOLOGY_BEC2 && BEC2_DIAG */
+
+# if defined BIOLOGY_BEC || defined BIOLOGY_NPZDOC
+
+! PAR:
+
+      ierr=ncdf_write(ncrst, rstPAR, record,  r_var, PAR, N)
+      if (ierr .ne. nf_noerr) then
+         lvar=lenstr(vname(1,indxPAR))
+         write(*,1) vname(1,indxPAR)(1:lvar), record,
+     &        ierr, nf_strerror(ierr) MYID
+         goto 99                !--> ERROR
+      endif
+#  endif /* BIOLOGY_BEC || BIOLOGY_NPZDOC */
 
 # ifdef LMD_KPP
 ! Depth of planetary boundary layer [m].

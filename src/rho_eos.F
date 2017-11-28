@@ -87,7 +87,7 @@
 ! in computation of pressure gradient within prsgrd32ACx-family
 ! schemes.]
 !
-! If so prescribed compute the Brunt-Väisäla frequency [1/s^2] at
+! If so prescribed compute the Brunt-Vaeisaela frequency [1/s^2] at
 ! horizontal RHO-points and vertical W-points,
 !
 !                          g    d rho  |

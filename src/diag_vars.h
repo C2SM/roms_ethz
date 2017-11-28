@@ -6,7 +6,7 @@
       common /diag_vars/ avzeta, avke,    prev_ke,
      &             avpe, avke2b, avke3bc, avkesrf
 
-#ifdef BIOLOGY
+#ifdef LEGACY_NPZD
       real*QUAD global_sum(0:15)
       common /diag_vars/ global_sum
 #endif
