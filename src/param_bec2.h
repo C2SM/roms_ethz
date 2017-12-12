@@ -20,22 +20,28 @@
      &   sp_ind   = 1,  ! small phytoplankton
      &   diat_ind = 2,  ! diatoms
      &   diaz_ind = 3   ! diazotrophs
+#  undef LAST_I
+#  define LAST_I diaz_ind
 #ifdef BEC_COCCO
-     &  ,cocco_ind = 4  ! Coccolithophores
+     &  ,cocco_ind = LAST_I+1  ! Coccolithophores
+#  undef LAST_I
+#  define LAST_I cocco_ind
 #endif
 #ifdef BEC_DDA
-     &  ,dda_ind = 4  ! diatom-diazotroph assemblages
+     &  ,dda_ind =LAST_I+1! diatom-diazotroph assemblages
+#  undef LAST_I
+#  define LAST_I dda_ind
 #endif
-
+#  undef LAST_I
 
 !
-! The following arrays contain one parameter for all of the 3 or 4 autotrophs, in the
+! The following arrays contain one parameter for all of the 3, 4 or 5 autotrophs, in the
 ! following order:
 !  1 --> small phytoplankton
 !  2 --> diatoms
 !  3 --> diazotrophs
 !  4 --> coccolithophores
-!  5 --> diatom-diazotroph assemblages
+!  4 or 5 --> diatom-diazotroph assemblages
 
        character*24 sname(autotroph_cnt)     ! short name of each autotroph
        character*80 lname(autotroph_cnt)     ! long name of each autotroph
