@@ -185,9 +185,6 @@ c**     &               LLm=248, MMm=504, N=42      ! 5km config
 ! NSUB_X, NSUB_E     number of shared memory subdomains (tiles) in
 !                                             XI- and ETA-directions;
 #ifdef MPI
-<<<<<<< HEAD
-     &      NP_XI=8, NP_ETA=32, NSUB_X=1, NSUB_E=7
-=======
       integer, parameter ::
 # ifdef DOMAIN_TILING /* tiling parameter are set in cppdefs */
      &   DOMAIN_TILING
@@ -211,7 +208,6 @@ c**     &               LLm=248, MMm=504, N=42      ! 5km config
      &    NP_XI=10, NP_ETA=24, NSUB_X=1, NSUB_E=1
 # elif defined USTC90
      &    NP_XI=8, NP_ETA=12, NSUB_X=1, NSUB_E=1
->>>>>>> iso_adv2017_11
 #else
 c     &      NSUB_X=4, NSUB_E=40  ! PAC44
 c     &      NSUB_X=8, NSUB_E=80   ! PAC22

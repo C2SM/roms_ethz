@@ -488,6 +488,10 @@ c**       ierr=nf_close(ncid) ; ncfrc(ifrc)=-1
 #endif
       end
 
+#ifdef SET_SMTH
+# include "set_smth.F"
+#endif
+
 #undef get_smth
 #undef file_id
 #ifdef timename

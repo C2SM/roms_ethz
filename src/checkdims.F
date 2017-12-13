@@ -343,12 +343,8 @@
 
       integer ndims, dimids(8), varid, vtype, size,
      &               i,j, ierr,  lvar, lfile, lenstr
-<<<<<<< HEAD
-#include "netcdf.inc"
-=======
 # include "netcdf.inc"
 # include "param.h"
->>>>>>> iso_adv2017_11
 
       lvar=lenstr(vname) ; lfile=lenstr(fname)
 

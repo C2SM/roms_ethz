@@ -994,7 +994,8 @@ c??         enddo
          end do
 # endif /* PHYS_FLUX_ANALYSIS & VERT_DIFF_ANALYSIS */
 
-# ifdef SALINITY
+# ifdef BIOLOGY
+#  ifdef SALINITY
           iAkt=min(itrc,isalt)
 #  else
           iAkt=min(itrc,itemp)

@@ -1,10 +1,6 @@
 #include "cppdefs.h"
 #if defined SOLVE3D && !defined ANA_SRFLUX
 
-c--#define DIURNAL_SRFLUX
-c--#define ROBUST_DIURNAL_SRFLUX
-
-
       subroutine set_srflux_tile (istr,iend,jstr,jend, ierr)
 
 ! Set-up shortwave radiation flux for current tile.
@@ -29,15 +25,15 @@ c--#define ROBUST_DIURNAL_SRFLUX
 
 # include "compute_extended_bounds.h"
 
-
-# ifdef ROBUST_DIURNAL_SRFLUX
-      dtau=2.D0*pi * dt*sec2day
-      cff=4.D0*pi*(tdays-dble(int(tdays))-0.5D0)
-      tau1=max(-pi, min(pi, cff))
-      tau2=max(-pi, min(pi, cff+2.D0*dtau))
-      cff=tau2-tau1
-      Ampl=( cff + 2.D0*cos(0.5D0*(tau1+tau2))*sin(0.5D0*cff) )/dtau
-# endif
+c# ifdef DIURNAL_SRFLUX
+c      cff=2.*dt*sec2day
+c      phase=4.*(tdays-int(tdays))-2.
+c      cff1=max(-1., min(1., phase-cff))
+c      cff2=max(-1., min(1., phase+cff))
+c      phase=(cff2-cff1)/cff + (sin(pi*cff2)-sin(pi*cff1))/(pi*cff)
+c
+ccc     if (ZEROTH_TILE) write(*,*) 'swrad modulation', tdays, phase
+c# endif
 
 
 ! Set coefficients for interpolation. Check that for the next time
@@ -153,10 +149,10 @@ c# endif
 ! mm: updated to work when now sunrise occurrs
 !
 ! DIURNAL CYCLE - USED IN BOTH PHYSICAL AND ECOSYSTEM MODELS
-! Patrick Marchesiello - 1999: Modulate average dayly insolation
+! Patrick Marchesiello - 1999: Modulate average daily insolation
 ! to get diurnal cycle by:
 !
-!              cos(h)*cos(d)*cos(phi)  +  sin(d)*sin(phi)
+!              cos(h)*cos(d)*cos(phi) + sin(d)*sin(phi)
 !       pi * ---------------------------------------------
 !             sin(h0)*cos(d)*cos(phi) + h0*sin(d)*sin(phi)
 !
@@ -164,66 +160,42 @@ c# endif
 !        h0 is hour angle at sunset and sunrise
 !
 ! Yusuke Uchiyama, 2009: UTC correction based on lonr is added.
-!                               ocean_time should be in UTC.
-#  define UTC_CORRECTION
+!                      [ocean_]time should be in UTC.
+      eps = 0.001 ! Don't modulate for solar elevations smaller that this
 
-#  ifndef UTC_CORRECTION
-        cos_h=cos(2.*pi*(tdays+0.5-int(tdays+0.5)))
-#  endif
-        dec=-0.406*cos(deg2rad*(tdays-int(tdays*day2year)*year2day))
-        cos_d=cos(dec) ; sin_d=sin(dec) ; tan_d=tan(dec)
+# define UTC_CORRECTION
+
+# ifndef UTC_CORRECTION
+      cos_h=cos(2.*pi*(tdays+.5-int(tdays+.5)))
 # endif
-
-        do j=jstrR,jendR
-          do i=istrR,iendR
-# ifdef DIURNAL_SRFLUX
-#  ifdef UTC_CORRECTION
-            cos_h=cos( 2.*pi*(tdays+0.5 -int(tdays+0.5))
-     &                               +deg2rad*lonr(i,j) )
-#  endif
-            phi=deg2rad*latr(i,j)
+      dec=-0.406*cos(deg2rad*(tdays-int(tdays*day2year)*year2day))
+      ! dec=-23.44*deg2rad*cos(twopi*(floor(tdays)-9.5)/yrlen) ! at noon
+      cos_d=cos(dec)
+      sin_d=sin(dec)
+      tan_d=tan(dec)
+      do j=jstrR,jendR
+        do i=istrR,iendR
+# ifdef UTC_CORRECTION
+          utc=lonr(i,j)*utc_cor
+          cos_h=cos(2.*pi*(tdays+.5-int(tdays+.5)+utc))
+# endif
+          phi=deg2rad*latr(i,j)
+          cff1=cos_d*cos(phi) ; cff2=sin_d*sin(phi)
+          if (abs(cff2)+eps < abs(cff1)) then
             h0=acos(-tan(phi)*tan_d)
-            csph=cos_d*cos(phi) ; snph=sin_d*sin(phi)
-
-            Ampl=max( 0.,  pi*(cos_h*csph +  snph)
-     &                     /(sin(h0)*csph + h0*snph)
-     &                                             )
-# endif
-
-            srflx(i,j)=cff1*swradg(i,j,it1)+cff2*swradg(i,j,it2)
-
-# if defined DIURNAL_SRFLUX || defined ROBUST_DIURNAL_SRFLUX
-#  ifdef BULK_FLUX
-            srflx(i,j)=srflx(i,j)*Ampl         ! just modulate
-#  else
-            cff=stflx(i,j,itemp)-srflx(i,j)    ! subtract short-wave
-            srflx(i,j)=srflx(i,j)*Ampl         ! radiatin from the net,
-            stflx(i,j,itemp)= cff+srflx(i,j)   ! modulate and add back
-#  endif
-# endif
-          enddo
-        enddo
-
-        if (cff1 < 0. .or. cff2 < 0.) then
-          if (ZEROTH_TILE) then
-            write(*,'(/1x,3A/3(1x,A,F16.10)/)')       '### WARNING: ',
-     &     'set_srflux_tile :: Current model time is outside bounds ',
-     &     'of ''srf_time''.', 'srf_tstart =', srf_time(it1)*sec2day,
-     &                         'tdays =',      tdays,
-     &                         'srf_tend =',   srf_time(it2)*sec2day
+            cff=pi*(cos_h*cff1+cff2)/(sin(h0)*cff1+h0*cff2)
+            stflx(i,j,itemp)=stflx(i,j,itemp)-srflx(i,j)
+            srflx(i,j)=max(0.,cff*srflx(i,j))
+            stflx(i,j,itemp)=stflx(i,j,itemp)+srflx(i,j)
+          elseif (cff2 > eps .and. cff2 > abs(cff1) )  then ! permanent day
+            cff=( 1.0+cff1/cff2*cos_h )
+            stflx(i,j,itemp)=stflx(i,j,itemp)-srflx(i,j)
+            srflx(i,j)=cff*srflx(i,j)
+            stflx(i,j,itemp)=stflx(i,j,itemp)+srflx(i,j)
           endif
-          ierr=ierr+1
-        endif
-      else     !--> ntsrf == 1                ! load time-invariant
-        if (iic == ntstart) then              ! shortwave radiation
-          cff=1/(rho0*Cp)                     ! flux
-          do j=jstrR,jendR
-            do i=istrR,iendR
-              srflx(i,j)=cff*swradg(i,j,itsrf)
-            enddo
-          enddo
-        endif
-      endif
+        enddo
+      enddo
+# endif
       end
 #else
       subroutine set_srflux_empty
