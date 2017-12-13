@@ -1132,6 +1132,109 @@ CR      write(*,'(1x,A,I3)') 'indxNH4 =',indxNH4
       vname_bec2_diag_3d(4,indxPOCPRODCOCCO)=' '
 
 # endif BEC_COCCO
+
+# ifdef BEC_PHAEO
+      vname_bec2_diag_3d(1,indxGRAZEPHAEO)='GRAZE_PHAEO'
+      vname_bec2_diag_3d(2,indxGRAZEPHAEO)=
+     &  'Grazing rate on Phaeo'
+      vname_bec2_diag_3d(3,indxGRAZEPHAEO)='mmol C/m3/s'
+      vname_bec2_diag_3d(4,indxGRAZEPHAEO)=' '
+
+      vname_bec2_diag_3d(1,indxPHAEOLOSS)='PHAEO_LOSS'
+      vname_bec2_diag_3d(2,indxPHAEOLOSS)=
+     &  'Phaeo non-grazing mortality'
+      vname_bec2_diag_3d(3,indxPHAEOLOSS)='mmol C/m3/s '
+      vname_bec2_diag_3d(4,indxPHAEOLOSS)=' '
+
+      vname_bec2_diag_3d(1,indxPHAEOAGG)='PHAEO_AGG'
+      vname_bec2_diag_3d(2,indxPHAEOAGG)=
+     &  'Aggregation of coccos'
+      vname_bec2_diag_3d(3,indxPHAEOAGG)='mmol C/m3/s '
+      vname_bec2_diag_3d(4,indxPHAEOAGG)=' '
+
+      vname_bec2_diag_3d(1,indxPHOTOCPHAEO)='PHOTOC_PHAEO'
+      vname_bec2_diag_3d(2,indxPHOTOCPHAEO)=
+     &  'C fixation rate by Phaeo'
+      vname_bec2_diag_3d(3,indxPHOTOCPHAEO)='mmol C/m3/s '
+      vname_bec2_diag_3d(4,indxPHOTOCPHAEO)=' '
+
+      vname_bec2_diag_3d(1,indxPHAEONLIM)='PHAEO_N_LIM'
+      vname_bec2_diag_3d(2,indxPHAEONLIM)=
+     &  'N limitation factor of Phaeo'
+      vname_bec2_diag_3d(3,indxPHAEONLIM)=' '
+      vname_bec2_diag_3d(4,indxPHAEONLIM)=' '
+      vname_bec2_diag_3d(1,indxPHAEOFEUPTAKE)='PHAEO_FE_LIM'
+      vname_bec2_diag_3d(2,indxPHAEOFEUPTAKE)=
+     &  'Fe limitation factor of Phaeo'
+      vname_bec2_diag_3d(3,indxPHAEOFEUPTAKE)=' '
+      vname_bec2_diag_3d(4,indxPHAEOFEUPTAKE)=' '
+      vname_bec2_diag_3d(1,indxPHAEOPO4UPTAKE)='PHAEO_PO4_LIM'
+      vname_bec2_diag_3d(2,indxPHAEOPO4UPTAKE)=
+     &  'PO4 limitation factor of Phaeo'
+      vname_bec2_diag_3d(3,indxPHAEOPO4UPTAKE)=' '
+      vname_bec2_diag_3d(4,indxPHAEOPO4UPTAKE)=' '
+
+      vname_bec2_diag_3d(1,indxPHAEOLIGHTLIM)='PHAEO_LIGHT_LIM'
+      vname_bec2_diag_3d(2,indxPHAEOLIGHTLIM)=
+     &  'Phaeo light limitation factor'
+      vname_bec2_diag_3d(3,indxPHAEOLIGHTLIM)=' '
+      vname_bec2_diag_3d(4,indxPHAEOLIGHTLIM)=' '
+
+      vname_bec2_diag_3d(1,indxIRONUPTAKEPHAEO)='PHOTOFE_PHAEO'
+      vname_bec2_diag_3d(2,indxIRONUPTAKEPHAEO)=
+     &  'Iron uptake rate by Phaeo'
+      vname_bec2_diag_3d(3,indxIRONUPTAKEPHAEO)='mmol/m3/s  '
+      vname_bec2_diag_3d(4,indxIRONUPTAKEPHAEO)=' '
+
+      vname_bec2_diag_3d(1,indxPHAEONO3UPTAKE)='PHAEO_NO3_UPTAKE'
+      vname_bec2_diag_3d(2,indxPHAEONO3UPTAKE)=
+     &   'NO3 uptake rate of Phaeo'
+      vname_bec2_diag_3d(3,indxPHAEONO3UPTAKE)='mmol/m3/s  '
+      vname_bec2_diag_3d(4,indxPHAEONO3UPTAKE)=' '
+
+      vname_bec2_diag_3d(1,indxPHAEONH4UPTAKE)='PHAEO_NH4_UPTAKE'
+      vname_bec2_diag_3d(2,indxPHAEONH4UPTAKE)=
+     &   'NH4 uptake rate of Phaeo'
+      vname_bec2_diag_3d(3,indxPHAEONH4UPTAKE)='mmol/m3/s  '
+      vname_bec2_diag_3d(4,indxPHAEONH4UPTAKE)=' '
+
+      vname_bec2_diag_3d(1,indxPHAEOGRAZEDIC)='PHAEO_GRAZE_DIC'
+      vname_bec2_diag_3d(2,indxPHAEOGRAZEDIC)=
+     &   'Phaeo grazing rate routed to DIC'
+      vname_bec2_diag_3d(3,indxPHAEOGRAZEDIC)='mmol C/m3/s  '
+      vname_bec2_diag_3d(4,indxPHAEOGRAZEDIC)=' '
+
+      vname_bec2_diag_3d(1,indxPHAEOLOSSDIC)='PHAEO_LOSS_DIC'
+      vname_bec2_diag_3d(2,indxPHAEOLOSSDIC)=
+     &   'Phaeo non-grazing mortality routed to DIC'
+      vname_bec2_diag_3d(3,indxPHAEOLOSSDIC)='mmol C/m3/s  '
+      vname_bec2_diag_3d(4,indxPHAEOLOSSDIC)=' '
+
+      vname_bec2_diag_3d(1,indxGRAZEPHAEOZOO)='GRAZE_PHAEO_ZOO'
+      vname_bec2_diag_3d(2,indxGRAZEPHAEOZOO)=
+     &  'Grazing rate on Phaeo routed to zoo'
+      vname_bec2_diag_3d(3,indxGRAZEPHAEOZOO)='mmol C/m3/s '
+      vname_bec2_diag_3d(4,indxGRAZEPHAEOZOO)=' '
+
+      vname_bec2_diag_3d(1,indxPHAEOPHOTOACC)='PHOTOACC_PHAEO'
+      vname_bec2_diag_3d(2,indxPHAEOPHOTOACC)=
+     &  'Chl synthesis in photoadaptation for Phaeo'
+      vname_bec2_diag_3d(3,indxPHAEOPHOTOACC)='mg Chl/m3/s'
+      vname_bec2_diag_3d(4,indxPHAEOPHOTOACC)=' '
+
+      vname_bec2_diag_3d(1,indxPHAEOPLIM)='PHAEO_P_LIM'
+      vname_bec2_diag_3d(2,indxPHAEOPLIM)=
+     &  'Phaeo P limitation (PO4 + DOP)'
+      vname_bec2_diag_3d(3,indxPHAEOPLIM)=' '
+      vname_bec2_diag_3d(4,indxPHAEOPLIM)=' '
+
+      vname_bec2_diag_3d(1,indxPOCPRODPHAEO)='POC_PROD_PHAEO'
+      vname_bec2_diag_3d(2,indxPOCPRODPHAEO)=
+     &  'POC PROD due to Phaeo grz/agg/loss'
+      vname_bec2_diag_3d(3,indxPOCPRODPHAEO)='mMol C m-3 s-1'
+      vname_bec2_diag_3d(4,indxPOCPRODPHAEO)=' '
+
+# endif /* BEC_PHAEO */
 # endif /* BEC2_DIAG */
 
 # ifdef USE_EXPLICIT_VSINK
@@ -1283,6 +1386,15 @@ CR      write(*,'(1x,A,I3)') 'indxNH4 =',indxNH4
      &                     .false.,.false.,.false.,.false., ! IRON_UPTAKE_COCCO, COCCO_NO3_UPTAKE, COCCO_NH4_UPTAKE, COCCO_GRAZE_DIC 
      &                     .false.,.false.,.false.,.false.,    ! COCCO_LOSS_DIC, GRAZE_COCCO_ZOO, QCACO3_COCCO, COCCO_PHOTOACC 
      &                     .true.,.true.   ! COCCO_P_LIM,POC_PROD_COCCO
+# endif
+# ifdef BEC_PHAEO
+     ! + 17
+     &                     ,.false., ! GRAZE_PHAEO
+     &                     .false.,.false.,.true.,.true.,    !PHAEO_LOSS,PHAEO_AGG, PHOTOC_PHAEO, PHAEO_N_LIM
+     &                     .false.,.true.,.true.,            ! PHAEO_PO4_LIM,PHAEO_FE_LIM, PHAEO_LIGHT_LIM
+     &                     .false.,.false.,.false.,.false.,  !IRON_UPTAKE_PHAEO, PHAEO_NO3_UPTAKE, PHAEO_NH4_UPTAKE, PHAEO_GRAZE_DIC 
+     &                     .false.,.false.,.false.,          ! PHAEO_LOSS_DIC,GRAZE_PHAEO_ZOO, PHAEO_PHOTOACC 
+     &                     .true.,.true.                     ! PHAEO_P_LIM,POCPRODPHAEO
 # endif
      &                     /)
 

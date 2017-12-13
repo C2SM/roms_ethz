@@ -910,6 +910,9 @@ c$$$       enddo
 # ifdef BEC_COCCO
      &    POC_prod_cocco,  ! POC production in Cocco grz/agg/loss (mmol C/m^3/sec)
 # endif
+# ifdef BEC_PHAEO
+     &    POC_prod_phaeo,  ! POC production in Phaeo grz/agg/loss (mmol C/m^3/sec)
+# endif
      &    P_CaCO3_prod,    ! large detritus CaCO3, base units = mmol CaCO3
      &    P_SiO2_prod,     ! prod. of large detritus SiO2
      &    Fe_scavenge,     ! loss of dissolved iron, scavenging (mmol Fe/m^3/sec)
@@ -1424,6 +1427,11 @@ c$$$       enddo
              bec2_diag_3d(istr:iend,j,k,ddafeuptake_idx_t) = VFe
              bec2_diag_3d(istr:iend,j,k,ddapo4uptake_idx_t) =VPO4(istr:iend,dda_ind)
 #   endif
+#   ifdef BEC_PHAEO
+          else if (auto_ind == phaeo_ind) then
+             bec2_diag_3d(istr:iend,j,k,phaeofeuptake_idx_t) = VFe
+             bec2_diag_3d(istr:iend,j,k,phaeopo4uptake_idx_t)=VPO4(istr:iend,phaeo_ind)
+#   endif
           else
              bec2_diag_3d(istr:iend,j,k,diazfeuptake_idx_t) = VFe
              bec2_diag_3d(istr:iend,j,k,diazpo4uptake_idx_t) =VPO4(istr:iend,diaz_ind)
@@ -1540,6 +1548,10 @@ c$$$       enddo
           else if (auto_ind == dda_ind) then
              bec2_diag_3d(istr:iend,j,k,ddalightlim_idx_t) = light_lim
 #   endif
+#   ifdef BEC_PHAEO 
+          else if (auto_ind == phaeo_ind) then
+             bec2_diag_3d(istr:iend,j,k,phaeolightlim_idx_t) = light_lim
+#   endif
           else
              ! Diazotrophs:
              bec2_diag_3d(istr:iend,j,k,diazlightlim_idx_t) = light_lim
@@ -1590,6 +1602,10 @@ c$$$       enddo
 # ifdef BEC_DDA
           else if (auto_ind == dda_ind) then
             bec2_diag_3d(istr:iend,j,k,ironuptakedda_idx_t) = photoFe(istr:iend,dda_ind)
+# endif
+# ifdef BEC_PHAEO
+          else if (auto_ind == phaeo_ind) then
+            bec2_diag_3d(istr:iend,j,k,ironuptakephaeo_idx_t) = photoFe(istr:iend,phaeo_ind)
 # endif
           else
             bec2_diag_3d(istr:iend,j,k,ironuptakediaz_idx_t) = photoFe(istr:iend,diaz_ind)
@@ -1651,6 +1667,9 @@ c$$$       enddo
 #   endif
 #   ifdef BEC_DDA
           bec2_diag_3d(istr:iend,j,k,ddaphotoacc_idx_t) = photoacc(istr:iend,dda_ind)
+#   endif
+#   ifdef BEC_PHAEO
+          bec2_diag_3d(istr:iend,j,k,phaeophotoacc_idx_t) =photoacc(istr:iend,phaeo_ind)
 #   endif
 #  endif
 # endif
@@ -1994,6 +2013,19 @@ c$$$       enddo
        bec2_diag_3d(istr:iend,j,k,ddalossdic_idx_t) = auto_loss_dic(istr:iend,dda_ind)
        bec2_diag_3d(istr:iend,j,k,grazeddazoo_idx_t) = auto_graze_zoo(istr:iend,dda_ind)
 #   endif /* BEC_DDA */
+#   ifdef BEC_PHAEO
+       bec2_diag_3d(istr:iend,j,k,grazephaeo_idx_t) = auto_graze(istr:iend,phaeo_ind)
+       bec2_diag_3d(istr:iend,j,k,phaeoloss_idx_t) = auto_loss(istr:iend,phaeo_ind)
+       bec2_diag_3d(istr:iend,j,k,phaeoagg_idx_t) = auto_agg(istr:iend,phaeo_ind)
+       bec2_diag_3d(istr:iend,j,k,photocphaeo_idx_t) = photoC(istr:iend,phaeo_ind)
+       bec2_diag_3d(istr:iend,j,k,phaeonlim_idx_t) = VNtot(istr:iend,phaeo_ind)
+       bec2_diag_3d(istr:iend,j,k,phaeoplim_idx_t) = VPtot(istr:iend,phaeo_ind)
+       bec2_diag_3d(istr:iend,j,k,phaeono3uptake_idx_t) = NO3_V(istr:iend,phaeo_ind)
+       bec2_diag_3d(istr:iend,j,k,phaeonh4uptake_idx_t) = NH4_V(istr:iend,phaeo_ind)
+       bec2_diag_3d(istr:iend,j,k,phaeograzedic_idx_t) = auto_graze_dic(istr:iend,phaeo_ind)
+       bec2_diag_3d(istr:iend,j,k,phaeolossdic_idx_t) = auto_loss_dic(istr:iend,phaeo_ind)
+       bec2_diag_3d(istr:iend,j,k,grazephaeozoo_idx_t) = auto_graze_zoo(istr:iend,phaeo_ind)
+#   endif /* BEC_PHAEO */
 #  endif
 # endif /* BEC2_DIAG */
 
@@ -2141,6 +2173,10 @@ c$$$       enddo
        POC_prod_cocco = auto_graze_poc(istr:iend,cocco_ind)
      &            + auto_agg(istr:iend,cocco_ind) + auto_loss_poc(istr:iend,cocco_ind)
 # endif
+# ifdef BEC_PHAEO
+       POC_prod_phaeo = auto_graze_poc(istr:iend,phaeo_ind) 
+     &            + auto_agg(istr:iend,phaeo_ind) + auto_loss_poc(istr:iend,phaeo_ind)
+# endif
 # endif
 
 # ifdef BEC2_DIAG
@@ -2155,6 +2191,9 @@ c$$$       enddo
        bec2_diag_3d(istr:iend,j,k,pocproddiaz_idx_t) = POC_prod_diaz(istr:iend)
 # ifdef BEC_COCCO
        bec2_diag_3d(istr:iend,j,k,pocprodcocco_idx_t) = POC_prod_cocco(istr:iend)
+# endif
+# ifdef BEC_PHAEO
+       bec2_diag_3d(istr:iend,j,k,pocprodphaeo_idx_t) = POC_prod_phaeo(istr:iend)
 # endif
 #  endif
 # endif

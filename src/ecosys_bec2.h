@@ -37,6 +37,9 @@
 !# ifdef BEC_DDA
 !     &    +16
 !# endif
+# ifdef BEC_PHAEO
+     &    +17
+# endif
      &          ,nr_bec2_diag_2d=29+nr_cchem_mocsy_2d )
       parameter( nr_bec2_diag=nr_bec2_diag_2d+nr_bec2_diag_3d )
 # ifdef BEC2_DIAG_USER
@@ -160,6 +163,22 @@
      &   ddaplim_idx_t=LAST_I+16
 #  undef LAST_I
 #  define LAST_I ddaplim_idx_t
+# endif
+# ifdef BEC_PHAEO
+      integer, parameter :: grazephaeo_idx_t=LAST_I+1,phaeoloss_idx_t=LAST_I+2,
+     &   phaeoagg_idx_t=LAST_I+3,photocphaeo_idx_t=LAST_I+4,
+     &   phaeonlim_idx_t=LAST_I+5,
+     &   phaeopo4uptake_idx_t=LAST_I+6,phaeofeuptake_idx_t=LAST_I+7,
+     &   phaeolightlim_idx_t=LAST_I+8,
+     &   ironuptakephaeo_idx_t=LAST_I+9,
+     &   phaeono3uptake_idx_t=LAST_I+10,phaeonh4uptake_idx_t=LAST_I+11,
+     &   phaeograzedic_idx_t=LAST_I+12,
+     &   phaeolossdic_idx_t=LAST_I+13,grazephaeozoo_idx_t=LAST_I+14,
+     &   phaeophotoacc_idx_t=LAST_I+15,
+     &   phaeoplim_idx_t=LAST_I+16,
+     &   pocprodphaeo_idx_t=LAST_I+17
+#  undef LAST_I
+#  define LAST_I pocprodphaeo_idx_t
 # endif
 
       ! Indices to be used in bec2_diag_2d only:
