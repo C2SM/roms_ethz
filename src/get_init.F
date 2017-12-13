@@ -709,72 +709,73 @@ c--#define VERBOSE
 # if defined BIOLOGY_BEC2 && defined BEC2_DIAG
        MPI_master_only write(*,*),'total # of 2D diagnostics:',nr_bec2_diag_2d
        MPI_master_only write(*,*),'total # of 3D diagnostics:',nr_bec2_diag_3d
-!# if defined NEVER_DEF
-      ! Read in 2d diagnostic variables:
-      do itrc=1,nr_bec2_diag_2d
-         lvar=lenstr(vname_bec2_diag_2d(1,itrc))
-      end do
-      do itrc=1,nr_bec2_diag_2d
-!         MPI_master_only write(*,*),'itrc',itrc
-!         MPI_master_only write(*,*),'size(vname_bec2_diag_2d,2)',size(vname_bec2_diag_2d,2)
-!         MPI_master_only write(*,*),'size(bec2_diag_2d,3)',size(bec2_diag_2d,3)
-!         MPI_master_only write(*,*),'shape(vname_bec2_diag_2d)',shape(vname_bec2_diag_2d)
-!         MPI_master_only write(*,*),'shape(bec2_diag_2d)',shape(bec2_diag_2d)
-!         MPI_master_only write(*,*),'START_2D_ARRAY',START_2D_ARRAY
-         lvar=lenstr(vname_bec2_diag_2d(1,itrc))
-         ierr=nf_inq_varid (ncid, vname_bec2_diag_2d(1,itrc)(1:lvar), varid)
-         if (ierr .eq. nf_noerr) then
-            ierr=ncdf_read (ncid,  varid, record, r_var
-     &                     , bec2_diag_2d(START_2D_ARRAY,itrc), 1)
-            if (ierr .ne. nf_noerr) then
-               write(*,2) vname_bec2_diag_2d(1,itrc)(1:lvar), record,
-     &              trim(ininame)
-               goto 99             !--> ERROR
-            endif
-         else
-! CN: replaced from tracer routine
-            bec2_diag_2d(GLOBAL_2D_ARRAY,itrc) = 0.0
-            MPI_master_only write(*,*) ' --- WARNING: '
-     &         , vname_bec2_diag_2d(1,itrc)(1:lvar)
-     &         , ' not in initial file.  Initialized to 0.0'
-            ierr=nf_noerr
-!            MPI_master_only write(*,1) vname_bec2_diag_2d(1,itrc)(1:lvar), 
-!     &                           trim(ininame)
-!     &            ,' => Initialized to 0.'
-         endif
-      end do
-
-!# if defined NEVER_DEF
-      ! Read in 3d diagnostic variables:
-      do itrc=1,nr_bec2_diag_3d 
-!         MPI_master_only write(*,*),'itrc',itrc
-!         MPI_master_only write(*,*),'size(vname_bec2_diag_3d,2)',size(vname_bec2_diag_3d,2)
-!         MPI_master_only write(*,*),'size(bec2_diag_3d,4)',size(bec2_diag_3d,4)
-!         MPI_master_only write(*,*),'shape(vname_bec2_diag_3d)',shape(vname_bec2_diag_3d)
-!         MPI_master_only write(*,*),'shape(bec2_diag_3d)',shape(bec2_diag_3d)
-         lvar=lenstr(vname_bec2_diag_3d(1,itrc))
-         ierr=nf_inq_varid (ncid, vname_bec2_diag_3d(1,itrc)(1:lvar), varid)
-         if (ierr == nf_noerr) then
-            ierr=ncdf_read (ncid,  varid, record, r_var
-     &                    , bec2_diag_3d(START_2D_ARRAY,1,itrc), N)
-            if (ierr /= nf_noerr) then
-               write(*,2) vname_bec2_diag_3d(1,itrc)(1:lvar), record,
-     &              trim(ininame)
-               goto 99             !--> ERROR
-            endif
-         else
-! CN: replaced from tracer routine
-            bec2_diag_3d(GLOBAL_2D_ARRAY,1,itrc) = 0.0
-            MPI_master_only write(*,*) ' --- WARNING: '
-     &         , vname_bec2_diag_3d(1,itrc)(1:lvar)
-     &         , ' not in initial file.  Initialized to 0.0'
-            ierr=nf_noerr
-!            MPI_master_only write(*,1) vname_bec2_diag_3d(1,itrc)(1:lvar), 
-!     &                           trim(ininame)
-!     &            ,' => Initialized to 0.'
-         endif
-      end do
-!# endif
+! CN (Dec 2017): Don't read in diagnostics from rst file (unnecessary)
+!!# if defined NEVER_DEF
+!      ! Read in 2d diagnostic variables:
+!      do itrc=1,nr_bec2_diag_2d
+!         lvar=lenstr(vname_bec2_diag_2d(1,itrc))
+!      end do
+!      do itrc=1,nr_bec2_diag_2d
+!!         MPI_master_only write(*,*),'itrc',itrc
+!!         MPI_master_only write(*,*),'size(vname_bec2_diag_2d,2)',size(vname_bec2_diag_2d,2)
+!!         MPI_master_only write(*,*),'size(bec2_diag_2d,3)',size(bec2_diag_2d,3)
+!!         MPI_master_only write(*,*),'shape(vname_bec2_diag_2d)',shape(vname_bec2_diag_2d)
+!!         MPI_master_only write(*,*),'shape(bec2_diag_2d)',shape(bec2_diag_2d)
+!!         MPI_master_only write(*,*),'START_2D_ARRAY',START_2D_ARRAY
+!         lvar=lenstr(vname_bec2_diag_2d(1,itrc))
+!         ierr=nf_inq_varid (ncid, vname_bec2_diag_2d(1,itrc)(1:lvar), varid)
+!         if (ierr .eq. nf_noerr) then
+!            ierr=ncdf_read (ncid,  varid, record, r_var
+!     &                     , bec2_diag_2d(START_2D_ARRAY,itrc), 1)
+!            if (ierr .ne. nf_noerr) then
+!               write(*,2) vname_bec2_diag_2d(1,itrc)(1:lvar), record,
+!     &              trim(ininame)
+!               goto 99             !--> ERROR
+!            endif
+!         else
+!! CN: replaced from tracer routine
+!            bec2_diag_2d(GLOBAL_2D_ARRAY,itrc) = 0.0
+!            MPI_master_only write(*,*) ' --- WARNING: '
+!     &         , vname_bec2_diag_2d(1,itrc)(1:lvar)
+!     &         , ' not in initial file.  Initialized to 0.0'
+!            ierr=nf_noerr
+!!            MPI_master_only write(*,1) vname_bec2_diag_2d(1,itrc)(1:lvar),
+!!     &                           trim(ininame)
+!!     &            ,' => Initialized to 0.'
+!         endif
+!      end do
+!
+!!# if defined NEVER_DEF
+!      ! Read in 3d diagnostic variables:
+!      do itrc=1,nr_bec2_diag_3d
+!!         MPI_master_only write(*,*),'itrc',itrc
+!!         MPI_master_only write(*,*),'size(vname_bec2_diag_3d,2)',size(vname_bec2_diag_3d,2)
+!!         MPI_master_only write(*,*),'size(bec2_diag_3d,4)',size(bec2_diag_3d,4)
+!!         MPI_master_only write(*,*),'shape(vname_bec2_diag_3d)',shape(vname_bec2_diag_3d)
+!!         MPI_master_only write(*,*),'shape(bec2_diag_3d)',shape(bec2_diag_3d)
+!         lvar=lenstr(vname_bec2_diag_3d(1,itrc))
+!         ierr=nf_inq_varid (ncid, vname_bec2_diag_3d(1,itrc)(1:lvar), varid)
+!         if (ierr == nf_noerr) then
+!            ierr=ncdf_read (ncid,  varid, record, r_var
+!     &                    , bec2_diag_3d(START_2D_ARRAY,1,itrc), N)
+!            if (ierr /= nf_noerr) then
+!               write(*,2) vname_bec2_diag_3d(1,itrc)(1:lvar), record,
+!     &              trim(ininame)
+!               goto 99             !--> ERROR
+!            endif
+!         else
+!! CN: replaced from tracer routine
+!            bec2_diag_3d(GLOBAL_2D_ARRAY,1,itrc) = 0.0
+!            MPI_master_only write(*,*) ' --- WARNING: '
+!     &         , vname_bec2_diag_3d(1,itrc)(1:lvar)
+!     &         , ' not in initial file.  Initialized to 0.0'
+!            ierr=nf_noerr
+!!            MPI_master_only write(*,1) vname_bec2_diag_3d(1,itrc)(1:lvar),
+!!     &                           trim(ininame)
+!!     &            ,' => Initialized to 0.'
+!         endif
+!      end do
+!!# endif
 
 # endif /* BIOLOGY_BEC2 && BEC2_DIAG */
 

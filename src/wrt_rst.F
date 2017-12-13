@@ -276,32 +276,32 @@
 # endif
 
 # if defined BIOLOGY_BEC2 && defined BEC2_DIAG
-
-! 2d diagnostics:
-
-      do itrc=1,nr_bec2_diag_2d
-         ierr=ncdf_write(ncrst, rstT_bec2_diag(itrc), record,  r_var, 
-     &                   bec2_diag_2d(START_2D_ARRAY,itrc), 1)
-        if (ierr .ne. nf_noerr) then
-          lvar=lenstr(vname_bec2_diag_2d(1,itrc))
-          write(*,1) vname_bec2_diag_2d(1,itrc)(1:lvar), record,
-     &              ierr, nf_strerror(ierr) MYID
-          goto 99                                         !--> ERROR
-        endif
-      enddo
-
-! 3d diagnostics:
-
-      do itrc=1,nr_bec2_diag_3d
-         ierr=ncdf_write(ncrst, rstT_bec2_diag(nr_bec2_diag_2d+itrc), 
-     &           record,  r_var, bec2_diag_3d(START_2D_ARRAY,1,itrc), N)
-        if (ierr .ne. nf_noerr) then
-          lvar=lenstr(vname_bec2_diag_3d(1,itrc))
-          write(*,1) vname_bec2_diag_3d(1,itrc)(1:lvar), record,
-     &              ierr, nf_strerror(ierr) MYID
-          goto 99                                         !--> ERROR
-        endif
-      enddo
+!! CN (Dec 2017): I don't want the diagnostics in the rst file!
+!! 2d diagnostics:
+!
+!      do itrc=1,nr_bec2_diag_2d
+!         ierr=ncdf_write(ncrst, rstT_bec2_diag(itrc), record,  r_var, 
+!     &                   bec2_diag_2d(START_2D_ARRAY,itrc), 1)
+!        if (ierr .ne. nf_noerr) then
+!          lvar=lenstr(vname_bec2_diag_2d(1,itrc))
+!          write(*,1) vname_bec2_diag_2d(1,itrc)(1:lvar), record,
+!     &              ierr, nf_strerror(ierr) MYID
+!          goto 99                                         !--> ERROR
+!        endif
+!      enddo
+!
+!! 3d diagnostics:
+!
+!      do itrc=1,nr_bec2_diag_3d
+!         ierr=ncdf_write(ncrst, rstT_bec2_diag(nr_bec2_diag_2d+itrc), 
+!     &           record,  r_var, bec2_diag_3d(START_2D_ARRAY,1,itrc), N)
+!        if (ierr .ne. nf_noerr) then
+!          lvar=lenstr(vname_bec2_diag_3d(1,itrc))
+!          write(*,1) vname_bec2_diag_3d(1,itrc)(1:lvar), record,
+!     &              ierr, nf_strerror(ierr) MYID
+!          goto 99                                         !--> ERROR
+!        endif
+!      enddo
 # endif /* BIOLOGY_BEC2 && BEC2_DIAG */
 
 # if defined BIOLOGY_BEC || defined BIOLOGY_NPZDOC
