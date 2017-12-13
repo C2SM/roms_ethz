@@ -116,10 +116,12 @@
 #  undef LAST_I
 #  define LAST_I pocproddiaz_idx_t
 # ifdef USE_EXPLICIT_VSINK
-     &   ,pironhardremin_idx_t=LAST_I+1, caco3hardremin_idx_t=LAST_I+2, sio2hardremin_idx_t=LAST_I+3
-     &   ,pochardremin_idx_t=LAST_I+4, dusthardremin_idx_t=LAST_I+5
-     &   ,pironsoftremin_idx_t=LAST_I+6, caco3softremin_idx_t=LAST_I+7, sio2softremin_idx_t=LAST_I+8
-     &   ,pocsoftremin_idx_t=LAST_I+9, dustsoftremin_idx_t=LAST_I+10
+     &   ,pironhardremin_idx_t=LAST_I+1,caco3hardremin_idx_t=LAST_I+2
+     &   ,sio2hardremin_idx_t=LAST_I+3
+     &   ,pochardremin_idx_t=LAST_I+4,dusthardremin_idx_t=LAST_I+5
+     &   ,pironsoftremin_idx_t=LAST_I+6,caco3softremin_idx_t=LAST_I+7
+     &   ,sio2softremin_idx_t=LAST_I+8
+     &   ,pocsoftremin_idx_t=LAST_I+9,dustsoftremin_idx_t=LAST_I+10
 # undef LAST_I
 # define LAST_I dustsoftremin_idx_t
 # else /* USE_EXPLICIT_VSINK */
