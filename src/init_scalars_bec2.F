@@ -1018,6 +1018,20 @@ CR      write(*,'(1x,A,I3)') 'indxNH4 =',indxNH4
      &  'POC PROD due to Diaz grz/agg/loss'
       vname_bec2_diag_3d(3,indxPOCPRODDIAZ)='mMol C m-3 s-1'
 
+      vname_bec2_diag_3d(1,indxQSI)='QSI_DIAT'
+      vname_bec2_diag_3d(2,indxQSI)=
+     &  'Initial Si/C ratio of diatoms'
+      vname_bec2_diag_3d(3,indxQSI)=' '
+
+      vname_bec2_diag_3d(1,indxTOTGRAZEDIC)='TOT_GRAZE_DIC'
+      vname_bec2_diag_3d(2,indxTOTGRAZEDIC)=
+     &  'Total grazing routed to DIC'
+      vname_bec2_diag_3d(3,indxTOTGRAZEDIC)='mMol C m-3 s-1'
+
+      vname_bec2_diag_3d(1,indxTOTLOSSDIC)='TOT_LOSS_DIC'
+      vname_bec2_diag_3d(2,indxTOTLOSSDIC)=
+     &  'Total P & Z loss routed to DIC'
+
 # ifdef BEC_COCCO
       vname_bec2_diag_3d(1,indxGRAZECOCCO)='GRAZE_COCCO'
       vname_bec2_diag_3d(2,indxGRAZECOCCO)=
@@ -1466,15 +1480,16 @@ CR      write(*,'(1x,A,I3)') 'indxNH4 =',indxNH4
      &                     .false.,.false.,.false.,.false.,.false.,  !SPC_ZERO, DIATC_ZERO, DIAZC_ZERO, DOC_ZERO, ZOOC_ZERO
      &                     .false.,.false.,.false.,.false.,           !SPCACO3_ZERO, DONR_REMIN, TOTCHL, SP_P_LIM 
      &                     .false.,.false.,.false.,                     !DIAT_P_LIM,DIAZ_P_LIM, TOT_PHYTO_C
-     &                     .true.,.true.,.true.,.true.     !POC_PROD_ZOO_LOSS,POC_PROD_DIAT,POC_PROD_SP,POC_PROD_DIAZ
-     ! 95 tracer
+     &                     .true.,.true.,.true.,.true.,     !POC_PROD_ZOO_LOSS,POC_PROD_DIAT,POC_PROD_SP,POC_PROD_DIAZ
+     &                     .false.,.true.,.true.                ! QSI_DIAT,TOT_GRAZE_DIC,TOT_LOSS_DIC
+     ! 98 tracer
 # ifdef USE_EXPLICIT_VSINK
-     ! +10 -> 105 tracer 
+     ! +10
      &                     ,.false.,.true.,.true.,.false.,.true.,  ! PIRON_HARD_REMIN, CACO3_HARD_REMIN, SIO2_HARD_REMIN, POC_HARD_REMIN,DUST_HARD_REMIN
      &                     .true.,.true.,.true.,.true.,.true.    ! PIRON_SOFT_REMIN, CACO3_SOFT_REMIN, SIO2_SOFT_REMIN, POC_SOFT_REMIN,DUST_SOFT_REMIN
 # endif
 # ifdef BEC_COCCO 
-     ! + 19 -> 124 tracer (w/ expl sinking) or 114 tracer (w/ impl sinking)
+     ! + 19 
      &                     ,.false., ! GRAZE_COCCO
      &                     .false.,.false.,.true.,.true.,     ! COCCO_LOSS,COCCO_AGG, PHOTOC_COCCO, COCCO_N_LIM
      &                     .true.,.true.,.true.,.false.,     ! COCCO_PO4_LIM, COCCO_FE_LIM, COCCO_LIGHT_LIM, CACO3_PROD_COCCO 

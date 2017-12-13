@@ -1169,6 +1169,9 @@ c$$$       enddo
           Qfe(istr:iend,auto_ind) = autoFe_loc(istr:iend,auto_ind) / (C_loc(istr:iend,auto_ind) + epsC)
           if (kSiO3(auto_ind) > c0) then
              Qsi(istr:iend,auto_ind) = min(Si_loc(istr:iend,auto_ind) / (C_loc(istr:iend,auto_ind) + epsC), gQsi_max)
+# ifdef BEC2_DIAG
+           bec2_diag_3d(istr:iend,j,k,qsi_idx_t) = Qsi(istr:iend,auto_ind)
+# endif
           end if
        end do
 
@@ -2026,6 +2029,28 @@ c$$$       enddo
        bec2_diag_3d(istr:iend,j,k,phaeolossdic_idx_t) = auto_loss_dic(istr:iend,phaeo_ind)
        bec2_diag_3d(istr:iend,j,k,grazephaeozoo_idx_t) = auto_graze_zoo(istr:iend,phaeo_ind)
 #   endif /* BEC_PHAEO */
+       bec2_diag_3d(istr:iend,j,k,totgrazedic_idx_t) = auto_graze_dic(istr:iend,sp_ind)
+     &       + auto_graze_dic(istr:iend,diat_ind) + auto_graze_dic(istr:iend,diaz_ind)
+#   ifdef BEC_COCCO
+     &       + auto_graze_dic(istr:iend,cocco_ind)
+#   endif
+#   ifdef BEC_DDA
+     &       + auto_graze_dic(istr:iend,dda_ind)
+#   endif
+#   ifdef BEC_PHAEO
+     &       + auto_graze_dic(istr:iend,phaeo_ind)
+#   endif
+           bec2_diag_3d(istr:iend,j,k,totlossdic_idx_t) = auto_loss_dic(istr:iend,sp_ind)
+     &       + auto_loss_dic(istr:iend,diat_ind) + auto_loss_dic(istr:iend,diaz_ind)
+#   ifdef BEC_COCCO
+     &       + auto_loss_dic(istr:iend,cocco_ind)
+#   endif
+#   ifdef BEC_DDA
+     &       + auto_loss_dic(istr:iend,dda_ind)
+#   endif
+#   ifdef BEC_PHAEO
+     &       + auto_loss_dic(istr:iend,phaeo_ind)
+#   endif
 #  endif
 # endif /* BEC2_DIAG */
 

@@ -106,8 +106,9 @@
      &            , indxSPPLIM=indxPAR+87,indxDIATPLIM=indxPAR+88,indxDIAZPLIM=indxPAR+89
      &            , indxTOTPHYTOC=indxPAR+90,indxPOCPRODZOOLOSS=indxPAR+91
      &            , indxPOCPRODDIAT=indxPAR+92,indxPOCPRODSP=indxPAR+93,indxPOCPRODDIAZ=indxPAR+94
+     &            , indxQSI=indxPAR+95,indxTOTGRAZEDIC=indxPAR+96,indxTOTLOSSDIC=indxPAR+97
 #  undef LAST_I
-#  define LAST_I indxPOCPRODDIAZ
+#  define LAST_I indxTOTLOSSDIC
 #  if defined CCHEM_MOCSY && defined CCHEM_TODEPTH
      &            , indxPH=LAST_I+1, indxPCO2=indxPH+1, indxCO3=indxPH+2
      &            , indxHCO3=indxPH+3, indxCO2STAR=indxPH+4

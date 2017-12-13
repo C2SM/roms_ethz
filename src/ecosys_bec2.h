@@ -27,7 +27,7 @@
 # else /* CCHEM_MOCSY */
       parameter( nr_cchem_mocsy_2d=0, nr_cchem_mocsy_3d=0 )
 # endif /* CCHEM_MOCSY */
-      parameter( nr_bec2_diag_3d=95+nr_cchem_mocsy_3d
+      parameter( nr_bec2_diag_3d=98+nr_cchem_mocsy_3d
 # ifdef USE_EXPLICIT_VSINK
      &    +10
 # endif
@@ -112,9 +112,10 @@
      &   totchl_idx_t=par_idx_t+86,
      &   spplim_idx_t=par_idx_t+87,diatplim_idx_t=par_idx_t+88,diazplim_idx_t=par_idx_t+89,
      &   totphytoc_idx_t=par_idx_t+90,pocprodzooloss_idx_t=par_idx_t+91,pocproddiat_idx_t=par_idx_t+92,
-     &   pocprodsp_idx_t=par_idx_t+93,pocproddiaz_idx_t=par_idx_t+94
+     &   pocprodsp_idx_t=par_idx_t+93,pocproddiaz_idx_t=par_idx_t+94,qsi_idx_t=par_idx_t+95,
+     &   totgrazedic_idx_t=par_idx_t+96,totlossdic_idx_t=par_idx_t+97
 #  undef LAST_I
-#  define LAST_I pocproddiaz_idx_t
+#  define LAST_I totlossdic_idx_t
 # ifdef USE_EXPLICIT_VSINK
      &   ,pironhardremin_idx_t=LAST_I+1,caco3hardremin_idx_t=LAST_I+2
      &   ,sio2hardremin_idx_t=LAST_I+3
