@@ -2681,7 +2681,8 @@ c$$$       enddo
      &   POC_PROD_avail,    ! POC production available for excess POC flux (mmol/m^3/s)
      &   new_QA_dust_def,   ! outgoing deficit in the QA(dust) POC flux
      &   flux, flux_alt,    ! temp variables used to update sinking flux
-     &   dz_loc, dzr_loc    ! Hz and its inverse at a particular i,j,k location
+     &   dz_loc, dzr_loc,   ! Hz and its inverse at a particular i,j,k location
+     &   tmp4
 
        logical
      &   poc_error      ! POC error flag
@@ -3296,7 +3297,16 @@ c$$$       enddo
             else
                P_SiO2_sed_loss(i,j) = 0.04
             endif
-            P_SiO2_sed_loss(i,j) = flux * parm_BSIbury * P_SiO2_sed_loss(i,j)
+!            P_SiO2_sed_loss(i,j) = flux * parm_BSIbury * P_SiO2_sed_loss(i,j)
+! CN (Nov 2017): constrain sed loss by what reaches the sediment
+! Without this fix, SiO2 sediment loss can be higher than what actually
+! reaches the sediment in high Si flux regions (like the SO). The above
+! parametrization does not check this.
+            tmp4=parm_BSIbury * P_SiO2_sed_loss(i,j)
+            if (tmp4>1.0) then  ! constrain sed loss by flux to sed
+               tmp4=1.0
+            endif
+            P_SiO2_sed_loss(i,j) = flux * tmp4
 
 # ifdef BEC2_DIAG
             bec2_diag_2d(i,j,sio2fluxtosed_idx_t) = flux
