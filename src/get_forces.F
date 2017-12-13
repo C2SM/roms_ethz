@@ -155,7 +155,7 @@ c--#define VERBOSE
 # define varid uwndid
 # define varid2 vwndid
 # define timevarid wnd_tid
-# define irecord wnd_rec
+# define record wnd_rec
 # define ntsmth ntwnd
 # define itsmth itwnd
 # define icycle wnd_ncycle
@@ -174,7 +174,7 @@ c--#define VERBOSE
 #  define file_id wmag_file_id
 #  define varid wmag_id
 #  define timevarid wmag_tid
-#  define irecord wmag_rec
+#  define record wmag_rec
 #  define ntsmth ntwmag
 #  define itsmth itwmag
 #  define icycle wmag_ncycle
@@ -197,7 +197,7 @@ c--#define VERBOSE
 # define NC_FILE_LIST clm_file
 # define varid ssh_id
 # define timevarid ssh_tid
-# define irecord ssh_rec
+# define record ssh_rec
 # define ntsmth ntssh
 # define itsmth itssh
 # define icycle ssh_ncycle
@@ -222,7 +222,7 @@ c--#define VERBOSE
 # define NC_FILE_LIST clm_file
 # define varid nudg_id
 # define timevarid nudg_tid
-# define irecord nudg_rec
+# define record nudg_rec
 # define ntsmth ntnudg
 # define itsmth itnudg
 # define icycle nudg_ncycle
@@ -247,7 +247,7 @@ c--#define VERBOSE
 # define NC_FILE_LIST frcfile
 # define varid srf_id
 # define timevarid srf_tid
-# define irecord srf_rec
+# define record srf_rec
 # define ntsmth ntsrf
 # define itsmth itsrf
 # define icycle srf_ncycle
@@ -268,7 +268,7 @@ c--#define VERBOSE
 # define file_id lrf_file_id
 # define varid lrf_id
 # define timevarid lrf_tid
-# define irecord lrf_rec
+# define record lrf_rec
 # define ntsmth ntlrf
 # define itsmth itlrf
 # define icycle lrf_ncycle
@@ -286,7 +286,7 @@ c--#define VERBOSE
 # define file_id tair_file_id
 # define varid tair_id
 # define timevarid tair_tid
-# define irecord tair_rec
+# define record tair_rec
 # define ntsmth nttair
 # define itsmth ittair
 # define icycle tair_ncycle
@@ -304,7 +304,7 @@ c--#define VERBOSE
 # define file_id rhum_file_id
 # define varid rhum_id
 # define timevarid rhum_tid
-# define irecord rhum_rec
+# define record rhum_rec
 # define ntsmth ntrhum
 # define itsmth itrhum
 # define icycle rhum_ncycle
@@ -322,7 +322,7 @@ c--#define VERBOSE
 # define file_id prate_file_id
 # define varid prate_id
 # define timevarid prate_tid
-# define irecord prate_rec
+# define record prate_rec
 # define ntsmth ntprate
 # define itsmth itprate
 # define icycle prate_ncycle
@@ -346,7 +346,7 @@ c--#define VERBOSE
 # define NC_FILE_LIST frcfile
 # define varid sst_id
 # define timevarid sst_tid
-# define irecord sst_rec
+# define record sst_rec
 # define ntsmth ntsst
 # define itsmth itsst
 # define icycle sst_ncycle
@@ -364,7 +364,7 @@ c--#  define timename 'dqdt_time'
 # define NC_FILE_LIST frcfile
 # define varid dqdt_id
 # define timevarid dqdt_tid
-# define irecord dqdt_rec
+# define record dqdt_rec
 # define ntsmth ntdqdt
 # define itsmth itdqdt
 # define icycle dqdt_ncycle
@@ -384,7 +384,7 @@ c--#  define timename 'dqdt_time'
 # define NC_FILE_LIST frcfile
 # define varid sss_id
 # define timevarid sss_tid
-# define irecord sss_rec
+# define record sss_rec
 # define ntsmth ntsss
 # define itsmth itsss
 # define icycle sss_ncycle
@@ -412,7 +412,7 @@ c--#  define timename 'dqdt_time'
 # define varid2 freez_id
 # define varid3 melt_id
 # define timevarid ice_tid
-# define irecord ice_rec
+# define record ice_rec
 # define ntsmth ntice
 # define itsmth itice
 # define icycle ice_ncycle
@@ -434,7 +434,7 @@ c--#  define timename 'dqdt_time'
 # define NC_FILE_LIST frcfile
 # define varid dust_id
 # define timevarid dust_tid
-# define irecord dust_rec
+# define record dust_rec
 # define ntsmth ntdust
 # define itsmth itdust
 # define icycle dust_ncycle
@@ -456,7 +456,7 @@ c--#  define timename 'dqdt_time'
 # define NC_FILE_LIST frcfile
 # define varid iron_id
 # define timevarid iron_tid
-# define irecord iron_rec
+# define record iron_rec
 # define ntsmth ntiron
 # define itsmth itiron
 # define icycle iron_ncycle
@@ -481,7 +481,7 @@ c--#  define timename 'dqdt_time'
 #  define NC_FILE_LIST frcfile
 #  define varid din_river_id
 #  define timevarid din_river_tid
-#  define irecord din_river_rec
+#  define record din_river_rec
 #  define ntsmth ntdin_river
 #  define itsmth itdin_river
 #  define icycle din_river_ncycle
@@ -507,7 +507,7 @@ c--#  define timename 'dqdt_time'
 #  define NC_FILE_LIST frcfile
 #  define varid dip_river_id
 #  define timevarid dip_river_tid
-#  define irecord dip_river_rec
+#  define record dip_river_rec
 #  define ntsmth ntdip_river
 #  define itsmth itdip_river
 #  define icycle dip_river_ncycle
@@ -532,7 +532,7 @@ c--#  define timename 'dqdt_time'
 #  define NC_FILE_LIST frcfile
 #  define varid nhy_id
 #  define timevarid nhy_tid
-#  define irecord nhy_rec
+#  define record nhy_rec
 #  define ntsmth ntnhy
 #  define itsmth itnhy
 #  define icycle nhy_ncycle
@@ -557,7 +557,7 @@ c--#  define timename 'dqdt_time'
 #  define NC_FILE_LIST frcfile
 #  define varid nox_id
 #  define timevarid nox_tid
-#  define irecord nox_rec
+#  define record nox_rec
 #  define ntsmth ntnox
 #  define itsmth itnox
 #  define icycle nox_ncycle
@@ -607,7 +607,7 @@ c--#  define timename 'dqdt_time'
 #  define NC_FILE_LIST frcfile
 #  define varid pco2air_id
 #  define timevarid pco2air_tid
-#  define irecord pco2air_rec
+#  define record pco2air_rec
 #  define ntsmth ntpco2air
 #  define itsmth itpco2air
 #  define icycle pco2air_ncycle

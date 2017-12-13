@@ -169,10 +169,10 @@ c>>>#  include "coupling.h"    /* <-- needs "r_D"  */
 #  endif
 
 #  ifdef LMD_KPP
-          hbl(i,j)=hbls(i,j,nstp)     ! use old-time-step values
+          hbl(i,j)=hbls(i,j,tind)     ! use old values as
 #  endif
 #  ifdef LMD_BKPP
-          bbl(i,j)=hbbl(i,j,nstp)     ! as the initial guess
+          bbl(i,j)=hbbl(i,j,tind)     ! the initial guess
 #  endif
           kbls(i)=0
 #  if defined LIMIT_MO_DEPTH || defined LMD_LIMIT_STABLE
@@ -374,7 +374,7 @@ c**     &                          k, Cr(i,k), Cr(i,k-1), hbl(i,j)
           cff_dn=(z_bl-z_w(i,j,0))**2
           Kern=cff_dn/(cff_dn +(epssfc*bbl(i,j))**2)
 #  endif
-            FC(i,0)=FC(i,1) + Kern*(
+          FC(i,0)=FC(i,1) + Kern*(
      &                   0.5*( (u(i,j,1,tind)+u(i+1,j,1,tind))**2
      &                        +(v(i,j,1,tind)+v(i,j+1,1,tind))**2
      &                       )/Hz(i,j,1)
@@ -544,22 +544,6 @@ c--         Vtsq=Vtc*ws*sqrt(max(0., 0.5*(bvf(i,j,k)+bvf(i,j,k-1)) ))
 # define jmin illegal
 # define jmax illegal
 
-
-# if defined LMD_KPP || defined LMD_BKPP
-        if (.not. FIRST_TIME_STEP) then
-# endif
-          do i=istr,iend
-# ifdef LMD_KPP
-c**            hbl(i,j)=0.5*(hbl(i,j) + hbls(i,j,nstp))
-# endif
-# ifdef LMD_BKPP
-            bbl(i,j)=0.5*bbl(i,j) + 0.5*hbbl(i,j,nstp)
-# endif
-          enddo
-# if defined LMD_KPP || defined LMD_BKPP
-        endif
-# endif
-
 # if defined MERGE_OVERLAP && defined LMD_KPP && defined LMD_BKPP
         do i=istr,iend
           cff=z_w(i,j,N)-z_w(i,j,0)          ! if surface and bottom
@@ -728,14 +712,14 @@ c**            hbl(i,j)=0.5*(hbl(i,j) + hbls(i,j,nstp))
               else
 #  endif
 #  ifdef LMD_NONLOCAL
-              ghat(i,j,k)=0.
+                ghat(i,j,k)=0.
 #  endif
 #  ifdef LMD_CONVEC
-              if (bvf(i,j,k) < 0.) then      ! Add convective
-                Kv(i,j,k)=Kv(i,j,k) + nu0c   ! adjustment
-                Kt(i,j,k)=Kt(i,j,k) + nu0c
+                if (bvf(i,j,k) < 0.) then      ! Add convective
+                  Kv(i,j,k)=Kv(i,j,k) + nu0c   ! adjustment
+                  Kt(i,j,k)=Kt(i,j,k) + nu0c
 #   ifdef SALINITY
-                Ks(i,j,k)=Ks(i,j,k) + nu0c
+                  Ks(i,j,k)=Ks(i,j,k) + nu0c
 #   endif
                 endif
 #  endif
@@ -769,39 +753,12 @@ c*   &                  +(v(i,j,1,tind)+v(i,j+1,1,tind))**2
 c*   &                                                ) ) )
 
 
-c>>          wmb=vonKar*sqrt( r_D(i,j)*sqrt( 0.333333333333*(
-c>>     &                  u(i,j,1,tind)**2 +u(i+1,j,1,tind)**2
-c>>     &                        +u(i,j,1,tind)*u(i+1,j,1,tind)
-c>>     &                 +v(i,j,1,tind)**2 +v(i,j+1,1,tind)**2
-c>>     &                        +v(i,j,1,tind)*v(i,j+1,1,tind)
-c>>     &                                                ) ) )
-
-
-
-          wmb=vonKar*sqrt( 0.333333333333*(
-     &               u(i,j,1,nstp)**2 +u(i+1,j,1,nstp)**2
-     &                      +u(i,j,1,nstp)*u(i+1,j,1,nstp)
-     &              +v(i,j,1,nstp)**2 +v(i,j+1,1,nstp)**2
-     &                      +v(i,j,1,nstp)*v(i,j+1,1,nstp)
-     &                                               ) )
-     &                  / log(1.+0.5*Hz(i,j,1)/Zob)
-
-
-
-c          wmb=vonKar*sqrt( 0.08333333333333*(
-c     &              (u(i  ,j,1,nstp)+u(i  ,j,1,3-nstp))**2
-c     &             +(u(i+1,j,1,nstp)+u(i+1,j,1,3-nstp))**2
-c     &             +(u(i  ,j,1,nstp)+u(i  ,j,1,3-nstp))
-c     &             *(u(i+1,j,1,nstp)+u(i+1,j,1,3-nstp))
-c
-c     &             +(v(i,j  ,1,nstp)+v(i,j  ,1,3-nstp))**2
-c     &             +(v(i,j+1,1,nstp)+v(i,j+1,1,3-nstp))**2
-c     &             +(v(i,j  ,1,nstp)+v(i,j  ,1,3-nstp))
-c     &             *(v(i,j+1,1,nstp)+v(i,j+1,1,3-nstp))
-c     &                                               ) )
-c     &                  / log(1.+0.5*Hz(i,j,1)/Zob)
-
-
+          wmb=vonKar*sqrt( r_D(i,j)*sqrt( 0.333333333333*(
+     &                  u(i,j,1,tind)**2 +u(i+1,j,1,tind)**2
+     &                        +u(i,j,1,tind)*u(i+1,j,1,tind)
+     &                 +v(i,j,1,tind)**2 +v(i,j+1,1,tind)**2
+     &                        +v(i,j,1,tind)*v(i,j+1,1,tind)
+     &                                                ) ) )
           wsb=wmb
           k=kbbl(i)
           z_bl=z_w(i,j,0)+bbl(i,j)
@@ -836,7 +793,6 @@ c     &                  / log(1.+0.5*Hz(i,j,1)/Zob)
             if (sgmb < 1.) then
 
               cff1=sgmb*(1.-sgmb)**2
-
 c              Kv(i,j,k)=Kv(i,j,k) + wmb*bbl(i,j)*cff1
 c              Kt(i,j,k)=Kt(i,j,k) + wsb*bbl(i,j)*cff1
 #  ifdef SALINITY
@@ -848,7 +804,6 @@ c              Ks(i,j,k)=Ks(i,j,k) + wsb*bbl(i,j)*cff1
 #  ifdef SALINITY
               Ks(i,j,k)=sqrt( Ks(i,j,k)**2 + (wsb*bbl(i,j)*cff1)**2 )
 #  endif
-
 
 #  ifdef OLD_AND_MESSY_WAY
               a1=sgmb-2.
@@ -962,7 +917,8 @@ c              Ks(i,j,k)=Ks(i,j,k) + wsb*bbl(i,j)*cff1
 # ifdef LMD_KPP
       do j=jstr,jend                   ! Copy "hbl" into shared array
         do i=istr,iend                 ! and padd lateral ghost points
-          hbls(i,j,3-nstp)=hbl(i,j)
+c         hbls(i,j,3-nstp)=hbl(i,j)
+          hbls(i,j,3-nstp)=0.5*(hbls(i,j,nstp)+hbl(i,j))
         enddo
       enddo
 #  ifndef EW_PERIODIC
@@ -1029,20 +985,12 @@ c              Ks(i,j,k)=Ks(i,j,k) + wsb*bbl(i,j)*cff1
 #  endif
 # endif   /* LMD_KPP */
 # ifdef LMD_BKPP
-c      if (FIRST_TIME_STEP) then
-        do j=jstr,jend                   ! Copy "bbl" into shared array
-          do i=istr,iend                 ! and padd lateral ghost points
-            hbbl(i,j,3-nstp)=bbl(i,j)
-          enddo
+      do j=jstr,jend                   ! Copy "bbl" into shared array
+        do i=istr,iend                 ! and padd lateral ghost points
+c**       hbbl(i,j,3-nstp)=bbl(i,j)
+          hbbl(i,j,3-nstp)=0.5*(hbbl(i,j,nstp)+bbl(i,j))
         enddo
-c      else
-c        do j=jstr,jend
-c          do i=istr,iend
-c            hbbl(i,j,3-nstp)=0.25*(hbbl(i,j,3-nstp)+hbbl(i,j,nstp))
-c     &                      +0.5*bbl(i,j)
-c          enddo
-c        enddo
-c      endif
+      enddo
 #  ifndef EW_PERIODIC
       if (WESTERN_EDGE) then
         do j=jstr,jend

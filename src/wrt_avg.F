@@ -589,8 +589,8 @@ CR      write(*,*) 'wrt_ AVR :  wrtT_sed  ' MYID
 #  undef START_3D_ARRAY_K1
 #  undef AVR 
 #  undef CAVR
-#  undef N3D N
-#  undef NW3D N+1
+#  undef N3D
+#  undef NW3D
 #  undef NOPARWRT
 #  if defined  SLICE_AVG && !defined SLICE_AVR /* also create wrt_slice_avg */
 #   define SLICE_AVR

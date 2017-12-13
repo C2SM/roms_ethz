@@ -1,10 +1,6 @@
 #include "cppdefs.h"
 #if defined SOLVE3D && !defined ANA_SRFLUX
 
-c--#define DIURNAL_SRFLUX
-c--#define ROBUST_DIURNAL_SRFLUX
-
-
       subroutine set_srflux_tile (istr,iend,jstr,jend, ierr)
 
 ! Set-up shortwave radiation flux for current tile.
