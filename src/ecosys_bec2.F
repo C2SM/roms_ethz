@@ -1034,23 +1034,28 @@ c$$$       enddo
        if (bec2_diag_3d_l(spcaco3zero_idx_t))
      &     bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(spcaco3zero_idx_t)) = max(c0,-TRACER(istr:iend,j,k,spCaCO3_ind_t))/dt
 # else
-# ifdef BEC_DDA
        bec2_diag_3d(istr:iend,j,k,totchl_idx_t) = tracer(istr:iend,j,k,spchl_ind_t)
      &     + tracer(istr:iend,j,k,diatchl_ind_t) + tracer(istr:iend,j,k,diazchl_ind_t)
-     &     + tracer(istr:iend,j,k,ddachl_ind_t)
-       bec2_diag_3d(istr:iend,j,k,totphytoc_idx_t) = tracer(istr:iend,j,k,spc_ind_t)
-     &     + tracer(istr:iend,j,k,diatc_ind_t) + tracer(istr:iend,j,k,diazc_ind_t)
-     &     + tracer(istr:iend,j,k,ddac_ind_t)
-# else
-       bec2_diag_3d(istr:iend,j,k,totchl_idx_t) = tracer(istr:iend,j,k,spchl_ind_t)
-     &     + tracer(istr:iend,j,k,diatchl_ind_t) + tracer(istr:iend,j,k,diazchl_ind_t)
-       bec2_diag_3d(istr:iend,j,k,totphytoc_idx_t) = tracer(istr:iend,j,k,spc_ind_t)
-     &     + tracer(istr:iend,j,k,diatc_ind_t) + tracer(istr:iend,j,k,diazc_ind_t)
+# ifdef BEC_COCCO
+     &     + tracer(istr:iend,j,k,coccochl_ind_t)
 # endif
-       bec2_diag_3d(istr:iend,j,k,totchl_idx_t) = tracer(istr:iend,j,k,spchl_ind_t)
-     &     + tracer(istr:iend,j,k,diatchl_ind_t) + tracer(istr:iend,j,k,diazchl_ind_t)
+# ifdef BEC_DDA
+     &     + tracer(istr:iend,j,k,ddachl_ind_t)
+# endif
+# ifdef BEC_PHAEO
+     &     + tracer(istr:iend,j,k,phaeochl_ind_t)
+# endif
        bec2_diag_3d(istr:iend,j,k,totphytoc_idx_t) = tracer(istr:iend,j,k,spc_ind_t)
      &     + tracer(istr:iend,j,k,diatc_ind_t) + tracer(istr:iend,j,k,diazc_ind_t)
+# ifdef BEC_COCCO
+     &     + tracer(istr:iend,j,k,coccoc_ind_t)
+# endif
+# ifdef BEC_DDA
+     &     + tracer(istr:iend,j,k,ddac_ind_t)
+# endif
+# ifdef BEC_PHAEO
+     &     + tracer(istr:iend,j,k,phaeoc_ind_t)
+# endif
        bec2_diag_3d(istr:iend,j,k,spczero_idx_t) = max(c0,-TRACER(istr:iend,j,k,spC_ind_t))/dt
        bec2_diag_3d(istr:iend,j,k,diatczero_idx_t) = max(c0,-TRACER(istr:iend,j,k,diatC_ind_t))/dt
        bec2_diag_3d(istr:iend,j,k,diazczero_idx_t) = max(c0,-TRACER(istr:iend,j,k,diazC_ind_t))/dt
