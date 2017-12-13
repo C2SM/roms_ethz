@@ -343,9 +343,9 @@ c     &      NSUB_X=2, NSUB_E=8  ! <-- iswake 768x192
      &       , iPIRONHARD=LAST_I+5, iDUSTSOFT=LAST_I+6
      &       , iPOCSOFT=LAST_I+7, iPCACO3SOFT=LAST_I+8
      &       , iPSIO2SOFT=LAST_I+9, iPIRONSOFT=LAST_I+10
-     &       , ntrc_bio=ntrc_bio_base+ntrc_bio_cocco+ntrc_bio_dda+10
+     &       , ntrc_bio=ntrc_bio_base+ntrc_bio_cocco+ntrc_bio_dda+ntrc_bio_phaeo+10
 #   else /* USE_EXPLICIT_VSINK */
-     &       , ntrc_bio=ntrc_bio_base+ntrc_bio_cocco+ntrc_bio_dda
+     &       , ntrc_bio=ntrc_bio_base+ntrc_bio_cocco+ntrc_bio_dda+ntrc_bio_phaeo
 #   endif /* USE_EXPLICIT_VSINK */
 #  else  /* no  BIOLOGY */
      &       , ntrc_bio=0
