@@ -1484,12 +1484,12 @@ CR      write(*,'(1x,A,I3)') 'indxNH4 =',indxNH4
 # endif
 # ifdef BEC_DDA
      ! + 16
-     &                     ,.false., ! GRAZE_PHAEO 
-     &                     .false.,.false.,.true.,.true., !PHAEO_LOSS,PHAEO_AGG, PHOTOC_PHAEO, PHAEO_N_LIM
-     &                     .false.,.true.,.true.,            ! PHAEO_PO4_LIM,PHAEO_FE_LIM, PHAEO_LIGHT_LIM
-     &                     .false.,.false.,.false.,.false., !IRON_UPTAKE_PHAEO, PHAEO_NO3_UPTAKE, PHAEO_NH4_UPTAKE, PHAEO_GRAZE_DIC 
-     &                     .false.,.false.,.false.,          ! PHAEO_LOSS_DIC,GRAZE_PHAEO_ZOO, PHAEO_PHOTOACC 
-     &                     .true.                     !PHAEO_P_LIM,
+     &                     ,.false., ! GRAZE_DDA 
+     &                     .false.,.false.,.true.,.true., !DDA_LOSS,DDA_AGG, PHOTOC_DDA, DDA_N_LIM
+     &                     .false.,.true.,.true.,            ! DDA_PO4_LIM,DDA_FE_LIM, DDA_LIGHT_LIM
+     &                     .false.,.false.,.false.,.false., !IRON_UPTAKE_DDA, DDA_NO3_UPTAKE, DDA_NH4_UPTAKE, DDA_GRAZE_DIC 
+     &                     .false.,.false.,.false.,          ! DDA_LOSS_DIC,GRAZE_DDA_ZOO, DDA_PHOTOACC 
+     &                     .true.                     !DDA_P_LIM,
 # endif
 # ifdef BEC_PHAEO
      ! + 17
