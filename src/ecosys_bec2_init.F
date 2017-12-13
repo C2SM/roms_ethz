@@ -280,7 +280,47 @@
       loss_poc(auto_ind)      = 0.0
       f_zoo_detr(auto_ind)    = 0.2
 #endif
-
+#ifdef BEC_PHAEO
+! Parameters for Phaeocystis AA
+      auto_ind = phaeo_ind
+      sname(auto_ind)         = 'phaeo'
+      lname(auto_ind)         = 'Phaeocystis Antarctica'
+      Nfixer(auto_ind)        = .false.
+      imp_calcifier(auto_ind) = .false.
+      exp_calcifier(auto_ind) = .false.
+      grazee_ind(auto_ind)    = auto_ind
+      C_ind(auto_ind)         = phaeoC_ind_t
+      Chl_ind(auto_ind)       = phaeoChl_ind_t
+      Fe_ind(auto_ind)        = phaeoFe_ind_t
+      Si_ind(auto_ind)        = 0
+      CaCO3_ind(auto_ind)     = 0
+      kFe(auto_ind)           = 0.18e-3
+      kPO4(auto_ind)          = 0.1
+      kDOP(auto_ind)          = 0.9
+      kNO3(auto_ind)          = 0.8
+      kNH4(auto_ind)          = 0.05
+      kSiO3(auto_ind)         = 0.0
+      Qp(auto_ind)            = 0.00855
+      gQfe_0(auto_ind)        = 20e-6
+      gQfe_min(auto_ind)      = 3.0e-6
+      alphaPI(auto_ind)       = 0.5*dps
+      PCref(auto_ind)         = 4.6*dps
+      thetaN_max(auto_ind)    = 2.5
+      loss_thres(auto_ind)   = 0.04
+      loss_thres2(auto_ind)  = 0.0
+      temp_thres(auto_ind)   = 8.0
+      mort(auto_ind)          = 0.12*dps
+      mort2(auto_ind)         = 0.001*dps
+      agg_rate_max(auto_ind)  = 0.9
+      agg_rate_min(auto_ind)  = 0.02
+      z_umax_0(auto_ind)      = 3.6*dps
+      z_grz(auto_ind)         = 1.0
+      graze_zoo(auto_ind)     = 0.3
+      graze_poc(auto_ind)     = 0.42
+      graze_doc(auto_ind)     = 0.15
+      loss_poc(auto_ind)      = 0.0
+      f_zoo_detr(auto_ind)    = 0.2
+#endif
 #ifdef BIOPAR_NAMELIST
       !---------------------------------------------------------------------------
       !   read in namelist

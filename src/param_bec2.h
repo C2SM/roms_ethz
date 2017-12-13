@@ -16,6 +16,9 @@
 #ifdef BEC_DDA
      &          +1
 #endif
+#ifdef BEC_PHAEO
+     &          +1
+#endif
        integer, parameter ::
      &   sp_ind   = 1,  ! small phytoplankton
      &   diat_ind = 2,  ! diatoms
@@ -31,6 +34,11 @@
      &  ,dda_ind =LAST_I+1! diatom-diazotroph assemblages
 #  undef LAST_I
 #  define LAST_I dda_ind
+#endif
+#ifdef BEC_PHAEO
+     &  ,phaeo_ind = LAST_I+1  ! Phaeocystis Antarctica (colonial form only for now)
+#  undef LAST_I
+#  define LAST_I phaeo_ind
 #endif
 #  undef LAST_I
 

@@ -249,6 +249,22 @@ CR      write(*,'(1x,A,I3)') 'indxNH4 =',indxNH4
       vname(3,indxDdafe)='mMol Fe m-3                              '
       vname(4,indxDdafe)='  '
 # endif
+# ifdef BEC_PHAEO
+      vname(1,indxPhaeoc)='PHAEOC                                   '
+      vname(2,indxPhaeoc)='Phaeocystis Carbon                   '
+      vname(3,indxPhaeoc)='mMol C m-3                              '
+      vname(4,indxPhaeoc)='  '
+
+      vname(1,indxPhaeochl)='PHAEOCHL                                 '
+      vname(2,indxPhaeochl)='Phaeocystis Chlorophyll              '
+      vname(3,indxPhaeochl)='mg Chl-a m-3                              '
+      vname(4,indxPhaeochl)='  '
+
+      vname(1,indxPhaeofe)='PHAEOFE                                   '
+      vname(2,indxPhaeofe)='Phaeocystis iron                    '
+      vname(3,indxPhaeofe)='mMol Fe m-3                              '
+      vname(4,indxPhaeofe)='  '
+# endif 
 
       vname(1,indxdust)='dust                                       '
       vname(2,indxdust)='dust flux                      '
@@ -1305,6 +1321,11 @@ CR      write(*,'(1x,A,I3)') 'indxNH4 =',indxNH4
       tclm_name(iCOCCOCAL) = 'coccocal_time'
       tclm_name(iCOCCOFE) = 'coccofe_time'
       tclm_name(iCAL) = 'cal_time'
+# endif
+# ifdef BEC_PHAEO
+      tclm_name(iPHAEOC) = 'phaeoc_time'
+      tclm_name(iPHAEOCHL) = 'phaeochl_time'
+      tclm_name(iPHAEOFE) = 'phaeofe_time'
 # endif
 #endif /* SOLVE3D */
       return

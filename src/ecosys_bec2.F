@@ -796,6 +796,9 @@ c$$$       enddo
 
        integer istr,iend,i,j,k,n_loc,auto_ind,auto_ind2
        real dt2,tmp1,tmp2,tmp3,tmp4
+# ifdef BEC_PHAEO
+       real tcrit1,tfunc_tcrit1,tfunc_2,tfunc_3 ! for reduction of growth between 6-10degC
+# endif
        real temp(istr:iend), SHF_QSW(istr:iend),
      &    PAR_out(istr:iend), dust_flux(istr:iend)
 
@@ -844,6 +847,11 @@ c$$$       enddo
      &    ddaSi_loc,       ! local copy of model ddaCal
      &    ddaFe_loc,       ! local copy of model ddaFe
 # endif
+# ifdef BEC_PHAEO
+     &    phaeoC_loc,      ! local copy of model phaeoC
+     &    phaeoChl_loc,    ! local copy of model phaeoChl
+     &    phaeoFe_loc,     ! local copy of model phaeoFe
+# endif
      &    QA_dust_def,     ! incoming deficit in the QA(dust) POC flux
      &    NITRIF,          ! nitrification (NH4 -> NO3) (mmol N/m^3/sec)
      &    DENITRIF,        ! water column nitrification (NO3 -> N2) (mmol N/m^3/sec)
@@ -863,6 +871,9 @@ c$$$       enddo
 # ifdef BEC_DDA
      &    Tfunc_dda,     ! temp response function GD98 (non-dim) for ddas
 #endif
+# ifdef BEC_PHAEO
+     &    Tfunc_phaeo,     ! temp response function GD98 (non-dim) for phaeo
+# endif
      &    PAR_in,          ! photosynthetically available radiation (W/m^2)
      &    KPARdz,          ! PAR adsorption coefficient (non-dim)
      &    PAR_lay,         ! average PAR over layer depth (W/m^2)
@@ -997,6 +1008,11 @@ c$$$       enddo
        ddaSi_loc = MAX(c0, TRACER(istr:iend,j,k,ddasi_ind_t))
        ddaFe_loc = MAX(c0, TRACER(istr:iend,j,k,ddafe_ind_t))
 # endif
+# ifdef BEC_PHAEO
+       phaeoC_loc = MAX(c0, TRACER(istr:iend,j,k,phaeoc_ind_t))
+       phaeoChl_loc = MAX(c0, TRACER(istr:iend,j,k,phaeochl_ind_t))
+       phaeoFe_loc = MAX(c0, TRACER(istr:iend,j,k,phaeofe_ind_t))
+# endif
 #ifdef BEC2_DIAG
 # ifdef BEC2_DIAG_USER
        if (bec2_diag_3d_l(totchl_idx_t))
@@ -1024,7 +1040,7 @@ c$$$       enddo
      &     + tracer(istr:iend,j,k,ddachl_ind_t)
        bec2_diag_3d(istr:iend,j,k,totphytoc_idx_t) = tracer(istr:iend,j,k,spc_ind_t)
      &     + tracer(istr:iend,j,k,diatc_ind_t) + tracer(istr:iend,j,k,diazc_ind_t)
-     &     + tracer(istr:iend,j,k,ddaoc_ind_t)
+     &     + tracer(istr:iend,j,k,ddac_ind_t)
 # else
        bec2_diag_3d(istr:iend,j,k,totchl_idx_t) = tracer(istr:iend,j,k,spchl_ind_t)
      &     + tracer(istr:iend,j,k,diatchl_ind_t) + tracer(istr:iend,j,k,diazchl_ind_t)
@@ -1087,6 +1103,13 @@ c$$$       enddo
           ddaFe_loc = c0
        END WHERE
 # endif
+# ifdef BEC_PHAEO
+       WHERE (phaeoC_loc == c0 .OR. phaeoChl_loc == c0 .OR. phaeoFe_loc== c0)
+          phaeoC_loc = c0
+          phaeoChl_loc = c0
+          phaeoFe_loc = c0
+       END WHERE
+# endif
 
     !---------------------------------------------------------------------------
     ! Initialize C_loc, Chl_loc, CaCO3_loc, autoFe_loc:
@@ -1114,13 +1137,19 @@ c$$$       enddo
        Si_loc(istr:iend,cocco_ind) = c0
        autoFe_loc(istr:iend,cocco_ind) = coccoFe_loc
 # endif
-
 # ifdef BEC_DDA
        C_loc(istr:iend,dda_ind) = ddaC_loc
        Chl_loc(istr:iend,dda_ind) = ddaChl_loc
        CaCO3_loc(istr:iend,dda_ind) = c0
        Si_loc(istr:iend,dda_ind) = ddaSi_loc
        autoFe_loc(istr:iend,dda_ind) = ddaFe_loc
+# endif
+# ifdef BEC_PHAEO
+       C_loc(istr:iend,phaeo_ind) = phaeoC_loc
+       Chl_loc(istr:iend,phaeo_ind) = phaeoChl_loc
+       CaCO3_loc(istr:iend,phaeo_ind) = c0
+       Si_loc(istr:iend,phaeo_ind) = c0
+       autoFe_loc(istr:iend,phaeo_ind) = phaeoFe_loc
 # endif
 
     !---------------------------------------------------------------------------
@@ -1232,17 +1261,18 @@ c$$$       enddo
 
        do i = istr, iend
           PAR_in(i) = PAR_out(i)
+          KPARdz(i) = max(spChl_loc(i)+diatChl_loc(i)+diazChl_loc(i)
 # ifdef BEC_COCCO
-          KPARdz(i) = max(spChl_loc(i)+diatChl_loc(i)+diazChl_loc(i)
-     &        +coccoChl_loc(i), 0.02)
-# else
+     &        +coccoChl_loc(i)
+# endif
 # ifdef BEC_DDA
-          KPARdz(i) = max(spChl_loc(i)+diatChl_loc(i)+diazChl_loc(i)
-     &      +ddaChl_loc(i), 0.02)
-# else
-          KPARdz(i) = max(spChl_loc(i)+diatChl_loc(i)+diazChl_loc(i), 0.02)
+     &        +ddaChl_loc(i)
 # endif
+# ifdef BEC_PHAEO
+     &        +phaeoChl_loc(i)
 # endif
+     &        ,0.02)
+
           ! DL: in the following computation of KPARdz, it was taken into 
           ! account that Hz is in m
           if (KPARdz(i) < 0.13224) then
@@ -1278,11 +1308,10 @@ c$$$       enddo
 # ifdef BEC_DDA
        Tfunc_dda = 1.55**(((temp + T0_Kelvin) - (Tref + T0_Kelvin)) / c10)
 # endif /* BEC_DDA */
+# ifdef BEC_PHAEO
+       Tfunc_phaeo = 1.5**(((temp + T0_Kelvin) - (Tref + T0_Kelvin)) / c10)
+# endif /* BEC_PHAEO */
        Tfunc_diat  = 1.55**(((temp + T0_Kelvin) - (Tref + T0_Kelvin)) / c10)
-
-!# ifdef BEC_COCCO
-!       Tfunc_cocco = Q_10**(((temp + T0_Kelvin) - (Tref + T0_Kelvin)) / c10)
-!# endif
 
     !-----------------------------------------------------------------------
     !  calculate the loss threshold interpolation factor
@@ -1305,11 +1334,23 @@ c$$$       enddo
     !-----------------------------------------------------------------------
 
        do auto_ind = 1, autotroph_cnt
-          where (temp < temp_thres(auto_ind))
-             C_loss_thres = f_loss_thres * loss_thres2(auto_ind)
-          elsewhere
-             C_loss_thres = f_loss_thres * loss_thres(auto_ind)
-          end where
+# ifdef BEC_PHAEO
+          if (auto_ind==phaeo_ind) then
+             where (temp > temp_thres(auto_ind)) ! above threshold
+                C_loss_thres = f_loss_thres * loss_thres2(auto_ind)
+             elsewhere
+                C_loss_thres = f_loss_thres * loss_thres(auto_ind)
+             end where
+          else
+# endif
+             where (temp < temp_thres(auto_ind))
+                C_loss_thres = f_loss_thres * loss_thres2(auto_ind)
+             elsewhere
+                C_loss_thres = f_loss_thres * loss_thres(auto_ind)
+             end where
+# ifdef BEC_PHAEO
+          end if
+# endif
           Pprime(istr:iend,auto_ind) = max(C_loc(istr:iend,auto_ind) - C_loss_thres, c0)
        end do
 
@@ -1403,20 +1444,24 @@ c$$$       enddo
     !-----------------------------------------------------------------------
     !     get photosynth. rate, phyto C biomass change, photoadapt
     !-----------------------------------------------------------------------
-!# ifdef BEC_COCCO
-! CN: reduce cocco growth below 3 deg C following PlankTOM10 (they use 10 degC)
-      !    do i=istr,iend
-      !        if (temp(i) < 3.0) then 
-      !          Tfunc_cocco(i) = Tfunc_cocco(i) * max(c0,(0.2+0.8*(temp(i)/3.0)))
-      !        endif
-      !    enddo
 
-!          if (auto_ind==cocco_ind) then
-!             PCmax = PCref(auto_ind) * f_nut * Tfunc  ! Tfunc_cocco
-!          else
-!             PCmax = PCref(auto_ind) * f_nut * Tfunc 
-!          endif
-!# endif /* BEC_COCCO */
+# ifdef BEC_PHAEO 
+       ! reduce phaeo growth linearly above 6degC
+          if (auto_ind==phaeo_ind) then
+          tcrit1 = 5.0
+          do i=istr,iend
+             if (temp(i)>tcrit1) then
+                tfunc_tcrit1 = 1.5**(((tcrit1 + T0_Kelvin) - (Tref + T0_Kelvin)) / c10)  ! Tfunc at tcrit1
+                tfunc_2 = -1.0*tfunc_tcrit1/(temp_thres(phaeo_ind)-tcrit1)  ! slope 
+                tfunc_3 = tfunc_tcrit1-(tcrit1*tfunc_2)  ! y-Achsenabschnitt
+                Tfunc_phaeo(i) = max(0.0,(tfunc_2*temp(i)+tfunc_3)*PCref(phaeo_ind))
+             endif
+          enddo
+        ! Phaeo cease to grow above 10degC
+          where (temp > temp_thres(auto_ind)) Tfunc_phaeo = c0
+          endif
+# endif /* BEC_PHAEO */
+
 
 ! CN: apply different Tfunc for coccos and diat
           if (auto_ind==diat_ind) then
@@ -1429,11 +1474,24 @@ c$$$       enddo
           else if (auto_ind==dda_ind) then
              PCmax = PCref(auto_ind) * f_nut * Tfunc_dda
 # endif /* BEC_DDA */
+# ifdef BEC_PHAEO
+          else if (auto_ind==phaeo_ind) then
+             PCmax = PCref(auto_ind) * f_nut * Tfunc_phaeo
+# endif /* BEC_PHAEO */
           else
              PCmax = PCref(auto_ind) * f_nut * Tfunc
           endif
 
-          where (temp < temp_thres(auto_ind)) PCmax = c0
+! apply temp_threshold below/above PFT doesn't grow anymore
+# ifdef BEC_PHAEO
+          if (auto_ind==phaeo_ind) then ! restrict growth above this temp
+             where (temp > temp_thres(auto_ind)) PCmax = c0
+          else                          ! restrict growth below this temp
+# endif
+             where (temp < temp_thres(auto_ind)) PCmax = c0
+# ifdef BEC_PHAEO
+          endif
+# endif
 
           light_lim = c1 - exp((-c1 * alphaPI(auto_ind) * thetaC(istr:iend,auto_ind) * PAR_lay) /
      &                      (PCmax + epsTinv))
@@ -1667,6 +1725,14 @@ c$$$       enddo
        elseif (auto_ind == dda_ind) then
           auto_loss(istr:iend,auto_ind) =  mort(auto_ind) * Pprime(istr:iend,auto_ind) * Tfunc_dda
 # endif /* BEC_DDA */
+# ifdef BEC_PHAEO
+       elseif (auto_ind == phaeo_ind) then
+          !auto_loss(istr:iend,auto_ind) =  mort(auto_ind) * 
+          !Pprime(istr:iend,auto_ind) * Tfunc_phaeo
+! CN: increase Phaeo mortality under stress
+          auto_loss(istr:iend,auto_ind) = mort(auto_ind)*(2.0-min(f_nut,light_lim))*
+     &                    Pprime(istr:iend,auto_ind) * Tfunc_phaeo
+# endif /* BEC_PHAEO */
        else
           auto_loss(istr:iend,auto_ind) =  mort(auto_ind) * Pprime(istr:iend,auto_ind) * Tfunc
        endif

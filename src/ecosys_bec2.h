@@ -34,9 +34,9 @@
 # ifdef BEC_COCCO
      &    +19
 # endif
-# ifdef BEC_DDA
-     &    +16
-# endif
+!# ifdef BEC_DDA
+!     &    +16
+!# endif
      &          ,nr_bec2_diag_2d=29+nr_cchem_mocsy_2d )
       parameter( nr_bec2_diag=nr_bec2_diag_2d+nr_bec2_diag_3d )
 # ifdef BEC2_DIAG_USER
@@ -288,6 +288,12 @@
      &     ddac_ind_t=LAST_I+1, ddachl_ind_t=LAST_I+2, ddasi_ind_t=LAST_I+3, ddafe_ind_t=LAST_I+4
 #  undef LAST_I
 #  define LAST_I ddafe_ind_t
+#endif
+#ifdef BEC_PHAEO
+      integer, parameter ::
+     &     phaeoc_ind_t=LAST_I+1, phaeochl_ind_t=LAST_I+2, phaeofe_ind_t=LAST_I+3
+#  undef LAST_I
+#  define LAST_I phaeofe_ind_t
 #endif
 #ifdef USE_EXPLICIT_VSINK
       integer, parameter ::

@@ -328,6 +328,15 @@ c     &      NSUB_X=2, NSUB_E=8  ! <-- iswake 768x192
 #   else /* case not BEC_DDA */
      &       , ntrc_bio_dda=0
 #   endif /* BEC_DDA */
+#   ifdef BEC_PHAEO
+     &       , iPHAEOC=LAST_I+1, iPHAEOCHL=LAST_I+2
+     &       , iPHAEOFE=LAST_I+3
+     &       , ntrc_bio_phaeo=3
+#    undef LAST_I
+#    define LAST_I iPHAEOFE
+#   else /* case not BEC_PHAEO */
+     &       , ntrc_bio_phaeo=0
+#   endif /* BEC_PHAEO */
 #   ifdef USE_EXPLICIT_VSINK
      &       , iDUSTHARD=LAST_I+1, iPOCHARD=LAST_I+2
      &       , iPCACO3HARD=LAST_I+3, iPSIO2HARD=LAST_I+4
