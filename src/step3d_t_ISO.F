@@ -474,29 +474,34 @@ c--#  define ntdf nrhs
           if (k>0) then
 # else
           do k=1,N
-# ifdef PHYS_FLUX_ANALYSIS
-          if (itrc .le. NT_PFA) then
-! separate do loops (for better efficiency) to store the fluxes
-             j_loop2: do j=Jstr,Jend
-                do i=Istr,Iend+1
-                                ! unit: mmol / s
-                   HorXAdvFlux(i,j,k,itrc) = FX(i,j)
-# ifdef MASKING
-     &                  * rmask(i,j)
-# endif
-                end do
-             end do j_loop2
-             j_loop3: do j=Jstr,Jend+1
-                do i=Istr,Iend
-                                ! unit: mmol / s
-                   HorYAdvFlux(i,j,k,itrc) = FE(i,j)
-# ifdef MASKING
-     &                  * rmask(i,j)
-# endif
-                enddo
-             end do j_loop3
-          end if
-# endif /* PHYS_FLUX_ANALYSIS */
+! CN (Dec 2017): The writing of horizontal advective fluxes is moved
+! further down to be consistent with vertical fluxes.
+! In this old version, the fluxes are written, then changed and then
+! applied, i.e. the fluxes that are in the output do not correspond to
+! the fluxes applied to the tracers at the time step in question
+!# ifdef PHYS_FLUX_ANALYSIS
+!          if (itrc .le. NT_PFA) then
+!! separate do loops (for better efficiency) to store the fluxes
+!             j_loop2: do j=Jstr,Jend
+!                do i=Istr,Iend+1
+!                                ! unit: mmol / s
+!                   HorXAdvFlux(i,j,k,itrc) = FX(i,j)
+!# ifdef MASKING
+!     &                  * rmask(i,j)
+!# endif
+!                end do
+!             end do j_loop2
+!             j_loop3: do j=Jstr,Jend+1
+!                do i=Istr,Iend
+!                                ! unit: mmol / s
+!                   HorYAdvFlux(i,j,k,itrc) = FE(i,j)
+!# ifdef MASKING
+!     &                  * rmask(i,j)
+!# endif
+!                enddo
+!             end do j_loop3
+!          end if
+!# endif /* PHYS_FLUX_ANALYSIS */
 # endif  /* ADV_ISONEUTRAL */
 
 ! Compute and add in contribution due to horizontal advection fluxes.
@@ -711,6 +716,31 @@ c--#  define ntdf nrhs
             enddo
           endif   !<-- k>0
 # endif /* ADV_ISONEUTRAL */
+# ifdef PHYS_FLUX_ANALYSIS
+!CN (Dec 2017): Location of writing consistent with that for vertical advective fluxes
+          if (itrc .le. NT_PFA) then
+! separate do loops (for better efficiency) to store the fluxes
+             j_loop2: do j=Jstr,Jend
+                do i=Istr,Iend+1
+                                ! unit: mmol / s
+                   HorXAdvFlux(i,j,k,itrc) = FX(i,j)
+# ifdef MASKING
+     &                  * rmask(i,j)
+# endif
+                end do
+             end do j_loop2
+             j_loop3: do j=Jstr,Jend+1
+                do i=Istr,Iend
+                                ! unit: mmol / s
+                   HorYAdvFlux(i,j,k,itrc) = FE(i,j)
+# ifdef MASKING
+     &                  * rmask(i,j)
+# endif
+                enddo
+             end do j_loop3
+          end if
+# endif /* PHYS_FLUX_ANALYSIS */
+
         enddo      !<-- k
 
 ! Compute and apply vertical advective fluxes.
