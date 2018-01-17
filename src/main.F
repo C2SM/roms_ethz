@@ -68,7 +68,8 @@ C$    integer omp_get_thread_num, omp_get_num_threads
 #include "param.h"
 #include "scalars.h"
 
-#include "ncvars.h"
+# include "sources.h"
+# include "ncvars.h"
 #ifdef FLOATS
 ! grid.h is needed so that lonr and latr are readily available
 # include "grid.h"
@@ -449,7 +450,7 @@ C$OMP BARRIER                          ! avoid MPI deadlock the exit is
         call    set_HUV(tile)
         call       diag(tile)
 # ifdef BIOLOGY
-        call   bio_diag(tile)
+!        call   bio_diag(tile)
 # endif
       enddo
 C$OMP BARRIER

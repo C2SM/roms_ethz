@@ -91,11 +91,9 @@ CSDISTRIBUTE_RESHAPE ghat(BLOCK_PATTERN,*) BLOCK_CLAUSE
       common /kpp_ghat/ghat
 #  endif
 # endif /* LMD_KPP */
-# ifdef LMD_BKPP
       real hbbl(GLOBAL_2D_ARRAY,2)
 CSDISTRIBUTE_RESHAPE hbbl(BLOCK_PATTERN,*) BLOCK_CLAUSE
       common /kpp_hbbl/hbbl
-# endif /* LMD_BKPP */
 # ifdef KPP_DIAGNOSE
 ! KppRichm KppRicht KppSblSh KppSblSt KppSblRot KppSblEnt
       real KppRichm(GLOBAL_2D_ARRAY,0:N)
