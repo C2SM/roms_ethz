@@ -23,9 +23,7 @@
 # include "ocean3d.h"
 # include "coupling.h"
 # include "scalars.h"
-# if defined ADV_ISONEUTRAL || !defined IMPLICIT_BOTTOM_DRAG
 #  include "mixing.h"
-# endif
 # ifdef ADV_ISONEUTRAL
 #  include "eos_vars.h"
       real dRz,dRx_max, dpth, r0g, cfs,cfb

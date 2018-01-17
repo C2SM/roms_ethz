@@ -20,6 +20,33 @@
      &    parm_o2_min,
      &    parm_o2_min_delta,
      &    parm_kappa_nitrif,
+# ifdef Ncycle_SY
+     &    parm_kao
+     &    parm_kno
+     &    parm_ko2_ao,          
+     &    parm_knh4_ao,        
+     &    parm_ko2_no,          
+     &    parm_kno2_no,         
+     &    parm_kno3_den1,      
+     &    parm_kno2_den2,       
+     &    parm_kn2o_den3,       
+     &    parm_ko2_den1,       
+     &    parm_ko2_oxic,       
+     &    parm_ko2_den2,       
+     &    parm_ko2_den3,    
+     &    parm_koxic,       
+     &    parm_kden1,       
+     &    parm_kden2,       
+     &    parm_kden3,       
+     &    parm_kax,       
+     &    parm_knh4_ax,       
+     &    parm_kno2_ax,
+     &    parm_ko2_ax,       
+     &    parm_n2o_ji_a,
+     &    parm_n2o_ji_b,
+     &    parm_n2o_gor_a,
+     &    parm_n2o_gor_b,
+# endif
      &    parm_nitrif_par_lim,
      &    parm_z_mort_0,
      &    parm_z_mort2_0,
@@ -59,6 +86,33 @@
       parm_z_mort2_0         = 0.4 * dps
       parm_labile_ratio      = 0.85
       parm_POMbury           = 1.4 ! x1 default
+# ifdef Ncycle_SY
+      parm_kao = 0.0274 * dps ! max ammonium oxidation rate (1/s)
+      parm_kno = 0.0925 * dps ! max nitrite oxidation rate (1/s)
+      parm_ko2_ao = 0.2630      ! Michaelis Menton O2 constant for ammonium oxidation (mmol m-3)
+      parm_knh4_ao = 0.1486    ! Michaelis Menton NH4 constant for ammonium oxidation (mmol m-3)
+      parm_ko2_no = 0.778     ! Michaelis Menton O2 constant for nitrite oxidation (mmol m-3)
+      parm_kno2_no = 0.254    ! Michaelis Menton NO2 constant for nitrite oxidation (mmol m-3)
+      parm_kno3_den1 = 3.63      ! From optimization in 1D model, still needs some work 
+      parm_kno2_den2 = 0.002
+      parm_kn2o_den3 = 0.164
+      parm_ko2_oxic = 0.872
+      parm_ko2_den1 = 3.73
+      parm_ko2_den2 = 2.232
+      parm_ko2_den3 = 1.146
+      parm_koxic = 0.16 * dps
+      parm_kden1 = 0.0626 * dps 
+      parm_kden2 = 0.0291 * dps 
+      parm_kden3 = 0.1222 * dps 
+      parm_kax = 0.1237 * dps
+      parm_knh4_ax = 0.4724
+      parm_kno2_ax = 0.4875
+      parm_ko2_ax = 2.574
+      parm_n2o_ji_a = 1.07
+      parm_n2o_ji_b = 0.072
+      parm_n2o_gor_a = 0.2
+      parm_n2o_gor_b = -0.0004
+# endif
 # ifdef BEC_COCCO
       parm_BSIbury           = 0.45 ! x1 default
       parm_Fe_scavenge_rate0 = 1.3 ! x1 default     2.8
@@ -91,9 +145,9 @@
       z_umax_0 = (/ 3.15*dps, 2.95*dps, 1.6*dps, 3.15*dps /) ! 3.07,2.86, 1.6 CESM  ; 3.3 3.08 0.6 3.28 cBEC  incr SP,dIAT,COCCO by 0.2
       z_grz = (/ 1.05, 1.0, 1.2, 1.05 /)      ! grazing coefficient (mmol C/m^3)
       graze_zoo = (/ 0.3, 0.3, 0.3, 0.3 /)
-      graze_poc = (/ 0.05, 0.42, 0.05, 0.20 /) 
+      graze_poc = (/ 0.05, 0.42, 0.05, 0.42 /) 
       graze_doc = (/ 0.15, 0.15, 0.15, 0.15 /)
-      loss_poc = (/ 0.0, 0.0, 0.0, 0.2 /)
+      loss_poc = (/ 0.0, 0.0, 0.0, 1.0 /)
       f_zoo_detr = (/ 0.15, 0.2, 0.15, 0.2 /)
 
 # else /* case not BEC_COCCO */
@@ -305,6 +359,7 @@
       press = 1.
 
       lflux_gas_o2  = .TRUE.
+      lflux_gas_n2o  = .TRUE.
       lflux_gas_co2 = .TRUE.
       liron_flux = .TRUE.
 #ifdef RIVER_LOAD_BIO

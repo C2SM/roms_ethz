@@ -27,22 +27,30 @@
 # else /* CCHEM_MOCSY */
       parameter( nr_cchem_mocsy_2d=0, nr_cchem_mocsy_3d=0 )
 # endif /* CCHEM_MOCSY */
+
+# ifdef Ncycle_SY
+      parameter( nr_bec2_diag_3d=91+nr_cchem_mocsy_3d+6, ! 0 from coccos, 0 from impl sinking
+# else
 # ifdef USE_EXPLICIT_VSINK
 # ifdef BEC_COCCO
-      parameter( nr_bec2_diag_3d=95+nr_cchem_mocsy_3d+29,  ! 10 from expl sinking, 19 from coccos
+      parameter( nr_bec2_diag_3d=91+nr_cchem_mocsy_3d+28,  ! 10 from expl sinking, 18 from coccos
 # else
-      parameter( nr_bec2_diag_3d=95+nr_cchem_mocsy_3d+10,
+      parameter( nr_bec2_diag_3d=91+nr_cchem_mocsy_3d+10,
 # endif /* BEC_COCCO */
-# else ! impl sinking
+# else /* impl sinking */
 # ifdef BEC_COCCO
-      parameter( nr_bec2_diag_3d=95+nr_cchem_mocsy_3d+19,  ! 19 from coccos, 0 from impl sinking
+      parameter( nr_bec2_diag_3d=91+nr_cchem_mocsy_3d+18,  ! 18 from coccos, 0 from impl sinking
 # else
-      parameter( nr_bec2_diag_3d=95+nr_cchem_mocsy_3d,   ! CN: took "+5" away, these were included in the 91
+      parameter( nr_bec2_diag_3d=91+nr_cchem_mocsy_3d,   ! CN: took "+5" away, these were included in the 91
 # endif /* BEC_COCCO */
 
 # endif /* USE_EXPLICIT_VSINK */
-     &           nr_bec2_diag_2d=29+nr_cchem_mocsy_2d )  ! CN: added 11 tracers, see bio_diag.h
-
+# endif /* Ncycle_SY*/
+# ifdef Ncycle_SY
+     &           nr_bec2_diag_2d=29+nr_cchem_mocsy_2d+9) 
+#else
+     &           nr_bec2_diag_2d=29+nr_cchem_mocsy_2d)  ! CN: added 11 tracers, see bio_diag.h
+#endif
 
       parameter( nr_bec2_diag=nr_bec2_diag_2d+nr_bec2_diag_3d )
 # ifdef BEC2_DIAG_USER
@@ -114,10 +122,9 @@
      &   zooczero_idx_t=par_idx_t+83,spcaco3zero_idx_t=par_idx_t+84,donrremin_idx_t=par_idx_t+85,
      &   totchl_idx_t=par_idx_t+86,
      &   spplim_idx_t=par_idx_t+87,diatplim_idx_t=par_idx_t+88,diazplim_idx_t=par_idx_t+89,
-     &   totphytoc_idx_t=par_idx_t+90,pocprodzooloss_idx_t=par_idx_t+91,pocproddiat_idx_t=par_idx_t+92,
-     &   pocprodsp_idx_t=par_idx_t+93,pocproddiaz_idx_t=par_idx_t+94
+     &   totphytoc_idx_t=par_idx_t+90
 #  undef LAST_I
-#  define LAST_I pocproddiaz_idx_t
+#  define LAST_I totphytoc_idx_t
 # ifdef USE_EXPLICIT_VSINK
      &   ,pironhardremin_idx_t=LAST_I+1, caco3hardremin_idx_t=LAST_I+2, sio2hardremin_idx_t=LAST_I+3
      &   ,pochardremin_idx_t=LAST_I+4, dusthardremin_idx_t=LAST_I+5
@@ -147,12 +154,16 @@
      &   coccolossdic_idx_t=LAST_I+14,grazecoccozoo_idx_t=LAST_I+15,
      &   coccoqcaco3_idx_t=LAST_I+16,
      &   coccophotoacc_idx_t=LAST_I+17,
-     &   coccoplim_idx_t=LAST_I+18,
-     &   pocprodcocco_idx_t=LAST_I+19
+     &   coccoplim_idx_t=LAST_I+18
 #  undef LAST_I
-#  define LAST_I pocprodcocco_idx_t
+#  define LAST_I coccoplim_idx_t
 # endif        
 
+# ifdef Ncycle_SY
+      integer, parameter :: ammox_idx_t=LAST_I+1,nitrox_idx_t=LAST_I+2,
+     &   anammox_idx_t=LAST_I+3,denitrif1_idx_t=LAST_I+4, denitrif2_idx_t=LAST_I+5,
+     &   denitrif3_idx_t=LAST_I+6
+# endif
 
       ! Indices to be used in bec2_diag_2d only:
       integer, parameter :: pco2air_idx_t=1,
@@ -164,6 +175,14 @@
      &   co2star_idx_t=pco2air_idx_t+16,pco2oc_idx_t=pco2air_idx_t+17,dco2star_idx_t=pco2air_idx_t+18
 # undef LAST_I
 # define LAST_I dco2star_idx_t
+#ifdef Ncycle_SY
+     &   ,schmidt_n2o_idx_t=LAST_I+1, pvn2o_idx_t=LAST_I+2,
+     &   fgn2o_ao1_idx_t=LAST_I+3, fgn2o_ao2_idx_t=LAST_I+4, fgn2o_siden_idx_t=LAST_I+5,
+     &   fgn2o_soden_idx_t=LAST_I+6, fgn2o_atm_idx_t=LAST_I+7, n2osat_idx_t=LAST_I+8,
+     &   fgn2o_idx_t=LAST_I+9
+# undef LAST_I
+# define LAST_I fgn2o_idx_t
+# endif
 # ifdef CCHEM_MOCSY
      &   ,ph_idx_t=pco2air_idx_t+16, pco2oc_idx_t=ph_idx_t+1, co3_idx_t=ph_idx_t+2
 #  ifndef CCHEM_TODEPTH
@@ -230,7 +249,7 @@
       logical landmask(GLOBAL_2D_ARRAY)
       common /calcation/landmask
 
-      logical lsource_sink,lflux_gas_o2, lflux_gas_co2,
+      logical lsource_sink,lflux_gas_o2, lflux_gas_n2o, lflux_gas_co2,
      &  liron_flux,ldust_flux
 #ifdef RIVER_LOAD_N
      &  ,lriver_load_n
@@ -270,8 +289,7 @@
      &)
 #ifdef BEC_COCCO
       integer, parameter ::
-     &     coccoc_ind_t=LAST_I+1, coccochl_ind_t=LAST_I+2, coccocal_ind_t=LAST_I+3, 
-     &     coccofe_ind_t=LAST_I+4, cal_ind_t=LAST_I+5
+     &     coccoc_ind_t=27, coccochl_ind_t=28, coccocal_ind_t=29, coccofe_ind_t=30, cal_ind_t=31
 #  undef LAST_I
 #  define LAST_I cal_ind_t
 #endif
@@ -281,6 +299,16 @@
      &     psio2hard_ind_t=LAST_I+4, pironhard_ind_t=LAST_I+5,
      &     dustsoft_ind_t=LAST_I+6, pocsoft_ind_t=LAST_I+7, pcaco3soft_ind_t=LAST_I+8,
      &     psio2soft_ind_t=LAST_I+9, pironsoft_ind_t=LAST_I+10
+#  undef LAST_I
+#  define LAST_I pironsoft_ind_t
+#endif
+#ifdef Ncycle_SY
+      integer, parameter ::
+     &     no2_ind_t=LAST_I+1, n2o_ao1_ind_t=LAST_I+2, n2o_ao2_ind_t=LAST_I+3, 
+     &     n2o_siden_ind_t=LAST_I+4, n2o_soden_ind_t=LAST_I+5, n2_ind_t=LAST_I+6, 
+     &     n2o_atm_ind_t=LAST_I+7, n2o_ind_t=LAST_I+8
+#  undef LAST_I
+#  define LAST_I n2o_ind_t
 #endif
 
 !

@@ -3,13 +3,12 @@
 ! It must be define in ncvars.h and should be redefined accordingly
 ! at the end of this include file
 
-!#ifdef WRITE_DEPTHS
-!       integer, parameter :: indxz_r=LAST_I+1
-!     &            , indxz_w=indxz_r+1
-!     &            , indxHz=indxz_w+1
-!# undef LAST_I
-!# define LAST_I indxHz
-!#endif
+#ifdef WRITE_DEPTHS
+     &            , indxz_r=LAST_I+1, indxz_w=indxz_r+1
+     &            , indxHz=indxz_w+1
+# undef LAST_I
+# define LAST_I indxHz
+#endif
 
 #ifdef BIOLOGY_NPZDOC
 # ifdef CARBON
@@ -19,10 +18,6 @@
 #  undef LAST_I
 #  define LAST_I indxPCO2air_rst
 # endif
-       integer, parameter :: indxPAR_rst=LAST_I+1
-     &                   , indxPARinc_rst=indxPAR_rst+1
-# undef LAST_I
-# define LAST_I indxPARinc_rst
 #endif /* BIOLOGY_NPZDOC */
 
 #ifdef BIOLOGY_BEC2
@@ -51,6 +46,14 @@
      &            , indxDCO2STAR=indxPCO2air+18
 # undef LAST_I
 # define LAST_I indxDCO2STAR
+# ifdef Ncycle_SY
+     &            , indxschmidt_n2o=LAST_I+1, indxpvn2o=LAST_I+2
+     &            , indxfgn2o_ao1=LAST_I+3, indxfgn2o_ao2=LAST_I+4, indxfgn2o_siden=LAST_I+5
+     &            , indxfgn2o_soden=LAST_I+6, indxfgn2o_atm=LAST_I+7, indxn2osat=LAST_I+8
+     &            , indxfgn2o=LAST_I+9
+# undef LAST_I
+# define LAST_I indxfgn2o
+# endif
 #  ifdef CCHEM_MOCSY
 #   if !defined CCHEM_TODEPTH
      &            , indxPH=LAST_I+1, indxPCO2=LAST_I+2, indxCO3=LAST_I+3
@@ -104,12 +107,11 @@
      &            , indxDIAZCZERO=indxPAR+81,indxDOCZERO=indxPAR+82,indxZOOCZERO=indxPAR+83
      &            , indxSPCACO3ZERO=indxPAR+84,indxDONRREMIN=indxPAR+85, indxTOTCHL=indxPAR+86
      &            , indxSPPLIM=indxPAR+87,indxDIATPLIM=indxPAR+88,indxDIAZPLIM=indxPAR+89
-     &            , indxTOTPHYTOC=indxPAR+90,indxPOCPRODZOOLOSS=indxPAR+91
-     &            , indxPOCPRODDIAT=indxPAR+92,indxPOCPRODSP=indxPAR+93,indxPOCPRODDIAZ=indxPAR+94
+     &            , indxTOTPHYTOC=indxPAR+90
 #  undef LAST_I
-#  define LAST_I indxPOCPRODDIAZ
+#  define LAST_I indxTOTPHYTOC
 #  if defined CCHEM_MOCSY && defined CCHEM_TODEPTH
-     &            , indxPH=LAST_I+1, indxPCO2=indxPH+1, indxCO3=indxPH+2
+     &            , indxPH=indxPAR+91, indxPCO2=indxPH+1, indxCO3=indxPH+2
      &            , indxHCO3=indxPH+3, indxCO2STAR=indxPH+4
      &            , indxOMEGACALC=indxPH+5, indxOMEGAARAG=indxPH+6
 #  undef LAST_I
@@ -133,14 +135,20 @@
      &            , indxCOCCOPO4UPTAKE=LAST_I+6,indxCOCCOFEUPTAKE=LAST_I+7
      &            , indxCOCCOLIGHTLIM=LAST_I+8,indxCACO3PRODCOCCO=LAST_I+9
      &            , indxIRONUPTAKECOCCO=LAST_I+10,indxCOCCONO3UPTAKE=LAST_I+11
-     &            , indxCOCCONH4UPTAKE=LAST_I+12,indxCOCCOGRAZEDIC=LAST_I+13
+     &            , indxCOCCONH4UPTAKE=LAST_I+12,indxCOCCOGRAZEDIC=LAST_I+13 
      &            , indxCOCCOLOSSDIC=LAST_I+14,indxGRAZECOCCOZOO=LAST_I+15
      &            , indxQCACO3COCCO=LAST_I+16,indxCOCCOPHOTOACC=LAST_I+17
-     &            , indxCOCCOPLIM=LAST_I+18,indxPOCPRODCOCCO=LAST_I+19
+     &            , indxCOCCOPLIM=LAST_I+18
 #  undef LAST_I
-#  define LAST_I indxPOCPRODCOCCO
+#  define LAST_I indxCOCCOPLIM
 # endif
-
+# ifdef Ncycle_SY
+     &            , indxammox=LAST_I+1,indxnitrox=LAST_I+2
+     &            , indxanammox=LAST_I+3,indxDENITRIF1=LAST_I+4,indxDENITRIF2=LAST_I+5
+     &            , indxDENITRIF3=LAST_I+6
+#  undef LAST_I
+#  define LAST_I indxDENITRIF3
+# endif
 
 
 # endif /* BEC2_DIAG */
@@ -199,7 +207,7 @@
      &       , avgTsed
 # endif
 # ifdef SLICE_AVG
-     &       , slavgTsed
+     &       , slavgTset
 # endif
       common /ncvars/ rstTsed, hisTsed
 # ifdef AVERAGES

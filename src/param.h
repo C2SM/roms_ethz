@@ -31,22 +31,16 @@ c**  &               LLm=256, MMm=256, N=20
 
 #elif defined COLD_FILAMENT
      &               LLm=400, MMm=2,   N=40
+c     &                LLm=800, MMm=2,   N=80
+#elif defined NJ_BIGHT
+c*   &               LLm=98,  MMm=206, N=12
+     &               LLm=24,  MMm=34,  N=10
 c     &                LLm=800, MMm=2,  N=80
-#elif defined BLACK_SEA
-     &             LLm=1256,  MMm=768, N=40
 #elif defined ATLANTIC
-     &             LLm=840,  MMm=520, N=50   !<-- 5km Gulf Stream area
-c     &             LLm=1218,  MMm=896, N=50 !<-- 1.5km, full Gulf
+     &            LLm=1218,  MMm=896, N=50 !<-- 1.5km, full Gulf
+c     &             LLm=1536,  MMm=1024, N=50
+c     &           LLm=1024,  MMm=1536, N=60
 
-c     &              LLm=1536,  MMm=1024, N=50  !<-- 500m
-c     &             LLm=1024,  MMm=1536, N=60
-
-c     &              LLm=1494,  MMm=1088, N=50  ! LCE500 loop eddy nest
-c     &              LLm=1761,  MMm=1216, N=50  ! Eddy_west loop eddy nest
-
-
-#elif defined ONE_DIM
-     &               LLm=2, MMm=2, N=32
 
 #elif defined PACIFIC
 
@@ -55,25 +49,15 @@ c    &               LLm=392, MMm=288, N=30
 
 c    &               LLm=432, MMm=320, N=32
 c     &               LLm=488, MMm=360, N=40  ! PAC44
-c     &                 LLm=976, MMm=720, N=40 ! PAC22
+     &                 LLm=976, MMm=720, N=40 ! PAC22
+
 c     &               LLm=460, MMm=240, N=50  ! PACSMA grid
-
-c     &               LLm=2660, MMm=970, N=65 ! Kaushek EQP 6.5 km grid
-
-c     &              LLm=3723, MMm=1166, N=65 ! Kaushik crazy EQP grid
-
-c     &              LLm=1250, MMm=2035, N=68 
-
-c     &              LLm=1836,  MMm=1984, N=90 ! Kaushik SWPAC1p6
-
-c     &              LLm=930, MMm=1200, N=120 ! Kaushik Bismark Sea
-     &               LLm=992, MMm=1760, N=100 ! Vanatu islands
-
+#elif defined ONE_DIM
+     &               LLm=2, MMm=2, N=32
 
 #elif defined PACIFIC_2D
      &               LLm=768, MMm=512, N=1
 c    &               LLm=1520, MMm=1088, N=1
-
 
 #elif defined OVERFLOW
      &               LLm=4,   MMm=128, N=20
@@ -112,7 +96,7 @@ c     &                 LLm=20,  MMm=80,  N=24
 c     &               LLm=20,  MMm=80,  N=32
 #elif defined CANBAS2
 c     &                LLm=224, MMm=288, N=32      ! CanBas
-     &                LLm=225, MMm=328, N=32      ! NEA_EXT
+c     &                LLm=225, MMm=328, N=32      ! NEA_EXT
 c     &                LLm=384, MMm=480, N=32      ! GranCan
      &                LLm=1200, MMm=1800, N=42      ! UNPR
 #elif defined SPIRAL
@@ -171,8 +155,6 @@ c**     &               LLm=248, MMm=504, N=42      ! 5km config
      &               LLm=416, MMm=346, N=42      ! 5km-66km telescopic
 #elif defined WAVE_RAD
      &              LLm=384,  MMm=384, N=1
-#elif defined SLOSH
-     &              LLm=128, MMm=2, N=20
 #else
      &                LLm=??, MMm=??, N=??
 #endif
@@ -321,12 +303,10 @@ c     &      NSUB_X=2, NSUB_E=8  ! <-- iswake 768x192
      &       , iDIAZC=iPO4+23, iDIAZCHL=iPO4+24
      &       , iDIAZFE=iPO4+25
      &       , ntrc_bio_base=26
-#    undef LAST_I
-#    define LAST_I iDIAZFE
 #   ifdef BEC_COCCO
-     &       , iCOCCOC=LAST_I+1, iCOCCOCHL=LAST_I+2
-     &       , iCOCCOCAL=LAST_I+3, iCOCCOFE=LAST_I+4
-     &       , iCAL=LAST_I+5
+     &       , iCOCCOC=iPO4+26, iCOCCOCHL=iPO4+27
+     &       , iCOCCOCAL=iPO4+28, iCOCCOFE=iPO4+29
+     &       , iCAL=iPO4+30
      &       , ntrc_bio_cocco=5
 #    undef LAST_I
 #    define LAST_I iCAL
@@ -335,15 +315,26 @@ c     &      NSUB_X=2, NSUB_E=8  ! <-- iswake 768x192
 #    undef LAST_I
 #    define LAST_I iDIAZFE
 #   endif /* BEC_COCCO */
+#   ifdef Ncycle_SY
+     &       , iNO2=LAST_I+1, iN2O_AO1=LAST_I+2
+     &       , iN2O_AO2=LAST_I+3, iN2O_SIDEN=LAST_I+4
+     &       , iN2O_SODEN=LAST_I+5, iN2=LAST_I+6
+     &       , iN2O_ATM=LAST_I+7, iN2O=LAST_I+8
+     &       , ntrc_bio_ncycle=8
+#    undef LAST_I
+#    define LAST_I iN2O
+#   else 
+     &       , ntrc_bio_ncycle=0
+#   endif 
 #   ifdef USE_EXPLICIT_VSINK
      &       , iDUSTHARD=LAST_I+1, iPOCHARD=LAST_I+2
      &       , iPCACO3HARD=LAST_I+3, iPSIO2HARD=LAST_I+4
      &       , iPIRONHARD=LAST_I+5, iDUSTSOFT=LAST_I+6
      &       , iPOCSOFT=LAST_I+7, iPCACO3SOFT=LAST_I+8
      &       , iPSIO2SOFT=LAST_I+9, iPIRONSOFT=LAST_I+10
-     &       , ntrc_bio=ntrc_bio_base+ntrc_bio_cocco+10
+     &       , ntrc_bio=ntrc_bio_base+ntrc_bio_cocco+ntrc_bio_ncycle+10
 #   else /* USE_EXPLICIT_VSINK */
-     &       , ntrc_bio=ntrc_bio_base+ntrc_bio_cocco
+     &       , ntrc_bio=ntrc_bio_base+ntrc_bio_cocco+ntrc_bio_ncycle
 #   endif /* USE_EXPLICIT_VSINK */
 #  else  /* no  BIOLOGY */
      &       , ntrc_bio=0

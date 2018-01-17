@@ -107,6 +107,33 @@
      &   parm_o2_min,            ! min O2 needed for prod & consump. (nmol/cm^3)
      &   parm_o2_min_delta,      ! width of min O2 range (nmol/cm^3)
      &   parm_kappa_nitrif,      ! nitrification inverse time constant (1/sec)
+# ifdef Ncycle_SY
+     &   parm_kao,        ! max ammonium oxidation rate (1/s)
+     &   parm_kno,        ! max nitrite oxidation rate (1/s)
+     &   parm_ko2_ao,     ! Michaelis Menton O2 constant for ammonium oxidation (mmol m-3)
+     &   parm_knh4_ao,    ! Michaelis Menton NH4 constant for ammonium oxidation (mmol m-3)
+     &   parm_ko2_no,     ! Michaelis Menton O2 constant for nitrite oxidation (mmol m-3)
+     &   parm_kno2_no,    ! Michaelis Menton NO2 constant for nitrite oxidation (mmol m-3)
+     &   parm_kno3_den1,       ! no3 half saturation constant for denitrification 1 (no3-> no2, mmol/m^3)
+     &   parm_kno2_den2,       ! no2 half saturation constant for denitrification 2 (no2-> n2o, mmol/m^3)
+     &   parm_kn2o_den3,       ! n2o half saturation constant for denitrification 3 (n2o-> n2, mmol/m^3)
+     &   parm_ko2_oxic,       ! half saturation constant for oxygen consumption during oxic remin (mmol/m^3)	
+     &   parm_ko2_den1,       ! exponential decay constant for denitrification 1 (NO3-> NO2, mmol/m^3)
+     &   parm_ko2_den2,       ! exponential decay constant for denitrification 2 (NO2-> N2O, mmol/m^3)
+     &   parm_ko2_den3,       ! exponential decay constant for denitrification 3 (N2O-> N2, mmol/m^3)
+     &   parm_koxic,       ! maximum oxic remin specific rate (mmol C/m^3/s)
+     &   parm_kden1,       ! maximum denitrification 1 specific rate (mmol C/m^3/s)  
+     &   parm_kden2,       ! maximum denitrification 2 specific rate (mmol C/m^3/s)
+     &   parm_kden3,       ! maximum denitrification 3 specific rate (mmol C/m^3/s)
+     &   parm_kax,         ! maximum anaerobic ammonium oxidation specific rate (mmol N/m^3/s) 
+     &   parm_knh4_ax,     ! NH4 half saturation constant for anammox (mmol/m^3)
+     &   parm_kno2_ax,    ! NO2 half saturation constant for anammox (mmol/m^3)
+     &   parm_ko2_ax,      ! exponential decay constant for anammox (mmol/m^3)
+     &   parm_n2o_ji_a, ! n2o yield constant (Ji et al.  2015)
+     &   parm_n2o_ji_b, ! n2o yield constant (Ji et al.  2015)
+     &   parm_n2o_gor_a, ! n2o yield constant (Goreau et al. 1980)
+     &   parm_n2o_gor_b, ! n2o yield constant (Goreau et al. 1980)
+# endif
      &   parm_nitrif_par_lim,    ! PAR limit for nitrif. (W/m^2)
      &   parm_z_mort_0,          ! zoo linear mort rate (1/sec)
      &   parm_z_mort2_0,         ! zoo quad mort rate (1/sec/((mmol C/m3))
@@ -128,6 +155,13 @@
      &   parm_BSIbury, parm_Fe_scavenge_rate0, parm_f_prod_sp_CaCO3, parm_POC_diss,
      &   parm_SiO2_diss, parm_CaCO3_diss,
      &   parm_scalelen_z, parm_scalelen_vals
+# ifdef Ncycle_SY
+     &   , parm_kao, parm_kno, parm_ko2_ao, parm_knh4_ao, parm_ko2_no, parm_kno2_no, parm_kno3_den1,
+     &   parm_kno2_den2, parm_kn2o_den3, parm_ko2_oxic, parm_ko2_den1, parm_ko2_den2, parm_ko2_den3,
+     &   parm_koxic, parm_kden1, parm_kden2, parm_kden3, parm_kax, parm_knh4_ax, 
+     &   parm_kno2_ax, parm_ko2_ax, parm_n2o_ji_a, parm_n2o_ji_b, parm_n2o_gor_a,
+     &   parm_n2o_gor_b
+# endif
 
   !---------------------------------------------------------------------
   !     Misc. Rate constants
@@ -199,7 +233,7 @@
   !-----------------------------------------------------------------------
 
        real Q, Qp_zoo_pom, Qfe_zoo, gQsi_0, gQsi_max, gQsi_min, QCaCO3_max,
-     &   denitrif_C_N
+     &   denitrif_C_N, denitrif_NO3_C, denitrif_NO2_C, denitrif_N2O_C
        parameter(
      &   Q             = 0.137,   !N/C ratio (mmol/mmol) of phyto & zoo
      &   Qp_zoo_pom    = 0.00855, !P/C ratio (mmol/mmol) zoo & pom
@@ -209,7 +243,10 @@
      &   gQsi_min      = 0.0457,  !min Si/C ratio
      &   QCaCO3_max    = 0.4,     !max QCaCO3
      &   ! carbon:nitrogen ratio for denitrification
-     &   denitrif_C_N  = parm_Red_D_C_P/136.0
+     &   denitrif_C_N  = parm_Red_D_C_P/136.0,
+     &   denitrif_NO3_C  = 472.0 / 2.0 / 106.0, ! need to comment on that and check 
+     &   denitrif_NO2_C  = 472.0 / 2.0 / 106.0,
+     &   denitrif_N2O_C  = 472.0 / 2.0 / 106.0
      & )
 
   !----------------------------------------------------------------------------

@@ -22,13 +22,6 @@
 #   define LAST_I indxCaCO3
 #  endif /* CARBON */
 # endif /* OXYGEN */
-# ifdef SEDIMENT_BIOLOGY
-      integer, parameter :: indxSedOrgN=LAST_I+1
-     &           , indxSedOrgC=indxSedOrgN+1
-     &           , indxSedCaCO3=indxSedOrgC+1
-#  undef LAST_I
-#  define LAST_I indxSedCaCO3
-# endif /* SEDIMENT_BIOLOGY */
 #endif /* BIOLOGY_NPZDOC || LEGACY_NPZD*/
 
 #ifdef BIOLOGY_BEC2
@@ -49,11 +42,19 @@
 # undef LAST_I
 # define LAST_I indxDiazfe
 # ifdef BEC_COCCO
-     &          , indxCoccoc=LAST_I+1, indxCoccochl=LAST_I+2
-     &          , indxCoccocal=LAST_I+3, indxCoccofe=LAST_I+4
-     &          , indxCal=LAST_I+5
+     &          , indxCoccoc=indxPO4+26, indxCoccochl=indxPO4+27
+     &          , indxCoccocal=indxPO4+28, indxCoccofe=indxPO4+29
+     &          , indxCal=indxPO4+30
 #  undef LAST_I
 #  define LAST_I indxCal
+# endif
+# ifdef Ncycle_SY
+     &          , indxno2=LAST_I+1, indxn2o_ao1=LAST_I+2
+     &          , indxn2o_ao2=LAST_I+3, indxn2o_siden=LAST_I+4
+     &          , indxn2o_soden=LAST_I+5, indxn2=LAST_I+6
+     &          , indxn2o_atm=LAST_I+7, indxn2o=LAST_I+8
+#  undef LAST_I
+#  define LAST_I indxn2o
 # endif
 # ifdef USE_EXPLICIT_VSINK
      &          , indxdusthard=LAST_I+1, indxpochard=indxdusthard+1

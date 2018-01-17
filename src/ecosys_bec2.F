@@ -23,7 +23,8 @@
        integer su_i1, su_i2, sv_j1, sv_j2
 
        real
-     &    O2SAT_USED    ! used O2 saturation (mmol/m^3)
+     &    O2SAT_USED,    ! used O2 saturation (mmol/m^3)
+     &    N2OSAT_USED    ! used O2 saturation (mmol/m^3)
 
        real,dimension(istr:iend,jstr:jend)::
      &    SSTT,   ! sea surface temperature (C)
@@ -79,6 +80,15 @@
      &    DCO2STAR_ROW, ! DCO2STAR from solver
      &    pco2oc_ROW,   ! pco2oc from solver
      &    DpCO2_ROW     ! DpCO2 from solver
+
+# ifdef Ncycle_SY
+       real,dimension(istr:iend,jstr:jend)::
+     &    N2OSAT_1atm   ! N2O saturation @ 1 atm (mmol/m^3)
+
+       real,dimension(istr:iend)::
+     &    XN2O         ! atmospheric n2o conc. (dry-air, 1 atm)
+
+# endif
 
 !
 ! Interpolate/extrapolate wind stress to rho grid:
@@ -218,7 +228,81 @@ c$$$       enddo
            XKW_ICE(istr:iend,jstr:jend) = c0
          END WHERE
        END IF
+# ifdef Ncycle_SY
+     !------------------------------------------------------------------------
+     !   compute N2O flux
+     !------------------------------------------------------------------------
+        lflux_gas_n2o = .true.
+       IF (lflux_gas_n2o) THEN
+         call CSCHMIDT_N2O(SSTT(istr:iend,jstr:jend),
+     &     landmask(istr:iend,jstr:jend),SCHMIDT_USED(istr:iend,jstr:jend),
+     &     istr,iend,jstr,jend)
 
+
+#ifdef BEC2_DIAG
+         bec2_diag_2d(istr:iend,jstr:jend,schmidt_n2o_idx_t) = SCHMIDT_USED(istr:iend,jstr:jend)
+#endif
+
+         call N2OSATU(SSTT(istr:iend,jstr:jend),
+     &     SSSS(istr:iend,jstr:jend),landmask(istr:iend,jstr:jend),
+     &     N2OSAT_1atm(istr:iend,jstr:jend),istr, iend,jstr,jend)
+         do j=jstr,jend
+            do i=istr,iend
+               PV(i,j) = XKW_ICE(i,j) * SQRT(660.0 / SCHMIDT_USED(i,j))
+# ifdef MASKING
+     &                      * rmask(i,j)
+# endif
+        XN2O = 300.0 * 1e-9 !!! need to figure out namelists here
+               N2OSAT_USED = AP_USED(i,j) * N2OSAT_1atm(i,j) * XN2O(i)
+# ifdef MASKING
+     &                      * rmask(i,j)
+# endif
+
+               !!! calculating gas exchange for all n2o tracer
+               !!! we let n2o_atm trace the invasion of atmospheric n2o
+               !!! and set the atmopspheric concentration of all other
+               !!! tracer to 0 So that everything is additive.
+               FLUX(i,j) = PV(i,j) * (c0 - tracer(i,j,N,n2o_ao1_ind_t))
+               STF(i,j,n2o_ao1_ind_t) = FLUX(i,j)
+               FLUX(i,j) = PV(i,j) * (c0 - tracer(i,j,N,n2o_ao2_ind_t))
+               STF(i,j,n2o_ao2_ind_t) = FLUX(i,j)
+               FLUX(i,j) = PV(i,j) * (c0 - tracer(i,j,N,n2o_siden_ind_t))
+               STF(i,j,n2o_siden_ind_t) = FLUX(i,j)
+               FLUX(i,j) = PV(i,j) * (c0 - tracer(i,j,N,n2o_soden_ind_t))
+               STF(i,j,n2o_soden_ind_t) = FLUX(i,j)
+               FLUX(i,j) = PV(i,j) * (N2OSAT_USED - tracer(i,j,N,n2o_atm_ind_t))
+               STF(i,j,n2o_atm_ind_t) = FLUX(i,j)
+               FLUX(i,j) = PV(i,j) * (N2OSAT_USED - tracer(i,j,N,n2o_ind_t))
+               STF(i,j,n2o_ind_t) = FLUX(i,j)
+               
+               !!! Update tracer
+               tracer(i,j,N,n2o_ao1_ind_t) = tracer(i,j,N,n2o_ao1_ind_t)+
+     &                 stf(i,j,n2o_ao1_ind_t)*dt/Hz(i,j,N)
+               tracer(i,j,N,n2o_ao2_ind_t) = tracer(i,j,N,n2o_ao2_ind_t)+
+     &                 stf(i,j,n2o_ao2_ind_t)*dt/Hz(i,j,N)
+               tracer(i,j,N,n2o_siden_ind_t) = tracer(i,j,N,n2o_siden_ind_t)+
+     &                 stf(i,j,n2o_siden_ind_t)*dt/Hz(i,j,N)
+               tracer(i,j,N,n2o_soden_ind_t) = tracer(i,j,N,n2o_soden_ind_t)+
+     &                 stf(i,j,n2o_soden_ind_t)*dt/Hz(i,j,N)
+               tracer(i,j,N,n2o_atm_ind_t) = tracer(i,j,N,n2o_atm_ind_t)+
+     &                 stf(i,j,n2o_atm_ind_t)*dt/Hz(i,j,N)
+               tracer(i,j,N,n2o_ind_t) = tracer(i,j,N,n2o_ind_t)+
+     &                 stf(i,j,n2o_ind_t)*dt/Hz(i,j,N)
+# ifdef BEC2_DIAG
+               bec2_diag_2d(i,j,pvn2o_idx_t) = PV(i,j)
+               bec2_diag_2d(i,j,n2osat_idx_t) = N2OSAT_USED
+               bec2_diag_2d(i,j,fgn2o_ao1_idx_t) = STF(i,j,n2o_ao1_ind_t)
+               bec2_diag_2d(i,j,fgn2o_ao2_idx_t) = STF(i,j,n2o_ao2_ind_t)
+               bec2_diag_2d(i,j,fgn2o_siden_idx_t) = STF(i,j,n2o_siden_ind_t)
+               bec2_diag_2d(i,j,fgn2o_soden_idx_t) = STF(i,j,n2o_soden_ind_t)
+               bec2_diag_2d(i,j,fgn2o_atm_idx_t) = STF(i,j,n2o_atm_ind_t)
+               bec2_diag_2d(i,j,fgn2o_idx_t) = 0.002314234 !STF(i,j,n2o_ind_t)
+               bec2_diag_2d(i,j,fgn2o_idx_t) = FLUX(i,j)
+# endif
+            end do  ! i
+         end do  ! j
+       END IF
+# endif
     !------------------------------------------------------------------------
     !   compute O2 flux
     !------------------------------------------------------------------------
@@ -838,6 +922,34 @@ c$$$       enddo
      &    coccoFe_loc,     ! local copy of model coccoFe
      &    cal_loc,         ! local copy of model cal
 # endif
+# ifdef Ncycle_SY
+     &    NO2_loc,         ! local copy of model no2
+     &    N2O_atm_loc,     ! local copy of N2O from atmosphere
+     &    N2O_ao1_loc,         ! local copy of model n2o prod. via ao1
+     &    N2O_ao2_loc,         ! local copy of model n2o prod. via ao2
+     &    N2O_siden_loc,         ! local copy of model n2o sinked by den
+     &    N2O_soden_loc,         ! local copy of model n2o sourced by den
+     &    N2_loc,         ! local copy of model n2
+     &    N2O_loc,         ! N2O_ao1_loc + N2O_soden_loc - N2O_siden_loc
+     &    ammox,          ! ammonium oxidation (NH4 -> NO2) (mmol N/m^3/sec)
+     &    nitrox,          ! nitrite oxidation (NO2 -> NO3) (mmolN/m^3/sec)
+     &    anammox,          ! anaerobic ammonium oxidation (NH4 -> N2) (mmolN/m^3/sec)
+     &    eps_den,         ! small value for denitrification calculations
+     &    R_oxic,        ! Pseudo oxic remineralization (NO3-> NO2, no units) 
+     &    R_den1,        ! Pseudo denitrification 1 (NO3-> NO2, no units) 
+     &    R_den2,        ! pseudo denitrification 2 (NO2-> N2O), no units) 
+     &    R_den3,        ! Pseudo denitrification 3 (N2O-> N2, no units) 
+     &    roxic,       ! portion of C remin done by denitrif that is done by denitrif 
+     &    rden1,       ! portion of C remin done by denitrif that is done by denitrif 
+     &    rden2,       ! portion of C remin done by denitrif that is done by denitrif 
+     &    rden3,       ! portion of C remin done by denitrif that is done by denitrif 
+     &    Rden,       ! portion of C remin done by denitrif 
+     &    DENITRIF1,       ! NO3 consumed during denitrification
+     &    DENITRIF2,       ! NO2 consumed during denitrification
+     &    DENITRIF3,       ! N2O consumed during denitrification
+     &    n2o_nh4_yield1,   ! N2O yield during ammonium oxidation (0 --> 1)  
+     &    no2_nh4_yield1,   ! NO2 yield during ammonium oxidation (0 --> 1)
+# endif
      &    QA_dust_def,     ! incoming deficit in the QA(dust) POC flux
      &    NITRIF,          ! nitrification (NH4 -> NO3) (mmol N/m^3/sec)
      &    DENITRIF,        ! water column nitrification (NO3 -> N2) (mmol N/m^3/sec)
@@ -883,13 +995,6 @@ c$$$       enddo
      &    DOFe_remin,      ! portion of DOFe remineralized
      &    DONr_remin,      ! portion of refractory DON remineralized
      &    POC_prod,        ! POC production (mmol C/m^3/sec)
-     &    POC_prod_zoo_loss, ! POC production in Zoo loss (mmol C/m^3/sec)
-     &    POC_prod_diat,   ! POC production in Diat grz/agg/loss (mmol C/m^3/sec)
-     &    POC_prod_sp,     ! POC production in SP grz/agg/loss (mmol C/m^3/sec)
-     &    POC_prod_diaz,   ! POC production in Diaz grz/agg/loss (mmol C/m^3/sec)
-# ifdef BEC_COCCO
-     &    POC_prod_cocco,  ! POC production in Cocco grz/agg/loss (mmol C/m^3/sec)
-# endif
      &    P_CaCO3_prod,    ! large detritus CaCO3, base units = mmol CaCO3
      &    P_SiO2_prod,     ! prod. of large detritus SiO2
      &    Fe_scavenge,     ! loss of dissolved iron, scavenging (mmol Fe/m^3/sec)
@@ -982,6 +1087,17 @@ c$$$       enddo
        coccoFe_loc = MAX(c0, TRACER(istr:iend,j,k,coccofe_ind_t))
        cal_loc = MAX(c0, TRACER(istr:iend,j,k,cal_ind_t))
 # endif
+# ifdef Ncycle_SY
+       NO2_loc  = MAX(c0, TRACER(istr:iend,j,k,no2_ind_t))
+       N2O_atm_loc = MAX(c0, TRACER(istr:iend,j,k,n2o_atm_ind_t))
+       N2O_ao1_loc  = MAX(c0, TRACER(istr:iend,j,k,n2o_ao1_ind_t))
+       N2O_ao2_loc  = MAX(c0, TRACER(istr:iend,j,k,n2o_ao2_ind_t))
+       N2O_siden_loc  = MAX(c0, TRACER(istr:iend,j,k,n2o_siden_ind_t))
+       N2O_soden_loc  = MAX(c0, TRACER(istr:iend,j,k,n2o_soden_ind_t))
+       N2_loc  = MAX(c0, TRACER(istr:iend,j,k,n2_ind_t))
+       N2O_loc = MAX(c0, TRACER(istr:iend,j,k,n2o_ind_t))
+# endif
+
 #ifdef BEC2_DIAG
 # ifdef BEC2_DIAG_USER
        if (bec2_diag_3d_l(totchl_idx_t))
@@ -1130,7 +1246,7 @@ c$$$       enddo
           if (CaCO3_ind(auto_ind) > 0) then
 #  ifdef BEC_COCCO
              if (exp_calcifier(auto_ind)) then
-                QCaCO3(istr:iend,auto_ind) = 0.2  ! 0.433
+                QCaCO3(istr:iend,auto_ind) = 1.00  ! 0.433
              else 
                 QCaCO3(istr:iend,auto_ind) = 
      &              min( CaCO3_loc(istr:iend,auto_ind) 
@@ -1148,9 +1264,6 @@ c$$$       enddo
      &     bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(spqcaco3_idx_t)) = QCaCO3(istr:iend,sp_ind)
 #  else
        bec2_diag_3d(istr:iend,j,k,spqcaco3_idx_t) = QCaCO3(istr:iend,sp_ind)
-#  ifdef BEC_COCCO
-       bec2_diag_3d(istr:iend,j,k,coccoqcaco3_idx_t) = QCaCO3(istr:iend,cocco_ind)
-#  endif /* BEC_COCCO */
 #  endif
 # endif
 
@@ -1372,25 +1485,47 @@ c$$$       enddo
              PCmax = PCref(auto_ind) * f_nut * Tfunc
           endif
 
+
+
+!# ifdef BEC_COCCO
+!! smoother function to scale down Tfunc below critical temp
+!          if (auto_ind==cocco_ind) then
+!             PCmax = PCref(auto_ind) * f_nut * Tfunc *
+!     &            ((temp+2)**10)/((temp+2)**10 + (8)**10)
+!          elseif (auto_ind==diaz_ind) then
+!             PCmax = PCref(auto_ind) * f_nut * Tfunc * 
+!     &            ((temp+2)**10)/((temp+2)**10 + (17)**10)
+!          else
+!             PCmax = PCref(auto_ind) * f_nut * Tfunc 
+!          endif
+!# endif /* BEC_COCCO */
           where (temp < temp_thres(auto_ind)) PCmax = c0
 
           light_lim = c1 - exp((-c1 * alphaPI(auto_ind) * thetaC(istr:iend,auto_ind) * PAR_lay) /
      &                      (PCmax + epsTinv))
-# ifdef BEC_COCCO
-          if (auto_ind==cocco_ind) then
-          ! set growth to zero at PAR<10 (this aims especially at deeper
-          ! layers!!
-             where (PAR_lay < 1) light_lim = c0
-          end if
-# endif /* BEC_COCCO */
           PCphoto = PCmax * light_lim
 # ifdef BEC_COCCO
-!   reduce cocco growth at low temperatures
           if (auto_ind==cocco_ind) then
+!            light_lim = (PAR_lay**4/(0.06**4 + PAR_lay**4))*(c1 - 
+!     &                   exp((-c1 * alphaPI(auto_ind) * thetaC(istr:iend,auto_ind) * PAR_lay) /
+!     &                   (PCmax + epsTinv)))
+          ! set growth to zero at PAR<10 (this aims especially at deeper
+          ! layers!!
+             where (PAR_lay < 10) light_lim = c0
+
+!  calcification: use different light_lim than for photosynthesis (see
+!  Zondervan 2007)
+!            light_lim_calc = (PAR_lay**4/(0.06**4 + PAR_lay**4))*(c1 - 
+!     &                   exp((-c1 * 1.1*alphaPI(auto_ind) * thetaC(istr:iend,auto_ind) * PAR_lay) /
+!     &                   (PCmax + epsTinv)))
+
+             PCphoto = PCmax * light_lim
+
+!   reduce cocco growth at low temperatures
              where (temp < CaCO3_temp_thres1)
      &          PCphoto =PCphoto * max((temp-CaCO3_temp_thres2), c0) /
      &                    (CaCO3_temp_thres1-CaCO3_temp_thres2)
-          endif
+          end if
 # endif /* BEC_COCCO */
           photoC(istr:iend,auto_ind) = PCphoto * C_loc(istr:iend,auto_ind)
 # ifdef BEC2_DIAG
@@ -1960,33 +2095,11 @@ c$$$       enddo
        POC_prod = f_zoo_detr_loc * zoo_loss + sum(auto_graze_poc, dim=2)
      &            + sum(auto_agg, dim=2) + sum(auto_loss_poc, dim=2)
 # ifdef BEC2_DIAG
-! split POC_prod into PFT contributions
-       POC_prod_zoo_loss = f_zoo_detr_loc * zoo_loss
-       POC_prod_diat = auto_graze_poc(istr:iend,diat_ind)
-     &            + auto_agg(istr:iend,diat_ind) + auto_loss_poc(istr:iend,diat_ind)
-       POC_prod_sp = auto_graze_poc(istr:iend,sp_ind)
-     &            + auto_agg(istr:iend,sp_ind) + auto_loss_poc(istr:iend,sp_ind)
-       POC_prod_diaz = auto_graze_poc(istr:iend,diaz_ind)
-     &            + auto_agg(istr:iend,diaz_ind) + auto_loss_poc(istr:iend,diaz_ind)
-# ifdef BEC_COCCO
-       POC_prod_cocco = auto_graze_poc(istr:iend,cocco_ind)
-     &            + auto_agg(istr:iend,cocco_ind) + auto_loss_poc(istr:iend,cocco_ind)
-# endif
-# endif
-
-# ifdef BEC2_DIAG
 #  ifdef BEC2_DIAG_USER
        if (bec2_diag_3d_l(pocprod_idx_t))
      &    bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(pocprod_idx_t)) = POC_prod(istr:iend)
 #  else
        bec2_diag_3d(istr:iend,j,k,pocprod_idx_t) = POC_prod(istr:iend)
-       bec2_diag_3d(istr:iend,j,k,pocprodzooloss_idx_t) = POC_prod_zoo_loss(istr:iend)
-       bec2_diag_3d(istr:iend,j,k,pocproddiat_idx_t) = POC_prod_diat(istr:iend)
-       bec2_diag_3d(istr:iend,j,k,pocprodsp_idx_t) = POC_prod_sp(istr:iend)
-       bec2_diag_3d(istr:iend,j,k,pocproddiaz_idx_t) = POC_prod_diaz(istr:iend)
-# ifdef BEC_COCCO
-       bec2_diag_3d(istr:iend,j,k,pocprodcocco_idx_t) = POC_prod_cocco(istr:iend)
-# endif
 #  endif
 # endif
 
@@ -2100,6 +2213,42 @@ c$$$       enddo
        ! CN (Oct 2015): add same WORK1 formulation as for
        ! O2_CONSUMPTION!! -> to avoid that NITRIF is switched off in
        ! O2_CONSUMPTION, but still appears in NH4 and NO3 equations!
+# ifdef Ncycle_SY
+        ! ammonium oxidation 
+        where (NH4_loc .gt. c0 .and. O2_loc .gt. c0 .and. PAR_out < parm_nitrif_par_lim)
+            ammox = parm_kao * (O2_loc / (parm_ko2_ao + O2_loc)) 
+     &      * (NH4_loc/(parm_knh4_ao + NH4_loc))
+                where (PAR_in > parm_nitrif_par_lim)
+                        ammox = ammox * log(PAR_out / parm_nitrif_par_lim) / (-KPARdz)
+                end where
+        elsewhere
+            ammox = c0
+        end where    
+
+        where (NO2_loc .gt. c0 .and. O2_loc .gt. c0 .and. PAR_out < parm_nitrif_par_lim)
+               nitrox = parm_kno * (O2_loc / (parm_ko2_no + O2_loc))
+     &         * (NO2_loc/(parm_kno2_no + NO2_loc)) 
+               where (PAR_in > parm_nitrif_par_lim)
+                        nitrox = nitrox * log(PAR_out /parm_nitrif_par_lim) / (-KPARdz)
+               endwhere
+        elsewhere
+            nitrox = c0
+        end where
+
+        where (O2_loc .gt. 1e-5)  
+                n2o_nh4_yield1 = c1/(2.0 + c1 / ((parm_n2o_ji_a / O2_loc + parm_n2o_ji_b)/100.0));
+                no2_nh4_yield1 = c1/(2.0 * ((parm_n2o_ji_a / O2_loc +parm_n2o_ji_b)/100.0) + 1.0);
+        elsewhere
+                n2o_nh4_yield1 = 0.5
+                no2_nh4_yield1 = c0
+        end where
+
+# ifdef BEC2_DIAG
+      bec2_diag_3d(istr:iend,j,k,ammox_idx_t) = ammox
+      bec2_diag_3d(istr:iend,j,k,nitrox_idx_t) = nitrox
+# endif
+
+# else
        WORK1 = (O2_loc - parm_o2_min) / parm_o2_min_delta
        WORK1 = min(max(WORK1,c0),c1)
        where (PAR_out < parm_nitrif_par_lim)
@@ -2117,7 +2266,8 @@ c$$$       enddo
      &    bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(nitrif_idx_t)) = NITRIF
 #  else
        bec2_diag_3d(istr:iend,j,k,nitrif_idx_t) = NITRIF
-#  endif
+# endif
+# endif
 # endif
 
     !-----------------------------------------------------------------------
@@ -2131,6 +2281,59 @@ c$$$       enddo
 
        ! CN: See Simon's code: under low NO3, DENITRIF is reduced!
        ! NO3min=2
+# ifdef Ncycle_SY
+! split denitrification into three components i.e., one done by no3, one by no2 and one by n2o
+       ! Total organic matter denitrified in C units 
+       eps_den = 1.0e-30 
+       R_oxic = parm_koxic * (O2_loc / (parm_ko2_oxic + O2_loc))
+       R_den1 = parm_kden1 * (NO3_loc / (parm_kno3_den1 + NO3_loc)) * exp(-O2_loc/parm_ko2_den1) + eps_den
+       R_den2 = parm_kden2 * (NO2_loc / (parm_kno2_den2 + NO2_loc)) * exp(-O2_loc/parm_ko2_den2) + eps_den
+       R_den3 = parm_kden2 * (N2O_loc / (parm_kn2o_den3 + N2O_loc)) * exp(-O2_loc/parm_ko2_den3) + eps_den
+       roxic = R_oxic / (R_den1 + R_den2 + R_den3 + R_oxic)
+       rden1 = R_den1 / (R_den1 + R_den2 + R_den3 + R_oxic)
+       rden2 = R_den2 / (R_den1 + R_den2 + R_den3 + R_oxic)
+       rden3 = R_den3 / (R_den1 + R_den2 + R_den3 + R_oxic)
+
+       Rden =  (DOC_remin + POC_remin(istr:iend,j)
+     &                - OTHER_REMIN - SED_DENITRIF * denitrif_C_N)
+
+       where (NO3_loc .gt. c0)
+                DENITRIF1 = rden1 * Rden * denitrif_NO3_C 
+       elsewhere
+                DENITRIF1 = c0 
+       end where
+       where (NO2_loc .gt. c0)
+                DENITRIF2 = rden2 * Rden * denitrif_NO2_C
+       elsewhere
+                DENITRIF2 = c0
+       end where
+! if  consumption is such that n2o goes negative after one timestep (600s) 
+! then reduce consumption
+       where (N2O_loc .gt. c0)
+                where (N2O_loc - rden3 * Rden * denitrif_N2O_C * 600.0 .gt. c0) 
+                        DENITRIF3 = rden3 * Rden * denitrif_N2O_C
+                elsewhere 
+                        DENITRIF3 = N2O_loc / 600.0       
+                end where
+        elsewhere
+                DENITRIF3 = c0
+        end where
+
+       where  (NH4_loc .gt. c0 .and. NO2_loc .gt. c0)
+                anammox = parm_kax * (NH4_loc / (parm_knh4_ax + NH4_loc)) * 
+     &                  (NO2_loc / (parm_kno2_den2 + NO2_loc)) * exp(-O2_loc/parm_ko2_ax)
+        elsewhere
+                anammox = c0
+        end where
+
+# ifdef BEC2_DIAG
+      bec2_diag_3d(istr:iend,j,k,anammox_idx_t) = anammox
+      bec2_diag_3d(istr:iend,j,k,denitrif1_idx_t) = DENITRIF1
+      bec2_diag_3d(istr:iend,j,k,denitrif2_idx_t) = DENITRIF2
+      bec2_diag_3d(istr:iend,j,k,denitrif3_idx_t) = DENITRIF3
+# endif
+
+# else 
 
        DENITRIF = WORK1 * ((DOC_remin
      &                  + POC_remin(istr:iend,j)
@@ -2148,6 +2351,7 @@ c$$$       enddo
        bec2_diag_3d(istr:iend,j,k,denitrif_idx_t) = DENITRIF
 #  endif
 # endif
+# endif
 
 
     !-----------------------------------------------------------------------
@@ -2157,7 +2361,27 @@ c$$$       enddo
     !-----------------------------------------------------------------------
     !  nitrate & ammonium
     !-----------------------------------------------------------------------
+# ifdef Ncycle_SY
+       DTRACER_MODULE(istr:iend,j,k,no3_ind_t) = nitrox - DENITRIF1 -
+     &                                 SED_DENITRIF - sum(NO3_V, dim=2)
 
+       DTRACER_MODULE(istr:iend,j,k,no2_ind_t) = ammox * no2_nh4_yield1 - nitrox +
+     &                                 DENITRIF1 - DENITRIF2 - anammox
+
+       DTRACER_MODULE(istr:iend,j,k,nh4_ind_t) = -sum(NH4_V, dim=2) - ammox - anammox + DON_remin + DONr_remin
+     &     + Q * (zoo_loss_dic + sum(auto_loss_dic, dim=2) + sum(auto_graze_dic, dim=2)
+     &     + POC_remin(istr:iend,j)
+     &     * (c1 - DONrefract))
+
+       DTRACER_MODULE(istr:iend,j,k,n2o_ao1_ind_t) = ammox * n2o_nh4_yield1
+       DTRACER_MODULE(istr:iend,j,k,n2o_ao2_ind_t) = c0
+       DTRACER_MODULE(istr:iend,j,k,n2o_soden_ind_t) = 0.5 * DENITRIF2
+       DTRACER_MODULE(istr:iend,j,k,n2o_siden_ind_t) = -DENITRIF3 
+       DTRACER_MODULE(istr:iend,j,k,n2o_ind_t) = ammox * n2o_nh4_yield1 + 0.5 * DENITRIF2 - DENITRIF3
+       DTRACER_MODULE(istr:iend,j,k,n2o_atm_ind_t) = c0
+
+
+# else
        DTRACER_MODULE(istr:iend,j,k,no3_ind_t) = NITRIF - DENITRIF - 
      &                                 SED_DENITRIF - sum(NO3_V, dim=2)
 
@@ -2165,6 +2389,7 @@ c$$$       enddo
      &     + Q * (zoo_loss_dic + sum(auto_loss_dic, dim=2) + sum(auto_graze_dic, dim=2)
      &     + POC_remin(istr:iend,j)
      &     * (c1 - DONrefract))
+# endif
 
        do auto_ind = 1, autotroph_cnt
           if (Nfixer(auto_ind))
@@ -2340,14 +2565,30 @@ c$$$       enddo
           endif
        end do
 
+# ifdef Ncycle_SY
+       where (O2_loc .le. c0)
+                WORK1 = c0
+       elsewhere
+       WORK1 = roxic
+       endwhere
+# else 
        WORK1 = (O2_loc - parm_o2_min) / parm_o2_min_delta
        WORK1 = min(max(WORK1,c0),c1)
+# endif
+# ifdef Ncycle_SY
+       O2_CONSUMPTION = WORK1 *
+     &  ((
+     &   POC_remin(istr:iend,j)
+     &   + DOC_remin - (SED_DENITRIF*denitrif_C_N) - OTHER_REMIN)/ parm_Remin_D_C_O2) + (zoo_loss_dic
+     &   + sum(auto_loss_dic, dim=2) + sum(auto_graze_dic, dim=2)) / parm_Remin_D_C_O2
+     &   + 1.5 * ammox + 0.5 * nitrox
+# else
        O2_CONSUMPTION = WORK1 *
      &  ((
      &   POC_remin(istr:iend,j)
      &   + DOC_remin - (SED_DENITRIF*denitrif_C_N) - OTHER_REMIN + zoo_loss_dic
      &   + sum(auto_loss_dic, dim=2) + sum(auto_graze_dic, dim=2)) / parm_Remin_D_C_O2 + (c2 * NITRIF))
-
+# endif
        DTRACER_MODULE(istr:iend,j,k,o2_ind_t) = O2_PRODUCTION - O2_CONSUMPTION
 # ifdef BEC_COCCO
     !-----------------------------------------------------------------------
@@ -2778,8 +3019,7 @@ c$$$       enddo
 # ifdef USE_EXPLICIT_VSINK             
              psio2soft_remin_loc = psio2soft_remin_loc * TfuncS(i)
 # else    
-! CN: only apply change of remin length scale with depth, not with temperature
-!             sio2_diss_loc = sio2_diss_loc / TfuncS(i)
+             sio2_diss_loc = sio2_diss_loc / TfuncS(i)
 # endif
     !-----------------------------------------------------------------------
     !  decay_POC_E and decay_SiO2 set locally, modified by O2
@@ -3424,6 +3664,124 @@ c$$$       enddo
 !
 !-------------------------------------------------------------------------
 
+         subroutine CSCHMIDT_N2O(SSTT,landmask,SCHMIDT_N2O,istr,
+     &          iend,jstr,jend)
+        implicit none
+!! needed for c0
+!#include "param_bec2.h"
+        
+       integer::istr,iend,jstr,jend
+         LOGICAL,DIMENSION(istr:iend,jstr:jend) :: landmask
+
+     !---------------------------------------------------------------------------
+     !   Compute Schmidt number of N2O in seawater as function of SST
+     !   where LAND_MASK is true. Give zero where LAND_MASK is false.
+     !
+     !   ref : Sarmiento and Gruber 2006 book (OBCD, table 3.3.1 page 85 
+     !---------------------------------------------------------------------------
+     !
+     !DL: over land, do NOT assign zero to the result, but use very large value instead
+     ! in order to prevent division by zero.
+
+     !---------------------------------------------------------------------------
+     !   arguments
+     !---------------------------------------------------------------------------
+
+           REAL, DIMENSION(istr:iend,jstr:jend), INTENT(IN) :: SSTT
+
+     !---------------------------------------------------------------------------
+     !   result declaration
+     !---------------------------------------------------------------------------
+
+           REAL, DIMENSION(istr:iend,jstr:jend) :: SCHMIDT_N2O
+
+     !---------------------------------------------------------------------------
+     !   coefficients in expansion
+     !---------------------------------------------------------------------------
+
+          REAL, PARAMETER :: 
+     &      a = 2301.1, 
+     &      b = 151.1, 
+     &      c = 4.7364, 
+     &      d = 0.059431
+
+         WHERE (LANDMASK)
+           SCHMIDT_N2O = a + SSTT* (-b + SSTT * (c + SSTT * (-d)))
+         ELSEWHERE
+            SCHMIDT_N2O = 1e30
+          END WHERE
+          return
+          END subroutine CSCHMIDT_N2O
+
+          subroutine N2OSATU(SSTT, SSSS,landmask, N2OSAT,istr,
+     &         iend,jstr,jend)
+        implicit none
+! needed for c0
+#include "param_bec2.h"
+       integer::istr,iend,jstr,jend
+       LOGICAL,DIMENSION(istr:iend,jstr:jend) :: landmask
+
+     !---------------------------------------------------------------------------
+     !
+     !   Computes n2o saturation concentration at 1 atm total pressure
+     !   in mmol/m^3 given the temperature (t, in deg C) and the salinity (s,
+     !   in permil) where LAND_MASK is true. Give zero where LAND_MASK is false.
+     !
+     !   FROM WEISS AND PRICE (1980), Marine chemistry.
+     !
+     !---------------------------------------------------------------------------
+
+     !---------------------------------------------------------------------------
+     !   arguments
+     !---------------------------------------------------------------------------
+
+        REAL, DIMENSION(istr:iend,jstr:jend), INTENT(IN) :: 
+     &    SSTT,  ! sea surface temperature (C)
+     &    SSSS    ! sea surface salinity (psu)
+
+     !---------------------------------------------------------------------------
+     !   result declaration
+     !---------------------------------------------------------------------------
+
+         REAL, DIMENSION(istr:iend,jstr:jend) :: N2OSAT
+
+     !---------------------------------------------------------------------------
+     !   local variables
+     !---------------------------------------------------------------------------
+
+         REAL, DIMENSION(istr:iend,jstr:jend) :: TS
+
+     !---------------------------------------------------------------------------
+     !   coefficients in expansion
+     !---------------------------------------------------------------------------
+
+        REAL, PARAMETER :: 
+     &    a_1 = -165.8802, 
+     &    a_2 = 222.8743, 
+     &    a_3 = 92.0792, 
+     &    a_4 = -1.48425, 
+     &    b_1 = -0.056235,
+     &    b_2 = 0.031619, 
+     &    b_3 = -0.0048472 
+
+        WHERE (LANDMASK)
+           TS = T0_Kelvin + SSTT
+
+         N2OSAT =  exp(a_1 + a_2 * (100.0/TS) + a_3 * log(TS/100.0) +
+     &          a_4 * (TS/100.0)**2 + SSSS * (b_1 +b_2 * (TS/100.0) + b_3 *
+     &          (TS/100.0)**2)) 
+        ELSEWHERE
+          N2OSAT = c0
+       END WHERE
+     !---------------------------------------------------------------------------
+     !   Convert from mol/l to mmol/m^3
+     !---------------------------------------------------------------------------
+
+        N2OSAT = N2OSAT * 1000 * 1000
+
+        return
+        END subroutine N2OSATU
+
          subroutine CSCHMIDT_O2(SSTT,landmask,SCHMIDT_O2,istr,
      &          iend,jstr,jend)
         implicit none
@@ -3490,28 +3848,28 @@ c$$$       enddo
        integer::istr,iend,jstr,jend
        LOGICAL,DIMENSION(istr:iend,jstr:jend) :: landmask
 
-    !---------------------------------------------------------------------------
-    !
-    !   Computes oxygen saturation concentration at 1 atm total pressure
-    !   in mmol/m^3 given the temperature (t, in deg C) and the salinity (s,
-    !   in permil) where LAND_MASK is true. Give zero where LAND_MASK is false.
-    !
-    !   FROM GARCIA AND GORDON (1992), LIMNOLOGY and OCEANOGRAPHY.
-    !   THE FORMULA USED IS FROM PAGE 1310, EQUATION (8).
-    !
-    !   *** NOTE: THE "A_3*TS^2" TERM (IN THE PAPER) IS INCORRECT. ***
-    !   *** IT SHOULDN'T BE THERE.                                ***
-    !
-    !   O2SAT IS DEFINED BETWEEN T(freezing) <= T <= 40(deg C) AND
-    !   0 permil <= S <= 42 permil
-    !   CHECK VALUE:  T = 10.0 deg C, S = 35.0 permil,
-    !   O2SAT = 282.015 mmol/m^3
-    !
-    !---------------------------------------------------------------------------
-
-    !---------------------------------------------------------------------------
-    !   arguments
-    !---------------------------------------------------------------------------
+     !---------------------------------------------------------------------------
+     !
+     !   Computes oxygen saturation concentration at 1 atm total pressure
+     !   in mmol/m^3 given the temperature (t, in deg C) and the salinity (s,
+     !   in permil) where LAND_MASK is true. Give zero where LAND_MASK is false.
+     !
+     !   FROM GARCIA AND GORDON (1992), LIMNOLOGY and OCEANOGRAPHY.
+     !   THE FORMULA USED IS FROM PAGE 1310, EQUATION (8).
+     !
+     !   *** NOTE: THE "A_3*TS^2" TERM (IN THE PAPER) IS INCORRECT. ***
+     !   *** IT SHOULDN'T BE THERE.                                ***
+     !
+     !   O2SAT IS DEFINED BETWEEN T(freezing) <= T <= 40(deg C) AND
+     !   0 permil <= S <= 42 permil
+     !   CHECK VALUE:  T = 10.0 deg C, S = 35.0 permil,
+     !   O2SAT = 282.015 mmol/m^3
+     !
+     !---------------------------------------------------------------------------
+ 
+     !---------------------------------------------------------------------------
+     !   arguments
+     !---------------------------------------------------------------------------
 
        REAL, DIMENSION(istr:iend,jstr:jend), INTENT(IN) :: 
      &    SSTT,  ! sea surface temperature (C)

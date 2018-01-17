@@ -229,6 +229,48 @@ CR      write(*,'(1x,A,I3)') 'indxNH4 =',indxNH4
       vname(4,indxCal)='  '
 # endif 
 
+# ifdef Ncycle_SY
+      vname(1,indxno2)='NO2                                   '
+      vname(2,indxno2)='Nitrite                                 '
+      vname(3,indxno2)='mMol N m-3                              '
+      vname(4,indxno2)='  '
+
+      vname(1,indxn2o_ao1)='N2O_AO1                                 '
+      vname(2,indxn2o_ao1)='Nitrous oxide produced via AO1             '
+      vname(3,indxn2o_ao1)='mMol N2O m-3                              '
+      vname(4,indxn2o_ao1)='  '
+
+      vname(1,indxn2o_ao2)='N2O_AO2                                 '
+      vname(2,indxn2o_ao2)='Nitrous oxide produced via AO2          '
+      vname(3,indxn2o_ao2)='mMol N2O m-3                          '
+      vname(4,indxn2o_ao2)='  '
+
+      vname(1,indxn2o_siden)='N2O_SIDEN                                '
+      vname(2,indxn2o_siden)='Nitrous oxide consumed via denitrif. '
+      vname(3,indxn2o_siden)='mMol N2O m-3                             '
+      vname(4,indxn2o_siden)='  '
+
+      vname(1,indxn2o_soden)='N2O_SODEN                              '
+      vname(2,indxn2o_soden)='Nitrous oxide produced via denitrif.   '
+      vname(3,indxn2o_soden)='mMol N2O m-3                         '
+      vname(4,indxn2o_soden)='  '
+
+      vname(1,indxn2)='N2                              '
+      vname(2,indxn2)='Dinitrogen   '
+      vname(3,indxn2)='mMol N2 m-3                         '
+      vname(4,indxn2)='  '
+
+      vname(1,indxn2o_atm)='N2O_ATM                              '
+      vname(2,indxn2o_atm)='N2O of atmospheric provenance   '
+      vname(3,indxn2o_atm)='mMol N2 m-3                         '
+      vname(4,indxn2o_atm)='  '
+
+      vname(1,indxn2o)='N2O                              '
+      vname(2,indxn2o)='Nitrous oxide   '
+      vname(3,indxn2o)='mMol N2O m-3                         '
+      vname(4,indxn2o)='  '
+
+# endif
       vname(1,indxdust)='dust                                       '
       vname(2,indxdust)='dust flux                      '
       vname(3,indxdust)='kg m-2 s-1                                '
@@ -341,7 +383,56 @@ CR      write(*,'(1x,A,I3)') 'indxNH4 =',indxNH4
       vname_bec2_diag_2d(2,indxPVCO2)='Piston velocity for CO2'
       vname_bec2_diag_2d(3,indxPVCO2)='m/s '
       vname_bec2_diag_2d(4,indxPVCO2)=' '
+#ifdef Ncycle_SY
+      vname_bec2_diag_2d(1,indxfgn2o_ao1)='FG_N2O_AO1'
+      vname_bec2_diag_2d(2,indxfgn2o_ao1)='Air-sea flux of N2O from AO1'
+      vname_bec2_diag_2d(3,indxfgn2o_ao1)='mmol/m2/s'
+      vname_bec2_diag_2d(4,indxfgn2o_ao1)=' '
 
+      vname_bec2_diag_2d(1,indxfgn2o_ao2)='FG_N2O_AO2'
+      vname_bec2_diag_2d(2,indxfgn2o_ao2)='Air-sea flux of N2O from AO2'
+      vname_bec2_diag_2d(3,indxfgn2o_ao2)='mmol/m2/s '
+      vname_bec2_diag_2d(4,indxfgn2o_ao2)=' '
+
+      vname_bec2_diag_2d(1,indxfgn2o_siden)='FG_N2O_SIDEN'
+      vname_bec2_diag_2d(2,indxfgn2o_siden)=
+     &   'Air-sea flux of N2O from denitrification sink'
+      vname_bec2_diag_2d(3,indxfgn2o_siden)='mmol/m2/s '
+      vname_bec2_diag_2d(4,indxfgn2o_siden)=' '
+
+      vname_bec2_diag_2d(1,indxfgn2o_soden)='FG_N2O_SODEN'
+      vname_bec2_diag_2d(2,indxfgn2o_soden)=
+     &   'Air-sea flux of N2O from denitrification source'
+      vname_bec2_diag_2d(3,indxfgn2o_soden)='mmol/m2/s '
+      vname_bec2_diag_2d(4,indxfgn2o_soden)=' '
+
+      vname_bec2_diag_2d(1,indxfgn2o_atm)='FG_N2O_ATM'
+      vname_bec2_diag_2d(2,indxfgn2o_atm)=
+     &   'Air-sea flux of atmopsheric N2O'
+      vname_bec2_diag_2d(3,indxfgn2o_atm)='mmol/m2/s '
+      vname_bec2_diag_2d(4,indxfgn2o_atm)=' '
+
+      vname_bec2_diag_2d(1,indxfgn2o)='FG_N2O'
+      vname_bec2_diag_2d(2,indxfgn2o)=
+     &   'Air-sea flux of N2O '
+      vname_bec2_diag_2d(3,indxfgn2o)='mmol/m2/s '
+      vname_bec2_diag_2d(4,indxfgn2o)=' '
+
+      vname_bec2_diag_2d(1,indxschmidt_n2o)='SCHMIDT_N2O'
+      vname_bec2_diag_2d(2,indxschmidt_n2o)='Schmidt number for N2O'
+      vname_bec2_diag_2d(3,indxschmidt_n2o)=' '
+      vname_bec2_diag_2d(4,indxschmidt_n2o)=' '
+
+      vname_bec2_diag_2d(1,indxn2osat)='N2OSAT'
+      vname_bec2_diag_2d(2,indxn2osat)='N2O saturation concentration'
+      vname_bec2_diag_2d(3,indxn2osat)='mmol/m3 '
+      vname_bec2_diag_2d(4,indxn2osat)=' '
+
+      vname_bec2_diag_2d(1,indxpvn2o)='PV_N2O'
+      vname_bec2_diag_2d(2,indxpvn2o)='Piston velocity for N2O'
+      vname_bec2_diag_2d(3,indxpvn2o)='m/s '
+      vname_bec2_diag_2d(4,indxpvn2o)=' '
+#endif
 #  if defined CCHEM_MOCSY && defined CCHEM_TODEPTH
       vname_bec2_diag_3d(1,indxCO2STAR)='CO2STAR'
       vname_bec2_diag_3d(2,indxCO2STAR)='CO2STAR'
@@ -459,12 +550,16 @@ CR      write(*,'(1x,A,I3)') 'indxNH4 =',indxNH4
 
 
       ! MF: Control BEC2_DIAG Output vars
-      wrtavg_bec2_diag_2d=(/.true.,.false.,.false.,.false.,.false.,  ! pCO2air, PARinc,FG_O2,FG_CO2, WS10m
+      wrtavg_bec2_diag_2d=(/.true.,.false.,.false.,.false.,.false.,   ! pCO2air, PARinc,FG_O2,FG_CO2, WS10m
      &                     .false.,.false.,.false.,.false.,.false.,   ! XKW, ATM_PRESS,SCHMIDT_O2,O2SAT, SCHMIDT_CO2
-     &                     .false.,.false.,.false.,.true.,.false.,   ! PV_O2,PV_CO2,IRON_FLUX, SED_DENITRI, PH
+     &                     .false.,.false.,.false.,.true.,.false.,    ! PVO2, PV_CO2,IRON_FLUX, SED_DENITRI, PH
      &                     .true.,.false.,.false.,.false.,          ! PCO2, CO2STAR, PCO2OC, DCO2STAR
-     &                     .false.,.false.,.false.,.false.,.false.,   ! FE_SED_FLUX,FLUX_TO_SED,CACO3_FLUX_TO_SED,SIO2_FLUX_TO_SED,PIRON_FLUX_TO_SED
-     &                     .false.,.false.,.false.,.false.,.false./)  ! DUST_FLUX_SED, POC_SED_LOSS, OTHER_REMIN,CaCO3_sed_loss,P_SiO2_sed_loss
+#ifdef Ncycle_SY
+     &                     .true.,.true.,.true.,.true.,.true.,.true.!FG_N2O_AO1, FG_N2O_AO2, FG_N2O_SIDEN, FG_N2O_SODEN, FG_N2O_ATM, FG_N2O
+     &                     ,.true.,.true.,.true.,!SCHMIDT_N2O, N2OSAT PV_N2O
+#endif
+     &                     .true.,.true.,.true.,.true.,.true.,   ! FE_SED_FLUX,FLUX_TO_SED,CACO3_FLUX_TO_SED,SIO2_FLUX_TO_SED,PIRON_FLUX_TO_SED
+     &                     .true.,.true.,.true.,.true.,.true./)  ! DUST_FLUX_SED, POC_SED_LOSS, OTHER_REMIN,CaCO3_sed_loss,P_SiO2_sed_loss
 
       !
       ! More 3d diagnostics:
@@ -961,26 +1056,6 @@ CR      write(*,'(1x,A,I3)') 'indxNH4 =',indxNH4
       vname_bec2_diag_3d(3,indxDIAZPLIM)=' '
       vname_bec2_diag_3d(4,indxDIAZPLIM)=' '
 
-      vname_bec2_diag_3d(1,indxPOCPRODZOOLOSS)='POC_PROD_ZOO_LOSS'
-      vname_bec2_diag_3d(2,indxPOCPRODZOOLOSS)=
-     &  'POC PROD due to Zoo loss'
-      vname_bec2_diag_3d(3,indxPOCPRODZOOLOSS)='mMol C m-3 s-1'
-
-      vname_bec2_diag_3d(1,indxPOCPRODDIAT)='POC_PROD_DIAT'
-      vname_bec2_diag_3d(2,indxPOCPRODDIAT)=
-     &  'POC PROD due to Diat grz/agg/loss'
-      vname_bec2_diag_3d(3,indxPOCPRODDIAT)='mMol C m-3 s-1'
-
-      vname_bec2_diag_3d(1,indxPOCPRODSP)='POC_PROD_SP'
-      vname_bec2_diag_3d(2,indxPOCPRODSP)=
-     &  'POC PROD due to SP grz/agg/loss'
-      vname_bec2_diag_3d(3,indxPOCPRODSP)='mMol C m-3 s-1'
-
-      vname_bec2_diag_3d(1,indxPOCPRODDIAZ)='POC_PROD_DIAZ'
-      vname_bec2_diag_3d(2,indxPOCPRODDIAZ)=
-     &  'POC PROD due to Diaz grz/agg/loss'
-      vname_bec2_diag_3d(3,indxPOCPRODDIAZ)='mMol C m-3 s-1'
-
 # ifdef BEC_COCCO
       vname_bec2_diag_3d(1,indxGRAZECOCCO)='GRAZE_COCCO'
       vname_bec2_diag_3d(2,indxGRAZECOCCO)=
@@ -1088,13 +1163,42 @@ CR      write(*,'(1x,A,I3)') 'indxNH4 =',indxNH4
       vname_bec2_diag_3d(3,indxCOCCOPLIM)=' '
       vname_bec2_diag_3d(4,indxCOCCOPLIM)=' '
 
-      vname_bec2_diag_3d(1,indxPOCPRODCOCCO)='POC_PROD_COCCO'
-      vname_bec2_diag_3d(2,indxPOCPRODCOCCO)=
-     &  'POC PROD due to Cocco grz/agg/loss'
-      vname_bec2_diag_3d(3,indxPOCPRODCOCCO)='mMol C m-3 s-1'
-      vname_bec2_diag_3d(4,indxPOCPRODCOCCO)=' '
-
 # endif BEC_COCCO
+# ifdef Ncycle_SY
+      vname_bec2_diag_3d(1,indxammox)='AMMOX'
+      vname_bec2_diag_3d(2,indxammox)=
+     &  'Ammonium oxidation (NH4 -> NO2)'
+      vname_bec2_diag_3d(3,indxammox)='mmol N/m3/s '
+      vname_bec2_diag_3d(4,indxammox)=' '
+
+      vname_bec2_diag_3d(1,indxnitrox)='NITROX'
+      vname_bec2_diag_3d(2,indxnitrox)=
+     &  'Nitrite oxidation (NO2 -> NO3)'
+      vname_bec2_diag_3d(3,indxnitrox)='mmol N/m3/s'
+      vname_bec2_diag_3d(4,indxnitrox)=' '
+
+      vname_bec2_diag_3d(1,indxanammox)='ANAMMOX'
+      vname_bec2_diag_3d(2,indxanammox)=
+     &  'Anammox (NO2+NH4 -> N2)'
+      vname_bec2_diag_3d(3,indxanammox)='mmol N/m3/s'
+      vname_bec2_diag_3d(4,indxanammox)=' '
+
+      vname_bec2_diag_3d(1,indxDENITRIF1)='DENITRIF1'
+      vname_bec2_diag_3d(2,indxDENITRIF1)='Denitrification1'
+      vname_bec2_diag_3d(3,indxDENITRIF1)='mmol/m3/s'
+      vname_bec2_diag_3d(4,indxDENITRIF1)=' '
+
+      vname_bec2_diag_3d(1,indxDENITRIF2)='DENITRIF2'
+      vname_bec2_diag_3d(2,indxDENITRIF2)='Denitrification2'
+      vname_bec2_diag_3d(3,indxDENITRIF2)='mmol/m3/s'
+      vname_bec2_diag_3d(4,indxDENITRIF2)=' '
+
+      vname_bec2_diag_3d(1,indxDENITRIF3)='DENITRIF3'
+      vname_bec2_diag_3d(2,indxDENITRIF3)='Denitrification3'
+      vname_bec2_diag_3d(3,indxDENITRIF3)='mmol/m3/s'
+      vname_bec2_diag_3d(4,indxDENITRIF3)=' '
+
+# endif
 # endif /* BEC2_DIAG */
 
 # ifdef USE_EXPLICIT_VSINK
@@ -1212,40 +1316,42 @@ CR      write(*,'(1x,A,I3)') 'indxNH4 =',indxNH4
 # ifdef BEC2_DIAG
 
         ! MF: Control BEC2_DIAG Output vars
-      wrtavg_bec2_diag_3d=(/.false.,.true.,.false.,.false.,.true.,      !PAR, POC_FLUX_IN, POC_Prod,POC_REMIN, CACO3_FLUX_IN,
-     &                     .false.,.false.,.true.,.false.,.false.,       !PCACO3_PROD, CACO3_REMIN,SIO2_FLUX_IN, SIO2_PROD, SIO2_REMIN,
-     &                     .false.,.false.,.false.,.false.,.false.,       !DUST_FLUX_IN, DUST_REMIN,P_IRON_FLUX_IN, P_IRON_PROD, P_IRON_REMIN,
+      wrtavg_bec2_diag_3d=(/.false.,.true.,.true.,.true.,.true.,      !PAR, POC_FLUX_IN, POC_Prod,POC_REMIN, CACO3_FLUX_IN,
+     &                     .true.,.true.,.true.,.true.,.true.,       !PCACO3_PROD, CACO3_REMIN,SIO2_FLUX_IN, SIO2_PROD, SIO2_REMIN,
+     &                     .true.,.true.,.true.,.true.,.true.,       !DUST_FLUX_IN, DUST_REMIN,P_IRON_FLUX_IN, P_IRON_PROD, P_IRON_REMIN,
      &                     .false.,.false.,.false.,.false.,.false.,       !GRAZE_SP, GRAZE_DIAT,GRAZE_DIAZ, SP_LOSS, DIAT_LOSS,
-     &                     .false.,.false.,.false.,.true.,.true.,       !ZOO_LOSS, SP_AGG, DIAT_AGG,PHOTOC_SP, PHOTOC_DIA,
-     &                     .false.,.false.,.false.,.false.,.true.,       !TOT_PROD, DOC_PROD,DOC_REMIN, FE_SCAVENGE, SP_N_LIM, 
+     &                     .false.,.false.,.false.,.false.,.false.,       !ZOO_LOSS, SP_AGG, DIAT_AGG,PHOTOC_SP, PHOTOC_DIA,
+     &                     .true.,.false.,.false.,.true.,.true.,       !TOT_PROD, DOC_PROD,DOC_REMIN, FE_SCAVENGE, SP_N_LIM, 
      &                     .true.,.true.,.true.,.true.,.true.,       !SP_FE_LIM, SP_PO4_LIM,SP_LIGHT_LIM, DIAT_N_LIM, DIAT_FE_LIM,
      &                     .true.,.true.,.true.,.false.,.false.,       !DIAT_PO4_LIM, DIAT_SIO3_LIM,DIAT_LIGHT_LIM, CACO3_PROD, DIAZ_NFIX,
-     &                     .false.,.true.,.true.,.true.,.true.,       !DIAZ_LOSS, PHOTOC_DIAZ,DIAZ_PO4_LIM, DIAZ_FE_LIM, DIAZ_LIGHT_LIM,
-     &                     .false.,.false.,.false.,.false.,.false.,       !FE_SCAVENGE_RATE, DON_PROD,DON_REMIN, DOFE_PROD, DOFE_REMIN,
+     &                     .false.,.false.,.true.,.true.,.true.,       !DIAZ_LOSS, PHOTOC_DIAZ,DIAZ_PO4_LIM, DIAZ_FE_LIM, DIAZ_LIGHT_LIM,
+     &                     .true.,.false.,.false.,.false.,.false.,       !FE_SCAVENGE_RATE, DON_PROD,DON_REMIN, DOFE_PROD, DOFE_REMIN,
      &                     .false.,.false.,.false.,.false.,.false.,     !DOP_PROD, DOP_REMIN,DIAT_SI_UPTAKE, PHOTOFE_SP, PHOTOFE_DIA,  
-     &                     .false.,.false.,.false.,.false.,.false.,    !PHOTOFE_DIAZ, NITRI,DENITRI,SP_NO3_UPTAKE,DIAT_NO3_UPTAKE,  
+     &                     .false.,.true.,.true.,.false.,.false.,    !PHOTOFE_DIAZ, NITRI,DENITRI,SP_NO3_UPTAKE,DIAT_NO3_UPTAKE,  
      &                     .false.,.false.,.false.,.false.,.false.,  !DIAZ_NO3_UPTAKE,SP_NH4_UPTAKE, DIAT_NH4_UPTAKE,DIAZ_NH4_UPTAKE,SP_GRAZE_DIC,  
      &                     .false.,.false.,.false.,.false.,.false.,  !DIAT_GRAZE_DIC,DIAZ_GRAZE_DIC, SP_LOSS_DIC,DIAT_LOSS_DIC,DIAZ_LOSS_DIC,  
      &                     .false.,.false.,.false.,.false.,.false.,  !ZOO_LOSS_DIC, DIAZ_AGG,GRAZE_SP_ZOO, GRAZE_DIAT_ZOO, GRAZE_DIAZ_ZOO, 
      &                     .false.,.false.,.false.,.false.,          !SPQCACO3,PHOTOACC_SP,PHOTOACC_DIAT, PHOTOACC_DIAZ,
      &                     .false.,.false.,.false.,.false.,.false.,  !SPC_ZERO, DIATC_ZERO, DIAZC_ZERO, DOC_ZERO, ZOOC_ZERO
-     &                     .false.,.false.,.false.,.false.,           !SPCACO3_ZERO, DONR_REMIN, TOTCHL, SP_P_LIM 
-     &                     .false.,.false.,.false.,                     !DIAT_P_LIM,DIAZ_P_LIM, TOT_PHYTO_C
-     &                     .true.,.true.,.true.,.true.     !POC_PROD_ZOO_LOSS,POC_PROD_DIAT,POC_PROD_SP,POC_PROD_DIAZ
-     ! 95 tracer
+     &                     .false.,.false.,.true.,.false.,           !SPCACO3_ZERO, DONR_REMIN, TOTCHL, SP_P_LIM 
+     &                     .false.,.false.,.true.                     !DIAT_P_LIM,DIAZ_P_LIM, TOT_PHYTO_C
+     ! 91 tracer
 # ifdef USE_EXPLICIT_VSINK
-     ! +10 -> 105 tracer 
+     ! +10 -> 101 tracer 
      &                     ,.false.,.true.,.true.,.false.,.true.,  ! PIRON_HARD_REMIN, CACO3_HARD_REMIN, SIO2_HARD_REMIN, POC_HARD_REMIN,DUST_HARD_REMIN
      &                     .true.,.true.,.true.,.true.,.true.    ! PIRON_SOFT_REMIN, CACO3_SOFT_REMIN, SIO2_SOFT_REMIN, POC_SOFT_REMIN,DUST_SOFT_REMIN
 # endif
 # ifdef BEC_COCCO 
-     ! + 19 -> 124 tracer (w/ expl sinking) or 114 tracer (w/ impl sinking)
-     &                     ,.false., ! GRAZE_COCCO
-     &                     .false.,.false.,.true.,.true.,     ! COCCO_LOSS,COCCO_AGG, PHOTOC_COCCO, COCCO_N_LIM
-     &                     .true.,.true.,.true.,.false.,     ! COCCO_PO4_LIM, COCCO_FE_LIM, COCCO_LIGHT_LIM, CACO3_PROD_COCCO 
-     &                     .false.,.false.,.false.,.false., ! IRON_UPTAKE_COCCO, COCCO_NO3_UPTAKE, COCCO_NH4_UPTAKE, COCCO_GRAZE_DIC 
-     &                     .false.,.false.,.false.,.false.,    ! COCCO_LOSS_DIC, GRAZE_COCCO_ZOO, QCACO3_COCCO, COCCO_PHOTOACC 
-     &                     .true.,.true.   ! COCCO_P_LIM,POC_PROD_COCCO
+     ! + 18 -> 119 tracer (w/ expl sinking) or 109 tracer (w/ impl sinking)
+     &                     ,.true., ! GRAZE_COCCO
+     &                     .true.,.true.,.true.,.true.,     ! COCCO_LOSS,COCCO_AGG, PHOTOC_COCCO, COCCO_N_LIM
+     &                     .true.,.true.,.true.,.true.,     ! COCCO_PO4_LIM, COCCO_FE_LIM, COCCO_LIGHT_LIM, CACO3_PROD_COCCO 
+     &                     .true.,.true.,.true.,.true., ! IRON_UPTAKE_COCCO, COCCO_NO3_UPTAKE, COCCO_NH4_UPTAKE, COCCO_GRAZE_DIC 
+     &                     .true.,.true.,.true.,.true.,    ! COCCO_LOSS_DIC, GRAZE_COCCO_ZOO, QCACO3_COCCO, COCCO_PHOTOACC 
+     &                     .true.   ! COCCO_P_LIM
+# endif
+# ifdef Ncycle_SY
+     &                     ,.true.,.true.,.true.,.true.,.true.,.true.!AMMOX, NITROX,ANAMMOX,DENITRIF1,DENITRIF2,DENITRIF3
 # endif
      &                     /)
 
@@ -1284,6 +1390,16 @@ CR      write(*,'(1x,A,I3)') 'indxNH4 =',indxNH4
       tclm_name(iCOCCOCAL) = 'coccocal_time'
       tclm_name(iCOCCOFE) = 'coccofe_time'
       tclm_name(iCAL) = 'cal_time'
+# endif
+# ifdef Ncycle_SY
+      tclm_name(iNO2) = 'no2_time'
+      tclm_name(iN2O_AO1) = 'n2o_ao1_time'
+      tclm_name(iN2O_AO2) = 'n2o_ao2_time'
+      tclm_name(iN2O_SIDEN) = 'n2o_siden_time'
+      tclm_name(iN2O_SODEN) = 'n2o_soden_time'
+      tclm_name(iN2) = 'n2_time'
+      tclm_name(iN2O_ATM) = 'n2o_atm_time'
+      tclm_name(iN2O) = 'n2o_time'
 # endif
 #endif /* SOLVE3D */
       return
