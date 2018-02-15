@@ -11,7 +11,7 @@
 #define NONLIN_EOS
 #define SPLIT_EOS
 #define SALINITY
-#define SFLX_CORR
+c-->#define SFLX_CORR
                      /*  Forcing */
                      /*         - surface */
 #define DIURNAL_SRFLUX

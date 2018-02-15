@@ -2288,7 +2288,7 @@ c$$$       enddo
        R_oxic = parm_koxic * (O2_loc / (parm_ko2_oxic + O2_loc))
        R_den1 = parm_kden1 * (NO3_loc / (parm_kno3_den1 + NO3_loc)) * exp(-O2_loc/parm_ko2_den1) + eps_den
        R_den2 = parm_kden2 * (NO2_loc / (parm_kno2_den2 + NO2_loc)) * exp(-O2_loc/parm_ko2_den2) + eps_den
-       R_den3 = parm_kden2 * (N2O_loc / (parm_kn2o_den3 + N2O_loc)) * exp(-O2_loc/parm_ko2_den3) + eps_den
+       R_den3 = parm_kden3 * (N2O_loc / (parm_kn2o_den3 + N2O_loc)) * exp(-O2_loc/parm_ko2_den3) + eps_den
        roxic = R_oxic / (R_den1 + R_den2 + R_den3 + R_oxic)
        rden1 = R_den1 / (R_den1 + R_den2 + R_den3 + R_oxic)
        rden2 = R_den2 / (R_den1 + R_den2 + R_den3 + R_oxic)
