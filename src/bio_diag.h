@@ -145,9 +145,10 @@
 # ifdef Ncycle_SY
      &            , indxammox=LAST_I+1,indxnitrox=LAST_I+2
      &            , indxanammox=LAST_I+3,indxDENITRIF1=LAST_I+4,indxDENITRIF2=LAST_I+5
-     &            , indxDENITRIF3=LAST_I+6
+     &            , indxDENITRIF3=LAST_I+6, indxSPNO2UPTAKE=LAST_I+7,indxDIATNO2UPTAKE=LAST_I+8
+     &            , indxDIAZNO2UPTAKE=LAST_I+9
 #  undef LAST_I
-#  define LAST_I indxDENITRIF3
+#  define LAST_I indxDIAZNO2UPTAKE
 # endif
 
 

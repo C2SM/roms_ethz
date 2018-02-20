@@ -83,6 +83,9 @@
        real parm_Red_D_C_P, parm_Red_D_N_P, parm_Red_D_O2_P, parm_Remin_D_O2_P,
      &   parm_Red_P_C_P, parm_Red_D_C_N, parm_Red_P_C_N, parm_Red_D_C_O2,
      &   parm_Remin_D_C_O2, parm_Red_P_C_O2, parm_Red_Fe_C, parm_Red_D_C_O2_diaz
+# ifdef Ncycle_SY
+     &   ,parm_Red_D_C_O2_NO2V
+# endif
        parameter(
      &   parm_Red_D_C_P  = 117.0,                  ! carbon:phosphorus
      &   parm_Red_D_N_P  =  16.0,                  ! nitrogen:phosphorus
@@ -91,11 +94,14 @@
      &   parm_Red_P_C_P  = parm_Red_D_C_P,                  ! carbon:phosphorus
      &   parm_Red_D_C_N  = parm_Red_D_C_P/parm_Red_D_N_P,   ! carbon:nitrogen
      &   parm_Red_P_C_N  = parm_Red_D_C_N,                  ! carbon:nitrogen
-     &   parm_Red_D_C_O2 = parm_Red_D_C_P/parm_Red_D_O2_P,  ! carbon:oxygen
-     &   parm_Remin_D_C_O2 = parm_Red_D_C_P/parm_Remin_D_O2_P,  ! carbon:oxygen
+     &   parm_Red_D_C_O2 = parm_Red_D_C_P/parm_Red_D_O2_P,  ! carbon:oxygen for HNO3 uptake (assuming OM is C117H467O170N16P)
+     &   parm_Remin_D_C_O2 = parm_Red_D_C_P/parm_Remin_D_O2_P,  ! carbon:oxygen for NH3 uptake (assuming OM is C117H467O170N16P)
      &   parm_Red_P_C_O2 = parm_Red_D_C_O2,                 ! carbon:oxygen
      &   parm_Red_Fe_C   = 3.0e-6,                 ! iron:carbon
      &   parm_Red_D_C_O2_diaz = parm_Red_D_C_P/150.0   ! carbon:oxygen for diazotrophs
+# ifdef Ncycle_SY
+     &   ,parm_Red_D_C_O2_NO2V = parm_Red_D_C_P/150.0   ! carbon:oxygen for HNO2 uptake (assuming OM is C117H467O170N16P)
+# endif 
      & )
 
   !----------------------------------------------------------------------------

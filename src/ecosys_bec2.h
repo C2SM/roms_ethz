@@ -29,7 +29,7 @@
 # endif /* CCHEM_MOCSY */
 
 # ifdef Ncycle_SY
-      parameter( nr_bec2_diag_3d=91+nr_cchem_mocsy_3d+6, ! 0 from coccos, 0 from impl sinking
+      parameter( nr_bec2_diag_3d=91+nr_cchem_mocsy_3d+9, ! 0 from coccos, 0 from impl sinking
 # else
 # ifdef USE_EXPLICIT_VSINK
 # ifdef BEC_COCCO
@@ -162,7 +162,8 @@
 # ifdef Ncycle_SY
       integer, parameter :: ammox_idx_t=LAST_I+1,nitrox_idx_t=LAST_I+2,
      &   anammox_idx_t=LAST_I+3,denitrif1_idx_t=LAST_I+4, denitrif2_idx_t=LAST_I+5,
-     &   denitrif3_idx_t=LAST_I+6
+     &   denitrif3_idx_t=LAST_I+6,spno2uptake_idx_t=LAST_I+7,
+     &   diatno2uptake_idx_t=LAST_I+8,diazno2uptake_idx_t=LAST_I+9
 # endif
 
       ! Indices to be used in bec2_diag_2d only:

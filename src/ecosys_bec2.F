@@ -1015,7 +1015,11 @@ c$$$       enddo
      &    Si_loc,          ! amount of Si in each autotroph species
      &    CaCO3_loc,       ! amount of CaCO3 in each autotroph species
      &    QCaCO3,          ! CaCO3/C ratio (mmol CaCO3/mmol C)
+# ifdef Ncycle_SY
+     &    VNOX,            ! NO3 + NO2 uptake rate (non-dim)
+# else 
      &    VNO3,            ! NO3 uptake rate (non-dim)
+# endif 
      &    VNH4,            ! NH4 uptake rate (non-dim)
      &    VNtot,           ! total N uptake rate (non-dim)
      &    VPO4,            ! C-specific PO4 uptake (non-dim)
@@ -1025,6 +1029,9 @@ c$$$       enddo
      &    photoFe,         ! iron uptake
      &    photoSi,         ! silicon uptake (mmol Si/m^3/sec)
      &    NO3_V,           ! nitrate uptake (mmol NO3/m^3/sec)
+#ifdef Ncycle_SY
+     &    NO2_V,           ! nitrate uptake (mmol NO3/m^3/sec)
+# endif
      &    NH4_V,           ! ammonium uptake (mmol NH4/m^3/sec)
      &    PO4_V,           ! PO4 uptake (mmol PO4/m^3/sec)
      &    DOP_V,           ! DOP uptake (mmol DOP/m^3/sec)
@@ -1381,12 +1388,21 @@ c$$$       enddo
     !-----------------------------------------------------------------------
 
        do auto_ind = 1, autotroph_cnt
+# ifdef Ncycle_SY
+          VNOX(istr:iend,auto_ind) = ((NO3_loc + NO2_loc) / kNO3(auto_ind)) /
+     &        (c1 + ((NO3_loc + NO2_loc) / kNO3(auto_ind)) + (NH4_loc / kNH4(auto_ind)))
+          VNH4(istr:iend,auto_ind) = (NH4_loc / kNH4(auto_ind)) /
+     &        (c1 + ((NO3_loc + NO2_loc) / kNO3(auto_ind)) + (NH4_loc / kNH4(auto_ind)))
+          VNtot(istr:iend,auto_ind) = VNOX(istr:iend,auto_ind) + VNH4(istr:iend,auto_ind)
+          if (Nfixer(auto_ind)) VNtot(istr:iend,auto_ind) = c1
+# else
           VNO3(istr:iend,auto_ind) = (NO3_loc / kNO3(auto_ind)) /
      &        (c1 + (NO3_loc / kNO3(auto_ind)) + (NH4_loc / kNH4(auto_ind)))
           VNH4(istr:iend,auto_ind) = (NH4_loc / kNH4(auto_ind)) /
      &        (c1 + (NO3_loc / kNO3(auto_ind)) + (NH4_loc / kNH4(auto_ind)))
           VNtot(istr:iend,auto_ind) = VNO3(istr:iend,auto_ind) + VNH4(istr:iend,auto_ind)
           if (Nfixer(auto_ind)) VNtot(istr:iend,auto_ind) = c1
+# endif
 
           VFe = Fe_loc / (Fe_loc + kFe(auto_ind))
           f_nut = min(VNtot(istr:iend,auto_ind), VFe)
@@ -1558,9 +1574,26 @@ c$$$       enddo
     !  Get nutrient uptakes by autotrophs based on calculated C fixation
     !  total N uptake VNC is used in photoadaption
     !-----------------------------------------------------------------------
-
+# ifdef Ncycle_SY
+          where (VNtot(istr:iend,auto_ind) > c0)
+             NO3_V(istr:iend,auto_ind) = ((NO3_loc/(NO2_loc+NO3_loc))*VNOX(istr:iend,auto_ind) / VNtot(istr:iend,auto_ind))
+     &                   * photoC(istr:iend,auto_ind) * Q
+             NO2_V(istr:iend,auto_ind) = ((NO2_loc/(NO2_loc+NO3_loc))*VNOX(istr:iend,auto_ind) / VNtot(istr:iend,auto_ind))
+     &                   * photoC(istr:iend,auto_ind) * Q 
+             NH4_V(istr:iend,auto_ind) = (VNH4(istr:iend,auto_ind) / VNtot(istr:iend,auto_ind))
+     &                   * photoC(istr:iend,auto_ind) * Q
+             VNC = PCphoto * Q
+          elsewhere
+             NO3_V(istr:iend,auto_ind) = c0
+             NO2_V(istr:iend,auto_ind) = c0
+             NH4_V(istr:iend,auto_ind) = c0
+             VNC = c0
+          end where
+# else
           where (VNtot(istr:iend,auto_ind) > c0)
              NO3_V(istr:iend,auto_ind) = (VNO3(istr:iend,auto_ind) / VNtot(istr:iend,auto_ind))
+     &                   * photoC(istr:iend,auto_ind) * Q
+             NO2_V(istr:iend,auto_ind) = (VNO3(istr:iend,auto_ind) / VNtot(istr:iend,auto_ind))
      &                   * photoC(istr:iend,auto_ind) * Q
              NH4_V(istr:iend,auto_ind) = (VNH4(istr:iend,auto_ind) / VNtot(istr:iend,auto_ind))
      &                   * photoC(istr:iend,auto_ind) * Q
@@ -1570,6 +1603,7 @@ c$$$       enddo
              NH4_V(istr:iend,auto_ind) = c0
              VNC = c0
           end where
+# endif
 
           where (VPtot(istr:iend,auto_ind) > c0)
              PO4_V(istr:iend,auto_ind) = (VPO4(istr:iend,auto_ind) / VPtot(istr:iend,auto_ind)) 
@@ -1775,14 +1809,24 @@ c$$$       enddo
     !  Get N fixation by diazotrophs based on C fixation,
     !  Diazotrophs fix more than they need then 20% is excreted
     !-----------------------------------------------------------------------
-
+# ifdef Ncycle_SY
           if (Nfixer(auto_ind)) then
              WORK1 = photoC(istr:iend,auto_ind) * Q
-             Nfix(istr:iend,auto_ind)     = (WORK1 * r_Nfix_photo) - NO3_V(istr:iend,auto_ind)
+             Nfix(istr:iend,auto_ind)     = (WORK1 * r_Nfix_photo) - NO3_V(istr:iend,auto_ind) - NO2_V(istr:iend,auto_ind)
      &                 - NH4_V(istr:iend,auto_ind)
-             Nexcrete(istr:iend,auto_ind) = Nfix(istr:iend,auto_ind) + NO3_V(istr:iend,auto_ind)
+             Nexcrete(istr:iend,auto_ind) = Nfix(istr:iend,auto_ind) + NO3_V(istr:iend,auto_ind) + NO2_V(istr:iend,auto_ind)
      &                 + NH4_V(istr:iend,auto_ind) - WORK1
           endif
+# else
+          if (Nfixer(auto_ind)) then
+             WORK1 = photoC(istr:iend,auto_ind) * Q
+             Nfix(istr:iend,auto_ind)     = (WORK1 * r_Nfix_photo) - NO3_V(istr:iend,auto_ind) 
+     &                 - NH4_V(istr:iend,auto_ind)
+             Nexcrete(istr:iend,auto_ind) = Nfix(istr:iend,auto_ind) + NO3_V(istr:iend,auto_ind) 
+     &                 + NH4_V(istr:iend,auto_ind) - WORK1
+          endif
+#endif
+
 # ifdef BEC2_DIAG
 #  ifdef BEC2_DIAG_USER
           if (auto_ind == diaz_ind .and. bec2_diag_3d_l(diaznfix_idx_t)) then
@@ -1883,6 +1927,13 @@ c$$$       enddo
      &    bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(spnlim_idx_t)) = VNtot(istr:iend,sp_ind)
        if (bec2_diag_3d_l(diatnlim_idx_t))
      &    bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(diatnlim_idx_t)) = VNtot(istr:iend,diat_ind)
+# ifdef Ncycle_SY
+     &    bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(spno2uptake_idx_t)) = NO2_V(istr:iend,sp_ind)
+       if (bec2_diag_3d_l(diatno3uptake_idx_t))
+     &    bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(diatno2uptake_idx_t)) = NO2_V(istr:iend,diat_ind)
+       if (bec2_diag_3d_l(diazno3uptake_idx_t))
+     &    bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(diazno2uptake_idx_t)) = NO2_V(istr:iend,diaz_ind)
+# endif
        if (bec2_diag_3d_l(spno3uptake_idx_t))
      &    bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(spno3uptake_idx_t)) = NO3_V(istr:iend,sp_ind)
        if (bec2_diag_3d_l(diatno3uptake_idx_t))
@@ -1932,6 +1983,11 @@ c$$$       enddo
        bec2_diag_3d(istr:iend,j,k,spplim_idx_t) = VPtot(istr:iend,sp_ind)
        bec2_diag_3d(istr:iend,j,k,diatplim_idx_t) = VPtot(istr:iend,diat_ind)
        bec2_diag_3d(istr:iend,j,k,diazplim_idx_t) = VPtot(istr:iend,diaz_ind)
+# ifdef Ncycle_SY
+       bec2_diag_3d(istr:iend,j,k,spno2uptake_idx_t) = NO2_V(istr:iend,sp_ind)
+       bec2_diag_3d(istr:iend,j,k,diatno2uptake_idx_t) = NO2_V(istr:iend,diat_ind)
+       bec2_diag_3d(istr:iend,j,k,diazno2uptake_idx_t) = NO2_V(istr:iend,diaz_ind)
+# endif
        bec2_diag_3d(istr:iend,j,k,spno3uptake_idx_t) = NO3_V(istr:iend,sp_ind)
        bec2_diag_3d(istr:iend,j,k,diatno3uptake_idx_t) = NO3_V(istr:iend,diat_ind)
        bec2_diag_3d(istr:iend,j,k,diazno3uptake_idx_t) = NO3_V(istr:iend,diaz_ind)
@@ -2288,7 +2344,7 @@ c$$$       enddo
        R_oxic = parm_koxic * (O2_loc / (parm_ko2_oxic + O2_loc))
        R_den1 = parm_kden1 * (NO3_loc / (parm_kno3_den1 + NO3_loc)) * exp(-O2_loc/parm_ko2_den1) + eps_den
        R_den2 = parm_kden2 * (NO2_loc / (parm_kno2_den2 + NO2_loc)) * exp(-O2_loc/parm_ko2_den2) + eps_den
-       R_den3 = parm_kden3 * (N2O_loc / (parm_kn2o_den3 + N2O_loc)) * exp(-O2_loc/parm_ko2_den3) + eps_den
+       R_den3 = parm_kden2 * (N2O_loc / (parm_kn2o_den3 + N2O_loc)) * exp(-O2_loc/parm_ko2_den3) + eps_den
        roxic = R_oxic / (R_den1 + R_den2 + R_den3 + R_oxic)
        rden1 = R_den1 / (R_den1 + R_den2 + R_den3 + R_oxic)
        rden2 = R_den2 / (R_den1 + R_den2 + R_den3 + R_oxic)
@@ -2366,7 +2422,7 @@ c$$$       enddo
      &                                 SED_DENITRIF - sum(NO3_V, dim=2)
 
        DTRACER_MODULE(istr:iend,j,k,no2_ind_t) = ammox * no2_nh4_yield1 - nitrox +
-     &                                 DENITRIF1 - DENITRIF2 - anammox
+     &                                 DENITRIF1 - DENITRIF2 - anammox - sum(NO2_V, dim=2)
 
        DTRACER_MODULE(istr:iend,j,k,nh4_ind_t) = -sum(NH4_V, dim=2) - ammox - anammox + DON_remin + DONr_remin
      &     + Q * (zoo_loss_dic + sum(auto_loss_dic, dim=2) + sum(auto_graze_dic, dim=2)
@@ -2542,7 +2598,33 @@ c$$$       enddo
     !-----------------------------------------------------------------------
 
        O2_PRODUCTION = c0
-
+# ifdef Ncycle_SY
+       do auto_ind = 1, autotroph_cnt
+          if (.not. Nfixer(auto_ind)) then
+             where (photoC(istr:iend,auto_ind) > c0)
+                O2_PRODUCTION = O2_PRODUCTION + photoC(istr:iend,auto_ind) *
+     &          ((NO3_V(istr:iend,auto_ind) / (NO3_V(istr:iend,auto_ind) 
+     &          + NO2_V(istr:iend,auto_ind) + NH4_V(istr:iend,auto_ind))) / parm_Red_D_C_O2
+     &          + (NH4_V(istr:iend,auto_ind) / (NO3_V(istr:iend,auto_ind) 
+     &          + NO2_V(istr:iend,auto_ind) + NH4_V(istr:iend,auto_ind))) / parm_Remin_D_C_O2
+     &          + (NO2_V(istr:iend,auto_ind) / (NO3_V(istr:iend,auto_ind) 
+     &          + NO2_V(istr:iend,auto_ind) + NH4_V(istr:iend,auto_ind))) / parm_Red_D_C_O2_NO2V)
+             end where
+          else
+             where (photoC(istr:iend,auto_ind) > c0)
+                O2_PRODUCTION = O2_PRODUCTION + photoC(istr:iend,auto_ind) *
+     &          ((NO3_V(istr:iend,auto_ind) / (NO3_V(istr:iend,auto_ind) 
+     &             + NO2_V(istr:iend,auto_ind) + NH4_V(istr:iend,auto_ind) + Nfix(istr:iend,auto_ind))) / parm_Red_D_C_O2
+     &           + (NO2_V(istr:iend,auto_ind) / (NO3_V(istr:iend,auto_ind) + NO2_V(istr:iend,auto_ind) 
+     &           + NH4_V(istr:iend,auto_ind) + Nfix(istr:iend,auto_ind))) / parm_Red_D_C_O2_NO2V
+     &           + (NH4_V(istr:iend,auto_ind) / (NO3_V(istr:iend,auto_ind) + NO2_V(istr:iend,auto_ind) 
+     &           + NH4_V(istr:iend,auto_ind) + Nfix(istr:iend,auto_ind))) / parm_Remin_D_C_O2
+     &           + (Nfix(istr:iend,auto_ind) / (NO3_V(istr:iend,auto_ind) + NO2_V(istr:iend,auto_ind)
+     &           + NH4_V(istr:iend,auto_ind) + Nfix(istr:iend,auto_ind))) / parm_Red_D_C_O2_diaz)
+             end where
+          endif
+       end do
+#else
        do auto_ind = 1, autotroph_cnt
           if (.not. Nfixer(auto_ind)) then
              where (photoC(istr:iend,auto_ind) > c0)
@@ -2564,6 +2646,7 @@ c$$$       enddo
              end where
           endif
        end do
+# endif
 
 # ifdef Ncycle_SY
        where (O2_loc .le. c0)

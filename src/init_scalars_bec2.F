@@ -1198,6 +1198,24 @@ CR      write(*,'(1x,A,I3)') 'indxNH4 =',indxNH4
       vname_bec2_diag_3d(3,indxDENITRIF3)='mmol/m3/s'
       vname_bec2_diag_3d(4,indxDENITRIF3)=' '
 
+      vname_bec2_diag_3d(1,indxSPNO2UPTAKE)='SP_NO2_UPTAKE'
+      vname_bec2_diag_3d(2,indxSPNO2UPTAKE)=
+     &   'NO2 uptake rate of small phyto'
+      vname_bec2_diag_3d(3,indxSPNO2UPTAKE)='mmol/m3/s  '
+      vname_bec2_diag_3d(4,indxSPNO2UPTAKE)=' '
+
+      vname_bec2_diag_3d(1,indxDIATNO2UPTAKE)='DIAT_NO2_UPTAKE'
+      vname_bec2_diag_3d(2,indxDIATNO2UPTAKE)=
+     &   'NO3 uptake rate of diatoms'
+      vname_bec2_diag_3d(3,indxDIATNO2UPTAKE)='mmol/m3/s  '
+      vname_bec2_diag_3d(4,indxDIATNO2UPTAKE)=' '
+
+      vname_bec2_diag_3d(1,indxDIAZNO2UPTAKE)='DIAZ_NO2_UPTAKE'
+      vname_bec2_diag_3d(2,indxDIAZNO2UPTAKE)=
+     &   'NO3 uptake rate of diazotrophs'
+      vname_bec2_diag_3d(3,indxDIAZNO2UPTAKE)='mmol/m3/s  '
+      vname_bec2_diag_3d(4,indxDIAZNO2UPTAKE)=' '
+
 # endif
 # endif /* BEC2_DIAG */
 
@@ -1352,6 +1370,7 @@ CR      write(*,'(1x,A,I3)') 'indxNH4 =',indxNH4
 # endif
 # ifdef Ncycle_SY
      &                     ,.true.,.true.,.true.,.true.,.true.,.true.!AMMOX, NITROX,ANAMMOX,DENITRIF1,DENITRIF2,DENITRIF3
+     &                     ,.true.,.true.,.true. !SP_NO2_UPTAKE,DIAT_NO2_UPTAKE, DIAZ_NO2_UPTAKE
 # endif
      &                     /)
 
