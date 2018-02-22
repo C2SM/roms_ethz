@@ -2,7 +2,7 @@
 #========== ======= =========== ======== === ==== =====
 # Set machine dependent definitions and rules.
 
-include Makedefs
+  include Makedefs.hoffman2
 
 VPATH = Biology
 

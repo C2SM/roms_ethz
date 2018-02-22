@@ -1,0 +1,55 @@
+#Definitions for Intel ifc FORTRAN compiler on Linux
+# =========== === ===== === ======= ======== == =====
+
+.SUFFIXES: .o .f .F
+
+.F.o:
+	$(CPP) -P $(CPPFLAGS) $*.F | ./mpc > $*.f
+	$(CFT) -c $(FFLAGS) $*.f -o $*.o
+#/bin/rm -f $*.f
+.F.f:
+	$(CPP) -P $(CPPFLAGS) $*.F | ./mpc > $*.f
+.f.o:
+	$(CFT) -c $(FFLAGS) $*.f -o $*.o
+.F:
+	$(CFT) -o $@ $(FFLAGS) $(LDFLAGS) $<
+.f:
+	$(CFT) -o $@ $(FFLAGS) $(LDFLAGS) $<
+.o:
+	$(CFT) -o $@ $(FFLAGS) $(LDFLAGS) $<
+
+
+#
+# C-preprocessor from Intel compiler package. Note: in this case
+# __IFC is a pre-defined macro, so there is no need to include it
+# into CPPFLAGS.
+#
+#     CPP = fpp
+
+ MPI_ROOT = /u/local/compilers/intel-cs/2013.0.028/mpi/intel64
+#   NETCDF = /u/local/gcc/4.4.4/libs/netcdf/4.1.3
+   NETCDF = /u/local/apps/netcdf/4.3.2/intel-13.1.1/intelmpi-4.1.1
+   NETCDFF = /u/local/apps/netcdf/4.4.2-fortran/intel-13.1.1/intelmpi-4.1.1
+      CPP = /lib/cpp -traditional
+ CPPFLAGS = -D__IFC -I$(MPI_ROOT)/include -I$(NETCDF)/include -I$(NETCDFF)/include -DHOFFMAN2
+
+
+        LARGE_MEM_FLAG = -mcmodel=medium -i-dynamic
+
+#        OMP_FLAG = -fpp2 -openmp
+
+	CFT = mpiifort -align dcommon -auto -stack_temps #-xsse2 #-check all -CA -CB -CS -traceback -g
+#	CFT = mpiifort -align dcommon -auto -stack_temps -xsse2 -traceback -g -check bounds
+
+        LDR = mpiifort -align dcommon -auto -stack_temps #-xsse2 #-check all -CA -CB -CS -traceback -g
+#        LDR = mpiifort -align dcommon -auto -stack_temps -xsse2 -traceback -g -check bounds
+
+        FFLAGS = -O2 -mp1
+
+	LDFLAGS =
+
+	COMP_FILES = work.pc work.pcl ifc??????
+
+	LCDF = -L$(NETCDF)/lib/ -lnetcdf -L$(NETCDFF)/lib/ -lnetcdff -Wl,-rpath $(NETCDF)/lib -Wl,-rpath $(NETCDFF)/lib
+
+	LMPI = -L$(MPI_ROOT)/lib/ -Wl,-rpath $(MPI_ROOT)/lib
