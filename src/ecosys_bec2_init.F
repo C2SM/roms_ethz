@@ -368,7 +368,10 @@
       press = 1.
 
       lflux_gas_o2  = .TRUE.
+# ifdef Ncycle_SY
       lflux_gas_n2o  = .TRUE.
+      lflux_gas_n2  = .TRUE.
+# endif
       lflux_gas_co2 = .TRUE.
       liron_flux = .TRUE.
 #ifdef RIVER_LOAD_BIO

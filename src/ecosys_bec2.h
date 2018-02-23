@@ -29,14 +29,7 @@
 # endif /* CCHEM_MOCSY */
 
 # ifdef Ncycle_SY
-      parameter( nr_bec2_diag_3d=91+nr_cchem_mocsy_3d+4 ! 0 from coccos, 0 from impl sinking
-# ifdef N2O_TRACER_DECOMP
-     &	+4 ! 0 from coccos, 0 from impl sinking
-#endif
-#ifdef N2O_NEV
-     &  +1 ! 0 from coccos, 0 from impl sinking
-#endif
-     &		,
+      parameter( nr_bec2_diag_3d=91+nr_cchem_mocsy_3d+ 9, ! 0 from coccos, 0 from impl sinking
 # else
 # ifdef USE_EXPLICIT_VSINK
 # ifdef BEC_COCCO
@@ -54,7 +47,14 @@
 # endif /* USE_EXPLICIT_VSINK */
 # endif /* Ncycle_SY*/
 # ifdef Ncycle_SY
-     &           nr_bec2_diag_2d=29+nr_cchem_mocsy_2d+9) 
+     &      nr_bec2_diag_2d=29+nr_cchem_mocsy_2d+8
+# ifdef N2O_TRACER_DECOMP
+     &  +4 ! 0 from coccos, 0 from impl sinking
+#endif
+#ifdef N2O_NEV
+     &  +1 ! 0 from coccos, 0 from impl sinking
+#endif
+     &  )
 #else
      &           nr_bec2_diag_2d=29+nr_cchem_mocsy_2d)  ! CN: added 11 tracers, see bio_diag.h
 #endif
@@ -185,9 +185,10 @@
 # define LAST_I dco2star_idx_t
 #ifdef Ncycle_SY
      &   ,schmidt_n2o_idx_t=LAST_I+1, pvn2o_idx_t=LAST_I+2, n2osat_idx_t=LAST_I+3,
-     &    fgn2o_idx_t=LAST_I+4,
+     &    fgn2o_idx_t=LAST_I+4, schmidt_n2_idx_t=LAST_I+5, pvn2_idx_t=LAST_I+6, 
+     &    fgn2_idx_t=LAST_I+7, n2sat_idx_t=LAST_I+8,
 # undef LAST_I
-# define LAST_I fgn2o_idx_t
+# define LAST_I n2sat_idx_t
 #ifdef N2O_TRACER_DECOMP
      &   fgn2o_ao1_idx_t=LAST_I+1, fgn2o_siden_idx_t=LAST_I+2,
      &   fgn2o_soden_idx_t=LAST_I+3, fgn2o_atm_idx_t=LAST_I+4,
@@ -266,7 +267,10 @@
       logical landmask(GLOBAL_2D_ARRAY)
       common /calcation/landmask
 
-      logical lsource_sink,lflux_gas_o2, lflux_gas_n2o, lflux_gas_co2,
+      logical lsource_sink,lflux_gas_o2, lflux_gas_co2,
+# ifdef Ncycle_SY
+     &  lflux_gas_n2o,  lflux_gas_n2,
+# endif
      &  liron_flux,ldust_flux
 #ifdef RIVER_LOAD_N
      &  ,lriver_load_n

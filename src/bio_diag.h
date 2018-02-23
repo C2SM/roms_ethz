@@ -48,9 +48,10 @@
 # define LAST_I indxDCO2STAR
 # ifdef Ncycle_SY
      &            , indxschmidt_n2o=LAST_I+1, indxpvn2o=LAST_I+2, indxn2osat=LAST_I+3
-     &		  , indxfgn2o=LAST_I+4
+     &		  , indxfgn2o=LAST_I+4,indxschmidt_n2=LAST_I+5, indxpvn2=LAST_I+6
+     &            , indxn2sat=LAST_I+7, indxfgn2=LAST_I+8
 # undef LAST_I
-# define LAST_I indxfgn2o
+# define LAST_I indxfgn2
 # ifdef N2O_TRACER_DECOMP
      &            , indxfgn2o_ao1=LAST_I+1, indxfgn2o_siden=LAST_I+2
      &            , indxfgn2o_soden=LAST_I+3, indxfgn2o_atm=LAST_I+4
@@ -61,6 +62,7 @@
      &            , indxfgn2o_nev=LAST_I+1
 # undef LAST_I
 # define LAST_I indxfgn2o
+# endif
 # endif
 #  ifdef CCHEM_MOCSY
 #   if !defined CCHEM_TODEPTH

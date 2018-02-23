@@ -438,6 +438,27 @@ CR      write(*,'(1x,A,I3)') 'indxNH4 =',indxNH4
       vname_bec2_diag_2d(2,indxpvn2o)='Piston velocity for N2O'
       vname_bec2_diag_2d(3,indxpvn2o)='m/s '
       vname_bec2_diag_2d(4,indxpvn2o)=' '
+
+      vname_bec2_diag_2d(1,indxfgn2)='FG_N2'
+      vname_bec2_diag_2d(2,indxfgn2)=
+     &   'Air-sea flux of N2 '
+      vname_bec2_diag_2d(3,indxfgn2)='mmol/m2/s '
+      vname_bec2_diag_2d(4,indxfgn2)=' '
+
+      vname_bec2_diag_2d(1,indxschmidt_n2)='SCHMIDT_N2'
+      vname_bec2_diag_2d(2,indxschmidt_n2)='Schmidt number for N2'
+      vname_bec2_diag_2d(3,indxschmidt_n2)=' '
+      vname_bec2_diag_2d(4,indxschmidt_n2)=' '
+
+      vname_bec2_diag_2d(1,indxn2sat)='N2SAT'
+      vname_bec2_diag_2d(2,indxn2sat)='N2 saturation concentration'
+      vname_bec2_diag_2d(3,indxn2sat)='mmol/m3 '
+      vname_bec2_diag_2d(4,indxn2sat)=' '
+
+      vname_bec2_diag_2d(1,indxpvn2)='PV_N2O'
+      vname_bec2_diag_2d(2,indxpvn2)='Piston velocity for N2O'
+      vname_bec2_diag_2d(3,indxpvn2)='m/s '
+      vname_bec2_diag_2d(4,indxpvn2)=' '
 #endif
 #  if defined CCHEM_MOCSY && defined CCHEM_TODEPTH
       vname_bec2_diag_3d(1,indxCO2STAR)='CO2STAR'
@@ -562,6 +583,7 @@ CR      write(*,'(1x,A,I3)') 'indxNH4 =',indxNH4
      &                     .true.,.false.,.false.,.false.,          ! PCO2, CO2STAR, PCO2OC, DCO2STAR
 #ifdef Ncycle_SY
      &                     .true.,.true.,.true.,.true., !SCHMIDT_N2O, PV_N2O, N2OSAT, FG_N2O
+     &                     .true.,.true.,.true.,.true., !SCHMIDT_N2,PV_N2, N2SAT, FG_N2
 # ifdef N2O_TRACER_DECOMP
      &                     .true.,.true.,.true.,.true. !FG_N2O_AO1,  FG_N2O_SIDEN, FG_N2O_SODEN, FG_N2O_ATM
 # endif

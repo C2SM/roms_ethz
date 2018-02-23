@@ -23,8 +23,11 @@
        integer su_i1, su_i2, sv_j1, sv_j2
 
        real
-     &    O2SAT_USED,    ! used O2 saturation (mmol/m^3)
-     &    N2OSAT_USED    ! used O2 saturation (mmol/m^3)
+     &    O2SAT_USED    ! used O2 saturation (mmol/m^3)
+# ifdef Ncycle_SY
+     &    , N2OSAT_USED,    ! used O2 saturation (mmol/m^3)
+     &    N2SAT_USED    ! used N2 saturation (mmol/m^3)
+# endif
 
        real,dimension(istr:iend,jstr:jend)::
      &    SSTT,   ! sea surface temperature (C)
@@ -83,7 +86,8 @@
 
 # ifdef Ncycle_SY
        real,dimension(istr:iend,jstr:jend)::
-     &    N2OSAT_1atm   ! N2O saturation @ 1 atm (mmol/m^3)
+     &    N2OSAT_1atm,   ! N2O saturation @ 1 atm (mmol/m^3)
+     &    N2SAT_1atm   ! N2 saturation @ 1 atm (mmol/m^3)
 
        real,dimension(istr:iend)::
      &    XN2O         ! atmospheric n2o conc. (dry-air, 1 atm)
@@ -262,45 +266,117 @@ c$$$       enddo
                !!! we let n2o_atm trace the invasion of atmospheric n2o
                !!! and set the atmopspheric concentration of all other
                !!! tracer to 0 So that everything is additive.
+               FLUX(i,j) = PV(i,j) * (N2OSAT_USED - tracer(i,j,N,n2o_ind_t))
+               STF(i,j,n2o_ind_t) = FLUX(i,j)
+# ifdef N2O_TRACER_DECOMP
                FLUX(i,j) = PV(i,j) * (c0 - tracer(i,j,N,n2o_ao1_ind_t))
                STF(i,j,n2o_ao1_ind_t) = FLUX(i,j)
                FLUX(i,j) = PV(i,j) * (N2OSAT_USED - tracer(i,j,N,n2o_nev_ind_t))
-               STF(i,j,n2o_nev_ind_t) = FLUX(i,j)
-               FLUX(i,j) = PV(i,j) * (c0 - tracer(i,j,N,n2o_siden_ind_t))
                STF(i,j,n2o_siden_ind_t) = FLUX(i,j)
                FLUX(i,j) = PV(i,j) * (c0 - tracer(i,j,N,n2o_soden_ind_t))
                STF(i,j,n2o_soden_ind_t) = FLUX(i,j)
                FLUX(i,j) = PV(i,j) * (N2OSAT_USED - tracer(i,j,N,n2o_atm_ind_t))
                STF(i,j,n2o_atm_ind_t) = FLUX(i,j)
-               FLUX(i,j) = PV(i,j) * (N2OSAT_USED - tracer(i,j,N,n2o_ind_t))
-               STF(i,j,n2o_ind_t) = FLUX(i,j)
-               
+# endif
+# ifdef N2O_NEV 
+               FLUX(i,j) = PV(i,j) * (N2OSAT_USED - tracer(i,j,N,n2o_nev_ind_t))
+               STF(i,j,n2o_nev_ind_t) = FLUX(i,j)
+#endif
                !!! Update tracer
+               tracer(i,j,N,n2o_ind_t) = tracer(i,j,N,n2o_ind_t)+
+     &                 stf(i,j,n2o_ind_t)*dt/Hz(i,j,N)
+
+# ifdef N2O_TRACER_DECOMP
                tracer(i,j,N,n2o_ao1_ind_t) = tracer(i,j,N,n2o_ao1_ind_t)+
      &                 stf(i,j,n2o_ao1_ind_t)*dt/Hz(i,j,N)
-               tracer(i,j,N,n2o_nev_ind_t) = tracer(i,j,N,n2o_nev_ind_t)+
-     &                 stf(i,j,n2o_nev_ind_t)*dt/Hz(i,j,N)
                tracer(i,j,N,n2o_siden_ind_t) = tracer(i,j,N,n2o_siden_ind_t)+
      &                 stf(i,j,n2o_siden_ind_t)*dt/Hz(i,j,N)
                tracer(i,j,N,n2o_soden_ind_t) = tracer(i,j,N,n2o_soden_ind_t)+
      &                 stf(i,j,n2o_soden_ind_t)*dt/Hz(i,j,N)
                tracer(i,j,N,n2o_atm_ind_t) = tracer(i,j,N,n2o_atm_ind_t)+
      &                 stf(i,j,n2o_atm_ind_t)*dt/Hz(i,j,N)
-               tracer(i,j,N,n2o_ind_t) = tracer(i,j,N,n2o_ind_t)+
-     &                 stf(i,j,n2o_ind_t)*dt/Hz(i,j,N)
+# endif
+# ifdef N2O_NEV
+               tracer(i,j,N,n2o_nev_ind_t) = tracer(i,j,N,n2o_nev_ind_t)+
+     &                 stf(i,j,n2o_nev_ind_t)*dt/Hz(i,j,N)
+# endif
+
 # ifdef BEC2_DIAG
+               bec2_diag_2d(i,j,fgn2o_idx_t) = STF(i,j,n2o_ind_t)
                bec2_diag_2d(i,j,pvn2o_idx_t) = PV(i,j)
                bec2_diag_2d(i,j,n2osat_idx_t) = N2OSAT_USED
+#ifdef N2O_TRACER_DECOMP
                bec2_diag_2d(i,j,fgn2o_ao1_idx_t) = STF(i,j,n2o_ao1_ind_t)
-               bec2_diag_2d(i,j,fgn2o_nev_idx_t) = STF(i,j,n2o_nev_ind_t)
                bec2_diag_2d(i,j,fgn2o_siden_idx_t) = STF(i,j,n2o_siden_ind_t)
                bec2_diag_2d(i,j,fgn2o_soden_idx_t) = STF(i,j,n2o_soden_ind_t)
                bec2_diag_2d(i,j,fgn2o_atm_idx_t) = STF(i,j,n2o_atm_ind_t)
-               bec2_diag_2d(i,j,fgn2o_idx_t) = STF(i,j,n2o_ind_t)
+# endif
+#ifdef N2O_NEV
+               bec2_diag_2d(i,j,fgn2o_nev_idx_t) =STF(i,j,n2o_nev_ind_t)
+#endif
+
 # endif
             end do  ! i
          end do  ! j
        END IF
+# endif
+
+# ifdef Ncycle_SY 
+    !------------------------------------------------------------------------
+    !   compute N2 flux
+    !------------------------------------------------------------------------
+        lflux_gas_n2 = .true.
+       IF (lflux_gas_n2) THEN
+         call CSCHMIDT_N2(SSTT(istr:iend,jstr:jend),
+     &     landmask(istr:iend,jstr:jend),SCHMIDT_USED(istr:iend,jstr:jend),
+     &     istr,iend,jstr,jend)
+# ifdef BEC2_DIAG
+#  ifdef BEC2_DIAG_USER
+         if (bec2_diag_2d_l(schmidt_n2_idx_t))
+     &       bec2_diag_2d(istr:iend,jstr:jend,bec2_diag_2d_idx(schmidtn2_idx_t)) = SCHMIDT_USED(istr:iend,jstr:jend)
+#  else
+         bec2_diag_2d(istr:iend,jstr:jend,schmidt_n2_idx_t) = SCHMIDT_USED(istr:iend,jstr:jend)
+#  endif
+# endif
+         call N2SATU(SSTT(istr:iend,jstr:jend),
+     &     SSSS(istr:iend,jstr:jend),landmask(istr:iend,jstr:jend),
+     &     N2SAT_1atm(istr:iend,jstr:jend),istr, iend,jstr,jend)
+         do j=jstr,jend
+            do i=istr,iend
+               PV(i,j) = XKW_ICE(i,j) * SQRT(660.0 / SCHMIDT_USED(i,j))
+# ifdef MASKING
+     &                      * rmask(i,j)
+# endif
+               N2SAT_USED = AP_USED(i,j) * N2SAT_1atm(i,j)
+# ifdef MASKING
+     &                      * rmask(i,j)
+# endif
+               FLUX(i,j) = PV(i,j) * (N2SAT_USED - tracer(i,j,N,n2_ind_t))
+               STF(i,j,n2_ind_t) = FLUX(i,j)
+               tracer(i,j,N,n2_ind_t) = tracer(i,j,N,n2_ind_t)+
+     &                 stf(i,j,n2_ind_t)*dt/Hz(i,j,N)
+# ifdef BEC2_DIAG
+#  ifdef BEC2_DIAG_USER
+               if (bec2_diag_2d_l(pvn2_idx_t))
+     &             bec2_diag_2d(i,j,bec2_diag_2d_idx(pvn2_idx_t)) = PV(i,j)
+               if (bec2_diag_2d_l(o2sat_idx_t))
+     &             bec2_diag_2d(i,j,bec2_diag_2d_idx(n2sat_idx_t)) = N2SAT_USED
+               if (bec2_diag_2d_l(fgo2_idx_t))
+     &             bec2_diag_2d(i,j,bec2_diag_2d_idx(fgn2_idx_t)) = FLUX(i,j)
+#  else
+               bec2_diag_2d(i,j,pvn2_idx_t) = PV(i,j)
+               bec2_diag_2d(i,j,n2sat_idx_t) = N2SAT_USED
+               bec2_diag_2d(i,j,fgn2_idx_t) = FLUX(i,j)
+#  endif
+# endif
+            end do  ! i
+         end do  ! j
+       END IF
+
+!       if (mynode == 22) then
+!       print *, 'istr, iend =', istr, iend
+!       print *, 'jstr, jend =', jstr, jend
+!       endif
 # endif
     !------------------------------------------------------------------------
     !   compute O2 flux
@@ -3773,9 +3849,10 @@ c$$$       enddo
         RETURN
         END subroutine WS
 
+# ifdef Ncycle_SY
 !-------------------------------------------------------------------------
 !
-!     ************   SUBROUTINE CSCHMIDT_O2   ****************************
+!     ************   SUBROUTINE CSCHMIDT_N2O   ****************************
 !
 !-------------------------------------------------------------------------
 
@@ -3838,7 +3915,7 @@ c$$$       enddo
 
      !---------------------------------------------------------------------------
      !
-     !   Computes n2o saturation concentration at 1 atm total pressure
+     !   Computes n2o saturation concentration at 1 atm n2o pressure
      !   in mmol/m^3 given the temperature (t, in deg C) and the salinity (s,
      !   in permil) where LAND_MASK is true. Give zero where LAND_MASK is false.
      !
@@ -3896,6 +3973,151 @@ c$$$       enddo
 
         return
         END subroutine N2OSATU
+
+     !---------------------------------------------------------------------------
+     !---------------------------------------------------------------------------
+     !   CSCHMIDT_N2
+     !---------------------------------------------------------------------------
+     !---------------------------------------------------------------------------
+
+
+         subroutine CSCHMIDT_N2(SSTT,landmask,SCHMIDT_N2,istr,
+     &          iend,jstr,jend)
+        implicit none
+        
+       integer::istr,iend,jstr,jend
+         LOGICAL,DIMENSION(istr:iend,jstr:jend) :: landmask
+
+    !---------------------------------------------------------------------------
+    !   Compute Schmidt number of N2 in seawater as function of SST
+    !   where LAND_MASK is true. Give zero where LAND_MASK is false.
+    !
+    !   ref : Sarmiento and Gruber 2006 (Table 3.3.1)
+    !         
+    !---------------------------------------------------------------------------
+    !
+    !DL: over land, do NOT assign zero to the result, but use very large value instead
+    ! in order to prevent division by zero.
+
+    !---------------------------------------------------------------------------
+    !   arguments
+    !---------------------------------------------------------------------------
+
+          REAL, DIMENSION(istr:iend,jstr:jend), INTENT(IN) :: SSTT
+
+    !---------------------------------------------------------------------------
+    !   result declaration
+    !---------------------------------------------------------------------------
+
+          REAL, DIMENSION(istr:iend,jstr:jend) :: SCHMIDT_N2
+
+    !---------------------------------------------------------------------------
+    !   coefficients in expansion
+    !---------------------------------------------------------------------------
+
+          REAL, PARAMETER :: 
+     &      a = 2206.1,   
+     &      b = 144.86, 
+     &      c = 4.5413, 
+     &      d = 0.056988
+
+         WHERE (LANDMASK)
+           SCHMIDT_N2 = a + SSTT* (-b + SSTT * (c + SSTT * (-d)))
+         ELSEWHERE
+            SCHMIDT_N2 = 1e30
+          END WHERE
+          return
+          END subroutine CSCHMIDT_N2
+
+  !*****************************************************************************
+
+
+          subroutine N2SATU(SSTT, SSSS,landmask, N2SAT,istr,
+     &         iend,jstr,jend)
+        implicit none
+! needed for c0
+#include "param_bec2.h"
+       integer::istr,iend,jstr,jend
+       LOGICAL,DIMENSION(istr:iend,jstr:jend) :: landmask
+
+     !---------------------------------------------------------------------------
+     !
+     !   Computes oxygen saturation concentration at 1 atm total pressure
+     !   in mmol/m^3 given the temperature (t, in deg C) and the salinity (s,
+     !   in permil) where LAND_MASK is true. Give zero where LAND_MASK is false.
+     !
+     !   FROM GARCIA AND GORDON (1992), LIMNOLOGY and OCEANOGRAPHY.
+     !   THE FORMULA USED IS FROM PAGE 1310, EQUATION (8).
+     !
+     !   *** NOTE: THE "A_3*TS^2" TERM (IN THE PAPER) IS INCORRECT. ***
+     !   *** IT SHOULDN'T BE THERE.                                ***
+     !
+     !   N2SAT IS DEFINED BETWEEN T(freezing) <= T <= 40(deg C) AND
+     !   0 permil <= S <= 42 permil
+     !   CHECK VALUE:  T = 10.0 deg C, S = 35.0 permil,
+     !   N2SAT = 282.015 mmol/m^3
+     !
+     !---------------------------------------------------------------------------
+ 
+     !---------------------------------------------------------------------------
+     !   arguments
+     !---------------------------------------------------------------------------
+
+       REAL, DIMENSION(istr:iend,jstr:jend), INTENT(IN) :: 
+     &    SSTT,  ! sea surface temperature (C)
+     &    SSSS    ! sea surface salinity (psu)
+
+    !---------------------------------------------------------------------------
+    !   result declaration
+    !---------------------------------------------------------------------------
+
+        REAL, DIMENSION(istr:iend,jstr:jend) :: N2SAT
+
+    !---------------------------------------------------------------------------
+    !   local variables
+    !---------------------------------------------------------------------------
+
+        REAL, DIMENSION(istr:iend,jstr:jend) :: TS
+
+    !---------------------------------------------------------------------------
+    !   coefficients in expansion
+    !---------------------------------------------------------------------------
+
+        REAL, PARAMETER :: 
+     &    a_0 = 2.00907, 
+     &    a_1 = 3.22014, 
+     &    a_2 = 4.05010, 
+     &    a_3 = 4.94457, 
+     &    a_4 = -2.56847E-1, 
+     &    a_5 = 3.88767, 
+     &    b_0 = -6.24523E-3, 
+     &    b_1 = -7.37614E-3, 
+     &    b_2 = -1.03410E-2, 
+     &    b_3 = -8.17083E-3, 
+     &    c_0 = -4.88682E-7
+
+        WHERE (LANDMASK)
+           TS = LOG( ((T0_Kelvin+25.0) - SSTT) / (T0_Kelvin + SSTT) )
+
+         N2SAT = EXP(a_0+TS*(a_1+TS*(a_2+TS*(a_3+TS*(a_4+TS*a_5)))) + 
+     &         SSSS*( (b_0+TS*(b_1+TS*(b_2+TS*b_3))) + SSSS*c_0 ))
+        ELSEWHERE
+          N2SAT = c0
+       END WHERE
+    !---------------------------------------------------------------------------
+    !   Convert from ml/l to mmol/m^3
+    !---------------------------------------------------------------------------
+
+        N2SAT = N2SAT * 44.6596
+
+        return
+        END subroutine N2SATU
+
+  !*****************************************************************************
+# endif
+     !---------------------------------------------------------------------------
+     !   Subroutine CSCHMIDT_O2
+     !---------------------------------------------------------------------------
 
          subroutine CSCHMIDT_O2(SSTT,landmask,SCHMIDT_O2,istr,
      &          iend,jstr,jend)
