@@ -271,10 +271,10 @@ c$$$       enddo
 # ifdef N2O_TRACER_DECOMP
                FLUX(i,j) = PV(i,j) * (c0 - tracer(i,j,N,n2o_ao1_ind_t))
                STF(i,j,n2o_ao1_ind_t) = FLUX(i,j)
-               FLUX(i,j) = PV(i,j) * (N2OSAT_USED - tracer(i,j,N,n2o_nev_ind_t))
-               STF(i,j,n2o_siden_ind_t) = FLUX(i,j)
                FLUX(i,j) = PV(i,j) * (c0 - tracer(i,j,N,n2o_soden_ind_t))
-               STF(i,j,n2o_soden_ind_t) = FLUX(i,j)
+               STF(i,j,n2o_ao1_ind_t) = FLUX(i,j)
+               FLUX(i,j) = PV(i,j) * (c0 - tracer(i,j,N,n2o_siden_ind_t))
+               STF(i,j,n2o_siden_ind_t) = FLUX(i,j)
                FLUX(i,j) = PV(i,j) * (N2OSAT_USED - tracer(i,j,N,n2o_atm_ind_t))
                STF(i,j,n2o_atm_ind_t) = FLUX(i,j)
 # endif
@@ -289,10 +289,10 @@ c$$$       enddo
 # ifdef N2O_TRACER_DECOMP
                tracer(i,j,N,n2o_ao1_ind_t) = tracer(i,j,N,n2o_ao1_ind_t)+
      &                 stf(i,j,n2o_ao1_ind_t)*dt/Hz(i,j,N)
-               tracer(i,j,N,n2o_siden_ind_t) = tracer(i,j,N,n2o_siden_ind_t)+
-     &                 stf(i,j,n2o_siden_ind_t)*dt/Hz(i,j,N)
                tracer(i,j,N,n2o_soden_ind_t) = tracer(i,j,N,n2o_soden_ind_t)+
      &                 stf(i,j,n2o_soden_ind_t)*dt/Hz(i,j,N)
+               tracer(i,j,N,n2o_siden_ind_t) = tracer(i,j,N,n2o_siden_ind_t)+
+     &                 stf(i,j,n2o_siden_ind_t)*dt/Hz(i,j,N)
                tracer(i,j,N,n2o_atm_ind_t) = tracer(i,j,N,n2o_atm_ind_t)+
      &                 stf(i,j,n2o_atm_ind_t)*dt/Hz(i,j,N)
 # endif
@@ -347,11 +347,13 @@ c$$$       enddo
 # ifdef MASKING
      &                      * rmask(i,j)
 # endif
-               N2SAT_USED = AP_USED(i,j) * N2SAT_1atm(i,j)
+               N2SAT_USED = AP_USED(i,j) * N2SAT_1atm(i,j) * 0.78084 !Molar ratio of N2 in air
 # ifdef MASKING
      &                      * rmask(i,j)
 # endif
-               FLUX(i,j) = PV(i,j) * (N2SAT_USED - tracer(i,j,N,n2_ind_t))
+!!!!!---------------Tracking only N2 excess for no2---------!!!!! to track full use:
+!                FLUX(i,j) = PV(i,j) * (N2SAT_USED - tracer(i,j,N,n2_ind_t)) 
+               FLUX(i,j) = PV(i,j) * (c0 - tracer(i,j,N,n2_ind_t)) 
                STF(i,j,n2_ind_t) = FLUX(i,j)
                tracer(i,j,N,n2_ind_t) = tracer(i,j,N,n2_ind_t)+
      &                 stf(i,j,n2_ind_t)*dt/Hz(i,j,N)
@@ -603,7 +605,7 @@ c$$$       enddo
              WHERE (PH_HIST(istr:iend,j) .ne. c0)
                 PHLO(istr:iend) = PH_HIST(istr:iend,j) - del_ph
                 PHHI(istr:iend) = PH_HIST(istr:iend,j) + del_ph
-#  endif /* BEC2_DIAG */
+#  endif /* BEC
              ELSEWHERE
                 PHLO = phlo_init
                 PHHI = phhi_init
@@ -4032,7 +4034,7 @@ c$$$       enddo
   !*****************************************************************************
 
 
-          subroutine N2SATU(SSTT, SSSS,landmask, N2SAT,istr,
+          subroutine N2SATU(SSTT, SSSS, landmask, N2SAT,istr,
      &         iend,jstr,jend)
         implicit none
 ! needed for c0
@@ -4042,21 +4044,16 @@ c$$$       enddo
 
      !---------------------------------------------------------------------------
      !
-     !   Computes oxygen saturation concentration at 1 atm total pressure
+     !   Computes dinitrogen saturation concentration at 1 atm total pressure
      !   in mmol/m^3 given the temperature (t, in deg C) and the salinity (s,
      !   in permil) where LAND_MASK is true. Give zero where LAND_MASK is false.
      !
-     !   FROM GARCIA AND GORDON (1992), LIMNOLOGY and OCEANOGRAPHY.
-     !   THE FORMULA USED IS FROM PAGE 1310, EQUATION (8).
-     !
-     !   *** NOTE: THE "A_3*TS^2" TERM (IN THE PAPER) IS INCORRECT. ***
-     !   *** IT SHOULDN'T BE THERE.                                ***
+     !   FROM Sarmiento and Gruber 2006 
+     !   --> Solubility : table 3.2.2
+     !   --> apply correction for moist air following Panel 3.2.1
      !
      !   N2SAT IS DEFINED BETWEEN T(freezing) <= T <= 40(deg C) AND
-     !   0 permil <= S <= 42 permil
-     !   CHECK VALUE:  T = 10.0 deg C, S = 35.0 permil,
-     !   N2SAT = 282.015 mmol/m^3
-     !
+     !   Simon Yang, Feb 2018
      !---------------------------------------------------------------------------
  
      !---------------------------------------------------------------------------
@@ -4065,7 +4062,8 @@ c$$$       enddo
 
        REAL, DIMENSION(istr:iend,jstr:jend), INTENT(IN) :: 
      &    SSTT,  ! sea surface temperature (C)
-     &    SSSS    ! sea surface salinity (psu)
+     &    SSSS,    ! sea surface salinity (psu)
+     &    AP_USED
 
     !---------------------------------------------------------------------------
     !   result declaration
@@ -4077,30 +4075,34 @@ c$$$       enddo
     !   local variables
     !---------------------------------------------------------------------------
 
-        REAL, DIMENSION(istr:iend,jstr:jend) :: TS
+        REAL, DIMENSION(istr:iend,jstr:jend) :: TS, BUNSEN, PH2O_to_P
 
     !---------------------------------------------------------------------------
     !   coefficients in expansion
     !---------------------------------------------------------------------------
 
         REAL, PARAMETER :: 
-     &    a_0 = 2.00907, 
-     &    a_1 = 3.22014, 
-     &    a_2 = 4.05010, 
-     &    a_3 = 4.94457, 
-     &    a_4 = -2.56847E-1, 
-     &    a_5 = 3.88767, 
-     &    b_0 = -6.24523E-3, 
-     &    b_1 = -7.37614E-3, 
-     &    b_2 = -1.03410E-2, 
-     &    b_3 = -8.17083E-3, 
-     &    c_0 = -4.88682E-7
+     &    a_1 = -59.6274, 
+     &    a_2 = 85.7761, 
+     &    a_3 = 24.3696, 
+     &    b_1 = -0.051580, 
+     &    b_2 = 0.026329, 
+     &    b_3 = -0.0037252,
+     &    vbarn2o = 22.4136 ! volar molume of N2 at standard temperature and pressure
 
         WHERE (LANDMASK)
-           TS = LOG( ((T0_Kelvin+25.0) - SSTT) / (T0_Kelvin + SSTT) )
+           TS = T0_Kelvin + SSTT
 
-         N2SAT = EXP(a_0+TS*(a_1+TS*(a_2+TS*(a_3+TS*(a_4+TS*a_5)))) + 
-     &         SSSS*( (b_0+TS*(b_1+TS*(b_2+TS*b_3))) + SSSS*c_0 ))
+          BUNSEN=  exp(a_1 + a_2 * (100.0/TS) + a_3 * log(TS/100.0) +
+     &          SSSS * (b_1 +b_2 * (TS/100.0) + b_3 *
+     &          (TS/100.0)**2))
+        
+!!!! Calculate Ph2o/P to correct for moist air 
+        PH2O_to_P = exp(24.4543-67.4509*(100.0/TS)-4.8489*log(TS/100.0)
+     &              -0.000544*SSSS)
+
+        N2SAT = ( BUNSEN / vbarn2o ) * (c1 - PH2O_to_P)
+
         ELSEWHERE
           N2SAT = c0
        END WHERE
@@ -4108,7 +4110,7 @@ c$$$       enddo
     !   Convert from ml/l to mmol/m^3
     !---------------------------------------------------------------------------
 
-        N2SAT = N2SAT * 44.6596
+        N2SAT = N2SAT * 1e6
 
         return
         END subroutine N2SATU
