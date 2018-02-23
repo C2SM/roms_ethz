@@ -235,15 +235,21 @@ CR      write(*,'(1x,A,I3)') 'indxNH4 =',indxNH4
       vname(3,indxno2)='mMol N m-3                              '
       vname(4,indxno2)='  '
 
+      vname(1,indxn2)='N2                              '
+      vname(2,indxn2)='Dinitrogen   '
+      vname(3,indxn2)='mMol N2 m-3                         '
+      vname(4,indxn2)='  '
+
+      vname(1,indxn2o)='N2O                              '
+      vname(2,indxn2o)='Nitrous oxide   '
+      vname(3,indxn2o)='mMol N2O m-3                         '
+      vname(4,indxn2o)='  '
+
+# ifdef N2O_TRACER_DECOMP
       vname(1,indxn2o_ao1)='N2O_AO1                                 '
       vname(2,indxn2o_ao1)='Nitrous oxide produced via AO1             '
       vname(3,indxn2o_ao1)='mMol N2O m-3                              '
       vname(4,indxn2o_ao1)='  '
-
-      vname(1,indxn2o_ao2)='N2O_AO2                                 '
-      vname(2,indxn2o_ao2)='Nitrous oxide produced via AO2          '
-      vname(3,indxn2o_ao2)='mMol N2O m-3                          '
-      vname(4,indxn2o_ao2)='  '
 
       vname(1,indxn2o_siden)='N2O_SIDEN                                '
       vname(2,indxn2o_siden)='Nitrous oxide consumed via denitrif. '
@@ -255,20 +261,17 @@ CR      write(*,'(1x,A,I3)') 'indxNH4 =',indxNH4
       vname(3,indxn2o_soden)='mMol N2O m-3                         '
       vname(4,indxn2o_soden)='  '
 
-      vname(1,indxn2)='N2                              '
-      vname(2,indxn2)='Dinitrogen   '
-      vname(3,indxn2)='mMol N2 m-3                         '
-      vname(4,indxn2)='  '
-
       vname(1,indxn2o_atm)='N2O_ATM                              '
       vname(2,indxn2o_atm)='N2O of atmospheric provenance   '
       vname(3,indxn2o_atm)='mMol N2 m-3                         '
       vname(4,indxn2o_atm)='  '
-
-      vname(1,indxn2o)='N2O                              '
-      vname(2,indxn2o)='Nitrous oxide   '
-      vname(3,indxn2o)='mMol N2O m-3                         '
-      vname(4,indxn2o)='  '
+# endif
+# ifdef N2O_NEV
+      vname(1,indxn2o_nev)='N2O_NEV                                '
+      vname(2,indxn2o_nev)='Nitrous oxide (Nevison)          '
+      vname(3,indxn2o_nev)='mMol N2O m-3                          '
+      vname(4,indxn2o_nev)='  '
+# endif
 
 # endif
       vname(1,indxdust)='dust                                       '
@@ -384,15 +387,17 @@ CR      write(*,'(1x,A,I3)') 'indxNH4 =',indxNH4
       vname_bec2_diag_2d(3,indxPVCO2)='m/s '
       vname_bec2_diag_2d(4,indxPVCO2)=' '
 #ifdef Ncycle_SY
+#ifdef N2O_NEV
+      vname_bec2_diag_2d(1,indxfgn2o_nev)='FG_N2O_NEV'
+      vname_bec2_diag_2d(2,indxfgn2o_nev)='Air-sea N2O flux (Nevison)'
+      vname_bec2_diag_2d(3,indxfgn2o_nev)='mmol/m2/s '
+      vname_bec2_diag_2d(4,indxfgn2o_nev)=' '
+#endif
+# ifdef N2O_TRACER_DECOMP
       vname_bec2_diag_2d(1,indxfgn2o_ao1)='FG_N2O_AO1'
       vname_bec2_diag_2d(2,indxfgn2o_ao1)='Air-sea flux of N2O from AO1'
       vname_bec2_diag_2d(3,indxfgn2o_ao1)='mmol/m2/s'
       vname_bec2_diag_2d(4,indxfgn2o_ao1)=' '
-
-      vname_bec2_diag_2d(1,indxfgn2o_ao2)='FG_N2O_AO2'
-      vname_bec2_diag_2d(2,indxfgn2o_ao2)='Air-sea flux of N2O from AO2'
-      vname_bec2_diag_2d(3,indxfgn2o_ao2)='mmol/m2/s '
-      vname_bec2_diag_2d(4,indxfgn2o_ao2)=' '
 
       vname_bec2_diag_2d(1,indxfgn2o_siden)='FG_N2O_SIDEN'
       vname_bec2_diag_2d(2,indxfgn2o_siden)=
@@ -411,6 +416,7 @@ CR      write(*,'(1x,A,I3)') 'indxNH4 =',indxNH4
      &   'Air-sea flux of atmopsheric N2O'
       vname_bec2_diag_2d(3,indxfgn2o_atm)='mmol/m2/s '
       vname_bec2_diag_2d(4,indxfgn2o_atm)=' '
+# endif
 
       vname_bec2_diag_2d(1,indxfgn2o)='FG_N2O'
       vname_bec2_diag_2d(2,indxfgn2o)=
@@ -555,8 +561,13 @@ CR      write(*,'(1x,A,I3)') 'indxNH4 =',indxNH4
      &                     .false.,.false.,.false.,.true.,.false.,    ! PVO2, PV_CO2,IRON_FLUX, SED_DENITRI, PH
      &                     .true.,.false.,.false.,.false.,          ! PCO2, CO2STAR, PCO2OC, DCO2STAR
 #ifdef Ncycle_SY
-     &                     .true.,.true.,.true.,.true.,.true.,.true.!FG_N2O_AO1, FG_N2O_AO2, FG_N2O_SIDEN, FG_N2O_SODEN, FG_N2O_ATM, FG_N2O
-     &                     ,.true.,.true.,.true.,!SCHMIDT_N2O, N2OSAT PV_N2O
+     &                     .true.,.true.,.true.,.true., !SCHMIDT_N2O, PV_N2O, N2OSAT, FG_N2O
+# ifdef N2O_TRACER_DECOMP
+     &                     .true.,.true.,.true.,.true. !FG_N2O_AO1,  FG_N2O_SIDEN, FG_N2O_SODEN, FG_N2O_ATM
+# endif
+# ifdef N2O_NEV
+     &                     ,.true.,!FG_N2O_NEV
+# endif
 #endif
      &                     .true.,.true.,.true.,.true.,.true.,   ! FE_SED_FLUX,FLUX_TO_SED,CACO3_FLUX_TO_SED,SIO2_FLUX_TO_SED,PIRON_FLUX_TO_SED
      &                     .true.,.true.,.true.,.true.,.true./)  ! DUST_FLUX_SED, POC_SED_LOSS, OTHER_REMIN,CaCO3_sed_loss,P_SiO2_sed_loss
@@ -1412,13 +1423,17 @@ CR      write(*,'(1x,A,I3)') 'indxNH4 =',indxNH4
 # endif
 # ifdef Ncycle_SY
       tclm_name(iNO2) = 'no2_time'
+      tclm_name(iN2) = 'n2_time'
+      tclm_name(iN2O) = 'n2o_time'
+# ifdef N2O_TRACER_DECOMP
       tclm_name(iN2O_AO1) = 'n2o_ao1_time'
-      tclm_name(iN2O_AO2) = 'n2o_ao2_time'
       tclm_name(iN2O_SIDEN) = 'n2o_siden_time'
       tclm_name(iN2O_SODEN) = 'n2o_soden_time'
-      tclm_name(iN2) = 'n2_time'
       tclm_name(iN2O_ATM) = 'n2o_atm_time'
-      tclm_name(iN2O) = 'n2o_time'
+# endif
+# ifdef N2O_NEV
+      tclm_name(iN2O_NEV) = 'n2o_nev_time'
+# endif
 # endif
 #endif /* SOLVE3D */
       return

@@ -47,10 +47,18 @@
 # undef LAST_I
 # define LAST_I indxDCO2STAR
 # ifdef Ncycle_SY
-     &            , indxschmidt_n2o=LAST_I+1, indxpvn2o=LAST_I+2
-     &            , indxfgn2o_ao1=LAST_I+3, indxfgn2o_ao2=LAST_I+4, indxfgn2o_siden=LAST_I+5
-     &            , indxfgn2o_soden=LAST_I+6, indxfgn2o_atm=LAST_I+7, indxn2osat=LAST_I+8
-     &            , indxfgn2o=LAST_I+9
+     &            , indxschmidt_n2o=LAST_I+1, indxpvn2o=LAST_I+2, indxn2osat=LAST_I+3
+     &		  , indxfgn2o=LAST_I+4
+# undef LAST_I
+# define LAST_I indxfgn2o
+# ifdef N2O_TRACER_DECOMP
+     &            , indxfgn2o_ao1=LAST_I+1, indxfgn2o_siden=LAST_I+2
+     &            , indxfgn2o_soden=LAST_I+3, indxfgn2o_atm=LAST_I+4
+# undef LAST_I
+# define LAST_I indxfgn2o_atm
+# endif
+# ifdef N2O_NEV
+     &            , indxfgn2o_nev=LAST_I+1
 # undef LAST_I
 # define LAST_I indxfgn2o
 # endif
@@ -143,10 +151,12 @@
 #  define LAST_I indxCOCCOPLIM
 # endif
 # ifdef Ncycle_SY
+# ifdef N2O_TRACER_DECOMP
      &            , indxammox=LAST_I+1,indxnitrox=LAST_I+2
      &            , indxanammox=LAST_I+3,indxDENITRIF1=LAST_I+4,indxDENITRIF2=LAST_I+5
      &            , indxDENITRIF3=LAST_I+6, indxSPNO2UPTAKE=LAST_I+7,indxDIATNO2UPTAKE=LAST_I+8
      &            , indxDIAZNO2UPTAKE=LAST_I+9
+# endif
 #  undef LAST_I
 #  define LAST_I indxDIAZNO2UPTAKE
 # endif

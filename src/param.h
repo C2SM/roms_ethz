@@ -316,13 +316,22 @@ c     &      NSUB_X=2, NSUB_E=8  ! <-- iswake 768x192
 #    define LAST_I iDIAZFE
 #   endif /* BEC_COCCO */
 #   ifdef Ncycle_SY
-     &       , iNO2=LAST_I+1, iN2O_AO1=LAST_I+2
-     &       , iN2O_AO2=LAST_I+3, iN2O_SIDEN=LAST_I+4
-     &       , iN2O_SODEN=LAST_I+5, iN2=LAST_I+6
-     &       , iN2O_ATM=LAST_I+7, iN2O=LAST_I+8
-     &       , ntrc_bio_ncycle=8
+     &       , iNO2=LAST_I+1, iN2=LAST_I+2 
+     &       , iN2O=LAST_I+3
 #    undef LAST_I
 #    define LAST_I iN2O
+# ifdef N2O_TRACER_DECOMP
+     &       , iN2O_AO1=LAST_I+1, iN2O_SIDEN=LAST_I+2
+     &       , iN2O_SODEN=LAST_I+3, iN2O_ATM=LAST_I+4
+#    undef LAST_I
+#    define LAST_I iN2O_ATM
+# endif
+# ifdef N2O_NEV
+     &       , iN2O_NEV=LAST_I+1
+#    undef LAST_I
+#    define LAST_I iN2O_NEV
+     &       , ntrc_bio_ncycle=LAST_I-iNO2+1
+# endif
 #   else 
      &       , ntrc_bio_ncycle=0
 #   endif 

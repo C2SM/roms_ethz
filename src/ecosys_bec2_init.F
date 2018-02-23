@@ -46,6 +46,10 @@
      &    parm_n2o_ji_b,
      &    parm_n2o_gor_a,
      &    parm_n2o_gor_b,
+     &    parm_n2o_nev_a1,
+     &    parm_n2o_nev_a2,
+     &    N2O_cons_tau_nev,
+     &    z_scale_nev,
 # endif
      &    parm_nitrif_par_lim,
      &    parm_z_mort_0,
@@ -112,6 +116,11 @@
       parm_n2o_ji_b = 0.072
       parm_n2o_gor_a = 0.2
       parm_n2o_gor_b = -0.0004
+      parm_n2o_nev_a1 = 0.26
+      parm_n2o_nev_a2 = -0.0004
+      O2_crit_nev = 4.0
+      N2O_cons_tau_nev = 0.1 * dps
+      z_scale_nev = 3000.0
 # endif
 # ifdef BEC_COCCO
       parm_BSIbury           = 0.45 ! x1 default

@@ -94,13 +94,13 @@
      &   parm_Red_P_C_P  = parm_Red_D_C_P,                  ! carbon:phosphorus
      &   parm_Red_D_C_N  = parm_Red_D_C_P/parm_Red_D_N_P,   ! carbon:nitrogen
      &   parm_Red_P_C_N  = parm_Red_D_C_N,                  ! carbon:nitrogen
-     &   parm_Red_D_C_O2 = parm_Red_D_C_P/parm_Red_D_O2_P,  ! carbon:oxygen for HNO3 uptake (assuming OM is C117H467O170N16P)
-     &   parm_Remin_D_C_O2 = parm_Red_D_C_P/parm_Remin_D_O2_P,  ! carbon:oxygen for NH3 uptake (assuming OM is C117H467O170N16P)
+     &   parm_Red_D_C_O2 = parm_Red_D_C_P/parm_Red_D_O2_P,  ! carbon:oxygen for HNO3 uptake (assuming OM is C117H297O85N16P)
+     &   parm_Remin_D_C_O2 = parm_Red_D_C_P/parm_Remin_D_O2_P,  ! carbon:oxygen for NH3 uptake (assuming OM is C117H297O85N16P)
      &   parm_Red_P_C_O2 = parm_Red_D_C_O2,                 ! carbon:oxygen
      &   parm_Red_Fe_C   = 3.0e-6,                 ! iron:carbon
      &   parm_Red_D_C_O2_diaz = parm_Red_D_C_P/150.0   ! carbon:oxygen for diazotrophs
 # ifdef Ncycle_SY
-     &   ,parm_Red_D_C_O2_NO2V = parm_Red_D_C_P/150.0   ! carbon:oxygen for HNO2 uptake (assuming OM is C117H467O170N16P)
+     &   ,parm_Red_D_C_O2_NO2V = parm_Red_D_C_P/162.0   ! carbon:oxygen for HNO2 uptake (assuming OM is C117H297O85N16P)
 # endif 
      & )
 
@@ -139,6 +139,11 @@
      &   parm_n2o_ji_b, ! n2o yield constant (Ji et al.  2015)
      &   parm_n2o_gor_a, ! n2o yield constant (Goreau et al. 1980)
      &   parm_n2o_gor_b, ! n2o yield constant (Goreau et al. 1980)
+     &   parm_n2o_nev_a1, ! n2o production constant (Nevison et al. 2oo3) 
+     &   parm_n2o_nev_a2, ! n2o production constant (Nevison et al. 2oo3)
+     &   O2_crit_nev, ! [O2] at which we switch to N2O consumption (Nevison et al. 2003)
+     &   N2O_cons_tau_nev, ! n2o consumption timescale [1/s] (Cornejo and Farias 2007)
+     &   z_scale_nev, ! Depth scale for N2O production (Nevison et al. 2oo3)
 # endif
      &   parm_nitrif_par_lim,    ! PAR limit for nitrif. (W/m^2)
      &   parm_z_mort_0,          ! zoo linear mort rate (1/sec)

@@ -29,7 +29,14 @@
 # endif /* CCHEM_MOCSY */
 
 # ifdef Ncycle_SY
-      parameter( nr_bec2_diag_3d=91+nr_cchem_mocsy_3d+9, ! 0 from coccos, 0 from impl sinking
+      parameter( nr_bec2_diag_3d=91+nr_cchem_mocsy_3d+4 ! 0 from coccos, 0 from impl sinking
+# ifdef N2O_TRACER_DECOMP
+     &	+4 ! 0 from coccos, 0 from impl sinking
+#endif
+#ifdef N2O_NEV
+     &  +1 ! 0 from coccos, 0 from impl sinking
+#endif
+     &		,
 # else
 # ifdef USE_EXPLICIT_VSINK
 # ifdef BEC_COCCO
@@ -177,12 +184,21 @@
 # undef LAST_I
 # define LAST_I dco2star_idx_t
 #ifdef Ncycle_SY
-     &   ,schmidt_n2o_idx_t=LAST_I+1, pvn2o_idx_t=LAST_I+2,
-     &   fgn2o_ao1_idx_t=LAST_I+3, fgn2o_ao2_idx_t=LAST_I+4, fgn2o_siden_idx_t=LAST_I+5,
-     &   fgn2o_soden_idx_t=LAST_I+6, fgn2o_atm_idx_t=LAST_I+7, n2osat_idx_t=LAST_I+8,
-     &   fgn2o_idx_t=LAST_I+9
+     &   ,schmidt_n2o_idx_t=LAST_I+1, pvn2o_idx_t=LAST_I+2, n2osat_idx_t=LAST_I+3,
+     &    fgn2o_idx_t=LAST_I+4,
 # undef LAST_I
 # define LAST_I fgn2o_idx_t
+#ifdef N2O_TRACER_DECOMP
+     &   fgn2o_ao1_idx_t=LAST_I+1, fgn2o_siden_idx_t=LAST_I+2,
+     &   fgn2o_soden_idx_t=LAST_I+3, fgn2o_atm_idx_t=LAST_I+4,
+# undef LAST_I
+# define LAST_I fgn2o_atm_idx_t
+# endif
+#ifdef N2O_NEV
+     &   fgn2o_nev_idx_t=LAST_I+1
+# undef LAST_I
+# define LAST_I fgn2o_nev_idx_t
+#endif
 # endif
 # ifdef CCHEM_MOCSY
      &   ,ph_idx_t=pco2air_idx_t+16, pco2oc_idx_t=ph_idx_t+1, co3_idx_t=ph_idx_t+2
@@ -305,11 +321,20 @@
 #endif
 #ifdef Ncycle_SY
       integer, parameter ::
-     &     no2_ind_t=LAST_I+1, n2o_ao1_ind_t=LAST_I+2, n2o_ao2_ind_t=LAST_I+3, 
-     &     n2o_siden_ind_t=LAST_I+4, n2o_soden_ind_t=LAST_I+5, n2_ind_t=LAST_I+6, 
-     &     n2o_atm_ind_t=LAST_I+7, n2o_ind_t=LAST_I+8
+     &     no2_ind_t=LAST_I+1, n2_ind_t=LAST_I+2,  n2o_ind_t=LAST_I+3,
 #  undef LAST_I
 #  define LAST_I n2o_ind_t
+#ifdef N2O_TRACER_DECOMP
+     &     n2o_ao1_ind_t=LAST_I+1, n2o_siden_ind_t=LAST_I+2, 
+     &     n2o_soden_ind_t=LAST_I+3, n2o_atm_ind_t=LAST_I+4,
+#  undef LAST_I
+#  define LAST_I n2o_atm_ind_t
+# endif
+# ifdef N2O_NEV 
+     &     n2o_nev_ind_t=LAST_I+1
+#  undef LAST_I
+#  define LAST_I n2o_nev_ind_t
+#endif
 #endif
 
 !

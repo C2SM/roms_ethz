@@ -264,8 +264,8 @@ c$$$       enddo
                !!! tracer to 0 So that everything is additive.
                FLUX(i,j) = PV(i,j) * (c0 - tracer(i,j,N,n2o_ao1_ind_t))
                STF(i,j,n2o_ao1_ind_t) = FLUX(i,j)
-               FLUX(i,j) = PV(i,j) * (c0 - tracer(i,j,N,n2o_ao2_ind_t))
-               STF(i,j,n2o_ao2_ind_t) = FLUX(i,j)
+               FLUX(i,j) = PV(i,j) * (N2OSAT_USED - tracer(i,j,N,n2o_nev_ind_t))
+               STF(i,j,n2o_nev_ind_t) = FLUX(i,j)
                FLUX(i,j) = PV(i,j) * (c0 - tracer(i,j,N,n2o_siden_ind_t))
                STF(i,j,n2o_siden_ind_t) = FLUX(i,j)
                FLUX(i,j) = PV(i,j) * (c0 - tracer(i,j,N,n2o_soden_ind_t))
@@ -278,8 +278,8 @@ c$$$       enddo
                !!! Update tracer
                tracer(i,j,N,n2o_ao1_ind_t) = tracer(i,j,N,n2o_ao1_ind_t)+
      &                 stf(i,j,n2o_ao1_ind_t)*dt/Hz(i,j,N)
-               tracer(i,j,N,n2o_ao2_ind_t) = tracer(i,j,N,n2o_ao2_ind_t)+
-     &                 stf(i,j,n2o_ao2_ind_t)*dt/Hz(i,j,N)
+               tracer(i,j,N,n2o_nev_ind_t) = tracer(i,j,N,n2o_nev_ind_t)+
+     &                 stf(i,j,n2o_nev_ind_t)*dt/Hz(i,j,N)
                tracer(i,j,N,n2o_siden_ind_t) = tracer(i,j,N,n2o_siden_ind_t)+
      &                 stf(i,j,n2o_siden_ind_t)*dt/Hz(i,j,N)
                tracer(i,j,N,n2o_soden_ind_t) = tracer(i,j,N,n2o_soden_ind_t)+
@@ -292,12 +292,11 @@ c$$$       enddo
                bec2_diag_2d(i,j,pvn2o_idx_t) = PV(i,j)
                bec2_diag_2d(i,j,n2osat_idx_t) = N2OSAT_USED
                bec2_diag_2d(i,j,fgn2o_ao1_idx_t) = STF(i,j,n2o_ao1_ind_t)
-               bec2_diag_2d(i,j,fgn2o_ao2_idx_t) = STF(i,j,n2o_ao2_ind_t)
+               bec2_diag_2d(i,j,fgn2o_nev_idx_t) = STF(i,j,n2o_nev_ind_t)
                bec2_diag_2d(i,j,fgn2o_siden_idx_t) = STF(i,j,n2o_siden_ind_t)
                bec2_diag_2d(i,j,fgn2o_soden_idx_t) = STF(i,j,n2o_soden_ind_t)
                bec2_diag_2d(i,j,fgn2o_atm_idx_t) = STF(i,j,n2o_atm_ind_t)
-               bec2_diag_2d(i,j,fgn2o_idx_t) = 0.002314234 !STF(i,j,n2o_ind_t)
-               bec2_diag_2d(i,j,fgn2o_idx_t) = FLUX(i,j)
+               bec2_diag_2d(i,j,fgn2o_idx_t) = STF(i,j,n2o_ind_t)
 # endif
             end do  ! i
          end do  ! j
@@ -926,7 +925,7 @@ c$$$       enddo
      &    NO2_loc,         ! local copy of model no2
      &    N2O_atm_loc,     ! local copy of N2O from atmosphere
      &    N2O_ao1_loc,         ! local copy of model n2o prod. via ao1
-     &    N2O_ao2_loc,         ! local copy of model n2o prod. via ao2
+     &    N2O_nev_loc,         ! local copy of model n2o using Nevisson 
      &    N2O_siden_loc,         ! local copy of model n2o sinked by den
      &    N2O_soden_loc,         ! local copy of model n2o sourced by den
      &    N2_loc,         ! local copy of model n2
@@ -949,6 +948,9 @@ c$$$       enddo
      &    DENITRIF3,       ! N2O consumed during denitrification
      &    n2o_nh4_yield1,   ! N2O yield during ammonium oxidation (0 --> 1)  
      &    no2_nh4_yield1,   ! NO2 yield during ammonium oxidation (0 --> 1)
+# endif
+# ifdef N2O_NEV
+     &    n2o_prod_nev,
 # endif
      &    QA_dust_def,     ! incoming deficit in the QA(dust) POC flux
      &    NITRIF,          ! nitrification (NH4 -> NO3) (mmol N/m^3/sec)
@@ -1098,7 +1100,7 @@ c$$$       enddo
        NO2_loc  = MAX(c0, TRACER(istr:iend,j,k,no2_ind_t))
        N2O_atm_loc = MAX(c0, TRACER(istr:iend,j,k,n2o_atm_ind_t))
        N2O_ao1_loc  = MAX(c0, TRACER(istr:iend,j,k,n2o_ao1_ind_t))
-       N2O_ao2_loc  = MAX(c0, TRACER(istr:iend,j,k,n2o_ao2_ind_t))
+       N2O_nev_loc  = MAX(c0, TRACER(istr:iend,j,k,n2o_nev_ind_t))
        N2O_siden_loc  = MAX(c0, TRACER(istr:iend,j,k,n2o_siden_ind_t))
        N2O_soden_loc  = MAX(c0, TRACER(istr:iend,j,k,n2o_soden_ind_t))
        N2_loc  = MAX(c0, TRACER(istr:iend,j,k,n2_ind_t))
@@ -2363,14 +2365,8 @@ c$$$       enddo
        elsewhere
                 DENITRIF2 = c0
        end where
-! if  consumption is such that n2o goes negative after one timestep (600s) 
-! then reduce consumption
        where (N2O_loc .gt. c0)
-                where (N2O_loc - rden3 * Rden * denitrif_N2O_C * 600.0 .gt. c0) 
                         DENITRIF3 = rden3 * Rden * denitrif_N2O_C
-                elsewhere 
-                        DENITRIF3 = N2O_loc / 600.0       
-                end where
         elsewhere
                 DENITRIF3 = c0
         end where
@@ -2381,6 +2377,25 @@ c$$$       enddo
         elsewhere
                 anammox = c0
         end where
+
+! if  consumption is such that NO3, NO2 or N2O goes negative after one timestep (~20min) 
+! then reduce consumption such that it is completely consumed
+        where (NO3_loc + (nitrox - DENITRIF1 -
+     &         SED_DENITRIF - sum(NO3_V, dim=2)) * 1400.0 .gt. c0)
+                DENITRIF1 = NO3_loc / 1400.0 + nitrox - SED_DENITRIF - sum(NO3_V, dim=2)
+        endwhere
+
+        where (NO2_loc +  (ammox * no2_nh4_yield1 - nitrox +
+     &        DENITRIF1 - DENITRIF2 - anammox - sum(NO2_V, dim=2)) * 1400.0 .gt. c0)
+                DENITRIF2 = NO2_loc / 1400.0 + ammox * no2_nh4_yield1 - nitrox + DENITRIF1
+     &           - anammox - sum(NO2_V, dim=2)
+        endwhere
+
+        where (N2O_loc  + (ammox * n2o_nh4_yield1 + 0.5 * DENITRIF2 
+     &   - DENITRIF3) * 1400.0 .gt. c0) 
+                        DENITRIF3 = N2O_loc / 1400.0 + ammox * n2o_nh4_yield1 + 0.5 * DENITRIF2
+        end where
+
 
 # ifdef BEC2_DIAG
       bec2_diag_3d(istr:iend,j,k,anammox_idx_t) = anammox
@@ -2429,13 +2444,16 @@ c$$$       enddo
      &     + POC_remin(istr:iend,j)
      &     * (c1 - DONrefract))
 
+       DTRACER_MODULE(istr:iend,j,k,n2o_ind_t) = ammox * n2o_nh4_yield1 + 0.5 * DENITRIF2 - DENITRIF3
+# ifdef N2O_TRACER_DECOMP
        DTRACER_MODULE(istr:iend,j,k,n2o_ao1_ind_t) = ammox * n2o_nh4_yield1
-       DTRACER_MODULE(istr:iend,j,k,n2o_ao2_ind_t) = c0
        DTRACER_MODULE(istr:iend,j,k,n2o_soden_ind_t) = 0.5 * DENITRIF2
        DTRACER_MODULE(istr:iend,j,k,n2o_siden_ind_t) = -DENITRIF3 
-       DTRACER_MODULE(istr:iend,j,k,n2o_ind_t) = ammox * n2o_nh4_yield1 + 0.5 * DENITRIF2 - DENITRIF3
        DTRACER_MODULE(istr:iend,j,k,n2o_atm_ind_t) = c0
-
+# endif
+# ifdef N2O_NEV
+       DTRACER_MODULE(istr:iend,j,k,n2o_nev_ind_t) = n2o_prod_nev
+# endif
 
 # else
        DTRACER_MODULE(istr:iend,j,k,no3_ind_t) = NITRIF - DENITRIF - 
@@ -2673,6 +2691,20 @@ c$$$       enddo
      &   + sum(auto_loss_dic, dim=2) + sum(auto_graze_dic, dim=2)) / parm_Remin_D_C_O2 + (c2 * NITRIF))
 # endif
        DTRACER_MODULE(istr:iend,j,k,o2_ind_t) = O2_PRODUCTION - O2_CONSUMPTION
+
+# ifdef N2O_NEV
+        where (O2_loc .gt. O2_crit_nev .and. PAR_out < parm_nitrif_par_lim)
+                n2o_prod_nev = (parm_Red_D_C_O2/parm_Red_D_C_N) * (parm_n2o_nev_a1/O2_loc + parm_n2o_nev_a2)
+     &          * exp(z_r(i,j,k)/z_scale_nev) * (O2_PRODUCTION-O2_CONSUMPTION)
+               where (PAR_in > parm_nitrif_par_lim)
+                        n2o_prod_nev = n2o_prod_nev * log(PAR_out/parm_nitrif_par_lim) / (-KPARdz)
+               endwhere
+        elsewhere
+                
+                n2o_prod_nev = - N2O_nev_loc / N2O_cons_tau_nev
+        end where
+# endif
+
 # ifdef BEC_COCCO
     !-----------------------------------------------------------------------
     ! CN, June/July 2015: Implementation of coccolilthophores 
