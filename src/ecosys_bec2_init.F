@@ -112,6 +112,7 @@
       parm_knh4_ax = 0.4724
       parm_kno2_ax = 0.4875
       parm_ko2_ax = 4.95
+      r_no2tonh4_ax = 1.26 ! Strous et al. 1998 (Some NO2 is oxidized to NO3 via CO2)
       parm_n2o_ji_a = 1.07
       parm_n2o_ji_b = 0.072
       parm_n2o_gor_a = 0.2

@@ -135,6 +135,7 @@
      &   parm_knh4_ax,     ! NH4 half saturation constant for anammox (mmol/m^3)
      &   parm_kno2_ax,    ! NO2 half saturation constant for anammox (mmol/m^3)
      &   parm_ko2_ax,      ! exponential decay constant for anammox (mmol/m^3)
+     &   r_no2tonh4_ax, ! ratio of N consumed from NO2 vs NH4 during anammox (unitless)
      &   parm_n2o_ji_a, ! n2o yield constant (Ji et al.  2015)
      &   parm_n2o_ji_b, ! n2o yield constant (Ji et al.  2015)
      &   parm_n2o_gor_a, ! n2o yield constant (Goreau et al. 1980)

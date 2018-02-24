@@ -2512,10 +2512,11 @@ c$$$       enddo
     !-----------------------------------------------------------------------
 # ifdef Ncycle_SY
        DTRACER_MODULE(istr:iend,j,k,no3_ind_t) = nitrox - DENITRIF1 -
-     &                                 SED_DENITRIF - sum(NO3_V, dim=2)
+     &                                 SED_DENITRIF - sum(NO3_V, dim=2)+
+     &                                 (r_no2tonh4_ax - c1) * anammox
 
        DTRACER_MODULE(istr:iend,j,k,no2_ind_t) = ammox * no2_nh4_yield1 - nitrox +
-     &                                 DENITRIF1 - DENITRIF2 - anammox - sum(NO2_V, dim=2)
+     &                                 DENITRIF1 - DENITRIF2 - r_no2tonh4_ax * anammox - sum(NO2_V, dim=2)
 
        DTRACER_MODULE(istr:iend,j,k,nh4_ind_t) = -sum(NH4_V, dim=2) - ammox - anammox + DON_remin + DONr_remin
      &     + Q * (zoo_loss_dic + sum(auto_loss_dic, dim=2) + sum(auto_graze_dic, dim=2)
