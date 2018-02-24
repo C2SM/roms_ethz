@@ -265,6 +265,11 @@ CR      write(*,'(1x,A,I3)') 'indxNH4 =',indxNH4
       vname(2,indxn2o_atm)='N2O of atmospheric provenance   '
       vname(3,indxn2o_atm)='mMol N2 m-3                         '
       vname(4,indxn2o_atm)='  '
+
+      vname(1,indxn2_sed)='N2_SED                              '
+      vname(2,indxn2_sed)='N2 from sedimentary denitrification   '
+      vname(3,indxn2_sed)='mMol N2 m-3                         '
+      vname(4,indxn2_sed)='  '
 # endif
 # ifdef N2O_NEV
       vname(1,indxn2o_nev)='N2O_NEV                                '
@@ -1452,6 +1457,7 @@ CR      write(*,'(1x,A,I3)') 'indxNH4 =',indxNH4
       tclm_name(iN2O_SIDEN) = 'n2o_siden_time'
       tclm_name(iN2O_SODEN) = 'n2o_soden_time'
       tclm_name(iN2O_ATM) = 'n2o_atm_time'
+      tclm_name(iN2_SED) = 'n2_sed_time'
 # endif
 # ifdef N2O_NEV
       tclm_name(iN2O_NEV) = 'n2o_nev_time'

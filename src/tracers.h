@@ -56,8 +56,9 @@
 # ifdef N2O_TRACER_DECOMP
      &          , indxn2o_ao1=LAST_I+1, indxn2o_siden=LAST_I+2
      &          , indxn2o_soden=LAST_I+3, indxn2o_atm=LAST_I+4
+     &          , indxn2_sed=LAST_I+5
 #  undef LAST_I
-#  define LAST_I indxn2o_atm
+#  define LAST_I indxn2_sed
 # endif
 # ifdef N2O_NEV
      &          , indxn2o_nev=LAST_I+1

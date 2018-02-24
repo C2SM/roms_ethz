@@ -331,8 +331,9 @@
 #ifdef N2O_TRACER_DECOMP
      &     n2o_ao1_ind_t=LAST_I+1, n2o_siden_ind_t=LAST_I+2, 
      &     n2o_soden_ind_t=LAST_I+3, n2o_atm_ind_t=LAST_I+4,
+     &     n2_sed_ind_t=LAST_I+5, 
 #  undef LAST_I
-#  define LAST_I n2o_atm_ind_t
+#  define LAST_I n2_sed_ind_t
 # endif
 # ifdef N2O_NEV 
      &     n2o_nev_ind_t=LAST_I+1

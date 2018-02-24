@@ -605,7 +605,7 @@ c$$$       enddo
              WHERE (PH_HIST(istr:iend,j) .ne. c0)
                 PHLO(istr:iend) = PH_HIST(istr:iend,j) - del_ph
                 PHHI(istr:iend) = PH_HIST(istr:iend,j) + del_ph
-#  endif /* BEC
+#  endif /* BEC2_DIAG */ 
              ELSEWHERE
                 PHLO = phlo_init
                 PHHI = phhi_init
@@ -2523,11 +2523,15 @@ c$$$       enddo
      &     * (c1 - DONrefract))
 
        DTRACER_MODULE(istr:iend,j,k,n2o_ind_t) = ammox * n2o_nh4_yield1 + 0.5 * DENITRIF2 - DENITRIF3
+
+       DTRACER_MODULE(istr:iend,j,k,n2_ind_t) = DENITRIF3 + 0.5 * SED_DENITRIF
+
 # ifdef N2O_TRACER_DECOMP
        DTRACER_MODULE(istr:iend,j,k,n2o_ao1_ind_t) = ammox * n2o_nh4_yield1
        DTRACER_MODULE(istr:iend,j,k,n2o_soden_ind_t) = 0.5 * DENITRIF2
        DTRACER_MODULE(istr:iend,j,k,n2o_siden_ind_t) = -DENITRIF3 
        DTRACER_MODULE(istr:iend,j,k,n2o_atm_ind_t) = c0
+       DTRACER_MODULE(istr:iend,j,k,n2_sed_ind_t) = 0.5 * SED_DENITRIF
 # endif
 # ifdef N2O_NEV
        DTRACER_MODULE(istr:iend,j,k,n2o_nev_ind_t) = n2o_prod_nev
@@ -4062,8 +4066,7 @@ c$$$       enddo
 
        REAL, DIMENSION(istr:iend,jstr:jend), INTENT(IN) :: 
      &    SSTT,  ! sea surface temperature (C)
-     &    SSSS,    ! sea surface salinity (psu)
-     &    AP_USED
+     &    SSSS    ! sea surface salinity (psu)
 
     !---------------------------------------------------------------------------
     !   result declaration

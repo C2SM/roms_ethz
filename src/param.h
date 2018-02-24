@@ -323,8 +323,9 @@ c     &      NSUB_X=2, NSUB_E=8  ! <-- iswake 768x192
 # ifdef N2O_TRACER_DECOMP
      &       , iN2O_AO1=LAST_I+1, iN2O_SIDEN=LAST_I+2
      &       , iN2O_SODEN=LAST_I+3, iN2O_ATM=LAST_I+4
+     &       , iN2_SED=LAST_I+5
 #    undef LAST_I
-#    define LAST_I iN2O_ATM
+#    define LAST_I iN2_SED
 # endif
 # ifdef N2O_NEV
      &       , iN2O_NEV=LAST_I+1
