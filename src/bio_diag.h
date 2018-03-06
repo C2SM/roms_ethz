@@ -150,7 +150,8 @@
      &            , indxDDANH4UPTAKE=LAST_I+11,indxDDAGRAZEDIC=LAST_I+12
      &            , indxDDALOSSDIC=LAST_I+13,indxGRAZEDDAZOO=LAST_I+14
      &            , indxDDAPHOTOACC=LAST_I+15
-     &            , indxDDAPLIM=LAST_I+16
+     &            , indxDDAPLIM=LAST_I+16,indxDDANFIX=LAST_I+17
+     &            , indxDDASIO3UPTAKE=LAST_I+18
 #  undef LAST_I
 #  define LAST_I indxDDAPLIM
 # endif

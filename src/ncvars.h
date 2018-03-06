@@ -42,7 +42,7 @@
 # ifdef BIOLOGY
 #  include "tracers.h"
 # endif
-     &       , indxAkv=LAST_I+1,   indxAkt=indxAkv+1
+     &       , indxAkv=indxT+NT,   indxAkt=indxAkv+1
 # undef LAST_I
 # define LAST_I indxAkt
 # ifdef SALINITY

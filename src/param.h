@@ -238,7 +238,7 @@ c     &      NSUB_X=2, NSUB_E=8  ! <-- iswake 768x192
       integer, parameter :: stdout=6
 #ifdef SOLVE3D
 # ifdef PASSIVE_TRACER
-     &, ntrc_pas=1
+     &, ntrc_pas=2
 !     &, itpas(ntrc_pas)
 !      common /pass_tracer/ itpas
 # else 

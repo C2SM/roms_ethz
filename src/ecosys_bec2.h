@@ -35,7 +35,7 @@
      &    +19
 # endif
 # ifdef BEC_DDA
-     &    +16
+     &    +18
 # endif
 # ifdef BEC_PHAEO
      &    +17
@@ -163,7 +163,8 @@
      &   ddagrazedic_idx_t=LAST_I+12,
      &   ddalossdic_idx_t=LAST_I+13,grazeddazoo_idx_t=LAST_I+14,
      &   ddaphotoacc_idx_t=LAST_I+15,
-     &   ddaplim_idx_t=LAST_I+16
+     &   ddaplim_idx_t=LAST_I+16,ddanfix_idx_t=LAST_I+17,
+     &   ddasio3uptake_idx_t=LAST_I+18
 #  undef LAST_I
 #  define LAST_I ddaplim_idx_t
 # endif

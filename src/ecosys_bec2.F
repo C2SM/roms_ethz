@@ -1286,11 +1286,19 @@ c$$$       enddo
 
           ! DL: in the following computation of KPARdz, it was taken into 
           ! account that Hz is in m
-          if (KPARdz(i) < 0.13224) then
+         if (KPARdz(i) < 0.13224) then
              KPARdz(i) = 0.0919*(KPARdz(i)**0.3536) * Hz(i,j,k)
           else
              KPARdz(i) = 0.1131*(KPARdz(i)**0.4562) * Hz(i,j,k)
           end if
+          
+          ! Domitille TEST
+!          if (KPARdz(i) < 0.13224) then
+!              KPARdz(i) = 0.0919*(KPARdz(i)**0.3536) * Hz(i,j,k)
+!          else
+!              KPARdz(i) = 0.1131*(KPARdz(i)**0.2) * Hz(i,j,k)
+!          end if
+
           PAR_out(i) = PAR_in(i) * exp(-KPARdz(i))
           PAR_lay(i) = PAR_in(i) * (c1 - exp(-KPARdz(i))) / KPARdz(i)
 # ifdef BEC2_DIAG
@@ -1456,6 +1464,18 @@ c$$$       enddo
 #  endif
           end if
 # endif /* BEC2_DIAG */
+# ifdef BEC_DDA
+#  ifdef BEC2_DIAG
+          if (auto_ind == dda_ind) then
+#   ifdef BEC2_DIAG_USER
+              if (bec2_diag_3d_l(ddasio3uptake_idx_t))
+     &            bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(ddasio3uptake_idx_t))= VSiO3
+#   else
+              bec2_diag_3d(istr:iend,j,k,ddasio3uptake_idx_t) = VSiO3
+#   endif
+          end if     
+#  endif /* BEC2_DIAG */
+# endif /* BEC_DDA*/
 
     !-----------------------------------------------------------------------
     !     get photosynth. rate, phyto C biomass change, photoadapt
@@ -1812,30 +1832,30 @@ c$$$       enddo
 
           if (Nfixer(auto_ind)) then
              WORK1 = photoC(istr:iend,auto_ind) * Q
-!# ifdef BEC_DDA
-!          if (Nfixer(dda_ind)) then
-!             WORK2 = photoC(istr:iend,auto_ind) * Q
-!             Nfix(istr:iend,auto_ind)     = (WORK2 * r_Nfix_photo_dda) - NO3_V(istr:iend,auto_ind)
-!     &                 - NH4_V(istr:iend,auto_ind)
-!          else
-!# endif
              Nfix(istr:iend,auto_ind)     = (WORK1 * r_Nfix_photo) - NO3_V(istr:iend,auto_ind)
      &                 - NH4_V(istr:iend,auto_ind)
              Nexcrete(istr:iend,auto_ind) = Nfix(istr:iend,auto_ind) + NO3_V(istr:iend,auto_ind)
      &                 + NH4_V(istr:iend,auto_ind) - WORK1
-!# ifdef BEC_DDA
-!          endif
-!# endif
           endif
 # ifdef BEC2_DIAG
 #  ifdef BEC2_DIAG_USER
           if (auto_ind == diaz_ind .and. bec2_diag_3d_l(diaznfix_idx_t)) then
              bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(diaznfix_idx_t)) = Nfix(istr:iend,auto_ind)
           end if
+#   ifdef BEC_DDA
+           if (auto_ind == dda_ind .and.bec2_diag_3d_l(ddanfix_idx_t)) then
+               bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(ddanfix_idx_t))= Nfix(istr:iend,auto_ind)
+           end if 
+#   endif
 #  else
           if (auto_ind == diaz_ind) then
              bec2_diag_3d(istr:iend,j,k,diaznfix_idx_t) = Nfix(istr:iend,auto_ind)
           end if
+#   ifdef BEC_DDA
+          if (auto_ind == dda_ind) then
+              bec2_diag_3d(istr:iend,j,k,ddanfix_idx_t) = Nfix(istr:iend,auto_ind)
+          end if
+#   endif
 #  endif
 # endif
 
