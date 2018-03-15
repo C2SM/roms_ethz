@@ -460,8 +460,8 @@ CR      write(*,'(1x,A,I3)') 'indxNH4 =',indxNH4
       vname_bec2_diag_2d(3,indxn2sat)='mmol/m3 '
       vname_bec2_diag_2d(4,indxn2sat)=' '
 
-      vname_bec2_diag_2d(1,indxpvn2)='PV_N2O'
-      vname_bec2_diag_2d(2,indxpvn2)='Piston velocity for N2O'
+      vname_bec2_diag_2d(1,indxpvn2)='PV_N2'
+      vname_bec2_diag_2d(2,indxpvn2)='Piston velocity for N2'
       vname_bec2_diag_2d(3,indxpvn2)='m/s '
       vname_bec2_diag_2d(4,indxpvn2)=' '
 #endif

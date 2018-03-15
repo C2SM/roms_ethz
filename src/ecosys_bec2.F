@@ -272,7 +272,7 @@ c$$$       enddo
                FLUX(i,j) = PV(i,j) * (c0 - tracer(i,j,N,n2o_ao1_ind_t))
                STF(i,j,n2o_ao1_ind_t) = FLUX(i,j)
                FLUX(i,j) = PV(i,j) * (c0 - tracer(i,j,N,n2o_soden_ind_t))
-               STF(i,j,n2o_ao1_ind_t) = FLUX(i,j)
+               STF(i,j,n2o_soden_ind_t) = FLUX(i,j)
                FLUX(i,j) = PV(i,j) * (c0 - tracer(i,j,N,n2o_siden_ind_t))
                STF(i,j,n2o_siden_ind_t) = FLUX(i,j)
                FLUX(i,j) = PV(i,j) * (N2OSAT_USED - tracer(i,j,N,n2o_atm_ind_t))
@@ -312,7 +312,7 @@ c$$$       enddo
                bec2_diag_2d(i,j,fgn2o_atm_idx_t) = STF(i,j,n2o_atm_ind_t)
 # endif
 #ifdef N2O_NEV
-               bec2_diag_2d(i,j,fgn2o_nev_idx_t) =STF(i,j,n2o_nev_ind_t)
+               bec2_diag_2d(i,j,fgn2o_nev_idx_t) = STF(i,j,n2o_nev_ind_t)
 #endif
 
 # endif
@@ -358,18 +358,9 @@ c$$$       enddo
                tracer(i,j,N,n2_ind_t) = tracer(i,j,N,n2_ind_t)+
      &                 stf(i,j,n2_ind_t)*dt/Hz(i,j,N)
 # ifdef BEC2_DIAG
-#  ifdef BEC2_DIAG_USER
-               if (bec2_diag_2d_l(pvn2_idx_t))
-     &             bec2_diag_2d(i,j,bec2_diag_2d_idx(pvn2_idx_t)) = PV(i,j)
-               if (bec2_diag_2d_l(o2sat_idx_t))
-     &             bec2_diag_2d(i,j,bec2_diag_2d_idx(n2sat_idx_t)) = N2SAT_USED
-               if (bec2_diag_2d_l(fgo2_idx_t))
-     &             bec2_diag_2d(i,j,bec2_diag_2d_idx(fgn2_idx_t)) = FLUX(i,j)
-#  else
                bec2_diag_2d(i,j,pvn2_idx_t) = PV(i,j)
                bec2_diag_2d(i,j,n2sat_idx_t) = N2SAT_USED
                bec2_diag_2d(i,j,fgn2_idx_t) = FLUX(i,j)
-#  endif
 # endif
             end do  ! i
          end do  ! j
@@ -1011,7 +1002,7 @@ c$$$       enddo
      &    ammox,          ! ammonium oxidation (NH4 -> NO2) (mmol N/m^3/sec)
      &    nitrox,          ! nitrite oxidation (NO2 -> NO3) (mmolN/m^3/sec)
      &    anammox,          ! anaerobic ammonium oxidation (NH4 -> N2) (mmolN/m^3/sec)
-     &    eps_den,         ! small value for denitrification calculations
+     &    epsN,         ! small value for denitrification calculations
      &    R_oxic,        ! Pseudo oxic remineralization (NO3-> NO2, no units) 
      &    R_den1,        ! Pseudo denitrification 1 (NO3-> NO2, no units) 
      &    R_den2,        ! pseudo denitrification 2 (NO2-> N2O), no units) 
@@ -1029,6 +1020,7 @@ c$$$       enddo
 # endif
 # ifdef N2O_NEV
      &    n2o_prod_nev,
+     &    n2o_cons_nev,
 # endif
      &    QA_dust_def,     ! incoming deficit in the QA(dust) POC flux
      &    NITRIF,          ! nitrification (NH4 -> NO3) (mmol N/m^3/sec)
@@ -1655,13 +1647,20 @@ c$$$       enddo
     !  total N uptake VNC is used in photoadaption
     !-----------------------------------------------------------------------
 # ifdef Ncycle_SY
+       epsN = 1.0e-30 ! small value to avoid dividing by 0
           where (VNtot(istr:iend,auto_ind) > c0)
-             NO3_V(istr:iend,auto_ind) = ((NO3_loc/(NO2_loc+NO3_loc))*VNOX(istr:iend,auto_ind) / VNtot(istr:iend,auto_ind))
-     &                   * photoC(istr:iend,auto_ind) * Q
-             NO2_V(istr:iend,auto_ind) = ((NO2_loc/(NO2_loc+NO3_loc))*VNOX(istr:iend,auto_ind) / VNtot(istr:iend,auto_ind))
-     &                   * photoC(istr:iend,auto_ind) * Q 
+             where ((NO2_loc+NO3_loc) .le. c0)
+                NO3_V(istr:iend,auto_ind) = c0
+                NO2_V(istr:iend,auto_ind) = c0
+             elsewhere
+                NO3_V(istr:iend,auto_ind) = (((NO3_loc)/(NO2_loc+NO3_loc))*VNOX(istr:iend,auto_ind) 
+     &                   / VNtot(istr:iend,auto_ind)) * photoC(istr:iend,auto_ind) * Q
+                NO2_V(istr:iend,auto_ind) = (((NO2_loc)/(NO2_loc+NO3_loc))*VNOX(istr:iend,auto_ind) 
+     &                  / VNtot(istr:iend,auto_ind))  * photoC(istr:iend,auto_ind) * Q 
+             end where
              NH4_V(istr:iend,auto_ind) = (VNH4(istr:iend,auto_ind) / VNtot(istr:iend,auto_ind))
-     &                   * photoC(istr:iend,auto_ind) * Q
+     &                    * photoC(istr:iend,auto_ind) * Q 
+                
              VNC = PCphoto * Q
           elsewhere
              NO3_V(istr:iend,auto_ind) = c0
@@ -1672,8 +1671,6 @@ c$$$       enddo
 # else
           where (VNtot(istr:iend,auto_ind) > c0)
              NO3_V(istr:iend,auto_ind) = (VNO3(istr:iend,auto_ind) / VNtot(istr:iend,auto_ind))
-     &                   * photoC(istr:iend,auto_ind) * Q
-             NO2_V(istr:iend,auto_ind) = (VNO3(istr:iend,auto_ind) / VNtot(istr:iend,auto_ind))
      &                   * photoC(istr:iend,auto_ind) * Q
              NH4_V(istr:iend,auto_ind) = (VNH4(istr:iend,auto_ind) / VNtot(istr:iend,auto_ind))
      &                   * photoC(istr:iend,auto_ind) * Q
@@ -2008,10 +2005,11 @@ c$$$       enddo
        if (bec2_diag_3d_l(diatnlim_idx_t))
      &    bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(diatnlim_idx_t)) = VNtot(istr:iend,diat_ind)
 # ifdef Ncycle_SY
+       if (bec2_diag_3d_l(spno2uptake_idx_t))
      &    bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(spno2uptake_idx_t)) = NO2_V(istr:iend,sp_ind)
-       if (bec2_diag_3d_l(diatno3uptake_idx_t))
+       if (bec2_diag_3d_l(diatno2uptake_idx_t))
      &    bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(diatno2uptake_idx_t)) = NO2_V(istr:iend,diat_ind)
-       if (bec2_diag_3d_l(diazno3uptake_idx_t))
+       if (bec2_diag_3d_l(diazno2uptake_idx_t))
      &    bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(diazno2uptake_idx_t)) = NO2_V(istr:iend,diaz_ind)
 # endif
        if (bec2_diag_3d_l(spno3uptake_idx_t))
@@ -2415,16 +2413,13 @@ c$$$       enddo
 
        WORK1 = merge(c0, WORK1, NO3_loc == c0)
 
-       ! CN: See Simon's code: under low NO3, DENITRIF is reduced!
-       ! NO3min=2
 # ifdef Ncycle_SY
 ! split denitrification into three components i.e., one done by no3, one by no2 and one by n2o
        ! Total organic matter denitrified in C units 
-       eps_den = 1.0e-30 
        R_oxic = parm_koxic * (O2_loc / (parm_ko2_oxic + O2_loc))
-       R_den1 = parm_kden1 * (NO3_loc / (parm_kno3_den1 + NO3_loc)) * exp(-O2_loc/parm_ko2_den1) + eps_den
-       R_den2 = parm_kden2 * (NO2_loc / (parm_kno2_den2 + NO2_loc)) * exp(-O2_loc/parm_ko2_den2) + eps_den
-       R_den3 = parm_kden2 * (N2O_loc / (parm_kn2o_den3 + N2O_loc)) * exp(-O2_loc/parm_ko2_den3) + eps_den
+       R_den1 = parm_kden1 * (NO3_loc / (parm_kno3_den1 + NO3_loc)) * exp(-O2_loc/parm_ko2_den1) + epsN
+       R_den2 = parm_kden2 * (NO2_loc / (parm_kno2_den2 + NO2_loc)) * exp(-O2_loc/parm_ko2_den2) + epsN
+       R_den3 = parm_kden2 * (N2O_loc / (parm_kn2o_den3 + N2O_loc)) * exp(-O2_loc/parm_ko2_den3) + epsN
        roxic = R_oxic / (R_den1 + R_den2 + R_den3 + R_oxic)
        rden1 = R_den1 / (R_den1 + R_den2 + R_den3 + R_oxic)
        rden2 = R_den2 / (R_den1 + R_den2 + R_den3 + R_oxic)
@@ -2433,22 +2428,11 @@ c$$$       enddo
        Rden =  (DOC_remin + POC_remin(istr:iend,j)
      &                - OTHER_REMIN - SED_DENITRIF * denitrif_C_N)
 
-       where (NO3_loc .gt. c0)
-                DENITRIF1 = rden1 * Rden * denitrif_NO3_C 
-       elsewhere
-                DENITRIF1 = c0 
-       end where
-       where (NO2_loc .gt. c0)
-                DENITRIF2 = rden2 * Rden * denitrif_NO2_C
-       elsewhere
-                DENITRIF2 = c0
-       end where
-       where (N2O_loc .gt. c0)
-                        DENITRIF3 = rden3 * Rden * denitrif_N2O_C
-        elsewhere
-                DENITRIF3 = c0
-        end where
+! Calculate denitrification rates
+! --> if  consumption is such that NO3, NO2 or N2O goes negative after one
+! timestep (~20min) then reduce consumption such that it is completely consumed
 
+! ANAMMOX 1.26 NO2 + NH4 --> N2
        where  (NH4_loc .gt. c0 .and. NO2_loc .gt. c0)
                 anammox = parm_kax * (NH4_loc / (parm_knh4_ax + NH4_loc)) * 
      &                  (NO2_loc / (parm_kno2_den2 + NO2_loc)) * exp(-O2_loc/parm_ko2_ax)
@@ -2456,24 +2440,38 @@ c$$$       enddo
                 anammox = c0
         end where
 
-! if  consumption is such that NO3, NO2 or N2O goes negative after one timestep (~20min) 
-! then reduce consumption such that it is completely consumed
-        where (NO3_loc + (nitrox - DENITRIF1 -
-     &         SED_DENITRIF - sum(NO3_V, dim=2)) * 1400.0 .gt. c0)
-                DENITRIF1 = NO3_loc / 1400.0 + nitrox - SED_DENITRIF - sum(NO3_V, dim=2)
-        endwhere
+! DENITRIF1 NO3 --> NO2
+       where (NO3_loc + (nitrox - DENITRIF1 -
+     &         SED_DENITRIF - sum(NO3_V, dim=2)) * 1200.0 .ge. c0)
+                DENITRIF1 = rden1 * Rden * denitrif_NO3_C 
+       elsewhere (NO3_loc .lt. c0)
+                DENITRIF1 = c0
+       elsewhere 
+                DENITRIF1 = NO3_loc / 1200.0 + nitrox - SED_DENITRIF -
+     &          sum(NO3_V, dim=2)
+       end where
 
-        where (NO2_loc +  (ammox * no2_nh4_yield1 - nitrox +
-     &        DENITRIF1 - DENITRIF2 - anammox - sum(NO2_V, dim=2)) * 1400.0 .gt. c0)
-                DENITRIF2 = NO2_loc / 1400.0 + ammox * no2_nh4_yield1 - nitrox + DENITRIF1
-     &           - anammox - sum(NO2_V, dim=2)
-        endwhere
+! DENITRIF2 NO2 -->0.5  N2O
+       where (NO2_loc  +  (ammox * no2_nh4_yield1 - nitrox +
+     &        DENITRIF1 - DENITRIF2 - anammox - sum(NO2_V, dim=2)) *
+     &        1200.0 .ge. c0)
+                DENITRIF2 = rden2 * Rden * denitrif_NO2_C
+       elsewhere (NO2_loc .lt. c0)
+                DENITRIF2 = c0
+       elsewhere
+                DENITRIF2 = NO2_loc / 1200.0 + ammox * no2_nh4_yield1 - nitrox +
+     &          DENITRIF1
+       end where
 
-        where (N2O_loc  + (ammox * n2o_nh4_yield1 + 0.5 * DENITRIF2 
-     &   - DENITRIF3) * 1400.0 .gt. c0) 
-                        DENITRIF3 = N2O_loc / 1400.0 + ammox * n2o_nh4_yield1 + 0.5 * DENITRIF2
+! DENITRIF3 N2O --> N2
+       where (N2O_loc + (ammox * n2o_nh4_yield1 + 0.5 * DENITRIF2
+     &        - DENITRIF3) * 1200.0 .ge. c0)
+                        DENITRIF3 = rden3 * Rden * denitrif_N2O_C
+        elsewhere (N2O_loc .lt. c0)
+                DENITRIF3 = c0
+        elsewhere
+                DENITRIF3 = N2O_loc / 1200.0 + ammox * n2o_nh4_yield1 + 0.5 * DENITRIF2
         end where
-
 
 # ifdef BEC2_DIAG
       bec2_diag_3d(istr:iend,j,k,anammox_idx_t) = anammox
@@ -2519,13 +2517,14 @@ c$$$       enddo
      &                                 DENITRIF1 - DENITRIF2 - r_no2tonh4_ax * anammox - sum(NO2_V, dim=2)
 
        DTRACER_MODULE(istr:iend,j,k,nh4_ind_t) = -sum(NH4_V, dim=2) - ammox - anammox + DON_remin + DONr_remin
+!       DTRACER_MODULE(istr:iend,j,k,nh4_ind_t) = - ammox - anammox + DON_remin + DONr_remin
      &     + Q * (zoo_loss_dic + sum(auto_loss_dic, dim=2) + sum(auto_graze_dic, dim=2)
      &     + POC_remin(istr:iend,j)
      &     * (c1 - DONrefract))
 
        DTRACER_MODULE(istr:iend,j,k,n2o_ind_t) = ammox * n2o_nh4_yield1 + 0.5 * DENITRIF2 - DENITRIF3
 
-       DTRACER_MODULE(istr:iend,j,k,n2_ind_t) = DENITRIF3 + 0.5 * SED_DENITRIF
+       DTRACER_MODULE(istr:iend,j,k,n2_ind_t) = DENITRIF3 + 0.5 * SED_DENITRIF + anammox
 
 # ifdef N2O_TRACER_DECOMP
        DTRACER_MODULE(istr:iend,j,k,n2o_ao1_ind_t) = ammox * n2o_nh4_yield1
@@ -2533,9 +2532,6 @@ c$$$       enddo
        DTRACER_MODULE(istr:iend,j,k,n2o_siden_ind_t) = -DENITRIF3 
        DTRACER_MODULE(istr:iend,j,k,n2o_atm_ind_t) = c0
        DTRACER_MODULE(istr:iend,j,k,n2_sed_ind_t) = 0.5 * SED_DENITRIF
-# endif
-# ifdef N2O_NEV
-       DTRACER_MODULE(istr:iend,j,k,n2o_nev_ind_t) = n2o_prod_nev
 # endif
 
 # else
@@ -2776,16 +2772,24 @@ c$$$       enddo
        DTRACER_MODULE(istr:iend,j,k,o2_ind_t) = O2_PRODUCTION - O2_CONSUMPTION
 
 # ifdef N2O_NEV
+        ! Nevison Param: N2O production 
         where (O2_loc .gt. O2_crit_nev .and. PAR_out < parm_nitrif_par_lim)
                 n2o_prod_nev = (parm_Red_D_C_O2/parm_Red_D_C_N) * (parm_n2o_nev_a1/O2_loc + parm_n2o_nev_a2)
      &          * exp(z_r(i,j,k)/z_scale_nev) * (O2_PRODUCTION-O2_CONSUMPTION)
                where (PAR_in > parm_nitrif_par_lim)
                         n2o_prod_nev = n2o_prod_nev * log(PAR_out/parm_nitrif_par_lim) / (-KPARdz)
                endwhere
-        elsewhere
-                
-                n2o_prod_nev = - N2O_nev_loc / N2O_cons_tau_nev
+        elsewhere 
+                n2o_prod_nev = c0        
         end where
+        ! First order consumption
+        where (O2_loc .le. O2_crit_nev)
+                n2o_cons_nev = N2O_cons_tau_nev * N2O_nev_loc 
+        elsewhere
+                n2o_cons_nev = c0
+        endwhere
+
+       DTRACER_MODULE(istr:iend,j,k,n2o_nev_ind_t) = n2o_prod_nev - n2o_cons_nev
 # endif
 
 # ifdef BEC_COCCO
