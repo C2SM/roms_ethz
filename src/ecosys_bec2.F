@@ -994,7 +994,6 @@ c$$$       enddo
      &    NO2_loc,         ! local copy of model no2
      &    N2O_atm_loc,     ! local copy of N2O from atmosphere
      &    N2O_ao1_loc,         ! local copy of model n2o prod. via ao1
-     &    N2O_nev_loc,         ! local copy of model n2o using Nevisson 
      &    N2O_siden_loc,         ! local copy of model n2o sinked by den
      &    N2O_soden_loc,         ! local copy of model n2o sourced by den
      &    N2_loc,         ! local copy of model n2
@@ -1019,6 +1018,7 @@ c$$$       enddo
      &    no2_nh4_yield1,   ! NO2 yield during ammonium oxidation (0 --> 1)
 # endif
 # ifdef N2O_NEV
+     &    N2O_nev_loc,         ! local copy of model n2o using Nevisson
      &    n2o_prod_nev,
      &    n2o_cons_nev,
 # endif
@@ -1170,11 +1170,13 @@ c$$$       enddo
        NO2_loc  = MAX(c0, TRACER(istr:iend,j,k,no2_ind_t))
        N2O_atm_loc = MAX(c0, TRACER(istr:iend,j,k,n2o_atm_ind_t))
        N2O_ao1_loc  = MAX(c0, TRACER(istr:iend,j,k,n2o_ao1_ind_t))
-       N2O_nev_loc  = MAX(c0, TRACER(istr:iend,j,k,n2o_nev_ind_t))
        N2O_siden_loc  = MAX(c0, TRACER(istr:iend,j,k,n2o_siden_ind_t))
        N2O_soden_loc  = MAX(c0, TRACER(istr:iend,j,k,n2o_soden_ind_t))
        N2_loc  = MAX(c0, TRACER(istr:iend,j,k,n2_ind_t))
        N2O_loc = MAX(c0, TRACER(istr:iend,j,k,n2o_ind_t))
+# endif
+# ifdef N2O_NEV
+       N2O_nev_loc  = MAX(c0, TRACER(istr:iend,j,k,n2o_nev_ind_t))
 # endif
 
 #ifdef BEC2_DIAG
@@ -2771,6 +2773,11 @@ c$$$       enddo
 # endif
        DTRACER_MODULE(istr:iend,j,k,o2_ind_t) = O2_PRODUCTION - O2_CONSUMPTION
 
+# ifdef BEC2_DIAG
+      bec2_diag_3d(istr:iend,j,k,o2prod_idx_t) = O2_PRODUCTION
+      bec2_diag_3d(istr:iend,j,k,o2cons_idx_t) = O2_CONSUMPTION
+# endif        
+
 # ifdef N2O_NEV
         ! Nevison Param: N2O production 
         where (O2_loc .gt. O2_crit_nev .and. PAR_out < parm_nitrif_par_lim)
@@ -2783,13 +2790,17 @@ c$$$       enddo
                 n2o_prod_nev = c0        
         end where
         ! First order consumption
-        where (O2_loc .le. O2_crit_nev)
+        where (O2_loc .le. O2_crit_nev .and. O2_loc .gt. c0)
                 n2o_cons_nev = N2O_cons_tau_nev * N2O_nev_loc 
         elsewhere
                 n2o_cons_nev = c0
         endwhere
 
        DTRACER_MODULE(istr:iend,j,k,n2o_nev_ind_t) = n2o_prod_nev - n2o_cons_nev
+# ifdef BEC2_DIAG
+      bec2_diag_3d(istr:iend,j,k,n2oprodnev_idx_t) = n2o_prod_nev
+      bec2_diag_3d(istr:iend,j,k,n2oconsnev_idx_t) = n2o_cons_nev
+# endif
 # endif
 
 # ifdef BEC_COCCO

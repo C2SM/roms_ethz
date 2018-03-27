@@ -46,9 +46,12 @@
      &    parm_n2o_ji_b,
      &    parm_n2o_gor_a,
      &    parm_n2o_gor_b,
+# endif
+# ifdef N2O_NEV
      &    parm_n2o_nev_a1,
      &    parm_n2o_nev_a2,
      &    N2O_cons_tau_nev,
+     &    O2_crit_nev,
      &    z_scale_nev,
 # endif
      &    parm_nitrif_par_lim,
@@ -101,28 +104,30 @@
       parm_kno2_den2 = 0.002
       parm_kn2o_den3 = 0.164
       parm_ko2_oxic = 0.872
-      parm_ko2_den1 = 5.44
-      parm_ko2_den2 = 3.98
-      parm_ko2_den3 = 1.79
-      parm_koxic = 0.139 * dps
-      parm_kden1 = 0.080 * dps 
-      parm_kden2 = 0.050 * dps 
-      parm_kden3 = 0.200 * dps 
-      parm_kax = 0.07 * dps
+      parm_ko2_den1 = 3.73
+      parm_ko2_den2 = 2.232
+      parm_ko2_den3 = 1.146
+      parm_koxic = 0.16 * dps
+      parm_kden1 = 0.0626 * dps 
+      parm_kden2 = 0.0291 * dps 
+      parm_kden3 = 0.1222 * dps 
+      parm_kax = 0.1237 * dps
       parm_knh4_ax = 0.4724
       parm_kno2_ax = 0.4875
-      parm_ko2_ax = 4.95
-      r_no2tonh4_ax = 1.26 ! Strous et al. 1998 (Some NO2 is oxidized to NO3 via CO2)
+      parm_ko2_ax = 2.574
+      r_no2tonh4_ax = 1.00 ! Strous et al. 1998 (Some NO2 is oxidized to NO3 via CO2)
       parm_n2o_ji_a = 1.07
       parm_n2o_ji_b = 0.072
       parm_n2o_gor_a = 0.2
       parm_n2o_gor_b = -0.0004
+# endif
+# ifdef N2O_NEV
       parm_n2o_nev_a1 = 0.26
       parm_n2o_nev_a2 = -0.0004
       O2_crit_nev = 4.0
       N2O_cons_tau_nev = 0.1 * dps
       z_scale_nev = 3000.0
-# endif
+#endif
 # ifdef BEC_COCCO
       parm_BSIbury           = 0.45 ! x1 default
       parm_Fe_scavenge_rate0 = 1.3 ! x1 default     2.8

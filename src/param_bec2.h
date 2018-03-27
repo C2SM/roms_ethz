@@ -140,12 +140,15 @@
      &   parm_n2o_ji_b, ! n2o yield constant (Ji et al.  2015)
      &   parm_n2o_gor_a, ! n2o yield constant (Goreau et al. 1980)
      &   parm_n2o_gor_b, ! n2o yield constant (Goreau et al. 1980)
-     &   parm_n2o_nev_a1, ! n2o production constant (Nevison et al. 2oo3) 
+# endif
+# ifdef N2O_NEV
+     &   parm_n2o_nev_a1, ! n2o production constant (Nevison et al. 2oo3)
      &   parm_n2o_nev_a2, ! n2o production constant (Nevison et al. 2oo3)
      &   O2_crit_nev, ! [O2] at which we switch to N2O consumption (Nevison et al. 2003)
      &   N2O_cons_tau_nev, ! n2o consumption timescale [1/s] (Cornejo and Farias 2007)
      &   z_scale_nev, ! Depth scale for N2O production (Nevison et al. 2oo3)
 # endif
+
      &   parm_nitrif_par_lim,    ! PAR limit for nitrif. (W/m^2)
      &   parm_z_mort_0,          ! zoo linear mort rate (1/sec)
      &   parm_z_mort2_0,         ! zoo quad mort rate (1/sec/((mmol C/m3))
@@ -173,6 +176,9 @@
      &   parm_koxic, parm_kden1, parm_kden2, parm_kden3, parm_kax, parm_knh4_ax, 
      &   parm_kno2_ax, parm_ko2_ax, parm_n2o_ji_a, parm_n2o_ji_b, parm_n2o_gor_a,
      &   parm_n2o_gor_b
+# endif
+# ifdef N2O_NEV
+     &   ,parm_n2o_nev_a1, parm_n2o_nev_a2, O2_crit_nev, N2O_cons_tau_nev, z_scale_nev
 # endif
 
   !---------------------------------------------------------------------

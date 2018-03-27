@@ -23,42 +23,37 @@
       parameter( nr_cchem_mocsy_2d=-3, nr_cchem_mocsy_3d=7 )
 #  else
       parameter( nr_cchem_mocsy_2d=2, nr_cchem_mocsy_3d=0 )
-#  endif
+#  endif /* CCHEM_TODEPTH */
 # else /* CCHEM_MOCSY */
       parameter( nr_cchem_mocsy_2d=0, nr_cchem_mocsy_3d=0 )
 # endif /* CCHEM_MOCSY */
 
-# ifdef Ncycle_SY
-      parameter( nr_bec2_diag_3d=91+nr_cchem_mocsy_3d+ 9, ! 0 from coccos, 0 from impl sinking
-# else
-# ifdef USE_EXPLICIT_VSINK
-# ifdef BEC_COCCO
-      parameter( nr_bec2_diag_3d=91+nr_cchem_mocsy_3d+28,  ! 10 from expl sinking, 18 from coccos
-# else
-      parameter( nr_bec2_diag_3d=91+nr_cchem_mocsy_3d+10,
-# endif /* BEC_COCCO */
-# else /* impl sinking */
-# ifdef BEC_COCCO
-      parameter( nr_bec2_diag_3d=91+nr_cchem_mocsy_3d+18,  ! 18 from coccos, 0 from impl sinking
-# else
-      parameter( nr_bec2_diag_3d=91+nr_cchem_mocsy_3d,   ! CN: took "+5" away, these were included in the 91
-# endif /* BEC_COCCO */
+/* Still in BEC2 Diag now start counting for nr_bec2_diag_3d */
 
-# endif /* USE_EXPLICIT_VSINK */
-# endif /* Ncycle_SY*/
+      parameter( nr_bec2_diag_3d=93+nr_cchem_mocsy_3d
 # ifdef Ncycle_SY
-     &      nr_bec2_diag_2d=29+nr_cchem_mocsy_2d+8
+     &  +9
+#endif
+#ifdef N2O_NEV
+     &  +2 
+#endif
+# ifdef USE_EXPLICIT_VSINK
+     &  +10
+#endif
+# ifdef BEC_COCCO
+     &  +18
+#endif
+     & , nr_bec2_diag_2d=29+nr_cchem_mocsy_2d 
+# ifdef Ncycle_SY
+     &  +8
 # ifdef N2O_TRACER_DECOMP
      &  +4 ! 0 from coccos, 0 from impl sinking
+#endif /* N2O_TRACER_DECOMP*/
 #endif
 #ifdef N2O_NEV
      &  +1 ! 0 from coccos, 0 from impl sinking
-#endif
+#endif /* N2O_NEV*/
      &  )
-#else
-     &           nr_bec2_diag_2d=29+nr_cchem_mocsy_2d)  ! CN: added 11 tracers, see bio_diag.h
-#endif
-
       parameter( nr_bec2_diag=nr_bec2_diag_2d+nr_bec2_diag_3d )
 # ifdef BEC2_DIAG_USER
       real, pointer, dimension(:,:,:,:) :: bec2_diag_3d
@@ -129,9 +124,9 @@
      &   zooczero_idx_t=par_idx_t+83,spcaco3zero_idx_t=par_idx_t+84,donrremin_idx_t=par_idx_t+85,
      &   totchl_idx_t=par_idx_t+86,
      &   spplim_idx_t=par_idx_t+87,diatplim_idx_t=par_idx_t+88,diazplim_idx_t=par_idx_t+89,
-     &   totphytoc_idx_t=par_idx_t+90
+     &   totphytoc_idx_t=par_idx_t+90,o2cons_idx_t=par_idx_t+91, o2prod_idx_t=par_idx_t+92
 #  undef LAST_I
-#  define LAST_I totphytoc_idx_t
+#  define LAST_I o2prod_idx_t
 # ifdef USE_EXPLICIT_VSINK
      &   ,pironhardremin_idx_t=LAST_I+1, caco3hardremin_idx_t=LAST_I+2, sio2hardremin_idx_t=LAST_I+3
      &   ,pochardremin_idx_t=LAST_I+4, dusthardremin_idx_t=LAST_I+5
@@ -171,6 +166,12 @@
      &   anammox_idx_t=LAST_I+3,denitrif1_idx_t=LAST_I+4, denitrif2_idx_t=LAST_I+5,
      &   denitrif3_idx_t=LAST_I+6,spno2uptake_idx_t=LAST_I+7,
      &   diatno2uptake_idx_t=LAST_I+8,diazno2uptake_idx_t=LAST_I+9
+#  undef LAST_I
+#  define LAST_I diazno2uptake_idx_t
+# endif
+
+# ifdef N2O_NEV
+      integer, parameter :: n2oprodnev_idx_t=LAST_I+1,n2oconsnev_idx_t=LAST_I+2
 # endif
 
       ! Indices to be used in bec2_diag_2d only:
@@ -186,20 +187,20 @@
 #ifdef Ncycle_SY
      &   ,schmidt_n2o_idx_t=LAST_I+1, pvn2o_idx_t=LAST_I+2, n2osat_idx_t=LAST_I+3,
      &    fgn2o_idx_t=LAST_I+4, schmidt_n2_idx_t=LAST_I+5, pvn2_idx_t=LAST_I+6, 
-     &    fgn2_idx_t=LAST_I+7, n2sat_idx_t=LAST_I+8,
+     &    fgn2_idx_t=LAST_I+7, n2sat_idx_t=LAST_I+8
 # undef LAST_I
 # define LAST_I n2sat_idx_t
 #ifdef N2O_TRACER_DECOMP
-     &   fgn2o_ao1_idx_t=LAST_I+1, fgn2o_siden_idx_t=LAST_I+2,
-     &   fgn2o_soden_idx_t=LAST_I+3, fgn2o_atm_idx_t=LAST_I+4,
+     &   ,fgn2o_ao1_idx_t=LAST_I+1, fgn2o_siden_idx_t=LAST_I+2,
+     &   fgn2o_soden_idx_t=LAST_I+3, fgn2o_atm_idx_t=LAST_I+4
 # undef LAST_I
 # define LAST_I fgn2o_atm_idx_t
 # endif
+# endif
 #ifdef N2O_NEV
-     &   fgn2o_nev_idx_t=LAST_I+1
+     &   ,fgn2o_nev_idx_t=LAST_I+1
 # undef LAST_I
 # define LAST_I fgn2o_nev_idx_t
-#endif
 # endif
 # ifdef CCHEM_MOCSY
      &   ,ph_idx_t=pco2air_idx_t+16, pco2oc_idx_t=ph_idx_t+1, co3_idx_t=ph_idx_t+2
@@ -325,21 +326,23 @@
 #endif
 #ifdef Ncycle_SY
       integer, parameter ::
-     &     no2_ind_t=LAST_I+1, n2_ind_t=LAST_I+2,  n2o_ind_t=LAST_I+3,
+     &     no2_ind_t=LAST_I+1, n2_ind_t=LAST_I+2,  n2o_ind_t=LAST_I+3
 #  undef LAST_I
 #  define LAST_I n2o_ind_t
 #ifdef N2O_TRACER_DECOMP
-     &     n2o_ao1_ind_t=LAST_I+1, n2o_siden_ind_t=LAST_I+2, 
+     &     ,n2o_ao1_ind_t=LAST_I+1, n2o_siden_ind_t=LAST_I+2, 
      &     n2o_soden_ind_t=LAST_I+3, n2o_atm_ind_t=LAST_I+4,
-     &     n2_sed_ind_t=LAST_I+5, 
+     &     n2_sed_ind_t=LAST_I+5
 #  undef LAST_I
 #  define LAST_I n2_sed_ind_t
 # endif
-# ifdef N2O_NEV 
-     &     n2o_nev_ind_t=LAST_I+1
+# endif
+
+# ifdef N2O_NEV
+      integer, parameter ::
+     &      n2o_nev_ind_t=LAST_I+1
 #  undef LAST_I
 #  define LAST_I n2o_nev_ind_t
-#endif
 #endif
 
 !
