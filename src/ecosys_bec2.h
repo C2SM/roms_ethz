@@ -388,6 +388,7 @@
      &   P_SiO2hard_remin, P_ironhard_remin,
      &   dustsoft_remin, POCsoft_remin, P_CaCO3soft_remin,
      &   P_SiO2soft_remin, P_ironsoft_remin,
+     &   POCsoft_prod,POChard_prod,
 #endif
      &   POC_remin, P_iron_remin, P_SiO2_remin, P_CaCO3_remin
 
@@ -411,6 +412,7 @@
      &   P_SiO2hard_remin, P_ironhard_remin,
      &   dustsoft_remin, POCsoft_remin, P_CaCO3soft_remin,
      &   P_SiO2soft_remin, P_ironsoft_remin,
+     &   POCsoft_prod, POChard_prod,
 #endif
      &   POC_remin, P_iron_remin, P_SiO2_remin, P_CaCO3_remin
 

@@ -2296,8 +2296,6 @@ c$$$       enddo
        end where
 
        Fe_scavenge = yps * Fe_loc * Fe_scavenge_rate
-       ! MF: Debugging, try Fe_scavenge=0
-       !Fe_scavenge(istr:iend) = c0
 
        P_iron_prod = (zoo_loss * f_zoo_detr_loc * Qfe_zoo) + Fe_scavenge
 
@@ -2609,12 +2607,12 @@ c$$$       enddo
     !-----------------------------------------------------------------------
 
        DTRACER_MODULE(istr:iend,j,k,dusthard_ind_t) = -dusthard_remin(istr:iend,j)
-       DTRACER_MODULE(istr:iend,j,k,pochard_ind_t) = POC_gamma*POC_prod - POChard_remin(istr:iend,j)
+       DTRACER_MODULE(istr:iend,j,k,pochard_ind_t) = POChard_prod(istr:iend,j) - POChard_remin(istr:iend,j)
        DTRACER_MODULE(istr:iend,j,k,pcaco3hard_ind_t) = P_CaCO3_gamma*P_CaCO3_prod - P_CaCO3hard_remin(istr:iend,j)
        DTRACER_MODULE(istr:iend,j,k,psio2hard_ind_t) = P_SiO2_gamma*P_SiO2_prod - P_SiO2hard_remin(istr:iend,j)
        DTRACER_MODULE(istr:iend,j,k,pironhard_ind_t) = P_iron_gamma*P_iron_prod - P_ironhard_remin(istr:iend,j)
        DTRACER_MODULE(istr:iend,j,k,dustsoft_ind_t) = -dustsoft_remin(istr:iend,j)
-       DTRACER_MODULE(istr:iend,j,k,pocsoft_ind_t) = (c1-POC_gamma)*POC_prod - POCsoft_remin(istr:iend,j)
+       DTRACER_MODULE(istr:iend,j,k,pocsoft_ind_t) = POCsoft_prod(istr:iend,j) - POCsoft_remin(istr:iend,j)
        DTRACER_MODULE(istr:iend,j,k,pcaco3soft_ind_t) = (c1-P_CaCO3_gamma)*P_CaCO3_prod - 
      &                                                  P_CaCO3soft_remin(istr:iend,j)
        DTRACER_MODULE(istr:iend,j,k,psio2soft_ind_t) = (c1-P_SiO2_gamma)*P_SiO2_prod - P_SiO2soft_remin(istr:iend,j)
@@ -2711,6 +2709,7 @@ c$$$       enddo
         dust_rho      = 0.05 * dust_mass / POC_mass ! QA mass ratio for dust
 
         P_iron_gamma  = c0              ! prod frac -> hard subclass
+        !P_iron_gamma  = 0.9              ! prod frac -> hard subclass
 
     !-----------------------------------------------------------------------
     !  Set incoming fluxes
@@ -2728,16 +2727,12 @@ c$$$       enddo
         P_iron_hflux_out = c0
 
     !-----------------------------------------------------------------------
-    !  Hard POC is QA flux and soft POC is excess POC.
-    !
-    !  Note (MF):
-    !  These names are convenient given the mineral associated soft and
-    !  hard components, but rather confusing when reading about the
-    !  particulate/ballast models in Armstrong et al 2002, and Lima et
-    !  al 2014 (there is no such thing as POC hard, POC_gamma
-    !  doesnt exist here or is set to c0 in CESM BEC). Soft/Hard actually
-    !  applies only to the mineral associated components. Think about 
-    !  POC_hflux as being the QA component of POC and POC_sflux the excess POC.
+    !  Comment:
+    !  soft/hard applies to the ballasting mineral fractions experiencing
+    !  different remin/diss characteristics. For POC, hard refers to 
+    !  the QA fraction associated with ballast, soft to free POC. QA POC
+    !  is a diagnosed property from all ballasting minerals, thus
+    !  POC_gamma is c0 (see Armstrong et al. 2002,Lima et al. 2014).
     !-----------------------------------------------------------------------
 
         POC_sflux_out = c0
@@ -2791,7 +2786,6 @@ c$$$       enddo
      &   ,flux_oxidated ! carbon oxidation rate in sediment
      &   ,FESEDFLUX     ! sedimentary Fe inputs
      &   ,scalelength       
-     &   ,TfuncS         ! temperature scaling from soft POM remin
 # ifndef USE_EXPLICIT_VSINK
      &   ,DECAY_Hard       ! scaling factor for dissolution of Hard Ballast
      &   ,DECAY_HardDust   ! scaling factor for dissolution of Hard dust
@@ -2933,10 +2927,8 @@ c$$$       enddo
        end do
 
     !----------------------------------------------------------------------
-    !   Tref = 30.0 reference temperature (deg. C)
+    !   Create local copy of remin rates or dissolutions length scales
     !-----------------------------------------------------------------------
-
-       TfuncS = Q_10**(((TEMP + T0_Kelvin) - (Tref + T0_Kelvin)) / c10)
 
        poc_error = .false.
 
@@ -2947,9 +2939,6 @@ c$$$       enddo
              dzr_loc = c1 / dz_loc
 
 # ifdef USE_EXPLICIT_VSINK             
-             ! MF: Create local copies of remineralization lengths
-             ! to adjust later on. Only soft components get adjusted
-             ! to environmental conditions later! 
              pochard_remin_loc = param_pochard_remin
              pocsoft_remin_loc = param_pocsoft_remin
              psio2hard_remin_loc = param_psio2hard_remin
@@ -3003,19 +2992,6 @@ c$$$       enddo
 # endif
 
     !-----------------------------------------------------------------------
-    !  apply temperature dependence to sio2_diss length scale
-    !-----------------------------------------------------------------------
-             ! MF: Not sure whether this should still be done? In CESM
-             ! BEC, they dont do this anymore, but only apply the
-             ! scaling factors, which in the end also represent some
-             ! kind of temperature dependence!
-# ifdef USE_EXPLICIT_VSINK             
-             psio2soft_remin_loc = psio2soft_remin_loc * TfuncS(i)
-# else    
-! CN: only apply change of remin length scale with depth, not with temperature
-!             sio2_diss_loc = sio2_diss_loc / TfuncS(i)
-# endif
-    !-----------------------------------------------------------------------
     !  decay_POC_E and decay_SiO2 set locally, modified by O2
     !-----------------------------------------------------------------------
 
@@ -3054,11 +3030,11 @@ c$$$       enddo
 # else
 
     !-----------------------------------------------------------------------
-    !  Set outgoing fluxes.
+    !  Set outgoing fluxes for particle/ballast iB.
     !  In the case of explicit sinking, these are actually computed in
     !  vsink_BEC2.F and stored in VSinkFlux(:,:,N+1,nsink) at w levels.
-    !  Incoming fluxes for level n at VSinkFlux(:,:,n,sink_tracer) and
-    !  outgoing fluxes for level n at VSinkFlux(:,:,n-1,sink_tracer).
+    !  Incoming fluxes for level n at VSinkFlux(:,:,n,iB) and
+    !  outgoing fluxes for level n at VSinkFlux(:,:,n-1,iB).
     !  It is assumed that there is no sub-surface dust production.
     !  Downward fluxes are negative in VSinkFlux!
     !-----------------------------------------------------------------------
@@ -3126,9 +3102,6 @@ c$$$       enddo
     !  Use POC_PROD_avail to reduce new_QA_dust_def.
     !-----------------------------------------------------------------------
 
-        ! MF: Discuss the whole QA_dust_def treatment for the explicit
-        ! case !!!
-
              if (new_QA_dust_def > c0) then
                 new_QA_dust_def = new_QA_dust_def - POC_PROD_avail * dz_loc
                 if (new_QA_dust_def < c0) then
@@ -3141,22 +3114,23 @@ c$$$       enddo
 
              QA_dust_def(i) = new_QA_dust_def
 
+# ifdef USE_EXPLICIT_VSINK
+             POCsoft_prod(i,j) = POC_prod_avail
+             POChard_prod(i,j) = POC_prod(i) - POC_prod_avail
+             !if (mynode==323) then
+             !   write(*,*), 'POCsoft_prod(i,j): ',POCsoft_prod(i,j)
+             !   write(*,*), 'POChard_prod(i,j): ',POChard_prod(i,j)
+             !endif
+# endif
+
     !-----------------------------------------------------------------------
-    !  Compute outgoing POC fluxes. QA POC flux is computing using
+    !  Compute outgoing POC fluxes. QA POC flux is computed using
     !  ballast fluxes and new_QA_dust_def. If no QA POC flux came in
     !  and no production occured, then no QA POC flux goes out. This
     !  shortcut is present to avoid roundoff cancellation errors from
     !  the dust_rho * dust_flux_out - QA_dust_def computation.
     !  Any POC_PROD_avail still remaining goes into excess POC flux.
     !-----------------------------------------------------------------------
-
-        ! HOW DO I DEAL WITH THIS???? I am not sure how this section
-        ! would be dealt with in the explicit case. Since
-        ! POChard is not actually produced (POC_gamma=0) it is
-        ! assembeled from the different rho fractions of ballast
-        ! material, so I assume this calculation is 'OK'?!? How
-        ! about POCsoft, can I just read it from VSinkFlux, and/or
-        ! whats the contribution of POC_PROD_avail???
 
              if (POC_hflux_in(i,j) == c0 .and. POC_prod(i) == c0) then
                 POC_hflux_out(i,j) = c0
@@ -3186,34 +3160,45 @@ c$$$       enddo
 
 # ifdef USE_EXPLICIT_VSINK
              P_CaCO3hard_remin(i,j) = pcaco3hard_remin_loc *
-     &                      dps * tracer(i,j,k,pcaco3hard_ind_t)
+     &                      dps * max(c0,tracer(i,j,k,pcaco3hard_ind_t))
              P_CaCO3soft_remin(i,j) = pcaco3soft_remin_loc *
-     &                      dps * tracer(i,j,k,pcaco3soft_ind_t)
+     &                      dps * max(c0,tracer(i,j,k,pcaco3soft_ind_t))
              P_CaCO3_remin(i,j) = P_CaCO3hard_remin(i,j)+P_CaCO3soft_remin(i,j)
 
-             POChard_remin(i,j) = pochard_remin_loc *
-     &                      dps * tracer(i,j,k,pochard_ind_t)
-             POCsoft_remin(i,j) = pocsoft_remin_loc *
-     &                      dps * tracer(i,j,k,pocsoft_ind_t)
-             POC_remin(i,j) = POChard_remin(i,j)+POCsoft_remin(i,j)
-
              P_SiO2hard_remin(i,j) = psio2hard_remin_loc *
-     &                      dps * tracer(i,j,k,psio2hard_ind_t)
+     &                      dps * max(c0,tracer(i,j,k,psio2hard_ind_t))
              P_SiO2soft_remin(i,j) = psio2soft_remin_loc *
-     &                      dps * tracer(i,j,k,psio2soft_ind_t)
+     &                      dps * max(c0,tracer(i,j,k,psio2soft_ind_t))
              P_SiO2_remin(i,j) = P_SiO2hard_remin(i,j)+P_SiO2soft_remin(i,j)
 
              P_ironhard_remin(i,j) = pironhard_remin_loc *
-     &                      dps * tracer(i,j,k,pironhard_ind_t)
+     &                      dps * max(c0,tracer(i,j,k,pironhard_ind_t))
              P_ironsoft_remin(i,j) = pironsoft_remin_loc *
-     &                      dps * tracer(i,j,k,pironsoft_ind_t)
+     &                      dps * max(c0,tracer(i,j,k,pironsoft_ind_t))
              P_iron_remin(i,j) = P_ironhard_remin(i,j)+P_ironsoft_remin(i,j)
 
              dusthard_remin(i,j) = dusthard_remin_loc *
-     &                      dps * tracer(i,j,k,dusthard_ind_t)
+     &                      dps * max(c0,tracer(i,j,k,dusthard_ind_t))
              dustsoft_remin(i,j) = dustsoft_remin_loc *
-     &                      dps * tracer(i,j,k,dustsoft_ind_t)
+     &                      dps * max(c0,tracer(i,j,k,dustsoft_ind_t))
              dust_remin(i) = dusthard_remin(i,j)+dustsoft_remin(i,j)
+
+             ! Compute POC remin (diagnose POChard_remin from QA fractions)
+             POChard_remin(i,j) = dps * ( (pcaco3hard_remin_loc * 
+     &                      P_CaCO3_rho * max(c0,tracer(i,j,k,pcaco3hard_ind_t)) +
+     &                      pcaco3soft_remin_loc *
+     &                      P_CaCO3_rho * max(c0,tracer(i,j,k,pcaco3soft_ind_t))) +
+     &                      (pSiO2hard_remin_loc * 
+     &                      P_SiO2_rho * max(c0,tracer(i,j,k,psio2hard_ind_t)) +
+     &                      psio2soft_remin_loc * 
+     &                      P_SiO2_rho * max(c0,tracer(i,j,k,psio2soft_ind_t))) +
+     &                      (dusthard_remin_loc * 
+     &                      dust_rho * max(c0,tracer(i,j,k,dusthard_ind_t)) +
+     &                      dustsoft_remin_loc * 
+     &                      dust_rho * max(c0,tracer(i,j,k,dustsoft_ind_t))) )
+             POCsoft_remin(i,j) = pocsoft_remin_loc *
+     &                      dps * max(c0,tracer(i,j,k,pocsoft_ind_t))
+             POC_remin(i,j) = POChard_remin(i,j)+POCsoft_remin(i,j)
 # else    
              P_CaCO3_remin(i,j) = P_CaCO3_prod(i) +
      &          ((P_CaCO3_sflux_in(i,j) - P_CaCO3_sflux_out(i,j)) +
@@ -3237,8 +3222,6 @@ c$$$       enddo
     !  Compute iron remineralization and flux out.
     !-----------------------------------------------------------------------
         
-        ! MF: Discuss Fe remin in the case of explicit sinking
-
 # ifdef USE_EXPLICIT_VSINK
              P_iron_remin(i,j) = P_iron_remin(i,j) + POC_remin(i,j)*parm_Red_Fe_C
 # else
@@ -3251,17 +3234,12 @@ c$$$       enddo
              endif
              P_Iron_remin(i,j) = P_Iron_remin(i,j)
      &             + P_iron_sflux_in(i,j) * 1.5e-5
-             ! MF: What does the hard-coded 1.5e-5 stand for? Applied to
-             ! a flux of mmol Fe m-2 s-1? CESM BEC says Fe desorption
-             ! from particulate pool. If this is the case, shouldnt it
-             ! be treate like the other mineral pools with a dissolution
-             ! length and an associated decay?
+             ! According to CESM BEC, the hardcoded 1.5e-5 refers to Fe desorption.
+             ! Hard to understand and trace back to something meaningful
 
              P_iron_sflux_out(i,j) = P_iron_sflux_in(i,j) + dz_loc *
      &           ((c1 - P_iron_gamma) * P_iron_prod(i) - P_Iron_remin(i,j))
 
-             ! MF: The following piece does not really pertain to explicit
-             ! sinking of particulate Fe?!?
              if (P_iron_sflux_out(i,j) < c0) then
                 P_iron_sflux_out(i,j) = c0
                 P_Iron_remin(i,j) = P_iron_sflux_in(i,j) * dzr_loc +
@@ -3546,6 +3524,16 @@ c$$$       enddo
        bec2_diag_3d(istr:iend,j,k,sio2remin_idx_t) = P_SiO2_remin(istr:iend,j)
        bec2_diag_3d(istr:iend,j,k,pocremin_idx_t) = POC_remin(istr:iend,j)
        bec2_diag_3d(istr:iend,j,k,dustremin_idx_t) = dust_remin(istr:iend)
+#   ifdef USE_EXPLICIT_VSINK
+       bec2_diag_3d(istr:iend,j,k,pironhardremin_idx_t) = P_ironhard_remin(istr:iend,j)
+       bec2_diag_3d(istr:iend,j,k,pironsoftremin_idx_t) = P_ironsoft_remin(istr:iend,j)
+       bec2_diag_3d(istr:iend,j,k,caco3hardremin_idx_t) = P_CaCO3hard_remin(istr:iend,j)
+       bec2_diag_3d(istr:iend,j,k,caco3softremin_idx_t) = P_CaCO3soft_remin(istr:iend,j)
+       bec2_diag_3d(istr:iend,j,k,sio2hardremin_idx_t) = P_SiO2hard_remin(istr:iend,j)
+       bec2_diag_3d(istr:iend,j,k,sio2softremin_idx_t) = P_SiO2soft_remin(istr:iend,j)
+       bec2_diag_3d(istr:iend,j,k,pochardremin_idx_t) = POChard_remin(istr:iend,j)
+       bec2_diag_3d(istr:iend,j,k,pocsoftremin_idx_t) = POCsoft_remin(istr:iend,j)
+#   endif
 #  endif
 # endif
 
