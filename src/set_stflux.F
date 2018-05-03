@@ -89,7 +89,7 @@
       cff=1./(cff7+cff8)
       cff7=cff7*cff ; cff8=cff8*cff
 !      dSdt=1./(90.*day2sec) ! relaxation time for surface salinity
-      dSdt=1./(45.*day2sec) ! relaxation time for surface salinity
+      dSdt=1./(20.*day2sec) ! relaxation time for surface salinity
 !      dSdt=1./(9000.*day2sec) ! relaxation time for surface salinity
 # endif
 

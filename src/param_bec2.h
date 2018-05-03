@@ -113,6 +113,9 @@
      &   parm_o2_min,            ! min O2 needed for prod & consump. (nmol/cm^3)
      &   parm_o2_min_delta,      ! width of min O2 range (nmol/cm^3)
      &   parm_kappa_nitrif,      ! nitrification inverse time constant (1/sec)
+# ifdef TDEP_REMIN
+     &   parm_ktfunc_soft, ! parameter for the temperature dependance of remin on temp (Laufkoeuter 2017)
+# endif
 # ifdef Ncycle_SY
      &   parm_kao,        ! max ammonium oxidation rate (1/s)
      &   parm_kno,        ! max nitrite oxidation rate (1/s)

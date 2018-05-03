@@ -24,9 +24,11 @@
 
        real
      &    O2SAT_USED    ! used O2 saturation (mmol/m^3)
-# ifdef Ncycle_SY
-     &    , N2OSAT_USED,    ! used O2 saturation (mmol/m^3)
-     &    N2SAT_USED    ! used N2 saturation (mmol/m^3)
+#if defined Ncycle_SY || defined N2O_NEV
+     &    , N2OSAT_USED    ! used O2 saturation (mmol/m^3)
+# endif
+#ifdef Ncycle_SY
+     &    ,N2SAT_USED    ! used N2 saturation (mmol/m^3)
 # endif
 
        real,dimension(istr:iend,jstr:jend)::
@@ -84,16 +86,17 @@
      &    pco2oc_ROW,   ! pco2oc from solver
      &    DpCO2_ROW     ! DpCO2 from solver
 
-# ifdef Ncycle_SY
+# if defined Ncycle_SY || defined N2O_NEV
        real,dimension(istr:iend,jstr:jend)::
-     &    N2OSAT_1atm,   ! N2O saturation @ 1 atm (mmol/m^3)
-     &    N2SAT_1atm   ! N2 saturation @ 1 atm (mmol/m^3)
+     &    N2OSAT_1atm   ! N2O saturation @ 1 atm (mmol/m^3)
 
        real,dimension(istr:iend)::
      &    XN2O         ! atmospheric n2o conc. (dry-air, 1 atm)
-
 # endif
-
+# if defined Ncycle_SY
+       real,dimension(istr:iend,jstr:jend)::
+     &    N2SAT_1atm   ! N2 saturation @ 1 atm (mmol/m^3)
+# endif
 !
 ! Interpolate/extrapolate wind stress to rho grid:
 !
@@ -232,7 +235,7 @@ c$$$       enddo
            XKW_ICE(istr:iend,jstr:jend) = c0
          END WHERE
        END IF
-# ifdef Ncycle_SY
+#if defined Ncycle_SY || defined N2O_NEV
      !------------------------------------------------------------------------
      !   compute N2O flux
      !------------------------------------------------------------------------
@@ -243,7 +246,7 @@ c$$$       enddo
      &     istr,iend,jstr,jend)
 
 
-#ifdef BEC2_DIAG
+#if defined BEC2_DIAG && defined Ncycle_SY 
          bec2_diag_2d(istr:iend,jstr:jend,schmidt_n2o_idx_t) = SCHMIDT_USED(istr:iend,jstr:jend)
 #endif
 
@@ -266,8 +269,10 @@ c$$$       enddo
                !!! we let n2o_atm trace the invasion of atmospheric n2o
                !!! and set the atmopspheric concentration of all other
                !!! tracer to 0 So that everything is additive.
+# ifdef Ncycle_SY
                FLUX(i,j) = PV(i,j) * (N2OSAT_USED - tracer(i,j,N,n2o_ind_t))
                STF(i,j,n2o_ind_t) = FLUX(i,j)
+# endif
 # ifdef N2O_TRACER_DECOMP
                FLUX(i,j) = PV(i,j) * (c0 - tracer(i,j,N,n2o_ao1_ind_t))
                STF(i,j,n2o_ao1_ind_t) = FLUX(i,j)
@@ -283,8 +288,10 @@ c$$$       enddo
                STF(i,j,n2o_nev_ind_t) = FLUX(i,j)
 #endif
                !!! Update tracer
+# ifdef Ncycle_SY
                tracer(i,j,N,n2o_ind_t) = tracer(i,j,N,n2o_ind_t)+
      &                 stf(i,j,n2o_ind_t)*dt/Hz(i,j,N)
+#endif
 
 # ifdef N2O_TRACER_DECOMP
                tracer(i,j,N,n2o_ao1_ind_t) = tracer(i,j,N,n2o_ao1_ind_t)+
@@ -301,7 +308,7 @@ c$$$       enddo
      &                 stf(i,j,n2o_nev_ind_t)*dt/Hz(i,j,N)
 # endif
 
-# ifdef BEC2_DIAG
+# if defined BEC2_DIAG && defined Ncycle_SY
                bec2_diag_2d(i,j,fgn2o_idx_t) = STF(i,j,n2o_ind_t)
                bec2_diag_2d(i,j,pvn2o_idx_t) = PV(i,j)
                bec2_diag_2d(i,j,n2osat_idx_t) = N2OSAT_USED
@@ -312,7 +319,7 @@ c$$$       enddo
                bec2_diag_2d(i,j,fgn2o_atm_idx_t) = STF(i,j,n2o_atm_ind_t)
 # endif
 #ifdef N2O_NEV
-               bec2_diag_2d(i,j,fgn2o_nev_idx_t) = STF(i,j,n2o_nev_ind_t)
+               bec2_diag_2d(i,j,fgn2o_nev_idx_t) = c1!STF(i,j,n2o_nev_ind_t)
 #endif
 
 # endif
@@ -2782,7 +2789,7 @@ c$$$       enddo
         ! Nevison Param: N2O production 
         where (O2_loc .gt. O2_crit_nev .and. PAR_out < parm_nitrif_par_lim)
                 n2o_prod_nev = (parm_Red_D_C_O2/parm_Red_D_C_N) * (parm_n2o_nev_a1/O2_loc + parm_n2o_nev_a2)
-     &          * exp(z_r(i,j,k)/z_scale_nev) * (O2_PRODUCTION-O2_CONSUMPTION)
+     &          * exp(-z_r(i,j,k)/z_scale_nev) * (O2_CONSUMPTION-O2_PRODUCTION)
                where (PAR_in > parm_nitrif_par_lim)
                         n2o_prod_nev = n2o_prod_nev * log(PAR_out/parm_nitrif_par_lim) / (-KPARdz)
                endwhere
@@ -3012,7 +3019,10 @@ c$$$       enddo
      &   ,flux_oxidated ! carbon oxidation rate in sediment
      &   ,FESEDFLUX     ! sedimentary Fe inputs
      &   ,scalelength       
-     &   ,TfuncS         ! temperature scaling from soft POM remin
+     &   ,TfuncS         ! temperature scaling from soft POM remin (right now just applied to ballast)
+#ifdef TDEP_REMIN
+     &   ,Tfunc_soft     ! temperature scaling from soft POM remin (Laufkoetter 2017)
+#endif
 # ifndef USE_EXPLICIT_VSINK
      &   ,DECAY_Hard       ! scaling factor for dissolution of Hard Ballast
      &   ,DECAY_HardDust   ! scaling factor for dissolution of Hard dust
@@ -3157,6 +3167,9 @@ c$$$       enddo
     !-----------------------------------------------------------------------
 
        TfuncS = Q_10**(((TEMP + T0_Kelvin) - (Tref + T0_Kelvin)) / c10)
+#ifdef TDEP_REMIN
+       Tfunc_soft = exp(parm_ktfunc_soft*(TEMP+T0_Kelvin)) 
+#endif
 
        poc_error = .false.
 
@@ -3215,11 +3228,16 @@ c$$$       enddo
              psio2soft_remin_loc = psio2soft_remin_loc / scalelength(i)
              pironsoft_remin_loc = pironsoft_remin_loc / scalelength(i)
              dustsoft_remin_loc = dustsoft_remin_loc / scalelength(i)
-# else    
-             poc_diss_loc = scalelength(i) * poc_diss_loc
-             sio2_diss_loc = scalelength(i) * sio2_diss_loc
-             caco3_diss_loc = scalelength(i) * caco3_diss_loc
-             dust_diss_loc = scalelength(i) * dust_diss_loc
+# elif defined TDEP_REMIN    
+             poc_diss_loc = scalelength(i) * poc_diss_loc / Tfunc_soft(i)
+             sio2_diss_loc = scalelength(i) * sio2_diss_loc / Tfunc_soft(i)
+             caco3_diss_loc = scalelength(i) * caco3_diss_loc / Tfunc_soft(i)
+             dust_diss_loc = scalelength(i) * dust_diss_loc / Tfunc_soft(i)
+# else
+             poc_diss_loc = scalelength(i) * poc_diss_loc 
+             sio2_diss_loc = scalelength(i) * sio2_diss_loc 
+             caco3_diss_loc = scalelength(i) * caco3_diss_loc 
+             dust_diss_loc = scalelength(i) * dust_diss_loc 
 # endif
 
     !-----------------------------------------------------------------------
@@ -3871,7 +3889,7 @@ c$$$       enddo
         RETURN
         END subroutine WS
 
-# ifdef Ncycle_SY
+# if defined Ncycle_SY || defined N2O_NEV
 !-------------------------------------------------------------------------
 !
 !     ************   SUBROUTINE CSCHMIDT_N2O   ****************************

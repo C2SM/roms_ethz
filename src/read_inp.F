@@ -370,19 +370,19 @@ c--      fname='roms.in.US_West'
 #  endif
 # endif
 
-# if defined SFLX_CORR && defined SALINITY
-
-        elseif (keyword(1:kwlen) == 'SSS_correction') then
-          call cancel_kwd(keyword(1:kwlen), ierr)
-          read(input,*,err=95) dSSSdt
-          mpi_master_only write(*,'(5x,A,ES10.3,2x,2A/38x,A)')
-     &   'dSSSdt =', dSSSdt, 'Sea-Surface Salinity correction ',
-     &                       'coefficient expressed',
-     &            'kinematically as "piston velocity" [cm/day]' 
-
-          dSSSdt=dSSSdt/(100.D0*day2sec)   !<-- convert to [m/s]
-           
-# endif
+!# if defined SFLX_CORR && defined SALINITY
+!
+!        elseif (keyword(1:kwlen) == 'SSS_correction') then
+!          call cancel_kwd(keyword(1:kwlen), ierr)
+!          read(input,*,err=95) dSSSdt
+!          mpi_master_only write(*,'(5x,A,ES10.3,2x,2A/38x,A)')
+!     &   'dSSSdt =', dSSSdt, 'Sea-Surface Salinity correction ',
+!     &                       'coefficient expressed',
+!     &            'kinematically as "piston velocity" [cm/day]' 
+!
+!          dSSSdt=dSSSdt/(100.D0*day2sec)   !<-- convert to [m/s]
+!           
+!# endif
 #endif /* SOLVE3D */
 
 

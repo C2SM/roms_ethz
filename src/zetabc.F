@@ -57,6 +57,21 @@ c--#define OBC_Z2ORLANSKI
 #  endif
         enddo
 # endif
+# if defined OBC_W_M2SPEC_STR && defined OBC_W_M2SPEC_END
+
+!   Force OBC_M2SPECIFIED as western boundary condition
+!   in the specified tile range! DAL (following northern bry MM & AH)
+
+        if ((mynode.ge.OBC_W_M2SPEC_STR)
+     &                       .and. (mynode.le.OBC_W_M2SPEC_END)) then
+          do i=jstrV-1,jend
+          zeta_new(istr-1,j)=zeta_new(istr,j)
+#  ifdef MASKING
+     &                        *rmask(istr-1,j)
+#  endif
+          enddo
+        endif
+# endif /* OBC_W_M2SPEC_STR */
       endif
 
 c*******

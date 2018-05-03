@@ -268,11 +268,14 @@
       logical landmask(GLOBAL_2D_ARRAY)
       common /calcation/landmask
 
-      logical lsource_sink,lflux_gas_o2, lflux_gas_co2,
-# ifdef Ncycle_SY
-     &  lflux_gas_n2o,  lflux_gas_n2,
+      logical lsource_sink,lflux_gas_o2, lflux_gas_co2
+#if defined Ncycle_SY || defined N2O_NEV
+     &  ,lflux_gas_n2o
+#endif
+#ifdef Ncycle_SY
+     &  ,lflux_gas_n2
 # endif
-     &  liron_flux,ldust_flux
+     &  ,liron_flux,ldust_flux
 #ifdef RIVER_LOAD_N
      &  ,lriver_load_n
 #endif

@@ -145,6 +145,25 @@
 #   endif
         enddo
 #  endif
+#  if defined OBC_W_M2SPEC_STR && defined OBC_W_M2SPEC_END
+!
+!   Force OBC_M2SPECIFIED as western boundary condition
+!   in the specified tile range! DAL (following northern bry MM & AH)
+!
+        if ((mynode.ge.OBC_W_M2SPEC_STR)
+     &                       .and. (mynode.le.OBC_W_M2SPEC_END)) then
+          do j=jstrV,jend
+#   ifdef M2_FRC_BRY
+          vbar(istr-1,j,knew)=vbar_west(j)
+#   else
+          vbar(istr-1,j,knew)=vbclm(istr-1,j)
+#   endif
+#   ifdef MASKING
+          vbar(istr-1,j,knew)=vbar(istr-1,j,knew)*vmask(istr-1,j)
+#   endif
+          enddo
+        endif
+#  endif /* OBC_W_M2SPEC_STR */
 #  if defined OBC_S_M2SPEC_STR && defined OBC_S_M2SPEC_END
 !
 !   Force OBC_M2SPECIFIED as southern boundary condition
