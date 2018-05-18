@@ -48,6 +48,9 @@ c--# define CONST_TRACERS
 # endif
      &                                                             )
       implicit none
+      !DL DEBUG
+      !integer jj,nn
+      !END DL DEBUG
 # include "param.h"
       integer istr,iend,jstr,jend, imin,imax,jmin,jmax, i,j,k
       real, dimension(PRIVATE_1D_SCRATCH_ARRAY,0:N) :: WC,FC,CF,DC
@@ -96,6 +99,7 @@ c--# define CONST_TRACERS
 ! temporary variable for calculation of vertical diffusive flux
       real ThisVDF(PRIVATE_2D_SCRATCH_ARRAY,0:N)
 # endif /* PHYS_FLUX_ANALYSIS */
+
 
 # include "compute_auxiliary_bounds.h"
 
@@ -1052,11 +1056,14 @@ c??         enddo
           end if
 #  endif /* PHYS_FLUX_ANALYSIS & VERT_DIFF_ANALYSIS */
 # endif
-
+# ifdef AMAZON
+       if (EASTERN_EDGE) then
+           if (itrc==itemp .OR. itrc==isalt) then
+# endif
 # ifdef TCLIMATOLOGY
-          do k=1,mxnudg
-            do i=istr,iend
-              t(i,j,k,nnew,itrc)=( t(i,j,k,nnew,itrc)
+            do k=1,N
+              do i=istr,iend
+              t(i,j,k,nnew,itrc)=(t(i,j,k,nnew,itrc)
      &          +dt*Tnudgcof(i,j,itrc)
 #  ifdef TNUDGE_WEIGHTS
      &          *nudgweights(i,j)
@@ -1081,8 +1088,12 @@ c??         enddo
 #   endif /* SELECTED_FLUX_ANALYSIS */
 #  endif /* FULL_PHYS_FLUX_ANALYSIS */
             enddo
-          enddo
+           enddo
 # endif /* TCLIMATOLOGY */
+# ifdef AMAZON
+       endif
+       endif
+# endif
 
         enddo      !<-- j
 # ifdef AGE_DYE_TRACER

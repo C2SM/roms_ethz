@@ -212,12 +212,7 @@
   !----------------------------------------------------------------------------
 
        real r_Nfix_photo
-       parameter(r_Nfix_photo=1.25)         ! N fix relative to C fix (non-dim)
-
-# ifdef BEC_DDA
-       real r_Nfix_photo_dda
-       parameter(r_Nfix_photo_dda=1.25)      ! N fix relative to C fix (non-dim) for DDAs
-# endif
+       parameter(r_Nfix_photo=1.25)         !N fix relative to C fix (non-dim)
 
   !-----------------------------------------------------------------------
   !     SET FIXED RATIOS for N/C, P/C, SiO3/C, Fe/C

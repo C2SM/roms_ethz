@@ -135,7 +135,11 @@ C$OMP THREADPRIVATE(/priv_scalars/)
 # ifdef TNUDGE_WEIGHTS
       integer, parameter :: mxnudg=itemp+ntrc_salt  ! only nudge temp and salts
 # else
-      integer, parameter :: mxnudg=NT               ! nudge all tracers including  BIOLOGY variables
+#ifdef AMAZON
+      integer, parameter :: mxnudg=itemp+ntrc_salt  
+# else
+      integer, parameter :: mxnudg=NT !nudge all tracers including  BIOLOGY variables
+#endif
 # endif
 #endif
 ! MF: end change

@@ -499,7 +499,7 @@
 #endif /* SLICE_AVG */
 
 #if (defined TCLIMATOLOGY && !defined ANA_TCLIMA) || !defined ANA_SSH
-      integer, parameter :: max_clm_files=8
+      integer, parameter :: max_clm_files=3
       integer ncidclm(max_clm_files)
       common /ncvars/ncidclm
       integer max_clm

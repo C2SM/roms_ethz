@@ -21,7 +21,6 @@
 ! artificial values, so that it will trigger the logic in reading
 ! part below.
 
-
       ierr=nf_noerr
       if (iic==ntstart) then
         ituclm=1

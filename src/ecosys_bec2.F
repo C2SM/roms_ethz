@@ -1834,8 +1834,12 @@ c$$$       enddo
              WORK1 = photoC(istr:iend,auto_ind) * Q
              Nfix(istr:iend,auto_ind)     = (WORK1 * r_Nfix_photo) - NO3_V(istr:iend,auto_ind)
      &                 - NH4_V(istr:iend,auto_ind)
-             Nexcrete(istr:iend,auto_ind) = Nfix(istr:iend,auto_ind) + NO3_V(istr:iend,auto_ind)
+             if (auto_ind == diaz_ind) then
+                Nexcrete(istr:iend,auto_ind) = Nfix(istr:iend,auto_ind) + NO3_V(istr:iend,auto_ind)
      &                 + NH4_V(istr:iend,auto_ind) - WORK1
+             else
+                 Nexcrete(istr:iend,auto_ind) =0.0
+             endif  
           endif
 # ifdef BEC2_DIAG
 #  ifdef BEC2_DIAG_USER

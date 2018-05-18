@@ -12,7 +12,7 @@
 
       subroutine set_nudgcof_tile (istr,iend,jstr,jend, wrk)
       implicit none
-      integer istr,iend,jstr,jend
+      integer istr,iend,jstr,jend,jbnd,jnud,jsp
       real wrk(PRIVATE_2D_SCRATCH_ARRAY)
       integer i,j, isp , I1,I0,I2,J1,J0,J2, ibnd,itrc
       real cff,cff1,cff2,cff3, frac, Tau
@@ -23,7 +23,6 @@
 # include "scalars.h"
 
 # include "compute_extended_bounds.h"
-
 # if defined DAMEE_B
       Tau=1./(5.*86400.)              ! Make two nudging bands along
       do j=jstrR,jendR                ! southern and northern borders
@@ -198,6 +197,19 @@ c        write(*,*) i,j,diff2(i,j,itemp)
 c        endif
 #   endif
 #  endif
+   
+# if defined AMAZON
+        jsp=30
+        jnud=265
+          if (j+jSW_corn>265) then
+             jbnd=jsp
+             jbnd=min(jbnd,(j+jSW_corn)-jnud)
+             wrk(i,j)=wrk(i,j)*float(jsp-jbnd)/float(jsp)
+           else
+             wrk(i,j)=wrk(i,j)
+           endif
+# endif
+         
 #  if defined SOLVE3D && defined TCLIMATOLOGY
           Tnudgcof(i,j,itemp)=tauT_out*wrk(i,j)
 #  endif
@@ -234,7 +246,7 @@ c        endif
       enddo
 #   endif
 #   if defined SOLVE3D && defined TS_DIF2
-      do itrc=2,NT           ! diffusivity for the other tracers
+      do itrc=2,mxnudg           ! diffusivity for the other tracers
         do j=jstrR,jendR
           do i=istrR,iendR
             diff2(i,j,itrc)=diff2(i,j,itemp)
@@ -251,7 +263,12 @@ c        endif
 #  endif
 # endif
       end
+!# if defined AMAZON
+!# define BIOLOGY_BEC2
+!# define BIOLOGY
+!# endif
 #else
       subroutine set_nudgcof_empty
       end
+    endif
 #endif

@@ -1472,11 +1472,11 @@ CR      write(*,'(1x,A,I3)') 'indxNH4 =',indxNH4
 # ifdef BEC2_DIAG
 
         ! MF: Control BEC2_DIAG Output vars
-      wrtavg_bec2_diag_3d=(/.true.,.true.,.false.,.false.,.true.,      !PAR, POC_FLUX_IN, POC_Prod,POC_REMIN, CACO3_FLUX_IN,
-     &                     .false.,.false.,.true.,.false.,.false.,       !PCACO3_PROD, CACO3_REMIN,SIO2_FLUX_IN, SIO2_PROD, SIO2_REMIN,
-     &                     .true.,.false.,.false.,.false.,.false.,       !DUST_FLUX_IN, DUST_REMIN,P_IRON_FLUX_IN, P_IRON_PROD, P_IRON_REMIN,
+      wrtavg_bec2_diag_3d=(/.true.,.true.,.false.,.false.,.false.,      !PAR, POC_FLUX_IN, POC_Prod,POC_REMIN, CACO3_FLUX_IN,
+     &                     .false.,.false.,.false.,.false.,.false.,       !PCACO3_PROD, CACO3_REMIN,SIO2_FLUX_IN, SIO2_PROD, SIO2_REMIN,
+     &                     .false.,.false.,.false.,.false.,.false.,       !DUST_FLUX_IN, DUST_REMIN,P_IRON_FLUX_IN, P_IRON_PROD, P_IRON_REMIN,
      &                     .false.,.false.,.false.,.false.,.false.,       !GRAZE_SP, GRAZE_DIAT,GRAZE_DIAZ, SP_LOSS, DIAT_LOSS,
-     &                     .false.,.false.,.true.,.true.,.true.,       !ZOO_LOSS, SP_AGG, DIAT_AGG,PHOTOC_SP, PHOTOC_DIA,
+     &                     .false.,.false.,.false.,.true.,.true.,       !ZOO_LOSS, SP_AGG, DIAT_AGG,PHOTOC_SP, PHOTOC_DIA,
      &                     .true.,.false.,.false.,.false.,.true.,       !TOT_PROD, DOC_PROD,DOC_REMIN, FE_SCAVENGE, SP_N_LIM, 
      &                     .true.,.true.,.true.,.true.,.true.,       !SP_FE_LIM, SP_PO4_LIM,SP_LIGHT_LIM, DIAT_N_LIM, DIAT_FE_LIM,
      &                     .true.,.true.,.true.,.false.,.true.,       !DIAT_PO4_LIM, DIAT_SIO3_LIM,DIAT_LIGHT_LIM, CACO3_PROD, DIAZ_NFIX,
@@ -1490,8 +1490,8 @@ CR      write(*,'(1x,A,I3)') 'indxNH4 =',indxNH4
      &                     .false.,.false.,.false.,.false.,          !SPQCACO3,PHOTOACC_SP,PHOTOACC_DIAT, PHOTOACC_DIAZ,
      &                     .false.,.false.,.false.,.false.,.false.,  !SPC_ZERO, DIATC_ZERO, DIAZC_ZERO, DOC_ZERO, ZOOC_ZERO
      &                     .false.,.false.,.true.,.false.,           !SPCACO3_ZERO, DONR_REMIN, TOTCHL, SP_P_LIM 
-     &                     .false.,.false.,.true.,                     !DIAT_P_LIM,DIAZ_P_LIM, TOT_PHYTO_C
-     &                     .true.,.true.,.true.,.true.,     !POC_PROD_ZOO_LOSS,POC_PROD_DIAT,POC_PROD_SP,POC_PROD_DIAZ
+     &                     .true.,.true.,.true.,                     !DIAT_P_LIM,DIAZ_P_LIM, TOT_PHYTO_C
+     &                     .false.,.false.,.false.,.false.,     !POC_PROD_ZOO_LOSS,POC_PROD_DIAT,POC_PROD_SP,POC_PROD_DIAZ
      &                     .false.,.false.,.false.                ! QSI_DIAT,TOT_GRAZE_DIC,TOT_LOSS_DIC
      ! 98 tracer
 # ifdef USE_EXPLICIT_VSINK
@@ -1511,8 +1511,8 @@ CR      write(*,'(1x,A,I3)') 'indxNH4 =',indxNH4
 # ifdef BEC_DDA
      ! + 18
      &                     ,.false., ! GRAZE_DDA 
-     &                     .false.,.true.,.true.,.true., !DDA_LOSS,DDA_AGG, PHOTOC_DDA, DDA_N_LIM
-     &                     .false.,.true.,.true.,            ! DDA_PO4_LIM,DDA_FE_LIM, DDA_LIGHT_LIM
+     &                     .false.,.false.,.true.,.true., !DDA_LOSS,DDA_AGG, PHOTOC_DDA, DDA_N_LIM
+     &                     .true.,.true.,.true.,            ! DDA_PO4_LIM,DDA_FE_LIM, DDA_LIGHT_LIM
      &                     .false.,.false.,.false.,.false., !IRON_UPTAKE_DDA, DDA_NO3_UPTAKE, DDA_NH4_UPTAKE, DDA_GRAZE_DIC 
      &                     .false.,.false.,.false.,          ! DDA_LOSS_DIC,GRAZE_DDA_ZOO, DDA_PHOTOACC 
      &                     .true.,.true.,.true.                     !DDA_P_LIM, DDA_NFIX, DDA_SIO3_LIM
