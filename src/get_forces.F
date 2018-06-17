@@ -564,6 +564,33 @@ c--#  define timename 'dqdt_time'
 #  include "get_smth.F"
 # endif
 
+#ifdef BGC_RESTORE
+#ifdef NO3_RESTORE
+! Tracer Restoring weights
+!---- ------- ------ ----- ------------
+# define get_smth get_no3_restore
+# define varname 'no3_restore'
+# define timename 'no3_restore_time'
+# define NO3_RESTORE_DATA
+# define var no3_restoreg
+# define timevar no3_restore_time
+# define file_id no3_restore_file_id
+# define NC_ID_LIST ncidclm
+# define NC_FILE_LIST clm_file
+# define varid no3_restore_id
+# define timevarid no3_restore_tid
+# define record no3_restore_rec
+# define ntsmth ntno3_restore
+# define itsmth itno3_restore
+# define icycle no3_restore_ncycle
+# define cycle_length no3_restore_cycle
+# define SET_SMTH set_no3_restore
+# define VAR_CFF 1.0
+# define VAR_NOW no3_restore
+# include "get_smth.F"
+#endif
+#endif
+
 # ifdef PCO2AIR_FORCING
 !  pco2air flux
 !  ------- ---- 

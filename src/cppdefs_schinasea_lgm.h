@@ -9,13 +9,13 @@
 !-->#define GRID_SIZE LLm=699, MMm=1007, N=42 
 !-->#define GRID_SIZE LLm=349, MMm=504, N=42
 #define GRID_SIZE LLm=180, MMm=310, N=42
-#define DOMAIN_TILING NP_XI=15, NP_ETA=16, NSUB_X=1, NSUB_E=1 ! Euler
+#define DOMAIN_TILING NP_XI=15, NP_ETA=15, NSUB_X=1, NSUB_E=1 ! Euler
 !-->#define DOMAIN_TILING NP_XI=6, NP_ETA=8, NSUB_X=1, NSUB_E=1 ! Euler
 /* Open Boundaries */
-#define OBC_NORTH /* Open boundary in the west (in order: SO out, SO in, Ind. throughflow) */
-#define OBC_SOUTH  /* Open boundary North (Arctic) */
-!--#define OBC_N_M2SPEC_STR  1/* OBC_M2SPECIFIED for all tiles*/
-!--#define OBC_N_M2SPEC_END  (NP_XI*NP_ETA) /* OBC_M2SPECIFIED for all tiles*/
+!-->#define OBC_NORTH /* Open boundary in the west (in order: SO out, SO in, Ind. throughflow) */
+!-->#define OBC_SOUTH  /* Open boundary North (Arctic) */
+!-->#define OBC_N_M2SPEC_STR  1/* OBC_M2SPECIFIED for all tiles*/
+!-->#define OBC_N_M2SPEC_END  (NP_XI*NP_ETA) /* OBC_M2SPECIFIED for all tiles*/
 #define OBC_EAST
 !-- #define SPONGE
 

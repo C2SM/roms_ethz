@@ -3,13 +3,6 @@
 ! It must be define in ncvars.h and should be redefined accordingly
 ! at the end of this include file
 
-#ifdef WRITE_DEPTHS
-     &            , indxz_r=LAST_I+1, indxz_w=indxz_r+1
-     &            , indxHz=indxz_w+1
-# undef LAST_I
-# define LAST_I indxHz
-#endif
-
 #ifdef BIOLOGY_NPZDOC
 # ifdef CARBON
        integer, parameter :: indxPH_rst=LAST_I+1
