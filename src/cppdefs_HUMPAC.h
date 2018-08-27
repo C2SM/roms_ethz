@@ -30,15 +30,15 @@
 
                      /*  Forcing */
                      /*          - surface */
-!-- CHECK! #define SALINITY_MASK
-!-- CHECK! #define SALINITY_MASKLATSTR -48.0
-!-- CHECK! #define SALINITY_MASKLATEND -53.01
+!-- #define SALINITY_MASK
+!-- #define SALINITY_MASKLATSTR -48.0
+!-- #define SALINITY_MASKLATEND -53.01
 
-#define ICEOBS
+!-- #define ICEOBS
 #define VFLX_CORR
                      /*          - lateral */
 #define DEFAULT_BRY_VALUES
-#define TSOURCE
+!-- #define TSOURCE
 
 
                      /* Restart */
@@ -94,9 +94,10 @@
                       /* Biology (SO specific) */
 #ifdef BIOLOGY_BEC2
 # define BEC2_DIAG
-# define BEC2_DIAG_USER
+!-- # define BEC2_DIAG_USER
 !-- #  define BEC_COCCO
 # define KILL_THE_WINNER
+# define LIMIT_MAX_SST
 #endif
 !-- #define RIVER_LOAD_N
 !-- #define RIVER_LOAD_P

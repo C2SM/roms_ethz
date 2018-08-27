@@ -119,7 +119,11 @@
      &              t(istr:iend,jstr:jend,k,nnew,1+ntrc_salt+ntrc_pas+m)             
           enddo 
        enddo
+#ifdef LIMIT_MAX_SST
+       sstt(istr:iend,jstr:jend) = min(t(istr:iend,jstr:jend,N,nnew,1),32.) ! Limit SST to 32C
+#else
        sstt(istr:iend,jstr:jend) = t(istr:iend,jstr:jend,N,nnew,1)
+#endif
        ssss(istr:iend,jstr:jend) = t(istr:iend,jstr:jend,N,nnew,2)
 # if defined CCHEM_MOCSY && defined CCHEM_TODEPTH
        do k=1,N
