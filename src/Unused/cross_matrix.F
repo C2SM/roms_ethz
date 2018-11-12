@@ -15,7 +15,7 @@
 !-----------
 ! cross_matrix reads all files from the list arguments it is given,
 ! and searches for the CPP command #include, FORTRAN-style INCLUDE,
-! USE and MODULE statements. If any of these found, it looks further 
+! USE and MODULE statements. If any of these found, it looks further
 ! and interprets the following word (enclosed or not into "...",
 ! '...') as the name of include file or F90 module. The new files to
 ! be open and searched for #include inside it and so on.
@@ -39,7 +39,7 @@
 ! subsequent compilation error, so that the mishap is discovered.
 ! However, a file which contains a purely executable segment of code,
 ! the miss goes undetected at compiling time resulting in wrong code
-! without any visible signal at the compilation time.  
+! without any visible signal at the compilation time.
 !
 ! The other option, EXCLUDE_SELECTED, allows explicit specification
 ! of which files to be ignored in the dependency list. This option
@@ -51,7 +51,7 @@ c--#define XCOMM_FORMAT
 #define WARN_NONSTANDARD
 #define TRAP_DOUBLE_SLASH
 c--#define VERBOSE
- 
+
       implicit none
       integer max_name_size, max_string_size, max_names,
      &        max_modules, stdout, iin, iout, test
@@ -79,18 +79,18 @@ c--#define VERBOSE
       character*32 exc_name(exc_names)
 #endif
 #ifdef EXCLUDE_SELECTED
-      integer exc_names                ! Specify list of files to be 
+      integer exc_names                ! Specify list of files to be
       parameter (exc_names=16)         ! excluded from the dependency
       integer exc_size(exc_names)      ! list. Typically this should
       character*16 exc_name(exc_names) ! be constrained to 3rd-party
-      exc_name(1)='mpif.h'             ! files which do not evolve 
+      exc_name(1)='mpif.h'             ! files which do not evolve
       exc_size(1)=6                    ! with the code, but needed as
       exc_name(2)='netcdf.inc'         ! input.
       exc_size(2)=10
 #endif
       is=0
       ie=0
- 
+
       last_arg=iargc()
       if (last_arg.eq.0) then
         write(stdout,'(/2(1x,A)/)') 'CROSS_MATRIX ERROR:',
@@ -99,7 +99,7 @@ c--#define VERBOSE
       elseif (last_arg .gt. max_names) then
         goto 98                               !--> ERROR
       endif
- 
+
       write(stdout,'(/2(1x,A)/)') 'This is CROSS_MATRIX:',
      &            'Creating a new version of Make.depend.'
       single_quote=char(39)
@@ -182,8 +182,8 @@ c--#define VERBOSE
 !    ***   ***     ***    ***   ***   ***  **       ***
 !      *****       ***    ***   ***   ***   ***     ***
 !
-! Reading of the input files starts here. 
-!       
+! Reading of the input files starts here.
+!
       n=0
   1    n=n+1
         line=0
@@ -207,7 +207,7 @@ c--#define VERBOSE
 !
   4      if (iocheck.eq.0 ) then
            itype=0
-           ie=max_string_size 
+           ie=max_string_size
            do while (ie.gt.1 .and. string(ie:ie).eq.' ')
              ie=ie-1
            enddo
@@ -222,11 +222,11 @@ c--#define VERBOSE
 ! categories (empty lines, F77- and F90-style comments, CPP-lines
 ! starting with # and regular FORTRAN statements). Once it is
 ! determined that the line is not empty, it checks whether the first
-! word is "include" (with or without # in front), "use", or "module". 
+! word is "include" (with or without # in front), "use", or "module".
 ! If so, it sets flag "itype" to non-zero value to signal that the
 ! line needs further processing.  Since unlike CPP-style #include,
 ! FORTRAN include/use/module can appear both in upper- and lower-case
-! letters, copy the first word of string into "testword", while 
+! letters, copy the first word of string into "testword", while
 ! performing folding to uppercase. Additionally, this section of the
 ! code also increment line counters for various type of lines, which
 ! are just used for statistical purposes only do not affect matrix
@@ -289,7 +289,7 @@ c--#define VERBOSE
 !
 ! Once it is determined that the line begins with "[#]include",
 ! "use", or "module" statement, find bounds and read the second
-! word, which is either name of include file or module. Copy it 
+! word, which is either name of include file or module. Copy it
 ! into "testword". Strip out double/single quotes, and append with
 ! suffix ".mod" if necessary.
 !
@@ -327,13 +327,13 @@ c**              write(*,*) 'CPP #include discovered ',
 c**     &                                      testword(1:size)
 c**            elseif (itype.eq.2) then
 c**              write(*,*) 'FORTRAN-style include discovered ',
-c**     &                                      testword(1:size) 
+c**     &                                      testword(1:size)
 c**            elseif (itype.eq.3) then
 c**              write(*,*) 'F90 use statement discovered ',
-c**     &                                      testword(1:size) 
+c**     &                                      testword(1:size)
 c**            elseif (itype.eq.4) then
 c**              write(*,*) 'F90 module statement discovered ',
-c**     &                                      testword(1:size) 
+c**     &                                      testword(1:size)
 c**            endif
 
 
@@ -349,7 +349,7 @@ c**            endif
 !
                new_name=.true.
 #ifdef EXCLUDE_SELECTED
-               do k=1,exc_names 
+               do k=1,exc_names
                  if (size .eq. exc_size(k)) then
                    if (exc_name(k)(1:exc_size(k)) .eq.
      &                         testword(1:size) ) then
@@ -431,7 +431,7 @@ c**            endif
                  endif  !<-- new name
                endif  !<-- new name
              endif  ! <-- size .gt.0
-           endif  ! <-- itype.ne.0 
+           endif  ! <-- itype.ne.0
          endif ! <-- iocheck.eq.0
 #ifdef TRAP_DOUBLE_SLASH
          do i=is,ie-1
@@ -465,7 +465,7 @@ c**            endif
              write(*,'(/1x,4A,I5,1x,A,I3,1x,A,I4,1X,2A/)') '***** ',
      &         'WARNING!!! file ',  fname(n)(1:nsize(n)),  ' line',
      &          line,':',i, 'nonstandard symbol:',k, string(i:i),'.'
-           endif 
+           endif
          enddo
 #endif
 #ifdef EXCLUDE
@@ -478,7 +478,7 @@ c**            endif
 !
 !          *******       ****       *****    *********
 !          ***   ***   ***  ***   ***   ***  *  ***  *
-!          ***   ***  ***    ***  ***           ***   
+!          ***   ***  ***    ***  ***           ***
 !          ***   ***  ***    ***    ******      ***
 !          *******    ***    ***         ***    ***
 !          ***         ***  ***    ***   ***    ***
@@ -498,24 +498,24 @@ c**            endif
         matrix(i,i)=.false.        ! is needed to avoid duplication
       enddo                        ! of file name in the case of
                                    ! self-inslusion.
- 
+
       i=0                          ! Investigate possible secondary
       j=1                          ! dependencies. This is equivalent
       do while(j.gt.i)             ! to logical addition:
         i=j                        !
         do n=1,nmax                ! if
-          do k=1,nmax              !      file1 depends on file2 
+          do k=1,nmax              !      file1 depends on file2
             if (matrix(k,n)) then  ! and
-              do j=1,nmax          !      file2 depends on file3 
-                if (matrix(j,k))   ! then 
-     &         matrix(j,n)=.true.  !      file1 depends on file3 
+              do j=1,nmax          !      file2 depends on file3
+                if (matrix(j,k))   ! then
+     &         matrix(j,n)=.true.  !      file1 depends on file3
               enddo                !
             endif                  ! This is an iterative procedure,
           enddo                    ! since staged include statements
         enddo                      ! possible. The number of .true.
-        j=0                        ! elements in the matrix grows 
-        do n=1,nmax                ! when new dependencies are 
-          do k=1,nmax              ! discovered. The procedure 
+        j=0                        ! elements in the matrix grows
+        do n=1,nmax                ! when new dependencies are
+          do k=1,nmax              ! discovered. The procedure
             if (matrix(k,n)) j=j+1 ! repeats itself until the next
           enddo                    ! iteration does not discover
         enddo                      ! any new dependencies.
@@ -529,7 +529,7 @@ c**            endif
           if (j.gt.9) j=0
           string(i:i)=char(j+48)
           j=j+1
-        enddo 
+        enddo
         write(*,'(32x,A)') string(1:nmax)
         do j=1,nmax
           do i=1,nmax
@@ -542,8 +542,8 @@ c**            endif
             else
               string(i:i)='.'
             endif
-          enddo 
-          write(*,'(A,I3,1x,A)') fname(j)(1:28), j, string(1:nmax) 
+          enddo
+          write(*,'(A,I3,1x,A)') fname(j)(1:28), j, string(1:nmax)
         enddo
       else
         write(*,'(/1x,2A/)') 'Dependence matrix cannot be ',
@@ -594,7 +594,7 @@ c**            endif
           j=j+1
         enddo
         if (string(j:j).eq.' ') j=j-1
-        if (string(j-1:j).eq.'.F') string(j:j)='o'   ! Special 
+        if (string(j-1:j).eq.'.F') string(j:j)='o'   ! Special
         if (string(j-1:j).eq.'.f') string(j:j)='o'   ! treatment:
         if (string(j-3:j).eq.'.f90') then            ! .f --> .o
           j=j-2
@@ -702,7 +702,7 @@ c**            endif
         endif
       enddo
       goto 100
- 
+
   98  write(stdout,'(/2(1x,A)/21x,A/)') 'CROSS_MATRIX ERROR:',
      &          'Too many files to process. To fix: increase',
      &   'parameter ''max_names'' in file ''cross_matrix.F''.'
@@ -715,4 +715,3 @@ c**            endif
  100  close (iout)
       stop
       end
- 

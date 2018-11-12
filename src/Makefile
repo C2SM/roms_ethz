@@ -2,9 +2,9 @@
 #========== ======= =========== ======== === ==== =====
 # Set machine dependent definitions and rules.
 
-  include Makedefs.hoffman2
+include Makedefs
 
-VPATH = Biology
+VPATH += Biology
 
 # Configuration for ROMS model:  Source code files are sorted into
 # ------------- --- ---- ------  groups:
@@ -116,16 +116,6 @@ tools: $(TOOLS)
 mpc: mpc.F
 	$(FC) $(CPPFLAGS) -o $@ mpc.F
 
-partit_t.for: partit.F
-	$(CPP) -P $(CPPFLAGS) -DTRANSPOSED_MPI_NODE_ORDER partit.F| mpc > partit_t.for
-partit_t: partit_t.for insert_node.o lenstr.o
-	$(CFT) $(FFLAGS) $(LDFLAGS) -o partit_t partit_t.for insert_node.o lenstr.o $(LCDF)
-partit: partit_t partit.o insert_node.o lenstr.o
-	$(CFT) $(FFLAGS) $(LDFLAGS) -o partit partit.o insert_node.o lenstr.o $(LCDF)
-ncjoin: ncjoin.o lenstr.o
-	$(CFT) -o $@ $(FFLAGS) $(LDFLAGS) $< lenstr.o $(LCDF)
-ncextract: ncextract.o
-	$(CFT) $(FFLAGS) $(LDFLAGS) -o ncextract ncextract.o
 cppcheck: cppcheck.o
 	$(CFT) $(FFLAGS) $(LDFLAGS) -o cppcheck cppcheck.o
 srcscheck: srcscheck.o
@@ -141,10 +131,6 @@ check_srcs.F: srcscheck Makefile
 	./srcscheck
 setup_kwds.F: checkkwds read_inp.F
 	./checkkwds
-# depend:  cross_matrix # Note: cross_matrix is external here and should be in path
-#	cross_matrix *.F
-plotter: plotter.o
-	$(CFT) -o plotter plotter.o $(LIBNCAR)
 print_cppswitches: print_cppswitches.o check_switches1.o
 	$(CFT) $(FFLAGS) $(LDFLAGS) -o $@ print_cppswitches.o check_switches1.o
 
@@ -163,17 +149,24 @@ clean:
 clobber: clean
 	/bin/rm -f *.d check_switches1.F setup_kwds.F check_srcs.F \
 	$(SBIN) $(TOOLS) nsub core* *_genmod.mod *_genmod.f90 \
-	print_cppswitches
+	$(DEPDIR)/*.d print_cppswitches
 
 # Rule for dependency files *.d
 # ---- --- ---------- ----- ---
+$(DEPDIR)/%.d:
+
+.PRECIOUS: $(DEPDIR)/%.d
+
 %.d: %.F
-	$(CPP) $(CPPFLAGS) -MM -MG $< > $@
-#	mv $@ Depend/
+	$(MAKEDEPEND) 'dirname $<' $< > $@
 
 # Use all source file in dir for dependency
-SRC := $(wildcard *.F)
+#SRC := $(wildcard *.F *.h)
 # Include dependency files
 # ------- ---------- -----
--include $(SRC:.F=.d)
+# see https://make.mad-scientist.net/papers/advanced-auto-dependency-generation/#output
+-include $(wildcard $(patsubst %,$(DEPDIR)/%.d,$(basename $(SRCS))))
+#-include $(SRCS:.F=.d)
+
+
 # ------- End --------

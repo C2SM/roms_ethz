@@ -2,13 +2,16 @@
 #if !defined GRID_LEVEL || GRID_LEVEL == 1
 
 !!    program main               ! Open MP version of ROMS driver
+# ifdef MPI
+      use mpi
+# endif
       implicit none              ! with single parallel region using
       integer ierr               ! explicit barrier synchronization.
 # include "param.h"
 # ifdef MPI
       real*8 tstart, tend
 C$    integer level,req_lev
-#  include "mpif.h"
+!mm #  include "mpif.h"
 c**   call system('uname -nmr')
       ierr=1
 C$    req_lev=MPI_THREAD_MULTIPLE

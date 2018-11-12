@@ -1,8 +1,17 @@
+# Directory to store  created dependencies (using cpp or MAKEDEPEND)
+
+# Following https://make.mad-scientist.net/papers/advanced-auto-dependency-generation/#output
+DEPDIR:=.deps
+$(shell mkdir -p $(DEPDIR) >/dev/null)
+DEPFLAGS = -MT $@ -MMD -MP -MF $(DEPDIR)/$*.Td
+
+MAKEDEPEND=./depend.sh
+
 .SUFFIXES:	# Clear the default suffixes
 .SUFFIXES: .o .f .F
 
 # Keep intermediate %.f files
-.PRECIOUS: %.f
+#.PRECIOUS: %.f
 
 # Clear implicit rules:
 %.o: %.F
@@ -14,11 +23,21 @@ CPPFLAGS+= -IHeader
 
 CPPFLAGS += -IBiology
 
+VPATH := $(INCLUDE)
+
 # Using pattern rules
-%.o: %.f
-	$(MPIFC) -c $(FFLAGS) $<
-%.f: %.F mpc
-	$(Q)$(CPP) $(CPPFTN) $(CPPFLAGS) $< | mpc > $@
+#%.o: %.f
+#	$(MPIFC) -c $(FFLAGS) $<
+#%.f: %.F mpc
+%.o: %.F mpc
+	$(MAKEDEPEND) 'dirname $<' $< > $(DEPDIR)/$*.d
+	$(Q)$(CPP) $(CPPFTN) $(CPPFLAGS) $< | mpc > $*.f
+	$(MPIFC) -c $(FFLAGS) -o $@ $*.f
+
+#$(DEPDIR)/%.d: %.F
+#	$(MAKEDEPEND) 'dirname $*' $< > $@
+%.d: %.F
+	$(MAKEDEPEND) 'dirname $*' $< > $@
 
 CPP := cpp
 
@@ -52,10 +71,10 @@ FCOMP ?=  $(notdir $(FC)) # use to identify the compiler
 ifeq ($(strip $(FCOMP)),ifort)
    FCFLAGS := -D__IFC
    COMP_FILES = *__genmod.f90 *__genmod.mod # cleanup stuff
-   LARGE_MEM_FLAG=  # -mcmodel=medium # Sometimes needed for large tiles
+   LARGE_MEM_FLAG=   -mcmodel=medium # Sometimes needed for large tiles
    ifndef DEBUG
       # Default: Agressive optimisation for current CPU
-      FFLAGS  = -O3 -fp-model source
+      FFLAGS  = -O3 -xHOST -132 -fp-model source $(LARGE_MEM_FLAG)
    else
       #FFLAGS := -g -check all -CA -CB -CS
       #FFLAGS := -g -check arg_temp_created,bounds,pointers,uninit,format,output_conversion

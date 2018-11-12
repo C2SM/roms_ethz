@@ -1,4 +1,4 @@
-# 
+#
 # Unified definitions for PGI and Intel Compiler
 #
 
@@ -9,17 +9,17 @@
 .PRECIOUS: %.f
 
 # Use pattern rule to indicate dependency on mpc
-%.f:  mpc %.F 
+%.f:  mpc %.F
 	$(CPP) $(CPPFLAGS) $*.F | mpc > $@
 .f.o:
 	$(MPIFC) -c $(FFLAGS) $< -o $@
 # clear implicit rule .F.o:
 %.o: %.F
 
-CPP = /lib/cpp 
+CPP = /lib/cpp
 #CPP = /lib/cpp -traditional-cpp
 CPPFLAGS += -P -traditional-cpp -I$(NETCDF)/include -I${MPI_ROOT}/include
-LCDF =-L$(NETCDF)/lib -lnetcdff -lnetcdf 
+LCDF =-L$(NETCDF)/lib -lnetcdff -lnetcdf
 MPIFC = mpif90
 LDR = $(MPIFC)
 #
@@ -29,18 +29,18 @@ LDR = $(MPIFC)
 #
 #     CPP = fpp
 
-ifeq ($(notdir $(FC)),pgf90) 
+ifeq ($(notdir $(FC)),pgf90)
    #  ============= PGI compiler settings =============
    OPENMP= # -mp
-   CPPFLAGS += -DPGI 
+   CPPFLAGS += -DPGI
    FFLAGS = -mcmodel=medium -fast -O4 $(OPENMP)
-else 
+else
    #  ============= Assuming Intel Ifort =============
    OPENMP = # -fpp2 -openmp
    CPPFLAGS += -D__IFC
 
-   # Compiler 
-   LARGE_MEM_FLAG=  -mcmodel=small 
+   # Compiler
+   LARGE_MEM_FLAG=  -mcmodel=small
    LARGE_MEM_FLAG=  -mcmodel=medium  -shared-intel
    FFLAGS = $(OPENMP) -pc80 -132 -msse2 -auto -O2 -ip -xHost -no-prec-div $(LARGE_MEM_FLAG) -p
    FFLAGS = $(OPENMP) -pc80 -132 -msse2 -auto -O2 -ip -xHost -no-prec-div $(LARGE_MEM_FLAG)
@@ -48,7 +48,7 @@ else
    #FFLAGS = $(OPENMP) -pc80 -132 -msse2 -O3 $(LARGE_MEM_FLAG)
    # File to include in make clean
    COMP_FILES = work.pc work.pcl ifort*
- 
+
    # Compiler settings:  -fpp2 is required only if -openmp is present.
    # Not having -fpp2 here just causes compiler warning (-fpp is set to
    # level 2 by -openmp), but other than that has no effect.
@@ -62,17 +62,14 @@ else
    # Setting  FFLAGS = -O2 -mp (or lower optimization level) is needed
    # to pass ETALON_CHECK: -O3 causes roundoff-level differences from
    # the length of innermost i-loop (the results still pass ETALON_CHECK
-   # if  NP_XI = NSUB_X = 1, regardless of partition in ETA-direction). 
+   # if  NP_XI = NSUB_X = 1, regardless of partition in ETA-direction).
 
-   # Flags collected under LARGE_MEM_FLAG are needed only if exceeding 
+   # Flags collected under LARGE_MEM_FLAG are needed only if exceeding
    # 2 GBytes of memory: both -mcmodel (sets size of addressing pointers)
    # and -i-dynamic (ensures proper linking with Intel dynamic libraries
    # must be specified.
-   # LARGE_MEM_FLAG = -mcmodel=medium 
+   # LARGE_MEM_FLAG = -mcmodel=medium
    #
-   # Some usefule debugging options 
+   # Some usefule debugging options
    #   FFLAGS = -pc80 -132 -g -check all -CA -CB -CS $(LART_MEM_FLAG)
 endif
-
-
-
