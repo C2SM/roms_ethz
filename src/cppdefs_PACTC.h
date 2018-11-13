@@ -3,7 +3,7 @@
   == === ======= ========== ===== = ==== =====
 */
 
-                     /* Include standard CPP switches for UP ETH Zurich */  
+                     /* Include standard CPP switches for UP ETH Zurich */
                      /* *** ACTIVATE BIOLOGY HERE *** */
                      /* (Otherwise standard UP bio switches are not set) */
 
@@ -83,7 +83,12 @@
 !# define BUDGETVARS
 # define VFLX_CORR /* MF: make sure this is always on if running with BIOLOGY */
 # define BEC2_DIAG
+<<<<<<< HEAD
 # define RIVER_LOAD_BIO
+=======
+!mm for master: # define RIVER_LOAD_BIO
+# define RIVER_LOAD_ALK_DIC_SI
+>>>>>>> Update to cppdefs_PACTC.h
 # define RIVER_LOAD_N
 # define RIVER_LOAD_P
 # define PCO2AIR_FORCING
