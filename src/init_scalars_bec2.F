@@ -1202,7 +1202,7 @@ CR      write(*,'(1x,A,I3)') 'indxNH4 =',indxNH4
       vname_bec2_diag_3d(3,indxPOCPRODCOCCO)='mMol C m-3 s-1'
       vname_bec2_diag_3d(4,indxPOCPRODCOCCO)=' '
 
-# endif BEC_COCCO
+# endif /* BEC_COCCO */
 # ifdef BEC_DDA
       vname_bec2_diag_3d(1,indxGRAZEDDA)='GRAZE_DDA'
       vname_bec2_diag_3d(2,indxGRAZEDDA)=
