@@ -1,23 +1,25 @@
-# Directory to store  created dependencies (using cpp or MAKEDEPEND)
-
-# Following https://make.mad-scientist.net/papers/advanced-auto-dependency-generation/#output
+# This roughly follow  https://make.mad-scientist.net/papers/advanced-auto-dependency-generation/#output
+# DEPDIR is the directory to store  created dependencies using MAKEDEPEND
 DEPDIR:=.deps
+
 $(shell mkdir -p $(DEPDIR) >/dev/null)
 DEPFLAGS = -MT $@ -MMD -MP -MF $(DEPDIR)/$*.Td
-
+# Command to create dependency files in DEPDIR
 MAKEDEPEND=./depend.sh
 
 .SUFFIXES:	# Clear the default suffixes
 .SUFFIXES: .o .f .F
 
-# Keep intermediate %.f files
-#.PRECIOUS: %.f
+# Declare *.f files precious to keep them
+.PRECIOUS: %.f
+.INTERMEDIATE: %.f
 
 # Clear implicit rules:
 %.o: %.F
 %.o: %.f
 
-.INTERMEDIATE: %.f
+# quite mode:
+# Q = @
 
 CPPFLAGS+= -IHeader
 
@@ -26,22 +28,19 @@ CPPFLAGS += -IBiology
 VPATH := $(INCLUDE)
 
 # Using pattern rules
-#%.o: %.f
-#	$(MPIFC) -c $(FFLAGS) $<
-#%.f: %.F mpc
-%.o: %.F mpc
-	$(MAKEDEPEND) 'dirname $<' $< > $(DEPDIR)/$*.d
+%.o: %.f
+	$(Q)$(MPIFC) -c $(FFLAGS) $<
+# Rule to create .f files.
+# also create dependencies files when creating these.
+%.f: %.F mpc
+	$(Q)$(MAKEDEPEND) 'dirname $<' $< > $(DEPDIR)/$*.d
 	$(Q)$(CPP) $(CPPFTN) $(CPPFLAGS) $< | mpc > $*.f
-	$(MPIFC) -c $(FFLAGS) -o $@ $*.f
 
-#$(DEPDIR)/%.d: %.F
-#	$(MAKEDEPEND) 'dirname $*' $< > $@
-%.d: %.F
-	$(MAKEDEPEND) 'dirname $*' $< > $@
-
+# use C preprocessor
+#fpp might be an alternative but for consistancy one should
+# then also use it in MAKEDEPENT
 CPP := cpp
-
-CPPFTN := -P -traditional-cpp
+CPPFTN := -P -traditional-cpp # traditional-cpp need to keep white-spaces
 
 # NetCDF
 NCINC := -I$(NETCDF)/include
@@ -117,6 +116,7 @@ endif
 CPPFLAGS += $(FCFLAGS)
 
 # Print makefile macros
+#    Usage: e.g., make print-CPPFLAGS
 print-% :
-	@echo $* = '>'$($*)'<'
+	@echo $* = '"'$($*)'"'
 #

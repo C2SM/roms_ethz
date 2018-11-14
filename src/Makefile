@@ -4,7 +4,7 @@
 
 include Makedefs
 
-VPATH += Biology
+#VPATH := $(VPATH):Biology
 
 # Configuration for ROMS model:  Source code files are sorted into
 # ------------- --- ---- ------  groups:
@@ -78,7 +78,7 @@ FLTSRC := init_floats.F	init_arrays_floats.F	get_init_flts.F\
 #       pp_vmix.F	get_wwave.F	smol_adv.F	get_bsedim.F
 
 KRNSRC := $(DRVSRC) $(STEPSRC) $(BRYSRC) $(EOSSRC) $(VMXSRC) $(CHKSRC) $(MPISRC)
-BIOSRC := $(FLXSRC) $(NPZDSRC) $(BECSRC) $(BECSRCOLD)
+BIOSRC := $(FLXSRC) $(NPZDSRC) $(BECSRC) # $(BECSRCOLD)
 
 SRCS := $(KRNSRC) $(IOSRC) $(BIOSRC)
 RCS  := $(SRCS:.F=.for)
@@ -117,22 +117,22 @@ mpc: mpc.F
 	$(FC) $(CPPFLAGS) -o $@ mpc.F
 
 cppcheck: cppcheck.o
-	$(CFT) $(FFLAGS) $(LDFLAGS) -o cppcheck cppcheck.o
+	$(Q)$(CFT) $(FFLAGS) $(LDFLAGS) -o cppcheck cppcheck.o
 srcscheck: srcscheck.o
-	$(CFT) $(FFLAGS) $(LDFLAGS) -o srcscheck srcscheck.o
+	$(Q)$(CFT) $(FFLAGS) $(LDFLAGS) -o srcscheck srcscheck.o
 checkkwds: checkkwds.o
-	$(CFT) $(FFLAGS) $(LDFLAGS) -o checkkwds checkkwds.o
+	$(Q)$(CFT) $(FFLAGS) $(LDFLAGS) -o checkkwds checkkwds.o
 redefs: redefs.o
-	$(CFT) $(FFLAGS) $(LDFLAGS) -o redefs redefs.o
+	$(Q)$(CFT) $(FFLAGS) $(LDFLAGS) -o redefs redefs.o
 checkdefs: check_switches1.F setup_kwds.F
 check_switches1.F: cppcheck cppdefs_UP.h cppdefs.h set_global_definitions.h
-	./cppcheck cppdefs_UP.h cppdefs.h
+	$(Q)./cppcheck cppdefs_UP.h cppdefs.h >/dev/null
 check_srcs.F: srcscheck Makefile
-	./srcscheck
+	$(Q)./srcscheck >/dev/null
 setup_kwds.F: checkkwds read_inp.F
-	./checkkwds
+	$(Q)./checkkwds >/dev/null
 print_cppswitches: print_cppswitches.o check_switches1.o
-	$(CFT) $(FFLAGS) $(LDFLAGS) -o $@ print_cppswitches.o check_switches1.o
+	$(Q)$(CFT) $(FFLAGS) $(LDFLAGS) -o $@ print_cppswitches.o check_switches1.o
 
 # Target to create tar file.
 # ------ -- ------ --- -----
