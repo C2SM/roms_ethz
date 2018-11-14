@@ -414,9 +414,13 @@
       lflux_gas_o2  = .TRUE.
       lflux_gas_co2 = .TRUE.
       liron_flux = .TRUE.
-#ifdef RIVER_LOAD_BIO
+#ifdef RIVER_LOAD_N
       lriver_load_n = .TRUE.
+#endif
+#ifdef RIVER_LOAD_P
       lriver_load_p = .TRUE.
+#endif
+#ifdef RIVER_LOAD_ALK_DIC_SI
       lriver_load_alk = .TRUE.
       lriver_load_dic = .TRUE.
       lriver_load_si = .TRUE.
