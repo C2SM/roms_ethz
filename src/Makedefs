@@ -1,11 +1,16 @@
-# This roughly follow  https://make.mad-scientist.net/papers/advanced-auto-dependency-generation/#output
-# DEPDIR is the directory to store  created dependencies using MAKEDEPEND
-DEPDIR:=.deps
+# Background reference
+# https://make.mad-scientist.net/papers/advanced-auto-dependency-generation/#output
 
+SRCDIR ?= $(CURDIR)         # source dir
+BLDDIR ?= ../build          # object dir
+INCDIR ?= $(CURDIR)/include # header dir
+BIODIR ?= $(CURDIR)/biology # biology sources (BEC, NPZDOC)
+# dependencies dir
+DEPDIR := $(CURDIR)/.deps
 $(shell mkdir -p $(DEPDIR) >/dev/null)
 DEPFLAGS = -MT $@ -MMD -MP -MF $(DEPDIR)/$*.Td
 # Command to create dependency files in DEPDIR
-MAKEDEPEND=./depend.sh
+MAKEDEPEND := ./depend.sh
 
 .SUFFIXES:	# Clear the default suffixes
 .SUFFIXES: .o .f .F
@@ -21,14 +26,15 @@ MAKEDEPEND=./depend.sh
 # quite mode:
 # Q = @
 
-CPPFLAGS+= -IHeader
+# Include file locations
+CPPFLAGS+= -I$(SRCDIR) -I$(INCDIR) -I$(BIODIR)
 
 CPPFLAGS += -IBiology
 
-VPATH := $(INCLUDE)
 
 # Using pattern rules
 %.o: %.f
+	@echo -n $@ ' '
 	$(Q)$(MPIFC) -c $(FFLAGS) $<
 # Rule to create .f files.
 # also create dependencies files when creating these.
@@ -43,9 +49,12 @@ CPP := cpp
 CPPFTN := -P -traditional-cpp # traditional-cpp need to keep white-spaces
 
 # NetCDF
-NCINC := -I$(NETCDF)/include
+#NCINC := -I$(NETCDF)/include
+NCINC ?= $(shell nc-config --fflags)
+
 CPPFLAGS += $(NCINC)
-NCLIB := -L$(NETCDF)/../serial/lib -L$(NETCDF)/lib -lnetcdff -lnetcdf
+#NCLIB := -L$(NETCDF)/../serial/lib -L$(NETCDF)/lib -lnetcdff -lnetcdf
+NCLIB ?= $(shell nc-config --flibs)
 
 # Default: mpi executable
 ifndef NOMPI

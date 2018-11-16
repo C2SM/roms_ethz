@@ -4,7 +4,8 @@
 
 include Makedefs
 
-#VPATH := $(VPATH):Biology
+vpath %.h = include:biology
+vpath %.F = biology
 
 # Configuration for ROMS model:  Source code files are sorted into
 # ------------- --- ---- ------  groups:
@@ -81,8 +82,7 @@ KRNSRC := $(DRVSRC) $(STEPSRC) $(BRYSRC) $(EOSSRC) $(VMXSRC) $(CHKSRC) $(MPISRC)
 BIOSRC := $(FLXSRC) $(NPZDSRC) $(BECSRC) # $(BECSRCOLD)
 
 SRCS := $(KRNSRC) $(IOSRC) $(BIOSRC)
-RCS  := $(SRCS:.F=.for)
-OBJS := $(RCS:.for=.o)
+OBJS := $(SRCS:.F=.o)
 SBIN := roms
 
 # ROMS excutable
@@ -125,8 +125,8 @@ checkkwds: checkkwds.o
 redefs: redefs.o
 	$(Q)$(CFT) $(FFLAGS) $(LDFLAGS) -o redefs redefs.o
 checkdefs: check_switches1.F setup_kwds.F
-check_switches1.F: cppcheck cppdefs_UP.h cppdefs.h set_global_definitions.h
-	$(Q)./cppcheck cppdefs_UP.h cppdefs.h >/dev/null
+check_switches1.F: cppcheck include/cppdefs_UP.h cppdefs.h include/set_global_definitions.h
+	$(Q)./cppcheck include/cppdefs_UP.h cppdefs.h include/set_global_definitions.h >/dev/null
 check_srcs.F: srcscheck Makefile
 	$(Q)./srcscheck >/dev/null
 setup_kwds.F: checkkwds read_inp.F
@@ -153,20 +153,17 @@ clobber: clean
 
 # Rule for dependency files *.d
 # ---- --- ---------- ----- ---
-$(DEPDIR)/%.d:
+# $(DEPDIR)/%.d:
 
 .PRECIOUS: $(DEPDIR)/%.d
 
 %.d: %.F
 	$(MAKEDEPEND) 'dirname $<' $< > $@
 
-# Use all source file in dir for dependency
-#SRC := $(wildcard *.F *.h)
 # Include dependency files
 # ------- ---------- -----
 # see https://make.mad-scientist.net/papers/advanced-auto-dependency-generation/#output
 -include $(wildcard $(patsubst %,$(DEPDIR)/%.d,$(basename $(SRCS))))
-#-include $(SRCS:.F=.d)
 
 
 # ------- End --------
