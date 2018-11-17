@@ -8,7 +8,9 @@ BIODIR ?= $(CURDIR)/biology # biology sources (BEC, NPZDOC)
 # dependencies dir
 DEPDIR := $(CURDIR)/.deps
 $(shell mkdir -p $(DEPDIR) >/dev/null)
+$(shell mkdir -p $(BLDDIR) >/dev/null)
 DEPFLAGS = -MT $@ -MMD -MP -MF $(DEPDIR)/$*.Td
+
 # Command to create dependency files in DEPDIR
 MAKEDEPEND := ./depend.sh
 
@@ -34,7 +36,7 @@ CPPFLAGS += -IBiology
 
 # Using pattern rules
 %.o: %.f
-	@echo -n $@ ' '
+	@#echo -n $@ ' '
 	$(Q)$(MPIFC) -c $(FFLAGS) $<
 # Rule to create .f files.
 # also create dependencies files when creating these.
@@ -49,12 +51,25 @@ CPP := cpp
 CPPFTN := -P -traditional-cpp # traditional-cpp need to keep white-spaces
 
 # NetCDF
-#NCINC := -I$(NETCDF)/include
-NCINC ?= $(shell nc-config --fflags)
+#  Use NETCDF var if it is defined
+#  Otherwise try to use nc-config to find
+#  suitable settings
+#NETCDF := /cluster/apps/netcdf/4.3.2/x86_64/intel_14.0.1/serial
+ifdef NETCDF
+  NCINC ?= -I$(NETCDF)/include
+  NCLIB ?= -L$(NETCDF)/../serial/lib -L$(NETCDF)/lib -lnetcdff -lnetcdf
+else
+  NCINC ?= $(shell nc-config --fflags)
+  ifeq ($(NCINC),)
+    NCINC := $(shell nc-config --cflags)
+  endif
+  NCLIB ?= $(shell nc-config --flibs)
+  ifeq ($(NCLIB),)
+    NCLIB := $(shell nc-config --libs)
+  endif
+endif
 
 CPPFLAGS += $(NCINC)
-#NCLIB := -L$(NETCDF)/../serial/lib -L$(NETCDF)/lib -lnetcdff -lnetcdf
-NCLIB ?= $(shell nc-config --flibs)
 
 # Default: mpi executable
 ifndef NOMPI
@@ -78,11 +93,14 @@ FCOMP ?=  $(notdir $(FC)) # use to identify the compiler
 # ============= Intel compiler =============
 ifeq ($(strip $(FCOMP)),ifort)
    FCFLAGS := -D__IFC
+
+   MPIFC := $(MPIFC) -fc=ifort
    COMP_FILES = *__genmod.f90 *__genmod.mod # cleanup stuff
    LARGE_MEM_FLAG=   -mcmodel=medium # Sometimes needed for large tiles
    ifndef DEBUG
       # Default: Agressive optimisation for current CPU
-      FFLAGS  = -O3 -xHOST -132 -fp-model source $(LARGE_MEM_FLAG)
+      #FFLAGS  = -O3 -xHOST -132 -fp-model source $(LARGE_MEM_FLAG)
+      FFLAGS  = -O2 -132 -fp-model source $(LARGE_MEM_FLAG)
    else
       #FFLAGS := -g -check all -CA -CB -CS
       #FFLAGS := -g -check arg_temp_created,bounds,pointers,uninit,format,output_conversion

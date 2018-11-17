@@ -125,8 +125,8 @@ checkkwds: checkkwds.o
 redefs: redefs.o
 	$(Q)$(CFT) $(FFLAGS) $(LDFLAGS) -o redefs redefs.o
 checkdefs: check_switches1.F setup_kwds.F
-check_switches1.F: cppcheck include/cppdefs_UP.h cppdefs.h include/set_global_definitions.h
-	$(Q)./cppcheck include/cppdefs_UP.h cppdefs.h include/set_global_definitions.h >/dev/null
+check_switches1.F: cppcheck include/cppdefs_UP.h cppdefs.h
+	$(Q)./cppcheck include/cppdefs_UP.h cppdefs.h >/dev/null
 check_srcs.F: srcscheck Makefile
 	$(Q)./srcscheck >/dev/null
 setup_kwds.F: checkkwds read_inp.F
