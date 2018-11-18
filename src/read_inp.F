@@ -376,7 +376,7 @@ c--      fname='roms.in.US_West'
 #  endif
 # endif
 
-# if defined SFLX_CORR && defined SALINITY
+# if defined SFLX_CORR && defined SALINITY && defined BULK_FLUX
 
         elseif (keyword(1:kwlen) == 'SSS_correction') then
           call cancel_kwd(keyword(1:kwlen), ierr)
