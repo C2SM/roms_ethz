@@ -1039,6 +1039,8 @@ c$$$       enddo
 # else
        bec2_diag_3d(istr:iend,j,k,totchl_idx_t) = tracer(istr:iend,j,k,spchl_ind_t)
      &     + tracer(istr:iend,j,k,diatchl_ind_t) + tracer(istr:iend,j,k,diazchl_ind_t)
+       bec2_diag_3d(istr:iend,j,k,totpoc_idx_t) = tracer(istr:iend,j,k,pocsoft_ind_t)
+     &     + tracer(istr:iend,j,k,pochard_ind_t)
 # ifdef BEC_COCCO
      &     + tracer(istr:iend,j,k,coccochl_ind_t)
 # endif
@@ -1835,6 +1837,7 @@ c$$$       enddo
 #  else
           if (auto_ind == diaz_ind) then
              bec2_diag_3d(istr:iend,j,k,diaznfix_idx_t) = Nfix(istr:iend,auto_ind)
+             bec2_diag_3d(istr:iend,j,k,nexcrete_idx_t) = Nexcrete(istr:iend,auto_ind)
           end if
 #  endif
 # endif
@@ -1961,12 +1964,15 @@ c$$$       enddo
        bec2_diag_3d(istr:iend,j,k,grazesp_idx_t) = auto_graze(istr:iend,sp_ind)
        bec2_diag_3d(istr:iend,j,k,grazediat_idx_t) = auto_graze(istr:iend,diat_ind)
        bec2_diag_3d(istr:iend,j,k,grazediaz_idx_t) = auto_graze(istr:iend,diaz_ind)
+       bec2_diag_3d(istr:iend,j,k,totgraze_idx_t) = sum(auto_graze,dim=2)
        bec2_diag_3d(istr:iend,j,k,sploss_idx_t) = auto_loss(istr:iend,sp_ind)
        bec2_diag_3d(istr:iend,j,k,diatloss_idx_t) = auto_loss(istr:iend,diat_ind)
        bec2_diag_3d(istr:iend,j,k,diazloss_idx_t) = auto_loss(istr:iend,diaz_ind)
+       bec2_diag_3d(istr:iend,j,k,totloss_idx_t) = sum(auto_loss,dim=2)
        bec2_diag_3d(istr:iend,j,k,spagg_idx_t) = auto_agg(istr:iend,sp_ind)
        bec2_diag_3d(istr:iend,j,k,diatagg_idx_t) = auto_agg(istr:iend,diat_ind)
        bec2_diag_3d(istr:iend,j,k,diazagg_idx_t) = auto_agg(istr:iend,diaz_ind)
+       bec2_diag_3d(istr:iend,j,k,totagg_idx_t) = sum(auto_agg,dim=2)
        bec2_diag_3d(istr:iend,j,k,photocsp_idx_t) = photoC(istr:iend,sp_ind)
        bec2_diag_3d(istr:iend,j,k,photocdiat_idx_t) = photoC(istr:iend,diat_ind)
        bec2_diag_3d(istr:iend,j,k,photocdiaz_idx_t) = photoC(istr:iend,diaz_ind)
@@ -1979,18 +1985,23 @@ c$$$       enddo
        bec2_diag_3d(istr:iend,j,k,spno3uptake_idx_t) = NO3_V(istr:iend,sp_ind)
        bec2_diag_3d(istr:iend,j,k,diatno3uptake_idx_t) = NO3_V(istr:iend,diat_ind)
        bec2_diag_3d(istr:iend,j,k,diazno3uptake_idx_t) = NO3_V(istr:iend,diaz_ind)
+       bec2_diag_3d(istr:iend,j,k,totno3uptake_idx_t) = sum(NO3_V,dim=2)
        bec2_diag_3d(istr:iend,j,k,spnh4uptake_idx_t) = NH4_V(istr:iend,sp_ind)
        bec2_diag_3d(istr:iend,j,k,diatnh4uptake_idx_t) = NH4_V(istr:iend,diat_ind)
        bec2_diag_3d(istr:iend,j,k,diaznh4uptake_idx_t) = NH4_V(istr:iend,diaz_ind)
+       bec2_diag_3d(istr:iend,j,k,totnh4uptake_idx_t) = sum(NH4_V,dim=2)
        bec2_diag_3d(istr:iend,j,k,grazedicsp_idx_t) = auto_graze_dic(istr:iend,sp_ind)
        bec2_diag_3d(istr:iend,j,k,grazedicdiat_idx_t) = auto_graze_dic(istr:iend,diat_ind)
        bec2_diag_3d(istr:iend,j,k,grazedicdiaz_idx_t) = auto_graze_dic(istr:iend,diaz_ind)
+       bec2_diag_3d(istr:iend,j,k,totgrazedic_idx_t) = sum(auto_graze_dic,dim=2)
        bec2_diag_3d(istr:iend,j,k,lossdicsp_idx_t) = auto_loss_dic(istr:iend,sp_ind)
        bec2_diag_3d(istr:iend,j,k,lossdicdiat_idx_t) = auto_loss_dic(istr:iend,diat_ind)
        bec2_diag_3d(istr:iend,j,k,lossdicdiaz_idx_t) = auto_loss_dic(istr:iend,diaz_ind)
+       bec2_diag_3d(istr:iend,j,k,totlossdic_idx_t) = sum(auto_loss_dic,dim=2)
        bec2_diag_3d(istr:iend,j,k,grazespzoo_idx_t) = auto_graze_zoo(istr:iend,sp_ind)
        bec2_diag_3d(istr:iend,j,k,grazediatzoo_idx_t) = auto_graze_zoo(istr:iend,diat_ind)
        bec2_diag_3d(istr:iend,j,k,grazediazzoo_idx_t) = auto_graze_zoo(istr:iend,diaz_ind)
+       bec2_diag_3d(istr:iend,j,k,totgrazezoo_idx_t) = sum(auto_graze_zoo,dim=2)
 #   ifdef BEC_COCCO
        bec2_diag_3d(istr:iend,j,k,grazecocco_idx_t) = auto_graze(istr:iend,cocco_ind)
        bec2_diag_3d(istr:iend,j,k,coccoloss_idx_t) = auto_loss(istr:iend,cocco_ind)
@@ -2029,28 +2040,7 @@ c$$$       enddo
        bec2_diag_3d(istr:iend,j,k,phaeolossdic_idx_t) = auto_loss_dic(istr:iend,phaeo_ind)
        bec2_diag_3d(istr:iend,j,k,grazephaeozoo_idx_t) = auto_graze_zoo(istr:iend,phaeo_ind)
 #   endif /* BEC_PHAEO */
-       bec2_diag_3d(istr:iend,j,k,totgrazedic_idx_t) = auto_graze_dic(istr:iend,sp_ind)
-     &       + auto_graze_dic(istr:iend,diat_ind) + auto_graze_dic(istr:iend,diaz_ind)
-#   ifdef BEC_COCCO
-     &       + auto_graze_dic(istr:iend,cocco_ind)
-#   endif
-#   ifdef BEC_DDA
-     &       + auto_graze_dic(istr:iend,dda_ind)
-#   endif
-#   ifdef BEC_PHAEO
-     &       + auto_graze_dic(istr:iend,phaeo_ind)
-#   endif
-           bec2_diag_3d(istr:iend,j,k,totlossdic_idx_t) = auto_loss_dic(istr:iend,sp_ind)
-     &       + auto_loss_dic(istr:iend,diat_ind) + auto_loss_dic(istr:iend,diaz_ind)
-#   ifdef BEC_COCCO
-     &       + auto_loss_dic(istr:iend,cocco_ind)
-#   endif
-#   ifdef BEC_DDA
-     &       + auto_loss_dic(istr:iend,dda_ind)
-#   endif
-#   ifdef BEC_PHAEO
-     &       + auto_loss_dic(istr:iend,phaeo_ind)
-#   endif
+
 #  endif
 # endif /* BEC2_DIAG */
 
@@ -2321,6 +2311,21 @@ c$$$       enddo
 
        call compute_particulate_terms(k,QA_dust_def, TEMP, O2_loc, NO3_loc,POC_prod,
      &        P_iron_prod,P_CaCO3_prod,P_SiO2_prod,SED_DENITRIF, OTHER_REMIN,istr,iend,j)
+
+
+# ifdef BEC2_DIAG
+#  ifdef BEC2_DIAG_USER
+       if (bec2_diag_3d_l(ncp_idx_t))
+     &     bec2_diag_3d(istr:iend,j,k,ncp_idx_t) = sum(photoC,dim=2)- zoo_loss_dic
+     &                  - sum(auto_graze_dic,dim=2) - sum(auto_loss_dic,dim=2)
+     &                  - DOC_remin - POC_remin(istr:iend,j)
+#  else
+       bec2_diag_3d(istr:iend,j,k,ncp_idx_t) = sum(photoC,dim=2)- zoo_loss_dic
+     &                  - sum(auto_graze_dic,dim=2) - sum(auto_loss_dic,dim=2)
+     &                  - DOC_remin - POC_remin(istr:iend,j)
+#  endif
+# endif
+
 
     !-----------------------------------------------------------------------
     !  nitrate & ammonium
