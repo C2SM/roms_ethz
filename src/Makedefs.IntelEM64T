@@ -50,7 +50,7 @@
 
 # OMP_FLAG = -fpp -openmp
 
-# LARGE_MEM_FLAG = -mcmodel=medium
+LARGE_MEM_FLAG = -mcmodel=medium
 
 
 #   CFTFLAGS = -pc80 -xSSE2 -auto -stack_temps
