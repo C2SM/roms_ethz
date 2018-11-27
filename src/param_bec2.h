@@ -344,6 +344,6 @@
      &   param_psio2soft_remin, param_pironsoft_remin
        parameter( param_dusthard_remin=2.0e-4, param_pochard_remin=6.25e-4, param_pcaco3hard_remin=6.25e-4,
      &   param_psio2hard_remin=6.25e-4, param_pironhard_remin=6.25e-4 )
-       parameter( param_dustsoft_remin=0.04, param_pocsoft_remin=0.125, param_pcaco3soft_remin=6.25e-2,
+       parameter( param_dustsoft_remin=0.04, param_pocsoft_remin=0.08, param_pcaco3soft_remin=6.25e-2,
      &   param_psio2soft_remin=6.25e-2, param_pironsoft_remin=0.06)
 #endif
