@@ -95,8 +95,11 @@ c--#define VERBOSE
 #  ifdef NOX_FORCING
       call get_nox(ierr)
 #  endif
-#  ifdef NOX_FORCING
+#  ifdef NHY_FORCING
       call get_nhy(ierr)
+#  endif
+#  ifdef POX_FORCING
+      call get_pox(ierr)
 #  endif
 #  ifdef RIVER_LOAD_N
       call get_din_river(ierr)
@@ -104,7 +107,7 @@ c--#define VERBOSE
 #  ifdef RIVER_LOAD_P
       call get_dip_river(ierr)
 #  endif
-# endif
+#endif
 # if defined PASSIVE_TRACER && defined AGE_DYE_TRACER
       call get_agedye(ierr)
 # endif
@@ -494,6 +497,7 @@ c--#  define timename 'dqdt_time'
 #  include "get_smth.F"
 # endif
 
+
 # ifdef RIVER_LOAD_P
 !  dip river flux
 !  --------- ---- 
@@ -566,6 +570,31 @@ c--#  define timename 'dqdt_time'
 #  define SET_SMTH set_nox
 #  define VAR_CFF 1.0
 #  define VAR_NOW nox
+#  include "get_smth.F"
+# endif
+
+# ifdef POX_FORCING
+!  POX flux
+!  --- ----
+#  define get_smth get_pox
+#  define varname 'pox_flux'
+#  define timename 'pox_time'
+#  define POX_DATA
+#  define var poxg
+#  define timevar pox_time
+#  define file_id pox_file_id
+#  define NC_ID_LIST ncfrc
+#  define NC_FILE_LIST frcfile
+#  define varid pox_id
+#  define timevarid pox_tid
+#  define irecord pox_rec
+#  define ntsmth ntpox
+#  define itsmth itpox
+#  define icycle pox_ncycle
+#  define cycle_length pox_cycle
+#  define SET_SMTH set_pox
+#  define VAR_CFF 1.0
+#  define VAR_NOW pox
 #  include "get_smth.F"
 # endif
 

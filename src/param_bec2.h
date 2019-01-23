@@ -212,7 +212,7 @@
   !----------------------------------------------------------------------------
 
        real r_Nfix_photo
-       parameter(r_Nfix_photo=1.25)         !N fix relative to C fix (non-dim)
+       parameter(r_Nfix_photo=1.30)         !N fix relative to C fix (non-dim)
 
   !-----------------------------------------------------------------------
   !     SET FIXED RATIOS for N/C, P/C, SiO3/C, Fe/C
@@ -273,14 +273,14 @@
        real DOC_reminR, DON_reminR, DOFe_reminR, DOP_reminR, DONr_reminR,
      &   DOPr_reminR, DONrefract, DOPrefract
        parameter(
-     &   DOC_reminR  = (c1/250.0) * dps,         ! rate for semi-labile DOC 1/250days
-     &   DON_reminR  = (c1/160.0) * dps,         ! rate for semi-labile DON 1/160days
-     &   DOFe_reminR = (c1/160.0) * dps,         ! rate for semi-labile DOFe 1/160days
-     &   DOP_reminR  = (c1/160.0) * dps,         ! rate for semi-labile DOP 1/160days  
-     &   DONr_reminR = (c1/(365.0*2.5)) * dps,   ! timescale for refrac DON 1/2.5yrs
-     &   DOPr_reminR = (c1/(365.0*2.5)) * dps,   ! timescale for refrac DOP 1/2.5yrs
-     &   DONrefract = 0.08,                      ! fraction of DON to refractory pool
-     &   DOPrefract = 0.03                       ! fraction of DOP to refractory pool
+     &   DOC_reminR  = (c1/(250.0*8.0)) * dps,         ! rate for semi-labile DOC 1/250days
+     &   DON_reminR  = (c1/(160.0*8.0)) * dps,         ! rate for semi-labile DON 1/160days
+     &   DOFe_reminR = (c1/(160*8.0)) * dps,         ! rate for semi-labile DOFe 1/160days
+     &   DOP_reminR  = (c1/(160*8.0)) * dps,         ! rate for semi-labile DOP 1/160days  
+     &   DONr_reminR = (c1/(365.0*2.5*8.0)) * dps,   ! timescale for refrac DON 1/2.5yrs
+     &   DOPr_reminR = (c1/(365.0*2.5*8.0)) * dps,   ! timescale for refrac DOP 1/2.5yrs
+     &   DONrefract = 0.02,                      ! fraction of DON to refractory pool
+     &   DOPrefract = 0.006                       ! fraction of DOP to refractory pool
      & )
 
   !---------------------------------------------------------------------

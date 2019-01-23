@@ -102,11 +102,15 @@ c***              no code here
 # ifdef RIVER_LOAD_P
       call set_dip_river_tile(istr,iend,jstr,jend,ierr)
 # endif
+
 # ifdef NHY_FORCING
       call set_nhy_tile(istr,iend,jstr,jend,ierr)
 # endif
 # ifdef NOX_FORCING
       call set_nox_tile(istr,iend,jstr,jend,ierr)
+# endif
+# ifdef POX_FORCING
+      call set_pox_tile(istr,iend,jstr,jend,ierr)
 # endif
 
 

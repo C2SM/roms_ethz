@@ -71,6 +71,30 @@ CSDISTRIBUTE_RESHAPE  noxg(BLOCK_PATTERN,*) BLOCK_CLAUSE
 # endif
 #endif /* NOX_FORCING */
 
+#ifdef POX_FORCING
+! POX flux
+! --- ----
+
+      real pox(GLOBAL_2D_ARRAY)
+      common /frc_pox/ pox
+CSDISTRIBUTE_RESHAPE  pox(BLOCK_PATTERN,*) BLOCK_CLAUSE
+# if defined POX_DATA || defined ALL_DATA
+# ifndef SET_SMTH
+#  undef POX_DATA
+# endif
+      real poxg(GLOBAL_2D_ARRAY,2)
+CSDISTRIBUTE_RESHAPE  poxg(BLOCK_PATTERN,*) BLOCK_CLAUSE
+      common /poxg_dat/ poxg
+      real pox_cycle, pox_time(2)
+      integer pox_ncycle,  pox_rec, itpox, ntpox,
+     &        pox_file_id, pox_id, pox_tid
+      common /poxdat/ pox_cycle, pox_time,
+     &        pox_ncycle, pox_rec, itpox, ntpox,  
+     &        pox_file_id, pox_id, pox_tid
+# endif
+#endif /* POX_FORCING */
+
+
 #if defined BIOLOGY_BEC || defined BIOLOGY_BEC2
 ! dust flux
 ! ---- ----
