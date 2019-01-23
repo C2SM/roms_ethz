@@ -611,6 +611,7 @@ c$$$       enddo
 !     &         *dt/Hz(istr:iend,jstr:jend,N)
 # endif /* RIVER_LOAD_P */
 
+
 # ifdef RIVER_LOAD_SI_ALK_DIC   
        !CN: Si loads from rivers
        if (lriver_load_si) then
@@ -687,7 +688,13 @@ c$$$       enddo
      &         nhy(istr:iend,jstr:jend)*71394.200220751
      &         *dt/Hz(istr:iend,jstr:jend,N)
 # endif
-
+# ifdef POX_FORCING
+       ! POX: added to phosphate (convert units from kg P to mmol P)
+        tracer(istr:iend,jstr:jend,N,po4_ind_t) =
+     &         tracer(istr:iend,jstr:jend,N,po4_ind_t) +
+     &         pox(istr:iend,jstr:jend)*32285.39149637
+     &         *dt/Hz(istr:iend,jstr:jend,N)
+# endif
 # ifdef BEC2_DIAG
 #  ifdef BEC2_DIAG_USER
        if (bec2_diag_2d_l(ironflux_idx_t))
@@ -846,6 +853,7 @@ c$$$       enddo
      &    ddaChl_loc,      ! local copy of model ddaChl
      &    ddaSi_loc,       ! local copy of model ddaCal
      &    ddaFe_loc,       ! local copy of model ddaFe
+     &    salt_loc,
 # endif
 # ifdef BEC_PHAEO
      &    phaeoC_loc,      ! local copy of model phaeoC
@@ -974,6 +982,10 @@ c$$$       enddo
     !   create local copies of model tracers
     !   treat negative values as zero
     !---------------------------------------------------------------------------
+# ifdef AMAZON_PAR
+       salt_loc=t(istr:iend,j,k,nnew,isalt)
+# endif
+
        PO4_loc  = MAX(c0, TRACER(istr:iend,j,k,po4_ind_t))
        NO3_loc  = MAX(c0, TRACER(istr:iend,j,k,no3_ind_t))
        SiO3_loc = MAX(c0, TRACER(istr:iend,j,k,sio3_ind_t))
@@ -1189,6 +1201,18 @@ c$$$       enddo
      &           gQfe_min(auto_ind))
           end where
 
+# ifdef BEC_DDA_case2   ! when DDAs are not fixing, gQfe param are the same as regular diatoms
+          if (auto_ind==dda_ind) then
+               where (NO3_loc>0.5)
+                 where (Fe_loc < cks * kFe(auto_ind))
+                 gQfe(istr:iend,dda_ind) = 
+     &           max((gQfe(istr:iend,diat_ind) * Fe_loc / (cks * kFe(dda_ind))),
+     &           gQfe_min(diat_ind))
+                 end where
+               end where
+          endif
+# endif
+
           if (kSiO3(auto_ind) > c0) then
              gQsi(istr:iend,auto_ind) = gQsi_0
              where ((Fe_loc < cksi * kFe(auto_ind)) .and. (Fe_loc > c0) .and.
@@ -1272,6 +1296,17 @@ c$$$       enddo
 
        do i = istr, iend
           PAR_in(i) = PAR_out(i)
+
+# ifdef AMAZON_PAR
+      ! Apply a linear attenuation as a function of salinity to mimic turbidity in plume waters
+
+       if (latr(i,j)<20 .AND. latr(i,j)>-5 .AND. salt_loc(i)<=31) then
+!             PAR_in(i) = PAR_in(i) * (salt_loc(i)/31)
+           PAR_in(i) = PAR_in(i) * (1-(-0.021*salt_loc(i)+0.768))
+       endif
+
+# endif
+
           KPARdz(i) = max(spChl_loc(i)+diatChl_loc(i)+diazChl_loc(i)
 # ifdef BEC_COCCO
      &        +coccoChl_loc(i)
@@ -1291,13 +1326,6 @@ c$$$       enddo
           else
              KPARdz(i) = 0.1131*(KPARdz(i)**0.4562) * Hz(i,j,k)
           end if
-          
-          ! Domitille TEST
-!          if (KPARdz(i) < 0.13224) then
-!              KPARdz(i) = 0.0919*(KPARdz(i)**0.3536) * Hz(i,j,k)
-!          else
-!              KPARdz(i) = 0.1131*(KPARdz(i)**0.2) * Hz(i,j,k)
-!          end if
 
           PAR_out(i) = PAR_in(i) * exp(-KPARdz(i))
           PAR_lay(i) = PAR_in(i) * (c1 - exp(-KPARdz(i))) / KPARdz(i)
@@ -1377,25 +1405,61 @@ c$$$       enddo
     !  Get relative nutrient uptake rates for autotrophs,
     !  min. relative uptake rate modifies C fixation in the manner
     !  that the min. cell quota does in GD98.
+    !
     !-----------------------------------------------------------------------
 
        do auto_ind = 1, autotroph_cnt
+# ifdef BEC_DDA_case2
+          if (auto_ind == dda_ind) then
+             where (NO3_loc > 0.5)
+             VNO3(istr:iend,auto_ind) = (NO3_loc / kNO3(auto_ind)) /
+     &           (c1 + (NO3_loc / kNO3(auto_ind)) + (NH4_loc / kNH4(auto_ind)))
+             VNH4(istr:iend,auto_ind) = (NH4_loc / kNH4(auto_ind)) /
+     &           (c1 + (NO3_loc / kNO3(auto_ind)) + (NH4_loc / kNH4(auto_ind)))
+             VNtot(istr:iend,auto_ind) = VNO3(istr:iend,auto_ind) + VNH4(istr:iend,auto_ind)
+
+             VFe = Fe_loc / (Fe_loc + kFe(auto_ind))
+
+             f_nut = min(VNtot(istr:iend,auto_ind), VFe)
+             elsewhere
+             VNO3(istr:iend,auto_ind) = c0
+             VNH4(istr:iend,auto_ind) = c0
+             VNtot(istr:iend,auto_ind) = c1
+             VFe = Fe_loc / (Fe_loc + kFe(auto_ind))
+             f_nut = min(VNtot(istr:iend,auto_ind), VFe)
+             end where
+          else
+# endif /*BEC_DDA_case2*/
+         
           VNO3(istr:iend,auto_ind) = (NO3_loc / kNO3(auto_ind)) /
      &        (c1 + (NO3_loc / kNO3(auto_ind)) + (NH4_loc / kNH4(auto_ind)))
           VNH4(istr:iend,auto_ind) = (NH4_loc / kNH4(auto_ind)) /
      &        (c1 + (NO3_loc / kNO3(auto_ind)) + (NH4_loc / kNH4(auto_ind)))
           VNtot(istr:iend,auto_ind) = VNO3(istr:iend,auto_ind) + VNH4(istr:iend,auto_ind)
+
           if (Nfixer(auto_ind)) VNtot(istr:iend,auto_ind) = c1
 
           VFe = Fe_loc / (Fe_loc + kFe(auto_ind))
           f_nut = min(VNtot(istr:iend,auto_ind), VFe)
 
+# ifdef BEC_DDA_case2
+         endif
+# endif /*BEC_DDA_case2*/
+
+# ifdef BEC_DDA_case1
+         if (auto_ind == dda_ind) then
+             VNO3=c0
+             vNH4=c0
+         endif    
+# endif /*BEC_DDA_case1*/
+         
           VPO4(istr:iend,auto_ind) = (PO4_loc / kPO4(auto_ind)) /
      &           (c1 + (PO4_loc / kPO4(auto_ind)) + (DOP_loc / kDOP(auto_ind)))
           VDOP(istr:iend,auto_ind) = (DOP_loc / kDOP(auto_ind)) /
      &           (c1 + (PO4_loc / kPO4(auto_ind)) + (DOP_loc / kDOP(auto_ind)))
           VPtot(istr:iend,auto_ind) = VPO4(istr:iend,auto_ind) + VDOP(istr:iend,auto_ind)
           
+          ! DAL testing
           !f_nut = min(f_nut, VPO4(istr:iend,auto_ind))
 
           ! CN: consider VPtot instead of VPO4 only! DOP is taken up, so
@@ -1506,10 +1570,18 @@ c$$$       enddo
           else if (auto_ind==cocco_ind) then
              PCmax = PCref(auto_ind) * f_nut * Tfunc_cocco
 # endif /* BEC_COCCO */
-# ifdef BEC_DDA
+# ifdef BEC_DDA_case1
           else if (auto_ind==dda_ind) then
              PCmax = PCref(auto_ind) * f_nut * Tfunc_dda
-# endif /* BEC_DDA */
+# endif /* BEC_DDA_case1 */
+# ifdef BEC_DDA_case2
+          else if (auto_ind==dda_ind) then
+              where (NO3_loc < 0.5)
+              PCmax = PCref(auto_ind) *  f_nut * Tfunc_dda
+              elsewhere 
+              PCmax = (PCref(auto_ind) * 3.0) *  f_nut * Tfunc_dda    
+          end where
+# endif /* BEC_DDA_case2 */
 # ifdef BEC_PHAEO
           else if (auto_ind==phaeo_ind) then
              PCmax = PCref(auto_ind) * f_nut * Tfunc_phaeo
@@ -1827,18 +1899,26 @@ c$$$       enddo
     !-----------------------------------------------------------------------
     !  Get N fixation by diazotrophs based on C fixation,
     !  Diazotrophs fix more than they need then 20% is excreted
-    !  DL: for DDAs --> no excretion
+    !  DL: for DDAs --> no excretion and nofixation if NO3 is not
+    !  depleted
     !-----------------------------------------------------------------------
 
           if (Nfixer(auto_ind)) then
              WORK1 = photoC(istr:iend,auto_ind) * Q
+             if (auto_ind == diaz_ind) then
              Nfix(istr:iend,auto_ind)     = (WORK1 * r_Nfix_photo) - NO3_V(istr:iend,auto_ind)
      &                 - NH4_V(istr:iend,auto_ind)
-             if (auto_ind == diaz_ind) then
-                Nexcrete(istr:iend,auto_ind) = Nfix(istr:iend,auto_ind) + NO3_V(istr:iend,auto_ind)
+             Nexcrete(istr:iend,auto_ind) = Nfix(istr:iend,auto_ind) + NO3_V(istr:iend,auto_ind)
      &                 + NH4_V(istr:iend,auto_ind) - WORK1
              else
-                 Nexcrete(istr:iend,auto_ind) =0.0
+                 where (NO3_loc > 0.5)
+                     Nfix(istr:iend,auto_ind) =c0
+                     Nexcrete(istr:iend,auto_ind) =c0
+                 elsewhere
+             Nfix(istr:iend,auto_ind)     = WORK1 - NO3_V(istr:iend,auto_ind)
+     &                - NH4_V(istr:iend,auto_ind) 
+             Nexcrete(istr:iend,auto_ind) = c0
+                 end where
              endif  
           endif
 # ifdef BEC2_DIAG
@@ -2422,7 +2502,6 @@ c$$$       enddo
      &     + Q * (zoo_loss_dic + sum(auto_loss_dic, dim=2) + sum(auto_graze_dic, dim=2)
      &     + POC_remin(istr:iend,j)
      &     * (c1 - DONrefract))
-
        do auto_ind = 1, autotroph_cnt
           if (Nfixer(auto_ind))
      &        DTRACER_MODULE(istr:iend,j,k,nh4_ind_t) = DTRACER_MODULE(istr:iend,j,k,nh4_ind_t) 
