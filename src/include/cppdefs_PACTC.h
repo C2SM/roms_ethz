@@ -10,11 +10,12 @@
 # define BIOLOGY_BEC2
 #include "cppdefs_UP.h"
 
-!#define GRID_SIZE LLm=602, MMm=516, N=64      ! pactcs30 4.1-65km telescopic up to Antarctica
-!#define DOMAIN_TILING NP_XI=8, NP_ETA=48, NSUB_X=1, NSUB_E=1 ! Euler
+#define GRID_SIZE LLm=602, MMm=516, N=64      ! pactcs30 4.1-65km telescopic up to Antarctica
+#define DOMAIN_TILING NP_XI=8, NP_ETA=48, NSUB_X=1, NSUB_E=1 ! Euler
 
-#define GRID_SIZE LLm=300, MMm=257, N=64      ! pactcs60 8-120km telescopic up to Antarctica
-#define DOMAIN_TILING NP_XI=8, NP_ETA=30, NSUB_X=1, NSUB_E=1 ! Euler
+!#define GRID_SIZE LLm=300, MMm=257, N=64      ! pactcs60 8-120km telescopic up to Antarctica
+!mf #define DOMAIN_TILING NP_XI=8, NP_ETA=30, NSUB_X=1, NSUB_E=1 ! Euler
+!#define DOMAIN_TILING NP_XI=8, NP_ETA=18, NSUB_X=1, NSUB_E=1 ! Euler
 
      /* Open Boundaries */
 #define OBC_SOUTH
@@ -70,7 +71,7 @@
 #define CALENDAR '365_day'     /* netCDF CF-convention CALENDAR attribute default: '360_day' */
 !--> #define STARTDATE '0001-01-01' /* part of netCDF CF-convention time units attribute default: '0001-01-01'*/
 
-!--> #define ADV_ISONEUTRAL
+#define ADV_ISONEUTRAL
 
      /* Biology */
 !--> #define BIOLOGY_NPZDOC

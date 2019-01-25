@@ -2,10 +2,12 @@
 #========== ======= =========== ======== === ==== =====
 # Set machine dependent definitions and rules.
 
-include Makedefs
+-include Makedefs
 
 vpath %.h = include:biology
 vpath %.F = biology
+#vpath %.h = src/include:src/biology
+#vpath %.F = src/biology
 
 # Configuration for ROMS model:  Source code files are sorted into
 # ------------- --- ---- ------  groups:
@@ -116,14 +118,15 @@ tools: $(TOOLS)
 mpc: mpc.F
 	$(FC) $(CPPFLAGS) -o $@ mpc.F
 
-cppcheck: cppcheck.o
-	$(Q)$(CFT) $(FFLAGS) $(LDFLAGS) -o cppcheck cppcheck.o
-srcscheck: srcscheck.o
-	$(Q)$(CFT) $(FFLAGS) $(LDFLAGS) -o srcscheck srcscheck.o
-checkkwds: checkkwds.o
-	$(Q)$(CFT) $(FFLAGS) $(LDFLAGS) -o checkkwds checkkwds.o
-redefs: redefs.o
-	$(Q)$(CFT) $(FFLAGS) $(LDFLAGS) -o redefs redefs.o
+# We don't optimise the tools
+cppcheck: cppcheck.F
+	$(Q)$(FC) $(CPPFLAGS) -o $@ cppcheck.F
+srcscheck: srcscheck.F
+	$(Q)$(FC) $(CPPFLAGS) -o $@ srcscheck.F
+checkkwds: checkkwds.F
+	$(Q)$(FC) $(CPPFLAGS) -o $@ checkkwds.F
+redefs: redefs.F
+	$(Q)$(FC) $(CPPFLAGS) -o $@ redefs.F
 checkdefs: check_switches1.F setup_kwds.F
 check_switches1.F: cppcheck include/cppdefs_UP.h cppdefs.h
 	$(Q)./cppcheck include/cppdefs_UP.h cppdefs.h >/dev/null
@@ -131,8 +134,8 @@ check_srcs.F: srcscheck Makefile
 	$(Q)./srcscheck >/dev/null
 setup_kwds.F: checkkwds read_inp.F
 	$(Q)./checkkwds >/dev/null
-print_cppswitches: print_cppswitches.o check_switches1.o
-	$(Q)$(CFT) $(FFLAGS) $(LDFLAGS) -o $@ print_cppswitches.o check_switches1.o
+print_cppswitches: print_cppswitches.F check_switches1.F
+	$(Q)$(FC) $(CPPFLAGS) -o $@ print_cppswitches.F check_switches1.F
 
 # Target to create tar file.
 # ------ -- ------ --- -----
