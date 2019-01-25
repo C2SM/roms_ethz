@@ -676,8 +676,7 @@
 !  2   format(/1x,'### ERROR get_bry_all: Cannot read variable ''',
 !     &                                                     A, '''.')
  3    format(1x,'--- WARNING get_bry_all: Using default for ''',
-     &          ''''/10x,' Sample value = ',g9.2,' (',A,i3,')'
-     &          ,' itrc = ',i3,A,i5)
+     &          A,'''; Sample value = ',g9.2,3x,A,i4)
       if (ierr_ext == nf_noerr) ierr_ext=ierr_all
 # ifdef VERBOSE
       write(*,*) 'leaving get_bry_all' MYID

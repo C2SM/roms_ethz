@@ -309,14 +309,18 @@
 
 #ifdef USE_EXPLICIT_VSINK
    !---------------------------------------------------------------------
-   !  Vertical sinking speeds used for explicit sinking (in m/day)
+   !  Vertical sinking speeds used for explicit sinking (in m/day) and
    !  Remineralization rates (in day^{-1})
    !
-   !  MF:
-   !  hard/soft components are both mineral associated (except for POC) 
-   !  and thus have the same sinking speed, but different remineralization rates.
-   !  Set values to reflect what we had in implicit sinking. Iron desorption
-   !  following Moore and Braucher 2008.
+   !  hard/soft components MUST have the same sinking speed (except for POC),
+   !  but are different in terms of remineralization rates. POCHard refers
+   !  to QA POC (is basically a diagnostic), and POCSoft is free POC.
+   !
+   !  Dust and iron remin length scales following Moore and Braucher 2008. 
+   !  Dust: 600m for soft, 120000m for hard. 
+   !  Iron: Moore and Braucher (2008) use 0.06 d-1, Parekh et al. (2004) use
+   !  0.055-0.27d-1) for soft, hard practically resistant to dissolution
+   !  (I put 40000m like for other hard ballast).
    ! 
    !  With sinking speeds (w) and remin rates (k) I tried to represent more or
    !  less what the implicit sinking parameter for dissolution length (D=w/k)
@@ -327,14 +331,14 @@
    !---------------------------------------------------------------------
        real wDustHard, wPOCHard, wPCaCO3Hard, wPSiO2Hard, wPIronHard
        real wDustSoft, wPOCSoft, wPCaCO3Soft, wPSiO2Soft, wPIronSoft
-       parameter( wDustHard=50.0,  wPOCHard=10., wPCaCO3Hard=50., wPSiO2Hard=50., wPIronHard=50. )
-       parameter( wDustSoft=50.0,  wPOCSoft=10., wPCaCO3Soft=50., wPSiO2Soft=50., wPIronSoft=50. )
+       parameter( wDustHard=25.0,  wPOCHard=25., wPCaCO3Hard=25., wPSiO2Hard=25., wPIronHard=25. )
+       parameter( wDustSoft=25.0,  wPOCSoft=10., wPCaCO3Soft=25., wPSiO2Soft=25., wPIronSoft=25. )
        real param_dusthard_remin, param_pochard_remin, param_pcaco3hard_remin,
      &   param_psio2hard_remin, param_pironhard_remin
        real param_dustsoft_remin, param_pocsoft_remin, param_pcaco3soft_remin,
      &   param_psio2soft_remin, param_pironsoft_remin
-       parameter( param_dusthard_remin=8.0e-5, param_pochard_remin=0.0005, param_pcaco3hard_remin=0.00125,
-     &   param_psio2hard_remin=0.00125, param_pironhard_remin=0.00125 )
-       parameter( param_dustsoft_remin=8.0e-5, param_pocsoft_remin=0.125, param_pcaco3soft_remin=0.125,
-     &   param_psio2soft_remin=0.125, param_pironsoft_remin=0.125 )
+       parameter( param_dusthard_remin=2.0e-4, param_pochard_remin=6.25e-4, param_pcaco3hard_remin=6.25e-4,
+     &   param_psio2hard_remin=6.25e-4, param_pironhard_remin=6.25e-4 )
+       parameter( param_dustsoft_remin=0.04, param_pocsoft_remin=0.125, param_pcaco3soft_remin=6.25e-2,
+     &   param_psio2soft_remin=6.25e-2, param_pironsoft_remin=0.06)
 #endif

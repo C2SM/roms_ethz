@@ -27,7 +27,7 @@
 # else /* CCHEM_MOCSY */
       parameter( nr_cchem_mocsy_2d=0, nr_cchem_mocsy_3d=0 )
 # endif /* CCHEM_MOCSY */
-      parameter( nr_bec2_diag_3d=98+nr_cchem_mocsy_3d
+      parameter( nr_bec2_diag_3d=107+nr_cchem_mocsy_3d
 # ifdef USE_EXPLICIT_VSINK
      &    +10
 # endif
@@ -113,9 +113,12 @@
      &   spplim_idx_t=par_idx_t+87,diatplim_idx_t=par_idx_t+88,diazplim_idx_t=par_idx_t+89,
      &   totphytoc_idx_t=par_idx_t+90,pocprodzooloss_idx_t=par_idx_t+91,pocproddiat_idx_t=par_idx_t+92,
      &   pocprodsp_idx_t=par_idx_t+93,pocproddiaz_idx_t=par_idx_t+94,qsi_idx_t=par_idx_t+95,
-     &   totgrazedic_idx_t=par_idx_t+96,totlossdic_idx_t=par_idx_t+97
+     &   totgraze_idx_t=par_idx_t+96,totgrazedic_idx_t=par_idx_t+97,totgrazezoo_idx_t=par_idx_t+98,
+     &   totagg_idx_t=par_idx_t+99,totno3uptake_idx_t=par_idx_t+100,totnh4uptake_idx_t=par_idx_t+101,
+     &   totloss_idx_t=par_idx_t+102,totlossdic_idx_t=par_idx_t+103,nexcrete_idx_t=par_idx_t+104,
+     &   totpoc_idx_t=par_idx_t+105,ncp_idx_t=par_idx_t+106
 #  undef LAST_I
-#  define LAST_I totlossdic_idx_t
+#  define LAST_I ncp_idx_t
 # ifdef USE_EXPLICIT_VSINK
      &   ,pironhardremin_idx_t=LAST_I+1,caco3hardremin_idx_t=LAST_I+2
      &   ,sio2hardremin_idx_t=LAST_I+3
@@ -390,6 +393,7 @@
      &   P_SiO2hard_remin, P_ironhard_remin,
      &   dustsoft_remin, POCsoft_remin, P_CaCO3soft_remin,
      &   P_SiO2soft_remin, P_ironsoft_remin,
+     &   POCsoft_prod,POChard_prod,
 #endif
      &   POC_remin, P_iron_remin, P_SiO2_remin, P_CaCO3_remin
 
@@ -413,6 +417,7 @@
      &   P_SiO2hard_remin, P_ironhard_remin,
      &   dustsoft_remin, POCsoft_remin, P_CaCO3soft_remin,
      &   P_SiO2soft_remin, P_ironsoft_remin,
+     &   POCsoft_prod, POChard_prod,
 #endif
      &   POC_remin, P_iron_remin, P_SiO2_remin, P_CaCO3_remin
 
