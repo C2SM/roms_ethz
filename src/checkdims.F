@@ -343,7 +343,11 @@
 
       integer ndims, dimids(8), varid, vtype, size,
      &               i,j, ierr,  lvar, lfile, lenstr
-#include "netcdf.inc"
+# include "netcdf.inc"
+# if defined MPI && defined PARALLEL_FILES
+! "mynode" is needed from param.h for MPI_master_only
+#  include "param.h"
+# endif
 
       lvar=lenstr(vname) ; lfile=lenstr(fname)
 

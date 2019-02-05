@@ -25,34 +25,7 @@ C$    ierr=0
       tstart=MPI_Wtime()
       if (ierr == 0) then
 # endif
-        call init_scalars(ierr)          ! Initialize global scalars,
-# ifdef OBSOLETE_SUB_INIT_SCALARS_IN_MAIN
-#  ifdef BIOLOGY_NPZDOC 
-      if (ierr == 0) then
-      call init_scalars_npzdoc(ierr)
-      endif
-#   ifdef BGC_FLUX_ANALYSIS
-      if (ierr == 0) then
-      call init_scalars_bgcflux(ierr)
-      endif 
-#   endif
-#  endif
-#  ifdef BIOLOGY_BEC
-      if (ierr == 0) then
-        call init_scalars_bec(ierr)
-      endif 
-#  endif
-#  ifdef BIOLOGY_BEC2
-      if (ierr == 0) then
-        call init_scalars_bec2(ierr)
-      endif 
-#  endif
-#  ifdef PHYS_FLUX_ANALYSIS
-      if (ierr == 0) then
-      call init_scalars_physflux(ierr)
-      endif 
-#  endif
-# endif
+        call init_scalars(ierr)          ! Initialize global scalars,Gr
         if (ierr == 0) then              ! model tunable parameters,
 C$        call omp_set_dynamic(.false.)
 C$OMP PARALLEL                           ! fast-time averaging weights
@@ -757,7 +730,7 @@ C$OMP BARRIER
 # ifdef PRED_COUPLED_MODE
       do tile=my_tile_range              ! This code segment is for
         call set_HUV1(tile)              ! predictor-coupled version
-      enddo                              ! of time stepping only.
+      enddo                              ! of time stepping only. 
 C$OMP BARRIER
 
       nrhs=3 ; nnew=3-nstp

@@ -9,13 +9,18 @@
 
 # define BIOLOGY_BEC2
 #include "cppdefs_UP.h"
+!-- #define PACTCS60
 
-#define GRID_SIZE LLm=602, MMm=516, N=64      ! pactcs30 4.1-65km telescopic up to Antarctica
-#define DOMAIN_TILING NP_XI=8, NP_ETA=48, NSUB_X=1, NSUB_E=1 ! Euler
+#ifdef PACTCS60
+# define GRID_SIZE LLm=300, MMm=257, N=64      ! pactcs60 8-120km telescopic up to Antarctica
+# define DOMAIN_TILING NP_XI=8, NP_ETA=18, NSUB_X=1, NSUB_E=1 ! Euler
+#else 
+! default: PACTCS30 
+# define GRID_SIZE LLm=602, MMm=516, N=64      ! pactcs30 4.1-65km telescopic up to Antarctica
+# define DOMAIN_TILING NP_XI=8, NP_ETA=48, NSUB_X=1, NSUB_E=1 ! Euler
+#endif
 
-!#define GRID_SIZE LLm=300, MMm=257, N=64      ! pactcs60 8-120km telescopic up to Antarctica
 !mf #define DOMAIN_TILING NP_XI=8, NP_ETA=30, NSUB_X=1, NSUB_E=1 ! Euler
-!#define DOMAIN_TILING NP_XI=8, NP_ETA=18, NSUB_X=1, NSUB_E=1 ! Euler
 
      /* Open Boundaries */
 #define OBC_SOUTH
@@ -84,12 +89,7 @@
 !# define BUDGETVARS
 # define VFLX_CORR /* MF: make sure this is always on if running with BIOLOGY */
 # define BEC2_DIAG
-<<<<<<< HEAD
-# define RIVER_LOAD_BIO
-=======
-!mm for master: # define RIVER_LOAD_BIO
 # define RIVER_LOAD_ALK_DIC_SI
->>>>>>> Update to cppdefs_PACTC.h
 # define RIVER_LOAD_N
 # define RIVER_LOAD_P
 # define PCO2AIR_FORCING

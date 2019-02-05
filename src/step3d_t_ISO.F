@@ -97,7 +97,7 @@ c--# define CONST_TRACERS
 #ifdef PHYS_FLUX_ANALYSIS
 ! temporary variable for calculation of vertical diffusive flux
       real ThisVDF(PRIVATE_2D_SCRATCH_ARRAY,0:N)
-# endif /* PHYS_FLUX_ANALYSIS */
+#endif /* PHYS_FLUX_ANALYSIS */
 
 
 # include "compute_auxiliary_bounds.h"
@@ -462,7 +462,7 @@ c--#  define ntdf nrhs
             enddo
           enddo
         endif
-#  endif /* !EW_PERIODIC */
+#  endif
 #  ifndef NS_PERIODIC
         if (SOUTHERN_EDGE) then
           do k=1,N
@@ -819,6 +819,7 @@ c**               cff=1./(z_r(i,j,k+1)-z_r(i,j,k))
 
 ! Start computation of vertical diffusion: add surface forcing fluxes
 
+
 # if defined PASSIVE_TRACER && defined AGE_DYE_TRACER
 # ifdef PHYS_FLUX_ANALYSIS
           if (itrc .le. NT_PFA) then
@@ -1115,12 +1116,13 @@ c??         enddo
           end if
 # endif /* PHYS_FLUX_ANALYSIS & VERT_DIFF_ANALYSIS */
 
-# ifdef CONST_TRACERS
+#ifdef CONST_TRACERS
           do k=1,N
             do i=istr,iend
               t(i,j,k,nnew,itrc)=t(i,j,k,nstp,itrc)
             enddo
           enddo
+#endif
 #  if defined PHYS_FLUX_ANALYSIS && defined VERT_DIFF_ANALYSIS
           if (itrc .le. NT_PFA) then
              do k=1,N

@@ -9,8 +9,8 @@
  create its own output file (this switch has no effect if MPI is not
  defined).  */
 
-c#define MPI
-c#define PARALLEL_FILES
+#define MPI
+#define PARALLEL_FILES
 
 /* Turn OFF printout (other than error messages) from MPI nodes with
  rank > 0.   This does not affect the model results other than making

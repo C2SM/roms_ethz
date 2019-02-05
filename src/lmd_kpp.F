@@ -53,9 +53,6 @@ c--# define MERGE_OVERLAP
      &                                               , z_up
 #  endif
 # endif
-# ifdef LMD_NEWENTRAIN
-     &                                               , Cv2
-# endif
 # ifdef LMD_BKPP
       real Kv0, Kt0, Ks0, wmb,wsb, sgmb
 # endif
@@ -113,6 +110,7 @@ c>>>#  include "coupling.h"    /* <-- needs "r_D"  */
 ! Nondimensional constants for computing non-local flux and convective
 ! deepening of surface boundary layer. The only reason why they are not
 ! parameters and computed here is because of power function involved.
+
       Cg=Cstar * vonKar * (c_s*vonKar*epssfc)**(1./3.)
       Vtc=Cv * sqrt(-betaT/(c_s*epssfc)) / (Ricr*vonKar**2)
 # endif
@@ -169,10 +167,10 @@ c>>>#  include "coupling.h"    /* <-- needs "r_D"  */
 #  endif
 
 #  ifdef LMD_KPP
-          hbl(i,j)=hbls(i,j,tind)     ! use old values as
+          hbl(i,j)=hbls(i,j,nstp)     ! use old-time-step values
 #  endif
 #  ifdef LMD_BKPP
-          bbl(i,j)=hbbl(i,j,tind)     ! the initial guess
+          bbl(i,j)=hbbl(i,j,nstp)     ! as the initial guess
 #  endif
           kbls(i)=0
 #  if defined LIMIT_MO_DEPTH || defined LMD_LIMIT_STABLE
@@ -687,6 +685,7 @@ c--         Vtsq=Vtc*ws*sqrt(max(0., 0.5*(bvf(i,j,k)+bvf(i,j,k-1)) ))
 #  ifdef SALINITY
               Ks(i,j,k)=Ks(i,j,k) + ws*hbl(i,j)*cff
 #  endif
+
 #  ifdef LMD_NONLOCAL
               if (Bfsfc < 0.) then
                 ghat(i,j,k)=Cg * ssgm*(1.-ssgm)**2
@@ -715,11 +714,11 @@ c--         Vtsq=Vtc*ws*sqrt(max(0., 0.5*(bvf(i,j,k)+bvf(i,j,k-1)) ))
                 ghat(i,j,k)=0.
 #  endif
 #  ifdef LMD_CONVEC
-                if (bvf(i,j,k) < 0.) then      ! Add convective
-                  Kv(i,j,k)=Kv(i,j,k) + nu0c   ! adjustment
-                  Kt(i,j,k)=Kt(i,j,k) + nu0c
+              if (bvf(i,j,k) < 0.) then      ! Add convective
+                Kv(i,j,k)=Kv(i,j,k) + nu0c   ! adjustment
+                Kt(i,j,k)=Kt(i,j,k) + nu0c
 #   ifdef SALINITY
-                  Ks(i,j,k)=Ks(i,j,k) + nu0c
+                Ks(i,j,k)=Ks(i,j,k) + nu0c
 #   endif
                 endif
 #  endif
@@ -753,12 +752,39 @@ c*   &                  +(v(i,j,1,tind)+v(i,j+1,1,tind))**2
 c*   &                                                ) ) )
 
 
-          wmb=vonKar*sqrt( r_D(i,j)*sqrt( 0.333333333333*(
-     &                  u(i,j,1,tind)**2 +u(i+1,j,1,tind)**2
-     &                        +u(i,j,1,tind)*u(i+1,j,1,tind)
-     &                 +v(i,j,1,tind)**2 +v(i,j+1,1,tind)**2
-     &                        +v(i,j,1,tind)*v(i,j+1,1,tind)
-     &                                                ) ) )
+c>>          wmb=vonKar*sqrt( r_D(i,j)*sqrt( 0.333333333333*(
+c>>     &                  u(i,j,1,tind)**2 +u(i+1,j,1,tind)**2
+c>>     &                        +u(i,j,1,tind)*u(i+1,j,1,tind)
+c>>     &                 +v(i,j,1,tind)**2 +v(i,j+1,1,tind)**2
+c>>     &                        +v(i,j,1,tind)*v(i,j+1,1,tind)
+c>>     &                                                ) ) )
+
+
+
+          wmb=vonKar*sqrt( 0.333333333333*(
+     &               u(i,j,1,nstp)**2 +u(i+1,j,1,nstp)**2
+     &                      +u(i,j,1,nstp)*u(i+1,j,1,nstp)
+     &              +v(i,j,1,nstp)**2 +v(i,j+1,1,nstp)**2
+     &                      +v(i,j,1,nstp)*v(i,j+1,1,nstp)
+     &                                               ) )
+     &                  / log(1.+0.5*Hz(i,j,1)/Zob)
+
+
+
+c          wmb=vonKar*sqrt( 0.08333333333333*(
+c     &              (u(i  ,j,1,nstp)+u(i  ,j,1,3-nstp))**2
+c     &             +(u(i+1,j,1,nstp)+u(i+1,j,1,3-nstp))**2
+c     &             +(u(i  ,j,1,nstp)+u(i  ,j,1,3-nstp))
+c     &             *(u(i+1,j,1,nstp)+u(i+1,j,1,3-nstp))
+c
+c     &             +(v(i,j  ,1,nstp)+v(i,j  ,1,3-nstp))**2
+c     &             +(v(i,j+1,1,nstp)+v(i,j+1,1,3-nstp))**2
+c     &             +(v(i,j  ,1,nstp)+v(i,j  ,1,3-nstp))
+c     &             *(v(i,j+1,1,nstp)+v(i,j+1,1,3-nstp))
+c     &                                               ) )
+c     &                  / log(1.+0.5*Hz(i,j,1)/Zob)
+
+
           wsb=wmb
           k=kbbl(i)
           z_bl=z_w(i,j,0)+bbl(i,j)
@@ -793,6 +819,7 @@ c*   &                                                ) ) )
             if (sgmb < 1.) then
 
               cff1=sgmb*(1.-sgmb)**2
+
 c              Kv(i,j,k)=Kv(i,j,k) + wmb*bbl(i,j)*cff1
 c              Kt(i,j,k)=Kt(i,j,k) + wsb*bbl(i,j)*cff1
 #  ifdef SALINITY
@@ -804,6 +831,7 @@ c              Ks(i,j,k)=Ks(i,j,k) + wsb*bbl(i,j)*cff1
 #  ifdef SALINITY
               Ks(i,j,k)=sqrt( Ks(i,j,k)**2 + (wsb*bbl(i,j)*cff1)**2 )
 #  endif
+
 
 #  ifdef OLD_AND_MESSY_WAY
               a1=sgmb-2.
@@ -893,10 +921,12 @@ c              Ks(i,j,k)=Ks(i,j,k) + wsb*bbl(i,j)*cff1
                 Akt(i,j,k,itemp) = 0.5*Akt(i,j,k,itemp) + 0.5*Kt(i,j,k)
 # endif
 # ifdef SALINITY
+#  ifdef LIMIT_MIN_KT
                 Akt(i,j,k,isalt) = max(LIMIT_MIN_KS, 0.5*Akt(i,j,k,isalt)
      &                                              + 0.5*Ks(i,j,k) )
-# else
+#  else
                 Akt(i,j,k,isalt) = 0.5*Akt(i,j,k,isalt) + 0.5*Ks(i,j,k)
+#  endif
 # endif
               enddo
             endif  !<-- FIRST_TIME_STEP
@@ -917,8 +947,8 @@ c              Ks(i,j,k)=Ks(i,j,k) + wsb*bbl(i,j)*cff1
 # ifdef LMD_KPP
       do j=jstr,jend                   ! Copy "hbl" into shared array
         do i=istr,iend                 ! and padd lateral ghost points
-c         hbls(i,j,3-nstp)=hbl(i,j)
-          hbls(i,j,3-nstp)=0.5*(hbls(i,j,nstp)+hbl(i,j))
+          hbls(i,j,3-nstp)=hbl(i,j)
+c UP <2019-02          hbls(i,j,3-nstp)=0.5*(hbls(i,j,nstp)+hbl(i,j))
         enddo
       enddo
 #  ifndef EW_PERIODIC
@@ -985,10 +1015,10 @@ c         hbls(i,j,3-nstp)=hbl(i,j)
 #  endif
 # endif   /* LMD_KPP */
 # ifdef LMD_BKPP
-      do j=jstr,jend                   ! Copy "bbl" into shared array
-        do i=istr,iend                 ! and padd lateral ghost points
-c**       hbbl(i,j,3-nstp)=bbl(i,j)
-          hbbl(i,j,3-nstp)=0.5*(hbbl(i,j,nstp)+bbl(i,j))
+        do j=jstr,jend                   ! Copy "bbl" into shared array
+          do i=istr,iend                 ! and padd lateral ghost points
+            hbbl(i,j,3-nstp)=bbl(i,j)
+c UP <2019-02          hbbl(i,j,3-nstp)=0.5*(hbbl(i,j,nstp)+bbl(i,j))
         enddo
       enddo
 #  ifndef EW_PERIODIC

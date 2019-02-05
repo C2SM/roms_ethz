@@ -44,7 +44,7 @@
       character(len=max_fname)  :: fname
       character(len=max_kwsize) :: keyword
       character(len=3), parameter :: end_signal='end'
-      integer is,ie,  kwlen, lstr, lenstr
+      integer is,ie,  kwlen, lstr, lenstr, nbasic, naux
 #ifdef SOLVE3D
      &        , itrc
 #endif

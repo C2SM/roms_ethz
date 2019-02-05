@@ -1202,7 +1202,8 @@ c$$$       enddo
      &           gQfe_min(auto_ind))
           end where
 
-# ifdef BEC_DDA_case2   ! when DDAs are not fixing, gQfe param are the same as regular diatoms
+# ifdef BEC_DDA_case2
+! When DDAs are not fixing, gQfe param are the same as for regular diatoms
           if (auto_ind==dda_ind) then
                where (NO3_loc>0.5)
                  where (Fe_loc < cks * kFe(auto_ind))
