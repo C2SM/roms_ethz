@@ -263,10 +263,6 @@ c        endif
 #  endif
 # endif
       end
-!# if defined AMAZON
-!# define BIOLOGY_BEC2
-!# define BIOLOGY
-!# endif
 #else
       subroutine set_nudgcof_empty
       end

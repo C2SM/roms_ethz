@@ -263,7 +263,7 @@
       return
       end
 #else
-      subroutine init_agedye_empty(tile)
+      subroutine init_agedye_empty()
       end
 
 #endif /* PASSIVE_TRACER && AGE_DYE_TRACER */

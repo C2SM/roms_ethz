@@ -349,7 +349,7 @@ CR      write(*,*) '  0' MYID
 
 C$OMP MASTER
         mpi_master_only write(*,'(/1x,A/)')
-     &     'main :: initialization complete, started time-steping.'
+     &     'main :: initialization complete; starting time-stepping.'
 C$OMP END MASTER
 
 ! Initialize child-grid model, if any. Note that this call introduces
