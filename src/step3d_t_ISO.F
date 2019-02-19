@@ -820,7 +820,6 @@ c**               cff=1./(z_r(i,j,k+1)-z_r(i,j,k))
 ! Start computation of vertical diffusion: add surface forcing fluxes
 
 
-# if defined PASSIVE_TRACER && defined AGE_DYE_TRACER
 # ifdef PHYS_FLUX_ANALYSIS
           if (itrc .le. NT_PFA) then
 ! separate do loop (for better efficiency) to store the fluxes
@@ -1132,7 +1131,6 @@ c??         enddo
              enddo
           end if
 #  endif /* PHYS_FLUX_ANALYSIS & VERT_DIFF_ANALYSIS */
-# endif
 # ifdef AMAZON
        if (EASTERN_EDGE) then
          if (itrc==itemp .OR. itrc==isalt) then
