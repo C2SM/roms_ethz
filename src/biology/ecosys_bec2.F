@@ -166,9 +166,14 @@ c$$$       enddo
 # define IFRAC sic /* Ice fraction has different name in this case */
 #endif
        FICE_USED(istr:iend,jstr:jend) = IFRAC(istr:iend,jstr:jend)
-       call WS(sustr_rho(istr:iend,jstr:jend),
-     &    svstr_rho(istr:iend,jstr:jend),landmask(istr:iend,jstr:jend),
-     &    ws_used(istr:iend,jstr:jend), istr,iend,jstr,jend)
+!       call WS(sustr_rho(istr:iend,jstr:jend),
+!     &    svstr_rho(istr:iend,jstr:jend),landmask(istr:iend,jstr:jend),
+!     &    ws_used(istr:iend,jstr:jend), istr,iend,jstr,jend)
+      do j=jstr,jend ! to avoid the creation of temporary arrays by the compiler
+       call WS(sustr_rho(istr:iend,j),
+     &    svstr_rho(istr:iend,j),landmask(istr:iend,j),
+     &    ws_used(istr:iend,j), istr,iend)
+      enddo
 
        XKW(istr:iend,jstr:jend) = a * WS_USED(istr:iend,jstr:jend)*WS_USED(istr:iend,jstr:jend)
 # ifdef BEC2_DIAG
@@ -180,15 +185,15 @@ c$$$       enddo
 #  endif
 # endif
 
-    !---------------------------------------------------------------------
-    !   convert PRESS from Pascals to atm,no, it is atm already
-    !----------------------------------------------------------------------
+!---------------------------------------------------------------------
+!   convert PRESS from Pascals to atm,no, it is atm already
+!----------------------------------------------------------------------
        AP_USED(istr:iend,jstr:jend) = PRESS(istr:iend,jstr:jend)
 
-    !----------------------------------------------------------------------
-    !   Set bad AP values to 1. This is necessary for runs restarting off
-    !   a run in which the flux coupler didnt restart on AP correctly.
-    !----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!   Set bad AP values to 1. This is necessary for runs restarting off
+!   a run in which the flux coupler didnt restart on AP correctly.
+!----------------------------------------------------------------------
        WHERE (AP_USED(istr:iend,jstr:jend) > 1.5 .OR. AP_USED(istr:iend,jstr:jend) < 0.5)
           AP_USED(istr:iend,jstr:jend) = c1
        END WHERE
@@ -205,9 +210,9 @@ c$$$       enddo
 #  endif
 # endif
 
-    !------------------------------------------------------------------------
-    !   Compute XKW_ICE. XKW is zero over land, so XKW_ICE is too.
-    !-------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!   Compute XKW_ICE. XKW is zero over land, so XKW_ICE is too.
+!-------------------------------------------------------------------------
 
        IF (lflux_gas_o2 .OR. lflux_gas_co2) THEN
          XKW_ICE(istr:iend,jstr:jend) = XKW(istr:iend,jstr:jend)
@@ -219,14 +224,17 @@ c$$$       enddo
          END WHERE
        END IF
 
-    !------------------------------------------------------------------------
-    !   compute O2 flux
-    !------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!   compute O2 flux
+!------------------------------------------------------------------------
 
        IF (lflux_gas_o2) THEN
-         call CSCHMIDT_O2(SSTT(istr:iend,jstr:jend),
-     &     landmask(istr:iend,jstr:jend),SCHMIDT_USED(istr:iend,jstr:jend),
-     &     istr,iend,jstr,jend)
+!         call CSCHMIDT_O2(SSTT(istr:iend,jstr:jend),
+!     &     landmask(istr:iend,jstr:jend),SCHMIDT_USED(istr:iend,jstr:jend),
+!     &     istr,iend,jstr,jend)
+         call CSCHMIDT_O2(SSTT(istr:iend,j),
+     &     landmask(istr:iend,j),SCHMIDT_USED(istr:iend,j),
+     &     istr,iend)
 # ifdef BEC2_DIAG
 #  ifdef BEC2_DIAG_USER
          if (bec2_diag_2d_l(schmidto2_idx_t))
@@ -235,10 +243,10 @@ c$$$       enddo
          bec2_diag_2d(istr:iend,jstr:jend,schmidto2_idx_t) = SCHMIDT_USED(istr:iend,jstr:jend)
 #  endif
 # endif
-         call O2SATU(SSTT(istr:iend,jstr:jend),
-     &     SSSS(istr:iend,jstr:jend),landmask(istr:iend,jstr:jend),
-     &     O2SAT_1atm(istr:iend,jstr:jend),istr, iend,jstr,jend)
          do j=jstr,jend
+           call O2SATU(SSTT(istr:iend,j),
+     &       SSSS(istr:iend,j),landmask(istr:iend,j),
+     &       O2SAT_1atm(istr:iend,j),istr, iend)
             do i=istr,iend
                PV(i,j) = XKW_ICE(i,j) * SQRT(660.0 / SCHMIDT_USED(i,j))
 # ifdef MASKING
@@ -274,14 +282,18 @@ c$$$       enddo
 !       print *, 'istr, iend =', istr, iend
 !       print *, 'jstr, jend =', jstr, jend
 !       endif
-    !------------------------------------------------------------------------
-    !   compute CO2 flux, computing disequilibrium one row at a time
-    !------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!   compute CO2 flux, computing disequilibrium one row at a time
+!------------------------------------------------------------------------
        IF (lflux_gas_co2) THEN
-          call CSCHMIDT_CO2(SSTT(istr:iend,jstr:jend),
-     &       landmask(istr:iend,jstr:jend),
-     &       SCHMIDT_USED(istr:iend,jstr:jend),
-     &       istr,iend,jstr,jend)
+!          call CSCHMIDT_CO2(SSTT(istr:iend,jstr:jend),
+!     &       landmask(istr:iend,jstr:jend),
+!     &       SCHMIDT_USED(istr:iend,jstr:jend),
+!     &       istr,iend,jstr,jend)
+          call CSCHMIDT_CO2(SSTT(istr:iend,j),
+     &       landmask(istr:iend,j),
+     &       SCHMIDT_USED(istr:iend,j),
+     &       istr,iend)
 # ifdef BEC2_DIAG
 #  ifdef BEC2_DIAG_USER
           if (bec2_diag_2d_l(schmidtco2_idx_t))
@@ -727,7 +739,7 @@ c$$$       enddo
      &             SHF_QSW(istr:iend,j),
      &             PAR_out(istr:iend,j),
      &             qa_dust_def(istr:iend,j),istr,iend,j,
-     &             dt,dust(istr:iend,j))
+     &             dust(istr:iend,j))
           end do
        end do
 
@@ -790,7 +802,7 @@ c$$$       enddo
 !-------------------------------------------------------------------------
 
        subroutine ecosys_set_interior(k,temp,SHF_QSW,
-     &  PAR_out,qa_dust_def,istr,iend,j,dt2,dust_flux)
+     &  PAR_out,qa_dust_def,istr,iend,j,dust_flux)
 
         implicit none
 #include "param.h"
@@ -801,7 +813,7 @@ c$$$       enddo
 #include "grid.h"
 
        integer istr,iend,i,j,k,n_loc,auto_ind,auto_ind2
-       real dt2,tmp1,tmp2,tmp3,tmp4
+       !real dt2,tmp1,tmp2,tmp3,tmp4
 # ifdef BEC_PHAEO
        real tcrit1,tfunc_tcrit1,tfunc_2,tfunc_3 ! for reduction of growth between 6-10degC
 # endif
@@ -864,7 +876,7 @@ c$$$       enddo
      &    DENITRIF,        ! water column nitrification (NO3 -> N2) (mmol N/m^3/sec)
      &    SED_DENITRIF,    ! sedimentary denitrification (mmol N/m^3/sec)
      &    OTHER_REMIN,     ! organic C remin not due oxic or denitrif (mmolC/m^3/sec)
-     &    flux_oxidated,   ! carbon oxidation rate in sediment
+!     &    flux_oxidated,   ! carbon oxidation rate in sediment
      &    O2_CONSUMPTION,  ! O2 consumption
      &    O2_PRODUCTION    ! O2 production
 
@@ -910,15 +922,17 @@ c$$$       enddo
      &    DOFe_remin,      ! portion of DOFe remineralized
      &    DONr_remin,      ! portion of refractory DON remineralized
      &    POC_prod,        ! POC production (mmol C/m^3/sec)
+# ifdef BEC2_DIAG
      &    POC_prod_zoo_loss, ! POC production in Zoo loss (mmol C/m^3/sec)
      &    POC_prod_diat,   ! POC production in Diat grz/agg/loss (mmol C/m^3/sec)
      &    POC_prod_sp,     ! POC production in SP grz/agg/loss (mmol C/m^3/sec)
      &    POC_prod_diaz,   ! POC production in Diaz grz/agg/loss (mmol C/m^3/sec)
-# ifdef BEC_COCCO
+#  ifdef BEC_COCCO
      &    POC_prod_cocco,  ! POC production in Cocco grz/agg/loss (mmol C/m^3/sec)
-# endif
-# ifdef BEC_PHAEO
+#  endif
+#  ifdef BEC_PHAEO
      &    POC_prod_phaeo,  ! POC production in Phaeo grz/agg/loss (mmol C/m^3/sec)
+#  endif
 # endif
      &    P_CaCO3_prod,    ! large detritus CaCO3, base units = mmol CaCO3
      &    P_SiO2_prod,     ! prod. of large detritus SiO2
@@ -2412,7 +2426,8 @@ c$$$       enddo
 #  endif
 # endif
 
-       call compute_particulate_terms(k,QA_dust_def, TEMP, O2_loc, NO3_loc,POC_prod,
+       !call compute_particulate_terms(k,QA_dust_def, TEMP, O2_loc, NO3_loc,POC_prod,
+       call compute_particulate_terms(k,QA_dust_def, O2_loc, NO3_loc,POC_prod,
      &        P_iron_prod,P_CaCO3_prod,P_SiO2_prod,SED_DENITRIF, OTHER_REMIN,istr,iend,j)
 
 
@@ -2872,7 +2887,8 @@ c$$$       enddo
 !
 !-------------------------------------------------------------------------
 
-       subroutine compute_particulate_terms(k,QA_dust_def, TEMP, O2_loc, NO3_loc,
+       !subroutine compute_particulate_terms(k,QA_dust_def, TEMP, O2_loc, NO3_loc,
+       subroutine compute_particulate_terms(k,QA_dust_def, O2_loc, NO3_loc,
      &        POC_prod,P_iron_prod,P_CaCO3_prod,P_SiO2_prod,SED_DENITRIF,
      &        OTHER_REMIN,istr,iend,j)
 
@@ -2882,9 +2898,10 @@ c$$$       enddo
 #include "param_bec2.h"
 #include "ocean3d.h"
 
-       integer istr, iend, i, j, k, n_loc, iB
+       integer istr, iend, i, j, k, n_loc !, iB
        real, dimension(istr:iend) ::
-     &   temp, O2_loc, NO3_loc
+!     &   temp, 
+     &   O2_loc, NO3_loc
      &   ,POC_prod,P_CaCO3_prod,P_SiO2_prod,P_iron_prod
      &   ,QA_dust_def   ! incoming deficit in the QA (dust) POC flux
      &   ,dust_remin    ! remineralization of dust (base units/m^3/sec)
@@ -3654,7 +3671,7 @@ c$$$       enddo
 !
 !-------------------------------------------------------------------------
 
-       subroutine WS(SMFTX, SMFTY,landmask,work,istr,iend,jstr,jend)
+       subroutine WS(SMFTX, SMFTY,landmask,work,istr,iend)
     !-------------------------------------------------------------------------
     !   result declaration
     !-------------------------------------------------------------------------
@@ -3664,8 +3681,9 @@ c$$$       enddo
 #include "param.h"
 ! needed for rho0
 #include "scalars.h"
-        integer::istr,iend,jstr,jend
-        REAL, DIMENSION(istr:iend,jstr:jend), INTENT(OUT)  :: WORK ! 10m windspeed (m/s)
+        integer::istr,iend
+        !REAL, DIMENSION(istr:iend,jstr:jend), INTENT(OUT)  :: WORK ! 10m windspeed (m/s)
+        REAL, DIMENSION(istr:iend), INTENT(OUT)  :: WORK ! 10m windspeed (m/s)
 
     !-------------------------------------------------------------------------
     !   Compute 10m windspeed from surface velocity fluxes where LAND_MASK is
@@ -3700,7 +3718,7 @@ c$$$       enddo
     !   arguments
     !-------------------------------------------------------------------------
 
-        REAL, DIMENSION(istr:iend,jstr:jend), INTENT(IN) ::
+        REAL, DIMENSION(istr:iend), INTENT(IN) ::
      &    SMFTX,  ! 'zonal' surface velocity flux (m^2/s^2)
      &    SMFTY    ! 'meridional' surface velocity flux (m^2/s^2)
 ! HF: both were in (cm^2/s^s)
@@ -3715,9 +3733,9 @@ c$$$       enddo
      &    coef_3  = 0.0000764,  ! (s/m)
      &    c_d     = 1.7e-3      ! drag coefficient for initial u
 
-        REAL, DIMENSION(istr:iend,jstr:jend) ::
+        REAL, DIMENSION(istr:iend) ::
      &    ustar_squared  ! square of turbulent velocity scale (m^2/s^2)
-        LOGICAL,DIMENSION(istr:iend,jstr:jend) :: landmask
+        LOGICAL,DIMENSION(istr:iend) :: landmask
     !------------------------------------------------------------------------
     !   solve for WS in (m/s)
     !-------------------------------------------------------------------------
@@ -3749,9 +3767,9 @@ c$$$       enddo
            WORK = 0.0
         END WHERE
 
-    !-------------------------------------------------------------------------
-    !   HF: DO NOT convert to (cm/s)
-    !-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!   HF: DO NOT convert to (cm/s)
+!-------------------------------------------------------------------------
 
         RETURN
         END subroutine WS
@@ -3763,40 +3781,41 @@ c$$$       enddo
 !-------------------------------------------------------------------------
 
          subroutine CSCHMIDT_O2(SSTT,landmask,SCHMIDT_O2,istr,
-     &          iend,jstr,jend)
+     &          iend)
         implicit none
 !! needed for c0
 !#include "param_bec2.h"
 
-       integer::istr,iend,jstr,jend
-         LOGICAL,DIMENSION(istr:iend,jstr:jend) :: landmask
+       integer::istr,iend
+         LOGICAL,DIMENSION(istr:iend) :: landmask
 
-    !---------------------------------------------------------------------------
-    !   Compute Schmidt number of O2 in seawater as function of SST
-    !   where LAND_MASK is true. Give zero where LAND_MASK is false.
-    !
-    !   ref : Keeling et al, Global Biogeochem. Cycles, Vol. 12,
-    !         No. 1, pp. 141-163, March 1998
-    !---------------------------------------------------------------------------
-    !
-    !DL: over land, do NOT assign zero to the result, but use very large value instead
-    ! in order to prevent division by zero.
+!---------------------------------------------------------------------------
+!   Compute Schmidt number of O2 in seawater as function of SST
+!   where LAND_MASK is true. Give zero where LAND_MASK is false.
+!
+!   ref : Keeling et al, Global Biogeochem. Cycles, Vol. 12,
+!         No. 1, pp. 141-163, March 1998
+!---------------------------------------------------------------------------
+!
+!DL: over land, do NOT assign zero to the result, but use very large value instead
+! in order to prevent division by zero.
 
-    !---------------------------------------------------------------------------
-    !   arguments
-    !---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!   arguments
+!---------------------------------------------------------------------------
 
-          REAL, DIMENSION(istr:iend,jstr:jend), INTENT(IN) :: SSTT
+          !REAL, DIMENSION(istr:iend,jstr:jend), INTENT(IN) :: SSTT
+          REAL, DIMENSION(istr:iend), INTENT(IN) :: SSTT
 
-    !---------------------------------------------------------------------------
-    !   result declaration
-    !---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!   result declaration
+!---------------------------------------------------------------------------
 
-          REAL, DIMENSION(istr:iend,jstr:jend) :: SCHMIDT_O2
+          REAL, DIMENSION(istr:iend) :: SCHMIDT_O2
 
-    !---------------------------------------------------------------------------
-    !   coefficients in expansion
-    !---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!   coefficients in expansion
+!---------------------------------------------------------------------------
 
           REAL, PARAMETER ::
      &      a = 1638.0,
@@ -3812,7 +3831,7 @@ c$$$       enddo
           return
           END subroutine CSCHMIDT_O2
 
-  !*****************************************************************************
+!*****************************************************************************
 
 !-------------------------------------------------------------------------
 !
@@ -3821,55 +3840,55 @@ c$$$       enddo
 !-------------------------------------------------------------------------
 
           subroutine O2SATU(SSTT, SSSS,landmask, O2SAT,istr,
-     &         iend,jstr,jend)
+     &         iend)
         implicit none
 ! needed for c0
 #include "param_bec2.h"
-       integer::istr,iend,jstr,jend
-       LOGICAL,DIMENSION(istr:iend,jstr:jend) :: landmask
+       integer::istr,iend
+       LOGICAL,DIMENSION(istr:iend) :: landmask
 
-    !---------------------------------------------------------------------------
-    !
-    !   Computes oxygen saturation concentration at 1 atm total pressure
-    !   in mmol/m^3 given the temperature (t, in deg C) and the salinity (s,
-    !   in permil) where LAND_MASK is true. Give zero where LAND_MASK is false.
-    !
-    !   FROM GARCIA AND GORDON (1992), LIMNOLOGY and OCEANOGRAPHY.
-    !   THE FORMULA USED IS FROM PAGE 1310, EQUATION (8).
-    !
-    !   *** NOTE: THE "A_3*TS^2" TERM (IN THE PAPER) IS INCORRECT. ***
-    !   *** IT SHOULDN'T BE THERE.                                ***
-    !
-    !   O2SAT IS DEFINED BETWEEN T(freezing) <= T <= 40(deg C) AND
-    !   0 permil <= S <= 42 permil
-    !   CHECK VALUE:  T = 10.0 deg C, S = 35.0 permil,
-    !   O2SAT = 282.015 mmol/m^3
-    !
-    !---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!
+!   Computes oxygen saturation concentration at 1 atm total pressure
+!   in mmol/m^3 given the temperature (t, in deg C) and the salinity (s,
+!   in permil) where LAND_MASK is true. Give zero where LAND_MASK is false.
+!
+!   FROM GARCIA AND GORDON (1992), LIMNOLOGY and OCEANOGRAPHY.
+!   THE FORMULA USED IS FROM PAGE 1310, EQUATION (8).
+!
+!   *** NOTE: THE "A_3*TS^2" TERM (IN THE PAPER) IS INCORRECT. ***
+!   *** IT SHOULDN'T BE THERE.                                ***
+!
+!   O2SAT IS DEFINED BETWEEN T(freezing) <= T <= 40(deg C) AND
+!   0 permil <= S <= 42 permil
+!   CHECK VALUE:  T = 10.0 deg C, S = 35.0 permil,
+!   O2SAT = 282.015 mmol/m^3
+!
+!---------------------------------------------------------------------------
 
-    !---------------------------------------------------------------------------
-    !   arguments
-    !---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!   arguments
+!---------------------------------------------------------------------------
 
-       REAL, DIMENSION(istr:iend,jstr:jend), INTENT(IN) ::
+       REAL, DIMENSION(istr:iend), INTENT(IN) ::
      &    SSTT,  ! sea surface temperature (C)
      &    SSSS    ! sea surface salinity (psu)
 
-    !---------------------------------------------------------------------------
-    !   result declaration
-    !---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!   result declaration
+!---------------------------------------------------------------------------
 
-        REAL, DIMENSION(istr:iend,jstr:jend) :: O2SAT
+        REAL, DIMENSION(istr:iend) :: O2SAT
 
-    !---------------------------------------------------------------------------
-    !   local variables
-    !---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!   local variables
+!---------------------------------------------------------------------------
 
-        REAL, DIMENSION(istr:iend,jstr:jend) :: TS
+        REAL, DIMENSION(istr:iend) :: TS
 
-    !---------------------------------------------------------------------------
-    !   coefficients in expansion
-    !---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!   coefficients in expansion
+!---------------------------------------------------------------------------
 
         REAL, PARAMETER ::
      &    a_0 = 2.00907,
@@ -3910,12 +3929,12 @@ c$$$       enddo
 !-------------------------------------------------------------------------
 
           subroutine CSCHMIDT_CO2(SSTT,landmask,SCHMIDT_CO2,istr,
-     &                     iend,jstr,jend )
+     &                     iend)
         implicit none
 ! needed for c0
 #include "param_bec2.h"
-       integer::istr,iend,jstr,jend
-         LOGICAL,DIMENSION(istr:iend,jstr:jend) :: landmask
+       integer::istr,iend
+         LOGICAL,DIMENSION(istr:iend) :: landmask
 
     !---------------------------------------------------------------------------
     !   Compute Schmidt number of CO2 in seawater as function of SST
@@ -3931,13 +3950,13 @@ c$$$       enddo
     !   arguments
     !---------------------------------------------------------------------------
 
-          REAL, DIMENSION(istr:iend,jstr:jend), INTENT(IN) :: SSTT
+          REAL, DIMENSION(istr:iend), INTENT(IN) :: SSTT
 
     !---------------------------------------------------------------------------
     !   result declaration
     !---------------------------------------------------------------------------
 
-          REAL, DIMENSION(istr:iend,jstr:jend), INTENT(OUT) :: SCHMIDT_CO2
+          REAL, DIMENSION(istr:iend), INTENT(OUT) :: SCHMIDT_CO2
 
     !---------------------------------------------------------------------------
     !   coefficients in expansion
@@ -4244,9 +4263,12 @@ c$$$       enddo
     !---------------------------------------------------------------------------
 
         CALL drtsafe_row(mask, x1, x2, xacc, htotal,istr,
-     &    iend, k0, k1, k2,
+     &    iend, k1, k2,
      &   kw, kb, ks, kf, k1p, k2p, k3p, ksi,
-     &    ff, bt, st, ft, dic, ta, pt, sit)
+     &    bt, st, ft, dic, ta, pt, sit)
+!     &    iend, k0, k1, k2,
+!     &   kw, kb, ks, kf, k1p, k2p, k3p, ksi,
+!     &    ff, bt, st, ft, dic, ta, pt, sit)
     !---------------------------------------------------------------------------
     !   Calculate [CO2*] as defined in DOE Methods Handbook 1994 Ver.2,
     !   ORNL/CDIAC-74, Dickson and Goyet, eds. (Ch 2 p 10, Eq A.49)
@@ -4301,9 +4323,12 @@ c$$$       enddo
 !
 !-------------------------------------------------------------------------
 
-       SUBROUTINE talk_row(mask, x, fn, df,istr,iend, k0, k1, k2,
+!       SUBROUTINE talk_row(mask, x, fn, df,istr,iend, k0, k1, k2,
+!     &   kw, kb, ks, kf, k1p, k2p, k3p, ksi,
+!     &    ff, bt, st, ft, dic, ta, pt, sit)
+       SUBROUTINE talk_row(mask, x, fn, df,istr,iend, k1, k2,
      &   kw, kb, ks, kf, k1p, k2p, k3p, ksi,
-     &    ff, bt, st, ft, dic, ta, pt, sit)
+     &    bt, st, ft, dic, ta, pt, sit)
 
         implicit none
        REAL, PARAMETER :: xacc = 1e-10
@@ -4315,7 +4340,8 @@ c$$$       enddo
          integer :: istr,iend
 
         REAL, DIMENSION(istr:iend) ::
-     &  k0, k1, k2, kw, kb, ks, kf, k1p, k2p, k3p, ksi, ff,
+!     &  k0, k1, k2, kw, kb, ks, kf, k1p, k2p, k3p, ksi, ff,
+     &  k1, k2, kw, kb, ks, kf, k1p, k2p, k3p, ksi,
      &  bt, st, ft, dic, ta, pt, sit
 
     !---------------------------------------------------------------------------
@@ -4339,7 +4365,7 @@ c$$$       enddo
 
          REAL, DIMENSION(istr:iend), INTENT(OUT) :: fn, df
 
-    !---------------------------------------------------------------------------
+      !---------------------------------------------------------------------------
     !   local variable declarations
     !---------------------------------------------------------------------------
 
@@ -4410,9 +4436,12 @@ c$$$       enddo
 !-------------------------------------------------------------------------
 
         SUBROUTINE drtsafe_row(mask_in, x1, x2, xacc, soln,istr,
-     &   iend, k0, k1, k2,
+     &   iend, k1, k2,
      &   kw, kb, ks, kf, k1p, k2p, k3p, ksi,
-     &    ff, bt, st, ft, dic, ta, pt, sit)
+     &    bt, st, ft, dic, ta, pt, sit)
+!     &   iend, k0, k1, k2,
+!     &   kw, kb, ks, kf, k1p, k2p, k3p, ksi,
+!     &    ff, bt, st, ft, dic, ta, pt, sit)
         implicit none
        INTEGER, PARAMETER :: maxit = 100
        integer::istr,iend
@@ -4420,8 +4449,9 @@ c$$$       enddo
   !   declarations for function coefficients & species concentrations
   !-----------------------------------------------------------------------------
 
+!     &  k0, k1, k2, kw, kb, ks, kf, k1p, k2p, k3p, ksi, ff,
         REAL, DIMENSION(istr:iend) ::
-     &  k0, k1, k2, kw, kb, ks, kf, k1p, k2p, k3p, ksi, ff,
+     &  k1, k2, kw, kb, ks, kf, k1p, k2p, k3p, ksi,
      &  bt, st, ft, dic, ta, pt, sit
 
     !---------------------------------------------------------------------------
@@ -4430,7 +4460,7 @@ c$$$       enddo
     !   Keith Lindsay, Oct 1999
     !
     !   Algorithm comment :
-    !      Iteration from Newton's method is used unless it leaves
+    !      Iteration from Newton method is used unless it leaves
     !      bracketing interval or the dx is > 0.5 the previous dx.
     !      In that case, bisection method is used.
     !---------------------------------------------------------------------------
@@ -4467,12 +4497,12 @@ c$$$       enddo
 
        mask = mask_in
 
-       CALL talk_row(mask, x1, flo, df,istr,iend, k0, k1, k2,
+       CALL talk_row(mask, x1, flo, df,istr,iend, k1, k2,
      &   kw, kb, ks, kf, k1p, k2p, k3p, ksi,
-     &    ff, bt, st, ft, dic, ta, pt, sit)
-       CALL talk_row(mask, x2, fhi, df,istr,iend, k0, k1, k2,
+     &    bt, st, ft, dic, ta, pt, sit)
+       CALL talk_row(mask, x2, fhi, df,istr,iend, k1, k2,
      &   kw, kb, ks, kf, k1p, k2p, k3p, ksi,
-     &    ff, bt, st, ft, dic, ta, pt, sit)
+     &    bt, st, ft, dic, ta, pt, sit)
 
        DO i = istr,iend
          IF (mask(i)) THEN
@@ -4492,9 +4522,9 @@ c$$$       enddo
          END IF
         END DO
 
-        CALL talk_row(mask, soln, f, df,istr,iend, k0, k1, k2,
+        CALL talk_row(mask, soln, f, df,istr,iend, k1, k2,
      &   kw, kb, ks, kf, k1p, k2p, k3p, ksi,
-     &    ff, bt, st, ft, dic, ta, pt, sit)
+     &    bt, st, ft, dic, ta, pt, sit)
 
     !---------------------------------------------------------------------------
     !   perform iterations, zeroing mask when a location has converged
@@ -4524,9 +4554,9 @@ c$$$       enddo
 
         IF (.NOT. ANY(mask)) RETURN
 
-        CALL talk_row(mask, soln, f, df,istr,iend, k0, k1, k2,
+        CALL talk_row(mask, soln, f, df,istr,iend, k1, k2,
      &   kw, kb, ks, kf, k1p, k2p, k3p, ksi,
-     &    ff, bt, st, ft, dic, ta, pt, sit)
+     &    bt, st, ft, dic, ta, pt, sit)
 
         DO i = istr,iend
           IF (mask(i)) THEN
