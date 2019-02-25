@@ -166,9 +166,6 @@ c$$$       enddo
 # define IFRAC sic /* Ice fraction has different name in this case */
 #endif
        FICE_USED(istr:iend,jstr:jend) = IFRAC(istr:iend,jstr:jend)
-!       call WS(sustr_rho(istr:iend,jstr:jend),
-!     &    svstr_rho(istr:iend,jstr:jend),landmask(istr:iend,jstr:jend),
-!     &    ws_used(istr:iend,jstr:jend), istr,iend,jstr,jend)
       do j=jstr,jend ! to avoid the creation of temporary arrays by the compiler
        call WS(sustr_rho(istr:iend,j),
      &    svstr_rho(istr:iend,j),landmask(istr:iend,j),
@@ -229,12 +226,11 @@ c$$$       enddo
 !------------------------------------------------------------------------
 
        IF (lflux_gas_o2) THEN
-!         call CSCHMIDT_O2(SSTT(istr:iend,jstr:jend),
-!     &     landmask(istr:iend,jstr:jend),SCHMIDT_USED(istr:iend,jstr:jend),
-!     &     istr,iend,jstr,jend)
-         call CSCHMIDT_O2(SSTT(istr:iend,j),
-     &     landmask(istr:iend,j),SCHMIDT_USED(istr:iend,j),
-     &     istr,iend)
+         do j=jstr,jend
+           call CSCHMIDT_O2(SSTT(istr:iend,j),
+     &       landmask(istr:iend,j),SCHMIDT_USED(istr:iend,j),
+     &       istr,iend)
+         enddo
 # ifdef BEC2_DIAG
 #  ifdef BEC2_DIAG_USER
          if (bec2_diag_2d_l(schmidto2_idx_t))
@@ -286,14 +282,12 @@ c$$$       enddo
 !   compute CO2 flux, computing disequilibrium one row at a time
 !------------------------------------------------------------------------
        IF (lflux_gas_co2) THEN
-!          call CSCHMIDT_CO2(SSTT(istr:iend,jstr:jend),
-!     &       landmask(istr:iend,jstr:jend),
-!     &       SCHMIDT_USED(istr:iend,jstr:jend),
-!     &       istr,iend,jstr,jend)
-          call CSCHMIDT_CO2(SSTT(istr:iend,j),
+         do j=jstr,jend
+           call CSCHMIDT_CO2(SSTT(istr:iend,j),
      &       landmask(istr:iend,j),
      &       SCHMIDT_USED(istr:iend,j),
      &       istr,iend)
+         enddo
 # ifdef BEC2_DIAG
 #  ifdef BEC2_DIAG_USER
           if (bec2_diag_2d_l(schmidtco2_idx_t))
@@ -813,7 +807,6 @@ c$$$       enddo
 #include "grid.h"
 
        integer istr,iend,i,j,k,n_loc,auto_ind,auto_ind2
-       !real dt2,tmp1,tmp2,tmp3,tmp4
 # ifdef BEC_PHAEO
        real tcrit1,tfunc_tcrit1,tfunc_2,tfunc_3 ! for reduction of growth between 6-10degC
 # endif
@@ -2426,7 +2419,6 @@ c$$$       enddo
 #  endif
 # endif
 
-       !call compute_particulate_terms(k,QA_dust_def, TEMP, O2_loc, NO3_loc,POC_prod,
        call compute_particulate_terms(k,QA_dust_def, O2_loc, NO3_loc,POC_prod,
      &        P_iron_prod,P_CaCO3_prod,P_SiO2_prod,SED_DENITRIF, OTHER_REMIN,istr,iend,j)
 
@@ -2887,7 +2879,6 @@ c$$$       enddo
 !
 !-------------------------------------------------------------------------
 
-       !subroutine compute_particulate_terms(k,QA_dust_def, TEMP, O2_loc, NO3_loc,
        subroutine compute_particulate_terms(k,QA_dust_def, O2_loc, NO3_loc,
      &        POC_prod,P_iron_prod,P_CaCO3_prod,P_SiO2_prod,SED_DENITRIF,
      &        OTHER_REMIN,istr,iend,j)
@@ -3780,8 +3771,7 @@ c$$$       enddo
 !
 !-------------------------------------------------------------------------
 
-         subroutine CSCHMIDT_O2(SSTT,landmask,SCHMIDT_O2,istr,
-     &          iend)
+         subroutine CSCHMIDT_O2(SSTT,landmask,SCHMIDT_O2,istr,iend)
         implicit none
 !! needed for c0
 !#include "param_bec2.h"
@@ -3839,8 +3829,7 @@ c$$$       enddo
 !
 !-------------------------------------------------------------------------
 
-          subroutine O2SATU(SSTT, SSSS,landmask, O2SAT,istr,
-     &         iend)
+          subroutine O2SATU(SSTT, SSSS,landmask, O2SAT,istr,iend)
         implicit none
 ! needed for c0
 #include "param_bec2.h"
@@ -3928,8 +3917,7 @@ c$$$       enddo
 !
 !-------------------------------------------------------------------------
 
-          subroutine CSCHMIDT_CO2(SSTT,landmask,SCHMIDT_CO2,istr,
-     &                     iend)
+          subroutine CSCHMIDT_CO2(SSTT,landmask,SCHMIDT_CO2,istr,iend)
         implicit none
 ! needed for c0
 #include "param_bec2.h"
@@ -4266,9 +4254,6 @@ c$$$       enddo
      &    iend, k1, k2,
      &   kw, kb, ks, kf, k1p, k2p, k3p, ksi,
      &    bt, st, ft, dic, ta, pt, sit)
-!     &    iend, k0, k1, k2,
-!     &   kw, kb, ks, kf, k1p, k2p, k3p, ksi,
-!     &    ff, bt, st, ft, dic, ta, pt, sit)
     !---------------------------------------------------------------------------
     !   Calculate [CO2*] as defined in DOE Methods Handbook 1994 Ver.2,
     !   ORNL/CDIAC-74, Dickson and Goyet, eds. (Ch 2 p 10, Eq A.49)
@@ -4323,9 +4308,6 @@ c$$$       enddo
 !
 !-------------------------------------------------------------------------
 
-!       SUBROUTINE talk_row(mask, x, fn, df,istr,iend, k0, k1, k2,
-!     &   kw, kb, ks, kf, k1p, k2p, k3p, ksi,
-!     &    ff, bt, st, ft, dic, ta, pt, sit)
        SUBROUTINE talk_row(mask, x, fn, df,istr,iend, k1, k2,
      &   kw, kb, ks, kf, k1p, k2p, k3p, ksi,
      &    bt, st, ft, dic, ta, pt, sit)
@@ -4340,7 +4322,6 @@ c$$$       enddo
          integer :: istr,iend
 
         REAL, DIMENSION(istr:iend) ::
-!     &  k0, k1, k2, kw, kb, ks, kf, k1p, k2p, k3p, ksi, ff,
      &  k1, k2, kw, kb, ks, kf, k1p, k2p, k3p, ksi,
      &  bt, st, ft, dic, ta, pt, sit
 
@@ -4439,9 +4420,6 @@ c$$$       enddo
      &   iend, k1, k2,
      &   kw, kb, ks, kf, k1p, k2p, k3p, ksi,
      &    bt, st, ft, dic, ta, pt, sit)
-!     &   iend, k0, k1, k2,
-!     &   kw, kb, ks, kf, k1p, k2p, k3p, ksi,
-!     &    ff, bt, st, ft, dic, ta, pt, sit)
         implicit none
        INTEGER, PARAMETER :: maxit = 100
        integer::istr,iend
@@ -4449,7 +4427,6 @@ c$$$       enddo
   !   declarations for function coefficients & species concentrations
   !-----------------------------------------------------------------------------
 
-!     &  k0, k1, k2, kw, kb, ks, kf, k1p, k2p, k3p, ksi, ff,
         REAL, DIMENSION(istr:iend) ::
      &  k1, k2, kw, kb, ks, kf, k1p, k2p, k3p, ksi,
      &  bt, st, ft, dic, ta, pt, sit
