@@ -330,6 +330,15 @@ c--      fname='roms.in.US_West'
           read(input,*,err=95) rdrg, rdrg2
 #ifdef SOLVE3D
      &                             , Zob
+# ifdef LMD_BKPP
+         if (abs(rdrg)+abs(rdrg2) > 0.00001) then
+           rdrg=0.0
+           rdrg2=0.0
+           mpi_master_only write(*,*)
+     &          '---- WARNING Using BKPP (LMD_BKPP) rdrg, rdrg2 ', 
+     &          'reset to 0. Fix your input file.'
+         endif
+# endif
 #endif
           mpi_master_only write(*,'(7x,A,ES10.3,2x,A)')
      &     'rdrg =', rdrg,  'linear bottom drag coefficient [m/s]'
