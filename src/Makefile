@@ -142,13 +142,14 @@ print_cppswitches: print_cppswitches.F check_switches1.F
 tarfile: clean
 	tar cvf roms.tar Make* *.F *.h Etalon_data/* Infiles/* README.*  *.in*
 
-.PHONY: all clean clobber
+.PHONY: all clean clobber distclean
 
 # Cleaning targets
 # -------- -------
 clean:
 	/bin/rm -f *.f *.o *.a *.s *.trace *~ $(COMP_FILES)
 
+distclean: clobber
 clobber: clean
 	/bin/rm -f *.d check_switches1.F setup_kwds.F check_srcs.F \
 	$(SBIN) $(TOOLS) nsub core* *_genmod.mod *_genmod.f90 \
