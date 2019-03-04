@@ -122,21 +122,19 @@ C$OMP THREADPRIVATE(/priv_scalars/)
                                              || defined M3NUDGING
       real ubind
       common /scalars_main/ ubind
+#endif
 
 
-/* --> OBSOLETE
+#if defined TCLIMATOLOGY || ( defined TNUDGING &&\
+               defined T_FRC_BRY ) || defined SPONGE
       real tauM2_in, tauM2_out
       common /scalars_main/ tauM2_in, tauM2_out
 # ifdef SOLVE3D
       real tauM3_in, tauM3_out,  tauT_in, tauT_out
       common /scalars_main/ tauM3_in,tauM3_out, tauT_in,tauT_out
 # endif
-*/
-#endif
 
 ! MF: define nudging tracers
-#if defined TCLIMATOLOGY || ( defined TNUDGING &&\
-               defined T_FRC_BRY ) || defined SPONGE
 # if defined TNUDGE_WEIGHTS || defined AMAZON
       integer, parameter :: mxnudg=itemp+ntrc_salt  ! only nudge temp and salts
 # else

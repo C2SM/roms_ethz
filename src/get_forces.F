@@ -582,7 +582,7 @@ c--#  define timename 'dqdt_time'
 #  define NC_FILE_LIST frcfile
 #  define varid pox_id
 #  define timevarid pox_tid
-#  define irecord pox_rec
+#  define record pox_rec
 #  define ntsmth ntpox
 #  define itsmth itpox
 #  define icycle pox_ncycle

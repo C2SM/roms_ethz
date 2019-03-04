@@ -1055,10 +1055,12 @@ c$$$       enddo
        if (bec2_diag_3d_l(spcaco3zero_idx_t))
      &     bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(spcaco3zero_idx_t)) = max(c0,-TRACER(istr:iend,j,k,spCaCO3_ind_t))/dt
 # else
-       bec2_diag_3d(istr:iend,j,k,totchl_idx_t) = tracer(istr:iend,j,k,spchl_ind_t)
-     &     + tracer(istr:iend,j,k,diatchl_ind_t) + tracer(istr:iend,j,k,diazchl_ind_t)
+#  ifdef USE_EXPLICIT_VSINK
        bec2_diag_3d(istr:iend,j,k,totpoc_idx_t) = tracer(istr:iend,j,k,pocsoft_ind_t)
      &     + tracer(istr:iend,j,k,pochard_ind_t)
+#  endif
+       bec2_diag_3d(istr:iend,j,k,totchl_idx_t) = tracer(istr:iend,j,k,spchl_ind_t)
+     &     + tracer(istr:iend,j,k,diatchl_ind_t) + tracer(istr:iend,j,k,diazchl_ind_t)
 # ifdef BEC_COCCO
      &     + tracer(istr:iend,j,k,coccochl_ind_t)
 # endif

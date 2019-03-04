@@ -248,23 +248,6 @@
           endif
           ierr=ierr+1
         endif
-      elseif (iic == ntstart ) then         ! load time-invariant
-        do j=jstrR,jendR                    ! momentum climatology
-          do i=istrR,iendR
-            ubclm(i,j)=ubclima(i,j,ituclm)
-            vbclm(i,j)=vbclima(i,j,ituclm)
-          enddo
-        enddo
-# ifdef SOLVE3D
-        do k=1,N
-          do j=jstrR,jendR
-            do i=istrR,iendR
-              uclm(i,j,k)=uclima(i,j,k,ituclm)
-              vclm(i,j,k)=vclima(i,j,k,ituclm)
-            enddo
-          enddo
-        enddo
-# endif
       endif
       end
 #else

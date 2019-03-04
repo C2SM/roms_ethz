@@ -14,7 +14,6 @@
 # include "netcdf.inc"
       real cff
       integer ncid, i, iclm, itrc, lvar, lenstr, ierr, ncdf_read
-
 ! Initialization: Check, whether climatological data file is already
 !---------------- opened, and if not, open it.  Find and save netCDF
 ! IDs for relevant variables.  Determine whether there is cycling to
@@ -27,7 +26,7 @@
       ierr=nf_noerr
       if (iic==ntstart) then
 
-        do itrc=1,NT ! MF
+        do itrc=1,mxnudg !NT  MF
           ittclm(itrc)=1
           tclm_time(1,itrc)=-1.E+20
           tclm_time(2,itrc)=-1.E+20
@@ -77,7 +76,7 @@
      &               itrc
                 endif
 # endif
-# ifdef BIOLOGY
+# ifdef BIOLOGY_SASHA
               elseif (itrc==iNO3_) then
                 ierr=nf_inq_varid (ncid, 'no3_time', tclm_tid(itrc))
                 if (ierr == nf_noerr) then
@@ -172,7 +171,7 @@
       endif
   1   format(1x,'### ERROR: get_tclima :: Cannot find variable ''',
      &             A, ''', itrc =', I3,1x, 'in file ''', A, '''.')
-# ifdef BIOLOGY
+# ifdef BIOLOGY_SASHA
   2   format(1x,  'WARNING: get_tclima :: Cannot find variable ''',
      &          A, ''', itrc =', I3, 1x, 'in file ''', A,'''.'/12x,
      &        'Setting analytical climatology for this variable.')
@@ -189,7 +188,7 @@
 !      do iclm=1,max_clm
 !        ncid=ncidclm(iclm)
 
-        do itrc=1,NT
+        do itrc=1,mxnudg !NT
 
 !          ! MF
 !          MPI_master_only write(*,*) 'Start of 1,NT loop 2'
@@ -239,7 +238,6 @@
 
                   ierr=ncdf_read(ncid, tclm_id(itrc), tclm_rec(itrc),
      &              r_var, tclima(START_2D_ARRAY,1,ittclm(itrc),itrc), N)
-
                   if (ierr == nf_noerr) then
 #ifdef MPI_SILENT_MODE
                     if (mynode == 0) then
@@ -313,7 +311,7 @@
 ! or complain about error and signal to quit, if interpolation is
 ! needed, but not possible.
 
-      do itrc=1,NT
+      do itrc=1,mxnudg !NT
         if (tclm_tid(itrc)>0) then
           it1=3-ittclm(itrc)
           it2=ittclm(itrc)
@@ -356,7 +354,7 @@
               ierr=ierr+1
             endif
           endif
-# if defined BIOLOGY || defined BIOLOGY_NPZDOC
+# if defined BIOLOGY_SASHA || defined BIOLOGY_NPZDOC
 #  define temp cff
 #  define SiO4 cff1
         elseif (itrc==iNO3_) then     ! <-- analytical setup for
@@ -423,7 +421,7 @@
 #  endif /* OXYGEN */
 #  undef SiO4
 #  undef temp
-# endif /* BIOLOGY_NPZDOC */
+# endif /* BIOLOGY_SASHA or BIOLOGY_NPZDOC */
 
 # if defined BIOLOGY_BEC || defined BIOLOGY_BEC2
           else if (itrc == iNO3) then
@@ -537,7 +535,7 @@
            else if (itrc == iDOP) then
               tclm(:,:,:,iDOP)=0.0 ! 8.55e-4
 #  ifdef USE_EXPLICIT_VSINK
-           else if (itrc .ge. iDUST .and. itrc .le. iPIRON) then
+           else if (itrc .ge. iDUSTHARD .and. itrc .le. iPIRONSOFT) then
               tclm(:,:,:,itrc)=0.0
 #  endif
 # endif /* BIOLOGY_BEC || BIOLOGY_BEC2 */
