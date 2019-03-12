@@ -5,7 +5,7 @@
 -include Makedefs
 
 vpath %.h = include:biology
-vpath %.F = biology
+vpath %.F = biology:biology/bec:biology/npzdoc:biology/pre_2014_bec
 #vpath %.h = src/include:src/biology
 #vpath %.F = src/biology
 
