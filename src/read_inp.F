@@ -1452,7 +1452,9 @@ c-->    elseif (keyword(1:kwlen) == 'nudg_cof') then
      &  'A total of', ierr, 'configuration errors discovered.'
        return
       endif
+#ifdef CHECK_SRCS
       call check_srcs
+#endif
 #ifdef MPI
       call MPI_Barrier (ocean_grid_comm, ierr)
 #endif

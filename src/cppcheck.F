@@ -39,7 +39,7 @@
      &                      iin=11, iout=12, nwords=16
 
       character(len=max_str_size) string
-      character(len=64) fname(4), switch(max_switches)
+      character(len=256) fname(4), switch(max_switches)
       integer nfiles, nswtchs,   nexample,nstdpth, fswtch(8),
      &        ifile,  ierr, i,k, is, istr(nwords), size(max_switches),
      &        count,  lstr,ln,n, ie, iend(nwords), line(max_switches)

@@ -1,13 +1,14 @@
 # Universal machine independent makefile for ROMS model
 #========== ======= =========== ======== === ==== =====
 # Set machine dependent definitions and rules.
+SRCDIR ?= $(CURDIR)
 
--include Makedefs
+-include $(SRCDIR)/Makedefs
 
-vpath %.h = include:biology
-vpath %.F = biology:biology/bec:biology/npzdoc:biology/pre_2014_bec
-#vpath %.h = src/include:src/biology
-#vpath %.F = src/biology
+vpath %.f = $(BLDDIR)
+vpath %.o = $(BLDDIR)
+vpath %.h = $(INCDIR):$(BIODIR)
+vpath %.F = $(SRCDIR):$(BIODIR):$(SRCDIR)/biology/bec:$(SRCDIR)/biology/npzdoc:$(SRCDIR)/biology/pre_2014_bec
 
 # Configuration for ROMS model:  Source code files are sorted into
 # ------------- --- ---- ------  groups:
@@ -36,8 +37,9 @@ VMXSRC := lmd_vmix.F      lmd_kpp.F	lmd_swr_frac.F	bvf_mix.F
 
 # Diagnostics and checks
 CHKSRC := diag.F	timers.F	wvlcty.F	grid_stiffness.F \
-        lenstr.F	setup_kwds.F	check_srcs.F	check_switches1.F \
-        get_date.F	ext_copy_prv2shr.F		check_switches2.F
+        lenstr.F	setup_kwds.F	check_switches1.F \
+        get_date.F	ext_copy_prv2shr.F		check_switches2.F\
+        check_srcs.F	
 
 # Message passing
 MPISRC := mpi_setup.F	mpi_exchange8TA.F
@@ -90,8 +92,8 @@ SBIN := roms
 # ROMS excutable
 
 $(SBIN): mpc print_cppswitches $(OBJS)
-	@./print_cppswitches
-	$(LDR) $(FFLAGS) $(LDFLAGS) -o $@ $(OBJS) $(LCDF) $(LMPI)
+	$(Q)$(SRCDIR)/print_cppswitches
+	$(Q)cd $(BLDDIR); $(LDR) $(FFLAGS) $(LDFLAGS) -o $@ $(OBJS) $(LCDF) $(LMPI)
 
 check_forces: check_forces.o $(SBIN)
 	cp -pv check_forces.o main.o 	
@@ -116,42 +118,46 @@ TOOLS := mpc cppcheck srcscheck checkkwds ncextract redefs
 
 tools: $(TOOLS)
 mpc: mpc.F
-	$(FC) $(CPPFLAGS) -o $@ mpc.F
+	$(Q)cd $(SRCDIR); $(FC) $(CPPFLAGS) -o $@ mpc.F
 
-# We don't optimise the tools
+# We do not optimise the tools
 cppcheck: cppcheck.F
-	$(Q)$(FC) $(CPPFLAGS) -o $@ cppcheck.F
+	$(Q)cd $(SRCDIR); $(FC) $(CPPFLAGS) -o $@ cppcheck.F
 srcscheck: srcscheck.F
-	$(Q)$(FC) $(CPPFLAGS) -o $@ srcscheck.F
+	$(Q)cd $(SRCDIR); $(FC) $(CPPFLAGS) -o $@ srcscheck.F
 checkkwds: checkkwds.F
-	$(Q)$(FC) $(CPPFLAGS) -o $@ checkkwds.F
+	$(Q)cd $(SRCDIR); $(FC) $(CPPFLAGS) -o $@ checkkwds.F
 redefs: redefs.F
-	$(Q)$(FC) $(CPPFLAGS) -o $@ redefs.F
+	$(Q)cd $(SRCDIR); $(FC) $(CPPFLAGS) -o $@ redefs.F
 checkdefs: check_switches1.F setup_kwds.F
-check_switches1.F: cppcheck include/cppdefs_UP.h cppdefs.h
-	$(Q)./cppcheck include/cppdefs_UP.h cppdefs.h >/dev/null
+check_switches1.F: cppcheck cppdefs_UP.h cppdefs.h
+	$(Q)cd $(SRCDIR); ./cppcheck $(INCDIR)/cppdefs_UP.h $(INCDIR)/cppdefs.h
 check_srcs.F: srcscheck Makefile
-	$(Q)./srcscheck >/dev/null
+	$(Q)cd $(SRCDIR); ./srcscheck
 setup_kwds.F: checkkwds read_inp.F
-	$(Q)./checkkwds >/dev/null
-print_cppswitches: print_cppswitches.F check_switches1.F
-	$(Q)$(FC) $(CPPFLAGS) -o $@ print_cppswitches.F check_switches1.F
+	$(Q)cd $(SRCDIR); ./checkkwds
+print_cppswitches: check_switches1.F print_cppswitches.F check_switches1.F 
+	$(Q)cd $(SRCDIR); $(FC) $(CPPFLAGS) -o $@ print_cppswitches.F $(SRCDIR)/check_switches1.F
+
+# Debugging target
+print-%:
+	@echo '$*=$($*)'
 
 # Target to create tar file.
 # ------ -- ------ --- -----
 tarfile: clean
-	tar cvf roms.tar Make* *.F *.h Etalon_data/* Infiles/* README.*  *.in*
+	tar zcvf roms.tgz $(SRCDIR)
 
 .PHONY: all clean clobber distclean
 
 # Cleaning targets
 # -------- -------
 clean:
-	/bin/rm -f *.f *.o *.a *.s *.trace *~ $(COMP_FILES)
+	cd $(BLDDIR); /bin/rm -f *.f *.o *.a *.s *.trace *~ $(COMP_FILES)
 
-distclean: clobber
-clobber: clean
-	/bin/rm -f *.d check_switches1.F setup_kwds.F check_srcs.F \
+clobber: distclean
+distclean: clean
+	cd $(SRCDIR); /bin/rm -f check_switches1.F setup_kwds.F check_srcs.F \
 	$(SBIN) $(TOOLS) nsub core* *_genmod.mod *_genmod.f90 \
 	$(DEPDIR)/*.d print_cppswitches
 
