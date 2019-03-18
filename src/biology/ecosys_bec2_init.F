@@ -12,7 +12,7 @@
       ! Variables used for namelist parameter input:
       integer status,  lvar,itrc,lenstr
 #ifdef BIOPAR_NAMELIST
-      character*100 filename_biopar_bec_nml, filename_biopar_out_bec_nml
+      character*256 filename_biopar_bec_nml, filename_biopar_out_bec_nml
 
       ! Define namelist for ecosystem parameters:
       namelist /ecosys_parms_nml/ 

@@ -13,6 +13,9 @@
 /* Selection of BEC parameter */
 #define CANAMA 
 
+/* write BEC parameter */
+#define BIOPAR_NAMELIST
+
      /* Resolution*/
 
 #define AMC576
