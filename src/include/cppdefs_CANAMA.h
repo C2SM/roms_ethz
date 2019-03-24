@@ -15,6 +15,7 @@
 
 /* write BEC parameter */
 #define BIOPAR_NAMELIST
+#define HANDLE_NEGATIVES
 
      /* Resolution*/
 

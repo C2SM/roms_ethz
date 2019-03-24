@@ -133,8 +133,8 @@
       loss_thres(auto_ind)   = 0.022
       loss_thres2(auto_ind)  = 0.001
       temp_thres(auto_ind)   = 18.0 ! AMACANC
-      mort(auto_ind)          = 0.15*dps
-      mort2(auto_ind)         = 0.0*dps
+      mort(auto_ind)          = 0.12*dps
+      mort2(auto_ind)         = 0.001*dps
       agg_rate_max(auto_ind)  = 0.0
       agg_rate_min(auto_ind)  = 0.0
       z_umax_0(auto_ind)      = 2.0*dps ! AMACANC

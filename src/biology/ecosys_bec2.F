@@ -991,7 +991,53 @@ c$$$       enddo
 # ifdef AMAZON_PAR
        salt_loc=t(istr:iend,j,k,nnew,isalt)
 # endif
-
+#ifdef HANDLE_NEGATIVES
+!-- #define REMOVE_NEGATIVES_NUT(X) max(c0, X)
+!-- #define REMOVE_NEGATIVES(X) abs(X)
+#define REMOVE_NEGATIVES(X) max( abs(1.0E-5*X), X )
+       PO4_loc  = REMOVE_NEGATIVES(TRACER(istr:iend,j,k, po4_ind_t))
+       NO3_loc  = REMOVE_NEGATIVES(TRACER(istr:iend,j,k, no3_ind_t))
+       SiO3_loc = REMOVE_NEGATIVES(TRACER(istr:iend,j,k, sio3_ind_t))
+       NH4_loc  = REMOVE_NEGATIVES(TRACER(istr:iend,j,k, nh4_ind_t))
+       Fe_loc   = REMOVE_NEGATIVES(TRACER(istr:iend,j,k, fe_ind_t))
+       O2_loc   = REMOVE_NEGATIVES(TRACER(istr:iend,j,k, o2_ind_t))
+       DOC_loc  = REMOVE_NEGATIVES(TRACER(istr:iend,j,k, doc_ind_t))
+       spC_loc  = REMOVE_NEGATIVES(TRACER(istr:iend,j,k, spC_ind_t))
+       spChl_loc= REMOVE_NEGATIVES(TRACER(istr:iend,j,k, spChl_ind_t))
+       spCaCO3_loc  = REMOVE_NEGATIVES(TRACER(istr:iend,j,k, spCaCO3_ind_t))
+       diatC_loc= REMOVE_NEGATIVES(TRACER(istr:iend,j,k, diatC_ind_t))
+       diatChl_loc  = REMOVE_NEGATIVES(TRACER(istr:iend,j,k, diatChl_ind_t))
+       zooC_loc  = REMOVE_NEGATIVES(TRACER(istr:iend,j,k, zooC_ind_t))
+       spFe_loc  = REMOVE_NEGATIVES(TRACER(istr:iend,j,k, spFe_ind_t))
+       diatSi_loc = REMOVE_NEGATIVES(TRACER(istr:iend,j,k, diatSi_ind_t))
+       diatFe_loc  = REMOVE_NEGATIVES(TRACER(istr:iend,j,k, diatFe_ind_t))
+       diazC_loc    = REMOVE_NEGATIVES(TRACER(istr:iend,j,k, diazC_ind_t))
+       diazChl_loc  = REMOVE_NEGATIVES(TRACER(istr:iend,j,k, diazChl_ind_t))
+       diazFe_loc   = REMOVE_NEGATIVES(TRACER(istr:iend,j,k, diazFe_ind_t))
+       DON_loc  = REMOVE_NEGATIVES(TRACER(istr:iend,j,k, don_ind_t))
+       DOFe_loc = REMOVE_NEGATIVES(TRACER(istr:iend,j,k, dofe_ind_t))
+       DOP_loc  = REMOVE_NEGATIVES(TRACER(istr:iend,j,k, dop_ind_t))
+       DOPr_loc = REMOVE_NEGATIVES(TRACER(istr:iend,j,k, dopr_ind_t))
+       DONr_loc = REMOVE_NEGATIVES(TRACER(istr:iend,j,k, donr_ind_t))
+# ifdef BEC_COCCO
+       coccoC_loc = REMOVE_NEGATIVES(TRACER(istr:iend,j,k, coccoc_ind_t))
+       coccoChl_loc = REMOVE_NEGATIVES(TRACER(istr:iend,j,k, coccochl_ind_t))
+       coccoCal_loc = REMOVE_NEGATIVES(TRACER(istr:iend,j,k, coccocal_ind_t))
+       coccoFe_loc = REMOVE_NEGATIVES(TRACER(istr:iend,j,k, coccofe_ind_t))
+       cal_loc = 
+# endif
+# ifdef BEC_DDA
+       ddaC_loc = REMOVE_NEGATIVES(TRACER(istr:iend,j,k, ddac_ind_t))
+       ddaChl_loc = REMOVE_NEGATIVES(TRACER(istr:iend,j,k, ddachl_ind_t))
+       ddaSi_loc = REMOVE_NEGATIVES(TRACER(istr:iend,j,k, ddasi_ind_t))
+       ddaFe_loc = REMOVE_NEGATIVES(TRACER(istr:iend,j,k, ddafe_ind_t))
+# endif
+# ifdef BEC_PHAEO
+       phaeoC_loc = REMOVE_NEGATIVES(TRACER(istr:iend,j,k, phaeoc_ind_t))
+       phaeoChl_loc = REMOVE_NEGATIVES(TRACER(istr:iend,j,k, phaeochl_ind_t))
+       phaeoFe_loc = REMOVE_NEGATIVES(TRACER(istr:iend,j,k, phaeofe_ind_t))
+# endif
+#else  /* HANDLE_NEGATIVES */
        PO4_loc  = MAX(c0, TRACER(istr:iend,j,k,po4_ind_t))
        NO3_loc  = MAX(c0, TRACER(istr:iend,j,k,no3_ind_t))
        SiO3_loc = MAX(c0, TRACER(istr:iend,j,k,sio3_ind_t))
@@ -1034,6 +1080,7 @@ c$$$       enddo
        phaeoChl_loc = MAX(c0, TRACER(istr:iend,j,k,phaeochl_ind_t))
        phaeoFe_loc = MAX(c0, TRACER(istr:iend,j,k,phaeofe_ind_t))
 # endif
+#endif  /* HANDLE_NEGATIVES */
 #ifdef BEC2_DIAG
 # ifdef BEC2_DIAG_USER
        if (bec2_diag_3d_l(totchl_idx_t))

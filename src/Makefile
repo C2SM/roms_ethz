@@ -5,6 +5,7 @@ SRCDIR ?= $(CURDIR)
 
 -include $(SRCDIR)/Makedefs
 
+BLDDIR ?= .
 vpath %.f = $(BLDDIR)
 vpath %.o = $(BLDDIR)
 vpath %.h = $(INCDIR):$(BIODIR)
@@ -91,7 +92,7 @@ SBIN := roms
 
 # ROMS excutable
 
-$(SBIN): mpc print_cppswitches $(OBJS)
+$(BLDDIR)/$(SBIN): mpc print_cppswitches $(OBJS)
 	$(Q)$(SRCDIR)/print_cppswitches
 	$(Q)cd $(BLDDIR); $(LDR) $(FFLAGS) $(LDFLAGS) -o $@ $(OBJS) $(LCDF) $(LMPI)
 
