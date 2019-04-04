@@ -1,15 +1,18 @@
 # Background reference
 # https://make.mad-scientist.net/papers/advanced-auto-dependency-generation/#output
 
-# source dir
+# Source dir
 SRCDIR ?= $(CURDIR)
-# object dir)
-BLDDIR ?= $(SRCDIR)/../Build
-# header dir
+# object dir
+BLDDIR ?= $(SRCDIR)
+# To be fixed: Other BLDDIR setting currently 
+# lead to unnecessary rebuilds
+# BLDDIR ?= $(SRCDIR)/../Build
+# Header dir
 INCDIR ?= $(SRCDIR)/include
- # biology sources (BEC, NPZDOC)
+ # Biology sources (BEC, NPZDOC)
 BIODIR ?= $(SRCDIR)/biology
-# dependencies dir
+# Dependencies dir
 DEPDIR := $(SRCDIR)/.deps
 
 # Create directories if needed
