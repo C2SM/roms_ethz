@@ -34,13 +34,15 @@
 !
 
       USE oas_roms_vardef
+      !use mod_prism_get_proto
+      use mod_oasis
 
 
       implicit none
 
       INTEGER, INTENT( IN    )   :: kid    ! variable intex in the array
       INTEGER, INTENT( IN    )   :: kstep  ! ocean time-step in seconds
-      REAL(KIND=8), DIMENSION(:,:), ALLOCATABLE,  INTENT( OUT )   :: pdata
+      REAL(KIND=8), INTENT( OUT )   :: pdata(oas_imin:oas_imax, oas_jmin:oas_jmax)
       INTEGER, INTENT(   OUT )   :: kinfo  ! OASIS4 info argument
       !!
       LOGICAL                   :: llaction
@@ -50,13 +52,9 @@
       exfldu=0.
       exfldv=0.
       
-      if(kid==oas_UST) ALLOCATE(pdata(oas_xi_u,oas_eta_u), stat =nerror)
-      if(kid==oas_VST) ALLOCATE(pdata(oas_xi_v,oas_eta_v), stat =nerror)
-      if(kid>=3) ALLOCATE(pdata(oas_xi,oas_eta), stat =nerror)
-
-      if(kid ==oas_UST) call prism_get_proto( srcv(kid)%nid, kstep, exfldu, kinfo )
-      if(kid == oas_VST) call prism_get_proto( srcv(kid)%nid, kstep, exfldv, kinfo )
-      if(kid >= 3) call prism_get_proto( srcv(kid)%nid, kstep, exfld, kinfo )
+      if(kid == oas_UST) call oasis_get( srcv(kid)%nid, kstep, exfldu, kinfo )
+      if(kid == oas_VST) call oasis_get( srcv(kid)%nid, kstep, exfldv, kinfo )
+      if(kid >= 3) call oasis_get( srcv(kid)%nid, kstep, exfld, kinfo )
 
       llaction =.false.
       if( kinfo == PRISM_Recvd   .OR. kinfo == PRISM_FromRest .OR.   &
@@ -69,14 +67,12 @@
          kinfo = OASIS_Rcv
 
          ! Update array which contains coupling field (only on valid shape)
-         if(kid == oas_UST) pdata(:,:) = exfldu(:,:)
-         if(kid == oas_VST) pdata(:,:) = exfldv(:,:)
+         if(kid == oas_UST) pdata(oas_imin_u:oas_imax_u, oas_jmin_u:oas_jmax_u) = exfldu(:,:)
+         if(kid == oas_VST) pdata(oas_imin_v:oas_imax_v, oas_jmin_v:oas_jmax_v) = exfldv(:,:)
          if(kid >= 3) pdata(:,:) = exfld(:,:)
       else
          ! Declare to calling routine that OASIS did not provide coupling field
          kinfo = OASIS_idle     
       endif
-      
-      print *,'kid pdata',kid,pdata(10,10)
  
       end
