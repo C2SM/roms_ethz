@@ -49,14 +49,14 @@
       !------------------------------------------------------------------
       ! 1st Initialize the PRISM system for the component
       !------------------------------------------------------------------
-      CALL prism_init_comp_proto( ncomp_id, MODNAME, nerror )
-      IF( nerror /= 0 )   CALL prism_abort_proto( ncomp_id, 'oas_roms_init', 'Failure in prism_init_comp' )
+      CALL oasis_init_comp( ncomp_id, MODNAME, nerror )
+      IF( nerror /= 0 )   CALL oasis_abort( ncomp_id, 'oas_roms_init', 'Failure in prism_init_comp' )
 
       !------------------------------------------------------------------
       ! 2nd Get an MPI communicator for local communication
       !------------------------------------------------------------------
-      CALL prism_get_localcomm_proto( kl_comm, nerror )
-      IF( nerror /= 0 )   CALL prism_abort_proto( ncomp_id, 'oas_roms_init', 'Failure in prism_get_localcomm' )
+      CALL oasis_get_localcomm( kl_comm, nerror )
+      IF( nerror /= 0 )   CALL oasis_abort( ncomp_id, 'oas_roms_init', 'Failure in prism_get_localcomm' )
 
 
    END SUBROUTINE oas_roms_init
