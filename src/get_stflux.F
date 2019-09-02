@@ -362,12 +362,11 @@ c**  &                                         -tclm(i,j,N,isalt)
 #   ifdef SALINITY_MASK
               endif
 #   endif
-#  endif
+#  endif /* defined QCORRECTION && !defined ANA_SST */
 !mm delete this?     &                                                             )
-# endif
             enddo
           enddo
-# endif
+# endif /* SALINITY */
         endif  !<-- itemp or isalt
 
 

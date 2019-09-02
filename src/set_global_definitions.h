@@ -10,7 +10,10 @@
  defined).  */
 
 #define MPI
-#define PARALLEL_FILES
+#undef PARALLEL_FILES
+
+/* Set oasis coupling on */
+#define COUP_OAS
 
 /* Turn OFF printout (other than error messages) from MPI nodes with
  rank > 0.   This does not affect the model results other than making

@@ -22,18 +22,18 @@
 CPP = cpp -traditional 
 FC = mpif90
 LDR = $(FC)
+CFT = $(FC)
 
-OASDIR  = $(HOME)/Linux_MCT_MPI1
+OASDIR  = $(HOME)/COSMOR_build_gfortran/oasis3
 INC      := -I$(OASDIR)/build/lib/psmile.MPI1 \
-            -I$(OASDIR)/build/lib/mct \
             -I${NETCDF}/include \
 	    -I${MPI_ROOT}/include \
             -I. \
 
-LIBPSMILE      := -L$(OASDIR)/lib -lpsmile.MPI1 -lscrip -lmct -lmpeu
+LIBPSMILE      := -L$(OASDIR)/lib -lpsmile.MPI1 -lscrip -lmpp_io
 
 
-CPPFLAGS = -D__IFC $(INC)
-FFLAGS = -O3 -IPF_fma -ip $(INC)
+CPPFLAGS = $(INC)
+#FFLAGS = -O3 -IPF_fma -ip $(INC)
+FFLAGS = -O2 -ffree-line-length-none $(INC)
 LCDF = -L${NETCDF}/lib -lnetcdff -lnetcdf
-

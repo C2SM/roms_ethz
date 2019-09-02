@@ -537,7 +537,8 @@ c--      fname='roms.in.US_West'
           call cancel_kwd (keyword(1:kwlen), ierr)
 # ifdef MULT_CLIM_FILES
           ! Read number of climatology files:
-          read(input,'(i)') nclimfiles
+          ! read(input,'(i)') nclimfiles
+          read(input,*) nclimfiles
           if (nclimfiles > 4) then
              MPI_master_only write (*,'(a,1x,a)') 'ERROR:',
      &         'at most 4 climatology files are possible.'

@@ -22,10 +22,10 @@
 CPP = cpp -traditional 
 FC = mpif90
 LDR = $(FC)
+CFT = $(FC)
 
-OASDIR  = $(HOME)/Linux_MCT_MPI1
+OASDIR  = $(HOME)/COSMOR_build/oasis3-mct
 INC      := -I$(OASDIR)/build/lib/psmile.MPI1 \
-            -I$(OASDIR)/build/lib/mct \
             -I${NETCDF}/include \
 	    -I${MPI_ROOT}/include \
             -I. \
@@ -33,7 +33,8 @@ INC      := -I$(OASDIR)/build/lib/psmile.MPI1 \
 LIBPSMILE      := -L$(OASDIR)/lib -lpsmile.MPI1 -lscrip -lmct -lmpeu
 
 
-CPPFLAGS = -D__IFC $(INC)
-FFLAGS = -O3 -IPF_fma -ip $(INC)
+CPPFLAGS = $(INC)
+FFLAGS = -O2 -IPF_fma -ip $(INC)
+#FFLAGS = -g $(INC)
+#FFLAGS = -O2 -ffree-line-length-none $(INC)
 LCDF = -L${NETCDF}/lib -lnetcdff -lnetcdf
-

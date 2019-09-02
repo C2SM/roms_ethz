@@ -145,14 +145,19 @@ c**  &               LLm=126,  MMm=254, N=20    ! USWEST grid 16
 
 # endif /* GRID_LEVEL */
 #elif defined USWC_CENTRAL
-     &               LLm=20, MMm=40, N=32        ! 60km config
-c**     &               LLm=80, MMm=168, N=32       ! 15km config
-c**     &               LLm=248, MMm=504, N=32      ! 5km config
-c**     &               LLm=248, MMm=504, N=42      ! 5km config
+!c**     &               LLm=20, MMm=40, N=32        ! 60km config
+!c**     &               LLm=80, MMm=168, N=32       ! 15km config
+!c**     &               LLm=248, MMm=504, N=32      ! 5km config
+!c**     &               LLm=248, MMm=504, N=42      ! 5km config
+!     &               LLm=292, MMm=340, N=32   ! CoSMOR 5km config
+     &               LLm=701, MMm=701, N=64   !  CoSMOR grid August 2018
+
 #elif defined PACTC
      &               LLm=416, MMm=346, N=42      ! 5km-66km telescopic
 #elif defined WAVE_RAD
      &              LLm=384,  MMm=384, N=1
+#elif defined SAEP
+     &               LLm=694, MMm=350, N=42      !Coupling Southern Ocean Config
 #else
      &                LLm=??, MMm=??, N=??
 #endif
@@ -186,14 +191,16 @@ c**     &               LLm=248, MMm=504, N=42      ! 5km config
      &    NP_XI=8, NP_ETA=8, NSUB_X=1, NSUB_E=1
 # elif defined SAWC
      &    NP_XI=4, NP_ETA=16, NSUB_X=1, NSUB_E=1
-# elif defined USWC_CENTRAL
+!# elif defined USWC_CENTRAL
 !    &    NP_XI=1, NP_ETA=4, NSUB_X=1, NSUB_E=1
-     &    NP_XI=10, NP_ETA=24, NSUB_X=1, NSUB_E=1
+!     &    NP_XI=10, NP_ETA=24, NSUB_X=1, NSUB_E=1
 # elif defined PACSG
      &    NP_XI=10, NP_ETA=24, NSUB_X=1, NSUB_E=1
 # elif defined USWC_CENTRAL
-     &    NP_XI=2, NP_ETA=4, NSUB_X=1, NSUB_E=1  ! 60km 
-c     &    NP_XI=4, NP_ETA=24, NSUB_X=1, NSUB_E=1  ! 15km & 5km 
+!     &    NP_XI=8, NP_ETA=12, NSUB_X=1, NSUB_E=1  ! 5km COSMOR 
+     &    NP_XI=8, NP_ETA=12, NSUB_X=1, NSUB_E=1  ! COSMOR
+!     &    NP_XI=8, NP_ETA=24, NSUB_X=1, NSUB_E=1  ! COSMOR
+!     &    NP_XI=24, NP_ETA=4, NSUB_X=1, NSUB_E=1  ! 15km & 5km 
 # elif defined USTC90
      &    NP_XI=8, NP_ETA=12, NSUB_X=1, NSUB_E=1
 #elif defined SO_d05

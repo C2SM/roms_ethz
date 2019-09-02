@@ -3,13 +3,15 @@
 # Set machine dependent definitions and rules.
 
 #include Makedefs.Intel
-include Makedefs.IntelEM64T
+#include Makedefs.IntelEM64T
 #include Makedefs.Intel_MPI
 #include Makedefs.CMPI
 #include Makedefs.GCC
 #include Makedefs.p690
 #include Makedefs.PGI_AMD64
 #include Makedefs.Fujitsu
+#include Makedefs
+include Makedefs_euler_oasis3mct
 
 
 # Configuration for ROMS model:  All source code files are sorted into
@@ -74,6 +76,20 @@ FLTSRC = init_floats.F	init_arrays_floats.F	get_init_flts.F\
 	interp_rho.F	rhs_floats.F	step_floats.F\
 	def_floats.F	wrt_floats.F
 
+CPLSRCF90 = oas_roms_vardef.F90 oas_roms_utilities.F90 oas_roms_allocate.F90 oas_roms_init.F90 oas_roms_rcv.F90\
+	    oas_roms_snd.F90 oas_roms_finalize.F90 oas_roms_constant_corners.F90
+
+
+CPLSRC = oas_set_stflux_tile.F oas_roms_define.F oas_roms_preprcv.F\
+	 oas_set_smflux_tile.F oas_roms_prepsnd.F oas_set_srflux_tile.F	oas_roms_computebounds.F oas_roms_computetilebounds.F	
+
+CPLOBJ = oas_roms_vardef.o oas_roms_utilities.o oas_roms_init.o oas_roms_finalize.o\
+         oas_roms_define.o oas_roms_prepsnd.o oas_roms_allocate.o\
+         oas_roms_preprcv.o oas_roms_rcv.o oas_roms_snd.o oas_roms_computebounds.o oas_roms_computetilebounds.o oas_roms_constant_corners.o
+
+# Do not update for now Coupling
+# oas_set_smflux_tile.o oas_set_stflux_tile.o oas_set_srflux_tile.o 
+
 # old/obsolete/non-parallelized stuff
 #       pp_vmix.F	get_wwave.F	smol_adv.F	get_bsedim.F
 
@@ -89,13 +105,13 @@ FLTSRC = init_floats.F	init_arrays_floats.F	get_init_flts.F\
 # ROMS excutable
 
 $(SBIN): mpc $(OBJS)
-	$(LDR) $(FFLAGS) $(LDFLAGS) -o a.out $(OBJS) $(LCDF) $(LMPI)
+	$(LDR) $(FFLAGS) $(LDFLAGS) -o a.out $(OBJS) $(CPLOBJ) $(LCDF) $(LMPI) $(LIBPSMILE)
 
 #$(SBIN): $(LROMS)
 #	$(LDR) $(FFLAGS) $(LDFLAGS) -o a.out $(LROMS) $(LCDF) $(LMPI)
 	mv a.out $(SBIN)
 2level: $(OBJS) $(LROMS2)
-	$(LDR) $(FFLAGS) $(LDFLAGS) -o a.out $(OBJS) $(LROMS2) $(LCDF) $(LMPI)
+	$(LDR) $(FFLAGS) $(LDFLAGS) -o a.out $(OBJS) $(LROMS2) $(LCDF) $(LMPI) 
 	mv a.out $(SBIN)
 3level: $(OBJS) $(LROMS3)
 	$(LDR) $(FFLAGS) $(LDFLAGS) -o a.out $(OBJS) $(LROMS3) $(LCDF) $(LMPI)
@@ -118,6 +134,12 @@ $(LROMS): $(OBJS)
 
 # Everything
 all: mpc tools depend $(SBIN)
+
+#Make Coupling files
+couple: $(CPLSRCF90)
+	 $(FC) -c $(FFLAGS) $(CPLSRCF90) 
+
+couplef: $(CPLOBJ) 
 
 # A program to test MPI halo exchange routines.
 # - ------- -- ---- --- ---- -------- ---------
@@ -189,7 +211,7 @@ tarfile: clean
 # Cleaning targets
 # -------- -------
 clean:
-	/bin/rm -rf *.f *.o *.a *.s *.trace *~ $(COMP_FILES) 
+	/bin/rm -rf *.mod *.f *.o *.a *.s *.trace *~ $(COMP_FILES) 
 allclean: clean
 	cd 2; make -f ./Makefile clean; cd ..
 	cd 3; make -f ./Makefile clean; cd ..
@@ -201,5 +223,6 @@ clobber: clean
 
 # Automatically generated dependency list:
 
+ifneq ($(wildcard Make.depend),) 
 include Make.depend
-
+endif

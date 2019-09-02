@@ -13,6 +13,9 @@ C$    end
 
 
       subroutine mpi_setup (ierr)
+# ifdef COUP_OAS
+      use oas_roms_vardef
+# endif
       implicit none
       integer ierr
 # include "param.h"
@@ -26,8 +29,11 @@ C$    integer nthrds
       character(len=38) msg1 ! <-- greeting message to print
       character(len=23) msg2 
 # endif
-
+# ifdef COUP_OAS
+      ocean_grid_comm=kl_comm
+#else
       ocean_grid_comm=MPI_COMM_WORLD
+#endif /* COUP_OAS */
       call MPI_Comm_size (ocean_grid_comm, nsize,  ierr)
       call MPI_Comm_rank (ocean_grid_comm, mynode, ierr)
 

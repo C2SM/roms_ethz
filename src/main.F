@@ -9,19 +9,26 @@
       real*8 tstart, tend
 C$    integer level,req_lev
 #  include "mpif.h"
+# ifdef COUP_OAS
+      call oas_roms_init !Let Oasis define MPI communicator (Local instead of MPI_World_Comm)
+# endif /* COUP_OAS */
 c**   call system('uname -nmr')
       ierr=1 
 C$    req_lev=MPI_THREAD_MULTIPLE
 C$    call MPI_Init_thread (req_lev, level, ierr)
 C$ !!   write(*,*) 'MPI thread support levels =', req_lev,level
 C$    ierr=0
-      if (ierr == 1) call MPI_Init(ierr)
-
+#ifndef COUP_OAS 
+      if (ierr == 1) call MPI_Init(ierr) !If Oasis Coupling, MPI init handled by Oasis
+# endif
       call mpi_setup (ierr)
       tstart=MPI_Wtime()
       if (ierr == 0) then
 # endif
         call init_scalars(ierr)          ! Initialize global scalars,
+#ifdef COUP_OAS
+      call oas_roms_define !Defines Grids and exchange fields for Oasis Coupler
+#endif /* COUP_OAS */
 # ifdef OBSOLETE_SUB_INIT_SCALARS_IN_MAIN
 #  ifdef BIOLOGY_NPZDOC 
       if (ierr == 0) then
@@ -60,8 +67,13 @@ C$OMP END PARALLEL                       ! launch the model in OpenMP
       call MPI_Barrier(ocean_grid_comm, ierr)
       tend=MPI_Wtime()
       mpi_master_only write(*,*) 'MPI_run_time =', tend-tstart
-      call MPI_Finalize (ierr)
+#ifndef COUP_OAS
+      call MPI_Finalize (ierr) !If Oasis Coupling, MPI finalize handled by Oasis
+#endif
 # endif
+# ifdef COUP_OAS
+      call oas_roms_finalize
+# endif /* COUP_OAS */
       stop
       end
 
@@ -140,7 +152,6 @@ C$OMP BARRIER
  
 c--#define CR
 CR      write(*,*) '-11' MYID
- 
  
 #ifdef ANA_GRID
       do tile=my_tile_range            ! Set horizontal curvilinear
@@ -467,6 +478,8 @@ C$OMP MASTER
       flt_str=0
 C$OMP END MASTER
 #endif
+
+
                                        ! Read forcing and climatology
       if (synchro_flag) then           ! data. This operation may raise
         synchro_flag=.false.           ! "may_day_flag" in the case of
@@ -490,6 +503,11 @@ C$OMP BARRIER                          ! avoid MPI deadlock the exit is
 #endif
       enddo
 C$OMP BARRIER
+
+       !Receive Coupling fields from Cosmo/Oasis
+#ifdef COUP_OAS 
+       call oas_roms_preprcv(iic-ntstart)
+#endif
  
       do tile=my_tile_range
         call omega (tile)
@@ -555,6 +573,9 @@ C$OMP BARRIER
 C$OMP BARRIER
 # endif
 #endif  /* SOLVE3D */
+# ifdef COUP_OAS
+      call oas_roms_prepsnd(iic-ntstart)
+# endif
 
 ! Output block: write restart/history files.
 !======= ====== ===== =============== ======
