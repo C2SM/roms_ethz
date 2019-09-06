@@ -72,13 +72,11 @@
         if( srcv(jn)%laction ) then
           if(jn .eq. oas_UST) then
             call oas_roms_rcv(jn, oas_dt, ztmpl(:,:), nrcvinfo(jn)) 
-            if( nrcvinfo(jn) .eq. OASIS_Rcv ) 
-     &         frcv(:,:,oas_UST)=ztmpl(:,:)
+            if( nrcvinfo(jn) .eq. OASIS_Rcv ) frcv(:,:,oas_UST)=ztmpl(:,:)
           endif
           if(jn .eq. oas_VST) then
             call oas_roms_rcv(jn, oas_dt, ztmpl(:,:), nrcvinfo(jn))
-            if( nrcvinfo(jn) .eq. OASIS_Rcv ) 
-     &         frcv(:,:,oas_VST)=ztmpl(:,:)
+            if( nrcvinfo(jn) .eq. OASIS_Rcv ) frcv(:,:,oas_VST)=ztmpl(:,:)
           endif
           if(jn .ge. 3) then
             call oas_roms_rcv(jn, oas_dt, ztmpl(:,:), nrcvinfo(jn))   
