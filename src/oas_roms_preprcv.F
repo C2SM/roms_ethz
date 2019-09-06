@@ -70,10 +70,10 @@
 
       do jn=1, krcv
         if( srcv(jn)%laction ) then
-           call oas_roms_rcv(jn, oas_dt, ztmpl(:,:), nrcvinfo(jn))
-           if( nrcvinfo(jn) .eq. OASIS_Rcv ) then
-              frcv(:,:,jn) = ztmpl(:,:)
-           endif
+          call oas_roms_rcv(jn, oas_dt, ztmpl(:,:), nrcvinfo(jn))
+          if( nrcvinfo(jn) .eq. OASIS_Rcv ) then
+            frcv(:,:,jn) = ztmpl(:,:)
+          endif
         endif
       enddo
 
@@ -81,13 +81,13 @@
       cff=1./rho0
       do j=oas_jmin_u, oas_jmax_u
         do i=oas_imin_u, oas_imax_u
-          if (frcv(i,j,oas_UST) .ne. 0) sustr(i,j)=cff*frcv(i,j,oas_UST)
+          sustr(i,j) = cff * frcv(i,j,oas_UST)
         enddo
       enddo
 
       do j=oas_jmin_v, oas_jmax_v
         do i=oas_imin_v, oas_imax_v
-          if (frcv(i,j,oas_VST) .ne. 0) svstr(i,j)=cff*frcv(i,j,oas_VST)
+          svstr(i,j) = cff * frcv(i,j,oas_VST)
         enddo           
       enddo
 
