@@ -122,7 +122,7 @@
       cff=1./(rho0*Cp)
       do j=oas_jmin, oas_jmax
         do i=oas_imin, oas_imax
-          if (frcv(i,j,oas_SWR) .ne. 0) srflx(i,j)=cff*frcv(i,j, oas_SWR)
+          srflx(i,j)=cff*frcv(i,j, oas_SWR)
 # ifdef DIURNAL_SRFLUX
 #  ifdef UTC_CORRECTION
           utc=lonr(i,j)*utc_cor
@@ -143,8 +143,7 @@
       cff=1./(rho0*Cp)
       do j=oas_jmin, oas_jmax
         do i=oas_imin, oas_imax
-          if (frcv(i,j,oas_nhf) .ne. 0) stflx(i,j,itemp)=cff*frcv(i,j, oas_nhf)
-     &                                                    + srflx(i,j)
+          stflx(i,j,itemp)=cff*frcv(i,j, oas_nhf) + srflx(i,j)
 !
 ! Restrict stflx to prevent surface temperature to go below -2
 ! degrees C.
@@ -167,8 +166,7 @@
       cff=0.01/86400 !from [cm/day] to [PSU m/s]
       do j=oas_jmin, oas_jmax
         do i=oas_imin, oas_imax
-         if (frcv(i,j,oas_TEP) .ne. 0) stflx(i,j,isalt)=cff*frcv(i,j, oas_TEP)
-     &                       *t(i,j,N,nrhs,isalt)
+          stflx(i,j,isalt)=cff*frcv(i,j, oas_TEP)*t(i,j,N,nrhs,isalt)
         enddo
       enddo
 
