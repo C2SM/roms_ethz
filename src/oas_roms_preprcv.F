@@ -93,6 +93,7 @@
 
 
 ! Solar Radiative Flux 
+! - ML - TO DO update the following
 # ifdef DIURNAL_SRFLUX
 ! DIURNAL CYCLE - USED IN BOTH PHYSICAL AND ECOSYSTEM MODELS
 ! Patrick Marchesiello - 1999: Modulate average dayly insolation
