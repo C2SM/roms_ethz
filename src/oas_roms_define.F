@@ -213,7 +213,7 @@
           CALL oas_roms_constant_corners(oaslon_crn(:,:,3),oaslat_crn(:,:,3), start_lonc, start_latc,xi_rho,eta_rho)
 
           start_lonc = startlon_tot - dlon * 0.5_ireals
-          start_latc = startlat_tot +dlat
+          start_latc = startlat_tot + dlat
           CALL oas_roms_constant_corners(oaslon_crn(:,:,4),oaslat_crn(:,:,4), start_lonc, start_latc,xi_rho,eta_rho)
 
           CALL oasis_write_corner('R__v',xi_rho, eta_v,4,
