@@ -421,12 +421,10 @@
             if (ji .eq. oas_UST) then
               call oasis_def_var( srcv(ji)%nid, srcv(ji)%clname, il_part_idu, var_nodims,  
      &                                 OASIS_In, var_shape_oasis3u, OASIS_REAL, ierr )  
-            endif
-            if (ji .eq. oas_VST) then
+            elseif (ji .eq. oas_VST) then
               call oasis_def_var( srcv(ji)%nid, srcv(ji)%clname, il_part_idv, var_nodims,
      &                                 OASIS_In, var_shape_oasis3v, OASIS_REAL, ierr )  
-            endif
-            if (ji .ge. 3) then
+            else
               call oasis_def_var( srcv(ji)%nid, srcv(ji)%clname, il_part_idr, var_nodims,
      &                                 OASIS_In, var_shape_oasis3r, OASIS_REAL, ierr )
             endif

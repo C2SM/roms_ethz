@@ -212,32 +212,30 @@
               status = nf90_inq_varid(il_file_id, "FRESH",  il_var_id(9))
               status = nf90_inq_varid(il_file_id, "SWR",  il_var_id(10))
               DO jn = 1, krcv
-               if(jn .eq. 1) then
-                 status = nf90_put_var(il_file_id, il_var_id(jn), frcv(oas_imin_u:oas_imax_u, oas_jmin_u:oas_jmax_u,oas_UST),
-     &                                start = (/ oas_start_u(1),
-     &                                           oas_start_u(2), (oas_step-1) /),
-     &                                count = (/ oas_xi_u, oas_eta_u, 1 /) )
-                 status = nf90_put_var(il_file_id, il_var_id(6), sustr(oas_imin_u:oas_imax_u, oas_jmin_u:oas_jmax_u),
-     &                                start = (/ oas_start_u(1),
-     &                                           oas_start_u(2), (oas_step-1) /),
-     &                                count = (/ oas_xi_u, oas_eta_u, 1 /) )
-               endif
-               if(jn .eq. 2) then
-                 status = nf90_put_var(il_file_id, il_var_id(jn), frcv(oas_imin_v:oas_imax_v, oas_jmin_v:oas_jmax_v,oas_VST),
-     &                                start = (/ oas_start_v(1),
-     &                                           oas_start_v(2), (oas_step-1) /),
-     &                                count = (/ oas_xi_v, oas_eta_v, 1 /) )
-                 status = nf90_put_var(il_file_id, il_var_id(7), svstr(oas_imin_v:oas_imax_v, oas_jmin_v:oas_jmax_v),
-     &                                start = (/ oas_start_v(1),
-     &                                           oas_start_v(2), (oas_step-1) /),
-     &                                count = (/ oas_xi_v, oas_eta_v, 1 /) )
-               endif
-               if(jn .ge. 3) then
-                 status = nf90_put_var(il_file_id, il_var_id(jn), frcv(oas_imin:oas_imax, oas_jmin:oas_jmax,jn),
-     &                                start = (/ oas_start(1),
-     &                                           oas_start(2), (oas_step-1) /),
-     &                                count = (/ oas_xi, oas_eta, 1 /) )
-               endif
+                if(jn .eq. oas_UST) then
+                  status = nf90_put_var(il_file_id, il_var_id(jn), frcv(oas_imin_u:oas_imax_u, oas_jmin_u:oas_jmax_u,jn),
+     &                                 start = (/ oas_start_u(1),
+     &                                            oas_start_u(2), (oas_step-1) /),
+     &                                 count = (/ oas_xi_u, oas_eta_u, 1 /) )
+                  status = nf90_put_var(il_file_id, il_var_id(6), sustr(oas_imin_u:oas_imax_u, oas_jmin_u:oas_jmax_u),
+     &                                 start = (/ oas_start_u(1),
+     &                                            oas_start_u(2), (oas_step-1) /),
+     &                                 count = (/ oas_xi_u, oas_eta_u, 1 /) )
+                elseif(jn .eq. oas_VST) then
+                  status = nf90_put_var(il_file_id, il_var_id(jn), frcv(oas_imin_v:oas_imax_v, oas_jmin_v:oas_jmax_v,jn),
+     &                                 start = (/ oas_start_v(1),
+     &                                            oas_start_v(2), (oas_step-1) /),
+     &                                 count = (/ oas_xi_v, oas_eta_v, 1 /) )
+                  status = nf90_put_var(il_file_id, il_var_id(7), svstr(oas_imin_v:oas_imax_v, oas_jmin_v:oas_jmax_v),
+     &                                 start = (/ oas_start_v(1),
+     &                                            oas_start_v(2), (oas_step-1) /),
+     &                                 count = (/ oas_xi_v, oas_eta_v, 1 /) )
+                else
+                  status = nf90_put_var(il_file_id, il_var_id(jn), frcv(oas_imin:oas_imax, oas_jmin:oas_jmax,jn),
+     &                                 start = (/ oas_start(1),
+     &                                            oas_start(2), (oas_step-1) /),
+     &                                 count = (/ oas_xi, oas_eta, 1 /) )
+                endif
               ENDDO 
               status = nf90_put_var(il_file_id, il_var_id(8), stflx(oas_imin:oas_imax, oas_jmin:oas_jmax,itemp),
      &                                start = (/ oas_start(1),
