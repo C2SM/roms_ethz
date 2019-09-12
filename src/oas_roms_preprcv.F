@@ -65,6 +65,9 @@
 
       ! frcv modified only at coupling time step
       ! frcv keep values from previous coupling (array from module) at other time step
+      ! - ML - frcv hosts all the received coupling fields although they are defined
+      !        on different grids. For fields defined on u and v grids some elements
+      !        of frcv reamin undefined
       call MPI_Comm_rank(kl_comm, mype, ierr)
       call MPI_Comm_size(kl_comm, npes, ierr)
 
