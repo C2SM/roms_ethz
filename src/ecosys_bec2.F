@@ -1039,8 +1039,10 @@ c$$$       enddo
 # else
        bec2_diag_3d(istr:iend,j,k,totchl_idx_t) = tracer(istr:iend,j,k,spchl_ind_t)
      &     + tracer(istr:iend,j,k,diatchl_ind_t) + tracer(istr:iend,j,k,diazchl_ind_t)
+# ifdef EXPLICIT_VSINK
        bec2_diag_3d(istr:iend,j,k,totpoc_idx_t) = tracer(istr:iend,j,k,pocsoft_ind_t)
      &     + tracer(istr:iend,j,k,pochard_ind_t)
+# endif
 # ifdef BEC_COCCO
      &     + tracer(istr:iend,j,k,coccochl_ind_t)
 # endif
@@ -1216,7 +1218,7 @@ c$$$       enddo
           if (CaCO3_ind(auto_ind) > 0) then
 #  ifdef BEC_COCCO
              if (exp_calcifier(auto_ind)) then
-                QCaCO3(istr:iend,auto_ind) = 0.2  ! 0.433
+                QCaCO3(istr:iend,auto_ind) = 1  ! 0.2 for Cara ! 0.433
              else 
                 QCaCO3(istr:iend,auto_ind) = 
      &              min( CaCO3_loc(istr:iend,auto_ind) 
