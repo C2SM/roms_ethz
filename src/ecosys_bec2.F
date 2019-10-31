@@ -3399,7 +3399,7 @@ c$$$       enddo
             ! constant 170 in umol m-2 d-1, flux_oxidated in mmol m-2
             ! day-1, o2 in muM
             if (flux_oxidated(i) > 0) then
-                FESEDFLUX(i) = 170 * tanh(flux_oxidated(i)/O2_loc(i))
+                FESEDFLUX(i) = 170 * tanh(flux_oxidated(i)/max(O2_loc(i),1e-15))
             endif
             ! convert from umol m-2 d-1 to mmol m-2 s-1
             FESEDFLUX(i) = FESEDFLUX(i)*0.001/86400.     !sec2day=1/86400

@@ -61,16 +61,25 @@
 
 
       #mm 
-      CFT = mpif90 $(OMP_FLAG) $(CFTFLAGS) $(LARGE_MEM_FLAG)
+#      CFT = mpif90 $(OMP_FLAG) $(CFTFLAGS) $(LARGE_MEM_FLAG)
 # sasha2016:      CFT = ifort $(OMP_FLAG) $(CFTFLAGS) $(LARGE_MEM_FLAG)
 #      LDR = $(CFT)
-     LDR = mpif90 $(OMP_FLAG) $(CFTFLAGS) $(LARGE_MEM_FLAG)
+#     LDR = mpif90 $(OMP_FLAG) $(CFTFLAGS) $(LARGE_MEM_FLAG)
+     
+     
+     MPIFC ?= $(FC)
+    LDR = $(MPIFC)
+
+# Legacy ROMS macro names
+    LCDF := $(NCLIB)
+    CFT := $(FC)
 
 
 #   FFLAGS = -O3 -IPF_fma -ip 
 # -qopt-report=5 -qopt-report-phase=vec
 
-   FFLAGS =  -O3 -fp-model source
+ FFLAGS =  -O2 -fp-model source
+#   FFLAGS =  -O3 -fp-model source
 
 #   FFLAGS =  -fp-model precise -O3 
 #  FFLAGS =  -O2 -fp-model strict
@@ -92,7 +101,7 @@
 
 
    LCDF = -L$(NETCDF)/../serial/lib -lnetcdff -lnetcdf
-   LCDF = -L$(NETCDFROOT)/lib -lnetcdff -lnetcdf
+   LCDF = -L$(NETCDFROOT)/lib -lnetcdff -lnetcdf -L${MPI_ROOT}/lib -lmpi_f77 -lmpi
 #   LCDF = -lnetcdff
 ##   LCDF = -L${NETCDF}/lib -lnetcdf
 #   LCDF = -lnetcdf -lhdf5 -lhdf5_hl
