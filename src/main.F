@@ -1,4 +1,8 @@
 #include "cppdefs.h"
+#ifdef COUP_OAS
+      USE oas_roms_comm, ONLY: oas_roms_init, oas_roms_finalize
+      USE oas_roms_def, ONLY: oas_roms_define
+# endif /* COUP_OAS */
 #if !defined GRID_LEVEL || GRID_LEVEL == 1
 
 !!    program main               ! Open MP version of ROMS driver
@@ -506,7 +510,7 @@ C$OMP BARRIER
 
        !Receive Coupling fields from Cosmo/Oasis
 #ifdef COUP_OAS 
-       call oas_roms_preprcv(iic-ntstart)
+       call oas_roms_receive(iic-ntstart)
 #endif
  
       do tile=my_tile_range
@@ -574,7 +578,7 @@ C$OMP BARRIER
 # endif
 #endif  /* SOLVE3D */
 # ifdef COUP_OAS
-      call oas_roms_prepsnd(iic-ntstart)
+      call oas_roms_send(iic-ntstart)
 # endif
 
 ! Output block: write restart/history files.

@@ -1,74 +1,58 @@
 #include "cppdefs.h"
-       subroutine oas_roms_computebounds(type)
-       USE oas_roms_vardef
-       integer type
-#include "param.h"
-#include "grid.h"
+      subroutine oas_roms_computebounds(grd)
+!     - ML - WARNING: This is very dirty, using compute_starts_counts.h ONLY works
+!                     when PARALLEL_FILES is not activated.
+!                     We should switch to a more robust solution in the future
+!                     based on istr, istrU, etc... It would probably work except for
+!                     global starting indices of local tile.
+#ifdef PARALLEL_FILES
+      print *, 'ERROR'
+      print *, '-----'
+      print *, 'OASIS coupling not supported with PARALLEL_FILES'
+      call abort
+#endif
+      
+      USE oas_roms_def, ONLY: cpl_grd, k_rho, k_u, k_v
+      
+      TYPE(OAS_GRID) :: grd
+      integer type
+
 #include "ncvars.h"
+
+      if (TRIM(grd)%pt == 'rho') then
+         type = r2dvar
+         grd%pt = 'rho'
+         grd%grd_name = 'Rrho'
+         grd%dims_g = (/xi_rho, eta_rho/)
+      elseif (TRIM(grd)%pt == 'u') then
+         type = u2dvar
+         grd%pt = 'u'
+         grd%grd_name = 'R__u'
+         grd%dims_g = (/xi_u, eta_rho/)
+      elseif (TRIM(grd)%pt == 'v') then
+         grd%pt = 'v'
+         grd%grd_name = 'R__v'
+         grd%dims_g = (/xi_rho, eta_v/)
+         type = v2dvar
+      endif
+      
 #include "compute_starts_counts.h"
 
+      grd%imin = imin
+      grd%imax = imax
+      grd%jmin = jmin
+      grd%jmax = jmax
+      grd%dims_l = (/count(1), count(2)/)
+      grd%start_g = (/start(1), start(2)/)
+      ALLOCATE(grd%exfld(imin:imax,jmin:jmax))
+      
+      if ( IOASISDEBUGLVL .eq. 1 ) then
+         print *, '***********************************************'
+         print *, 'Grid Variables ROMS', TRIM(grd%pt), type
+         print *, 'start', grd%start_g
+         print *, 'local_rho, local_eta', count(1), count(2)
+         print *, 'imin,imax, jmin,jmax', imin, imax, jmin, jmax
+         print *, '**********************************************'
+      endif
 
-       if (type.eq.r2dvar) then
-         ! Keep local array sizes
-          oas_xi = count(1)
-          oas_eta = count(2)
-          oas_imin = imin
-          oas_imax = imax
-          oas_jmin = jmin
-          oas_jmax = jmax
-          oas_start(1) = start(1)
-          oas_start(2) = start(2)
-         if ( IOASISDEBUGLVL .eq. 1 ) then
-            print *, '***********************************************'
-            print *, 'Grid Variables ROMS RHO', type
-            print *, 'start', oas_start
-            print *, 'local_rho, local_eta', oas_xi, oas_eta
-            print *, 'imin,imax, jmin,jmax',oas_imin, oas_imax, oas_jmin, oas_jmax
-            print *, 'count', count
-            print *, '**********************************************'
-         endif
-       endif           
-
-       if (type.eq.u2dvar) then
-         ! Keep local array sizes
-          oas_xi_u = count(1)
-          oas_eta_u = count(2)
-          oas_imin_u = imin
-          oas_imax_u = imax
-          oas_jmin_u = jmin
-          oas_jmax_u = jmax
-          oas_start_u(1) = start(1)
-          oas_start_u(2) = start(2)
-         if (IOASISDEBUGLVL .eq. 1 ) then
-            print *, '***********************************************'
-            print *, 'Grid Variables ROMS U', type
-            print *, 'start', oas_start_u
-            print *, 'local_rho, local_eta', oas_xi_u, oas_eta_u
-            print *, 'imin,imax, jmin,jmax',oas_imin_u, oas_imax_u, oas_jmin_u, oas_jmax_u  
-            print *, 'count', count
-            print *, '**********************************************'
-         endif
-       endif
-
-       if (type.eq.v2dvar) then
-         ! Keep local array sizes                                              
-          oas_xi_v = count(1)                                                  
-          oas_eta_v = count(2)
-          oas_imin_v = imin
-          oas_imax_v = imax
-          oas_jmin_v = jmin
-          oas_jmax_v = jmax
-          oas_start_v(1) = start(1)
-          oas_start_v(2) = start(2)
-         if ( IOASISDEBUGLVL .eq. 1 ) then
-            print *, '***********************************************'
-            print *, 'Grid Variables ROMS V', type
-            print *, 'start', oas_start_v
-            print *, 'local_rho, local_eta', oas_xi_v, oas_eta_v
-            print *, 'imin,imax, jmin,jmax',oas_imin_v, oas_imax_v, oas_jmin_v, oas_jmax_v 
-            print *, 'count', count
-            print *, '**********************************************'
-         endif
-       endif
-
-       end
+      end
