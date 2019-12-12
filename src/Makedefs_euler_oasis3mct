@@ -24,7 +24,7 @@ FC = mpif90
 LDR = $(FC)
 CFT = $(FC)
 
-OASDIR  = $(HOME)/COSMOR_build/oasis3-mct
+OASDIR  = $(HOME)/oasis3-mct
 INC      := -I$(OASDIR)/build/lib/psmile.MPI1 \
             -I${NETCDF}/include \
 	    -I${MPI_ROOT}/include \

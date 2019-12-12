@@ -76,19 +76,12 @@ FLTSRC = init_floats.F	init_arrays_floats.F	get_init_flts.F\
 	interp_rho.F	rhs_floats.F	step_floats.F\
 	def_floats.F	wrt_floats.F
 
-CPLSRCF90 = oas_roms_vardef.F90 oas_roms_utilities.F90 oas_roms_allocate.F90 oas_roms_init.F90 oas_roms_rcv.F90\
-	    oas_roms_snd.F90 oas_roms_finalize.F90 oas_roms_constant_corners.F90
+CPLSRCF90 = oas_roms_comm.F90 oas_roms_def.F90 oas_roms_exchange.F90
 
+CPLSRC = oas_roms_computebounds.F oas_roms_send.F oas_roms_receive.F
 
-CPLSRC = oas_set_stflux_tile.F oas_roms_define.F oas_roms_preprcv.F\
-	 oas_set_smflux_tile.F oas_roms_prepsnd.F oas_set_srflux_tile.F	oas_roms_computebounds.F oas_roms_computetilebounds.F	
-
-CPLOBJ = oas_roms_vardef.o oas_roms_utilities.o oas_roms_init.o oas_roms_finalize.o\
-         oas_roms_define.o oas_roms_prepsnd.o oas_roms_allocate.o\
-         oas_roms_preprcv.o oas_roms_rcv.o oas_roms_snd.o oas_roms_computebounds.o oas_roms_computetilebounds.o oas_roms_constant_corners.o
-
-# Do not update for now Coupling
-# oas_set_smflux_tile.o oas_set_stflux_tile.o oas_set_srflux_tile.o 
+CPLOBJ = oas_roms_comm.o oas_roms_def.o oas_roms_exchange.o\
+         oas_roms_computebounds.o oas_roms_send.o oas_roms_receive.o
 
 # old/obsolete/non-parallelized stuff
 #       pp_vmix.F	get_wwave.F	smol_adv.F	get_bsedim.F
