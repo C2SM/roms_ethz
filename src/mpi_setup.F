@@ -14,7 +14,7 @@ C$    end
 
       subroutine mpi_setup (ierr)
 # ifdef COUP_OAS
-      use oas_roms_vardef
+      USE oas_roms_comm, ONLY: kl_comm
 # endif
       implicit none
       integer ierr
