@@ -167,7 +167,12 @@
 
 ! Write Debug File
 ! ----------------
-      call oas_roms_dbg_rcv(oas_step)
+      call oas_roms_dbg_rcv(oas_step,
+     &     "SUSTR", sustr, k_u,
+     &     "SVSTR", svstr, k_v,
+     &     "NHF"  , stflx(:,:,itemp), k_rho
+     &     "SWR"  , srflx           , k_rho
+     &     "FRESH", stflx(:,:,isalt), k_rho)
 
       end
 

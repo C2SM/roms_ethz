@@ -9,6 +9,9 @@
       implicit none              ! with single parallel region using
       integer ierr               ! explicit barrier synchronization.
 # include "param.h"
+# ifdef COUP_OAS
+#  include "ncvars.h"
+# endif /* COUP_OAS */
 # ifdef MPI
       real*8 tstart, tend
 C$    integer level,req_lev
@@ -31,7 +34,7 @@ C$    ierr=0
 # endif
         call init_scalars(ierr)          ! Initialize global scalars,
 #ifdef COUP_OAS
-      call oas_roms_define !Defines Grids and exchange fields for Oasis Coupler
+      call oas_roms_define(grdname) !Defines Grids and exchange fields for Oasis Coupler
 #endif /* COUP_OAS */
 # ifdef OBSOLETE_SUB_INIT_SCALARS_IN_MAIN
 #  ifdef BIOLOGY_NPZDOC 

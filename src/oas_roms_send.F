@@ -58,6 +58,7 @@
 ! Write Debug File
 ! ----------------
       if ((IOASISDEBUGLVL == 1) .OR. (IOASISDEBUGLVL == 3)) then
+        if (mynode==0) WRITE(6,*) 'ROMS:OASSND_DT', INT((oas_step)*dt)
         call oas_roms_dbg_snd(oas_step)
       endif
 

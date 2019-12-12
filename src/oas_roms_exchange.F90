@@ -12,25 +12,25 @@ MODULE oas_roms_exchange
    ! ------------
    USE mod_oasis_getput_interface, ONLY: oasis_get, oasis_put
 
-   USE mod_oasis_parameters, ONLY: OASIS_Recvd, OASIS_FromRest,   &
-      &                            OASIS_RecvOut, OASIS_FromRestOut   &
-      &                            OASIS_Sent, OASIS_ToRest  &
+   USE mod_oasis_parameters, ONLY: OASIS_Recvd, OASIS_FromRest,        &
+      &                            OASIS_RecvOut, OASIS_FromRestOut,   &
+      &                            OASIS_Sent, OASIS_ToRest,           &
       &                            OASIS_SentOut, OASIS_ToRestOut
 
-   USE netcdf, ONLY: nf90_create, nf90_enddef  &
-      &              nf90_open, nf90_close,   &
+   USE netcdf, ONLY: nf90_create, nf90_enddef,       &
+      &              nf90_open, nf90_close,          &
       &              nf90_def_dim, nf90_inq_varid,   &
-      &              nf90_def_var, nf90_put_var,   &
+      &              nf90_def_var, nf90_put_var,     &
       &              NF90_CLOBBER, NF90_UNLIMITED,   &
       &              NF90_WRITE, NF90_DOUBLE
    
    USE oas_roms_comm, ONLY: kl_comm
 
    USE oas_roms_def, ONLY: OAS_GRID, cpl_grd, k_rho, k_u, k_v,   &
-      &                    srcv, ssnd, krcv, ksnd,   &
-      &                    oas_itemp, oas_UST_U, oas_VST_U,   &
-      &                    oas_UST_V, oas_VST_V,
-      &                    oas_NHF, oas_SWR, oas_TEP,   &
+      &                    srcv, ssnd, krcv, ksnd,               &
+      &                    oas_itemp, oas_UST_U, oas_VST_U,      &
+      &                    oas_UST_V, oas_VST_V,                 &
+      &                    oas_NHF, oas_SWR, oas_TEP,            &
       &                    IOASISDEBUGLVL
    
 
@@ -51,11 +51,6 @@ MODULE oas_roms_exchange
    END TYPE dbg_file
 
    INTEGER(kind=4), PARAMETER :: NULOUT=6
-
-#include "forces.h"   ! => sustr, svstr, stflx, srflx
-#include "param.h"   ! => itemp, isalt, N
-#include "ocean3d.h"   ! => t
-#include "scalars.h"   ! => nstp, dt
    
 CONTAINS
 
@@ -97,6 +92,9 @@ CONTAINS
 
       ! Arguments
       INTEGER, INTENT(IN) :: kstep   ! ocean time-step in seconds
+      
+      ! Local variables
+      INTEGER :: kinfo, jn
 
       DO jn=1, ksnd
          IF (ssnd(jn)%laction) THEN
@@ -105,11 +103,11 @@ CONTAINS
             ! (accumulation otherwise, if asked in the namcouple configuration file)
             CALL oasis_put(ssnd(jn)%nid, kstep, ssnd(jn)%pdata, kinfo)
 
-            IF ( kinfo .EQ. OASIS_Sent .OR. kinfo .EQ. OASIS_ToRest .OR.   &
-               & kinfo .EQ. OASIS_SentOut  .OR. kinfo .EQ. OASIS_ToRestOut ) THEN
-               ! - ML - Is that really necessary? Comment out for now
-               ! ssnd(jn)%pdata(:,:) = 0.
-            ENDIF
+            ! - ML - Is that really necessary? Comment out for now
+            ! IF ( kinfo .EQ. OASIS_Sent .OR. kinfo .EQ. OASIS_ToRest .OR.   &
+            !    & kinfo .EQ. OASIS_SentOut  .OR. kinfo .EQ. OASIS_ToRestOut ) THEN
+            !    ssnd(jn)%pdata(:,:) = 0.
+            ! ENDIF
 
             ! - ML - Why these dbg prints just for sending, not receiving ??
             IF (IOASISDEBUGLVL > 1) THEN
@@ -131,18 +129,30 @@ CONTAINS
 
    ! ----------------------------------------------------------------------------------- !
    
-   SUBROUTINE oas_roms_dbg_rcv(oas_step)
+   SUBROUTINE oas_roms_dbg_rcv(oas_step, vname1, pdata1, k_pt1, vname2, pdata2, k_pt2,   &
+      &                                  vname3, pdata3, k_pt3, vname4, pdata4, k_pt4,   &
+      &                                  vname5, pdata5, k_pt5                         )
       ! Description
       ! -----------
       ! Write debug file for received fields
 
       ! Arguments
       INTEGER, INTENT(IN) :: oas_step
+      CHARACTER(len=10), INTENT(IN), OPTIONAL :: vname1, vname2, vname3, vname4, vname5
+      REAL(KIND=8), DIMENSION(:,:), INTENT(IN), OPTIONAL :: pdata1, pdata2, pdata3, pdata4, pdata5
+      INTEGER, INTENT(IN), OPTIONAL :: k_pt1, k_pt2, k_pt3, k_pt4, k_pt5
+      
       
       ! Local varaibles
-      INTEGER :: status, pe, mype, npes, ierr, kv
+      INTEGER :: status, ncid, pe, mype, npes, ierr, kv
       TYPE(dbg_file) :: rcv_dbg_file
       CHARACTER(len=*), PARAMETER :: file_name="debugout_roms_rcv.nc"
+
+      !DEC$ NOFREEFORM
+! #include "cppdefs.h"
+! #include "forces.h"   ! => sustr, svstr, stflx, srflx
+! #include "param.h"   ! => itemp, isalt
+      !DEC$ FREEFORM
       
       CALL MPI_Comm_rank(kl_comm, mype, ierr)
       CALL MPI_Comm_size(kl_comm, npes, ierr)
@@ -155,11 +165,16 @@ CONTAINS
          DO kv = 1, krcv
             CALL dbg_def_var(rcv_dbg_file, srcv(kv)%clname, srcv(kv)%k_pt)
          END DO
-         CALL dbg_def_var(rcv_dbg_file, "SUSTR"   , k_u  )
-         CALL dbg_def_var(rcv_dbg_file, "SVSTR"   , k_v  )
-         CALL dbg_def_var(rcv_dbg_file, "NHF"     , k_rho)
-         CALL dbg_def_var(rcv_dbg_file, "SWR"     , k_rho)
-         CALL dbg_def_var(rcv_dbg_file, "FRESH"   , k_rho)
+         IF (PRESENT(vname1)) CALL dbg_def_var(rcv_dbg_file, TRIM(vname1), k_pt1)
+         IF (PRESENT(vname2)) CALL dbg_def_var(rcv_dbg_file, TRIM(vname2), k_pt2)
+         IF (PRESENT(vname3)) CALL dbg_def_var(rcv_dbg_file, TRIM(vname3), k_pt3)
+         IF (PRESENT(vname4)) CALL dbg_def_var(rcv_dbg_file, TRIM(vname4), k_pt4)
+         IF (PRESENT(vname5)) CALL dbg_def_var(rcv_dbg_file, TRIM(vname5), k_pt5)
+         ! CALL dbg_def_var(rcv_dbg_file, "SUSTR"   , k_u  )
+         ! CALL dbg_def_var(rcv_dbg_file, "SVSTR"   , k_v  )
+         ! CALL dbg_def_var(rcv_dbg_file, "NHF"     , k_rho)
+         ! CALL dbg_def_var(rcv_dbg_file, "SWR"     , k_rho)
+         ! CALL dbg_def_var(rcv_dbg_file, "FRESH"   , k_rho)
          ! End netcdf file definition
          status = nf90_enddef(rcv_dbg_file%ncid)
          ! Close netcdf file
@@ -177,11 +192,16 @@ CONTAINS
             DO kv = 1, krcv
                CALL dbg_fill_var(ncid, srcv(kv)%clname, cpl_grd(srcv(kv)%k_pt), srcv(kv)%pdata, oas_step)
             END DO
-            CALL dbg_fill_var(ncid, "SUSTR", cpl_grd(k_u  ), sustr           , oas_step)
-            CALL dbg_fill_var(ncid, "SVSTR", cpl_grd(k_v  ), svstr           , oas_step)
-            CALL dbg_fill_var(ncid, "NHF"  , cpl_grd(k_rho), stflx(:,:,itemp), oas_step)
-            CALL dbg_fill_var(ncid, "SWR"  , cpl_grd(k_rho), srflx           , oas_step)
-            CALL dbg_fill_var(ncid, "FRESH", cpl_grd(k_rho), stflx(:,:,isalt), oas_step)
+            IF (PRESENT(vname1)) CALL dbg_fill_var(ncid, TRIM(vname1), cpl_grd(k_pt1), pdata1, oas_step)
+            IF (PRESENT(vname2)) CALL dbg_fill_var(ncid, TRIM(vname2), cpl_grd(k_pt2), pdata2, oas_step)
+            IF (PRESENT(vname3)) CALL dbg_fill_var(ncid, TRIM(vname3), cpl_grd(k_pt3), pdata3, oas_step)
+            IF (PRESENT(vname4)) CALL dbg_fill_var(ncid, TRIM(vname4), cpl_grd(k_pt4), pdata4, oas_step)
+            IF (PRESENT(vname5)) CALL dbg_fill_var(ncid, TRIM(vname5), cpl_grd(k_pt5), pdata5, oas_step)
+            ! CALL dbg_fill_var(ncid, "SUSTR", cpl_grd(k_u  ), sustr           , oas_step)
+            ! CALL dbg_fill_var(ncid, "SVSTR", cpl_grd(k_v  ), svstr           , oas_step)
+            ! CALL dbg_fill_var(ncid, "NHF"  , cpl_grd(k_rho), stflx(:,:,itemp), oas_step)
+            ! CALL dbg_fill_var(ncid, "SWR"  , cpl_grd(k_rho), srflx           , oas_step)
+            ! CALL dbg_fill_var(ncid, "FRESH", cpl_grd(k_rho), stflx(:,:,isalt), oas_step)
             ! Close netcdf file
             status = nf90_close(ncid)
          ENDIF
@@ -200,14 +220,12 @@ CONTAINS
       INTEGER, INTENT(IN) :: oas_step
       
       ! Local varaibles
-      INTEGER :: status, pe, mype, npes, ierr, kv
+      INTEGER :: status, ncid, pe, mype, npes, ierr, kv
       TYPE(dbg_file) :: snd_dbg_file
       CHARACTER(len=*), PARAMETER :: file_name="RST_roms.nc"
       
       CALL MPI_Comm_rank(kl_comm, mype, ierr)
       CALL MPI_Comm_size(kl_comm, npes, ierr)
-
-      IF (mype == 0) WRITE(NULOUT,*) 'ROMS:OASSND_DT', INT((oas_step)*dt)
 
       ! Create and define netcdf file
       IF (mype == 0 .AND. oas_step == 1) THEN
@@ -218,9 +236,9 @@ CONTAINS
             CALL dbg_def_var(snd_dbg_file, ssnd(kv)%clname, ssnd(kv)%k_pt)
          END DO
          ! End netcdf file definition
-         status = nf90_enddef(rcv_dbg_file%ncid)
+         status = nf90_enddef(snd_dbg_file%ncid)
          ! Close netcdf file
-         status = nf90_close(rcv_dbg_file%ncid)
+         status = nf90_close(snd_dbg_file%ncid)
       ENDIF
 
       ! Fill in netcdf file
@@ -260,7 +278,7 @@ CONTAINS
          &       xi_rho_id, eta_rho_id, xi_u_id, eta_v_id, step_id
 
       ! Get netcdf file id
-      status = nf90_create("debugout_roms_rcv.nc", NF90_CLOBBER, dfile%ncid)
+      status = nf90_create(TRIM(file_name), NF90_CLOBBER, dfile%ncid)
       ! Decalre dimensions and get ids
       status = nf90_def_dim(ncid, "x", cpl_grd(k_rho)%dims_g(1), xi_rho_id)
       status = nf90_def_dim(ncid, "y", cpl_grd(k_rho)%dims_g(2), eta_rho_id)
@@ -312,9 +330,9 @@ CONTAINS
 
       status = nf90_inq_varid(ncid, var_name , var_id)
 
-      status = nf90_put_var(ncid, var_id, pdata(grd%imin:grd%imax, grd%jmin:grd%jmax)),   &
-         &                  start=(/ grd%start_g(1), grd%start_g(2), (oas_step-1) /),   &
-         &                  count=(/ grd%dims_l(1), grd%dims_l(2), 1 /))
+      status = nf90_put_var(ncid, var_id, pdata(grd%imin:grd%imax, grd%jmin:grd%jmax),   &
+         &                  start=(/ grd%start_g(1), grd%start_g(2), (oas_step-1) /),    &
+         &                  count=(/ grd%dims_l(1), grd%dims_l(2), 1 /) )
      
    END SUBROUTINE dbg_fill_var
 

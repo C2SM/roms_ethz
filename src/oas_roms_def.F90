@@ -81,7 +81,7 @@ MODULE oas_roms_def
       REAL(KIND=8), DIMENSION(:,:), ALLOCATABLE :: pdata   ! actual field data
    END TYPE FLD_CPL
    INTEGER(KIND=4), PARAMETER :: nmaxfld=40   ! Maximum number of coupling fields
-   INTEGER(KIND=4), SAVE :: ksnd=0, krcv=0   ! Number of send/received coupling fields
+   INTEGER(KIND=4), SAVE, PUBLIC :: ksnd=0, krcv=0   ! Number of send/received coupling fields
    TYPE(FLD_CPL), DIMENSION(nmaxfld), PUBLIC :: srcv, ssnd   ! Coupling fields
    INTEGER, SAVE, PUBLIC :: oas_itemp   ! sea surface temperature [K] - sent
    INTEGER, SAVE, PUBLIC :: oas_UST_U   ! oas_XST_Y corresponds to COSMO X-wind STress
@@ -104,13 +104,20 @@ CONTAINS
    !                               PUBLIC MAIN SUBROUTINE                                !
    ! *********************************************************************************** !
 
-   SUBROUTINE oas_roms_define()
+   SUBROUTINE oas_roms_define(grdname)
       ! Description
       ! -----------
 
-      INTEGER ncid, ierr, il_flag, mype
+      ! Arguments
+      CHARACTER(len=256) :: grdname
 
-#include "ncvars.h"   ! => grdname
+      ! Local variables
+      INTEGER ncid, ierr, il_flag, mype
+      
+      !DEC$ NOFREEFORM
+! #include "cppdefs.h"
+! #include "ncvars.h"   ! => grdname
+      !DEC$ FREEFORM
       
       ! ---------------------------------------------------- !
       ! Read in namelilst parameters for coupling with OASIS !  
@@ -251,7 +258,7 @@ CONTAINS
       
       ! Local variables
       INTEGER, PARAMETER :: nuin=61
-      CHARACTER(len = *), PARAMETER :: nml_filename="romsoc.nml"
+      CHARACTER(len=*), PARAMETER :: nml_filename="romsoc.nml"
       INTEGER :: ierr
 
       ! Describe namelist content
@@ -259,9 +266,9 @@ CONTAINS
 
       ! Open namelist file
       OPEN(nuin, FILE=nml_filename, FORM='FORMATTED', STATUS='UNKNOWN',   &
-         &       IOSTAT=ierrt)
+         &       IOSTAT=ierr)
       IF (ierr /= 0) THEN
-         WRITE(*,1) 'Error while opening', nml_filename
+         WRITE(*,*) 'Error while opening', nml_filename
          CALL abort
       END IF
 
@@ -270,7 +277,7 @@ CONTAINS
       ! Read namelist
       READ(nuin, romsoc, IOSTAT=ierr)
       IF (ierr /= 0) THEN
-         WRITE(*,1) 'Error while reading namelist romsoc from', nml_filename
+         WRITE(*,*) 'Error while reading namelist romsoc from', nml_filename
          CALL abort
       END IF
       
@@ -321,7 +328,7 @@ CONTAINS
       CALL oas_roms_read_2d(ncid, 'mask_'//grd%pt, grd, mask, 'global')
       mask(:,:) = 1.0 - mask(:,:)
       
-      CALL oasis_write_mask(grd%grd_name, grd%dims_g(1), grd%dims_g(2), mask)
+      CALL oasis_write_mask(grd%grd_name, grd%dims_g(1), grd%dims_g(2), INT(mask))
 
       DEALLOCATE(mask)
 
@@ -342,7 +349,7 @@ CONTAINS
       REAL(KIND=8), DIMENSION(:,:,:), ALLOCATABLE :: lon, lat
       INTEGER, DIMENSION(3) :: shp
 
-      shp = (/lon(grd%dims_g(1), grd%dims_g(2), 4/)
+      shp = (/grd%dims_g(1), grd%dims_g(2), 4/)
 
       ALLOCATE(lon(shp(1),shp(2),shp(3)),   &
          &     lat(shp(1),shp(2),shp(3)))
@@ -552,12 +559,13 @@ CONTAINS
       
       ! Local variables
       REAL(KIND=8), DIMENSION(:,:,:), ALLOCATABLE :: cos_u_dir, cos_v_dir, roms_dir
+      INTEGER :: k
       
-      ALLOCATE(cos_u_dir(grd%imin:grd%imax,grd:jmin:grd%jmax,3),   &
-         &     cos_v_dir(grd%imin:grd%imax,grd:jmin:grd%jmax,3),   &
-         &     roms_dir (grd%imin:grd%imax,grd:jmin:grd%jmax,3),   &
-         &     u_proj   (grd%imin:grd%imax,grd:jmin:grd%jmax  ),   &
-         &     v_proj   (grd%imin:grd%imax,grd:jmin:grd%jmax  ))
+      ALLOCATE(cos_u_dir(grd%imin:grd%imax,grd%jmin:grd%jmax,3),   &
+         &     cos_v_dir(grd%imin:grd%imax,grd%jmin:grd%jmax,3),   &
+         &     roms_dir (grd%imin:grd%imax,grd%jmin:grd%jmax,3),   &
+         &     u_proj   (grd%imin:grd%imax,grd%jmin:grd%jmax  ),   &
+         &     v_proj   (grd%imin:grd%imax,grd%jmin:grd%jmax  ))
 
       ! Read in 3d velocity directions (unit vectors)
       CALL oas_roms_read_3d(ncid, 'cos_u_dir_roms_'//TRIM(grd%pt), grd, cos_u_dir, 3, 'local')
@@ -585,12 +593,13 @@ CONTAINS
 
       ! Arguments
       INTEGER, INTENT(IN) :: ncid
-      CHARACTER(11), INTENT(IN) :: vname
+      CHARACTER(len=*), INTENT(IN) :: vname
       TYPE(OAS_GRID), INTENT(IN) :: grd
       REAL(KIND=8), DIMENSION(:,:), INTENT(INOUT) :: A
       CHARACTER(len=6) :: extent
       
       ! local variables
+      INTEGER, DIMENSION(2) :: start, count
       INTEGER :: var_id, ierr
 
       ierr = nf90_inq_varid(ncid, TRIM(vname), var_id)
@@ -611,13 +620,13 @@ CONTAINS
          ierr = nf90_get_var(ncid, var_id, A, start=start, count=count)
          
          IF (ierr /= NF90_NOERR) THEN
-            WRITE(*,2) TRIM(vname), 'oas_roms_read_2d', nf90_strerror(ierr)
+            WRITE(*,*) TRIM(vname), 'oas_roms_read_2d', nf90_strerror(ierr)
             CALL abort
          END IF
          
       ELSE
          
-         WRITE(*,1) TRIM(vname), 'oas_roms_read_2d'
+         WRITE(*,*) TRIM(vname), 'oas_roms_read_2d'
          CALL abort
          
       END IF
@@ -633,15 +642,15 @@ CONTAINS
 
       ! Arguments
       INTEGER, INTENT(IN) :: ncid
-      CHARACTER(11), INTENT(IN) :: vname
+      CHARACTER(len=*), INTENT(IN) :: vname
       TYPE(OAS_GRID), INTENT(IN) :: grd
       REAL(KIND=8), DIMENSION(:,:,:), INTENT(INOUT) :: A
       INTEGER, INTENT(IN) :: dim3
       CHARACTER(len=6), INTENT(IN) :: extent
       
       ! local variables
-      INTEGER :: var_id, ierr
       INTEGER, DIMENSION(3) :: start, count
+      INTEGER :: var_id, ierr
 
       ierr = nf90_inq_varid(ncid, TRIM(vname), var_id)
       
@@ -661,13 +670,13 @@ CONTAINS
          ierr = nf90_get_var(ncid, var_id, A, start=start, count=count)
          
          IF (ierr /= NF90_NOERR) THEN
-            WRITE(*,2) TRIM(vname), 'oas_roms_read_3d', nf90_strerror(ierr)
+            WRITE(*,*) TRIM(vname), 'oas_roms_read_3d', nf90_strerror(ierr)
             CALL abort
          END IF
       
       ELSE
          
-         WRITE(*,1) TRIM(vname), 'oas_roms_read_3d'
+         WRITE(*,*) TRIM(vname), 'oas_roms_read_3d'
          CALL abort
          
       END IF

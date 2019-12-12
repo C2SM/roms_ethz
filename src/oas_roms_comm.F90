@@ -12,6 +12,11 @@ MODULE oas_roms_comm
 
    ! Used modules
    ! ------------
+   ! USE mod_oasis, ONLY: oasis_init_comp,       &
+   !    &                 oasis_terminate,       &
+   !    &                 oasis_get_localcomm,   &
+   !    &                 oasis_abort
+   
    USE mod_oasis_method, ONLY:   &
       oasis_init_comp,           &
       oasis_terminate
@@ -33,7 +38,7 @@ MODULE oas_roms_comm
    ! ----------------
    INTEGER(KIND=4), SAVE, PUBLIC :: kl_comm   ! Local communicator
    INTEGER(KIND=4), SAVE, PUBLIC :: ncomp_id   ! id returned by oasis_init_comp
-   INTEGER, PUBLIC :: OASIS_Success=0   ! return code if no error in oasis
+   INTEGER, PARAMETER, PUBLIC :: OASIS_Success=0   ! return code if no error in oasis
 
    
    CONTAINS
