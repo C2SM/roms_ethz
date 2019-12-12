@@ -114,11 +114,6 @@ CONTAINS
       ! Local variables
       INTEGER ncid, ierr, il_flag, mype
       
-      !DEC$ NOFREEFORM
-! #include "cppdefs.h"
-! #include "ncvars.h"   ! => grdname
-      !DEC$ FREEFORM
-      
       ! ---------------------------------------------------- !
       ! Read in namelilst parameters for coupling with OASIS !  
       ! ---------------------------------------------------- !

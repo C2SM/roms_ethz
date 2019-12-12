@@ -147,12 +147,6 @@ CONTAINS
       INTEGER :: status, ncid, pe, mype, npes, ierr, kv
       TYPE(dbg_file) :: rcv_dbg_file
       CHARACTER(len=*), PARAMETER :: file_name="debugout_roms_rcv.nc"
-
-      !DEC$ NOFREEFORM
-! #include "cppdefs.h"
-! #include "forces.h"   ! => sustr, svstr, stflx, srflx
-! #include "param.h"   ! => itemp, isalt
-      !DEC$ FREEFORM
       
       CALL MPI_Comm_rank(kl_comm, mype, ierr)
       CALL MPI_Comm_size(kl_comm, npes, ierr)
@@ -170,11 +164,6 @@ CONTAINS
          IF (PRESENT(vname3)) CALL dbg_def_var(rcv_dbg_file, TRIM(vname3), k_pt3)
          IF (PRESENT(vname4)) CALL dbg_def_var(rcv_dbg_file, TRIM(vname4), k_pt4)
          IF (PRESENT(vname5)) CALL dbg_def_var(rcv_dbg_file, TRIM(vname5), k_pt5)
-         ! CALL dbg_def_var(rcv_dbg_file, "SUSTR"   , k_u  )
-         ! CALL dbg_def_var(rcv_dbg_file, "SVSTR"   , k_v  )
-         ! CALL dbg_def_var(rcv_dbg_file, "NHF"     , k_rho)
-         ! CALL dbg_def_var(rcv_dbg_file, "SWR"     , k_rho)
-         ! CALL dbg_def_var(rcv_dbg_file, "FRESH"   , k_rho)
          ! End netcdf file definition
          status = nf90_enddef(rcv_dbg_file%ncid)
          ! Close netcdf file
@@ -197,11 +186,6 @@ CONTAINS
             IF (PRESENT(vname3)) CALL dbg_fill_var(ncid, TRIM(vname3), cpl_grd(k_pt3), pdata3, oas_step)
             IF (PRESENT(vname4)) CALL dbg_fill_var(ncid, TRIM(vname4), cpl_grd(k_pt4), pdata4, oas_step)
             IF (PRESENT(vname5)) CALL dbg_fill_var(ncid, TRIM(vname5), cpl_grd(k_pt5), pdata5, oas_step)
-            ! CALL dbg_fill_var(ncid, "SUSTR", cpl_grd(k_u  ), sustr           , oas_step)
-            ! CALL dbg_fill_var(ncid, "SVSTR", cpl_grd(k_v  ), svstr           , oas_step)
-            ! CALL dbg_fill_var(ncid, "NHF"  , cpl_grd(k_rho), stflx(:,:,itemp), oas_step)
-            ! CALL dbg_fill_var(ncid, "SWR"  , cpl_grd(k_rho), srflx           , oas_step)
-            ! CALL dbg_fill_var(ncid, "FRESH", cpl_grd(k_rho), stflx(:,:,isalt), oas_step)
             ! Close netcdf file
             status = nf90_close(ncid)
          ENDIF
