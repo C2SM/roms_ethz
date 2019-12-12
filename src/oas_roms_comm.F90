@@ -118,7 +118,6 @@ MODULE oas_roms_comm
       !!      called explicitly before oas_roms_init it will also close
       !!      MPI communication.
       !!----------------------------------------------------------------------
-      USE oas_roms_vardef
 
       INTEGER(KIND=4) :: ierror   ! return error code
 
