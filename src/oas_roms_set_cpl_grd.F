@@ -44,6 +44,10 @@
          grd%grd_name = 'R__v'
          grd%dims_g = (/xi_rho, eta_v/)
          type = v2dvar
+      else
+         write(*,*) 'ERROR in oas_roms_set_cpl_grd :'
+         write(*,*) '   unkown value of k_pt'
+         call abort
       endif
 
       call oas_roms_set_grd_local(grd, type)
