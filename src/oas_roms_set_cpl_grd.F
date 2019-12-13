@@ -1,5 +1,5 @@
 #include "cppdefs.h"
-      subroutine oas_roms_set_grd(grd, k_pt)
+      subroutine oas_roms_set_cpl_grd(grd, k_pt)
 !     Description
 !     -----------
 !     Set coupling grid strucutre using compute_starts_counts.h
@@ -51,7 +51,6 @@
       end
 
 !     ! -------------------------------------------------------------------------------- !
-
 
       subroutine oas_roms_set_grd_local(grd, type)
 !     Description

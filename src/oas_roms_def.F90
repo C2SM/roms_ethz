@@ -72,6 +72,8 @@ CONTAINS
       ! Description
       ! -----------
 
+      EXTERNAL oas_roms_set_cpl_grd
+
       ! Arguments
       CHARACTER(len=256) :: grdname
 
@@ -90,9 +92,9 @@ CONTAINS
       ! Set coupling grid properties  !
       ! ----------------------------- !
 
-      CALL oas_roms_set_grd(cpl_grd(k_rho), k_rho)
-      CALL oas_roms_set_grd(cpl_grd(k_u), k_u)
-      CALL oas_roms_set_grd(cpl_grd(k_v), k_v)
+      CALL oas_roms_set_cpl_grd(cpl_grd(k_rho), k_rho)
+      CALL oas_roms_set_cpl_grd(cpl_grd(k_u), k_u)
+      CALL oas_roms_set_cpl_grd(cpl_grd(k_v), k_v)
 
       ! ------------------------------------- !
       ! Initialize ROMSOC auxiliary variables !  
