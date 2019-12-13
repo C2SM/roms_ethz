@@ -76,32 +76,29 @@ FLTSRC = init_floats.F	init_arrays_floats.F	get_init_flts.F\
 	interp_rho.F	rhs_floats.F	step_floats.F\
 	def_floats.F	wrt_floats.F
 
-CPLSRCF90 = oas_roms_comm.F90 oas_roms_def.F90 oas_roms_exchange.F90
+CPLSRCF90 = oas_roms_data.F90 oas_roms_comm.F90 oas_roms_def.F90 oas_roms_exchange.F90
 
-CPLSRC = oas_roms_set_cpl_grd.F oas_roms_send.F oas_roms_receive.F
-
-CPLOBJ = oas_roms_comm.o oas_roms_def.o oas_roms_exchange.o\
-         oas_roms_set_cpl_grd.o oas_roms_send.o oas_roms_receive.o
+CPLSRCF = oas_roms_set_cpl_grd.F oas_roms_send.F oas_roms_receive.F
 
 # old/obsolete/non-parallelized stuff
 #       pp_vmix.F	get_wwave.F	smol_adv.F	get_bsedim.F
 
-  SRCS = $(KRNSRC) $(IOSRC) $(BIOSRC) $(CPLSRC) $(CPLSRCF90)
-   RCS = $(SRCS:.F=.f) $(SRCS:.F90=.f90)
-  OBJS = $(RCS:.f=.o) $(RCS:.f90=.o)
+  SRCS = $(KRNSRC) $(IOSRC) $(BIOSRC)
+   RCS = $(SRCS:.F=.f)
+  OBJS = $(RCS:.f=.o)
   SBIN = roms
  LROMS = libroms.a
  LROMS2 = 2/$(LROMS)
  LROMS3 = 2/$(LROMS) 3/$(LROMS)
  LROMS4 = 2/$(LROMS) 3/$(LROMS) 4/$(LROMS)
 
+CPLRCS = $(CPLSRCF:.F=.f)
+CPLOBJSF = $(CPLRCS:.f=.o)
+CPLOBJSF90 = $(CPLSRCF90:.F90=.o)
+
 # ROMS excutable
-
-$(SBIN): mpc $(OBJS)
-	$(LDR) $(FFLAGS) $(LDFLAGS) -o a.out $(OBJS) $(CPLOBJ) $(LCDF) $(LMPI) $(LIBPSMILE)
-
-#$(SBIN): $(LROMS)
-#	$(LDR) $(FFLAGS) $(LDFLAGS) -o a.out $(LROMS) $(LCDF) $(LMPI)
+$(SBIN): $(LROMS)
+	$(LDR) $(FFLAGS) $(LDFLAGS) -o a.out $(LROMS) $(LCDF) $(LMPI)
 	mv a.out $(SBIN)
 2level: $(OBJS) $(LROMS2)
 	$(LDR) $(FFLAGS) $(LDFLAGS) -o a.out $(OBJS) $(LROMS2) $(LCDF) $(LMPI) 
@@ -128,11 +125,16 @@ $(LROMS): $(OBJS)
 # Everything
 all: mpc tools depend $(SBIN)
 
-#Make Coupling files
-couple: $(CPLSRCF90)
-	 $(FC) -c $(FFLAGS) $(CPLSRCF90) 
-
-couplef: $(CPLOBJ) 
+# Make coupled version
+roms_cpl: mpc cplf $(OBJS)
+	$(LDR) $(FFLAGS) $(LDFLAGS) -o a.out $(OBJS) $(CPLOBJSF) $(CPLOBJSF90) $(LCDF) $(LMPI) $(LIBPSMILE)
+	mv a.out $(SBIN)_cpl
+cplf: cpl_int $(CPLOBJSF)
+cpl_int: set_grd $(CPLSRCF90)
+	$(FC) -c $(FFLAGS) $(CPLSRCF90)
+set_grd: cpl_data oas_roms_set_cpl_grd.o
+cpl_data: oas_roms_data.F90
+	$(FC) -c $(FFLAGS) oas_roms_data.F90
 
 # A program to test MPI halo exchange routines.
 # - ------- -- ---- --- ---- -------- ---------

@@ -39,7 +39,16 @@ MODULE oas_roms_def
       &              nf90_inq_varid, nf90_get_var,   &
       &              NF90_NOWRITE, NF90_NOERR
 
-   USE oas_roms_comm, ONLY: OASIS_Success, ncomp_id, kl_comm
+   USE oas_roms_data, ONLY: OASIS_Success, ncomp_id, kl_comm,     &
+      &                     OAS_GRID, cpl_grd, k_rho, k_u, k_v,   &
+      &                     oas_itemp, oas_UST_U, oas_VST_U,      &
+      &                     oas_UST_V, oas_VST_V, oas_NHF,        &
+      &                     oas_SWR, oas_TEP,                     &
+      &                     srcv, ssnd, krcv, ksnd,               &
+      &                     alpha_rho, alpha_u, alpha_v,          &
+      &                     u_cos_proj_u, v_cos_proj_u,           &
+      &                     u_cos_proj_v, v_cos_proj_v,           &
+      &                     IOASISDEBUGLVL
       
 
    IMPLICIT NONE
@@ -50,53 +59,8 @@ MODULE oas_roms_def
 
    ! Module variables
    ! ----------------
-   ! Namelist parameters
-   CHARACTER(len=256), PUBLIC, SAVE :: romsoc_aux_name   ! ROMSOC auxiliary filename
-   INTEGER(KIND=4), PUBLIC, SAVE :: IOASISDEBUGLVL   ! OASIS debug level
-   !                                                 ! 0 : Minimum debugging
-   !                                                 ! 1 : Debugging
-   !                                                 ! 2 : Perfs measurement
-   !                                                 ! 3 : OASIS restart production
-
-   ! Coupling grids
-   TYPE, PUBLIC :: OAS_GRID
-      CHARACTER(len=3) :: pt   ! point string
-      CHARACTER(len=4) :: grd_name   ! Grid name
-      INTEGER :: part_id=-999   ! Id of the OASIS partition
-      INTEGER :: imin, imax, jmin, jmax   ! local indices
-      INTEGER, DIMENSION(2) :: dims_l   ! local dimensions (could get from local indices)
-      INTEGER, DIMENSION(2) :: dims_g   ! global dimensions
-      INTEGER, DIMENSION(2) :: start_g   ! global starting indices of local grid
-      REAL(KIND=8), DIMENSION(:,:), ALLOCATABLE :: exfld   ! tmp buffer for receiving data
-   END TYPE OAS_GRID
-   INTEGER, PARAMETER, PUBLIC :: k_rho=1, k_u=2, k_v=3
-   TYPE(OAS_GRID), SAVE, DIMENSION(3), PUBLIC :: cpl_grd
-
-   ! Exchanged fields
-   TYPE :: FLD_CPL
-      LOGICAL :: laction=.FALSE.   ! To be coupled or not, by default not
-      CHARACTER(len=8) :: clname   ! Name of the coupling field
-      INTEGER(KIND=4) :: nid   ! Id of the field given by OASIS
-      INTEGER(KIND=4) :: k_pt   ! Index of the grid on which the field is defined
-      REAL(KIND=8), DIMENSION(:,:), ALLOCATABLE :: pdata   ! actual field data
-   END TYPE FLD_CPL
-   INTEGER(KIND=4), PARAMETER :: nmaxfld=40   ! Maximum number of coupling fields
-   INTEGER(KIND=4), SAVE, PUBLIC :: ksnd=0, krcv=0   ! Number of send/received coupling fields
-   TYPE(FLD_CPL), DIMENSION(nmaxfld), PUBLIC :: srcv, ssnd   ! Coupling fields
-   INTEGER, SAVE, PUBLIC :: oas_itemp   ! sea surface temperature [K] - sent
-   INTEGER, SAVE, PUBLIC :: oas_UST_U   ! oas_XST_Y corresponds to COSMO X-wind STress
-   INTEGER, SAVE, PUBLIC :: oas_VST_U   ! at ROMS Y-points (momentum flux) [N/m2] - received
-   INTEGER, SAVE, PUBLIC :: oas_UST_V   !
-   INTEGER, SAVE, PUBLIC :: oas_VST_V   !
-   INTEGER, SAVE, PUBLIC :: oas_NHF     ! Net Heat Flux [W/m2] - received
-   INTEGER, SAVE, PUBLIC :: oas_SWR     ! direct ShortWave downward Radiation [W/m2] - received
-   INTEGER, SAVE, PUBLIC :: oas_TEP     ! Total Evaporation - Precipitation [kg/m2*s] - received
-
-   ! ROMSOC auxiliary variables
-   REAL(KIND=8), SAVE, DIMENSION(:,:), ALLOCATABLE, PUBLIC ::   &
-      & alpha_rho, alpha_u, alpha_v,   &   ! coupling coefficients
-      & u_cos_proj_u, v_cos_proj_u,    &   ! Cosmo velocitiy projection at u-points
-      & u_cos_proj_v, v_cos_proj_v         ! Cosmo velocitiy projection at v-points
+   CHARACTER(len=256), SAVE :: romsoc_aux_name   ! ROMSOC auxiliary filename
+   
 
 CONTAINS
 
@@ -122,6 +86,14 @@ CONTAINS
 
       CALL oas_roms_read_nml()
 
+      ! ----------------------------- !
+      ! Set coupling grid properties  !
+      ! ----------------------------- !
+
+      CALL oas_roms_set_grd(cpl_grd(k_rho), k_rho)
+      CALL oas_roms_set_grd(cpl_grd(k_u), k_u)
+      CALL oas_roms_set_grd(cpl_grd(k_v), k_v)
+
       ! ------------------------------------- !
       ! Initialize ROMSOC auxiliary variables !  
       ! ------------------------------------- !
@@ -140,14 +112,6 @@ CONTAINS
 
       ! Close ROMSOC auxiliary file 
       ierr = nf90_close(ncid)
-
-      ! ----------------------------- !
-      ! Set domain indices/dimensions !
-      ! ----------------------------- !
-
-      CALL oas_roms_computebounds(cpl_grd(k_rho))
-      CALL oas_roms_computebounds(cpl_grd(k_u))
-      CALL oas_roms_computebounds(cpl_grd(k_v))
 
       ! ---------------------------------------------------------------- !
       ! Master process writes info on OASIS3 auxiliary files (if needed) ! 

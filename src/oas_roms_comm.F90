@@ -1,31 +1,22 @@
 MODULE oas_roms_comm
-
    ! Description
    ! -----------
    ! This module contains subroutines for initializing and finalizing MPI communications
-
-   ! Subroutines
-   ! -----------
-   ! SUBROUTINE oas_roms_init()
-   !
-   ! SUBROUTINE oas_roms_finalize()
-
-   ! Used modules
-   ! ------------
-   ! USE mod_oasis, ONLY: oasis_init_comp,       &
-   !    &                 oasis_terminate,       &
-   !    &                 oasis_get_localcomm,   &
-   !    &                 oasis_abort
    
-   USE mod_oasis_method, ONLY:   &
-      oasis_init_comp,           &
-      oasis_terminate
+   ! Authors
+   ! -------
+   ! Matthieu Leclair - ETHZ
 
-   USE mod_oasis_auxiliary_routines, ONLY:   &
-      oasis_get_localcomm
+   ! Modules used
+   ! ------------
+   
+   USE mod_oasis_method, ONLY: oasis_init_comp, oasis_terminate
 
-   USE mod_oasis_sys, ONLY:   &
-      oasis_abort
+   USE mod_oasis_auxiliary_routines, ONLY: oasis_get_localcomm
+
+   USE mod_oasis_sys, ONLY: oasis_abort
+
+   USE oas_roms_data, ONLY: kl_comm, ncomp_id, OASIS_Success
 
    
    IMPLICIT NONE
@@ -33,12 +24,6 @@ MODULE oas_roms_comm
    PRIVATE
 
    PUBLIC :: oas_roms_init, oas_roms_finalize
-
-   ! Module variables
-   ! ----------------
-   INTEGER(KIND=4), SAVE, PUBLIC :: kl_comm   ! Local communicator
-   INTEGER(KIND=4), SAVE, PUBLIC :: ncomp_id   ! id returned by oasis_init_comp
-   INTEGER, PARAMETER, PUBLIC :: OASIS_Success=0   ! return code if no error in oasis
 
    
    CONTAINS

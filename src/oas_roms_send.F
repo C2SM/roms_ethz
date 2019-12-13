@@ -35,20 +35,23 @@
 !       Matthieu Leclair - ETHZ
 !
 
-      USE oas_roms_def, ONLY: IOASISDEBUGLVL,
-     &                        ssnd, oas_itemp,
-     &                        cpl_grd, k_rho
+      USE oas_roms_data, ONLY: IOASISDEBUGLVL,
+     &                         ssnd, oas_itemp,
+     &                         cpl_grd, k_rho
 
       USE oas_roms_exchange, ONLY: oas_roms_snd,
      &                             oas_roms_dbg_snd
 
       implicit none
+      
 #include "param.h"
       integer oas_step, oas_dt
 #include "scalars.h"
 #include "ocean3d.h"
 #include "ncvars.h"
 #include "netcdf.inc"
+
+      oas_dt=int((oas_step)*dt)
       
 ! Update fields for sending
 ! -------------------------
@@ -58,20 +61,18 @@
 ! Write Debug File
 ! ----------------
       if ((IOASISDEBUGLVL == 1) .OR. (IOASISDEBUGLVL == 3)) then
-        if (mynode==0) WRITE(6,*) 'ROMS:OASSND_DT', INT((oas_step)*dt)
+        if (mynode==0) WRITE(6,*) 'ROMS:OASSND_DT', oas_dt
         call oas_roms_dbg_snd(oas_step)
       endif
 
       if ( IOASISDEBUGLVL == 3 ) then
-          write(6,*) ' RST_roms.nc restart file written'
-          write(6,*) ' we stop simulation'
-          stop
-        endif
+         write(6,*) ' RST_roms.nc restart file written'
+         write(6,*) ' we stop simulation'
+         stop
       endif
 
 ! Send the Coupling Fields
 ! ------------------------
-      oas_dt=int((oas_step)*dt)
       call oas_roms_snd(oas_dt)
 
       end

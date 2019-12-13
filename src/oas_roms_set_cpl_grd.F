@@ -15,26 +15,31 @@
       call abort
 #endif
       
-      USE oas_roms_def, ONLY: OAS_GRID, cpl_grd, k_rho, k_u, k_v
+      USE oas_roms_data, ONLY: OAS_GRID, cpl_grd, k_rho, k_u, k_v
 
+      implicit none
+      
 !     Arguments
       TYPE(OAS_GRID) :: grd
       integer k_pt
       
+!     Local variables
+      integer type
+      
 #include "param.h"
 #include "ncvars.h"
       
-      if (k_prt == k_rho) then
+      if (k_pt == k_rho) then
          type = r2dvar
          grd%pt = 'rho'
          grd%grd_name = 'Rrho'
          grd%dims_g = (/xi_rho, eta_rho/)
-      elseif (k_prt == k_u) then
+      elseif (k_pt == k_u) then
          type = u2dvar
          grd%pt = 'u'
          grd%grd_name = 'R__u'
          grd%dims_g = (/xi_u, eta_rho/)
-      elseif (k_prt == k_v) then
+      elseif (k_pt == k_v) then
          grd%pt = 'v'
          grd%grd_name = 'R__v'
          grd%dims_g = (/xi_rho, eta_v/)
@@ -53,7 +58,7 @@
 !     -----------
 !     Set coupling grid properties depending on the compute_starts_counts.h include
 
-      USE oas_roms_def, ONLY: OAS_GRID, IOASISDEBUGLVL
+      USE oas_roms_data, ONLY: OAS_GRID, IOASISDEBUGLVL
 
 !     Arguments
       TYPE(OAS_GRID) :: grd

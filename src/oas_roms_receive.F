@@ -35,27 +35,25 @@
 !       Matthieu Leclair - ETHZ
 !
 
-      USE oas_roms_exchange, ONLY:
-     &     oas_roms_rcv, oas_roms_dbg_rcv
+      USE oas_roms_exchange, ONLY: oas_roms_rcv, oas_roms_dbg_rcv
 
-      USE oas_roms_def, ONLY:
-     &     srcv, cpl_grd, k_rho, k_u, k_v,
-     &     oas_UST_U, oas_VST_U,
-     &     oas_UST_V, oas_VST_V,
-     &     oas_NHF, oas_SWR, oas_TEP,
-     &     alpha_rho, alpha_u, alpha_v,
-     &     u_cos_proj_u, v_cos_proj_u,
-     &     u_cos_proj_v, v_cos_proj_v
+      USE oas_roms_data, ONLY: srcv, cpl_grd, k_rho, k_u, k_v,
+     &                         oas_UST_U, oas_VST_U,
+     &                         oas_UST_V, oas_VST_V,
+     &                         oas_NHF, oas_SWR, oas_TEP,
+     &                         alpha_rho, alpha_u, alpha_v,
+     &                         u_cos_proj_u, v_cos_proj_u,
+     &                         u_cos_proj_v, v_cos_proj_v
 
       implicit none
+      
 #include "param.h"
 #include "scalars.h"
 #include "forces.h"
 #include "ocean3d.h"
+      
       integer oas_dt, oas_step, jn, i, j
-      real, parameter ::  cff_wstr=1./rho0,
-     &                    cff_hflx=1./(rho0*Cp),
-     &                    cff_fwflx=0.01/86400
+      real cff_wstr, cff_hflx, cff_fwflx
       real zflx_1, zflx_2
 
 # ifdef DIURNAL_SRFLUX
@@ -69,6 +67,12 @@
 ! -----------------------------
       oas_dt=int((oas_step)*dt)
       call oas_roms_rcv(oas_dt)
+
+! Set conversion coefficients
+! ---------------------------    
+      cff_wstr=1./rho0
+      cff_hflx=1./(rho0*Cp)
+      cff_fwflx=0.01/86400
 
 ! Momentum Flux
 ! -------------
@@ -168,11 +172,11 @@
 ! Write Debug File
 ! ----------------
       call oas_roms_dbg_rcv(oas_step,
-     &     "SUSTR", sustr, k_u,
-     &     "SVSTR", svstr, k_v,
-     &     "NHF"  , stflx(:,:,itemp), k_rho
-     &     "SWR"  , srflx           , k_rho
-     &     "FRESH", stflx(:,:,isalt), k_rho)
+     &     "SUSTR", sustr           , k_u  ,
+     &     "SVSTR", svstr           , k_v  ,
+     &     "NHF"  , stflx(:,:,itemp), k_rho,
+     &     "SWR"  , srflx           , k_rho,
+     &     "FRESH", stflx(:,:,isalt), k_rho )
 
       end
 

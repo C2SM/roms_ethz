@@ -23,15 +23,14 @@ MODULE oas_roms_exchange
       &              nf90_def_var, nf90_put_var,     &
       &              NF90_CLOBBER, NF90_UNLIMITED,   &
       &              NF90_WRITE, NF90_DOUBLE
-   
-   USE oas_roms_comm, ONLY: kl_comm
 
-   USE oas_roms_def, ONLY: OAS_GRID, cpl_grd, k_rho, k_u, k_v,   &
-      &                    srcv, ssnd, krcv, ksnd,               &
-      &                    oas_itemp, oas_UST_U, oas_VST_U,      &
-      &                    oas_UST_V, oas_VST_V,                 &
-      &                    oas_NHF, oas_SWR, oas_TEP,            &
-      &                    IOASISDEBUGLVL
+   USE oas_roms_data, ONLY: kl_comm,                             &
+      &                     OAS_GRID, cpl_grd, k_rho, k_u, k_v,  &
+      &                     oas_itemp, oas_UST_U, oas_VST_U,     &
+      &                     oas_UST_V, oas_VST_V, oas_NHF,       &
+      &                     oas_SWR, oas_TEP,                    &
+      &                     srcv, ssnd, krcv, ksnd,              &
+      &                     IOASISDEBUGLVL
    
 
    IMPLICIT NONE
@@ -51,6 +50,7 @@ MODULE oas_roms_exchange
    END TYPE dbg_file
 
    INTEGER(kind=4), PARAMETER :: NULOUT=6
+   
    
 CONTAINS
 
@@ -138,7 +138,7 @@ CONTAINS
 
       ! Arguments
       INTEGER, INTENT(IN) :: oas_step
-      CHARACTER(len=10), INTENT(IN), OPTIONAL :: vname1, vname2, vname3, vname4, vname5
+      CHARACTER(len=*), INTENT(IN), OPTIONAL :: vname1, vname2, vname3, vname4, vname5
       REAL(KIND=8), DIMENSION(:,:), INTENT(IN), OPTIONAL :: pdata1, pdata2, pdata3, pdata4, pdata5
       INTEGER, INTENT(IN), OPTIONAL :: k_pt1, k_pt2, k_pt3, k_pt4, k_pt5
       
