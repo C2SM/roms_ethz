@@ -1,6 +1,5 @@
-# Definitions for PGI fortran on Brutus
-# AMD Opteron processor
-# =========== === ===== === ======= ======== == =====
+# Definitions for intel fortran on Euler
+# ======================================
 
 #----------------------------------
 .SUFFIXES:	# Delete the default suffixes
