@@ -880,6 +880,7 @@ c$$$       enddo
      &    f_loss_thres,    ! fraction of grazing loss reduction at depth
      &    C_loss_thres,    ! bio-C threshold at which losses go to zero (mmol C/m^3)
      &    VFe,             ! C-specific Fe uptake (non-dim)
+     &    kFe_phaeo,       ! half-sat constant of iron of Phaeo (mmol m-3) when dependent on light
      &    VSiO3,           ! C-specific SiO3 uptake (non-dim)
      &    f_nut,           ! nut limitation factor, modifies C fixation (non-dim)
      &    PCmax,           ! max value of PCphoto at temperature TEMP (1/sec)
@@ -918,7 +919,7 @@ c$$$       enddo
      &    Fe_scavenge,     ! loss of dissolved iron, scavenging (mmol Fe/m^3/sec)
      &    P_iron_prod,     ! P iron production (base units = mmol Fe)
      &    Fe_scavenge_rate, ! annual scavenging rate of iron as % of ambient
-     &    WORK1,WORK2      ! temporary arrays
+     &    WORK1,WORK2,WORK3 ! temporary arrays
 
        REAL, DIMENSION(istr:iend,autotroph_cnt) ::
      &    gQfe,            ! fe/C for growth
@@ -1214,7 +1215,7 @@ c$$$       enddo
           if (CaCO3_ind(auto_ind) > 0) then
 #  ifdef BEC_COCCO
              if (exp_calcifier(auto_ind)) then
-                QCaCO3(istr:iend,auto_ind) = 0.2  ! 0.433
+                QCaCO3(istr:iend,auto_ind) = 0.2  ! 0.2, set to zero for noCalc run
              else 
                 QCaCO3(istr:iend,auto_ind) = 
      &              min( CaCO3_loc(istr:iend,auto_ind) 
@@ -1320,10 +1321,22 @@ c$$$       enddo
        Tfunc_dda = 1.55**(((temp + T0_Kelvin) - (Tref + T0_Kelvin)) / c10)
 # endif /* BEC_DDA */
 # ifdef BEC_PHAEO
-       Tfunc_phaeo = 1.5**(((temp + T0_Kelvin) - (Tref + T0_Kelvin)) / c10)
+!       Tfunc_phaeo = 1.55**(((temp + T0_Kelvin) - (Tref + T0_Kelvin)) / c10)
+! CN: test optimal function (like in Schoemann) that is fit to Phaeo AA
+! data only
+!       Tfunc_phaeo = 1.42*exp(-((temp-2.469)**2)/(3.89**2))
+!       Tfunc_phaeo = Tfunc_phaeo/4.6 !PCref(phaeo_ind)
+       where (temp<3.6) Tfunc_phaeo = 1.562*exp(-((temp-3.6)**2)/(17.505**2))  ! 9.336, 11.67
+       where (temp>=3.6) Tfunc_phaeo = 1.562*exp(-((temp-3.6)**2)/(1.167**2)) ! 1.167, 3.501
+       Tfunc_phaeo = Tfunc_phaeo/4.6 !PCref(phaeo_ind)
 # endif /* BEC_PHAEO */
        Tfunc_diat  = 1.55**(((temp + T0_Kelvin) - (Tref + T0_Kelvin)) / c10)
 
+# ifdef BEC2_DIAG
+#   ifdef BEC_PHAEO
+       bec2_diag_3d(istr:iend,j,k,tfuncphaeo_idx_t) = Tfunc_phaeo
+#   endif
+#   endif
     !-----------------------------------------------------------------------
     !  calculate the loss threshold interpolation factor
     !-----------------------------------------------------------------------
@@ -1379,7 +1392,36 @@ c$$$       enddo
           VNtot(istr:iend,auto_ind) = VNO3(istr:iend,auto_ind) + VNH4(istr:iend,auto_ind)
           if (Nfixer(auto_ind)) VNtot(istr:iend,auto_ind) = c1
 
+! test, CN: make kFe of Phaeo dependent on surrounding PAR!
+# ifdef BEC_PHAEO
+          if (auto_ind==phaeo_ind) then
+!             ! correct at low and high light to measured kFe
+!             ! low light = below 20 muE m-2 s-1 (lowest level tested in
+!             ! Garcia 2009), i.e. below 20*2.173 W m-2 -> kFe=0.26 mumol
+!             ! m-3
+!             ! high light = above 90 muE m-2 s-1 (highest level tested in
+!             ! Garcia 2009), i.e. below 90*2.173 W m-2 -> kFe=0.19 mumol
+!             ! m-3
+!             where (PAR_lay>43.46)
+!                kFe_phaeo = 0.000131*(PAR_lay**2) - 0.01484*PAR_lay + 0.46
+!             elsewhere
+!                kFe_phaeo = 0.26
+!             end where
+!             where (PAR_lay>195.57) kFe_phaeo = 0.19
+!             ! convert to mmol m-3
+!             kFe_phaeo = kFe_phaeo/1000
+             kFe_phaeo = kFe(phaeo_ind)
+# ifdef BEC2_DIAG
+             bec2_diag_3d(istr:iend,j,k,phaeokfe_idx_t) = kFe_phaeo
+# endif
+             VFe = Fe_loc / (Fe_loc + kFe_phaeo)
+!             VFe = Fe_loc / (Fe_loc + kFe(auto_ind))
+          else
+             VFe = Fe_loc / (Fe_loc + kFe(auto_ind))
+          endif
+# else
           VFe = Fe_loc / (Fe_loc + kFe(auto_ind))
+# endif
           f_nut = min(VNtot(istr:iend,auto_ind), VFe)
 
           VPO4(istr:iend,auto_ind) = (PO4_loc / kPO4(auto_ind)) /
@@ -1462,20 +1504,22 @@ c$$$       enddo
     !-----------------------------------------------------------------------
 
 # ifdef BEC_PHAEO 
-       ! reduce phaeo growth linearly above 6degC
-          if (auto_ind==phaeo_ind) then
-          tcrit1 = 5.0
-          do i=istr,iend
-             if (temp(i)>tcrit1) then
-                tfunc_tcrit1 = 1.5**(((tcrit1 + T0_Kelvin) - (Tref + T0_Kelvin)) / c10)  ! Tfunc at tcrit1
-                tfunc_2 = -1.0*tfunc_tcrit1/(temp_thres(phaeo_ind)-tcrit1)  ! slope 
-                tfunc_3 = tfunc_tcrit1-(tcrit1*tfunc_2)  ! y-Achsenabschnitt
-                Tfunc_phaeo(i) = max(0.0,(tfunc_2*temp(i)+tfunc_3)*PCref(phaeo_ind))
-             endif
-          enddo
-        ! Phaeo cease to grow above 10degC
-          where (temp > temp_thres(auto_ind)) Tfunc_phaeo = c0
-          endif
+! CN: test optimal function (like in Schoemann) that is fit to Phaeo AA
+! data only -> doesn't need this temp correction!!!
+!       ! reduce phaeo growth linearly above 6degC
+!          if (auto_ind==phaeo_ind) then
+!          tcrit1 = 5.0
+!          do i=istr,iend
+!             if (temp(i)>tcrit1) then
+!                tfunc_tcrit1 = 1.5**(((tcrit1 + T0_Kelvin) - (Tref + T0_Kelvin)) / c10)  ! Tfunc at tcrit1
+!                tfunc_2 = -1.0*tfunc_tcrit1/(temp_thres(phaeo_ind)-tcrit1)  ! slope 
+!                tfunc_3 = tfunc_tcrit1-(tcrit1*tfunc_2)  ! y-Achsenabschnitt
+!                Tfunc_phaeo(i) = max(0.0,(tfunc_2*temp(i)+tfunc_3)*PCref(phaeo_ind))
+!             endif
+!          enddo
+!        ! Phaeo cease to grow above 10degC
+!          where (temp > temp_thres(auto_ind)) Tfunc_phaeo = c0
+!          endif
 # endif /* BEC_PHAEO */
 
 
@@ -1754,11 +1798,10 @@ c$$$       enddo
 # endif /* BEC_DDA */
 # ifdef BEC_PHAEO
        elseif (auto_ind == phaeo_ind) then
-          !auto_loss(istr:iend,auto_ind) =  mort(auto_ind) * 
-          !Pprime(istr:iend,auto_ind) * Tfunc_phaeo
-! CN: increase Phaeo mortality under stress
-          auto_loss(istr:iend,auto_ind) = mort(auto_ind)*(2.0-min(f_nut,light_lim))*
-     &                    Pprime(istr:iend,auto_ind) * Tfunc_phaeo
+          auto_loss(istr:iend,auto_ind) =  mort(auto_ind) * Pprime(istr:iend,auto_ind) * Tfunc_phaeo
+!! CN: increase Phaeo mortality under stress
+!          auto_loss(istr:iend,auto_ind) = mort(auto_ind)*(2.0-min(f_nut,light_lim))*
+!     &                    Pprime(istr:iend,auto_ind) * Tfunc_phaeo
 # endif /* BEC_PHAEO */
        else
           auto_loss(istr:iend,auto_ind) =  mort(auto_ind) * Pprime(istr:iend,auto_ind) * Tfunc
@@ -1791,14 +1834,27 @@ c$$$       enddo
           end do
 
           z_umax = z_umax_0(auto_ind) * Tfunc
+
+! CN, July 2018: use grazing formulation as in Wang2011: use combined
+! biomass of phaeo and diatoms for grazing on these two 
+!          if (auto_ind == phaeo_ind) then
+!              WORK3=Pprime(istr:iend,phaeo_ind) + Pprime(istr:iend,diat_ind)
+!          elseif (auto_ind == diat_ind) then
+!              WORK3=Pprime(istr:iend,phaeo_ind) + Pprime(istr:iend,diat_ind)
+!          else
+              WORK3 = WORk1
+!          endif
+
           where (WORK1 > c0)
 #  ifdef KILL_THE_WINNER
              auto_graze(istr:iend,auto_ind) = (Pprime(istr:iend,auto_ind)**WORK2 / WORK1) *
      &           z_umax * zooC_loc * (WORK1 / (WORK1 + z_grz(auto_ind)))
 !     &           z_umax * zooC_loc * (WORK1**WORK3 / (WORK1**WORK3 + z_grz(auto_ind)**WORK3))
 #  else /* no prey switching */
+!             auto_graze(istr:iend,auto_ind) = (Pprime(istr:iend,auto_ind) / WORK1) *
+!     &           z_umax * zooC_loc * (WORK1 / (WORK1 + z_grz(auto_ind)))
              auto_graze(istr:iend,auto_ind) = (Pprime(istr:iend,auto_ind) / WORK1) *
-     &           z_umax * zooC_loc * (WORK1 / (WORK1 + z_grz(auto_ind)))
+     &           z_umax * zooC_loc * (WORK1 / (WORK3 + z_grz(auto_ind)))
 #  endif /* KILL_THE_WINNER */
           elsewhere
              auto_graze(istr:iend,auto_ind) = c0
@@ -3417,7 +3473,8 @@ c$$$       enddo
                 FESEDFLUX(i) = 170 * tanh(flux_oxidated(i)/O2_loc(i))
             endif
             ! convert from umol m-2 d-1 to mmol m-2 s-1
-            FESEDFLUX(i) = FESEDFLUX(i)*0.001/86400.     !sec2day=1/86400
+            FESEDFLUX(i) = 0.5*FESEDFLUX(i)*0.001/86400.     !sec2day=1/86400
+            !FESEDFLUX(i) = FESEDFLUX(i)*0.001/86400.     !sec2day=1/86400
 # endif
 # ifdef BEC2_DIAG
              bec2_diag_2d(i,j,fesedflux_idx_t) = FESEDFLUX(i)
