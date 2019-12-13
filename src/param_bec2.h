@@ -201,7 +201,7 @@
      &   f_graze_sp_poc_lim = 0.3, 
      &   f_photosp_CaCO3  = 0.4,  ! proportionality between small phyto 
      &                            ! production and CaCO3 production
-     &   f_graze_CaCO3_remin = 0.33, ! fraction of spCaCO3 grazing 
+     &   f_graze_CaCO3_remin = 0.75, ! 0.33 fraction of spCaCO3 grazing 
      &                               !          which is remin
      &   f_graze_si_remin    = 0.35  ! fraction of diatom Si grazing 
      &                               !          which is remin
