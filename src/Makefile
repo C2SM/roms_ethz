@@ -78,17 +78,17 @@ FLTSRC = init_floats.F	init_arrays_floats.F	get_init_flts.F\
 
 CPLSRCF90 = oas_roms_comm.F90 oas_roms_def.F90 oas_roms_exchange.F90
 
-CPLSRC = oas_roms_computebounds.F oas_roms_send.F oas_roms_receive.F
+CPLSRC = oas_roms_set_cpl_grd.F oas_roms_send.F oas_roms_receive.F
 
 CPLOBJ = oas_roms_comm.o oas_roms_def.o oas_roms_exchange.o\
-         oas_roms_computebounds.o oas_roms_send.o oas_roms_receive.o
+         oas_roms_set_cpl_grd.o oas_roms_send.o oas_roms_receive.o
 
 # old/obsolete/non-parallelized stuff
 #       pp_vmix.F	get_wwave.F	smol_adv.F	get_bsedim.F
 
-  SRCS = $(KRNSRC) $(IOSRC) $(BIOSRC)
-   RCS = $(SRCS:.F=.f)
-  OBJS = $(RCS:.f=.o)
+  SRCS = $(KRNSRC) $(IOSRC) $(BIOSRC) $(CPLSRC) $(CPLSRCF90)
+   RCS = $(SRCS:.F=.f) $(SRCS:.F90=.f90)
+  OBJS = $(RCS:.f=.o) $(RCS:.f90=.o)
   SBIN = roms
  LROMS = libroms.a
  LROMS2 = 2/$(LROMS)
