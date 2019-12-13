@@ -38,7 +38,7 @@
      &    +16
 # endif
 # ifdef BEC_PHAEO
-     &    +17
+     &    +19
 # endif
      &          ,nr_bec2_diag_2d=29+nr_cchem_mocsy_2d )
       parameter( nr_bec2_diag=nr_bec2_diag_2d+nr_bec2_diag_3d )
@@ -179,9 +179,11 @@
      &   phaeolossdic_idx_t=LAST_I+13,grazephaeozoo_idx_t=LAST_I+14,
      &   phaeophotoacc_idx_t=LAST_I+15,
      &   phaeoplim_idx_t=LAST_I+16,
-     &   pocprodphaeo_idx_t=LAST_I+17
+     &   pocprodphaeo_idx_t=LAST_I+17,
+     &   phaeokfe_idx_t=LAST_I+18,
+     &   tfuncphaeo_idx_t=LAST_I+19
 #  undef LAST_I
-#  define LAST_I pocprodphaeo_idx_t
+#  define LAST_I tfuncphaeo_idx_t
 # endif
 
       ! Indices to be used in bec2_diag_2d only:

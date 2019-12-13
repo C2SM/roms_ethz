@@ -163,9 +163,10 @@
      &            , indxPHAEONH4UPTAKE=LAST_I+11,indxPHAEOGRAZEDIC=LAST_I+12
      &            , indxPHAEOLOSSDIC=LAST_I+13,indxGRAZEPHAEOZOO=LAST_I+14
      &            , indxPHAEOPHOTOACC=LAST_I+15,indxPHAEOPLIM=LAST_I+16
-     &            , indxPOCPRODPHAEO=LAST_I+17
+     &            , indxPOCPRODPHAEO=LAST_I+17,indxPHAEOKFE=LAST_I+18
+     &            , indxTFUNCPHAEO=LAST_I+19
 #  undef LAST_I
-#  define LAST_I indxPOCPRODPHAEO
+#  define LAST_I indxTFUNCPHAEO
 # endif
 # endif /* BEC2_DIAG */
 #endif /* BIOLOGY_BEC2 */
