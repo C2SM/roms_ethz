@@ -59,7 +59,7 @@
       parm_labile_ratio      = 0.85
       parm_POMbury           = 1.4 ! x1 default
       parm_BSIbury           = 0.45 ! x1 default
-      parm_Fe_scavenge_rate0 = 1.3 ! x1 default     2.8
+      parm_Fe_scavenge_rate0 = 0.5 ! x1 default     2.8
       parm_f_prod_sp_CaCO3   = 0.055 ! x1 default   0.04
       parm_POC_diss          = 82.0   ! 88 in cBEC, 82
       parm_SiO2_diss         = 360.0  ! 250 in cBEC, 360
@@ -89,7 +89,7 @@
       Si_ind(auto_ind)        = 0
       imp_calcifier(auto_ind) = .true. ! this is over-written in case of BEC_COCCO
       CaCO3_ind(auto_ind)     = spCaCO3_ind_t
-      kFe(auto_ind)           = 0.08e-3
+      kFe(auto_ind)           = 0.10e-3
       kPO4(auto_ind)          = 0.01
       kDOP(auto_ind)          = 0.26
       kNO3(auto_ind)          = 0.1
@@ -129,7 +129,7 @@
       Fe_ind(auto_ind)        = diatFe_ind_t
       Si_ind(auto_ind)        = diatSi_ind_t
       CaCO3_ind(auto_ind)     = 0
-      kFe(auto_ind)           = 0.12e-3
+      kFe(auto_ind)           = 0.15e-3
       kPO4(auto_ind)          = 0.05
       kDOP(auto_ind)          = 0.9
       kNO3(auto_ind)          = 0.5
@@ -169,7 +169,7 @@
       Fe_ind(auto_ind)        = diazFe_ind_t
       Si_ind(auto_ind)        = 0
       CaCO3_ind(auto_ind)     = 0
-      kFe(auto_ind)           = 0.08e-3
+      kFe(auto_ind)           = 0.1267e-3
       kPO4(auto_ind)          = 0.02
       kDOP(auto_ind)          = 0.09
       kNO3(auto_ind)          = 1.0
@@ -213,7 +213,7 @@
       Fe_ind(auto_ind)        = coccoFe_ind_t
       Si_ind(auto_ind)        = 0
       CaCO3_ind(auto_ind)     = coccoCal_ind_t
-      kFe(auto_ind)           = 0.10e-3
+      kFe(auto_ind)           = 0.125e-3
       kPO4(auto_ind)          = 0.03
       kDOP(auto_ind)          = 0.3
       kNO3(auto_ind)          = 0.3
@@ -235,9 +235,9 @@
       z_umax_0(auto_ind)      = 4.4*dps
       z_grz(auto_ind)         = 1.05
       graze_zoo(auto_ind)     = 0.3
-      graze_poc(auto_ind)     = 0.20
+      graze_poc(auto_ind)     = 0.20 ! 0.2 before, set to 0.05 for NoCalc run (as for SP)
       graze_doc(auto_ind)     = 0.15
-      loss_poc(auto_ind)      = 0.2
+      loss_poc(auto_ind)      = 0.2  ! 0.2 before, set to zero for noCalc run
       f_zoo_detr(auto_ind)    = 0.2
 #endif
 #ifdef BEC_DDA
@@ -294,29 +294,29 @@
       Fe_ind(auto_ind)        = phaeoFe_ind_t
       Si_ind(auto_ind)        = 0
       CaCO3_ind(auto_ind)     = 0
-      kFe(auto_ind)           = 0.18e-3
-      kPO4(auto_ind)          = 0.1
+      kFe(auto_ind)           = 0.2e-3  ! 0.1875, 0.15
+      kPO4(auto_ind)          = 0.05
       kDOP(auto_ind)          = 0.9
-      kNO3(auto_ind)          = 0.8
+      kNO3(auto_ind)          = 0.5
       kNH4(auto_ind)          = 0.05
       kSiO3(auto_ind)         = 0.0
       Qp(auto_ind)            = 0.00855
       gQfe_0(auto_ind)        = 20e-6
       gQfe_min(auto_ind)      = 3.0e-6
-      alphaPI(auto_ind)       = 0.5*dps
+      alphaPI(auto_ind)       = 0.63*dps
       PCref(auto_ind)         = 4.6*dps
       thetaN_max(auto_ind)    = 2.5
       loss_thres(auto_ind)   = 0.04
       loss_thres2(auto_ind)  = 0.0
-      temp_thres(auto_ind)   = 8.0
-      mort(auto_ind)          = 0.12*dps
-      mort2(auto_ind)         = 0.001*dps
+      temp_thres(auto_ind)   = 40.0 ! for Phaeo, growth is restricted ABOVE this temperature
+      mort(auto_ind)          = 0.18*dps
+      mort2(auto_ind)         = 0.005*dps  ! 0.001 before 
       agg_rate_max(auto_ind)  = 0.9
       agg_rate_min(auto_ind)  = 0.02
       z_umax_0(auto_ind)      = 3.6*dps
       z_grz(auto_ind)         = 1.0
       graze_zoo(auto_ind)     = 0.3
-      graze_poc(auto_ind)     = 0.42
+      graze_poc(auto_ind)     = 0.30
       graze_doc(auto_ind)     = 0.15
       loss_poc(auto_ind)      = 0.0
       f_zoo_detr(auto_ind)    = 0.2
