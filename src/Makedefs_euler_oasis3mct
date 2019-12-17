@@ -5,16 +5,24 @@
 .SUFFIXES:	# Delete the default suffixes
 .SUFFIXES: .o .mod .f .F .F90 .f90
 .PRECIOUS: %.f %.f90
-# Use pattern rule to indicate dependency on mpc
-%.f:  mpc %.F 
-	$(CPP) -P $(CPPFLAGS) $*.F | mpc > $@
-.f.o:
-	$(FC) -c $(FFLAGS) $< -o $@
 
-# clear implicit rule .F90.o
-%.o: %.F90 
-# clear implicit rule .F.o
-%.o: %.F 
+# Pattern rules
+%.o: %.F
+	$(CPP) -P $(CPPFLAGS) $*.F | mpc > $*.f
+	$(FC) -c $(FFLAGS) $*.f -o $@
+
+# CAUTION: mpc is not run on .F90 files, use .FF90
+#          if you need mpc to be ran
+%.o: %.F90
+	$(CPP) -P $(CPPFLAGS) $< > $*.f90
+	$(FC) -c $(FFLAGS) $*.f90 -o $@
+
+# .FF90 is an ad'hoc file type to write Fortran 90 modules
+# holding FIXED FORMAT code so that one can include ROMS .h files
+# and run mpc on them.
+%.o: %.FF90
+	$(CPP) -P $(CPPFLAGS) $*.FF90 | mpc > $*.f90
+	$(FC) -c $(FFLAGS) -nofree $*.f90 -o $@
 
 #----------------------------------
 

@@ -57,7 +57,6 @@ BIOSRC = CalcPar.F  carbon.F  co2calc_SWS.F  def_bgc_flux.F\
 	get_iron.F set_bec_flux_avg.F wrt_bec_flux_avg.F wrt_bec_flux_his.F\
 	init_scalars_becflux.F def_bec_flux.F get_pco2air.F
 
-
 IOSRC = nf_fread.F	nf_read_bry.F	set_cycle.F	checkdims.F\
 	insert_node.F	closecdf.F	put_global_atts.F\
 	get_grid.F	get_init.F	wrt_grid.F\
@@ -70,31 +69,23 @@ IOSRC = nf_fread.F	nf_read_bry.F	set_cycle.F	checkdims.F\
 	get_tides.F	set_tides.F \
 	get_nox.F       get_nhy.F       get_din_river.F # for BEC2
 
-
-
 FLTSRC = init_floats.F	init_arrays_floats.F	get_init_flts.F\
 	interp_rho.F	rhs_floats.F	step_floats.F\
 	def_floats.F	wrt_floats.F
 
-CPLSRCF90 = oas_roms_data.F90 oas_roms_comm.F90 oas_roms_def.F90 oas_roms_exchange.F90
-
-CPLSRCF = oas_roms_set_cpl_grd.F oas_roms_send.F oas_roms_receive.F
+CPLOBJS = oas_roms_data.o oas_roms_set_cpl_grd.o oas_roms_comm.o oas_roms_def.o\
+          oas_roms_exchange.o oas_roms_send_receive.o
 
 # old/obsolete/non-parallelized stuff
 #       pp_vmix.F	get_wwave.F	smol_adv.F	get_bsedim.F
 
   SRCS = $(KRNSRC) $(IOSRC) $(BIOSRC)
-   RCS = $(SRCS:.F=.f)
-  OBJS = $(RCS:.f=.o)
+  OBJS = $(SRCS:.F=.o)
   SBIN = roms
  LROMS = libroms.a
  LROMS2 = 2/$(LROMS)
  LROMS3 = 2/$(LROMS) 3/$(LROMS)
  LROMS4 = 2/$(LROMS) 3/$(LROMS) 4/$(LROMS)
-
-CPLRCS = $(CPLSRCF:.F=.f)
-CPLOBJSF = $(CPLRCS:.f=.o)
-CPLOBJSF90 = $(CPLSRCF90:.F90=.o)
 
 # ROMS excutable
 $(SBIN): $(LROMS)
@@ -125,16 +116,10 @@ $(LROMS): $(OBJS)
 # Everything
 all: mpc tools depend $(SBIN)
 
-# Make coupled version
-roms_cpl: mpc cplf $(OBJS)
-	$(LDR) $(FFLAGS) $(LDFLAGS) -o a.out $(OBJS) $(CPLOBJSF) $(CPLOBJSF90) $(LCDF) $(LMPI) $(LIBPSMILE)
+# Build roms and link with the coupling interface
+roms_cpl: mpc $(CPLOBJS) $(OBJS)
+	$(LDR) $(FFLAGS) $(LDFLAGS) -o a.out $(OBJS) $(CPLOBJS) $(LCDF) $(LMPI) $(LIBPSMILE)
 	mv a.out $(SBIN)_cpl
-cplf: cpl_int $(CPLOBJSF)
-cpl_int: set_grd $(CPLSRCF90)
-	$(FC) -c $(FFLAGS) $(CPLSRCF90)
-set_grd: cpl_data oas_roms_set_cpl_grd.o
-cpl_data: oas_roms_data.F90
-	$(FC) -c $(FFLAGS) oas_roms_data.F90
 
 # A program to test MPI halo exchange routines.
 # - ------- -- ---- --- ---- -------- ---------

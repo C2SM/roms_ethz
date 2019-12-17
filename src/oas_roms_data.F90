@@ -53,10 +53,10 @@ MODULE oas_roms_data
    ! Sent fields ids
    INTEGER, SAVE, PUBLIC :: oas_itemp   ! sea surface temperature [K]
    ! received fields ids
-   INTEGER, SAVE, PUBLIC :: oas_UST_U   !  / 
+   INTEGER, SAVE, PUBLIC :: oas_UST_U   ! | 
    INTEGER, SAVE, PUBLIC :: oas_VST_U   ! |  oas_XST_Y corresponds to COSMO X-wind STress
    INTEGER, SAVE, PUBLIC :: oas_UST_V   ! |  at ROMS Y-points (momentum flux) [N/m2]
-   INTEGER, SAVE, PUBLIC :: oas_VST_V   !  \
+   INTEGER, SAVE, PUBLIC :: oas_VST_V   ! |
    INTEGER, SAVE, PUBLIC :: oas_NHF     ! Net Heat Flux [W/m2]
    INTEGER, SAVE, PUBLIC :: oas_SWR     ! direct ShortWave downward Radiation [W/m2]
    INTEGER, SAVE, PUBLIC :: oas_TEP     ! Total Evaporation - Precipitation [kg/m2*s]

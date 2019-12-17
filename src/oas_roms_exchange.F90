@@ -1,8 +1,7 @@
 MODULE oas_roms_exchange
    ! Description
    ! -----------
-   ! Module holding subroutines for  exchanging fields
-   ! with the OASIS coupler as well as related variables.
+   ! Module holding subroutines for  exchanging fields with the OASIS coupler.
    
    ! Authors
    ! -------

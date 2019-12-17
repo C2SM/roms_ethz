@@ -425,6 +425,7 @@ C$OMP END MASTER
 
  
       subroutine roms_step
+      USE oas_roms_send_receive, ONLY: oas_roms_send, oas_roms_receive
       implicit none
       integer trd, tile, my_first, my_last, range
 #include "param.h"
