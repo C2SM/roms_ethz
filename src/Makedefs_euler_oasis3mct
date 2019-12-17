@@ -11,7 +11,7 @@
 	$(CPP) -P $(CPPFLAGS) $*.F | mpc > $*.f
 	$(FC) -c $(FFLAGS) $*.f -o $@
 
-# CAUTION: mpc is not run on .F90 files, use .FF90
+# CAUTION: mpc is not ran on .F90 files, use .FF90
 #          if you need mpc to be ran
 %.o: %.F90
 	$(CPP) -P $(CPPFLAGS) $< > $*.f90

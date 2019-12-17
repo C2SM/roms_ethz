@@ -75,10 +75,10 @@ CONTAINS
       ! -----------
 
       ! Arguments
-      CHARACTER(len=256) :: grdname
+      CHARACTER(len=256), INTENT(IN) :: grdname
 
       ! Local variables
-      INTEGER ncid, ierr, il_flag, mype
+      INTEGER :: ncid, ierr, il_flag, mype
       
       ! ---------------------------------------------------- !
       ! Read in namelilst parameters for coupling with OASIS !  
@@ -93,8 +93,8 @@ CONTAINS
       ! ----------------------------- !
 
       CALL oas_roms_set_grd(cpl_grd(k_rho), k_rho)
-      CALL oas_roms_set_grd(cpl_grd(k_u), k_u)
-      CALL oas_roms_set_grd(cpl_grd(k_v), k_v)
+      CALL oas_roms_set_grd(cpl_grd(k_u  ), k_u  )
+      CALL oas_roms_set_grd(cpl_grd(k_v  ), k_v  )
 
       ! ------------------------------------- !
       ! Initialize ROMSOC auxiliary variables !  
@@ -105,8 +105,8 @@ CONTAINS
       
       ! Read in coupling mask
       CALL romsoc_read_alpha(ncid, cpl_grd(k_rho), alpha_rho)
-      CALL romsoc_read_alpha(ncid, cpl_grd(k_u), alpha_u)
-      CALL romsoc_read_alpha(ncid, cpl_grd(k_v), alpha_v)
+      CALL romsoc_read_alpha(ncid, cpl_grd(k_u  ), alpha_u  )
+      CALL romsoc_read_alpha(ncid, cpl_grd(k_v  ), alpha_v  )
       
       ! Read in velocity directions and compute projection coefficients
       CALL romsoc_get_proj(ncid, cpl_grd(k_u), u_cos_proj_u, v_cos_proj_u)
@@ -132,18 +132,18 @@ CONTAINS
 
             ! Write grids
             CALL oas_roms_wrt_grd(ncid, cpl_grd(k_rho))
-            CALL oas_roms_wrt_grd(ncid, cpl_grd(k_u))
-            CALL oas_roms_wrt_grd(ncid, cpl_grd(k_v))
+            CALL oas_roms_wrt_grd(ncid, cpl_grd(k_u  ))
+            CALL oas_roms_wrt_grd(ncid, cpl_grd(k_v  ))
 
             ! Write masks
             CALL oas_roms_wrt_msk(ncid, cpl_grd(k_rho))
-            CALL oas_roms_wrt_msk(ncid, cpl_grd(k_u))
-            CALL oas_roms_wrt_msk(ncid, cpl_grd(k_v))
+            CALL oas_roms_wrt_msk(ncid, cpl_grd(k_u  ))
+            CALL oas_roms_wrt_msk(ncid, cpl_grd(k_v  ))
 
             ! Write corners
             CALL oas_roms_wrt_crn(ncid, cpl_grd(k_rho))
-            CALL oas_roms_wrt_crn(ncid, cpl_grd(k_u))
-            CALL oas_roms_wrt_crn(ncid, cpl_grd(k_v))
+            CALL oas_roms_wrt_crn(ncid, cpl_grd(k_u  ))
+            CALL oas_roms_wrt_crn(ncid, cpl_grd(k_v  ))
 
             ! Write areas
             CALL oas_roms_wrt_areas(ncid)
@@ -164,8 +164,8 @@ CONTAINS
       ! overlaps between subdomains
 
       CALL oas_roms_def_part(cpl_grd(k_rho))
-      CALL oas_roms_def_part(cpl_grd(k_u))
-      CALL oas_roms_def_part(cpl_grd(k_v))
+      CALL oas_roms_def_part(cpl_grd(k_u  ))
+      CALL oas_roms_def_part(cpl_grd(k_v  ))
 
       ! --------------------------------- !
       ! Definition of the coupling Fields !
@@ -225,6 +225,10 @@ CONTAINS
       ! Describe namelist content
       NAMELIST /romsoc/ romsoc_aux_name, IOASISDEBUGLVL
 
+      ! Initialize with default values
+      romsoc_aux_name = "romsoc_aux.nc"
+      IOASISDEBUGLVL = 0
+
       ! Open namelist file
       OPEN(nuin, FILE=nml_filename, FORM='FORMATTED', STATUS='UNKNOWN',   &
          &       IOSTAT=ierr)
@@ -232,8 +236,6 @@ CONTAINS
          WRITE(*,*) 'Error while opening', nml_filename
          CALL abort
       END IF
-
-      ! - ML - Still need to put default values here
       
       ! Read namelist
       READ(nuin, romsoc, IOSTAT=ierr)
