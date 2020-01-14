@@ -13,13 +13,14 @@ MODULE oas_roms_data
    INTEGER(KIND=4), SAVE, PUBLIC :: ncomp_id   ! id returned by oasis_init_comp
    INTEGER, PARAMETER, PUBLIC :: OASIS_Success=0   ! return code if no error in oasis
    
-   ! OASIS debug level
-   ! -----------------
+   ! ROMSOC namelist parameters
+   ! --------------------------
    INTEGER(KIND=4), PUBLIC, SAVE :: IOASISDEBUGLVL   ! OASIS debug level
    !                                                 ! 0 : Minimum debugging
    !                                                 ! 1 : Debugging
    !                                                 ! 2 : Perfs measurement
    !                                                 ! 3 : OASIS restart production
+   LOGICAL, PUBLIC, SAVE :: gen_rst   ! generate restart files
 
    ! Coupling grids
    ! --------------

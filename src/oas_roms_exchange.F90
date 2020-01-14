@@ -9,12 +9,8 @@ MODULE oas_roms_exchange
 
    ! Modules used
    ! ------------
-   USE mod_oasis_getput_interface, ONLY: oasis_get, oasis_put
 
-   USE mod_oasis_parameters, ONLY: OASIS_Recvd, OASIS_FromRest,        &
-      &                            OASIS_RecvOut, OASIS_FromRestOut,   &
-      &                            OASIS_Sent, OASIS_ToRest,           &
-      &                            OASIS_SentOut, OASIS_ToRestOut
+   USE MPI
 
    USE netcdf, ONLY: nf90_create, nf90_enddef,       &
       &              nf90_open, nf90_close,          &
@@ -22,6 +18,13 @@ MODULE oas_roms_exchange
       &              nf90_def_var, nf90_put_var,     &
       &              NF90_CLOBBER, NF90_UNLIMITED,   &
       &              NF90_WRITE, NF90_DOUBLE
+   
+   USE mod_oasis_getput_interface, ONLY: oasis_get, oasis_put
+
+   USE mod_oasis_parameters, ONLY: OASIS_Recvd, OASIS_FromRest,        &
+      &                            OASIS_RecvOut, OASIS_FromRestOut,   &
+      &                            OASIS_Sent, OASIS_ToRest,           &
+      &                            OASIS_SentOut, OASIS_ToRestOut
 
    USE oas_roms_data, ONLY: kl_comm,                             &
       &                     OAS_GRID, cpl_grd, k_rho, k_u, k_v,  &
@@ -100,7 +103,8 @@ CONTAINS
 
             ! Call OASIS at each time step but field sent to other model only at coupling time step
             ! (accumulation otherwise, if asked in the namcouple configuration file)
-            CALL oasis_put(ssnd(jn)%nid, kstep, ssnd(jn)%pdata, kinfo)
+            CALL oasis_put(ssnd(jn)%nid, kstep, ssnd(jn)%pdata, kinfo,   &
+               & write_restart=(IOASISDEBUGLVL==3))
 
             ! - ML - Is that really necessary? Comment out for now
             ! IF ( kinfo .EQ. OASIS_Sent .OR. kinfo .EQ. OASIS_ToRest .OR.   &

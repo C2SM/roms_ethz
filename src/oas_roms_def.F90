@@ -14,6 +14,13 @@ MODULE oas_roms_def
    
    ! Used modules
    ! ------------
+
+   USE MPI
+
+   USE netcdf, ONLY: nf90_open, nf90_close, nf90_strerror,  &
+      &              nf90_inq_varid, nf90_get_var,   &
+      &              NF90_NOWRITE, NF90_NOERR
+   
    USE mod_oasis_grid, ONLY: oasis_write_grid,               &
       &                      oasis_write_mask,               &
       &                      oasis_write_corner,             &
@@ -34,10 +41,6 @@ MODULE oas_roms_def
    USE mod_oasis_method, ONLY: oasis_enddef
 
    USE mod_oasis_kinds, ONLY: ip_intwp_p
-
-   USE netcdf, ONLY: nf90_open, nf90_close, nf90_strerror,  &
-      &              nf90_inq_varid, nf90_get_var,   &
-      &              NF90_NOWRITE, NF90_NOERR
 
    USE oas_roms_data, ONLY: OASIS_Success, ncomp_id, kl_comm,     &
       &                     OAS_GRID, cpl_grd, k_rho, k_u, k_v,   &
@@ -62,6 +65,7 @@ MODULE oas_roms_def
    ! Module variables
    ! ----------------
    CHARACTER(len=256), SAVE :: romsoc_aux_name   ! ROMSOC auxiliary filename
+   INTEGER :: mype
    
 
 CONTAINS
@@ -78,7 +82,9 @@ CONTAINS
       CHARACTER(len=256), INTENT(IN) :: grdname
 
       ! Local variables
-      INTEGER :: ncid, ierr, il_flag, mype
+      INTEGER :: ncid, ierr, il_flag
+
+      CALL MPI_Comm_rank(kl_comm, mype, ierr)
       
       ! ---------------------------------------------------- !
       ! Read in namelilst parameters for coupling with OASIS !  
@@ -118,8 +124,6 @@ CONTAINS
       ! ---------------------------------------------------------------- !
       ! Master process writes info on OASIS3 auxiliary files (if needed) ! 
       ! ---------------------------------------------------------------- !
-
-      CALL MPI_Comm_rank(kl_comm, mype, ierr)
       
       IF (mype .EQ. 0) THEN   ! Only master node writes grid file
 
@@ -222,6 +226,10 @@ CONTAINS
       CHARACTER(len=*), PARAMETER :: nml_filename="romsoc.nml"
       INTEGER :: ierr
 
+      IF ((IOASISDEBUGLVL > 0) .AND. (mype == 0)) THEN
+         WRITE(*,*) "OAS_ROMS : Reading namelist romsoc.nml"
+      END IF
+
       ! Describe namelist content
       NAMELIST /romsoc/ romsoc_aux_name, IOASISDEBUGLVL
 
@@ -240,7 +248,7 @@ CONTAINS
       ! Read namelist
       READ(nuin, romsoc, IOSTAT=ierr)
       IF (ierr /= 0) THEN
-         WRITE(*,*) 'Error while reading namelist romsoc from', nml_filename
+         WRITE(*,*) 'mype=', mype, ' Error while reading namelist romsoc from ', nml_filename
          CALL abort
       END IF
       
@@ -259,6 +267,10 @@ CONTAINS
       
       ! Local variables
       REAL(KIND=8), DIMENSION(:,:), ALLOCATABLE :: lon, lat
+      
+      IF ((IOASISDEBUGLVL > 0) .AND. (mype == 0)) THEN
+         WRITE(*,*) "OAS_ROMS : writing OASIS grid at ", TRIM(grd%pt), "-points"
+      END IF
 
       ALLOCATE(lon(grd%dims_g(1),grd%dims_g(2)),   &
          &     lat(grd%dims_g(1),grd%dims_g(2)))
@@ -285,6 +297,10 @@ CONTAINS
       
       ! Local variables
       REAL(KIND=8), DIMENSION(:,:), ALLOCATABLE :: mask
+      
+      IF ((IOASISDEBUGLVL > 0) .AND. (mype == 0)) THEN
+         WRITE(*,*) "OAS_ROMS : writing OASIS mask at ", TRIM(grd%pt), "-points"
+      END IF
 
       ALLOCATE(mask(grd%dims_g(1),grd%dims_g(2)))
       
@@ -311,6 +327,10 @@ CONTAINS
       ! Local variables
       REAL(KIND=8), DIMENSION(:,:,:), ALLOCATABLE :: lon, lat
       INTEGER, DIMENSION(3) :: shp
+      
+      IF ((IOASISDEBUGLVL > 0) .AND. (mype == 0)) THEN
+         WRITE(*,*) "OAS_ROMS : writing OASIS grid corners at ", TRIM(grd%pt), "-points"
+      END IF
 
       shp = (/grd%dims_g(1), grd%dims_g(2), 4/)
 
@@ -339,6 +359,10 @@ CONTAINS
       ! Local variables
       REAL(KIND=8), DIMENSION(:,:), ALLOCATABLE :: e1, e2, a_rho, a_u, a_v
       INTEGER :: n_xi, n_eta, n_xi_rho, n_eta_rho
+      
+      IF ((IOASISDEBUGLVL > 0) .AND. (mype == 0)) THEN
+         WRITE(*,*) "OAS_ROMS : writing OASIS areas"
+      END IF
 
       ! Allocate and read scale factors
       n_xi_rho = cpl_grd(k_rho)%dims_g(1)
@@ -392,6 +416,10 @@ CONTAINS
       INTEGER, DIMENSION(5) :: kparal
       INTEGER :: xi_l, eta_l, xi_g, ii_0, jj_0
       INTEGER :: ierr=OASIS_Success   ! error code returned by oasis_def_partition
+      
+      IF ((IOASISDEBUGLVL > 0) .AND. (mype == 0)) THEN
+         WRITE(*,*) "OAS_ROMS : Defining OASIS partition at ", grd%pt, "-points"
+      END IF
 
       xi_l = grd%dims_l(1)   ! local xi dimension
       eta_l = grd%dims_l(2)   ! local eta dimension
@@ -437,6 +465,10 @@ CONTAINS
       LOGICAL :: oas_act=.TRUE.   ! default laction
       INTEGER :: ierr=OASIS_Success   ! error code returned by oasis_def_var
       !                               ! (give default value in case oas_act is .FALSE.)
+
+      IF ((IOASISDEBUGLVL > 0) .AND. (mype == 0)) THEN
+         WRITE(*,*) "OAS_ROMS : Defining OASIS field ", clname
+      END IF
 
       IF (PRESENT(dtype)) oas_type = dtype
       IF (PRESENT(laction)) oas_act = laction
@@ -499,6 +531,10 @@ CONTAINS
       INTEGER, INTENT(IN) :: ncid
       TYPE(OAS_GRID), INTENT(IN) :: grd
       REAL(KIND=8), DIMENSION(:,:), ALLOCATABLE, INTENT(INOUT) :: alpha
+      
+      IF ((IOASISDEBUGLVL > 0) .AND. (mype == 0)) THEN
+         WRITE(*,*) "OAS_ROMS : reading coupling coefficient at ", TRIM(grd%pt), "-points"
+      END IF
 
       ALLOCATE(alpha(grd%imin:grd%imax,grd%jmin:grd%jmax))
       
@@ -523,6 +559,10 @@ CONTAINS
       ! Local variables
       REAL(KIND=8), DIMENSION(:,:,:), ALLOCATABLE :: cos_u_dir, cos_v_dir, roms_dir
       INTEGER :: k
+
+      IF ((IOASISDEBUGLVL > 0) .AND. (mype == 0)) THEN
+         WRITE(*,*) "OAS_ROMS : Compute velocity projection coefficients at ", TRIM(grd%pt), "-points"
+      END IF
       
       ALLOCATE(cos_u_dir(grd%imin:grd%imax,grd%jmin:grd%jmax,3),   &
          &     cos_v_dir(grd%imin:grd%imax,grd%jmin:grd%jmax,3),   &
@@ -559,7 +599,7 @@ CONTAINS
       CHARACTER(len=*), INTENT(IN) :: vname
       TYPE(OAS_GRID), INTENT(IN) :: grd
       REAL(KIND=8), DIMENSION(:,:), INTENT(INOUT) :: A
-      CHARACTER(len=6) :: extent
+      CHARACTER(len=*) :: extent
       
       ! local variables
       INTEGER, DIMENSION(2) :: start, count
@@ -609,7 +649,7 @@ CONTAINS
       TYPE(OAS_GRID), INTENT(IN) :: grd
       REAL(KIND=8), DIMENSION(:,:,:), INTENT(INOUT) :: A
       INTEGER, INTENT(IN) :: dim3
-      CHARACTER(len=6), INTENT(IN) :: extent
+      CHARACTER(len=*), INTENT(IN) :: extent
       
       ! local variables
       INTEGER, DIMENSION(3) :: start, count

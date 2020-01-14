@@ -90,15 +90,19 @@
                CALL oas_roms_dbg_snd(oas_step)
             ENDIF
 
+            ! Send the Coupling Fields
+            ! ------------------------
+            CALL oas_roms_snd(oas_dt)
+
+            ! - ML - Figure out which method is better, through oasis_put directly
+            !        with write_restart=.TURE. or with the custom oas_roms_dbg_snd
+            !        routine. If we stick to oasis_put we can remove oas_roms_dbg_snd
+            !        in the long run.
             IF ( IOASISDEBUGLVL == 3 ) THEN
                WRITE(6,*) ' RST_roms.nc restart file written'
                WRITE(6,*) ' we stop simulation'
                STOP
             ENDIF
-
-            ! Send the Coupling Fields
-            ! ------------------------
-            CALL oas_roms_snd(oas_dt)
 
          END SUBROUTINE oas_roms_send
 
