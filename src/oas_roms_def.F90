@@ -226,7 +226,7 @@ CONTAINS
       CHARACTER(len=*), PARAMETER :: nml_filename="romsoc.nml"
       INTEGER :: ierr
 
-      IF ((IOASISDEBUGLVL > 0) .AND. (mype == 0)) THEN
+      IF (mype == 0) THEN
          WRITE(*,*) "OAS_ROMS : Reading namelist romsoc.nml"
       END IF
 
