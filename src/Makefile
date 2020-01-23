@@ -26,7 +26,7 @@ KRNSRC = main.F		step2D_FB.F	read_inp.F	read_sta_pos.F\
 	set_nudgcof.F	ana_grid.F	analytical.F\
 \
 	prsgrd32AC1.F	pre_step3d4S.F	step3d_uv1.F	step3d_uv2.F\
-	step3d_t_ISO.F	set_depth.F	omega.F\
+	step3d_t_ISO_weno_3.F	set_depth.F	omega.F		\
 	visc3d_GP.F	t3dmix_GP.F	ana_vmix.F\
 \
 	zetabc.F	u2dbc_im.F	v2dbc_im.F	obc_volcons.F\

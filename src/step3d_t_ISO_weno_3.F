@@ -7,7 +7,6 @@
 c--# define AKIMA
 c--# define CONST_TRACERS
 
-# define WENO
 
 ! The following two CPPs activate switching triad and stabilizing
 ! algorithms. They must always be defined whenever the
@@ -77,31 +76,45 @@ c--# define CONST_TRACERS
 #  endif
 # endif
 
-#ifdef WENO
+#ifdef TS_HADV_WENO3 || TS_HADV_WENO5
+
+!--------------------------------------------------------------------
+! Definition of flux operators: 1st, 2nd, 3rd, 4th order,
+! used in advection schemes (and order degradation near 
+! land masks). 
+!--------------------------------------------------------------------
+
 
       REAL    :: q_im3, q_im2, q_im1, q_i, q_ip1, q_ip2
       REAL    :: ua, vel, cdiff, cdif
-      REAL    :: flux1, flux2, flux3, flux4
+      REAL    :: flux1, flux2, flux2a, flux3, flux4
       REAL    :: flx1, flx2, flx3, flx4, flx5
       REAL    :: mask0, mask1, mask2, mask3
       REAL    :: flux3_weno, flux5_weno
       
-      !cdif=1.
-
-      flux2(q_im1, q_i, ua, cdiff) = 0.5*( q_i + q_im1 )
+      !Flux2a=2nd-order centered advection scheme
+      flux2a(q_im1, q_i, ua, cdiff) = 0.5*( q_i + q_im1 )
       
-      flux1(q_im1, q_i, ua, cdiff) = flux2(q_im1, q_i, ua, cdiff) -
-     &      0.5*cdiff*sign(1.,ua)*(q_i-q_im1)
+      !flux2 gives 1st order monotonic UP1 advection scheme
+      flux2(q_im1, q_i, ua, cdiff) = flux2a(q_im1, q_i, ua, cdiff) -
+     &      0.5*sign(1.,ua)*(q_i-q_im1)
 
+     !4th order but not-used
       flux4(q_im2, q_im1, q_i, q_ip1, ua) = 
      &      ( 7.*(q_i + q_im1) - (q_ip1 + q_im2) )/12.0
 
+     !3th order but not-used
       flux3(q_im2, q_im1, q_i, q_ip1, ua) =
      &      flux4(q_im2, q_im1, q_i, q_ip1, ua) +
      &      sign(1.,ua)*((q_ip1 -
      &      q_im2)-3.*(q_i-q_im1))/12.0
+             
      
-     !!!!!!!!!!!!!!!!!!!! Copy from step3d_t.F          
+      REAL    :: IS0, IS1
+      REAl    :: a0, a1
+      REAL    :: w0, w1
+      REAL    :: p0, p1 
+      REAL    :: Eps, d0,d1, T3
           
 # endif
 
@@ -541,23 +554,34 @@ c--#  define ntdf nrhs
 
 
 
-#ifdef WENO
-     
-     !!!!!!!!!!!!!!!!!!!! Copy from step3d_t.F  
-          
+#ifdef TS_HADV_WENO3
 
-!# include "compute_horiz_tracer_fluxes_weno.h" !WENO
-!# include "compute_horiz_tracer_fluxes_weno_2.h" !WENO 5 and WENO 3
+!
+!----------------------------------------------------------
+! WENO3 advection horizontal
+!----------------------------------------------------------
+!
 
-!#define UP5_MASKING
-# undef MASKING
-# include "compute_horiz_tracer_fluxes_weno_3.h" !WITH MASKING
-# define MASKING
-!#undef UP5_MASKING
+
+# include "compute_horiz_tracer_fluxes_weno_only3.h"
+
+# else
+
+# ifdef TS_HADV_WENO5
+
+!
+!----------------------------------------------------------
+! WENO5 advection horizontal
+!----------------------------------------------------------
+!
+
+# include "compute_horiz_tracer_fluxes_weno__Correct.h"
 
 # else
 
 # include "compute_horiz_tracer_fluxes.h"
+
+#endif
 
 #endif 
 
@@ -796,6 +820,7 @@ c--#  define ntdf nrhs
 ! Compute and apply vertical advective fluxes.
 
         do j=jstr,jend
+        
 
 # include "compute_vert_tracer_fluxes.h"
 
@@ -1311,7 +1336,16 @@ c??         enddo
 ! removes the need to tune parameter Eps for added dissipation (needed in the 
 ! original scheme due to suboptimal performance on critical points). 
 ! 
-! PUT BACK THE REFERENCES
+! References:
+!  Guang-Shan JIANG and Chi-Wang SHU, 1996: Efficient Implementation of 
+!  Weighted ENO Schemes. JOURNAL OF COMPUTATIONAL PHYSICS 126, 202–228.
+!
+!  Rong WANG and Raymond J. SPITERI, 2007: Linear instability of the 
+!  fifth-order WENO method, SIAM J. Numer. Anal., 45, 1871-1901.
+!
+!  Borges R., M. Carmona, B. Costa, W.S. Don, 2008: An improved weighted 
+!  essentially non-oscillatory scheme for hyperbolic conservation laws.
+!  Journal of Computational Physics 227 (2008) 3191–3211
 !
 !  Implementation: P. Marchesiello and J. Demange 2013
 !
@@ -1433,6 +1467,8 @@ c??         enddo
       REAL    :: w0, w1
       REAL    :: p0, p1 
       REAL    :: Eps, d0,d1, T3
+
+#  define WENO_Z
 !
 ! Epsilon value for computing weigths 
 #  ifdef WENO_Z
