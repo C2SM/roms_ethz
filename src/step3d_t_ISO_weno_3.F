@@ -7,6 +7,14 @@
 c--# define AKIMA
 c--# define CONST_TRACERS
 
+!# ifdef TS_HADV_WENO3
+!# define WENO
+!#endif
+
+!# ifdef TS_VADV_WENO3
+!# define TS_VADV_WENO5
+!#endif
+
 
 ! The following two CPPs activate switching triad and stabilizing
 ! algorithms. They must always be defined whenever the
@@ -76,7 +84,7 @@ c--# define CONST_TRACERS
 #  endif
 # endif
 
-#ifdef TS_HADV_WENO3 || TS_HADV_WENO5
+#ifdef TS_HADV_WENO3 || TS_VADV_WENO5 || TS_HADV_WENO5
 
 !--------------------------------------------------------------------
 ! Definition of flux operators: 1st, 2nd, 3rd, 4th order,
@@ -821,9 +829,21 @@ c--#  define ntdf nrhs
 
         do j=jstr,jend
         
+# ifdef TS_VADV_WENO5
+
+!
+!----------------------------------------------------------
+! WENO5 advection vertical
+!----------------------------------------------------------
+!
+
+# include "compute_vert_tracer_fluxes_weno_correct.h"
+
+# else
 
 # include "compute_vert_tracer_fluxes.h"
 
+# endif
           do k=1,N
             do i=istr,iend
               t(i,j,k,nnew,itrc)=t(i,j,k,nnew,itrc)-dt*pm(i,j)*pn(i,j)
