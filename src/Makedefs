@@ -39,7 +39,7 @@ DEPFLAGS = -MT $@ -MMD -MP -MF $(DEPDIR)/$*.Td
 Q = @
 
 # Include file locations
-CPPFLAGS+= -I$(SRCDIR) -I$(INCDIR) -I$(BIODIR)
+CPPFLAGS+= -I$(SRCDIR) -I$(INCDIR) -I$(BIODIR) -I$(MPI_HOME)/include
 
 
 
@@ -64,10 +64,10 @@ CPPFTN := -P -traditional-cpp # traditional-cpp need to keep white-spaces
 #  Otherwise try to use nc-config to find
 #  suitable settings
 #NETCDF := /cluster/apps/netcdf/4.3.2/x86_64/intel_14.0.1/serial
-ifdef NETCDF
-  NCINC ?= -I$(NETCDF)/include
-  NCLIB ?= -L$(NETCDF)/../serial/lib -L$(NETCDF)/lib -lnetcdff -lnetcdf
-else
+#ifdef NETCDF
+#  NCINC ?= -I$(NETCDF)/include
+#  NCLIB ?= -L$(NETCDF)/../serial/lib -L$(NETCDF)/lib -lnetcdff -lnetcdf
+#else
   NCINC ?= $(shell nc-config --fflags)
   ifeq ($(NCINC),)
     NCINC := $(shell nc-config --cflags)
@@ -76,7 +76,7 @@ else
   ifeq ($(NCLIB),)
     NCLIB := $(shell nc-config --libs)
   endif
-endif
+#endif
 
 CPPFLAGS += $(NCINC)
 
