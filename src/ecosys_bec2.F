@@ -2317,11 +2317,11 @@ c$$$       enddo
 #  ifdef BEC2_DIAG_USER
        if (bec2_diag_3d_l(ncp_idx_t))
      &     bec2_diag_3d(istr:iend,j,k,ncp_idx_t) = sum(photoC,dim=2)- zoo_loss_dic
-     &                  - sum(auto_graze_dic,dim=2) - sum(auto_loss_dic,dim=2)
+     &                  - sum(auto_graze_zoo,dim=2) - sum(auto_loss_dic,dim=2)
      &                  - DOC_remin - POC_remin(istr:iend,j)
 #  else
        bec2_diag_3d(istr:iend,j,k,ncp_idx_t) = sum(photoC,dim=2)- zoo_loss_dic
-     &                  - sum(auto_graze_dic,dim=2) - sum(auto_loss_dic,dim=2)
+     &                  - sum(auto_graze_zoo,dim=2) - sum(auto_loss_dic,dim=2)
      &                  - DOC_remin - POC_remin(istr:iend,j)
 #  endif
 # endif

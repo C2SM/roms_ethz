@@ -56,23 +56,30 @@
       parm_nitrif_par_lim    = 1.0
       parm_z_mort_0          = 0.1 * dps
       parm_z_mort2_0         = 0.4 * dps
-      !parm_labile_ratio      = 0.85
-      parm_labile_ratio      = 0.94
+      parm_labile_ratio      = 0.85
       parm_POMbury           = 1.4 ! x1 default
       parm_BSIbury           = 0.45 ! x1 default
-      !parm_Fe_scavenge_rate0 = 1.3 ! x1 default     2.8
-      parm_Fe_scavenge_rate0 = 0.5 ! x1 default     2.8
+      parm_Fe_scavenge_rate0 = 1.3 ! x1 default     2.8
       !parm_Fe_scavenge_rate0 = 3.9 ! 300%
       parm_f_prod_sp_CaCO3   = 0.055 ! x1 default   0.04
       parm_POC_diss          = 82.0   ! 88 in cBEC, 82
       parm_SiO2_diss         = 360.0  ! 250 in cBEC, 360
       parm_CaCO3_diss        = 400.0  ! 150 in cBEC, 400
 # ifdef USE_EXPLICIT_VSINK
+      !parm_scalelen_z    = (/ 130.0, 290.0, 670.0, 1700.0 /)
+      !parm_scalelen_vals = (/     1.0,     1.6,     3.5,      8.0 /) ! MF: try new parametrization for explicit sinking
+      ! MF: sensitivity test (increase export efficiency)
       parm_scalelen_z    = (/ 100.0, 250.0, 500.0, 750.0 /) ! DL: converted to m
+      !parm_scalelen_z    = (/ 75.0, 150.0, 500.0, 750.0 /) ! DL: converted to m
       parm_scalelen_vals = (/     1.0,     2.9,     5.6,      5.7 /) ! x1 default
+      !parm_scalelen_vals = (/     1.0,     5.0,     9.0,      10.0 /) ! x1 default
 # else
+! Cara's values
       parm_scalelen_z    = (/ 100.0, 250.0, 500.0, 750.0 /) ! DL: converted to m
       parm_scalelen_vals = (/     1.0,     2.9,     5.6,      5.7 /) ! x1 default
+! Martin's values
+!      parm_scalelen_z    = (/ 130.0, 290.0, 670.0, 1700.0 /) ! DL: converted to m
+!      parm_scalelen_vals = (/     1.0,     3.0,     5.0,      9.0 /) ! x1 default
 # endif
 
 ! Parameters for small phytoplankton
@@ -99,9 +106,18 @@
       gQfe_min(auto_ind)      = 3.0e-6
       alphaPI(auto_ind)       = 0.44*dps   ! Master branch default: 0.44
       !PCref(auto_ind)         = 3.6*dps    ! Master branch default: 3.6
-      PCref(auto_ind)         = 2.7*dps    ! 75%
+      !PCref(auto_ind)         = 3.1*dps    ! 85%
+      !PCref(auto_ind)         = 2.7*dps    ! 75%
+      !PCref(auto_ind)         = 2.3*dps    ! 65%
+      PCref(auto_ind)         = 2.1*dps    ! 60%
+      !PCref(auto_ind)         = 1.575*dps    ! T71F lowPCref
+      !PCref(auto_ind)         = 2.625*dps    ! T71F highPCref
+      !PCref(auto_ind)         = 1.8*dps    ! 50%
+      !PCref(auto_ind)         = 3.9*dps    ! NO DAILYPAR_BEC value
       !thetaN_max(auto_ind)    = 2.5         ! Master branch default: 2.5
+      !thetaN_max(auto_ind)    = 3.0          ! MF: sensitivity test
       thetaN_max(auto_ind)    = 3.5          ! MF: sensitivity test
+      !thetaN_max(auto_ind)    = 4.0          ! MF: sensitivity test
       loss_thres(auto_ind)   = 0.04
       loss_thres2(auto_ind)  = 0.0
       temp_thres(auto_ind)   = -10.0
@@ -110,12 +126,21 @@
       agg_rate_max(auto_ind)  = 0.9
       agg_rate_min(auto_ind)  = 0.01
       !z_umax_0(auto_ind)      = 4.4*dps   ! Master branch default: 4.4
+      !z_umax_0(auto_ind)      = 4.8*dps   ! high grazing test
+      !z_umax_0(auto_ind)      = 3.7*dps   ! 85%
+      !z_umax_0(auto_ind)      = 3.5*dps   ! 80%
+      !z_umax_0(auto_ind)      = 3.3*dps   ! 75%
       z_umax_0(auto_ind)      = 3.1*dps   ! 70%
+      !z_umax_0(auto_ind)      = 2.85*dps   ! 65%
+      !z_umax_0(auto_ind)      = 2.65*dps   ! 6O%
+      !z_umax_0(auto_ind)      = 2.4*dps   ! 55%
+      !z_umax_0(auto_ind)      = 2.2*dps   ! 50%
+      !z_umax_0(auto_ind)      = 1.5*dps   ! 4O%
+      !z_umax_0(auto_ind)      = 3.9*dps   ! NO DAILYPAR_BEC value
       z_grz(auto_ind)         = 1.05
       graze_zoo(auto_ind)     = 0.3
       graze_poc(auto_ind)     = 0.05
-      !graze_doc(auto_ind)     = 0.15
-      graze_doc(auto_ind)     = 0.06
+      graze_doc(auto_ind)     = 0.15
       loss_poc(auto_ind)      = 0.0
       f_zoo_detr(auto_ind)    = 0.15
 
@@ -143,8 +168,17 @@
       gQfe_min(auto_ind)      = 3.0e-6
       alphaPI(auto_ind)       = 0.465*dps ! Master branch default: 0.44
       !PCref(auto_ind)         = 4.6*dps  ! Master branch default: 4.6
-      PCref(auto_ind)         = 3.4*dps  ! 75%
+      !PCref(auto_ind)         = 3.9*dps  ! 85%
+      !PCref(auto_ind)         = 3.4*dps  ! 75%
+      !PCref(auto_ind)         = 3.0*dps  ! 65%
+      PCref(auto_ind)         = 2.7*dps  ! 60%
+      !PCref(auto_ind)         = 2.025*dps  ! T71F_lowPCref
+      !PCref(auto_ind)         = 3.375*dps  ! T71F_highPCref
+      !PCref(auto_ind)         = 2.3*dps  ! 50%
+      !PCref(auto_ind)         = 4.6*dps  ! NO DAILYPAR_BEC value
       thetaN_max(auto_ind)    = 4.0      ! Master branch default: 4.0
+      !thetaN_max(auto_ind)    = 5.6       ! MF sensitivity
+      !thetaN_max(auto_ind)    = 4.8       ! MF sensitivity
       loss_thres(auto_ind)   = 0.04
       loss_thres2(auto_ind)  = 0.0
       temp_thres(auto_ind)   = -10.0
@@ -153,12 +187,22 @@
       agg_rate_max(auto_ind)  = 0.9
       agg_rate_min(auto_ind)  = 0.02
       !z_umax_0(auto_ind)      = 3.8*dps  ! Master branch default: 3.8
+      !z_umax_0(auto_ind)      = 4.8*dps  ! high grazing test
+      !z_umax_0(auto_ind)      = 3.6*dps  ! 95%
+      !z_umax_0(auto_ind)      = 3.5*dps  ! 90%
+      !z_umax_0(auto_ind)      = 3.4*dps  ! 90%
       z_umax_0(auto_ind)      = 3.3*dps  ! 90%
+      !z_umax_0(auto_ind)      = 3.2*dps  ! 85%
+      !z_umax_0(auto_ind)      = 3.0*dps  ! 80%
+      !z_umax_0(auto_ind)      = 2.85*dps  ! 75%
+      !z_umax_0(auto_ind)      = 2.65*dps  ! 70%
+      !z_umax_0(auto_ind)      = 2.3*dps  ! 60%
+      !z_umax_0(auto_ind)      = 3.6*dps  ! NO DAILYPAR_BEC value
+      !z_umax_0(auto_ind)      = 4.4*dps  ! 115%
       z_grz(auto_ind)         = 1.0
       graze_zoo(auto_ind)     = 0.3
       graze_poc(auto_ind)     = 0.42
-      !graze_doc(auto_ind)     = 0.15
-      graze_doc(auto_ind)     = 0.06
+      graze_doc(auto_ind)     = 0.15
       loss_poc(auto_ind)      = 0.0
       f_zoo_detr(auto_ind)    = 0.2
 
@@ -186,8 +230,17 @@
       gQfe_min(auto_ind)      = 12.0e-6
       alphaPI(auto_ind)       = 0.38*dps  ! Master branch default: 0.38
       !PCref(auto_ind)         = 0.9*dps  ! Master branch default: 0.9
-      PCref(auto_ind)         = 0.7*dps  ! 75%
+      !PCref(auto_ind)         = 0.8*dps  ! 85%
+      !PCref(auto_ind)         = 0.7*dps  ! 75%
+      !PCref(auto_ind)         = 0.65*dps  ! 65%
+      PCref(auto_ind)         = 0.6*dps  ! 60%
+      !PCref(auto_ind)         = 0.45*dps  ! T71F_lowPCref
+      !PCref(auto_ind)         = 0.75*dps  ! T71F_highPCref
+      !PCref(auto_ind)         = 0.45*dps  ! 50%
+      !PCref(auto_ind)         = 0.9*dps  ! NO DAILYPAR_BEC value
       thetaN_max(auto_ind)    = 2.5      ! Master branch default: 2.5
+      !thetaN_max(auto_ind)    = 3.5       ! MF sensitivity
+      !thetaN_max(auto_ind)    = 3.       ! MF sensitivity
       loss_thres(auto_ind)   = 0.022
       loss_thres2(auto_ind)  = 0.001
       temp_thres(auto_ind)   = 14.0
@@ -196,12 +249,20 @@
       agg_rate_max(auto_ind)  = 0.0
       agg_rate_min(auto_ind)  = 0.0
       !z_umax_0(auto_ind)      = 2.0*dps  ! Master branch default: 2.0
+      !z_umax_0(auto_ind)      = 2.2*dps  ! high grazing test
+      !z_umax_0(auto_ind)      = 1.7*dps  ! 85%
+      !z_umax_0(auto_ind)      = 1.6*dps  ! 80%
+      !z_umax_0(auto_ind)      = 1.5*dps  ! 75%
       z_umax_0(auto_ind)      = 1.4*dps  ! 70%
+      !z_umax_0(auto_ind)      = 1.3*dps  ! 65%
+      !z_umax_0(auto_ind)      = 1.2*dps  ! 60%
+      !z_umax_0(auto_ind)      = 1.1*dps  ! 55%
+      !z_umax_0(auto_ind)      = 1.*dps  ! 50%
+      !z_umax_0(auto_ind)      = 2.0*dps  ! NO DAILYPAR_BEC value
       z_grz(auto_ind)         = 1.2
       graze_zoo(auto_ind)     = 0.3
       graze_poc(auto_ind)     = 0.05
-      !graze_doc(auto_ind)     = 0.15
-      graze_doc(auto_ind)     = 0.06
+      graze_doc(auto_ind)     = 0.15
       loss_poc(auto_ind)      = 0.0
       f_zoo_detr(auto_ind)    = 0.15
 
@@ -426,9 +487,9 @@
 #ifdef RIVER_LOAD_BIO
       lriver_load_n = .TRUE.
       lriver_load_p = .TRUE.
-      !lriver_load_alk = .TRUE.
-      !lriver_load_dic = .TRUE.
-      !lriver_load_si = .TRUE.
+      lriver_load_alk = .TRUE.
+      lriver_load_dic = .TRUE.
+      lriver_load_si = .TRUE.
 #endif
       lsource_sink  = .TRUE.  
 
