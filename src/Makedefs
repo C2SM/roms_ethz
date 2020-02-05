@@ -104,7 +104,7 @@ ifeq ($(strip $(FCOMP)),ifort)
    FCFLAGS := -D__IFC
 
    #mm for intel/2018.1@Euler:
-   MPIFC := $(MPIFC) -fc=ifort
+   MPIFC := $(MPIFC) # -fc=ifort
    COMP_FILES = *__genmod.f90 *__genmod.mod # cleanup stuff
    LARGE_MEM_FLAG=   -mcmodel=medium # Sometimes needed for large tiles
    ifndef DEBUG
