@@ -45,6 +45,10 @@
 
        real STF(istr:iend,jstr:jend,ntrc_bio)
 
+! Array to limit surface salinity to its valid range 
+! for co2calc (SSSS>19 PSU) as recommended by Lueker et al. 2000:
+       real, dimension(istr,iend) :: sssco2 
+
 # ifdef CCHEM_MOCSY
        real ff, tk100, tk1002, co2star_air, mass_to_vol
        real,dimension(istr:iend)::
@@ -456,8 +460,9 @@ c$$$       enddo
                 PHHI = phhi_init
              END WHERE
 
+             sssco2(istr:iend) = max(19.0, SSSS(istr:iend,j)) 
              CALL co2calc_row(LANDMASK(istr:iend,j),
-     &         SSTT(istr:iend,j), SSSS(istr:iend,j),
+     &         SSTT(istr:iend,j), sssco2(istr:iend), ! old: SSSS(istr:iend,j),
      &         tracer(istr:iend,j,N,dic_ind_t),
      &         tracer(istr:iend,j,N,alk_ind_t),
      &         tracer(istr:iend,j,N,po4_ind_t),
