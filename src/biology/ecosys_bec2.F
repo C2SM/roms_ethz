@@ -47,7 +47,7 @@
 
 ! Array to limit surface salinity to its valid range 
 ! for co2calc (SSSS>19 PSU) as recommended by Lueker et al. 2000:
-       real, dimension(istr,iend) :: sssco2 
+       real, dimension(istr:iend) :: sssco2 
 
 # ifdef CCHEM_MOCSY
        real ff, tk100, tk1002, co2star_air, mass_to_vol
@@ -1301,10 +1301,17 @@ c$$$       enddo
           if (CaCO3_ind(auto_ind) > 0) then
 #  ifdef BEC_COCCO
              if (exp_calcifier(auto_ind)) then
+<<<<<<< HEAD:src/biology/ecosys_bec2.F
                 QCaCO3(istr:iend,auto_ind) = 0.2  ! 0.433
              else
                 QCaCO3(istr:iend,auto_ind) =
      &              min( CaCO3_loc(istr:iend,auto_ind)
+=======
+                QCaCO3(istr:iend,auto_ind) = 1  ! 0.2 for Cara ! 0.433
+             else 
+                QCaCO3(istr:iend,auto_ind) = 
+     &              min( CaCO3_loc(istr:iend,auto_ind) 
+>>>>>>> weno:src/ecosys_bec2.F
      &                 / (C_loc(istr:iend,auto_ind) + epsC), QCaCO3_max )
              endif
 #  else /* case not BEC_COCCO  */
@@ -3561,7 +3568,7 @@ c$$$       enddo
             ! constant 170 in umol m-2 d-1, flux_oxidated in mmol m-2
             ! day-1, o2 in muM
             if (flux_oxidated(i) > 0) then
-                FESEDFLUX(i) = 170 * tanh(flux_oxidated(i)/O2_loc(i))
+                FESEDFLUX(i) = 170 * tanh(flux_oxidated(i)/max(O2_loc(i),1e-15))
             endif
             ! convert from umol m-2 d-1 to mmol m-2 s-1
             FESEDFLUX(i) = FESEDFLUX(i)*0.001/86400.     !sec2day=1/86400

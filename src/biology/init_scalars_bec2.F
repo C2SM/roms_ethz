@@ -1556,17 +1556,17 @@ CR      write(*,'(1x,A,I3)') 'indxNH4 =',indxNH4
      ! 107 tracer
 # ifdef USE_EXPLICIT_VSINK
      ! +10
-     &                     ,.false.,.false.,.false.,.false.,.false.,  ! PIRON_HARD_REMIN, CACO3_HARD_REMIN, SIO2_HARD_REMIN, POC_HARD_REMIN,DUST_HARD_REMIN
-     &                     .false.,.false.,.false.,.false.,.false.    ! PIRON_SOFT_REMIN, CACO3_SOFT_REMIN, SIO2_SOFT_REMIN, POC_SOFT_REMIN,DUST_SOFT_REMIN
+     &                     ,.false.,.true.,.false.,.false.,.false.,  ! PIRON_HARD_REMIN, CACO3_HARD_REMIN, SIO2_HARD_REMIN, POC_HARD_REMIN,DUST_HARD_REMIN
+     &                     .false.,.true.,.false.,.false.,.false.    ! PIRON_SOFT_REMIN, CACO3_SOFT_REMIN, SIO2_SOFT_REMIN, POC_SOFT_REMIN,DUST_SOFT_REMIN
 # endif
 # ifdef BEC_COCCO 
      ! + 19 
      &                     ,.false., ! GRAZE_COCCO
-     &                     .false.,.false.,.true.,.true.,     ! COCCO_LOSS,COCCO_AGG, PHOTOC_COCCO, COCCO_N_LIM
-     &                     .true.,.true.,.true.,.false.,     ! COCCO_PO4_LIM, COCCO_FE_LIM, COCCO_LIGHT_LIM, CACO3_PROD_COCCO 
-     &                     .false.,.false.,.false.,.false., ! IRON_UPTAKE_COCCO, COCCO_NO3_UPTAKE, COCCO_NH4_UPTAKE, COCCO_GRAZE_DIC 
+     &                     .false.,.false.,.true.,.false.,     ! COCCO_LOSS,COCCO_AGG, PHOTOC_COCCO, COCCO_N_LIM
+     &                     .false.,.true.,.false.,.false.,     ! COCCO_PO4_LIM, COCCO_FE_LIM, COCCO_LIGHT_LIM, CACO3_PROD_COCCO 
+     &                     .true.,.false.,.false.,.false., ! IRON_UPTAKE_COCCO, COCCO_NO3_UPTAKE, COCCO_NH4_UPTAKE, COCCO_GRAZE_DIC 
      &                     .false.,.false.,.false.,.false.,    ! COCCO_LOSS_DIC, GRAZE_COCCO_ZOO, QCACO3_COCCO, COCCO_PHOTOACC 
-     &                     .true.,.true.   ! COCCO_P_LIM,POC_PROD_COCCO
+     &                     .false.,.false.   ! COCCO_P_LIM,POC_PROD_COCCO
 # endif
 # ifdef BEC_DDA
      ! + 16

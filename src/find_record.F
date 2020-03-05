@@ -150,7 +150,7 @@ c--#define VERBOSE
 # ifdef MPI_SILENT_MODE
             if (mynode == 0) then
 # endif
-              write(*,'(1x,3A,I5,2x,A,ES16.9)')   'find_record: ',
+              write(*,'(1x,4A,I5,2x,A,ES16.9)')   'find_record: ',
      &              'varname = ''', varname(1:lvar), ''' ntime =',
      &                     ntime, 'cycle_length =', cycle_length
 # ifdef MPI_SILENT_MODE

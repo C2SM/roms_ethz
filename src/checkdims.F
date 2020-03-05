@@ -404,7 +404,8 @@
             endif
           endif
         else
-          MPI_master_only write(*,'(/1x,6A/14x,A/)')
+!          MPI_master_only write(*,'(/1x,6A/14x,A/)')
+          write(*,'(/1x,6A/14x,A/)')
      &        '### WARNING: read_nc1dat :: ',
      &            'Cannot determine netCDF ID for ''',  vname(1:lvar),
      &      ''' in file ''', fname(1:lfile), '''.', nf_strerror(ierr)
