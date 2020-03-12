@@ -9,11 +9,14 @@
 
 # define BIOLOGY_BEC2
 #include "cppdefs_UP.h"
+
+! CHOOSE SETUP HERE
 #define PACTCS60
 
 #ifdef PACTCS60
 # define GRID_SIZE LLm=300, MMm=257, N=64      ! pactcs60 8-120km telescopic up to Antarctica
-# define DOMAIN_TILING NP_XI=8, NP_ETA=18, NSUB_X=1, NSUB_E=1 ! Euler
+# define DOMAIN_TILING NP_XI=6, NP_ETA=24, NSUB_X=1, NSUB_E=1 ! Mobilis - EL2020
+! # define DOMAIN_TILING NP_XI=8, NP_ETA=18, NSUB_X=1, NSUB_E=1 ! Euler
 #else 
 ! default: PACTCS30 
 # define PACTCS30
