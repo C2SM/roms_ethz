@@ -10,7 +10,7 @@
 
        implicit none
 
-#include "param.h"
+#include "param.h"  
 #include "param_bec2.h"
 #include "ecosys_bec2.h"
 #include "ocean3d.h"
@@ -64,13 +64,13 @@
        real,dimension(istr:iend)::
      &    PHLO          ! lower bound for ph in solver
      &    ,PHHI         ! upper bound for ph in solver
-       real, PARAMETER ::
+       real, PARAMETER :: 
      &    phlo_init = 7.0,  ! low bound for ph for no prev soln
      &    phhi_init = 9.0,  ! high bound for ph for no prev soln
      &    del_ph = 0.20     ! delta-ph for prev soln
 # endif  /* CCHEM_MOCSY */
 
-       real, PARAMETER ::
+       real, PARAMETER :: 
      &    a = 8.6e-7       ! a = 0.31 cm/hr s^2/m^2 in (s/m)
        real,dimension(istr:iend)::
      &    PH_NEW,       ! computed PH from solver
@@ -116,8 +116,8 @@
        do m=1,ntrc_bio
           do k=1,N
              tracer(istr:iend,jstr:jend,k,m) =
-     &              t(istr:iend,jstr:jend,k,nnew,1+ntrc_salt+ntrc_pas+m)
-          enddo
+     &              t(istr:iend,jstr:jend,k,nnew,1+ntrc_salt+ntrc_pas+m)             
+          enddo 
        enddo
        sstt(istr:iend,jstr:jend) = t(istr:iend,jstr:jend,N,nnew,1)
        ssss(istr:iend,jstr:jend) = t(istr:iend,jstr:jend,N,nnew,2)
@@ -166,11 +166,9 @@ c$$$       enddo
 # define IFRAC sic /* Ice fraction has different name in this case */
 #endif
        FICE_USED(istr:iend,jstr:jend) = IFRAC(istr:iend,jstr:jend)
-      do j=jstr,jend ! to avoid the creation of temporary arrays by the compiler
-       call WS(sustr_rho(istr:iend,j),
-     &    svstr_rho(istr:iend,j),landmask(istr:iend,j),
-     &    ws_used(istr:iend,j), istr,iend)
-      enddo
+       call WS(sustr_rho(istr:iend,jstr:jend),
+     &    svstr_rho(istr:iend,jstr:jend),landmask(istr:iend,jstr:jend),
+     &    ws_used(istr:iend,jstr:jend), istr,iend,jstr,jend)
 
        XKW(istr:iend,jstr:jend) = a * WS_USED(istr:iend,jstr:jend)*WS_USED(istr:iend,jstr:jend)
 # ifdef BEC2_DIAG
@@ -182,15 +180,15 @@ c$$$       enddo
 #  endif
 # endif
 
-!---------------------------------------------------------------------
-!   convert PRESS from Pascals to atm,no, it is atm already
-!----------------------------------------------------------------------
+    !---------------------------------------------------------------------
+    !   convert PRESS from Pascals to atm,no, it is atm already
+    !----------------------------------------------------------------------
        AP_USED(istr:iend,jstr:jend) = PRESS(istr:iend,jstr:jend)
 
-!----------------------------------------------------------------------
-!   Set bad AP values to 1. This is necessary for runs restarting off
-!   a run in which the flux coupler didnt restart on AP correctly.
-!----------------------------------------------------------------------
+    !----------------------------------------------------------------------
+    !   Set bad AP values to 1. This is necessary for runs restarting off
+    !   a run in which the flux coupler didnt restart on AP correctly.
+    !----------------------------------------------------------------------
        WHERE (AP_USED(istr:iend,jstr:jend) > 1.5 .OR. AP_USED(istr:iend,jstr:jend) < 0.5)
           AP_USED(istr:iend,jstr:jend) = c1
        END WHERE
@@ -207,9 +205,9 @@ c$$$       enddo
 #  endif
 # endif
 
-!------------------------------------------------------------------------
-!   Compute XKW_ICE. XKW is zero over land, so XKW_ICE is too.
-!-------------------------------------------------------------------------
+    !------------------------------------------------------------------------
+    !   Compute XKW_ICE. XKW is zero over land, so XKW_ICE is too.
+    !-------------------------------------------------------------------------
 
        IF (lflux_gas_o2 .OR. lflux_gas_co2) THEN
          XKW_ICE(istr:iend,jstr:jend) = XKW(istr:iend,jstr:jend)
@@ -221,16 +219,14 @@ c$$$       enddo
          END WHERE
        END IF
 
-!------------------------------------------------------------------------
-!   compute O2 flux
-!------------------------------------------------------------------------
+    !------------------------------------------------------------------------
+    !   compute O2 flux
+    !------------------------------------------------------------------------
 
        IF (lflux_gas_o2) THEN
-         do j=jstr,jend
-           call CSCHMIDT_O2(SSTT(istr:iend,j),
-     &       landmask(istr:iend,j),SCHMIDT_USED(istr:iend,j),
-     &       istr,iend)
-         enddo
+         call CSCHMIDT_O2(SSTT(istr:iend,jstr:jend),
+     &     landmask(istr:iend,jstr:jend),SCHMIDT_USED(istr:iend,jstr:jend),
+     &     istr,iend,jstr,jend)
 # ifdef BEC2_DIAG
 #  ifdef BEC2_DIAG_USER
          if (bec2_diag_2d_l(schmidto2_idx_t))
@@ -239,10 +235,10 @@ c$$$       enddo
          bec2_diag_2d(istr:iend,jstr:jend,schmidto2_idx_t) = SCHMIDT_USED(istr:iend,jstr:jend)
 #  endif
 # endif
+         call O2SATU(SSTT(istr:iend,jstr:jend),
+     &     SSSS(istr:iend,jstr:jend),landmask(istr:iend,jstr:jend),
+     &     O2SAT_1atm(istr:iend,jstr:jend),istr, iend,jstr,jend)
          do j=jstr,jend
-           call O2SATU(SSTT(istr:iend,j),
-     &       SSSS(istr:iend,j),landmask(istr:iend,j),
-     &       O2SAT_1atm(istr:iend,j),istr, iend)
             do i=istr,iend
                PV(i,j) = XKW_ICE(i,j) * SQRT(660.0 / SCHMIDT_USED(i,j))
 # ifdef MASKING
@@ -278,16 +274,14 @@ c$$$       enddo
 !       print *, 'istr, iend =', istr, iend
 !       print *, 'jstr, jend =', jstr, jend
 !       endif
-!------------------------------------------------------------------------
-!   compute CO2 flux, computing disequilibrium one row at a time
-!------------------------------------------------------------------------
+    !------------------------------------------------------------------------
+    !   compute CO2 flux, computing disequilibrium one row at a time
+    !------------------------------------------------------------------------
        IF (lflux_gas_co2) THEN
-         do j=jstr,jend
-           call CSCHMIDT_CO2(SSTT(istr:iend,j),
-     &       landmask(istr:iend,j),
-     &       SCHMIDT_USED(istr:iend,j),
-     &       istr,iend)
-         enddo
+          call CSCHMIDT_CO2(SSTT(istr:iend,jstr:jend),
+     &       landmask(istr:iend,jstr:jend),
+     &       SCHMIDT_USED(istr:iend,jstr:jend),
+     &       istr,iend,jstr,jend)
 # ifdef BEC2_DIAG
 #  ifdef BEC2_DIAG_USER
           if (bec2_diag_2d_l(schmidtco2_idx_t))
@@ -319,7 +313,7 @@ c$$$       enddo
 
 ! Set a default value for pCO2 in the air. Will be overwritten if
 ! VARIABLE_ANN_ATM_PCO2 and/or VARIABLE_ATM_PCO2 is defined:
-          XCO2 = 370.0
+          XCO2 = 370.0           
 ! OCMIP-2 mandated value (278 ppm, dry-air, 1 atm)
 !HF           XCO2 = 278.0
 # ifdef VARIABLE_ANN_ATM_PCO2
@@ -333,7 +327,7 @@ c$$$       enddo
 #  elif defined FUTURE_SCENARIO
           call get_atmco2(curr_year,futr_scen,atm_co2)
 #  endif /* HINDCAST */
-          XCO2 = atm_co2
+          XCO2 = atm_co2           
 # endif
 # ifdef VARIABLE_ATM_PCO2
       ! the factor deg2rad converts 360d into one full cycle of 2 pi
@@ -369,9 +363,9 @@ c$$$       enddo
                 !---------------------------------------------------------------------
                 tk100 = (T0_Kelvin + sstt(i,j)) * 1e-2
                 tk1002 = tk100 * tk100
-                ff = EXP(-162.8301 + 218.2968/tk100 +
-     &             90.9241*LOG(tk100) -
-     &             1.47696*tk1002 + ssss(i,j)*(.025695 - .025225*tk100 +
+                ff = EXP(-162.8301 + 218.2968/tk100 + 
+     &             90.9241*LOG(tk100) - 
+     &             1.47696*tk1002 + ssss(i,j)*(.025695 - .025225*tk100 + 
      &             0.0049867*tk1002))
                 co2star_air = (xco2(i)*1e-6) * ff * AP_USED(i,j) ! mol/kg
                 co2star_air = co2star_air * mass_to_vol ! mmol/m^3
@@ -564,23 +558,23 @@ c$$$       enddo
        else
           FLUX = c0
        endif
-
+      
 
        ! convert unit: from kg N -> mmol N  (with atomic mass of N:
        ! 14.00674 g/mol)
           FLUX(istr:iend,jstr:jend)=FLUX(istr:iend,jstr:jend)*71394.200220751
-       ! convert from per day to per second!
+       ! convert from per day to per second!   
           FLUX(istr:iend,jstr:jend)=FLUX(istr:iend,jstr:jend)/86400
 !       ! assumption: only 1% is bioavailable (very crude, just a test)
 !          FLUX(istr:iend,jstr:jend)=FLUX(istr:iend,jstr:jend)*0.01
 
-       ! add to tracer: NO3
+       ! add to tracer: NO3       
        tracer(istr:iend,jstr:jend,N,no3_ind_t) =
      &         tracer(istr:iend,jstr:jend,N,no3_ind_t) +
      &         FLUX(istr:iend,jstr:jend)
      &         *dt/Hz(istr:iend,jstr:jend,N)
 
-!       ! add to tracer: DON
+!       ! add to tracer: DON       
 !       tracer(istr:iend,jstr:jend,N,don_ind_t) =
 !     &         tracer(istr:iend,jstr:jend,N,don_ind_t) +
 !     &         0.5*FLUX(istr:iend,jstr:jend)
@@ -595,16 +589,16 @@ c$$$       enddo
        else
           FLUX = c0
        endif
-
+      
        ! onvert unit: from kg P -> mmol P  (with atomic mass of P:
        ! 30.97376 g/mol)
           FLUX(istr:iend,jstr:jend)=FLUX(istr:iend,jstr:jend)*32285.392538717
-       ! convert from per day to per second!
+       ! convert from per day to per second!   
           FLUX(istr:iend,jstr:jend)=FLUX(istr:iend,jstr:jend)/86400
 !       ! assumption: only 1% is bioavailable (very crude, just a test)
 !          FLUX(istr:iend,jstr:jend)=FLUX(istr:iend,jstr:jend)*0.01
 
-       ! add to tracer: PO4
+       ! add to tracer: PO4       
        tracer(istr:iend,jstr:jend,N,po4_ind_t) =
      &         tracer(istr:iend,jstr:jend,N,po4_ind_t) +
      &         FLUX(istr:iend,jstr:jend)
@@ -617,14 +611,14 @@ c$$$       enddo
 !     &         *dt/Hz(istr:iend,jstr:jend,N)
 # endif /* RIVER_LOAD_P */
 
-# ifdef RIVER_LOAD_SI_ALK_DIC
+# ifdef RIVER_LOAD_SI_ALK_DIC   
        !CN: Si loads from rivers
        if (lriver_load_si) then
           FLUX(istr:iend,jstr:jend)=si_river(istr:iend,jstr:jend)
        else
           FLUX = c0
        endif
-       ! convert from per day to per second!
+       ! convert from per day to per second!   
           FLUX(istr:iend,jstr:jend)=FLUX(istr:iend,jstr:jend)/86400
        ! add to tracer: SiO3
        tracer(istr:iend,jstr:jend,N,sio3_ind_t) =
@@ -639,7 +633,7 @@ c$$$       enddo
        else
           FLUX = c0
        endif
-       ! convert from per day to per second!
+       ! convert from per day to per second!   
           FLUX(istr:iend,jstr:jend)=FLUX(istr:iend,jstr:jend)/86400
        ! add to tracer: Alk
        tracer(istr:iend,jstr:jend,N,alk_ind_t) =
@@ -654,7 +648,7 @@ c$$$       enddo
        else
           FLUX = c0
        endif
-       ! convert from per day to per second!
+       ! convert from per day to per second!   
           FLUX(istr:iend,jstr:jend)=FLUX(istr:iend,jstr:jend)/86400
        ! add to tracer: DIC
        tracer(istr:iend,jstr:jend,N,dic_ind_t) =
@@ -665,14 +659,14 @@ c$$$       enddo
 
 
        !CN: iron fluxes in forcing file are in nmol Fe cm-2 s-1
-       !     BEC needs them in mmol Fe m-2 s-1, convert here
+       !     BEC needs them in mmol Fe m-2 s-1, convert here 
        !     (used to be done in get_iron.F)
        if (liron_flux) then
           FLUX(istr:iend,jstr:jend)=iron(istr:iend,jstr:jend)
        else
           FLUX = c0
-       endif
-       FLUX = FLUX * parm_Fe_bioavail * nmol_cm2_to_mmol_m2
+       endif 
+       FLUX = FLUX * parm_Fe_bioavail * nmol_cm2_to_mmol_m2 
        STF(istr:iend,jstr:jend,fe_ind_t) = FLUX(istr:iend,jstr:jend)
        tracer(istr:iend,jstr:jend,N,fe_ind_t) =
      &         tracer(istr:iend,jstr:jend,N,fe_ind_t) +
@@ -687,19 +681,13 @@ c$$$       enddo
      &         *dt/Hz(istr:iend,jstr:jend,N)
 # endif
 # ifdef NHY_FORCING
-       ! NHy: added to ammonium (convert units from kg N to mmol N)
+       ! NHy: added to ammonium (convert units from kg N to mmol N)        
        tracer(istr:iend,jstr:jend,N,nh4_ind_t) =
      &         tracer(istr:iend,jstr:jend,N,nh4_ind_t) +
      &         nhy(istr:iend,jstr:jend)*71394.200220751
      &         *dt/Hz(istr:iend,jstr:jend,N)
 # endif
-# ifdef POX_FORCING
-       ! POX: added to phosphate (convert units from kg P to mmol P)
-        tracer(istr:iend,jstr:jend,N,po4_ind_t) =
-     &         tracer(istr:iend,jstr:jend,N,po4_ind_t) +
-     &         pox(istr:iend,jstr:jend)*32285.39149637
-     &         *dt/Hz(istr:iend,jstr:jend,N)
-# endif
+
 # ifdef BEC2_DIAG
 #  ifdef BEC2_DIAG_USER
        if (bec2_diag_2d_l(ironflux_idx_t))
@@ -715,7 +703,7 @@ c$$$       enddo
     ! Now we compute the tendencies for the biological tracers
     ! (stored in array DTRACER_MODULE).
     !
-    ! NOTE: the k-loop needs to be in this order
+    ! NOTE: the k-loop needs to be in this order 
     ! because PAR etc. is initialized for k==N
     !---------------------------------------------------------------------
 
@@ -730,10 +718,10 @@ c$$$       enddo
           do k = N,1,-1
 
           call ecosys_set_interior(k,t(istr:iend,j,k,nnew,1),
-     &             SHF_QSW(istr:iend,j),
+     &             SHF_QSW(istr:iend,j),  
      &             PAR_out(istr:iend,j),
      &             qa_dust_def(istr:iend,j),istr,iend,j,
-     &             dust(istr:iend,j))
+     &             dt,dust(istr:iend,j))
           end do
        end do
 
@@ -748,14 +736,14 @@ c$$$       enddo
              t(istr:iend,jstr:jend,k,nnew,1+ntrc_salt+ntrc_pas+m) =
      &             tracer(istr:iend,jstr:jend,k,m)
      &             + dt * DTRACER_MODULE(istr:iend,jstr:jend,k,m)
-          enddo
+          enddo 
 
 ! total chl
 # ifdef BEC2_DIAG
 !       bec2_diag_3d(istr:iend,jstr:jend,k,totchl_idx_t) =  !! NEED_FIX_TRACER_INDICES!!
-!     &    tracer(istr:iend,jstr:jend,k,16) + dt*DTRACER_MODULE(istr:iend,jstr:jend,k,16)
-!     &    + tracer(istr:iend,jstr:jend,k,20) + dt*DTRACER_MODULE(istr:iend,jstr:jend,k,20)
-!     &    + tracer(istr:iend,jstr:jend,k,24) + dt*DTRACER_MODULE(istr:iend,jstr:jend,k,24)
+!     &    tracer(istr:iend,jstr:jend,k,16) + dt*DTRACER_MODULE(istr:iend,jstr:jend,k,16) 
+!     &    + tracer(istr:iend,jstr:jend,k,20) + dt*DTRACER_MODULE(istr:iend,jstr:jend,k,20) 
+!     &    + tracer(istr:iend,jstr:jend,k,24) + dt*DTRACER_MODULE(istr:iend,jstr:jend,k,24) 
 !     &    + tracer(istr:iend,jstr:jend,k,26) + dt*DTRACER_MODULE(istr:iend,jstr:jend,k,28)
 # endif
 
@@ -795,11 +783,11 @@ c$$$       enddo
 !
 !-------------------------------------------------------------------------
 
-       subroutine ecosys_set_interior(k,temp,SHF_QSW,
-     &  PAR_out,qa_dust_def,istr,iend,j,dust_flux)
+       subroutine ecosys_set_interior(k,temp,SHF_QSW,  
+     &  PAR_out,qa_dust_def,istr,iend,j,dt2,dust_flux)
 
         implicit none
-#include "param.h"
+#include "param.h"  
 #include "param_bec2.h"
 #include "ecosys_bec2.h"
 #include "ocean3d.h"
@@ -807,20 +795,21 @@ c$$$       enddo
 #include "grid.h"
 
        integer istr,iend,i,j,k,n_loc,auto_ind,auto_ind2
+       real dt2,tmp1,tmp2,tmp3,tmp4
 # ifdef BEC_PHAEO
        real tcrit1,tfunc_tcrit1,tfunc_2,tfunc_3 ! for reduction of growth between 6-10degC
 # endif
        real temp(istr:iend), SHF_QSW(istr:iend),
      &    PAR_out(istr:iend), dust_flux(istr:iend)
 
-       REAL, PARAMETER ::
+       REAL, PARAMETER :: 
      &    epsC      = 1.00e-8,  ! small C concentration (mmol C/m^3)
      &    epsTinv   = 3.17e-8,  ! small inverse time scale (1/year) (1/sec)
      &    epsnondim = 1.00e-6,  ! small non-dimensional number (non-dim)
      &    cks = 9.0,         ! constant used in Fe quota modification
      &    cksi = 5.0         ! constant used in Si quota modification
 
-       REAL, DIMENSION(istr:iend) ::
+       REAL, DIMENSION(istr:iend) :: 
      &    PO4_loc,         ! local copy of model PO4
      &    NO3_loc,         ! local copy of model NO3
      &    SiO3_loc,        ! local copy of model SiO3
@@ -857,7 +846,6 @@ c$$$       enddo
      &    ddaChl_loc,      ! local copy of model ddaChl
      &    ddaSi_loc,       ! local copy of model ddaCal
      &    ddaFe_loc,       ! local copy of model ddaFe
-     &    salt_loc,
 # endif
 # ifdef BEC_PHAEO
      &    phaeoC_loc,      ! local copy of model phaeoC
@@ -869,7 +857,7 @@ c$$$       enddo
      &    DENITRIF,        ! water column nitrification (NO3 -> N2) (mmol N/m^3/sec)
      &    SED_DENITRIF,    ! sedimentary denitrification (mmol N/m^3/sec)
      &    OTHER_REMIN,     ! organic C remin not due oxic or denitrif (mmolC/m^3/sec)
-!     &    flux_oxidated,   ! carbon oxidation rate in sediment
+     &    flux_oxidated,   ! carbon oxidation rate in sediment
      &    O2_CONSUMPTION,  ! O2 consumption
      &    O2_PRODUCTION    ! O2 production
 
@@ -915,17 +903,15 @@ c$$$       enddo
      &    DOFe_remin,      ! portion of DOFe remineralized
      &    DONr_remin,      ! portion of refractory DON remineralized
      &    POC_prod,        ! POC production (mmol C/m^3/sec)
-# ifdef BEC2_DIAG
      &    POC_prod_zoo_loss, ! POC production in Zoo loss (mmol C/m^3/sec)
      &    POC_prod_diat,   ! POC production in Diat grz/agg/loss (mmol C/m^3/sec)
      &    POC_prod_sp,     ! POC production in SP grz/agg/loss (mmol C/m^3/sec)
      &    POC_prod_diaz,   ! POC production in Diaz grz/agg/loss (mmol C/m^3/sec)
-#  ifdef BEC_COCCO
+# ifdef BEC_COCCO
      &    POC_prod_cocco,  ! POC production in Cocco grz/agg/loss (mmol C/m^3/sec)
-#  endif
-#  ifdef BEC_PHAEO
+# endif
+# ifdef BEC_PHAEO
      &    POC_prod_phaeo,  ! POC production in Phaeo grz/agg/loss (mmol C/m^3/sec)
-#  endif
 # endif
      &    P_CaCO3_prod,    ! large detritus CaCO3, base units = mmol CaCO3
      &    P_SiO2_prod,     ! prod. of large detritus SiO2
@@ -988,56 +974,6 @@ c$$$       enddo
     !   create local copies of model tracers
     !   treat negative values as zero
     !---------------------------------------------------------------------------
-# ifdef AMAZON_PAR
-       salt_loc=t(istr:iend,j,k,nnew,isalt)
-# endif
-#ifdef HANDLE_NEGATIVES
-!-- #define REMOVE_NEGATIVES_NUT(X) max(c0, X)
-!-- #define REMOVE_NEGATIVES(X) abs(X)
-#define REMOVE_NEGATIVES(X) max( abs(1.0E-5*X), X )
-       PO4_loc  = REMOVE_NEGATIVES(TRACER(istr:iend,j,k, po4_ind_t))
-       NO3_loc  = REMOVE_NEGATIVES(TRACER(istr:iend,j,k, no3_ind_t))
-       SiO3_loc = REMOVE_NEGATIVES(TRACER(istr:iend,j,k, sio3_ind_t))
-       NH4_loc  = REMOVE_NEGATIVES(TRACER(istr:iend,j,k, nh4_ind_t))
-       Fe_loc   = REMOVE_NEGATIVES(TRACER(istr:iend,j,k, fe_ind_t))
-       O2_loc   = REMOVE_NEGATIVES(TRACER(istr:iend,j,k, o2_ind_t))
-       DOC_loc  = REMOVE_NEGATIVES(TRACER(istr:iend,j,k, doc_ind_t))
-       spC_loc  = REMOVE_NEGATIVES(TRACER(istr:iend,j,k, spC_ind_t))
-       spChl_loc= REMOVE_NEGATIVES(TRACER(istr:iend,j,k, spChl_ind_t))
-       spCaCO3_loc  = REMOVE_NEGATIVES(TRACER(istr:iend,j,k, spCaCO3_ind_t))
-       diatC_loc= REMOVE_NEGATIVES(TRACER(istr:iend,j,k, diatC_ind_t))
-       diatChl_loc  = REMOVE_NEGATIVES(TRACER(istr:iend,j,k, diatChl_ind_t))
-       zooC_loc  = REMOVE_NEGATIVES(TRACER(istr:iend,j,k, zooC_ind_t))
-       spFe_loc  = REMOVE_NEGATIVES(TRACER(istr:iend,j,k, spFe_ind_t))
-       diatSi_loc = REMOVE_NEGATIVES(TRACER(istr:iend,j,k, diatSi_ind_t))
-       diatFe_loc  = REMOVE_NEGATIVES(TRACER(istr:iend,j,k, diatFe_ind_t))
-       diazC_loc    = REMOVE_NEGATIVES(TRACER(istr:iend,j,k, diazC_ind_t))
-       diazChl_loc  = REMOVE_NEGATIVES(TRACER(istr:iend,j,k, diazChl_ind_t))
-       diazFe_loc   = REMOVE_NEGATIVES(TRACER(istr:iend,j,k, diazFe_ind_t))
-       DON_loc  = REMOVE_NEGATIVES(TRACER(istr:iend,j,k, don_ind_t))
-       DOFe_loc = REMOVE_NEGATIVES(TRACER(istr:iend,j,k, dofe_ind_t))
-       DOP_loc  = REMOVE_NEGATIVES(TRACER(istr:iend,j,k, dop_ind_t))
-       DOPr_loc = REMOVE_NEGATIVES(TRACER(istr:iend,j,k, dopr_ind_t))
-       DONr_loc = REMOVE_NEGATIVES(TRACER(istr:iend,j,k, donr_ind_t))
-# ifdef BEC_COCCO
-       coccoC_loc = REMOVE_NEGATIVES(TRACER(istr:iend,j,k, coccoc_ind_t))
-       coccoChl_loc = REMOVE_NEGATIVES(TRACER(istr:iend,j,k, coccochl_ind_t))
-       coccoCal_loc = REMOVE_NEGATIVES(TRACER(istr:iend,j,k, coccocal_ind_t))
-       coccoFe_loc = REMOVE_NEGATIVES(TRACER(istr:iend,j,k, coccofe_ind_t))
-       cal_loc = 
-# endif
-# ifdef BEC_DDA
-       ddaC_loc = REMOVE_NEGATIVES(TRACER(istr:iend,j,k, ddac_ind_t))
-       ddaChl_loc = REMOVE_NEGATIVES(TRACER(istr:iend,j,k, ddachl_ind_t))
-       ddaSi_loc = REMOVE_NEGATIVES(TRACER(istr:iend,j,k, ddasi_ind_t))
-       ddaFe_loc = REMOVE_NEGATIVES(TRACER(istr:iend,j,k, ddafe_ind_t))
-# endif
-# ifdef BEC_PHAEO
-       phaeoC_loc = REMOVE_NEGATIVES(TRACER(istr:iend,j,k, phaeoc_ind_t))
-       phaeoChl_loc = REMOVE_NEGATIVES(TRACER(istr:iend,j,k, phaeochl_ind_t))
-       phaeoFe_loc = REMOVE_NEGATIVES(TRACER(istr:iend,j,k, phaeofe_ind_t))
-# endif
-#else  /* HANDLE_NEGATIVES */
        PO4_loc  = MAX(c0, TRACER(istr:iend,j,k,po4_ind_t))
        NO3_loc  = MAX(c0, TRACER(istr:iend,j,k,no3_ind_t))
        SiO3_loc = MAX(c0, TRACER(istr:iend,j,k,sio3_ind_t))
@@ -1080,7 +1016,6 @@ c$$$       enddo
        phaeoChl_loc = MAX(c0, TRACER(istr:iend,j,k,phaeochl_ind_t))
        phaeoFe_loc = MAX(c0, TRACER(istr:iend,j,k,phaeofe_ind_t))
 # endif
-#endif  /* HANDLE_NEGATIVES */
 #ifdef BEC2_DIAG
 # ifdef BEC2_DIAG_USER
        if (bec2_diag_3d_l(totchl_idx_t))
@@ -1102,12 +1037,12 @@ c$$$       enddo
        if (bec2_diag_3d_l(spcaco3zero_idx_t))
      &     bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(spcaco3zero_idx_t)) = max(c0,-TRACER(istr:iend,j,k,spCaCO3_ind_t))/dt
 # else
-#  ifdef USE_EXPLICIT_VSINK
-       bec2_diag_3d(istr:iend,j,k,totpoc_idx_t) = tracer(istr:iend,j,k,pocsoft_ind_t)
-     &     + tracer(istr:iend,j,k,pochard_ind_t)
-#  endif
        bec2_diag_3d(istr:iend,j,k,totchl_idx_t) = tracer(istr:iend,j,k,spchl_ind_t)
      &     + tracer(istr:iend,j,k,diatchl_ind_t) + tracer(istr:iend,j,k,diazchl_ind_t)
+# ifdef EXPLICIT_VSINK
+       bec2_diag_3d(istr:iend,j,k,totpoc_idx_t) = tracer(istr:iend,j,k,pocsoft_ind_t)
+     &     + tracer(istr:iend,j,k,pochard_ind_t)
+# endif
 # ifdef BEC_COCCO
      &     + tracer(istr:iend,j,k,coccochl_ind_t)
 # endif
@@ -1148,16 +1083,16 @@ c$$$       enddo
           spFe_loc = c0
        END WHERE
 
-       WHERE (diatC_loc == c0 .OR. diatChl_loc == c0 .OR.
-     &     diatFe_loc == c0
+       WHERE (diatC_loc == c0 .OR. diatChl_loc == c0 .OR. 
+     &     diatFe_loc == c0 
      &    .OR. diatSi_loc == c0)
           diatC_loc = c0
           diatChl_loc = c0
           diatFe_loc = c0
           diatSi_loc = c0
        END WHERE
-
-       WHERE (diazC_loc == c0 .OR. diazChl_loc == c0 .OR.
+    
+       WHERE (diazC_loc == c0 .OR. diazChl_loc == c0 .OR. 
      &   diazFe_loc == c0)
           diazC_loc = c0
           diazChl_loc = c0
@@ -1258,19 +1193,6 @@ c$$$       enddo
      &           gQfe_min(auto_ind))
           end where
 
-# ifdef BEC_DDA_case2
-! When DDAs are not fixing, gQfe param are the same as for regular diatoms
-          if (auto_ind==dda_ind) then
-               where (NO3_loc>0.5)
-                 where (Fe_loc < cks * kFe(auto_ind))
-                 gQfe(istr:iend,dda_ind) = 
-     &           max((gQfe(istr:iend,diat_ind) * Fe_loc / (cks * kFe(dda_ind))),
-     &           gQfe_min(diat_ind))
-                 end where
-               end where
-          endif
-# endif
-
           if (kSiO3(auto_ind) > c0) then
              gQsi(istr:iend,auto_ind) = gQsi_0
              where ((Fe_loc < cksi * kFe(auto_ind)) .and. (Fe_loc > c0) .and.
@@ -1296,14 +1218,14 @@ c$$$       enddo
           if (CaCO3_ind(auto_ind) > 0) then
 #  ifdef BEC_COCCO
              if (exp_calcifier(auto_ind)) then
-                QCaCO3(istr:iend,auto_ind) = 0.2  ! 0.433
-             else
-                QCaCO3(istr:iend,auto_ind) =
-     &              min( CaCO3_loc(istr:iend,auto_ind)
+                QCaCO3(istr:iend,auto_ind) = 1  ! 0.2 for Cara ! 0.433
+             else 
+                QCaCO3(istr:iend,auto_ind) = 
+     &              min( CaCO3_loc(istr:iend,auto_ind) 
      &                 / (C_loc(istr:iend,auto_ind) + epsC), QCaCO3_max )
              endif
 #  else /* case not BEC_COCCO  */
-             QCaCO3(istr:iend,auto_ind) = min(CaCO3_loc(istr:iend,auto_ind)
+             QCaCO3(istr:iend,auto_ind) = min(CaCO3_loc(istr:iend,auto_ind) 
      &                      / (C_loc(istr:iend,auto_ind) + epsC), QCaCO3_max)
 #  endif /* BEC_COCCO */
           end if
@@ -1346,7 +1268,7 @@ c$$$       enddo
           PARinc(istr:iend,j) = PAR_out(istr:iend)
 # endif
           CALL init_particulate_terms(QA_dust_def,istr,iend,j,dust_flux)
-       end if
+       end if   
     !-----------------------------------------------------------------------
     !  compute PAR related quantities
     !  Morel, Maritorena, JGR, Vol 106, No. C4, pp 7163--7180, 2001
@@ -1354,17 +1276,6 @@ c$$$       enddo
 
        do i = istr, iend
           PAR_in(i) = PAR_out(i)
-
-# ifdef AMAZON_PAR
-      ! Apply a linear attenuation as a function of salinity to mimic turbidity in plume waters
-
-       if (latr(i,j)<20 .AND. latr(i,j)>-5 .AND. salt_loc(i)<=31) then
-!             PAR_in(i) = PAR_in(i) * (salt_loc(i)/31)
-           PAR_in(i) = PAR_in(i) * (1-(-0.021*salt_loc(i)+0.768))
-       endif
-
-# endif
-
           KPARdz(i) = max(spChl_loc(i)+diatChl_loc(i)+diazChl_loc(i)
 # ifdef BEC_COCCO
      &        +coccoChl_loc(i)
@@ -1377,14 +1288,13 @@ c$$$       enddo
 # endif
      &        ,0.02)
 
-          ! DL: in the following computation of KPARdz, it was taken into
+          ! DL: in the following computation of KPARdz, it was taken into 
           ! account that Hz is in m
-         if (KPARdz(i) < 0.13224) then
+          if (KPARdz(i) < 0.13224) then
              KPARdz(i) = 0.0919*(KPARdz(i)**0.3536) * Hz(i,j,k)
           else
              KPARdz(i) = 0.1131*(KPARdz(i)**0.4562) * Hz(i,j,k)
           end if
-
           PAR_out(i) = PAR_in(i) * exp(-KPARdz(i))
           PAR_lay(i) = PAR_in(i) * (c1 - exp(-KPARdz(i))) / KPARdz(i)
 # ifdef BEC2_DIAG
@@ -1463,60 +1373,25 @@ c$$$       enddo
     !  Get relative nutrient uptake rates for autotrophs,
     !  min. relative uptake rate modifies C fixation in the manner
     !  that the min. cell quota does in GD98.
-    !
     !-----------------------------------------------------------------------
 
        do auto_ind = 1, autotroph_cnt
-# ifdef BEC_DDA_case2
-          if (auto_ind == dda_ind) then
-             where (NO3_loc > 0.5)
-             VNO3(istr:iend,auto_ind) = (NO3_loc / kNO3(auto_ind)) /
-     &           (c1 + (NO3_loc / kNO3(auto_ind)) + (NH4_loc / kNH4(auto_ind)))
-             VNH4(istr:iend,auto_ind) = (NH4_loc / kNH4(auto_ind)) /
-     &           (c1 + (NO3_loc / kNO3(auto_ind)) + (NH4_loc / kNH4(auto_ind)))
-             VNtot(istr:iend,auto_ind) = VNO3(istr:iend,auto_ind) + VNH4(istr:iend,auto_ind)
-
-             VFe = Fe_loc / (Fe_loc + kFe(auto_ind))
-
-             f_nut = min(VNtot(istr:iend,auto_ind), VFe)
-             elsewhere
-             VNO3(istr:iend,auto_ind) = c0
-             VNH4(istr:iend,auto_ind) = c0
-             VNtot(istr:iend,auto_ind) = c1
-             VFe = Fe_loc / (Fe_loc + kFe(auto_ind))
-             f_nut = min(VNtot(istr:iend,auto_ind), VFe)
-             end where
-          else
-# endif /*BEC_DDA_case2*/
-         
           VNO3(istr:iend,auto_ind) = (NO3_loc / kNO3(auto_ind)) /
      &        (c1 + (NO3_loc / kNO3(auto_ind)) + (NH4_loc / kNH4(auto_ind)))
           VNH4(istr:iend,auto_ind) = (NH4_loc / kNH4(auto_ind)) /
      &        (c1 + (NO3_loc / kNO3(auto_ind)) + (NH4_loc / kNH4(auto_ind)))
           VNtot(istr:iend,auto_ind) = VNO3(istr:iend,auto_ind) + VNH4(istr:iend,auto_ind)
-
           if (Nfixer(auto_ind)) VNtot(istr:iend,auto_ind) = c1
 
           VFe = Fe_loc / (Fe_loc + kFe(auto_ind))
           f_nut = min(VNtot(istr:iend,auto_ind), VFe)
 
-# ifdef BEC_DDA_case2
-         endif
-# endif /*BEC_DDA_case2*/
-
-# ifdef BEC_DDA_case1
-         if (auto_ind == dda_ind) then
-             VNO3=c0
-             vNH4=c0
-         endif    
-# endif /*BEC_DDA_case1*/
-         
           VPO4(istr:iend,auto_ind) = (PO4_loc / kPO4(auto_ind)) /
      &           (c1 + (PO4_loc / kPO4(auto_ind)) + (DOP_loc / kDOP(auto_ind)))
           VDOP(istr:iend,auto_ind) = (DOP_loc / kDOP(auto_ind)) /
      &           (c1 + (PO4_loc / kPO4(auto_ind)) + (DOP_loc / kDOP(auto_ind)))
           VPtot(istr:iend,auto_ind) = VPO4(istr:iend,auto_ind) + VDOP(istr:iend,auto_ind)
-
+          
           !f_nut = min(f_nut, VPO4(istr:iend,auto_ind))
 
           ! CN: consider VPtot instead of VPO4 only! DOP is taken up, so
@@ -1585,31 +1460,19 @@ c$$$       enddo
 #  endif
           end if
 # endif /* BEC2_DIAG */
-# ifdef BEC_DDA
-#  ifdef BEC2_DIAG
-          if (auto_ind == dda_ind) then
-#   ifdef BEC2_DIAG_USER
-              if (bec2_diag_3d_l(ddasio3uptake_idx_t))
-     &            bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(ddasio3uptake_idx_t))= VSiO3
-#   else
-              bec2_diag_3d(istr:iend,j,k,ddasio3uptake_idx_t) = VSiO3
-#   endif
-          end if     
-#  endif /* BEC2_DIAG */
-# endif /* BEC_DDA*/
 
     !-----------------------------------------------------------------------
     !     get photosynth. rate, phyto C biomass change, photoadapt
     !-----------------------------------------------------------------------
 
-# ifdef BEC_PHAEO
+# ifdef BEC_PHAEO 
        ! reduce phaeo growth linearly above 6degC
           if (auto_ind==phaeo_ind) then
           tcrit1 = 5.0
           do i=istr,iend
              if (temp(i)>tcrit1) then
                 tfunc_tcrit1 = 1.5**(((tcrit1 + T0_Kelvin) - (Tref + T0_Kelvin)) / c10)  ! Tfunc at tcrit1
-                tfunc_2 = -1.0*tfunc_tcrit1/(temp_thres(phaeo_ind)-tcrit1)  ! slope
+                tfunc_2 = -1.0*tfunc_tcrit1/(temp_thres(phaeo_ind)-tcrit1)  ! slope 
                 tfunc_3 = tfunc_tcrit1-(tcrit1*tfunc_2)  ! y-Achsenabschnitt
                 Tfunc_phaeo(i) = max(0.0,(tfunc_2*temp(i)+tfunc_3)*PCref(phaeo_ind))
              endif
@@ -1627,18 +1490,10 @@ c$$$       enddo
           else if (auto_ind==cocco_ind) then
              PCmax = PCref(auto_ind) * f_nut * Tfunc_cocco
 # endif /* BEC_COCCO */
-# ifdef BEC_DDA_case1
+# ifdef BEC_DDA
           else if (auto_ind==dda_ind) then
              PCmax = PCref(auto_ind) * f_nut * Tfunc_dda
-# endif /* BEC_DDA_case1 */
-# ifdef BEC_DDA_case2
-          else if (auto_ind==dda_ind) then
-              where (NO3_loc < 0.5)
-              PCmax = PCref(auto_ind) *  f_nut * Tfunc_dda
-              elsewhere 
-              PCmax = (PCref(auto_ind) * 3.0) *  f_nut * Tfunc_dda    
-          end where
-# endif /* BEC_DDA_case2 */
+# endif /* BEC_DDA */
 # ifdef BEC_PHAEO
           else if (auto_ind==phaeo_ind) then
              PCmax = PCref(auto_ind) * f_nut * Tfunc_phaeo
@@ -1692,7 +1547,7 @@ c$$$       enddo
              bec2_diag_3d(istr:iend,j,k,splightlim_idx_t) = light_lim
           else if (auto_ind == diat_ind) then
              bec2_diag_3d(istr:iend,j,k,diatlightlim_idx_t) = light_lim
-#   ifdef BEC_COCCO
+#   ifdef BEC_COCCO 
           else if (auto_ind == cocco_ind) then
              bec2_diag_3d(istr:iend,j,k,coccolightlim_idx_t) = light_lim
 #   endif
@@ -1700,7 +1555,7 @@ c$$$       enddo
           else if (auto_ind == dda_ind) then
              bec2_diag_3d(istr:iend,j,k,ddalightlim_idx_t) = light_lim
 #   endif
-#   ifdef BEC_PHAEO
+#   ifdef BEC_PHAEO 
           else if (auto_ind == phaeo_ind) then
              bec2_diag_3d(istr:iend,j,k,phaeolightlim_idx_t) = light_lim
 #   endif
@@ -1729,9 +1584,9 @@ c$$$       enddo
           end where
 
           where (VPtot(istr:iend,auto_ind) > c0)
-             PO4_V(istr:iend,auto_ind) = (VPO4(istr:iend,auto_ind) / VPtot(istr:iend,auto_ind))
+             PO4_V(istr:iend,auto_ind) = (VPO4(istr:iend,auto_ind) / VPtot(istr:iend,auto_ind)) 
      &                    * photoC(istr:iend,auto_ind) * Qp(auto_ind)
-             DOP_V(istr:iend,auto_ind) = (VDOP(istr:iend,auto_ind) / VPtot(istr:iend,auto_ind))
+             DOP_V(istr:iend,auto_ind) = (VDOP(istr:iend,auto_ind) / VPtot(istr:iend,auto_ind)) 
      &                    * photoC(istr:iend,auto_ind) * Qp(auto_ind)
           elsewhere
              PO4_V(istr:iend,auto_ind) = c0
@@ -1854,7 +1709,7 @@ c$$$       enddo
 !!  calcification: use different light_lim than for photosynthesis (see
 !!  Zondervan 2007)
 !             QCaCO3(istr:iend,auto_ind) = QCaCO3(istr:iend,auto_ind)*light_lim_calc
-!             CaCO3_PROD(istr:iend,auto_ind) = QCaCO3(istr:iend,auto_ind)*photoC(istr:iend,auto_ind)*(1-light_lim)
+!             CaCO3_PROD(istr:iend,auto_ind) = QCaCO3(istr:iend,auto_ind)*photoC(istr:iend,auto_ind)*(1-light_lim)             
              CaCO3_PROD(istr:iend,auto_ind) = QCaCO3(istr:iend,auto_ind)*photoC(istr:iend,auto_ind)
           !   if (k==42) then
           !   if (mynode==222) then
@@ -1903,7 +1758,7 @@ c$$$       enddo
 # endif /* BEC_DDA */
 # ifdef BEC_PHAEO
        elseif (auto_ind == phaeo_ind) then
-          !auto_loss(istr:iend,auto_ind) =  mort(auto_ind) *
+          !auto_loss(istr:iend,auto_ind) =  mort(auto_ind) * 
           !Pprime(istr:iend,auto_ind) * Tfunc_phaeo
 ! CN: increase Phaeo mortality under stress
           auto_loss(istr:iend,auto_ind) = mort(auto_ind)*(2.0-min(f_nut,light_lim))*
@@ -1913,7 +1768,7 @@ c$$$       enddo
           auto_loss(istr:iend,auto_ind) =  mort(auto_ind) * Pprime(istr:iend,auto_ind) * Tfunc
        endif
 
-          auto_agg(istr:iend,auto_ind) = min(agg_rate_max(auto_ind) * dps * Pprime(istr:iend,auto_ind),
+          auto_agg(istr:iend,auto_ind) = min(agg_rate_max(auto_ind) * dps * Pprime(istr:iend,auto_ind), 
      &                               mort2(auto_ind) * Pprime(istr:iend,auto_ind) * Pprime(istr:iend,auto_ind))
           auto_agg(istr:iend,auto_ind) = max((agg_rate_min(auto_ind) * dps) * Pprime(istr:iend,auto_ind),
      &                               auto_agg(istr:iend,auto_ind))
@@ -1956,48 +1811,36 @@ c$$$       enddo
     !-----------------------------------------------------------------------
     !  Get N fixation by diazotrophs based on C fixation,
     !  Diazotrophs fix more than they need then 20% is excreted
-    !  DL: for DDAs --> no excretion and nofixation if NO3 is not
-    !  depleted
+    !  DL: for DDAs --> no excretion
     !-----------------------------------------------------------------------
 
           if (Nfixer(auto_ind)) then
              WORK1 = photoC(istr:iend,auto_ind) * Q
-             if (auto_ind == diaz_ind) then
+!# ifdef BEC_DDA
+!          if (Nfixer(dda_ind)) then
+!             WORK2 = photoC(istr:iend,auto_ind) * Q
+!             Nfix(istr:iend,auto_ind)     = (WORK2 * r_Nfix_photo_dda) - NO3_V(istr:iend,auto_ind)
+!     &                 - NH4_V(istr:iend,auto_ind)
+!          else
+!# endif
              Nfix(istr:iend,auto_ind)     = (WORK1 * r_Nfix_photo) - NO3_V(istr:iend,auto_ind)
      &                 - NH4_V(istr:iend,auto_ind)
              Nexcrete(istr:iend,auto_ind) = Nfix(istr:iend,auto_ind) + NO3_V(istr:iend,auto_ind)
      &                 + NH4_V(istr:iend,auto_ind) - WORK1
-             else
-                 where (NO3_loc > 0.5)
-                     Nfix(istr:iend,auto_ind) =c0
-                     Nexcrete(istr:iend,auto_ind) =c0
-                 elsewhere
-             Nfix(istr:iend,auto_ind)     = WORK1 - NO3_V(istr:iend,auto_ind)
-     &                - NH4_V(istr:iend,auto_ind) 
-             Nexcrete(istr:iend,auto_ind) = c0
-                 end where
-             endif  
+!# ifdef BEC_DDA
+!          endif
+!# endif
           endif
 # ifdef BEC2_DIAG
 #  ifdef BEC2_DIAG_USER
           if (auto_ind == diaz_ind .and. bec2_diag_3d_l(diaznfix_idx_t)) then
              bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(diaznfix_idx_t)) = Nfix(istr:iend,auto_ind)
           end if
-#   ifdef BEC_DDA
-           if (auto_ind == dda_ind .and.bec2_diag_3d_l(ddanfix_idx_t)) then
-               bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(ddanfix_idx_t))= Nfix(istr:iend,auto_ind)
-           end if 
-#   endif
 #  else
           if (auto_ind == diaz_ind) then
              bec2_diag_3d(istr:iend,j,k,diaznfix_idx_t) = Nfix(istr:iend,auto_ind)
              bec2_diag_3d(istr:iend,j,k,nexcrete_idx_t) = Nexcrete(istr:iend,auto_ind)
           end if
-#   ifdef BEC_DDA
-          if (auto_ind == dda_ind) then
-              bec2_diag_3d(istr:iend,j,k,ddanfix_idx_t) = Nfix(istr:iend,auto_ind)
-          end if
-#   endif
 #  endif
 # endif
 
@@ -2046,10 +1889,10 @@ c$$$       enddo
     !-----------------------------------------------------------------------
 
           if (Qp(auto_ind) /= Qp_zoo_pom) then
-             remaining_P = ((auto_graze(istr:iend,auto_ind) + auto_loss(istr:iend,auto_ind)
+             remaining_P = ((auto_graze(istr:iend,auto_ind) + auto_loss(istr:iend,auto_ind) 
      &                  + auto_agg(istr:iend,auto_ind)) * Qp(auto_ind))
      &                  - ((auto_graze_zoo(istr:iend,auto_ind)) * Qp_zoo_pom)
-     &                  - ((auto_graze_poc(istr:iend,auto_ind) + auto_loss_poc(istr:iend,auto_ind)
+     &                  - ((auto_graze_poc(istr:iend,auto_ind) + auto_loss_poc(istr:iend,auto_ind) 
      &                  + auto_agg(istr:iend,auto_ind)) * Qp_zoo_pom)
              remaining_P_dop(istr:iend,auto_ind) = (c1 - parm_labile_ratio) * remaining_P
              remaining_P_dip(istr:iend,auto_ind) = parm_labile_ratio * remaining_P
@@ -2271,7 +2114,7 @@ c$$$       enddo
        end do
        DOFe_prod = Qfe_zoo * zoo_loss_doc
        do auto_ind = 1, autotroph_cnt
-          DOFe_prod = DOFe_prod + Qfe(istr:iend,auto_ind) *
+          DOFe_prod = DOFe_prod + Qfe(istr:iend,auto_ind) * 
      &    (auto_loss_doc(istr:iend,auto_ind) + auto_graze_doc(istr:iend,auto_ind))
        end do
 # ifdef BEC2_DIAG
@@ -2348,7 +2191,7 @@ c$$$       enddo
      &            + auto_agg(istr:iend,cocco_ind) + auto_loss_poc(istr:iend,cocco_ind)
 # endif
 # ifdef BEC_PHAEO
-       POC_prod_phaeo = auto_graze_poc(istr:iend,phaeo_ind)
+       POC_prod_phaeo = auto_graze_poc(istr:iend,phaeo_ind) 
      &            + auto_agg(istr:iend,phaeo_ind) + auto_loss_poc(istr:iend,phaeo_ind)
 # endif
 # endif
@@ -2440,7 +2283,7 @@ c$$$       enddo
      &      (dust_sflux_out(istr:iend,j) + dust_hflux_out(istr:iend,j)) * dust_fescav_scale)
 
        where (Fe_loc > Fe_scavenge_thres1)
-          Fe_scavenge_rate = Fe_scavenge_rate +
+          Fe_scavenge_rate = Fe_scavenge_rate + 
      &                    (Fe_loc - Fe_scavenge_thres1) * fe_max_scale2
        end where
 
@@ -2449,8 +2292,8 @@ c$$$       enddo
        P_iron_prod = (zoo_loss * f_zoo_detr_loc * Qfe_zoo) + Fe_scavenge
 
        do auto_ind = 1, autotroph_cnt
-          P_iron_prod = P_iron_prod + Qfe(istr:iend,auto_ind)
-     &       * (auto_agg(istr:iend,auto_ind) + auto_graze_poc(istr:iend,auto_ind)
+          P_iron_prod = P_iron_prod + Qfe(istr:iend,auto_ind) 
+     &       * (auto_agg(istr:iend,auto_ind) + auto_graze_poc(istr:iend,auto_ind) 
      &          + auto_loss_poc(istr:iend,auto_ind))
        end do
 # ifdef BEC2_DIAG
@@ -2468,7 +2311,7 @@ c$$$       enddo
 #  endif
 # endif
 
-       call compute_particulate_terms(k,QA_dust_def, O2_loc, NO3_loc,POC_prod,
+       call compute_particulate_terms(k,QA_dust_def, TEMP, O2_loc, NO3_loc,POC_prod,
      &        P_iron_prod,P_CaCO3_prod,P_SiO2_prod,SED_DENITRIF, OTHER_REMIN,istr,iend,j)
 
 
@@ -2553,16 +2396,17 @@ c$$$       enddo
     !  nitrate & ammonium
     !-----------------------------------------------------------------------
 
-       DTRACER_MODULE(istr:iend,j,k,no3_ind_t) = NITRIF - DENITRIF -
+       DTRACER_MODULE(istr:iend,j,k,no3_ind_t) = NITRIF - DENITRIF - 
      &                                 SED_DENITRIF - sum(NO3_V, dim=2)
 
        DTRACER_MODULE(istr:iend,j,k,nh4_ind_t) = -sum(NH4_V, dim=2) - NITRIF + DON_remin + DONr_remin
      &     + Q * (zoo_loss_dic + sum(auto_loss_dic, dim=2) + sum(auto_graze_dic, dim=2)
      &     + POC_remin(istr:iend,j)
      &     * (c1 - DONrefract))
+
        do auto_ind = 1, autotroph_cnt
           if (Nfixer(auto_ind))
-     &        DTRACER_MODULE(istr:iend,j,k,nh4_ind_t) = DTRACER_MODULE(istr:iend,j,k,nh4_ind_t)
+     &        DTRACER_MODULE(istr:iend,j,k,nh4_ind_t) = DTRACER_MODULE(istr:iend,j,k,nh4_ind_t) 
      &                                          + Nexcrete(istr:iend,auto_ind)
        end do
 
@@ -2587,7 +2431,7 @@ c$$$       enddo
 
        do auto_ind = 1, autotroph_cnt
           if (kSiO3(auto_ind) > 0) then
-             DTRACER_MODULE(istr:iend,j,k,sio3_ind_t) = DTRACER_MODULE(istr:iend,j,k,sio3_ind_t)
+             DTRACER_MODULE(istr:iend,j,k,sio3_ind_t) = DTRACER_MODULE(istr:iend,j,k,sio3_ind_t) 
      &                 - photoSi(istr:iend,auto_ind) + Qsi(istr:iend,auto_ind)
      &                 * (f_graze_si_remin * auto_graze(istr:iend,auto_ind)
      &                 + (c1 - loss_poc(auto_ind)) * auto_loss(istr:iend,auto_ind))
@@ -2598,7 +2442,7 @@ c$$$       enddo
     !  phosphate
     !-----------------------------------------------------------------------
 
-       DTRACER_MODULE(istr:iend,j,k,po4_ind_t) = DOP_remin(istr:iend,j) + DOPr_remin(istr:iend,j)
+       DTRACER_MODULE(istr:iend,j,k,po4_ind_t) = DOP_remin(istr:iend,j) + DOPr_remin(istr:iend,j) 
      &     - sum(PO4_V, dim=2)
      &     + Qp_zoo_pom * ((c1 - DOPrefract)
      &     * POC_remin(istr:iend,j)
@@ -2609,7 +2453,7 @@ c$$$       enddo
              DTRACER_MODULE(istr:iend,j,k,po4_ind_t) = DTRACER_MODULE(istr:iend,j,k,po4_ind_t)
      &       + Qp(auto_ind) * (auto_loss_dic(istr:iend,auto_ind) + auto_graze_dic(istr:iend,auto_ind))
           else
-             DTRACER_MODULE(istr:iend,j,k,po4_ind_t) = DTRACER_MODULE(istr:iend,j,k,po4_ind_t)
+             DTRACER_MODULE(istr:iend,j,k,po4_ind_t) = DTRACER_MODULE(istr:iend,j,k,po4_ind_t) 
      &                  + remaining_P_dip(istr:iend,auto_ind)
           endif
        end do
@@ -2641,7 +2485,7 @@ c$$$       enddo
 
           n_loc = CaCO3_ind(auto_ind)
           if (n_loc > 0) then
-             DTRACER_MODULE(istr:iend,j,k,n_loc) = CaCO3_PROD(istr:iend,auto_ind)
+             DTRACER_MODULE(istr:iend,j,k,n_loc) = CaCO3_PROD(istr:iend,auto_ind) 
      &              - QCaCO3(istr:iend,auto_ind) * WORK1
           endif
        end do
@@ -2716,19 +2560,19 @@ c$$$       enddo
           if (.not. Nfixer(auto_ind)) then
              where (photoC(istr:iend,auto_ind) > c0)
                 O2_PRODUCTION = O2_PRODUCTION + photoC(istr:iend,auto_ind) *
-     &          ((NO3_V(istr:iend,auto_ind) / (NO3_V(istr:iend,auto_ind)
+     &          ((NO3_V(istr:iend,auto_ind) / (NO3_V(istr:iend,auto_ind) 
      &          + NH4_V(istr:iend,auto_ind))) / parm_Red_D_C_O2
-     &          + (NH4_V(istr:iend,auto_ind) / (NO3_V(istr:iend,auto_ind)
+     &          + (NH4_V(istr:iend,auto_ind) / (NO3_V(istr:iend,auto_ind) 
      &          + NH4_V(istr:iend,auto_ind))) / parm_Remin_D_C_O2)
              end where
           else
              where (photoC(istr:iend,auto_ind) > c0)
                 O2_PRODUCTION = O2_PRODUCTION + photoC(istr:iend,auto_ind) *
-     &          ((NO3_V(istr:iend,auto_ind) / (NO3_V(istr:iend,auto_ind)
+     &          ((NO3_V(istr:iend,auto_ind) / (NO3_V(istr:iend,auto_ind) 
      &             + NH4_V(istr:iend,auto_ind) + Nfix(istr:iend,auto_ind))) / parm_Red_D_C_O2
-     &           + (NH4_V(istr:iend,auto_ind) / (NO3_V(istr:iend,auto_ind)
+     &           + (NH4_V(istr:iend,auto_ind) / (NO3_V(istr:iend,auto_ind) 
      &           + NH4_V(istr:iend,auto_ind) + Nfix(istr:iend,auto_ind))) / parm_Remin_D_C_O2
-     &           + (Nfix(istr:iend,auto_ind) / (NO3_V(istr:iend,auto_ind)
+     &           + (Nfix(istr:iend,auto_ind) / (NO3_V(istr:iend,auto_ind) 
      &           + NH4_V(istr:iend,auto_ind) + Nfix(istr:iend,auto_ind))) / parm_Red_D_C_O2_diaz)
              end where
           endif
@@ -2745,12 +2589,12 @@ c$$$       enddo
        DTRACER_MODULE(istr:iend,j,k,o2_ind_t) = O2_PRODUCTION - O2_CONSUMPTION
 # ifdef BEC_COCCO
     !-----------------------------------------------------------------------
-    ! CN, June/July 2015: Implementation of coccolilthophores
+    ! CN, June/July 2015: Implementation of coccolilthophores 
     !-----------------------------------------------------------------------
 
 
     !--------------------------------
-    !
+    ! 
     ! detached CaCO3: from explicit calcifiers only
     !
     !--------------------------------
@@ -2776,7 +2620,7 @@ c$$$       enddo
        DTRACER_MODULE(istr:iend,j,k,pironhard_ind_t) = P_iron_gamma*P_iron_prod - P_ironhard_remin(istr:iend,j)
        DTRACER_MODULE(istr:iend,j,k,dustsoft_ind_t) = -dustsoft_remin(istr:iend,j)
        DTRACER_MODULE(istr:iend,j,k,pocsoft_ind_t) = POCsoft_prod(istr:iend,j) - POCsoft_remin(istr:iend,j)
-       DTRACER_MODULE(istr:iend,j,k,pcaco3soft_ind_t) = (c1-P_CaCO3_gamma)*P_CaCO3_prod -
+       DTRACER_MODULE(istr:iend,j,k,pcaco3soft_ind_t) = (c1-P_CaCO3_gamma)*P_CaCO3_prod - 
      &                                                  P_CaCO3soft_remin(istr:iend,j)
        DTRACER_MODULE(istr:iend,j,k,psio2soft_ind_t) = (c1-P_SiO2_gamma)*P_SiO2_prod - P_SiO2soft_remin(istr:iend,j)
        DTRACER_MODULE(istr:iend,j,k,pironsoft_ind_t) = (c1-P_iron_gamma)*P_iron_prod - P_ironsoft_remin(istr:iend,j)
@@ -2796,7 +2640,7 @@ c$$$       enddo
      &      iend,j,net_dust_in)
 
         implicit none
-#include "param.h"
+#include "param.h" 
 #include "param_bec2.h"
 #include "ecosys_bec2.h"
 #include "scalars.h"
@@ -2811,7 +2655,7 @@ c$$$       enddo
     !   arguments
     !---------------------------------------------------------------------------
         integer istr, iend, j
-        REAL, DIMENSION(istr:iend), INTENT(OUT) ::
+        REAL, DIMENSION(istr:iend), INTENT(OUT) :: 
      &          QA_dust_def     ! incoming deficit in the QA(dust) POC flux
 
     !---------------------------------------------------------------------------
@@ -2821,7 +2665,7 @@ c$$$       enddo
     !DL: the incoming dust flux has the same unit as in the ROMS forcing file.
     ! It is assumed to be kg/m2/s.
     !
-        REAL, DIMENSION(istr:iend) ::
+        REAL, DIMENSION(istr:iend) :: 
      &         net_dust_in        ! net incoming dust flux
 
     !-----------------------------------------------------------------------
@@ -2829,7 +2673,7 @@ c$$$       enddo
     !
     !  July 2002, length scale for excess POC and bSI modified by temperature
     !  Value given here is at Tref of 30 deg. C, JKM
-    !
+    ! 
     !   diss       dissolution length for soft subclass
     !   gamma      fraction of production -> hard subclass
     !   mass       mass of 1e6 base units in kg    (WAS: 1e9 base units in g)
@@ -2892,7 +2736,7 @@ c$$$       enddo
     !-----------------------------------------------------------------------
     !  Comment:
     !  soft/hard applies to the ballasting mineral fractions experiencing
-    !  different remin/diss characteristics. For POC, hard refers to
+    !  different remin/diss characteristics. For POC, hard refers to 
     !  the QA fraction associated with ballast, soft to free POC. QA POC
     !  is a diagnosed property from all ballasting minerals, thus
     !  POC_gamma is c0 (see Armstrong et al. 2002,Lima et al. 2014).
@@ -2928,7 +2772,7 @@ c$$$       enddo
 !
 !-------------------------------------------------------------------------
 
-       subroutine compute_particulate_terms(k,QA_dust_def, O2_loc, NO3_loc,
+       subroutine compute_particulate_terms(k,QA_dust_def, TEMP, O2_loc, NO3_loc, 
      &        POC_prod,P_iron_prod,P_CaCO3_prod,P_SiO2_prod,SED_DENITRIF,
      &        OTHER_REMIN,istr,iend,j)
 
@@ -2938,10 +2782,9 @@ c$$$       enddo
 #include "param_bec2.h"
 #include "ocean3d.h"
 
-       integer istr, iend, i, j, k, n_loc !, iB
+       integer istr, iend, i, j, k, n_loc, iB
        real, dimension(istr:iend) ::
-!     &   temp, 
-     &   O2_loc, NO3_loc
+     &   temp, O2_loc, NO3_loc
      &   ,POC_prod,P_CaCO3_prod,P_SiO2_prod,P_iron_prod
      &   ,QA_dust_def   ! incoming deficit in the QA (dust) POC flux
      &   ,dust_remin    ! remineralization of dust (base units/m^3/sec)
@@ -2949,7 +2792,7 @@ c$$$       enddo
      &   ,OTHER_REMIN   ! sedimentary remin not due to oxic or denitrification
      &   ,flux_oxidated ! carbon oxidation rate in sediment
      &   ,FESEDFLUX     ! sedimentary Fe inputs
-     &   ,scalelength
+     &   ,scalelength       
 # ifndef USE_EXPLICIT_VSINK
      &   ,DECAY_Hard       ! scaling factor for dissolution of Hard Ballast
      &   ,DECAY_HardDust   ! scaling factor for dissolution of Hard dust
@@ -3084,10 +2927,10 @@ c$$$       enddo
                 endif
              end do
           endif
-# ifndef USE_EXPLICIT_VSINK
+# ifndef USE_EXPLICIT_VSINK      
           DECAY_Hard(i)     = exp(-Hz(i,j,k) / 4.0e4)  ! DL: denominator converted to m
           DECAY_HardDust(i) = exp(-Hz(i,j,k) / 1.2e5)  ! DL: denominator converted to m
-# endif
+# endif      
        end do
 
     !----------------------------------------------------------------------
@@ -3102,7 +2945,7 @@ c$$$       enddo
           if (LANDMASK(i,j)) then
              dzr_loc = c1 / dz_loc
 
-# ifdef USE_EXPLICIT_VSINK
+# ifdef USE_EXPLICIT_VSINK             
              pochard_remin_loc = param_pochard_remin
              pocsoft_remin_loc = param_pocsoft_remin
              psio2hard_remin_loc = param_psio2hard_remin
@@ -3125,30 +2968,30 @@ c$$$       enddo
     !-----------------------------------------------------------------------
 
              if ((O2_loc(i) >= 5.0) .and. (O2_loc(i) < 40.0)) then
-# ifdef USE_EXPLICIT_VSINK
+# ifdef USE_EXPLICIT_VSINK             
                 pocsoft_remin_loc = pocsoft_remin_loc/(c1+(3.3-c1)*(40.0 - O2_loc(i))/35.0)
 # else
                 poc_diss_loc = POC_diss*(c1+(3.3-c1)*(40.0 - O2_loc(i))/35.0)
 # endif
              else if (O2_loc(i) < 5.0) then
-# ifdef USE_EXPLICIT_VSINK
+# ifdef USE_EXPLICIT_VSINK             
                 pocsoft_remin_loc = pocsoft_remin_loc / 3.3
 # else
                 poc_diss_loc = POC_diss * 3.3
-# endif
+# endif                
              endif
 
     !-----------------------------------------------------------------------
     !  apply scalelength factor to length scales
     !-----------------------------------------------------------------------
 
-# ifdef USE_EXPLICIT_VSINK
+# ifdef USE_EXPLICIT_VSINK             
              pocsoft_remin_loc = pocsoft_remin_loc / scalelength(i)
              pcaco3soft_remin_loc = pcaco3soft_remin_loc / scalelength(i)
              psio2soft_remin_loc = psio2soft_remin_loc / scalelength(i)
              pironsoft_remin_loc = pironsoft_remin_loc / scalelength(i)
              dustsoft_remin_loc = dustsoft_remin_loc / scalelength(i)
-# else
+# else    
              poc_diss_loc = scalelength(i) * poc_diss_loc
              sio2_diss_loc = scalelength(i) * sio2_diss_loc
              caco3_diss_loc = scalelength(i) * caco3_diss_loc
@@ -3159,7 +3002,7 @@ c$$$       enddo
     !  decay_POC_E and decay_SiO2 set locally, modified by O2
     !-----------------------------------------------------------------------
 
-# ifndef USE_EXPLICIT_VSINK
+# ifndef USE_EXPLICIT_VSINK             
              decay_POC_E = exp(-dz_loc / poc_diss_loc)
              decay_SiO2  = exp(-dz_loc / sio2_diss_loc)
              decay_CaCO3 = exp(-dz_loc / caco3_diss_loc)
@@ -3222,7 +3065,7 @@ c$$$       enddo
     !  and excess POC flux after subtracting off fraction of non-dust
     !  ballast production from net POC_PROD.
     !-----------------------------------------------------------------------
-
+ 
              POC_PROD_avail = POC_prod(i) -
      &          P_CaCO3_rho * P_CaCO3_prod(i) -
      &          P_SiO2_rho * P_SiO2_prod(i)
@@ -3244,7 +3087,7 @@ c$$$       enddo
 
     !-----------------------------------------------------------------------
     !  Compute 1st approximation to new QA_dust_def, the QA_dust
-    !  deficit leaving the cell (implicit). In the case of explicit
+    !  deficit leaving the cell (implicit). In the case of explicit 
     !  sinking, new_QA_dust_def equals dust flux leaving the layer.
     !  Ignore POC_PROD_avail at this stage.
     !-----------------------------------------------------------------------
@@ -3255,7 +3098,7 @@ c$$$       enddo
      &                            dust_hflux_out(i,j))
 # else
                 new_QA_dust_def = QA_dust_def(i) *
-     &             (dust_sflux_out(i,j) + dust_hflux_out(i,j)) /
+     &             (dust_sflux_out(i,j) + dust_hflux_out(i,j)) / 
      &             (dust_sflux_in(i,j) + dust_hflux_in(i,j))
 # endif
              else
@@ -3311,7 +3154,7 @@ c$$$       enddo
 
 # ifdef USE_EXPLICIT_VSINK
              POC_sflux_out(i,j) = -VSinkFlux(i,j,k-1,iPOCSOFT_VSink)
-# else
+# else             
              POC_sflux_out(i,j) = POC_sflux_in(i,j) * decay_POC_E +
      &          POC_PROD_avail *((c1 - decay_POC_E) *
      &          poc_diss)
@@ -3348,22 +3191,22 @@ c$$$       enddo
              dust_remin(i) = dusthard_remin(i,j)+dustsoft_remin(i,j)
 
              ! Compute POC remin (diagnose POChard_remin from QA fractions)
-             POChard_remin(i,j) = dps * ( (pcaco3hard_remin_loc *
+             POChard_remin(i,j) = dps * ( (pcaco3hard_remin_loc * 
      &                      P_CaCO3_rho * max(c0,tracer(i,j,k,pcaco3hard_ind_t)) +
      &                      pcaco3soft_remin_loc *
      &                      P_CaCO3_rho * max(c0,tracer(i,j,k,pcaco3soft_ind_t))) +
-     &                      (pSiO2hard_remin_loc *
+     &                      (pSiO2hard_remin_loc * 
      &                      P_SiO2_rho * max(c0,tracer(i,j,k,psio2hard_ind_t)) +
-     &                      psio2soft_remin_loc *
+     &                      psio2soft_remin_loc * 
      &                      P_SiO2_rho * max(c0,tracer(i,j,k,psio2soft_ind_t))) +
-     &                      (dusthard_remin_loc *
+     &                      (dusthard_remin_loc * 
      &                      dust_rho * max(c0,tracer(i,j,k,dusthard_ind_t)) +
-     &                      dustsoft_remin_loc *
+     &                      dustsoft_remin_loc * 
      &                      dust_rho * max(c0,tracer(i,j,k,dustsoft_ind_t))) )
              POCsoft_remin(i,j) = pocsoft_remin_loc *
      &                      dps * max(c0,tracer(i,j,k,pocsoft_ind_t))
              POC_remin(i,j) = POChard_remin(i,j)+POCsoft_remin(i,j)
-# else
+# else    
              P_CaCO3_remin(i,j) = P_CaCO3_prod(i) +
      &          ((P_CaCO3_sflux_in(i,j) - P_CaCO3_sflux_out(i,j)) +
      &          (P_CaCO3_hflux_in(i,j) - P_CaCO3_hflux_out(i,j))) * dzr_loc
@@ -3385,7 +3228,7 @@ c$$$       enddo
     !-----------------------------------------------------------------------
     !  Compute iron remineralization and flux out.
     !-----------------------------------------------------------------------
-
+        
 # ifdef USE_EXPLICIT_VSINK
              P_iron_remin(i,j) = P_iron_remin(i,j) + POC_remin(i,j)*parm_Red_Fe_C
 # else
@@ -3409,7 +3252,7 @@ c$$$       enddo
                 P_Iron_remin(i,j) = P_iron_sflux_in(i,j) * dzr_loc +
      &            (c1 - P_iron_gamma) * P_iron_prod(i)
              endif
-# endif
+# endif 
 
     !-----------------------------------------------------------------------
     !  Compute iron release from dust remin/dissolution
@@ -3522,7 +3365,7 @@ c$$$       enddo
      &                   (flux - POC_sed_loss(i,j) - (SED_DENITRIF(i)*dz_loc*denitrif_C_N)))
 
     !----------------------------------------------------------------------------------
-    !              if bottom water O2 is depleted, assume all remin is denitrif + other
+    !              if bottom water O2 is depleted, assume all remin is denitrif + other               
     !----------------------------------------------------------------------------------
 
                if (O2_loc(i) < c1) then
@@ -3547,7 +3390,7 @@ c$$$       enddo
               endif
 #  else
             ! CN (Sep 2015): FESEDFLUX parametrization from Dale 2015
-            ! carbon oxidation rate in mmol m-2 s-1
+            ! carbon oxidation rate in mmol m-2 s-1 
             flux_oxidated(i) = flux - POC_sed_loss(i,j)
 
             ! convert from mmol m-2 s-1 to mmol m-2 d-1
@@ -3556,7 +3399,7 @@ c$$$       enddo
             ! constant 170 in umol m-2 d-1, flux_oxidated in mmol m-2
             ! day-1, o2 in muM
             if (flux_oxidated(i) > 0) then
-                FESEDFLUX(i) = 170 * tanh(flux_oxidated(i)/O2_loc(i))
+                FESEDFLUX(i) = 170 * tanh(flux_oxidated(i)/max(O2_loc(i),1e-15))
             endif
             ! convert from umol m-2 d-1 to mmol m-2 s-1
             FESEDFLUX(i) = FESEDFLUX(i)*0.001/86400.     !sec2day=1/86400
@@ -3625,7 +3468,7 @@ c$$$       enddo
             endif
 
     !-----------------------------------------------------------------------
-    !   Remove all Piron and dust that hits bottom, sedimentary Fe source
+    !   Remove all Piron and dust that hits bottom, sedimentary Fe source 
     !        accounted for by FESEDFLUX elsewhere.
     !-----------------------------------------------------------------------
 
@@ -3711,19 +3554,18 @@ c$$$       enddo
 !
 !-------------------------------------------------------------------------
 
-       subroutine WS(SMFTX, SMFTY,landmask,work,istr,iend)
+       subroutine WS(SMFTX, SMFTY,landmask,work,istr,iend,jstr,jend)
     !-------------------------------------------------------------------------
     !   result declaration
     !-------------------------------------------------------------------------
         implicit none
 
 ! needed for scalars.h
-#include "param.h"
+#include "param.h"  
 ! needed for rho0
-#include "scalars.h"
-        integer::istr,iend
-        !REAL, DIMENSION(istr:iend,jstr:jend), INTENT(OUT)  :: WORK ! 10m windspeed (m/s)
-        REAL, DIMENSION(istr:iend), INTENT(OUT)  :: WORK ! 10m windspeed (m/s)
+#include "scalars.h"       
+        integer::istr,iend,jstr,jend
+        REAL, DIMENSION(istr:iend,jstr:jend), INTENT(OUT)  :: WORK ! 10m windspeed (m/s)
 
     !-------------------------------------------------------------------------
     !   Compute 10m windspeed from surface velocity fluxes where LAND_MASK is
@@ -3758,7 +3600,7 @@ c$$$       enddo
     !   arguments
     !-------------------------------------------------------------------------
 
-        REAL, DIMENSION(istr:iend), INTENT(IN) ::
+        REAL, DIMENSION(istr:iend,jstr:jend), INTENT(IN) :: 
      &    SMFTX,  ! 'zonal' surface velocity flux (m^2/s^2)
      &    SMFTY    ! 'meridional' surface velocity flux (m^2/s^2)
 ! HF: both were in (cm^2/s^s)
@@ -3767,21 +3609,21 @@ c$$$       enddo
     !   local variables
     !-------------------------------------------------------------------------
 
-        REAL, PARAMETER ::
+        REAL, PARAMETER :: 
      &    coef_1  = 0.0027,     ! (m/s)
      &    coef_2  = 0.000142,   ! (non-dimensional)
      &    coef_3  = 0.0000764,  ! (s/m)
      &    c_d     = 1.7e-3      ! drag coefficient for initial u
 
-        REAL, DIMENSION(istr:iend) ::
+        REAL, DIMENSION(istr:iend,jstr:jend) :: 
      &    ustar_squared  ! square of turbulent velocity scale (m^2/s^2)
-        LOGICAL,DIMENSION(istr:iend) :: landmask
+        LOGICAL,DIMENSION(istr:iend,jstr:jend) :: landmask
     !------------------------------------------------------------------------
     !   solve for WS in (m/s)
     !-------------------------------------------------------------------------
 
        WHERE (landmask)
-         ustar_squared = SQRT(SMFTX**2 + SMFTY**2) * rho0 /
+         ustar_squared = SQRT(SMFTX**2 + SMFTY**2) * rho0 / 
      &         rho_air
 
          WORK = SQRT(ustar_squared / c_d)
@@ -3791,25 +3633,25 @@ c$$$       enddo
        !   loop constructs are not allowed inside WHERE constructs
        !----------------------------------------------------------------------
 
-          WORK = WORK - (WORK*(coef_1 + WORK*(coef_2 + WORK*coef_3))
-     &         - ustar_squared) /
+          WORK = WORK - (WORK*(coef_1 + WORK*(coef_2 + WORK*coef_3)) 
+     &         - ustar_squared) / 
+     &         (coef_1 + WORK*(2*coef_2 + WORK*3*coef_3))
+
+          WORK = WORK - (WORK*(coef_1 + WORK*(coef_2 + WORK*coef_3)) 
+     &          - ustar_squared) / 
      &         (coef_1 + WORK*(2*coef_2 + WORK*3*coef_3))
 
           WORK = WORK - (WORK*(coef_1 + WORK*(coef_2 + WORK*coef_3))
-     &          - ustar_squared) /
-     &         (coef_1 + WORK*(2*coef_2 + WORK*3*coef_3))
-
-          WORK = WORK - (WORK*(coef_1 + WORK*(coef_2 + WORK*coef_3))
-     &           - ustar_squared) /
+     &           - ustar_squared) / 
      &       (coef_1 + WORK*(2*coef_2 + WORK*3*coef_3))
 
         ELSEWHERE
            WORK = 0.0
         END WHERE
 
-!-------------------------------------------------------------------------
-!   HF: DO NOT convert to (cm/s)
-!-------------------------------------------------------------------------
+    !-------------------------------------------------------------------------
+    !   HF: DO NOT convert to (cm/s)
+    !-------------------------------------------------------------------------
 
         RETURN
         END subroutine WS
@@ -3820,46 +3662,46 @@ c$$$       enddo
 !
 !-------------------------------------------------------------------------
 
-         subroutine CSCHMIDT_O2(SSTT,landmask,SCHMIDT_O2,istr,iend)
+         subroutine CSCHMIDT_O2(SSTT,landmask,SCHMIDT_O2,istr,
+     &          iend,jstr,jend)
         implicit none
 !! needed for c0
 !#include "param_bec2.h"
+        
+       integer::istr,iend,jstr,jend
+         LOGICAL,DIMENSION(istr:iend,jstr:jend) :: landmask
 
-       integer::istr,iend
-         LOGICAL,DIMENSION(istr:iend) :: landmask
+    !---------------------------------------------------------------------------
+    !   Compute Schmidt number of O2 in seawater as function of SST
+    !   where LAND_MASK is true. Give zero where LAND_MASK is false.
+    !
+    !   ref : Keeling et al, Global Biogeochem. Cycles, Vol. 12,
+    !         No. 1, pp. 141-163, March 1998
+    !---------------------------------------------------------------------------
+    !
+    !DL: over land, do NOT assign zero to the result, but use very large value instead
+    ! in order to prevent division by zero.
 
-!---------------------------------------------------------------------------
-!   Compute Schmidt number of O2 in seawater as function of SST
-!   where LAND_MASK is true. Give zero where LAND_MASK is false.
-!
-!   ref : Keeling et al, Global Biogeochem. Cycles, Vol. 12,
-!         No. 1, pp. 141-163, March 1998
-!---------------------------------------------------------------------------
-!
-!DL: over land, do NOT assign zero to the result, but use very large value instead
-! in order to prevent division by zero.
+    !---------------------------------------------------------------------------
+    !   arguments
+    !---------------------------------------------------------------------------
 
-!---------------------------------------------------------------------------
-!   arguments
-!---------------------------------------------------------------------------
+          REAL, DIMENSION(istr:iend,jstr:jend), INTENT(IN) :: SSTT
 
-          !REAL, DIMENSION(istr:iend,jstr:jend), INTENT(IN) :: SSTT
-          REAL, DIMENSION(istr:iend), INTENT(IN) :: SSTT
+    !---------------------------------------------------------------------------
+    !   result declaration
+    !---------------------------------------------------------------------------
 
-!---------------------------------------------------------------------------
-!   result declaration
-!---------------------------------------------------------------------------
+          REAL, DIMENSION(istr:iend,jstr:jend) :: SCHMIDT_O2
 
-          REAL, DIMENSION(istr:iend) :: SCHMIDT_O2
+    !---------------------------------------------------------------------------
+    !   coefficients in expansion
+    !---------------------------------------------------------------------------
 
-!---------------------------------------------------------------------------
-!   coefficients in expansion
-!---------------------------------------------------------------------------
-
-          REAL, PARAMETER ::
-     &      a = 1638.0,
-     &      b = 81.83,
-     &      c = 1.483,
+          REAL, PARAMETER :: 
+     &      a = 1638.0, 
+     &      b = 81.83, 
+     &      c = 1.483, 
      &      d = 0.008004
 
          WHERE (LANDMASK)
@@ -3870,7 +3712,7 @@ c$$$       enddo
           return
           END subroutine CSCHMIDT_O2
 
-!*****************************************************************************
+  !*****************************************************************************
 
 !-------------------------------------------------------------------------
 !
@@ -3878,73 +3720,74 @@ c$$$       enddo
 !
 !-------------------------------------------------------------------------
 
-          subroutine O2SATU(SSTT, SSSS,landmask, O2SAT,istr,iend)
+          subroutine O2SATU(SSTT, SSSS,landmask, O2SAT,istr,
+     &         iend,jstr,jend)
         implicit none
 ! needed for c0
 #include "param_bec2.h"
-       integer::istr,iend
-       LOGICAL,DIMENSION(istr:iend) :: landmask
+       integer::istr,iend,jstr,jend
+       LOGICAL,DIMENSION(istr:iend,jstr:jend) :: landmask
 
-!---------------------------------------------------------------------------
-!
-!   Computes oxygen saturation concentration at 1 atm total pressure
-!   in mmol/m^3 given the temperature (t, in deg C) and the salinity (s,
-!   in permil) where LAND_MASK is true. Give zero where LAND_MASK is false.
-!
-!   FROM GARCIA AND GORDON (1992), LIMNOLOGY and OCEANOGRAPHY.
-!   THE FORMULA USED IS FROM PAGE 1310, EQUATION (8).
-!
-!   *** NOTE: THE "A_3*TS^2" TERM (IN THE PAPER) IS INCORRECT. ***
-!   *** IT SHOULDN'T BE THERE.                                ***
-!
-!   O2SAT IS DEFINED BETWEEN T(freezing) <= T <= 40(deg C) AND
-!   0 permil <= S <= 42 permil
-!   CHECK VALUE:  T = 10.0 deg C, S = 35.0 permil,
-!   O2SAT = 282.015 mmol/m^3
-!
-!---------------------------------------------------------------------------
+    !---------------------------------------------------------------------------
+    !
+    !   Computes oxygen saturation concentration at 1 atm total pressure
+    !   in mmol/m^3 given the temperature (t, in deg C) and the salinity (s,
+    !   in permil) where LAND_MASK is true. Give zero where LAND_MASK is false.
+    !
+    !   FROM GARCIA AND GORDON (1992), LIMNOLOGY and OCEANOGRAPHY.
+    !   THE FORMULA USED IS FROM PAGE 1310, EQUATION (8).
+    !
+    !   *** NOTE: THE "A_3*TS^2" TERM (IN THE PAPER) IS INCORRECT. ***
+    !   *** IT SHOULDN'T BE THERE.                                ***
+    !
+    !   O2SAT IS DEFINED BETWEEN T(freezing) <= T <= 40(deg C) AND
+    !   0 permil <= S <= 42 permil
+    !   CHECK VALUE:  T = 10.0 deg C, S = 35.0 permil,
+    !   O2SAT = 282.015 mmol/m^3
+    !
+    !---------------------------------------------------------------------------
 
-!---------------------------------------------------------------------------
-!   arguments
-!---------------------------------------------------------------------------
+    !---------------------------------------------------------------------------
+    !   arguments
+    !---------------------------------------------------------------------------
 
-       REAL, DIMENSION(istr:iend), INTENT(IN) ::
+       REAL, DIMENSION(istr:iend,jstr:jend), INTENT(IN) :: 
      &    SSTT,  ! sea surface temperature (C)
      &    SSSS    ! sea surface salinity (psu)
 
-!---------------------------------------------------------------------------
-!   result declaration
-!---------------------------------------------------------------------------
+    !---------------------------------------------------------------------------
+    !   result declaration
+    !---------------------------------------------------------------------------
 
-        REAL, DIMENSION(istr:iend) :: O2SAT
+        REAL, DIMENSION(istr:iend,jstr:jend) :: O2SAT
 
-!---------------------------------------------------------------------------
-!   local variables
-!---------------------------------------------------------------------------
+    !---------------------------------------------------------------------------
+    !   local variables
+    !---------------------------------------------------------------------------
 
-        REAL, DIMENSION(istr:iend) :: TS
+        REAL, DIMENSION(istr:iend,jstr:jend) :: TS
 
-!---------------------------------------------------------------------------
-!   coefficients in expansion
-!---------------------------------------------------------------------------
+    !---------------------------------------------------------------------------
+    !   coefficients in expansion
+    !---------------------------------------------------------------------------
 
-        REAL, PARAMETER ::
-     &    a_0 = 2.00907,
-     &    a_1 = 3.22014,
-     &    a_2 = 4.05010,
-     &    a_3 = 4.94457,
-     &    a_4 = -2.56847E-1,
-     &    a_5 = 3.88767,
-     &    b_0 = -6.24523E-3,
-     &    b_1 = -7.37614E-3,
-     &    b_2 = -1.03410E-2,
-     &    b_3 = -8.17083E-3,
+        REAL, PARAMETER :: 
+     &    a_0 = 2.00907, 
+     &    a_1 = 3.22014, 
+     &    a_2 = 4.05010, 
+     &    a_3 = 4.94457, 
+     &    a_4 = -2.56847E-1, 
+     &    a_5 = 3.88767, 
+     &    b_0 = -6.24523E-3, 
+     &    b_1 = -7.37614E-3, 
+     &    b_2 = -1.03410E-2, 
+     &    b_3 = -8.17083E-3, 
      &    c_0 = -4.88682E-7
 
         WHERE (LANDMASK)
            TS = LOG( ((T0_Kelvin+25.0) - SSTT) / (T0_Kelvin + SSTT) )
 
-         O2SAT = EXP(a_0+TS*(a_1+TS*(a_2+TS*(a_3+TS*(a_4+TS*a_5)))) +
+         O2SAT = EXP(a_0+TS*(a_1+TS*(a_2+TS*(a_3+TS*(a_4+TS*a_5)))) + 
      &         SSSS*( (b_0+TS*(b_1+TS*(b_2+TS*b_3))) + SSSS*c_0 ))
         ELSEWHERE
           O2SAT = c0
@@ -3966,12 +3809,13 @@ c$$$       enddo
 !
 !-------------------------------------------------------------------------
 
-          subroutine CSCHMIDT_CO2(SSTT,landmask,SCHMIDT_CO2,istr,iend)
+          subroutine CSCHMIDT_CO2(SSTT,landmask,SCHMIDT_CO2,istr,
+     &                     iend,jstr,jend )
         implicit none
 ! needed for c0
 #include "param_bec2.h"
-       integer::istr,iend
-         LOGICAL,DIMENSION(istr:iend) :: landmask
+       integer::istr,iend,jstr,jend
+         LOGICAL,DIMENSION(istr:iend,jstr:jend) :: landmask
 
     !---------------------------------------------------------------------------
     !   Compute Schmidt number of CO2 in seawater as function of SST
@@ -3987,21 +3831,21 @@ c$$$       enddo
     !   arguments
     !---------------------------------------------------------------------------
 
-          REAL, DIMENSION(istr:iend), INTENT(IN) :: SSTT
+          REAL, DIMENSION(istr:iend,jstr:jend), INTENT(IN) :: SSTT
 
     !---------------------------------------------------------------------------
     !   result declaration
     !---------------------------------------------------------------------------
 
-          REAL, DIMENSION(istr:iend), INTENT(OUT) :: SCHMIDT_CO2
+          REAL, DIMENSION(istr:iend,jstr:jend), INTENT(OUT) :: SCHMIDT_CO2
 
     !---------------------------------------------------------------------------
     !   coefficients in expansion
     !---------------------------------------------------------------------------
 
-         REAL, PARAMETER ::
-     &    a = 2073.1,
-     &    b = 125.62,
+         REAL, PARAMETER :: 
+     &    a = 2073.1, 
+     &    b = 125.62, 
      &    c = 3.6276,
      &    d = 0.043219
 
@@ -4030,7 +3874,7 @@ c$$$       enddo
     !             temp, salinity (s), etc.
     !---------------------------------------------------------------------------
         implicit none
-       real,parameter::c0=0.0, c1=1.0, c10=10.0,
+       real,parameter::c0=0.0, c1=1.0, c10=10.0, 
      &   c1000=1000.0, T0_Kelvin=273.16,rho_sw=4.1/3.996
        integer::istr,iend
     !---------------------------------------------------------------------------
@@ -4043,12 +3887,12 @@ c$$$       enddo
   !   declarations for function coefficients & species concentrations
   !-----------------------------------------------------------------------------
 
-        REAL, DIMENSION(istr:iend) ::
-     &  k0, k1, k2, kw, kb, ks, kf, k1p, k2p, k3p, ksi, ff,
+        REAL, DIMENSION(istr:iend) :: 
+     &  k0, k1, k2, kw, kb, ks, kf, k1p, k2p, k3p, ksi, ff, 
      &  bt, st, ft, dic, ta, pt, sit
 
          LOGICAL, DIMENSION(istr:iend), INTENT(IN) :: mask
-         REAL, DIMENSION(istr:iend), INTENT(IN) ::
+         REAL, DIMENSION(istr:iend), INTENT(IN) :: 
      &    t,         ! temperature (degrees C)
      &    s,         ! salinity (PSU)
      &    dic_in,    ! total inorganic carbon (mmol/m^3)
@@ -4065,7 +3909,7 @@ c$$$       enddo
     !   output arguments
     !---------------------------------------------------------------------------
 
-       REAL, DIMENSION(istr:iend), INTENT(OUT) ::
+       REAL, DIMENSION(istr:iend), INTENT(OUT) :: 
      &    ph,        ! computed ph values, for initial guess on next time step
      &    co2star,   ! CO2*water (mmol/m^3)
      &    dco2star,  ! delta CO2 (mmol/m^3)
@@ -4079,19 +3923,19 @@ c$$$       enddo
 
        INTEGER :: i
 
-        REAL ::
+        REAL :: 
      &    mass_to_vol,   ! (mol/kg) -> (mmol/m^3)
      &    vol_to_mass,   ! (mmol/m^3) -> (mol/kg)
      &    tk,            ! temperature (K)
      &    is,            ! ionic strength
      &    scl,           ! chlorinity
      &    co2starair,    ! co2star saturation
-     &    tk100, tk1002, invtk, dlogtk, is2, sqrtis,
+     &    tk100, tk1002, invtk, dlogtk, is2, sqrtis, 
      &    s2, sqrts, s15, htotal2
 
 
 
-        REAL, DIMENSION(istr:iend) ::
+        REAL, DIMENSION(istr:iend) :: 
      &    xco2,          ! atmospheric CO2 (atm)
      &    htotal,        ! free concentration of H ion
      &    x1, x2          ! bounds on htotal for solver
@@ -4162,16 +4006,16 @@ c$$$       enddo
           !                 Eq 13 with table 6 values)
           !---------------------------------------------------------------------
 
-            ff(i) = EXP(-162.8301 + 218.2968/tk100 +
-     &          90.9241*LOG(tk100) -
-     &          1.47696*tk1002 + s(i)*(.025695 - .025225*tk100 +
+            ff(i) = EXP(-162.8301 + 218.2968/tk100 + 
+     &          90.9241*LOG(tk100) - 
+     &          1.47696*tk1002 + s(i)*(.025695 - .025225*tk100 + 
      &          0.0049867*tk1002))
 
           !---------------------------------------------------------------------
           !   K0 from Weiss 1974
           !---------------------------------------------------------------------
 
-            k0(i) = EXP(93.4517/tk100 - 60.2409 + 23.3585*LOG(tk100) +
+            k0(i) = EXP(93.4517/tk100 - 60.2409 + 23.3585*LOG(tk100) + 
      &          s(i)*(0.023517 - 0.023656 * tk100 + 0.0047036 * tk1002))
 
           !---------------------------------------------------------------------
@@ -4180,21 +4024,21 @@ c$$$       enddo
           !   Millero p.664 (1995) using Mehrbach et al. data on seawater scale
           !---------------------------------------------------------------------
 
-          k1(i) = 10**(-1*(3670.7*invtk - 62.008 + 9.7944*dlogtk -
+          k1(i) = 10**(-1*(3670.7*invtk - 62.008 + 9.7944*dlogtk - 
      &         0.0118*s(i) + 0.000116*s2))
 
-          k2(i) = 10**(-1*(1394.7*invtk + 4.777 -
+          k2(i) = 10**(-1*(1394.7*invtk + 4.777 - 
      &           0.0184*s(i) + 0.000118*s2))
-
+ 
           !---------------------------------------------------------------------
           !   kb = [H][BO2]/[HBO2]
           !   Millero p.669 (1995) using data from Dickson (1990)
           !---------------------------------------------------------------------
 
-          kb(i) = EXP((-8966.90 - 2890.53*sqrts - 77.942*s(i) +
-     &          1.728*s15 - 0.0996*s2)*invtk +
-     &          (148.0248 + 137.1942*sqrts + 1.62142*s(i)) +
-     &          (-24.4344 - 25.085*sqrts - 0.2474*s(i)) *
+          kb(i) = EXP((-8966.90 - 2890.53*sqrts - 77.942*s(i) + 
+     &          1.728*s15 - 0.0996*s2)*invtk + 
+     &          (148.0248 + 137.1942*sqrts + 1.62142*s(i)) + 
+     &          (-24.4344 - 25.085*sqrts - 0.2474*s(i)) * 
      &          dlogtk + 0.053105*sqrts*tk)
 
           !---------------------------------------------------------------------
@@ -4202,8 +4046,8 @@ c$$$       enddo
           !   DOE(1994) eq 7.2.20 with footnote using data from Millero (1974)
           !---------------------------------------------------------------------
 
-          k1p(i) = EXP(-4576.752*invtk + 115.525 - 18.453 * dlogtk +
-     &         (-106.736*invtk + 0.69171) * sqrts +
+          k1p(i) = EXP(-4576.752*invtk + 115.525 - 18.453 * dlogtk + 
+     &         (-106.736*invtk + 0.69171) * sqrts + 
      &          (-0.65643*invtk - 0.01844) * s(i))
 
           !---------------------------------------------------------------------
@@ -4211,8 +4055,8 @@ c$$$       enddo
           !   DOE(1994) eq 7.2.23 with footnote using data from Millero (1974))
           !---------------------------------------------------------------------
 
-          k2p(i) = EXP(-8814.715*invtk + 172.0883 - 27.927 * dlogtk +
-     &          (-160.340*invtk + 1.3566) * sqrts +
+          k2p(i) = EXP(-8814.715*invtk + 172.0883 - 27.927 * dlogtk + 
+     &          (-160.340*invtk + 1.3566) * sqrts + 
      &          (0.37335*invtk - 0.05778) * s(i))
 
           !---------------------------------------------------------------------
@@ -4220,8 +4064,8 @@ c$$$       enddo
           !   DOE(1994) eq 7.2.26 with footnote using data from Millero (1974)
           !---------------------------------------------------------------------
 
-          k3p(i) = EXP(-3070.75*invtk - 18.141 +
-     &          (17.27039*invtk + 2.81197) * sqrts +
+          k3p(i) = EXP(-3070.75*invtk - 18.141 +  
+     &          (17.27039*invtk + 2.81197) * sqrts + 
      &          (-44.99486*invtk - 0.09984) * s(i))
 
           !---------------------------------------------------------------------
@@ -4229,10 +4073,10 @@ c$$$       enddo
           !   Millero p.671 (1995) using data from Yao and Millero (1995)
           !---------------------------------------------------------------------
 
-          ksi(i) = EXP(-8904.2*invtk + 117.385 - 19.334 * dlogtk +
-     &         (-458.79*invtk + 3.5913) * sqrtis +
-     &         (188.74*invtk - 1.5998) * is +
-     &          (-12.1652*invtk + 0.07871) * is2 +
+          ksi(i) = EXP(-8904.2*invtk + 117.385 - 19.334 * dlogtk + 
+     &         (-458.79*invtk + 3.5913) * sqrtis + 
+     &         (188.74*invtk - 1.5998) * is + 
+     &          (-12.1652*invtk + 0.07871) * is2 + 
      &          LOG(1.0-0.001005*s(i)))
 
           !---------------------------------------------------------------------
@@ -4240,8 +4084,8 @@ c$$$       enddo
           !   Millero p.670 (1995) using composite data
           !---------------------------------------------------------------------
 
-          kw(i) = EXP(-13847.26*invtk + 148.9652 - 23.6521 * dlogtk +
-     &        (118.67*invtk - 5.977 + 1.0495 * dlogtk) *
+          kw(i) = EXP(-13847.26*invtk + 148.9652 - 23.6521 * dlogtk + 
+     &        (118.67*invtk - 5.977 + 1.0495 * dlogtk) * 
      &         sqrts - 0.01615 * s(i))
 
           !---------------------------------------------------------------------
@@ -4249,11 +4093,11 @@ c$$$       enddo
           !   Dickson (1990, J. chem. Thermodynamics 22, 113)
           !---------------------------------------------------------------------
 
-          ks(i) = EXP(-4276.1*invtk + 141.328 - 23.093*dlogtk +
-     &          (-13856*invtk + 324.57 - 47.986*dlogtk) *
-     &          sqrtis +
-     &          (35474*invtk - 771.54 + 114.723*dlogtk) * is -
-     &          2698*invtk*is**1.5 + 1776*invtk*is2 +
+          ks(i) = EXP(-4276.1*invtk + 141.328 - 23.093*dlogtk + 
+     &          (-13856*invtk + 324.57 - 47.986*dlogtk) * 
+     &          sqrtis + 
+     &          (35474*invtk - 771.54 + 114.723*dlogtk) * is - 
+     &          2698*invtk*is**1.5 + 1776*invtk*is2 + 
      &          LOG(1.0 - 0.001005*s(i)))
 
           !---------------------------------------------------------------------
@@ -4261,8 +4105,8 @@ c$$$       enddo
           !   Dickson and Riley (1979) -- change pH scale to total
           !---------------------------------------------------------------------
 
-          kf(i) = EXP(1590.2*invtk - 12.641 + 1.525*sqrtis +
-     &         LOG(1.0 - 0.001005*s(i)) +
+          kf(i) = EXP(1590.2*invtk - 12.641 + 1.525*sqrtis + 
+     &         LOG(1.0 - 0.001005*s(i)) +  
      &          LOG(1.0 + (0.1400/96.062)*(scl)/ks(i)))
 
           !---------------------------------------------------------------------
@@ -4300,9 +4144,9 @@ c$$$       enddo
     !---------------------------------------------------------------------------
 
         CALL drtsafe_row(mask, x1, x2, xacc, htotal,istr,
-     &    iend, k1, k2,
-     &   kw, kb, ks, kf, k1p, k2p, k3p, ksi,
-     &    bt, st, ft, dic, ta, pt, sit)
+     &    iend, k0, k1, k2, 
+     &   kw, kb, ks, kf, k1p, k2p, k3p, ksi, 
+     &    ff, bt, st, ft, dic, ta, pt, sit)
     !---------------------------------------------------------------------------
     !   Calculate [CO2*] as defined in DOE Methods Handbook 1994 Ver.2,
     !   ORNL/CDIAC-74, Dickson and Goyet, eds. (Ch 2 p 10, Eq A.49)
@@ -4312,7 +4156,7 @@ c$$$       enddo
           IF (mask(i)) THEN
 
           htotal2 = htotal(i) ** 2
-          co2star(i) = dic(i) * htotal2 /
+          co2star(i) = dic(i) * htotal2 / 
      &          (htotal2 + k1(i)*htotal(i) + k1(i)*k2(i))
           co2starair = xco2(i) * ff(i) * atmpres(i)
           dco2star(i) = co2starair - co2star(i)
@@ -4357,9 +4201,9 @@ c$$$       enddo
 !
 !-------------------------------------------------------------------------
 
-       SUBROUTINE talk_row(mask, x, fn, df,istr,iend, k1, k2,
-     &   kw, kb, ks, kf, k1p, k2p, k3p, ksi,
-     &    bt, st, ft, dic, ta, pt, sit)
+       SUBROUTINE talk_row(mask, x, fn, df,istr,iend, k0, k1, k2, 
+     &   kw, kb, ks, kf, k1p, k2p, k3p, ksi, 
+     &    ff, bt, st, ft, dic, ta, pt, sit)
 
         implicit none
        REAL, PARAMETER :: xacc = 1e-10
@@ -4370,8 +4214,8 @@ c$$$       enddo
   !-----------------------------------------------------------------------------
          integer :: istr,iend
 
-        REAL, DIMENSION(istr:iend) ::
-     &  k1, k2, kw, kb, ks, kf, k1p, k2p, k3p, ksi,
+        REAL, DIMENSION(istr:iend) :: 
+     &  k0, k1, k2, kw, kb, ks, kf, k1p, k2p, k3p, ksi, ff, 
      &  bt, st, ft, dic, ta, pt, sit
 
     !---------------------------------------------------------------------------
@@ -4381,7 +4225,7 @@ c$$$       enddo
     !   "x" is the input value for htotal, "fn" is the calculated value for
     !   TA and "df" is the value for dTA/dhtotal.
     !---------------------------------------------------------------------------
-         real,parameter::c1=1.0, c2=2.0, c3=3.0
+         real,parameter::c1=1.0, c2=2.0, c3=3.0 
 
     !---------------------------------------------------------------------------
     !   input arguments
@@ -4395,13 +4239,13 @@ c$$$       enddo
 
          REAL, DIMENSION(istr:iend), INTENT(OUT) :: fn, df
 
-      !---------------------------------------------------------------------------
+    !---------------------------------------------------------------------------
     !   local variable declarations
     !---------------------------------------------------------------------------
 
          INTEGER :: i
 
-          REAL ::
+          REAL :: 
      &    x1, x2, x3, k12, k12p, k123p, a, a2, da, b, b2, db, c
 
     !---------------------------------------------------------------------------
@@ -4425,33 +4269,33 @@ c$$$       enddo
           !   fn = hco3+co3+borate+oh+hpo4+2*po4+silicate-hfree-hso4-hf-h3po4-ta
           !---------------------------------------------------------------------
 
-          fn(i) = k1(i) * x1 * dic(i)/b +
-     &          c2 * dic(i) * k12/b +
-     &          bt(i)/(c1 + x1/kb(i)) +
-     &          kw(i)/x1 +
-     &          pt(i) * k12p * x1/a +
-     &          c2 * pt(i) * k123p/a +
-     &          sit(i)/(c1 + x1/ksi(i)) -
-     &          x1/c -
-     &          st(i)/(c1 + ks(i)/x1/c) -
-     &          ft(i)/(c1 + kf(i)/x1) -
-     &          pt(i) * x3/a -
+          fn(i) = k1(i) * x1 * dic(i)/b + 
+     &          c2 * dic(i) * k12/b + 
+     &          bt(i)/(c1 + x1/kb(i)) + 
+     &          kw(i)/x1 + 
+     &          pt(i) * k12p * x1/a + 
+     &          c2 * pt(i) * k123p/a + 
+     &          sit(i)/(c1 + x1/ksi(i)) - 
+     &          x1/c - 
+     &          st(i)/(c1 + ks(i)/x1/c) - 
+     &          ft(i)/(c1 + kf(i)/x1) - 
+     &          pt(i) * x3/a - 
      &          ta(i)
 
           !---------------------------------------------------------------------
           !   df = d(fn)/dx
           !---------------------------------------------------------------------
 
-          df(i) = ((k1(i)*dic(i)*b) - k1(i)*x1*dic(i)*db)/b2 -
-     &          c2 * dic(i) * k12 * db/b2 -
-     &          bt(i)/kb(i)/(c1+x1/kb(i)) ** 2 -
-     &          kw(i)/x2 +
-     &          (pt(i) * k12p * (a - x1 * da))/a2 -
-     &          c2 * pt(i) * k123p * da/a2 -
-     &          sit(i)/ksi(i)/(c1+x1/ksi(i)) ** 2 -
-     &          c1/c +
-     &          st(i) * (c1 + ks(i)/x1/c)**(-2) * (ks(i)/c/x2) +
-     &          ft(i) * (c1 + kf(i)/x1)**(-2) * kf(i)/x2 -
+          df(i) = ((k1(i)*dic(i)*b) - k1(i)*x1*dic(i)*db)/b2 - 
+     &          c2 * dic(i) * k12 * db/b2 - 
+     &          bt(i)/kb(i)/(c1+x1/kb(i)) ** 2 - 
+     &          kw(i)/x2 + 
+     &          (pt(i) * k12p * (a - x1 * da))/a2 - 
+     &          c2 * pt(i) * k123p * da/a2 - 
+     &          sit(i)/ksi(i)/(c1+x1/ksi(i)) ** 2 - 
+     &          c1/c + 
+     &          st(i) * (c1 + ks(i)/x1/c)**(-2) * (ks(i)/c/x2) + 
+     &          ft(i) * (c1 + kf(i)/x1)**(-2) * kf(i)/x2 - 
      &          pt(i) * x2 * (c3 * a - x1 * da)/a2
 
         END IF ! if mask
@@ -4466,9 +4310,9 @@ c$$$       enddo
 !-------------------------------------------------------------------------
 
         SUBROUTINE drtsafe_row(mask_in, x1, x2, xacc, soln,istr,
-     &   iend, k1, k2,
-     &   kw, kb, ks, kf, k1p, k2p, k3p, ksi,
-     &    bt, st, ft, dic, ta, pt, sit)
+     &   iend, k0, k1, k2, 
+     &   kw, kb, ks, kf, k1p, k2p, k3p, ksi, 
+     &    ff, bt, st, ft, dic, ta, pt, sit)
         implicit none
        INTEGER, PARAMETER :: maxit = 100
        integer::istr,iend
@@ -4476,8 +4320,8 @@ c$$$       enddo
   !   declarations for function coefficients & species concentrations
   !-----------------------------------------------------------------------------
 
-        REAL, DIMENSION(istr:iend) ::
-     &  k1, k2, kw, kb, ks, kf, k1p, k2p, k3p, ksi,
+        REAL, DIMENSION(istr:iend) :: 
+     &  k0, k1, k2, kw, kb, ks, kf, k1p, k2p, k3p, ksi, ff, 
      &  bt, st, ft, dic, ta, pt, sit
 
     !---------------------------------------------------------------------------
@@ -4486,16 +4330,16 @@ c$$$       enddo
     !   Keith Lindsay, Oct 1999
     !
     !   Algorithm comment :
-    !      Iteration from Newton method is used unless it leaves
+    !      Iteration from Newton's method is used unless it leaves
     !      bracketing interval or the dx is > 0.5 the previous dx.
     !      In that case, bisection method is used.
     !---------------------------------------------------------------------------
         real,parameter::c0=0.0, c2=2.0
-
+  
     !---------------------------------------------------------------------------
     !   input arguments
     !---------------------------------------------------------------------------
-
+  
         LOGICAL, DIMENSION(istr:iend), INTENT(IN) :: mask_in
         REAL, DIMENSION(istr:iend), INTENT(IN) :: x1, x2
         REAL, INTENT(IN) :: xacc
@@ -4514,7 +4358,7 @@ c$$$       enddo
        LOGICAL, DIMENSION(istr:iend) :: mask
        INTEGER ::  i, it
        REAL :: temp
-       REAL, DIMENSION(istr:iend) :: xlo, xhi, flo, fhi, f,
+       REAL, DIMENSION(istr:iend) :: xlo, xhi, flo, fhi, f, 
      &     df, dxold, dx
 
     !---------------------------------------------------------------------------
@@ -4523,12 +4367,12 @@ c$$$       enddo
 
        mask = mask_in
 
-       CALL talk_row(mask, x1, flo, df,istr,iend, k1, k2,
-     &   kw, kb, ks, kf, k1p, k2p, k3p, ksi,
-     &    bt, st, ft, dic, ta, pt, sit)
-       CALL talk_row(mask, x2, fhi, df,istr,iend, k1, k2,
-     &   kw, kb, ks, kf, k1p, k2p, k3p, ksi,
-     &    bt, st, ft, dic, ta, pt, sit)
+       CALL talk_row(mask, x1, flo, df,istr,iend, k0, k1, k2, 
+     &   kw, kb, ks, kf, k1p, k2p, k3p, ksi, 
+     &    ff, bt, st, ft, dic, ta, pt, sit)
+       CALL talk_row(mask, x2, fhi, df,istr,iend, k0, k1, k2, 
+     &   kw, kb, ks, kf, k1p, k2p, k3p, ksi, 
+     &    ff, bt, st, ft, dic, ta, pt, sit)
 
        DO i = istr,iend
          IF (mask(i)) THEN
@@ -4548,9 +4392,9 @@ c$$$       enddo
          END IF
         END DO
 
-        CALL talk_row(mask, soln, f, df,istr,iend, k1, k2,
-     &   kw, kb, ks, kf, k1p, k2p, k3p, ksi,
-     &    bt, st, ft, dic, ta, pt, sit)
+        CALL talk_row(mask, soln, f, df,istr,iend, k0, k1, k2, 
+     &   kw, kb, ks, kf, k1p, k2p, k3p, ksi, 
+     &    ff, bt, st, ft, dic, ta, pt, sit)
 
     !---------------------------------------------------------------------------
     !   perform iterations, zeroing mask when a location has converged
@@ -4559,7 +4403,7 @@ c$$$       enddo
        DO it = 1,maxit
         DO i = istr,iend
            IF (mask(i)) THEN
-             leave_bracket = ((soln(i)-xhi(i))*df(i)-f(i)) *
+             leave_bracket = ((soln(i)-xhi(i))*df(i)-f(i)) * 
      &             ((soln(i)-xlo(i))*df(i)-f(i)) .GE. 0
              dx_decrease = ABS(c2 * f(i)) .LE. ABS(dxold(i) * df(i))
              IF (leave_bracket .OR. .NOT. dx_decrease) THEN
@@ -4580,9 +4424,9 @@ c$$$       enddo
 
         IF (.NOT. ANY(mask)) RETURN
 
-        CALL talk_row(mask, soln, f, df,istr,iend, k1, k2,
-     &   kw, kb, ks, kf, k1p, k2p, k3p, ksi,
-     &    bt, st, ft, dic, ta, pt, sit)
+        CALL talk_row(mask, soln, f, df,istr,iend, k0, k1, k2, 
+     &   kw, kb, ks, kf, k1p, k2p, k3p, ksi, 
+     &    ff, bt, st, ft, dic, ta, pt, sit)
 
         DO i = istr,iend
           IF (mask(i)) THEN
@@ -4603,6 +4447,6 @@ c$$$       enddo
 
 #else  /* BIOLOGY_BEC2 */
        subroutine ecosys_bec2_tile_empty ()
-
+       
        end
 #endif  /* BIOLOGY_BEC2 */

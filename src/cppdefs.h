@@ -1,4 +1,4 @@
-/*
+/* 
   UP ETH Pacific Telescopic Setup - USWC Focus
   == === ======= ========== ===== = ==== =====
 */
@@ -7,33 +7,24 @@
                      /* *** ACTIVATE BIOLOGY HERE *** */
                      /* (Otherwise standard UP bio switches are not set) */
 
-# define BIOLOGY_BEC2
+#define BIOLOGY_BEC2
 #include "cppdefs_UP.h"
 
-! CHOOSE SETUP HERE
-#define PACTCS60
+!#define GRID_SIZE LLm=602, MMm=516, N=64      ! pactcs30 4.1-65km telescopic up to Antarctica
+!#define DOMAIN_TILING NP_XI=8, NP_ETA=48, NSUB_X=1, NSUB_E=1 ! Euler
 
-#ifdef PACTCS60
-# define GRID_SIZE LLm=300, MMm=257, N=64      ! pactcs60 8-120km telescopic up to Antarctica
-# define DOMAIN_TILING NP_XI=6, NP_ETA=24, NSUB_X=1, NSUB_E=1 ! Mobilis - EL2020
-! # define DOMAIN_TILING NP_XI=8, NP_ETA=18, NSUB_X=1, NSUB_E=1 ! Euler
-#else 
-! default: PACTCS30 
-# define PACTCS30
-# define GRID_SIZE LLm=602, MMm=516, N=64      ! pactcs30 4.1-65km telescopic up to Antarctica
-# define DOMAIN_TILING NP_XI=8, NP_ETA=48, NSUB_X=1, NSUB_E=1 ! Euler
-#endif
-
-!mf #define DOMAIN_TILING NP_XI=8, NP_ETA=30, NSUB_X=1, NSUB_E=1 ! Euler
+#define GRID_SIZE LLm=300, MMm=257, N=64      ! pactcs60 8-120km telescopic up to Antarctica
+#define DOMAIN_TILING NP_XI=4, NP_ETA=24, NSUB_X=1, NSUB_E=1 ! Euler
 
      /* Open Boundaries */
 #define OBC_SOUTH
+!#define VERBOSE
 
      /* Open Boundary Conditions */
 !-- Try to treat inflow/outflow of ACC differently! (not yet tested, so far I used M2FLATHER)
 !-- new only indic/pacific, see below #define OBC_M2SPECIFIED /* special for SO */
-#define OBC_SOUTH_M2SPECIFIED_TILESTR 000 /* OBC_M2SPECIFIED for a certain range of tiles */
-#define OBC_SOUTH_M2SPECIFIED_TILEEND 004 /* OBC_M2SPECIFIED for a certain range of tiles */
+#define OBC_S_M2SPEC_STR 000 /* OBC_M2SPECIFIED for a certain range of tiles */
+#define OBC_S_M2SPEC_END 004 /* OBC_M2SPECIFIED for a certain range of tiles */
 #define OBC_M3ORLANSKI /* Baroclin. BC: OBC_M3ORLANSKI, OBC_M3SPECIFIED */
 #define OBC_TORLANSKI /* Tracer BC: OBC_TORLANSKI, OBC_TSPECIFIED */
 
@@ -43,7 +34,7 @@
 
 
     /*  Use CLM Files */
-!-- #ifdef CLMFORCING
+!-- #ifdef CLMFORCING   
 !# define TCLIMATOLOGY
 /* Partial restoring of TS in user-defined region via 2D field nudg_weights in clm file (MF)*/
 !# define TNUDGE_WEIGHTS /* TCLIMATOLOGY must be defined */
@@ -77,30 +68,30 @@
      /* Output */
 #define AVERAGES
 !#define SLICE_AVG
-#ifdef PACTCS30
-# define CALENDAR '365_day'     /* netCDF CF-convention CALENDAR attribute default: '360_day' */
-#endif
+#define CALENDAR '365_day'     /* netCDF CF-convention CALENDAR attribute default: '360_day' */
 !--> #define STARTDATE '0001-01-01' /* part of netCDF CF-convention time units attribute default: '0001-01-01'*/
 
-#define ADV_ISONEUTRAL
+!--> #define ADV_ISONEUTRAL
 
      /* Biology */
 !--> #define BIOLOGY_NPZDOC
 
 #ifdef BIOLOGY_BEC2
 #  define DAILYPAR_BEC
+!#  define BEC_COCCO /* Added by FD */
 #  define USE_EXPLICIT_VSINK
 #  define DEFAULT_BRY_VALUES
-!--> # define MULT_CLIM_FILES
+#  define MULT_CLIM_FILES   
+!# line above uncommented by EK
 !# define BUDGETVARS
 # define VFLX_CORR /* MF: make sure this is always on if running with BIOLOGY */
 # define BEC2_DIAG
-# define RIVER_LOAD_ALK_DIC_SI
-# define RIVER_LOAD_N
-# define RIVER_LOAD_P
+!--> # define RIVER_LOAD_BIO
+# define RIVER_LOAD_N 
+# define RIVER_LOAD_P 
 # define PCO2AIR_FORCING
-# define NHY_FORCING
-# define NOX_FORCING
+!# define NHY_FORCING !# uncommented by EK
+!# define NOX_FORCING !# uncommented by EK
 #endif /* BIOLOGY_BEC2 */
 
 
@@ -111,14 +102,28 @@
 !!# define FULL_PHYS_FLUX_ANALYSIS
 !# define VERT_DIFF_ANALYSIS
 !# define SELECTED_FLUX_ANALYSIS
-!# define WRITE_DEPTHS /* For Budget Analysis Closure */
+# define WRITE_DEPTHS /* For Budget Analysis Closure */
 
-
+                     
 !#define USE_REAL_YEAR /* Only used by age tracers*/
 !--> #define VERBOSE
 !#define HIS_DOUBLE
 !--> #define DEBUG
 
+!# define CONCENTRATION_ANALYSES
+
+!# define WENO
+!#undef WENO
+!# define CONCENTRATION_ANALYSES
+
+!# define WENO_Vert
+# define TS_HADV_WENO3
+# define TS_VADV_WENO5
+!#undef WENO_Vert
+!#undef WENO_Hor
+!# define WENO_Hor
+
 #include "set_global_definitions.h"
 
 !--> #undef PARALLEL_FILES
+

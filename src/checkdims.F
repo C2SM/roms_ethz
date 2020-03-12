@@ -141,8 +141,10 @@
 #define NO_RECORD_CHECK
 #include "compute_starts_counts.h"
 #if defined MPI && !defined PARALLEL_FILES
-      count(1)=LLm+2-imin  !<-- dimensions of the variable
-      count(2)=MMm+2-jmin  !<-- on the entire physical grid
+      count(1)=LLm+2  ! full  xi-size for rho-, v grid
+      count(2)=MMm+2  ! full etz-size for rho-, u grid
+      if (horiz_type == 1) count(1)=count(1)-1 !  xi-size for u-grid
+      if (horiz_type == 2) count(2)=count(2)-1 ! eta-size for v-grid
 #endif
 
       lfnm=lenstr(fname)
@@ -404,7 +406,8 @@
             endif
           endif
         else
-          MPI_master_only write(*,'(/1x,6A/14x,A/)')
+!          MPI_master_only write(*,'(/1x,6A/14x,A/)')
+          write(*,'(/1x,6A/14x,A/)')
      &        '### WARNING: read_nc1dat :: ',
      &            'Cannot determine netCDF ID for ''',  vname(1:lvar),
      &      ''' in file ''', fname(1:lfile), '''.', nf_strerror(ierr)

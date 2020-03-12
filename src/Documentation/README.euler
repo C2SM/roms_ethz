@@ -1,0 +1,5 @@
+Date: 2020-01-06
+
+Please compile on Euler after loading the folloing modules
+
+$ module load new netcdf/4.3.2 intel/2018.1 impi/2018.1.163
