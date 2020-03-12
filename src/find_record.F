@@ -324,8 +324,12 @@ c--#define VERBOSE
       subroutine backup_record(irec, ntime,  icycle, cycle_length,
      &                                       ifile,         ierr)
       implicit none
+#include "param.h"
       integer irec, ntime, icycle, ifile, ierr
       real cycle_length
+      ! Debug DL
+!      if(mynode == 0) write(*,*) 'cycle_length', cycle_length
+!      if(mynode == 0) write(*,*) 'ifile', ifile
       if (irec > 1) then
         irec=irec-1                   !--> back step record normally
       elseif (cycle_length > 0.) then

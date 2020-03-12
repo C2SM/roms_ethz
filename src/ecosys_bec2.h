@@ -35,7 +35,7 @@
      &    +19
 # endif
 # ifdef BEC_DDA
-     &    +18
+     &    +19
 # endif
 # ifdef BEC_PHAEO
      &    +17
@@ -164,9 +164,10 @@
      &   ddalossdic_idx_t=LAST_I+13,grazeddazoo_idx_t=LAST_I+14,
      &   ddaphotoacc_idx_t=LAST_I+15,
      &   ddaplim_idx_t=LAST_I+16,ddanfix_idx_t=LAST_I+17,
-     &   ddasio3uptake_idx_t=LAST_I+18
+     &   ddasio3uptake_idx_t=LAST_I+18,
+     &   pocproddda_idx_t=LAST_I+19
 #  undef LAST_I
-#  define LAST_I ddaplim_idx_t
+#  define LAST_I pocproddda_idx_t
 # endif
 # ifdef BEC_PHAEO
       integer, parameter :: grazephaeo_idx_t=LAST_I+1,phaeoloss_idx_t=LAST_I+2,

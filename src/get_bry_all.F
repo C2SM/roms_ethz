@@ -122,9 +122,11 @@
         if (ierr == nf_noerr) then
           ierr=nf_inq_varid(bry_id, 'bry_time',  bry_time_id)
           if (ierr == nf_noerr) then
+              !Debug DL
+         !     MPI_master_only write(*,*) 'get bry all, call find record'
             call find_record(bry_id, bry_time_id,  bry_rec, ntbry,
      &              bry_ncycle, bry_cycle,  ibry, max_bry,  ierr)
-
+          !   MPI_master_only write(*,*) 'bry_cycle',bry_cycle
             if (bry_rec < 0) then
               ierr=nf_close(bry_id) ; bry_id=-1
               ibry=ibry+1 ;  goto 100  !--> proceed to the next file

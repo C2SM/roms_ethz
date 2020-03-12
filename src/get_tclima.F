@@ -49,7 +49,6 @@
             endif
           endif
           do itrc=1,mxnudg     !NT
-
              ! Go to next variable if data has been found already:
              if (tclm_rec(itrc) > 0) cycle
 

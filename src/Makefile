@@ -2,8 +2,9 @@
 #========== ======= =========== ======== === ==== =====
 # Set machine dependent definitions and rules.
 
+include Makedefs
 #include Makedefs.Intel
-include Makedefs.IntelEM64T
+#include Makedefs.IntelEM64T
 #include Makedefs.Intel_MPI
 #include Makedefs.CMPI
 #include Makedefs.GCC
@@ -144,7 +145,8 @@ mpi_test: $(MPI_TEST_OBJ)
 
 # Auxiliary utility programs
 # --------- ------- --------
- TOOLS = mpc cppcheck srcscheck checkkwds ncextract redefs
+# TOOLS = mpc cppcheck srcscheck checkkwds ncextract redefs
+ TOOLS = cppcheck srcscheck checkkwds ncextract redefs
 
 tools: $(TOOLS)
 
@@ -226,3 +228,4 @@ clobber: clean
 
 # Include dependency file (created e.g., by cross_matrix)
 -include Make.depend
+# DO NOT DELETE

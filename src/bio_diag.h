@@ -151,9 +151,9 @@
      &            , indxDDALOSSDIC=LAST_I+13,indxGRAZEDDAZOO=LAST_I+14
      &            , indxDDAPHOTOACC=LAST_I+15
      &            , indxDDAPLIM=LAST_I+16,indxDDANFIX=LAST_I+17
-     &            , indxDDASIO3UPTAKE=LAST_I+18
+     &            , indxDDASIO3UPTAKE=LAST_I+18,indxPOCPRODDDA=LAST_I+19
 #  undef LAST_I
-#  define LAST_I indxDDAPLIM
+#  define LAST_I indxPOCPRODDDA
 # endif
 # ifdef BEC_PHAEO
      &            , indxGRAZEPHAEO=LAST_I+1,indxPHAEOLOSS=LAST_I+2

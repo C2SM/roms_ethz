@@ -192,6 +192,10 @@ c$$$       enddo
        WHERE (AP_USED(istr:iend,jstr:jend) > 1.5 .OR. AP_USED(istr:iend,jstr:jend) < 0.5)
           AP_USED(istr:iend,jstr:jend) = c1
        END WHERE
+       ! avoid NANs in AP
+!       WHERE isnand(AP_USED(istr:iend,jstr:jend)
+!          AP_USED(istr:iend,jstr:jend) = c1
+!       END WHERE
 
 # ifdef BEC2_DIAG
 #  ifdef BEC2_DIAG_USER
@@ -460,6 +464,7 @@ c$$$       enddo
      &         AP_USED(istr:iend,j), CO2STAR_ROW(istr:iend),
      &         DCO2STAR_ROW(istr:iend), pco2oc_ROW(istr:iend),
      &         DpCO2_ROW(istr:iend),istr,iend)
+             
 #  ifdef BEC2_DIAG
 #   ifdef BEC2_DIAG_USER
              ! bec2_diag_2d_idx(ph_idx_t) is always defined:
@@ -490,6 +495,10 @@ c$$$       enddo
 
              FLUX(istr:iend,j) = PV(istr:iend,j) * DCO2STAR_ROW(istr:iend)
           END DO  ! j = jstr,jend
+          ! avoid NANs in DCO2STAR
+!          WHERE isnand(FLUX(istr:iend,jstr:jend))
+!                  FLUX(istr:iend,jstr:jend) = 0.0d
+!          END WHERE
 
 # if defined CCHEM_MOCSY && defined CCHEM_TODEPTH
           ! Compute carbon chemistry for k<N:
@@ -528,7 +537,13 @@ c$$$       enddo
           end do  ! k=1,N-1
 # endif /* CCHEM_MOCSY && CCHEM_TODEPTH */
 
+          ! avoid NAN flux in DIC
+!          WHERE  isnand(FLUX(istr:iend,jstr:jend)) 
+!               FLUX(istr:iend,jstr:jend) = 0.0d
+!          END WHERE
+          
           STF(istr:iend,jstr:jend,dic_ind_t) = FLUX(istr:iend,jstr:jend)
+           
 
           tracer(istr:iend,jstr:jend,N,dic_ind_t) =
      &       tracer(istr:iend,jstr:jend,N,dic_ind_t) +
@@ -664,6 +679,8 @@ c$$$       enddo
        !     (used to be done in get_iron.F)
        if (liron_flux) then
           FLUX(istr:iend,jstr:jend)=iron(istr:iend,jstr:jend)
+          !DAL TEST: 
+          !FLUX(istr:iend,jstr:jend) = c0
        else
           FLUX = c0
        endif 
@@ -816,6 +833,11 @@ c$$$       enddo
      &    cks = 9.0,         ! constant used in Fe quota modification
      &    cksi = 5.0         ! constant used in Si quota modification
 
+!debug DAL & MM
+       REAL, DIMENSION(istr:iend) :: 
+     &    delta_fe         ! only used for debugging
+
+
        REAL, DIMENSION(istr:iend) :: 
      &    PO4_loc,         ! local copy of model PO4
      &    NO3_loc,         ! local copy of model NO3
@@ -853,8 +875,8 @@ c$$$       enddo
      &    ddaChl_loc,      ! local copy of model ddaChl
      &    ddaSi_loc,       ! local copy of model ddaCal
      &    ddaFe_loc,       ! local copy of model ddaFe
-     &    salt_loc,
 # endif
+     &    salt_loc,  
 # ifdef BEC_PHAEO
      &    phaeoC_loc,      ! local copy of model phaeoC
      &    phaeoChl_loc,    ! local copy of model phaeoChl
@@ -917,6 +939,9 @@ c$$$       enddo
      &    POC_prod_diaz,   ! POC production in Diaz grz/agg/loss (mmol C/m^3/sec)
 # ifdef BEC_COCCO
      &    POC_prod_cocco,  ! POC production in Cocco grz/agg/loss (mmol C/m^3/sec)
+# endif
+# ifdef BEC_DDA
+     &    POC_prod_dda,  ! POC production in DDA grz/agg/loss (mmol C/m^3/sec)
 # endif
 # ifdef BEC_PHAEO
      &    POC_prod_phaeo,  ! POC production in Phaeo grz/agg/loss (mmol C/m^3/sec)
@@ -1201,17 +1226,17 @@ c$$$       enddo
      &           gQfe_min(auto_ind))
           end where
 
-# ifdef BEC_DDA_case2   ! when DDAs are not fixing, gQfe param are the same as regular diatoms
-          if (auto_ind==dda_ind) then
-               where (NO3_loc>0.5)
-                 where (Fe_loc < cks * kFe(auto_ind))
-                 gQfe(istr:iend,dda_ind) = 
-     &           max((gQfe(istr:iend,diat_ind) * Fe_loc / (cks * kFe(dda_ind))),
-     &           gQfe_min(diat_ind))
-                 end where
-               end where
-          endif
-# endif
+!# ifdef BEC_DDA_case2  
+!          if (auto_ind==dda_ind) then
+!               where (NO3_loc>0.5)
+!                 where (Fe_loc < cks * kFe(auto_ind))
+!                 gQfe(istr:iend,dda_ind) = 
+!     &           max((gQfe(istr:iend,diat_ind) * Fe_loc / (cks * kFe(dda_ind))),
+!     &           gQfe_min(diat_ind))
+!                 end where
+!               end where
+!          endif
+!# endif
 
           if (kSiO3(auto_ind) > c0) then
              gQsi(istr:iend,auto_ind) = gQsi_0
@@ -1441,7 +1466,7 @@ c$$$       enddo
 
           VFe = Fe_loc / (Fe_loc + kFe(auto_ind))
           f_nut = min(VNtot(istr:iend,auto_ind), VFe)
-
+          
 # ifdef BEC_DDA_case2
          endif
 # endif /*BEC_DDA_case2*/
@@ -1579,7 +1604,7 @@ c$$$       enddo
               where (NO3_loc < 0.5)
               PCmax = PCref(auto_ind) *  f_nut * Tfunc_dda
               elsewhere 
-              PCmax = (PCref(auto_ind) * 3.0) *  f_nut * Tfunc_dda    
+              PCmax = (PCref(auto_ind) * 1.5) *  f_nut * Tfunc_dda    
           end where
 # endif /* BEC_DDA_case2 */
 # ifdef BEC_PHAEO
@@ -2302,6 +2327,10 @@ c$$$       enddo
        POC_prod_cocco = auto_graze_poc(istr:iend,cocco_ind)
      &            + auto_agg(istr:iend,cocco_ind) + auto_loss_poc(istr:iend,cocco_ind)
 # endif
+# ifdef BEC_DDA
+       POC_prod_dda = auto_graze_poc(istr:iend,dda_ind)
+     &            + auto_agg(istr:iend,dda_ind) + auto_loss_poc(istr:iend,dda_ind)
+# endif
 # ifdef BEC_PHAEO
        POC_prod_phaeo = auto_graze_poc(istr:iend,phaeo_ind) 
      &            + auto_agg(istr:iend,phaeo_ind) + auto_loss_poc(istr:iend,phaeo_ind)
@@ -2320,6 +2349,9 @@ c$$$       enddo
        bec2_diag_3d(istr:iend,j,k,pocproddiaz_idx_t) = POC_prod_diaz(istr:iend)
 # ifdef BEC_COCCO
        bec2_diag_3d(istr:iend,j,k,pocprodcocco_idx_t) = POC_prod_cocco(istr:iend)
+# endif
+# ifdef BEC_DDA
+       bec2_diag_3d(istr:iend,j,k,pocproddda_idx_t)= POC_prod_dda(istr:iend)
 # endif
 # ifdef BEC_PHAEO
        bec2_diag_3d(istr:iend,j,k,pocprodphaeo_idx_t) = POC_prod_phaeo(istr:iend)
@@ -2402,6 +2434,9 @@ c$$$       enddo
        Fe_scavenge = yps * Fe_loc * Fe_scavenge_rate
        ! MF: Debugging, try Fe_scavenge=0
        !Fe_scavenge(istr:iend) = c0
+       !do i=istr,iend
+         !if(isnan(Fe_scavenge(i))) Fe_scavenge=c0
+       !enddo
 
        P_iron_prod = (zoo_loss * f_zoo_detr_loc * Qfe_zoo) + Fe_scavenge
 
@@ -2511,6 +2546,12 @@ c$$$       enddo
     !-----------------------------------------------------------------------
     !  dissolved iron
     !-----------------------------------------------------------------------
+!debug DAL & MM
+!       delta_fe = P_iron_remin(istr:iend,j)
+!     &           + (Qfe_zoo * zoo_loss_dic) + DOFe_remin - sum(photoFe, dim=2) - Fe_scavenge
+!       where (delta_fe>-0.0001)
+!             DTRACER_MODULE(istr:iend,j,k,fe_ind_t) = delta_fe 
+!       end where
 
        DTRACER_MODULE(istr:iend,j,k,fe_ind_t) = P_iron_remin(istr:iend,j)
      &           + (Qfe_zoo * zoo_loss_dic) + DOFe_remin - sum(photoFe, dim=2) - Fe_scavenge
