@@ -20,7 +20,8 @@ MODULE oas_roms_data
    !                                                 ! 1 : Debugging
    !                                                 ! 2 : Perfs measurement
    !                                                 ! 3 : OASIS restart production
-   LOGICAL, PUBLIC, SAVE :: gen_rst   ! generate restart files
+   LOGICAL, PUBLIC, SAVE :: l_oas_seq   ! Run in sequential mode, mainly to produce the
+                                        ! first restart files required by OASIS in concurrent mode
 
    ! Coupling grids
    ! --------------

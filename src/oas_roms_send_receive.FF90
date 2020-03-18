@@ -16,8 +16,9 @@
          USE oas_roms_exchange, ONLY: oas_roms_snd, oas_roms_dbg_snd,
      &                                oas_roms_rcv, oas_roms_dbg_rcv
 
-         USE oas_roms_data, ONLY: IOASISDEBUGLVL, ssnd, srcv,
-     &                            cpl_grd, k_rho, k_u, k_v,
+         USE oas_roms_data, ONLY: IOASISDEBUGLVL, l_oas_seq,
+     &                            ssnd, srcv, cpl_grd,
+     &                            k_rho, k_u, k_v,
      &                            oas_itemp, oas_UST_U, oas_VST_U,
      &                            oas_UST_V, oas_VST_V, oas_NHF,
      &                            oas_SWR, oas_TEP,
@@ -72,8 +73,13 @@
 
             INTEGER :: oas_step, oas_dt
 #include "param.h"   ! => itemp, N, mynode
-#include "scalars.h"   ! nstp, dt
+#include "scalars.h"   ! nstp, dt, ntimes
 #include "ocean3d.h"   ! t
+
+            
+            ! Skip if sequential coupling mode and last time step
+            ! ---------------------------------------------------
+            IF (l_oas_seq .AND. oas_step == ntimes) RETURN
 
             oas_dt = oas_step * INT(dt)
 
@@ -85,10 +91,10 @@
 
             ! Write Debug File
             ! ----------------
-            IF ((IOASISDEBUGLVL == 1) .OR. (IOASISDEBUGLVL == 3)) THEN
-               IF (mynode==0) WRITE(6,*) 'ROMS:OASSND_DT', oas_dt
-               CALL oas_roms_dbg_snd(oas_step)
-            ENDIF
+            ! IF ((IOASISDEBUGLVL == 1) .OR. (IOASISDEBUGLVL == 3)) THEN
+            !    IF (mynode==0) WRITE(6,*) 'ROMS:OASSND_DT', oas_dt
+            !    CALL oas_roms_dbg_snd(oas_step)
+            ! ENDIF
 
             ! Send the Coupling Fields
             ! ------------------------
@@ -98,11 +104,11 @@
             !        with write_restart=.TURE. or with the custom oas_roms_dbg_snd
             !        routine. If we stick to oasis_put we can remove oas_roms_dbg_snd
             !        in the long run.
-            IF ( IOASISDEBUGLVL == 3 ) THEN
-               WRITE(6,*) ' RST_roms.nc restart file written'
-               WRITE(6,*) ' we stop simulation'
-               STOP
-            ENDIF
+            ! IF ( IOASISDEBUGLVL == 3 ) THEN
+            !    WRITE(6,*) ' RST_roms.nc restart file written'
+            !    WRITE(6,*) ' we stop simulation'
+            !    STOP
+            ! ENDIF
 
          END SUBROUTINE oas_roms_send
 
@@ -160,11 +166,15 @@
             REAL, PARAMETER :: day2year=1.D0/year2day,
             REAL, PARAMETER :: utc_cor=1.D0/360.D0
 #endif
+            ! Skip if sequential coupling mode and first time step
+            ! ----------------------------------------------------
+            IF (l_oas_seq .AND. oas_step == 0) RETURN
+            
 
             ! Receive fields when necessary
             ! -----------------------------
             oas_dt = oas_step * INT(dt)
-            call oas_roms_rcv(oas_dt)
+            CALL oas_roms_rcv(oas_dt)
 
             ! Set conversion coefficients
             ! ---------------------------    
@@ -174,27 +184,27 @@
 
             ! Momentum Flux
             ! -------------
-            do j = cpl_grd(k_u)%jmin, cpl_grd(k_u)%jmax
-               do i = cpl_grd(k_u)%imin, cpl_grd(k_u)%imax
+            DO j = cpl_grd(k_u)%jmin, cpl_grd(k_u)%jmax
+               DO i = cpl_grd(k_u)%imin, cpl_grd(k_u)%imax
                   zflx_1 = u_cos_proj_u(i,j)
      &                     * srcv(oas_UST_U)%pdata(i,j)
      &                   + v_cos_proj_u(i,j)
      &                     * srcv(oas_VST_U)%pdata(i,j)
                   sustr(i,j) = (1.0-alpha_u(i,j)) * sustr(i,j)
      &                            + alpha_u(i,j) * cff_wstr * zflx_1
-               enddo
-            enddo
+               ENDDO
+            ENDDO
 
-            do j = cpl_grd(k_v)%jmin, cpl_grd(k_v)%jmax
-               do i = cpl_grd(k_v)%imin, cpl_grd(k_v)%imax
+            DO j = cpl_grd(k_v)%jmin, cpl_grd(k_v)%jmax
+               DO i = cpl_grd(k_v)%imin, cpl_grd(k_v)%imax
                   zflx_1 = u_cos_proj_v(i,j)
      &                     * srcv(oas_UST_V)%pdata(i,j)
      &                   + v_cos_proj_v(i,j)
      &                     * srcv(oas_VST_V)%pdata(i,j)
                   svstr(i,j) = (1.0-alpha_v(i,j)) * svstr(i,j)
      &                            + alpha_v(i,j) * cff_wstr * zflx_1
-               enddo
-            enddo
+               ENDDO
+            ENDDO
 
             ! Solar Radiative Flux
             ! --------------------
@@ -275,12 +285,12 @@
 
             ! Write Debug File
             ! ----------------
-            CALL oas_roms_dbg_rcv(oas_step,
-     &                            "SUSTR", sustr           , k_u  ,
-     &                            "SVSTR", svstr           , k_v  ,
-     &                            "NHF"  , stflx(:,:,itemp), k_rho,
-     &                            "SWR"  , srflx           , k_rho,
-     &                            "FRESH", stflx(:,:,isalt), k_rho )
+     !        CALL oas_roms_dbg_rcv(oas_step,
+     ! &                            "SUSTR", sustr           , k_u  ,
+     ! &                            "SVSTR", svstr           , k_v  ,
+     ! &                            "NHF"  , stflx(:,:,itemp), k_rho,
+     ! &                            "SWR"  , srflx           , k_rho,
+     ! &                            "FRESH", stflx(:,:,isalt), k_rho )
 
          END SUBROUTINE oas_roms_receive
 

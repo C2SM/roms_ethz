@@ -51,7 +51,7 @@ MODULE oas_roms_def
       &                     alpha_rho, alpha_u, alpha_v,          &
       &                     u_cos_proj_u, v_cos_proj_u,           &
       &                     u_cos_proj_v, v_cos_proj_v,           &
-      &                     IOASISDEBUGLVL
+      &                     IOASISDEBUGLVL, l_oas_seq
 
    USE oas_roms_set_cpl_grd, ONLY: oas_roms_set_grd
       
@@ -231,11 +231,12 @@ CONTAINS
       END IF
 
       ! Describe namelist content
-      NAMELIST /romsoc/ romsoc_aux_name, IOASISDEBUGLVL
+      NAMELIST /romsoc/ romsoc_aux_name, IOASISDEBUGLVL, l_oas_seq
 
       ! Initialize with default values
       romsoc_aux_name = "romsoc_aux.nc"
       IOASISDEBUGLVL = 0
+      l_oas_seq = .FALSE.
 
       ! Open namelist file
       OPEN(nuin, FILE=nml_filename, FORM='FORMATTED', STATUS='UNKNOWN',   &

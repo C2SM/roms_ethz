@@ -74,7 +74,9 @@ CONTAINS
       DO jn=1, krcv
          IF (srcv(jn)%laction) THEN
             ! Fill in coupling field data at coupling time steps
-            ! - ML - Still don't get exactly why the exfld array is necessary
+            ! - ML - We use the exfld array because the status is INTENT(OUT)
+            !        in the OASIS routine so the input array will be overwritten anyway,
+            !        even no exchange should happen.
             CALL oasis_get(srcv(jn)%nid, kstep, cpl_grd(srcv(jn)%k_pt)%exfld, kinfo)
             IF (kinfo == OASIS_Recvd .OR. kinfo == OASIS_FromRest .OR.   &
                kinfo == OASIS_RecvOut .OR. kinfo == OASIS_FromRestOut) THEN
@@ -103,8 +105,10 @@ CONTAINS
 
             ! Call OASIS at each time step but field sent to other model only at coupling time step
             ! (accumulation otherwise, if asked in the namcouple configuration file)
-            CALL oasis_put(ssnd(jn)%nid, kstep, ssnd(jn)%pdata, kinfo,   &
-               & write_restart=(IOASISDEBUGLVL==3))
+            ! - ML - writing restarts is not necessary, just use the namcouple with the EXPOUT property
+            ! CALL oasis_put(ssnd(jn)%nid, kstep, ssnd(jn)%pdata, kinfo,   &
+            !    & write_restart=(IOASISDEBUGLVL==3))
+            CALL oasis_put(ssnd(jn)%nid, kstep, ssnd(jn)%pdata, kinfo)
 
             ! - ML - Is that really necessary? Comment out for now
             ! IF ( kinfo .EQ. OASIS_Sent .OR. kinfo .EQ. OASIS_ToRest .OR.   &
@@ -113,18 +117,18 @@ CONTAINS
             ! ENDIF
 
             ! - ML - Why these dbg prints just for sending, not receiving ??
-            IF (IOASISDEBUGLVL > 1) THEN
-               WRITE(NULOUT,*) '****************'
-               WRITE(NULOUT,*) 'ROMS sent data:'
-               WRITE(NULOUT,*) 'oasis_put: ', ssnd(jn)%clname
-               WRITE(NULOUT,*) 'oasis_put: ivarid '  , ssnd(jn)%nid
-               WRITE(NULOUT,*) 'oasis_put: kstep', kstep
-               WRITE(NULOUT,*) 'oasis_put: info ', kinfo
-               WRITE(NULOUT,*) '     - Minimum value is ', MINVAL(ssnd(jn)%pdata(:,:))
-               WRITE(NULOUT,*) '     - Maximum value is ', MAXVAL(ssnd(jn)%pdata(:,:))
-               WRITE(NULOUT,*) '     -     Sum value is ', SUM(ssnd(jn)%pdata(:,:))
-               WRITE(NULOUT,*) '****************'
-            ENDIF
+            ! IF (IOASISDEBUGLVL > 1) THEN
+            !    WRITE(NULOUT,*) '****************'
+            !    WRITE(NULOUT,*) 'ROMS sent data:'
+            !    WRITE(NULOUT,*) 'oasis_put: ', ssnd(jn)%clname
+            !    WRITE(NULOUT,*) 'oasis_put: ivarid '  , ssnd(jn)%nid
+            !    WRITE(NULOUT,*) 'oasis_put: kstep', kstep
+            !    WRITE(NULOUT,*) 'oasis_put: info ', kinfo
+            !    WRITE(NULOUT,*) '     - Minimum value is ', MINVAL(ssnd(jn)%pdata(:,:))
+            !    WRITE(NULOUT,*) '     - Maximum value is ', MAXVAL(ssnd(jn)%pdata(:,:))
+            !    WRITE(NULOUT,*) '     -     Sum value is ', SUM(ssnd(jn)%pdata(:,:))
+            !    WRITE(NULOUT,*) '****************'
+            ! ENDIF
          END IF
       END DO
 
