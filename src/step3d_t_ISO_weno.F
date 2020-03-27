@@ -77,11 +77,6 @@ c--# define CONST_TRACERS
 #  endif
 # endif
 
-        real truc
-        
-        truc=0.1
-        print *, 'truc', truc
-
 # if defined WENO
 
 !       REAL    :: q_im3, q_im2, q_im1, q_i, q_ip1, q_ip2
