@@ -45,6 +45,10 @@
 
        real STF(istr:iend,jstr:jend,ntrc_bio)
 
+! Array to limit surface salinity to its valid range
+! for co2calc (SSSS>19 PSU) as recommended by Lueker et al. 2000:
+       real, dimension(istr:iend) :: sssco2
+
 # ifdef CCHEM_MOCSY
        real ff, tk100, tk1002, co2star_air, mass_to_vol
        real,dimension(istr:iend)::
@@ -440,9 +444,12 @@ c$$$       enddo
                 PHLO(istr:iend) = BEC2_DIAG_2D(istr:iend,j,bec2_diag_2d_idx(ph_idx_t)) - del_ph
                 PHHI(istr:iend) = BEC2_DIAG_2D(istr:iend,j,bec2_diag_2d_idx(ph_idx_t)) + del_ph
 #   else
-             WHERE (BEC2_DIAG_2D(istr:iend,j,ph_idx_t) .ne. c0)
-                PHLO(istr:iend) = BEC2_DIAG_2D(istr:iend,j,ph_idx_t) - del_ph
-                PHHI(istr:iend) = BEC2_DIAG_2D(istr:iend,j,ph_idx_t) + del_ph
+             !WHERE (BEC2_DIAG_2D(istr:iend,j,ph_idx_t) .ne. c0)
+                !PHLO(istr:iend) = BEC2_DIAG_2D(istr:iend,j,ph_idx_t) - del_ph
+                !PHHI(istr:iend) = BEC2_DIAG_2D(istr:iend,j,ph_idx_t) + del_ph
+             WHERE (PH_HIST(istr:iend,j) .ne. c0)
+                PHLO(istr:iend) = PH_HIST(istr:iend,j) - del_ph
+                PHHI(istr:iend) = PH_HIST(istr:iend,j) + del_ph
 #   endif
 #  else /* BEC2_DIAG */
              WHERE (PH_HIST(istr:iend,j) .ne. c0)
@@ -454,8 +461,11 @@ c$$$       enddo
                 PHHI = phhi_init
              END WHERE
 
+             ! Limit SSS to 19PSU for co2calc:
+             sssco2(istr:iend) = max(19.0, SSSS(istr:iend,j))
+
              CALL co2calc_row(LANDMASK(istr:iend,j),
-     &         SSTT(istr:iend,j), SSSS(istr:iend,j),
+     &         SSTT(istr:iend,j), sssco2(istr:iend),
      &         tracer(istr:iend,j,N,dic_ind_t),
      &         tracer(istr:iend,j,N,alk_ind_t),
      &         tracer(istr:iend,j,N,po4_ind_t),
@@ -478,6 +488,7 @@ c$$$       enddo
              if (bec2_diag_2d_l(pco2air_idx_t))
      &           bec2_diag_2d(istr:iend,j,bec2_diag_2d_idx(pco2air_idx_t))  = XCO2
 #   else
+             ph_hist(istr:iend,j) = PH_NEW(istr:iend)
              bec2_diag_2d(istr:iend,j,ph_idx_t) = PH_NEW(istr:iend)
              bec2_diag_2d(istr:iend,j,co2star_idx_t)  = CO2STAR_ROW(istr:iend)
              bec2_diag_2d(istr:iend,j,dco2star_idx_t) = DCO2STAR_ROW(istr:iend)
