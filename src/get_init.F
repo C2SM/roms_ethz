@@ -709,6 +709,25 @@ c--#define VERBOSE
       endif
 #  endif
 # endif /* BIOLOGY_BEC || (BIOLOGY_NPZDOC && OXYGEN && CARBON) */
+# ifdef BIOLOGY_BEC2
+      !
+      ! pH:
+      !
+      lvar=lenstr(vname(1,indxPH_rst))
+      ierr=nf_inq_varid (ncid, vname(1,indxPH_rst)(1:lvar), varid)
+      if (ierr .eq. nf_noerr) then
+         ierr=ncdf_read (ncid,  varid, record, r_var
+     &                 , ph_hist(START_2D_ARRAY), 1)
+         if (ierr .ne. nf_noerr) then
+            write(*,2) vname(1,indxPH_rst)(1:lvar), record,
+     &           trim(ininame)
+            goto 99             !--> ERROR
+         endif
+      else
+         MPI_master_only write(*,*) ' --- WARNING: '
+     &         , 'pH not in initial file.  Initialized to 0.0'
+      endif
+# endif /* BIOLOGY_BEC2 */
 # if defined BIOLOGY_BEC2 && defined BEC2_DIAG
        MPI_master_only write(*,*),'total # of 2D diagnostics:',nr_bec2_diag_2d
        MPI_master_only write(*,*),'total # of 3D diagnostics:',nr_bec2_diag_3d
