@@ -6,7 +6,7 @@
       real DTRACER_MODULE(GLOBAL_2D_ARRAY,N,ntrc_bio)
       common /tracers/ tracer, DTRACER_MODULE
 
-      integer counter_no3(288),counter_coccochl(288)      
+      integer counter_no3(288),counter_coccochl(288)
       common /counter_neg/ counter_no3, counter_coccochl
 
 #ifdef BEC2_DIAG
@@ -17,7 +17,7 @@
       integer nr_cchem_mocsy_2d, nr_cchem_mocsy_3d
 # ifdef CCHEM_MOCSY
       ! Parameters nr_cchem_mocsy_2d and nr_cchem_mocsy_3d give the numbers of *additional*
-      ! diagnostic variables if MOCSY code is used for carbon chemistry (relative to the 
+      ! diagnostic variables if MOCSY code is used for carbon chemistry (relative to the
       ! OCMIP code):
 #  ifdef CCHEM_TODEPTH
       parameter( nr_cchem_mocsy_2d=-3, nr_cchem_mocsy_3d=7 )
@@ -35,7 +35,7 @@
      &    +19
 # endif
 # ifdef BEC_DDA
-     &    +16
+     &    +18
 # endif
 # ifdef BEC_PHAEO
      &    +17
@@ -154,7 +154,7 @@
      &   pocprodcocco_idx_t=LAST_I+19
 #  undef LAST_I
 #  define LAST_I pocprodcocco_idx_t
-# endif        
+# endif
 # ifdef BEC_DDA
       integer, parameter :: grazedda_idx_t=LAST_I+1,ddaloss_idx_t=LAST_I+2,
      &   ddaagg_idx_t=LAST_I+3,photocdda_idx_t=LAST_I+4,
@@ -166,7 +166,8 @@
      &   ddagrazedic_idx_t=LAST_I+12,
      &   ddalossdic_idx_t=LAST_I+13,grazeddazoo_idx_t=LAST_I+14,
      &   ddaphotoacc_idx_t=LAST_I+15,
-     &   ddaplim_idx_t=LAST_I+16
+     &   ddaplim_idx_t=LAST_I+16,ddanfix_idx_t=LAST_I+17,
+     &   ddasio3uptake_idx_t=LAST_I+18
 #  undef LAST_I
 #  define LAST_I ddaplim_idx_t
 # endif
@@ -209,7 +210,7 @@
      &   fluxtosed_idx_t=LAST_I+2,caco3fluxtosed_idx_t=LAST_I+3,
      &   sio2fluxtosed_idx_t=LAST_I+4,pironfluxtosed_idx_t=LAST_I+5,dustfluxtosed_idx_t=LAST_I+6,
      &   pocsedloss_idx_t=LAST_I+7,otherremin_idx_t=LAST_I+8,caco3sedloss_idx_t=LAST_I+9,
-     &   sio2sedloss_idx_t=LAST_I+10 
+     &   sio2sedloss_idx_t=LAST_I+10
 
       ! Array for storing the Netcdf variable IDs of the diagnostics:
       ! The IDs of the 2d vars are first, the those of the 3d.
@@ -286,6 +287,7 @@
      &  , lriver_load_alk,lriver_load_dic,lriver_load_si
 #endif
 
+
 !
 ! Relative tracer indices for prognostic variables:
 !
@@ -303,7 +305,7 @@
      &)
 #ifdef BEC_COCCO
       integer, parameter ::
-     &     coccoc_ind_t=LAST_I+1, coccochl_ind_t=LAST_I+2, coccocal_ind_t=LAST_I+3, 
+     &     coccoc_ind_t=LAST_I+1, coccochl_ind_t=LAST_I+2, coccocal_ind_t=LAST_I+3,
      &     coccofe_ind_t=LAST_I+4, cal_ind_t=LAST_I+5
 #  undef LAST_I
 #  define LAST_I cal_ind_t
@@ -332,7 +334,7 @@
 ! Parameters related to sinking particles:
 !
 
-      real 
+      real
      &   POC_diss,       ! diss. length (m), modified by TEMP
      &   POC_mass,       ! molecular weight of POC
      &   P_CaCO3_diss,   ! diss. length (m)
@@ -374,13 +376,13 @@
      &   P_SiO2_sflux_out, P_SiO2_hflux_out,
      &   dust_sflux_out, dust_hflux_out,
      &   P_iron_sflux_out, P_iron_hflux_out,
-     &   POC_sflux_out, POC_hflux_out, 
+     &   POC_sflux_out, POC_hflux_out,
      &   P_CaCO3_sflux_in, P_CaCO3_hflux_in,
-     &   P_SiO2_sflux_in, P_SiO2_hflux_in, 
+     &   P_SiO2_sflux_in, P_SiO2_hflux_in,
      &   dust_sflux_in, dust_hflux_in,
      &   P_iron_sflux_in, P_iron_hflux_in,
      &   POC_sflux_in, POC_hflux_in,
-     &   P_CaCO3_sed_loss, P_SiO2_sed_loss, 
+     &   P_CaCO3_sed_loss, P_SiO2_sed_loss,
      &   P_iron_sed_loss,POC_sed_loss,
      &   dust_sed_loss,
      &   DOP_remin, DOPr_remin
@@ -402,11 +404,11 @@
      &   P_iron_sflux_out, P_iron_hflux_out,
      &   POC_sflux_out, POC_hflux_out,
      &   P_CaCO3_sflux_in, P_CaCO3_hflux_in,
-     &   P_SiO2_sflux_in, P_SiO2_hflux_in, 
+     &   P_SiO2_sflux_in, P_SiO2_hflux_in,
      &   dust_sflux_in, dust_hflux_in,
      &   P_iron_sflux_in, P_iron_hflux_in,
      &   POC_sflux_in, POC_hflux_in,
-     &   P_CaCO3_sed_loss, P_SiO2_sed_loss, 
+     &   P_CaCO3_sed_loss, P_SiO2_sed_loss,
      &   P_iron_sed_loss,POC_sed_loss,
      &   dust_sed_loss,
      &   DOP_remin, DOPr_remin,
@@ -426,29 +428,31 @@
       ! Number of sinking components:
       ! Indices to be used in VSinkFlux only (!!)
       integer, parameter :: nsink=10,iDUSTHARD_VSink=1,iPOCHARD_VSink=iDUSTHARD_VSink+1,
-     &   iPCACO3HARD_VSink=iDUSTHARD_VSink+2,iPSIO2HARD_VSink=iDUSTHARD_VSink+3,  
-     &   iPIRONHARD_VSink=iDUSTHARD_VSink+4,iDUSTSOFT_VSink=iDUSTHARD_VSink+5,  
-     &   iPOCSOFT_VSink=iDUSTHARD_VSink+6,iPCACO3SOFT_VSink=iDUSTHARD_VSink+7,  
-     &   iPSIO2SOFT_VSink=iDUSTHARD_VSink+8,iPIRONSOFT_VSink=iDUSTHARD_VSink+9  
+     &   iPCACO3HARD_VSink=iDUSTHARD_VSink+2,iPSIO2HARD_VSink=iDUSTHARD_VSink+3,
+     &   iPIRONHARD_VSink=iDUSTHARD_VSink+4,iDUSTSOFT_VSink=iDUSTHARD_VSink+5,
+     &   iPOCSOFT_VSink=iDUSTHARD_VSink+6,iPCACO3SOFT_VSink=iDUSTHARD_VSink+7,
+     &   iPSIO2SOFT_VSink=iDUSTHARD_VSink+8,iPIRONSOFT_VSink=iDUSTHARD_VSink+9
       ! Vertical sink fluxes [mmol m-2 s-1], upward flux is positive
       real VSinkFlux(GLOBAL_2D_ARRAY,0:N,nsink)
       ! Indices of sinking variables in temprorary array tracer (used in ecosys_bec2.F):
-!      integer, dimension(nsink), parameter :: 
-!     &    tidx_vsink = (/ dust_ind_t, poc_ind_t, 
+!      integer, dimension(nsink), parameter ::
+!     &    tidx_vsink = (/ dust_ind_t, poc_ind_t,
 !     &        pcaco3_ind_t, psio2_ind_t, piron_ind_t /)
       common /bec2_vsink/ VSinkFlux
 #endif
 
 !
-! Arrays related to carbon chemistry: these are in bec2_diag_2d or
-! bec2_diag_3d if BEC2_DIAG is defined
+! Arrays related to carbon chemistry:
 !
+      real, dimension(GLOBAL_2D_ARRAY) :: ph_hist
+      common /c_chem/ ph_hist
 #ifndef BEC2_DIAG
+! These are in bec2_diag_2d or bec2_diag_3d if BEC2_DIAG is defined
       real, dimension(GLOBAL_2D_ARRAY) ::
-     &   ph_hist, pCO2sw, PARinc
+     &   pCO2sw, PARinc
       real, dimension(GLOBAL_2D_ARRAY,N) ::
      &   PAR
-      common /c_chem/ ph_hist, pCO2sw, PARinc, PAR
+      common /c_chem/ pCO2sw, PARinc, PAR
 # ifndef PCO2AIR_FORCING
 !     otherwise defined in bgc_forces.h
       real pco2air
@@ -459,7 +463,7 @@
      &   ph_avg, pCO2_avg, pCO2air_avg, PARinc_avg
       real, dimension(GLOBAL_2D_ARRAY,N) ::
      &   PAR_avg
-      common /time_avg1/ PAR_avg, PARinc_avg, 
+      common /time_avg1/ PAR_avg, PARinc_avg,
      &        pco2_avg, pCO2air_avg, pH_avg
 # ifdef SLICE_AVG
       real PAR_slavg(GLOBAL_2D_ARRAY)
@@ -467,7 +471,7 @@
       real pco2_slavg(GLOBAL_2D_ARRAY)
       real pCO2air_slavg(GLOBAL_2D_ARRAY)
       real pH_slavg(GLOBAL_2D_ARRAY)
-      common /time_slavg1/ PAR_slavg, PARinc_slavg, 
+      common /time_slavg1/ PAR_slavg, PARinc_slavg,
      &        pco2_slavg, pCO2air_slavg, pH_slavg
 # endif /* SLICE_AVG */
 #endif /* !BEC2_DIAG */
@@ -479,4 +483,3 @@
       character*10 optcon, optt, optp, optb, optkf, optk1k2, optgas
       common /mocsy_opt/  optcon, optt, optp, optb, optkf, optk1k2, optgas
 #endif
-

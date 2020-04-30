@@ -28,6 +28,9 @@
 #ifdef BIOLOGY_BEC2
       integer, parameter :: indxdust=LAST_I+1
      &            , indxiron=LAST_I+2
+     &            , indxPH_rst=LAST_I+3
+# undef LAST_I
+# define LAST_I indxPH_rst
 #ifndef BEC2_DIAG
      &            , indxPH=LAST_I+3, indxPCO2=LAST_I+4
      &            , indxPCO2air=LAST_I+5, indxPARinc=LAST_I+6
@@ -49,27 +52,28 @@
      &            , indxPCO2=indxPCO2air+15,indxCO2STAR=indxPCO2air+16
      &            , indxPCO2OC=indxPCO2air+17
      &            , indxDCO2STAR=indxPCO2air+18
-# undef LAST_I
-# define LAST_I indxDCO2STAR
+# undef LAST_I_BIO2D
+# define LAST_I_BIO2D indxDCO2STAR
 #  ifdef CCHEM_MOCSY
 #   if !defined CCHEM_TODEPTH
-     &            , indxPH=LAST_I+1, indxPCO2=LAST_I+2, indxCO3=LAST_I+3
-     &            , indxHCO3=LAST_I+4, indxCO2STAR=LAST_I+5
-# undef LAST_I
-# define LAST_I indxCO2STAR
+     &            , indxPH=LAST_I_BIO2D+1, indxPCO2=LAST_I_BIO2D+2, indxCO3=LAST_I_BIO2D+3
+     &            , indxHCO3=LAST_I_BIO2D+4, indxCO2STAR=LAST_I_BIO2D+5
+# undef LAST_I_BIO2D
+# define LAST_I_BIO2D indxCO2STAR
 #   endif
 #  else /* CCHEM_MOCSY */
-!     &            , indxPH=LAST_I+1, indxPCO2=LAST_I+2, indxCO2STAR=LAST_I+3
-!# undef LAST_I
-!# define LAST_I indxCO2STAR
+!     &            , indxPH=LAST_I_BIO2D+1, indxPCO2=LAST_I_BIO2D+2, indxCO2STAR=LAST_I_BIO2D+3
+!# undef LAST_I_BIO2D
+!# define LAST_I_BIO2D indxCO2STAR
 #  endif /* CCHEM_MOCSY */
-     &            , indxFESEDFLUX=LAST_I+1,indxFLUXTOSED=LAST_I+2,indxCACO3FLUXTOSED=LAST_I+3
-     &            , indxSIO2FLUXTOSED=LAST_I+4,indxPIRONFLUXTOSED=LAST_I+5
-     &            , indxDUSTFLUXTOSED=LAST_I+6,indxPOCSEDLOSS=LAST_I+7
-     &            , indxOTHERREMIN=LAST_I+8,indxCACO3SEDLOSS=LAST_I+9
-     &            , indxSIO2SEDLOSS=LAST_I+10
-# undef LAST_I
-# define LAST_I indxSIO2SEDLOSS
+     &            , indxFESEDFLUX=LAST_I_BIO2D+1,indxFLUXTOSED=LAST_I_BIO2D+2
+     &            , indxCACO3FLUXTOSED=LAST_I_BIO2D+3
+     &            , indxSIO2FLUXTOSED=LAST_I_BIO2D+4,indxPIRONFLUXTOSED=LAST_I_BIO2D+5
+     &            , indxDUSTFLUXTOSED=LAST_I_BIO2D+6,indxPOCSEDLOSS=LAST_I_BIO2D+7
+     &            , indxOTHERREMIN=LAST_I_BIO2D+8,indxCACO3SEDLOSS=LAST_I_BIO2D+9
+     &            , indxSIO2SEDLOSS=LAST_I_BIO2D+10
+# undef LAST_I_BIO2D
+# define LAST_I_BIO2D indxSIO2SEDLOSS
 
 
 
@@ -110,66 +114,56 @@
      &            , indxTOTGRAZEZOO=indxPAR+98,indxTOTAGG=indxPAR+99,indxTOTNO3UPTAKE=indxPAR+100
      &            , indxTOTNH4UPTAKE=indxPAR+101,indxTOTLOSS=indxPAR+102,indxTOTLOSSDIC=indxPAR+103
      &            , indxNEXCRETE=indxPAR+104,indxTOTPOC=indxPAR+105,indxNCP=indxPAR+106
-#  undef LAST_I
-#  define LAST_I indxNCP
+#  undef LAST_I_BIO3D
+#  define LAST_I_BIO3D indxNCP
 #  if defined CCHEM_MOCSY && defined CCHEM_TODEPTH
-     &            , indxPH=LAST_I+1, indxPCO2=indxPH+1, indxCO3=indxPH+2
+     &            , indxPH=LAST_I_BIO3D+1, indxPCO2=indxPH+1, indxCO3=indxPH+2
      &            , indxHCO3=indxPH+3, indxCO2STAR=indxPH+4
      &            , indxOMEGACALC=indxPH+5, indxOMEGAARAG=indxPH+6
-#  undef LAST_I
-#  define LAST_I indxOMEGAARAG
+#  undef LAST_I_BIO3D
+#  define LAST_I_BIO3D indxOMEGAARAG
 #  endif
 # ifdef USE_EXPLICIT_VSINK
-     &            , indxPIRONHARDREMIN=LAST_I+1,indxCACO3HARDREMIN=LAST_I+2
-     &            , indxSIO2HARDREMIN=LAST_I+3
-     &            , indxPOCHARDREMIN=LAST_I+4,indxDUSTHARDREMIN=LAST_I+5
-     &            , indxPIRONSOFTREMIN=LAST_I+6,indxCACO3SOFTREMIN=LAST_I+7
-     &            , indxSIO2SOFTREMIN=LAST_I+8
-     &            , indxPOCSOFTREMIN=LAST_I+9,indxDUSTSOFTREMIN=LAST_I+10
-#  undef LAST_I
-#  define LAST_I indxDUSTSOFTREMIN
+     &            , indxPIRONHARDREMIN=LAST_I_BIO3D+1,indxCACO3HARDREMIN=LAST_I_BIO3D+2
+     &            , indxSIO2HARDREMIN=LAST_I_BIO3D+3
+     &            , indxPOCHARDREMIN=LAST_I_BIO3D+4,indxDUSTHARDREMIN=LAST_I_BIO3D+5
+     &            , indxPIRONSOFTREMIN=LAST_I_BIO3D+6,indxCACO3SOFTREMIN=LAST_I_BIO3D+7
+     &            , indxSIO2SOFTREMIN=LAST_I_BIO3D+8
+     &            , indxPOCSOFTREMIN=LAST_I_BIO3D+9,indxDUSTSOFTREMIN=LAST_I_BIO3D+10
+#  undef LAST_I_BIO3D
+#  define LAST_I_BIO3D indxDUSTSOFTREMIN
 # else /* USE_EXPLICIT_VSINK */
 ! already defined above
 # endif /* USE_EXPLICIT_VSINK */
 # ifdef BEC_COCCO
-     &            , indxGRAZECOCCO=LAST_I+1,indxCOCCOLOSS=LAST_I+2
-     &            , indxCOCCOAGG=LAST_I+3,indxPHOTOCCOCCO=LAST_I+4,indxCOCCONLIM=LAST_I+5
-     &            , indxCOCCOPO4UPTAKE=LAST_I+6,indxCOCCOFEUPTAKE=LAST_I+7
-     &            , indxCOCCOLIGHTLIM=LAST_I+8,indxCACO3PRODCOCCO=LAST_I+9
-     &            , indxIRONUPTAKECOCCO=LAST_I+10,indxCOCCONO3UPTAKE=LAST_I+11
-     &            , indxCOCCONH4UPTAKE=LAST_I+12,indxCOCCOGRAZEDIC=LAST_I+13
-     &            , indxCOCCOLOSSDIC=LAST_I+14,indxGRAZECOCCOZOO=LAST_I+15
-     &            , indxQCACO3COCCO=LAST_I+16,indxCOCCOPHOTOACC=LAST_I+17
-     &            , indxCOCCOPLIM=LAST_I+18,indxPOCPRODCOCCO=LAST_I+19
-#  undef LAST_I
-#  define LAST_I indxPOCPRODCOCCO
+     &            , indxGRAZECOCCO=LAST_I_BIO3D+1,indxCOCCOLOSS=LAST_I_BIO3D+2
+     &            , indxCOCCOAGG=LAST_I_BIO3D+3,indxPHOTOCCOCCO=LAST_I_BIO3D+4
+     &            , indxCOCCONLIM=LAST_I_BIO3D+5
+     &            , indxCOCCOPO4UPTAKE=LAST_I_BIO3D+6,indxCOCCOFEUPTAKE=LAST_I_BIO3D+7
+     &            , indxCOCCOLIGHTLIM=LAST_I_BIO3D+8,indxCACO3PRODCOCCO=LAST_I_BIO3D+9
+     &            , indxIRONUPTAKECOCCO=LAST_I_BIO3D+10,indxCOCCONO3UPTAKE=LAST_I_BIO3D+11
+     &            , indxCOCCONH4UPTAKE=LAST_I_BIO3D+12,indxCOCCOGRAZEDIC=LAST_I_BIO3D+13
+     &            , indxCOCCOLOSSDIC=LAST_I_BIO3D+14,indxGRAZECOCCOZOO=LAST_I_BIO3D+15
+     &            , indxQCACO3COCCO=LAST_I_BIO3D+16,indxCOCCOPHOTOACC=LAST_I_BIO3D+17
+     &            , indxCOCCOPLIM=LAST_I_BIO3D+18,indxPOCPRODCOCCO=LAST_I_BIO3D+19
+#  undef LAST_I_BIO3D
+#  define LAST_I_BIO3D indxPOCPRODCOCCO
 # endif
 # ifdef BEC_DDA
-     &            , indxGRAZEDDA=LAST_I+1,indxDDALOSS=LAST_I+2
-     &            , indxDDAAGG=LAST_I+3,indxPHOTOCDDA=LAST_I+4,indxDDANLIM=LAST_I+5
-     &            , indxDDAPO4UPTAKE=LAST_I+6,indxDDAFEUPTAKE=LAST_I+7
-     &            , indxDDALIGHTLIM=LAST_I+8
-     &            , indxIRONUPTAKEDDA=LAST_I+9,indxDDANO3UPTAKE=LAST_I+10
-     &            , indxDDANH4UPTAKE=LAST_I+11,indxDDAGRAZEDIC=LAST_I+12
-     &            , indxDDALOSSDIC=LAST_I+13,indxGRAZEDDAZOO=LAST_I+14
-     &            , indxDDAPHOTOACC=LAST_I+15
-     &            , indxDDAPLIM=LAST_I+16,indxDDANFIX=LAST_I+17
-     &            , indxDDASIO3UPTAKE=LAST_I+18
-#  undef LAST_I
-#  define LAST_I indxDDAPLIM
 # endif
 # ifdef BEC_PHAEO
-     &            , indxGRAZEPHAEO=LAST_I+1,indxPHAEOLOSS=LAST_I+2
-     &            , indxPHAEOAGG=LAST_I+3,indxPHOTOCPHAEO=LAST_I+4,indxPHAEONLIM=LAST_I+5
-     &            , indxPHAEOPO4UPTAKE=LAST_I+6,indxPHAEOFEUPTAKE=LAST_I+7
-     &            , indxPHAEOLIGHTLIM=LAST_I+8
-     &            , indxIRONUPTAKEPHAEO=LAST_I+9,indxPHAEONO3UPTAKE=LAST_I+10
-     &            , indxPHAEONH4UPTAKE=LAST_I+11,indxPHAEOGRAZEDIC=LAST_I+12
-     &            , indxPHAEOLOSSDIC=LAST_I+13,indxGRAZEPHAEOZOO=LAST_I+14
-     &            , indxPHAEOPHOTOACC=LAST_I+15,indxPHAEOPLIM=LAST_I+16
-     &            , indxPOCPRODPHAEO=LAST_I+17
-#  undef LAST_I
-#  define LAST_I indxPOCPRODPHAEO
+     &            , indxGRAZEPHAEO=LAST_I_BIO3D+1,indxPHAEOLOSS=LAST_I_BIO3D+2
+     &            , indxPHAEOAGG=LAST_I_BIO3D+3,indxPHOTOCPHAEO=LAST_I_BIO3D+4
+     &            , indxPHAEONLIM=LAST_I_BIO3D+5
+     &            , indxPHAEOPO4UPTAKE=LAST_I_BIO3D+6,indxPHAEOFEUPTAKE=LAST_I_BIO3D+7
+     &            , indxPHAEOLIGHTLIM=LAST_I_BIO3D+8
+     &            , indxIRONUPTAKEPHAEO=LAST_I_BIO3D+9,indxPHAEONO3UPTAKE=LAST_I_BIO3D+10
+     &            , indxPHAEONH4UPTAKE=LAST_I_BIO3D+11,indxPHAEOGRAZEDIC=LAST_I_BIO3D+12
+     &            , indxPHAEOLOSSDIC=LAST_I_BIO3D+13,indxGRAZEPHAEOZOO=LAST_I_BIO3D+14
+     &            , indxPHAEOPHOTOACC=LAST_I_BIO3D+15,indxPHAEOPLIM=LAST_I_BIO3D+16
+     &            , indxPOCPRODPHAEO=LAST_I_BIO3D+17
+#  undef LAST_I_BIO3D
+#  define LAST_I_BIO3D indxPOCPRODPHAEO
 # endif
 # endif /* BEC2_DIAG */
 #endif /* BIOLOGY_BEC2 */

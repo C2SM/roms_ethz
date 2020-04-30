@@ -45,6 +45,9 @@
 
        real STF(istr:iend,jstr:jend,ntrc_bio)
 
+! Array to limit surface salinity to its valid range
+! for co2calc (SSSS>19 PSU) as recommended by Lueker et al. 2000:
+       real, dimension(istr:iend) :: sssco2
 # ifdef CCHEM_MOCSY
        real ff, tk100, tk1002, co2star_air, mass_to_vol
        real,dimension(istr:iend)::
@@ -436,9 +439,12 @@ c$$$       enddo
                 PHLO(istr:iend) = BEC2_DIAG_2D(istr:iend,j,bec2_diag_2d_idx(ph_idx_t)) - del_ph
                 PHHI(istr:iend) = BEC2_DIAG_2D(istr:iend,j,bec2_diag_2d_idx(ph_idx_t)) + del_ph
 #   else
-             WHERE (BEC2_DIAG_2D(istr:iend,j,ph_idx_t) .ne. c0)
-                PHLO(istr:iend) = BEC2_DIAG_2D(istr:iend,j,ph_idx_t) - del_ph
-                PHHI(istr:iend) = BEC2_DIAG_2D(istr:iend,j,ph_idx_t) + del_ph
+             !WHERE (BEC2_DIAG_2D(istr:iend,j,ph_idx_t) .ne. c0)
+                !PHLO(istr:iend) = BEC2_DIAG_2D(istr:iend,j,ph_idx_t) - del_ph
+                !PHHI(istr:iend) = BEC2_DIAG_2D(istr:iend,j,ph_idx_t) + del_ph
+             WHERE (PH_HIST(istr:iend,j) .ne. c0)
+                PHLO(istr:iend) = PH_HIST(istr:iend,j) - del_ph
+                PHHI(istr:iend) = PH_HIST(istr:iend,j) + del_ph
 #   endif
 #  else /* BEC2_DIAG */
              WHERE (PH_HIST(istr:iend,j) .ne. c0)
@@ -450,8 +456,9 @@ c$$$       enddo
                 PHHI = phhi_init
              END WHERE
 
+             sssco2(istr:iend) = max(19.0, SSSS(istr:iend,j))
              CALL co2calc_row(LANDMASK(istr:iend,j),
-     &         SSTT(istr:iend,j), SSSS(istr:iend,j),
+     &         SSTT(istr:iend,j), sssco2(istr:iend),
      &         tracer(istr:iend,j,N,dic_ind_t),
      &         tracer(istr:iend,j,N,alk_ind_t),
      &         tracer(istr:iend,j,N,po4_ind_t),
@@ -473,6 +480,7 @@ c$$$       enddo
              if (bec2_diag_2d_l(pco2air_idx_t))
      &           bec2_diag_2d(istr:iend,j,bec2_diag_2d_idx(pco2air_idx_t))  = XCO2
 #   else
+             ph_hist(istr:iend,j) = PH_NEW(istr:iend)
              bec2_diag_2d(istr:iend,j,ph_idx_t) = PH_NEW(istr:iend)
              bec2_diag_2d(istr:iend,j,co2star_idx_t)  = CO2STAR_ROW(istr:iend)
              bec2_diag_2d(istr:iend,j,dco2star_idx_t) = DCO2STAR_ROW(istr:iend)
@@ -688,6 +696,13 @@ c$$$       enddo
      &         *dt/Hz(istr:iend,jstr:jend,N)
 # endif
 
+# ifdef POX_FORCING
+       ! POX: added to phosphate (convert units from kg P to mmol P)
+        tracer(istr:iend,jstr:jend,N,po4_ind_t) =
+     &         tracer(istr:iend,jstr:jend,N,po4_ind_t) +
+     &         pox(istr:iend,jstr:jend)*32285.39149637
+     &         *dt/Hz(istr:iend,jstr:jend,N)
+# endif
 # ifdef BEC2_DIAG
 #  ifdef BEC2_DIAG_USER
        if (bec2_diag_2d_l(ironflux_idx_t))
@@ -846,6 +861,7 @@ c$$$       enddo
      &    ddaChl_loc,      ! local copy of model ddaChl
      &    ddaSi_loc,       ! local copy of model ddaCal
      &    ddaFe_loc,       ! local copy of model ddaFe
+     &    salt_loc,
 # endif
 # ifdef BEC_PHAEO
      &    phaeoC_loc,      ! local copy of model phaeoC
@@ -903,6 +919,7 @@ c$$$       enddo
      &    DOFe_remin,      ! portion of DOFe remineralized
      &    DONr_remin,      ! portion of refractory DON remineralized
      &    POC_prod,        ! POC production (mmol C/m^3/sec)
+# ifdef BEC2_DIAG
      &    POC_prod_zoo_loss, ! POC production in Zoo loss (mmol C/m^3/sec)
      &    POC_prod_diat,   ! POC production in Diat grz/agg/loss (mmol C/m^3/sec)
      &    POC_prod_sp,     ! POC production in SP grz/agg/loss (mmol C/m^3/sec)
@@ -912,6 +929,7 @@ c$$$       enddo
 # endif
 # ifdef BEC_PHAEO
      &    POC_prod_phaeo,  ! POC production in Phaeo grz/agg/loss (mmol C/m^3/sec)
+# endif
 # endif
      &    P_CaCO3_prod,    ! large detritus CaCO3, base units = mmol CaCO3
      &    P_SiO2_prod,     ! prod. of large detritus SiO2
@@ -974,6 +992,9 @@ c$$$       enddo
     !   create local copies of model tracers
     !   treat negative values as zero
     !---------------------------------------------------------------------------
+# ifdef AMAZON_PAR
+       salt_loc=t(istr:iend,j,k,nnew,isalt)
+# endif
        PO4_loc  = MAX(c0, TRACER(istr:iend,j,k,po4_ind_t))
        NO3_loc  = MAX(c0, TRACER(istr:iend,j,k,no3_ind_t))
        SiO3_loc = MAX(c0, TRACER(istr:iend,j,k,sio3_ind_t))
@@ -1039,10 +1060,12 @@ c$$$       enddo
 # else
        bec2_diag_3d(istr:iend,j,k,totchl_idx_t) = tracer(istr:iend,j,k,spchl_ind_t)
      &     + tracer(istr:iend,j,k,diatchl_ind_t) + tracer(istr:iend,j,k,diazchl_ind_t)
-# ifdef EXPLICIT_VSINK
+# ifdef USE_EXPLICIT_VSINK
        bec2_diag_3d(istr:iend,j,k,totpoc_idx_t) = tracer(istr:iend,j,k,pocsoft_ind_t)
      &     + tracer(istr:iend,j,k,pochard_ind_t)
 # endif
+       bec2_diag_3d(istr:iend,j,k,totchl_idx_t) = tracer(istr:iend,j,k,spchl_ind_t)
+     &     + tracer(istr:iend,j,k,diatchl_ind_t) + tracer(istr:iend,j,k,diazchl_ind_t)
 # ifdef BEC_COCCO
      &     + tracer(istr:iend,j,k,coccochl_ind_t)
 # endif
@@ -1193,6 +1216,18 @@ c$$$       enddo
      &           gQfe_min(auto_ind))
           end where
 
+# ifdef BEC_DDA_case2
+! When DDAs are not fixing, gQfe param are the same as for regular diatoms
+          if (auto_ind==dda_ind) then
+               where (NO3_loc>0.5)
+                 where (Fe_loc < cks * kFe(auto_ind))
+                 gQfe(istr:iend,dda_ind) = 
+     &           max((gQfe(istr:iend,diat_ind) * Fe_loc / (cks * kFe(dda_ind))),
+     &           gQfe_min(diat_ind))
+                 end where
+               end where
+          endif
+# endif
           if (kSiO3(auto_ind) > c0) then
              gQsi(istr:iend,auto_ind) = gQsi_0
              where ((Fe_loc < cksi * kFe(auto_ind)) .and. (Fe_loc > c0) .and.
@@ -1276,6 +1311,15 @@ c$$$       enddo
 
        do i = istr, iend
           PAR_in(i) = PAR_out(i)
+# ifdef AMAZON_PAR
+      ! Apply a linear attenuation as a function of salinity to mimic turbidity in plume waters
+
+       if (latr(i,j)<20 .AND. latr(i,j)>-5 .AND. salt_loc(i)<=31) then
+!             PAR_in(i) = PAR_in(i) * (salt_loc(i)/31)
+           PAR_in(i) = PAR_in(i) * (1-(-0.021*salt_loc(i)+0.768))
+       endif
+
+# endif
           KPARdz(i) = max(spChl_loc(i)+diatChl_loc(i)+diazChl_loc(i)
 # ifdef BEC_COCCO
      &        +coccoChl_loc(i)
@@ -1376,6 +1420,27 @@ c$$$       enddo
     !-----------------------------------------------------------------------
 
        do auto_ind = 1, autotroph_cnt
+# ifdef BEC_DDA_case2
+          if (auto_ind == dda_ind) then
+             where (NO3_loc > 0.5)
+          VNO3(istr:iend,auto_ind) = (NO3_loc / kNO3(auto_ind)) /
+     &        (c1 + (NO3_loc / kNO3(auto_ind)) + (NH4_loc / kNH4(auto_ind)))
+          VNH4(istr:iend,auto_ind) = (NH4_loc / kNH4(auto_ind)) /
+     &        (c1 + (NO3_loc / kNO3(auto_ind)) + (NH4_loc / kNH4(auto_ind)))
+          VNtot(istr:iend,auto_ind) = VNO3(istr:iend,auto_ind) + VNH4(istr:iend,auto_ind)
+             VFe = Fe_loc / (Fe_loc + kFe(auto_ind))
+
+             f_nut = min(VNtot(istr:iend,auto_ind), VFe)
+             elsewhere
+             VNO3(istr:iend,auto_ind) = c0
+             VNH4(istr:iend,auto_ind) = c0
+             VNtot(istr:iend,auto_ind) = c1
+             VFe = Fe_loc / (Fe_loc + kFe(auto_ind))
+             f_nut = min(VNtot(istr:iend,auto_ind), VFe)
+             end where
+          else
+# endif /*BEC_DDA_case2*/
+         
           VNO3(istr:iend,auto_ind) = (NO3_loc / kNO3(auto_ind)) /
      &        (c1 + (NO3_loc / kNO3(auto_ind)) + (NH4_loc / kNH4(auto_ind)))
           VNH4(istr:iend,auto_ind) = (NH4_loc / kNH4(auto_ind)) /
@@ -1385,6 +1450,16 @@ c$$$       enddo
 
           VFe = Fe_loc / (Fe_loc + kFe(auto_ind))
           f_nut = min(VNtot(istr:iend,auto_ind), VFe)
+# ifdef BEC_DDA_case2
+         endif
+# endif /*BEC_DDA_case2*/
+
+# ifdef BEC_DDA_case1
+         if (auto_ind == dda_ind) then
+             VNO3=c0
+             vNH4=c0
+         endif    
+# endif /*BEC_DDA_case1*/
 
           VPO4(istr:iend,auto_ind) = (PO4_loc / kPO4(auto_ind)) /
      &           (c1 + (PO4_loc / kPO4(auto_ind)) + (DOP_loc / kDOP(auto_ind)))
@@ -1460,6 +1535,18 @@ c$$$       enddo
 #  endif
           end if
 # endif /* BEC2_DIAG */
+# ifdef BEC_DDA
+#  ifdef BEC2_DIAG
+          if (auto_ind == dda_ind) then
+#   ifdef BEC2_DIAG_USER
+              if (bec2_diag_3d_l(ddasio3uptake_idx_t))
+     &            bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(ddasio3uptake_idx_t))= VSiO3
+#   else
+              bec2_diag_3d(istr:iend,j,k,ddasio3uptake_idx_t) = VSiO3
+#   endif
+          end if     
+#  endif /* BEC2_DIAG */
+# endif /* BEC_DDA*/
 
     !-----------------------------------------------------------------------
     !     get photosynth. rate, phyto C biomass change, photoadapt
@@ -1490,10 +1577,18 @@ c$$$       enddo
           else if (auto_ind==cocco_ind) then
              PCmax = PCref(auto_ind) * f_nut * Tfunc_cocco
 # endif /* BEC_COCCO */
-# ifdef BEC_DDA
+# ifdef BEC_DDA_case1
           else if (auto_ind==dda_ind) then
              PCmax = PCref(auto_ind) * f_nut * Tfunc_dda
-# endif /* BEC_DDA */
+# endif /* BEC_DDA_case1 */
+# ifdef BEC_DDA_case2
+          else if (auto_ind==dda_ind) then
+              where (NO3_loc < 0.5)
+              PCmax = PCref(auto_ind) *  f_nut * Tfunc_dda
+              elsewhere 
+              PCmax = (PCref(auto_ind) * 3.0) *  f_nut * Tfunc_dda    
+          end where
+# endif /* BEC_DDA_case2 */
 # ifdef BEC_PHAEO
           else if (auto_ind==phaeo_ind) then
              PCmax = PCref(auto_ind) * f_nut * Tfunc_phaeo
@@ -1811,36 +1906,48 @@ c$$$       enddo
     !-----------------------------------------------------------------------
     !  Get N fixation by diazotrophs based on C fixation,
     !  Diazotrophs fix more than they need then 20% is excreted
-    !  DL: for DDAs --> no excretion
+    !  DL: for DDAs --> no excretion and nofixation if NO3 is not
+    !  depleted
     !-----------------------------------------------------------------------
 
           if (Nfixer(auto_ind)) then
              WORK1 = photoC(istr:iend,auto_ind) * Q
-!# ifdef BEC_DDA
-!          if (Nfixer(dda_ind)) then
-!             WORK2 = photoC(istr:iend,auto_ind) * Q
-!             Nfix(istr:iend,auto_ind)     = (WORK2 * r_Nfix_photo_dda) - NO3_V(istr:iend,auto_ind)
-!     &                 - NH4_V(istr:iend,auto_ind)
-!          else
-!# endif
+             if (auto_ind == diaz_ind) then
              Nfix(istr:iend,auto_ind)     = (WORK1 * r_Nfix_photo) - NO3_V(istr:iend,auto_ind)
      &                 - NH4_V(istr:iend,auto_ind)
              Nexcrete(istr:iend,auto_ind) = Nfix(istr:iend,auto_ind) + NO3_V(istr:iend,auto_ind)
      &                 + NH4_V(istr:iend,auto_ind) - WORK1
-!# ifdef BEC_DDA
-!          endif
-!# endif
+             else
+                 where (NO3_loc > 0.5)
+                     Nfix(istr:iend,auto_ind) =c0
+                     Nexcrete(istr:iend,auto_ind) =c0
+                 elsewhere
+             Nfix(istr:iend,auto_ind)     = WORK1 - NO3_V(istr:iend,auto_ind)
+     &                - NH4_V(istr:iend,auto_ind) 
+             Nexcrete(istr:iend,auto_ind) = c0
+                 end where
+             endif  
           endif
 # ifdef BEC2_DIAG
 #  ifdef BEC2_DIAG_USER
           if (auto_ind == diaz_ind .and. bec2_diag_3d_l(diaznfix_idx_t)) then
              bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(diaznfix_idx_t)) = Nfix(istr:iend,auto_ind)
           end if
+#   ifdef BEC_DDA
+           if (auto_ind == dda_ind .and.bec2_diag_3d_l(ddanfix_idx_t)) then
+               bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(ddanfix_idx_t))= Nfix(istr:iend,auto_ind)
+           end if 
+#   endif
 #  else
           if (auto_ind == diaz_ind) then
              bec2_diag_3d(istr:iend,j,k,diaznfix_idx_t) = Nfix(istr:iend,auto_ind)
              bec2_diag_3d(istr:iend,j,k,nexcrete_idx_t) = Nexcrete(istr:iend,auto_ind)
           end if
+#   ifdef BEC_DDA
+          if (auto_ind == dda_ind) then
+              bec2_diag_3d(istr:iend,j,k,ddanfix_idx_t) = Nfix(istr:iend,auto_ind)
+          end if
+#   endif
 #  endif
 # endif
 
@@ -3600,7 +3707,7 @@ c$$$       enddo
     !   arguments
     !-------------------------------------------------------------------------
 
-        REAL, DIMENSION(istr:iend,jstr:jend), INTENT(IN) :: 
+        REAL, DIMENSION(istr:iend,jstr:jend), INTENT(IN) ::
      &    SMFTX,  ! 'zonal' surface velocity flux (m^2/s^2)
      &    SMFTY    ! 'meridional' surface velocity flux (m^2/s^2)
 ! HF: both were in (cm^2/s^s)
@@ -3615,7 +3722,7 @@ c$$$       enddo
      &    coef_3  = 0.0000764,  ! (s/m)
      &    c_d     = 1.7e-3      ! drag coefficient for initial u
 
-        REAL, DIMENSION(istr:iend,jstr:jend) :: 
+        REAL, DIMENSION(istr:iend,jstr:jend) ::
      &    ustar_squared  ! square of turbulent velocity scale (m^2/s^2)
         LOGICAL,DIMENSION(istr:iend,jstr:jend) :: landmask
     !------------------------------------------------------------------------
@@ -4144,7 +4251,7 @@ c$$$       enddo
     !---------------------------------------------------------------------------
 
         CALL drtsafe_row(mask, x1, x2, xacc, htotal,istr,
-     &    iend, k0, k1, k2, 
+     &    iend, k0, k1, k2,
      &   kw, kb, ks, kf, k1p, k2p, k3p, ksi, 
      &    ff, bt, st, ft, dic, ta, pt, sit)
     !---------------------------------------------------------------------------
