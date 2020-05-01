@@ -810,7 +810,7 @@
 !        endif
 !#else
 
-#endif CH_CARBON_DEPTH
+#endif /* CH_CARBON_DEPTH */
 
 !
 ! PH
