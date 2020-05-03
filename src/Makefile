@@ -119,11 +119,16 @@ TOOLS := mpc cppcheck srcscheck checkkwds ncextract redefs
 
 tools: $(TOOLS)
 mpc: mpc.F
-	$(Q)cd $(SRCDIR); $(FC) $(CPPFLAGS) -o $@ mpc.F
+	$(Q)cd $(SRCDIR); $(FC) $(FCFLAGS) -o $@ mpc.F
+ncjoin: ncjoin.o lenstr.o
+	$(Q)cd $(BLDDIR); $(LDR) $(FFLAGS) $(LDFLAGS) -o $@ ncjoin.o lenstr.o $(LCDF)
+partit: partit.o lenstr.o insert_node.o
+	$(Q)cd $(BLDDIR); $(LDR) $(FFLAGS) $(LDFLAGS) -o $@ partit.o insert_node.o lenstr.o $(LCDF)
+	
 
 # We do not optimise the tools
 cppcheck: cppcheck.F
-	$(Q)cd $(SRCDIR); $(FC) $(CPPFLAGS) -o $@ cppcheck.F
+	$(Q)cd $(SRCDIR); $(FC) -o $@ cppcheck.F
 srcscheck: srcscheck.F
 	$(Q)cd $(SRCDIR); $(FC) $(CPPFLAGS) -o $@ srcscheck.F
 checkkwds: checkkwds.F
