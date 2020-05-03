@@ -343,10 +343,10 @@ c--      fname='roms.in.US_West'
           mpi_master_only write(*,'(7x,A,ES10.3,2x,A)')
      &     'rdrg =', rdrg,  'linear bottom drag coefficient [m/s]'
           mpi_master_only write(*,'(6x,A,ES10.3,2x,A)')
-     &    'rdrg2 =', rdrg2, 'quadratic bottom drag coefficient, nondim'
+     &     'rdrg2 =', rdrg2, 'quadratic bottom drag coefficient, nondim'
 #ifdef SOLVE3D
           mpi_master_only write(*,'(8x,A,ES10.3,2x,A)')
-     &  ,   'Zob =', Zob,   'bottom roughness height [m]'
+     &     'Zob =', Zob,   'bottom roughness height [m]'
 #endif
 
 #ifdef SOLVE3D

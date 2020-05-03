@@ -21,6 +21,8 @@
 
       implicit none
       integer istr,iend,jstr,jend, i,j, nsub
+! NOTE: Compile may issue a warning hear about passing a double 
+! for a quad.  This is OK since A2d is and dV scratch starts at A2d(1,3)
       real(kind=QUAD), dimension(PRIVATE_2D_SCRATCH_ARRAY) :: dA,dV
       real(kind=QUAD)  my_area,  my_volume,  my_crss
       real my_hmax, my_grdmax, my_Cu_max, cff,
