@@ -729,8 +729,8 @@ c--#define VERBOSE
       endif
 # endif /* BIOLOGY_BEC2 */
 # if defined BIOLOGY_BEC2 && defined BEC2_DIAG
-       MPI_master_only write(*,*),'total # of 2D diagnostics:',nr_bec2_diag_2d
-       MPI_master_only write(*,*),'total # of 3D diagnostics:',nr_bec2_diag_3d
+       MPI_master_only print*, '# of 2D diagnostics:',nr_bec2_diag_2d
+       MPI_master_only print*, '# of 3D diagnostics:',nr_bec2_diag_3d
 ! CN (Dec 2017): Don't read in diagnostics from rst file (unnecessary)
 !!# if defined NEVER_DEF
 !      ! Read in 2d diagnostic variables:

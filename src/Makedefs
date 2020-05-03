@@ -36,10 +36,19 @@ DEPFLAGS = -MT $@ -MMD -MP -MF $(DEPDIR)/$*.Td
 %.o: %.f
 
 # Define Q for quite mode:
-Q = @
+#Q = @
+# Verbose
+#Q = 
 
 # Include file locations
-CPPFLAGS+= -I$(SRCDIR) -I$(INCDIR) -I$(BIODIR) -I$(MPI_HOME)/include
+CPPFLAGS+= -I$(SRCDIR) -I$(INCDIR) -I$(BIODIR)
+ifdef MPI_HOME
+   CPPFLAGS+= -I$(MPI_HOME)/include
+endif
+ifdef MPI_HOME
+   CPPFLAGS+= -I$(MPI_ROOT)/include
+endif
+
 
 
 
@@ -85,7 +94,8 @@ ifndef NOMPI
    MPIFC = mpif90
    ifdef I_MPI_ROOT
       CPPFLAGS += -I$(I_MPI_ROOT)/include64
-   else
+   endif
+   ifdef MPI_ROOT
       CPPFLAGS += -I$(MPI_ROOT)/include
    endif
 endif
@@ -104,7 +114,10 @@ ifeq ($(strip $(FCOMP)),ifort)
    FCFLAGS := -D__IFC
 
    #mm for intel/2018.1@Euler:
-   MPIFC := $(MPIFC) # -fc=ifort
+   MPIFC_VERSION = $(shell which mpif90)
+   ifeq ($(MPIFC_VERSION),/cluster/apps/intel/parallel_studio_xe_2018_r1/compilers_and_libraries_2018.1.163/linux/mpi/intel64/bin/mpif90)
+       MPIFC := $(MPIFC) -fc=ifort
+   endif
    COMP_FILES = *__genmod.f90 *__genmod.mod # cleanup stuff
    LARGE_MEM_FLAG=   -mcmodel=medium # Sometimes needed for large tiles
    ifndef DEBUG
@@ -131,11 +144,11 @@ ifeq ($(strip $(FCOMP)),ifort)
 #
 # ============= PGI compiler =============
 else ifeq ($(strip $(FCOMP)),pgf90)
-   FCFLAGS  := -DPGI
+   FCFLAGS  := -DPGI -DINT_IARGC
    ifdef OPENMP
       OPENMP := -mp
    endif
-   CPPFLAGS += -DINT_IARGC
+   #CPPFLAGS += -DINT_IARGC
    FFLAGS  := -mcmodel=medium -fast -O4 $(OPENMP)
 # endif
 #
