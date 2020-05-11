@@ -9,14 +9,11 @@
 
 # define BIOLOGY_BEC2
 #include "cppdefs_UP.h"
-
-! CHOOSE SETUP HERE
-#define PACTCS60
+!-- #define PACTCS60
 
 #ifdef PACTCS60
 # define GRID_SIZE LLm=300, MMm=257, N=64      ! pactcs60 8-120km telescopic up to Antarctica
-# define DOMAIN_TILING NP_XI=6, NP_ETA=24, NSUB_X=1, NSUB_E=1 ! Mobilis - EL2020
-! # define DOMAIN_TILING NP_XI=8, NP_ETA=18, NSUB_X=1, NSUB_E=1 ! Euler
+# define DOMAIN_TILING NP_XI=8, NP_ETA=18, NSUB_X=1, NSUB_E=1 ! Euler
 #else 
 ! default: PACTCS30 
 # define PACTCS30
@@ -24,7 +21,6 @@
 # define DOMAIN_TILING NP_XI=8, NP_ETA=48, NSUB_X=1, NSUB_E=1 ! Euler
 #endif
 
-!mf #define DOMAIN_TILING NP_XI=8, NP_ETA=30, NSUB_X=1, NSUB_E=1 ! Euler
 
      /* Open Boundaries */
 #define OBC_SOUTH
@@ -82,7 +78,11 @@
 #endif
 !--> #define STARTDATE '0001-01-01' /* part of netCDF CF-convention time units attribute default: '0001-01-01'*/
 
-#define ADV_ISONEUTRAL
+
+!--> #define ADV_ISONEUTRAL
+
+! define to switch on WENO scheme advection:
+!--> #define ADV_WENO 
 
      /* Biology */
 !--> #define BIOLOGY_NPZDOC

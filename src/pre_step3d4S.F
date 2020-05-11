@@ -7,6 +7,7 @@
 # include "param.h"              /* ! and horizontal scratch arrays. */
 # include "private_scratch.h"
 # include "compute_tile_bounds.h"
+
       call pre_step3d_tile (istr,iend,jstr,jend,   A3d(1,1),A3d(1,2),
      &         A3d(1,3),A3d(1,4), A2d(1,1),A2d(1,2),A2d(1,3),A2d(1,4),
      &                            A2d(1,1),A2d(1,2),A2d(1,3),A2d(1,4),
@@ -42,7 +43,20 @@
 # include "scalars.h"
 # include "sources.h"
 
+#ifdef ADV_WENO
+ #define T_HADV_WENO
+ #define T_VADV_WENO
+#endif
+#if defined T_HADV_WENO || defined T_VADV_WENO
+      REAL    :: vel, flux2
+      REAL    :: flx2, flx3
+      REAL    :: mask1
+      REAL    :: flux3_weno, flux5_weno
+#endif
+
 # include "compute_auxiliary_bounds.h"
+
+
 
 ! Preliminary step: initialize computations of the new time step
 ! 3D primitive variables.
@@ -145,6 +159,7 @@
 
       do j=jstr,jend
         do itrc=1,NT
+        
 
 # include "compute_vert_tracer_fluxes.h"
 

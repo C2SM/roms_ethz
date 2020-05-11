@@ -22,7 +22,7 @@ DRVSRC := main.F 	step2d_FB.F	read_inp.F	read_sta_pos.F \
 
 # Time stepping
 STEPSRC := prsgrd32AC1.F	pre_step3d4S.F	step3d_uv1.F	step3d_uv2.F \
-	step3d_t_ISO.F	set_depth.F	omega.F \
+	step3d_t_ISO.F	set_depth.F	omega.F 	weno_flux.F\
 	visc3d_GP.F	t3dmix_GP.F	ana_vmix.F
 
 # Lateral boundary
@@ -125,16 +125,11 @@ TOOLS := mpc cppcheck srcscheck checkkwds ncextract redefs
 
 tools: $(TOOLS)
 mpc: mpc.F
-	$(Q)cd $(SRCDIR); $(FC) $(FCFLAGS) -o $@ mpc.F
-ncjoin: ncjoin.o lenstr.o
-	$(Q)cd $(BLDDIR); $(LDR) $(FFLAGS) $(LDFLAGS) -o $@ ncjoin.o lenstr.o $(LCDF)
-partit: partit.o lenstr.o insert_node.o
-	$(Q)cd $(BLDDIR); $(LDR) $(FFLAGS) $(LDFLAGS) -o $@ partit.o insert_node.o lenstr.o $(LCDF)
-	
+	$(Q)cd $(SRCDIR); $(FC) $(CPPFLAGS) -o $@ mpc.F
 
 # We do not optimise the tools
 cppcheck: cppcheck.F
-	$(Q)cd $(SRCDIR); $(FC) -o $@ cppcheck.F
+	$(Q)cd $(SRCDIR); $(FC) $(CPPFLAGS) -o $@ cppcheck.F
 srcscheck: srcscheck.F
 	$(Q)cd $(SRCDIR); $(FC) $(CPPFLAGS) -o $@ srcscheck.F
 checkkwds: checkkwds.F

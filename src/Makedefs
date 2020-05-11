@@ -36,7 +36,7 @@ DEPFLAGS = -MT $@ -MMD -MP -MF $(DEPDIR)/$*.Td
 %.o: %.f
 
 # Define Q for quite mode:
-#Q = @
+Q = @
 # Verbose
 #Q = 
 
@@ -56,7 +56,7 @@ endif
 %.o: %.f
 	@echo Compiling $<
 	$(Q)cd $(BLDDIR); $(MPIFC) -c $(FFLAGS) $(notdir $<)
-# Rule to create .f files.
+# Rule to create .f files;
 # also create dependencies files when creating these.
 %.f: %.F mpc
 	$(Q)$(MAKEDEPEND) 'dirname $<' $< > $(DEPDIR)/$*.d
@@ -69,15 +69,7 @@ CPP := cpp
 CPPFTN := -P -traditional-cpp # traditional-cpp need to keep white-spaces
 
 # NetCDF
-#  Use NETCDF var if it is defined
-#  Otherwise try to use nc-config to find
-#  suitable settings
-#NETCDF := /cluster/apps/netcdf/4.3.2/x86_64/intel_14.0.1/serial
-#ifdef NETCDF
-#  NCINC ?= -I$(NETCDF)/include
-#  NCLIB ?= -L$(NETCDF)/../serial/lib -L$(NETCDF)/lib -lnetcdff -lnetcdf
-#else
-  NCINC ?= $(shell nc-config --fflags)
+  NCINC ?= -I$(shell nc-config --includedir)
   ifeq ($(NCINC),)
     NCINC := $(shell nc-config --cflags)
   endif
@@ -85,7 +77,6 @@ CPPFTN := -P -traditional-cpp # traditional-cpp need to keep white-spaces
   ifeq ($(NCLIB),)
     NCLIB := $(shell nc-config --libs)
   endif
-#endif
 
 CPPFLAGS += $(NCINC)
 
@@ -107,7 +98,7 @@ LCDF := $(NCLIB)
 CFT := $(FC)
 
 
-FCOMP ?=  $(notdir $(FC)) # use to identify the compiler
+FCOMP ?=  $(notdir $(FC)) # Used to identify the compiler
 
 # ============= Intel compiler =============
 ifeq ($(strip $(FCOMP)),ifort)
