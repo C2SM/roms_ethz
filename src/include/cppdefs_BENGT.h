@@ -76,6 +76,7 @@
 !--> #define STARTDATE '0001-01-01' /* part of netCDF CF-convention time units attribute default: '0001-01-01'*/
 
 #define ADV_ISONEUTRAL
+#define T_ADV_WENO
 
      /* Biology */
 !--> #define BIOLOGY_NPZDOC
