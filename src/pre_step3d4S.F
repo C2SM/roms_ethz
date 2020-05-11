@@ -158,7 +158,7 @@
         do itrc=1,NT
         
 
-# include "compute_vert_tracer_fluxes_old.h"
+# include "compute_vert_tracer_fluxes.h"
 
           do k=1,N
             do i=istr,iend
