@@ -16,7 +16,7 @@ The implementation of the fluxes is in : weno_flux.F
 In this file there is an implementation of a WENO 5th order, WENO 3rd order and a upstream 2nd order function to compute the flux.
 
 flux5_weno : This function computes tracer reconstruction at the grid cell's left
-edge (u-point i − 1/2 or v-point j − 1/2) using the WENO5 procedure
+edge (u-point i-1/2 or v-point j-1/2) using the WENO5 procedure
 
 flux3_weno : this function computes the same quantity except it uses the WENO3
 procedure.
