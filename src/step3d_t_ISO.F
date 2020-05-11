@@ -101,14 +101,15 @@ c--# define CONST_TRACERS
 ! temporary variable for calculation of vertical diffusive flux
       real ThisVDF(PRIVATE_2D_SCRATCH_ARRAY,0:N)
 #endif /* PHYS_FLUX_ANALYSIS */
-      
-#ifdef WENO
-
+#ifdef ADV_WENO
+ #define T_HADV_WENO
+ #define T_VADV_WENO
+#endif
+#if defined T_HADV_WENO || defined T_VADV_WENO
       REAL    :: vel, flux2
       REAL    :: flx2, flx3
       REAL    :: mask1
       REAL    :: flux3_weno, flux5_weno
-      
 #endif
 
 
