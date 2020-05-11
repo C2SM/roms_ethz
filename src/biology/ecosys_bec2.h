@@ -442,15 +442,17 @@
 #endif
 
 !
-! Arrays related to carbon chemistry: these are in bec2_diag_2d or
-! bec2_diag_3d if BEC2_DIAG is defined
+! Arrays related to carbon chemistry:
 !
+      real, dimension(GLOBAL_2D_ARRAY) :: ph_hist
+      common /c_chem/ ph_hist
 #ifndef BEC2_DIAG
+! These are in bec2_diag_2d or bec2_diag_3d if BEC2_DIAG is defined
       real, dimension(GLOBAL_2D_ARRAY) ::
-     &   ph_hist, pCO2sw, PARinc
+     &   pCO2sw, PARinc
       real, dimension(GLOBAL_2D_ARRAY,N) ::
      &   PAR
-      common /c_chem/ ph_hist, pCO2sw, PARinc, PAR
+      common /c_chem/ pCO2sw, PARinc, PAR
 # ifndef PCO2AIR_FORCING
 !     otherwise defined in bgc_forces.h
       real pco2air

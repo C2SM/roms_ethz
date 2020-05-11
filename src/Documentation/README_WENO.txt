@@ -1,12 +1,8 @@
 WENO:
 
-It is possible to activate the WENO scheme using the following CPP-keys:
+To activate the WENO scheme for all tracers define T_ADV_WENO in your cppdefs.h
 
-#define WENO
-#ifdef WENO
-# define T_HADV_WENO
-# define T_VADV_WENO
-#endif
+#define T_ADV_WENO
 
 The WENO scheme is implemented to compute the horizontal and vertical advection of all the tracers.
 It can help to prevent the emergence of unphysical negative concentration by computing fluxes more accurately and without the creation of oscillations.
@@ -27,7 +23,7 @@ compute_horiz_tracer_fluxes.h and compute_vert_tracer_fluxes.h.
 Finally, these two procedures are used in the following files:
 step3d_t_ISO.F and pre_step3d4S.F
 
-Here is a bref explanation of the implementation:
+Here is a brief explanation of the implementation:
 
 For the horizontal flux:
 In step3d_t_ISO.F, for each sigma layers, a call is made to compute_horiz_tracer_fluxes.h.

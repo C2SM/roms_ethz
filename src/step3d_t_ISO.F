@@ -76,6 +76,9 @@ c--# define CONST_TRACERS
      &           cffE, s2_XLL,s2_XRL, s2_ELL,s2_ERL
 #  endif
 # endif
+
+
+
 # include "grid.h"
 # include "ocean3d.h"
 # include "forces.h"
@@ -98,6 +101,17 @@ c--# define CONST_TRACERS
 ! temporary variable for calculation of vertical diffusive flux
       real ThisVDF(PRIVATE_2D_SCRATCH_ARRAY,0:N)
 #endif /* PHYS_FLUX_ANALYSIS */
+#ifdef ADV_WENO
+ #define T_HADV_WENO
+ #define T_VADV_WENO
+#endif
+#if defined T_HADV_WENO || defined T_VADV_WENO
+      REAL    :: vel, flux2
+      REAL    :: flx2, flx3
+      REAL    :: mask1
+      REAL    :: flux3_weno, flux5_weno
+#endif
+
 
 
 # include "compute_auxiliary_bounds.h"
@@ -1322,6 +1336,11 @@ c??         enddo
      &        'Increase parameter "max_opt_size" it and recompile.'
       ierr=ierr+1
       end
+      
+      
+      
+    
+
 #else
       subroutine step3d_t_empty
       end

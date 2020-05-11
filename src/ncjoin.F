@@ -212,7 +212,7 @@ c--#define VERBOSE
      &       lsrc == 6 .and. nctestname(1:6) == '--keep' )) then
           print'(/1x,A/)', '---> Keeping partial files'
           ! write(*,'(/1x,2A/)') '>>>> Flag to delete partial files ',
-     ! &                                                 'is raised.'
+          ! &                                                 'is raised.'
           ! del_part_files=.true.
           del_part_files=.false.
           goto 2
@@ -2145,8 +2145,8 @@ c       ierr=nf_open(nctargname(1:ltrg), nf_write, nctarg)
      &   , '    -k           keep partial files'
      &   , '    -p           if record dim differs, use its minimum'
      &   , '    -h           print this help'
-     !&   , '    -o=<dir>     output directory (default: working dir)'
-     !&   , '     ncjoin [-3 -k -h -c=<n> -o=<dir>] files.*.nc'
+!&   , '    -o=<dir>     output directory (default: working dir)'
+!&   , '     ncjoin [-3 -k -h -c=<n> -o=<dir>] files.*.nc'
 
       end
 

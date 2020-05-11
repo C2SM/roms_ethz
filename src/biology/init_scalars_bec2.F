@@ -276,6 +276,11 @@ CR      write(*,'(1x,A,I3)') 'indxNH4 =',indxNH4
       vname(3,indxiron)='nmol cm-2 s-1                             '
       vname(4,indxiron)='  '
 
+      vname(1,indxPH_rst)='PH'
+      vname(2,indxPH_rst)='surface pH'
+      vname(3,indxPH_rst)=' '
+      vname(4,indxPH_rst)=' '
+
 # ifndef BEC2_DIAG
       vname(1,indxPH)='PH'
       vname(2,indxPH)='surf pH value'
@@ -496,7 +501,7 @@ CR      write(*,'(1x,A,I3)') 'indxNH4 =',indxNH4
 
 
       ! MF: Control BEC2_DIAG Output vars
-      wrtavg_bec2_diag_2d=(/.false.,.false.,.false.,.true.,.false.,  ! pCO2air, PARinc,FG_O2,FG_CO2, WS10m
+      wrtavg_bec2_diag_2d=(/.true.,.false.,.false.,.true.,.false.,  ! pCO2air, PARinc,FG_O2,FG_CO2, WS10m
      &                     .false.,.false.,.false.,.false.,.false.,   ! XKW, ATM_PRESS,SCHMIDT_O2,O2SAT, SCHMIDT_CO2
      &                     .false.,.false.,.false.,.false.,.false.,   ! PV_O2,PV_CO2,IRON_FLUX, SED_DENITRI, PH
      &                     .true.,.false.,.false.,.false.,          ! PCO2, CO2STAR, PCO2OC, DCO2STAR

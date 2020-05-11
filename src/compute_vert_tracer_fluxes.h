@@ -7,11 +7,13 @@
 ! tracer distributions in the top- and bottom-most grid boxes are
 ! linear (if no CPP switch is defined).
 
-!#define SPLINE_TS
+#ifndef T_VADV_WENO
+
+#define SPLINE_TS
+
+#endif
 c--#define NEUMANN_TS
 c--#define AKIMA_V
-
-!#define TS_VADV_WENO5
 
 #ifdef BIO_1ST_USTREAM_TEST
           if (itrc > isalt) then   !<-- biological components only
@@ -72,7 +74,7 @@ c--#define AKIMA_V
             FC(i,0)=0.                         ! boundary conditions.
           enddo
           
-# elif defined TS_VADV_WENO5
+# elif defined T_VADV_WENO
 
 !
 !----------------------------------------------------------
@@ -83,7 +85,7 @@ c--#define AKIMA_V
           do k=3,N-3                            !Inside the column of water, use weno 5 because
             do i=Istr,Iend                      !all neighboor are available
               FC(i,k)=We(i,j,k)*
-     &              flux5_weno( 
+     &              flux5_weno(
      &             t(i,j,k-2,nrhs,itrc), t(i,j,k-1,nrhs,itrc), 
      &             t(i,j,k  ,nrhs,itrc), t(i,j,k+1,nrhs,itrc),
      &             t(i,j,k+2,nrhs,itrc), t(i,j,k+3,nrhs,itrc), We(i,j,k))
@@ -104,12 +106,12 @@ c--#define AKIMA_V
                                                 ! Reduce to first order at bottom
             FC(i,  1)=We(i,j,  1)*flux2( t(i,j,1  ,nrhs,itrc),
      &                                   t(i,j,2  ,nrhs,itrc),
-     &                                   We(i,j,  1),1.)
+     &                                   We(i,j,  1))
             
                                                 ! Reduce to first order at top
             FC(i,N-1)=We(i,j,N-1)*flux2( t(i,j,N-1,nrhs,itrc),
      &                                   t(i,j,N,  nrhs,itrc),
-     &                                   We(i,j,N-1),1.)
+     &                                   We(i,j,N-1))
 
 
             FC(i,0)=0.                          ! Boundary condition
