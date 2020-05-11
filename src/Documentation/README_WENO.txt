@@ -1,40 +1,43 @@
-Full WENO:
+WENO:
 
-The new WENO scheme is implemented into 3 files and 2 functions.
+It is possible to activate the WENO scheme using the following CPP-keys:
 
-_ step3d_t_ISO_weno_3.F: which contains all the routines to perform a time step
-on all the 3 dimensions
+#define WENO
+#ifdef WENO
+# define T_HADV_WENO
+# define T_VADV_WENO
+#endif
 
-_ compute_horiz_tracer_fluxes_weno.h: that computes the horizontal flux using the
-WENO procedure for all the tracers
+The WENO scheme is implemented to compute the horizontal and vertical advection of all the tracers.
+It can help to prevent the emergence of unphysical negative concentration by computing fluxes more accurately and without the creation of oscillations.
 
-_ compute_vert_tracer_fluxes_weno.h: that computes the vertical flux using the
-WENO procedure for all the tracers.
+The implementation of the fluxes is in : weno_flux.F
 
-The functions :
-• flux5_weno : This function computes tracer reconstruction at the grid cell’s left
-edge (u-point i − 1/2 or v-point j − 1/2) using the WENO5 procedure presented
-in [2].
-• flux3_weno : this function computes the same quantity except it uses the WENO3
+In this file there is an implementation of a WENO 5th order, WENO 3rd order and a upstream 2nd order function to compute the flux.
+
+flux5_weno : This function computes tracer reconstruction at the grid cell's left
+edge (u-point i-1/2 or v-point j-1/2) using the WENO5 procedure
+
+flux3_weno : this function computes the same quantity except it uses the WENO3
 procedure.
 
-In the file step3d_t_ISO_weno_3.F, for each σ layers, a call is
-made to compute_horiz_tracer_fluxes_weno.h.
-• In this file, we first compute the flux FX in the ξ direction (i indices). We loop
+These functions can be called in the following files:
+compute_horiz_tracer_fluxes.h and compute_vert_tracer_fluxes.h.
+
+Finally, these two procedures are used in the following files:
+step3d_t_ISO.F and pre_step3d4S.F
+
+Here is a bref explanation of the implementation:
+
+For the horizontal flux:
+In step3d_t_ISO.F, for each sigma layers, a call is made to compute_horiz_tracer_fluxes.h.
+Then, in this file, we first compute the flux FX in the ksi direction (i indices). We loop
 over all the i indices of the MPI tile.
 
-Later in step3d_t_ISO_weno_3.F, we compute the flux FC in the σ direction (k indices). We loop over j and
-call compute_vert_tracer_fluxes_weno.h.
-• We use the function flux5_weno to compute the flux of interior cell.
-• We decay the order of accuracy (use flux3_weno) for cells at the top and bottom
+For the vertical flux:
+In step3d_t_ISO_weno_3.F, we compute the flux FC in the sigma direction (k indices). We loop over j and
+call compute_vert_tracer_fluxes_weno.h. 
+We use the function flux5_weno to compute the flux of interior cell. 
+We decay the order of accuracy (use flux3_weno) for cells at the top and bottom
 of the columns of water because less ghost points are available to compute the flux.
-• Finally, we apply the boundary conditions.
-
-
-It is possible to activate the WENO scheme using the foolowing CPP-keys:
-# define TS_HADV_WENO3
-# define TS_VADV_WENO5
-
-and the possibility to also activate the # define TS_HADV_WENO5 but is not recommended yet.
-
-
+Finally, we apply the boundary conditions.
