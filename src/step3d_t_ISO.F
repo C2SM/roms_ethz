@@ -102,8 +102,8 @@ c--# define CONST_TRACERS
       real ThisVDF(PRIVATE_2D_SCRATCH_ARRAY,0:N)
 #endif /* PHYS_FLUX_ANALYSIS */
 #ifdef ADV_WENO
- #define T_HADV_WENO
- #define T_VADV_WENO
+# define T_HADV_WENO
+# define T_VADV_WENO
 #endif
 #if defined T_HADV_WENO || defined T_VADV_WENO
       REAL    :: vel, flux2

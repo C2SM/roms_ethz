@@ -44,8 +44,8 @@
 # include "sources.h"
 
 #ifdef ADV_WENO
- #define T_HADV_WENO
- #define T_VADV_WENO
+# define T_HADV_WENO
+# define T_VADV_WENO
 #endif
 #if defined T_HADV_WENO || defined T_VADV_WENO
       REAL    :: vel, flux2
