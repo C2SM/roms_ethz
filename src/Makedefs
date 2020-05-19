@@ -85,6 +85,7 @@ ifndef NOMPI
    MPIFC = mpif90
    ifdef I_MPI_ROOT
       CPPFLAGS += -I$(I_MPI_ROOT)/include64
+      CPPFLAGS += -I$(I_MPI_ROOT)/intel64/include
    endif
    ifdef MPI_ROOT
       CPPFLAGS += -I$(MPI_ROOT)/include
@@ -104,8 +105,12 @@ FCOMP ?=  $(notdir $(FC)) # Used to identify the compiler
 ifeq ($(strip $(FCOMP)),ifort)
    FCFLAGS := -D__IFC
 
-   #mm for intel/2018.1@Euler:
    MPIFC_VERSION = $(shell which mpif90)
+   #mm for intel/2020.0 @ UP workstations
+   ifeq ($(MPIFC_VERSION),/usr/local/intel/parallel_studio_xe_2020_cluster_edition/compilers_and_libraries/linux/mpi/intel64/bin/mpif90)
+       MPIFC := $(MPIFC) -fc=ifort
+   endif
+   #mm for intel/2018.1@Euler:
    ifeq ($(MPIFC_VERSION),/cluster/apps/intel/parallel_studio_xe_2018_r1/compilers_and_libraries_2018.1.163/linux/mpi/intel64/bin/mpif90)
        MPIFC := $(MPIFC) -fc=ifort
    endif
