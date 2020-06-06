@@ -54,23 +54,27 @@
       REAL    :: IS0, IS1, IS2
       REAl    :: d0, d1, d2
       REAl    :: a0, a1, a2
+      REAL    :: sum_a
       REAL    :: w0, w1, w2
       REAL    :: p0, p1, p2
       REAL    :: Eps, cff1, cff2, T5
 
-#  define WENO_Z
+!#  define WENO_Z
 
 ! Epsilon value for computing weigths 
-#  ifdef WENO_Z
+!#  ifdef WENO_Z
       Eps = 1.e-40
-#  else
+!#  else
 !  --> from 1.e-7 (smoother) to 1.e-5 (sharper)
-      Eps = 1.e-6
-#  endif
+!      Eps = 1.e-6
+!#  endif
 ! Weigths coefficients
-      d0=1./10.
-      d1=6./10.
-      d2=3./10.
+!      d0=1./10.
+!      d1=6./10.
+!      d2=3./10.
+      d0=0.1
+      d1=0.6
+      d2=0.3
 ! other coefficients
       cff1=13./12.
       cff2=1./6.
@@ -87,22 +91,23 @@
      &                        + 0.25*(q_im2 - q_i)**2
         IS2 = cff1*(q_im1 - 2.*q_i + q_ip1)**2
      &                        + 0.25*(3.*q_im1 - 4.*q_i + q_ip1)**2
-#  ifdef WENO_Z
+!#  ifdef WENO_Z
 ! Non-normalized stencil weights
 ! with parameter T5 of new smoothness indicator
         T5 = abs(IS2-IS0)
         a0  = d0*(1+T5/(Eps+IS0))
         a1  = d1*(1+T5/(Eps+IS1))
         a2  = d2*(1+T5/(Eps+IS2))
-#  else
-        a0  = d0/(Eps+IS0)**2
-        a1  = d1/(Eps+IS1)**2
-        a2  = d2/(Eps+IS2)**2
-#  endif
+!#  else
+!        a0  = d0/(Eps+IS0)**2
+!        a1  = d1/(Eps+IS1)**2
+!        a2  = d2/(Eps+IS2)**2
+!#  endif
 ! Normalized Weigths
-        w0  = a0/(a0+a1+a2)
-        w1  = a1/(a0+a1+a2)
-        w2  = a2/(a0+a1+a2)
+        sum_a=a0+a1+a2
+        w0  = a0/sum_a
+        w1  = a1/sum_a
+        w2  = a2/sum_a
 ! Polynomials
         p0  = cff2*(2.*q_im3 - 7.*q_im2 + 11.*q_im1)
         p1  = cff2*(-q_im2   + 5.*q_im1 + 2.*q_i)
@@ -122,22 +127,23 @@
      &                         + 0.25*(q_ip1-q_im1)**2
         IS2 = cff1*(q_i   - 2.*q_im1 + q_im2)**2
      &                         + 0.25*(3.*q_i -4.*q_im1 + q_im2)**2
-#  ifdef WENO_Z
+!#  ifdef WENO_Z
 ! Non-normalized stencil weights
 ! with parameter T5 of new smoothness indicator
         T5 = abs(IS2-IS0)
         a0  = d0*(1+T5/(Eps+IS0))
         a1  = d1*(1+T5/(Eps+IS1))
         a2  = d2*(1+T5/(Eps+IS2))
-#  else
-        a0  = d0/(Eps+IS0)**2
-        a1  = d1/(Eps+IS1)**2
-        a2  = d2/(Eps+IS2)**2
-#  endif
+!#  else
+!        a0  = d0/(Eps+IS0)**2
+!        a1  = d1/(Eps+IS1)**2
+!        a2  = d2/(Eps+IS2)**2
+!#  endif
 ! Normalized Weigths
-        w0  = a0/(a0+a1+a2)
-        w1  = a1/(a0+a1+a2)
-        w2  = a2/(a0+a1+a2)
+        sum_a=a0+a1+a2
+        w0  = a0/sum_a
+        w1  = a1/sum_a
+        w2  = a2/sum_a
 ! Polynomials
         p0  = cff2*(2.*q_ip2 - 7.*q_ip1 + 11.*q_i)
         p1  = cff2*(-q_ip1   + 5.*q_i   + 2.*q_im1)
@@ -163,6 +169,7 @@
       REAL    :: q_im2, q_im1, q_i, q_ip1, ua
       REAL    :: IS0, IS1
       REAl    :: a0, a1
+      REAL    :: sum_a
       REAL    :: w0, w1
       REAL    :: p0, p1 
       REAL    :: Eps, d0,d1, T3
@@ -170,12 +177,12 @@
 #  define WENO_Z
 !
 ! Epsilon value for computing weigths 
-#  ifdef WENO_Z
+!#  ifdef WENO_Z
       Eps = 1.e-40
-#  else
+!#  else
 !  --> from 1.e-7 (smoother) to 1.e-5 (sharper)
-      Eps = 1.e-6
-#  endif
+!      Eps = 1.e-6
+!#  endif
       d0=1./3.
       d1=2./3.
 !
@@ -183,16 +190,17 @@
 
         IS0 = (q_im1-q_im2)**2
         IS1 = (q_im1-q_i)**2
-#  ifdef WENO_Z
+!#  ifdef WENO_Z
         T3 = abs(IS1-IS0)
         a0  = d0*(1+T3/(Eps+IS0))
         a1  = d1*(1+T3/(Eps+IS1))
-#  else
-        a0  = 1./(3.*(Eps+IS0)**2)
-        a1  = 2./(3.*(Eps+IS1)**2)
-#  endif
-        w0  = a0/(a0+a1)
-        w1  = a1/(a0+a1)
+!#  else
+!        a0  = 1./(3.*(Eps+IS0)**2)
+!        a1  = 2./(3.*(Eps+IS1)**2)
+!#  endif
+        sum_a=a0+a1
+        w0  = a0/sum_a
+        w1  = a1/sum_a
         p0  = 1./2.*(3.*q_im1-q_im2)
         p1  = 1./2.*(q_im1+q_i)
 
@@ -202,16 +210,17 @@
 
         IS0 = (q_i-q_ip1)**2
         IS1 = (q_im1-q_i)**2
-#  ifdef WENO_Z
+!#  ifdef WENO_Z
         T3 = abs(IS1-IS0)
         a0  = d0*(1+T3/(Eps+IS0))
         a1  = d1*(1+T3/(Eps+IS1))
-#  else
-        a0  = 1./(3.*(Eps+IS0)**2)
-        a1  = 2./(3.*(Eps+IS1)**2)
-#  endif
-        w0  = a0/(a0+a1)
-        w1  = a1/(a0+a1)
+!#  else
+!        a0  = 1./(3.*(Eps+IS0)**2)
+!        a1  = 2./(3.*(Eps+IS1)**2)
+!#  endif
+        sum_a=a0+a1
+        w0  = a0/sum_a
+        w1  = a1/sum_a
         p0  = 1./2.*(3.*q_i-q_ip1)
         p1  = 1./2.*(q_im1+q_i)
 

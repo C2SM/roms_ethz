@@ -7,7 +7,11 @@
 ! tracer distributions in the top- and bottom-most grid boxes are
 ! linear (if no CPP switch is defined).
 
+#ifndef T_VADV_WENO
+
 #define SPLINE_TS
+
+#endif
 c--#define NEUMANN_TS
 c--#define AKIMA_V
 
@@ -69,6 +73,55 @@ c--#define AKIMA_V
             FC(i,N)=0.                         ! Set top and bottom
             FC(i,0)=0.                         ! boundary conditions.
           enddo
+          
+# elif defined T_VADV_WENO
+
+!
+!----------------------------------------------------------
+! Compute vertical advective fluxes 
+! using 5th-order WENO scheme
+!----------------------------------------------------------
+!
+          do k=3,N-3                            !Inside the column of water, use weno 5 because
+            do i=Istr,Iend                      !all neighboor are available
+              FC(i,k)=We(i,j,k)*
+     &              flux5_weno(
+     &             t(i,j,k-2,nrhs,itrc), t(i,j,k-1,nrhs,itrc), 
+     &             t(i,j,k  ,nrhs,itrc), t(i,j,k+1,nrhs,itrc),
+     &             t(i,j,k+2,nrhs,itrc), t(i,j,k+3,nrhs,itrc), We(i,j,k))
+            enddo
+          enddo
+          do i=Istr,Iend
+              
+            FC(i,2)=We(i,j,2)*                  ! Reduce to weno 3 at one cell from bottom
+     &               flux3_weno(
+     &           t(i,j,1,nrhs,itrc), t(i,j,2,nrhs,itrc), 
+     &           t(i,j,3,nrhs,itrc), t(i,j,4,nrhs,itrc), We(i,j,2))
+     
+            FC(i,N-2)=We(i,j,N-2)*              ! Reduce to weno 3 at one cell from top
+     &               flux3_weno(
+     &           t(i,j,N-3,nrhs,itrc), t(i,j,N-2,nrhs,itrc), 
+     &           t(i,j,N-1,nrhs,itrc), t(i,j,N  ,nrhs,itrc), We(i,j,N-2))
+
+                                                ! Reduce to first order at bottom
+            FC(i,  1)=We(i,j,  1)*flux2( t(i,j,1  ,nrhs,itrc),
+     &                                   t(i,j,2  ,nrhs,itrc),
+     &                                   We(i,j,  1))
+            
+                                                ! Reduce to first order at top
+            FC(i,N-1)=We(i,j,N-1)*flux2( t(i,j,N-1,nrhs,itrc),
+     &                                   t(i,j,N,  nrhs,itrc),
+     &                                   We(i,j,N-1))
+
+
+            FC(i,0)=0.                          ! Boundary condition
+            FC(i,N )=0.                         ! Boundary condition
+            
+            CF(i,0)=dt*pm(i,j)*pn(i,j)
+          enddo
+          
+          
+          
 #elif defined AKIMA_V
           do k=1,N-1
             do i=istr,iend

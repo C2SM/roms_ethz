@@ -14,6 +14,8 @@
 
 
 
+
+
 #ifdef BIO_1ST_USTREAM_TEST
         if (itrc>isalt) then       ! biological tracer components:
           if (nrhs==3) then         ! compute fluxes during corrector
@@ -61,6 +63,68 @@
           imin=istr-1
           imax=iend+1
 #endif
+
+#ifdef T_HADV_WENO
+
+!-------------------------------------------------------------------!
+!!!!!!!!!!!!! COMPUTATION OF FX (loop on i indices) !!!!!!!!!!!!!!!!!
+!-------------------------------------------------------------------!
+
+          DO i = istr,iend+1  !i_loop_x_flux_
+                                                  !
+            IF ( i.eq.imin-2 ) THEN   ! 2nd order flux next to west
+                                           ! boundary
+              DO j = jstr,jend
+                vel = Flxu(i,j,k)
+                FX(i,j) = vel*flux2(
+     &             t(i-1,j,k,nrhs,itrc), t(i,j,k,nrhs,itrc), vel)
+              ENDDO
+              
+              FX(i,j)=FX(i,j)*umask(i,j)
+
+                                                             !
+            ELSE IF ( i.ge.imin-1 .and. i.le.imax+1 ) THEN       ! 3rd of 2nd order flux
+                                                             ! from west boundary
+              DO j = jstr,jend
+                vel = Flxu(i,j,k)
+                flx3 = vel*flux3_weno(
+     &             t(i-2,j,k,nrhs,itrc), t(i-1,j,k,nrhs,itrc),
+     &             t(i  ,j,k,nrhs,itrc), t(i+1,j,k,nrhs,itrc),  vel )
+                FX(i,j)=flx3
+#  ifdef MASKING
+                flx2 = vel*flux2(
+     &             t(i-1,j,k,nrhs,itrc), t(i,j,k,nrhs,itrc), vel)
+                
+                mask1=umask(i-2,j)*umask(i+1,j)
+                
+                FX(i,j)=mask1*flx3+(1-mask1)*flx2
+                
+                FX(i,j)=FX(i,j)*umask(i,j)
+                
+
+#  else
+                FX(i,j)=flx3
+#  endif /* MASKING */
+              ENDDO
+                                          !
+            ELSE IF ( i.eq.imax+2 ) THEN  ! 2nd order flux next to east
+                                          ! boundary
+              DO j = jstr,jend
+                vel = Flxu(i,j,k)
+                FX(i,j) = vel*flux2(
+     &             t(i-1,j,k,nrhs,itrc), t(i,j,k,nrhs,itrc), vel)
+              ENDDO
+              
+              FX(i,j)=FX(i,j)*umask(i,j)
+            
+            ENDIF
+          ENDDO ! i_loop_x_flux_5
+
+
+
+#else
+
+
           do j=jstr,jend
             do i=imin,imax+1
               FX(i,j)=(t(i,j,k,nrhs,itrc)-t(i-1,j,k,nrhs,itrc))
@@ -116,6 +180,9 @@
             enddo           !--> discard curv,grad, keep FX
           enddo
 
+#endif
+!endif weno i loop
+          
 #ifndef NS_PERIODIC
           if (SOUTHERN_EDGE) then
             jmin=jstr
@@ -131,6 +198,67 @@
           jmin=jstr-1
           jmax=jend+1
 #endif
+
+#ifdef T_HADV_WENO
+
+!-------------------------------------------------------------------!
+!!!!!!!!!!!!! COMPUTATION OF FE (loop on j indices) !!!!!!!!!!!!!!!!!
+!-------------------------------------------------------------------!
+
+         DO j = jstr,jend+1  !j_loop_y_flux
+                                                  !
+            IF ( j.eq.jmin-2 ) THEN   ! 2nd order flux next to south
+                                           ! boundary
+              DO i = istr,iend
+                vel = Flxv(i,j,k)
+                FE(i,j) = vel*flux2(
+     &             t(i,j-1,k,nrhs,itrc), t(i,j,k,nrhs,itrc), vel)
+              ENDDO
+              
+              FE(i,j)=FE(i,j)*vmask(i,j)
+                                                             !
+            ELSE IF ( j.ge.jmin-1 .and. j.le.jmax+1 ) THEN  ! 3rd of 2nd order flux 2 in
+                                                             ! from south boundary
+              DO i = istr,iend
+                vel = Flxv(i,j,k)
+                flx3 = vel*flux3_weno(
+     &             t(i,j-2,k,nrhs,itrc), t(i,j-1,k,nrhs,itrc),
+     &             t(i,j  ,k,nrhs,itrc), t(i,j+1,k,nrhs,itrc),  vel )
+                FE(i,j)=flx3
+                
+#  ifdef MASKING
+                flx2 = vel*flux2(
+     &             t(i,j-1,k,nrhs,itrc), t(i,j,k,nrhs,itrc), vel)
+                
+                mask1=vmask(i,j-2)*vmask(i,j+1)
+                
+                FE(i,j)=mask1*flx3+(1-mask1)*flx2
+                
+                FE(i,j)=FE(i,j)*vmask(i,j)
+       
+
+#  else
+                FE(i,j)=flx3
+#  endif /* MASKING */
+                
+              ENDDO
+                                          !
+            ELSE IF ( j.eq.jmax+2 ) THEN  ! 2nd order flux next to north
+                                          ! boundary
+              DO i = istr,iend
+                vel = Flxv(i,j,k)
+                FE(i,j) = vel*flux2(
+     &             t(i,j-1,k,nrhs,itrc), t(i,j,k,nrhs,itrc), vel)
+              ENDDO
+              
+              FE(i,j)=FE(i,j)*vmask(i,j)
+
+            
+            ENDIF
+          ENDDO ! j_loop_y_flux_5
+
+#else
+
           do j=jmin,jmax+1
             do i=istr,iend
               FE(i,j)=(t(i,j,k,nrhs,itrc)-t(i,j-1,k,nrhs,itrc))
@@ -186,6 +314,9 @@
 #endif
             enddo
           enddo             !--> discard curv,grad, keep FE
+          
+#endif 
+!endif weno j loop
 
 #ifdef PSOURCE
           do is=1,Nsrc             ! Set tracer fluxes due to point
