@@ -44,8 +44,8 @@
 # include "sources.h"
 
 #ifdef ADV_WENO
- #define T_HADV_WENO
- #define T_VADV_WENO
+# define T_HADV_WENO
+# define T_VADV_WENO
 #endif
 #if defined T_HADV_WENO || defined T_VADV_WENO
       REAL    :: vel, flux2
@@ -120,7 +120,15 @@
                                              ! Advance tracer fields
         do itrc=1,NT                         ! starting with applying
                                              ! horizontal fluxes. Also
+# ifdef WENO_pre
+                                             
+# include "compute_horiz_tracer_fluxes_weno.h"
+
+# else 
+
 # include "compute_horiz_tracer_fluxes.h"
+
+# endif
                                              ! INITIALIZE CORRECTOR
           do j=jstr,jend                     ! STEP by pre-multiplying
             do i=istr,iend
@@ -161,7 +169,15 @@
         do itrc=1,NT
         
 
+# ifdef WENO_pre
+                                             
+# include "compute_vert_tracer_fluxes_weno.h"
+
+# else 
+
 # include "compute_vert_tracer_fluxes.h"
+
+# endif
 
           do k=1,N
             do i=istr,iend

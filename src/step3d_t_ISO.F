@@ -102,8 +102,8 @@ c--# define CONST_TRACERS
       real ThisVDF(PRIVATE_2D_SCRATCH_ARRAY,0:N)
 #endif /* PHYS_FLUX_ANALYSIS */
 #ifdef ADV_WENO
- #define T_HADV_WENO
- #define T_VADV_WENO
+# define T_HADV_WENO
+# define T_VADV_WENO
 #endif
 #if defined T_HADV_WENO || defined T_VADV_WENO
       REAL    :: vel, flux2
@@ -176,7 +176,7 @@ c--#  define ntdf nrhs
 ! concentration of tracer "itrc" taken at time corresponding to "nstp"
 ! and already MULTIPLIED by Hz(:,:,:) at "nstp" in "pre_step3d_tile".
 
-# include "compute_horiz_tracer_fluxes.h"
+# include "compute_horiz_tracer_fluxes_weno.h"
 
             do j=jstr,jend
               do i=istr,iend
@@ -821,7 +821,7 @@ c**               cff=1./(z_r(i,j,k+1)-z_r(i,j,k))
 
         do j=jstr,jend
 
-# include "compute_vert_tracer_fluxes.h"
+# include "compute_vert_tracer_fluxes_weno.h"
 
           do k=1,N
             do i=istr,iend
