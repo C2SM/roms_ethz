@@ -104,6 +104,7 @@ FCOMP ?=  $(notdir $(FC)) # Used to identify the compiler
 # ============= Intel compiler =============
 ifeq ($(strip $(FCOMP)),ifort)
    FCFLAGS := -D__IFC
+   MPIFC = mpiifort
 
    COMP_FILES = *__genmod.f90 *__genmod.mod # cleanup stuff
    LARGE_MEM_FLAG=   -mcmodel=medium # Sometimes needed for large tiles
