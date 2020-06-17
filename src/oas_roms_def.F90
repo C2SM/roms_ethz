@@ -624,6 +624,8 @@ CONTAINS
          ierr = nf90_get_var(ncid, var_id, A, start=start, count=count)
          
          IF (ierr /= NF90_NOERR) THEN
+            WRITE(*,*) 'Var start and count', start, count
+            WRITE(*,*) TRIM(vname), UBOUND(alpha_rho)
             WRITE(*,*) TRIM(vname), 'oas_roms_read_2d', nf90_strerror(ierr)
             CALL abort
          END IF
@@ -674,6 +676,7 @@ CONTAINS
          ierr = nf90_get_var(ncid, var_id, A, start=start, count=count)
          
          IF (ierr /= NF90_NOERR) THEN
+            WRITE(*,*) 'Var start and count', start, count
             WRITE(*,*) TRIM(vname), 'oas_roms_read_3d', nf90_strerror(ierr)
             CALL abort
          END IF

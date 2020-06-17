@@ -556,8 +556,16 @@ c--> # define OBC_FLUX_CORR
  
 # define OBC_TORLANSKI
 c--# define OBC_M2ORLANSKI
-#define OBC_M2FLATHER
+# define OBC_M2FLATHER
 # define OBC_M3ORLANSKI
+! GE: added the next 6 lines to adjust setup to Pacific domain (eventually Pacific setting should be used though)
+# undef OBC_WEST
+# undef OBC_SOUTH
+# undef OBC_NORTH
+# undef OBC_M2FLATHER
+# undef OBC_M3ORLANSKI
+# undef OBC_TORLANSKI
+
 !
 # undef OBC_TSPECIFIED
 # undef OBC_M2SPECIFIED

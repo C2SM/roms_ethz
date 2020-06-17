@@ -31,7 +31,7 @@ FC = mpif90
 LDR = $(FC)
 CFT = $(FC)
 
-OASDIR  = $(HOME)/oasis3-mct/build
+OASDIR  = $(HOME)/code/oasis3-mct/install
 INC      := -I$(OASDIR)/build/lib/psmile.MPI1 \
             -I${NETCDF}/include \
 	    -I${MPI_ROOT}/include \

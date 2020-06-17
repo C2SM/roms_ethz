@@ -54,16 +54,16 @@
                type = r2dvar
                grd%pt = 'rho'
                grd%grd_name = 'Rrho'
-               grd%dims_g = (/xi_rho, eta_rho/)
+               grd%dims_g = (/xi_rho,eta_rho/)
             ELSEIF (k_pt == k_u) THEN
                type = u2dvar
                grd%pt = 'u'
                grd%grd_name = 'R__u'
-               grd%dims_g = (/xi_u, eta_rho/)
+               grd%dims_g = (/xi_u,eta_rho/)
             ELSEIF (k_pt == k_v) THEN
                grd%pt = 'v'
                grd%grd_name = 'R__v'
-               grd%dims_g = (/xi_rho, eta_v/)
+               grd%dims_g = (/xi_rho,eta_v/)
                type = v2dvar
             ELSE
                WRITE(*,*) 'ERROR in oas_roms_set_cpl_grd :'
@@ -106,6 +106,7 @@
                PRINT *, '***********************************************'
                PRINT *, 'Grid Variables ROMS', TRIM(grd%pt), TYPE
                PRINT *, 'start', grd%start_g
+               PRINT *, 'global dims', grd%dims_g
                PRINT *, 'local_rho, local_eta', COUNT(1), COUNT(2)
                PRINT *, 'imin,imax, jmin,jmax', imin, imax, jmin, jmax
                PRINT *, '**********************************************'
