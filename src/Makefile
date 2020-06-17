@@ -161,12 +161,14 @@ tarfile: clean
 # -------- -------
 clean:
 	cd $(BLDDIR); /bin/rm -f *.f *.o *.a *.s *.trace *~ $(COMP_FILES)
+test:
+	cd tests; compile_test.sh
 
 clobber: distclean
 distclean: clean
 	cd $(SRCDIR); /bin/rm -f check_switches1.F setup_kwds.F check_srcs.F \
 	$(SBIN) $(TOOLS) nsub core* *_genmod.mod *_genmod.f90 \
-	$(DEPDIR)/*.d print_cppswitches
+	$(DEPDIR)/*.d print_cppswitches tests/make_*.log  tests/roms_*
 
 # Rule for dependency files *.d
 # ---- --- ---------- ----- ---

@@ -162,7 +162,7 @@ c**  &               LLm=83,   MMm=168, N=20    ! MB_L1
 c**  &               LLm=126,  MMm=254, N=20    ! USWEST grid 16
      &               LLm=62,   MMm=126, N=20    ! USWEST grid 15 (20 km)
 !HF     &               LLm=312,  MMm=512, N=32    ! USW8 - lev0, 8km
-     &               LLm=312,  MMm=512, N=32    ! USW51 - lev0
+c     &               LLm=312,  MMm=512, N=32    ! USW51 - lev0
 
 # endif /* GRID_LEVEL */
 #elif defined USWC_CENTRAL
@@ -214,7 +214,8 @@ c**     &               LLm=248, MMm=504, N=42      ! 5km config
 #else
 c     &      NSUB_X=4, NSUB_E=40  ! PAC44
 c     &      NSUB_X=8, NSUB_E=80   ! PAC22
-     &      NSUB_X=3, NSUB_E=32
+c     &      NSUB_X=3, NSUB_E=32
+     &    NP_XI=2, NP_ETA=12, NSUB_X=1, NSUB_E=1
 c     &      NSUB_X=1, NSUB_E=4
 c     &      NSUB_X=4, NSUB_E=26  ! <-- 384x128 soliton
 c     &      NSUB_X=4, NSUB_E=52
