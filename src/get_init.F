@@ -36,7 +36,7 @@
 !HF not needed, only for debugging:
 # include "param_bec.h"
 #endif
-#if defined BIOLOGY_BEC2 && defined BEC2_DIAG
+#if defined BIOLOGY_BEC2
 # include "ecosys_bec2.h"
 #endif
 #ifdef PHYS_FLUX_ANALYSIS
