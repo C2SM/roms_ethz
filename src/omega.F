@@ -52,7 +52,8 @@
       elseif (FIRST_TIME_STEP) then
         dtau=0.5*dt
       else
-        dtau=(1.-1./6.)*dt
+        dtau=0.6*dt
+c**     dtau=(1.-1./6.)*dt
       endif
 
       do j=jstr,jend
@@ -71,28 +72,26 @@
         do i=istr,iend
           wrk(i)=Wi(i,j,N)/(z_w(i,j,N)-z_w(i,j,0))
           Wi(i,j,N)=0.
-          We(i,j,N)=0.
-          We(i,j,0)=0.
-          CX(i,0)=dtau*pm(i,j)*pn(i,j)
-        enddo
+          We(i,j,N)=0.                      ! note that
+          We(i,j,0)=0.                      ! CX(i,k)*CX(i,0)/Hz(i,j,k) 
+          CX(i,0)=dtau*pm(i,j)*pn(i,j)      ! is horizontal 2D Courant
+        enddo                               ! number within Hz(i,j,k)
         do k=N-1,1,-1
           do i=istr,iend
             Wi(i,j,k)=Wi(i,j,k)-wrk(i)*(z_w(i,j,k)-z_w(i,j,0))
 
-
-c*          if (Wi(i,j,k) > 0.) then     ! Three different variants
-c*            c2d=CX(i,k)                ! of computing Courant number
-c*            dh=Hz(i,j,k)               ! at the interface: use value
-c*          else                         ! from the grid box vertically
-c*            c2d=CX(i,k+1)              ! upstream to the interface;
-c*            dh=Hz(i,j,k+1)             ! average; or select maximum
-c*          endif                        ! value between the two.
-
+c*          if (Wi(i,j,k) > 0.) then         ! Three different variants 
+c*            c2d=CX(i,k)   ; dh=Hz(i,j,k)   ! for computing 2D Courant 
+c*          else                             ! number at the interface: 
+c*            c2d=CX(i,k+1) ; dh=Hz(i,j,k+1) ! (1) use value from the 
+c*          endif                            !     grid box upstream in 
+                                             !     vertical direction;
 c>          c2d=0.5*(CX(i,k) +CX(i,k+1))
-c>          dh=0.5*(Hz(i,j,k)+Hz(i,j,k+1))
+c>          dh=0.5*(Hz(i,j,k)+Hz(i,j,k+1))   ! (2) average the two; or
 
-            c2d=max(CX(i,k),  CX(i,k+1))
-            dh=min(Hz(i,j,k),Hz(i,j,k+1))
+            c2d=max(CX(i,k),  CX(i,k+1))     ! (3) pick the maximum
+            dh=min(Hz(i,j,k),Hz(i,j,k+1))    !     of the two.
+
 
             cw_max=cu_max*dh-c2d*CX(i,0)
             if (cw_max > 0.D0) then
@@ -112,13 +111,13 @@ c>          dh=0.5*(Hz(i,j,k)+Hz(i,j,k+1))
               We(i,j,k)=cw_max2*Wi(i,j,k)/cff  !<-- NORMAL SPLITING
               Wi(i,j,k)=Wi(i,j,k)-We(i,j,k)    !<-- CODE TO BE USED
             else
-              We(i,j,k)=0.           !--> Wi(i,j,k) remains unchanged
+              We(i,j,k)=0.          !--> Wi(i,j,k) remains unchanged
             endif
 
-c             We(i,j,k)=0.          !<-- fully implicit (BE), test only
+c**         We(i,j,k)=0.            !<-- fully implicit(BE), test only
 
-c**         We(i,j,k)=Wi(i,j,k)    !<-- for testing only: revert
-c**         Wi(i,j,k)=0.           !<-- back to fully explicit code
+c**         We(i,j,k)=Wi(i,j,k)     !<-- for testing only: revert
+c**         Wi(i,j,k)=0.            !<-- back to fully explicit code
           enddo
         enddo
       enddo

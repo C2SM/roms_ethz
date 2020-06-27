@@ -1,6 +1,6 @@
 #include "cppdefs.h"
 
-      subroutine init_arrays (tile)
+      subroutine init_arrays(tile)
       implicit none
       integer tile, i,j
 #include "param.h"
@@ -14,7 +14,8 @@
         enddo
       enddo
       do i=1,N2d
-        iA2d(i)=0
+        iA2d(i,1)=0
+        iA2d(i,2)=0
       enddo
 #endif
       do j=1,32
@@ -23,18 +24,20 @@
         enddo
       enddo
 
-      call init_arrays_tile (istr,iend,jstr,jend)
+      call init_arrays_tile(istr,iend,jstr,jend)
       end
 
       subroutine init_arrays_tile (istr,iend,jstr,jend)
 
-! Initialize (first touch) globally accessable arrays. Most of them
-! are assigned to zeros, vertical mixing coefficients are assinged
-! to their background values. These will remain unchenged if no
-! vertical mixing scheme is applied. Because of the "first touch"
-! default data distribution policy, this operation actually performs
-! distribution of the shared arrays accross the cluster, unless
-! another distribution policy is specified to override the default.
+! This routine initialize "first-touches" model shared arrays. Most
+! of them are assigned to zeros, vertical mixing coefficients are set
+! to their background values and will remain unchanged if no vertical
+! mixing scheme is applied. The main point here is that because of the
+! "first touch" default data placement policy on Linux operating
+! system, this operation actually performs distribution of the shared
+! arrays accross the nun-uniform-access memory (NUMA) computer (i.e.,
+! within a cluster node) unless another distribution policy is
+! specified to override the default.
 
       implicit none
       integer istr,iend,jstr,jend, i,j,k,itrc
@@ -181,16 +184,31 @@
 # ifdef AVERAGES
               t_avg(i,j,k,itrc)=init
 # endif
-# ifdef TSOURCE
-              T_src(i,j,k,itrc)=init
-# endif
             enddo
           enddo
         enddo
-# ifdef TSOURCE
-        tsrc_id(itrc)=0
-# endif
       enddo
+# ifdef TSOURCE
+      do itrc=0,NT
+        do k=1,N
+          do j=jstrR,jendR
+            do i=istrR,iendR
+              T_src(i,j,k,itrc)=init
+            enddo
+          enddo
+        enddo
+        tsrc_id(itrc)=0
+      enddo
+      do itrc=1,NT
+        do k=1,N
+          do j=jstrR,jendR
+            do i=istrR,iendR
+              Tflx(i,j,k,itrc)=init
+            enddo
+          enddo
+        enddo
+      enddo
+# endif
 #endif /* SOLVE3D */
 
 ! Initialize forcing arrays (see "forces.h").
@@ -200,10 +218,10 @@
           sustr(i,j)=init
           svstr(i,j)=init
 #ifndef ANA_SMFLUX
-          sustrg(i,j,1)=init
-          svstrg(i,j,1)=init
-          sustrg(i,j,2)=init
-          svstrg(i,j,2)=init
+          uwind(i,j,1)=init
+          vwind(i,j,1)=init
+          uwind(i,j,2)=init
+          vwind(i,j,2)=init
 #endif
         enddo
       enddo
@@ -229,8 +247,8 @@
 # endif
           srflx(i,j)=init
 # ifndef ANA_SRFLUX
-          srflxg(i,j,1)=init
-          srflxg(i,j,2)=init
+          swradg(i,j,1)=init
+          swradg(i,j,2)=init
 # endif
 # ifdef ICEOBS
           sic(i,j)=init
@@ -279,7 +297,7 @@
       enddo
 # endif
 # if (defined TCLIMATOLOGY || defined TNUDGING) && !defined ANA_TCLIMA
-      do itrc=1,NT
+      do itrc=1,mxnudg    ! was NT
         do k=1,N
           do j=jstrR,jendR
             do i=istrR,iendR
@@ -357,7 +375,7 @@
 
             Akv(i,j,k)=Akv_bak
 # else
-            Akv(i,j,k)=init
+            Akv(i,j,k)=0.
 # endif
 # ifdef AVERAGES
             akv_avg(i,j,k)=init
@@ -369,14 +387,14 @@
 # endif
           enddo
         enddo
-        do itrc=1,NT
+        do itrc=1,min(NT,2)
           do j=jstrR,jendR
             do i=istrR,iendR
 # if !defined LMD_MIXING && !defined BVF_MIXING && !defined PP_MIXING\
                          && !defined MY2_MIXING && !defined MY25_MIXING
               Akt(i,j,k,itrc)=Akt_bak(itrc)
 # else
-              Akt(i,j,k,itrc)=init
+              Akt(i,j,k,itrc)=0.
 # endif
 # ifdef AVERAGES
               akt_avg(i,j,k)=init
@@ -388,7 +406,6 @@
           enddo
         enddo
       enddo
-
 # if defined LMD_KPP && defined LMD_NONLOCAL
       do k=1,N
         do j=jstrR,jendR
@@ -400,7 +417,6 @@
 # endif
 # ifdef LMD_KPP
 ! Depth of surface planetary boundary layer.
-
       do j=jstrR,jendR
         do i=istrR,iendR
           hbls(i,j,1)=0.  ! init
@@ -416,7 +432,6 @@
 # endif
 # ifdef LMD_BKPP
 ! Thickness of bottom boundary layer.
-
       do j=jstrR,jendR
         do i=istrR,iendR
           hbbl(i,j,1)=0.  ! init
@@ -427,6 +442,78 @@
         enddo
       enddo
 # endif
+
+# ifdef KPP_DIAGNOSE
+      do k=0,N
+        do j=jstrR,jendR
+          do i=istrR,iendR
+            KppRichm(i,j,k)=init
+            KppRicht(i,j,k)=init
+            KppSblSh(i,j,k)=init
+            KppSblSt(i,j,k)=init
+            KppSblRot(i,j,k)=init
+            KppSblEnt(i,j,k)=init
+# ifdef AVERAGES
+            kpprichm_avg(i,j,k)=init
+            kppricht_avg(i,j,k)=init
+            kppsblsh_avg(i,j,k)=init
+            kppsblst_avg(i,j,k)=init
+            kppsblrot_avg(i,j,k)=init
+            kppsblent_avg(i,j,k)=init
+# endif
+          enddo
+        enddo
+      enddo
+# endif
+
+!AH16:
+# if defined WRITE_CO2FLX
+! Surface CO2 flux
+      do j=jstrR,jendR
+        do i=istrR,iendR
+          CO2flx(i,j)=0.  ! init
+#  ifdef AVERAGES
+          co2flx_avg(i,j)=init
+#  endif
+        enddo
+      enddo
+# endif
+# if defined WRITE_HEATFLX
+! Surface heat flux
+      do j=jstrR,jendR
+        do i=istrR,iendR
+          Heatflx(i,j)=0.  ! init
+#  ifdef AVERAGES
+          heatflx_avg(i,j)=init
+#  endif
+        enddo
+      enddo
+# endif
+!AH16:
+# if defined WRITE_TEMP_REST
+! Restoring flux for temperature
+      do j=jstrR,jendR
+        do i=istrR,iendR
+          RestflxTemp(i,j)=0.  ! init
+#  ifdef AVERAGES
+          restflx_temp_avg(i,j)=init
+#  endif
+        enddo
+      enddo
+# endif
+!AH16:
+# if defined WRITE_SALT_REST
+! Restoring flux for salinity
+      do j=jstrR,jendR
+        do i=istrR,iendR
+          RestflxSalt(i,j)=0.  ! init
+#  ifdef AVERAGES
+          restflx_salt_avg(i,j)=init
+#  endif
+        enddo
+      enddo
+# endif
+
 # ifdef SEDIMENT_BIOLOGY
 ! Initialize sediment array:
 

@@ -29,8 +29,8 @@
 # include "ncvars.h"
 # include "sources.h"
 !
-      integer Istr,Iend,Jstr,Jend,ierr, lenstr, i, j, k, is, lstr
-      integer type_bc_ad_id, switch_on_ad_id, switch_off_ad_id, nf_fread
+      integer Istr,Iend,Jstr,Jend,ierr, lenstr, i, j, k, is, lstr, ncdf_read
+      integer type_bc_ad_id, switch_on_ad_id, switch_off_ad_id
       real type_bc_ad(GLOBAL_2D_ARRAY,N), switch_off_ad(GLOBAL_2D_ARRAY,N)
       real switch_on_ad(GLOBAL_2D_ARRAY,N)
       character fname*80, tracer_type*10, tracer_bc*10, tnum*3, units_att*20
@@ -47,7 +47,7 @@
             lstr=lenstr(fname)
             ierr=nf_open(fname(1:lstr), nf_nowrite, ncid_ad(is))
             if (ierr.ne.nf_noerr) then
-               write(stdout,'(/1x,4A/)')
+               write(*,'(/1x,4A/)')
      &             '### ERROR in init_agedye: can ',
      &             'not open netCDF file ''', fname(1:lstr), '''.'
                goto 99
@@ -61,12 +61,12 @@
             global_type_att_found = .true.
             if (tracer_type(1:3).eq.'age') then
                Age(is) = .true.
-!               MPI_master_only write(stdout,'(1x,a)') 'Age tracer found.'
+!               MPI_master_only write(*,'(1x,a)') 'Age tracer found.'
                cycle
             else if (tracer_type(1:3).eq.'dye') then
                Age(is) = .false.
             else
-               write(stdout, '(1x,2a,i3,2a)') 
+               write(*, '(1x,2a,i3,2a)') 
      &         '### ERROR in init_agedye: found global attribute ',
      &         '''tracer_type'' for tracer ',is,
      &         ', but with an invalid value: ', tracer_type(1:lstr)
@@ -77,12 +77,13 @@
 ! type_bc_ad:
          ierr=nf_inq_varid (ncid_ad(is), 'type_bc_ad', type_bc_ad_id)
          if (ierr .ne. nf_noerr) then
-            write(stdout,1) 'type_bc_ad', fname(1:lstr)
+            write(*,1) 'type_bc_ad', fname(1:lstr)
             return
          end if
-         ierr = nf_fread(type_bc_ad(START_2D_ARRAY,1),ncid_ad(is),type_bc_ad_id,1,r3dvar)
+         ierr=ncdf_read(ncid_ad(is), type_bc_ad_id, 1, r_var,
+     &                    type_bc_ad(START_2D_ARRAY,1), N)
          if (ierr .ne. nf_noerr) then
-            write(stdout,'(1x,3a)') '### ERROR in init_agedye: ',
+            write(*,'(1x,3a)') '### ERROR in init_agedye: ',
      &           'cannot read type_bc_ad from file', fname(1:lstr)
             goto 99
          endif
@@ -98,16 +99,17 @@
                enddo
             enddo
          else
-            ierr = nf_fread(switch_on_ad(START_2D_ARRAY,1),ncid_ad(is),switch_on_ad_id,1,r3dvar)
+            ierr=ncdf_read(ncid_ad(is), switch_on_ad_id, 1, r_var,
+     &                    switch_on_ad(START_2D_ARRAY,1), N)
             if (ierr .ne. nf_noerr) then
-               write(stdout,'(1x,3a)') '### ERROR in init_agedye: ',
+               write(*,'(1x,3a)') '### ERROR in init_agedye: ',
      &           'cannot read switch_on_ad from file', fname(1:lstr)
                goto 99
             endif
             ! Check units (days or time steps):
             ierr=nf_get_att_text(ncid_ad(is), switch_on_ad_id, 'units', units_att)
             if (ierr .ne. nf_noerr) then
-               write(stdout,'(1x,3a)') '### ERROR in init_agedye: ',
+               write(*,'(1x,3a)') '### ERROR in init_agedye: ',
      &           'cannot read units attribute of switch_on_ad from file', fname(1:lstr)
                goto 99
             endif
@@ -116,7 +118,7 @@
             else if (units_att(1:9).eq.'time step') then
                switch_is_days_ad(is) = .false.
             else
-               write(stdout,'(1x,3a)') '### ERROR in init_agedye: ',
+               write(*,'(1x,3a)') '### ERROR in init_agedye: ',
      &           'unknown unit of of switch_on_ad in file', fname(1:lstr)
                goto 99
             end if
@@ -134,27 +136,28 @@
                enddo
             enddo
          else
-            ierr = nf_fread(switch_off_ad(START_2D_ARRAY,1),ncid_ad(is),switch_off_ad_id,1,r3dvar)
+            ierr=ncdf_read(ncid_ad(is), switch_off_ad_id, 1, r_var,
+     &                    switch_off_ad(START_2D_ARRAY,1), N)
             if (ierr .ne. nf_noerr) then
-               write(stdout,'(1x,3a)') '### ERROR in init_agedye: ',
+               write(*,'(1x,3a)') '### ERROR in init_agedye: ',
      &           'cannot read switch_off_ad from file', fname(1:lstr)
                goto 99
             endif
             ! Check units (days or time steps): they have to be the same as for switch_on_ad
             ierr=nf_get_att_text(ncid_ad(is), switch_off_ad_id, 'units', units_att)
             if (ierr .ne. nf_noerr) then
-               write(stdout,'(1x,3a)') '### ERROR in init_agedye: ',
+               write(*,'(1x,3a)') '### ERROR in init_agedye: ',
      &           'cannot read units attribute of switch_on_ad from file', fname(1:lstr)
                goto 99
             endif
             ! Check if units att is consistent with the one for switch_on_ad:
             if (switch_is_days_ad(is) .and. units_att(1:3).ne.'day') then
-               write(stdout,'(1x,3a)') '### ERROR in init_agedye: ',
+               write(*,'(1x,3a)') '### ERROR in init_agedye: ',
      &           'switch_on_ad and switch_off_ad must use the same units in file ', fname(1:lstr)
                goto 99
             endif
             if (.not.switch_is_days_ad(is) .and. units_att(1:9).ne.'time step') then
-               write(stdout,'(1x,3a)') '### ERROR in init_agedye: ',
+               write(*,'(1x,3a)') '### ERROR in init_agedye: ',
      &           'switch_on_ad and switch_off_ad must use the same units in file ', fname(1:lstr)
                goto 99
             endif
@@ -171,9 +174,9 @@
                         ! A source is present in box (i,j,k):
                         Nsrc_ad(is) = Nsrc_ad(is)+1
                         if (Nsrc_ad(is).gt.Max_src_ad) then
-                           write(stdout, '(1x,2a,i3)') '### ERROR in init_agedye: ',
+                           write(*, '(1x,2a,i3)') '### ERROR in init_agedye: ',
      &                          'too many sources for tracer ', is
-                           write(stdout, '(1x,a)') 'Increase parameter Max_src_ad in sources.h.'
+                           write(*, '(1x,a)') 'Increase parameter Max_src_ad in sources.h.'
                            ierr = ierr+1
                            return
                         endif
@@ -198,14 +201,14 @@
             else if (tracer_type(1:3).eq.'dye') then
                Age(is) = .false.
             else
-               write(stdout, '(1x,2a,i3,2a)') '### ERROR in init_agedye: found attribute ',
+               write(*, '(1x,2a,i3,2a)') '### ERROR in init_agedye: found attribute ',
      &              '''tracer_type'' for tracer ',is,', but with an invalid value: ', tracer_type
                ierr = ierr+1
                return
             endif ! tracer_type.eq.'age'
          else if (.not.global_type_att_found) then
             ! Attribute not found anywhere:
-            write(stdout, '(1x,2a,i3)') '### ERROR in init_agedye: attribute ',
+            write(*, '(1x,2a,i3)') '### ERROR in init_agedye: attribute ',
      &             '''tracer_type'' not found for tracer ', is
             return
          end if ! ierr.eq.nf_noerr
@@ -219,7 +222,7 @@
             elseif (tracer_bc(1:7).eq.'restore') then
                Restore_ad(is) = .true.
             else
-               write(stdout, '(1x,2a,i3,2a)') '### ERROR in init_agedye: found global attribute ',
+               write(*, '(1x,2a,i3,2a)') '### ERROR in init_agedye: found global attribute ',
      &              '''tracer_bc'' for tracer ',is,', but with an invalid value: ', tracer_bc
                ierr = ierr+1
                return
@@ -234,22 +237,22 @@
                elseif (tracer_bc(1:7).eq.'restore') then
                   Restore_ad(is) = .true.
                else
-                  write(stdout, '(1x,2a,i3,2a)') '### ERROR in init_agedye: found attribute ',
+                  write(*, '(1x,2a,i3,2a)') '### ERROR in init_agedye: found attribute ',
      &              '''tracer_bc'' for tracer ',is,', but with an invalid value: ', tracer_bc
                   ierr = ierr+1
                   return
                endif ! tracer_bc.eq.'flux'
             else
                ! Attribute not found:
-               write(stdout, '(1x,2a,i3)') '### ERROR in init_agedye: attribute ',
+               write(*, '(1x,2a,i3)') '### ERROR in init_agedye: attribute ',
      &              '''tracer_bc'' not found for tracer ', is
                return
             end if ! ierr.eq.nf_noerr
          endif
 !         if (Age(is)) then
-!            MPI_master_only write(stdout,'(1x,a)') 'Age tracer found.'
+!            MPI_master_only write(*,'(1x,a)') 'Age tracer found.'
 !         else
-!            MPI_master_only write(stdout,'(1x,a)') 'Dye tracer found.'
+!            MPI_master_only write(*,'(1x,a)') 'Dye tracer found.'
 !         endif
       end do ! is = 1,N_agedye
 
@@ -258,6 +261,9 @@
 
  99   continue
       return
+      end
+#else
+      subroutine init_agedye_empty()
       end
 
 #endif /* PASSIVE_TRACER && AGE_DYE_TRACER */

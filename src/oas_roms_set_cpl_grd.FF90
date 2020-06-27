@@ -31,12 +31,6 @@
 
          SUBROUTINE oas_roms_set_grd(grd, k_pt)
 
-#ifdef PARALLEL_FILES
-            PRINT *, 'ERROR'
-            PRINT *, '-----'
-            PRINT *, 'OASIS coupling not supported with PARALLEL_FILES'
-            CALL abort
-#endif
 
             USE oas_roms_data, ONLY: OAS_GRID, cpl_grd, k_rho, k_u, k_v
 
@@ -48,30 +42,26 @@
             INTEGER :: type
 
 #include "param.h"
-#include "ncvars.h"
 
             IF (k_pt == k_rho) THEN
-               type = r2dvar
                grd%pt = 'rho'
                grd%grd_name = 'Rrho'
-               grd%dims_g = (/xi_rho,eta_rho/)
+               grd%dims_g = (/LLm,MMm/)
             ELSEIF (k_pt == k_u) THEN
-               type = u2dvar
                grd%pt = 'u'
                grd%grd_name = 'R__u'
-               grd%dims_g = (/xi_u,eta_rho/)
+               grd%dims_g = (/LLm-1,MMm/)
             ELSEIF (k_pt == k_v) THEN
                grd%pt = 'v'
                grd%grd_name = 'R__v'
-               grd%dims_g = (/xi_rho,eta_v/)
-               type = v2dvar
+               grd%dims_g = (/LLm,MMm-1/)
             ELSE
                WRITE(*,*) 'ERROR in oas_roms_set_cpl_grd :'
                WRITE(*,*) '   unkown value of k_pt'
                CALL abort
             ENDIF
 
-            CALL oas_roms_set_grd_local(grd, TYPE)
+            CALL oas_roms_set_grd_local(grd, k_pt)
 
          END SUBROUTINE oas_roms_set_grd
 
@@ -82,33 +72,31 @@
             ! -----------
             ! Set coupling grid properties depending on the compute_starts_counts.h include
 
-            USE oas_roms_data, ONLY: OAS_GRID, IOASISDEBUGLVL
+            USE oas_roms_data, ONLY: OAS_GRID, IOASISDEBUGLVL, k_rho, k_u, k_v
 
             ! Arguments
             TYPE(OAS_GRID) :: grd
             INTEGER :: type
 
-            ! Local variables
-            INTEGER :: i, ierr, record=-9999
 
 #include "param.h"
-#include "compute_starts_counts.h"
 
-            grd%imin = imin
-            grd%imax = imax
-            grd%jmin = jmin
-            grd%jmax = jmax
-            grd%dims_l = (/count(1), count(2)/)
-            grd%start_g = (/start(1), start(2)/)
-            ALLOCATE(grd%exfld(imin:imax,jmin:jmax))
+            grd%imin = 1
+            grd%imax = Lm
+            grd%jmin = 1
+            grd%jmax = Mm
+            if (type == k_u) grd%imax=grd%imax-1
+            if (type == k_v) grd%jmax=grd%jmax-1
+            grd%dims_l = (/grd%imax, grd%jmax/)
+            grd%start_g = (/iSW_corn, jSW_corn/)
+            ALLOCATE(grd%exfld(grd%imax, grd%jmax))
 
             IF ( IOASISDEBUGLVL == 1 ) THEN
                PRINT *, '***********************************************'
                PRINT *, 'Grid Variables ROMS', TRIM(grd%pt), TYPE
                PRINT *, 'start', grd%start_g
                PRINT *, 'global dims', grd%dims_g
-               PRINT *, 'local_rho, local_eta', COUNT(1), COUNT(2)
-               PRINT *, 'imin,imax, jmin,jmax', imin, imax, jmin, jmax
+               PRINT *, 'local_rho, local_eta', grd%imax, grd%jmax
                PRINT *, '**********************************************'
             ENDIF
 

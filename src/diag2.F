@@ -1,5 +1,5 @@
 #include "cppdefs.h"
-#ifdef BIOLOGY
+#if defined BIOLOGY || defined SASH_NPZD
 
       subroutine bio_diag (tile)
 

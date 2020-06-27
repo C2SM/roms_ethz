@@ -1,15 +1,15 @@
 #include "cppdefs.h"
                                             ! Setting up curvilinear
-      subroutine setup_grid1 (tile)         ! grid: Compute various
+      subroutine setup_grid1(tile)          ! grid: Compute various
       implicit none                         ! combinations of metric
       integer tile                          ! terms.
 #include "param.h"
 #include "compute_tile_bounds.h"
-      call setup_Corls_tile (istr,iend,jstr,jend)
-      call setup_grid1_tile (istr,iend,jstr,jend)
+      call setup_Corls_tile(istr,iend,jstr,jend)
+      call setup_grid1_tile(istr,iend,jstr,jend)
       end
 
-      subroutine setup_Corls_tile (istr,iend,jstr,jend)
+      subroutine setup_Corls_tile(istr,iend,jstr,jend)
       implicit none
       integer istr,iend,jstr,jend, i,j
 #include "param.h"
@@ -21,15 +21,16 @@
 
 #include "compute_extended_bounds.h"
 
-! Set f and f/mn at horizontal RHO-points.  Note: Coriolis arrays
-! "f" and "fomn" must computed over the extended bounds of horizontal
-! indices and must NOT be exchanged/communicated in standard way
-! because of potential conflict with periodicity (if selected);
-! same is true for the coordinate variables).
+! Set f and f/mn at horizontal RHO-points.  Note that Coriolis arrays
+! "f" and "fomn" must computed over the extended ranges of horizontal
+! indices and must NOT be exchanged/communicated the standard way
+! because of potential conflict with periodicity (if selected); same
+! is true for the coordinate variables).
 
 #ifdef SPHERICAL
-c**   write(*,*) 'Computing Coriolis...'
-      cff1=4.*pi/day2sec
+! Coriolis frequency at North Pole is 4*pi/T where T is sidereal day
+
+      cff1=4.*pi/(23.9344699D0*3600.D0)
       do j=jstrR,jendR
         do i=istrR,iendR
           f(i,j)=cff1*sin(deg2rad*latr(i,j))
@@ -128,7 +129,7 @@ c**   write(*,*) 'Computing Coriolis...'
 #ifdef MASKING
 c          pmask(i,j)=rmask(i,j)*rmask(i-1,j)*rmask(i,j-1)
 c     &                                      *rmask(i-1,j-1)
-C***      if (gamma2<0.) pmask(i,j)=2.-pmask(i,j)
+C***      if (gamma2 < 0.) pmask(i,j)=2.-pmask(i,j)
 
 ! Set no-slip boundary conditions on land-mask boundaries
 ! regardless of supplied value of gamma2.
@@ -141,31 +142,31 @@ C***      if (gamma2<0.) pmask(i,j)=2.-pmask(i,j)
      &        rmask(i-1,j-1)>0.5 .and. rmask(i,j-1)>0.5) then
             pmask(i,j)=1.
 
-          elseif(rmask(i-1,j  )<0.5 .and.rmask(i,j  )>0.5 .and.
-     &           rmask(i-1,j-1)>0.5 .and.rmask(i,j-1)>0.5) then
+          elseif(rmask(i-1,j  )<0.5 .and. rmask(i,j  )>0.5 .and.
+     &           rmask(i-1,j-1)>0.5 .and. rmask(i,j-1)>0.5) then
             pmask(i,j)=cff1
-          elseif(rmask(i-1,j  )>0.5 .and.rmask(i,j  )<0.5 .and.
-     &           rmask(i-1,j-1)>0.5 .and.rmask(i,j-1)>0.5) then
+          elseif(rmask(i-1,j  )>0.5 .and. rmask(i,j  )<0.5 .and.
+     &           rmask(i-1,j-1)>0.5 .and. rmask(i,j-1)>0.5) then
             pmask(i,j)=cff1
-          elseif(rmask(i-1,j  )>0.5 .and.rmask(i,j  )>0.5 .and.
-     &           rmask(i-1,j-1)<0.5 .and.rmask(i,j-1)>0.5) then
+          elseif(rmask(i-1,j  )>0.5 .and. rmask(i,j  )>0.5 .and.
+     &           rmask(i-1,j-1)<0.5 .and. rmask(i,j-1)>0.5) then
             pmask(i,j)=cff1
-          elseif(rmask(i-1,j  )>0.5 .and.rmask(i,j  )>0.5 .and.
-     &           rmask(i-1,j-1)>0.5 .and.rmask(i,j-1)<0.5) then
+          elseif(rmask(i-1,j  )>0.5 .and. rmask(i,j  )>0.5 .and.
+     &           rmask(i-1,j-1)>0.5 .and. rmask(i,j-1)<0.5) then
             pmask(i,j)=cff1
 
 
-          elseif(rmask(i-1,j  )>0.5 .and.rmask(i,j  )<0.5 .and.
-     &           rmask(i-1,j-1)>0.5 .and.rmask(i,j-1)<0.5) then
+          elseif(rmask(i-1,j  )>0.5 .and. rmask(i,j  )<0.5 .and.
+     &           rmask(i-1,j-1)>0.5 .and. rmask(i,j-1)<0.5) then
             pmask(i,j)=cff2
-          elseif(rmask(i-1,j  )<0.5 .and.rmask(i,j  )>0.5 .and.
-     &           rmask(i-1,j-1)<0.5 .and.rmask(i,j-1)>0.5) then
+          elseif(rmask(i-1,j  )<0.5 .and. rmask(i,j  )>0.5 .and.
+     &           rmask(i-1,j-1)<0.5 .and. rmask(i,j-1)>0.5) then
             pmask(i,j)=cff2
-          elseif(rmask(i-1,j  )>0.5 .and.rmask(i,j  )>0.5 .and.
-     &           rmask(i-1,j-1)<0.5 .and.rmask(i,j-1)<0.5) then
+          elseif(rmask(i-1,j  )>0.5 .and. rmask(i,j  )>0.5 .and.
+     &           rmask(i-1,j-1)<0.5 .and. rmask(i,j-1)<0.5) then
             pmask(i,j)=cff2
-          elseif(rmask(i-1,j  )<0.5 .and.rmask(i,j  )<0.5 .and.
-     &           rmask(i-1,j-1)>0.5 .and.rmask(i,j-1)>0.5) then
+          elseif(rmask(i-1,j  )<0.5 .and. rmask(i,j  )<0.5 .and.
+     &           rmask(i-1,j-1)>0.5 .and. rmask(i,j-1)>0.5) then
             pmask(i,j)=cff2
 
           else

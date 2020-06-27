@@ -24,7 +24,7 @@
       real, dimension(PRIVATE_1D_SCRATCH_ARRAY,0:N) :: WC,FC,CF,DC
       real, dimension(PRIVATE_2D_SCRATCH_ARRAY) :: UFx,UFe,VFx,VFe,
      &                                                   wrk1,wrk2
-      real cff, stress
+      real cff
       real, parameter ::  delta=0.1666666666666667 ! delta=0.125
 # ifdef UPSTREAM_UV
      &                  , gamma=0.3333333333333333 ! gamma=0.25
@@ -47,7 +47,7 @@
 
 ! Compute dynamic bottom drag coefficient.  Note that "rd" must be
 ! aliased to a horizontal array beyond #4 to avoid overlap with one
-! of the vertical array used below. Because "rd" computed inside the
+! of the vertical arrays used below. Because "rd" computed inside the
 ! include file has extra rows of points on the western and southern
 ! sides, it can interpolated to U- and V-points without being
 ! synchronized(exchanged). It is also copied into shared array "r_D".
@@ -81,7 +81,13 @@
 
           CF(i,N-1)=cff*( FC(i,N-1)+max(WC(i,N-1),0.) )
 
-          DC(i,N)=cff*(u(i,j,N,nnew) +DC(i,0)*ru(i,j,N)+dt*sustr(i,j))
+          DC(i,N)=cff*( u(i,j,N,nnew) +DC(i,0)*ru(i,j,N)
+#  ifdef WIND_AT_RHO_POINTS
+     &                  +0.5*dt*(sustr(i-1,j)+sustr(i,j))
+#  else
+     &                                     +dt*sustr(i,j)
+#  endif
+     &                                                  )
         enddo
         do k=N-1,2,-1      !--> forward elimination
           do i=istrU,iend
@@ -116,8 +122,13 @@
           u(i,j,1,nnew)=DC(i,1) * 0.5*(Hz(i,j,1)+Hz(i-1,j,1))
 
 #  ifdef CORR_COUPLED_MODE
-          rufrc(i,j)=ru(i,j,1) +dm_u(i,j)*dn_u(i,j)*( sustr(i,j)
-     &                       -0.5*(r_D(i-1,j)+r_D(i,j))*DC(i,1) )
+          rufrc(i,j)=ru(i,j,1) +dm_u(i,j)*dn_u(i,j)*(
+#   ifdef WIND_AT_RHO_POINTS
+     &                   0.5*(sustr(i-1,j)+sustr(i,j))
+#   else
+     &                                      sustr(i,j)
+#   endif
+     &            -0.5*(r_D(i-1,j)+r_D(i,j))*DC(i,1) )
 #  endif
         enddo
         do k=2,N,+1          !--> backsubstitution
@@ -147,7 +158,13 @@
 
             CF(i,N-1)=cff*( FC(i,N-1)+max(WC(i,N-1),0.) )
 
-            DC(i,N)=cff*(v(i,j,N,nnew)+DC(i,0)*rv(i,j,N)+dt*svstr(i,j))
+            DC(i,N)=cff*( v(i,j,N,nnew) +DC(i,0)*rv(i,j,N)
+#  ifdef WIND_AT_RHO_POINTS
+     &                    +0.5*dt*(svstr(i,j-1)+svstr(i,j))
+#  else
+     &                                       +dt*svstr(i,j)
+#  endif
+     &                                                    )
           enddo
           do k=N-1,2,-1      !--> forward elimination
             do i=istr,iend
@@ -180,8 +197,13 @@
      &                                                          )
             v(i,j,1,nnew)=DC(i,1) * 0.5*(Hz(i,j,1)+Hz(i,j-1,1))
 #  ifdef CORR_COUPLED_MODE
-            rvfrc(i,j)=rv(i,j,1) +dm_v(i,j)*dn_v(i,j)*( svstr(i,j)
-     &                         -0.5*(r_D(i,j)+r_D(i,j-1))*DC(i,1) )
+            rvfrc(i,j)=rv(i,j,1) +dm_v(i,j)*dn_v(i,j)*(
+#   ifdef WIND_AT_RHO_POINTS
+     &                     0.5*(svstr(i,j-1)+svstr(i,j))
+#   else
+     &                                        svstr(i,j)
+#   endif
+     &              -0.5*(r_D(i,j-1)+r_D(i,j))*DC(i,1) )
 #  endif
           enddo
           do k=2,N,+1          !--> backsubstitution
@@ -196,20 +218,29 @@
           enddo
         endif   !<-- j >= jstrV
 
-# else  /* IMPLICIT_BOTTOM_DRAG */
+# else  /* --> !IMPLICIT_BOTTOM_DRAG */
 
         do i=istrU,iend
           DC(i,0)=dt*0.25*(pm(i,j)+pm(i-1,j))*(pn(i,j)+pn(i-1,j))
 
-          u(i,j,N,nnew)=u(i,j,N,nnew)+DC(i,0)*ru(i,j,N)+dt*sustr(i,j)
-
+          u(i,j,N,nnew)=u(i,j,N,nnew) +DC(i,0)*ru(i,j,N)
+#  ifdef WIND_AT_RHO_POINTS
+     &                  +0.5*dt*(sustr(i-1,j)+sustr(i,j))
+#  else
+     &                                     +dt*sustr(i,j)
+#  endif
           u(i,j,1,nnew)=u(i,j,1,nnew)+DC(i,0)*ru(i,j,1)
 #  ifndef IMPLCT_NO_SLIP_BTTM_BC
-     &                       -0.5*(r_D(i,j)+r_D(i-1,j))*u(i,j,1,nstp)
+     &                   -0.5*(r_D(i-1,j)+r_D(i,j))*u(i,j,1,nstp)
 #  endif
 #  ifdef CORR_COUPLED_MODE
-            rufrc(i,j)=ru(i,j,1) +ru(i,j,N) +dn_u(i,j)*dm_u(i,j)*(
-     &         sustr(i,j) -0.5*(r_D(i,j)+r_D(i-1,j))*u(i,j,1,nstp) )
+          rufrc(i,j)=ru(i,j,1) +ru(i,j,N) +dn_u(i,j)*dm_u(i,j)*(
+#   ifdef WIND_AT_RHO_POINTS
+     &                              0.5*(sustr(i-1,j)+sustr(i,j))
+#   else
+     &                                                 sustr(i,j)
+#   endif
+     &                 -0.5*(r_D(i-1,j)+r_D(i,j))*u(i,j,1,nstp) )
 #  endif
         enddo
         do k=2,N-1
@@ -224,17 +255,25 @@
           do i=istr,iend
             DC(i,0)=dt*0.25*(pm(i,j)+pm(i,j-1))*(pn(i,j)+pn(i,j-1))
 
-            v(i,j,N,nnew)=v(i,j,N,nnew)+DC(i,0)*rv(i,j,N)+dt*svstr(i,j)
-
-            v(i,j,1,nnew)=v(i,j,1,nnew)+DC(i,0)*rv(i,j,1)
+            v(i,j,N,nnew)=v(i,j,N,nnew) +DC(i,0)*rv(i,j,N)
+#  ifdef WIND_AT_RHO_POINTS
+     &                    +0.5*dt*(svstr(i,j-1)+svstr(i,j))
+#  else
+     &                                       +dt*svstr(i,j)
+#  endif
+            v(i,j,1,nnew)=v(i,j,1,nnew) +DC(i,0)*rv(i,j,1)
 #  ifndef IMPLCT_NO_SLIP_BTTM_BC
-     &                       -0.5*(r_D(i,j)+r_D(i,j-1))*v(i,j,1,nstp)
+     &                    -0.5*(r_D(i,j-1)+r_D(i,j))*v(i,j,1,nstp)
 #  endif
 #  ifdef CORR_COUPLED_MODE
             rvfrc(i,j)=rv(i,j,1) +rv(i,j,N) +dm_v(i,j)*dn_v(i,j)*(
-     &          svstr(i,j) -0.5*(r_D(i,j)+r_D(i,j-1))*v(i,j,1,nstp) )
+#   ifdef WIND_AT_RHO_POINTS
+     &                                0.5*(svstr(i,j-1)+svstr(i,j))
+#   else
+     &                                                   svstr(i,j)
+#   endif
+     &                   -0.5*(r_D(i,j-1)+r_D(i,j))*v(i,j,1,nstp) )
 #  endif
-
           enddo
           do k=2,N-1
             do i=istr,iend
@@ -253,6 +292,7 @@
       call exchange_2_tile (istr,iend,jstr,jend, dRdx,N, dRde,N)
 # endif
       end
+
       subroutine check_step_uv1_switches(ierr)
 
 ! This code must be placed here rather than in a separate file in order
@@ -266,7 +306,7 @@
 # include "strings.h"
       ie=lenstr(cpps)
       is=ie+2 ; ie=is+13
-      if (ie>max_opt_size) goto 99
+      if (ie > max_opt_size) goto 99
       cpps(is:ie)='<step3d_uv1.F>'
 
 # include "track_advec_switches.h"

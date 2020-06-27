@@ -84,9 +84,9 @@ CSDISTRIBUTE_RESHAPE D(BLOCK_PATTERN) BLOCK_CLAUSE
 #   define J_RANGE jstrR,jendR
 #  endif
 #  ifdef MPI
-      if (NP_XI.eq.1) then            !!!!!!  WARNING !!!!!!!
+      if (NP_XI == 1) then            !!!!!!  WARNING !!!!!!!
 #  endif
-        if (istr.eq.1) then           ! It should be noted that the
+        if (istr == 1) then           ! It should be noted that the
           do j=J_RANGE                ! four CPP-macros,
             A(Lm+1,j)=A(1,j)          ! WESTERN_EDGE,  EASTERN_EDGE,
             A(Lm+2,j)=A(2,j)          ! SOUTHERN_EDGE, NORTHERN_EDGE,
@@ -105,7 +105,7 @@ CSDISTRIBUTE_RESHAPE D(BLOCK_PATTERN) BLOCK_CLAUSE
           enddo                       ! throughout this file.
         endif
 
-        if (iend.eq.Lm) then
+        if (iend == Lm) then
           do j=J_RANGE
             A(-1,j)=A(Lm-1,j)
             A( 0,j)=A(Lm  ,j)
@@ -136,9 +136,9 @@ CSDISTRIBUTE_RESHAPE D(BLOCK_PATTERN) BLOCK_CLAUSE
 #   define I_RANGE istrR,iendR
 #  endif
 #  ifdef MPI
-      if (NP_ETA.eq.1) then
+      if (NP_ETA == 1) then
 #  endif
-        if (jstr.eq.1) then
+        if (jstr == 1) then
           do i=I_RANGE
             A(i,Mm+1)=A(i,1)
             A(i,Mm+2)=A(i,2)
@@ -157,7 +157,7 @@ CSDISTRIBUTE_RESHAPE D(BLOCK_PATTERN) BLOCK_CLAUSE
           enddo
         endif
 
-        if (jend.eq.Mm) then
+        if (jend == Mm) then
           do i=I_RANGE
             A(i,-1)=A(i,Mm-1)
             A(i, 0)=A(i,Mm  )
@@ -183,105 +183,73 @@ CSDISTRIBUTE_RESHAPE D(BLOCK_PATTERN) BLOCK_CLAUSE
  
 # if defined EW_PERIODIC && defined NS_PERIODIC
 #  ifdef MPI
-      if (NP_XI.eq.1 .and. NP_ETA.eq.1) then
+      if (NP_XI == 1 .and. NP_ETA == 1) then
 #  endif
-        if (istr.eq.1 .and. jstr.eq.1) then
-          A(Lm+1,Mm+1)=A(1,1)
-          A(Lm+1,Mm+2)=A(1,2)
-          A(Lm+2,Mm+1)=A(2,1)
-          A(Lm+2,Mm+2)=A(2,2)
+        if (istr == 1 .and. jstr == 1) then
+          A(Lm+1,Mm+1)=A(1,1) ; A(Lm+1,Mm+2)=A(1,2)
+          A(Lm+2,Mm+1)=A(2,1) ; A(Lm+2,Mm+2)=A(2,2)
 #  if NARGS > 1
-          B(Lm+1,Mm+1)=B(1,1)
-          B(Lm+1,Mm+2)=B(1,2)
-          B(Lm+2,Mm+1)=B(2,1)
-          B(Lm+2,Mm+2)=B(2,2)
+          B(Lm+1,Mm+1)=B(1,1) ; B(Lm+1,Mm+2)=B(1,2)
+          B(Lm+2,Mm+1)=B(2,1) ; B(Lm+2,Mm+2)=B(2,2)
 #  endif
 #  if NARGS > 2
-          C(Lm+1,Mm+1)=C(1,1)
-          C(Lm+1,Mm+2)=C(1,2)
-          C(Lm+2,Mm+1)=C(2,1)
-          C(Lm+2,Mm+2)=C(2,2)
+          C(Lm+1,Mm+1)=C(1,1) ; C(Lm+1,Mm+2)=C(1,2)
+          C(Lm+2,Mm+1)=C(2,1) ; C(Lm+2,Mm+2)=C(2,2)
 #  endif
 #  if NARGS > 3
-          D(Lm+1,Mm+1)=D(1,1)
-          D(Lm+1,Mm+2)=D(1,2)
-          D(Lm+2,Mm+1)=D(2,1)
-          D(Lm+2,Mm+2)=D(2,2)
+          D(Lm+1,Mm+1)=D(1,1) ; D(Lm+1,Mm+2)=D(1,2)
+          D(Lm+2,Mm+1)=D(2,1) ; D(Lm+2,Mm+2)=D(2,2)
 #  endif
         endif
 
-        if (iend.eq.Lm .and. jstr.eq.1) then
-          A(-1,Mm+1)=A(Lm-1,1)
-          A( 0,Mm+1)=A(Lm  ,1)
-          A(-1,Mm+2)=A(Lm-1,2)
-          A( 0,Mm+2)=A(Lm  ,2)
+        if (iend == Lm .and. jstr == 1) then
+          A(-1,Mm+1)=A(Lm-1,1) ; A(0,Mm+1)=A(Lm,1)
+          A(-1,Mm+2)=A(Lm-1,2) ; A(0,Mm+2)=A(Lm,2)
 #  if NARGS > 1
-          B(-1,Mm+1)=B(Lm-1,1)
-          B( 0,Mm+1)=B(Lm  ,1)
-          B(-1,Mm+2)=B(Lm-1,2)
-          B( 0,Mm+2)=B(Lm  ,2)
+          B(-1,Mm+1)=B(Lm-1,1) ; B(0,Mm+1)=B(Lm,1)
+          B(-1,Mm+2)=B(Lm-1,2) ; B(0,Mm+2)=B(Lm,2)
 #  endif
 #  if NARGS > 2
-          C(-1,Mm+1)=C(Lm-1,1)
-          C( 0,Mm+1)=C(Lm  ,1)
-          C(-1,Mm+2)=C(Lm-1,2)
-          C( 0,Mm+2)=C(Lm  ,2)
+          C(-1,Mm+1)=C(Lm-1,1) ; C(0,Mm+1)=C(Lm,1)
+          C(-1,Mm+2)=C(Lm-1,2) ; C(0,Mm+2)=C(Lm,2)
 #  endif
 #  if NARGS > 3
-          D(-1,Mm+1)=D(Lm-1,1)
-          D( 0,Mm+1)=D(Lm  ,1)
-          D(-1,Mm+2)=D(Lm-1,2)
-          D( 0,Mm+2)=D(Lm  ,2)
+          D(-1,Mm+1)=D(Lm-1,1) ; D(0,Mm+1)=D(Lm,1)
+          D(-1,Mm+2)=D(Lm-1,2) ; D(0,Mm+2)=D(Lm,2)
 #  endif
         endif
 
-        if (istr.eq.1 .and. jend.eq.Mm) then
-          A(Lm+1,-1)=A(1,Mm-1)
-          A(Lm+1, 0)=A(1,Mm  )
-          A(Lm+2,-1)=A(2,Mm-1)
-          A(Lm+2, 0)=A(2,Mm  )
+        if (istr == 1 .and. jend == Mm) then
+          A(Lm+1,-1)=A(1,Mm-1) ; A(Lm+1,0)=A(1,Mm)
+          A(Lm+2,-1)=A(2,Mm-1) ; A(Lm+2,0)=A(2,Mm)
 #  if NARGS > 1
-          B(Lm+1,-1)=B(1,Mm-1)
-          B(Lm+1, 0)=B(1,Mm  )
-          B(Lm+2,-1)=B(2,Mm-1)
-          B(Lm+2, 0)=B(2,Mm  )
+          B(Lm+1,-1)=B(1,Mm-1) ; B(Lm+1,0)=B(1,Mm)
+          B(Lm+2,-1)=B(2,Mm-1) ; B(Lm+2,0)=B(2,Mm)
 #  endif
 #  if NARGS > 2
-          C(Lm+1,-1)=C(1,Mm-1)
-          C(Lm+1, 0)=C(1,Mm  )
-          C(Lm+2,-1)=C(2,Mm-1)
-          C(Lm+2, 0)=C(2,Mm  )
+          C(Lm+1,-1)=C(1,Mm-1) ; C(Lm+1,0)=C(1,Mm)
+          C(Lm+2,-1)=C(2,Mm-1) ; C(Lm+2,0)=C(2,Mm)
 #  endif
 #  if NARGS > 3
-          D(Lm+1,-1)=D(1,Mm-1)
-          D(Lm+1, 0)=D(1,Mm  )
-          D(Lm+2,-1)=D(2,Mm-1)
-          D(Lm+2, 0)=D(2,Mm  )
+          D(Lm+1,-1)=D(1,Mm-1) ; D(Lm+1,0)=D(1,Mm)
+          D(Lm+2,-1)=D(2,Mm-1) ; D(Lm+2,0)=D(2,Mm)
 #  endif
         endif
 
-        if (iend.eq.Lm .and. jend.eq.Mm) then
-          A(-1,-1)=A(Lm-1,Mm-1)
-          A( 0,-1)=A(Lm  ,Mm-1)
-          A(-1, 0)=A(Lm-1,Mm  )
-          A( 0, 0)=A(Lm  ,Mm  )
+        if (iend == Lm .and. jend == Mm) then
+          A(-1,-1)=A(Lm-1,Mm-1) ; A(0,-1)=A(Lm,Mm-1)
+          A(-1, 0)=A(Lm-1,Mm  ) ; A(0, 0)=A(Lm,Mm  )
 #  if NARGS > 1
-          B(-1,-1)=B(Lm-1,Mm-1)
-          B( 0,-1)=B(Lm  ,Mm-1)
-          B(-1, 0)=B(Lm-1,Mm  )
-          B( 0, 0)=B(Lm  ,Mm  )
+          B(-1,-1)=B(Lm-1,Mm-1) ; B(0,-1)=B(Lm,Mm-1)
+          B(-1, 0)=B(Lm-1,Mm  ) ; B(0, 0)=B(Lm,Mm  )
 #  endif
 #  if NARGS > 2
-          C(-1,-1)=C(Lm-1,Mm-1)
-          C( 0,-1)=C(Lm  ,Mm-1)
-          C(-1, 0)=C(Lm-1,Mm  )
-          C( 0, 0)=C(Lm  ,Mm  )
+          C(-1,-1)=C(Lm-1,Mm-1) ; C(0,-1)=C(Lm,Mm-1)
+          C(-1, 0)=C(Lm-1,Mm  ) ; C(0, 0)=C(Lm,Mm  )
 #  endif
 #  if NARGS > 3
-          D(-1,-1)=D(Lm-1,Mm-1)
-          D( 0,-1)=D(Lm  ,Mm-1)
-          D(-1, 0)=D(Lm-1,Mm  )
-          D( 0, 0)=D(Lm  ,Mm  )
+          D(-1,-1)=D(Lm-1,Mm-1) ; D(0,-1)=D(Lm,Mm-1)
+          D(-1, 0)=D(Lm-1,Mm  ) ; D(0, 0)=D(Lm,Mm  )
 #  endif
         endif
 #  ifdef MPI
@@ -290,32 +258,31 @@ CSDISTRIBUTE_RESHAPE D(BLOCK_PATTERN) BLOCK_CLAUSE
 # endif
 # ifdef MPI
 #  ifndef NARGS
-      call mpi_exchange_tile (istr,iend,jstr,jend, A,1)
+      call mpi_exchange_tile(istr,iend,jstr,jend, A,1)
 #  elif NARGS == 2
-      call mpi_exchange_2_tile (istr,iend,jstr,jend, A,1, B,1)
+      call mpi_exchange_2_tile(istr,iend,jstr,jend, A,1, B,1)
 #  elif NARGS == 3
-      call mpi_exchange_3_tile (istr,iend,jstr,jend, A,1, B,1, C,1)
+      call mpi_exchange_3_tile(istr,iend,jstr,jend, A,1, B,1, C,1)
 #  elif NARGS == 4
-      call mpi_exchange_4_tile (istr,iend,jstr,jend, A,1, B,1,
-     &                                               C,1, D,1)
+      call mpi_exchange_4_tile(istr,iend,jstr,jend, A,1, B,1,
+     &                                              C,1, D,1)
 #  endif
 # endif
-      return
       end
 
 
 # ifdef SOLVE3D
 #  ifndef NARGS
-      subroutine exchange_tile (istr,iend,jstr,jend,  A, nmaxA)
+      subroutine exchange_tile(istr,iend,jstr,jend,  A, nmaxA)
 #  elif NARGS == 2
-      subroutine exchange_2_tile (istr,iend,jstr,jend, A, nmaxA,
-     &                                                 B, nmaxB)
+      subroutine exchange_2_tile(istr,iend,jstr,jend, A, nmaxA,
+     &                                                B, nmaxB)
 #  elif NARGS == 3
-      subroutine exchange_3_tile (istr,iend,jstr,jend, A, nmaxA,
-     &                                       B, nmaxB, C, nmaxC)
+      subroutine exchange_3_tile(istr,iend,jstr,jend, A, nmaxA,
+     &                                      B, nmaxB, C, nmaxC)
 #  elif NARGS == 4
-      subroutine exchange_4_tile (istr,iend,jstr,jend, A, nmaxA,
-     &                             B, nmaxB, C, nmaxC, D, nmaxD)
+      subroutine exchange_4_tile(istr,iend,jstr,jend, A, nmaxA,
+     &                            B, nmaxB, C, nmaxC, D, nmaxD)
 #  endif
       implicit none
 #  include "param.h"
@@ -356,9 +323,9 @@ CSDISTRIBUTE_RESHAPE D(BLOCK_PATTERN,*) BLOCK_CLAUSE
 #    define J_RANGE jstrR,jendR
 #   endif
 #   ifdef MPI
-      if (NP_XI.eq.1) then
+      if (NP_XI == 1) then
 #   endif
-        if (istr.eq.1) then
+        if (istr == 1) then
           do k=1,nmaxA
             do j=J_RANGE
               A(Lm+1,j,k)=A(1,j,k)
@@ -391,7 +358,7 @@ CSDISTRIBUTE_RESHAPE D(BLOCK_PATTERN,*) BLOCK_CLAUSE
 #   endif
         endif
 
-        if (iend.eq.Lm) then
+        if (iend == Lm) then
           do k=1,nmaxA
             do j=J_RANGE
               A(-1,j,k)=A(Lm-1,j,k)
@@ -437,9 +404,9 @@ CSDISTRIBUTE_RESHAPE D(BLOCK_PATTERN,*) BLOCK_CLAUSE
 #    define I_RANGE istrR,iendR
 #   endif
 #   ifdef MPI
-      if (NP_ETA.eq.1) then
+      if (NP_ETA == 1) then
 #   endif
-        if (jstr.eq.1) then
+        if (jstr == 1) then
           do k=1,nmaxA
             do i=I_RANGE
               A(i,Mm+1,k)=A(i,1,k)
@@ -472,7 +439,7 @@ CSDISTRIBUTE_RESHAPE D(BLOCK_PATTERN,*) BLOCK_CLAUSE
 #   endif
         endif
 
-        if (jend.eq.Mm) then
+        if (jend == Mm) then
           do k=1,nmaxA
             do i=I_RANGE
               A(i,-1,k)=A(i,Mm-1,k)
@@ -512,136 +479,104 @@ CSDISTRIBUTE_RESHAPE D(BLOCK_PATTERN,*) BLOCK_CLAUSE
  
 #  if defined EW_PERIODIC && defined NS_PERIODIC
 #   ifdef MPI
-      if (NP_XI.eq.1 .and. NP_ETA.eq.1) then
+      if (NP_XI == 1 .and. NP_ETA == 1) then
 #   endif
-        if (istr.eq.1 .and. jstr.eq.1) then
+        if (istr == 1 .and. jstr == 1) then
           do k=1,nmaxA
-            A(Lm+1,Mm+1,k)=A(1,1,k)
-            A(Lm+1,Mm+2,k)=A(1,2,k)
-            A(Lm+2,Mm+1,k)=A(2,1,k)
-            A(Lm+2,Mm+2,k)=A(2,2,k)
+            A(Lm+1,Mm+1,k)=A(1,1,k) ; A(Lm+1,Mm+2,k)=A(1,2,k)
+            A(Lm+2,Mm+1,k)=A(2,1,k) ; A(Lm+2,Mm+2,k)=A(2,2,k)
           enddo
 #   if NARGS > 1
           do k=1,nmaxB
-            B(Lm+1,Mm+1,k)=B(1,1,k)
-            B(Lm+1,Mm+2,k)=B(1,2,k)
-            B(Lm+2,Mm+1,k)=B(2,1,k)
-            B(Lm+2,Mm+2,k)=B(2,2,k)
+            B(Lm+1,Mm+1,k)=B(1,1,k) ; B(Lm+1,Mm+2,k)=B(1,2,k)
+            B(Lm+2,Mm+1,k)=B(2,1,k) ; B(Lm+2,Mm+2,k)=B(2,2,k)
           enddo
 #   endif
 #   if NARGS > 2
           do k=1,nmaxC
-            C(Lm+1,Mm+1,k)=C(1,1,k)
-            C(Lm+1,Mm+2,k)=C(1,2,k)
-            C(Lm+2,Mm+1,k)=C(2,1,k)
-            C(Lm+2,Mm+2,k)=C(2,2,k)
+            C(Lm+1,Mm+1,k)=C(1,1,k) ; C(Lm+1,Mm+2,k)=C(1,2,k)
+            C(Lm+2,Mm+1,k)=C(2,1,k) ; C(Lm+2,Mm+2,k)=C(2,2,k)
           enddo
 #   endif
 #   if NARGS > 3
           do k=1,nmaxD
-            D(Lm+1,Mm+1,k)=D(1,1,k)
-            D(Lm+1,Mm+2,k)=D(1,2,k)
-            D(Lm+2,Mm+1,k)=D(2,1,k)
-            D(Lm+2,Mm+2,k)=D(2,2,k)
+            D(Lm+1,Mm+1,k)=D(1,1,k) ; D(Lm+1,Mm+2,k)=D(1,2,k)
+            D(Lm+2,Mm+1,k)=D(2,1,k) ; D(Lm+2,Mm+2,k)=D(2,2,k)
           enddo
 #   endif
         endif
 
-        if (iend.eq.Lm .and. jstr.eq.1) then
+        if (iend == Lm .and. jstr == 1) then
           do k=1,nmaxA
-            A(-1,Mm+1,k)=A(Lm-1,1,k)
-            A( 0,Mm+1,k)=A(Lm  ,1,k)
-            A(-1,Mm+2,k)=A(Lm-1,2,k)
-            A( 0,Mm+2,k)=A(Lm  ,2,k)
+            A(-1,Mm+1,k)=A(Lm-1,1,k) ; A(0,Mm+1,k)=A(Lm,1,k)
+            A(-1,Mm+2,k)=A(Lm-1,2,k) ; A(0,Mm+2,k)=A(Lm,2,k)
           enddo
 #   if NARGS > 1
           do k=1,nmaxB
-            B(-1,Mm+1,k)=B(Lm-1,1,k)
-            B( 0,Mm+1,k)=B(Lm  ,1,k)
-            B(-1,Mm+2,k)=B(Lm-1,2,k)
-            B( 0,Mm+2,k)=B(Lm  ,2,k)
+            B(-1,Mm+1,k)=B(Lm-1,1,k) ; B(0,Mm+1,k)=B(Lm,1,k)
+            B(-1,Mm+2,k)=B(Lm-1,2,k) ; B(0,Mm+2,k)=B(Lm,2,k)
           enddo
 #   endif
 #   if NARGS > 2
           do k=1,nmaxC
-            C(-1,Mm+1,k)=C(Lm-1,1,k)
-            C( 0,Mm+1,k)=C(Lm  ,1,k)
-            C(-1,Mm+2,k)=C(Lm-1,2,k)
-            C( 0,Mm+2,k)=C(Lm  ,2,k)
+            C(-1,Mm+1,k)=C(Lm-1,1,k) ; C(0,Mm+1,k)=C(Lm,1,k)
+            C(-1,Mm+2,k)=C(Lm-1,2,k) ; C(0,Mm+2,k)=C(Lm,2,k)
           enddo
 #   endif
 #   if NARGS > 3
           do k=1,nmaxD
-            D(-1,Mm+1,k)=D(Lm-1,1,k)
-            D( 0,Mm+1,k)=D(Lm  ,1,k)
-            D(-1,Mm+2,k)=D(Lm-1,2,k)
-            D( 0,Mm+2,k)=D(Lm  ,2,k)
+            D(-1,Mm+1,k)=D(Lm-1,1,k) ; D(0,Mm+1,k)=D(Lm,1,k)
+            D(-1,Mm+2,k)=D(Lm-1,2,k) ; D(0,Mm+2,k)=D(Lm,2,k)
           enddo
 #   endif
         endif
 
-        if (istr.eq.1 .and. jend.eq.Mm) then
+        if (istr == 1 .and. jend == Mm) then
           do k=1,nmaxA
-            A(Lm+1,-1,k)=A(1,Mm-1,k)
-            A(Lm+1, 0,k)=A(1,Mm  ,k)
-            A(Lm+2,-1,k)=A(2,Mm-1,k)
-            A(Lm+2, 0,k)=A(2,Mm  ,k)
+            A(Lm+1,-1,k)=A(1,Mm-1,k) ; A(Lm+1,0,k)=A(1,Mm,k)
+            A(Lm+2,-1,k)=A(2,Mm-1,k) ; A(Lm+2,0,k)=A(2,Mm,k)
           enddo
 #   if NARGS > 1
           do k=1,nmaxB
-            B(Lm+1,-1,k)=B(1,Mm-1,k)
-            B(Lm+1, 0,k)=B(1,Mm  ,k)
-            B(Lm+2,-1,k)=B(2,Mm-1,k)
-            B(Lm+2, 0,k)=B(2,Mm  ,k)
+            B(Lm+1,-1,k)=B(1,Mm-1,k) ; B(Lm+1,0,k)=B(1,Mm,k)
+            B(Lm+2,-1,k)=B(2,Mm-1,k) ; B(Lm+2,0,k)=B(2,Mm,k)
           enddo
 #   endif
 #   if NARGS > 2
           do k=1,nmaxC
-            C(Lm+1,-1,k)=C(1,Mm-1,k)
-            C(Lm+1, 0,k)=C(1,Mm  ,k)
-            C(Lm+2,-1,k)=C(2,Mm-1,k)
-            C(Lm+2, 0,k)=C(2,Mm  ,k)
+            C(Lm+1,-1,k)=C(1,Mm-1,k) ; C(Lm+1,0,k)=C(1,Mm,k)
+            C(Lm+2,-1,k)=C(2,Mm-1,k) ; C(Lm+2,0,k)=C(2,Mm,k)
           enddo
 #   endif
 #   if NARGS > 3
           do k=1,nmaxD
-            D(Lm+1,-1,k)=D(1,Mm-1,k)
-            D(Lm+1, 0,k)=D(1,Mm  ,k)
-            D(Lm+2,-1,k)=D(2,Mm-1,k)
-            D(Lm+2, 0,k)=D(2,Mm  ,k)
+            D(Lm+1,-1,k)=D(1,Mm-1,k) ; D(Lm+1,0,k)=D(1,Mm,k)
+            D(Lm+2,-1,k)=D(2,Mm-1,k) ; D(Lm+2,0,k)=D(2,Mm,k)
           enddo
 #   endif
         endif
 
-        if (iend.eq.Lm .and. jend.eq.Mm) then
+        if (iend == Lm .and. jend == Mm) then
           do k=1,nmaxA
-            A(-1,-1,k)=A(Lm-1,Mm-1,k)
-            A( 0,-1,k)=A(Lm  ,Mm-1,k)
-            A(-1, 0,k)=A(Lm-1,Mm  ,k)
-            A( 0, 0,k)=A(Lm  ,Mm  ,k)
+            A(-1,-1,k)=A(Lm-1,Mm-1,k) ; A(0,-1,k)=A(Lm,Mm-1,k)
+            A(-1, 0,k)=A(Lm-1,Mm  ,k) ; A(0, 0,k)=A(Lm,Mm  ,k)
           enddo
 #   if NARGS > 1
           do k=1,nmaxB
-            B(-1,-1,k)=B(Lm-1,Mm-1,k)
-            B( 0,-1,k)=B(Lm  ,Mm-1,k)
-            B(-1, 0,k)=B(Lm-1,Mm  ,k)
-            B( 0, 0,k)=B(Lm  ,Mm  ,k)
+            B(-1,-1,k)=B(Lm-1,Mm-1,k) ; B(0,-1,k)=B(Lm,Mm-1,k)
+            B(-1, 0,k)=B(Lm-1,Mm  ,k) ; B(0, 0,k)=B(Lm,Mm  ,k)
           enddo
 #   endif
 #   if NARGS > 2
           do k=1,nmaxC
-            C(-1,-1,k)=C(Lm-1,Mm-1,k)
-            C( 0,-1,k)=C(Lm  ,Mm-1,k)
-            C(-1, 0,k)=C(Lm-1,Mm  ,k)
-            C( 0, 0,k)=C(Lm  ,Mm  ,k)
+            C(-1,-1,k)=C(Lm-1,Mm-1,k) ; C(0,-1,k)=C(Lm,Mm-1,k)
+            C(-1, 0,k)=C(Lm-1,Mm  ,k) ; C(0, 0,k)=C(Lm,Mm  ,k)
           enddo
 #   endif
 #   if NARGS > 3
           do k=1,nmaxD
-            D(-1,-1,k)=D(Lm-1,Mm-1,k)
-            D( 0,-1,k)=D(Lm  ,Mm-1,k)
-            D(-1, 0,k)=D(Lm-1,Mm  ,k)
-            D( 0, 0,k)=D(Lm  ,Mm  ,k)
+            D(-1,-1,k)=D(Lm-1,Mm-1,k) ; D(0,-1,k)=D(Lm,Mm-1,k)
+            D(-1, 0,k)=D(Lm-1,Mm  ,k) ; D(0, 0,k)=D(Lm,Mm  ,k)
           enddo
 #   endif
         endif
@@ -654,31 +589,30 @@ CSDISTRIBUTE_RESHAPE D(BLOCK_PATTERN,*) BLOCK_CLAUSE
 #   ifndef NARGS
       call mpi_exchange_tile (istr,iend,jstr,jend, A, nmaxA)
 #   elif NARGS == 2
-      call mpi_exchange_2_tile (istr,iend,jstr,jend, A, nmaxA,
-     &                                                B, nmaxB)
+      call mpi_exchange_2_tile(istr,iend,jstr,jend, A, nmaxA,
+     &                                              B, nmaxB)
 #   elif NARGS == 3
-      call mpi_exchange_3_tile (istr,iend,jstr,jend, A, nmaxA,
-     &                                      B, nmaxB, C, nmaxC)
+      call mpi_exchange_3_tile(istr,iend,jstr,jend, A, nmaxA,
+     &                                    B, nmaxB, C, nmaxC)
 #   elif NARGS == 4
-      call mpi_exchange_4_tile (istr,iend,jstr,jend, A, nmaxA,
-     &                            B, nmaxB, C, nmaxC, D, nmaxD)
+      call mpi_exchange_4_tile(istr,iend,jstr,jend, A, nmaxA,
+     &                          B, nmaxB, C, nmaxC, D, nmaxD)
 #   endif
 
 /* Legacy version, one mpi_exchange call for each array:
 
-      call mpi_exchange_tile (istr,iend,jstr,jend, A, nmaxA)
+      call mpi_exchange_tile(istr,iend,jstr,jend, A, nmaxA)
 #   if NARGS > 1
-      call mpi_exchange_tile (istr,iend,jstr,jend, B, nmaxB)
+      call mpi_exchange_tile(istr,iend,jstr,jend, B, nmaxB)
 #   endif
 #   if NARGS > 2
-      call mpi_exchange_tile (istr,iend,jstr,jend, C, nmaxC)
+      call mpi_exchange_tile(istr,iend,jstr,jend, C, nmaxC)
 #   endif
 #   if NARGS > 3
-      call mpi_exchange_tile (istr,iend,jstr,jend, D, nmaxD)
+      call mpi_exchange_tile(istr,iend,jstr,jend, D, nmaxD)
 #   endif
 */
 #  endif
-      return
       end
 # endif /* SOLVE3D */
 
@@ -703,89 +637,88 @@ CSDISTRIBUTE_RESHAPE D(BLOCK_PATTERN,*) BLOCK_CLAUSE
 ! to facilitate transition. Normally CPP-switch BAKWD_COMPAT
 ! should not be activated.
 
-      subroutine exchange_r2d_tile (istr,iend,jstr,jend, A) 
+      subroutine exchange_r2d_tile(istr,iend,jstr,jend, A) 
       implicit none
       integer istr,iend,jstr,jend 
 #   include "param.h"
       real A(GLOBAL_2D_ARRAY)
 CSDISTRIBUTE_RESHAPE A(BLOCK_PATTERN) BLOCK_CLAUSE
-      call exchange2d_tile (istr,iend,jstr,jend,  A)
-      return
+      call exchange2d_tile(istr,iend,jstr,jend, A)
       end
-      subroutine exchange_u2d_tile (istr,iend,jstr,jend, A)
+
+      subroutine exchange_u2d_tile(istr,iend,jstr,jend, A)
       implicit none
       integer istr,iend,jstr,jend 
 #   include "param.h"
       real A(GLOBAL_2D_ARRAY)
 CSDISTRIBUTE_RESHAPE A(BLOCK_PATTERN) BLOCK_CLAUSE
-      call exchange2d_tile (istr,iend,jstr,jend,  A)
-      return
+      call exchange2d_tile(istr,iend,jstr,jend, A)
       end
-      subroutine exchange_v2d_tile (istr,iend,jstr,jend, A)
+
+      subroutine exchange_v2d_tile(istr,iend,jstr,jend, A)
       implicit none
       integer istr,iend,jstr,jend 
 #   include "param.h"
       real A(GLOBAL_2D_ARRAY)
 CSDISTRIBUTE_RESHAPE A(BLOCK_PATTERN) BLOCK_CLAUSE
-      call exchange2d_tile (istr,iend,jstr,jend,  A)
-      return
+      call exchange2d_tile(istr,iend,jstr,jend, A)
       end
-      subroutine exchange_p2d_tile (istr,iend,jstr,jend, A)
+
+      subroutine exchange_p2d_tile(istr,iend,jstr,jend, A)
       implicit none
       integer istr,iend,jstr,jend
 #   include "param.h"
       real A(GLOBAL_2D_ARRAY)
 CSDISTRIBUTE_RESHAPE A(BLOCK_PATTERN) BLOCK_CLAUSE
-      call exchange2d_tile (istr,iend,jstr,jend,  A)
-      return
+      call exchange2d_tile(istr,iend,jstr,jend, A)
       end
 
 #   ifdef SOLVE3D
-      subroutine exchange_r3d_tile (istr,iend,jstr,jend, A)
+      subroutine exchange_r3d_tile(istr,iend,jstr,jend, A)
       implicit none
       integer istr,iend,jstr,jend 
 #    include "param.h"
       real A(GLOBAL_2D_ARRAY,N)
 CSDISTRIBUTE_RESHAPE A(BLOCK_PATTERN,*) BLOCK_CLAUSE
-      call exchange_tile (istr,iend,jstr,jend,  A,N)
-      return
+      call exchange_tile(istr,iend,jstr,jend, A,N)
       end
-      subroutine exchange_u3d_tile (istr,iend,jstr,jend, A)
+
+      subroutine exchange_u3d_tile(istr,iend,jstr,jend, A)
       implicit none
       integer istr,iend,jstr,jend
 #    include "param.h"
       real A(GLOBAL_2D_ARRAY,N)
 CSDISTRIBUTE_RESHAPE A(BLOCK_PATTERN,*) BLOCK_CLAUSE
-      call exchange_tile (istr,iend,jstr,jend,  A,N)
-      return
+      call exchange_tile(istr,iend,jstr,jend, A,N)
       end
-      subroutine exchange_v3d_tile (istr,iend,jstr,jend, A)
+
+      subroutine exchange_v3d_tile(istr,iend,jstr,jend, A)
       implicit none
       integer istr,iend,jstr,jend
 #    include "param.h"
       real A(GLOBAL_2D_ARRAY,N)
 CSDISTRIBUTE_RESHAPE A(BLOCK_PATTERN,*) BLOCK_CLAUSE
-      call exchange_tile (istr,iend,jstr,jend,  A,N)
-      return
+      call exchange_tile(istr,iend,jstr,jend, A,N)
       end
-      subroutine exchange_p3d_tile (istr,iend,jstr,jend, A)
+
+      subroutine exchange_p3d_tile(istr,iend,jstr,jend, A)
       implicit none
       integer istr,iend,jstr,jend
 #    include "param.h"
       real A(GLOBAL_2D_ARRAY,N)
 CSDISTRIBUTE_RESHAPE A(BLOCK_PATTERN,*) BLOCK_CLAUSE
-      call exchange_tile (istr,iend,jstr,jend,  A,N)
-      return
+      call exchange_tile(istr,iend,jstr,jend, A,N)
       end
-      subroutine exchange_w3d_tile (istr,iend,jstr,jend, A)
+
+      subroutine exchange_w3d_tile(istr,iend,jstr,jend, A)
       implicit none
       integer istr,iend,jstr,jend
 #    include "param.h"
       real A(GLOBAL_2D_ARRAY,0:N)
 CSDISTRIBUTE_RESHAPE A(BLOCK_PATTERN,*) BLOCK_CLAUSE
-      call exchange_tile (istr,iend,jstr,jend,  A,N+1)
-      return
+      call exchange_tile(istr,iend,jstr,jend, A,N+1)
       end
+
 #   endif  /* SOLVE3D */
 #  endif  /* BAKWD_COMPAT */ 
 # endif  /* NARGS */
@@ -793,4 +726,3 @@ CSDISTRIBUTE_RESHAPE A(BLOCK_PATTERN,*) BLOCK_CLAUSE
       subroutine exchange_empty
       end
 #endif /* EXCHANGE */
-

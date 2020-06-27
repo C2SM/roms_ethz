@@ -7,12 +7,16 @@
 # define END_MPI_MASTER
 #endif
                                         ! Read and report model input
-      subroutine read_inp (ierr)        ! parameters from keyword-based
+      subroutine read_inp(ierr)         ! parameters from keyword-based
       implicit none                     ! startup file.
+      integer ierr
 #include "param.h"
 #include "scoord.h"
 #include "scalars.h"
 #include "ncvars.h"
+#if defined WRITE_TEMP_REST || defined WRITE_SALT_REST || defined WRITE_HEATFLX || defined WRITE_CO2FLX
+# include "forces.h"
+#endif
 #include "boundary.h"
 #ifndef NONLIN_EOS
 # include "eos_vars.h"
@@ -35,28 +39,22 @@
 # include "sources.h"
       integer N_agedye_files
 #endif
-      character(len=256) fname
-      character(len=32) keyword
+      integer, parameter :: input=15, testunit=40,
+     &                  max_fname=256, max_kwsize=32
+      character(len=max_fname)  :: fname
+      character(len=max_kwsize) :: keyword
       character(len=3), parameter :: end_signal='end'
-      integer, parameter :: kwsize=32, testunit=40, input=15
-      integer ierr, iargc, is,ie,  kwlen, lstr, lenstr, nbasic, naux
+      integer is,ie,  kwlen, lstr, lenstr, nbasic, naux
 #ifdef SOLVE3D
      &        , itrc
-#if defined MULT_CLIM_FILES &&\
-     ( defined TCLIMATOLOGY ||( defined TNUDGING &&\
-                        defined T_FRC_BRY )) && !defined ANA_TCLIMA
-     &        , i
-# endif
 #endif
 #if (defined BIOLOGY_BEC || defined BIOLOGY_BEC2 || defined BIOLOGY_NPZDOC)\
     && defined VARIABLE_ANN_ATM_PCO2
       logical futr_scen_valid
 #endif
-
-! This is needed to avoid automatic promotion to 8-byte integer by
-! compiler flag (e.g., Sun compiler or xlf_r on IBM p690).
-
-      integer*4, parameter :: ione=1
+#ifdef INT_IARGC
+      integer iargc
+#endif
 
 ! Check CPP-switches for consistency. This operation is split into
 ! multiple stages because the first subroutine, "check_switches1", is
@@ -76,21 +74,22 @@
 ! they add 1 for each error discovered.
 
       ierr=0                      ! <-- reset error counter
-      call check_tiling (ierr)
-      call check_switches1 (ierr)
+      call check_tiling(ierr)
+      call check_switches1(ierr)
 #ifdef SOLVE3D
-      call check_scoord_switches (ierr)
-      call check_pre_step_switches (ierr)
-      call check_step_uv1_switches (ierr)
-      call check_step_uv2_switches (ierr)
-      call check_step_t_switches (ierr)
+      call check_scoord_switches(ierr)
+      call check_pre_step_switches(ierr)
+      call check_step_uv1_switches(ierr)
+      call check_step_uv2_switches(ierr)
+      call check_step_t_switches(ierr)
+      call check_set_HUV1_switches(ierr)
 # ifdef LMD_KPP
-      call check_kpp_switches (ierr)
+      call check_kpp_switches(ierr)
 # endif
+      call check_switches2(ierr)
 #endif
+      if (ierr /= 0) return
       mpi_master_only call print_switches
-      call check_switches2 (ierr)
-      if (ierr/=0) return
 
 ! Use pre-set default startup filename for known applications, or
 ! get it as an argument from command line via iargc-getarg (override
@@ -159,11 +158,14 @@ c--      fname='roms.in.US_West'
       fname='roms.in'  !<-- default
 #endif
 #ifdef MPI
-      if (mynode==0 .and. iargc()==1) call getarg(ione,fname)
-      call MPI_Bcast(fname,64,MPI_BYTE, 0, ocean_grid_comm, ierr)
-#else
-      if (iargc()==1) call getarg(ione,fname)
+      if (mynode == 0) then
 #endif
+        is=iargc() ; if (is == 1) call getarg(is,fname)
+#ifdef MPI
+      endif
+      call MPI_Bcast(fname,64,MPI_BYTE, 0, ocean_grid_comm, ierr)
+#endif
+
       wrthis(indxTime)=.false.
 #ifdef AVERAGES
       wrtavg(indxTime)=.false.
@@ -174,49 +176,49 @@ c--      fname='roms.in.US_West'
 
       mpi_master_only print '(/3A)', '------------------'
      &  , ' Reading input parameters ', '------------------'
-!
-! Read in keyword: keep trying, until keyword is found.
-! ==== == ======== ==== ======= ===== ======= == ======
 
-      call setup_kwds (ierr)
-      open (input, file=fname, status='old', form='formatted', err=97)
+! Read in keyword name: keep trying, until keyword is found.
+!----- -- ------- ----- ---- ------- ------ ------- ---------
+
+      call setup_kwds(ierr)
+      open(input, file=fname, status='old', form='formatted', err=97)
    1   keyword='                                '
        read(input,'(A)',err=1,end=99) keyword
-       if (ichar(keyword(1:1))==33) goto 1
+       if (keyword(1:1) == '!') goto 1
        is=1
-   2   if (is==kwsize) then
+   2   if (is == max_kwsize) then
          goto 1
-       elseif (keyword(is:is)==' ') then
+       elseif (keyword(is:is) == ' ') then
          is=is+1
          goto 2
        endif
        ie=is
-   3   if (keyword(ie:ie)==':') then
+   3   if (keyword(ie:ie) == ':') then
          keyword(ie:ie)=' '
          goto 4           !--> recognized keyword.
-       elseif (keyword(ie:ie)/=' ' .and. ie<kwsize) then
+       elseif (keyword(ie:ie) /= ' ' .and. ie < max_kwsize) then
          ie=ie+1
          goto 3
        endif
        goto 1
    4   kwlen=ie-is
-       if (is>1) keyword(1:kwlen)=keyword(is:is+kwlen-1)
+       if (is > 1) keyword(1:kwlen)=keyword(is:is+kwlen-1)
 
 ! Read input parameters according to the keyword:
-! ==== ===== ========== ========= == === ========
+!----- ----- ---------- --------- --- ---- -------
 
 ! Title
 
-        if (keyword(1:kwlen)=='title') then
-          call cancel_kwd (keyword(1:kwlen), ierr)
+        if (keyword(1:kwlen) == 'title') then
+          call cancel_kwd(keyword(1:kwlen), ierr)
           read(input,'(A)',err=95) title
           lstr=lenstr(title)
           mpi_master_only write(*,'(/1x,A)') title(1:lstr)
 
 ! Time-stepping parameters
 
-        elseif (keyword(1:kwlen)=='time_stepping') then
-          call cancel_kwd (keyword(1:kwlen), ierr)
+        elseif (keyword(1:kwlen) == 'time_stepping') then
+          call cancel_kwd(keyword(1:kwlen), ierr)
           read(input,*,err=95) ntimes, dt, ndtfast, ninfo
           mpi_master_only write(*,
      &  '(5x,A,I10,3x,A/9x,A,F11.4,2x,A/4x,A,I10,3x,A/6x,A,I10,3x,2A)'
@@ -227,43 +229,48 @@ c--      fname='roms.in.US_West'
      &                                              'diagnostics'
 
           dtfast=dt/dble(ndtfast)     ! set barotropic time step.
+#ifndef SOLVE3D
+          dt=dtfast
+          ntimes=ntimes*ndtfast
+          ninfo=ninfo*ndtfast
+#endif
 
-#ifdef SOLVE3D
 ! Vertical S-coordinates transformation. Note that "hc" may be chosen
 ! to be very large (infinity) if vertically uniform sigma is desired.
 
+#ifdef SOLVE3D
         elseif (keyword(1:kwlen) == 'S-coord') then
-          call cancel_kwd (keyword(1:kwlen), ierr)
+          call cancel_kwd(keyword(1:kwlen), ierr)
           read(input,*,err=95) theta_s, theta_b, hc
-          mpi_master_only write(*,'(2(/4x,A,F10.5,3x,A))')
+          mpi_master_only write(*,'(2(/4x,A,F10.7,2x,A))')
      &    'theta_s =', theta_s, 'vertical S-coordinate surface',
      &    'theta_b =', theta_b, 'and bottom stretching parameters'
-          if (hc<1000.) then
-            mpi_master_only write(*,'(9x,A,F10.5,3x,2A)')
+          if (hc < 1000.) then
+            mpi_master_only write(*,'(9x,A,F10.5,2x,2A)')
      &                   'hc =', hc, 'critical depth [m]'
           else
-            mpi_master_only write(*,'(9x,A,ES14.5,3x,2A)')
+            mpi_master_only write(*,'(9x,A,ES14.5,2x,2A)')
      &                   'hc =', hc, 'critical depth [m]'
           endif
 
 !--> Boussinesq  reference density.
 
         elseif (keyword(1:kwlen) == 'rho0') then
-          call cancel_kwd (keyword(1:kwlen), ierr)
+          call cancel_kwd(keyword(1:kwlen), ierr)
           read(input,*,err=95) rho0
-          mpi_master_only write(*,'(7x,A,F10.4,3x,A)')  'rho0 =',
+          mpi_master_only write(*,'(7x,A,F10.4,2x,A)')  'rho0 =',
      &            rho0, 'Boussinesq reference density [kg/m^3].'
 
 # ifndef NONLIN_EOS
 !--> Parameters for linear equations of state.
 
         elseif (keyword(1:kwlen) == 'lin_rho_eos') then
-          call cancel_kwd (keyword(1:kwlen), ierr)
+          call cancel_kwd(keyword(1:kwlen), ierr)
           read(input,*,err=95) Tcoef, T0
 #  ifdef SALINITY
      &                       , Scoef, S0
 #  endif
-          mpi_master_only write(*,'(4(6x,A,F10.4,3x,A/))')
+          mpi_master_only write(*,'(4(6x,A,F10.4,2x,A/))')
      &      'Tcoef =', Tcoef,  'thermal expansion [kg/m^3/deg C]'
      &    , '   T0 =',    T0,  'reference temperature [deg C]'
 #  ifdef SALINITY
@@ -278,20 +285,21 @@ c--      fname='roms.in.US_West'
 ! Lateral viscosity coefficients.
 
         elseif (keyword(1:kwlen) == 'lateral_visc') then
-          call cancel_kwd (keyword(1:kwlen), ierr)
+          call cancel_kwd(keyword(1:kwlen), ierr)
           read(input,*,err=95) visc2
-          mpi_master_only write(*,'(6x,A,ES10.3,3x,A)') 'visc2 =',
-     &      visc2, 'horizontal Laplacian kinematic viscosity [m2/s]'
+          mpi_master_only write(*,'(6x,A,ES10.3,2x,A)')   'visc2 =',
+     &    visc2, 'horizontal Laplacian kinematic viscosity [m^2/s]'
 
 
 # if !defined EW_PERIODIC || !defined NS_PERIODIC
 ! Lateral boundary slipperness.
 
         elseif (keyword(1:kwlen) == 'gamma2') then
-          call cancel_kwd (keyword(1:kwlen), ierr)
+          call cancel_kwd(keyword(1:kwlen), ierr)
           read(input,*,err=95) gamma2
-          mpi_master_only write(*,'(5x,A,F4.1,5x,A)') 'gamma2 =',gamma2
-     &     , 'slipperiness parameter: free-slip = +1, or no-slip = -1.'
+          mpi_master_only write(*,'(5x,A,ES10.3,2x,2A)') 'gamma2 =',
+     &                           gamma2, 'slipperiness parameter: ',
+     &                           'free-slip = +1, or no-slip = -1.'
 # endif
 #endif
 #ifdef SOLVE3D
@@ -299,33 +307,46 @@ c--      fname='roms.in.US_West'
 ! Horizontal Laplacian mixing coefficients for tracers.
 
         elseif (keyword(1:kwlen) == 'tracer_diff2') then
-          call cancel_kwd (keyword(1:kwlen), ierr)
+          call cancel_kwd(keyword(1:kwlen), ierr)
           read(input,*,err=95) (tnu2(itrc),itrc=1,NT)
-          BEGIN_MPI_MASTER
-            write(*,'(5x,a)') 
-     &          'Laplacian tracer diffusion coefficient TNU2 [m^2/s]:'
-     &          , ' N | TRACER  |     TNU2'
-            do itrc=1,NT
-              write(*,'(5x,i2,2a,T18,a,g12.3)') itrc
-     &         ,' | ', trim(vname(1,indxT+itrc-1)), ' | ',tnu2(itrc) 
-            enddo
-          END_MPI_MASTER
+          do itrc=1,NT
+            if (itrc == itemp) then
+              mpi_master_only write(*,'(3x,A,I2,A,ES10.3,2x,2A,I2,A)')
+     &         'tnu2(',itrc,') =',tnu2(itrc),'horizontal Laplacian ',
+     &         'kinematic heat conductivity [m^2/s]'
+            else
+              mpi_master_only write(*,'(3x,A,I2,A,ES10.3,2x,2A,I2,A)')
+     &         'tnu2(',itrc,') =',tnu2(itrc),'horizontal Laplacian ',
+     &         'diffusion for tracer ', itrc, ', [m^2/s]'
+            endif
+          enddo
 # endif
 #endif
 
 ! Bottom drag coefficients.
 
         elseif (keyword(1:kwlen) == 'bottom_drag') then
-          call cancel_kwd (keyword(1:kwlen), ierr)
+          call cancel_kwd(keyword(1:kwlen), ierr)
           read(input,*,err=95) rdrg, rdrg2
 #ifdef SOLVE3D
      &                             , Zob
+# ifdef LMD_BKPP
+         if (abs(rdrg)+abs(rdrg2) > 0.00001) then
+           rdrg=0.0
+           rdrg2=0.0
+           mpi_master_only write(*,*)
+     &          '---- WARNING Using BKPP (LMD_BKPP) rdrg, rdrg2 ', 
+     &          'reset to 0. Fix your input file.'
+         endif
+# endif
 #endif
-          mpi_master_only write(*,'(3(/7x,A,ES10.3,3x,A))')
-     &    'rdrg =', rdrg,  'linear bottom drag coefficient [m/s]'
-     &  , 'rdrg2=', rdrg2, 'quadratic bottom drag coefficient, nondim'
+          mpi_master_only write(*,'(7x,A,ES10.3,2x,A)')
+     &     'rdrg =', rdrg,  'linear bottom drag coefficient [m/s]'
+          mpi_master_only write(*,'(6x,A,ES10.3,2x,A)')
+     &     'rdrg2 =', rdrg2, 'quadratic bottom drag coefficient, nondim'
 #ifdef SOLVE3D
-     &  , ' Zob =', Zob,   'bottom roughness height [m]'
+          mpi_master_only write(*,'(8x,A,ES10.3,2x,A)')
+     &     'Zob =', Zob,   'bottom roughness height [m]'
 #endif
 
 #ifdef SOLVE3D
@@ -335,12 +356,12 @@ c--      fname='roms.in.US_West'
 ! Background vertical viscosity and mixing coefficients for tracers.
 
         elseif (keyword(1:kwlen) == 'vertical_mixing') then
-          call cancel_kwd (keyword(1:kwlen), ierr)
+          call cancel_kwd(keyword(1:kwlen), ierr)
           read(input,*,err=95) Akv_bak,(Akt_bak(itrc),itrc=1,NT)
-          mpi_master_only write(*,'(4x,A,ES10.3,3x,A)')  'Akv_bak =',
+          mpi_master_only write(*,'(4x,A,ES10.3,2x,A)')  'Akv_bak =',
      &               Akv_bak, 'background vertical viscosity [m^2/s]'
           do itrc=1,NT
-            mpi_master_only write(*,'(1x,A,I1,A,ES10.3,3x,2A)')
+            mpi_master_only write(*,'(1x,A,I1,A,ES10.3,2x,2A)')
      &                     'Akt_bak(',  itrc,  ') =',  Akt_bak(itrc),
      &                     'background vertical mixing [m^2/s] for ',
      &        vname(2,indxT+itrc-1)(1:lenstr(vname(2,indxT+itrc-1)))
@@ -350,30 +371,55 @@ c--      fname='roms.in.US_West'
 ! Mellor-Yamada Level 2.5 turbulent closure parameters.
 
         elseif (keyword(1:kwlen) == 'MY_bak_mixing') then
-          call cancel_kwd (keyword(1:kwlen), ierr)
+          call cancel_kwd(keyword(1:kwlen), ierr)
           read(input,*,err=95) Akq_bak, q2nu2, q2nu4
           mpi_master_only write(*,'(1x,A,ES10.3,1x,A)')  'Akq_bak =',
-     &          Akq_bak, 'Background vertical mixing for TKE, [m2/s]'
+     &        Akq_bak, 'Background vertical mixing for TKE, [m^2/s]'
 #  ifdef Q_DIF2
           mpi_master_only write(*,'(1x,A,ES10.3,1x,A)')    'q2nu2 =',
-     &           q2nu2, 'Horizontal Laplacian mixing for TKE, [m2/s]'
+     &         q2nu2, 'Horizontal Laplacian mixing for TKE, [m^2/s]'
 #  endif
 #  ifdef Q_DIF4
           mpi_master_only write(*,'(1x,A,ES10.3,1x,A)')    'q2nu4 =',
-     &          q2nu4, 'Horizontal biharmonic mixing for TKE, [m4/s]'
+     &        q2nu4, 'Horizontal biharmonic mixing for TKE, [m^4/s]'
 #  endif
 # endif
+
+# if defined SFLX_CORR && defined SALINITY && defined BULK_FLUX
+
+        elseif (keyword(1:kwlen) == 'SSS_correction') then
+          call cancel_kwd(keyword(1:kwlen), ierr)
+          read(input,*,err=95) dSSSdt
+          mpi_master_only write(*,'(5x,A,ES10.3,2x,2A/38x,A)')
+     &   'dSSSdt =', dSSSdt, 'Sea-Surface Salinity correction ',
+     &                       'coefficient expressed',
+     &            'kinematically as "piston velocity" [cm/day]'
+
+          dSSSdt=dSSSdt/(100.D0*day2sec)   !<-- convert to [m/s]
+
+# endif
 #endif /* SOLVE3D */
+
+
 
 #if  defined T_FRC_BRY || defined M2_FRC_BRY || defined TNUDGING \
   || defined Z_FRC_BRY || defined M3_FRC_BRY || defined M2NUDGING \
                        || defined M3NUDGING  || defined WKB_FRC_BRY
 
+        elseif (keyword(1:kwlen) == 'ubind') then
+          call cancel_kwd(keyword(1:kwlen), ierr)
+          read(input,*,err=95) ubind
+            mpi_master_only write(*,'(6x,A,ES10.3,2x,A)')
+     &     'ubind =', ubind, 'open boundary binding velcity [m/s]'
+
+
+/* OBSOLETE --->
 ! Parameters for OBC nudging and nudging layers;
 ! converted from [days] to [sec^-1]
 
-        elseif (keyword(1:kwlen) == 'nudg_cof') then
-          call cancel_kwd (keyword(1:kwlen), ierr)
+
+c-->    elseif (keyword(1:kwlen) == 'nudg_cof') then
+          call cancel_kwd(keyword(1:kwlen), ierr)
           read(input,*,err=95) tauM2_in, tauM2_out, attnM2
 # ifdef SOLVE3D
      &                       , tauM3_in, tauM3_out
@@ -402,7 +448,7 @@ c--      fname='roms.in.US_West'
           mpi_master_only write(*,'(6x,A,ES10.3,ES10.3,2A)')
      &          'tauM2 =', tauM2_in, tauM2_out, '(in/out)  Nudging ',
      &                                   'for barotropic mode [s^-1]'
-          mpi_master_only write(*,'(5x,A,ES10.3,3x,2A)') 'attnM2 =',
+          mpi_master_only write(*,'(5x,A,ES10.3,2x,2A)') 'attnM2 =',
      &    attnM2,'open boundary pressure-gradient attenuation [s^-1]'
 # ifdef SOLVE3D
           mpi_master_only write(*,'(6x,A,ES10.3,ES10.3,2A)')
@@ -412,7 +458,10 @@ c--      fname='roms.in.US_West'
      &             'tauT =', tauT_in, tauT_out, '(in/out)  Nudging ',
      &                                          'for tracers [s^-1]'
 # endif
+           <--- OBSOLETE */
 #endif
+
+
 #ifdef SPONGE
 ! Parameters for the sponge layers
 
@@ -424,19 +473,19 @@ c--      fname='roms.in.US_West'
      &       ,'n_sponge Number of grid lines in sponge layer [-]'
 #  else
         elseif (keyword(1:kwlen) == 'v_sponge') then
-          call cancel_kwd (keyword(1:kwlen), ierr)
+          call cancel_kwd(keyword(1:kwlen), ierr)
           read(input,*,err=95) v_sponge
 #  endif
           mpi_master_only write(*,'(3x,A,F10.2,2x,A)') 'v_sponge =',
-     &          v_sponge, 'Maximum viscosity in sponge layer [m2/s]'
+     &        v_sponge, 'Maximum viscosity in sponge layer [m^2/s]'
 #endif
 #ifdef OBC_FLUX_CORR
         elseif (keyword(1:kwlen) == 'tau_obc') then
-          call cancel_kwd (keyword(1:kwlen), ierr)
+          call cancel_kwd(keyword(1:kwlen), ierr)
           read(input,*,err=95) tau_obc
           mpi_master_only write(*,'(1x,A,ES10.3,2x,2A)')
      &      'tau_obc =',  tau_obc, 'OBC volume constraint ',
-     &                              'relaxation period [days]'
+     &                           'relaxation period [days]'
           tau_obc=tau_obc*day2sec
 #endif
 
@@ -447,11 +496,11 @@ c--      fname='roms.in.US_West'
 ! Grid file name. Check its availability.
 
         elseif (keyword(1:kwlen) == 'grid') then
-          call cancel_kwd (keyword(1:kwlen), ierr)
+          call cancel_kwd(keyword(1:kwlen), ierr)
           read(input,'(A)',err=95) fname
           lstr=lenstr(fname)
 # if defined MPI && defined PARALLEL_FILES && !defined JOINED_GRD
-          call insert_node (fname, lstr, mynode, NNODES, ierr)
+          call insert_node(fname, lstr, mynode, NNODES, ierr)
 # endif
           open(testunit,file=fname(1:lstr), status='old', err=97)
           close(testunit)
@@ -465,15 +514,15 @@ c--      fname='roms.in.US_West'
 ! created internally and no file is needed).
 
         elseif (keyword(1:kwlen) == 'initial') then
-          call cancel_kwd (keyword(1:kwlen), ierr)
+          call cancel_kwd(keyword(1:kwlen), ierr)
           read(input,*,err=95) nrrec
 #ifdef ANA_INITIAL
-          if (nrrec>0) then
+          if (nrrec > 0) then
 #endif
             read(input,'(A)',err=95) fname
             lstr=lenstr(fname)
 #if defined MPI && defined PARALLEL_FILES
-            call insert_node (fname, lstr, mynode, NNODES, ierr)
+            call insert_node(fname, lstr, mynode, NNODES, ierr)
 #endif
             ininame=fname(1:lstr)
             mpi_master_only write(*,'(1x,A,I3,2x,3A)')
@@ -494,29 +543,92 @@ c--      fname='roms.in.US_West'
 ! Forcing file name. Check its availability.
 
         elseif (keyword(1:kwlen) == 'forcing') then
-          call cancel_kwd (keyword(1:kwlen), ierr)
+          call cancel_kwd(keyword(1:kwlen), ierr)
           max_frc=0
           lstr=1
-          do while (lstr>0 .and. max_frc<max_frc_file)
+          do while(lstr > 0 .and. max_frc < max_frc_files+1)
             read(input,'(A)',err=95) fname
             lstr=lenstr(fname)
-            if (lstr>0) then
-#if defined MPI && defined PARALLEL_FILES
-              call insert_node (fname, lstr, mynode, NNODES, ierr)
-#endif
-              open (testunit,file=fname(1:lstr),status='old',err=97)
+            if (lstr > 0) then
+# if defined MPI && defined PARALLEL_FILES
+              call insert_node(fname, lstr, mynode, NNODES, ierr)
+# endif
+              open(testunit,file=fname(1:lstr),status='old',err=97)
               close(testunit)
-              max_frc=max_frc+1
-              frcfile(max_frc)=fname(1:lstr)
-              if (max_frc==1) then
-                 mpi_master_only write(*,'(1x,A,1x,A)')
-     &           'forcing data file(s):', frcfile(max_frc)(1:lstr)
+
+              if (max_frc < max_frc_files) then
+                max_frc=max_frc+1
+                frcfile(max_frc)=fname(1:lstr)
+# ifdef MPI_SILENT_MODE
+                if (mynode == 0) then
+# endif
+                  if (max_frc == 1) then
+                    write(*,'(1x,2A)') 'forcing data file(s): ',
+     &                                 frcfile(max_frc)(1:lstr)
+                  else
+                    write(*,'(23x,A)') frcfile(max_frc)(1:lstr)
+                  endif
+
+# ifdef MPI_SILENT_MODE
+                endif
+# endif
               else
-                 mpi_master_only write(*,'(23x,A)')
-     &                                    frcfile(max_frc)(1:lstr)
+                mpi_master_only write(*,'(1x,2A/12x,2A/)')
+     &          '### ERROR: read_inp :: Too many forcing files are ',
+     &          'specified in input script.',  'Increase parameter ',
+     &                '''max_frc_files'' in ncvars.h and recompile.'
+                ierr=ierr+1
               endif
             endif
           enddo
+#endif
+
+! Boundary forcing data file names. Check availability.
+
+#if defined T_FRC_BRY || defined M2_FRC_BRY || defined M3_FRC_BRY \
+                      || defined Z_FRC_BRY  || defined WKB_FRC_BRY
+# ifndef ANA_BRY
+
+        elseif (keyword(1:kwlen) == 'boundary') then
+          call cancel_kwd(keyword(1:kwlen), ierr)
+          max_bry=0
+          lstr=1
+          do while(lstr > 0 .and. max_bry < max_bry_files+1)
+            read(input,'(A)',err=95) fname
+            lstr=lenstr(fname)
+            if (lstr > 0) then
+#  if defined MPI && defined PARALLEL_FILES
+              call insert_node(fname, lstr, mynode, NNODES, ierr)
+#  endif
+              open(testunit, file=fname(1:lstr), status='old',err=97)
+              close(testunit)
+
+              if (max_bry < max_bry_files) then
+                max_bry=max_bry+1
+                bry_file(max_bry)=fname(1:lstr)
+#  ifdef MPI_SILENT_MODE
+                if (mynode == 0) then
+#  endif
+                  if (max_bry == 1) then
+                    write(*,'(1x,2A)') 'boundary forcing file(s): ',
+     &                                  bry_file(max_bry)(1:lstr)
+                  else
+                    write(*,'(27x,A)')  bry_file(max_bry)(1:lstr)
+
+                  endif
+#  ifdef MPI_SILENT_MODE
+                endif
+#  endif
+              else
+                mpi_master_only write(*,'(1x,2A/12x,2A/)')
+     &         '### ERROR: read_inp :: Too many boundary files are ',
+     &         'specified in input script.',   'Increase parameter ',
+     &                '''max_bry_files'' in ncvars.h and recompile.'
+                ierr=ierr+1
+              endif
+            endif
+          enddo
+# endif
 #endif
 
 ! Climatology file name. Climatology data is needed for (1) to supply
@@ -528,106 +640,93 @@ c--      fname='roms.in.US_West'
 ! data may also be supplied via BRY mechanism, where file contains
 ! perimeter data only.  In this case (activated by T_FRC_BRY), no
 ! climatology file is needed.  The following code segments also
-! checks for availability of clm_file.
+! checks for availability of clm_files.
 
-#if defined SOLVE3D &&( defined TCLIMATOLOGY ||( defined TNUDGING &&\
+#if defined SOLVE3D &&( defined TCLIMATOLOGY ||( defined TNUDGING && \
                         defined T_FRC_BRY )) && !defined ANA_TCLIMA
 
         elseif (keyword(1:kwlen) == 'climatology') then
-          call cancel_kwd (keyword(1:kwlen), ierr)
-# ifdef MULT_CLIM_FILES
-          ! Read number of climatology files:
-          ! read(input,'(i)') nclimfiles
-          read(input,*) nclimfiles
-          if (nclimfiles > 4) then
-             MPI_master_only write (*,'(a,1x,a)') 'ERROR:',
-     &         'at most 4 climatology files are possible.'
-             goto 95
-          end if
-          MPI_master_only write(*,'(3x,a,i3)')
-     &      'Number of climatology files: ', nclimfiles
-          ! Read names of clim files (one per line):
-          do i = 1,nclimfiles
-             read(input,'(A)',err=95) fname
-             lstr=lenstr(fname)
-#  if defined MPI && defined PARALLEL_FILES && !defined JOINED_CLM
-             call insert_node (fname, lstr, mynode, NNODES, ierr)
-#  endif
-             open (testunit, file=fname(1:lstr), status='old', err=97)
-             close(testunit)
-             clm_file(i) = fname(1:lstr)
-             MPI_master_only write(*,'(3x,A,i3,A,2x,A)')
-     &          'Climatology File ',i,':', clm_file(i)(1:lstr)
-          end do
-# else /* MULT_CLIM_FILES */
-          read(input,'(A)',err=95) fname
-          lstr=lenstr(fname)
+          call cancel_kwd(keyword(1:kwlen), ierr)
+          max_clm=0
+          lstr=1
+            do while (lstr > 0 .and. max_clm < max_clm_files+1)
+            read(input,'(A)',err=95) fname
+            lstr=lenstr(fname)
+            if (lstr > 0) then
 # if defined MPI && defined PARALLEL_FILES
-          call insert_node (fname, lstr, mynode, NNODES, ierr)
+          call insert_node(fname, lstr, mynode, NNODES, ierr)
 # endif
-          open (testunit, file=fname(1:lstr), status='old', err=97)
-          close(testunit)
-          clm_file=fname(1:lstr)
-          mpi_master_only write(*,'(1x,4A)')   'climatology data :: ',
-     &                           'file = ''', clm_file(1:lstr), ''''
+              open(testunit, file=fname(1:lstr), status='old', err=97)
+              close(testunit)
+              if (max_clm < max_frc_files) then
+                max_clm=max_clm+1
+                clm_file(max_clm)=fname(1:lstr)
+# ifdef MPI_SILENT_MODE
+                if (mynode == 0) then
 # endif
-#endif
-#if defined T_FRC_BRY || defined M2_FRC_BRY || defined M3_FRC_BRY \
-                      || defined Z_FRC_BRY  || defined WKB_FRC_BRY
-# ifndef ANA_BRY
-! Boundary forcing data file name. Check availability.
+                  if (max_clm == 1) then
+                    write(*,'(1x,2A)') 'Climatology data file(s): ',
+     &                                 clm_file(max_clm)(1:lstr)
+                  else
+                    write(*,'(23x,A)') clm_file(max_clm)(1:lstr)
+                  endif
 
-        elseif (keyword(1:kwlen) == 'boundary') then
-          call cancel_kwd (keyword(1:kwlen), ierr)
-          read(input,'(A)',err=95) fname
-          lstr=lenstr(fname)
-#  if defined MPI && defined PARALLEL_FILES && !defined JOINED_BRY
-          call insert_node (fname, lstr, mynode, NNODES, ierr)
-#  endif
-          open (testunit, file=fname(1:lstr), status='old', err=97)
-          close(testunit)
-          bry_file=fname(1:lstr)
-          mpi_master_only write(*,'(1x,2A)') 'boundary forcing file: ',
-     &                                              bry_file(1:lstr)
+# ifdef MPI_SILENT_MODE
+                endif
 # endif
+              else
+                mpi_master_only write(*,'(1x,2A/12x,2A/)')
+     &          '### ERROR: read_inp :: Too many climatology files are ',
+     &          'specified in input script.',  'Increase parameter ',
+     &                '''max_clm_files'' in ncvars.h and recompile.'
+                ierr=ierr+1
+              endif
+            endif
+          enddo
 #endif
 
 ! Output files controls: restart, history, averages, stations, floats
 !------- ----- ---------
 
         elseif (keyword(1:kwlen) == 'restart') then
-          call cancel_kwd (keyword(1:kwlen), ierr)
+          call cancel_kwd(keyword(1:kwlen), ierr)
           read(input,*,err=95) nrst, nrpfrst
           read(input,'(A)',err=95)  fname
           lstr=lenstr(fname)
 # if defined MPI && defined PARALLEL_FILES && !defined JOINED_RST
-          call insert_node (fname, lstr, mynode, NNODES, ierr)
+          call insert_node(fname, lstr, mynode, NNODES, ierr)
 # endif
           rstname=fname(1:lstr)
           mpi_master_only write(*,'(1x,A,I8, 2x,A,I5, 2x,3A)')
      &          'restart :: nrst =',nrst, 'rec/file =', nrpfrst,
      &                        'file =''', rstname(1:lstr), ''''
+#ifndef SOLVE3D
+          nrst=nrst*ndtfast
+#endif
 
-! history file controls: owerwrite flag, output frequency,
-! number of reconds per file in sequence, and filename
+! history file controls: owerwrite flag, output frequency, number
+! of reconds per file in sequence, and filename
 
         elseif (keyword(1:kwlen) == 'history') then
-          call cancel_kwd (keyword(1:kwlen), ierr)
+          call cancel_kwd(keyword(1:kwlen), ierr)
           read(input,*,err=95) ldefhis, nwrt, nrpfhis
           read(input,'(A)',err=95) fname
           lstr=lenstr(fname)
-# if defined MPI && defined PARALLEL_FILES && !defined JOINED_HIS
-          call insert_node (fname, lstr, mynode, NNODES, ierr)
-# endif
+#if defined MPI && defined PARALLEL_FILES && !defined JOINED_HIS
+          call insert_node(fname, lstr, mynode, NNODES, ierr)
+#endif
           hisname=fname(1:lstr)
           mpi_master_only write(*,'(/1x,A,L1,2x,A,I5,2x,A,I4,2x,3A)')
      &       'history :: overwrite = ', ldefhis,      'nwrt =', nwrt,
-     &       'rec/file =', nrpfhis, 'file = ''', hisname(1:lstr), ''''
+     &       'rec/file =', nrpfhis, 'file = ''',hisname(1:lstr),''''
+#ifndef SOLVE3D
+          nwrt=nwrt*ndtfast
+#endif
 
 ! Which fields to be saved into history file.
 
         elseif (keyword(1:kwlen) == 'primary_history_fields') then
-          call cancel_kwd (keyword(1:kwlen), ierr)
+          call cancel_kwd(keyword(1:kwlen), ierr)
           read(input,*,err=95) wrthis(indxZ),  wrthis(indxUb)
      &                                      ,  wrthis(indxVb)
 #ifdef SOLVE3D
@@ -659,7 +758,7 @@ c--      fname='roms.in.US_West'
 # endif /* SEDIMENT_BIOLOGY */
       END_MPI_MASTER
         elseif (keyword(1:kwlen) == 'auxiliary_history_fields') then
-          call cancel_kwd (keyword(1:kwlen), ierr)
+          call cancel_kwd(keyword(1:kwlen), ierr)
           read(input,*,err=95) wrthis(indxR), wrthis(indxO)
      &          ,  wrthis(indxW),  wrthis(indxAkv),  wrthis(indxAkt)
 # ifdef SALINITY
@@ -670,6 +769,18 @@ c--      fname='roms.in.US_West'
 # endif
 # ifdef LMD_BKPP
      &                                            ,  wrthis(indxHbbl)
+# endif
+# if defined WRITE_HEATFLX
+     &                                            ,  wrthis(indxHeatflx)
+# endif
+# if defined WRITE_TEMP_REST
+     &                                            ,  wrthis(indxRestflxTemp)
+# endif
+# if defined WRITE_SALT_REST
+     &                                            ,  wrthis(indxRestflxSalt)
+# endif
+# if defined  WRITE_CO2FLX
+     &                                            ,  wrthis(indxCO2flx)
 # endif
 
       BEGIN_MPI_MASTER
@@ -684,6 +795,15 @@ c--      fname='roms.in.US_West'
       naux=naux+1
 # endif
 # ifdef LMD_BKPP
+      naux=naux+1
+# endif
+# if defined WRITE_HEATFLX
+      naux=naux+1
+# endif
+# if defined WRITE_TEMP_REST
+      naux=naux+1
+# endif
+# if defined WRITE_SALT_REST
       naux=naux+1
 # endif
       call echo_to_write(wrthis(indxAkv), naux,'mixing'
@@ -702,27 +822,34 @@ c--      fname='roms.in.US_West'
 ! records per file, and output filename.
 
         elseif (keyword(1:kwlen) == 'averages') then
-          call cancel_kwd (keyword(1:kwlen), ierr)
+          call cancel_kwd(keyword(1:kwlen), ierr)
           read(input,*,err=95) ntsavg, navg, nrpfavg
           read(input,'(A)',err=95) fname
           lstr=lenstr(fname)
 # if defined MPI && defined PARALLEL_FILES && !defined JOINED_AVG
-          call insert_node (fname, lstr, mynode, NNODES, ierr)
+          call insert_node(fname, lstr, mynode, NNODES, ierr)
 # endif
           avgname=fname(1:lstr)
           mpi_master_only write(*,'(/1x,A,I5,2x,A,I5,2x,A,I4,2x,3A)')
      &       'averages :: ntsavg = ', ntsavg,      'navg =', navg,
      &       'rec/file =', nrpfavg, 'file = ''', avgname(1:lstr), ''''
+# ifndef SOLVE3D
+          ntsavg=ntsavg*ndtfast ; navg=navg*ndtfast
+# endif
 
 ! Switches for fields to compute averages.
 
         elseif (keyword(1:kwlen) == 'primary_averages') then
-          call cancel_kwd (keyword(1:kwlen), ierr)
+          call cancel_kwd(keyword(1:kwlen), ierr)
           read(input,*,err=95) wrtavg(indxZ),  wrtavg(indxUb)
      &                                        ,  wrtavg(indxVb)
 # ifdef SOLVE3D
      &                      ,  wrtavg(indxU),     wrtavg(indxV)
      &                      , (wrtavg(indxT+itrc-1), itrc=1,NT)
+# ifdef SEDIMENT_BIOLOGY
+     &                      , (wrtavg(itrc), 
+     &                         itrc=indxSedOrgN,indxSedOrgN+NT_sed-1)
+# endif /* SEDIMENT_BIOLOGY */
 # endif
       if (any(wrtavg)) wrtavg(indxTime)=.true.
 
@@ -732,18 +859,18 @@ c--      fname='roms.in.US_West'
 # ifdef SOLVE3D
       nbasic=nbasic+2 ! u, v
 # endif
-      call echo_to_write(wrthis(indxZ), nbasic,'primary'
+      call echo_to_write(wrtavg(indxZ), nbasic,'primary'
      &         , 'averages',vname(1,indxZ))
-      call echo_to_write(wrthis(indxT), NT,'tracer'
+      call echo_to_write(wrtavg(indxT), NT,'tracer'
      &         , 'averages',vname(1,indxT))
 # ifdef SEDIMENT_BIOLOGY
-      call echo_to_write(wrthis(indxSedOrgN), NT_sed,'sediment'
+      call echo_to_write(wrtavg(indxSedOrgN), NT_sed,'sediment'
      &         , 'averages',vname(1,indxSedOrgN))
 # endif /* SEDIMENT_BIOLOGY */
       END_MPI_MASTER
 
         elseif (keyword(1:kwlen) == 'auxiliary_averages') then
-          call cancel_kwd (keyword(1:kwlen), ierr)
+          call cancel_kwd(keyword(1:kwlen), ierr)
           read(input,*,err=95) wrtavg(indxR), wrtavg(indxO)
      &          ,  wrtavg(indxW),  wrtavg(indxAkv),  wrtavg(indxAkt)
 # ifdef SALINITY
@@ -754,6 +881,23 @@ c--      fname='roms.in.US_West'
 # endif
 # ifdef LMD_BKPP
      &                                            ,  wrtavg(indxHbbl)
+# endif
+# ifdef KPP_DIAGNOSE
+     &                                            ,  wrtavg(indxKppRichm)
+     &                                            ,  wrtavg(indxKppRicht)
+     &                                            ,  wrtavg(indxKppSblSh)
+     &                                            ,  wrtavg(indxKppSblSt)
+     &                                            ,  wrtavg(indxKppSblRot)
+     &                                            ,  wrtavg(indxKppSblEnt)
+# endif
+# if defined WRITE_HEATFLX
+     &                                            ,  wrtavg(indxHeatflx)
+# endif
+# if defined WRITE_TEMP_REST
+     &                                            ,  wrtavg(indxRestflxTemp)
+# endif
+# if defined WRITE_SALT_REST
+     &                                            ,  wrtavg(indxRestflxSalt)
 # endif
       BEGIN_MPI_MASTER
       naux=3 ! omega, w, rho
@@ -767,6 +911,18 @@ c--      fname='roms.in.US_West'
       naux=naux+1
 # endif
 # ifdef LMD_BKPP
+      naux=naux+1
+# endif
+# ifdef KPP_DIAGNOSE
+      naux=naux+6
+# endif
+# if defined WRITE_HEATFLX
+      naux=naux+1
+# endif
+# if defined WRITE_TEMP_REST
+      naux=naux+1
+# endif
+# if defined WRITE_SALT_REST
       naux=naux+1
 # endif
       call echo_to_write(wrtavg(indxAkv), naux,'mixing'
@@ -787,8 +943,9 @@ c--      fname='roms.in.US_West'
           call insert_node (fname, lstr, mynode, NNODES, ierr)
 #  endif
           slavgname=fname(1:lstr)
-          mpi_master_only write(*,'(/1x,A,I5,2x,A,I5,2x,A,I4,2x,3A)')
-     &       'averages :: ntsslavg = ', ntsslavg,  'nslavg =', nslavg,
+          mpi_master_only write(*,'(/1x,A,i3,A,I5,2x,A,I5,2x,A,I4,2x,3A)')
+     &       'slice averages :: level = ',ksl, ', ntsslavg = ', ntsslavg
+     &       ,  'nslavg =', nslavg,
      &       'rec/file =', nrpfslavg, 'file = ''', slavgname(1:lstr), ''''
 
 ! Switches for fields to compute slice averages.
@@ -812,7 +969,7 @@ c--      fname='roms.in.US_West'
       call echo_to_write(wrthis(indxZ), nbasic,'primary'
      &         , 'slice averages',vname(1,indxZ))
       call echo_to_write(wrthis(indxT), NT,'tracer'
-     &         , 'averages',vname(1,indxT))
+     &         , 'slice averages',vname(1,indxT))
 #  ifdef SEDIMENT_BIOLOGY
       call echo_to_write(wrthis(indxSedOrgN), NT_sed,'sediment'
      &         , 'slice averages',vname(1,indxSedOrgN))
@@ -1060,7 +1217,7 @@ c--      fname='roms.in.US_West'
 ! interval and number of records per file; output filename:
 
         elseif (keyword(1:kwlen) == 'stations') then
-          call cancel_kwd (keyword(1:kwlen), ierr)
+          call cancel_kwd(keyword(1:kwlen), ierr)
           read(input,*,err=95) nsta, nrpfstn
           read(input,'(A)',err=95) fname
           read(input,'(A)',err=95) staname
@@ -1076,7 +1233,7 @@ c--      fname='roms.in.US_West'
 ! Switches for fields to sample into stations file:
 
         elseif (keyword(1:kwlen) == 'primary_stations') then
-          call cancel_kwd (keyword(1:kwlen), ierr)
+          call cancel_kwd(keyword(1:kwlen), ierr)
           read(input,*,err=95) wrtsta(indxZ),  wrtsta(indxUb)
      &                                         , wrtsta(indxVb)
 # ifdef SOLVE3D
@@ -1094,7 +1251,7 @@ c--      fname='roms.in.US_West'
      &                 , 'zeta',   wrtsta(indxZ),    vname(2,indxZ)
      &                 , 'ubar',   wrtsta(indxUb),   vname(2,indxUb)
      &                 , 'vbar',   wrtsta(indxVb),   vname(2,indxVb)
-#ifdef SOLVE3D
+# ifdef SOLVE3D
      &                 , 'u',      wrtsta(indxU),    vname(2,indxU)
      &                 , 'v',      wrtsta(indxV),    vname(2,indxV)
           do itrc=1,NT
@@ -1104,7 +1261,7 @@ c--      fname='roms.in.US_West'
           enddo
 
         elseif (keyword(1:kwlen) == 'auxiliary_stations') then
-          call cancel_kwd (keyword(1:kwlen), ierr)
+          call cancel_kwd(keyword(1:kwlen), ierr)
           read(input,*,err=95) wrtsta(indxR), wrtsta(indxO)
      &          ,  wrtsta(indxW),  wrtsta(indxAkv),  wrtsta(indxAkt)
 #  ifdef SALINITY
@@ -1160,7 +1317,7 @@ c--      fname='roms.in.US_West'
           MPI_master_only write(*,'(1pe10.3,2x,A,1x,A)')
      &       start_year, 'start_year   point in time (year) when',
      &       'simulation starts'
-#endif /* BIOLOGY_BEC || BIOLOGY_BEC2 || BIOLOGY_NPZDOC) && VARIABLE_ANN_ATM_PCO2
+#endif /* BIOLOGY_BEC || BIOLOGY_BEC2 || BIOLOGY_NPZDOC) && VARIABLE_ANN_ATM_PCO2 */
 
 
 
@@ -1170,12 +1327,12 @@ c--      fname='roms.in.US_West'
 ! Floats file name.
 
       elseif (keyword(1:kwlen) == 'floats') then
-        call cancel_kwd (keyword(1:kwlen), ierr)
+        call cancel_kwd(keyword(1:kwlen), ierr)
           read(input,*,err=95) ldefflt, nflt, nrpfflt
           read(input,'(A)',err=95) fposnam
           read(input,'(A)',err=95) fltname
 # if defined MPI && defined PARALLEL_FILES
-          call insert_node (fposname, lstr, mynode, NNODES, ierr)
+          call insert_node(fposname, lstr, mynode, NNODES, ierr)
 # endif
           lstr=lenstr(fltname)
           mpi_master_only write(*,'(/1x,A,L1,2x,A,I5,2x,A,I4,2x,3A)')
@@ -1185,7 +1342,7 @@ c--      fname='roms.in.US_West'
 ! Switches for fields to be saved into floats output file.
 
       elseif (keyword(1:kwlen)=='float_fields') then
-        call cancel_kwd (keyword(1:kwlen), ierr)
+        call cancel_kwd(keyword(1:kwlen), ierr)
 # ifdef AGRIF
         if (Agrif_Root()) then
 # endif
@@ -1208,12 +1365,12 @@ c--      fname='roms.in.US_West'
 
 #ifdef MOORE_BEC
         elseif (keyword(1:kwlen)=='mgm_history') then
-          call cancel_kwd (keyword(1:kwlen), ierr)
+          call cancel_kwd(keyword(1:kwlen), ierr)
           read(input,*,err=95) nwrtmgm,  nprfmgm
           read(input,'(A)',err=95) fname
           lstr=lenstr(fname)
 # if defined MPI && defined PARALLEL_FILES
-          call insert_node (fname, lstr, mynode, NNODES, ierr)
+          call insert_node(fname, lstr, mynode, NNODES, ierr)
 # endif
           mgmfname=fname(1:lstr)
           mpi_master_only write(*,'(7x,A,2x,A,2x,A,2x,A,I42x,A,I3)')
@@ -1222,12 +1379,12 @@ c--      fname='roms.in.US_West'
 
 
         elseif (keyword(1:kwlen)=='mgm_avg') then
-          call cancel_kwd (keyword(1:kwlen), ierr)
+          call cancel_kwd(keyword(1:kwlen), ierr)
           read(input,*,err=95) nwrtmgmavg,  nprfmgmavg
           read(input,'(A)',err=95) fname
           lstr=lenstr(fname)
 # if defined MPI && defined PARALLEL_FILES
-          call insert_node (fname, lstr, mynode, NNODES, ierr)
+          call insert_node(fname, lstr, mynode, NNODES, ierr)
 # endif
           mgmavgfname=fname(1:lstr)
           mpi_master_only write(*,'(7x,A,2x,A,2x,A,2x,A,I42x,A,I3)')
@@ -1276,32 +1433,33 @@ c--      fname='roms.in.US_West'
 
 ! Error while reading input parameters.
 
-  95  write(*,'(/1x,4A/)') '### ERROR: read_inp :: Cannot read ',
+   95 write(*,'(/1x,4A/)') '### ERROR: read_inp :: Cannot read ',
      &                       'entry ''', keyword(1:kwlen), '''.'
       ierr=ierr+1
       goto 99
-  97  lstr=lenstr(fname)
+   97 lstr=lenstr(fname)
       write(*,'(/1x,4A/)') '### ERROR: read_inp :: Cannot find ',
      &                     'input file ''', fname(1:lstr), '''.'
       ierr=ierr+1
-  99  close (input)
+   99 close (input)
 
 ! Check that all keywords were canceled, complain about the error,
 ! if some of them left.
 
-      if (ierr==0) call check_kwds (ierr)
-      if (ierr/=0) then
+      if (ierr == 0) call check_kwds (ierr)
+      if (ierr /= 0) then
         write(*,'(/1x,2A,I3,1x,A/)') '### ERROR: read_inp :: ',
      &  'A total of', ierr, 'configuration errors discovered.'
        return
       endif
+#ifdef CHECK_SRCS
       call check_srcs
+#endif
 #ifdef MPI
       call MPI_Barrier (ocean_grid_comm, ierr)
 #endif
       mpi_master_only print '(/3A)', '------------'
      &    , ' Finished reading input parameters ', '------------'
-      return
       end
 
       subroutine echo_to_write(wrtflag, NT, c, s, var)
@@ -1339,7 +1497,7 @@ c--      fname='roms.in.US_West'
       end
 
                                             ! Find place in the string
-      subroutine cancel_kwd (keyword, ierr) ! kwds(1:max_opt_size)
+      subroutine cancel_kwd(keyword, ierr)  ! kwds(1:max_opt_size)
       implicit none                         ! which matches the input
 #include "strings.h"
       character(len=*) keyword              ! keyword name and turn it

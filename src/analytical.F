@@ -68,22 +68,7 @@
 !  Set mean density anomaly (kg/m^3) at horizontal and vertical
 !  RHO-points.
 
-# if defined BASIN
-c     cff1=(44.690/39.382)**2
-c     cff2=cff1*(rho0*800./g)*(5.0e-5/((42.689/44.690)**2))
-c-song:
-      do k=1,N
-        do j=jstrR,jendR
-          do i=istrR,iendR
-c           rhobar(i,j,k)=R0-cff2*exp(z_r(i,j,k)/800.)*
-            rhobar(i,j,k)=R0-  (44.690/39.382)**2
-     &  *(rho0*800./g)*(5.0e-5/((42.689/44.690)**2))
-     &                           *exp(z_r(i,j,k)/800.)*
-     &                    (0.6-0.4*tanh(z_r(i,j,k)/800.))
-           enddo
-        enddo
-      enddo
-# elif defined CANYON_A || defined GRAV_ADJ || defined OVERFLOW
+# if defined CANYON_A || defined GRAV_ADJ || defined OVERFLOW
       do k=1,N
         do j=jstrR,jendR
           do i=istrR,iendR
@@ -169,31 +154,35 @@ c           rhobar(i,j,k)=R0-cff2*exp(z_r(i,j,k)/800.)*
 # include "grid.h"
 # include "forces.h"
 # include "scalars.h"
-      real TauX, TauY, cff 
+      real TauX, TauY, cff
 
 # include "compute_extended_bounds.h"
 
-                          ! Set kinematic surface momentum flux
-      do j=jstrR,jendR    ! (wind stress) components in XI- and ETA-
-        do i=istrR,iendR  ! directions [m^2/s^2] at horizontal U- and
-          sustr(i,j)=0.   ! V-points respectively.  For the sake of
-          svstr(i,j)=0.   ! code compactness, both components are set
-        enddo             ! set to zero at first (default values)
-      enddo               ! and then overwritten, when appropriate.
+      if (FIRST_TIME_STEP) then  ! Set wind stress (kinematic surface
+        do j=jstrR,jendR         ! momentum flux [m^2/s^2]) components
+          do i=istrR,iendR       ! in XI- and ETA-directions [m^2/s^2])
+            sustr(i,j)=0.        ! at horizontal U- and V-points.
+            svstr(i,j)=0.        ! For code compactness, both are set
+          enddo                  ! to zero at first (default values),
+        enddo                    ! then either one of them, or both may
+      endif                      ! be overwritten by nontrivial values.
 
-# ifdef BASIN
-      cff1=0.0001 * 0.5*(1.+tanh((time-6.*86400.)/(3.*86400.)))
-      cff2=2.*pi/el
-      do j=jstrR,jendR
-        do i=istr,iendR
-          sustr(i,j)=-cff1*cos(cff2*yr(i,j))
+# ifdef DOUBLE_GYRE
+      if (FIRST_TIME_STEP) then    ! Wind is constant in time, so
+        TauX=(0.1/1000.)           ! initialize it during the first
+        cff=2.*pi/el               ! time step, and use thereafter.
+        do j=jstrR,jendR
+          sustr(istr,j)=TauX*(1.-cos(cff*yr(istr,j)))
+          do i=istr+1,iendR
+            sustr(i,j)=sustr(istr,j)
+          enddo
         enddo
-      enddo
+      endif
 # elif defined CANYON_A || defined CANYON_B
       do j=jstrR,jendR
         do i=istr,iendR
-          sustr(i,j)=0.0001*0.5*sin(2.*pi*tdays/10.)*
-     &               (1.-tanh((yr(i,j)-0.5*el)/10000.))
+          sustr(i,j)=0.0001*0.5*sin(2.*pi*tdays/10.)*(
+     &               1.-tanh((yr(i,j)-0.5*el)/10000.) )
         enddo
       enddo
 # elif defined EKMAN_SPIRAL
@@ -208,7 +197,7 @@ c           rhobar(i,j,k)=R0-cff2*exp(z_r(i,j,k)/800.)*
       TauY=0.1/rho0   ;  TauX=-1.0*TauY ! This setup allows rotating
       cff=TauY/sqrt(TauY**2+TauX**2)    ! wind direction by setting the
       TauX=cff*TauX   ;  TauY=cff*TauY  ! initial value of TauX, then
-      do j=jstrR,jendR                  ! adjacting both components to 
+      do j=jstrR,jendR                  ! adjacting both components to
         do i=istrR,iendR                ! kee the overall amplitute as
           sustr(i,j)=TauX               ! initially specified by TauY.
           svstr(i,j)=TauY
@@ -381,7 +370,7 @@ c          svstr(i,j)=-1.0d-4
 # if defined ANA_TCLIMA && defined TCLIMATOLOGY
       subroutine ana_tclima(tile)
       implicit none                   ! Set up analytical tracer
-      integer tile                    ! climatology fields. 
+      integer tile                    ! climatology fields.
 # include "param.h"
 # include "compute_tile_bounds.h"
       call ana_tclima_tile(istr,iend,jstr,jend)
@@ -416,7 +405,7 @@ c          svstr(i,j)=-1.0d-4
 
 #  elif defined ISWAKE
 
-! There is no code here because for this case climatological data is 
+! There is no code here because for this case climatological data is
 ! saved from the initial conditions and thereafter remaines unchanged.
 
 #  else
@@ -617,7 +606,7 @@ c      real, dimension(PRIVATE_2D_SCRATCH_ARRAY) :: wrk1, wrk2
 ! are located at U- or V-points so the grid locations should range
 ! from 1 =< Isrc =< L  and  1 =< Jsrc =< M.
 
-      if (iic==ntstart) then
+      if (FIRST_TIME_STEP) then
 # if defined IBERIA
         Nsrc=4
         Dsrc(1)=1            ! Minho

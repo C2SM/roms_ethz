@@ -14,7 +14,7 @@
 # include "ncvars.h"
 # include "sources.h"
       real cff
-      integer is, nsrc, ierr, lstr, lvar, lenstr, nf_fread
+      integer is, nsrc, ierr, lstr, lvar, lenstr, ncdf_read
       character*80 fname
       character*3 tnum
 !
@@ -44,7 +44,7 @@
            if (ncid_ad(is).eq.-1) then
               ierr=nf_open(fname(1:lstr), nf_nowrite, ncid_ad(is))
               if (ierr.ne.nf_noerr) then
-                 write(stdout,'(/1x,4A/)') 
+                 write(*,'(/1x,4A/)') 
      &               '### ERROR in get_agedye: can ',
      &               'not open netCDF file ''', fname(1:lstr), '''.'
                  goto 99
@@ -53,13 +53,13 @@
 ! time id
            ierr=nf_inq_varid (ncid_ad(is), 'ad_time', ad_tid(is))
            if (ierr .ne. nf_noerr) then
-              write(stdout,1) 'ad_time', fname(1:lstr)
+              write(*,1) 'ad_time', fname(1:lstr)
               goto 99
            endif
 ! bc_val:
            ierr=nf_inq_varid (ncid_ad(is), 'bc_val', bcVal_id(is))
            if (ierr .ne. nf_noerr) then
-              write(stdout,1) 'bc_val', fname(1:lstr)
+              write(*,1) 'bc_val', fname(1:lstr)
               goto 99          !--> ERROR
            endif
            call set_cycle (ncid_ad(is), ad_tid(is), nt_ad(is), 
@@ -91,23 +91,22 @@
           if (ierr .eq. nf_noerr) then
             it_ad(is)=3-it_ad(is)
             ad_time(is,it_ad(is))=cff*day2sec + ad_cycle(is)*ad_ncycle(is)
-            ierr=nf_fread (bc_valg(START_2D_ARRAY,1,it_ad(is),is)
-     &                                , ncid_ad(is), bcVal_id(is),
-     &                                      ad_rec(is), r3dvar)
+            ierr=ncdf_read(ncid_ad(is), bcVal_id(is), ad_rec(is), r_var,
+     &                    bc_valg(START_2D_ARRAY,1,it_ad(is),is), N)
             if (ierr .eq. nf_noerr) then
-              MPI_master_only write(stdout,
+              MPI_master_only write(*,
      &        '(6x,2A,I2,A,F12.4,2(1x,A,I4))') 'get_agedye ',
      &        '-- read climatology for age/dye tracer ', is,
      &        ' for time =',
      &        cff, 'rec =', ad_rec(is) MYID
             else
-              write(stdout,2) 'AD tracer', is, ad_rec(is)
+              write(*,2) 'AD tracer', is, ad_rec(is)
             endif
           else
-            write(stdout,2) 'ad_time', is, ad_rec(is)
+            write(*,2) 'ad_time', is, ad_rec(is)
           endif
         else
-          write(stdout,'(/1x,A,I4,1x,A,I4/7x,4A/7x,2(A,G12.4)/)')
+          write(*,'(/1x,A,I4,1x,A,I4/7x,4A/7x,2(A,G12.4)/)')
      &   'ERROR in get_agedye: requested time record ',   ad_rec(is),
      &   'exeeds the last record', nt_ad(is), 'available in forcing ',
      &   'netCDF file ''',   fname(1:lstr),   '''',  'tdays = ',
@@ -173,7 +172,7 @@
      &                           +cff2*bc_valg(Isrc_ad(is,nsrc),Jsrc_ad(is,nsrc),Ksrc_ad(is,nsrc),it2,is)
             enddo
          elseif (ZEROTH_TILE) then
-            write(stdout,'(1x,2A,i3,3(1x,A,F16.10)/)')
+            write(*,'(1x,2A,i3,3(1x,A,F16.10)/)')
      &       'set_agedye_tile - current model time is outside bounds ',
      &       'for age/dye tracer.', is, 'TSTART=',ad_time(is,it1)*sec2day,
      &                           'TDAYS=',     tdays,

@@ -64,7 +64,7 @@ c--# define VERBOSE
 
       create_new_file=ldefhis            !<-- initialize
       if (ncid /= -1)  create_new_file=.false.
-#if defined MPI & !defined PARALLEL_FILES
+#if defined MPI && !defined PARALLEL_FILES
       if (mynode > 0) create_new_file=.false.
 #endif
 
@@ -73,7 +73,7 @@ c--# define VERBOSE
 !---------------------------------
 
   10  if (create_new_file) then
-        ierr=nf_create(staname(1:lncn), nf_clobber+nf_64bit_offset,
+        ierr=nf_create(staname(1:lncn), nf_clobber+NCFILEFORMAT,
      &                                                         ncid)
         if (ierr /= nf_noerr) then
           write(*,'(/1x,4A/12x,A/)')  '### ERROR: def_stn :: Cannot ',
@@ -599,7 +599,7 @@ c--XXXXXXX
         ierr=nf_open (staname(1:lncn), nf_write, ncid)
         if (ierr == nf_noerr) then
 #ifdef MPI_SILENT_MODE
-          if (mynode==0) then
+          if (mynode == 0) then
 #endif
             write(*,'(1x,5A,I4)')  'def_statn: Opened existing ',
      &           'netCDF file ''', staname(1:lncn),  '''.' MYID
@@ -607,8 +607,8 @@ c--XXXXXXX
           endif
 #endif
         else
-#if defined MPI & !defined PARALLEL_FILES
-          if (mynode==0) then
+#if defined MPI && !defined PARALLEL_FILES
+          if (mynode == 0) then
             create_new_file=.true.
             goto 10
           else

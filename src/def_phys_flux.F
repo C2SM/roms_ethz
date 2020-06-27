@@ -175,14 +175,14 @@
 ! ====== === ======= ======== =====    and define all variables.
 !
   10  create_new_file_if: if (create_new_file) then
-#ifdef LARGE_PHYS_FILES
-        ierr=nf_create(ncname(1:lstr), or(nf_clobber,nf_64bit_offset),
+! #ifdef LARGE_PHYS_FILES
+        ierr=nf_create(ncname(1:lstr), or(nf_clobber,NCFILEFORMAT),
      &        ncid)
-#else
-        ierr=nf_create(ncname(1:lstr), nf_clobber, ncid)
-#endif
+! #else
+        ! ierr=nf_create(ncname(1:lstr), nf_clobber, ncid)
+! #endif
         if (ierr .ne. nf_noerr) then
-          write(stdout,'(/3(1x,A)/)') 'ERROR in def_phys_flux_his/avg:',
+          write(*,'(/3(1x,A)/)') 'ERROR in def_phys_flux_his/avg:',
      &           'Cannot create netCDF file:', 
      &          ncname(1:lstr)
           goto 99                                         !--> ERROR
@@ -671,7 +671,7 @@
 ! ----- ---------- -----
 !
         ierr=nf_enddef(ncid)
-        MPI_master_only write(stdout,'(6x,4A,1x,A,i4)')
+        MPI_master_only write(*,'(6x,4A,1x,A,i4)')
 #ifdef AVRH
      &       'DEF_PHYS_FLUX_AVG - Created ',
 #else
@@ -694,10 +694,10 @@
       elseif (ncid.eq.-1) then create_new_file_if
         ierr=nf_open (ncname(1:lstr), nf_write, ncid)
         if (ierr. eq. nf_noerr) then
-          MPI_master_only write(stdout,'(1x,2A,1x,A,I3)') 
+          MPI_master_only write(*,'(1x,2A,1x,A,I3)') 
      &          'Opened existing phys_flux_his file ',
      &          ncname(1:lstr), 'ncid =', ncid
-          ierr=checkdims (ncid, ncname(1:lstr), lstr, rec)
+          ierr=checkdims (ncid, ncname, rec)
           if (ierr .eq. nf_noerr) then
             if (rec_per_file.eq.0) then
               ierr=rec+1 - total_rec
@@ -705,7 +705,7 @@
               ierr=rec+1 - (1+mod(total_rec-1, rec_per_file))
             endif
             if (ierr.gt.0) then
-              MPI_master_only write( stdout,
+              MPI_master_only write( *,
      &                 '(/1x,A,I5,1x,A/8x,3A,I5,/8x,A,I5,1x,A/)')
 #ifdef AVRH
      &        'DEF_PHYS_FLUX_AVG WARNING: Actual number of records',
@@ -733,7 +733,7 @@
             create_new_file=.true.
             goto 10
           else
-            write(stdout,'(/1x,4A,2x,A,I4/)')
+            write(*,'(/1x,4A,2x,A,I4/)')
 #ifdef AVRH
      &            'DEF_PHYS_FLUX_AVG ERROR: ',
 #else
@@ -757,7 +757,7 @@
 !
         ierr=nf_inq_varid (ncid, 'time_step', vidTstep)
         if (ierr .ne. nf_noerr) then
-          write(stdout,1) 'time_step', ncname(1:lstr)
+          write(*,1) 'time_step', ncname(1:lstr)
           goto 99                                         !--> ERROR
         endif
 !
@@ -767,7 +767,7 @@
         ierr=nf_inq_varid (ncid,vname(1,indxTime)(1:lvar),
      &       vidTime)
         if (ierr .ne. nf_noerr) then
-          write(stdout,1) vname(1,indxTime)(1:lvar), 
+          write(*,1) vname(1,indxTime)(1:lvar), 
      &          ncname(1:lstr)
           goto 99                                         !--> ERROR 
         endif
@@ -776,7 +776,7 @@
         ierr=nf_inq_varid (ncid,vname(1,indxZ)(1:lvar),
      &       vidZ)
         if (ierr .ne. nf_noerr) then
-          write(stdout,1) vname(1,indxZ)(1:lvar), 
+          write(*,1) vname(1,indxZ)(1:lvar), 
      &          ncname(1:lstr)
           goto 99                                         !--> ERROR 
         endif
@@ -791,7 +791,7 @@
      &          vname_phys(1,indxHorXAdvFlux+iflux-1)(1:lvar),
      &          vidHorXAdvFlux(iflux))
            if (ierr .ne. nf_noerr) then
-              write(stdout,1) 
+              write(*,1) 
      &             vname_phys(1,indxHorXAdvFlux+iflux-1)(1:lvar), 
      &             ncname(1:lstr)
               goto 99           !--> ERROR 
@@ -807,7 +807,7 @@
      &          vname_phys(1,indxHorYAdvFlux+iflux-1)(1:lvar),
      &          vidHorYAdvFlux(iflux))
            if (ierr .ne. nf_noerr) then
-              write(stdout,1) 
+              write(*,1) 
      &             vname_phys(1,indxHorYAdvFlux+iflux-1)(1:lvar), 
      &             ncname(1:lstr)
               goto 99           !--> ERROR 
@@ -823,7 +823,7 @@
      &          vname_phys(1,indxVertAdvFlux+iflux-1)(1:lvar),
      &          vidVertAdvFlux(iflux))
            if (ierr .ne. nf_noerr) then
-              write(stdout,1) 
+              write(*,1) 
      &             vname_phys(1,indxVertAdvFlux+iflux-1)(1:lvar), 
      &             ncname(1:lstr)
               goto 99           !--> ERROR 
@@ -840,7 +840,7 @@
      &          vname_phys(1,indxVertDiffFlux+iflux-1)(1:lvar),
      &          vidVertDiffFlux(iflux))
            if (ierr .ne. nf_noerr) then
-              write(stdout,1) 
+              write(*,1) 
      &             vname_phys(1,indxVertDiffFlux+iflux-1)(1:lvar), 
      &             ncname(1:lstr)
               goto 99           !--> ERROR 
@@ -858,7 +858,7 @@
      &          vname_phys(1,indxTopFlux+iflux-1)(1:lvar),
      &          vidTopFlux(iflux))
            if (ierr .ne. nf_noerr) then
-              write(stdout,1) 
+              write(*,1) 
      &             vname_phys(1,indxTopFlux+iflux-1)(1:lvar), 
      &             ncname(1:lstr)
               goto 99           !--> ERROR 
@@ -872,7 +872,7 @@
      &          vname_phys(1,indxSRAbsFlux)(1:lvar),
      &          vidSRAbsFlux)
            if (ierr .ne. nf_noerr) then
-              write(stdout,1) 
+              write(*,1) 
      &             vname_phys(1,indxSRAbsFlux)(1:lvar), 
      &             ncname(1:lstr)
               goto 99           !--> ERROR 
@@ -887,7 +887,7 @@
      &          vname_phys(1,indxBottomFlux+iflux-1)(1:lvar),
      &          vidBottomFlux(iflux))
            if (ierr .ne. nf_noerr) then
-              write(stdout,1) 
+              write(*,1) 
      &             vname_phys(1,indxBottomFlux+iflux-1)(1:lvar), 
      &             ncname(1:lstr)
               goto 99           !--> ERROR 
@@ -902,7 +902,7 @@
      &          vname_phys(1,indxHorXMixFlux+iflux-1)(1:lvar),
      &          vidHorXMixFlux(iflux))
            if (ierr .ne. nf_noerr) then
-              write(stdout,1) 
+              write(*,1) 
      &             vname_phys(1,indxHorXMixFlux+iflux-1)(1:lvar), 
      &             ncname(1:lstr)
               goto 99           !--> ERROR 
@@ -917,7 +917,7 @@
      &          vname_phys(1,indxHorYMixFlux+iflux-1)(1:lvar),
      &          vidHorYMixFlux(iflux))
            if (ierr .ne. nf_noerr) then
-              write(stdout,1) 
+              write(*,1) 
      &             vname_phys(1,indxHorYMixFlux+iflux-1)(1:lvar), 
      &             ncname(1:lstr)
               goto 99           !--> ERROR 
@@ -932,7 +932,7 @@
      &          vname_phys(1,indxVertMixFlux+iflux-1)(1:lvar),
      &          vidVertMixFlux(iflux))
            if (ierr .ne. nf_noerr) then
-              write(stdout,1) 
+              write(*,1) 
      &             vname_phys(1,indxVertMixFlux+iflux-1)(1:lvar), 
      &             ncname(1:lstr)
               goto 99           !--> ERROR 
@@ -947,7 +947,7 @@
      &          vname_phys(1,indxNudgingFlux+iflux-1)(1:lvar),
      &          vidNudgingFlux(iflux))
            if (ierr .ne. nf_noerr) then
-              write(stdout,1) 
+              write(*,1) 
      &             vname_phys(1,indxNudgingFlux+iflux-1)(1:lvar), 
      &             ncname(1:lstr)
               goto 99           !--> ERROR 
@@ -971,9 +971,9 @@
         ierr=nf_open (ncname(1:lstr), nf_write, ncid)
         if (ierr .ne. nf_noerr) then
 #ifdef AVRH
-          write(stdout,'(/1x,4A,2x,A,I4/)') 'DEF_PHYS_FLUX_AVG ERROR: ',
+          write(*,'(/1x,4A,2x,A,I4/)') 'DEF_PHYS_FLUX_AVG ERROR: ',
 #else
-          write(stdout,'(/1x,4A,2x,A,I4/)') 'DEF_PHYS_FLUX_HIS ERROR: ',
+          write(*,'(/1x,4A,2x,A,I4/)') 'DEF_PHYS_FLUX_HIS ERROR: ',
 #endif /* AVRH */
      &                'Cannot open file ''', ncname(1:lstr), '''.'
      &                 MYID

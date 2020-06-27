@@ -14,7 +14,7 @@ Explanation of MACRO definitions set in Makedefs.XXX
 
       FFLAGS  compilation options (flags) for FORTRAN compiler
 
-         LDR  name/path of  FORTRAN loader (usually the same as CFT) 
+         LDR  name/path of  FORTRAN loader (usually the same as CFT)
 
      LDFLAGS  flags specific for the loader, but not needed during
               compilation phase.
@@ -30,15 +30,11 @@ Explanation of MACRO definitions set in Makedefs.XXX
               Intel libLPEPCD90 compatibility library which contains
               iargc--getarg functions. It has the same effect as Intel
               ifc compiler flag -Vaxlib.
-             
+
      LIBNCAR  NCAR graphics library [ROMS code is never linked
-              directly to it, but some auxiliary diagnostic programs 
+              directly to it, but some auxiliary diagnostic programs
               (e.g. plotter) may use it.]
 
   COMP_FILES  specific files created by the compuler, for example
               work.pc, work.pcl by Intel IFC compiler, or rii_files
               by SGI compiler. This is needed for proper cleaning.
-
-
-
-

@@ -45,12 +45,8 @@ c      write(*,*) 'kmp_stacksize =', size
                                      ! Reset intra-thread
       may_day_flag=0                 ! communication signal
       trd_count=0                    ! variables and counters.
-      do i=1,4
-        cpu_all(i)=0.
-      enddo
-      do i=1,16
-        barr_count(i)=0
-      enddo
+      cpu_all=0.   !<-- array
+      barr_count=0 !<-- array
 
       mcheck=0
       first_time=0
@@ -100,39 +96,52 @@ c      v3bc_max=0.
 #ifdef FLOATS
       ncidflt=-1 ; nrecflt=0       ! averages, stations, and floats.
 #endif
-      do i=1,max_frc_file
+      do i=1,max_frc_files
         ncfrc(i)=-1
       enddo
 #ifdef TSOURCE
-      do i=1,max_frc_file
+      do i=1,max_frc_files
         ncidtsrc(i)=-1
       enddo
 #endif
 #ifndef ANA_SMFLUX
-      sms_file_id=0
+      wnd_file_id=-1
 #endif
 #ifdef SOLVE3D
 # if !defined ANA_STFLUX || !defined ANA_SSFLUX
       do i=1,NT
-        stf_file_id(i)=0
+        stf_file_id(i)=-1
       enddo
 # endif
 # ifndef ANA_SRFLUX
-      srf_file_id=0
+      srf_file_id=-1
 # endif
 # if defined ICEOBS
-      ice_file_id=0
+      ice_file_id=-1
 # endif
 # if defined TSOURCE
-      tsrc_file_id=0
+      tsrc_file_id=-1
 # endif
 # if defined QCORRECTION && !defined ANA_SST
-      sst_file_id=0
-      sss_file_id=0
-      dqdt_file_id=0
+      sst_file_id=-1
+      dqdt_file_id=-1
+# endif
+# if defined SFLX_CORR && defined SALINITY
+      sss_file_id=-1
+# endif
+! MF: initialize ncid macro for (get_forces/get_smth)
+# ifdef SSH_DATA
+      ssh_file_id=-1
+# endif
+! MF: initialize ncid macro for (get_forces/get_smth)
+# ifdef TNUDG_WEIGHTS_DATA
+      nudg_file_id=-1
 # endif
 #endif
-      ncidclm=-1
+! MF: initialize array of clm files
+      do i=1,max_clm_files
+        ncidclm(i)=-1
+      enddo
 #ifndef ANA_BRY
        bry_id=-1
 #endif
@@ -152,11 +161,11 @@ c      v3bc_max=0.
 
 c--#define CR
 CR      write(*,'(1x,A,I3)') 'indxTime =',indxTime
-#ifdef CALENDAR
+!#ifdef CALENDAR
       vname(1,indxTime)='time'
-#else
-      vname(1,indxTime)='ocean_time'
-#endif
+!#else
+!      vname(1,indxTime)='ocean_time'
+!#endif
       vname(2,indxTime)='Time since initialization'
 #ifndef STARTDATE
 # define STARTDATE '0001-01-01' 
@@ -216,9 +225,9 @@ CR      write(*,'(1x,A,I3)') 'indxS = ', indxS
       vname(3,indxS)='PSU'
 # endif
 # ifdef PASSIVE_TRACER
-      do itrc = 1, ntrc_pas
-         itpas(itrc) = itemp + ntrc_salt + itrc
-      end do
+!      do itrc = 1, ntrc_pas
+!         itpas(itrc) = itemp + ntrc_salt + itrc
+!      end do
 !
       do itrc = indxT+ntrc_salt+1,indxT+ntrc_salt+ntrc_pas
          if (itrc-indxT-ntrc_salt .lt. 10) then
@@ -241,7 +250,7 @@ CR      write(*,'(1x,A,I3)') 'indxS = ', indxS
 #  endif
 # endif /* PASSIVE_TRACER */
 
-# ifdef BIOLOGY
+# ifdef LEGACY_NPZD
 CR      write(*,'(1x,A,I3)') 'indxNO3 =', indxNO3
       vname(1,indxNO3)='NO3'
       vname(2,indxNO3)='NO3 Nutrient'
@@ -269,12 +278,12 @@ CR      write(*,'(1x,A,I3)') 'indxZoo =', indxZoo
 # endif
 
 CR      write(*,'(1x,A,I3)') 'indxAkv =', indxAkv
-      vname(1,indxAkv)='AKv'
+      vname(1,indxAkv)='Akv'
       vname(2,indxAkv)='vertical viscosity coefficient'
       vname(3,indxAkv)='meter2 second-1'
 
 CR      write(*,'(1x,A,I3)') 'indxAkt =',indxAkt
-      vname(1,indxAkt)='AKt'
+      vname(1,indxAkt)='Akt'
       vname(2,indxAkt)='vertical thermal conductivity coefficient'
       vname(3,indxAkt)='meter2 second-1'
 # ifdef SALINITY
@@ -282,6 +291,27 @@ CR      write(*,'(1x,A,I3)') 'indxAks =',indxAks
       vname(1,indxAks)='AKs'
       vname(2,indxAks)='salinity vertical diffusion coefficient'
       vname(3,indxAks)='meter2 second-1'
+# endif
+!AH16:
+# ifdef WRITE_CO2FLX
+      vname(1,indxCO2flx)='CO2flx'
+      vname(2,indxCO2flx)='Net surface CO2 flux'
+      vname(3,indxCO2flx)='mmol m-2'
+# endif
+# if defined WRITE_HEATFLX
+      vname(1,indxHeatflx)='Heatflx'
+      vname(2,indxHeatflx)='Net surface heat flux'
+      vname(3,indxHeatflx)='W m-2'
+# endif
+# if defined WRITE_TEMP_REST
+      vname(1,indxRestflxTemp)='RestflxTemp'
+      vname(2,indxRestflxTemp)='Restoring flux for temperature'
+      vname(3,indxRestflxTemp)='W m-2'
+# endif
+# if defined WRITE_SALT_REST
+      vname(1,indxRestflxSalt)='RestflxSalt'
+      vname(2,indxRestflxSalt)='Restoring flux for salinity'
+      vname(3,indxRestflxSalt)='centimeter day-1'
 # endif
 # ifdef LMD_KPP
 CR      write(*,'(1x,A,I3)') 'indxHbls =',indxHbls
@@ -295,8 +325,34 @@ CR      write(*,'(1x,A,I3)') 'indxHbbl =',indxHbbl
       vname(2,indxHbbl)='Thickness of KPP bottom boundary layer'
       vname(3,indxHbbl)='meter'
 # endif
+# ifdef KPP_DIAGNOSE
+      vname(1,indxKppRichm)='KppRichm'
+      vname(2,indxKppRichm)='Viscosity due to vert. shear instability'
+      vname(3,indxKppRichm)='meter second-2'
+
+      vname(1,indxKppRicht)='KppRicht'
+      vname(2,indxKppRicht)='Diffusivity due to vert. shear instability'
+      vname(3,indxKppRicht)='meter second-2'
+
+      vname(1,indxKppSblSh)='KppSblSh'
+      vname(2,indxKppSblSh)='Destabilizing mean shear component of HBLS'
+      vname(3,indxKppSblSh)='meter second-2'
+
+      vname(1,indxKppSblSt)='KppSblSt'
+      vname(2,indxKppSblSt)='Stabilizing stratification component of HBLS'
+      vname(3,indxKppSblSt)='meter second-2'
+
+      vname(1,indxKppSblRot)='KppSblRot'
+      vname(2,indxKppSblRot)='Stabilizing rotation component of HBLS'
+      vname(3,indxKppSblRot)='meter second-2'
+
+      vname(1,indxKppSblEnt)='KppSblEnt'
+      vname(2,indxKppSblEnt)='Destabilizing turb. entr. component of HBLS'
+      vname(3,indxKppSblEnt)='meter second-2'
+# endif
 #endif
 
+#ifdef WRITE_FORCING
 CR      write(*,'(1x,A,I3)') 'indxSUSTR =',indxSUSTR
       vname(1,indxSUSTR)='sustr                                     '
       vname(2,indxSUSTR)='surface u-momentum stress                 '
@@ -306,18 +362,20 @@ CR      write(*,'(1x,A,I3)') 'indxSVSTR =',indxSVSTR
       vname(1,indxSVSTR)='svstr                                     '
       vname(2,indxSVSTR)='surface v-momentum stress                 '
       vname(3,indxSVSTR)='Newton meter-2                            '
+#endif
  
 #ifdef SOLVE3D
+# ifdef WRITE_FORCING
 CR      write(*,'(1x,A,I3)') 'indxSHFl =',indxSHFl
       vname(1,indxSHFl)='shflux                                    '
       vname(2,indxSHFl)='surface net heat flux                     '
       vname(3,indxSHFl)='Watts meter-2                             '
-# ifdef SALINITY
+#  ifdef SALINITY
 CR      write(*,'(1x,A,I3)') 'indxSSFl=',indxSSFl
       vname(1,indxSSFl)='swflux                                    '
       vname(2,indxSSFl)='surface freshwater flux (E-P)             '
       vname(3,indxSSFl)='centimeter day-1                          '
-# endif
+#  endif
 CR      write(*,'(1x,A,I3)') 'indxSWRad =',indxSWRad
       vname(1,indxSWRad)='swrad                                     '
       vname(2,indxSWRad)='solar shortwave radiation                 '
@@ -337,6 +395,7 @@ CR      write(*,'(1x,A,I3)') 'indxSSS =', indxSSS
       vname(1,indxSSS)='SSS                                       '
       vname(2,indxSSS)='sea surface salinity                      '
       vname(3,indxSSS)='PSU                                       '
+# endif /* WRITE_FORTING */
  
 # ifdef SG_BBL96
 #  ifndef ANA_WWAVE

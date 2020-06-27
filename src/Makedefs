@@ -1,39 +1,206 @@
-# Definitions for PGI fortran on Brutus
-# AMD Opteron processor
-# =========== === ===== === ======= ======== == =====
+# Background reference
+# https://make.mad-scientist.net/papers/advanced-auto-dependency-generation/#output
 
-#----------------------------------
-.SUFFIXES:	# Delete the default suffixes
+# Source dir
+SRCDIR ?= $(CURDIR)
+# object dir
+BLDDIR ?= $(SRCDIR)
+# To be fixed: Other BLDDIR setting currently 
+# lead to unnecessary rebuilds
+# BLDDIR ?= $(SRCDIR)/../Build
+# Header dir
+INCDIR ?= $(SRCDIR)/include
+# Biology sources (BEC, NPZDOC)
+BIODIR ?= $(SRCDIR)/biology
+# Dependencies dir
+DEPDIR := $(SRCDIR)/.depend
+# Oasis/MCT coupler dir
+OASDIR  = $(HOME)/ROMSOC/oasis3-mct/install
+OASINC := -I$(OASDIR)/build/lib/psmile.MPI1 \
+            -I$(OASDIR)/build/lib/mct
+OASLIB := -L$(OASDIR)/lib -lpsmile.MPI1 -lscrip -lmct -lmpeu
+
+# Create directories if needed
+$(shell test -d $(DEPDIR) || mkdir $(DEPDIR) )
+$(shell test -d $(BLDDIR) || mkdir $(BLDDIR) )
+
+# Command to create dependency files in DEPDIR
+MAKEDEPEND := $(SRCDIR)/depend.sh
+DEPFLAGS = -MT $@ -MMD -MP -MF $(DEPDIR)/$*.Td
+
+# Clear the default suffixes
+.SUFFIXES:
 .SUFFIXES: .o .mod .f .F .F90 .f90
+
+# Declare *.f files precious to keep them
 .PRECIOUS: %.f %.f90
-# Use pattern rule to indicate dependency on mpc
-%.f:  mpc %.F 
-	$(CPP) -P $(CPPFLAGS) $*.F | mpc > $@
-.f.o:
-	$(FC) -c $(FFLAGS) $< -o $@
+.INTERMEDIATE: %.f
 
-# clear implicit rule .F90.o
-%.o: %.F90 
-# clear implicit rule .F.o
-%.o: %.F 
+# Clear implicit rules:
+%.o: %.F
+%.o: %.f
 
-#----------------------------------
+# Define Q for quite mode:
+Q = @
+# Verbose
+#Q = 
 
-CPP = cpp -traditional 
-FC = mpif90
-LDR = $(FC)
+# Include file locations
+CPPFLAGS += -I$(SRCDIR) -I$(INCDIR) -I$(BIODIR)
+ifdef COUPLED
+   CPPFLAGS += $(OASINC)
+   FFLAGS += $(OASINC)
+   # FFLAGS = -O3 -IPF_fma -ip $(INC)
+endif
+ifdef MPI_HOME
+   CPPFLAGS += -I$(MPI_HOME)/include
+endif
+ifdef MPI_HOME
+   CPPFLAGS += -I$(MPI_ROOT)/include
+endif
 
-OASDIR  = $(HOME)/Linux_MCT_MPI1
-INC      := -I$(OASDIR)/build/lib/psmile.MPI1 \
-            -I$(OASDIR)/build/lib/mct \
-            -I${NETCDF}/include \
-	    -I${MPI_ROOT}/include \
-            -I. \
-
-LIBPSMILE      := -L$(OASDIR)/lib -lpsmile.MPI1 -lscrip -lmct -lmpeu
 
 
-CPPFLAGS = -D__IFC $(INC)
-FFLAGS = -O3 -IPF_fma -ip $(INC)
-LCDF = -L${NETCDF}/lib -lnetcdff -lnetcdf
 
+# Using pattern rules
+%.o: %.f
+	@echo Compiling $<
+	$(Q)cd $(BLDDIR); $(MPIFC) -c $(FFLAGS) $(notdir $<)
+# Rule to create .f files;
+# also create dependencies files when creating these.
+%.f: %.F mpc
+	$(Q)$(MAKEDEPEND) 'dirname $<' $< > $(DEPDIR)/$*.d
+	$(Q)$(CPP) $(CPPFTN) $(CPPFLAGS)  $< | $(SRCDIR)/mpc > $(BLDDIR)/$*.f
+
+# OASIS coupling code is written in F90...
+# CAUTION: mpc is not ran on .F90 files, use .FF90
+#          if you need mpc to be ran
+%.o: %.F90
+	@echo Compiling $<
+	$(Q)$(CPP) --traditional -P $(CPPFLAGS) $< > $*.f90
+	$(Q)$(MPIFC) -c $(FFLAGS) $*.f90 -o $@
+
+# .FF90 is an ad'hoc file type to write Fortran 90 modules
+# holding FIXED FORMAT code so that one can include ROMS .h files
+# and run mpc on them.
+%.o: %.FF90
+	@echo Compiling $<
+	$(Q)$(CPP) --traditional -P $(CPPFLAGS) $*.FF90 | mpc > $*.f90
+	$(Q)$(MPIFC) -c $(FFLAGS) -nofree $*.f90 -o $@
+
+# Use C preprocessor
+# fpp might be an alternative but for consistancy one should
+# then also use it in MAKEDEPENT
+CPP := cpp
+CPPFTN := -P -traditional-cpp # traditional-cpp need to keep white-spaces
+
+# NetCDF
+NC-CONFIG:=$(shell which nc-config 2>/dev/null)
+ifeq ($(NC-CONFIG),)
+    $(error nc-config not found (NetCDF library))
+endif
+  
+  NCINC ?= -I$(shell nc-config --includedir)
+  ifeq ($(NCINC),)
+    NCINC := $(shell nc-config --cflags)
+  endif
+  NCLIB ?= $(shell nc-config --flibs)
+  ifeq ($(NCLIB),)
+    NCLIB := $(shell nc-config --libs)
+  endif
+
+CPPFLAGS += $(NCINC)
+
+# Default: mpi executable
+ifndef NOMPI
+   MPIFC = mpif90
+   ifdef I_MPI_ROOT
+      CPPFLAGS += -I$(I_MPI_ROOT)/include64
+      CPPFLAGS += -I$(I_MPI_ROOT)/intel64/include
+   endif
+   ifdef MPI_ROOT
+      CPPFLAGS += -I$(MPI_ROOT)/include
+   endif
+endif
+MPIFC ?= $(FC)
+LDR = $(MPIFC)
+ifdef COUPLED
+   LDFLAGS += $(OASLIB)
+endif
+
+# Legacy ROMS macro names
+LCDF := $(NCLIB)
+CFT := $(FC)
+
+FCOMP ?=  $(notdir $(FC)) # Used to identify the compiler
+
+ifeq ($(strip $(FCOMP)),ifort)
+   #
+   # ============= Intel compiler =============
+   #
+   FCFLAGS := -D__IFC
+   # use mpiifort (intel mpi) if available
+   MPIFC := $(shell which mpiifort 2>/dev/null)
+   ifeq ($(MPIFC),)
+      MPIFC := mpif90
+   endif
+
+   COMP_FILES = *__genmod.f90 *__genmod.mod # cleanup stuff
+   LARGE_MEM_FLAG=   -mcmodel=medium # Sometimes needed for large tiles
+   ifdef DEBUG
+      #FFLAGS := -g -check all -CA -CB -CS
+      #FFLAGS := -g -check arg_temp_created,bounds,pointers,uninit,format,output_conversion
+      FFLAGS := -warn all -g -check arg_temp_created,bounds,pointers,uninit,format,output_conversion
+   else
+      # Agressive optimisation for current CPU
+      #FFLAGS  = -O3 -xHOST -132 -fp-model source $(LARGE_MEM_FLAG)
+      # Generic on same machine FFLAGS  = -O2 -132 -xHOST -fp-model source $(LARGE_MEM_FLAG)
+      # Fat binaries for both Euler 2 (avx2) and Euler 4,5 (avx512)
+      # If you get problems with reproducibility try replacing "-fp-model source" with "-fp-model strict"
+      #FFLAGS  = -O2 -132 -axcore-avx512,avx2 -fp-model source $(LARGE_MEM_FLAG) -diag-disable=remark
+      FFLAGS  = -O2 -132 -fp-model source $(LARGE_MEM_FLAG) -diag-disable=remark
+   endif
+   ifdef OPENMP
+      OPENMP :=  -fpp2 -openmp
+   endif
+   ifdef PROFILE
+      FFLAGS += -prof_gen
+   endif
+else ifeq ($(strip $(FCOMP)),pgf90)
+   #
+   # ============= PGI compiler =============
+   #
+   FCFLAGS  := -DPGI -DINT_IARGC
+   ifdef OPENMP
+      OPENMP := -mp
+   endif
+   #CPPFLAGS += -DINT_IARGC
+   FFLAGS  := -mcmodel=medium -fast -O4 $(OPENMP)
+else ifeq ($(strip $(FCOMP)),gfortran)
+   #
+   # ============= Gnu gfortran compiler =============
+   #
+   FCFLAGS := -D_GNU
+   ifdef OPENMP
+      OPENMP := -fopenmp
+   endif
+   ifdef DEBUG
+      FFLAGS := -g -DEBUG:div_check=3:subscript_check=ON:trap_uninitialized=ON:verbose_runtime=ON
+   else
+      FFLAGS := -O3 $(OPENMP)
+   endif
+else
+    default:
+    $(error Unknown Compiler $(FCOMP). Add settings to Makedefs)
+endif
+
+CPPFLAGS += $(FCFLAGS)
+ifdef COUPLED
+   FFLAGS += $(OASINC)
+   # FFLAGS = -O3 -IPF_fma -ip $(INC)
+endif
+
+# Print makefile macros
+#    Usage: e.g., make print-CPPFLAGS
+print-% :
+	@echo $* = '"'$($*)'"'

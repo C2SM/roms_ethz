@@ -11,7 +11,7 @@
 # include "ncvars.h"
 # include "netcdf.inc"
       integer ierr, ierr_count,  ifrc, ncid, varid,
-     &        itide, i,j,  lfrc, lenstr,  nf_fread
+     &        itide, i,j,  lfrc, lenstr,  ncdf_read
       character*(max_name_size) frcname
 
       if (iic==ntstart) then
@@ -53,8 +53,8 @@
 
               ierr=nf_inq_varid (ncid, 'tide_Eamp', varid)
               if (ierr == nf_noerr) then
-                ierr=nf_fread (SSH_Tamp(START_2D_ARRAY,itide),
-     &                            ncid, varid, itide, r2dvar)
+                ierr=ncdf_read(ncid, varid, itide, r_var,
+     &                         SSH_Tamp(START_2D_ARRAY,itide), 1)
                 if (ierr == nf_noerr) then
                   write(*,'(1x,2A,I3,1x,3A)')   'get_tides :: read ',
      &                    '''tide_Eamp'' for mode', itide, 'from ''',
@@ -74,8 +74,8 @@
 
               ierr=nf_inq_varid (ncid, 'tide_Ephase', varid)
               if (ierr == nf_noerr) then
-                ierr=nf_fread (SSH_Tphase(START_2D_ARRAY,itide),
-     &                              ncid, varid, itide, r2dvar)
+                ierr=ncdf_read(ncid, varid, itide, r_var,
+     &                         SSH_Tphase(START_2D_ARRAY,itide), 1)
                 if (ierr == nf_noerr) then
                   write(*,'(1x,2A,I3,1x,3A)')   'get_tides :: read ',
      &                  '''tide_Ephase'' for mode', itide, 'from ''',
@@ -99,8 +99,8 @@
 
               ierr=nf_inq_varid (ncid, 'tide_Cangle', varid)
               if (ierr == nf_noerr) then
-                ierr=nf_fread (UV_Tangle(START_2D_ARRAY,itide),
-     &                              ncid, varid, itide, r2dvar)
+                ierr=ncdf_read(ncid, varid, itide, r_var,
+     &                         UV_Tangle(START_2D_ARRAY,itide), 1)
                 if (ierr == nf_noerr) then
                   write(*,'(5x,2A,I3,1x,3A)') 'get_tides :: read ',
      &                '''tide_Cangle'' for mode', itide, 'from ''',
@@ -120,8 +120,8 @@
 
               ierr=nf_inq_varid (ncid, 'tide_Cphase', varid)
               if (ierr == nf_noerr) then
-                ierr=nf_fread (UV_Tphase(START_2D_ARRAY,itide),
-     &                              ncid, varid, itide, r2dvar)
+                ierr=ncdf_read(ncid, varid, itide, r_var,
+     &                         UV_Tphase(START_2D_ARRAY,itide), 1)
                 if (ierr == nf_noerr) then
                   write(*,'(1x,2A,I3,1x,3A)')  'get_tides :: read ',
      &                 '''tide_Cphase'' for mode', itide, 'from ''',
@@ -141,8 +141,8 @@
 
               ierr=nf_inq_varid (ncid, 'tide_Cmax', varid)
               if (ierr == nf_noerr) then
-                ierr=nf_fread (UV_Tmajor(START_2D_ARRAY,itide),
-     &                              ncid, varid, itide, r2dvar)
+                ierr=ncdf_read(ncid, varid, itide, r_var,
+     &                         UV_Tmajor(START_2D_ARRAY,itide), 1)
                 if (ierr == nf_noerr) then
                   write(*,'(5x,2A,I3,1x,3A)')   'get_tides :: read ',
      &                    '''tide_Cmax'' for mode', itide, 'from ''',
@@ -162,8 +162,8 @@
 
               ierr=nf_inq_varid (ncid, 'tide_Cmin', varid)
               if (ierr == nf_noerr) then
-                ierr=nf_fread (UV_Tminor(START_2D_ARRAY,itide),
-     &                              ncid, varid, itide, r2dvar)
+                ierr=ncdf_read(ncid,  varid,  itide,  r_var,
+     &                         UV_Tminor(START_2D_ARRAY,itide), 1)
                 if (ierr == nf_noerr) then
                   write(*,'(5x,2A,I3,1x,3A)')   'get_tides :: read ',
      &                    '''tide_Cmin'' for mode', itide, 'from ''',

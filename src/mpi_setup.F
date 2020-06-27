@@ -1,13 +1,13 @@
 #include "cppdefs.h"
 #ifdef MPI
 c--# define TRANSPOSED_MPI_NODE_ORDER
-# define PRINT_HOSTNAME
+c--# define PRINT_HOSTNAME
 
 C$    subroutine master_num_threads (nthrds)
 C$    implicit none
 C$    integer nthrds, trd, omp_get_num_threads, omp_get_thread_num
 C$    trd=omp_get_thread_num()
-C$    if (trd==0) nthrds=omp_get_num_threads()
+C$    if (trd == 0) nthrds=omp_get_num_threads()
 C$    end
 
 
@@ -39,17 +39,17 @@ C$    integer nthrds
 
       exc_call_count=0
                                          ! Determine number of threads
-C$    if (mynode==0) then                ! on MPI node rank=0, then
+C$    if (mynode == 0) then              ! on MPI node rank=0, then
 C$OMP PARALLEL SHARED(nthrds)            ! broadcast it, so all others
 C$      call master_num_threads (nthrds) ! can set the same number of
 C$OMP END PARALLEL                       ! threads as the rank=0 node.
 C$    endif
 C$    call MPI_Bcast(nthrds, 1, MPI_INTEGER, 0, ocean_grid_comm, ierr)
-C$    if (mynode>0) then
+C$    if (mynode > 0) then
 C$      call omp_set_num_threads (nthrds)
 C$    endif
                                     ! Check whether the number of
-      if (nsize==NNODES) then       ! nodes specified by -np argument
+      if (nsize == NNODES) then     ! nodes specified by -np argument
 # ifdef TRANSPOSED_MPI_NODE_ORDER
         inode=mynode/NP_ETA         ! of mpiexec matches the parameter
         jnode=mynode-inode*NP_ETA   ! settings in the code, and find
@@ -58,7 +58,7 @@ C$    endif
         inode=mynode-jnode*NP_XI    ! the location of current subdomain
 # endif
                                     ! on the "processor grid".
-        if (NP_XI>1) then
+        if (NP_XI > 1) then
 # ifdef EW_PERIODIC
           west_msg_exch=.true.      ! Determine whether the subdomain
           east_msg_exch=.true.      ! has neighbors on the four sides
@@ -75,7 +75,7 @@ C$    endif
         east_exchng=east_msg_exch   ! to/from the neighbor.
 # endif
                                     ! Note that periodic boundaries
-        if (NP_ETA>1) then          ! (if any) are treated exclusively
+        if (NP_ETA > 1) then        ! (if any) are treated exclusively
 # ifdef NS_PERIODIC
           south_msg_exch=.true.     ! via exchange of computational
           north_msg_exch=.true.     ! margins, so that in this case
@@ -109,12 +109,12 @@ C$    endif
 
         off_xi=NP_XI*Lm-LLm
         iSW_corn=inode*Lm-off_xi/2
-        if (inode==0) then
+        if (inode == 0) then
           iwest=1+off_xi/2
         else
           iwest=1
         endif
-        if (inode<NP_XI-1) then
+        if (inode < NP_XI-1) then
           ieast=Lm
         else
           ieast=Lm -(off_xi+1)/2
@@ -122,12 +122,12 @@ C$    endif
 
         off_eta=NP_ETA*Mm-MMm
         jSW_corn=jnode*Mm-off_eta/2
-        if (jnode==0) then
+        if (jnode == 0) then
           jsouth=1+off_eta/2
         else
           jsouth=1
         endif
-        if (jnode<NP_ETA-1) then
+        if (jnode < NP_ETA-1) then
           jnorth=Mm
         else
           jnorth=Mm -(off_eta+1)/2
@@ -139,8 +139,6 @@ C$    endif
       write(*,'(A,7I5,1x,A,I4)') 'ETA:',MMm, off_eta, jSW_corn, Mm,
      & jnorth-jsouth+1,jsouth+jSW_corn,jnorth+jSW_corn,'node=',mynode
 #endif
-
-
 
 # ifdef PARALLEL_FILES
          xi_rho=ieast-iwest+1
@@ -177,7 +175,7 @@ C$    endif
 
         call system('echo "'/ /msg1/ /'`hostname -s`'/ /msg2/ /'"')
         if (mynode < NNODES-1) call MPI_Send (blank, 1, MPI_INTEGER,
-     &                              mynode+1, 1, ocean_grid_comm, ierr)
+     &                          mynode+1, 1, ocean_grid_comm, ierr)
         call MPI_Barrier(ocean_grid_comm, ierr)
 # endif
 
@@ -185,11 +183,10 @@ C$    endif
       else
         mpi_master_only write(*,'(/1x,A,I4,1x,A,I3,A/)')
      &   '### ERROR: mpi_setup: number of MPI-nodes should be',
-     &                         NNODES, 'instead of', nsize, '.'
+     &                         NNODES, 'instead of ', nsize, '.'
         ierr=99
       endif
       end
-
 
 ! Convert processor-grid indices i,jnode into MPI rank. Check whether
 ! the indices are within the bounds of processor grid. Return them back
@@ -202,24 +199,24 @@ C$    endif
       integer conv_ijnode_to_rank, ii,jj, np_xi,np_eta, i,j
       i=ii ; j=jj
 # ifdef EW_PERIODIC
-      if (np_xi>1) then
-        if (i<0) then
+      if (np_xi > 1) then
+        if (i < 0) then
           i=i+np_xi
-        elseif (i>np_xi-1) then
+        elseif (i > np_xi-1) then
           i=i-np_xi
         endif
       endif
 # endif
 # ifdef NS_PERIODIC
-      if (np_eta>1) then
-        if (j<0) then
+      if (np_eta > 1) then
+        if (j < 0) then
           j=j+np_eta
-        elseif (j>np_eta-1) then
+        elseif (j > np_eta-1) then
           j=j-np_eta
         endif
       endif
 # endif
-      if (0<=i .and. i<np_xi .and. 0<=j .and. j<np_eta) then
+      if (0 <= i .and. i < np_xi .and. 0 <= j .and. j < np_eta) then
 # ifdef TRANSPOSED_MPI_NODE_ORDER
         conv_ijnode_to_rank=j + i*np_eta
 # else
@@ -234,5 +231,3 @@ C$    endif
       subroutine mpi_setup_empty
       end
 #endif    /* MPI */
-
-

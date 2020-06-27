@@ -22,10 +22,30 @@
 #  define t_AVR(i,j,k,itrc) t_avg(i,j,k,itrc)
 #  define hbl_AVR hbl_avg
 #  define hbbl_AVR hbbl_avg
+#  if defined KPP_DIAGNOSE
+#   define kpprichm_AVR(i,j,k) kpprichm_avg(i,j,k)
+#   define kppricht_AVR(i,j,k) kppricht_avg(i,j,k)
+#   define kppsblsh_AVR(i,j,k) kppsblsh_avg(i,j,k)
+#   define kppsblst_AVR(i,j,k) kppsblst_avg(i,j,k)
+#   define kppsblrot_AVR(i,j,k) kppsblrot_avg(i,j,k)
+#   define kppsblent_AVR(i,j,k) kppsblent_avg(i,j,k)
+#  endif
 #  define rho_AVR(i,j,k) rho_avg(i,j,k)
 #  define aks_AVR(i,j,k) aks_avg(i,j,k)
 #  define akt_AVR(i,j,k) akt_avg(i,j,k)
 #  define akv_AVR(i,j,k) akv_avg(i,j,k)
+#  ifdef WRITE_CO2FLX
+#   define co2flx_AVR(i,j) co2flx_avg(i,j)
+#  endif
+#  ifdef WRITE_HEATFLX
+#   define heatflx_AVR(i,j) heatflx_avg(i,j)
+#  endif
+#  ifdef WRITE_TEMP_REST
+#   define restflx_temp_AVR(i,j) restflx_temp_avg(i,j)
+#  endif
+#  ifdef WRITE_SALT_REST
+#   define restflx_salt_AVR(i,j) restflx_salt_avg(i,j)
+#  endif
 #  define rich_AVR(i,j,k) rich_avg(i,j,k)
 #  define richN_AVR(i,j,k) richN_avg(i,j,k)
 #  define swr_frac_AVR(i,j,k) swr_frac_avg(i,j,k)
@@ -51,9 +71,9 @@
 #   define PARinc_AVR PARinc_avg
 #  endif /* BIOLOGY_BEC */
 #  ifdef WRITE_DEPTHS
-#    define Hz_AVR Hz_avg
-#    define z_r_AVR z_r_avg
-#    define z_w_AVR z_w_avg
+#   define Hz_AVR Hz_avg
+#   define z_r_AVR z_r_avg
+#   define z_w_AVR z_w_avg
 #  endif /* WRITE_DEPTHS */
 #  if defined BIOLOGY_BEC2 && defined BEC2_DIAG
 #   define bec2_diag_2d_AVR bec2_diag_2d_avg
@@ -80,6 +100,18 @@
 #  define aks_AVR(i,j,k) aks_slavg(i,j)
 #  define akt_AVR(i,j,k) akt_slavg(i,j)
 #  define akv_AVR(i,j,k) akv_slavg(i,j)
+#  ifdef WRITE_CO2FLX
+#   define co2flx_AVR(i,j) co2flx_slavg(i,j)
+#  endif
+#  ifdef WRITE_HEATFLX
+#   define heatflx_AVR(i,j) heatflx_slavg(i,j)
+#  endif
+#  ifdef WRITE_TEMP_REST
+#   define restflx_temp_AVR(i,j) restflx_temp_slavg(i,j)
+#  endif
+#  ifdef WRITE_SALT_REST
+#   define restflx_salt_AVR(i,j) restflx_salt_slavg(i,j)
+#  endif
 #  define rich_AVR(i,j,k) rich_slavg(i,j)
 #  define richN_AVR(i,j,k) richN_slavg(i,j)
 #  define swr_frac_AVR(i,j,k) swr_frac_slavg(i,j)
@@ -105,15 +137,15 @@
 #   define PARinc_AVR PARinc_slavg
 #  endif /* BIOLOGY_BEC */
 #  ifdef WRITE_DEPTHS
-#    define Hz_AVR(i,j,k) Hz_slavg(i,j)
-#    define z_r_AVR(i,j,k) z_r_slavg(i,j)
-#    define z_w_AVR(i,j,k) z_w_slavg(i,j)
+#   define Hz_AVR(i,j,k) Hz_slavg(i,j)
+#   define z_r_AVR(i,j,k) z_r_slavg(i,j)
+#   define z_w_AVR(i,j,k) z_w_slavg(i,j)
 #  endif /* WRITE_DEPTHS */
 #  if defined BIOLOGY_BEC2 && defined BEC2_DIAG
 #   define bec2_diag_2d_AVR bec2_diag_2d_slavg
 #   define bec2_diag_3d_AVR(i,j,k,itrc) bec2_diag_3d_slavg(i,j,itrc)
 #  endif /* BIOLOGY_BEC2 && BEC2_DIAG */
-# endif
+# endif /* AVRSLICE */
  
       subroutine set_AVR (tile)
       implicit none
@@ -127,15 +159,15 @@
 # include "compute_tile_bounds.h"
 # ifdef SOLVE3D
       if (wrtavg(indxW)) then
-        call wvlcty_tile (istr,iend,jstr,jend, work, A2d(1,1),
-     &                                   A2d(1,2), A2d(1,3))
+        call wvlcty_tile(istr,iend,jstr,jend, work, A2d(1,1),
+     &                                    A2d(1,2), A2d(1,3))
       endif
 # endif
       call set_AVR_tile (istr,iend,jstr,jend)
       return
       end
  
-      subroutine set_AVR_tile (istr,iend,jstr,jend)
+      subroutine set_AVR_tile(istr,iend,jstr,jend)
 
 ! Compute time-averaged fields within a tile.
 ! ------- ------------- ------ ------ - -----
@@ -163,7 +195,7 @@
      &                       , itrc
 #  ifndef AVRSLICE
      &                       , k
-# endif
+#  endif
 # endif
       real cff,cff1
 # include "param.h"
@@ -179,36 +211,38 @@
 #  include "work.h"
 # endif
 
+# if (defined BIOLOGY_NPZDOC && defined PCO2AIR_FORCING) || \
+     defined WRITE_TEMP_REST || defined WRITE_SALT_REST || \
+     defined WRITE_HEATFLX || defined WRITE_CO2FLX
+#  include "forces.h"
+# endif
 # ifdef BIOLOGY_NPZDOC
 #  include "bgcflux.h"
-#  ifdef PCO2AIR_FORCING
-      ! pCO2air is here:
-#   include "forces.h"
-#  endif
 #  include "gasexc.h"
 # endif
 # ifdef BIOLOGY_BEC
 #  include "ecosys_bec.h"
 #  include "bec_avg.h"
 # endif
-#if defined BIOLOGY_BEC2 && defined BEC2_DIAG
-# include "ecosys_bec2.h"
-#endif
+# if defined BIOLOGY_BEC2 && defined BEC2_DIAG
+#  include "ecosys_bec2.h"
+# endif
 
-#include "compute_auxiliary_bounds.h"
+# include "compute_auxiliary_bounds.h"
 
       if (iic>ntsAVR) then
         cff=1./dble(nAVR) !<-- scaling
         if (mod(iic-ntsAVR,nAVR)==1) then
           if (ZEROTH_TILE) then
-            mpi_master_only write(*,'(7x,A,I8,2x,A,I8,2x,A,I5)')
-#ifdef AVRSLICE
+# ifdef AVRSLICE
+            mpi_master_only write(*,'(7x,A,I8,2x,A,I8,2x,A,I5,2x,A,I4)')
      &          'set_slavg :: started slice averaging at iic=', iic,
-     &                          'ntsslavg=', ntsAVR, 'nslavg=', nAVR
-#else
+     &          'ntsslavg=', ntsAVR, 'nslavg=', nAVR, 'k_slice=', ksl
+# else
+            mpi_master_only write(*,'(7x,A,I8,2x,A,I8,2x,A,I5)')
      &               'set_avg :: started averaging at iic=', iic,
      &                          'ntsavg=', ntsAVR, 'navg=', nAVR
-#endif
+# endif
           endif
           cff1=0.   !--> initialize
         else
@@ -351,6 +385,42 @@
             ENDKLOOP
           endif
 #  endif
+#  if defined WRITE_CO2FLX
+          if (wrtAVR(indxCO2flx)) then
+            do j=jstrR,jendR
+              do i=istrR,iendR
+                co2flx_AVR(i,j)=cff1*co2flx_AVR(i,j) +cff*CO2flx(i,j)
+              enddo
+            enddo
+          endif
+#  endif
+#  if defined WRITE_HEATFLX
+          if (wrtAVR(indxHeatflx)) then
+            do j=jstrR,jendR
+              do i=istrR,iendR
+                heatflx_AVR(i,j)=cff1*heatflx_AVR(i,j) +cff*Heatflx(i,j)
+              enddo
+            enddo
+          endif
+#  endif
+#  if defined WRITE_TEMP_REST
+          if (wrtAVR(indxRestflxTemp)) then
+            do j=jstrR,jendR
+              do i=istrR,iendR
+                restflx_temp_AVR(i,j)=cff1*restflx_temp_AVR(i,j) +cff*RestflxTemp(i,j)
+              enddo
+            enddo
+          endif
+#  endif
+#  if defined WRITE_SALT_REST
+          if (wrtAVR(indxRestflxSalt)) then
+            do j=jstrR,jendR
+              do i=istrR,iendR
+                restflx_salt_AVR(i,j)=cff1*restflx_salt_AVR(i,j) +cff*RestflxSalt(i,j)
+              enddo
+            enddo
+          endif
+#  endif
 #  ifdef LMD_KPP
         if (wrtAVR(indxHbls)) then
             do j=jstrR,jendR
@@ -369,8 +439,65 @@
           enddo
         endif
 #  endif
+#  ifdef KPP_DIAGNOSE
+! KppRichm KppRicht KppSblSh KppSblSt KppSblRot KppSblEnt
+          if (wrtAVR(indxKppRichm)) then
+            KLOOP(0)
+              do j=jstrR,jendR
+                do i=istrR,iendR
+                  kpprichm_AVR(i,j,k)=cff1*kpprichm_AVR(i,j,k)+cff*KppRichm(i,j,KLEVEL)
+                enddo
+              enddo
+            ENDKLOOP
+          endif
+          if (wrtAVR(indxKppRicht)) then
+            KLOOP(0)
+              do j=jstrR,jendR
+                do i=istrR,iendR
+                  kppricht_AVR(i,j,k)=cff1*kppricht_AVR(i,j,k)+cff*KppRicht(i,j,KLEVEL)
+                enddo
+              enddo
+            ENDKLOOP
+          endif
+          if (wrtAVR(indxKppSblSh)) then
+            KLOOP(0)
+              do j=jstrR,jendR
+                do i=istrR,iendR
+                  kppsblsh_AVR(i,j,k)=cff1*kppsblsh_AVR(i,j,k)+cff*KppSblSh(i,j,KLEVEL)
+                enddo
+              enddo
+            ENDKLOOP
+          endif
+          if (wrtAVR(indxKppSblSt)) then
+            KLOOP(0)
+              do j=jstrR,jendR
+                do i=istrR,iendR
+                  kppsblst_AVR(i,j,k)=cff1*kppsblst_AVR(i,j,k)+cff*KppSblSt(i,j,KLEVEL)
+                enddo
+              enddo
+            ENDKLOOP
+          endif
+          if (wrtAVR(indxKppSblRot)) then
+            KLOOP(0)
+              do j=jstrR,jendR
+                do i=istrR,iendR
+                  kppsblrot_AVR(i,j,k)=cff1*kppsblrot_AVR(i,j,k)+cff*KppSblRot(i,j,KLEVEL)
+                enddo
+              enddo
+            ENDKLOOP
+          endif
+          if (wrtAVR(indxKppSblEnt)) then
+            KLOOP(0)
+              do j=jstrR,jendR
+                do i=istrR,iendR
+                  kppsblent_AVR(i,j,k)=cff1*kppsblent_AVR(i,j,k)+cff*KppSblEnt(i,j,KLEVEL)
+                enddo
+              enddo
+            ENDKLOOP
+          endif
+#  endif
 
-# ifdef WRITE_DEPTHS
+#  ifdef WRITE_DEPTHS
         KLOOP(1)
               do j=jstrR,jendR
                 do i=istrR,iendR
@@ -386,7 +513,7 @@
                 enddo
               enddo
         ENDKLOOP
-# endif /* WRITE_DEPTHS */
+#  endif /* WRITE_DEPTHS */
 
 #  if defined BIOLOGY_NPZDOC || defined BIOLOGY_BEC
              do j=jstrR,jendR
@@ -420,7 +547,7 @@
                   enddo
 #   endif /* OXYGEN */
 
-#ifdef SEDIMENT_BIOLOGY
+#   ifdef SEDIMENT_BIOLOGY
           do itrc=1,NT_sed
              if (wrtAVR(indxSedOrgN+itrc-1)) then
                 do j=jstrR,jendR
@@ -430,22 +557,27 @@
                 enddo
              endif
           enddo
-#endif /* SEDIMENT_BIOLOGY */
+#   endif /* SEDIMENT_BIOLOGY */
 #  endif /* BIOLOGY_NPZDOC || BIOLOGY_BEC */
 #  if defined BIOLOGY_BEC2 && defined BEC2_DIAG
+       !   MPI_master_only write(*,*),'cff1',cff1
+       !   MPI_master_only write(*,*),'cff',cff
           do itrc=1,nr_bec2_diag_2d
+      !    MPI_master_only write(*,*),'2D:itrc',itrc
              do j=jstrR,jendR
                 do i=istrR,iendR
-                   bec2_diag_2d_AVR(i,j,itrc) = bec2_diag_2d_AVR(i,j,itrc) + bec2_diag_2d(i,j,itrc)
+                   bec2_diag_2d_AVR(i,j,itrc) = cff1*bec2_diag_2d_AVR(i,j,itrc) 
+     &                                         + cff*bec2_diag_2d(i,j,itrc)
                 end do
              end do
           end do
           do itrc=1,nr_bec2_diag_3d
+      !    MPI_master_only write(*,*),'3D:itrc',itrc
              KLOOP(1)
              do j=jstrR,jendR
                 do i=istrR,iendR
                    bec2_diag_3d_AVR(i,j,k,itrc) = cff1*bec2_diag_3d_AVR(i,j,KLEVEL,itrc) 
-     &                                           + bec2_diag_3d(i,j,KLEVEL,itrc)
+     &                                           + cff*bec2_diag_3d(i,j,KLEVEL,itrc)
                 end do
              end do
              ENDKLOOP
@@ -455,13 +587,17 @@
 
         if (mod(iic-ntsAVR,nAVR)==0) then
           if (ZEROTH_TILE) then
-            mpi_master_only write(*,'(7x,A,I8,2x,A,I8,2x,A,I5)')
-     &              'set_AVR :: finished averaging at iic=', iic,
+            mpi_master_only write(*,'(7x,2A,I8,2x,A,I8,2x,A,I5)')
+# ifdef AVRSLICE
+     &              'set_slavg',
+# else 
+     &              'set_avg',
+# endif
+     &              ' :: finished averaging at iic=', iic,
      &                         'ntsAVR=', ntsAVR,  'nAVR=', nAVR
           endif
-          endif
+        endif
       endif       !<-- iic>ntsAVR
-      return
       end
 
 # undef set_AVR
@@ -481,13 +617,33 @@
 # undef t_AVR
 # undef hbl_AVR
 # undef hbbl_AVR
+# if defined KPP_DIAGNOSE
+#  undef kpprichm_AVR
+#  undef kppricht_AVR
+#  undef kppsblsh_AVR
+#  undef kppsblst_AVR
+#  undef kppsblrot_AVR
+#  undef kppsblent_AVR
+# endif
 # undef rho_AVR
 # undef aks_AVR
 # undef akt_AVR
-# undef rich_AVR
-# undef richN_AVR
+# if defined WRITE_CO2FLX
+#  undef co2flx_AVR
+# endif
+# if defined WRITE_HEATFLX
+#  undef heatflx_AVR
+# endif
+# if defined WRITE_TEMP_REST
+#  undef restflx_temp_AVR
+# endif
+# if defined WRITE_SALT_REST
+#  undef restflx_salt_AVR
+# endif
 # undef swr_frac_AVR
 # undef akv_AVR
+# undef rich_AVR
+# undef richN_AVR
 # undef KLOOP
 # undef ENDKLOOP
 # undef KLEVEL
@@ -502,10 +658,10 @@
 #   undef GasExcFlux_AVR
 #  endif
 # endif
-#  if defined BIOLOGY_BEC2 && defined BEC2_DIAG
-#   undef bec2_diag_2d_AVR
-#   undef bec2_diag_3d_AVR
-#  endif /* BIOLOGY_BEC2 && BEC2_DIAG */
+# if defined BIOLOGY_BEC2 && defined BEC2_DIAG
+#  undef bec2_diag_2d_AVR
+#  undef bec2_diag_3d_AVR
+# endif /* BIOLOGY_BEC2 && BEC2_DIAG */
 # ifdef SLICE_AVG
 #  ifndef AVRSLICE
 #   define AVRSLICE

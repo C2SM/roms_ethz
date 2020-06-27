@@ -9,7 +9,6 @@
       real A(PRIVATE_2D_SCRATCH_ARRAY)
       real B(GLOBAL_2D_ARRAY)
 CSDISTRIBUTE_RESHAPE B(BLOCK_PATTERN) BLOCK_CLAUSE
-
 #include "compute_extended_bounds.h"
 
       do j=jstrR,jendR
@@ -17,7 +16,6 @@ CSDISTRIBUTE_RESHAPE B(BLOCK_PATTERN) BLOCK_CLAUSE
           B(i,j)=A(i,j)
         enddo
       enddo
-      return
       end
 
 #ifdef SOLVE3D
@@ -28,7 +26,6 @@ CSDISTRIBUTE_RESHAPE B(BLOCK_PATTERN) BLOCK_CLAUSE
       real A(PRIVATE_2D_SCRATCH_ARRAY,nmax)
       real B(GLOBAL_2D_ARRAY,nmax)
 CSDISTRIBUTE_RESHAPE B(BLOCK_PATTERN,*) BLOCK_CLAUSE
-
 # include "compute_extended_bounds.h"
 
       do k=1,nmax
@@ -38,18 +35,16 @@ CSDISTRIBUTE_RESHAPE B(BLOCK_PATTERN,*) BLOCK_CLAUSE
           enddo
         enddo
       enddo
-      return
       end
 
-
+# define XI_ONLY
       subroutine ext_copy_prv2shr_1Dslb_tile (istr,iend,j, A,B,nmax)
       implicit none
-      integer istr,iend,jstr,jend, nmax, i,j,k
 # include "param.h"
+      integer istr,iend, nmax, i,j,k
       real A(PRIVATE_1D_SCRATCH_ARRAY,nmax)
       real B(GLOBAL_2D_ARRAY,nmax)
 CSDISTRIBUTE_RESHAPE B(BLOCK_PATTERN,*) BLOCK_CLAUSE
-
 # include "compute_extended_bounds.h"
 
       do k=1,nmax
@@ -57,8 +52,6 @@ CSDISTRIBUTE_RESHAPE B(BLOCK_PATTERN,*) BLOCK_CLAUSE
             B(i,j,k)=A(i,k)
         enddo
       enddo
-      return
       end
-
+# undef XI_ONLY
 #endif
-

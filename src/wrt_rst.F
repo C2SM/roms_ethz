@@ -6,10 +6,10 @@
 #include "param.h"
 #include "ncvars.h"
       integer record, start(2), count(2), ibuff(iaux),
-     &        i, ierr, lstr, lvar, lenstr, nf_fwrite
-# ifdef SOLVE3D
+     &        i, ierr, lstr, lvar, lenstr, ncdf_write
+#ifdef SOLVE3D
      &      , itrc
-# endif
+#endif
       character(len=18) tstring
 #include "scalars.h"
 #include "ocean2d.h"
@@ -43,24 +43,19 @@
 # include "floats.h"
       integer startTinfo(3), starttrack(4), i,j,
      &        countTinfo(3), counttrack(4), level
-      integer tmp(NFT+1,1)
+      integer tmp(NFT+1,-1:0)
       real bufftrack(1:6,NFT+1,nfloats)
-# endif
-
-
-#if defined MPI & !defined PARALLEL_FILES
+#endif
+#if defined MPI && !defined PARALLEL_FILES
 # include "mpif.h"
       integer status(MPI_STATUS_SIZE), blank
-      if (mynode>0) call MPI_Recv (blank, 1, MPI_INTEGER,
+      if (mynode > 0) call MPI_Recv (blank, 1, MPI_INTEGER,
      &            mynode-1, 1, ocean_grid_comm, status, ierr)
 #endif
 
-      record = 0
+! Create/open restart and set record index within the file.
 
-! Create/open restart file; write grid arrays, if so requested,
-! then set record index within the file..
-
-      call def_rst (nrecrst, ierr)
+      call def_rst(nrecrst, ierr)
       if (ierr /= nf_noerr) goto 99
       lstr=lenstr(rstname)
       nrecrst=max(nrecrst,1)                  !!! WARNING: Here it
@@ -73,10 +68,8 @@
 ! Write out evolving model variables:
 ! ----- --- -------- ----- ----------
 
-      ibuff(1)=iic-1               ! Time step and
-      ibuff(2)=nrecrst             ! record numbers.
-      ibuff(3)=nrechis
-      ibuff(4:iaux)=0
+      ibuff(1)=iic-1  ; ibuff(2)=nrecrst        ! Time step and
+      ibuff(4:iaux)=0 ; ibuff(3)=nrechis        ! record numbers.
 #ifdef AVERAGES
       ibuff(4)=nrecavg
 #endif
@@ -86,10 +79,9 @@
 #ifdef FLOATS
       ibuff(6)=nrecflt
 #endif
-      start(1)=1
-      start(2)=record
-      count(1)=iaux
-      count(2)=1
+      start(1)=1      ; count(1)=iaux
+      start(2)=record ; count(2)=1
+
       ierr=nf_put_vara_int (ncrst, rstTstep, start, count, ibuff)
       if (ierr /= nf_noerr) then
         write(*,'(/1x,3A,i6/11x,A,3x,A,i4/)') '### ERROR: wrt_rst :: ',
@@ -100,7 +92,7 @@
 #if defined BGC_FLUX_ANALYSIS || defined PHYS_FLUX_ANALYSIS
 ! Time record numbers for flux analysis:
       ! default values: 0; replace where appropriate
-      ibuff = (/0, 0, 0, 0/)
+      ibuff = (/0, 0, 0, 0, 0, 0/)
 # ifdef BGC_FLUX_ANALYSIS
       ibuff(1) = nrec_bgc_flux_his
 #  ifdef AVERAGES
@@ -122,9 +114,19 @@
       endif
 #endif /* BGC_FLUX_ANALYSIS || PHYS_FLUX_ANALYSIS */
 
-! Time.
+! Time: Note that (1) time is always double precision; and (2) which
+! one to write into the file, time or tdays, is decided by attribute
+! "units" stored as vname(3,indxTime).  When computng time is always
+! in seconds, however it is more convenient to have it in days in all
+! the files; (3) this code is designed for politeness - it reads time
+! units from the initial condition file (see "get_init.F") and uses
+! it throughout the entire run.
 
-      ierr=nf_put_var1_FTYPE (ncrst, rstTime, record, time)
+      if (vname(3,indxTime)(1:6) == 'second') then
+        ierr=nf_put_var1_double(ncrst, rstTime, record, time)
+      else
+        ierr=nf_put_var1_double(ncrst, rstTime, record, tdays)
+      endif
       if (ierr /= nf_noerr) then
         lvar=lenstr(vname(1,indxTime))
         write(*,'(/1x,4A,i6/11x,A,3x,A,i4/)') '### ERROR: wrt_rst :: ',
@@ -134,71 +136,92 @@
         goto 99                                           !--> ERROR
       endif
 
-! Barotropic mode variables: free-surface and 2D momentum components
-! in XI- and ETA-directions.
+! Free-surface and 2D momentum components in XI- and ETA-directions.
 
-      ierr=nf_fwrite (zeta(START_2D_ARRAY,knew), ncrst, rstZ,
-     &                                            record, r2dvar)
-      if (ierr /= nf_noerr) then
+      ierr=ncdf_write(ncrst,  rstZ,  record,  r_var,
+     &                zeta(START_2D_ARRAY,knew), 1)
+      if (ierr == nf_noerr) then
+        ierr=ncdf_write(ncrst,  rstUb,  record, u_var,
+     &                  ubar(START_2D_ARRAY,knew), 1)
+        if (ierr == nf_noerr) then
+          ierr=ncdf_write(ncrst,  rstVb,  record, v_var,
+     &                    vbar(START_2D_ARRAY,knew), 1)
+          if (ierr /= nf_noerr) then
+            lvar=lenstr(vname(1,indxVb))
+            write(*,1) vname(1,indxVb)(1:lvar), record MYID
+          endif
+        else
+          lvar=lenstr(vname(1,indxUb))
+          write(*,1) vname(1,indxUb)(1:lvar), record MYID
+        endif
+      else
         lvar=lenstr(vname(1,indxZ))
         write(*,1) vname(1,indxZ)(1:lvar), record MYID
-        goto 99                                           !--> ERROR
       endif
+      if (ierr /= nf_noerr) goto 99                !--> ERROR
 
-      ierr=nf_fwrite (ubar(START_2D_ARRAY,knew), ncrst, rstUb,
-     &                                            record, u2dvar)
-      if (ierr /= nf_noerr) then
-        lvar=lenstr(vname(1,indxUb))
-        write(*,1) vname(1,indxUb)(1:lvar), record MYID
-        goto 99                                           !--> ERROR
-      endif
-
-      ierr=nf_fwrite (vbar(START_2D_ARRAY,knew), ncrst, rstVb,
-     &                                            record, v2dvar)
-      if (ierr /= nf_noerr) then
-        lvar=lenstr(vname(1,indxVb))
-        write(*,1) vname(1,indxVb)(1:lvar), record MYID
-        goto 99                                           !--> ERROR
-      endif
 #ifdef SOLVE3D
 # ifdef EXACT_RESTART
-      ierr=nf_fwrite (DU_avg2, ncrst, rst_DU_avg2, record, u2dvar)
-      if (ierr /= nf_noerr) then
+#  ifdef EXTRAP_BAR_FLUXES
+      ierr=ncdf_write(ncrst, rst_DU_avg2, record, u_var, DU_avg2, 1)
+      if (ierr == nf_noerr) then
+        ierr=ncdf_write(ncrst, rst_DV_avg2, record, v_var, DV_avg2, 1)
+        if (ierr == nf_noerr) then
+          ierr=ncdf_write(ncrst, rst_DU_avg_bak, record, u_var,
+     &                                                  DU_avg_bak, 1)
+          if (ierr == nf_noerr) then
+            ierr=ncdf_write(ncrst, rst_DV_avg_bak, record, v_var,
+     &                                                  DV_avg_bak, 1)
+            if (ierr /= nf_noerr) then
+              write(*,1) 'DV_avg_bak', record MYID
+            endif
+          else
+            write(*,1) 'DU_avg_bak', record MYID
+          endif
+        else
+          write(*,1) 'DV_avg2', record MYID
+        endif
+      else
         write(*,1) 'DU_avg2', record MYID
-        goto 99                                           !--> ERROR
       endif
-      ierr=nf_fwrite (DV_avg2, ncrst, rst_DV_avg2, record, v2dvar)
-      if (ierr /= nf_noerr) then
-        write(*,1) 'DV_avg2', record MYID
-        goto 99                                           !--> ERROR
+#  elif defined PRED_COUPLED_MODE
+      ierr=ncdf_write(ncrst,   rst_rufrc,  record,  u_var,
+     &                  rufrc_bak(START_2D_ARRAY,nstp), 1)
+      if (ierr == nf_noerr) then
+        ierr=ncdf_write(ncrst, rst_rvfrc,  record,  v_var,
+     &                  rvfrc_bak(START_2D_ARRAY,nstp), 1)
+        if (ierr /= nf_noerr) then
+          write(*,1) 'rvfrc_bak', record MYID
+        endif
+      else
+        write(*,1) 'rufrc_bak', record MYID
       endif
+#  endif
+      if (ierr /= nf_noerr) goto 99                !--> ERROR
 # endif
-
-
 
 ! 3D momentum components in XI- and ETA-directions.
 
-      ierr=nf_fwrite (u(START_2D_ARRAY,1,nstp), ncrst, rstU,
-     &                                         record, u3dvar)
-      if (ierr /= nf_noerr) then
+      ierr=ncdf_write(ncrst, rstU,  record,  u_var,
+     &                 u(START_2D_ARRAY,1,nstp), N)
+      if (ierr == nf_noerr) then
+        ierr=ncdf_write(ncrst, rstV, record, v_var,
+     &                 v(START_2D_ARRAY,1,nstp), N)
+        if (ierr /= nf_noerr) then
+          lvar=lenstr(vname(1,indxV))
+          write(*,1) vname(1,indxV)(1:lvar), record MYID
+        endif
+      else
         lvar=lenstr(vname(1,indxU))
         write(*,1) vname(1,indxU)(1:lvar), record MYID
-        goto 99                                           !--> ERROR
       endif
-
-      ierr=nf_fwrite (v(START_2D_ARRAY,1,nstp), ncrst, rstV,
-     &                                         record, v3dvar)
-      if (ierr /= nf_noerr) then
-        lvar=lenstr(vname(1,indxV))
-        write(*,1) vname(1,indxV)(1:lvar), record MYID
-        goto 99                                           !--> ERROR
-      endif
+      if (ierr /= nf_noerr) goto 99                !--> ERROR
 
 ! Tracer variables.
 
       do itrc=1,NT
-        ierr=nf_fwrite (t(START_2D_ARRAY,1,nstp,itrc), ncrst,
-     &                              rstT(itrc), record, r3dvar)
+        ierr=ncdf_write(ncrst,  rstT(itrc), record, r_var,
+     &                  t(START_2D_ARRAY,1,nstp,itrc), N)
         if (ierr /= nf_noerr) then
           lvar=lenstr(vname(1,indxT+itrc-1))
           write(*,1) vname(1,indxT+itrc-1)(1:lvar), record MYID
@@ -206,13 +229,13 @@
         endif
       enddo
 
-#  ifdef SEDIMENT_BIOLOGY
+# ifdef SEDIMENT_BIOLOGY
 
 ! Sediment tracer variables.
 
       do itrc=1,NT_sed
-        ierr=nf_fwrite (t_sed(START_2D_ARRAY,itrc), ncrst,
-     &                              rstTsed(itrc), record, r2dvar)
+        ierr=ncdf_write(ncrst,  rstTsed(itrc), record, r_var,
+     &                  t_sed(START_2D_ARRAY,itrc), 1)
         if (ierr .ne. nf_noerr) then
           lvar=lenstr(vname(1,indxSedOrgN+itrc-1))
           write(*,1) vname(1,indxSedOrgN+itrc-1)(1:lvar), 
@@ -220,80 +243,69 @@
           goto 99                                         !--> ERROR
         endif
       enddo
-#  endif /* SEDIMENT_BIOLOGY */
-#  if defined BIOLOGY_BEC || defined BIOLOGY_BEC2 || (defined BIOLOGY_NPZDOC && \
-    defined OXYGEN && defined CARBON)
+# endif /* SEDIMENT_BIOLOGY */
+# if 0
+# ifdef EXACT_RESTART
+#  if  defined BIOLOGY_BEC || defined BIOLOGY_BEC2 || \
+      (defined BIOLOGY_NPZDOC && defined OXYGEN && defined CARBON)
 
 ! pH:
 
-      ierr=nf_fwrite (ph_hist, ncrst, rstPH, record, r2dvar)
+      ierr=ncdf_write(ncrst, rstPH,  record,  r_var,
+     &                 ph_hist, 1)
       if (ierr .ne. nf_noerr) then
-         lvar=lenstr(vname(1,indxPH_rst))
-         write(*,1) vname(1,indxPH_rst)(1:lvar), record,
+         lvar=lenstr(vname(1,indxPH))
+         write(*,1) vname(1,indxPH)(1:lvar), record,
      &        ierr, nf_strerror(ierr) MYID
          goto 99                !--> ERROR
       endif
 
 ! pCO2:
 
-      ierr=nf_fwrite (pCO2sw, ncrst, rstPCO2, record, r2dvar)
+      ierr=ncdf_write(ncrst, rstPCO2,  record,  r_var, pCO2sw, 1)
       if (ierr .ne. nf_noerr) then
-         lvar=lenstr(vname(1,indxPCO2_rst))
-         write(*,1) vname(1,indxPCO2_rst)(1:lvar), record,
+         lvar=lenstr(vname(1,indxPCO2))
+         write(*,1) vname(1,indxPCO2)(1:lvar), record,
      &        ierr, nf_strerror(ierr) MYID
          goto 99                !--> ERROR
       endif
-#  ifdef OUTPUT_PCO2AIR_RST
+#   ifdef OUTPUT_PCO2AIR_RST
 
 ! pCO2air:
 
-      ierr=nf_fwrite (pCO2air, ncrst, rstPCO2air, record, r2dvar)
+      ierr=ncdf_write(ncrst, rstPCO2air,  record,  r_var, pCO2air, 1)
       if (ierr .ne. nf_noerr) then
-         lvar=lenstr(vname(1,indxPCO2air_rst))
-         write(*,1) vname(1,indxPCO2air_rst)(1:lvar), record,
+         lvar=lenstr(vname(1,indxPCO2air))
+         write(*,1) vname(1,indxPCO2air)(1:lvar), record,
      &        ierr, nf_strerror(ierr) MYID
          goto 99                !--> ERROR
       endif
-#  endif /* OUTPUT_PCO2AIR_RST */
-# endif /* BIOLOGY_BEC || (BIOLOGY_NPZDOC && OXYGEN && CARBON) */
+#   endif
+#  endif
+#  endif /* if 0 */
+# endif
 
-# if defined BIOLOGY_BEC2 && defined BEC2_DIAG
-
-! 2d diagnostics:
-
-      do itrc=1,nr_bec2_diag_2d
-         ierr=nf_fwrite (bec2_diag_2d(START_2D_ARRAY,itrc), ncrst,
-     &                              rstT_bec2_diag(itrc), record, r2dvar)
-        if (ierr .ne. nf_noerr) then
-          lvar=lenstr(vname_bec2_diag_2d(1,itrc))
-          write(*,1) vname_bec2_diag_2d(1,itrc)(1:lvar), record,
-     &              ierr, nf_strerror(ierr) MYID
-          goto 99                                         !--> ERROR
-        endif
-      enddo
-
-! 3d diagnostics:
-
-      do itrc=1,nr_bec2_diag_3d
-         ierr=nf_fwrite (bec2_diag_3d(START_2D_ARRAY,1,itrc), ncrst,
-     &                   rstT_bec2_diag(nr_bec2_diag_2d+itrc), record, r3dvar)
-        if (ierr .ne. nf_noerr) then
-          lvar=lenstr(vname_bec2_diag_3d(1,itrc))
-          write(*,1) vname_bec2_diag_3d(1,itrc)(1:lvar), record,
-     &              ierr, nf_strerror(ierr) MYID
-          goto 99                                         !--> ERROR
-        endif
-      enddo
-# endif /* BIOLOGY_BEC2 && BEC2_DIAG */
+# ifdef BIOLOGY_BEC2
+! pH:
+!
+      ierr=ncdf_write(ncrst, rstPH,  record,  r_var,
+     &                 ph_hist, 1)
+      if (ierr .ne. nf_noerr) then
+         lvar=lenstr(vname(1,indxPH))
+         write(*,1) vname(1,indxPH)(1:lvar), record,
+     &        ierr, nf_strerror(ierr) MYID
+         goto 99                !--> ERROR
+      endif
+# endif /* BIOLOGY_BEC2 */
 
 # if defined BIOLOGY_BEC || defined BIOLOGY_NPZDOC
 
 ! PAR:
 
-      ierr=nf_fwrite (PAR, ncrst, rstPAR, record, r3dvar)
+      ierr=ncdf_write(ncrst, rstPAR, record,  r_var, PAR, N)
       if (ierr .ne. nf_noerr) then
-         lvar=lenstr(vname(1,indxPAR_rst))
-         write(*,1) vname(1,indxPAR_rst)(1:lvar), record,
+         lvar=lenstr(vname(1,indxPAR))
+         write(*,1) vname(1,indxPAR)(1:lvar), record,
      &        ierr, nf_strerror(ierr) MYID
          goto 99                !--> ERROR
       endif
@@ -302,8 +314,8 @@
 # ifdef LMD_KPP
 ! Depth of planetary boundary layer [m].
 
-      ierr=nf_fwrite (hbls(START_2D_ARRAY,nstp), ncrst,
-     &                           rstHbls, record, r2dvar)
+      ierr=ncdf_write(ncrst, rstHbls, record, r_var,
+     &                hbls(START_2D_ARRAY,nstp), 1)
       if (ierr /= nf_noerr) then
         lvar=lenstr(vname(1,indxHbls))
         write(*,1) vname(1,indxHbls)(1:lvar), record MYID
@@ -313,8 +325,8 @@
 # ifdef LMD_BKPP
 ! Thickness of KPP bottom boundary layer [m].
 
-      ierr=nf_fwrite (hbbl(START_2D_ARRAY,nstp), ncrst,
-     &                           rstHbbl, record, r2dvar)
+      ierr=ncdf_write(ncrst, rstHbbl, record, r_var,
+     &                hbbl(START_2D_ARRAY,nstp), 1)
       if (ierr /= nf_noerr) then
         lvar=lenstr(vname(1,indxHbbl))
         write(*,1) vname(1,indxHbbl)(1:lvar), record MYID
@@ -335,12 +347,9 @@
 
 ! write Tinfo
 
-      startTinfo(1)=1
-      startTinfo(2)=1
-      startTinfo(3)=record
-      countTinfo(1)=5
-      countTinfo(2)=nfloats
-      countTinfo(3)=1
+      startTinfo(1)=1      ; countTinfo(1)=5
+      startTinfo(2)=1      ; countTinfo(2)=nfloats
+      startTinfo(3)=record ; countTinfo(3)=1
 
       ierr=nf_put_vara_FTYPE (ncrst, rstTinfo, startTinfo,
      &                        countTinfo, Tinfo)
@@ -353,12 +362,10 @@
 
 ! write grid level
 
-      start(1)=1
-      start(2)=record
-      count(1)=nfloats
-      count(2)=1
+      start(1)=1      ; count(1)=nfloats
+      start(2)=record ; count(2)=1
 
-      ierr=nf_put_vara_int (ncrst, rstfltgrd, start, count, fltgrd)
+      ierr=nf_put_vara_int(ncrst, rstfltgrd, start,count, fltgrd)
       if (ierr /= nf_noerr) then
         write(*,'(/1x,3A,i6/11x,A,3x,A,i4/)') '### ERROR: wrt_rst :: ',
      &      'Cannot write variable ''grid level'' into restart file, ',
@@ -368,25 +375,18 @@
 
 ! write track
 
-      starttrack(1)=1
-      starttrack(2)=1
-      starttrack(3)=1
-      starttrack(4)=record
-      counttrack(1)=6
-      counttrack(2)=NFT+1
-      counttrack(3)=nfloats
-      counttrack(4)=1
+      starttrack(1)=1      ; counttrack(1)=6
+      starttrack(2)=1      ; counttrack(2)=NFT+1
+      starttrack(3)=1      ; counttrack(3)=nfloats
+      starttrack(4)=record ; counttrack(4)=1
 
-      level=-1
-      tmp(1,level)=nf
-      tmp(2,level)=nfm1
-      tmp(3,level)=nfm2
-      tmp(4,level)=nfm3
-      level=0
-      tmp(1,level)=nf
-      tmp(2,level)=nfm1
-      tmp(3,level)=nfm2
-      tmp(4,level)=nfm3
+
+      do level=-1,0
+        tmp(1,level)=nf
+        tmp(2,level)=nfm1
+        tmp(3,level)=nfm2
+        tmp(4,level)=nfm3
+      enddo
 
       do i=1,NFT+1
         do j=1,nfloats
@@ -398,8 +398,8 @@
           bufftrack(6,i,j)=track(izrhs,tmp(i,fltgrd(j)),j)
         enddo
       enddo
-      ierr=nf_put_vara_FTYPE (ncrst, rsttrack, starttrack,
-     &   counttrack, bufftrack)
+      ierr=nf_put_vara_FTYPE(ncrst,  rsttrack,   starttrack,
+     &                               counttrack, bufftrack)
       if (ierr /= nf_noerr) then
         write(*,'(/1x,3A,i6/11x,A,3x,A,i4/)') '### ERROR: wrt_rst :: ',
      &           'Cannot write variable ''track'' into restart file, ',
@@ -411,17 +411,17 @@
   1   format(/1x, '### ERROR: wrt_rst :: Cannot write variable ''',
      &             A, ''' into restart file, rec =', i6, 3x,A,i4/)
       goto 100
-  99  if (may_day_flag==0) may_day_flag=3
+  99  if (may_day_flag == 0) may_day_flag=3
  100  continue
 
 ! Close or synchronize netCDF file to disk to the allow other
 ! processes to access data immediately after it is written.
 
-#if defined MPI & !defined PARALLEL_FILES
+#if defined MPI && !defined PARALLEL_FILES
       ierr=nf_close (ncrst)
-      if (nrpfrst>0 .and. record>=nrpfrst) ncrst=-1
+      if (nrpfrst > 0 .and. record >= nrpfrst) ncrst=-1
 #else
-      if (nrpfrst>0 .and. record>=nrpfrst) then
+      if (nrpfrst > 0 .and. record >= nrpfrst) then
         ierr=nf_close (ncrst)
         ncrst=-1
       else
@@ -430,7 +430,7 @@
 #endif
       if (ierr == nf_noerr) then
 #ifdef MPI_SILENT_MODE
-        if (mynode==0) then
+        if (mynode == 0) then
 #endif
           write(tstring,'(F18.8)') tdays
           i=1
@@ -445,13 +445,13 @@
         endif
 #endif
       else
-        write(*,'(/1x,2A/)')      '### ERROR: wrt_rst :: Cannot ',
+        write(*,'(/1x,2A/)')    '### ERROR: wrt_rst :: Cannot ',
      &                          'synchronize/close restart file.'
-        if (may_day_flag==0) may_day_flag=3
+        if (may_day_flag == 0) may_day_flag=3
       endif
 
-#if defined MPI & !defined PARALLEL_FILES
+#if defined MPI && !defined PARALLEL_FILES
       if (mynode < NNODES-1) call MPI_Send (blank, 1, MPI_INTEGER,
-     &                           mynode+1, 1, ocean_grid_comm, ierr)
+     &                        mynode+1, 1, ocean_grid_comm, ierr)
 #endif
       end

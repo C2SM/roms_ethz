@@ -72,9 +72,12 @@
             !
 
             INTEGER :: oas_step, oas_dt
-#include "param.h"   ! => itemp, N, mynode
-#include "scalars.h"   ! nstp, dt, ntimes
-#include "ocean3d.h"   ! t
+            ! => itemp, N, mynode:
+#include "param.h"
+            ! => nstp, dt, ntimes:
+#include "scalars.h"
+            ! => t:
+#include "ocean3d.h"
 
             
             ! Skip if sequential coupling mode and last time step
@@ -150,20 +153,26 @@
             !       Matthieu Leclair - ETHZ
             !
 
-#include "param.h"   ! => itemp, isalt, N, mynode
-#include "scalars.h"   ! => nstp, dt, tdays, nrhs, rho0, Cp, deg2rad
-#include "ocean3d.h"   ! => t, Hz
-#include "forces.h"   ! => sustr, svstr, srflx, stflx
-#include "ncvars.h"   ! => hbls
+            ! => itemp, isalt, N, mynode
+#include "param.h"
+            ! => nstp, dt, tdays, nrhs, rho0, Cp, deg2rad
+#include "scalars.h"
+            ! => t, Hz
+#include "ocean3d.h"
+            ! => sustr, svstr, srflx, stflx
+#include "forces.h"
+            ! => hbls
+#include "ncvars.h"
             INTEGER ::  oas_dt, oas_step, jn, i, j
             REAL :: cff_wstr, cff_hflx, cff_fwflx
             REAL :: zflx_1, zflx_2
 #ifdef DIURNAL_SRFLUX
-# include "grid.h"   ! => latr, lonr
+            ! => latr, lonr
+# include "grid.h"
             REAL :: cff, cff1, cff2
             REAL :: cos_h, dec, cos_d, sin_d, tan_d, phi, h0, utc
             REAL, PARAMETER :: year2day=365.25
-            REAL, PARAMETER :: day2year=1.D0/year2day,
+            REAL, PARAMETER :: day2year=1.D0/year2day
             REAL, PARAMETER :: utc_cor=1.D0/360.D0
 #endif
             ! Skip if sequential coupling mode and first time step
