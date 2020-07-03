@@ -2,6 +2,7 @@
 # files enerated by compilation
 .*.swp
 *.f
+oas_roms*.f90
 *.o
 *.d
 *~

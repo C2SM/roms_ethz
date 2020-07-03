@@ -186,13 +186,16 @@ distclean: clean
 .PRECIOUS: $(DEPDIR)/%.d
 
 %.d: %.F90
-	$(MAKEDEPEND) 'dirname $<' $< > $@
+	@echo creating dependencies for $<
+	$(MAKEDEPEND) $(dir $<) $< > $@
 
 %.d: %.FF90
-	$(MAKEDEPEND) 'dirname $<' $< > $@
+	@echo creating dependencies for $<
+	$(MAKEDEPEND) $(dir $<) $< > $@
 
 %.d: %.F
-	$(MAKEDEPEND) 'dirname $<' $< > $@
+	@echo creating dependencies for $<
+	$(MAKEDEPEND) $(dir $<) $< > $@
 
 # Include dependency files
 # ------- ---------- -----

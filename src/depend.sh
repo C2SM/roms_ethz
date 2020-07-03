@@ -1,5 +1,5 @@
 #!/bin/sh
-DIR=$($1)
+DIR=$1
 shift 1
 
 case "$DIR" in
