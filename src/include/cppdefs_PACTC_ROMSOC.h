@@ -121,7 +121,7 @@
 
 #include "set_global_definitions.h"
 
-#-----For the coupled setup (ROMSOC)
+!-----For the coupled setup (ROMSOC)
 
 #define COUP_OAS
 #undef PARALLEL_FILES

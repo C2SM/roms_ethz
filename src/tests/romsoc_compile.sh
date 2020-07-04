@@ -32,7 +32,7 @@ do
 	cd ..
 	echo -n '   - '${setup} ...' '
 	make distclean >/dev/null
-    make roms_cpl COUPLED=1 Q='' > tests/logs/make_roms_cpl_${setup}.log 2>&1
+    make roms_cpl Q='' > tests/logs/make_roms_cpl_${setup}.log 2>&1
     if [ $? -ne 0 ] ; then
          echo 'FAIL'
          exit 1
