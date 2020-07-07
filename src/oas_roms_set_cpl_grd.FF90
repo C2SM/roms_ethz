@@ -80,24 +80,24 @@
 
 #include "param.h"
 
-            grd%imin = ieast
-            grd%imax = iwest
+            grd%imin = iwest
+            grd%imax = ieast
             grd%jmin = jsouth
             grd%jmax = jnorth
             if (type == k_u) grd%imax=grd%imax-1
             if (type == k_v) grd%jmax=grd%jmax-1
             grd%dims_l = (/grd%imax, grd%jmax/)
             grd%start_g = (/max(iSW_corn,1), max(jSW_corn,1)/)
-            ALLOCATE(grd%exfld(iwest-ieast+1, jnorth-jsouth+1))
+            ALLOCATE(grd%exfld(ieast-iwest+1, jnorth-jsouth+1))
 
             IF ( IOASISDEBUGLVL == 1 ) THEN
                PRINT *, '***********************************************'
                PRINT *, 'Grid Variables ROMS', TRIM(grd%pt), TYPE
                PRINT *, 'start: ', grd%start_g
                PRINT *, 'global dims: ', grd%dims_g
-               PRINT *, 'local_rho, local_eta: ', iwest-ieast+1, 
+               PRINT *, 'local_rho, local_eta: ', ieast-iwest+1, 
      &                                            jnorth-jsouth+1
-               PRINT *, 'imin,imax: ', ieast, iwest
+               PRINT *, 'imin,imax: ', iwest, ieast
                PRINT *, 'jmin, jmax: ', jsouth, jnorth
                PRINT *, '**********************************************'
             ENDIF
