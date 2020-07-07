@@ -78,25 +78,27 @@
             TYPE(OAS_GRID) :: grd
             INTEGER :: type
 
-
 #include "param.h"
 
-            grd%imin = 1
-            grd%imax = Lm
-            grd%jmin = 1
-            grd%jmax = Mm
+            grd%imin = ieast
+            grd%imax = iwest
+            grd%jmin = jsouth
+            grd%jmax = jnorth
             if (type == k_u) grd%imax=grd%imax-1
             if (type == k_v) grd%jmax=grd%jmax-1
             grd%dims_l = (/grd%imax, grd%jmax/)
-            grd%start_g = (/iSW_corn, jSW_corn/)
-            ALLOCATE(grd%exfld(grd%imax, grd%jmax))
+            grd%start_g = (/max(iSW_corn,1), max(jSW_corn,1)/)
+            ALLOCATE(grd%exfld(iwest-ieast+1, jnorth-jsouth+1))
 
             IF ( IOASISDEBUGLVL == 1 ) THEN
                PRINT *, '***********************************************'
                PRINT *, 'Grid Variables ROMS', TRIM(grd%pt), TYPE
-               PRINT *, 'start', grd%start_g
-               PRINT *, 'global dims', grd%dims_g
-               PRINT *, 'local_rho, local_eta', grd%imax, grd%jmax
+               PRINT *, 'start: ', grd%start_g
+               PRINT *, 'global dims: ', grd%dims_g
+               PRINT *, 'local_rho, local_eta: ', iwest-ieast+1, 
+     &                                            jnorth-jsouth+1
+               PRINT *, 'imin,imax: ', ieast, iwest
+               PRINT *, 'jmin, jmax: ', jsouth, jnorth
                PRINT *, '**********************************************'
             ENDIF
 

@@ -168,7 +168,8 @@ tarfile: clean
 # Cleaning targets
 # -------- -------
 clean:
-	cd $(BLDDIR); /bin/rm -f *.f *.o *.a *.s *.trace *~ oas_roms_*.f90 $(COMP_FILES)
+	cd $(BLDDIR); /bin/rm -f *.f *.o *.a *.s *.trace *~ oas_roms_*.f90 $(COMP_FILES) \
+	oas_roms_*.mod
 test:
 	cd tests; compile_test.sh
 
@@ -176,8 +177,7 @@ clobber: distclean
 distclean: clean
 	cd $(SRCDIR); /bin/rm -f check_switches1.F setup_kwds.F check_srcs.F \
 	$(SBIN) $(SBIN)_cpl $(TOOLS) nsub core* *_genmod.mod *_genmod.f90 \
-	$(DEPDIR)/*.d print_cppswitches tests/make_*.log  tests/roms_* \
-	oas_roms_*.mod
+	$(DEPDIR)/*.d print_cppswitches tests/make_*.log  tests/logs/*
 
 # Rule for dependency files *.d
 # ---- --- ---------- ----- ---
