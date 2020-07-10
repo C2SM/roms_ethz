@@ -88,7 +88,7 @@
             if (type == k_v) grd%jmax=grd%jmax-1
             grd%dims_l = (/grd%imax, grd%jmax/)
             grd%start_g = (/max(iSW_corn,1), max(jSW_corn,1)/)
-            ALLOCATE(grd%exfld(ieast-iwest+1, jnorth-jsouth+1))
+            ALLOCATE(grd%exfld(iwest:ieast, jsouth:jnorth))
 
             IF ( IOASISDEBUGLVL == 1 ) THEN
                PRINT *, '***********************************************'
