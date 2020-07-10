@@ -666,6 +666,10 @@ c--#define VERBOSE
             write(*,2) vname(1,indxPH_rst)(1:lvar), record,
      &           trim(ininame)
             goto 99             !--> ERROR
+         else
+            ph_hist=ph_hist*rmask
+            if ( (maxval(ph_hist) > 14.d0) .or. 
+     &           (minval(ph_hist)<0) )  ph_hist=0.0
          endif
       else
          MPI_master_only write(*,*) ' --- WARNING: '

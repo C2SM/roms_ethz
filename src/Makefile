@@ -100,11 +100,11 @@ $(BLDDIR)/$(SBIN): mpc print_cppswitches $(OBJS)
 	$(Q)$(SRCDIR)/print_cppswitches
 	$(Q)cd $(BLDDIR); $(LDR) $(FFLAGS) $(LDFLAGS) -o $@ $(OBJS) $(LCDF) $(LMPI)
 
-partit: partit.o
-	$(Q)cd $(BLDDIR); $(FC) $(FFLAGS) $(LDFLAGS) -o $@ $(OBJS) $(LCDF) $(LMPI)
+partit: partit.o lenstr.o insert_node.o
+	$(Q)cd $(BLDDIR); $(FC) $(FFLAGS) $(LDFLAGS) -o $@ partit.o lenstr.o insert_node.o $(LCDF)
 
-ncjoin: ncjoin.o
-	$(Q)cd $(BLDDIR); $(FC) $(FFLAGS) $(LDFLAGS) -o $@ $(OBJS) $(LCDF) $(LMPI)
+ncjoin: ncjoin.o lenstr.o
+	$(Q)cd $(BLDDIR); $(FC) $(FFLAGS) $(LDFLAGS) -o $@ ncjoin.o lenstr.o $(LCDF)
 
 check_forces: check_forces.o $(SBIN)
 	cp -pv check_forces.o main.o 	
