@@ -79,6 +79,8 @@
             INTEGER :: type
 
 #include "param.h"
+! For debug info inode, jnode if IOOASISDEBUGLVL == 1
+# include "hidden_mpi_vars.h"
 
             grd%imin = iwest
             grd%imax = ieast
@@ -86,12 +88,14 @@
             grd%jmax = jnorth
             if (type == k_u) grd%imax=grd%imax-1
             if (type == k_v) grd%jmax=grd%jmax-1
-            grd%dims_l = (/grd%imax, grd%jmax/)
+            grd%dims_l = (/grd%imax-grd%imin+1, grd%jmax-grd%jmin+1/)
             grd%start_g = (/max(iSW_corn,1), max(jSW_corn,1)/)
             ALLOCATE(grd%exfld(iwest:ieast, jsouth:jnorth))
 
             IF ( IOASISDEBUGLVL == 1 ) THEN
                PRINT *, '***********************************************'
+               PRINT *, 'Mynode: ', mynode
+               PRINT *, 'Node tile (inode, jnode) = (',inode,', ', jnode,')'
                PRINT *, 'Grid Variables ROMS', TRIM(grd%pt), TYPE
                PRINT *, 'start: ', grd%start_g
                PRINT *, 'global dims: ', grd%dims_g

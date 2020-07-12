@@ -32,7 +32,7 @@ DEPFLAGS = -MT $@ -MMD -MP -MF $(DEPDIR)/$*.Td
 
 # Clear the default suffixes
 .SUFFIXES:
-.SUFFIXES: .o .mod .f .F .F90 .f90 .FF90
+.SUFFIXES: .o .mod .f .F .F90 .f90
 
 # Declare *.f files precious to keep them
 .PRECIOUS: %.f %.f90
@@ -71,22 +71,13 @@ endif
 	$(Q)$(CPP) $(CPPFTN) $(CPPFLAGS)  $< | $(SRCDIR)/mpc > $(BLDDIR)/$*.f
 
 
-# OASIS coupling code is written in F90...
-# CAUTION: mpc is not ran on .F90 files, use .FF90
-#          if you need mpc to be ran
+# OASIS coupling code is written in FORTRAN free-format
+# Note: mpc is not run on F90 files
 %.o: %.F90
 	@echo Compiling $<
 	$(Q)$(MAKEDEPEND) $(dir $<) $(CPPFLAGS) $< > $(DEPDIR)/$*.d
 	$(Q)$(CPP) $(CPPFTN) $(CPPFLAGS) $< > $*.f90
 	$(Q)$(MPIFC) -c $(FFLAGS) $*.f90 -o $@
-
-# .FF90 is an ad'hoc file type to write Fortran 90 modules
-# holding FIXED FORMAT code so that one can include ROMS .h files
-# and run mpc on them.
-%.o: %.FF90 mpc
-	$(Q)$(MAKEDEPEND) $(dir $<) $(CPPFLAGS) $< > $(DEPDIR)/$*.d
-	$(Q)$(CPP) $(CPPFTN) $(CPPFLAGS) $*.FF90 | mpc > $*.f90
-	$(Q)$(MPIFC) -c $(FFLAGS) -nofree $*.f90 -o $@
 
 # Use C preprocessor
 # fpp might be an alternative but for consistancy one should
