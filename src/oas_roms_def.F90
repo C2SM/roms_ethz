@@ -462,17 +462,28 @@ CONTAINS
       INTEGER, DIMENSION(2), PARAMETER :: var_nodims=(/2, 1/) ! rank of exchanged arrays
       !                                                       ! and number of bundles
       !                                                       ! (always 1 for OASIS3)
-      INTEGER (KIND=ip_intwp_p) :: oas_type=OASIS_Real   ! default data type
-      LOGICAL :: oas_act=.TRUE.   ! default laction
-      INTEGER :: ierr=OASIS_Success   ! error code returned by oasis_def_var
-      !                               ! (give default value in case oas_act is .FALSE.)
+      INTEGER (KIND=ip_intwp_p) :: oas_type   ! actual data type
+      LOGICAL :: oas_act   ! actual laction
+      INTEGER :: ierr   ! error code returned by oasis_def_var
 
       IF ((IOASISDEBUGLVL > 0) .AND. (mype == 0)) THEN
          WRITE(*,*) "OAS_ROMS : Defining OASIS field ", clname
       END IF
 
-      IF (PRESENT(dtype)) oas_type = dtype
-      IF (PRESENT(laction)) oas_act = laction
+      ! Default values
+      ! --------------
+      IF (PRESENT(dtype)) THEN
+         oas_type = dtype
+      ELSE
+         oas_type = OASIS_Real
+      ENDIF
+      IF (PRESENT(laction)) THEN
+         oas_act = laction
+      ELSE
+         oas_act = .TRUE.
+      ENDIF
+      ! give default value in case oas_act is .FALSE.
+      ierr = OASIS_Success
 
       IF (drct == 'snd') THEN   ! Sent fields
          
