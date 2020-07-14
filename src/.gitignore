@@ -1,11 +1,16 @@
 # Ignore binaries and 
 # files enerated by compilation
+.*.swp
 *.f
+oas_roms*.f90
 *.o
+*.d
 *~
 *.mod
 *.mod.f90
 *.for
+*__genmod.f90
+*__genmod.mod
 # machine-generated source files:
 check_srcs.F
 check_switches1.F
@@ -26,5 +31,6 @@ partit
 redefs
 roms
 srcscheck
-
+cppdefs.h
+print_cppswitches
 

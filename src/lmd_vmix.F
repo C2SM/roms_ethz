@@ -19,7 +19,7 @@
      &                    A2d(1, 5), A2d(1, 6), A2d(1, 7), A2d(1, 8),
      &                    A2d(1, 9), A2d(1,10), A2d(1,11), A2d(1,12),
      &                    A2d(1,13), A2d(1,14), A2d(1,15), A2d(1,16),
-     &                    A2d(1,17), A2d(1,18), A2d(1,19), A2d(1,20))
+     &                    A2d(1,17), A2d(1,18), iA2d(1,1), iA2d(1,2))
 # endif
       end
 
@@ -50,43 +50,20 @@
 # include "mixing.h"
 # include "scalars.h"
 
-
       real nu_sx, cff,cff1, dudz,dvdz
-      real, parameter ::     ! Critical gradient Richardson number
-     &      Ri0=0.7,         ! below which shear instabilty occurs.
 
-     &      nu0m=50.e-4,     ! Maximum viscosity and diffusivity
-     &      nu0s=50.e-4,     ! due to shear instability [m^2/s];
-
-     &      nuwm=1.0e-4,     ! Interior viscosity and diffusivity
-     &      nuws=0.1e-4,     ! due to wave breaking, [m^2/s]
-
-     &      nu0c=0.1,        ! Convective adjustment [m^2/s];
-
-     &      lmd_nu=1.5e-6,   ! Molecular viscosity [m^2/s];
-
-                             ! Value of double-diffusive density
-     &      lmd_Rrho0=1.9,   ! ratio where diffusivity goes to zero
-                             !                     in salt fingering.
-     &      lmd_nuf=10.0e-4, ! Scaling factors for double diffusion
-     &      lmd_fdd=0.7,     ! coefficient in salt fingering.
-
-     &      lmd_tdd1=0.909,
-     &      lmd_tdd2=4.6,    ! Double diffusion constants for
-     &      lmd_tdd3=0.54,   ! temperature (Marmorino and Caldwell,
-     &      lmd_sdd1=0.15,   ! 1976) and salinity (Fedorov, 1988)
-     &      lmd_sdd2=1.85,
-     &      lmd_sdd3=0.85,
-     &      eps=1.E-14
-
-# ifdef LMD_DDMIX
-      real Rrho, ddDS, ddDT, nu_dds, nu_ddt, alfaobeta, Tt, Ts, Tp
+# include "lmd_param.h"
+      real, parameter :: eps=1.E-14
+      
+#  ifdef LMD_DDMIX
       real, parameter ::   A0=+0.665157E-01,    A1=+0.170907E-01,
      &      A2=-0.203814E-03,  A3=+0.298357E-05,  A4=-0.255019E-07,
      &      B0=+0.378110E-02,  B1=-0.846960E-04,  C0=-0.678662E-05,
      &      D0=+0.380374E-04,  D1=-0.933746E-06,  D2=+0.791325E-08,
      &      E0=-0.164759E-06,  F0=-0.251520E-11,  G0=+0.512857E-12,
-     &      H0=-0.302285E-13,  Smean=35.0
+     &      H0=-0.302285E-13
+
+      real Rrho, ddDS, ddDT, nu_dds, nu_ddt, alfaobeta, Tt, Ts, Tp
 # endif
 
 # ifdef LMD_RIMIX
@@ -148,8 +125,13 @@
             dvdz=cff*( v(i,j  ,k+1,tind)-v(i,j  ,k,tind)
      &                +v(i,j+1,k+1,tind)-v(i,j+1,k,tind))
 
+#  ifdef SO_KPP
+            Rig(i,j,k)=bvf(i,j,k)/( Ri0*max(
+     &                    dudz*dudz+dvdz*dvdz, 1.E-20 ))
+#  else
             Rig(i,j,k)=bvf(i,j,k)/( Ri0*max(
      &                    dudz*dudz+dvdz*dvdz, 1.E-10 ))
+#  endif
           enddo
         enddo
 
@@ -246,14 +228,27 @@
                                               ! breaking.
             Kv(i,j,k)=nuwm + nu0m*nu_sx
             Kt(i,j,k)=nuws + nu0s*nu_sx
+#  ifdef KPP_DIAGNOSE
+!            KppWavm(i,j,k) = nuwm
+!            KppWavt(i,j,k) = nuws
+            KppRichm(i,j,k) = nu0m*nu_sx
+            KppRicht(i,j,k) = nu0s*nu_sx
+#  endif
 # else
             Kv(i,j,k)=nuwm                    ! internal waves
             Kt(i,j,k)=nuws                    ! only
+!#  ifdef KPP_DIAGNOSE
+!            KppWavm(i,j,k) = nuwm
+!            KppWavt(i,j,k) = nuws
+!#  endif
 # endif
 # if defined LMD_CONVEC && (!defined LMD_KPP && !defined LMD_BKPP)
             if (Rig(i,j,k) < 0.) then         ! In the case of KPP
               Kv(i,j,k)=Kv(i,j,k) + nu0c      ! convective adjustment
               Kt(i,j,k)=Kt(i,j,k) + nu0c      ! will be added later
+!#  ifdef KPP_DIAGNOSE
+!              KppCon(i,j,k) = nu0c
+!#  endif
             endif                             ! and only below HBL
 # endif
             Ks(i,j,k)=Kt(i,j,k)
@@ -339,6 +334,10 @@
 
             Kt(i,j,k)=Kt(i,j,k)+nu_ddt
             Ks(i,j,k)=Ks(i,j,k)+nu_dds
+!#  ifdef KPP_DIAGNOSE
+!            KppDdt(i,j,k)=nu_ddt
+!            KppDds(i,j,k)=nu_dds
+!#  endif
           enddo
         enddo
 # endif /* LMD_DDMIX */
@@ -357,6 +356,22 @@
           Kv(i,j,0)=Kv(i,j,  1)
           Ks(i,j,0)=Ks(i,j,  1)
           Kt(i,j,0)=Kt(i,j,  1)
+#  ifdef KPP_DIAGNOSE
+!          KppWavm(i,j,N)=KppWavm(i,j,N-1)
+!          KppWavt(i,j,N)=KppWavt(i,j,N-1)
+          KppRichm(i,j,N)=KppRichm(i,j,N-1)
+          KppRicht(i,j,N)=KppRicht(i,j,N-1)
+!          KppCon(i,j,N)=KppCon(i,j,N-1)
+!          KppDdt(i,j,N)=KppDdt(i,j,N-1)
+!          KppDds(i,j,N)=KppDds(i,j,N-1)
+!          KppWavm(i,j,0)=KppWavm(i,j,0)
+!          KppWavt(i,j,0)=KppWavt(i,j,0)
+          KppRichm(i,j,0)=KppRichm(i,j,0)
+          KppRicht(i,j,0)=KppRicht(i,j,0)
+!          KppCon(i,j,0)=KppCon(i,j,0)
+!          KppDdt(i,j,0)=KppDdt(i,j,0)
+!          KppDds(i,j,0)=KppDds(i,j,0)
+#  endif
         enddo
       enddo
 # else

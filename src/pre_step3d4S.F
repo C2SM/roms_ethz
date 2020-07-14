@@ -7,6 +7,7 @@
 # include "param.h"              /* ! and horizontal scratch arrays. */
 # include "private_scratch.h"
 # include "compute_tile_bounds.h"
+
       call pre_step3d_tile (istr,iend,jstr,jend,   A3d(1,1),A3d(1,2),
      &         A3d(1,3),A3d(1,4), A2d(1,1),A2d(1,2),A2d(1,3),A2d(1,4),
      &                            A2d(1,1),A2d(1,2),A2d(1,3),A2d(1,4),
@@ -42,7 +43,20 @@
 # include "scalars.h"
 # include "sources.h"
 
+#ifdef ADV_WENO
+# define T_HADV_WENO
+# define T_VADV_WENO
+#endif
+#if defined T_HADV_WENO || defined T_VADV_WENO
+      REAL    :: vel, flux2
+      REAL    :: flx2, flx3
+      REAL    :: mask1
+      REAL    :: flux3_weno, flux5_weno
+#endif
+
 # include "compute_auxiliary_bounds.h"
+
+
 
 ! Preliminary step: initialize computations of the new time step
 ! 3D primitive variables.
@@ -106,7 +120,15 @@
                                              ! Advance tracer fields
         do itrc=1,NT                         ! starting with applying
                                              ! horizontal fluxes. Also
+# ifdef WENO_pre
+                                             
+# include "compute_horiz_tracer_fluxes_weno.h"
+
+# else 
+
 # include "compute_horiz_tracer_fluxes.h"
+
+# endif
                                              ! INITIALIZE CORRECTOR
           do j=jstr,jend                     ! STEP by pre-multiplying
             do i=istr,iend
@@ -130,7 +152,7 @@
 
 ! Compute dynamic bottom drag coefficient.  Note that "rd" must be
 ! aliased to a horizontal array beyond #4 to avoid overlap with one
-! of the vertical array used below.
+! of the vertical arrays used below.
 
 # define rd wrk1
 # include "compute_rd_bott_drag.h"
@@ -145,8 +167,17 @@
 
       do j=jstr,jend
         do itrc=1,NT
+        
+
+# ifdef WENO_pre
+                                             
+# include "compute_vert_tracer_fluxes_weno.h"
+
+# else 
 
 # include "compute_vert_tracer_fluxes.h"
+
+# endif
 
           do k=1,N
             do i=istr,iend
@@ -159,15 +190,11 @@
             enddo
           enddo            !--> discard FC
 
-# ifdef BIOLOGY
 #  ifdef SALINITY
           iAkt=min(itrc,isalt)
 #  else
           iAkt=min(itrc,itemp)
 #  endif
-# else
-          iAkt=itrc
-# endif
           do i=istr,iend
             FC(i,1)=2.*dtau*Akt(i,j,1,iAkt)/( Hz_fwd(i,j,2)
      &                                       +Hz_fwd(i,j,1))
@@ -246,7 +273,13 @@
 
           CF(i,N-1)=cff*(  FC(i,N-1)+max(WC(i,N-1),0.) )
 
-          DC(i,N)=cff*(DC(i,N) +dtau*sustr(i,j))
+          DC(i,N)=cff*( DC(i,N)
+# ifdef WIND_AT_RHO_POINTS
+     &               +0.5*dtau*(sustr(i-1,j)+sustr(i,j))
+# else
+     &                                  +dtau*sustr(i,j)
+# endif
+     &                                                 )
         enddo
         do k=N-1,2,-1      !--> forward elimination
           do i=istrU,iend
@@ -276,8 +309,13 @@
      &                              -CF(i,1)*(FC(i,1)-min(WC(i,1),0.))
      &                                                               )
 # ifdef PRED_COUPLED_MODE
-          rufrc(i,j)=ru(i,j,1) +dm_u(i,j)*dn_u(i,j)*( sustr(i,j)
-     &                     -0.5*(rd(i-1,j)+rd(i,j))*u(i,j,1,nnew) )
+          rufrc(i,j)=ru(i,j,1) +dm_u(i,j)*dn_u(i,j)*(
+#  ifdef WIND_AT_RHO_POINTS
+     &                   0.5*(sustr(i-1,j)+sustr(i,j))
+#  else
+     &                                      sustr(i,j)
+#  endif
+     &        -0.5*(rd(i-1,j)+rd(i,j))*u(i,j,1,nnew) )
 # endif
         enddo
         do k=2,N,+1          !--> backsubstitution
@@ -289,7 +327,7 @@
           enddo
         enddo
 
-        if (j>=jstrV) then
+        if (j >= jstrV) then
           do i=istr,iend
             DC(i,0)=dtau*0.25*(pm(i,j)+pm(i,j-1))*(pn(i,j)+pn(i,j-1))
           enddo
@@ -314,7 +352,13 @@
 
             CF(i,N-1)=cff*(  FC(i,N-1)+max(WC(i,N-1),0.) )
 
-            DC(i,N)=cff*( DC(i,N) +dtau*svstr(i,j) )
+            DC(i,N)=cff*( DC(i,N)
+# ifdef WIND_AT_RHO_POINTS
+     &                 +0.5*dtau*(svstr(i,j-1)+svstr(i,j))
+# else
+     &                                    +dtau*svstr(i,j)
+# endif
+     &                                                   )
           enddo
           do k=N-1,2,-1      !--> forward elimination
             do i=istr,iend
@@ -345,8 +389,13 @@
      &                                                               )
 
 # ifdef PRED_COUPLED_MODE
-            rvfrc(i,j)=rv(i,j,1) +dm_v(i,j)*dn_v(i,j)*(  svstr(i,j)
-     &                       -0.5*(rd(i,j-1)+rd(i,j))*v(i,j,1,nnew) )
+            rvfrc(i,j)=rv(i,j,1) +dm_v(i,j)*dn_v(i,j)*(
+#  ifdef WIND_AT_RHO_POINTS
+     &                     0.5*(svstr(i,j-1)+svstr(i,j))
+#  else
+     &                                        svstr(i,j)
+#  endif
+     &          -0.5*(rd(i,j-1)+rd(i,j))*v(i,j,1,nnew) )
 # endif
           enddo
           do k=2,N,+1          !--> backsubstitution
@@ -368,9 +417,9 @@
       do is=1,Nsrc           ! Apply point mass sources associated
         i=Isrc(is)           ! with river runoff simulations.
         j=Jsrc(is)
-        if (istrR<=i .and. i<=iendR .and.
-     &      jstrR<=j .and. j<=jendR) then
-          if (Dsrc(is)==0) then
+        if ( istrR <= i .and. i <= iendR .and.
+     &       jstrR <= j .and. j <= jendR ) then
+          if (Dsrc(is) == 0) then
             do k=1,N
               u(i,j,k,nnew)=2.*Qsrc(is,k)/( dn_u(i,j)*(
      &                       z_w(i-1,j,k)-z_w(i-1,j,k-1)

@@ -14,7 +14,7 @@
 ! Set up model grid using analytical expressions:
 !---- -- ----- ---- ----- ---------- ------------
 ! output: stored in common blocks, see files "scalars.h" "grid.h"
-!
+
 ! xl,el      Physical dimensions of the computational domain [usually
 !                                                measured in  meters];
 ! h          Model bathymetry [meters, positive] at RHO-points.
@@ -38,9 +38,9 @@
 ! f0,beta    Coriolis parameters to setup a beta-plane [1/s, 1/(m*s)].
 
       real, parameter ::
-# if defined BASIN
-     &                  Size_XI=3600.0E+3,  Size_ETA=2800.0E+3,
-     &                  depth=5000.,        f0=1.E-4,  beta=2.E-11
+# if defined DOUBLE_GYRE
+     &                  Size_ETA=3840.0e+3, Size_XI=(Size_ETA*LLm)/MMm,
+     &                  depth=4000.,        f0=0.83e-4,  beta=2.E-11
 # elif defined CANYON_A || defined CANYON_B
      &                  Size_XI=128.0E+3,   Size_ETA=96.0E+3,
      &                  depth=4000.,        f0=1.E-4,   beta=0.
@@ -66,7 +66,7 @@
      &                  depth=500.,         beta=0.,  f0=0.
 
 # elif defined ISWAKE
-     &                  Size_ETA=80.0e+3,   Size_XI=Size_ETA*LLm/MMm,
+     &                  Size_ETA=120.0e+3,  Size_XI=Size_ETA*LLm/MMm,
      &                  depth=500.,         beta=0.,  f0=1.0E-4
 # elif defined SHELFRONT
      &                  Size_XI=20.0e+3,    Size_ETA=200.0e+3,
@@ -80,13 +80,16 @@
 # elif defined RIVER
      &                  Size_XI=60.e+3,     Size_ETA=Size_XI*MMm/LLm,
      &                  depth=150.,         f0=1.E-4,      beta=0.
+# elif defined SLOSH
+     &                  Size_XI=200.,     Size_ETA=Size_XI*MMm/LLm,
+     &                  depth=20.,         f0=0.,      beta=0.
 # else
 #  error ANA_GRID CPP-switch is set, but grid parameters are missing.
 # endif
 
       real cff,y, x0,y0,dx,dy
 # if defined ISWAKE
-      real rd, rd_inner, rd_outer
+      real rd, rd_inner, rd_outer, ypL,yC,ypR
 # elif defined SEAMOUNT
       real xpL,xC,xpR,  ypL,yC,ypR
 # elif defined RIVER
@@ -98,18 +101,16 @@
 # include "compute_extended_bounds.h"
 
 C$OMP MASTER                           ! Copy physical dimensions of
-      xl=Size_XI                       ! the grid into glabally vizible
-      el=Size_ETA                      ! variables (ONE THREAD ONLY).
-C$OMP END MASTER
+      xl=Size_XI ; el=Size_ETA         ! the grid into glabally vizible
+C$OMP END MASTER                       ! variables (ONE THREAD ONLY).
 
-      dx=Size_XI/float(LLm)            ! Set grid spacings for
-      dy=Size_ETA/float(MMm)           ! rectangular grids
+      dx=Size_XI/dble(LLm)             ! Set grid spacings for
+      dy=Size_ETA/dble(MMm)            ! Cartesian rectangular grid
 # ifdef MPI
-      x0=dx*float(iSW_corn)            ! Coordinates of south-west
-      y0=dy*float(jSW_corn)            ! corner of MPI subdomain
+      x0=dx*dble(iSW_corn)             ! Coordinates of south-west
+      y0=dy*dble(jSW_corn)             ! corner of MPI subdomain
 # else
-      x0=0.
-      y0=0.
+      x0=0. ; y0=0.
 # endif
 CR      write(*,'(4(A3,pe15.9,1x),I3)') 'dx=',dx, 'dy=',dy,
 CR     &                         'x0=',x0, 'y0=',y0, mynode
@@ -118,10 +119,10 @@ CR     &                         'x0=',x0, 'y0=',y0, mynode
 # ifdef SEAMOUNT
 #  define STRTCH 0.333333333333
       do i=istrR-1,iendR,+1   !--> irreversible
-        cff=x0+dx*float(i)
+        cff=x0+dx*dble(i)
         xpR=cff +STRTCH*(Size_XI/(2.*pi))*sin(2.*pi*cff/Size_XI)
-        if (i>istrR-1) then
-          cff=x0+dx*(float(i)-0.5)
+        if (i > istrR-1) then
+          cff=x0+dx*(dble(i)-0.5)
           xC=cff +STRTCH*(Size_XI/(2.*pi))*sin(2.*pi*cff/Size_XI)
           cff=1./(xpR-xpL)
           do j=jstrR,jendR            ! Generate rectangular grid
@@ -133,10 +134,10 @@ CR     &                         'x0=',x0, 'y0=',y0, mynode
         xpL=xpR
       enddo
       do j=jstrR-1,jendR,+1   !--> irreversible
-        cff=y0+dy*float(j)
+        cff=y0+dy*dble(j)
         ypR=cff +STRTCH*(Size_ETA/(2.*pi))*sin(2.*pi*cff/Size_ETA)
-        if (j>jstrR-1) then
-          cff=y0+dy*(float(j)-0.5)
+        if (j > jstrR-1) then
+          cff=y0+dy*(dble(j)-0.5)
           yC=cff +STRTCH*(Size_ETA/(2.*pi))*sin(2.*pi*cff/Size_ETA)
           cff=1./(ypR-ypL)
           do i=istrR,iendR
@@ -148,13 +149,46 @@ CR     &                         'x0=',x0, 'y0=',y0, mynode
         ypL=ypR
       enddo
 #  undef STRTCH
+# elif defined ISWAKE
+      cff=0.25*Size_ETA                    ! Note that y-coordinate
+      do j=jstrR-1,jendR,+1                ! defined here is centered
+        ypR=y0+dy*dble(j) -0.5*Size_ETA    ! at the channel middle axis
+        if (ypR < -cff) then
+          ypR=ypR -(ypR+cff)**2/(0.5*Size_ETA-cff)
+        elseif (ypR > cff) then
+          ypR=ypR +(ypR-cff)**2/(0.5*Size_ETA-cff)
+        endif
+
+        yC=y0+dy*(dble(j)-0.5D0) -0.5*Size_ETA
+        if (yC < -cff) then
+          yC=yC -(yC+cff)**2/(0.5*Size_ETA-cff)
+        elseif (yC > cff) then
+          yC=yC +(yC-cff)**2/(0.5*Size_ETA-cff)
+        endif
+
+        if (j > jstrR-1) then
+          do i=istrR,iendR
+            xp(i,j)=x0+dx* dble(i-1)
+            xr(i,j)=x0+dx*(dble(i)-0.5D0)
+            pm(i,j)=1./dx
+
+            yp(i,j)=ypL
+            yr(i,j)=0.5*yC+0.25*(ypL+ypR)
+            pn(i,j)=1./(ypR-ypL)
+          enddo
+        endif
+        ypL=ypR !<-- recursive
+      enddo
+C$OMP MASTER
+      el=2.*(Size_ETA-cff)
+C$OMP END MASTER
 # else
       do j=jstrR,jendR                  ! Setup Cartezian grid
         do i=istrR,iendR                ! (XI,ETA) at PSI- and RHO-
-          xp(i,j)=x0+dx* float(i-1)     ! points and compute metric
-          xr(i,j)=x0+dx*(float(i)-0.5)  ! transformation coefficients
-          yp(i,j)=y0+dy* float(j-1)     ! pm and pn, which are
-          yr(i,j)=y0+dy*(float(j)-0.5)  ! uniform in this case.
+          xp(i,j)=x0+dx* dble(i-1)      ! points and compute metric
+          xr(i,j)=x0+dx*(dble(i)-0.5D0) ! transformation coefficients
+          yp(i,j)=y0+dy* dble(j-1)      ! pm and pn, which are
+          yr(i,j)=y0+dy*(dble(j)-0.5D0) ! uniform in this case.
 
           pm(i,j)=1./dx
           pn(i,j)=1./dy
@@ -210,8 +244,7 @@ c     &                    +(0.1)*(xr(i,j)-x0))
 ! should not exceed 10 and 7.5 km for cylinder and shelf-shaped
 ! islands respectively.
 
-      y0=Size_ETA/2.            ! location of the center of island
-      x0=y0
+      x0=Size_ETA/2. ; y0=0.     ! location of the center of island
 c--#  define GAUSSIAN_SLOPE_ISLAND
 #  ifdef GAUSSIAN_SLOPE_ISLAND
       rd_inner=7.5e+3           ! radius of the above-surface part
@@ -225,18 +258,9 @@ c--#  define GAUSSIAN_SLOPE_ISLAND
 
 ! Setup slopping bottom                                ! slope dh/dy
 
-c     &      *0.6144*(1.-1.25*(yr(i,j)-y0)/Size_ETA)   ! 4.8e-3
-c     &      *0.6389*(1.-1.125*(yr(i,j)-y0)/Size_ETA)  ! 4.4923e-3
+     &     *exp(-1.25*(yr(i,j)/Size_ETA +0.5))
 
-     &      *0.6666*(1.-(yr(i,j)-y0)/Size_ETA)        ! 4.16625e-3
-c     &      *0.695*(1.-0.875*(yr(i,j)-y0)/Size_ETA)   ! 3.80078e-3
-c     &      *0.727*(1.-0.75*(yr(i,j)-y0)/Size_ETA)    ! 3.407e-3
-c     &      *0.761*(1.-0.625*(yr(i,j)-y0)/Size_ETA)   ! 2.9726e-3
-c     &      *0.8*(1.-0.5*(yr(i,j)-y0)/Size_ETA)       ! 2.5e-3
-
-c     &      *0.8*(1.+0.5*(yr(i,j)-y0)/Size_ETA) !      (0.5unstable)
-c     &      *0.6666*(1.+(yr(i,j)-y0)/Size_ETA)  !         (unstable)
-
+c     &     *exp(1.5*(yr(i,j)/Size_ETA  -0.5))
 
 #  ifdef MASKING
           rmask(i,j)=1.     ! everywhere, then modify it
@@ -289,9 +313,9 @@ c     &      *0.6666*(1.+(yr(i,j)-y0)/Size_ETA)  !         (unstable)
 # elif defined UPWELLING
       do j=jstrR,jendR
 #  ifdef MPI
-        y=dy*float(j+jSW_corn)
+        y=dy*dble(j+jSW_corn)
 #  else
-        y=dy*float(j)
+        y=dy*dble(j)
 #  endif
         if (y>Size_ETA/2.) y=Size_ETA-y+dy
         cff=min(depth,84.5+66.526*tanh(0.00015*(y-0.125*Size_ETA)))
@@ -303,9 +327,9 @@ c     &      *0.6666*(1.+(yr(i,j)-y0)/Size_ETA)  !         (unstable)
 # elif defined RIVER
       do i=istrR,iendR
 #  ifdef MPI
-        cff=(float(i +iSW_corn)-0.5)/float(LLm)
+        cff=(dble(i +iSW_corn)-0.5D0)/dble(LLm)
 #  else
-        cff=(float(i          )-0.5)/float(LLm)
+        cff=(dble(i          )-0.5D0)/dble(LLm)
 #  endif
         if (cff<0.05) then
           h(i,jstrR)=15.

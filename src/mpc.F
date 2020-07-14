@@ -1,53 +1,51 @@
       program mpc
 
-! Multi-functional precompiling processor designed to work between
-! CPP and Fortran compiler.
-!-------------------------------------------------------------------
-! Objectives:
+! Multi-functional pre-compiler to be inserted between CPP and Fortran
+! compiler to:
 !------------
-! (1) Eliminate blank lines left by CPP and Fortran style comments,
-!     but keep compiler directives like C$DOACROSS in place.
-!
-! (2) Usually Fortran syntax does not prohibit the practice when a
+! (1) Eliminate blank lines and garbage left by CPP as well as Fortran
+!     comments, but keep compiler directives like C$OMP DO PARALLEL in
+!     place. The essential purpose of this feature is to make the CPP-
+!     pre-processed code to be clean and readable, without the intend
+!     to change any of its functionality of results.
+
+! (2) Normal Fortran syntax does not prohibit the practice when a
 !     quotation is opened on one line and closes on the next line.
 !     Doing so, however, may be considered as unsafe and sloppy from
-!     stylistic point of view; mpc enforces the rule when every
+!     a stylistic point of view; mpc enforces the rule when every
 !     string inside quotation mark must be closed within the line.
-!   --> Optional:: activated by TRAP_UNMATCHED_QUOTES CPP-switch.
-!
-! (3) Convert _default_ size Fortran real type declarations into
-!     real*8.  Any mixture of lower and upper cases letters is
-!     allowed in the word real.
-!     Explicitly specified size declaration, such as real*4
+! --> Optional:: activated by TRAP_UNMATCHED_QUOTES CPP-switch.
+
+! (3) Convert default-size Fortran real type declarations into real*8.
+!     Any mixture of lower- and upper-case letters is allowed in the
+!     word real. Explicitly specified size declaration, such as real*4
 !     or real*16 will be left unchanged.
-!   --> Optional:: activated by REAL_TO_REAL8 CPP-switch.
-!
+! --> Optional:: activated by REAL_TO_REAL8 CPP-switch.
+
 ! (4) Enforce double precision accuracy for the real type constants
 !     appearing anywhere in the program, for example, 1. --> 1.D0;
 !          .1 --> .1D0;    9.81 --> 9.81D0;   .5e-8 --> .5D-8;
 !         1.2e+14 --> 1.2D+14 etc.
-!   --> Safe. Will distinguish real type constants from look alike
+! --> Safe. Will distinguish real type constants from look alike
 !     combinations like, say format descriptors F8.4 or E12.5; or
-!     logical expressions like 1.EQ.i etc. Will fold line of the
+!     logical expressions like 1.EQ.i etc.  Will fold line of the
 !     code automatically according to Fortran syntax rules, when
 !     this change causes line to increase beyond 72 characters.
-!   --> Optional: activated by DOUBLE_CONST CPP-switch.
-!
-!
-! (5) Convert _default_ size Fortran integer type declarations
-!     into integer*4. Explicitly specified size declaration, such
-!     as integer*2 or integer*8 will be left unchanged.
-!   --> Optional: activated when _both_  INT_TO_INT4 _and_
-!                 REAL_TO_REAL8 CPP-switches are defined.
-!
-!
+! --> Optional: activated by DOUBLE_CONST CPP-switch.
+
+! (5) Convert _default_ size Fortran integer type declarations into
+!     integer*4, while at the same keeping explicitly declared sizes
+!     like integer*2 or integer*8 unchanged.
+! --> Optional: activated when both INT_TO_INT4 and REAL_TO_REAL8
+!     CPP-switches are defined.
+
 ! (6) Convert parallelized loops over subdomains (tiles)
 !
 !          do tile=0,NSUB_X*NSUB_E-1
 !
 !     into two nested loops. The outer is loop over parallel threads
-!     (to be parallelized), and the inner is over tiles to be
-!     processed by the particular thread:
+!     (to be parallelized), and the inner is over tiles to be processed
+!     by the particular thread:
 !
 !          do trd=0,numthreads-1
 !            do tile=forward_sweep
@@ -55,26 +53,36 @@
 !          do trd=0,numthreads-1
 !            do tile=backward_sweep
 !
-!     in such a way the inner loops in the subsequent parallel
-!     regions are reversed, so that each thread "zig-zags" across
-!     the tiles it is processing. Automatically append SHARED/PRIVATE
-!     lists with the newly introduced variables.
+!     in such a way the inner loops in the subsequent parallel regions
+!     are reversed, so that each thread "zig-zags" across the tiles it
+!     is processing. Automatically append SHARED/PRIVATE lists with the
+!     newly introduced variables.
 !   --> Optional: activated by ZIG_ZAG CPP-switch.
-!
-! (7) Automatically insert calls to "sync_trap(barrier_number)" just
+
+! (7) Automatically insert !dir$ ivdep directives in front of each
+!     i-loop which has bounds istr:iend or imin:imax, including their
+!     combinations and modifications like istrR and others alike, as
+!     well as additions/subtractions of bounds, like imin-1, imax+2.
+!     Normally these are the innermost loops in ROMS, which are
+!     expected to be vectorized. This is known to affect performance
+!     to some degree, and the effect can be seen in Intel compiler
+!     vectorization report when -qopt-report=5 -qopt-report-phase=vec
+!     flags are invoked.  Activated by CPP-option VECTORIZE below.
+
+! (8) Automatically insert calls to "sync_trap(barrier_number)" just
 !     in front of each Open MP directive BARRIER.   This is merely to
 !     detect loss of synchronization events and it does not affect
-!     computational results (provided, of course, that the code stays
-!     in sync). Activated by CPP-option TRAP_BARRIERS.
-!
-!
+!     computational results provided (of course) that the code does
+!     not do out of sync due to parallel bugs. Activated by CPP-option
+!     TRAP_BARRIERS.
+
 ! More detailed description for each option is available below.
-!
+
 ! In the case when after they were modified, lines of the Fortran
 ! program became longer than the prescribed width of 72 characters,
 ! they are automatically folded by mpc according to the Fortran
 ! syntax rules.
-!
+
 ! Usage:  Overall similar to CPP:
 !-------
 !                         mpc source.file target.file
@@ -83,29 +91,26 @@
 !                    or
 !                         mpc < source.file > target.file
 !
-! mpc is smart enough to recognize how many arguments are given,
-! TWO, ONE or NONE and act accordingly. If two arguments are present,
-! the first one is input file name, while the second is output, if
-! only one is present, it is input; output goes to standard output;
-! if NONE is present, mpc expects input from standard input, while
-! output goes to standard output. The last option allows mpc to work
-! as receiver in pipe with CPP:
-!
+! mpc is smart enough to recognize how many arguments are given, TWO,
+! ONE or NONE and act accordingly.  If two arguments are present, the
+! first one is input file name, while the second is output, if only
+! one is present, it is input; output goes to standard output; if NONE
+! mpc expects input from standard input, while output goes to standard
+! output. The last option allows mpc to work as receiver in pipe with
+! CPP:
 !                /lib/cpp -P file.F | mpc > file.f
 !
-! WARNING: Insofar as manifestations of functional deficiencies are
-! agreed upon by any and all concerned parties to be imperceivable, and
-! are so stipulated, it is incumbent upon said heretofore mentioned
-! parties to exercise the deferment of otherwise pertinent maintenance
-! procedures. Therefore, all manifestations of functional deficiencies,
-! such as bugs, evidence of non-robust behavior or any other problems
-! of any kind shall be reported to Alexander Shchepetkin, 310-206-9381
-! or alex@atmos.ucla.edu.
+! Created and maintained by Alexander Shchepetkin, old_galaxy@yahoo.com
 
 
 #define INT_TO_INT4
 #define REAL_TO_REAL8
 #define DOUBLE_CONST
+
+#define F77_TO_F95
+#define KIND_STYLE
+
+#define VECTORIZE
 
 #define TRAP_UNMATCHED_QUOTES
 
@@ -114,15 +119,6 @@ c--#define ZIG_ZAG_OLD
 c--#define TRAP_BARRIERS
 #define RUTGERS
 
-#define F77_TO_F95
-c--# define VECTORIZE
-
-#ifdef F77_TO_F95
-# define integer INTEGER(kind=4)
-# define KIND_STYLE
-#else
-# define integer INTEGER*4
-#endif
 
       implicit none
       integer, parameter :: max_length=128, max_filename=32
@@ -138,7 +134,7 @@ c--# define VECTORIZE
      &                               int_type='2',  real_type='3'
       logical not_end_of_file, omp_dir, dir_switch, lswtch
       integer iin, iout, last_arg, case_fold, ierr, line, istr,
-     &        length, ibarr, i,j,k,m, is,ie, isft,  ks1,ks2,ks3,ks4,ks5
+     &    length, ibarr, i,j,k,m, is,ie, isft, ks1,ks2,ks3,ks4,ks5
 #ifdef DOUBLE_CONST
       integer ndots, indx(max_length)
 #endif
@@ -149,115 +145,140 @@ c--# define VECTORIZE
 ! starting with version 8.x IFORT recognizes it as intrinsic. Portland
 ! Group PGF compiler also needs it to be declared.
 
-#if defined XLF || defined PGI
+#ifdef INT_IARGC
       integer iargc
 #endif
 
 #ifdef ZIG_ZAG_OLD
       logical par_region, lnest
       integer ip1,ip2, is1,is2
-      lnest=.false.
-      par_region=.false.
+      lnest=.false.  ; par_region=.false.
 #endif
-      tab=char(9)
-      quote=char(39)
-      double_quote=char(34)
+
+! Note 2016: Fortran 2003 ISO Standard provides an intrinsic module
+! called "iso_fortran_env" (recognized by a sufficiently new compiler
+! without explicit declaration) to access standard I/O units, while
+! the legacy stdin=5 and stdout=6 units are considered obsolescent and
+! may be no longer recognized by the newer compilers in future.
+! Because of this the use of units 5 and 6 is avoided within this
+! program by replacing them with read(*, ) and write(*, ) respectively,
+! while at the same time the use of module "iso_fortran_env" is avoided
+! as well to be compatible with the legacy compilers.  Therefore the
+! approach is to initialize both units specifiers, "iin" and "iout",
+! to zero, then, check whether one or two arguments are present, open
+! the corresponding files and assign the units to positive numbers.
+! After that, every time when reading and writing is performed, check
+! whether iin and/or iout are positive and use them as unit specifiers,
+! otherwise use * for standard I/O.  This is somewhat cumbersome,
+! especially for iout (logical checks are inserted in many occasions),
+! but it is compatible with both old and new ways without any
+! adjustment to the code and/or CPP-switches.
+
+      iin=-1 ; iout=-1 ; ibarr=0
+      tab=char(9) ; quote=char(39) ; double_quote=char(34)
       case_fold=ichar('a')-ichar('A')
-
-      ibarr=0
-      lswtch=.false.
-      dir_switch=.false.
-
-      file_in='                                '
-      file_out='                                '
+      lswtch=.false. ;  dir_switch=.false.
+      do i=1,max_filename
+        file_in(i:i)=' ' ; file_out(i:i)=' '
+      enddo
       last_arg=iargc()
-      if (last_arg>0) then
-        iin=11
-        call getarg(1,file_in)
+      if (last_arg > 0) then
+        iin=11 ; call getarg(1,file_in)
         open(iin, file=file_in, form='formatted', status='old')
-      else
-        iin=5                   !<-- read from standard input
       endif
-      if (last_arg==2) then
-        iout=12
-        call getarg(2,file_out)
+      if (last_arg == 2) then
+        iout=12 ; call getarg(2,file_out)
         open(iout, file=file_out, form='formatted', status='unknown')
-      else
-        iout=6                  !--> write into standard output
       endif
       write(fmt_in,'(A,I3,A)') '(', max_length, 'A1)'
 
       not_end_of_file=.true.
       line=0
   1    line=line+1
-        length=0                ! Reset the string length and blank
-        omp_dir=.false.         ! out the string itself. Then read
-        do i=1,max_length       ! in a new string.
+        length=0                     ! Reset string length and blank
+        omp_dir=.false.              ! out the string itself, then read
+        do i=1,max_length            ! in a new string.
           symbol(i)=' '
         enddo
-        read(iin,fmt_in, iostat=ierr,end=2) (symbol(i), i=1,max_length)
+        if (iin > 0) then
+          read(iin,fmt_in,iostat=ierr,end=2) (symbol(i),i=1,max_length)
+        else
+          read(  *,fmt_in,iostat=ierr,end=2) (symbol(i),i=1,max_length)
+        endif
         goto 3
   2     not_end_of_file=.false.
-  3     if ( symbol(1)=='!' .or. symbol(1)=='*' .or.
-     &       symbol(1)=='C' .or. symbol(1)=='c' ) then
-          if ( symbol(2)=='$' .or. symbol(3)=='$' .or.
-     &         symbol(4)=='$' .or. symbol(5)=='$' ) then
+  3     if ( symbol(1) =='!' .or. symbol(1) == '*' .or.
+     &       symbol(1) =='C' .or. symbol(1) == 'c' ) then
+          if ( symbol(2) == '$' .or. symbol(3) == '$' .or.
+     &         symbol(4) == '$' .or. symbol(5) == '$' ) then
             omp_dir=.true.
-          else                    ! if the first symbol indicates that
-            goto 1                ! this line is a Fortran comment, but
-          endif                   ! if a dollar sign is present within
-        endif                     ! positions 2,...5, the line is a
-                                  ! directive and should be processed
-        type=' '                  ! further.
+          else               ! if the first symbol indicates that this
+            goto 1           ! line is a Fortran comment, but a dollar
+          endif              ! sign is present within positions 2,...5
+        endif                ! then the line is a directive and should
+                             ! be processed further.
+        type=' '
         do i=1,max_length
-          if (symbol(i)==quote) then         ! Meaning of symbols:
-            if (type==' ') then              ! 's' inside single quotes
+          if (symbol(i) == quote) then       ! Meaning of symbols:
+            if (type == ' ') then            ! 's' inside single quotes
               type='s'                       ! "d" inside double quotes
-            elseif (type=='s') then          ! "'S'" inside single
+            elseif (type == 's') then        ! "'S'" inside single
               type=' '                       !           inside double
-            elseif (type=='d') then          ! '"D"' inside double
+            elseif (type == 'd') then        ! '"D"' inside double
               type='S'                       !           inside single
-            elseif (type=='S') then          ! '"X'" illegal
+            elseif (type == 'S') then        ! '"X'" illegal
               type='d'                       ! "'X"' illegal
             endif
-          elseif (symbol(i)==double_quote) then
-            if (type==' ') then
+          elseif (symbol(i) == double_quote) then
+            if (type == ' ') then
               type='d'                       ! Exclamation sign !
-            elseif (type=='d') then          ! outside quotes starts
+            elseif (type == 'd') then        ! outside quotes starts
               type=' '                       ! Fortran 90 comment which
-            elseif (type=='s') then          ! needs to be suppressed;
+            elseif (type == 's') then        ! needs to be suppressed;
               type='D'                       ! "!" within a nest of
-            elseif (type=='D') then          ! quotes is just a symbol
+            elseif (type == 'D') then        ! quotes is just a symbol
               type='s'                       ! of a character string.
             endif
-          elseif ( symbol(i)=='!' .and. type==' '
-     &          .and. .not.(omp_dir .and. i==1) ) then
+          elseif ( symbol(i) == '!' .and. type == ' ' .and.
+     &                   .not.(omp_dir .and. i == 1) ) then
             goto 4
           endif
-          if (symbol(i)/=' ') length=i
+          if (symbol(i) /= ' ') length=i
         enddo
    4    continue
+
 #ifdef TRAP_UNMATCHED_QUOTES
-        if ( type/=' ') write(iout,'(/6x,A,I4,1x,A/)')
-     &      '### ERROR: Unmatched quote on line', line
+        if (type /= ' ') then
+          if (iout > 0) then
+            write(iout,'(/6x,2A,I4/)') '### ERROR: Unmatched ',
+     &                                 'quote on line', line
+          else
+            write(   *,'(/6x,2A,I4/)') '### ERROR: Unmatched ',
+     &                                 'quote on line', line
+          endif
+        endif
 #endif
 
-! Restrict "length" to the last non-blank and non-tab (ASCII code 9)
-! character of the actual Fortran code, that is ignoring the F90
-! commentaries starting with an exclamation sign outside quites.
-! After that find the starting  non-blank, non-tab character of the
-! line "istr".
+! Restrict "length" to the last non-blank and non-tab character of
+! the actual Fortran code (that is ignoring the F90 commentaries
+! starting with an exclamation sign outside quotes).
 
-        if (length>0) then
-          do while( length>0 .and. ( symbol(length)==' '
-     &                          .or. symbol(length)==tab ))
+        if (length > 0) then
+          do while( (symbol(length) == ' ' .or. symbol(length) == tab)
+     &                                               .and. length > 1 )
             length=length-1
           enddo
+          if (symbol(length) == ' ' .or. symbol(length) == tab) then
+            length=length-1
+          endif
         endif
-        if (length>0) then
+
+! Find the starting non-blank and non-tab character of the line "istr".
+
+        if (length > 0) then
           istr=1
-          do while( istr<length .and. ( symbol(istr)==' '
-     &                             .or. symbol(istr)==tab ))
+          do while( (symbol(istr) == ' ' .or. symbol(istr) == tab)
+     &                                        .and. istr < length )
             istr=istr+1
           enddo
         else
@@ -278,8 +299,7 @@ c**  &      ' not_end_of_file =', not_end_of_file
 ! Recognize REAL or real and turn it into REAL*8 or real*8,
 ! but do not convert REAL*4 or real*4 into real*8.
 
-        i=istr
-        type=type_none
+        i=istr ; type=type_none
 #if defined REAL_TO_REAL8 || defined F77_TO_F95
         if (symbol(i  )=='R' .or. symbol(i  )=='r') then
          if (symbol(i+1)=='E' .or. symbol(i+1)=='e') then
@@ -332,9 +352,9 @@ c**  &      ' not_end_of_file =', not_end_of_file
          endif                          ! which may be either "real",
         endif                           ! "integer", or "character"..
 #endif
-        if (type/=type_none) then       ! ...and j is index of the
+        if (type /= type_none) then     ! ...and j is index of the
           j=i+1
-          do while (j<length .and. symbol(j)==' ')
+          do while (j < length .and. symbol(j)==' ')
             j=j+1
           enddo                         ! first non-blanc symbol
                                         ! after type declaration.
@@ -343,7 +363,7 @@ c**  &      ' not_end_of_file =', not_end_of_file
 ! Intel IFC compiler point of view style of explicit size declaration
 ! like real*16 or character*128, change it to Fortran 95 style,
 !
-!                    real*16 --> real(16)
+!                   real*16  --> real(16)
 !              character*128 --> character(len=128)
 !
 ! which is then accepted by the compiler without warning message.
@@ -353,43 +373,42 @@ c**  &      ' not_end_of_file =', not_end_of_file
 ! '*' itself and all blank spaces occurring between Fortran type
 ! specifier and size specifier.
 
-          if (symbol(j)=='*') then
+          if (symbol(j) == '*') then
 #ifdef F77_TO_F95
             is=j+1
-            do while (symbol(is)==' ' .and. is<length)
+            do while( symbol(is) == ' ' .and. is < length)
               is=is+1
             enddo
             ie=is
-            do while (symbol(ie+1)/=' ' .and.
-     &                symbol(ie+1)/=',' .and. ie<length)
+            do while( symbol(ie+1) /= ' ' .and.  symbol(ie+1) /= ','
+     &                                            .and. ie < length)
               ie=ie+1
             enddo
             isft=i+1-is
-            if (symbol(is)=='(' .and. symbol(ie)==')') then
-              is=is+1
-              ie=ie-1
+            if (symbol(is) == '(' .and. symbol(ie) == ')') then
+              is=is+1 ; ie=ie-1
               isft=isft-2
             endif
             do k=1,ie-is+1
               bffr(k)=symbol(k+is-1)
-            enddo                        ! Finally, modify the line
-                                         ! of code: add the number of
-            if (type==char_type) then    ! newly inserted characters
-              isft=isft+6                ! to "isft", then move the
-              do k=length,ie+1,-1        ! rest of the line to the
-                symbol(k+isft)=symbol(k) ! right in order to make
-              enddo                      ! room for the insertion,
-              length=length+isft         ! adjust the length of the
-              symbol(i+1)='('            ! line accordingly, then
-              symbol(i+2)='l'            ! insert the new-style size
-              symbol(i+3)='e'            ! specification.
-              symbol(i+4)='n'
+            enddo
+
+            if (type == char_type) then  ! Finally, modify the line
+              isft=isft+6                ! of code: add the number of
+              do k=length,ie+1,-1        ! newly inserted characters to
+                symbol(k+isft)=symbol(k) ! "isft", then move the rest
+              enddo                      ! of the line to the right in
+              length=length+isft         ! order to make room for the
+              symbol(i+1)='('            ! insertion, adjust the length
+              symbol(i+2)='l'            ! of the line accordingly,
+              symbol(i+3)='e'            ! then insert the new-style
+              symbol(i+4)='n'            ! size specification.
               symbol(i+5)='='
               do k=1,ie-is+1
                 symbol(i+k+5)=bffr(k)
               enddo
               symbol(i+ie-is+7)=')'
-            elseif (type==int_type .or. type==real_type) then
+            elseif (type == int_type .or. type == real_type) then
 # ifdef KIND_STYLE
               isft=isft+7
 # else
@@ -439,8 +458,8 @@ c**  &      ' not_end_of_file =', not_end_of_file
 ! considered as default type declaration, and should be processed.
 
 #if defined REAL_TO_REAL8 || defined INT_TO_INT4 || defined F77_TO_F95
-          elseif (symbol(j)/='(' .and. (symbol(j)==' ' .or.
-     &                      j>i+1 .or. symbol(j)==',')) then
+          elseif ( symbol(j) /= '(' .and. ( symbol(j) == ' ' .or.
+     &                         j > i+1 .or. symbol(j) == ',' ) ) then
 
 c--#if defined REAL_TO_REAL8 && defined INT_TO_INT4
 c--            if (type==int_type .or. type==real_type) then
@@ -450,12 +469,10 @@ c--#elif defined INT_TO_INT4
 c--            if (type==int_type) then
 c--#endif
 
-
-
-            if (type/=char_type) then
-              if (type==int_type) then
+            if (type /= char_type) then
+              if (type == int_type) then
                 type='4'
-              elseif (type==real_type) then
+              elseif (type == real_type) then
 # ifdef REAL_TO_REAL8
                 type='8'
 # else
@@ -607,9 +624,9 @@ c--#endif
         ndots=0                                              ! Step (1)
         lswtch=.true.
         do i=7,length
-          if (symbol(i)==quote) then
+          if (symbol(i) == quote) then
             lswtch=.not.lswtch
-          elseif (symbol(i)=='.' .and. lswtch) then
+          elseif (symbol(i) == '.' .and. lswtch) then
             ndots=ndots+1
             indx(ndots)=i
           endif
@@ -618,43 +635,43 @@ c--#endif
           m=indx(j)                                          ! Step (2)
           is=indx(j)
           lswtch=.true.
-          do while (lswtch .and. m>7)
+          do while(lswtch .and. m > 7)
             m=m-1
-            if (symbol(m)>='0' .and. symbol(m)<='9') then
+            if (symbol(m) >= '0' .and. symbol(m) <= '9') then
               is=m
-            elseif (symbol(m)/=' ') then
+            elseif (symbol(m) /= ' ') then
               lswtch=.false.
             endif
           enddo
 
-          if ( lswtch .or. symbol(m)<'A' .or.                ! Cond.(3)
-     &        (symbol(m)>'Z' .and. symbol(m)<'a')
-     &                           .or. symbol(m)>'z' ) then
+          if ( lswtch .or. symbol(m) < 'A' .or.              ! Cond.(3)
+     &        (symbol(m) > 'Z' .and. symbol(m) < 'a')
+     &                          .or. symbol(m) > 'z' ) then
             m=indx(j)
             ie=indx(j)                                       ! Step (4)
             lswtch=.true.
-            do while (lswtch .and. m<length)
+            do while (lswtch .and. m < length)
               m=m+1
-              if (symbol(m)>='0' .and. symbol(m)<='9') then
+              if (symbol(m) >= '0' .and. symbol(m) <= '9') then
                 ie=m
-              elseif (symbol(m)/=' ') then
+              elseif (symbol(m) /= ' ') then
                 lswtch=.false.
               endif
             enddo
             if (lswtch) m=m+1
 
-            if (is<ie) then                                 ! Step (5)
-              if (symbol(m)=='e' .or. symbol(m)=='E' .or.
-     &            symbol(m)=='d' .or. symbol(m)=='D') then
+            if (is < ie) then                                ! Step (5)
+              if (symbol(m) == 'e' .or. symbol(m) == 'E' .or.
+     &            symbol(m) == 'd' .or. symbol(m) == 'D') then
                 i=m+1
                 do while (symbol(i)==' ' .and. i<length)
                   i=i+1
                 enddo
-                if ( symbol(i)=='+' .or. symbol(i)=='-' .or.
-     &               (symbol(i)>='0' .and. symbol(i)<='9')
-     &             ) symbol(m)='D'
+                if ( symbol(i) == '+' .or.  symbol(i) == '-' .or.
+     &              (symbol(i) >= '0' .and. symbol(i) <= '9')
+     &                                           ) symbol(m)='D'
 
-              elseif (symbol(m)=='_') then
+              elseif (symbol(m) == '_') then
 
 ! Rutgers compatibility mode: the following code segment searches for
 ! suffices _r8 and _e8 attached to real valued constants and converts
@@ -682,10 +699,10 @@ c--#endif
                   endif
                 endif
 # endif
-              elseif ( symbol(m)<'A' .or.  ( symbol(m)>'Z'. and.
-     &                 symbol(m)<'a' ) .or. symbol(m)>'z' ) then
+              elseif ( symbol(m) < 'A' .or.  ( symbol(m) > 'Z'. and.
+     &                 symbol(m) < 'a' ) .or.  symbol(m) > 'z' ) then
 
-                do while (symbol(m-1)==' ')
+                do while(symbol(m-1) == ' ')
                   m=m-1
                 enddo
                 do i=length,m,-1
@@ -710,7 +727,7 @@ c--#endif
 ! Automatically place loop vectorization directives for i-loops
 
         do i=istr,length
-          if (symbol(i)>='A' .and. symbol(i)<='Z') then
+          if (symbol(i) >= 'A' .and. symbol(i) <= 'Z') then
             scratch(i:i)=char(ichar(symbol(i))+case_fold)
           else
             scratch(i:i)=symbol(i)
@@ -718,50 +735,57 @@ c--#endif
         enddo
 
         i=istr
-        if (scratch(i:i+1)=='do') then
+        if (scratch(i:i+1) == 'do') then
           i=i+2
-          do while (i<length .and. scratch(i:i)==' ')
+          do while(i < length .and. scratch(i:i) == ' ')
             i=i+1
           enddo
           if (scratch(i:i)=='i') then
             i=i+1
-            do while (i<length .and. scratch(i:i)==' ')
+            do while(i < length .and. scratch(i:i) == ' ')
               i=i+1
             enddo
-            if (scratch(i:i)=='=') then
+            if (scratch(i:i) == '=') then
               i=i+1
-              do while (i<length .and. scratch(i:i)==' ')
+              do while(i < length .and. scratch(i:i) == ' ')
                 i=i+1
               enddo
 
-              if (scratch(i:i+3)=='istr' .or.
-     &            scratch(i:i+3)=='imin') then
+              if (scratch(i:i+3) == 'istr' .or.
+     &            scratch(i:i+3) == 'imin') then
                 i=i+4
-                do while (i<length .and. scratch(i:i)/=',')
+                do while(i < length .and. scratch(i:i) /= ',')
                   i=i+1
                 enddo
-                if (i<length) then
+                if (i < length) then
                   i=i+1
-                  if (scratch(i:i+3)=='iend' .or.
-     &                scratch(i:i+3)=='imax') then
+                  if (scratch(i:i+3) ==' iend' .or.
+     &                scratch(i:i+3) ==' imax') then
                     i=i+3
-                    do while (i<length .and. scratch(i:i)/=',')
+                    do while(i < length .and. scratch(i:i) /= ',')
                       i=i+1
                     enddo
-                    if (i==length) then
-
-                      write(iout,'(A)') '!dec$ ivdep'
+                    if (i == length) then
+                      if (iout > 0) then
+                        write(iout,'(A)') '!dir$ ivdep'
 
 ! If the target processor is Itanium 2, suppress vectorization
-! directive (available only for Intel IA32 architecture). Not doing
-! so causes compiler warnings, but is harmless otherwise.
+! directive (available only for Intel IA32 architecture).
+! Not doing so causes compiler warnings, but is harmless otherwise.
 
 # if __IFC != IA64
-                      write(iout,'(A)') '!dec$ vector always'
+c                       write(iout,'(A)') '!dir$ vector always'
 # endif
-c                      write(iout,'(A)') '!dec$ prefetch'
-                      write(iout,'(A)') '!dec$ unroll(4)'
-
+c                       write(iout,'(A)') '!dir$ prefetch'
+c                       write(iout,'(A)') '!dir$ unroll'
+                      else
+                        write(*,'(A)') '!dir$ ivdep'
+# if __IFC != IA64
+c                       write(*,'(A)') '!dir$ vector always'
+# endif
+c                       write(*,'(A)') '!dir$ prefetch'
+c                       write(*,'(A)') '!dir$ unroll'
+                      endif
                     endif
                   endif
                 endif
@@ -799,25 +823,25 @@ c                      write(iout,'(A)') '!dec$ prefetch'
 ! enjoys all its cache_lines coherent with its cache at this moment.
 
         i=istr
-        if (symbol(i)=='d' .and. symbol(i+1)=='o') then
+        if (symbol(i) == 'd' .and. symbol(i+1) == 'o') then
           i=i+2
-          do while (symbol(i)==' ' .and. i<length)
+          do while (symbol(i) == ' ' .and. i < length)
             i=i+1
           enddo
-          if (symbol(i  )=='t' .and. symbol(i+1)=='i' .and.
-     &        symbol(i+2)=='l' .and. symbol(i+3)=='e') then
+          if (symbol(i  ) == 't' .and. symbol(i+1)== 'i' .and.
+     &        symbol(i+2) == 'l' .and. symbol(i+3)== 'e') then
             i=i+4
-            do while (symbol(i)==' ' .and. i<length)
+            do while (symbol(i) == ' ' .and. i < length)
               i=i+1
             enddo
             if (symbol(i)=='=') then
               i=i+1
-              do while (symbol(i)==' ' .and. i<length)
+              do while (symbol(i) == ' ' .and. i < length)
                 i=i+1
               enddo
 
-              if (symbol(i)=='m' .and. symbol(i+1)=='y' .and.
-     &                                   symbol(i+2)=='_') then
+              if (symbol(i) == 'm' .and. symbol(i+1) == 'y' .and.
+     &                                   symbol(i+2) == '_') then
                 dir_switch=.not.dir_switch
                 if (dir_switch) then
                   scratch='my_first,my_last,+1'
@@ -869,15 +893,15 @@ c                      write(iout,'(A)') '!dec$ prefetch'
                 if (symbol(i+3)=='A' .or. symbol(i+3)=='a') then
                  if (symbol(i+4)=='L' .or. symbol(i+4)=='l') then
                    i=i+5
-                   do while (symbol(i)/='(' .and. i<length)
+                   do while (symbol(i) /= '(' .and. i < length)
                      i=i+1
                    enddo
-                   if (symbol(i)=='(') then
+                   if (symbol(i) == '(') then
                      ip1=i+1
-                     do while (symbol(i)/=')' .and. i<length)
+                     do while (symbol(i) /= ')' .and. i < length)
                        i=i+1
                      enddo
-                     if (symbol(i)==')') ip2=i-1
+                     if (symbol(i) == ')' ) ip2=i-1
                    endif
                  endif
                 endif
@@ -899,7 +923,7 @@ c                      write(iout,'(A)') '!dec$ prefetch'
                        do while (symbol(i)/=')' .and. i<length)
                          i=i+1
                        enddo
-                       if (symbol(i)==')') ip2=i-1
+                       if (symbol(i) == ')') ip2=i-1
                      endif
                    endif
                   endif
@@ -921,7 +945,7 @@ c                      write(iout,'(A)') '!dec$ prefetch'
                      do while (symbol(i)/=')' .and. i<length)
                        i=i+1
                      enddo
-                     if (symbol(i)==')') is2=i-1
+                     if (symbol(i) == ')') is2=i-1
                    endif
                  endif      ! Skip to the beginning of the next word
                 endif       ! for further checking. NOTE that 'PRIVATE'
@@ -930,34 +954,48 @@ c                      write(iout,'(A)') '!dec$ prefetch'
             endif           ! 'THREADPRIVATE' is disregarded because
                             !  it not a complete word.
             i=i+1
-            do while (symbol(i)/=' ' .and. symbol(i)/=',')
+            do while (symbol(i) /= ' ' .and. symbol(i) /= ',')
               i=i+1
             enddo
-            do while (symbol(i)==' ' .and. i<length)
+            do while (symbol(i) == ' ' .and. i < length)
               i=i+1
             enddo
           enddo
 
-          if (ip1>0 .and. ip2==0) write(iout,'(A)')
-     &      '### ERROR: No closing bracket in local/private list.'
-          if (is1>0 .and. is2==0) write(iout,'(A)')
-     &             '### ERROR: No closing bracket in shared list.'
+          if (ip1 > 0 .and. ip2 == 0) then
+            if (iout > 0) then
+     &        write(iout,'(/6x,2A/)') '### ERROR: No closing bracket ',
+     &                                     'in local or private list.'
+            else
+     &        write(   *,'(/6x,2A/)') '### ERROR: No closing bracket ',
+     &                                     'in local or private list.'
+            endif
+          endif
+          if (is1 > 0 .and. is2 == 0) then
+            if (iout > 0) then
+              write(iout,'(/6x,2A/)') '### ERROR: No closing bracket ',
+     &                                               'in shared list.'
+            else
+     &        write(   *,'(/6x,2A/)') '### ERROR: No closing bracket ',
+     &                                               'in shared list.'
+            endif
+          endif
 
 ! It should be noted that a valid DOACROSS / DO PARALEL /DO ALL
 ! directive must have at least one variable in its LOCAL/PRIVATE
-! list to privative the index of do-loop which follows it. Hence,
-! the presence of non-empty local list triggers further processing
+! list to privatize the index of do-loop which follows it. Hence,
+! the presence of non-empty private list triggers further processing
 ! in the following code segment: paste additional variables "trd"
 ! and subs into private list and "numthreads" into shared, in order
 ! to allow loop rearrangement. There are three possibilities here:
 ! SHARE attribute goes before LOCAL; vise versa; and and SHARE
 ! attribute is absent.
                                             ! Save the whole string
-          if (ip1>0 .and. ip2>0) then ! into buffer before
+          if (ip1 > 0 .and. ip2 > 0) then   ! into buffer array before
             do i=1,length                   ! start messing with it.
               bffr(i)=symbol(i)
             enddo
-            if (ip1>is2 .and. is2>=is1 .and. is1>0) then
+            if (ip1 > is2 .and. is2 >= is1 .and. is1 > 0) then
               scratch = 'numthreads, '
               do i=1,12
                 symbol(is1+i-1)=scratch(i:i)
@@ -978,7 +1016,7 @@ c                      write(iout,'(A)') '!dec$ prefetch'
               do i=1,10
                 symbol(ip1+i-1)=scratch(i:i)
               enddo
-              if (is1>0 .and. is2>0) then
+              if (is1 > 0 .and. is2 > 0) then
                 do i=ip1,is1-1
                   symbol(i+10)=bffr(i)
                 enddo
@@ -1015,26 +1053,39 @@ c                      write(iout,'(A)') '!dec$ prefetch'
 ! natural divider symbol, such as a intentionally placed blank
 ! character or a comma.
 
-            if (length<=72) then
-              write(iout,'(72A1)') (symbol(i),i=1,length)
-            else
+            if (length <= 72) then
+              if (iout > 0) then
+                write(iout,'(72A1)') (symbol(i),i=1,length)
+              else
+                write(   *,'(72A1)') (symbol(i),i=1,length)
+              endif
+            else    !--> split line longer than 72 characters
               ks1=72
-              do while (symbol(ks1)/=' ' .and. ks1>0)
+              do while(symbol(ks1) /= ' ' .and. ks1 > 0)
                 ks1=ks1-1
               enddo
               ks2=72
-              do while (symbol(ks2)/=',' .and. ks2>0)
+              do while (symbol(ks2) /= ',' .and. ks2 > 0)
                 ks2=ks2-1
               enddo
-              if (ks1>54) then
+              if (ks1 > 54) then
                 k=ks1
-              elseif (ks2>6) then
+              elseif (ks2 > 6) then
                 k=ks2
               else
-                write(iout,*) '### ERROR: mpc :: Cannot split ',
-     &                                      'OpenMP directive.'
+                if (iout > 0) then
+                  write(iout,'(/6x,2A/)') '### ERROR: mpc :: Cannot ',
+     &                                      'split OpenMP directive.'
+                else
+                  write(   *,'(/6x,2A/)') '### ERROR: mpc :: Cannot ',
+     &                                      'split OpenMP directive.'
+                endif
               endif
-              write(iout,'(72A1)') (symbol(i),i=1,k)
+              if (iout > 0) then
+                write(iout,'(72A1)') (symbol(i),i=1,k)
+              else
+                write(   *,'(72A1)') (symbol(i),i=1,k)
+              endif
 # ifdef CRAY
               m=6
 # else
@@ -1048,12 +1099,16 @@ c                      write(iout,'(A)') '!dec$ prefetch'
               do i=k+1,length
                 symbol(i-m)=symbol(i)
               enddo
-              write(iout,'(72A1)') (symbol(i),i=1,k)
+              if (iout > 0) then
+                write(iout,'(72A1)') (symbol(i),i=1,k)
+              else
+                write(   *,'(72A1)') (symbol(i),i=1,k)
+              endif
             endif
             par_region=.true.
             goto 1
           endif
-        endif
+        endif  !<--  omp_dir
 
 ! Once a parallel region is detected and the compiler directive above
 ! was modified, transform the parallel loop over subdomains (tiles)
@@ -1065,17 +1120,17 @@ c                      write(iout,'(A)') '!dec$ prefetch'
 
         if (par_region) then
           is=7
-          do while (symbol(is)==' ' .and. is<length)
+          do while (symbol(is) == ' ' .and. is < length)
             is=is+1
           enddo
-          if (symbol(is)=='d' .and. symbol(is+1)=='o') then
+          if (symbol(is) == 'd' .and. symbol(is+1) == 'o') then
             is=is+2
-            do while (symbol(is)==' ' .and. is<length)
+            do while (symbol(is) == ' ' .and. is < length)
               is=is+1
             enddo
-            if (symbol(is )=='t' .and. symbol(is+1)=='i' .and.
-     &          symbol(is+2)=='l' .and. symbol(is+3)=='e' .and.
-     &                                   symbol(is+4)=='=') then
+            if (symbol(is ) == 't' .and. symbol(is+1) == 'i' .and.
+     &          symbol(is+2) == 'l' .and. symbol(is+3) == 'e' .and.
+     &                                    symbol(is+4) == '=') then
               scratch='0,NSUB_X*NSUB_E-1'
               lswtch=.true.
               do i=1,17
@@ -1083,35 +1138,55 @@ c                      write(iout,'(A)') '!dec$ prefetch'
               enddo
               if (lswtch) then
                 lnest=.true.
-                write(iout,'(7x,A/8x,A)') 'do trd=0,numthreads-1',
-     &                             'subs=NSUB_X*NSUB_E/numthreads'
+                if (iout > 0) then
+                  write(iout,'(7x,A/8x,A)') 'do trd=0,numthreads-1',
+     &                              'subs=NSUB_X*NSUB_E/numthreads'
+                else
+                  write(   *,'(7x,A/8x,A)') 'do trd=0,numthreads-1',
+     &                              'subs=NSUB_X*NSUB_E/numthreads'
+                endif
                 dir_switch=.not.dir_switch
                 if (dir_switch) then
-                  write(iout,'(9x,A)')
+                  if (iout > 0) then
+                    write(iout,'(9x,A)')
      &               'do tile=subs*trd,subs*(trd+1)-1,+1'
+                  else
+                    write(   *,'(9x,A)')
+     &               'do tile=subs*trd,subs*(trd+1)-1,+1'
+                  endif
                 else
-                  write(iout,'(9x,A)')
+                  if (iout > 0) then
+                    write(iout,'(9x,A)')
      &               'do tile=subs*(trd+1)-1,subs*trd,-1'
+                  else
+                    write(   *,'(9x,A)')
+     &               'do tile=subs*(trd+1)-1,subs*trd,-1'
+                  endif
                 endif
                 goto 1
               endif
             endif
           elseif (lnest) then
-            if (symbol(is)=='e' .and. symbol(is+1)=='n' .and.
-     &          symbol(is+2)=='d' .and. symbol(is+3)=='d' .and.
-     &                                     symbol(is+4)=='o') then
+            if (symbol(is ) == 'e' .and. symbol(is+1) == 'n' .and.
+     &          symbol(is+2) == 'd' .and. symbol(is+3) == 'd' .and.
+     &                                    symbol(is+4) == 'o') then
               lnest=.false.
               par_region=.false.
-              write(iout,'(9x,A/7x,A)') 'enddo', 'enddo'
+              if (iout > 0) then
+                write(iout,'(9x,A/7x,A)') 'enddo', 'enddo'
+              else
+                write(   *,'(9x,A/7x,A)') 'enddo', 'enddo'
+              endif
               goto 1
             endif
           endif
-        endif
+        endif  !<--  par_region
 #endif
 #ifdef TRAP_BARRIERS
 ! instrument barrier directives.
 
-        if (symbol(1) =='C' .or. symbol(1)=='c') then
+        if (symbol(1) =='C' .or. symbol(1)=='c' .or.
+     &                           symbol(1)=='!') then
          if (symbol(2) =='$') then
           if (symbol(3) =='O' .or.  symbol(3)=='o') then
            if (symbol(4) =='M' .or.  symbol(4)=='m') then
@@ -1124,10 +1199,15 @@ c                      write(iout,'(A)') '!dec$ prefetch'
                   if (symbol(11)=='I' .or. symbol(11)=='i') then
                    if (symbol(12)=='E' .or. symbol(12)=='e') then
                     if (symbol(13)=='R' .or. symbol(13)=='r') then
-                      ibarr=ibarr+1
 
-                      write(iout,'(A,4x,A,I3,A)') 'C$',
-     &                  'call sync_trap (', ibarr, ')'
+                      ibarr=ibarr+1
+                      if (iout > 0) then
+                        write(iout,'(A,4x,A,I3,A)') 'C$',
+     &                    'call sync_trap (', ibarr, ')'
+                      else
+                        write(   *,'(A,4x,A,I3,A)') 'C$',
+     &                    'call sync_trap (', ibarr, ')'
+                      endif
 
                     endif
                    endif
@@ -1156,9 +1236,13 @@ c                      write(iout,'(A)') '!dec$ prefetch'
 ! attempt is made to split along a comma; if this is not successful, an
 ! assignment operator is being searched; then a mathematical operation.
 
-        if (length>0 .and. length<=72) then
-          write(iout,'(72A1)') (symbol(i),i=1,length)
-        elseif (length>72) then
+        if (length > 0 .and. length <= 72) then
+          if (iout > 0) then
+            write(iout,'(72A1)') (symbol(i),i=1,length)
+          else
+            write(   *,'(72A1)') (symbol(i),i=1,length)
+          endif
+        elseif (length > 72) then
 
           ks1=0        ! Find appropriate places in the line where it
           ks2=0        ! may be split into two. This is just a purely
@@ -1167,26 +1251,26 @@ c                      write(iout,'(A)') '!dec$ prefetch'
           ks5=0        ! character in the middle; comma or a symbol of
                        ! of mathematical operation.
           do k=7,72
-            if (symbol(k)==' ') then
+            if (symbol(k) == ' ') then
               ks1=k
-            elseif (symbol(k)==',') then
+            elseif (symbol(k) == ',') then
               ks2=k
-            elseif (symbol(k)=='=') then
+            elseif (symbol(k) == '=') then
               ks3=k
-            elseif (symbol(k)=='/') then
+            elseif (symbol(k) == '/') then
               ks4=k
-            elseif (symbol(k)=='+' .or.
-     &              symbol(k)=='-'  .or.
-     &              symbol(k)/='*') then
+            elseif (symbol(k) == '+' .or.
+     &              symbol(k) == '-'  .or.
+     &              symbol(k) /= '*') then
               ks5=k
             endif
           enddo
 
-          if (length-ks1>66) ks1=0
-          if (length-ks2>66) ks2=0
-          if (length-ks3>66) ks3=0
-          if (length-ks4>66) ks4=0
-          if (length-ks5>66) ks5=0
+          if (length-ks1 > 66) ks1=0
+          if (length-ks2 > 66) ks2=0
+          if (length-ks3 > 66) ks3=0
+          if (length-ks4 > 66) ks4=0
+          if (length-ks5 > 66) ks5=0
 
 ! Make the final decision about the line split: there is nothing
 ! special here, it is just a matter of esthetics to decide which of
@@ -1194,18 +1278,24 @@ c                      write(iout,'(A)') '!dec$ prefetch'
 ! the most appropriate; the logical sequence below is designed as
 ! hierarchy of preferences.
 
-          if (ks1>34) then
+          if (ks1 > 34) then
             k=ks1
-          elseif (ks4>6) then
+          elseif (ks4 > 6) then
             k=ks4-1
-          elseif (ks2>54) then
+          elseif (ks2 > 54) then
             k=ks2
-          elseif (ks3>60) then
+          elseif (ks3 > 60) then
             k=ks3
-          elseif (ks5>6) then
+          elseif (ks5 > 6) then
             k=ks5-1
           else
-            write(iout,*) '### ERROR: mpc :: Cannot split line.'
+            if (iout > 0) then
+              write(iout,'(/6x,2A/)') '### ERROR: mpc :: Cannot ',
+     &                                              'split line.'
+            else
+              write(   *,'(/6x,2A/)') '### ERROR: mpc :: Cannot ',
+     &                                              'split line.'
+            endif
           endif
 
 ! Write out the line. First write the first part of the line; then
@@ -1214,7 +1304,11 @@ c                      write(iout,'(A)') '!dec$ prefetch'
 ! expression in the continuation line around the center of the area
 ! limited by positions 7...72.
 
-          write(iout,'(72A1)') (symbol(i),i=1,k)
+          if (iout > 0) then
+            write(iout,'(72A1)') (symbol(i),i=1,k)
+          else
+             write(   *,'(72A1)') (symbol(i),i=1,k)
+          endif
           do i=1,k
             symbol(i)=' '
           enddo
@@ -1223,10 +1317,13 @@ c                      write(iout,'(A)') '!dec$ prefetch'
           do i=k+1,length
             symbol(i-m)=symbol(i)
           enddo
-          write(iout,'(72A1)') (symbol(i),i=1,length-m)
+          if (iout > 0) then
+            write(iout,'(72A1)') (symbol(i),i=1,length-m)
+          else
+            write(   *,'(72A1)') (symbol(i),i=1,length-m)
+          endif
         endif
        if (not_end_of_file) goto 1
-  99  if (iout>6) close(iout)
-      if (iin>5) close(iin)
-      stop
+  99  if (iout > 0) close(iout)
+      if (iin  > 0)  close(iin)
       end

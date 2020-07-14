@@ -1,21 +1,21 @@
 #include "cppdefs.h"
 
-      function nf_read_bry_EW (A, ncid, varid, record, type)
+      function read_bry_EW(ncid, varid, record, horiz_type, A, nmax)
 
 ! Read side boundary from an input netCDF file.
 !
-! Arguments: A       real array of standard horizontal dimensions
+! Arguments:  A       real array of standard horizontal dimensions
 !                             which is to be read or written.
 !            ncid    netCDF ID of in the file.
-!            varid   variable ID of that variable in netCDF file.
+!           varid    variable ID of that variable in netCDF file.
 !            record  record number.
-!            type    type of the grid (RHO-, U, V, W, PSI etc.)
+!        horiz_type   RHO-, U, V, W, PSI etc.)
 
       implicit none
 #include "param.h"
-      integer nf_read_bry_EW, ncid, varid, record, type
-      real A(0:Mm+1,N)
-      integer i,j,k, kmax, shft, ierr, lstr, lenstr
+      integer read_bry_EW, ncid, varid, record, horiz_type, nmax
+      real A(0:Mm+1,nmax)
+      integer i,j,k, shft, ierr, lstr, lenstr
       character(len=16) vname
 #include "buffer.h"
 #include "netcdf.inc"
@@ -23,65 +23,64 @@
 #include "compute_starts_counts.h"
 
 #ifdef VERBOSE
-      write(*,*) 'entered nf_read_bry_EW...' MYID
+      write(*,*) 'enter read_bry_EW...' MYID
 #endif
-      if (ierr==0) then      ! Note that "ierr" is initialized inside
-        start(1)=start(2)    ! "compute_starts_counts.h". Suppress the
-        count(1)=count(2)    ! fist horizontal dimension XI: after this
-        start(2)=start(3)    ! step the updated start/count(1) becomes
-        count(2)=count(3)    ! corresponding to ETA- netCDF dimension;
-        start(3)=start(4)    ! index 2 to vertical dimension (if it
-        count(3)=count(4)    ! exists) or time record; index 3 to
-                             ! time record.
+
+      start(1)=start(2)    ! Suppress the fist horizontal dimension
+      count(1)=count(2)    ! XI: after this step the updated start(1)
+      start(2)=start(3)    ! count(1) becomes corresponds to ETA-
+      count(2)=count(3)    ! netCDF dimension; index 2 to vertical
+      start(3)=start(4)    ! (if the variable has it) or time record;
+      count(3)=count(4)    ! index 3 to time record.
+
 ! Read array from the disk.
 !===== ===== ==== === =====
 
-        ierr=nf_get_vara_FTYPE (ncid, varid, start, count, buff)
-        if (ierr == nf_noerr) then
-          kmax=count(2)
-          do k=1,kmax
-            shft=1-jmin + (k-1)*count(1)
-            do j=jmin,jmax
-              A(j,k)=buff(j+shft)
-            enddo
+      ierr=nf_get_vara_FTYPE (ncid, varid, start, count, buff)
+      if (ierr == nf_noerr) then
+        do k=1,nmax
+          shft=1-jmin + (k-1)*count(1)
+          do j=jmin,jmax
+            A(j,k)=buff(j+shft)
           enddo
+        enddo
 #ifdef MPI
-          call exch_bry_EW_tile (jsouth,jnorth, A, kmax)
+        call exch_bry_EW_tile(jsouth,jnorth, A, nmax)
 #elif defined NS_PERIODIC
-          call exch_bry_EW_tile (     1,   Mm,  A, kmax)
+        call exch_bry_EW_tile(     1,   Mm,  A, nmax)
 #endif
-        else
-          ierr=nf_inq_varname (ncid, varid, vname)
-          if (ierr == nf_noerr) then
-            lstr=lenstr(vname)
-            write(*,'(1x,2A,I6,1x,3A,2x,A,2x,A,I4)')  '--- WARNING:: ',
-     &              'nf_read_bry_EW ::Cannot read rec =',   record,
-     &              'of variable ''',  vname(1:lstr),  '''.',
-     &               nf_strerror(ierr) MYID
-          else
-            write(*,'(1x,2A,I6,1x,A,I4,2x,A,2x,A,I4)') '--- WARNING:: ',
-     &              'nf_read_bry_EW ::Cannot read rec =',   record,
-     &              'of variable with netCDF ID =',  varid,
-     &               nf_strerror(ierr) MYID
-          endif
-        endif
       else
-        write(*,'(/1x,2A,I4/)') '--- WARNING:: nf_read_bry_EW :: ',
-     &                          'illegal grid type', type
+        ierr=nf_inq_varname(ncid, varid, vname)
+        ! Note that if some boundary data is not present in the bry
+        ! file, then varid may be 0, and nf_inq_varname may still return
+        ! nf_noerr. Therefore check for varid>0.
+        if (ierr == nf_noerr .and. varid>0) then
+          lstr=lenstr(vname)
+          write(*,'(1x,2A,I6,1x,3A,2x,A,2x,A,I4)')  '### ERROR: ',
+     &            'read_bry_EW :: Cannot read rec =',   record,
+     &            'of variable ''',  vname(1:lstr),  '''.',
+     &             nf_strerror(ierr) MYID
+        else if (varid>0) then
+          write(*,'(1x,2A,I6,1x,A,I4,2x,A,2x,A,I4)') '### ERROR: ',
+     &            'read_bry_EW :: Cannot read rec =',   record,
+     &            'of variable with netCDF ID =',  varid,
+     &             nf_strerror(ierr) MYID
+        endif
       endif
+
 #ifdef VERBOSE
-      write(*,*) 'leaving nf_read_bry_EW'  MYID
+      write(*,*) 'leaving read_bry_EW'  MYID
 #endif
-      nf_read_bry_EW=ierr
+      read_bry_EW=ierr
       end
 
 
-      function nf_read_bry_NS (A, ncid, varid, record, type)
+      function read_bry_NS(ncid, varid, record, horiz_type, A, nmax)
       implicit none
-      integer nf_read_bry_NS, ncid, varid, record, type
+      integer read_bry_NS, ncid, varid, record, horiz_type, nmax
 #include "param.h"
-      real A(0:Lm+1,N)
-      integer  i, k, kmax, shft, ierr, lstr, lenstr
+      real A(0:Lm+1,nmax)
+      integer  i, k, shft, ierr, lstr, lenstr
       character(len=16) vname
 #include "buffer.h"
 #include "netcdf.inc"
@@ -89,55 +88,53 @@
 #include "compute_starts_counts.h"
 
 #ifdef VERBOSE
-      write(*,*) 'entered nf_read_bry_NS...'   MYID
+      write(*,*) 'enter read_bry_NS...'   MYID
 #endif
-      if (ierr==0) then        ! Suppress netCDF dimension ETA. After
-        start(2)=start(3)      ! this  start/count(1) corresponds
-        count(2)=count(3)      ! to XI-dimensions (as before); index
-        start(3)=start(4)      ! (2) to vertical dimension (if any) or
-        count(3)=count(4)      ! time record; (3) (if any) to time
-                               ! record.
+      start(2)=start(3)      ! Suppress netCDF dimension ETA. After
+      count(2)=count(3)      ! this step start,count(1) correspond to
+      start(3)=start(4)      ! XI-dimensions (as before); index (2) to
+      count(3)=count(4)      ! vertical dimension (if present) or to
+      count(3)=count(4)      ! time record; (3) (if any) to time
+                             ! record.
 ! Read array from the disk.
 !===== ===== ==== === =====
 
-        ierr=nf_get_vara_FTYPE (ncid, varid, start, count, buff)
-        if (ierr == nf_noerr) then
-          kmax=count(2)
-          do k=1,kmax
-            shft=1-imin + (k-1)*count(1)
-            do i=imin,imax
-              A(i,k)=buff(i+shft)
-            enddo
+      ierr=nf_get_vara_FTYPE(ncid, varid, start, count, buff)
+      if (ierr == nf_noerr) then
+        do k=1,nmax
+          shft=1-imin + (k-1)*count(1)
+          do i=imin,imax
+            A(i,k)=buff(i+shft)
           enddo
+        enddo
 #ifdef MPI
-          call exch_bry_NS_tile (iwest,ieast, A, kmax)
+        call exch_bry_NS_tile(iwest,ieast, A, nmax)
 #elif defined EW_PERIODIC
-          call exch_bry_NS_tile (    1,   Lm, A, kmax)
+        call exch_bry_NS_tile(    1,   Lm, A, nmax)
 #endif
-        else
-          ierr=nf_inq_varname (ncid, varid, vname)
-          if (ierr == nf_noerr) then
-            lstr=lenstr(vname)
-            write(*,'(1x,2A,I6,1x,3A,2x,A,2x,A,I4)')  '--- WARNING:: ',
-     &              'nf_read_bry_NS ::Cannot read rec =',   record,
-     &              'of variable ''',  vname(1:lstr),  '''.',
-     &               nf_strerror(ierr) MYID
-          else
-            write(*,'(1x,2A,I6,1x,A,I4,2x,A,2x,A,I4)') '--- WARNING: ',
-     &              'nf_read_bry_NS ::Cannot read rec =',   record,
-     &              'of variable with netCDF ID =',  varid,
-     &               nf_strerror(ierr) MYID
-          endif
-        endif
-
       else
-        write(*,'(/1x,2A,I4/)') '--- WARNING: nf_read_bry_NS :: ',
-     &                          'illegal grid type', type
+        ierr=nf_inq_varname (ncid, varid, vname)
+        ! Note that if some boundary data is not present in the bry
+        ! file, then varid may be 0, and nf_inq_varname may still return
+        ! nf_noerr. Therefore check for varid>0.
+        if (ierr == nf_noerr .and. varid>0) then
+          lstr=lenstr(vname)
+          write(*,'(1x,2A,I6,1x,3A,2x,A,2x,A,I4)')  '### ERROR: ',
+     &            'read_bry_NS :: Cannot read rec =',   record,
+     &            'of variable ''',  vname(1:lstr),  '''.',
+     &             nf_strerror(ierr) MYID
+        else  if (varid>0) then
+          write(*,'(1x,2A,I6,1x,A,I4,2x,A,2x,A,I4)') '### ERROR: ',
+     &            'read_bry_NS :: Cannot read rec =',   record,
+     &            'of variable with netCDF ID =',  varid,
+     &             nf_strerror(ierr) MYID
+        endif
       endif
+
 #ifdef VERBOSE
-      write(*,*) 'leaving nf_read_bry_NS' MYID
+      write(*,*) 'leaving read_bry_NS' MYID
 #endif
-      nf_read_bry_NS=ierr
+      read_bry_NS=ierr
       end
 
 
@@ -152,11 +149,11 @@
 
 #if defined NS_PERIODIC || defined MPI
 
-      subroutine exch_bry_EW_tile (jstr,jend, A, kmax)
+      subroutine exch_bry_EW_tile (jstr,jend, A, nmax)
       implicit none
 # include "param.h"
-      integer jstr,jend, kmax, k
-      real A(0:Mm+1,kmax)
+      integer jstr,jend, nmax, k
+      real A(0:Mm+1,nmax)
 # include "buffer.h"
 # if defined MPI
 #  include "mpif.h"
@@ -169,15 +166,15 @@
 
 # ifdef NS_PERIODIC
 #  ifdef MPI
-      if (NP_ETA==1) then
+      if (NP_ETA == 1) then
 #  endif
-        if (jstr==1) then             ! Note that CPP-macros
-          do k=1,kmax                 ! SOUTHERN_EDGE and NOTHERN_EDGE
+        if (jstr == 1) then           ! Note that CPP-macros
+          do k=1,nmax                 ! SOUTHERN_EDGE and NOTHERN_EDGE
             A(Mm+1,k)=A(1,k)          ! are undefined in the case of
           enddo                       ! periodicity. Also because this
         endif                         ! part is only applicable when
-        if (jend==Mm) then            ! NP_ETA=1 there is no need to
-          do k=1,kmax                 ! express the indices in terms
+        if (jend == Mm) then          ! NP_ETA=1 there is no need to
+          do k=1,nmax                 ! express the indices in terms
             A(0,k)=A(Mm,k)            ! of jsouth,jnorth in MPI case.
           enddo
         endif
@@ -190,36 +187,36 @@
         write(*,*) 'starting exch_bry_EW mpi exchange' MYID
 #  endif
         if (SOUTH_MSG_EXCH) then
-          call MPI_Irecv (bffr_rsv_S, kmax, MPI_DOUBLE_PRECISION,
+          call MPI_Irecv (bffr_rsv_S, nmax, MPI_DOUBLE_PRECISION,
      &               p_S, ibss+1, ocean_grid_comm, req(1), ierr)
         endif
         if (NORTH_MSG_EXCH) then
-          call MPI_Irecv (bffr_rsv_N, kmax, MPI_DOUBLE_PRECISION,
+          call MPI_Irecv (bffr_rsv_N, nmax, MPI_DOUBLE_PRECISION,
      &               p_N, ibss+2, ocean_grid_comm, req(2), ierr)
         endif
         if (SOUTH_MSG_EXCH) then
-          do k=1,kmax
+          do k=1,nmax
             bffr_snd_S(k)=A(jstr,k)
           enddo
-          call MPI_Send  (bffr_snd_S, kmax, MPI_DOUBLE_PRECISION,
+          call MPI_Send  (bffr_snd_S, nmax, MPI_DOUBLE_PRECISION,
      &                    p_S, ibss+2, ocean_grid_comm,    ierr)
         endif
         if (NORTH_MSG_EXCH) then
-          do k=1,kmax
+          do k=1,nmax
             bffr_snd_N(k)=A(jend,k)
           enddo
-          call MPI_Send (bffr_snd_N, kmax, MPI_DOUBLE_PRECISION,
+          call MPI_Send (bffr_snd_N, nmax, MPI_DOUBLE_PRECISION,
      &                   p_N, ibss+1, ocean_grid_comm,    ierr)
         endif
         if (SOUTH_MSG_EXCH) then
           call MPI_Wait (req(1),status(1,1),ierr)
-          do k=1,kmax
+          do k=1,nmax
             A(jstr-1,k)=bffr_rsv_S(k)
           enddo
         endif
         if (NORTH_MSG_EXCH) then
           call MPI_Wait (req(2),status(1,2),ierr)
-          do k=1,kmax
+          do k=1,nmax
             A(jend+1,k)=bffr_rsv_N(k)
           enddo
         endif
@@ -232,11 +229,11 @@
 
 #if defined EW_PERIODIC || defined MPI
 
-      subroutine exch_bry_NS_tile (istr,iend, A, kmax)
+      subroutine exch_bry_NS_tile (istr,iend, A, nmax)
       implicit none
 # include "param.h"
-      integer istr,iend, kmax, k
-      real A(0:Lm+1,kmax)
+      integer istr,iend, nmax, k
+      real A(0:Lm+1,nmax)
 # if defined MPI
 #  include "mpif.h"
 #  include "hidden_mpi_vars.h"
@@ -248,16 +245,16 @@
 
 # ifdef EW_PERIODIC
 #  ifdef MPI
-      if (NP_XI==1) then
+      if (NP_XI == 1) then
 #  endif
-        if (istr==1) then             ! Note that CPP-macros
-          do k=1,kmax                 ! WESTERN_EDGE and EASTERN_EDGE
-            A(Lm+1,k)=A(1,k)          ! are undefined in the case of
-          enddo                       ! periodicity. Also because this
-        endif                         ! part is only applicable when
-        if (iend==Lm) then            ! NP_XI=1 there is no need to
-          do k=1,kmax                 ! express the indices in terms
-            A(0,k)=A(Lm,k)            ! of iwest,ieast in MPI case.
+        if (istr == 1) then           ! CPP-macros WESTERN_EDGE and
+          do k=1,nmax                 ! EASTERN_EDGE are undefined in
+            A(Lm+1,k)=A(1,k)          ! the case of periodicity.
+          enddo                       ! Because this part is only
+        endif                         ! applicable when NP_XI=1 there
+        if (iend == Lm) then          ! is no need to express the
+          do k=1,nmax                 ! indices in terms of iwest and
+            A(0,k)=A(Lm,k)            ! ieast in MPI case.
           enddo
         endif
 #  ifdef MPI
@@ -269,38 +266,38 @@
         write(*,*) 'starting exch_bry_NS mpi exchange' MYID
 #  endif
         if (WEST_MSG_EXCH) then
-          call MPI_Irecv (bffr_rsv_W, kmax, MPI_DOUBLE_PRECISION,
+          call MPI_Irecv (bffr_rsv_W, nmax, MPI_DOUBLE_PRECISION,
      &               p_W, ibss+3, ocean_grid_comm, req(1), ierr)
         endif
         if (EAST_MSG_EXCH) then
-          call MPI_Irecv (bffr_rsv_E, kmax, MPI_DOUBLE_PRECISION,
+          call MPI_Irecv (bffr_rsv_E, nmax, MPI_DOUBLE_PRECISION,
      &               p_E, ibss+4, ocean_grid_comm, req(2), ierr)
         endif
 
         if (WEST_MSG_EXCH) then
-          do k=1,kmax
+          do k=1,nmax
             bffr_snd_W(k)=A(istr,k)
           enddo
-          call MPI_Send (bffr_snd_W, kmax, MPI_DOUBLE_PRECISION,
+          call MPI_Send (bffr_snd_W, nmax, MPI_DOUBLE_PRECISION,
      &                   p_W, ibss+4, ocean_grid_comm,    ierr)
         endif
         if (EAST_MSG_EXCH) then
-          do k=1,kmax
+          do k=1,nmax
             bffr_snd_E(k)=A(iend,k)
           enddo
-          call MPI_Send (bffr_snd_E, kmax, MPI_DOUBLE_PRECISION,
+          call MPI_Send (bffr_snd_E, nmax, MPI_DOUBLE_PRECISION,
      &                   p_E, ibss+3, ocean_grid_comm,    ierr)
         endif
 
         if (WEST_MSG_EXCH) then
           call MPI_Wait (req(1),status(1,1),ierr)
-          do k=1,kmax
+          do k=1,nmax
             A(istr-1,k)=bffr_rsv_W(k)
           enddo
         endif
         if (EAST_MSG_EXCH) then
           call MPI_Wait (req(2),status(1,2),ierr)
-          do k=1,kmax
+          do k=1,nmax
             A(iend+1,k)=bffr_rsv_E(k)
           enddo
         endif

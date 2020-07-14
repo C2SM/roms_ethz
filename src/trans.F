@@ -1,8 +1,10 @@
       implicit none
       integer, parameter :: max_length=72, max_filename=32
       character file_in*(max_filename), file_out*(max_filename)
-      integer iin, iout, last_arg, iargc, itype
-
+      integer iin, iout, last_arg,itype
+#ifdef INT_IARGC
+      integer iargc
+#endif
       character(len=32) varname(1024), svarname(1024),  vardim(1024)
       integer ivar, nvars, namelen(1024), dimlen(1024), varstat(1024)
       data nvars/0/ namelen/1024*0/ dimlen/1024*0/ varstat/1024*0/

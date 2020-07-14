@@ -13,17 +13,7 @@
 # include "ncvars.h"
 # include "netcdf.inc"
       real cff
-      integer i,itrc, lstr,lvar,lenstr, ierr, nf_fread
-# ifdef MULT_CLIM_FILES
-      integer ncidclm_loc(4)
-# else
-      integer ncidclm_loc
-# endif
-      integer ii
-      logical var_found
-      ! Array giving file in which data for each tracer are:
-      character(len=80) clm_file_tr(NT)
-
+      integer ncid, i, iclm, itrc, lvar, lenstr, ierr, ncdf_read
 ! Initialization: Check, whether climatological data file is already
 !---------------- opened, and if not, open it.  Find and save netCDF
 ! IDs for relevant variables.  Determine whether there is cycling to
@@ -34,141 +24,253 @@
 ! part below.
 
       ierr=nf_noerr
-      lstr=lenstr(clm_file)
       if (iic==ntstart) then
-        if (ncidclm==-1) then
-          ierr=nf_open (clm_file(1:lstr), nf_nowrite, ncidclm)
-          if (ierr /= nf_noerr) write(*,'(/1x,4A/)') '### ERROR: ',
+
+        do itrc=1,mxnudg !NT  MF
+          ittclm(itrc)=1
+          tclm_time(1,itrc)=-1.E+20
+          tclm_time(2,itrc)=-1.E+20
+          tclm_rec(itrc) = -1
+          tclm_tid(itrc) = -1
+          tclm_clmidx(itrc) = -1
+        enddo ! MF
+
+        do iclm=1,max_clm
+          ncid=ncidclm(iclm)
+          if (ncid==-1) then
+            ierr=nf_open (trim(clm_file(iclm)), nf_nowrite, ncid)
+            if (ierr == nf_noerr) then
+              ncidclm(iclm)=ncid
+            else
+              write(*,'(/1x,4A/)') '### ERROR: ',
      &                          'get_tclima :: can not open file ''',
-     &                                     clm_file(1:lstr),   '''.'
-        endif
-        do itrc=1,NT
-          if (ierr==nf_noerr) then
-            if (itrc==itemp) then
-              ierr=nf_inq_varid (ncidclm,'tclm_time',tclm_tid(itrc))
-              if (ierr /= nf_noerr) write(*,1) 'tclm_time',
-     &                                         itrc, clm_file(1:lstr)
-# ifdef SALINITY
-            elseif (itrc==isalt) then
-              ierr=nf_inq_varid (ncidclm, 'sclm_time',tclm_tid(itrc))
-              if (ierr /= nf_noerr) write(*,1) 'sclm_time',
-     &                                         itrc, clm_file(1:lstr)
-# endif
-# ifdef BIOLOGY
-            elseif (itrc==iNO3_) then
-              ierr=nf_inq_varid (ncidclm, 'no3_time', tclm_tid(itrc))
-              if (ierr /= nf_noerr) write(*,2) 'no3_time',
-     &                                         itrc, clm_file(1:lstr)
-            elseif (itrc==iNH4_) then
-              ierr=nf_inq_varid (ncidclm, 'nh4_time', tclm_tid(itrc))
-              if (ierr /= nf_noerr) write(*,2) 'nh4_time',
-     &                                         itrc, clm_file(1:lstr)
-            elseif (itrc==iChla) then
-              ierr=nf_inq_varid (ncidclm, 'chla_time',tclm_tid(itrc))
-              if (ierr /= nf_noerr) write(*,2)  'chla_time',
-     &                                         itrc, clm_file(1:lstr)
-            elseif (itrc==iPhyt) then
-              ierr=nf_inq_varid (ncidclm,'phyto_time',tclm_tid(itrc))
-              if (ierr /= nf_noerr) write(*,2) 'phyto_time',
-     &                                         itrc, clm_file(1:lstr)
-            elseif (itrc==iZoo_) then
-              ierr=nf_inq_varid (ncidclm, 'zoo_time', tclm_tid(itrc))
-              if (ierr /= nf_noerr) write(*,2) 'zoo_time',
-     &                                         itrc, clm_file(1:lstr)
-            elseif (itrc==iSDet) then
-              ierr=nf_inq_varid (ncidclm, 'sdet_time',tclm_tid(itrc))
-              if (ierr /= nf_noerr) write(*,2) 'sdet_time',
-     &                                         itrc, clm_file(1:lstr)
-            elseif (itrc==iLDet) then
-              ierr=nf_inq_varid (ncidclm, 'ldet_time',tclm_tid(itrc))
-              if (ierr /= nf_noerr) write(*,2) 'ldet_time',
-     &                                         itrc, clm_file(1:lstr)
-            endif
-            if (ierr/=nf_noerr .and. itrc>=iNO3_) then
-              ierr=nf_noerr
-              tclm_tid(itrc)=-1
-# endif
-            endif
-            if (ierr==nf_noerr .and. tclm_tid(itrc)>0) then
-              lvar=lenstr(vname(1,indxT+itrc-1))
-              ierr=nf_inq_varid (ncidclm, vname(1,indxT+itrc-1)
-     &                                  (1:lvar), tclm_id(itrc))
-              if (ierr == nf_noerr) then
-                call set_cycle (ncidclm,tclm_tid(itrc), nttclm(itrc),
-     &                          tclm_cycle(itrc),  tclm_ncycle(itrc),
-     &                                         tclm_rec(itrc), ierr)
-                ittclm(itrc)=1
-                tclm_time(1,itrc)=-1.E+20
-                tclm_time(2,itrc)=-1.E+20
-              else
-                write(*,1) vname(1,indxT+itrc-1)(1:lvar),
-     &                                   itrc, clm_file(1:lstr)
-              endif
+     &                                     trim(clm_file(iclm)),   '''.'
             endif
           endif
+          do itrc=1,NT
+
+             ! Go to next variable if data has been found already:
+             if (tclm_rec(itrc) > 0) cycle
+
+!            ! MF
+!            MPI_master_only write(*,*) 'Start of 1,NT loop'
+!            MPI_master_only write(*,*) itrc, ittclm(itrc), tclm_time(ittclm(itrc),itrc)
+!            MPI_master_only write(*,*) '**** MF ****'
+
+            if (ierr==nf_noerr) then
+              if (itrc==itemp) then
+                ierr=nf_inq_varid (ncid,'tclm_time',tclm_tid(itrc))
+                if (ierr == nf_noerr) then
+                   tclm_clmidx(itrc) = iclm
+                elseif (iclm == max_clm) then
+                   MPI_master_only write(*,5) 'tclm_time',
+     &               itrc
+                endif
+# ifdef SALINITY
+              elseif (itrc==isalt) then
+                ierr=nf_inq_varid (ncid, 'sclm_time',tclm_tid(itrc))
+                if (ierr == nf_noerr) then
+                   tclm_clmidx(itrc) = iclm
+                elseif (iclm == max_clm) then
+                   MPI_master_only write(*,5) 'sclm_time',
+     &               itrc
+                endif
+# endif
+# ifdef BIOLOGY_SASHA
+              elseif (itrc==iNO3_) then
+                ierr=nf_inq_varid (ncid, 'no3_time', tclm_tid(itrc))
+                if (ierr == nf_noerr) then
+                   tclm_clmidx(itrc) = iclm
+                elseif (iclm == max_clm) then
+                   MPI_master_only write(*,5) 'no3_time',
+     &                itrc
+                endif
+              elseif (itrc==iNH4_) then
+                ierr=nf_inq_varid (ncid, 'nh4_time', tclm_tid(itrc))
+                if (ierr == nf_noerr) then
+                   tclm_clmidx(itrc) = iclm
+                elseif (iclm == max_clm) then
+                   MPI_master_only write(*,5) 'nh4_time',
+     &                itrc
+                endif
+              elseif (itrc==iChla) then
+                ierr=nf_inq_varid (ncid, 'chla_time',tclm_tid(itrc))
+                if (ierr == nf_noerr) then
+                   tclm_clmidx(itrc) = iclm
+                elseif (iclm == max_clm) then
+                   MPI_master_only write(*,5)  'chla_time',
+     &                itrc
+                endif
+              elseif (itrc==iPhyt) then
+                ierr=nf_inq_varid (ncid,'phyto_time',tclm_tid(itrc))
+                if (ierr == nf_noerr) then
+                   tclm_clmidx(itrc) = iclm
+                elseif (iclm == max_clm) then
+                   MPI_master_only write(*,5) 'phyto_time',
+     &                itrc
+                endif
+              elseif (itrc==iZoo_) then
+                ierr=nf_inq_varid (ncid, 'zoo_time', tclm_tid(itrc))
+                if (ierr == nf_noerr) then
+                   tclm_clmidx(itrc) = iclm
+                elseif (iclm == max_clm) then
+                   MPI_master_only write(*,5) 'zoo_time',
+     &                itrc
+                endif
+              elseif (itrc==iSDet) then
+                ierr=nf_inq_varid (ncid, 'sdet_time',tclm_tid(itrc))
+                if (ierr == nf_noerr) then
+                   tclm_clmidx(itrc) = iclm
+                elseif (iclm == max_clm) then
+                   MPI_master_only write(*,5) 'sdet_time',
+     &                itrc
+                endif
+              elseif (itrc==iLDet) then
+                ierr=nf_inq_varid (ncid, 'ldet_time',tclm_tid(itrc))
+                if (ierr == nf_noerr) then
+                   tclm_clmidx(itrc) = iclm
+                elseif (iclm == max_clm) then
+                   MPI_master_only write(*,5) 'ldet_time',
+     &                itrc
+                endif
+              endif
+              if (ierr/=nf_noerr .and. itrc>=iNO3_) then
+                ierr=nf_noerr
+                tclm_tid(itrc)=-1
+# endif
+              endif
+              if (ierr==nf_noerr .and. tclm_tid(itrc)>0) then
+                lvar=lenstr(vname(1,indxT+itrc-1))
+                ierr=nf_inq_varid (ncid, vname(1,indxT+itrc-1)
+     &                                  (1:lvar), tclm_id(itrc))
+                if (ierr == nf_noerr) then
+
+!                  ! MF
+!                  MPI_master_only write(*,*) 'Before find_record()'
+!                  MPI_master_only write(*,*) itrc, tclm_rec(itrc), time, tclm_ncycle(itrc)
+!                  MPI_master_only write(*,*) '**** MF ****'
+                        
+                  call find_record(      ncid, tclm_tid(itrc),
+     &                          tclm_rec(itrc), nttclm(itrc),
+     &                       tclm_ncycle(itrc), tclm_cycle(itrc),
+     &                                       1, 1,         ierr)
+
+!                  ! MF
+!                  MPI_master_only write(*,*) 'After find_record()'
+!                  MPI_master_only write(*,*) itrc, tclm_rec(itrc), time, tclm_ncycle(itrc)
+!                  MPI_master_only write(*,*) '**** MF ****'
+
+                elseif (iclm==max_clm) then
+                  write(*,1) vname(1,indxT+itrc-1)(1:lvar),
+     &                                   itrc, trim(clm_file(iclm))
+                endif
+              endif
+            endif
+          enddo
         enddo
       endif
   1   format(1x,'### ERROR: get_tclima :: Cannot find variable ''',
      &             A, ''', itrc =', I3,1x, 'in file ''', A, '''.')
-# ifdef BIOLOGY
+# ifdef BIOLOGY_SASHA
   2   format(1x,  'WARNING: get_tclima :: Cannot find variable ''',
      &          A, ''', itrc =', I3, 1x, 'in file ''', A,'''.'/12x,
      &        'Setting analytical climatology for this variable.')
 # endif
+ 5    format(1x,  'WARNING: get_tclima :: Cannot find variable ''',
+     &          A, ''', itrc =', I3, 1x, 'in any clm file.'/12x,
+     &        'Setting analytical climatology for this variable.') 
 
 ! Read data from the file:   Check if model time is bounded by past
 !----- ---- ---- --- -----   and future data times: if not, increment
 ! record and cycling indices, flip time index and read a new portion
 ! of data. Repeat until model time falls between the two data times.
 
-      do itrc=1,NT
-        if (tclm_tid(itrc)>0) then
-          do while (tclm_time(ittclm(itrc),itrc)<time+0.5*dt
+!      do iclm=1,max_clm
+!        ncid=ncidclm(iclm)
+
+        do itrc=1,mxnudg !NT
+
+!          ! MF
+!          MPI_master_only write(*,*) 'Start of 1,NT loop 2'
+!          MPI_master_only write(*,*) itrc, tclm_time(ittclm(itrc),itrc)
+!          MPI_master_only write(*,*) '**** MF ****'
+
+          if (tclm_tid(itrc) > 0) then
+            iclm = tclm_clmidx(itrc)
+            ncid = ncidclm(iclm)
+            do while (tclm_time(ittclm(itrc),itrc)<time+0.5*dt
      &                                   .and. ierr==nf_noerr)
-            call advance_cycle (tclm_cycle(itrc),  nttclm(itrc),
-     &                 tclm_ncycle(itrc), tclm_rec(itrc), ierr)
-            if (ierr==nf_noerr) then
-              ierr=nf_get_var1_FTYPE(ncidclm, tclm_tid(itrc),
+
+!              ! MF
+!              MPI_master_only write(*,*) 'Before advance_record()'
+!              MPI_master_only write(*,*) itrc, tclm_time(ittclm(itrc),itrc), time, tclm_ncycle(itrc)
+!              MPI_master_only write(*,*) '**** MF ****'
+
+              call advance_record( tclm_rec(itrc), nttclm(itrc),
+     &                        tclm_ncycle(itrc), tclm_cycle(itrc),
+     &                                        1, 1,  ierr )
+
+!              ! MF
+!              MPI_master_only write(*,*) 'After advance_record()'
+!              MPI_master_only write(*,*) itrc, tclm_time(ittclm(itrc),itrc), time, tclm_ncycle(itrc)
+!              MPI_master_only write(*,*) '**** MF ****'
+
+              if (ierr == nf_noerr) then
+                ierr=nf_get_var1_FTYPE(ncid, tclm_tid(itrc),
      &                                  tclm_rec(itrc), cff)
-              if (ierr==nf_noerr) then
-                ittclm(itrc)=min(3-ittclm(itrc),nttclm(itrc))
-                tclm_time(ittclm(itrc),itrc)=cff*day2sec
+                if (ierr==nf_noerr) then
+                  ittclm(itrc)=min(3-ittclm(itrc),nttclm(itrc))
+                  tclm_time(ittclm(itrc),itrc)=cff*day2sec
      &               + tclm_cycle(itrc)*tclm_ncycle(itrc)
 
-                ierr=nf_fread (tclima(START_2D_ARRAY,1,ittclm(itrc),
-     &                                itrc), ncidclm, tclm_id(itrc),
-     &                                      tclm_rec(itrc), r3dvar)
-                if (ierr==nf_noerr) then
+!                  ! MF
+!                  MPI_master_only write(*,*) 'After re-calc'
+!                  MPI_master_only write(*,*) 
+!     &            'ittclm(itrc), nttclm(itrc): ' , ittclm(itrc), nttclm(itrc)
+!                  MPI_master_only write(*,*) 
+!     &            'cff, day2sec: ' , cff, day2sec
+!                  MPI_master_only write(*,*) 
+!     &            'tclm_cycle(itrc), tclm_ncycle(itrc): ' , tclm_cycle(itrc), tclm_ncycle(itrc)
+!                  MPI_master_only write(*,*) 
+!     &            'itrc,tclm_time(ittclm(itrc),itrc)='
+!     &            , itrc, tclm_time(ittclm(itrc),itrc)
+!                  MPI_master_only write(*,*) '**** MF ****'
+
+                  ierr=ncdf_read(ncid, tclm_id(itrc), tclm_rec(itrc),
+     &              r_var, tclima(START_2D_ARRAY,1,ittclm(itrc),itrc), N)
+                  if (ierr == nf_noerr) then
 #ifdef MPI_SILENT_MODE
-                  if (mynode==0) then
+                    if (mynode == 0) then
 #endif
-                    write(*,'(3x,A,I2,1x,A,F12.4,2(1x,A,I4))')
-     &             'get_tclima :: read climatology for tracer', itrc,
-     &             'tclm_time =', cff,  'rec =', tclm_rec(itrc) MYID
+                      write(*,'(3x,A,I2,1x,A,F12.4,2(1x,A,I4))')
+     &               'get_tclima :: read climatology for tracer', itrc,
+     &               'tclm_time =', cff,  'rec =', tclm_rec(itrc) MYID
 # ifdef MPI_SILENT_MODE
-                  endif
+                    endif
 # endif
-                  IF (nttclm(itrc)==1) goto 3
-                else
-                  lvar=lenstr(vname(1,indxT+itrc-1))
-                  write(*,4) vname(1,indxT+itrc-1)(1:lvar),
+                    if (nttclm(itrc)==1) goto 3
+                  else
+                    lvar=lenstr(vname(1,indxT+itrc-1))
+                    write(*,4) vname(1,indxT+itrc-1)(1:lvar),
      &                                     itrc, tclm_rec(itrc)
+                  endif
+                else
+                  write(*,4) 'Xclm_time', itrc, tclm_rec(itrc)
                 endif
               else
-                write(*,4) 'Xclm_time', itrc, tclm_rec(itrc)
-              endif
-            else
-              write(*,'(/1x,A,I3,1x,A,I3/7x,3A/7x,2(A,G12.4)/)')
-     &       '### ERROR: get_tclima :: requested time record ',
-     &        tclm_rec(itrc), 'exeeds the last record', nttclm(itrc),
-     &       'available in netCDF file ''',  clm_file(1:lstr),  '''',
-     &       'tdays = ', tdays,' but the last available tclm_time =',
+                write(*,'(/1x,A,I3,1x,A,I3/7x,3A/7x,2(A,G12.4)/)')
+     &         '### ERROR: get_tclima :: requested time record ',
+     &          tclm_rec(itrc), 'exeeds the last record', nttclm(itrc),
+     &         'available in netCDF file ''',  trim(clm_file(iclm)),  '''',
+     &         'tdays = ', tdays,' but the last available tclm_time =',
      &                          tclm_time(ittclm(itrc),itrc)*sec2day
-            endif
-          enddo  !<-- while()
-        endif
-  3    continue
-      enddo  !<-- itrc
+              endif
+            enddo  !<-- while()
+          endif
+  3      continue
+        enddo  !<-- itrc
+
+!      enddo
   4   format(1x,'### ERROR: get_tclima :: Cannot read variable ''',
      &                     A, ''', itrc =', I3, ' for record', I3)
       return
@@ -209,7 +311,7 @@
 ! or complain about error and signal to quit, if interpolation is
 ! needed, but not possible.
 
-      do itrc=1,NT
+      do itrc=1,mxnudg !NT
         if (tclm_tid(itrc)>0) then
           it1=3-ittclm(itrc)
           it2=ittclm(itrc)
@@ -252,7 +354,7 @@
               ierr=ierr+1
             endif
           endif
-# if defined BIOLOGY || defined BIOLOGY_NPZDOC
+# if defined BIOLOGY_SASHA || defined BIOLOGY_NPZDOC
 #  define temp cff
 #  define SiO4 cff1
         elseif (itrc==iNO3_) then     ! <-- analytical setup for
@@ -319,7 +421,7 @@
 #  endif /* OXYGEN */
 #  undef SiO4
 #  undef temp
-# endif /* BIOLOGY_NPZDOC */
+# endif /* BIOLOGY_SASHA or BIOLOGY_NPZDOC */
 
 # if defined BIOLOGY_BEC || defined BIOLOGY_BEC2
           else if (itrc == iNO3) then
@@ -432,6 +534,10 @@
               tclm(:,:,:,iDOFE)=0.0 ! 5.47e-9
            else if (itrc == iDOP) then
               tclm(:,:,:,iDOP)=0.0 ! 8.55e-4
+#  ifdef USE_EXPLICIT_VSINK
+           else if (itrc .ge. iDUSTHARD .and. itrc .le. iPIRONSOFT) then
+              tclm(:,:,:,itrc)=0.0
+#  endif
 # endif /* BIOLOGY_BEC || BIOLOGY_BEC2 */
 ! Provide default values for additional tracers in the later version of BEC:
 # ifdef BIOLOGY_BEC2

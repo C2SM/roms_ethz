@@ -34,8 +34,10 @@
       integer, parameter :: max_str=80
       character(len=max_str) str
       character(len=4) nsub_x,nsub_e
-      integer ierr, i,j,ixe, is,ie, ipass, lstr, iargc,lenstr
-
+      integer ierr, i,j,ixe, is,ie, ipass, lstr,lenstr
+#ifdef INT_IARGC
+      integer iargc
+#endif
       lstr=iargc()
       if (lstr>0) then
         do i=1,max_str

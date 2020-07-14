@@ -22,13 +22,13 @@
 #define SUM_BY_PAIRS
 !--> #define ETALON_CHECK
 #define MAX_ADV_CFL
-#define MAX_BY_VERT_CFL_ONLY
+c--#define MAX_BY_VERT_CFL_ONLY
 
 #define REPORT_MAX_UV
 #define REPORT_POTEN_ENRG
 
 
-      subroutine diag (tile)
+      subroutine diag(tile)
       implicit none
       integer tile,   i,j
 #include "param.h"
@@ -124,28 +124,6 @@ C$    real*8 omp_get_wtime
       enddo                            ! may be left uninitialized.
 
 # include "Etalon_data/etalon_data.REF"
-!-- # if defined SOLITON
-!-- #  include "etalon_data.SOLITON"
-!-- # elif defined WAVE_RAD
-!-- #  include "etalon_data.WAVE_RAD"
-!-- 
-!-- # elif defined SEAMOUNT
-!-- #  include "etalon_data.SEAMOUNT"
-!-- # elif defined GRAV_ADJ
-!-- #  include "etalon_data.GRAV_ADJ"
-!-- # elif defined ISWAKE
-!-- #  include "etalon_data.ISWAKE"
-!-- # elif defined UPWELLING
-!-- #  include "etalon_data.UPWELLING"
-!-- # elif defined DAMEE_B
-!-- #  include "etalon_data.DAMEE_B"
-!-- # elif defined USWEST
-!-- #  include "etalon_data.USWEST"
-!-- # elif defined PACIFIC
-!-- #  include "etalon_data.PACIFIC"
-!-- # elif defined BRAZIL
-!-- #  include "etalon_data.BRAZIL"
-!-- # endif
 #endif
 
       ierr=0
@@ -232,17 +210,13 @@ C$    real*8 omp_get_wtime
 #  else
             if (cx > my_Cu_Adv) then
 #  endif
-              my_Cu_Adv=cx
-              my_Cu_W=cw
-              my_i_cmax=i
-              my_j_cmax=j
-              my_k_cmax=k
+              my_Cu_Adv=cx ; my_Cu_W=cw
+              my_i_cmax=i  ; my_j_cmax=j ; my_k_cmax=k
             endif
 # else
-            my_v3d_max =max(my_v3d_max,  v2)
-            my_v3bc_max=max(my_v3bc_max, v2bc)
+            my_v3d_max  = max(my_v3d_max,  v2  )
+            my_v3bc_max = max(my_v3bc_max, v2bc)
 # endif
-
             ke(i,j)=ke(i,j) + 0.5*v2*Hz(i,j,k)
 
             pe(i,j)=pe(i,j) + cff*Hz(i,j,k)
@@ -664,10 +638,17 @@ C$   &                                                 , proc(2)
      &             check_line(i:i) /= '-'  .and.
      &             check_line(i:i) /= '.') then
                 nwrt=1
-                if (may_day_flag==0) then
+                if (may_day_flag == 0) then
                   write(*,*) '---> setting may day flag'
                   may_day_flag=1    !--> BLOW UP
                 endif
+#ifdef DOUBLE_GYRE
+              elseif (avke2b > 0.01) then
+                if (may_day_flag == 0) then
+                  write(*,*) '---> exceeding barotropic KE'
+                  may_day_flag=10
+                endif
+#endif
               endif
             endif
           enddo  ! <-- while(..)

@@ -1,45 +1,45 @@
 #include "cppdefs.h"
 #ifdef ANA_GRID
-                                  ! Sometimes it is necessary for post
+                                  ! Sometimes it is convenient for post
       subroutine wrt_ana_grid     ! processing to save analytical grid
-      implicit none               ! into a special netCDF file.
+      implicit none               ! into a separate netCDF file.
 # include "param.h"
 # include "ncvars.h"
 # include "netcdf.inc"
       character(len=32) fname
       integer ncid,ierr, r2dgrd(2), lncn, lenstr, my_nf_def_dim
 
-# if defined MPI & !defined PARALLEL_FILES
+# if defined MPI && !defined PARALLEL_FILES
 #  include "mpif.h"
       integer status(MPI_STATUS_SIZE), blank
-      if (mynode>0) call MPI_Recv (blank, 1, MPI_INTEGER,
-     &            mynode-1, 1, ocean_grid_comm, status, ierr)
+      if (mynode > 0) call MPI_Recv(blank, 1, MPI_INTEGER,
+     &        mynode-1, 1, ocean_grid_comm, status, ierr)
 # endif
 
-      fname='grid.nc'
-      lncn=lenstr(fname)
+      fname='grid.nc' ; lncn=lenstr(fname)
 # ifdef MPI
 #  ifdef PARALLEL_FILES
-      call insert_node (fname, lncn, mynode, NNODES, ierr)
+      ierr=0
+      call insert_node(fname, lncn, mynode, NNODES, ierr)
 #  else
       if (mynode == 0) then
 #  endif
 # endif
-        ierr=nf_create(fname, nf_clobber+nf_64bit_offset, ncid)
-        if (ierr==nf_noerr) then
+        ierr=nf_create(fname, nf_clobber+NCFILEFORMAT, ncid)
+        if (ierr == nf_noerr) then
           call put_global_atts (ncid, ierr)
 
           ierr=my_nf_def_dim(ncid, 'xi_rho',  xi_rho,  r2dgrd(1))
           ierr=my_nf_def_dim(ncid, 'eta_rho', eta_rho, r2dgrd(2))
 
-          call def_grid (ncid, r2dgrd)
+          call def_grid(ncid, r2dgrd)
           ierr=nf_enddef(ncid)
         else
-          write(*,'(/1x,4A/12x,A/)')    '### ERROR: wrt_ana_grid :: ',
+          write(*,'(/1x,4A/12x,A/)')     '### ERROR: wrt_ana_grid :: ',
      &            'Cannot create netCDF file ''', fname(1:lncn), ''',',
      &                                              nf_strerror(ierr)
         endif
-# if defined MPI & !defined PARALLEL_FILES
+# if defined MPI && !defined PARALLEL_FILES
       else
         ierr=nf_open(fname, nf_write, ncid)
         if (ierr/=nf_noerr) then
@@ -50,17 +50,17 @@
       endif
 # endif
 
-      if (ierr==nf_noerr) then
-        call wrt_grid (ncid, fname, lncn)
+      if (ierr == nf_noerr) then
+        call wrt_grid(ncid, fname, lncn)
         ierr=nf_close(ncid)
-        if (ierr/=nf_noerr) then
+        if (ierr /= nf_noerr) then
            write(*,'(/1x,4A/12x,A/)')   '### ERROR: wrt_ana_grid :: ',
      &            'Cannot close netCDF file ''', fname(1:lncn), ''',',
      &                                             nf_strerror(ierr)
         endif
       endif
 
-# if defined MPI & !defined PARALLEL_FILES
+# if defined MPI && !defined PARALLEL_FILES
       if (mynode < NNODES-1) then
         call MPI_Send (blank, 1, MPI_INTEGER, mynode+1,
      &                        1, ocean_grid_comm, ierr)
@@ -89,7 +89,7 @@
 
 ! Decide about precision:
 
-      if (ncid==ncrst) then
+      if (ncid == ncrst) then
         nf_ftype=NF_FTYPE
       else
         nf_ftype=NF_FOUT
@@ -216,15 +216,15 @@
 
       implicit none
       character(len=*) ncname
-      integer ncid, lncn, varid, ierr, nf_fwrite
+      integer ncid, lncn, varid, ierr, ncdf_write
 #include "param.h"
 #include "scalars.h"
 #include "ncvars.h"
 #include "netcdf.inc"
 #include "grid.h"
 
-#if defined MPI & !defined PARALLEL_FILES
-      if (mynode==0) then
+#if defined MPI && !defined PARALLEL_FILES
+      if (mynode == 0) then
 #endif
 
 ! Grid type switch: Spherical or Cartesian.
@@ -251,7 +251,7 @@
         ierr=nf_inq_varid(ncid, 'xl', varid)
         if (ierr == nf_noerr) then
           ierr=nf_put_var1_FTYPE(ncid, varid, 1, xl)
-          if (ierr/=nf_noerr) then
+          if (ierr /= nf_noerr) then
             write(*,2) 'xl', ncname(1:lncn)
           endif
         else
@@ -262,7 +262,7 @@
         ierr=nf_inq_varid(ncid, 'el', varid)
         if (ierr == nf_noerr) then
           ierr=nf_put_var1_FTYPE(ncid, varid, 1, el)
-          if (ierr/=nf_noerr) then
+          if (ierr /= nf_noerr) then
             write(*,2) 'el', ncname(1:lncn)
           endif
         else
@@ -272,21 +272,21 @@
 #endif
 
 
-#if defined MPI & !defined PARALLEL_FILES
+#if defined MPI && !defined PARALLEL_FILES
       endif
 #endif
 
 ! NOTE: In the case when masking of output data is activated by
-! CPP-switch MASK_LAND_DATA, nf_fwrite uses sign of its argument
+! CPP-switch MASK_LAND_DATA, ncdf_write uses sign of its argument
 ! "varid" as switch to perform on not perform masking.  Because
 ! none of the grid variables should actually be masked, in the
-! code below varid is passed into nf_fwrite with negative sign.
+! code below varid is passed into ncdf_write with negative sign.
 
 ! Bathymetry.
 
       ierr=nf_inq_varid(ncid, 'h', varid)
       if (ierr == nf_noerr) then
-        ierr=nf_fwrite(h(START_2D_ARRAY), ncid, -varid, 0, r2dvar)
+        ierr=ncdf_write(ncid, -varid, 0, r_var, h(START_2D_ARRAY), 1)
         if (ierr /= nf_noerr) then
           write(*,2) 'h', ncname(1:lncn)
         endif
@@ -299,7 +299,7 @@
 
       ierr=nf_inq_varid(ncid, 'f', varid)
       if (ierr == nf_noerr) then
-        ierr=nf_fwrite(f(START_2D_ARRAY), ncid, -varid, 0, r2dvar)
+        ierr=ncdf_write(ncid, -varid, 0,r_var, f(START_2D_ARRAY), 1)
         if (ierr /= nf_noerr) then
           write(*,2) 'f', ncname(1:lncn)
         endif
@@ -312,7 +312,7 @@
 
       ierr=nf_inq_varid(ncid, 'pm', varid)
       if (ierr == nf_noerr) then
-        ierr=nf_fwrite(pm(START_2D_ARRAY), ncid, -varid, 0, r2dvar)
+        ierr=ncdf_write(ncid, -varid, 0,r_var, pm(START_2D_ARRAY), 1)
         if (ierr /= nf_noerr) then
           write(*,2) 'pm', ncname(1:lncn)
         endif
@@ -323,7 +323,7 @@
 
       ierr=nf_inq_varid(ncid, 'pn', varid)
       if (ierr == nf_noerr) then
-        ierr=nf_fwrite(pn(START_2D_ARRAY), ncid, -varid, 0, r2dvar)
+        ierr=ncdf_write(ncid, -varid, 0, r_var, pn(START_2D_ARRAY), 1)
         if (ierr /= nf_noerr) then
           write(*,2) 'pn', ncname(1:lncn)
         endif
@@ -337,7 +337,7 @@
 #ifdef SPHERICAL
       ierr=nf_inq_varid(ncid, 'lon_rho', varid)
       if (ierr == nf_noerr) then
-        ierr=nf_fwrite(lonr(START_2D_ARRAY), ncid, -varid, 0,r2dvar)
+        ierr=ncdf_write( ncid, -varid, 0,r_var, lonr(START_2D_ARRAY), 1)
         if (ierr /= nf_noerr) then
           write(*,2) 'lon_rho', ncname(1:lncn)
         endif
@@ -348,7 +348,7 @@
 
       ierr=nf_inq_varid(ncid, 'lat_rho', varid)
       if (ierr == nf_noerr) then
-        ierr=nf_fwrite(latr(START_2D_ARRAY), ncid, -varid, 0,r2dvar)
+        ierr=ncdf_write(ncid, -varid, 0,r_var, latr(START_2D_ARRAY), 1)
         if (ierr /= nf_noerr) then
           write(*,2) 'lat_rho', ncname(1:lncn)
         endif
@@ -359,7 +359,7 @@
 #else
       ierr=nf_inq_varid(ncid, 'x_rho', varid)
       if (ierr == nf_noerr) then
-        ierr=nf_fwrite(xr(START_2D_ARRAY), ncid, -varid, 0, r2dvar)
+        ierr=ncdf_write(ncid, -varid, 0,r_var, xr(START_2D_ARRAY), 1)
         if (ierr /= nf_noerr) then
           write(*,2) 'x_rho', ncname(1:lncn)
         endif
@@ -370,7 +370,7 @@
 
       ierr=nf_inq_varid(ncid, 'y_rho', varid)
       if (ierr == nf_noerr) then
-        ierr=nf_fwrite(yr(START_2D_ARRAY), ncid, -varid, 0, r2dvar)
+        ierr=ncdf_write(ncid, -varid, 0,r_var, yr(START_2D_ARRAY), 1)
         if (ierr /= nf_noerr) then
           write(*,2) 'y_rho', ncname(1:lncn)
         endif
@@ -384,7 +384,7 @@
 
       ierr=nf_inq_varid(ncid, 'angle', varid)
       if (ierr == nf_noerr) then
-        ierr=nf_fwrite(angler(START_2D_ARRAY),ncid, -varid, 0,r2dvar)
+        ierr=ncdf_write(ncid, -varid, 0,r_var, angler(START_2D_ARRAY),1)
         if (ierr /= nf_noerr) then
           write(*,2) 'angle', ncname(1:lncn)
         endif
@@ -399,7 +399,7 @@
 
       ierr=nf_inq_varid(ncid, 'mask_rho', varid)
       if (ierr == nf_noerr) then
-        ierr=nf_fwrite(rmask(START_2D_ARRAY),ncid, -varid, 0,r2dvar)
+        ierr=ncdf_write(ncid, -varid, 0,r_var, rmask(START_2D_ARRAY), 1)
         if (ierr /= nf_noerr) then
           write(*,2) 'mask_rho', ncname(1:lncn)
         endif

@@ -1,0 +1,306 @@
+#include "cppdefs.h"
+      MODULE oas_roms_send_receive
+         ! Description
+         ! -----------
+         ! Module holding sending and receiving routines called by the original ROMS source
+
+         ! Notes
+         ! -----
+         ! This is written in an .FF90 file and FIXED FORMAT in order to be able to INCLUDE
+         ! ROMS .h files and run mpc on them.
+
+         ! Authors
+         ! -------
+         ! Matthieu Leclair- ETHZ
+
+         USE oas_roms_exchange, ONLY: oas_roms_snd, oas_roms_dbg_snd,
+     &                                oas_roms_rcv, oas_roms_dbg_rcv
+
+         USE oas_roms_data, ONLY: IOASISDEBUGLVL, l_oas_seq,
+     &                            ssnd, srcv, cpl_grd,
+     &                            k_rho, k_u, k_v,
+     &                            oas_itemp, oas_UST_U, oas_VST_U,
+     &                            oas_UST_V, oas_VST_V, oas_NHF,
+     &                            oas_SWR, oas_TEP,
+     &                            alpha_rho, alpha_u, alpha_v,
+     &                            u_cos_proj_u, v_cos_proj_u,
+     &                            u_cos_proj_v, v_cos_proj_v
+
+         IMPLICIT NONE
+
+         PRIVATE
+
+         PUBLIC :: oas_roms_send, oas_roms_receive
+
+      CONTAINS
+
+
+         SUBROUTINE oas_roms_send(oas_step)
+            !**** *oas_roms_prepsnd*  - 
+            !
+            !     Purpose.
+            !     --------
+            !     Send coupling fields to Atmospheric model
+            !
+            !**   Interface.
+            !     ----------
+            !       *CALL*  *oas_roms_send*
+            !
+            !     Input:
+            !     -----
+            !
+            !     Output:
+            !     ------
+            !      
+            !
+            !     Method:
+            !     ------
+            !       
+            !
+            !     Externals:
+            !     ---------
+            !      oas_roms_vardef
+            !
+            !
+            !     Author:
+            !     -------
+            !       D. Byrne ; ETHZ
+            !
+            !     Modifications:
+            !     --------------
+            !       Matthieu Leclair - ETHZ
+            !
+
+            INTEGER :: oas_step, oas_dt
+            ! => itemp, N, mynode:
+#include "param.h"
+            ! => nstp, dt, ntimes:
+#include "scalars.h"
+            ! => t:
+#include "ocean3d.h"
+
+            
+            ! Skip if sequential coupling mode and last time step
+            ! ---------------------------------------------------
+            IF (l_oas_seq .AND. oas_step == ntimes) RETURN
+
+            oas_dt = oas_step * INT(dt)
+
+            ! Update fields for sending
+            ! -------------------------
+            ssnd(oas_itemp)%pdata =
+     &           t(cpl_grd(k_rho)%imin:cpl_grd(k_rho)%imax,
+     &             cpl_grd(k_rho)%jmin:cpl_grd(k_rho)%jmax,N,nstp,itemp)
+
+            ! Write Debug File
+            ! ----------------
+            ! IF ((IOASISDEBUGLVL == 1) .OR. (IOASISDEBUGLVL == 3)) THEN
+            !    IF (mynode==0) WRITE(6,*) 'ROMS:OASSND_DT', oas_dt
+            !    CALL oas_roms_dbg_snd(oas_step)
+            ! ENDIF
+
+            ! Send the Coupling Fields
+            ! ------------------------
+            CALL oas_roms_snd(oas_dt)
+
+            ! - ML - Figure out which method is better, through oasis_put directly
+            !        with write_restart=.TURE. or with the custom oas_roms_dbg_snd
+            !        routine. If we stick to oasis_put we can remove oas_roms_dbg_snd
+            !        in the long run.
+            ! IF ( IOASISDEBUGLVL == 3 ) THEN
+            !    WRITE(6,*) ' RST_roms.nc restart file written'
+            !    WRITE(6,*) ' we stop simulation'
+            !    STOP
+            ! ENDIF
+
+         END SUBROUTINE oas_roms_send
+
+         ! ----------------------------------------------------------------------------------- !
+
+         SUBROUTINE oas_roms_receive(oas_step)                 
+            !**** *oas_roms_receive*  - 
+            !
+            !     Purpose.
+            !     --------
+            !     Receive coupling fields from Atmospheric model and convert to ocean forcing
+            !
+            !**   Interface.
+            !     ----------
+            !       *CALL*  *oas_roms_receive*
+            !
+            !     Input:
+            !     -----
+            !
+            !     Output:
+            !     ------
+            !      
+            !
+            !     Method:
+            !     ------
+            !       
+            !
+            !     Externals:
+            !     ---------
+            !      oas_roms_vardef
+            !
+            !
+            !     Author:
+            !     -------
+            !       D. Byrne - ETHZ
+            !     
+            !     Modifications:
+            !     --------------
+            !       Matthieu Leclair - ETHZ
+            !
+
+            ! => itemp, isalt, N, mynode
+#include "param.h"
+            ! => nstp, dt, tdays, nrhs, rho0, Cp, deg2rad
+#include "scalars.h"
+            ! => t, Hz
+#include "ocean3d.h"
+            ! => sustr, svstr, srflx, stflx
+#include "forces.h"
+            ! => hbls
+#include "ncvars.h"
+            INTEGER ::  oas_dt, oas_step, jn, i, j
+            REAL :: cff_wstr, cff_hflx, cff_fwflx
+            REAL :: zflx_1, zflx_2
+#ifdef DIURNAL_SRFLUX
+            ! => latr, lonr
+# include "grid.h"
+            REAL :: cff, cff1, cff2
+            REAL :: cos_h, dec, cos_d, sin_d, tan_d, phi, h0, utc
+            REAL, PARAMETER :: year2day=365.25
+            REAL, PARAMETER :: day2year=1.D0/year2day
+            REAL, PARAMETER :: utc_cor=1.D0/360.D0
+#endif
+            ! Skip if sequential coupling mode and first time step
+            ! ----------------------------------------------------
+            IF (l_oas_seq .AND. oas_step == 0) RETURN
+            
+
+            ! Receive fields when necessary
+            ! -----------------------------
+            oas_dt = oas_step * INT(dt)
+            CALL oas_roms_rcv(oas_dt)
+
+            ! Set conversion coefficients
+            ! ---------------------------    
+            cff_wstr = 1./rho0
+            cff_hflx = 1./(rho0*Cp)
+            cff_fwflx = 0.01/86400
+
+            ! Momentum Flux
+            ! -------------
+            DO j = cpl_grd(k_u)%jmin, cpl_grd(k_u)%jmax
+               DO i = cpl_grd(k_u)%imin, cpl_grd(k_u)%imax
+                  zflx_1 = u_cos_proj_u(i,j)
+     &                     * srcv(oas_UST_U)%pdata(i,j)
+     &                   + v_cos_proj_u(i,j)
+     &                     * srcv(oas_VST_U)%pdata(i,j)
+                  sustr(i,j) = (1.0-alpha_u(i,j)) * sustr(i,j)
+     &                            + alpha_u(i,j) * cff_wstr * zflx_1
+               ENDDO
+            ENDDO
+
+            DO j = cpl_grd(k_v)%jmin, cpl_grd(k_v)%jmax
+               DO i = cpl_grd(k_v)%imin, cpl_grd(k_v)%imax
+                  zflx_1 = u_cos_proj_v(i,j)
+     &                     * srcv(oas_UST_V)%pdata(i,j)
+     &                   + v_cos_proj_v(i,j)
+     &                     * srcv(oas_VST_V)%pdata(i,j)
+                  svstr(i,j) = (1.0-alpha_v(i,j)) * svstr(i,j)
+     &                            + alpha_v(i,j) * cff_wstr * zflx_1
+               ENDDO
+            ENDDO
+
+            ! Solar Radiative Flux
+            ! --------------------
+#ifdef DIURNAL_SRFLUX
+            ! DIURNAL CYCLE - USED IN BOTH PHYSICAL AND ECOSYSTEM MODELS
+            ! Patrick Marchesiello - 1999: Modulate average dayly insolation
+            ! to get diurnal cycle by:
+            !
+            !              cos(h)*cos(d)*cos(phi) + sin(d)*sin(phi)
+            !       pi * ---------------------------------------------
+            !             sin(h0)*cos(d)*cos(phi) + h0*sin(d)sin(phi)
+            !
+            ! where: h, d, phi -- are hour, declination, latitude angles;
+            !        h0 is hour angle at sunset and sunrise
+            !
+            ! Yusuke Uchiyama, 2009: UTC correction based on lonr is added.
+            !                        (ocean_)time should be in UTC.
+            !
+# define UTC_CORRECTION
+            !
+# ifndef UTC_CORRECTION
+            cos_h = COS(2.*pi * (tdays+.5-INT(tdays+.5)))
+# endif
+            dec = -0.406 * COS(deg2rad 
+     &                        *(tdays-INT(tdays*day2year)*year2day))
+            cos_d = COS(dec)
+            sin_d = SIN(dec)
+            tan_d = TAN(dec)
+#endif
+            DO j = cpl_grd(k_rho)%jmin, cpl_grd(k_rho)%jmax
+               DO i = cpl_grd(k_rho)%imin, cpl_grd(k_rho)%imax
+                  zflx_1 = cff_hflx * srcv(oas_SWR)%pdata(i,j)
+#ifdef DIURNAL_SRFLUX
+# ifdef UTC_CORRECTION
+                  utc = lonr(i,j) * utc_cor
+                  cos_h = COS(2.*pi*(tdays+.5-INT(tdays+.5)+utc))
+# endif
+                  phi = latr(i,j) * deg2rad
+                  h0 = ACOS(-TAN(phi)*tan_d)
+                  cff1 = cos_d * COS(phi)
+                  cff2 = sin_d * SIN(phi)
+                  cff = pi* (cos_h*cff1+cff2) / (SIN(h0)*cff1+h0*cff2)
+                  zflx_1 = MAX(0., cff*zflx_1)
+#endif
+                  srflx(i,j) = (1.0-alpha_rho(i,j)) * srflx(i,j)
+     &                            + alpha_rho(i,j) * zflx_1
+
+                  ! Net Heat Flux
+                  ! -------------
+                  zflx_2 = cff_hflx * srcv(oas_NHF)%pdata(i,j) + zflx_1
+                  !
+                  ! Restrict stflx to prevent surface temperature to go below -2
+                  ! degrees C.
+                  !
+#if defined PACIFIC || defined STFLX_LIM
+                  zflx_2 = MAX( zflx_2,
+# ifdef LMD_KPP
+     &                          MAX(hbls(i,j,nstp), Hz(i,j,N))
+# else
+     &                                              Hz(i,j,N)
+# endif
+     &                            *(-2.D0-t(i,j,N,nrhs,itemp))/dt )
+#endif
+                  stflx(i,j,itemp) =
+     &                 (1.0-alpha_rho(i,j)) * stflx(i,j,itemp)
+     &                    + alpha_rho(i,j) * zflx_2
+
+
+                  ! Fresh Water Flux
+                  ! ----------------
+                  zflx_1 = cff_fwflx * srcv(oas_TEP)%pdata(i,j)
+     &                               * t(i,j,N,nrhs,isalt)
+                  stflx(i,j,isalt) =
+     &                 (1.0-alpha_rho(i,j)) * stflx(i,j,isalt)
+     &                    + alpha_rho(i,j) * zflx_1
+               ENDDO
+            ENDDO
+
+            ! Write Debug File
+            ! ----------------
+     !        CALL oas_roms_dbg_rcv(oas_step,
+     ! &                            "SUSTR", sustr           , k_u  ,
+     ! &                            "SVSTR", svstr           , k_v  ,
+     ! &                            "NHF"  , stflx(:,:,itemp), k_rho,
+     ! &                            "SWR"  , srflx           , k_rho,
+     ! &                            "FRESH", stflx(:,:,isalt), k_rho )
+
+         END SUBROUTINE oas_roms_receive
+
+      END MODULE oas_roms_send_receive

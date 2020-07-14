@@ -154,15 +154,14 @@ c**   x0=xl/2.
 
 # elif defined WAVE_RAD
 
-      x0=xl/2.                         ! Set initial perturbation in
-      y0=el/2.                         ! in free surface and velocities
-      cff=64./xl                       ! for isotropically expanding
-      do j=jstr,jend                   ! circular wave.
-        do i=istr,iend
+      x0=xl/2. ; y0=el/2.              ! Set initial perturbation in
+      cff=64./xl                       ! in free surface and velocities
+      do j=jstr,jend                   ! for isotropically expanding
+        do i=istr,iend                 ! circular wave.
           x=cff*(xr(i,j)-x0)
           y=cff*(yr(i,j)-y0)
           cff1=sqrt(x*x+y*y)
-          if (cff1>9. .and. cff1<11.) then
+          if (cff1 > 9. .and. cff1 < 11.) then
             zeta(i,j,1)=1.+cos(pi*(cff1-10.))
           endif
         enddo
@@ -172,7 +171,7 @@ c**   x0=xl/2.
           x=cff*(0.5*(xr(i-1,j)+xr(i,j))-x0)
           y=cff*(               yr(i,j) -y0)
           cff1=sqrt(x*x+y*y)
-          if (cff1>9. .and. cff1<11.) then
+          if (cff1 > 9. .and. cff1 < 11.) then
             ubar(i,j,1)=(1.+cos(pi*(cff1-10.)))
      &      *(x/cff1)*sqrt(2.*g/(h(i-1,j)+h(i,j)))
           endif
@@ -183,23 +182,20 @@ c**   x0=xl/2.
           x=cff*(               xr(i,j) -x0)
           y=cff*(0.5*(yr(i,j-1)+yr(i,j))-y0)
           cff1=sqrt(x*x+y*y)
-          if (cff1>9. .and. cff1<11.) then
+          if (cff1 > 9. .and. cff1 < 11.) then
             vbar(i,j,1)=(1.+cos(pi*(cff1-10.)))
      &      *(y/cff1)*sqrt(2.*g/(h(i,j-1)+h(i,j)))
           endif
         enddo
       enddo
 
-
-# elif defined BASIN
+# elif defined DOUBLE_GYRE
 #  ifdef SOLVE3D
-      cff1=(44.690/39.382)**2
-      cff2=cff1*(rho0*800./g)*(5.0e-5/((42.689/44.690)**2))
       do k=1,N
         do j=jstrR,jendR
           do i=istrR,iendR
-            t(i,j,k,1,itemp)=cff2*exp(z_r(i,j,k)/800.)
-     &                 *(0.6-0.4*tanh(z_r(i,j,k)/800.))
+            t(i,j,k,1,itemp)=3.8*exp(z_r(i,j,k)/800.)
+     &                *(0.6-0.4*tanh(z_r(i,j,k)/800.))
             t(i,j,k,2,itemp)=t(i,j,k,1,itemp)
           enddo
         enddo
@@ -284,6 +280,17 @@ c     &              +30./(1.+exp((-200.-z_r(i,j,k))/200.))
       enddo   !<-- j                           ! Tcoef=0.2.
 #  endif
 
+# elif defined SLOSH
+      cff=pi/xl
+      do j=jstrR,jendR
+        do i=istrR,iendR
+          zeta(i,j,1)=cos(cff*xr(i,j))
+          zeta(i,j,2)=zeta(i,j,1)
+        enddo
+      enddo
+
+
+
 # elif defined COLD_FILAMENT
 #  ifdef VISC_TERM_WIND_BALANCE
 #   define I_EXT_RANGE istrU-1,iend+1
@@ -293,7 +300,7 @@ c     &              +30./(1.+exp((-200.-z_r(i,j,k))/200.))
 #   define J_EXT_RANGE jstr,jend+1
 #  endif
 
-      x0=xl/2. !<-- sets fillament to thhe middle of the domain
+      x0=xl/2. !<-- sets fillament to the middle of the domain
 
       do j=J_EXT_RANGE
         do i=I_EXT_RANGE
@@ -374,7 +381,7 @@ c     &              +30./(1.+exp((-200.-z_r(i,j,k))/200.))
           hbl=0.25*(hq(i,j)+hq(i+1,j)+hq(i,j+1)+hq(i+1,j+1))
           cff=1./hbl
 
-! Note that setting TauX,TauY here must match that in ana_smflux.                       
+! Note that setting TauX,TauY here must match that in ana_smflux.
 
           TauY=0.4/rho0 ; TauX=-TauY
 
@@ -734,6 +741,7 @@ c     &                            +z_w(i,j,k-1))/5000.)
 
 #  endif
 # elif defined ISWAKE
+      y0=0. !<-- here y-coordinate is centered at the channel mid axis
 #  ifdef SOLVE3D
 
 ! Analytical initial conditions for 3D Island Wake problem:
@@ -769,7 +777,7 @@ c     &                            +z_w(i,j,k-1))/5000.)
 
                                ! set thermocline slope parameter to
       cffS=AmpU*rho0/(AmpR*g)  ! achieve geostrophic balance between
-      y0=el/2.                 ! XI-component of baroclinic velocity
+                               ! XI-component of baroclinic velocity
                                ! and density field.
 
       cff=1./(1.+exp(-2.*Zthrm/dZthrm))
@@ -820,16 +828,14 @@ c     &                            +z_w(i,j,k-1))/5000.)
 #   define SIGNELL
 #   ifdef SIGNELL
 
-      AmpU=0.15                       ! This setup is originally from
-      cff=AmpU/g                      ! Rich Signell, who chose to pose
-      x0=xl/2.                        ! a non-stratified problem to be
-      y0=el/2.                        ! solved by 3D code.
-
-      j0=MMm/2
+      AmpU=0.15           ! This setup is originally from Rich Signell,
+      cff=AmpU/g          ! who chose to pose a non-stratified problem
+                          ! to be solved by full 3D code.
 #    ifdef MPI
-      j0=j0 -jSW_corn
+      j0=MMm/2 -jSW_corn
+#    else
+      j0=MMm/2
 #    endif
-
 
       do j=jstrR,jendR
         do i=istrR,iendR
@@ -839,16 +845,16 @@ c     &                            +z_w(i,j,k-1))/5000.)
         enddo
       enddo
       do k=1,N
-        do j=jstrR,jendR              ! Temperature field just below
-          do i=istrR,iendR            ! is passive tracer initialized
-            u(i,j,k,1)=ubar(i,j,1)    ! as a "smoothed" step function
-            v(i,j,k,1)=vbar(i,j,1)    ! for the flow visualization
-                                      ! purpose. It does not affect
-            if (j<j0) then         ! the dynamics of the flow.
+        do j=jstrR,jendR                ! Temperature field just below
+          do i=istrR,iendR              ! is passive tracer initialized
+            u(i,j,k,1)=ubar(i,j,1)      ! as a "smoothed" step function
+            v(i,j,k,1)=vbar(i,j,1)      ! for the flow visualization
+                                        ! purpose. It does not affect
+            if (j < j0) then            ! the dynamics of the flow.
               t(i,j,k,1,itemp)=-1.
-            elseif (j==j0) then
+            elseif (j == j0) then
               t(i,j,k,1,itemp)=-0.333333333333333
-            elseif (j==j0+1) then
+            elseif (j == j0+1) then
               t(i,j,k,1,itemp)=+0.333333333333333
             else
               t(i,j,k,1,itemp)=+1.
@@ -859,13 +865,12 @@ c     &                            +z_w(i,j,k-1))/5000.)
       enddo
 #   endif
 #  else
-      AmpU=0.2            ! 2D setup for flow around cylinder
-      cff=AmpU/g          ! problem: set u-velocity constant and
-      alpha=0.3           ! free surface from geostrophic balance.
+      AmpU=0.2                ! 2D setup for flow around cylinder
+      cff=AmpU/g              ! problem: set u-velocity constant and
+      alpha=0.3               ! free surface from geostrophic balance.
       csa=cos(alpha)
       sna=sin(alpha)
-      x0=xl/2.
-      y0=el/2.
+
       do j=jstrR,jendR
         do i=istrR,iendR
           zeta(i,j,1)=-cff*f(i,j)*((yr(i,j)-y0)*csa-(xr(i,j)-y0)*sna)
@@ -1030,7 +1035,7 @@ c*     &                                  +(z_r(i,j,k)-Z1)/STRAT
             t(i,j,k,1,isalt)=35.
             t(i,j,k,2,isalt)=t(i,j,k,1,isalt)
 #   endif
-#   ifdef BIOLOGY
+#   ifdef LEGACY_NPZD
             t(i,j,k,1,ino3_)=0.
             t(i,j,k,2,ino3_)=t(i,j,k,1,ino3_)
             t(i,j,k,1,inh4_)=0.
@@ -1263,7 +1268,7 @@ c*     &                                  +(z_r(i,j,k)-Z1)/STRAT
 #   endif
 #  elif defined COLD_FILAMENT
       call exchange_tile(istr,iend,jstr,jend, Akv,N+1)
-      
+
 #  endif
 # endif  /* EXCHANGE */
 
