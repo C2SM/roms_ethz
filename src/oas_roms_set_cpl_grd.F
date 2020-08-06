@@ -86,23 +86,30 @@
             grd%imax = ieast
             grd%jmin = jsouth
             grd%jmax = jnorth
-            if (type == k_u) grd%imax=grd%imax-1
-            if (type == k_v) grd%jmax=grd%jmax-1
-            grd%dims_l = (/grd%imax-grd%imin+1, grd%jmax-grd%jmin+1/)
-            grd%start_g = (/max(iSW_corn,1), max(jSW_corn,1)/)
-            ALLOCATE(grd%exfld(iwest:ieast, jsouth:jnorth))
+            !if (type == k_u) grd%imax=grd%imax-1
+            !if (type == k_v) grd%jmax=grd%jmax-1
+            grd%start_g = (/max(iSW_corn+1,1), max(jSW_corn+1,1)/)
+            if (type == k_u) grd%start_g = (/max(iSW_corn,1),max(jSW_corn+1,1)/)
+            if (type == k_v) grd%start_g =(/max(iSW_corn+1,1),max(jSW_corn,1)/)
 
-            IF ( IOASISDEBUGLVL == 1 ) THEN
+            if (type == k_u .and. grd%start_g(1) == 1 ) grd%imax=grd%imax-1
+            if (type == k_v .and. grd%start_g(2) == 1 ) grd%jmax=grd%jmax-1
+            grd%dims_l = (/grd%imax-grd%imin+1, grd%jmax-grd%jmin+1/)
+     
+            ALLOCATE(grd%exfld(grd%imin:grd%imax, grd%jmin:grd%jmax))
+
+            IF ( IOASISDEBUGLVL == 30 ) THEN
                PRINT *, '***********************************************'
                PRINT *, 'Mynode: ', mynode
                PRINT *, 'Node tile (inode, jnode) = (',inode,', ', jnode,')'
                PRINT *, 'Grid Variables ROMS', TRIM(grd%pt), TYPE
                PRINT *, 'start: ', grd%start_g
                PRINT *, 'global dims: ', grd%dims_g
-               PRINT *, 'local_rho, local_eta: ', ieast-iwest+1, 
-     &                                            jnorth-jsouth+1
-               PRINT *, 'imin,imax: ', iwest, ieast
-               PRINT *, 'jmin, jmax: ', jsouth, jnorth
+               PRINT *, 'local_rho, local_eta: ', grd%dims_l
+               PRINT *, 'jSW corn: ', jSW_corn
+               PRINT *, 'iSW corn: ', iSW_corn
+               PRINT *, 'imin,imax: ', grd%imin,grd%imax
+               PRINT *, 'jmin, jmax: ', grd%jmin,grd%jmax
                PRINT *, '**********************************************'
             ENDIF
 
