@@ -38,9 +38,6 @@
             TYPE(OAS_GRID) :: grd
             INTEGER :: k_pt
 
-            ! Local variables
-            INTEGER :: type
-
 #include "param.h"
 
             IF (k_pt == k_rho) THEN
@@ -61,13 +58,13 @@
                CALL abort
             ENDIF
 
-            CALL oas_roms_set_grd_local(grd, k_pt)
+            CALL oas_roms_set_grd_local(grd)
 
          END SUBROUTINE oas_roms_set_grd
 
          ! ----------------------------------------------------------------------------------- !
 
-         SUBROUTINE oas_roms_set_grd_local(grd, type)
+         SUBROUTINE oas_roms_set_grd_local(grd)
             ! Description
             ! -----------
             ! Set coupling grid properties depending on the compute_starts_counts.h include
@@ -76,7 +73,6 @@
 
             ! Arguments
             TYPE(OAS_GRID) :: grd
-            INTEGER :: type
 
 #include "param.h"
 ! For debug info inode, jnode if IOOASISDEBUGLVL == 1
@@ -89,11 +85,11 @@
             !if (type == k_u) grd%imax=grd%imax-1
             !if (type == k_v) grd%jmax=grd%jmax-1
             grd%start_g = (/max(iSW_corn+1,1), max(jSW_corn+1,1)/)
-            if (type == k_u) grd%start_g = (/max(iSW_corn,1),max(jSW_corn+1,1)/)
-            if (type == k_v) grd%start_g =(/max(iSW_corn+1,1),max(jSW_corn,1)/)
+            if (TRIM(grd%pt) == 'u') grd%start_g = (/max(iSW_corn,1),max(jSW_corn+1,1)/)
+            if (TRIM(grd%pt) == 'v') grd%start_g =(/max(iSW_corn+1,1),max(jSW_corn,1)/)
 
-            if (type == k_u .and. grd%start_g(1) == 1 ) grd%imax=grd%imax-1
-            if (type == k_v .and. grd%start_g(2) == 1 ) grd%jmax=grd%jmax-1
+            if (TRIM(grd%pt) == 'u' .and. grd%start_g(1) == 1 ) grd%imax=grd%imax-1
+            if (TRIM(grd%pt) == 'v' .and. grd%start_g(2) == 1 ) grd%jmax=grd%jmax-1
             grd%dims_l = (/grd%imax-grd%imin+1, grd%jmax-grd%jmin+1/)
      
             ALLOCATE(grd%exfld(grd%imin:grd%imax, grd%jmin:grd%jmax))
@@ -102,7 +98,7 @@
                PRINT *, '***********************************************'
                PRINT *, 'Mynode: ', mynode
                PRINT *, 'Node tile (inode, jnode) = (',inode,', ', jnode,')'
-               PRINT *, 'Grid Variables ROMS', TRIM(grd%pt), TYPE
+               PRINT *, 'Grid Variables ROMS', TRIM(grd%pt)
                PRINT *, 'start: ', grd%start_g
                PRINT *, 'global dims: ', grd%dims_g
                PRINT *, 'local_rho, local_eta: ', grd%dims_l
