@@ -56,7 +56,9 @@ endif
 ifdef MPI_HOME
    CPPFLAGS += -I$(MPI_ROOT)/include
 endif
-
+ifdef MPICH_DIR
+   CPPFLAGS += -I$(MPICH_DIR)/include
+endif
 
 
 
@@ -169,6 +171,15 @@ else ifeq ($(strip $(FCOMP)),pgf90)
    endif
    #CPPFLAGS += -DINT_IARGC
    FFLAGS  := -mcmodel=medium -fast -O4 $(OPENMP)
+else ifeq ($(strip $(FCOMP)),ftn)
+   #
+   # ============= CSCS cray fortran  compiler =============
+   #
+   MPIFC := $(FC)
+   FCFLAGS  := -DINT_IARGC -DPGI 
+   ifdef OPENMP
+      OPENMP := -homp
+   endif
 else ifeq ($(strip $(FCOMP)),gfortran)
    #
    # ============= Gnu gfortran compiler =============

@@ -296,11 +296,11 @@ c**         enddo
         is=1
         do while (is <= ln)
            ie=min(ln,is+50)
-           write(iout,'(5x,3A)'),'&   / /'''
+           write(iout,'(5x,3A)') '&   / /'''
      &          , fname(ifile)(is:ie),''''
            is=ie+1
         enddo
-        write(iout,'(5xA/6xA)'), '&   / / ''>'''
+        write(iout,'(5xA/6xA)')  '&   / / ''>'''
      &       , 'cpps(ie+1:ie+1)='' '''
 
         do i=fswtch(ifile),fswtch(ifile+1)-1

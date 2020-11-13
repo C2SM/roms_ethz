@@ -1,0 +1,25 @@
+How to compile ROMS at CSCS.ch (Piz Daint)
+
+To use the CSCS compiler macro set the following environment variable:
+
+export FC=ftn
+
+Then depending on the compile one likes to use the following module commands:
+
+1) gray-fortran
+   module unload  PrgEnv-cray
+   module load PrgEnv-pgi
+   module load daint-gpu
+   module load cray-netcdf
+
+2) PGI 
+   module unload  PrgEnv-cray
+   module load PrgEnv-pgi
+   module load daint-gpu
+   module load cray-netcdf
+
+2) Intel  
+   module unload  PrgEnv-cray
+   module load PrgEnv-intel
+   module load daint-gpu
+   module load cray-netcdf
