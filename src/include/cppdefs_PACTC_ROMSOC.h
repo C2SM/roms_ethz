@@ -126,3 +126,10 @@
 #define COUP_OAS
 #undef PARALLEL_FILES
 
+!#undef SFLX_CORR
+#undef ANA_SSFLUX
+#undef ANA_SST
+#undef ANA_SRFLUX
+#undef ANA_STFLUX
+#undef DIURNAL_SRFLUX /* FOR COUPLING */
+

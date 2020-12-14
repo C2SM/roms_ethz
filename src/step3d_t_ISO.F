@@ -1150,7 +1150,7 @@ c??         enddo
          if (itrc==itemp .OR. itrc==isalt) then
 # endif
 # ifdef TCLIMATOLOGY
-          do k=1,mxnudg
+          do k=1,N
             do i=istr,iend
               t(i,j,k,nnew,itrc)=( t(i,j,k,nnew,itrc)
      &          +dt*Tnudgcof(i,j,itrc)
