@@ -413,12 +413,11 @@ c--      fname='roms.in.US_West'
      &     'ubind =', ubind, 'open boundary binding velcity [m/s]'
 
 
-/* OBSOLETE --->
 ! Parameters for OBC nudging and nudging layers;
 ! converted from [days] to [sec^-1]
 
 
-c-->    elseif (keyword(1:kwlen) == 'nudg_cof') then
+        elseif (keyword(1:kwlen) == 'nudg_cof') then
           call cancel_kwd(keyword(1:kwlen), ierr)
           read(input,*,err=95) tauM2_in, tauM2_out, attnM2
 # ifdef SOLVE3D
@@ -458,7 +457,6 @@ c-->    elseif (keyword(1:kwlen) == 'nudg_cof') then
      &             'tauT =', tauT_in, tauT_out, '(in/out)  Nudging ',
      &                                          'for tracers [s^-1]'
 # endif
-           <--- OBSOLETE */
 #endif
 
 
