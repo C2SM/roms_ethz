@@ -1,8 +1,8 @@
 ! Parameters related to BEC model
       real c1, c0, c2,c10,c1000,p5,spd,dps,t0_kelvin,yps,mpercm
-       parameter ( c1=1., c0=0.0,c2=2.,
+       parameter ( c1=1., c0=0.0,c2=2., 
      & c10=10.,c1000=1000.,p5=0.5,
-     & spd = 86400.0,
+     & spd = 86400.0,  
      & dps = c1 / spd,         ! number of days per second
      & yps = c1 / (365.0*spd), ! number of years in a second
      & mpercm = .01,        ! meters per cm
@@ -31,7 +31,7 @@
 #  define LAST_I cocco_ind
 #endif
 #ifdef BEC_DDA
-     &  ,dda_ind =LAST_I+1! diatom-diazotroph assemblages
+     &  ,dda_ind =LAST_I+1  ! diatom-diazotroph assemblages
 #  undef LAST_I
 #  define LAST_I dda_ind
 #endif
@@ -55,7 +55,7 @@
        character*80 lname(autotroph_cnt)     ! long name of each autotroph
        integer
      &   Chl_ind(autotroph_cnt),             ! tracer indices for Chl, C, Fe content
-     &   C_ind(autotroph_cnt),
+     &   C_ind(autotroph_cnt), 
      &   Fe_ind(autotroph_cnt),
      &   Si_ind(autotroph_cnt),
      &   CaCO3_ind(autotroph_cnt)            ! tracer indices for Si, CaCO3 content
@@ -83,14 +83,14 @@
      &   z_grz(autotroph_cnt),               ! grazing coef. (mmol C/m^3)
      &   graze_zoo(autotroph_cnt),           ! routing of grazed term, remainder goes to dic
      &   graze_poc(autotroph_cnt),
-     &   graze_doc(autotroph_cnt),
+     &   graze_doc(autotroph_cnt),    
      &   loss_poc(autotroph_cnt),            ! routing of loss term
      &   f_zoo_detr(autotroph_cnt)           ! fraction of zoo losses to detrital
        integer grazee_ind(autotroph_cnt)     ! which grazee category does autotroph belong to
        logical Nfixer(autotroph_cnt)         ! flag set to true for autotrophs that fix N2
        logical imp_calcifier(autotroph_cnt)  ! flag set to true if autotroph implicitly handles calcification
        logical exp_calcifier(autotroph_cnt)  ! flag set to true if autotroph explicitly handles calcification
-
+       
        common /ecosys_bec1/ Chl_ind, C_ind, Fe_ind, Si_ind, CaCO3_ind, grazee_ind
      &        , Nfixer, imp_calcifier, exp_calcifier, sname, lname
        common /ecosys_bec_reals/ kFe, kPO4, kDOP, kNO3, kNH4, kSiO3,
@@ -141,7 +141,7 @@
      &   parm_SiO2_diss,         ! base SiO2 diss len scale
      &   parm_CaCO3_diss         ! base CaCO3 diss len scale
 
-       real
+       real 
      &   parm_scalelen_z(4),     ! depths of prescribed scalelen values
      &   parm_scalelen_vals(4)   ! prescribed scalelen values
 
@@ -172,7 +172,7 @@
   !                        --------- *  ---------- * ----------
   !                         gDust       55.847 gFe     molFe
   !
-  !     dust_to_Fe          conversion - dust to iron (CESM: nmol Fe/g Dust)
+  !     dust_to_Fe          conversion - dust to iron (CESM: nmol Fe/g Dust) 
   !---------------------------------------------------------------------
   !
   ! DL: in ROMS we have to convert kg dust -> mmol Fe, so the above calculation
@@ -194,16 +194,16 @@
        real caco3_poc_min, spc_poc_fac, f_graze_sp_poc_lim,
      &   f_photosp_CaCO3, f_graze_CaCO3_remin, f_graze_si_remin
        parameter(
-     &   caco3_poc_min    = 0.4,  ! minimum proportionality between
-     &                            !   QCaCO3 and grazing losses to POC
+     &   caco3_poc_min    = 0.4,  ! minimum proportionality between 
+     &                            !   QCaCO3 and grazing losses to POC 
      &                            !   (mmol C/mmol CaCO3)
      &   spc_poc_fac      = 0.11, ! small phyto grazing factor (1/mmolC)
-     &   f_graze_sp_poc_lim = 0.3,
-     &   f_photosp_CaCO3  = 0.4,  ! proportionality between small phyto
+     &   f_graze_sp_poc_lim = 0.3, 
+     &   f_photosp_CaCO3  = 0.4,  ! proportionality between small phyto 
      &                            ! production and CaCO3 production
-     &   f_graze_CaCO3_remin = 0.33, ! fraction of spCaCO3 grazing
+     &   f_graze_CaCO3_remin = 0.33, ! fraction of spCaCO3 grazing 
      &                               !          which is remin
-     &   f_graze_si_remin    = 0.35  ! fraction of diatom Si grazing
+     &   f_graze_si_remin    = 0.35  ! fraction of diatom Si grazing 
      &                               !          which is remin
      & )
 
@@ -273,14 +273,14 @@
        real DOC_reminR, DON_reminR, DOFe_reminR, DOP_reminR, DONr_reminR,
      &   DOPr_reminR, DONrefract, DOPrefract
        parameter(
-     &   DOC_reminR  = (c1/(250.0*8.0)) * dps,         ! rate for semi-labile DOC 1/250days
-     &   DON_reminR  = (c1/(160.0*8.0)) * dps,         ! rate for semi-labile DON 1/160days
-     &   DOFe_reminR = (c1/(160*8.0)) * dps,         ! rate for semi-labile DOFe 1/160days
-     &   DOP_reminR  = (c1/(160*8.0)) * dps,         ! rate for semi-labile DOP 1/160days  
-     &   DONr_reminR = (c1/(365.0*2.5*8.0)) * dps,   ! timescale for refrac DON 1/2.5yrs
-     &   DOPr_reminR = (c1/(365.0*2.5*8.0)) * dps,   ! timescale for refrac DOP 1/2.5yrs
-     &   DONrefract = 0.02,                      ! fraction of DON to refractory pool
-     &   DOPrefract = 0.006                       ! fraction of DOP to refractory pool
+     &   DOC_reminR  = (c1/(250.0)) * dps,         ! rate for semi-labile DOC 1/250days
+     &   DON_reminR  = (c1/(160.0)) * dps,         ! rate for semi-labile DON 1/160days
+     &   DOFe_reminR = (c1/(160.0)) * dps,         ! rate for semi-labile DOFe 1/160days
+     &   DOP_reminR  = (c1/(160.0)) * dps,         ! rate for semi-labile DOP 1/160days  
+     &   DONr_reminR = (c1/(365.0*2.5)) * dps,   ! timescale for refrac DON 1/2.5yrs
+     &   DOPr_reminR = (c1/(365.0*2.5)) * dps,   ! timescale for refrac DOP 1/2.5yrs
+     &   DONrefract = 0.08,                      ! fraction of DON to refractory pool
+     &   DOPrefract = 0.01                       ! fraction of DOP to refractory pool
      & )
 
   !---------------------------------------------------------------------
@@ -309,19 +309,15 @@
 
 #ifdef USE_EXPLICIT_VSINK
    !---------------------------------------------------------------------
-   !  Vertical sinking speeds used for explicit sinking (in m/day) and
+   !  Vertical sinking speeds used for explicit sinking (in m/day)
    !  Remineralization rates (in day^{-1})
    !
-   !  hard/soft components MUST have the same sinking speed (except for POC),
-   !  but are different in terms of remineralization rates. POCHard refers
-   !  to QA POC (is basically a diagnostic), and POCSoft is free POC.
-   !
-   !  Dust and iron remin length scales following Moore and Braucher 2008.
-   !  Dust: 600m for soft, 120000m for hard.
-   !  Iron: Moore and Braucher (2008) use 0.06 d-1, Parekh et al. (2004) use
-   !  0.055-0.27d-1) for soft, hard practically resistant to dissolution
-   !  (I put 40000m like for other hard ballast).
-   !
+   !  MF:
+   !  hard/soft components are both mineral associated (except for POC) 
+   !  and thus have the same sinking speed, but different remineralization rates.
+   !  Set values to reflect what we had in implicit sinking. Iron desorption
+   !  following Moore and Braucher 2008.
+   ! 
    !  With sinking speeds (w) and remin rates (k) I tried to represent more or
    !  less what the implicit sinking parameter for dissolution length (D=w/k)
    !  is set to: D(SiO2)=360, D(CaCO3)=400, D(POC)=82
@@ -331,14 +327,14 @@
    !---------------------------------------------------------------------
        real wDustHard, wPOCHard, wPCaCO3Hard, wPSiO2Hard, wPIronHard
        real wDustSoft, wPOCSoft, wPCaCO3Soft, wPSiO2Soft, wPIronSoft
-       parameter( wDustHard=25.0,  wPOCHard=25., wPCaCO3Hard=25., wPSiO2Hard=25., wPIronHard=25. )
-       parameter( wDustSoft=25.0,  wPOCSoft=10., wPCaCO3Soft=25., wPSiO2Soft=25., wPIronSoft=25. )
+       parameter( wDustHard=50.0,  wPOCHard=10., wPCaCO3Hard=50., wPSiO2Hard=50., wPIronHard=50. )
+       parameter( wDustSoft=50.0,  wPOCSoft=10., wPCaCO3Soft=50., wPSiO2Soft=50., wPIronSoft=50. )
        real param_dusthard_remin, param_pochard_remin, param_pcaco3hard_remin,
      &   param_psio2hard_remin, param_pironhard_remin
        real param_dustsoft_remin, param_pocsoft_remin, param_pcaco3soft_remin,
      &   param_psio2soft_remin, param_pironsoft_remin
-       parameter( param_dusthard_remin=2.0e-4, param_pochard_remin=6.25e-4, param_pcaco3hard_remin=6.25e-4,
-     &   param_psio2hard_remin=6.25e-4, param_pironhard_remin=6.25e-4 )
-       parameter( param_dustsoft_remin=0.04, param_pocsoft_remin=0.08, param_pcaco3soft_remin=6.25e-2,
-     &   param_psio2soft_remin=6.25e-2, param_pironsoft_remin=0.06)
+       parameter( param_dusthard_remin=8.0e-5, param_pochard_remin=0.0005, param_pcaco3hard_remin=0.00125,
+     &   param_psio2hard_remin=0.00125, param_pironhard_remin=0.00125 )
+       parameter( param_dustsoft_remin=8.0e-5, param_pocsoft_remin=0.125, param_pcaco3soft_remin=0.125,
+     &   param_psio2soft_remin=0.125, param_pironsoft_remin=0.125 )
 #endif
