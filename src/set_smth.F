@@ -55,12 +55,23 @@
             VAR_NOW (i,j)=cff1* var (i,j,it1)+cff2* var (i,j,it2)
           enddo
         enddo
-      elseif (ZEROTH_TILE) then
-        write(*,*) '###ERROR: ', varname
-     &     , '_tile - current model time '
-     &     , 'is outside of time bounds: day ', timevar(it1)*sec2day
-     &     , ' to ', timevar(it2)*sec2day,'.'
-        ierr=ierr+1
+!DL      elseif (ZEROTH_TILE) then
+!DL        write(*,*) '###ERROR: ', varname
+!DL     &     , '_tile - current model time '
+!DL     &     , 'is outside of time bounds: day ', timevar(it1)*sec2day
+!DL     &     , ' to ', timevar(it2)*sec2day,'.'
+!DL        ierr=ierr+1
+      else
+        cff3=cff1*cff
+        cff4=cff2*cff
+        cff=1./(cff3+cff4)
+        cff1=cff1*cff
+        cff2=cff2*cff
+        do j=jstrR,jendR
+          do i=istrR,iendR
+            VAR_NOW (i,j)=cff1* var (i,j,it1)+cff2* var (i,j,it2)
+          enddo
+        enddo
       endif
       return
       end
