@@ -1313,6 +1313,12 @@ CR      write(*,'(1x,A,I3)') 'indxNH4 =',indxNH4
       vname_bec2_diag_3d(3,indxDDASIO3UPTAKE)='mmol/m3/s'
       vname_bec2_diag_3d(4,indxDDASIO3UPTAKE)=' '
 
+      vname_bec2_diag_3d(1,indxPOCPRODDDA)='POC_PROD_DDA'
+      vname_bec2_diag_3d(2,indxPOCPRODDDA)=
+     &  'POC PROD due to DDA grz/agg/loss'
+      vname_bec2_diag_3d(3,indxPOCPRODDDA)='mMol C m-3 s-1'
+      vname_bec2_diag_3d(4,indxPOCPRODDDA)=' '
+
 # endif /* BEC_DDA */
 
 # ifdef BEC_PHAEO
