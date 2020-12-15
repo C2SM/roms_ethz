@@ -110,7 +110,8 @@ C$OMP THREADPRIVATE(/priv_scalars/)
 #endif
 
 # if defined OBC_M2ORLANSKI && ( defined M2_FRC_BRY \
-                               || defined M2NUDGING )
+                               || defined M2NUDGING )\
+     || defined TCLIMATOLOGY
       real attnM2
       common /scalars_main/ attnM2
 # endif
