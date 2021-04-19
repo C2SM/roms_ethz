@@ -622,7 +622,7 @@ CONTAINS
       IF (ierr == NF90_NOERR) THEN
          
          IF (TRIM(extent) == 'global') THEN
-            start = (/1, 1/)
+            start = (/2, 2/)
             count = grd%dims_g
          ELSEIF (TRIM(extent) == 'local') THEN
             start = grd%start_g
@@ -674,7 +674,7 @@ CONTAINS
       IF (ierr == NF90_NOERR) THEN
          
          IF (TRIM(extent) == 'global') THEN
-            start = (/1, 1, 1/)
+            start = (/2, 2, 2/)
             count = (/grd%dims_g(1), grd%dims_g(2), dim3/)
          ELSEIF (TRIM(extent) == 'local') THEN
             start = (/grd%start_g(1), grd%start_g(2), 1/)
