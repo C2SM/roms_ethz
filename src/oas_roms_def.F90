@@ -636,7 +636,7 @@ CONTAINS
          
          IF (ierr /= NF90_NOERR) THEN
             WRITE(*,*) 'Var start and count', start, count
-            WRITE(*,*) TRIM(vname), UBOUND(alpha_rho)
+            WRITE(*,*) TRIM(vname), LBOUND(A), UBOUND(A)
             WRITE(*,*) TRIM(vname), 'oas_roms_read_2d', nf90_strerror(ierr)
             CALL abort
          END IF
