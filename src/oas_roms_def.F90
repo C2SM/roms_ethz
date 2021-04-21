@@ -647,15 +647,15 @@ CONTAINS
          ierr = nf90_get_var(ncid, var_id, buffer, start=kstart, count=ncount)
          
          IF (ierr /= NF90_NOERR) THEN
-            WRITE(*,*) 'Var kstart and ncount', kstart, ncount
-            WRITE(*,*) TRIM(vname), ' buffer:', 'LBOUND=', LBOUND(buffer), ' UBOUND=' UBOUND(buffer)
-            WRITE(*,*) TRIM(vname), 'oas_roms_read_2d', nf90_strerror(ierr)
+            WRITE(*,*) 'Var kstart and ncount ', kstart, ncount
+            WRITE(*,*) TRIM(vname), ' buffer: ', 'LBOUND=', LBOUND(buffer), ' UBOUND=', UBOUND(buffer)
+            WRITE(*,*) TRIM(vname), 'oas_roms_read_2d ', nf90_strerror(ierr)
             CALL abort
          END IF
          
       ELSE
          
-         WRITE(*,*) 'Error inquiring var ' TRIM(vname), 'in oas_roms_read_2d'
+         WRITE(*,*) 'Error inquiring var ', TRIM(vname), 'in oas_roms_read_2d'
          CALL abort
          
       END IF
@@ -702,7 +702,7 @@ CONTAINS
             ELSE
                WRITE(*,*) "ERROR in oas_roms_read_2d : nc_extent has to be either 'full' or 'inner'"
             END IF
-            ncount = grd%dims_l
+            ncount = (/grd%dims_l(1), grd%dims_l(2), dim3/)
          ELSE
             WRITE(*,*) "ERROR in oas_roms_read_2d : extent has to be either 'local' or 'global'"
             CALL abort
@@ -711,15 +711,15 @@ CONTAINS
          ierr = nf90_get_var(ncid, var_id, buffer, start=kstart, count=ncount)
          
          IF (ierr /= NF90_NOERR) THEN
-            WRITE(*,*) 'Var kstart and ncount', kstart, ncount
-            WRITE(*,*) TRIM(vname), ' buffer:', 'LBOUND=', LBOUND(buffer), ' UBOUND=' UBOUND(buffer)
-            WRITE(*,*) TRIM(vname), 'oas_roms_read_2d', nf90_strerror(ierr)
+            WRITE(*,*) 'Var kstart and ncount ', kstart, ncount
+            WRITE(*,*) TRIM(vname), ' buffer: ', 'LBOUND=', LBOUND(buffer), ' UBOUND=', UBOUND(buffer)
+            WRITE(*,*) TRIM(vname), 'oas_roms_read_2d ', nf90_strerror(ierr)
             CALL abort
          END IF
       
       ELSE
          
-         WRITE(*,*) 'Error inquiring var ' TRIM(vname), 'in oas_roms_read_3d'
+         WRITE(*,*) 'Error inquiring var ', TRIM(vname), 'in oas_roms_read_3d'
          CALL abort
          
       END IF
