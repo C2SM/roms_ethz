@@ -276,8 +276,8 @@ CONTAINS
       ALLOCATE(lon(grd%dims_g(1),grd%dims_g(2)),   &
          &     lat(grd%dims_g(1),grd%dims_g(2)))
 
-      CALL oas_roms_read_2d(ncid, 'lon_'//grd%pt, grd, lon, 'global')
-      CALL oas_roms_read_2d(ncid, 'lat_'//grd%pt, grd, lat, 'global')
+      CALL oas_roms_read_2d(ncid, 'lon_'//grd%pt, grd, lon, scope='global', nc_extent='full')
+      CALL oas_roms_read_2d(ncid, 'lat_'//grd%pt, grd, lat, scope='global', nc_extent='full')
       
       CALL oasis_write_grid(grd%grd_name, grd%dims_g(1), grd%dims_g(2), lon, lat)
       
@@ -305,7 +305,7 @@ CONTAINS
 
       ALLOCATE(mask(grd%dims_g(1),grd%dims_g(2)))
       
-      CALL oas_roms_read_2d(ncid, 'mask_'//grd%pt, grd, mask, 'global')
+      CALL oas_roms_read_2d(ncid, 'mask_'//grd%pt, grd, mask, scope='global', nc_extent='full')
       mask(:,:) = 1.0 - mask(:,:)
       
       CALL oasis_write_mask(grd%grd_name, grd%dims_g(1), grd%dims_g(2), INT(mask))
@@ -338,8 +338,8 @@ CONTAINS
       ALLOCATE(lon(shp(1),shp(2),shp(3)),   &
          &     lat(shp(1),shp(2),shp(3)))
 
-      CALL oas_roms_read_3d(ncid, 'lon_'//TRIM(grd%pt)//'_crn', grd, lon, shp(3), 'global')
-      CALL oas_roms_read_3d(ncid, 'lat_'//TRIM(grd%pt)//'_crn', grd, lat, shp(3), 'global')
+      CALL oas_roms_read_3d(ncid, 'lon_'//TRIM(grd%pt)//'_crn', grd, lon, shp(3), scope='global', nc_extent='full')
+      CALL oas_roms_read_3d(ncid, 'lat_'//TRIM(grd%pt)//'_crn', grd, lat, shp(3), scope='global', nc_extent='full')
       
       CALL oasis_write_corner(grd%grd_name, shp(1), shp(2), shp(3), lon, lat)
 
@@ -369,8 +369,8 @@ CONTAINS
       n_xi_rho = cpl_grd(k_rho)%dims_g(1)
       n_eta_rho = cpl_grd(k_rho)%dims_g(2)
       ALLOCATE(e1(n_xi_rho,n_eta_rho), e2(n_xi_rho,n_eta_rho))
-      CALL oas_roms_read_2d(ncid, 'pm', cpl_grd(k_rho), e1, 'global')
-      CALL oas_roms_read_2d(ncid, 'pn', cpl_grd(k_rho), e2, 'global')
+      CALL oas_roms_read_2d(ncid, 'pm', cpl_grd(k_rho), e1, scope='global', nc_extent='full')
+      CALL oas_roms_read_2d(ncid, 'pn', cpl_grd(k_rho), e2, scope='global', nc_extent='full')
       e1(:,:) = 1.0 / e1(:,:)
       e2(:,:) = 1.0 / e2(:,:)
 
@@ -550,7 +550,7 @@ CONTAINS
 
       ALLOCATE(alpha(grd%imin:grd%imax,grd%jmin:grd%jmax))
       
-      CALL oas_roms_read_2d(ncid, 'alpha_'//TRIM(grd%pt), grd, alpha, 'local')
+      CALL oas_roms_read_2d(ncid, 'alpha_'//TRIM(grd%pt), grd, alpha, scope='local', nc_extent='inner')
       
    END SUBROUTINE romsoc_read_alpha
 
@@ -583,9 +583,9 @@ CONTAINS
          &     v_proj   (grd%imin:grd%imax,grd%jmin:grd%jmax  ))
 
       ! Read in 3d velocity directions (unit vectors)
-      CALL oas_roms_read_3d(ncid, 'cos_u_dir_roms_'//TRIM(grd%pt), grd, cos_u_dir, 3, 'local')
-      CALL oas_roms_read_3d(ncid, 'cos_v_dir_roms_'//TRIM(grd%pt), grd, cos_v_dir, 3, 'local')
-      CALL oas_roms_read_3d(ncid, 'roms_'//TRIM(grd%pt)//'_dir', grd, roms_dir, 3, 'local')
+      CALL oas_roms_read_3d(ncid, 'cos_u_dir_roms_'//TRIM(grd%pt), grd, cos_u_dir, 3, scope='local', nc_extent='inner')
+      CALL oas_roms_read_3d(ncid, 'cos_v_dir_roms_'//TRIM(grd%pt), grd, cos_v_dir, 3, scope='local', nc_extent='inner')
+      CALL oas_roms_read_3d(ncid, 'roms_'//TRIM(grd%pt)//'_dir'  , grd, roms_dir , 3, scope='local', nc_extent='inner')
 
       ! Compute projections
       u_proj(:,:) = cos_u_dir(:,:,1) * roms_dir(:,:,1)
@@ -601,7 +601,7 @@ CONTAINS
 
    ! ----------------------------------------------------------------------------------- !
    
-   SUBROUTINE oas_roms_read_2d(ncid, vname, grd, A, extent)
+   SUBROUTINE oas_roms_read_2d(ncid, vname, grd, buffer, scope, nc_extent)
       ! Description
       ! -----------
       ! Read in 2d variables from netcdf file
@@ -610,40 +610,52 @@ CONTAINS
       INTEGER, INTENT(IN) :: ncid
       CHARACTER(len=*), INTENT(IN) :: vname
       TYPE(OAS_GRID), INTENT(IN) :: grd
-      REAL(KIND=8), DIMENSION(:,:), INTENT(INOUT) :: A
-      CHARACTER(len=*) :: extent
+      REAL(KIND=8), DIMENSION(:,:), INTENT(INOUT) :: buffer
+      CHARACTER(len=*), INTENT(IN) :: scope, nc_extent
       
       ! local variables
-      INTEGER, DIMENSION(2) :: start, count
+      INTEGER, DIMENSION(2) :: kstart, ncount
       INTEGER :: var_id, ierr
 
       ierr = nf90_inq_varid(ncid, TRIM(vname), var_id)
       
       IF (ierr == NF90_NOERR) THEN
          
-         IF (TRIM(extent) == 'global') THEN
-            start = (/2, 2/)
-            count = grd%dims_g
-         ELSEIF (TRIM(extent) == 'local') THEN
-            start = grd%start_g
-            count = grd%dims_l
+         IF (TRIM(scope) == 'global') THEN
+            IF (TRIM(nc_extent) == 'full') THEN
+               kstart = (/2, 2/)
+            ELSEIF (TRIM(nc_extent) == 'inner') THEN
+               kstart = (/1, 1/)
+            ELSE
+               WRITE(*,*) "ERROR in oas_roms_read_2d : nc_extent has to be either 'full' or 'inner'"
+            END IF
+            ncount = grd%dims_g
+         ELSEIF (TRIM(scope) == 'local') THEN
+            IF (TRIM(nc_extent) == 'full') THEN
+               kstart = grd%start_g + 1
+            ELSEIF (TRIM(nc_extent) == 'inner') THEN
+               kstart = grd%start_g
+            ELSE
+               WRITE(*,*) "ERROR in oas_roms_read_2d : nc_extent has to be either 'full' or 'inner'"
+            END IF
+            ncount = grd%dims_l
          ELSE
             WRITE(*,*) "ERROR in oas_roms_read_2d : extent has to be either 'local' or 'global'"
             CALL abort
          END IF
          
-         ierr = nf90_get_var(ncid, var_id, A, start=start, count=count)
+         ierr = nf90_get_var(ncid, var_id, buffer, start=kstart, count=ncount)
          
          IF (ierr /= NF90_NOERR) THEN
-            WRITE(*,*) 'Var start and count', start, count
-            WRITE(*,*) TRIM(vname), LBOUND(A), UBOUND(A)
+            WRITE(*,*) 'Var kstart and ncount', kstart, ncount
+            WRITE(*,*) TRIM(vname), ' buffer:', 'LBOUND=', LBOUND(buffer), ' UBOUND=' UBOUND(buffer)
             WRITE(*,*) TRIM(vname), 'oas_roms_read_2d', nf90_strerror(ierr)
             CALL abort
          END IF
          
       ELSE
          
-         WRITE(*,*) TRIM(vname), 'oas_roms_read_2d'
+         WRITE(*,*) 'Error inquiring var ' TRIM(vname), 'in oas_roms_read_2d'
          CALL abort
          
       END IF
@@ -652,7 +664,7 @@ CONTAINS
 
    ! ----------------------------------------------------------------------------------- !
 
-   SUBROUTINE oas_roms_read_3d(ncid, vname, grd, A, dim3, extent)
+   SUBROUTINE oas_roms_read_3d(ncid, vname, grd, buffer, dim3, scope, nc_extent)
       ! Description
       ! -----------
       ! Read in 3d variables from netcdf file
@@ -661,40 +673,53 @@ CONTAINS
       INTEGER, INTENT(IN) :: ncid
       CHARACTER(len=*), INTENT(IN) :: vname
       TYPE(OAS_GRID), INTENT(IN) :: grd
-      REAL(KIND=8), DIMENSION(:,:,:), INTENT(INOUT) :: A
+      REAL(KIND=8), DIMENSION(:,:,:), INTENT(INOUT) :: buffer
       INTEGER, INTENT(IN) :: dim3
-      CHARACTER(len=*), INTENT(IN) :: extent
+      CHARACTER(len=*), INTENT(IN) :: scope, nc_extent
       
       ! local variables
-      INTEGER, DIMENSION(3) :: start, count
+      INTEGER, DIMENSION(3) :: kstart, ncount
       INTEGER :: var_id, ierr
 
       ierr = nf90_inq_varid(ncid, TRIM(vname), var_id)
       
       IF (ierr == NF90_NOERR) THEN
-         
-         IF (TRIM(extent) == 'global') THEN
-            start = (/2, 2, 2/)
-            count = (/grd%dims_g(1), grd%dims_g(2), dim3/)
-         ELSEIF (TRIM(extent) == 'local') THEN
-            start = (/grd%start_g(1), grd%start_g(2), 1/)
-            count = (/grd%dims_l(1), grd%dims_l(2), dim3/)
+
+         IF (TRIM(scope) == 'global') THEN
+            IF (TRIM(nc_extent) == 'full') THEN
+               kstart = (/2, 2, 2/)
+            ELSEIF (TRIM(nc_extent) == 'inner') THEN
+               kstart = (/1, 1, 1/)
+            ELSE
+               WRITE(*,*) "ERROR in oas_roms_read_2d : nc_extent has to be either 'full' or 'inner'"
+            END IF
+            ncount = (/grd%dims_g(1), grd%dims_g(2), dim3/)
+         ELSEIF (TRIM(scope) == 'local') THEN
+            IF (TRIM(nc_extent) == 'full') THEN
+               kstart = (/grd%start_g(1)+1, grd%start_g(2)+1, 1/)
+            ELSEIF (TRIM(nc_extent) == 'inner') THEN
+               kstart = (/grd%start_g(1), grd%start_g(2), 1/)
+            ELSE
+               WRITE(*,*) "ERROR in oas_roms_read_2d : nc_extent has to be either 'full' or 'inner'"
+            END IF
+            ncount = grd%dims_l
          ELSE
-            WRITE(*,*) "ERROR in oas_roms_read_3d : extent has to be either 'local' or 'global'"
+            WRITE(*,*) "ERROR in oas_roms_read_2d : extent has to be either 'local' or 'global'"
             CALL abort
          END IF
          
-         ierr = nf90_get_var(ncid, var_id, A, start=start, count=count)
+         ierr = nf90_get_var(ncid, var_id, buffer, start=kstart, count=ncount)
          
          IF (ierr /= NF90_NOERR) THEN
-            WRITE(*,*) 'Var start and count', start, count
-            WRITE(*,*) TRIM(vname), 'oas_roms_read_3d', nf90_strerror(ierr)
+            WRITE(*,*) 'Var kstart and ncount', kstart, ncount
+            WRITE(*,*) TRIM(vname), ' buffer:', 'LBOUND=', LBOUND(buffer), ' UBOUND=' UBOUND(buffer)
+            WRITE(*,*) TRIM(vname), 'oas_roms_read_2d', nf90_strerror(ierr)
             CALL abort
          END IF
       
       ELSE
          
-         WRITE(*,*) TRIM(vname), 'oas_roms_read_3d'
+         WRITE(*,*) 'Error inquiring var ' TRIM(vname), 'in oas_roms_read_3d'
          CALL abort
          
       END IF
