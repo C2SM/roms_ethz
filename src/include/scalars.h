@@ -109,11 +109,11 @@ C$OMP THREADPRIVATE(/priv_scalars/)
       common /scalars_main/ n_sponge, v_sponge
 #endif
 
-# if defined OBC_M2ORLANSKI && ( defined M2_FRC_BRY \
+!! # if defined OBC_M2ORLANSKI && ( defined M2_FRC_BRY \
                                || defined M2NUDGING )
       real attnM2
       common /scalars_main/ attnM2
-# endif
+!! # endif
 
 
 
