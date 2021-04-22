@@ -102,12 +102,25 @@ CONTAINS
       CALL oas_roms_set_grd(cpl_grd(k_u  ), k_u  )
       CALL oas_roms_set_grd(cpl_grd(k_v  ), k_v  )
 
+      ! -------------------------------------------- !
+      ! Definition of the OASIS domain partitionning !
+      ! -------------------------------------------- !
+
+      CALL oas_roms_def_part(cpl_grd(k_rho))
+      CALL oas_roms_def_part(cpl_grd(k_u  ))
+      CALL oas_roms_def_part(cpl_grd(k_v  ))
+
       ! ------------------------------------- !
       ! Initialize ROMSOC auxiliary variables !  
       ! ------------------------------------- !
       
       ! Open ROMSOC auxiliary file
       ierr = nf90_open(TRIM(romsoc_aux_name), NF90_NOWRITE, ncid)
+            
+      IF ( ierr /= NF90_NOERR) THEN
+         WRITE(*,*) 'Error opening file ', TRIM(romsoc_aux_name)
+         CALL abort
+      ENDIF
       
       ! Read in coupling mask
       CALL romsoc_read_alpha(ncid, cpl_grd(k_rho), alpha_rho)
@@ -127,18 +140,28 @@ CONTAINS
       
       IF (mype .EQ. 0) THEN   ! Only master node writes grid file
 
-         CALL oasis_start_grids_writing(il_flag)
-
-         IF (il_flag == 1) THEN
-
+         IF (nf90_open('grids.nc', NF90_NOWRITE, ncid) == NF90_NOERR) THEN
+            
+            WRITE(*,*) 'ROMS: grids.nc already exists'
+            
+         ELSE
+            
+            WRITE(*,*) 'Writing OASIS auxiliary files'
             ! Open ROMS grid file
             ierr = nf90_open(TRIM(grdname), NF90_NOWRITE, ncid)
+            
+            IF ( ierr /= NF90_NOERR) THEN
+               WRITE(*,*) 'Error opening file ', TRIM(grdname)
+               CALL abort
+            ENDIF
+               
+            CALL oasis_start_grids_writing(il_flag)
 
             ! Write grids
             CALL oas_roms_wrt_grd(ncid, cpl_grd(k_rho))
             CALL oas_roms_wrt_grd(ncid, cpl_grd(k_u  ))
             CALL oas_roms_wrt_grd(ncid, cpl_grd(k_v  ))
-
+               
             ! Write masks
             CALL oas_roms_wrt_msk(ncid, cpl_grd(k_rho))
             CALL oas_roms_wrt_msk(ncid, cpl_grd(k_u  ))
@@ -156,20 +179,10 @@ CONTAINS
             ierr = nf90_close(ncid)
 
             CALL oasis_terminate_grids_writing()
-
-         ENDIF
+            
+         END IF
 
       ENDIF
-
-      ! -------------------------------------- !
-      ! Definition of the Domain Decomposition !
-      ! -------------------------------------- !
-      ! Allocate the fields sent and received by the model without Halo and
-      ! overlaps between subdomains
-
-      CALL oas_roms_def_part(cpl_grd(k_rho))
-      CALL oas_roms_def_part(cpl_grd(k_u  ))
-      CALL oas_roms_def_part(cpl_grd(k_v  ))
 
       ! --------------------------------- !
       ! Definition of the coupling Fields !
