@@ -94,7 +94,7 @@
      
             ALLOCATE(grd%exfld(grd%imin:grd%imax, grd%jmin:grd%jmax))
 
-            IF ( IOASISDEBUGLVL == 30 ) THEN
+            IF ( IOASISDEBUGLVL >= 2 ) THEN
                PRINT *, '***********************************************'
                PRINT *, 'Mynode: ', mynode
                PRINT *, 'Node tile (inode, jnode) = (',inode,', ', jnode,')'
