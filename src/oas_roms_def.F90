@@ -124,13 +124,13 @@ CONTAINS
       ENDIF
       
       ! Read in coupling mask
-      CALL romsoc_read_alpha(ncid, cpl_grd(k_rho), alpha_rho)
-      CALL romsoc_read_alpha(ncid, cpl_grd(k_u  ), alpha_u  )
-      CALL romsoc_read_alpha(ncid, cpl_grd(k_v  ), alpha_v  )
+      CALL romsoc_read_alpha(ncid, romsoc_aux_name, cpl_grd(k_rho), alpha_rho)
+      CALL romsoc_read_alpha(ncid, romsoc_aux_name, cpl_grd(k_u  ), alpha_u  )
+      CALL romsoc_read_alpha(ncid, romsoc_aux_name, cpl_grd(k_v  ), alpha_v  )
       
       ! Read in velocity directions and compute projection coefficients
-      CALL romsoc_get_proj(ncid, cpl_grd(k_u), u_cos_proj_u, v_cos_proj_u)
-      CALL romsoc_get_proj(ncid, cpl_grd(k_v), u_cos_proj_v, v_cos_proj_v)
+      CALL romsoc_get_proj(ncid, romsoc_aux_name, cpl_grd(k_u), u_cos_proj_u, v_cos_proj_u)
+      CALL romsoc_get_proj(ncid, romsoc_aux_name, cpl_grd(k_v), u_cos_proj_v, v_cos_proj_v)
 
       ! Close ROMSOC auxiliary file 
       ierr = nf90_close(ncid)
@@ -158,22 +158,22 @@ CONTAINS
          CALL oasis_start_grids_writing(il_flag)
          
          ! Write grids
-         CALL oas_roms_wrt_grd(ncid, cpl_grd(k_rho))
-         CALL oas_roms_wrt_grd(ncid, cpl_grd(k_u  ))
-         CALL oas_roms_wrt_grd(ncid, cpl_grd(k_v  ))
+         CALL oas_roms_wrt_grd(ncid, grdname, cpl_grd(k_rho))
+         CALL oas_roms_wrt_grd(ncid, grdname, cpl_grd(k_u  ))
+         CALL oas_roms_wrt_grd(ncid, grdname, cpl_grd(k_v  ))
          
          ! Write masks
-         CALL oas_roms_wrt_msk(ncid, cpl_grd(k_rho))
-         CALL oas_roms_wrt_msk(ncid, cpl_grd(k_u  ))
-         CALL oas_roms_wrt_msk(ncid, cpl_grd(k_v  ))
+         CALL oas_roms_wrt_msk(ncid, grdname, cpl_grd(k_rho))
+         CALL oas_roms_wrt_msk(ncid, grdname, cpl_grd(k_u  ))
+         CALL oas_roms_wrt_msk(ncid, grdname, cpl_grd(k_v  ))
          
          ! Write corners
-         CALL oas_roms_wrt_crn(ncid, cpl_grd(k_rho))
-         CALL oas_roms_wrt_crn(ncid, cpl_grd(k_u  ))
-         CALL oas_roms_wrt_crn(ncid, cpl_grd(k_v  ))
+         CALL oas_roms_wrt_crn(ncid, grdname, cpl_grd(k_rho))
+         CALL oas_roms_wrt_crn(ncid, grdname, cpl_grd(k_u  ))
+         CALL oas_roms_wrt_crn(ncid, grdname, cpl_grd(k_v  ))
          
          ! Write areas
-         CALL oas_roms_wrt_areas(ncid)
+         CALL oas_roms_wrt_areas(ncid, grdname)
          
          ! Close ROMS grid file
          ierr = nf90_close(ncid)
@@ -268,13 +268,14 @@ CONTAINS
    
    ! ----------------------------------------------------------------------------------- !
 
-   SUBROUTINE oas_roms_wrt_grd(ncid, grd)
+   SUBROUTINE oas_roms_wrt_grd(ncid, ncname, grd)
       ! Description
       ! -----------
       ! Wrapper to the oasis_write_grid subroutine
 
       ! Arguments
       INTEGER, INTENT(IN) :: ncid
+      CHARACTER(len=*), INTENT(IN) :: ncname
       TYPE(OAS_GRID), INTENT(IN) :: grd
       
       ! Local variables
@@ -287,8 +288,8 @@ CONTAINS
       ALLOCATE(lon(grd%dims_l(1),grd%dims_l(2)),   &
          &     lat(grd%dims_l(1),grd%dims_l(2)))
 
-      CALL oas_roms_read_2d(ncid, 'lon_'//grd%pt, grd, lon, scope='local', nc_extent='full')
-      CALL oas_roms_read_2d(ncid, 'lat_'//grd%pt, grd, lat, scope='local', nc_extent='full')
+      CALL oas_roms_read_2d(ncid, 'lon_'//grd%pt, ncname, grd, lon, scope='global', nc_extent='full')
+      CALL oas_roms_read_2d(ncid, 'lat_'//grd%pt, ncname, grd, lat, scope='global', nc_extent='full')
       
       CALL oasis_write_grid(grd%grd_name, grd%dims_g(1), grd%dims_g(2), lon, lat, grd%part_id)
       
@@ -298,13 +299,14 @@ CONTAINS
 
    ! ----------------------------------------------------------------------------------- !
 
-   SUBROUTINE oas_roms_wrt_msk(ncid, grd)
+   SUBROUTINE oas_roms_wrt_msk(ncid, ncname, grd)
       ! Description
       ! -----------
       ! Wrapper to the oasis_write_mask subroutine
 
       ! Arguments
       INTEGER, INTENT(IN) :: ncid
+      CHARACTER(len=*), INTENT(IN) :: ncname
       TYPE(OAS_GRID), INTENT(IN) :: grd
       
       ! Local variables
@@ -316,7 +318,7 @@ CONTAINS
 
       ALLOCATE(mask(grd%dims_l(1),grd%dims_l(2)))
       
-      CALL oas_roms_read_2d(ncid, 'mask_'//grd%pt, grd, mask, scope='local', nc_extent='full')
+      CALL oas_roms_read_2d(ncid, 'mask_'//grd%pt, ncname, grd, mask, scope='global', nc_extent='full')
       mask(:,:) = 1.0 - mask(:,:)
       
       CALL oasis_write_mask(grd%grd_name, grd%dims_g(1), grd%dims_g(2), INT(mask), grd%part_id)
@@ -327,13 +329,14 @@ CONTAINS
 
    ! ----------------------------------------------------------------------------------- !
 
-   SUBROUTINE oas_roms_wrt_crn(ncid, grd)
+   SUBROUTINE oas_roms_wrt_crn(ncid, ncname, grd)
       ! Description
       ! -----------
       ! Wrapper to the oasis_write_corner subroutine
 
       ! Arguments
       INTEGER, INTENT(IN) :: ncid
+      CHARACTER(len=*), INTENT(IN) :: ncname
       TYPE(OAS_GRID), INTENT(IN) :: grd
       
       ! Local variables
@@ -349,8 +352,8 @@ CONTAINS
       ALLOCATE(lon(grd%dims_l(1), grd%dims_l(2), 4),   &
          &     lat(grd%dims_l(1), grd%dims_l(2), 4))
 
-      CALL oas_roms_read_3d(ncid, 'lon_'//TRIM(grd%pt)//'_crn', grd, lon, 4, scope='local', nc_extent='full')
-      CALL oas_roms_read_3d(ncid, 'lat_'//TRIM(grd%pt)//'_crn', grd, lat, 4, scope='local', nc_extent='full')
+      CALL oas_roms_read_3d(ncid, 'lon_'//TRIM(grd%pt)//'_crn', ncname, grd, lon, shp(3), scope='global', nc_extent='full')
+      CALL oas_roms_read_3d(ncid, 'lat_'//TRIM(grd%pt)//'_crn', ncname, grd, lat, shp(3), scope='global', nc_extent='full')
       
       CALL oasis_write_corner(grd%grd_name, grd%dims_g(1), grd%dims_g(2), 4, lon, lat, grd%part_id)
 
@@ -360,13 +363,14 @@ CONTAINS
 
    ! ----------------------------------------------------------------------------------- !
    
-   SUBROUTINE oas_roms_wrt_areas(ncid)
+   SUBROUTINE oas_roms_wrt_areas(ncid, ncname)
       ! Description
       ! -----------
       ! Wrapper to the oasis_write_area subroutine
       
       ! Arguments
       INTEGER, INTENT(IN) :: ncid
+      CHARACTER(len=*), INTENT(IN) :: ncname
       
       ! Local variables
       REAL(KIND=8), DIMENSION(:,:), ALLOCATABLE :: e1, e2, a_rho, a_u, a_v
@@ -384,8 +388,8 @@ CONTAINS
          &     a_v(cpl_grd(k_v)%dims_l(1), cpl_grd(k_v)%dims_l(2)) )
 
       ! Read in scale factors
-      CALL oas_roms_read_2d(ncid, 'pm', cpl_grd(k_rho), e1, scope='local', nc_extent='full')
-      CALL oas_roms_read_2d(ncid, 'pn', cpl_grd(k_rho), e2, scope='local', nc_extent='full')
+      CALL oas_roms_read_2d(ncid, 'pm', ncname, cpl_grd(k_rho), e1, scope='local', nc_extent='full')
+      CALL oas_roms_read_2d(ncid, 'pn', ncname, cpl_grd(k_rho), e2, scope='local', nc_extent='full')
       e1(:,:) = 1.0 / e1(:,:)
       e2(:,:) = 1.0 / e2(:,:)
 
@@ -551,13 +555,14 @@ CONTAINS
 
    ! ----------------------------------------------------------------------------------- !
 
-   SUBROUTINE romsoc_read_alpha(ncid, grd, alpha)
+   SUBROUTINE romsoc_read_alpha(ncid, ncname, grd, alpha)
       ! Description
       ! -----------
       ! Read in coupling coefficient from ROMSOC auxiliary file
 
       ! Arguments
       INTEGER, INTENT(IN) :: ncid
+      CHARACTER(len=*), INTENT(IN) :: ncname
       TYPE(OAS_GRID), INTENT(IN) :: grd
       REAL(KIND=8), DIMENSION(:,:), ALLOCATABLE, INTENT(INOUT) :: alpha
       
@@ -567,13 +572,13 @@ CONTAINS
 
       ALLOCATE(alpha(grd%imin:grd%imax,grd%jmin:grd%jmax))
       
-      CALL oas_roms_read_2d(ncid, 'alpha_'//TRIM(grd%pt), grd, alpha, scope='local', nc_extent='inner')
+      CALL oas_roms_read_2d(ncid, 'alpha_'//TRIM(grd%pt), ncname, grd, alpha, scope='local', nc_extent='inner')
       
    END SUBROUTINE romsoc_read_alpha
 
    ! ----------------------------------------------------------------------------------- !
 
-   SUBROUTINE romsoc_get_proj(ncid, grd, u_proj, v_proj)
+   SUBROUTINE romsoc_get_proj(ncid, ncname, grd, u_proj, v_proj)
       ! Description
       ! -----------
       ! Read in ROMS and COSMO directions and compute projection coefficients
@@ -582,6 +587,7 @@ CONTAINS
 
       ! Arguments
       INTEGER, INTENT(IN) :: ncid
+      CHARACTER(len=*), INTENT(IN) :: ncname
       TYPE(OAS_GRID), INTENT(IN) :: grd
       REAL(KIND=8), DIMENSION(:,:), ALLOCATABLE, INTENT(INOUT) :: u_proj, v_proj
       
@@ -600,9 +606,9 @@ CONTAINS
          &     v_proj   (grd%imin:grd%imax,grd%jmin:grd%jmax  ))
 
       ! Read in 3d velocity directions (unit vectors)
-      CALL oas_roms_read_3d(ncid, 'cos_u_dir_roms_'//TRIM(grd%pt), grd, cos_u_dir, 3, scope='local', nc_extent='inner')
-      CALL oas_roms_read_3d(ncid, 'cos_v_dir_roms_'//TRIM(grd%pt), grd, cos_v_dir, 3, scope='local', nc_extent='inner')
-      CALL oas_roms_read_3d(ncid, 'roms_'//TRIM(grd%pt)//'_dir'  , grd, roms_dir , 3, scope='local', nc_extent='inner')
+      CALL oas_roms_read_3d(ncid, 'cos_u_dir_roms_'//TRIM(grd%pt), ncname, grd, cos_u_dir, 3, scope='local', nc_extent='inner')
+      CALL oas_roms_read_3d(ncid, 'cos_v_dir_roms_'//TRIM(grd%pt), ncname, grd, cos_v_dir, 3, scope='local', nc_extent='inner')
+      CALL oas_roms_read_3d(ncid, 'roms_'//TRIM(grd%pt)//'_dir'  , ncname, grd, roms_dir , 3, scope='local', nc_extent='inner')
 
       ! Compute projections
       u_proj(:,:) = cos_u_dir(:,:,1) * roms_dir(:,:,1)
@@ -618,14 +624,14 @@ CONTAINS
 
    ! ----------------------------------------------------------------------------------- !
    
-   SUBROUTINE oas_roms_read_2d(ncid, vname, grd, buffer, scope, nc_extent)
+   SUBROUTINE oas_roms_read_2d(ncid, vname, fname, grd, buffer, scope, nc_extent)
       ! Description
       ! -----------
       ! Read in 2d variables from netcdf file
 
       ! Arguments
       INTEGER, INTENT(IN) :: ncid
-      CHARACTER(len=*), INTENT(IN) :: vname
+      CHARACTER(len=*), INTENT(IN) :: vname, fname
       TYPE(OAS_GRID), INTENT(IN) :: grd
       REAL(KIND=8), DIMENSION(:,:), INTENT(INOUT) :: buffer
       CHARACTER(len=*), INTENT(IN) :: scope, nc_extent
@@ -664,9 +670,10 @@ CONTAINS
          ierr = nf90_get_var(ncid, var_id, buffer, start=kstart, count=ncount)
          
          IF (ierr /= NF90_NOERR) THEN
-            WRITE(*,*) 'Var kstart and ncount ', kstart, ncount
-            WRITE(*,*) TRIM(vname), ' buffer: ', 'LBOUND=', LBOUND(buffer), ' UBOUND=', UBOUND(buffer)
-            WRITE(*,*) TRIM(vname), ' oas_roms_read_2d ', nf90_strerror(ierr)
+            WRITE(*,*) 'ERROR in oas_roms_read_2d reading var ', TRIM(vname), ' in ', TRIM(fname)
+            WRITE(*,*) nf90_strerror(ierr)
+            WRITE(*,*) 'start and count provided to nf90_get_var: ', kstart, ncount
+            WRITE(*,*) 'buffer: ', 'LBOUND=', LBOUND(buffer), ' UBOUND=', UBOUND(buffer)
             CALL abort
          END IF
          
@@ -681,14 +688,14 @@ CONTAINS
 
    ! ----------------------------------------------------------------------------------- !
 
-   SUBROUTINE oas_roms_read_3d(ncid, vname, grd, buffer, dim3, scope, nc_extent)
+   SUBROUTINE oas_roms_read_3d(ncid, vname, fname, grd, buffer, dim3, scope, nc_extent)
       ! Description
       ! -----------
       ! Read in 3d variables from netcdf file
 
       ! Arguments
       INTEGER, INTENT(IN) :: ncid
-      CHARACTER(len=*), INTENT(IN) :: vname
+      CHARACTER(len=*), INTENT(IN) :: vname, fname
       TYPE(OAS_GRID), INTENT(IN) :: grd
       REAL(KIND=8), DIMENSION(:,:,:), INTENT(INOUT) :: buffer
       INTEGER, INTENT(IN) :: dim3
@@ -728,9 +735,10 @@ CONTAINS
          ierr = nf90_get_var(ncid, var_id, buffer, start=kstart, count=ncount)
          
          IF (ierr /= NF90_NOERR) THEN
-            WRITE(*,*) 'Var kstart and ncount ', kstart, ncount
-            WRITE(*,*) TRIM(vname), ' buffer: ', 'LBOUND=', LBOUND(buffer), ' UBOUND=', UBOUND(buffer)
-            WRITE(*,*) TRIM(vname), ' oas_roms_read_3d ', nf90_strerror(ierr)
+            WRITE(*,*) 'ERROR in oas_roms_read_3d reading var ', TRIM(vname), ' in ', TRIM(fname)
+            WRITE(*,*) nf90_strerror(ierr)
+            WRITE(*,*) 'start and count provided to nf90_get_var: ', kstart, ncount
+            WRITE(*,*) 'buffer: ', 'LBOUND=', LBOUND(buffer), ' UBOUND=', UBOUND(buffer)
             CALL abort
          END IF
       
