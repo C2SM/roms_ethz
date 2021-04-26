@@ -288,8 +288,8 @@ CONTAINS
       ALLOCATE(lon(grd%dims_l(1),grd%dims_l(2)),   &
          &     lat(grd%dims_l(1),grd%dims_l(2)))
 
-      CALL oas_roms_read_2d(ncid, 'lon_'//grd%pt, ncname, grd, lon, scope='global', nc_extent='full')
-      CALL oas_roms_read_2d(ncid, 'lat_'//grd%pt, ncname, grd, lat, scope='global', nc_extent='full')
+      CALL oas_roms_read_2d(ncid, 'lon_'//grd%pt, ncname, grd, lon, scope='local', nc_extent='full')
+      CALL oas_roms_read_2d(ncid, 'lat_'//grd%pt, ncname, grd, lat, scope='local', nc_extent='full')
       
       CALL oasis_write_grid(grd%grd_name, grd%dims_g(1), grd%dims_g(2), lon, lat, grd%part_id)
       
@@ -318,7 +318,7 @@ CONTAINS
 
       ALLOCATE(mask(grd%dims_l(1),grd%dims_l(2)))
       
-      CALL oas_roms_read_2d(ncid, 'mask_'//grd%pt, ncname, grd, mask, scope='global', nc_extent='full')
+      CALL oas_roms_read_2d(ncid, 'mask_'//grd%pt, ncname, grd, mask, scope='local', nc_extent='full')
       mask(:,:) = 1.0 - mask(:,:)
       
       CALL oasis_write_mask(grd%grd_name, grd%dims_g(1), grd%dims_g(2), INT(mask), grd%part_id)
@@ -352,8 +352,8 @@ CONTAINS
       ALLOCATE(lon(grd%dims_l(1), grd%dims_l(2), 4),   &
          &     lat(grd%dims_l(1), grd%dims_l(2), 4))
 
-      CALL oas_roms_read_3d(ncid, 'lon_'//TRIM(grd%pt)//'_crn', ncname, grd, lon, shp(3), scope='global', nc_extent='full')
-      CALL oas_roms_read_3d(ncid, 'lat_'//TRIM(grd%pt)//'_crn', ncname, grd, lat, shp(3), scope='global', nc_extent='full')
+      CALL oas_roms_read_3d(ncid, 'lon_'//TRIM(grd%pt)//'_crn', ncname, grd, lon, shp(3), scope='local', nc_extent='full')
+      CALL oas_roms_read_3d(ncid, 'lat_'//TRIM(grd%pt)//'_crn', ncname, grd, lat, shp(3), scope='local', nc_extent='full')
       
       CALL oasis_write_corner(grd%grd_name, grd%dims_g(1), grd%dims_g(2), 4, lon, lat, grd%part_id)
 
