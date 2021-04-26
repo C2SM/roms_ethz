@@ -711,7 +711,7 @@ CONTAINS
 
          IF (TRIM(scope) == 'global') THEN
             IF (TRIM(nc_extent) == 'full') THEN
-               kstart = (/2, 2, 2/)
+               kstart = (/2, 2, 1/)
             ELSEIF (TRIM(nc_extent) == 'inner') THEN
                kstart = (/1, 1, 1/)
             ELSE
