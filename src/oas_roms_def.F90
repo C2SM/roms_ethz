@@ -82,7 +82,8 @@ CONTAINS
       CHARACTER(len=256), INTENT(IN) :: grdname
 
       ! Local variables
-      INTEGER :: ncid, ierr, il_flag
+      INTEGER :: ncid, ierr, il_flag, ierr_code
+      LOGICAL :: l_wrt_aux
 
       CALL MPI_Comm_rank(kl_comm, mype, ierr)
       
@@ -141,7 +142,7 @@ CONTAINS
       ! Determine if OASIS auxiliary files have to be written based on
       ! the existence of grids.nc
       IF (mype == 0) l_wrt_aux = nf90_open('grids.nc', NF90_NOWRITE, ncid) /= NF90_NOERR
-      CALL MPI_BCAST(l_wrt_aux, 1, MPI_LOGICAL, 0, kl_comm)
+      CALL MPI_BCAST(l_wrt_aux, 1, MPI_LOGICAL, 0, kl_comm, ierr)
       
       IF (l_wrt_aux) THEN
             
@@ -151,7 +152,7 @@ CONTAINS
          
          IF ( ierr /= NF90_NOERR) THEN
             WRITE(*,*) 'Error opening file ', TRIM(grdname)
-            CALL MPI_ABORT
+            CALL MPI_ABORT(kl_comm, ierr_code, ierr)
          ENDIF
          
          CALL oasis_start_grids_writing(il_flag)
