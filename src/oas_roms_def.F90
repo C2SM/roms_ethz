@@ -640,7 +640,7 @@ CONTAINS
             END IF
             ncount = grd%dims_l
          ELSE
-            WRITE(*,*) "ERROR in oas_roms_read_2d : extent has to be either 'local' or 'global'"
+            WRITE(*,*) "ERROR in oas_roms_read_2d : scope has to be either 'local' or 'global'"
             CALL abort
          END IF
          
@@ -649,13 +649,13 @@ CONTAINS
          IF (ierr /= NF90_NOERR) THEN
             WRITE(*,*) 'Var kstart and ncount ', kstart, ncount
             WRITE(*,*) TRIM(vname), ' buffer: ', 'LBOUND=', LBOUND(buffer), ' UBOUND=', UBOUND(buffer)
-            WRITE(*,*) TRIM(vname), 'oas_roms_read_2d ', nf90_strerror(ierr)
+            WRITE(*,*) TRIM(vname), ' oas_roms_read_2d ', nf90_strerror(ierr)
             CALL abort
          END IF
          
       ELSE
          
-         WRITE(*,*) 'Error inquiring var ', TRIM(vname), 'in oas_roms_read_2d'
+         WRITE(*,*) 'Error inquiring var ', TRIM(vname), ' in oas_roms_read_3d'
          CALL abort
          
       END IF
@@ -691,7 +691,7 @@ CONTAINS
             ELSEIF (TRIM(nc_extent) == 'inner') THEN
                kstart = (/1, 1, 1/)
             ELSE
-               WRITE(*,*) "ERROR in oas_roms_read_2d : nc_extent has to be either 'full' or 'inner'"
+               WRITE(*,*) "ERROR in oas_roms_read_3d : nc_extent has to be either 'full' or 'inner'"
             END IF
             ncount = (/grd%dims_g(1), grd%dims_g(2), dim3/)
          ELSEIF (TRIM(scope) == 'local') THEN
@@ -700,11 +700,11 @@ CONTAINS
             ELSEIF (TRIM(nc_extent) == 'inner') THEN
                kstart = (/grd%start_g(1), grd%start_g(2), 1/)
             ELSE
-               WRITE(*,*) "ERROR in oas_roms_read_2d : nc_extent has to be either 'full' or 'inner'"
+               WRITE(*,*) "ERROR in oas_roms_read_3d : nc_extent has to be either 'full' or 'inner'"
             END IF
             ncount = (/grd%dims_l(1), grd%dims_l(2), dim3/)
          ELSE
-            WRITE(*,*) "ERROR in oas_roms_read_2d : extent has to be either 'local' or 'global'"
+            WRITE(*,*) "ERROR in oas_roms_read_3d : scope has to be either 'local' or 'global'"
             CALL abort
          END IF
          
@@ -713,13 +713,13 @@ CONTAINS
          IF (ierr /= NF90_NOERR) THEN
             WRITE(*,*) 'Var kstart and ncount ', kstart, ncount
             WRITE(*,*) TRIM(vname), ' buffer: ', 'LBOUND=', LBOUND(buffer), ' UBOUND=', UBOUND(buffer)
-            WRITE(*,*) TRIM(vname), 'oas_roms_read_2d ', nf90_strerror(ierr)
+            WRITE(*,*) TRIM(vname), ' oas_roms_read_3d ', nf90_strerror(ierr)
             CALL abort
          END IF
       
       ELSE
          
-         WRITE(*,*) 'Error inquiring var ', TRIM(vname), 'in oas_roms_read_3d'
+         WRITE(*,*) 'Error inquiring var ', TRIM(vname), ' in oas_roms_read_3d'
          CALL abort
          
       END IF
