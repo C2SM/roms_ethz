@@ -82,7 +82,8 @@ CONTAINS
       CHARACTER(len=256), INTENT(IN) :: grdname
 
       ! Local variables
-      INTEGER :: ncid, ierr, il_flag
+      INTEGER :: ncid, ierr, il_flag, ierr_code
+      LOGICAL :: l_wrt_aux
 
       CALL MPI_Comm_rank(kl_comm, mype, ierr)
       
@@ -102,12 +103,25 @@ CONTAINS
       CALL oas_roms_set_grd(cpl_grd(k_u  ), k_u  )
       CALL oas_roms_set_grd(cpl_grd(k_v  ), k_v  )
 
+      ! -------------------------------------------- !
+      ! Definition of the OASIS domain partitionning !
+      ! -------------------------------------------- !
+
+      CALL oas_roms_def_part(cpl_grd(k_rho))
+      CALL oas_roms_def_part(cpl_grd(k_u  ))
+      CALL oas_roms_def_part(cpl_grd(k_v  ))
+
       ! ------------------------------------- !
       ! Initialize ROMSOC auxiliary variables !  
       ! ------------------------------------- !
       
       ! Open ROMSOC auxiliary file
       ierr = nf90_open(TRIM(romsoc_aux_name), NF90_NOWRITE, ncid)
+            
+      IF ( ierr /= NF90_NOERR) THEN
+         WRITE(*,*) 'Error opening file ', TRIM(romsoc_aux_name)
+         CALL abort
+      ENDIF
       
       ! Read in coupling mask
       CALL romsoc_read_alpha(ncid, romsoc_aux_name, cpl_grd(k_rho), alpha_rho)
@@ -124,52 +138,49 @@ CONTAINS
       ! ---------------------------------------------------------------- !
       ! Master process writes info on OASIS3 auxiliary files (if needed) ! 
       ! ---------------------------------------------------------------- !
+
+      ! Determine if OASIS auxiliary files have to be written based on
+      ! the existence of grids.nc
+      IF (mype == 0) l_wrt_aux = nf90_open('grids.nc', NF90_NOWRITE, ncid) /= NF90_NOERR
+      CALL MPI_BCAST(l_wrt_aux, 1, MPI_LOGICAL, 0, kl_comm, ierr)
       
-      IF (mype .EQ. 0) THEN   ! Only master node writes grid file
-
-         CALL oasis_start_grids_writing(il_flag)
-
-         IF (il_flag == 1) THEN
-
-            ! Open ROMS grid file
-            ierr = nf90_open(TRIM(grdname), NF90_NOWRITE, ncid)
-
-            ! Write grids
-            CALL oas_roms_wrt_grd(ncid, grdname, cpl_grd(k_rho))
-            CALL oas_roms_wrt_grd(ncid, grdname, cpl_grd(k_u  ))
-            CALL oas_roms_wrt_grd(ncid, grdname, cpl_grd(k_v  ))
-
-            ! Write masks
-            CALL oas_roms_wrt_msk(ncid, grdname, cpl_grd(k_rho))
-            CALL oas_roms_wrt_msk(ncid, grdname, cpl_grd(k_u  ))
-            CALL oas_roms_wrt_msk(ncid, grdname, cpl_grd(k_v  ))
-
-            ! Write corners
-            CALL oas_roms_wrt_crn(ncid, grdname, cpl_grd(k_rho))
-            CALL oas_roms_wrt_crn(ncid, grdname, cpl_grd(k_u  ))
-            CALL oas_roms_wrt_crn(ncid, grdname, cpl_grd(k_v  ))
-
-            ! Write areas
-            CALL oas_roms_wrt_areas(ncid, grdname)
-
-            ! Close ROMS grid file
-            ierr = nf90_close(ncid)
-
-            CALL oasis_terminate_grids_writing()
-
+      IF (l_wrt_aux) THEN
+            
+         WRITE(*,*) 'Writing OASIS auxiliary files'
+         ! Open ROMS grid file
+         ierr = nf90_open(TRIM(grdname), NF90_NOWRITE, ncid)
+         
+         IF ( ierr /= NF90_NOERR) THEN
+            WRITE(*,*) 'Error opening file ', TRIM(grdname)
+            CALL MPI_ABORT(kl_comm, ierr_code, ierr)
          ENDIF
-
+         
+         CALL oasis_start_grids_writing(il_flag)
+         
+         ! Write grids
+         CALL oas_roms_wrt_grd(ncid, grdname, cpl_grd(k_rho))
+         CALL oas_roms_wrt_grd(ncid, grdname, cpl_grd(k_u  ))
+         CALL oas_roms_wrt_grd(ncid, grdname, cpl_grd(k_v  ))
+         
+         ! Write masks
+         CALL oas_roms_wrt_msk(ncid, grdname, cpl_grd(k_rho))
+         CALL oas_roms_wrt_msk(ncid, grdname, cpl_grd(k_u  ))
+         CALL oas_roms_wrt_msk(ncid, grdname, cpl_grd(k_v  ))
+         
+         ! Write corners
+         CALL oas_roms_wrt_crn(ncid, grdname, cpl_grd(k_rho))
+         CALL oas_roms_wrt_crn(ncid, grdname, cpl_grd(k_u  ))
+         CALL oas_roms_wrt_crn(ncid, grdname, cpl_grd(k_v  ))
+         
+         ! Write areas
+         CALL oas_roms_wrt_areas(ncid, grdname)
+         
+         ! Close ROMS grid file
+         ierr = nf90_close(ncid)
+         
+         CALL oasis_terminate_grids_writing()
+         
       ENDIF
-
-      ! -------------------------------------- !
-      ! Definition of the Domain Decomposition !
-      ! -------------------------------------- !
-      ! Allocate the fields sent and received by the model without Halo and
-      ! overlaps between subdomains
-
-      CALL oas_roms_def_part(cpl_grd(k_rho))
-      CALL oas_roms_def_part(cpl_grd(k_u  ))
-      CALL oas_roms_def_part(cpl_grd(k_v  ))
 
       ! --------------------------------- !
       ! Definition of the coupling Fields !
@@ -274,13 +285,13 @@ CONTAINS
          WRITE(*,*) "OAS_ROMS : writing OASIS grid at ", TRIM(grd%pt), "-points"
       END IF
 
-      ALLOCATE(lon(grd%dims_g(1),grd%dims_g(2)),   &
-         &     lat(grd%dims_g(1),grd%dims_g(2)))
+      ALLOCATE(lon(grd%dims_l(1),grd%dims_l(2)),   &
+         &     lat(grd%dims_l(1),grd%dims_l(2)))
 
-      CALL oas_roms_read_2d(ncid, 'lon_'//grd%pt, ncname, grd, lon, scope='global', nc_extent='full')
-      CALL oas_roms_read_2d(ncid, 'lat_'//grd%pt, ncname, grd, lat, scope='global', nc_extent='full')
+      CALL oas_roms_read_2d(ncid, 'lon_'//grd%pt, ncname, grd, lon, scope='local', nc_extent='full')
+      CALL oas_roms_read_2d(ncid, 'lat_'//grd%pt, ncname, grd, lat, scope='local', nc_extent='full')
       
-      CALL oasis_write_grid(grd%grd_name, grd%dims_g(1), grd%dims_g(2), lon, lat)
+      CALL oasis_write_grid(grd%grd_name, grd%dims_g(1), grd%dims_g(2), lon, lat, grd%part_id)
       
       DEALLOCATE(lon, lat)
 
@@ -305,12 +316,12 @@ CONTAINS
          WRITE(*,*) "OAS_ROMS : writing OASIS mask at ", TRIM(grd%pt), "-points"
       END IF
 
-      ALLOCATE(mask(grd%dims_g(1),grd%dims_g(2)))
+      ALLOCATE(mask(grd%dims_l(1),grd%dims_l(2)))
       
-      CALL oas_roms_read_2d(ncid, 'mask_'//grd%pt, ncname, grd, mask, scope='global', nc_extent='full')
+      CALL oas_roms_read_2d(ncid, 'mask_'//grd%pt, ncname, grd, mask, scope='local', nc_extent='full')
       mask(:,:) = 1.0 - mask(:,:)
       
-      CALL oasis_write_mask(grd%grd_name, grd%dims_g(1), grd%dims_g(2), INT(mask))
+      CALL oasis_write_mask(grd%grd_name, grd%dims_g(1), grd%dims_g(2), INT(mask), grd%part_id)
 
       DEALLOCATE(mask)
 
@@ -336,15 +347,15 @@ CONTAINS
          WRITE(*,*) "OAS_ROMS : writing OASIS grid corners at ", TRIM(grd%pt), "-points"
       END IF
 
-      shp = (/grd%dims_g(1), grd%dims_g(2), 4/)
+      shp = (/grd%dims_l(1), grd%dims_l(2), 4/)
 
-      ALLOCATE(lon(shp(1),shp(2),shp(3)),   &
-         &     lat(shp(1),shp(2),shp(3)))
+      ALLOCATE(lon(grd%dims_l(1), grd%dims_l(2), 4),   &
+         &     lat(grd%dims_l(1), grd%dims_l(2), 4))
 
-      CALL oas_roms_read_3d(ncid, 'lon_'//TRIM(grd%pt)//'_crn', ncname, grd, lon, shp(3), scope='global', nc_extent='full')
-      CALL oas_roms_read_3d(ncid, 'lat_'//TRIM(grd%pt)//'_crn', ncname, grd, lat, shp(3), scope='global', nc_extent='full')
+      CALL oas_roms_read_3d(ncid, 'lon_'//TRIM(grd%pt)//'_crn', ncname, grd, lon, shp(3), scope='local', nc_extent='full')
+      CALL oas_roms_read_3d(ncid, 'lat_'//TRIM(grd%pt)//'_crn', ncname, grd, lat, shp(3), scope='local', nc_extent='full')
       
-      CALL oasis_write_corner(grd%grd_name, shp(1), shp(2), shp(3), lon, lat)
+      CALL oasis_write_corner(grd%grd_name, grd%dims_g(1), grd%dims_g(2), 4, lon, lat, grd%part_id)
 
       DEALLOCATE(lon, lat)
 
@@ -369,41 +380,47 @@ CONTAINS
          WRITE(*,*) "OAS_ROMS : writing OASIS areas"
       END IF
 
-      ! Allocate and read scale factors
-      n_xi_rho = cpl_grd(k_rho)%dims_g(1)
-      n_eta_rho = cpl_grd(k_rho)%dims_g(2)
-      ALLOCATE(e1(n_xi_rho,n_eta_rho), e2(n_xi_rho,n_eta_rho))
-      CALL oas_roms_read_2d(ncid, 'pm', ncname, cpl_grd(k_rho), e1, scope='global', nc_extent='full')
-      CALL oas_roms_read_2d(ncid, 'pn', ncname, cpl_grd(k_rho), e2, scope='global', nc_extent='full')
+      ! Allocate temporary variables
+      ALLOCATE(e1(cpl_grd(k_rho)%dims_l(1), cpl_grd(k_rho)%dims_l(2)),   &
+         &     e2(cpl_grd(k_rho)%dims_l(1), cpl_grd(k_rho)%dims_l(2)),   &
+         &     a_rho(cpl_grd(k_rho)%dims_l(1), cpl_grd(k_rho)%dims_l(2)),   &
+         &     a_u(cpl_grd(k_u)%dims_l(1), cpl_grd(k_u)%dims_l(2)),   &
+         &     a_v(cpl_grd(k_v)%dims_l(1), cpl_grd(k_v)%dims_l(2)) )
+
+      ! Read in scale factors
+      CALL oas_roms_read_2d(ncid, 'pm', ncname, cpl_grd(k_rho), e1, scope='local', nc_extent='full')
+      CALL oas_roms_read_2d(ncid, 'pn', ncname, cpl_grd(k_rho), e2, scope='local', nc_extent='full')
       e1(:,:) = 1.0 / e1(:,:)
       e2(:,:) = 1.0 / e2(:,:)
 
       ! RHO-grid areas
-      ALLOCATE(a_rho(n_xi_rho,n_eta_rho))
       a_rho(:,:) =  e1(:,:) * e2(:,:)
-      CALL oasis_write_area(cpl_grd(k_rho)%grd_name, n_xi_rho, n_eta_rho, a_rho)
-      DEALLOCATE(a_rho)
+      CALL oasis_write_area(cpl_grd(k_rho)%grd_name,    &
+         &                  cpl_grd(k_rho)%dims_g(1),   &
+         &                  cpl_grd(k_rho)%dims_g(2),   &
+         &                  a_rho,                      &
+         &                  cpl_grd(k_rho)%part_id       )
 
       ! U-grid areas
-      n_xi = cpl_grd(k_u)%dims_g(1)
-      n_eta = cpl_grd(k_u)%dims_g(2)
-      ALLOCATE(a_u(n_xi,n_eta))
-      a_u(:,:) = 0.25 * (e1(1:n_xi_rho-1,:) + e1(2:n_xi_rho,:))   &
-         &            * (e2(1:n_xi_rho-1,:) + e2(2:n_xi_rho,:))
-      CALL oasis_write_area(cpl_grd(k_u)%grd_name, n_xi, n_eta, a_u)
-      DEALLOCATE(a_u)
+      a_u(:,:) = 0.25 * (e1(1:cpl_grd(k_rho)%dims_l(1)-1,:) + e1(2:cpl_grd(k_rho)%dims_l(1),:))   &
+         &            * (e2(1:cpl_grd(k_rho)%dims_l(1)-1,:) + e2(2:cpl_grd(k_rho)%dims_l(1),:))
+      CALL oasis_write_area(cpl_grd(k_u)%grd_name,    &
+         &                  cpl_grd(k_u)%dims_g(1),   &
+         &                  cpl_grd(k_u)%dims_g(2),   &
+         &                  a_u,                      &
+         &                  cpl_grd(k_u)%part_id       )
 
       ! V-grid areas
-      n_xi = cpl_grd(k_v)%dims_g(1)
-      n_eta = cpl_grd(k_v)%dims_g(2)
-      ALLOCATE(a_v(n_xi,n_eta))
-      a_v(:,:) = 0.25 * (e1(:,1:n_eta_rho-1) + e1(:,2:n_eta_rho))   &
-         &            * (e2(:,1:n_eta_rho-1) + e2(:,2:n_eta_rho))
-      CALL oasis_write_area(cpl_grd(k_v)%grd_name, n_xi, n_eta, a_v)
-      DEALLOCATE(a_v)
+      a_v(:,:) = 0.25 * (e1(:,1:cpl_grd(k_rho)%dims_l(2)-1) + e1(:,2:cpl_grd(k_rho)%dims_l(2)))   &
+         &            * (e2(:,1:cpl_grd(k_rho)%dims_l(2)-1) + e2(:,2:cpl_grd(k_rho)%dims_l(2)))
+      CALL oasis_write_area(cpl_grd(k_v)%grd_name,    &
+         &                  cpl_grd(k_v)%dims_g(1),   &
+         &                  cpl_grd(k_v)%dims_g(2),   &
+         &                  a_v,                      &
+         &                  cpl_grd(k_v)%part_id       )
 
-      ! Deallocate scale factors
-      DEALLOCATE(e1, e2)
+      ! Deallocate temporary variables
+      DEALLOCATE(e1, e2, a_rho, a_u, a_v)
 
    END SUBROUTINE oas_roms_wrt_areas
 
