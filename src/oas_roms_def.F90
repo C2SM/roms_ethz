@@ -135,9 +135,9 @@ CONTAINS
       ! Close ROMSOC auxiliary file 
       ierr = nf90_close(ncid)
 
-      ! ---------------------------------------------------------------- !
-      ! Master process writes info on OASIS3 auxiliary files (if needed) ! 
-      ! ---------------------------------------------------------------- !
+      ! ---------------------------------------- !
+      ! Write OASIS3 auxiliary files (if needed) !
+      ! ---------------------------------------- !
 
       ! Determine if OASIS auxiliary files have to be written based on
       ! the existence of grids.nc
