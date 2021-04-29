@@ -146,7 +146,9 @@ CONTAINS
       
       IF (l_wrt_aux) THEN
             
-         WRITE(*,*) 'Writing OASIS auxiliary files'
+         IF ((IOASISDEBUGLVL > 0) .AND. (mype == 0)) THEN
+            WRITE(*,*) 'Writing OASIS auxiliary files'
+         END IF
          ! Open ROMS grid file
          ierr = nf90_open(TRIM(grdname), NF90_NOWRITE, ncid)
          
