@@ -83,16 +83,16 @@ CONTAINS
                srcv(jn)%pdata(:,:) = cpl_grd(srcv(jn)%k_pt)%exfld(:,:)
 
                IF (IOASISDEBUGLVL >= 10) THEN
-                  WRITE(NULOUT,*) '****************'
-                  WRITE(NULOUT,*) 'ROMS received data:'
-                  WRITE(NULOUT,*) 'oasis_get: ', srcv(jn)%clname
-                  WRITE(NULOUT,*) 'oasis_get: ivarid '  , srcv(jn)%nid
-                  WRITE(NULOUT,*) 'oasis_get: kstep', kstep
-                  WRITE(NULOUT,*) 'oasis_get: info ', kinfo
-                  WRITE(NULOUT,*) '     - Minimum value is ', MINVAL(ssnd(jn)%pdata(:,:))
-                  WRITE(NULOUT,*) '     - Maximum value is ', MAXVAL(ssnd(jn)%pdata(:,:))
-                  WRITE(NULOUT,*) '     -     Sum value is ', SUM(ssnd(jn)%pdata(:,:))
-                  WRITE(NULOUT,*) '****************'
+                  WRITE(NULOUT,*) 'OAS_ROMS : ****************'
+                  WRITE(NULOUT,*) 'OAS_ROMS : ROMS received data:'
+                  WRITE(NULOUT,*) 'OAS_ROMS : oasis_get: ', srcv(jn)%clname
+                  WRITE(NULOUT,*) 'OAS_ROMS : oasis_get: ivarid '  , srcv(jn)%nid
+                  WRITE(NULOUT,*) 'OAS_ROMS : oasis_get: kstep', kstep
+                  WRITE(NULOUT,*) 'OAS_ROMS : oasis_get: info ', kinfo
+                  WRITE(NULOUT,*) 'OAS_ROMS :      - Minimum value is ', MINVAL(ssnd(jn)%pdata(:,:))
+                  WRITE(NULOUT,*) 'OAS_ROMS :      - Maximum value is ', MAXVAL(ssnd(jn)%pdata(:,:))
+                  WRITE(NULOUT,*) 'OAS_ROMS :      -     Sum value is ', SUM(ssnd(jn)%pdata(:,:))
+                  WRITE(NULOUT,*) 'OAS_ROMS : ****************'
                ENDIF
                
             ENDIF
@@ -122,16 +122,16 @@ CONTAINS
             CALL oasis_put(ssnd(jn)%nid, kstep, ssnd(jn)%pdata, kinfo)
 
             IF (IOASISDEBUGLVL >= 10) THEN
-               WRITE(NULOUT,*) '****************'
-               WRITE(NULOUT,*) 'ROMS sent data:'
-               WRITE(NULOUT,*) 'oasis_put: ', ssnd(jn)%clname
-               WRITE(NULOUT,*) 'oasis_put: ivarid '  , ssnd(jn)%nid
-               WRITE(NULOUT,*) 'oasis_put: kstep', kstep
-               WRITE(NULOUT,*) 'oasis_put: info ', kinfo
-               WRITE(NULOUT,*) '     - Minimum value is ', MINVAL(ssnd(jn)%pdata(:,:))
-               WRITE(NULOUT,*) '     - Maximum value is ', MAXVAL(ssnd(jn)%pdata(:,:))
-               WRITE(NULOUT,*) '     -     Sum value is ', SUM(ssnd(jn)%pdata(:,:))
-               WRITE(NULOUT,*) '****************'
+               WRITE(NULOUT,*) 'OAS_ROMS : ****************'
+               WRITE(NULOUT,*) 'OAS_ROMS : ROMS sent data:'
+               WRITE(NULOUT,*) 'OAS_ROMS : oasis_put: ', ssnd(jn)%clname
+               WRITE(NULOUT,*) 'OAS_ROMS : oasis_put: ivarid '  , ssnd(jn)%nid
+               WRITE(NULOUT,*) 'OAS_ROMS : oasis_put: kstep', kstep
+               WRITE(NULOUT,*) 'OAS_ROMS : oasis_put: info ', kinfo
+               WRITE(NULOUT,*) 'OAS_ROMS :      - Minimum value is ', MINVAL(ssnd(jn)%pdata(:,:))
+               WRITE(NULOUT,*) 'OAS_ROMS :      - Maximum value is ', MAXVAL(ssnd(jn)%pdata(:,:))
+               WRITE(NULOUT,*) 'OAS_ROMS :      -     Sum value is ', SUM(ssnd(jn)%pdata(:,:))
+               WRITE(NULOUT,*) 'OAS_ROMS : ****************'
             ENDIF
          END IF
       END DO

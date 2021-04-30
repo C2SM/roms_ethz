@@ -119,7 +119,7 @@ CONTAINS
       ierr = nf90_open(TRIM(romsoc_aux_name), NF90_NOWRITE, ncid)
             
       IF ( ierr /= NF90_NOERR) THEN
-         WRITE(*,*) 'Error opening file ', TRIM(romsoc_aux_name)
+         WRITE(*,*) 'OAS_ROMS : Error opening file ', TRIM(romsoc_aux_name)
          CALL abort
       ENDIF
       
@@ -135,9 +135,9 @@ CONTAINS
       ! Close ROMSOC auxiliary file 
       ierr = nf90_close(ncid)
 
-      ! ---------------------------------------------------------------- !
-      ! Master process writes info on OASIS3 auxiliary files (if needed) ! 
-      ! ---------------------------------------------------------------- !
+      ! ---------------------------------------- !
+      ! Write OASIS3 auxiliary files (if needed) !
+      ! ---------------------------------------- !
 
       ! Determine if OASIS auxiliary files have to be written based on
       ! the existence of grids.nc
@@ -146,12 +146,14 @@ CONTAINS
       
       IF (l_wrt_aux) THEN
             
-         WRITE(*,*) 'Writing OASIS auxiliary files'
+         IF ((IOASISDEBUGLVL > 0) .AND. (mype == 0)) THEN
+            WRITE(*,*) 'OAS_ROMS : Writing OASIS auxiliary files'
+         END IF
          ! Open ROMS grid file
          ierr = nf90_open(TRIM(grdname), NF90_NOWRITE, ncid)
          
          IF ( ierr /= NF90_NOERR) THEN
-            WRITE(*,*) 'Error opening file ', TRIM(grdname)
+            WRITE(*,*) 'OAS_ROMS : Error opening file ', TRIM(grdname)
             CALL MPI_ABORT(kl_comm, ierr_code, ierr)
          ENDIF
          
@@ -253,14 +255,14 @@ CONTAINS
       OPEN(nuin, FILE=nml_filename, FORM='FORMATTED', STATUS='UNKNOWN',   &
          &       IOSTAT=ierr)
       IF (ierr /= 0) THEN
-         WRITE(*,*) 'Error while opening', nml_filename
+         WRITE(*,*) 'OAS_ROMS : Error while opening', nml_filename
          CALL abort
       END IF
       
       ! Read namelist
       READ(nuin, romsoc, IOSTAT=ierr)
       IF (ierr /= 0) THEN
-         WRITE(*,*) 'mype=', mype, ' Error while reading namelist romsoc from ', nml_filename
+         WRITE(*,*) 'OAS_ROMS : mype=', mype, ' Error while reading namelist romsoc from ', nml_filename
          CALL abort
       END IF
       
@@ -650,7 +652,7 @@ CONTAINS
             ELSEIF (TRIM(nc_extent) == 'inner') THEN
                kstart = (/1, 1/)
             ELSE
-               WRITE(*,*) "ERROR in oas_roms_read_2d : nc_extent has to be either 'full' or 'inner'"
+               WRITE(*,*) "OAS_ROMS : ERROR in oas_roms_read_2d : nc_extent has to be either 'full' or 'inner'"
             END IF
             ncount = grd%dims_g
          ELSEIF (TRIM(scope) == 'local') THEN
@@ -659,27 +661,27 @@ CONTAINS
             ELSEIF (TRIM(nc_extent) == 'inner') THEN
                kstart = grd%start_g
             ELSE
-               WRITE(*,*) "ERROR in oas_roms_read_2d : nc_extent has to be either 'full' or 'inner'"
+               WRITE(*,*) "OAS_ROMS : ERROR in oas_roms_read_2d : nc_extent has to be either 'full' or 'inner'"
             END IF
             ncount = grd%dims_l
          ELSE
-            WRITE(*,*) "ERROR in oas_roms_read_2d : scope has to be either 'local' or 'global'"
+            WRITE(*,*) "OAS_ROMS : ERROR in oas_roms_read_2d : scope has to be either 'local' or 'global'"
             CALL abort
          END IF
          
          ierr = nf90_get_var(ncid, var_id, buffer, start=kstart, count=ncount)
          
          IF (ierr /= NF90_NOERR) THEN
-            WRITE(*,*) 'ERROR in oas_roms_read_2d reading var ', TRIM(vname), ' in ', TRIM(fname)
-            WRITE(*,*) nf90_strerror(ierr)
-            WRITE(*,*) 'start and count provided to nf90_get_var: ', kstart, ncount
-            WRITE(*,*) 'buffer: ', 'LBOUND=', LBOUND(buffer), ' UBOUND=', UBOUND(buffer)
+            WRITE(*,*) 'OAS_ROMS : ERROR in oas_roms_read_2d reading var ', TRIM(vname), ' in ', TRIM(fname)
+            WRITE(*,*) 'OAS_ROMS : ', nf90_strerror(ierr)
+            WRITE(*,*) 'OAS_ROMS : start and count provided to nf90_get_var: ', kstart, ncount
+            WRITE(*,*) 'OAS_ROMS : buffer: ', 'LBOUND=', LBOUND(buffer), ' UBOUND=', UBOUND(buffer)
             CALL abort
          END IF
          
       ELSE
          
-         WRITE(*,*) 'Error inquiring var ', TRIM(vname), ' in oas_roms_read_3d'
+         WRITE(*,*) 'OAS_ROMS : Error inquiring var ', TRIM(vname), ' in oas_roms_read_3d'
          CALL abort
          
       END IF
@@ -715,7 +717,7 @@ CONTAINS
             ELSEIF (TRIM(nc_extent) == 'inner') THEN
                kstart = (/1, 1, 1/)
             ELSE
-               WRITE(*,*) "ERROR in oas_roms_read_3d : nc_extent has to be either 'full' or 'inner'"
+               WRITE(*,*) "OAS_ROMS : ERROR in oas_roms_read_3d : nc_extent has to be either 'full' or 'inner'"
             END IF
             ncount = (/grd%dims_g(1), grd%dims_g(2), dim3/)
          ELSEIF (TRIM(scope) == 'local') THEN
@@ -724,27 +726,27 @@ CONTAINS
             ELSEIF (TRIM(nc_extent) == 'inner') THEN
                kstart = (/grd%start_g(1), grd%start_g(2), 1/)
             ELSE
-               WRITE(*,*) "ERROR in oas_roms_read_3d : nc_extent has to be either 'full' or 'inner'"
+               WRITE(*,*) "OAS_ROMS : ERROR in oas_roms_read_3d : nc_extent has to be either 'full' or 'inner'"
             END IF
             ncount = (/grd%dims_l(1), grd%dims_l(2), dim3/)
          ELSE
-            WRITE(*,*) "ERROR in oas_roms_read_3d : scope has to be either 'local' or 'global'"
+            WRITE(*,*) "OAS_ROMS : ERROR in oas_roms_read_3d : scope has to be either 'local' or 'global'"
             CALL abort
          END IF
          
          ierr = nf90_get_var(ncid, var_id, buffer, start=kstart, count=ncount)
          
          IF (ierr /= NF90_NOERR) THEN
-            WRITE(*,*) 'ERROR in oas_roms_read_3d reading var ', TRIM(vname), ' in ', TRIM(fname)
-            WRITE(*,*) nf90_strerror(ierr)
-            WRITE(*,*) 'start and count provided to nf90_get_var: ', kstart, ncount
-            WRITE(*,*) 'buffer: ', 'LBOUND=', LBOUND(buffer), ' UBOUND=', UBOUND(buffer)
+            WRITE(*,*) 'OAS_ROMS : ERROR in oas_roms_read_3d reading var ', TRIM(vname), ' in ', TRIM(fname)
+            WRITE(*,*) 'OAS_ROMS : ', nf90_strerror(ierr)
+            WRITE(*,*) 'OAS_ROMS : start and count provided to nf90_get_var: ', kstart, ncount
+            WRITE(*,*) 'OAS_ROMS : buffer: ', 'LBOUND=', LBOUND(buffer), ' UBOUND=', UBOUND(buffer)
             CALL abort
          END IF
       
       ELSE
          
-         WRITE(*,*) 'Error inquiring var ', TRIM(vname), ' in oas_roms_read_3d'
+         WRITE(*,*) 'OAS_ROMS : Error inquiring var ', TRIM(vname), ' in oas_roms_read_3d'
          CALL abort
          
       END IF
