@@ -2503,8 +2503,9 @@ c$$$       enddo
     !  nitrate & ammonium
     !-----------------------------------------------------------------------
 
-       DTRACER_MODULE(istr:iend,j,k,no3_ind_t) = NITRIF - DENITRIF - 
-     &                                 SED_DENITRIF - sum(NO3_V, dim=2)
+       DTRACER_MODULE(istr:iend,j,k,no3_ind_t) = NITRIF - (DENITRIF +
+     &                                 SED_DENITRIF) * (1 -
+     &                                 denitrif_C_N/parm_Red_P_C_N) - sum(NO3_V, dim=2)
 
        DTRACER_MODULE(istr:iend,j,k,nh4_ind_t) = -sum(NH4_V, dim=2) - NITRIF + DON_remin + DONr_remin
      &     + Q * (zoo_loss_dic + sum(auto_loss_dic, dim=2) + sum(auto_graze_dic, dim=2)
@@ -3447,7 +3448,7 @@ c$$$       enddo
                if (NO3_loc(i) < parm_sed_denitrif_NO3_limit) then
                SED_DENITRIF(i) = dzr_loc * min(flux * (0.06 + 0.19 *
      &                 0.99**(O2_loc(i)-NO3_loc(i))),
-     &                flux-POC_sed_loss(i,j)*denitrif_C_N)
+     &                (flux-POC_sed_loss(i,j))/denitrif_C_N)
                SED_DENITRIF(i) = 1/parm_sed_denitrif_NO3_limit*NO3_loc(i)*SED_DENITRIF(i)
                else
                SED_DENITRIF(i) = dzr_loc * min(flux * (0.06 + 0.19 *
