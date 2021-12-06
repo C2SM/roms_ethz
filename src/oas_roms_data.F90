@@ -52,16 +52,22 @@ MODULE oas_roms_data
    INTEGER(KIND=4), SAVE, PUBLIC :: ksnd=0, krcv=0   ! Number of send/received coupling fields
    TYPE(FLD_CPL), DIMENSION(nmaxfld), PUBLIC :: srcv, ssnd   ! Coupling fields
 
-   ! Sent fields ids
-   INTEGER, SAVE, PUBLIC :: oas_itemp   ! sea surface temperature [K]
-   ! received fields ids
-   INTEGER, SAVE, PUBLIC :: oas_UST_U   ! | 
-   INTEGER, SAVE, PUBLIC :: oas_VST_U   ! |  oas_XST_Y corresponds to COSMO X-wind STress
-   INTEGER, SAVE, PUBLIC :: oas_UST_V   ! |  at ROMS Y-points (momentum flux) [N/m2]
-   INTEGER, SAVE, PUBLIC :: oas_VST_V   ! |
-   INTEGER, SAVE, PUBLIC :: oas_NHF     ! Net Heat Flux [W/m2]
-   INTEGER, SAVE, PUBLIC :: oas_SWR     ! direct ShortWave downward Radiation [W/m2]
-   INTEGER, SAVE, PUBLIC :: oas_TEP     ! Total Evaporation - Precipitation [kg/m2*s]
+   ! Ids of sent and received fields
+   INTEGER, SAVE, PUBLIC ::   &
+      ! Sent fields ids
+      & oas_itemp,   &   ! sea surface temperature [K]
+      & oas_SSU_U,   &   ! /
+      & oas_SSU_V,   &   ! | oas_SSX_Y corresponds to ROMS sea surface volicity [m/s]
+      & oas_SSV_U,   &   ! | at X-points to be interpolated to COSMO Y-points
+      & oas_SSV_V,   &   ! \
+      ! received fields ids
+      & oas_UST_U,   &   ! / 
+      & oas_VST_U,   &   ! |  oas_XST_Y corresponds to COSMO X-wind STress
+      & oas_UST_V,   &   ! |  at ROMS Y-points (momentum flux) [N/m2]
+      & oas_VST_V,   &   ! \
+      & oas_NHF  ,   &   ! Net Heat Flux [W/m2]
+      & oas_SWR  ,   &   ! direct ShortWave downward Radiation [W/m2]
+      & oas_TEP          ! Total Evaporation - Precipitation [kg/m2*s]
 
    ! ROMSOC auxiliary variables
    ! --------------------------

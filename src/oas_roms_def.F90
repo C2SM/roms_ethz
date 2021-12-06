@@ -195,6 +195,14 @@ CONTAINS
       ! -----------
       ! Sea surface temperature [K]
       CALL oas_roms_def_var('snd', k_rho, 'SO_SST_A', oas_itemp, laction=.TRUE.)
+      ! Sea surface U-velocity for COSMO U-points [m/s]
+      CALL oas_roms_def_var('snd', k_u  , 'SO_SSU_U', oas_SSU_U, laction=.TRUE.)
+      ! Sea surface U-velocity for COSMO V-points [m/s]
+      CALL oas_roms_def_var('snd', k_u  , 'SO_SSU_V', oas_SSU_V, laction=.TRUE.)
+      ! Sea surface V-velocity for COSMO U-points [m/s]
+      CALL oas_roms_def_var('snd', k_v  , 'SO_SSV_U', oas_SSV_U, laction=.TRUE.)
+      ! Sea surface V-velocity for COSMO V-points [m/s]
+      CALL oas_roms_def_var('snd', k_v  , 'SO_SSV_V', oas_SSV_V, laction=.TRUE.)
 
       ! Received fields
       ! ---------------
