@@ -89,9 +89,9 @@ CONTAINS
                   WRITE(NULOUT,*) 'OAS_ROMS : oasis_get: ivarid '  , srcv(jn)%nid
                   WRITE(NULOUT,*) 'OAS_ROMS : oasis_get: kstep', kstep
                   WRITE(NULOUT,*) 'OAS_ROMS : oasis_get: info ', kinfo
-                  WRITE(NULOUT,*) 'OAS_ROMS :      - Minimum value is ', MINVAL(ssnd(jn)%pdata(:,:))
-                  WRITE(NULOUT,*) 'OAS_ROMS :      - Maximum value is ', MAXVAL(ssnd(jn)%pdata(:,:))
-                  WRITE(NULOUT,*) 'OAS_ROMS :      -     Sum value is ', SUM(ssnd(jn)%pdata(:,:))
+                  WRITE(NULOUT,*) 'OAS_ROMS :      - Minimum value is ', MINVAL(srcv(jn)%pdata(:,:))
+                  WRITE(NULOUT,*) 'OAS_ROMS :      - Maximum value is ', MAXVAL(srcv(jn)%pdata(:,:))
+                  WRITE(NULOUT,*) 'OAS_ROMS :      -     Sum value is ', SUM(srcv(jn)%pdata(:,:))
                   WRITE(NULOUT,*) 'OAS_ROMS : ****************'
                ENDIF
                
