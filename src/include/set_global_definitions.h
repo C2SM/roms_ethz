@@ -10,7 +10,7 @@
  defined).  */
 
 #define MPI
-#undef PARALLEL_FILES
+#define PARALLEL_FILES
 
 /* Set oasis coupling on */
 ! Please do not define this here: #define COUP_OAS
