@@ -56,15 +56,15 @@ MODULE oas_roms_data
    INTEGER, SAVE, PUBLIC ::   &
       ! Sent fields ids
       & oas_itemp,   &   ! sea surface temperature [K]
-      & oas_SSU_U,   &   ! /
-      & oas_SSU_V,   &   ! | oas_SSX_Y corresponds to ROMS sea surface volicity [m/s]
-      & oas_SSV_U,   &   ! | at X-points to be interpolated to COSMO Y-points
-      & oas_SSV_V,   &   ! \
+      & oas_SSU_U,   &   ! ┌
+      & oas_SSU_V,   &   ! │ oas_SSX_Y corresponds to ROMS sea surface volicity [m/s]
+      & oas_SSV_U,   &   ! │ at X-points to be interpolated to COSMO Y-points
+      & oas_SSV_V,   &   ! └
       ! received fields ids
-      & oas_UST_U,   &   ! / 
-      & oas_VST_U,   &   ! |  oas_XST_Y corresponds to COSMO X-wind STress
-      & oas_UST_V,   &   ! |  at ROMS Y-points (momentum flux) [N/m2]
-      & oas_VST_V,   &   ! \
+      & oas_UST_U,   &   ! ┌
+      & oas_VST_U,   &   ! │  oas_XST_Y corresponds to COSMO X-wind STress
+      & oas_UST_V,   &   ! │  at ROMS Y-points (momentum flux) [N/m2]
+      & oas_VST_V,   &   ! └
       & oas_NHF  ,   &   ! Net Heat Flux [W/m2]
       & oas_SWR  ,   &   ! direct ShortWave downward Radiation [W/m2]
       & oas_TEP          ! Total Evaporation - Precipitation [kg/m2*s]
