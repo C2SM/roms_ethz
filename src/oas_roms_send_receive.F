@@ -95,16 +95,16 @@
      &             cpl_grd(k_rho)%jmin:cpl_grd(k_rho)%jmax,N,nstp,itemp)
             ssnd(oas_SSU_U)%pdata =
      &           u(cpl_grd(k_u)%imin:cpl_grd(k_u)%imax,
-     &             cpl_grd(k_u)%jmin:cpl_grd(k_u)%jmax,N,nstp,itemp)
+     &             cpl_grd(k_u)%jmin:cpl_grd(k_u)%jmax,N,nstp)
             ssnd(oas_SSU_V)%pdata =
      &           u(cpl_grd(k_u)%imin:cpl_grd(k_u)%imax,
-     &             cpl_grd(k_u)%jmin:cpl_grd(k_u)%jmax,N,nstp,itemp)
+     &             cpl_grd(k_u)%jmin:cpl_grd(k_u)%jmax,N,nstp)
             ssnd(oas_SSV_U)%pdata =
      &           v(cpl_grd(k_v)%imin:cpl_grd(k_v)%imax,
-     &             cpl_grd(k_v)%jmin:cpl_grd(k_v)%jmax,N,nstp,itemp)
+     &             cpl_grd(k_v)%jmin:cpl_grd(k_v)%jmax,N,nstp)
             ssnd(oas_SSV_V)%pdata =
      &           v(cpl_grd(k_v)%imin:cpl_grd(k_v)%imax,
-     &             cpl_grd(k_v)%jmin:cpl_grd(k_v)%jmax,N,nstp,itemp)
+     &             cpl_grd(k_v)%jmin:cpl_grd(k_v)%jmax,N,nstp)
 
             ! Write Debug File
             ! ----------------
