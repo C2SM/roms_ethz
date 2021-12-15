@@ -44,9 +44,10 @@ MODULE oas_roms_def
 
    USE oas_roms_data, ONLY: OASIS_Success, ncomp_id, kl_comm,     &
       &                     OAS_GRID, cpl_grd, k_rho, k_u, k_v,   &
-      &                     oas_itemp, oas_UST_U, oas_VST_U,      &
-      &                     oas_UST_V, oas_VST_V, oas_NHF,        &
-      &                     oas_SWR, oas_TEP,                     &
+      &                     oas_itemp, oas_SSU_U, oas_SSU_V,      &
+      &                     oas_SSV_U, oas_SSV_V, oas_UST_U,      &
+      &                     oas_VST_U, oas_UST_V, oas_VST_V,      &
+      &                     oas_NHF, oas_SWR, oas_TEP,            &
       &                     srcv, ssnd, krcv, ksnd,               &
       &                     alpha_rho, alpha_u, alpha_v,          &
       &                     u_cos_proj_u, v_cos_proj_u,           &
