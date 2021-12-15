@@ -28,9 +28,6 @@ MODULE oas_roms_exchange
 
    USE oas_roms_data, ONLY: kl_comm,                             &
       &                     OAS_GRID, cpl_grd, k_rho, k_u, k_v,  &
-      &                     oas_itemp, oas_UST_U, oas_VST_U,     &
-      &                     oas_UST_V, oas_VST_V, oas_NHF,       &
-      &                     oas_SWR, oas_TEP,                    &
       &                     srcv, ssnd, krcv, ksnd,              &
       &                     IOASISDEBUGLVL
    
