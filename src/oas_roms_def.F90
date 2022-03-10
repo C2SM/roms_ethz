@@ -690,7 +690,7 @@ CONTAINS
          
       ELSE
          
-         WRITE(*,*) 'OAS_ROMS : Error inquiring var ', TRIM(vname), ' in oas_roms_read_3d'
+         WRITE(*,*) 'OAS_ROMS : Error inquiring var ', TRIM(vname), ' in oas_roms_read_2d'
          CALL abort
          
       END IF
