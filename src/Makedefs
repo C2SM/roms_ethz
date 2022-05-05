@@ -97,7 +97,7 @@ ifeq ($(NC-CONFIG),)
     $(error nc-config not found (NetCDF library))
 endif
   
-  NCINC ?= -I$(shell nc-config --includedir)
+  NCINC ?= -I$(shell nc-config --fflags)
   ifeq ($(NCINC),)
     NCINC := $(shell nc-config --cflags)
   endif
