@@ -3,6 +3,10 @@
 
       subroutine set_stflux_tile(istr,iend,jstr,jend, itrc, ierr)
 
+# ifdef COUP_OAS
+      ! Used to turn off restoring of temp and salt in the atm-coupled region 
+      use oas_roms_data, only: alpha_rho 
+# endif
 ! Interpolate and assemble surface tracer flux for current tile.
 
       implicit none
@@ -152,12 +156,18 @@
      &         *( t(i,j,N,nrhs,itemp) -cff3*sstg(i,j,it3)
      &                                -cff4*sstg(i,j,it4)
      &                                                  )
+#  ifdef COUP_OAS
+     &         *alpha_rho(i,j)
+#  endif
 #  ifdef WRITE_TEMP_REST
               RestFlxTemp(i,j)=cff
      &         *((cff5*dqdtg(i,j,it5)+cff6*dqdtg(i,j,it6))
      &          *( t(i,j,N,nrhs,itemp) -cff3*sstg(i,j,it3)
      &                                 -cff4*sstg(i,j,it4)
      &                                                  ))
+#   ifdef COUP_OAS
+     &         *alpha_rho(i,j)
+#   endif
 #   ifdef MASKING
      &                                 *rmask(i,j)
 #   endif
@@ -212,6 +222,9 @@
 c**  &                                        -tclm(i,j,N,isalt)
      &                  -(cff7*sssg(i,j,it7)+cff8*sssg(i,j,it8))
      &                                                         )
+#  ifdef COUP_OAS
+     &                                 *alpha_rho(i,j)
+#  endif
 #  if defined SALINITY_MASKLATSTR && defined SALINITY_MASKLATEND
      &          *max(max(min(abs(latr(i,j)-(SALINITY_MASKLATEND))
      & /abs((SALINITY_MASKLATSTR)-(SALINITY_MASKLATEND)),1.),0.0)
@@ -227,6 +240,9 @@ c**  &                                        -tclm(i,j,N,isalt)
 #   ifdef MASKING
      &                                 *rmask(i,j)
 #   endif
+#  ifdef COUP_OAS
+     &                                 *alpha_rho(i,j)
+#  endif
 #  endif
 #  ifdef SALINITY_MASK
 #   ifdef WRITE_SALT_REST
