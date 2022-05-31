@@ -11,7 +11,7 @@
 
       implicit none
       integer istr,iend,jstr,jend, itrc, ierr, i,j, it1,it2
-      real tmid, cff1,cff2, cff
+      real tmid, cff1,cff2, cff, rmask
       logical out_of_bounds
 
 # include "param.h"
@@ -38,9 +38,9 @@
 ! hbls (in mixing.h) is needed for surface flux limitation if SST falls below freezing
 #  include "mixing.h"
 # endif
-# if defined ICEOBS || (defined SALINITY_MASKLATSTR && defined SALINITY_MASKLATEND) || defined WRITE_SALT_REST
+!# if defined ICEOBS || (defined SALINITY_MASKLATSTR && defined SALINITY_MASKLATEND) || defined WRITE_SALT_REST
 #  include "grid.h"
-# endif
+!# endif
 # ifdef WRITE_SALT_REST
       real, parameter :: eps=1.e-33
 # endif
@@ -157,7 +157,7 @@
      &                                -cff4*sstg(i,j,it4)
      &                                                  )
 #  ifdef COUP_OAS
-     &         *alpha_rho(i,j)
+     &         *(1-alpha_rho(i,j))
 #  endif
 #  ifdef WRITE_TEMP_REST
               RestFlxTemp(i,j)=cff
@@ -166,7 +166,7 @@
      &                                 -cff4*sstg(i,j,it4)
      &                                                  ))
 #   ifdef COUP_OAS
-     &         *alpha_rho(i,j)
+     &         *(1-alpha_rho(i,j))
 #   endif
 #   ifdef MASKING
      &                                 *rmask(i,j)
@@ -223,7 +223,7 @@ c**  &                                        -tclm(i,j,N,isalt)
      &                  -(cff7*sssg(i,j,it7)+cff8*sssg(i,j,it8))
      &                                                         )
 #  ifdef COUP_OAS
-     &                                 *alpha_rho(i,j)
+     &                                 *(1-alpha_rho(i,j))
 #  endif
 #  if defined SALINITY_MASKLATSTR && defined SALINITY_MASKLATEND
      &          *max(max(min(abs(latr(i,j)-(SALINITY_MASKLATEND))
@@ -241,7 +241,7 @@ c**  &                                        -tclm(i,j,N,isalt)
      &                                 *rmask(i,j)
 #   endif
 #  ifdef COUP_OAS
-     &                                 *alpha_rho(i,j)
+     &                                 *(1-alpha_rho(i,j))
 #  endif
 #  endif
 #  ifdef SALINITY_MASK
