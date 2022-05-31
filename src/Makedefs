@@ -180,6 +180,8 @@ else ifeq ($(strip $(FCOMP)),ftn)
    ifdef OPENMP
       OPENMP := -homp
    endif
+   # added 03-2022 to hopefully fix a cross-compilation issue nvhpc at CSCS
+   LDFLAGS += -lnvcpumath -lnvhpcatm
 else ifeq ($(strip $(FCOMP)),gfortran)
    #
    # ============= Gnu gfortran compiler =============
