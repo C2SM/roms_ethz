@@ -3,16 +3,20 @@
 
       subroutine set_stflux_tile(istr,iend,jstr,jend, itrc, ierr)
 
-# ifdef COUP_OAS
-      ! Used to turn off restoring of temp and salt in the atm-coupled region 
-      use oas_roms_data, only: alpha_rho 
-# endif
 ! Interpolate and assemble surface tracer flux for current tile.
 
       implicit none
       integer istr,iend,jstr,jend, itrc, ierr, i,j, it1,it2
       real tmid, cff1,cff2, cff, rmask
       logical out_of_bounds
+# ifdef COUP_OAS
+      ! Used to turn off restoring of temp and salt in the atm-coupled region 
+       use oas_roms_data, only: alpha_rho 
+       real,save rest_wght(GLOBAL_2D_ARRAY) ! SSS/SST restoring weights
+       logical, save firstcall
+       integer ii, jj
+       data /firstcall/.true.
+# endif
 
 # include "param.h"
 # include "scalars.h"
@@ -45,6 +49,39 @@
       real, parameter :: eps=1.e-33
 # endif
 # include "compute_extended_bounds.h"
+
+# ifdef COUP_OAS
+      ! Set the correction/restoring weight
+      ! Note: alpha_rho is only defined within the computational bounds
+      !       while most fields in ROMS are define over extended bounds.
+      if (firstcall) then
+          ! Only computed once since weights never change.
+          ! ==> No need to optimize the loops below
+          firstcall = .false. ! skip from now on
+          ! Fill the ghostpoints with the values of the  closest value
+          !              in the computational domain 
+          do j=jstrR,jendR
+            if (j < jstr) then
+                    jj = jstr
+            elseif (j > jend) then
+                    jj = jend
+            else
+                    jj = j
+            endif               
+            do i=istr,iend
+               if (i < istr) then
+                    ii = istr
+               elseif (i > iend) then
+                    ii = iend
+               else
+                    ii = i
+               endif      
+               ! No restoring in the coupled region
+               rest_wght(i,j) = 1.0 - alpha_rho(ii,jj)
+            enddo
+          enddo
+      endif
+# endif
 
 ! Set coefficients for interpolation.  Also check that for the next
 ! time step [when time=time+dt] both weights will still be positive --
@@ -157,7 +194,7 @@
      &                                -cff4*sstg(i,j,it4)
      &                                                  )
 #  ifdef COUP_OAS
-     &         *(1-alpha_rho(i,j))
+     &         *rest_wght(i,j)
 #  endif
 #  ifdef WRITE_TEMP_REST
               RestFlxTemp(i,j)=cff
@@ -166,7 +203,7 @@
      &                                 -cff4*sstg(i,j,it4)
      &                                                  ))
 #   ifdef COUP_OAS
-     &         *(1-alpha_rho(i,j))
+     &         *rest_wght(i,j)
 #   endif
 #   ifdef MASKING
      &                                 *rmask(i,j)
@@ -223,7 +260,7 @@ c**  &                                        -tclm(i,j,N,isalt)
      &                  -(cff7*sssg(i,j,it7)+cff8*sssg(i,j,it8))
      &                                                         )
 #  ifdef COUP_OAS
-     &                                 *(1-alpha_rho(i,j))
+     &                                 *rest_wght(i,j)
 #  endif
 #  if defined SALINITY_MASKLATSTR && defined SALINITY_MASKLATEND
      &          *max(max(min(abs(latr(i,j)-(SALINITY_MASKLATEND))
@@ -241,7 +278,7 @@ c**  &                                        -tclm(i,j,N,isalt)
      &                                 *rmask(i,j)
 #   endif
 #  ifdef COUP_OAS
-     &                                 *(1-alpha_rho(i,j))
+     &                                 *rest_wght(i,j)
 #  endif
 #  endif
 #  ifdef SALINITY_MASK
