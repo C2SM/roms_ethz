@@ -4,23 +4,24 @@
       subroutine set_stflux_tile(istr,iend,jstr,jend, itrc, ierr)
 
 ! Interpolate and assemble surface tracer flux for current tile.
-
-      implicit none
-      integer istr,iend,jstr,jend, itrc, ierr, i,j, it1,it2
-      real tmid, cff1,cff2, cff, rmask
-      logical out_of_bounds
 # ifdef COUP_OAS
       ! Used to turn off restoring of temp and salt in the atm-coupled region 
        use oas_roms_data, only: alpha_rho 
-       real,save rest_wght(GLOBAL_2D_ARRAY) ! SSS/SST restoring weights
-       logical, save firstcall
-       integer ii, jj
-       data /firstcall/.true.
 # endif
+
+      implicit none
+      integer istr,iend,jstr,jend, itrc, ierr, i,j, it1,it2
+      real tmid, cff1,cff2, cff
+      logical out_of_bounds
 
 # include "param.h"
 # include "scalars.h"
 # include "ocean3d.h"
+# ifdef COUP_OAS
+       real, save, dimension(GLOBAL_2D_ARRAY) :: rest_wght  ! SSS/SST restoring weights
+       logical, save :: firstcall = .true.
+       integer       :: ii, jj
+# endif
 # define STFLUX_DATA
 # if defined QCORRECTION && !defined ANA_SST
       integer it3,it4, it5,it6
