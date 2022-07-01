@@ -22,7 +22,7 @@ DRVSRC := main.F 	step2d_FB.F	read_inp.F	read_sta_pos.F \
 
 # Time stepping
 STEPSRC := prsgrd32AC1.F	pre_step3d4S.F	step3d_uv1.F	step3d_uv2.F \
-	step3d_t_ISO.F	set_depth.F	omega.F 	weno_flux.F\
+	step3d_t_ISO.F	set_depth.F	set_forces.F omega.F 	weno_flux.F\
 	visc3d_GP.F	t3dmix_GP.F	ana_vmix.F
 
 # Lateral boundary
@@ -71,7 +71,7 @@ IOSRC := checkdims.F	find_record.F	insert_node.F	ncdf_read_write.F\
 	get_grid.F	get_init.F	wrt_grid.F	put_global_atts.F\
 	def_rst.F	wrt_rst.F	def_his.F	wrt_his.F\
 	set_avg.F	wrt_avg.F	def_statn.F	wrt_statn.F\
-	get_forces.F	get_stflux.F	get_bry_all.F	set_forces.F\
+	get_forces.F	get_stflux.F	get_bry_all.F\
 	set_smflux.F	set_stflux.F	nf_read_bry.F	bulk_flux_COAMS.F\
 	set_seaice.F	get_tides.F	set_tides.F	set_srflux.F\
 	get_tclima.F	get_uclima.F	closecdf.F\
@@ -91,6 +91,9 @@ KRNSRC := $(DRVSRC) $(STEPSRC) $(BRYSRC) $(EOSSRC) $(VMXSRC) $(CHKSRC) $(MPISRC)
 BIOSRC := $(FLXSRC) $(NPZDSRC) $(BECSRC) # $(BECSRCOLD)
 
 SRCS := $(KRNSRC) $(IOSRC) $(BIOSRC)
+ifdef NO_IO
+SRCS := $(KRNSRC) $(BIOSRC)
+endif
 OBJS := $(SRCS:.F=.o)
 SBIN := roms
 

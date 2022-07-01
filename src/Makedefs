@@ -45,11 +45,13 @@ DEPFLAGS = -MT $@ -MMD -MP -MF $(DEPDIR)/$*.Td
 # Define Q for quite mode:
 Q = @
 # Verbose
-#Q = 
+# Q = 
 
 # Include file locations
-CPPFLAGS += -I$(SRCDIR) -I$(INCDIR) -I$(BIODIR) $(OASINC)
+CPPFLAGS += -I$(SRCDIR) -I$(INCDIR) -I$(BIODIR)
+ifdef COUPLED
 FFLAGS += $(OASINC)
+endif
 ifdef MPI_HOME
    CPPFLAGS += -I$(MPI_HOME)/include
 endif
@@ -91,37 +93,46 @@ CPPFTN := -P -traditional-cpp # traditional-cpp need to keep white-spaces
 #CPP := ifort
 #CPPFTN := -gen-dep -syntax-only
 
-# NetCDF
-NC-CONFIG:=$(shell which nc-config 2>/dev/null)
-ifeq ($(NC-CONFIG),)
-    $(error nc-config not found (NetCDF library))
-endif
-  
-  NCINC ?= -I$(shell nc-config --fflags)
-  ifeq ($(NCINC),)
-    NCINC := $(shell nc-config --cflags)
-  endif
-  NCLIB ?= $(shell nc-config --flibs)
-  ifeq ($(NCLIB),)
-    NCLIB := $(shell nc-config --libs)
-  endif
+ifndef NO_NETCDF
+   # NetCDF include and libraries
 
-CPPFLAGS += $(NCINC)
+   # netcdf-fortran
+   NF-CONFIG = $(shell which nf-config 2>/dev/null)
+   ifeq ($(NF-CONFIG),)
+      $(error nf-config not found (NetCDF library))
+   endif
+   # netcdf-c
+   NC-CONFIG = $(shell which nf-config 2>/dev/null)
+   ifeq ($(NC-CONFIG),)
+      $(error nf-config not found (NetCDF library))
+   endif
+
+   NCINC ?= -I$(shell nf-config --fflags)
+   ifeq ($(NCINC),)
+      NCINC += $(shell nc-config --cflags)
+   endif
+
+   NCLIB ?= $(shell nf-config --flibs)
+   NCLIB +=  $(shell nc-config --libs)
+   ifeq ($(NCLIB),)
+      NCLIB := $(shell nc-config --libs)
+   endif
+
+   CPPFLAGS += $(NCINC)
+endif
+
 
 # Default: mpi executable
-ifndef NOMPI
-   MPIFC = mpif90
-   ifdef I_MPI_ROOT
-      CPPFLAGS += -I$(I_MPI_ROOT)/include64
-      CPPFLAGS += -I$(I_MPI_ROOT)/intel64/include
-   endif
+ifdef NOMPI
+   MPIFC = $(FC)
+else
    ifdef MPI_ROOT
       CPPFLAGS += -I$(MPI_ROOT)/include
    endif
 endif
-MPIFC ?= $(FC)
 LDR = $(MPIFC)
-LDFLAGS += $(OASLIB)
+# LDFLAGS += $(OASLIB)
+
 
 # Legacy ROMS macro names
 LCDF := $(NCLIB)
@@ -134,9 +145,14 @@ ifeq ($(strip $(FCOMP)),ifort)
    # ============= Intel compiler =============
    #
    FCFLAGS := -D__IFC
-   # use mpiifort (intel mpi) if available
-   MPIFC := $(shell which mpiifort 2>/dev/null)
-   ifeq ($(MPIFC),)
+   # use mpifort (intel mpi) if available
+   #ifeq ($(MPIFC),)
+   MPIFC := $(shell which mpifort 2>/dev/null)
+   #endif
+   ifeq ($(MPIFC),) # no mpifort found
+      MPIFC := $(shell which mpiifort 2>/dev/null)
+   endif
+   ifeq ($(MPIFC),) # neither mpifort nor mpiifort found
       MPIFC := mpif90
    endif
 
@@ -161,6 +177,10 @@ ifeq ($(strip $(FCOMP)),ifort)
    ifdef PROFILE
       FFLAGS += -prof_gen
    endif
+   ifdef I_MPI_ROOT
+      CPPFLAGS += -I$(I_MPI_ROOT)/include64
+      CPPFLAGS += -I$(I_MPI_ROOT)/intel64/include
+   endif
 else ifeq ($(strip $(FCOMP)),pgf90)
    #
    # ============= PGI compiler =============
@@ -169,7 +189,6 @@ else ifeq ($(strip $(FCOMP)),pgf90)
    ifdef OPENMP
       OPENMP := -mp
    endif
-   #CPPFLAGS += -DINT_IARGC
    FFLAGS  := -mcmodel=medium -fast -O4 $(OPENMP)
 else ifeq ($(strip $(FCOMP)),ftn)
    #
@@ -184,6 +203,9 @@ else ifeq ($(strip $(FCOMP)),gfortran)
    #
    # ============= Gnu gfortran compiler =============
    #
+   ifeq ($(MPIFC),) # no mpifort found
+      MPIFC = mpif90
+   endif
    FCFLAGS := -D_GNU
    ifdef OPENMP
       OPENMP := -fopenmp
@@ -199,7 +221,6 @@ else
 endif
 
 CPPFLAGS += $(FCFLAGS)
-FFLAGS += $(OASINC)
 
 # Print makefile macros
 #    Usage: e.g., make print-CPPFLAGS
