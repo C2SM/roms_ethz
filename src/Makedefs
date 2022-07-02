@@ -43,7 +43,7 @@ DEPFLAGS = -MT $@ -MMD -MP -MF $(DEPDIR)/$*.Td
 %.o: %.f
 
 # Define Q for quite mode:
-Q = @
+Q ?= @
 # Verbose
 # Q = 
 
@@ -93,7 +93,7 @@ CPPFTN := -P -traditional-cpp # traditional-cpp need to keep white-spaces
 #CPP := ifort
 #CPPFTN := -gen-dep -syntax-only
 
-ifndef NO_NETCDF
+ifndef NO_IO
    # NetCDF include and libraries
 
    # netcdf-fortran
