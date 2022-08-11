@@ -129,12 +129,11 @@
 !-----For the coupled setup (ROMSOC)
 
 #define COUP_OAS
-<<<<<<< HEAD
+
 !mm #undef PARALLEL_FILES
 =======
 #define PARALLEL_FILES
 #define WRITE_TEMP_REST
->>>>>>> ROMSOC
 
 !#undef SFLX_CORR
 #undef ANA_SSFLUX
