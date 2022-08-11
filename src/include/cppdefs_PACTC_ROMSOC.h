@@ -7,7 +7,7 @@
                      /* *** ACTIVATE BIOLOGY HERE *** */
                      /* (Otherwise standard UP bio switches are not set) */
 
-# define BIOLOGY_BEC2
+!-- # define BIOLOGY_BEC2
 #include "cppdefs_UP.h"
 !-- #define PACTCS60
 
@@ -18,12 +18,9 @@
 ! default: PACTCS30 
 # define PACTCS30
 # define GRID_SIZE LLm=602, MMm=516, N=64      ! pactcs30 4.1-65km telescopic up to Antarctica
-<<<<<<< HEAD
 ! testrun: # define DOMAIN_TILING NP_XI=4, NP_ETA=30, NSUB_X=1, NSUB_E=1 ! Daint testing
 #define DOMAIN_TILING NP_XI=10, NP_ETA=66, NSUB_X=1, NSUB_E=1 ! Daint testing
-=======
-# define DOMAIN_TILING NP_XI=14, NP_ETA=66, NSUB_X=1, NSUB_E=1 ! Euler
->>>>>>> ROMSOC
+!-- # define DOMAIN_TILING NP_XI=14, NP_ETA=66, NSUB_X=1, NSUB_E=1 ! Euler
 #endif
 
 
