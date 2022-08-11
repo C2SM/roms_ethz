@@ -19,7 +19,7 @@
 # define PACTCS30
 # define GRID_SIZE LLm=602, MMm=516, N=64      ! pactcs30 4.1-65km telescopic up to Antarctica
 ! testrun: # define DOMAIN_TILING NP_XI=4, NP_ETA=30, NSUB_X=1, NSUB_E=1 ! Daint testing
-#define DOMAIN_TILING NP_XI=10, NP_ETA=66, NSUB_X=1, NSUB_E=1 ! Daint testing
+#define DOMAIN_TILING NP_XI=4, NP_ETA=30, NSUB_X=1, NSUB_E=1 ! Daint testing
 !-- # define DOMAIN_TILING NP_XI=14, NP_ETA=66, NSUB_X=1, NSUB_E=1 ! Euler
 #endif
 
@@ -128,7 +128,7 @@
 #define COUP_OAS
 
 !mm #undef PARALLEL_FILES
-=======
+
 #define PARALLEL_FILES
 #define WRITE_TEMP_REST
 
