@@ -3,10 +3,10 @@
 
        subroutine ecosys_bec2_tile(Istr,Iend,Jstr,Jend)
 
-!# ifdef CCHEM_MOCSY
-!       use msingledouble
-!       use mvars
-!# endif
+# ifdef CCHEM_MOCSY
+       use msingledouble
+       use mvars
+# endif
 
        implicit none
 
@@ -820,9 +820,9 @@ c$$$       enddo
        REAL, PARAMETER :: 
      &    epsC      = 1.00e-8,  ! small C concentration (mmol C/m^3)
      &    epsTinv   = 3.17e-8,  ! small inverse time scale (1/year) (1/sec)
-     &    epsnondim = 1.00e-6,  ! small non-dimensional number (non-dim)
-     &    cks = 9.0,         ! constant used in Fe quota modification
-     &    cksi = 5.0         ! constant used in Si quota modification
+     &    epsnondim = 1.00e-6   ! small non-dimensional number (non-dim)
+!     &    cks = 9.0,         ! constant used in Fe quota modification
+!     &    cksi = 5.0         ! constant used in Si quota modification
 
        REAL, DIMENSION(istr:iend) :: 
      &    PO4_loc,         ! local copy of model PO4
@@ -878,8 +878,9 @@ c$$$       enddo
      &    O2_PRODUCTION    ! O2 production
 
        REAL, DIMENSION(istr:iend) ::
-     &    Tfunc,           ! temp response function GD98 (non-dim)
-     &    Tfunc_diat,      ! temp response function GD98 (non-dim) for diatoms
+!     &    Tfunc,           ! temp response function GD98 (non-dim)
+!     &    Tfunc_diat,      ! temp response function GD98 (non-dim) for diatoms
+     &    Tfunc_zoo,       ! temp dependency of zoo losses
 # ifdef BEC_COCCO
      &    Tfunc_cocco,     ! temp response function GD98 (non-dim) for coccos
      &    light_lim_calc,  ! light limitation factor for calc of coccos
@@ -979,7 +980,8 @@ c$$$       enddo
      &    remaining_P_dop, ! remaining_P from mort routed to DOP pool
      &    remaining_P_dip, ! remaining_P from mort routed to remin
      &    Nfix,            ! total Nitrogen fixation (mmol N/m^3/sec)
-     &    Nexcrete         ! fixed N excretion
+     &    Nexcrete,        ! fixed N excretion
+     &    Tfunc_phyto      ! temp response function GD98 (non-dim) for PFTs
 
 
     !---------------------------------------------------------------------------
@@ -1360,7 +1362,11 @@ c$$$       enddo
     !  growth, mort and grazing rates scaled by Tfunc where they are computed
     !-----------------------------------------------------------------------
 
-       Tfunc = Q_10**(((temp + T0_Kelvin) - (Tref + T0_Kelvin)) / c10)
+!       Tfunc = Q_10**(((temp + T0_Kelvin) - (Tref + T0_Kelvin)) / c10)
+       Tfunc_zoo = Q_10_zoo**(((temp + T0_Kelvin) - (Tref + T0_Kelvin)) / c10)
+       do auto_ind = 1, autotroph_cnt
+          Tfunc_phyto(:,auto_ind) = Q_10_phyto(auto_ind)**(((temp + T0_Kelvin) - (Tref + T0_Kelvin)) / c10)
+       end do
 # ifdef BEC_COCCO
        Tfunc_cocco = 1.45**(((temp + T0_Kelvin) - (Tref + T0_Kelvin)) / c10)
 # endif /* BEC_COCCO */
@@ -1370,7 +1376,7 @@ c$$$       enddo
 # ifdef BEC_PHAEO
        Tfunc_phaeo = 1.5**(((temp + T0_Kelvin) - (Tref + T0_Kelvin)) / c10)
 # endif /* BEC_PHAEO */
-       Tfunc_diat  = 1.55**(((temp + T0_Kelvin) - (Tref + T0_Kelvin)) / c10)
+!       Tfunc_diat  = 1.55**(((temp + T0_Kelvin) - (Tref + T0_Kelvin)) / c10)
 
     !-----------------------------------------------------------------------
     !  calculate the loss threshold interpolation factor
@@ -1571,8 +1577,8 @@ c$$$       enddo
 
 
 ! CN: apply different Tfunc for coccos and diat
-          if (auto_ind==diat_ind) then
-             PCmax = PCref(auto_ind) * f_nut * Tfunc_diat
+!          if (auto_ind==diat_ind) then
+!             PCmax = PCref(auto_ind) * f_nut * Tfunc_diat
 # ifdef BEC_COCCO
           else if (auto_ind==cocco_ind) then
              PCmax = PCref(auto_ind) * f_nut * Tfunc_cocco
@@ -1593,9 +1599,11 @@ c$$$       enddo
           else if (auto_ind==phaeo_ind) then
              PCmax = PCref(auto_ind) * f_nut * Tfunc_phaeo
 # endif /* BEC_PHAEO */
-          else
-             PCmax = PCref(auto_ind) * f_nut * Tfunc
-          endif
+!          else
+!             PCmax = PCref(auto_ind) * f_nut * Tfunc
+!          endif
+
+          PCmax = PCref(auto_ind) * f_nut * Tfunc_phyto(:,auto_ind)
 
 ! apply temp_threshold below/above PFT doesn't grow anymore
 # ifdef BEC_PHAEO
@@ -1841,8 +1849,8 @@ c$$$       enddo
     !-----------------------------------------------------------------------
 
 
-       if (auto_ind == diat_ind) then
-          auto_loss(istr:iend,auto_ind) =  mort(auto_ind) * Pprime(istr:iend,auto_ind) * Tfunc_diat
+!       if (auto_ind == diat_ind) then
+!          auto_loss(istr:iend,auto_ind) =  mort(auto_ind) * Pprime(istr:iend,auto_ind) * Tfunc_diat
 # ifdef BEC_COCCO
        elseif (auto_ind == cocco_ind) then
           auto_loss(istr:iend,auto_ind) =  mort(auto_ind) * Pprime(istr:iend,auto_ind) * Tfunc_cocco
@@ -1859,10 +1867,13 @@ c$$$       enddo
           auto_loss(istr:iend,auto_ind) = mort(auto_ind)*(2.0-min(f_nut,light_lim))*
      &                    Pprime(istr:iend,auto_ind) * Tfunc_phaeo
 # endif /* BEC_PHAEO */
-       else
-          auto_loss(istr:iend,auto_ind) =  mort(auto_ind) * Pprime(istr:iend,auto_ind) * Tfunc
-       endif
+!       else
+!          auto_loss(istr:iend,auto_ind) =  mort(auto_ind) * Pprime(istr:iend,auto_ind) * Tfunc
+!       endif
 
+          auto_loss(istr:iend,auto_ind) =  mort(auto_ind) * Pprime(istr:iend,auto_ind) *
+     &                                     Tfunc_phyto(istr:iend,auto_ind)
+          
           auto_agg(istr:iend,auto_ind) = min(agg_rate_max(auto_ind) * dps * Pprime(istr:iend,auto_ind), 
      &                               mort2(auto_ind) * Pprime(istr:iend,auto_ind) * Pprime(istr:iend,auto_ind))
           auto_agg(istr:iend,auto_ind) = max((agg_rate_min(auto_ind) * dps) * Pprime(istr:iend,auto_ind),
@@ -1881,23 +1892,25 @@ c$$$       enddo
 !          WORK3 = 1.0   ! beta, set 1 for old grazing formulation, >1 for different ingestion function
 #  endif
 
-          do auto_ind2 = 1, autotroph_cnt
-             if (grazee_ind(auto_ind2) == grazee_ind(auto_ind))
-     &          WORK1 = WORK1 + Pprime(istr:iend,auto_ind)
-#  ifdef KILL_THE_WINNER
-     &                                                    **WORK2
-#  endif
-          end do
+!          do auto_ind2 = 1, autotroph_cnt
+!             if (grazee_ind(auto_ind2) == grazee_ind(auto_ind))
+!     &          WORK1 = WORK1 + Pprime(istr:iend,auto_ind)**2
+!#  ifdef KILL_THE_WINNER
+!     &                                                    **WORK2
+!#  endif
+!          end do
 
-          z_umax = z_umax_0(auto_ind) * Tfunc
+          !z_umax = z_umax_0(auto_ind) * Tfunc
+          z_umax = z_umax_0(auto_ind) * Tfunc_phyto(:,auto_ind)
+          WORK1 = Pprime(istr:iend,auto_ind)**2
           where (WORK1 > c0)
 #  ifdef KILL_THE_WINNER
              auto_graze(istr:iend,auto_ind) = (Pprime(istr:iend,auto_ind)**WORK2 / WORK1) *
      &           z_umax * zooC_loc * (WORK1 / (WORK1 + z_grz(auto_ind)))
 !     &           z_umax * zooC_loc * (WORK1**WORK3 / (WORK1**WORK3 + z_grz(auto_ind)**WORK3))
 #  else /* no prey switching */
-             auto_graze(istr:iend,auto_ind) = (Pprime(istr:iend,auto_ind) / WORK1) *
-     &           z_umax * zooC_loc * (WORK1 / (WORK1 + z_grz(auto_ind)))
+             auto_graze(istr:iend,auto_ind) = z_umax * zooC_loc *
+     &            (Pprime(istr:iend,auto_ind)**2 / (WORK1 + z_grz(auto_ind)**2))
 #  endif /* KILL_THE_WINNER */
           elsewhere
              auto_graze(istr:iend,auto_ind) = c0
@@ -2176,7 +2189,8 @@ c$$$       enddo
 
        Zprime = max(zooC_loc - C_loss_thres, c0)
 
-       zoo_loss = (parm_z_mort2_0 * Zprime**1.5 + parm_z_mort_0 * Zprime) * Tfunc
+       !zoo_loss = (parm_z_mort2_0 * Zprime**1.5 + parm_z_mort_0 * Zprime) * Tfunc
+       zoo_loss = (parm_z_mort2_0 * Zprime**1.5 + parm_z_mort_0 * Zprime) * Tfunc_zoo
 
        zoo_loss_doc = (c1 - parm_labile_ratio) * (c1 - f_zoo_detr_loc) * zoo_loss
        zoo_loss_dic = parm_labile_ratio * (c1 - f_zoo_detr_loc) * zoo_loss
@@ -2503,8 +2517,9 @@ c$$$       enddo
     !  nitrate & ammonium
     !-----------------------------------------------------------------------
 
-       DTRACER_MODULE(istr:iend,j,k,no3_ind_t) = NITRIF - DENITRIF - 
-     &                                 SED_DENITRIF - sum(NO3_V, dim=2)
+       DTRACER_MODULE(istr:iend,j,k,no3_ind_t) = NITRIF - (DENITRIF +
+     &                                 SED_DENITRIF) * (1 -
+     &                                 denitrif_C_N/parm_Red_P_C_N) - sum(NO3_V, dim=2)
 
        DTRACER_MODULE(istr:iend,j,k,nh4_ind_t) = -sum(NH4_V, dim=2) - NITRIF + DON_remin + DONr_remin
      &     + Q * (zoo_loss_dic + sum(auto_loss_dic, dim=2) + sum(auto_graze_dic, dim=2)
@@ -3447,7 +3462,7 @@ c$$$       enddo
                if (NO3_loc(i) < parm_sed_denitrif_NO3_limit) then
                SED_DENITRIF(i) = dzr_loc * min(flux * (0.06 + 0.19 *
      &                 0.99**(O2_loc(i)-NO3_loc(i))),
-     &                flux-POC_sed_loss(i,j)*denitrif_C_N)
+     &                (flux-POC_sed_loss(i,j))/denitrif_C_N)
                SED_DENITRIF(i) = 1/parm_sed_denitrif_NO3_limit*NO3_loc(i)*SED_DENITRIF(i)
                else
                SED_DENITRIF(i) = dzr_loc * min(flux * (0.06 + 0.19 *

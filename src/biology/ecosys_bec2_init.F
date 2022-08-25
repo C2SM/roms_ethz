@@ -386,6 +386,169 @@
 #endif /* BIOPAR_NOWRITE */
 #endif /* BIOPAR_NAMELIST */
 
+! Define BEC parameters for different scenarios used
+! in the optimizations process. Parameter values are
+! from:
+! https://upwiki.ethz.ch/upwiki/doku.php?id=romsdoc:bec_parameters_setups
+#ifdef BIOPAR_R
+      ! r improved scenario with parm_z_mort_0 = 0.1/d
+      ! column "Scenario~r (improved)" on https://upwiki.ethz.ch/upwiki/doku.php?id=romsdoc:bec_parameters_setups
+      PCref(sp_ind)   = 1.0*dps  ! s-1
+      PCref(diat_ind) = 2.4*dps
+      PCref(diaz_ind) = 0.6*dps
+      alphaPI(sp_ind)   = 0.44*dps  ! mmol C m2 (mgChl)-1 W-1 s-1
+      alphaPI(diat_ind) = 0.44*dps
+      alphaPI(diaz_ind) = 0.38*dps
+      Q_10_phyto = (/ 1.6, 1.9, 1.8 /)
+      Q_10_zoo = 1.5
+      kFe  = (/ 1.0d-4, 1.6d-4, 6.0d-4 /)  ! mmol m-3
+      kPO4 = (/ 0.05, 0.08, 0.006 /)  ! mmol m-3
+      kNO3 = (/ 0.8, 1.3, 0.1 /)  ! mmol m-3
+      kNH4 = (/ 0.08, 0.13, 0.01 /)  ! mmol m-3
+      kSiO3 = (/ 0.0, 1.2, 0.0 /)  ! mmol m-3
+      kDOP = (/ 0.9, 0.9, 0.006 /)  ! mmol m-3
+      temp_thres = (/ -10, -10, 14 /)  ! °C
+      z_umax_0 = (/ 1.875*dps, 2.875*dps, 1.625*dps /)  ! s-1
+      z_grz = (/ 1.05, 1.0, 1.2 /)  ! mmol m-3
+      mort = (/ 0.12*dps, 0.12*dps, 0.15*dps /)  ! s-1
+      mort2 = (/ 0.001*dps, 0.001*dps, 0.0 /)  ! s-1
+      agg_rate_max = (/ 0.9, 0.9, 0.0 /)  ! d-1
+      agg_rate_min = (/ 0.01, 0.02, 0.0 /)  ! d-1
+      loss_thres = (/ 0.04, 0.04, 0.022 /) ! mmol m-3
+      loss_thres2 = (/ 0.0, 0.0, 0.001 /) ! mmol m-3
+      loss_thres_zoo = 0.005    ! mmol m-3
+      thres_z1 = 100            ! m
+      thres_z2 = 150            ! m
+      parm_z_mort_0 = 0.1*dps  ! s-1
+      parm_z_mort2_0 = 0.4*dps  ! s-1
+      graze_zoo = (/ 0.3, 0.3, 0.3 /)
+      graze_poc = (/ 0.05, 0.42, 0.05 /)
+      graze_doc = (/ 0.15, 0.15, 0.15 /)
+      loss_poc = (/ 0.0, 0.0, 0.0 /)
+      f_zoo_detr = (/ 0.15, 0.2, 0.15 /)
+      f_graze_CaCO3_remin = 0.75
+      f_graze_si _remin = 0.35
+      DONrefract = 0.08
+      DOPrefract = 0.03
+      DOC_reminR = (c1/250.0)*dps ! s-1
+      DON_reminR = (c1/160.0)*dps ! s-1
+      DOP_reminR = (c1/160.0)*dps ! s-1
+      DOFe_reminR  = (c1/160.0)*dps ! s-1
+      DONr_reminR = (c1/(365*2.5))*dps ! s-1
+      DOPr_reminR = (c1/(365*2.5))*dps ! s-1
+      Qp = (/ 0.00855, 0.00855, 0.002735 /)
+      gQfe_0 = (/ 2d-5, 2d-5, 6d-5 /)
+      gQfe_min = (/ 3d-6, 3d-6, 1.2d-5 /)
+      Qfe_zoo = 3d-6
+      cks = 9.0
+      thetaN_max = (/ 2.5, 4.0, 2.5 /)
+      gQsi_0 = 0.137
+      gQsi_max = 0.685
+      gQsi_min = 0.0457
+      cksi = 5.0
+      Q = 0.137
+      Qp_zoo_pom = 0.00855
+      CaCO3_temp_thres1 = 6.0 ! °C
+      CaCO3_temp_thres2 = -2.0 ! °C
+      CaCO3_sp_thres = 4.0  ! mmol m-3
+      parm_f_prod_sp_CaCO3 = 0.055
+      QCaCO3_max = 0.4
+      parm_POC_diss = 82.0   ! m
+      parm_SiO2_diss = 360.0    ! m
+      parm_CaCO3_diss = 400.0   ! m
+      parm_scalelen_z = (/ 130, 250, 500, 750 /) ! m
+      parm_scalelen_vals = (/ 1.0, 2.9, 5.6, 5.7 /)
+      parm_labile_ratio = 0.85
+      parm_POMbury = 1.4
+      parm_BSIbury = 0.45
+      parm_kappa_nitrif = 0.06*dps ! s-1
+      parm_nitrif_par_lim = 4.0
+      parm_Fe_bioavail = 0.02
+      parm_o2_min = 4.0         ! mmol/m^3
+      parm_o2_min_delta = 2.0   ! mmol/m^3
+      parm_fe_scavenge_rate0 = 1.3
+      MPI_master_only write (*,'(2a)') 'Use BEC parameters of ',
+     & 'S11_r scenario'
+#elif defined BIOPAR_K
+      ! k improved scenario with parm_z_mort_0 = 0.1/d
+      ! column "Scenario~k improved" on https://upwiki.ethz.ch/upwiki/doku.php?id=romsdoc:bec_parameters_setups
+      PCref(sp_ind)   = 0.5*dps  ! s-1
+      PCref(diat_ind) = 1.1*dps
+      PCref(diaz_ind) = 0.2*dps
+      alphaPI(sp_ind)   = 0.44*dps  ! mmol C m2 (mgChl)-1 W-1 s-1
+      alphaPI(diat_ind) = 0.44*dps
+      alphaPI(diaz_ind) = 0.38*dps
+      Q_10_phyto = (/ 1.6, 1.9, 1.8 /)
+      Q_10_zoo = 1.5
+      kFe  = (/ 1.0d-4, 1.6d-4, 6.0d-4 /)  ! mmol m-3
+      kPO4 = (/ 0.08, 0.13, 0.02 /)  ! mmol m-3
+      kNO3 = (/ 1.2, 2.1, 0.3 /)  ! mmol m-3
+      kNH4 = (/ 0.12, 0.21, 0.03 /)  ! mmol m-3
+      kSiO3 = (/ 0.0, 2.0, 0.0 /)  ! mmol m-3
+      kDOP = (/ 0.9, 0.9, 0.02 /)  ! mmol m-3
+      temp_thres = (/ -10, -10, 14 /)  ! °C
+      z_umax_0 = (/ 0.6*dps, 0.9*dps, 0.4*dps /)  ! s-1
+      z_grz = (/ 1.05, 1.0, 1.2 /)  ! mmol m-3
+      mort = (/ 0.06*dps, 0.06*dps, 0.15*dps /)  ! s-1
+      mort2 = (/ 0.001*dps, 0.001*dps, 0.0 /)  ! s-1
+      agg_rate_max = (/ 0.9, 0.9, 0.0 /)  ! d-1
+      agg_rate_min = (/ 0.01, 0.02, 0.0 /)  ! d-1
+      loss_thres = (/ 0.04, 0.04, 0.022 /) ! mmol m-3
+      loss_thres2 = (/ 0.0, 0.0, 0.001 /) ! mmol m-3
+      loss_thres_zoo = 0.005    ! mmol m-3
+      thres_z1 = 100            ! m
+      thres_z2 = 150            ! m
+      parm_z_mort_0 = 0.1*dps  ! s-1
+      parm_z_mort2_0 = 0.4*dps  ! s-1
+      graze_zoo = (/ 0.3, 0.3, 0.3 /)
+      graze_poc = (/ 0.05, 0.42, 0.05 /)
+      graze_doc = (/ 0.15, 0.15, 0.15 /)
+      loss_poc = (/ 0.0, 0.0, 0.0 /)
+      f_zoo_detr = (/ 0.15, 0.2, 0.15 /)
+      f_graze_CaCO3_remin = 0.75
+      f_graze_si _remin = 0.35
+      DONrefract = 0.08
+      DOPrefract = 0.03
+      DOC_reminR = (c1/250.0)*dps ! s-1
+      DON_reminR = (c1/160.0)*dps ! s-1
+      DOP_reminR = (c1/160.0)*dps ! s-1
+      DOFe_reminR  = (c1/160.0)*dps ! s-1
+      DONr_reminR = (c1/(365*2.5))*dps ! s-1
+      DOPr_reminR = (c1/(365*2.5))*dps ! s-1
+      Qp = (/ 0.00855, 0.00855, 0.002735 /)
+      gQfe_0 = (/ 2d-5, 2d-5, 6d-5 /)
+      gQfe_min = (/ 3d-6, 3d-6, 1.2d-5 /)
+      Qfe_zoo = 3d-6
+      cks = 9.0
+      thetaN_max = (/ 2.5, 4.0, 2.5 /)
+      gQsi_0 = 0.137
+      gQsi_max = 0.685
+      gQsi_min = 0.0457
+      cksi = 5.0
+      Q = 0.137
+      Qp_zoo_pom = 0.00855
+      CaCO3_temp_thres1 = 6.0 ! °C
+      CaCO3_temp_thres2 = -2.0 ! °C
+      CaCO3_sp_thres = 4.0  ! mmol m-3
+      parm_f_prod_sp_CaCO3 = 0.055
+      QCaCO3_max = 0.4
+      parm_POC_diss = 82.0   ! m
+      parm_SiO2_diss = 360.0    ! m
+      parm_CaCO3_diss = 400.0   ! m
+      parm_scalelen_z = (/ 130, 250, 500, 750 /) ! m
+      parm_scalelen_vals = (/ 1.0, 2.9, 5.6, 5.7 /)
+      parm_labile_ratio = 0.85
+      parm_POMbury = 1.4
+      parm_BSIbury = 0.45
+      parm_kappa_nitrif = 0.06*dps ! s-1
+      parm_nitrif_par_lim = 4.0
+      parm_Fe_bioavail = 0.02
+      parm_o2_min = 4.0         ! mmol/m^3
+      parm_o2_min_delta = 2.0   ! mmol/m^3
+      parm_fe_scavenge_rate0 = 1.3
+      MPI_master_only write (*,'(2a)') 'Use BEC parameters of ',
+     & 'S11_k scenario'
+#endif /* BIOPAR_R */
 
 #ifdef BEC2_DIAG
       !---------------------------------------------------------------------------
