@@ -14,7 +14,7 @@
 ! The remaining input arguments (declared above in this file) are:
 !
 ! vdims -- the actual number of logical dimensions of arrays "buff",
-!                                            "bfr_in", and "bfr_out';
+!                                            "bfr_in", and "bfr_out";
 !
 ! start -- an array containing starting indices of the block of data
 !                                    in index-space of the whole grid;
