@@ -1,15 +1,11 @@
+# Source dir
+SRCDIR ?= $(CURDIR)/../src
+BLDDIR ?= .
 
-#========== ======= =========== ======== === ==== =====
 # Set machine dependent definitions and rules.
-SRCDIR ?= $(CURDIR)
-#-include obsolete/Makedefs_euler_oasis3mct
 -include $(SRCDIR)/Makedefs
 
-BLDDIR ?= .
-vpath %.f = $(BLDDIR)
-vpath %.o = $(BLDDIR)
-vpath %.h = $(INCDIR):$(BIODIR)
-vpath %.F = $(SRCDIR):$(BIODIR):$(SRCDIR)/biology/bec:$(SRCDIR)/biology/npzdoc:$(SRCDIR)/biology/pre_2014_bec
+VPATH := $(SRCDIR):$(INCDIR):$(BIODIR):$(BIODIR)/bec:$(BIODIR)/npzdoc:$(BIODIR)/pre_2014_bec
 
 # Configuration for ROMS model:  Source code files are sorted into
 # ------------- --- ---- ------  groups:
@@ -87,7 +83,8 @@ CPLOBJS = oas_roms_data.o oas_roms_set_cpl_grd.o oas_roms_comm.o oas_roms_def.o\
 # old/obsolete/non-parallelized stuff
 #       pp_vmix.F	get_wwave.F	smol_adv.F	get_bsedim.F
 
-KRNSRC := $(DRVSRC) $(STEPSRC) $(BRYSRC) $(EOSSRC) $(VMXSRC) $(CHKSRC) $(MPISRC)
+#KRNSRC := $(DRVSRC) $(STEPSRC) $(BRYSRC) $(EOSSRC) $(VMXSRC) $(CHKSRC) $(MPISRC)
+KRNSRC := $(STEPSRC) $(BRYSRC) $(EOSSRC) $(VMXSRC) $(CHKSRC) $(DRVSRC) $(MPISRC)
 BIOSRC := $(FLXSRC) $(NPZDSRC) $(BECSRC) # $(BECSRCOLD)
 
 SRCS := $(KRNSRC) $(IOSRC) $(BIOSRC)
@@ -95,11 +92,14 @@ ifdef NO_IO
 SRCS := $(KRNSRC) $(BIOSRC)
 endif
 OBJS := $(SRCS:.F=.o)
+#SBIN := roms
 SBIN := roms
+MPC := $(BLDDIR)/mpc
+MPC := mpc
 
 # ROMS excutable
 
-$(BLDDIR)/$(SBIN): mpc print_cppswitches $(OBJS)
+$(SBIN): $(MPC) print_cppswitches $(OBJS)
 	$(Q)$(SRCDIR)/print_cppswitches
 	$(Q)cd $(BLDDIR); $(LDR) $(FFLAGS) $(LDFLAGS) -o $@ $(OBJS) $(LCDF) $(LMPI)
 
@@ -113,11 +113,12 @@ check_forces: check_forces.o $(SBIN)
 	cp -pv check_forces.o main.o 	
 	$(LDR) $(FFLAGS) $(LDFLAGS) -o $@ $(OBJS) $(LCDF) $(LMPI)
 
+
 # Everything
-all: mpc tools $(SBIN)
+all: $(MPC) tools $(SBIN) ncjoin partit
 
 # Build roms and link with the coupling interface
-$(SBIN)_cpl: mpc $(CPLOBJS) $(OBJS)
+$(SBIN)_cpl: $(MPC) $(CPLOBJS) $(OBJS)
 	$(LDR) $(FFLAGS) $(LDFLAGS) -o $(SBIN)_cpl $(OBJS) $(CPLOBJS) $(LCDF) $(LMPI) $(OASLIB)
 
 # A program to test MPI halo exchange routines.
@@ -132,11 +133,13 @@ mpi_test: $(MPI_TEST_OBJ)
 
 # Auxiliary utility programs
 # --------- ------- --------
-TOOLS := mpc cppcheck srcscheck checkkwds ncextract redefs
+TOOLS := $(MPC)  srcscheck checkkwds ncextract redefs
 
 tools: $(TOOLS)
-mpc: mpc.F
-	$(Q)cd $(SRCDIR); $(FC) $(CPPFLAGS) -o $@ mpc.F
+#$(MPC): mpc.F
+#	$(Q)cd $(SRCDIR); $(FC) $(CPPFLAGS) -o $(MPC) $^
+$(MPC): mpc.F
+	$(Q)cd $(BLDDIR); $(FC) $(CPPFLAGS) -o $(BLDDIR)/mpc $^
 
 # We do not optimise the tools
 cppcheck: cppcheck.F
@@ -150,15 +153,17 @@ redefs: redefs.F
 checkdefs: check_switches1.F setup_kwds.F
 check_switches1.F: cppcheck cppdefs_UP.h cppdefs.h
 	$(Q)cd $(SRCDIR); ./cppcheck $(INCDIR)/cppdefs_UP.h $(INCDIR)/cppdefs.h
+	test "$(SRCDIR)" != "$(BLDDIR)" && cp $(SRCDIR)/check_switches1.F $(BLDDIR)
 check_srcs.F: srcscheck Makefile
 	$(Q)cd $(SRCDIR); ./srcscheck
 setup_kwds.F: checkkwds read_inp.F
 	$(Q)cd $(SRCDIR); ./checkkwds
+	test "$(SRCDIR)" != "$(BLDDIR)" && cp $(SRCDIR)/setup_kwds.F $(BLDDIR)
 print_cppswitches: check_switches1.F print_cppswitches.F
 	$(Q)cd $(SRCDIR); $(FC) $(CPPFLAGS) -o $@ print_cppswitches.F $(SRCDIR)/check_switches1.F
 
 # Debugging target
-print-%:
+print-ƒ:
 	@echo '$*=$($*)'
 
 # Target to create tar file.
@@ -173,14 +178,18 @@ tarfile: clean
 clean:
 	cd $(BLDDIR); /bin/rm -f *.f *.o *.a *.s *.trace *~ oas_roms_*.f90 $(COMP_FILES) \
 	oas_roms_*.mod
+	cd $(SRCDIR); /bin/rm -f *.f *.o *.a *.s *.trace *~ oas_roms_*.f90 $(COMP_FILES) \
+	oas_roms_*.mod
 test:
 	cd tests; compile_test.sh
 
 clobber: distclean
 distclean: clean
-	cd $(SRCDIR); /bin/rm -f check_switches1.F setup_kwds.F check_srcs.F \
+	cd $(SRCDIR); /bin/rm -f check_switches1.F setup_kwds.F check_srcs.F mpc 
+	cd $(BLDDIR); /bin/rm -f mpc check_switches1.F setup_kwds.F check_srcs.F \
 	$(SBIN) $(SBIN)_cpl $(TOOLS) nsub core* *_genmod.mod *_genmod.f90 \
 	$(DEPDIR)/*.d print_cppswitches tests/make_*.log  tests/logs/*
+	rmdir $(DEPDIR)
 
 # Rule for dependency files *.d
 # ---- --- ---------- ----- ---

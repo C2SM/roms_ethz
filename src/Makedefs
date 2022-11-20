@@ -2,18 +2,15 @@
 # https://make.mad-scientist.net/papers/advanced-auto-dependency-generation/#output
 
 # Source dir
-SRCDIR ?= $(CURDIR)
-# object dir
-BLDDIR ?= $(SRCDIR)
-# To be fixed: Other BLDDIR setting currently 
-# lead to unnecessary rebuilds
-# BLDDIR ?= $(SRCDIR)/../Build
+SRCDIR ?= $(CURDIR)/../src
+# BLDDIR dir
+BLDDIR ?= $(SRCDIR)/../build
 # Header dir
 INCDIR ?= $(SRCDIR)/include
 # Biology sources (BEC, NPZDOC)
 BIODIR ?= $(SRCDIR)/biology
 # Dependencies dir
-DEPDIR := $(SRCDIR)/.depend
+DEPDIR := $(BLDDIR)/.depend
 # Oasis/MCT coupler dir
 ifneq  ($(origin ROMSOC_OASIS_INSTALL), undefined)
     OASDIR ?=$(ROMSOC_OASIS_INSTALL)
@@ -23,12 +20,15 @@ ifneq  ($(origin ROMSOC_OASIS_INSTALL), undefined)
 endif
 
 # Create directories if needed
-$(shell test -d $(DEPDIR) || mkdir $(DEPDIR) )
-$(shell test -d $(BLDDIR) || mkdir $(BLDDIR) )
+$(shell test -d $(BLDDIR) || mkdir -p $(BLDDIR) )
+$(shell test -d $(DEPDIR) || mkdir -p $(DEPDIR) )
 
 # Command to create dependency files in DEPDIR
 MAKEDEPEND = $(SRCDIR)/depend.sh
 DEPFLAGS = -MT $@ -MMD -MP -MF $(DEPDIR)/$*.Td
+
+# Sasha's preprocessor
+MPC ?= $(BLDDIR)/mpc
 
 # Clear the default suffixes
 .SUFFIXES:
@@ -45,7 +45,7 @@ DEPFLAGS = -MT $@ -MMD -MP -MF $(DEPDIR)/$*.Td
 # Define Q for quite mode:
 Q ?= @
 # Verbose
-# Q = 
+Q = 
 
 # Include file locations
 CPPFLAGS += -I$(SRCDIR) -I$(INCDIR) -I$(BIODIR)
@@ -55,7 +55,7 @@ endif
 ifdef MPI_HOME
    CPPFLAGS += -I$(MPI_HOME)/include
 endif
-ifdef MPI_HOME
+ifdef MPI_ROOT
    CPPFLAGS += -I$(MPI_ROOT)/include
 endif
 ifdef MPICH_DIR
@@ -70,9 +70,10 @@ endif
 	$(Q)cd $(BLDDIR); $(MPIFC) -c $(FFLAGS) $(notdir $<)
 # Rule to create .f files;
 # also create dependencies files when creating these.
-%.f: %.F mpc
+#%.f: %.F mpc
+%.f: %.F $(MPC)
 	$(Q)$(MAKEDEPEND) $(dir $<) $(CPPFLAGS) $< > $(DEPDIR)/$*.d
-	$(Q)$(CPP) $(CPPFTN) $(CPPFLAGS)  $< | $(SRCDIR)/mpc > $(BLDDIR)/$*.f
+	$(Q)$(CPP) $(CPPFTN) $(CPPFLAGS)  $< | $(MPC) > $(BLDDIR)/$*.f
 
 
 # OASIS coupling code is written in FORTRAN free-format
