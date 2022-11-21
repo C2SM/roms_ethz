@@ -150,18 +150,18 @@
 #  define LAST_I_BIO3D indxPOCPRODCOCCO
 # endif
 # ifdef BEC_DDA
-     &            , indxGRAZEDDA=LAST_I+1,indxDDALOSS=LAST_I+2
-     &            , indxDDAAGG=LAST_I+3,indxPHOTOCDDA=LAST_I+4,indxDDANLIM=LAST_I+5
-     &            , indxDDAPO4UPTAKE=LAST_I+6,indxDDAFEUPTAKE=LAST_I+7
-     &            , indxDDALIGHTLIM=LAST_I+8
-     &            , indxIRONUPTAKEDDA=LAST_I+9,indxDDANO3UPTAKE=LAST_I+10
-     &            , indxDDANH4UPTAKE=LAST_I+11,indxDDAGRAZEDIC=LAST_I+12
-     &            , indxDDALOSSDIC=LAST_I+13,indxGRAZEDDAZOO=LAST_I+14
-     &            , indxDDAPHOTOACC=LAST_I+15
-     &            , indxDDAPLIM=LAST_I+16,indxDDANFIX=LAST_I+17
-     &            , indxDDASIO3UPTAKE=LAST_I+18
+     &            , indxGRAZEDDA=LAST_I_BIO3D+1,indxDDALOSS=LAST_I_BIO3D+2
+     &            , indxDDAAGG=LAST_I_BIO3D+3,indxPHOTOCDDA=LAST_I_BIO3D+4,indxDDANLIM=LAST_I_BIO3D+5
+     &            , indxDDAPO4UPTAKE=LAST_I_BIO3D+6,indxDDAFEUPTAKE=LAST_I_BIO3D+7
+     &            , indxDDALIGHTLIM=LAST_I_BIO3D+8
+     &            , indxIRONUPTAKEDDA=LAST_I_BIO3D+9,indxDDANO3UPTAKE=LAST_I_BIO3D+10
+     &            , indxDDANH4UPTAKE=LAST_I_BIO3D+11,indxDDAGRAZEDIC=LAST_I_BIO3D+12
+     &            , indxDDALOSSDIC=LAST_I_BIO3D+13,indxGRAZEDDAZOO=LAST_I_BIO3D+14
+     &            , indxDDAPHOTOACC=LAST_I_BIO3D+15
+     &            , indxDDAPLIM=LAST_I_BIO3D+16,indxDDANFIX=LAST_I_BIO3D+17
+     &            , indxDDASIO3UPTAKE=LAST_I_BIO3D+18
 #  undef LAST_I_BIO3D
-#  define LAST_I_BIO3D indxDDAPLIM
+#  define LAST_I_BIO3D indxDDASIO3UPTAKE
 # endif
 # ifdef BEC_PHAEO
      &            , indxGRAZEPHAEO=LAST_I_BIO3D+1,indxPHAEOLOSS=LAST_I_BIO3D+2

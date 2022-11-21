@@ -89,9 +89,11 @@ C$OMP END PARALLEL                       ! launch the model in OpenMP
       enddo
   99  call stop_timers()                 ! summarized among all nodes
 C$OMP BARRIER                            ! and broadcasted by "diag"
+#if !defined NO_RESTART && !defined NO_HISTORY
 C$OMP MASTER                             ! [which sets diag_sync=T to
       call closecdf                      ! signal that "may_day_flag"
 C$OMP END MASTER                         ! is in uniform state]. This
+#endif
       return                             ! is THE ONLY route to exit
       end                                ! if something goes wrong.
 #endif
@@ -223,6 +225,9 @@ C$OMP BARRIER                          ! from netCDF file.  Note that
         call ana_init(tile)            ! may require surface forcing
       enddo                            ! fields (e.g, wind stress),
 C$OMP BARRIER                          ! so call forces first.
+#endif
+#ifndef NO_RESTART
+#ifdef ANA_INITIAL
       if (nrrec > 0) then              ! Also note that ana_init may
 #endif
 #ifdef EXACT_RESTART
@@ -243,6 +248,7 @@ C$OMP END MASTER
 #ifdef ANA_INITIAL
       endif    !<-- nrrec>0
 #endif
+#endif /* NO_RESTART */
 C$OMP BARRIER
 #if defined PASSIVE_TRACER && defined AGE_DYE_TRACER
       do tile=my_tile_range
@@ -336,13 +342,15 @@ C$OMP PARALLEL DO PRIVATE(tile)
          do tile=0,NSUB_X*NSUB_E-1
             call calcpar(tile)
          enddo
-# endif /* BIOLOGY_NPZDOC */
+#endif /* BIOLOGY_NPZDOC */
 
 C$OMP MASTER
-#ifdef ANA_GRID
+# if !defined NO_HISTORY
+#  if defined ANA_GRID
         call wrt_ana_grid
-#endif
+#  endif
         if (ldefhis .and. wrthis(indxTime)) call wrt_his
+# endif /* NO_HISTORY */
 #ifdef FLOATS
 ! Initialization for Lagrangian floats
 !-------------------------------------------------------
@@ -477,10 +485,12 @@ C$OMP END MASTER
                                        ! Read forcing and climatology
       if (synchro_flag) then           ! data. This operation may raise
         synchro_flag=.false.           ! "may_day_flag" in the case of
+#if !(defined ANA_GRID && defined ANA_INITIAL && defined ANA_SMFLUX && defined ANA_STFLUX && defined  ANA_SSFLUX && defined ANA_SRFLUX && defined ANA_VMIX)
 C$OMP MASTER                           ! I/O errors which may occur on
         call get_forces                ! some nodes, but not on all at 
 C$OMP END MASTER                       ! the same time.  Therefore to
 C$OMP BARRIER                          ! avoid MPI deadlock the exit is
+#endif
       endif                            ! deferred until after broadcast
                                        ! of "may_day_flag" by diag.
 #ifdef SOLVE3D
@@ -650,6 +660,7 @@ C$OMP MASTER
 #ifdef FLOATS
         if (mod(iic-ntstart,nflt) == 0) nrecflt=nrecflt+1
 #endif
+#ifndef NO_RESTART
         if (mod(iic-ntstart,nrst) == 0
 #ifdef EXACT_RESTART
      &         .or. mod(iic-ntstart+1,nrst) == 0
@@ -659,6 +670,7 @@ C$OMP MASTER
           call wrt_his
 c          if (iic>60) nwrt=1 !<-- useful for debugging
         endif
+#endif /* NO_RESTART */
 
 #ifdef AVERAGES
 # ifdef SLICE_AVG

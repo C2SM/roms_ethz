@@ -1036,15 +1036,12 @@ c??         enddo
          end do
 # endif /* PHYS_FLUX_ANALYSIS & VERT_DIFF_ANALYSIS */
 
-# ifdef BIOLOGY
 #  ifdef SALINITY
           iAkt=min(itrc,isalt)
 #  else
           iAkt=min(itrc,itemp)
 #  endif
-# else
-          iAkt=itrc
-# endif
+
           do i=istr,iend
             DC(i,0)=dt*pm(i,j)*pn(i,j) !<--horizontal metric
 
@@ -1135,7 +1132,6 @@ c??         enddo
               t(i,j,k,nnew,itrc)=t(i,j,k,nstp,itrc)
             enddo
           enddo
-#endif
 #  if defined PHYS_FLUX_ANALYSIS && defined VERT_DIFF_ANALYSIS
           if (itrc .le. NT_PFA) then
              do k=1,N
@@ -1145,6 +1141,7 @@ c??         enddo
              enddo
           end if
 #  endif /* PHYS_FLUX_ANALYSIS & VERT_DIFF_ANALYSIS */
+#endif
 # ifdef AMAZON
        if (EASTERN_EDGE) then
          if (itrc==itemp .OR. itrc==isalt) then
