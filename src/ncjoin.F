@@ -29,7 +29,7 @@
 ! error; etc), the files stay intact.  If ncjoin is interrupted, the
 ! partial files stay intact.
 
-! CPP-switch "ZLIB_COMPRESSION (i) changes from 64-bit to netCDF-4
+! CPP-switch "ZLIB_COMPRESSION" (i) changes from 64-bit to netCDF-4
 ! (HDF5) format and (ii) activates z-lib compression.    In this case
 ! conversion is enabled at level 6 (default), but user can also supply
 ! command-line argument via --complevel=X or shorthand -c=X to change
@@ -51,10 +51,8 @@
 #define FAST_MODE
 #define DEL_PART_FILES
 #define ZLIB_COMPRESSION
-c--#define KEEP_CLOSED
-#define TIMING
-c--#define AUTORENICE
-c--#define VERBOSE
+!-- #define KEEP_CLOSED
+!-- #define TIMING
 #define AUTORENICE
 #define NCFILEFORMAT nf_netcdf4
 
@@ -64,19 +62,23 @@ c--#define VERBOSE
       integer, parameter :: maxdims=32, maxvars=256
       integer, parameter :: part_XI=1,  part_ETA=2, part_2D=3
 
-      logical complete, clean_set,  digit,  var_mask,  lnewvar
+      logical complete, clean_set,  digit,  var_mask,  lnewvar, is_in_list
+
+      logical :: timing = .false., renice = .true.
+     &         , fast = .true., quite = .false.
       integer nargs, nnodes,   size_XI,  XI_rho,  id_xi_rho,  id_xi_u,
      &        arg,   node,     size_ETA, ETA_rho, id_eta_rho, id_eta_v,
      &        ierr,  maxnodes, size_S,   tsize,   unlimdimid, rec,
      &        ntest, nctarg,   ndims,    code_size,           is,ie,
      &        nvars, ngatts,   varatts,  code_size_bak,        i,j,k,
      &        lsrc,  ltrg,     lvar,     lstr,lbak, lenstr, chk_alloc
-      integer  ::  ldir=0
+      integer  ::  ldir=0, verbose = 0
 
       character(len=8) sffx, sffx_bak
       character(len=32) vname(maxvars), dimname(maxdims)
       character(len=64) root, root_bak, string
-      character(len=256) nctestname, nctargname, odir
+      character(len=256) nctestname, nctargname, odir, inc_var_list
+     &                    , ex_var_list
 
       character(len=128), allocatable, dimension(:) :: srcname
 
@@ -122,7 +124,7 @@ c--#define VERBOSE
       real(kind=4), allocatable, dimension(:) :: bff4_out
       real(kind=8), allocatable, dimension(:) :: bff8_out
 #endif
-      integer :: minrec=0 ! minrec>1 do not enforce same record number
+      integer :: minrec=0 ! minrec>0 do not enforce same record number
                           ! in each partial file but use minimum.
 
       character(len=9), parameter :: signame='nc_format'
@@ -164,17 +166,22 @@ c--#define VERBOSE
 #ifdef AUTORENICE
       integer getpid, pid            ! Sometimes it makes sense to
       character(len=32) cmd            ! run ncjoin in the background
-      pid=getpid()                   ! mode with lowered priority to
-      write(cmd,'(I8)') pid          ! not interfere with running MPI
-      lstr=lenstr(cmd)               ! job. This code segment catches
-      cmd(11:lstr+10)=cmd(1:lstr)    ! pid of its own process and
-      lstr=lstr+10                   ! executes re-nice command.
-      cmd(1:10)='renice 19 '
-      write(*,'(/3A/)') 'Autorenice: executing ''',cmd(1:lstr),'''.'
-      call system(cmd(1:lstr))
-      write(*,*)
+#if 0
+      if (renice) then
+        pid=getpid()                   ! mode with lowered priority to
+        write(cmd,'(I8)') pid          ! not interfere with running MPI
+        lstr=lenstr(cmd)               ! job. This code segment catches
+        cmd(11:lstr+10)=cmd(1:lstr)    ! pid of its own process and
+        lstr=lstr+10                   ! executes re-nice command.
+        cmd(1:10)='renice 19'
+        if (verbose)  
+     &  write(*,'(/3A//)') 'Autorenice: executing ''',cmd(1:lstr),'''.'
+        call system(cmd(1:lstr))
+      endif
+#endif
 #endif
 #ifdef TIMING
+      if (timing) then
 # ifdef __IFC
       tstart = etime(CPU_time)
 # else
@@ -182,6 +189,7 @@ c--#define VERBOSE
 # endif
       nclk=1
       call system_clock(iclk(nclk), clk_rate, clk_max)
+      endif 
 #endif
 #ifdef DEL_PART_FILES
       !del_part_files=.false.
@@ -196,7 +204,7 @@ c--#define VERBOSE
         call exit(-1)
       endif
 
-! Extract a set of files which cover the whole physical grid.'
+! Extract a set of files which cover the whole physical grid.
 
   1   nnodes=-1                        ! Reset variables which
       root_bak(1:1)=' '                ! define the file set.
@@ -210,8 +218,8 @@ c--#define VERBOSE
         if ( nctestname(1:1) == '-' .and. (
      &       lsrc == 2 .and. nctestname(1:2) == '-k' .or.
      &       lsrc == 6 .and. nctestname(1:6) == '--keep' )) then
-          print'(/1x,A/)', '---> Keeping partial files'
-          ! write(*,'(/1x,2A/)') '>>>> Flag to delete partial files ',
+          print'(1x,A)', '---> Keeping partial files'
+          ! write(*,'(2A/)') '>>>> Flag to delete partial files ',
           ! &                                                 'is raised.'
           ! del_part_files=.true.
           del_part_files=.false.
@@ -219,8 +227,33 @@ c--#define VERBOSE
         endif
 #endif
         if ( nctestname(1:1)=='-' .and. (
+     &       lsrc == 2  .and. nctestname(1:2) == '-n' )) then
+          renice=.false.
+          goto 2
+        endif
+        if ( nctestname(1:1)=='-' .and. (
      &       lsrc == 2  .and. nctestname(1:2) == '-p' )) then
           minrec=1
+          goto 2
+        endif
+
+        if ( nctestname(1:1)=='-' .and. (
+     &       lsrc > 2  .and. nctestname(1:3) == '-i=' )) then
+          inc_var_list = nctestname(4:LEN_TRIM(nctestname))
+          print'(2A)', 
+     &       ' ---> List of variables requested in output: '
+     &        , trim(inc_var_list)
+          inc_var_list = trim(inc_var_list) / / ','
+          goto 2
+        endif
+
+        if ( nctestname(1:1)=='-' .and. (
+     &       lsrc > 2  .and. nctestname(1:3) == '-x=' )) then
+          ex_var_list = nctestname(4:LEN_TRIM(nctestname))
+          print'(2A)', 
+     &        ' ---> List of variables to exclude in output: '
+     &        , trim(ex_var_list)
+          ex_var_list = trim(ex_var_list) / / ','
           goto 2
         endif
            
@@ -237,12 +270,12 @@ c--#define VERBOSE
           i=ichar(nctestname(lsrc:lsrc))-48
           if (i == 0) then
             shuffle=1 ; deflate=0 ; deflate_level=0
-            write(*,'(/1x,A,I2/)') '---> No compression. level =', i
+            write(*,'(1x,A,I2)') '---> No compression. level =', i
           elseif (0 < i .and. i <= 9) then
             shuffle=1 ; deflate=1 ; deflate_level=i
-            write(*,'(/1x,A,I2/)') '---> Set compression level =', i
+            write(*,'(1x,A,I2)') '---> Set compression level =', i
           else
-            write(*,'(/1x,2A/)') '### ERROR: invalid argument: ',
+            write(*,'(1x,2A)') '### ERROR: invalid argument: ',
      &                   'compression level must be from 0 to 9.'
             stop
         endif
@@ -257,10 +290,38 @@ c--#define VERBOSE
           goto 2
         endif
         if ( nctestname(1:1)=='-' .and. (
-     &       lsrc > 1  .and. nctestname(1:2) == '-h' )) then
+     &       lsrc > 1  .and. nctestname(1:2) == '-h') ) then
           call usage
           call exit(0)
         endif
+        if ( nctestname(1:1)=='-' .and. (
+     &       lsrc > 1  .and. nctestname(1:2) == '-v') ) then
+           verbose = 1
+           if (trim(nctestname) == '-vv') verbose = 2
+           if (trim(nctestname) == '-vvv') verbose = 3
+           print*,' Verbosity = ',verbose
+           goto 2
+        endif
+        if ( nctestname(1:1)=='-' .and. 
+     &      (lsrc > 1  .and. index('khnpqvcix',nctestname(2:2))==0)
+     &     )  then
+          print'(/3A/)', '### ERROR Unknown option >'
+     &                   , nctestname(1:2), '<'
+          call usage
+          call exit(1)
+        endif
+
+      if (renice) then
+        pid=getpid()                   ! mode with lowered priority to
+        write(cmd,'(I8)') pid          ! not interfere with running MPI
+        lstr=lenstr(cmd)               ! job. This code segment catches
+        cmd(11:lstr+10)=cmd(1:lstr)    ! pid of its own process and
+        lstr=lstr+10                   ! executes re-nice command.
+        cmd(1:10)='renice 19'
+        if (verbose>0)  
+     &  write(*,'(/3A//)') 'Autorenice: executing ''',cmd(1:lstr),'''.'
+        call system(cmd(1:lstr))
+      endif
 
         if (ntest /= -1) then
           ierr=nf_close(ntest) ; ntest=-1
@@ -387,12 +448,10 @@ c--#define VERBOSE
      &                 'determine MPI node number from file name ''',
      &                                     nctestname(1:lsrc), '''.'
                   endif
-# ifdef VERBOSE
-                  write(*,'(1x,3A,I3,1x,A,I4,1x,A,I4,3x,A,2I4)')
+      if (verbose>1)  write(*,'(1x,3A,I3,1x,A,I4,1x,A,I4,3x,A,2I4)')
      &           'fname = ''', nctestname(1:lsrc),  ''' code_size =',
      &            code_size,  'code =', k, 'node =', node, 'i,jSW =',
      &                              xi_start(node), eta_start(node)
-# endif
 
 ! Checking consistency of root name with previously found.
 
@@ -403,7 +462,8 @@ c--#define VERBOSE
                     lvar=lenstr(root) ; lbak=lenstr(root_bak)
                     if (lvar /= lbak .or. root /= root_bak) then
                       ierr=ierr+1
-                      write(*,'(/8x,6A/17x,3A/)') 'WARNING: file ''',
+                      if (.not. quite)
+     &                 write(*,'(/8x,6A/17x,3A/)') 'WARNING: file ''',
      &                     nctestname(1:lsrc),   ''' has different ',
      &                    'root name ''',  root(1:lvar),   ''' than',
      &                   'previously found root name ''',
@@ -496,9 +556,6 @@ c--#define VERBOSE
         endif
       if (.not.complete .and. arg < nargs) goto 2  !--> next file
 
-#ifdef VERBOSE
-      write(*,*) ' line 466, complete =',complete, ' nnodes =',nnodes
-#endif
 
 ! Once a complete set is identified, print the finenames.
 
@@ -508,11 +565,11 @@ c--#define VERBOSE
      &                         nnodes, 'files', 0, srcname(0)(1:lsrc),
      &                          'i,jSW =', xi_start(0), eta_start(0) 
           do node=1,nnodes-1
-          if (node < 16 .or. (nnodes > 16 .and. node == nnodes-1)) then
+          if (node < 8 .or. (nnodes > 8 .and. node > nnodes-8)) then
               write(*,'(29x,I4,1x,A,2x,A,2I5)') node,
      &                  srcname(node)(1:lsrc), 'i,jSW =',
      &                              xi_start(node), eta_start(node)
-          elseif (nnodes>16 .and. node<18) then
+          elseif (nnodes>8 .and. node<10) then
               write(*,'(24x,A)') '.................................'
             endif
           enddo
@@ -663,8 +720,10 @@ c**         endif
 !                 scalar", if partit creates one, e.g., in the case
 !                 of boundary forcing variable in inner MPI node,
 !                 where it is not needed).
-
-          if (node == 0) nvars=0
+          if (node == 0) then 
+            nvars=0
+            print*,'Building variable catalog...'
+          endif
           do i=1,ibuff(2)
             ierr=nf_inq_varname(ncsrc(node), i, string)
             if (ierr == nf_noerr) then
@@ -683,9 +742,15 @@ c**         endif
                     endif
                   endif
                 enddo
+                if (lnewvar .and. (LEN_TRIM(inc_var_list) > 0) ) then
+                   lnewvar = is_in_list(inc_var_list,string)
+                endif
+                if (lnewvar .and. (LEN_TRIM(ex_var_list) > 0) )
+     &             lnewvar = ( .not. is_in_list(ex_var_list,string) )
                 if (lnewvar) then
                   nvars=nvars+1  ; vid(nvars,node)=i
                   vname(nvars)=string(1:lstr)
+                  print*,'Added ',trim(string),' to output vars'
                   vnode(nvars)=node ; vdims(nvars)=k
                 endif
               else
@@ -717,15 +782,15 @@ c**         endif
             endif
       enddo  !<-- node=0,nnodes-1
 
-#ifdef VERBOSE
-      write(*,'(/1x,A,I3)') 'Inventory of variables: nvars =', nvars
-      do i=1,nvars
-        lvar=lenstr(vname(i))
-        write(*,'(4I4,2x,3A)') i, vid(i,vnode(i)), vnode(i), vdims(i),
+      if (verbose)  then
+        write(*,'(/1x,A,I3)') 'Inventory of variables: nvars =', nvars
+        do i=1,nvars
+          lvar=lenstr(vname(i))
+          write(*,'(4I4,2x,3A)') i, vid(i,vnode(i)), vnode(i), vdims(i),
      &                                   '''', vname(i)(1:lvar), ''''
-      enddo
-      write(*,*) '...............................'
-#endif
+        enddo
+        write(*,*) '...............................'
+      endif
 
 ! Determine sizes of dimensions for combined file: For partitionable
 ! dimensions 'xi_rho', 'xi_u', 'eta_rho' and 'eta_v' determine the
@@ -829,9 +894,8 @@ c**         endif
           enddo ! <-- i loop over dimensions
 
 
-#ifdef VERBOSE
-      write(*,'(1x,A)') 'Identifying presence of boundary edges:'
-#endif
+      if (verbose) 
+     &  write(*,'(1x,A)') 'Identifying presence of boundary edges:'
           do node=0,nnodes-1
         western_edge(node)=.true.  ;  eastern_edge(node)=.true.
         southern_edge(node)=.true. ;  northern_edge(node)=.true.
@@ -856,8 +920,8 @@ c**         endif
      &                             ) northern_edge(node)=.false.
             endif
 
-#ifdef VERBOSE
-        if (node == 0) then
+        if (verbose) then
+            if (node == 0) then
               write(*,'(8x,A,I4,4(2x,A,L1))') 'node =', node,
      &        'WST=',western_edge(node),  'EST=',eastern_edge(node),
      &        'SOU=',southern_edge(node), 'NOR=',northern_edge(node)
@@ -866,7 +930,7 @@ c**         endif
      &                     western_edge(node),  eastern_edge(node),
      &                     southern_edge(node), northern_edge(node)
             endif
-#endif
+        endif !<-- verbose
       enddo  !<-- node=0,nnodes-1
 
 ! Create combined netCDF file:   Once the completeness of the set of
@@ -928,10 +992,9 @@ c**         endif
 ! Define dimensions: also compute the size of buffer needed to
 ! accommodate the largest array.
 
-# ifdef VERBOSE
-      write(*,'(/1x,A,3x,A,1x,A,1x,A)') 'Dimensions:', 'id', 'size',
+      if (verbose)
+     & write(*,'(/1x,A,3x,A,1x,A,1x,A)') 'Dimensions:', 'id', 'size',
      &                                                       'name'
-# endif
       size_XI=1 ; size_ETA=1 ; size_S=1
 
           do i=1,ndims
@@ -940,10 +1003,9 @@ c**         endif
      &                     dimsize(i,nnodes), dimid(i))
         if (ierr == nf_noerr) then
           if (dimid(i) == i) then
-# ifdef VERBOSE
-            write(*,'(14x,I3,I5,1x,3A)') dimid(i), dimsize(i,nnodes),
+      if (verbose)
+     &      write(*,'(14x,I3,I5,1x,3A)') dimid(i), dimsize(i,nnodes),
      &                                '''', dimname(i)(1:lvar), ''''
-# endif
             if (dimname(i)(1:3) == 'xi_') then
                   size_XI=max(size_XI, dimsize(i,nnodes))
             elseif (dimname(i)(1:4) == 'eta_') then
@@ -968,9 +1030,8 @@ c**         endif
 
 ! Copy all global attributes, except 'partition'.
 
-# ifdef VERBOSE
-          write(*,'(1x,A)') 'Copying global attributes:'
-# endif
+      if (verbose)
+     &    write(*,'(1x,A)') 'Copying global attributes:'
       lsrc=lenstr(srcname(0))
       if (ncsrc(0) == -1) ierr=nf_open(srcname(0),nf_nowrite,ncsrc(0))
       if (ierr == nf_noerr) then
@@ -990,9 +1051,8 @@ c**         endif
      &                                    '''.',  nf_strerror(ierr)
                   goto 97
                 endif
-# ifdef VERBOSE
-                write(*,'(20x,3A)') '''', string(1:lvar), ''''
-# endif      
+      if (verbose)
+     &          write(*,'(20x,3A)') '''', string(1:lvar), ''''
               endif
             else
             write(*,'(/1x,2A,I3/12x,3A/12x,A/)')     '### ERROR: ',
@@ -1019,9 +1079,8 @@ c**         endif
 
 ! Define variables and copy their attributes.
 
-# ifdef VERBOSE
-      write(*,'(1x,A)') 'Variables, their dimensions and attributes:'
-# endif
+      if (verbose)
+     &write(*,'(1x,A)') 'Variables, their dimensions and attributes:'
           do i=1,nvars
         node=vnode(i)
         lsrc=lenstr(srcname(node))
@@ -1045,10 +1104,9 @@ c**         endif
               endif
               if (ierr == nf_noerr) then
 #endif
-# ifdef VERBOSE
-                write(*,'(8x,3A,8I3)')   '''', vname(i)(1:lvar), ''',
-     &                        dimids =', (dimids(j,i), j=1,vdims(i))
-#endif
+      if (verbose)
+     &         write(*,'(8x,3A,8I3)')  '''', vname(i)(1:lvar)
+     &        , '''         dimids =', (dimids(j,i), j=1,vdims(i))
                 do j=1,varatts
                   ierr=nf_inq_attname(ncsrc(node), vid(i,node), j,
      &                                                      string)
@@ -1063,12 +1121,11 @@ c**         endif
      &                nctargname(1:ltrg), '''.  ', nf_strerror(ierr)
                       goto 97
                     endif
-# ifdef VERBOSE
-                    write(*,'(16x,3A)') '''', string(1:lstr), ''''
-# endif
+      if (verbose)
+     &               write(*,'(16x,3A)') '''', string(1:lstr), ''''
                   else
                     write(*,'(/1x,A,I3/12x,3A/12x,A/)')
-     &                '### ERROR: Cannot get name of attribute #', j,
+     &                 '### ERROR: Cannot get name of attribute #', j,
      &                    'for variable ''', vname(i)(1:lvar), '''.',
      &                                             nf_strerror(ierr)
                     goto 97
@@ -1132,9 +1189,8 @@ c**         endif
 ! Leave definition mode
 
           ierr=nf_enddef (nctarg)
-# ifdef VERBOSE
-      write(*,'(/1x,A)') 'Leaving definition mode.'
-# endif
+      if (verbose)
+     & write(*,'(/1x,A)') 'Leaving definition mode.'
 
 ! Allocate buffer arrays: Scan all the variables to find the largest
 !--------- ------ ------- memory requirement within each variable type.
@@ -1298,6 +1354,7 @@ c**         endif
 #endif
 
 #ifdef TIMING
+      if (timing) then
 ! Note: there is a possibility that "iclk" goes beyond "clk_max" and
 ! is folded back into the range of [0 ... clk_max].  The logic needs to
 ! account for this. Recall that all the arguments of system_clock() are
@@ -1310,6 +1367,7 @@ c**         endif
       if (inc_clk < 0) inc_clk=inc_clk+clk_max
       net_clk=net_clk+inc_clk
       net_init_clk=net_init_clk+inc_clk
+      endif
 #endif
 
 !     **     *     ***  *******    ***  *********  ********
@@ -1327,6 +1385,7 @@ c**         endif
         do rec=1,tsize
         if (tsize > 1) then
 #ifdef TIMING
+      if (timing) then
           nclk=3-nclk
           call system_clock(iclk(nclk), clk_rate,clk_max)
           inc_clk=iclk(nclk)-iclk(3-nclk)
@@ -1336,6 +1395,7 @@ c**         endif
 
           write(*,'(F8.1,1x,2(A,I8,1x),A)')
      &                         dble(net_clk)/dble(clk_rate),
+      endif
 #else
           write(*,'(4x,2(A,I8,1x),A)')
 #endif
@@ -1346,6 +1406,7 @@ c**         endif
           lvar=lenstr(vname(i))
           if (rec==1 .or. series(i)) then
 #ifdef TIMING
+      if (timing) then
             if (vtype(i) == nf_char .or.        ! Determine the size
      &          vtype(i) == nf_byte) then       ! of one element of
               vtypsize=1                        ! the variable in
@@ -1357,6 +1418,7 @@ c**         endif
             elseif (vtype(i) == nf_double) then
               vtypsize=8
             endif
+      endif
 #endif
             if (part_type(i)==0 .and. .not.series(i)) then
 
@@ -1573,45 +1635,40 @@ c**         endif
                   if (vname(i)(lvar-5:lvar) == '_south' .and.
      &                              southern_edge(node)) then
                       var_mask=.true.
-# ifdef VERBOSE
-                      write(*,'(3x,A,I4,1x,4A)')  'node =', node,
+      if (verbose)
+     &                write(*,'(3x,A,I4,1x,4A)')  'node =', node,
      &               'identified XI-partitioned southern ',
      &               'boundary array ''', vname(i)(1:lvar), ''''
-# endif
                   elseif (vname(i)(lvar-5:lvar) == '_north' .and.
      &                                 northern_edge(node)) then
                       var_mask=.true.
-# ifdef VERBOSE
-                      write(*,'(3x,A,I4,1x,4A)')   'node =', node,
+      if (verbose)
+     &                write(*,'(3x,A,I4,1x,4A)')   'node =', node,
      &               'identified XI-partitioned northern ',
      &               'boundary array ''', vname(i)(1:lvar), ''''
-# endif
                     endif
                 elseif (part_type(i) == 2 .and. lvar > 5) then
                   if (vname(i)(lvar-4:lvar) =='_west' .and.
      &                                 western_edge(node)) then
                       var_mask=.true.
-# ifdef VERBOSE
-                      write(*,'(3x,A,I4,1x,4A)')     'node =', node,
+      if (verbose)
+     &                write(*,'(3x,A,I4,1x,4A)')     'node =', node,
      &               'identified ETA-partitioned western ',
      &               'boundary array ''', vname(i)(1:lvar), ''''
-# endif
                   elseif (vname(i)(lvar-4:lvar)=='_east'
      &                          .and. eastern_edge(node)) then
                       var_mask=.true.
-# ifdef VERBOSE
-                      write(*,'(3x,A,I4,1x,4A)')     'node =', node,
+      if (verbose)
+     &                write(*,'(3x,A,I4,1x,4A)')     'node =', node,
      &               'identified ETA-partitioned eastern ',
      &               'boundary array ''', vname(i)(1:lvar), ''''
-# endif
                     endif
                 elseif (part_type(i) == 3) then
                     var_mask=.true.
-# ifdef VERBOSE
-                    write(*,'(3x,A,I4,1x,4A)')   'node =', node,
+      if (verbose)
+     &              write(*,'(3x,A,I4,1x,4A)')   'node =', node,
      &                     'identified 2D-partitioned array ''',
      &                                  vname(i)(1:lvar), ''''
-# endif
                   endif
 
                   if (var_mask) then
@@ -1664,12 +1721,11 @@ c**         endif
      &                                      nf_nowrite, ncsrc(node))
                   if (ierr == nf_noerr) then
 #endif
-#ifdef VERBOSE
-                    write(*,'(3x,A,I4,2x,A,I7,2x,A,I4,1x,A,I4,1x,A)')
+      if (verbose)
+     &               write(*,'(3x,A,I4,2x,A,I7,2x,A,I4,1x,A,I4,1x,A)')
      &                     'node =', node, 'ncsrc=',ncsrc(node),
      &                     'xi_start =', xi_start(node),
      &                     'eta_start =', eta_start(node), 'reading...'
-#endif
 #ifdef FAST_MODE
                     if (vtype(i) == nf_char) then
                       ierr=chk_alloc(size1, allc_cbf_out, 'nf_char')
@@ -1758,9 +1814,8 @@ c**         endif
                     goto 97
                   endif
 #endif
-# ifdef VERBOSE
-                    write(*,'(1x,A)')  'copying ...'
-# endif
+      if (verbose)
+     &               write(*,'(1x,A)')  'copying ...'
 
 ! In the code segment below there are two strategies, resulting in
 ! equivalent outcome, but different performance: CPP-switch FAST_MODE
@@ -2055,7 +2110,6 @@ c       ierr=nf_open(nctargname(1:ltrg), nf_write, nctarg)
      &   'Elapsed wall-clock time:',dble(net_clk)/dble(clk_rate),'sec'
       endif
 #endif
-        stop
       end
 
       function chk_alloc(size, alloc_size, type_str)
@@ -2121,9 +2175,28 @@ c       ierr=nf_open(nctargname(1:ltrg), nf_write, nctarg)
 # include "copy_subarray.h"
       end
 # endif
+      
+      logical function is_in_list(vlist, vname)
+      !
+      ! Returns true if name is in list 
+      ! list must be comma separated without spaces
 
-      subroutine usage
-        print'(/17(A/))'
+      CHARACTER(len=*) :: vname
+      CHARACTER(len=*) :: vlist
+      integer ::len_v
+      
+      vname = trim(vname) / / ',' ! Mark end of var name by a ','
+      len_v = LEN_TRIM(vname)
+      is_in_list = (INDEX(trim(vlist),trim(vname)) > 0)
+      vname(len_v:len_v) = ' '
+      !print*,'Reset vname >',trim(vname),'<'
+      !print*, trim(vname),' requested? ', is_in_list
+      !print*,' Is_in_list = ', is_in_list
+
+      end function is_in_list
+
+      subroutine usage 
+      print'(/(A))'
      &   , 'NCJOIN'
      &   , '     Reads ROMS partial netCDF files and combines them'
      &   , '     into a file for the whole physical grid.'
@@ -2133,20 +2206,30 @@ c       ierr=nf_open(nctargname(1:ltrg), nf_write, nctarg)
      &   , '     (NCJOIN  is the inverse of PARTIT.)'
      &   , ' '
      &   , 'USAGE:'
-     &   , '     ncjoin [-3 -k -p -h -c=<n>>] files.*.nc'
+     &   , '     ncjoin [-3hknpqv -c=<n> -i=<list> -x=<list>]'
+     &   / / ' files.*.nc'
      &   , ' '
      &   , '     where files.*.nc matches one or more complete set of' 
      &   , '     partial files'
      &   , ' '
      &   , 'OPTIONS:'
-     &   , '    -3           netCDF3 (64-bit) output (default: netCDF4)'
-     &   , '    -c=0-9       output compression level (default: 1)'
-     &   , '                 -c=0 contiguous storage, no compression'
-     &   , '    -k           keep partial files'
-     &   , '    -p           if record dim differs, use its minimum'
+     &   , '    -3           netCDF3 output (default: netCDF4)'
      &   , '    -h           print this help'
-!&   , '    -o=<dir>     output directory (default: working dir)'
-!&   , '     ncjoin [-3 -k -h -c=<n> -o=<dir>] files.*.nc'
-
-      end
+     &   , '    -c=<0-9>     output compression level (default: 1)'
+     &   , '                 -c=0 contiguous storage, no compression'
+     &   , '    -i=<var_list> list of variables (comma-separated '
+     &   , '                 without spaces) to include'
+     &   , '    -k           keep partial files'
+     !&   , '    -m           reduce memory usage (slow mode)'
+     &   , '    -n           do not renice job to low priority'
+     &   , '    -p           if record dim differs, use its minimum'
+     !&   , '    -q           quite operation'
+     !&   , '    -t           report operation time'
+     &   , '    -v           increase verbosity'
+     &   , '    -x=<var_list> list of variables (comma-separated'
+     &   , '                 without spaces) to exclude'
+     &   , '    -o=<dir>     output directory (default: working dir)'
+     &   , 'NOTE:'
+     &   , '     The variable lists are case sensitive.'
+      end subroutine usage
 
