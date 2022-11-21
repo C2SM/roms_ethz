@@ -26,7 +26,8 @@
      &                            oas_SWR, oas_TEP,
      &                            alpha_rho, alpha_u, alpha_v,
      &                            u_cos_proj_u, v_cos_proj_u,
-     &                            u_cos_proj_v, v_cos_proj_v
+     &                            u_cos_proj_v, v_cos_proj_v,
+     &                            l_snd_sst, l_snd_sm
 
          IMPLICIT NONE
 
@@ -90,9 +91,12 @@
 
             ! Update fields for sending
             ! -------------------------
-            ssnd(oas_itemp)%pdata =
-     &           t(cpl_grd(k_rho)%imin:cpl_grd(k_rho)%imax,
+            IF (l_snd_sst) THEN
+                ssnd(oas_itemp)%pdata =
+     &             t(cpl_grd(k_rho)%imin:cpl_grd(k_rho)%imax,
      &             cpl_grd(k_rho)%jmin:cpl_grd(k_rho)%jmax,N,nstp,itemp)
+            ENDIF
+            IF (l_snd_sm) THEN
             ssnd(oas_SSU_U)%pdata =
      &           u(cpl_grd(k_u)%imin:cpl_grd(k_u)%imax,
      &             cpl_grd(k_u)%jmin:cpl_grd(k_u)%jmax,N,nstp)
@@ -105,6 +109,7 @@
             ssnd(oas_SSV_V)%pdata =
      &           v(cpl_grd(k_v)%imin:cpl_grd(k_v)%imax,
      &             cpl_grd(k_v)%jmin:cpl_grd(k_v)%jmax,N,nstp)
+            ENDIF
 
             ! Write Debug File
             ! ----------------

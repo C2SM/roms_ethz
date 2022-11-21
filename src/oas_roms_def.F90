@@ -52,7 +52,8 @@ MODULE oas_roms_def
       &                     alpha_rho, alpha_u, alpha_v,          &
       &                     u_cos_proj_u, v_cos_proj_u,           &
       &                     u_cos_proj_v, v_cos_proj_v,           &
-      &                     IOASISDEBUGLVL, l_oas_seq
+      &                     IOASISDEBUGLVL, l_oas_seq,            &
+      &                     l_snd_sst, l_snd_sst
 
    USE oas_roms_set_cpl_grd, ONLY: oas_roms_set_grd
       
@@ -195,15 +196,19 @@ CONTAINS
       ! Sent fields
       ! -----------
       ! Sea surface temperature [K]
-      CALL oas_roms_def_var('snd', k_rho, 'SO_SST_A', oas_itemp, laction=.TRUE.)
-      ! Sea surface U-velocity for COSMO U-points [m/s]
-      CALL oas_roms_def_var('snd', k_u  , 'SO_SSU_U', oas_SSU_U, laction=.TRUE.)
-      ! Sea surface U-velocity for COSMO V-points [m/s]
-      CALL oas_roms_def_var('snd', k_u  , 'SO_SSU_V', oas_SSU_V, laction=.TRUE.)
-      ! Sea surface V-velocity for COSMO U-points [m/s]
-      CALL oas_roms_def_var('snd', k_v  , 'SO_SSV_U', oas_SSV_U, laction=.TRUE.)
-      ! Sea surface V-velocity for COSMO V-points [m/s]
-      CALL oas_roms_def_var('snd', k_v  , 'SO_SSV_V', oas_SSV_V, laction=.TRUE.)
+      IF (l_snd_sm) then
+         CALL oas_roms_def_var('snd', k_rho, 'SO_SST_A', oas_itemp, laction=.TRUE.)
+      ENDIF
+      IF (l_snd_sm) then
+         ! Sea surface U-velocity for COSMO U-points [m/s]
+         CALL oas_roms_def_var('snd', k_u  , 'SO_SSU_U', oas_SSU_U, laction=.TRUE.)
+         ! Sea surface U-velocity for COSMO V-points [m/s]
+         CALL oas_roms_def_var('snd', k_u  , 'SO_SSU_V', oas_SSU_V, laction=.TRUE.)
+         ! Sea surface V-velocity for COSMO U-points [m/s]
+         CALL oas_roms_def_var('snd', k_v  , 'SO_SSV_U', oas_SSV_U, laction=.TRUE.)
+         ! Sea surface V-velocity for COSMO V-points [m/s]
+         CALL oas_roms_def_var('snd', k_v  , 'SO_SSV_V', oas_SSV_V, laction=.TRUE.)
+      ENDIF
 
       ! Received fields
       ! ---------------
