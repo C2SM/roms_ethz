@@ -14,10 +14,12 @@ DEPDIR := $(BLDDIR)/.depend
 # Oasis/MCT coupler dir
 ifneq  ($(origin ROMSOC_OASIS_INSTALL), undefined)
     OASDIR ?=$(ROMSOC_OASIS_INSTALL)
-    OASINC := -I$(OASDIR)/build/lib/psmile.MPI1 \
-            -I$(OASDIR)/build/lib/mct
-    OASLIB := -L$(OASDIR)/lib -lpsmile.MPI1 -lscrip -lmct -lmpeu
+else
+    OASDIR ?=$(shell spack location -i oasis)
 endif
+OASINC := -I$(OASDIR)/build/lib/psmile.MPI1 \
+          -I$(OASDIR)/build/lib/mct
+OASLIB := -L$(OASDIR)/lib -lpsmile.MPI1 -lscrip -lmct -lmpeu
 
 # Create directories if needed
 $(shell test -d $(BLDDIR) || mkdir -p $(BLDDIR) )
@@ -200,6 +202,8 @@ else ifeq ($(strip $(FCOMP)),ftn)
    ifdef OPENMP
       OPENMP := -homp
    endif
+   # added 03-2022 to hopefully fix a cross-compilation issue nvhpc at CSCS
+   LDFLAGS += -lnvcpumath -lnvhpcatm
 else ifeq ($(strip $(FCOMP)),gfortran)
    #
    # ============= Gnu gfortran compiler =============

@@ -53,8 +53,8 @@
                grd%grd_name = 'R__v'
                grd%dims_g = (/LLm,MMm-1/)
             ELSE
-               WRITE(*,*) 'ERROR in oas_roms_set_cpl_grd :'
-               WRITE(*,*) '   unkown value of k_pt'
+               WRITE(*,*) 'OAS_ROMS : ERROR in oas_roms_set_cpl_grd :'
+               WRITE(*,*) 'OAS_ROMS :    unkown value of k_pt'
                CALL abort
             ENDIF
 
@@ -94,7 +94,7 @@
      
             ALLOCATE(grd%exfld(grd%imin:grd%imax, grd%jmin:grd%jmax))
 
-            IF ( IOASISDEBUGLVL == 30 ) THEN
+            IF ( IOASISDEBUGLVL >= 2 ) THEN
                PRINT *, '***********************************************'
                PRINT *, 'Mynode: ', mynode
                PRINT *, 'Node tile (inode, jnode) = (',inode,', ', jnode,')'
