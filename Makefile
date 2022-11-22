@@ -1,7 +1,7 @@
 # Source dir
 SRCDIR := $(CURDIR)/src
 #
-BLDDIR := $(CURDIR)/build
+BLDDIR ?= $(CURDIR)/build
 
 #-include $(SRCDIR)/Makefile
 

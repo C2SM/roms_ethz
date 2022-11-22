@@ -148,13 +148,12 @@ redefs: redefs.F
 checkdefs: check_switches1.F setup_kwds.F
 check_switches1.F: cppcheck cppdefs_UP.h cppdefs.h
 	$(Q)./cppcheck $(INCDIR)/cppdefs_UP.h $(INCDIR)/cppdefs.h
-#	test "$(SRCDIR)" != "$(BLDDIR)" && cp $(SRCDIR)/check_switches1.F $(BLDDIR)
 check_srcs.F: srcscheck Makefile
 	$(Q) ./srcscheck
 setup_kwds.F: checkkwds read_inp.F
-	ln -s $(SRCDIR)/read_inp.F 
+	test "$(SRCDIR)" != "$(BLDDIR)" && ln -s $(SRCDIR)/read_inp.F read_inp.F
 	$(Q)./checkkwds
-#	test "$(SRCDIR)" != "$(BLDDIR)" && cp $(SRCDIR)/setup_kwds.F $(BLDDIR)
+	test "$(SRCDIR)" != "$(BLDDIR)" && rm read_inp.F
 print_cppswitches: check_switches1.F print_cppswitches.F
 	$(Q)$(FC) $(CPPFLAGS) -o $@ $^ #print_cppswitches.F $(SRCDIR)/check_switches1.F
 
@@ -181,7 +180,7 @@ test:
 
 clobber: distclean
 distclean: clean
-	/bin/rm -f mpc check_switches1.F setup_kwds.F check_srcs.F \
+	/bin/rm -f mpc check_switches1.F setup_kwds.F check_srcs.F $(BLDDIR)/read_inp.F\
 	$(SBIN) $(SBIN)_cpl $(TOOLS) nsub core* *_genmod.mod *_genmod.f90 \
 	$(DEPDIR)/*.d print_cppswitches tests/make_*.log  tests/logs/*
 	rmdir $(DEPDIR)

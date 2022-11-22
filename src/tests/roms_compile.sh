@@ -1,25 +1,61 @@
 #!/bin/bash
 #
-# Test script for various ETH Zurich ROMS setups
+# Test compilation of ROMS and ROMSOC for various ETH Zurich setups
+# By default both ROMS and ROMSOC are tried compile for each setup
+# Only ROMS and ROMSOC are tried to compile if you call it with
+# argmument ROMS or ROMSOC, respectively
 
-echo Testing ROMS compilation for various ETH ROMS setups:
-if [ ! -d logs ] ;  then
-    mkdir logs
+
+echo '    ' Testing ROMS and/or ROMSOC compilation for various ETH setups:
+
+# ROMS source directory:
+export SRCDIR=$PWD/..
+
+# Log make output in this directory
+LOGDIR=$PWD/make_logs
+if [ ! -d $LOGDIR ] ;  then
+    mkdir $LOGDIR
 fi
-for setup in AMACAN PACTC HUMPAC SO BENGT CANAMA ONEDIM # ATLTC SAEP OLDSTYLE MOONS
-do
-    cd ..
-	cp include/cppdefs_$setup.h include/cppdefs.h
-	echo -n '   - '${setup} ...' '
-	make clean > /dev/null
-    make -j > tests/logs/make_$setup.log 2>&1 && echo OK
-    if [ $? -ne 0 ] ; then
-        echo FAIL
-        echo Check tests/logs/make_$setup.log for more information
-        exit 1
-    fi
-	mv roms tests/logs/roms_$setup
-	rm include/cppdefs.h
-	cd tests
+echo '    ' Log location:: $LOGDIR
+echo
+
+# Build in the directory:
+export BLDDIR=$PWD/build
+if [ ! -d $BLDDIR ] ; then
+    mkdir $BLDDIR
+fi
+
+# echo SRCDIR: $SRCDIR
+# echo BLDDIR: $BLDDIR
+
+
+SETUPS="AMACAN PACTC HUMPAC SO BENGT CANAMA ONEDIM" # ATLTC SAEP OLDSTYLE MOONS
+cd  $BLDDIR
+
+for setup in $SETUPS ; do
+	cp $SRCDIR/include/cppdefs_$setup.h $SRCDIR/include/cppdefs.h
+	cp $SRCDIR/Makefile .
+	echo  '   - '${setup}': '
+	if [ "$1" != "ROMSOC" ] ; then
+		echo -n '         - ROMS   ... '
+		make clean > /dev/null
+		make -j > $LOGDIR/make_$setup.log 2>&1 && echo OK
+		if [ $? -ne 0 ] ; then
+			echo FAIL
+		else
+			mv $BLDDIR/roms $BLDDIR/roms_$setup
+		fi
+	fi
+	if [ "$1" != "ROMS" ] ; then
+		echo -n '         - ROMSOC ... '
+		make clean > /dev/null
+		make -j COUPLED=1 > $LOGDIR/make_romsoc_$setup.log 2>&1 && echo OK
+		if [ $? -ne 0 ] ; then
+			echo FAIL
+		else
+			mv $BLDDIR/roms $BLDDIR/romsoc_$setup
+		fi
+	fi
+	rm -f $SRCDIR/include/cppdefs.h
 done
 
