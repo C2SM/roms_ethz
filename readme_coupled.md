@@ -3,9 +3,9 @@ Note about the unified coupled/uncoupled ROMS code base
 
 -   The coupled model (ROMSOC) now has to be compiled using
 
-    > make roms_cpl COUPLED=1
+    > make COUPLED=1
 
-    - I edited my romsoc_tools accordingly but did not yet push the changes.
+    - I did not edited romsoc_tools accordingly.
 
 -   The cppdefs.h files are now under `src/include/`.
     - Please use the cppdefs_PACTC_ROMSOC.h  and link to it:

@@ -11,6 +11,8 @@ INCDIR ?= $(SRCDIR)/include
 BIODIR ?= $(SRCDIR)/biology
 # Dependencies dir
 DEPDIR := $(BLDDIR)/.depend
+
+ifdef COUPLED
 # Oasis/MCT coupler dir
 ifneq  ($(origin ROMSOC_OASIS_INSTALL), undefined)
     OASDIR ?=$(ROMSOC_OASIS_INSTALL)
@@ -20,6 +22,7 @@ endif
 OASINC := -I$(OASDIR)/build/lib/psmile.MPI1 \
           -I$(OASDIR)/build/lib/mct
 OASLIB := -L$(OASDIR)/lib -lpsmile.MPI1 -lscrip -lmct -lmpeu
+endif
 
 # Create directories if needed
 $(shell test -d $(BLDDIR) || mkdir -p $(BLDDIR) )
@@ -29,8 +32,6 @@ $(shell test -d $(DEPDIR) || mkdir -p $(DEPDIR) )
 MAKEDEPEND = $(SRCDIR)/depend.sh
 DEPFLAGS = -MT $@ -MMD -MP -MF $(DEPDIR)/$*.Td
 
-# Sasha's preprocessor
-MPC ?= $(BLDDIR)/mpc
 
 # Clear the default suffixes
 .SUFFIXES:
@@ -47,12 +48,13 @@ MPC ?= $(BLDDIR)/mpc
 # Define Q for quite mode:
 Q ?= @
 # Verbose
-Q = 
+#Q = 
 
 # Include file locations
 CPPFLAGS += -I$(SRCDIR) -I$(INCDIR) -I$(BIODIR)
 ifdef COUPLED
-FFLAGS += $(OASINC)
+FFLAGS += $(OASINC) 
+CPPFLAGS += -DCOUP_OAS
 endif
 ifdef MPI_HOME
    CPPFLAGS += -I$(MPI_HOME)/include
@@ -72,10 +74,9 @@ endif
 	$(Q)cd $(BLDDIR); $(MPIFC) -c $(FFLAGS) $(notdir $<)
 # Rule to create .f files;
 # also create dependencies files when creating these.
-#%.f: %.F mpc
-%.f: %.F $(MPC)
+%.f: %.F mpc
 	$(Q)$(MAKEDEPEND) $(dir $<) $(CPPFLAGS) $< > $(DEPDIR)/$*.d
-	$(Q)$(CPP) $(CPPFTN) $(CPPFLAGS)  $< | $(MPC) > $(BLDDIR)/$*.f
+	$(Q)$(CPP) $(CPPFTN) $(CPPFLAGS)  $< | mpc > $(BLDDIR)/$*.f
 
 
 # OASIS coupling code is written in FORTRAN free-format

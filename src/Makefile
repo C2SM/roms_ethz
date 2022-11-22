@@ -92,22 +92,19 @@ ifdef NO_IO
 SRCS := $(KRNSRC) $(BIOSRC)
 endif
 OBJS := $(SRCS:.F=.o)
-#SBIN := roms
 SBIN := roms
-MPC := $(BLDDIR)/mpc
-MPC := mpc
 
 # ROMS excutable
 
-$(SBIN): $(MPC) print_cppswitches $(OBJS)
-	$(Q)$(SRCDIR)/print_cppswitches
-	$(Q)cd $(BLDDIR); $(LDR) $(FFLAGS) $(LDFLAGS) -o $@ $(OBJS) $(LCDF) $(LMPI)
+$(SBIN): mpc print_cppswitches $(OBJS)
+	$(Q)print_cppswitches
+	$(Q)$(LDR) $(FFLAGS) $(LDFLAGS) -o $@ $(OBJS) $(LCDF) $(LMPI)
 
 partit: partit.o lenstr.o insert_node.o
-	$(Q)cd $(BLDDIR); $(FC) $(FFLAGS) $(LDFLAGS) -o $@ partit.o lenstr.o insert_node.o $(LCDF)
+	$(Q)cd $(BLDDIR); $(FC) $(FFLAGS) $(LDFLAGS) -o $@ $^ $(LCDF)
 
 ncjoin: ncjoin.o lenstr.o
-	$(Q)cd $(BLDDIR); $(FC) $(FFLAGS) $(LDFLAGS) -o $@ ncjoin.o lenstr.o $(LCDF)
+	$(Q)cd $(BLDDIR); $(FC) $(FFLAGS) $(LDFLAGS) -o $@ $^ $(LCDF)
 
 check_forces: check_forces.o $(SBIN)
 	cp -pv check_forces.o main.o 	
@@ -115,10 +112,10 @@ check_forces: check_forces.o $(SBIN)
 
 
 # Everything
-all: $(MPC) tools $(SBIN) ncjoin partit
+all: tools $(SBIN) ncjoin partit
 
 # Build roms and link with the coupling interface
-$(SBIN)_cpl: $(MPC) $(CPLOBJS) $(OBJS)
+$(SBIN)_cpl: mpc $(CPLOBJS) $(OBJS)
 	$(LDR) $(FFLAGS) $(LDFLAGS) -o $(SBIN)_cpl $(OBJS) $(CPLOBJS) $(LCDF) $(LMPI) $(OASLIB)
 
 # A program to test MPI halo exchange routines.
@@ -133,34 +130,33 @@ mpi_test: $(MPI_TEST_OBJ)
 
 # Auxiliary utility programs
 # --------- ------- --------
-TOOLS := $(MPC)  srcscheck checkkwds ncextract redefs
+TOOLS := mpc srcscheck checkkwds ncextract redefs
 
 tools: $(TOOLS)
-#$(MPC): mpc.F
-#	$(Q)cd $(SRCDIR); $(FC) $(CPPFLAGS) -o $(MPC) $^
-$(MPC): mpc.F
-	$(Q)cd $(BLDDIR); $(FC) $(CPPFLAGS) -o $(BLDDIR)/mpc $^
+mpc:  mpc.F
+	$(Q)cd $(BLDDIR); $(FC) $(CPPFLAGS) -o $@ $^
 
-# We do not optimise the tools
+# We do not optimize the tools
 cppcheck: cppcheck.F
-	$(Q)cd $(SRCDIR); $(FC) $(CPPFLAGS) -o $@ cppcheck.F
+	$(Q)$(FC) $(CPPFLAGS) -o $@ $^
 srcscheck: srcscheck.F
-	$(Q)cd $(SRCDIR); $(FC) $(CPPFLAGS) -o $@ srcscheck.F
+	$(Q)$(FC) $(CPPFLAGS) -o $@ $^
 checkkwds: checkkwds.F
-	$(Q)cd $(SRCDIR); $(FC) $(CPPFLAGS) -o $@ checkkwds.F
+	$(Q)$(FC) $(CPPFLAGS) -o $@ $^
 redefs: redefs.F
-	$(Q)cd $(SRCDIR); $(FC) $(CPPFLAGS) -o $@ redefs.F
+	$(Q)$(FC) $(CPPFLAGS) -o $@ $^
 checkdefs: check_switches1.F setup_kwds.F
 check_switches1.F: cppcheck cppdefs_UP.h cppdefs.h
-	$(Q)cd $(SRCDIR); ./cppcheck $(INCDIR)/cppdefs_UP.h $(INCDIR)/cppdefs.h
-	test "$(SRCDIR)" != "$(BLDDIR)" && cp $(SRCDIR)/check_switches1.F $(BLDDIR)
+	$(Q)./cppcheck $(INCDIR)/cppdefs_UP.h $(INCDIR)/cppdefs.h
+#	test "$(SRCDIR)" != "$(BLDDIR)" && cp $(SRCDIR)/check_switches1.F $(BLDDIR)
 check_srcs.F: srcscheck Makefile
-	$(Q)cd $(SRCDIR); ./srcscheck
+	$(Q) ./srcscheck
 setup_kwds.F: checkkwds read_inp.F
-	$(Q)cd $(SRCDIR); ./checkkwds
-	test "$(SRCDIR)" != "$(BLDDIR)" && cp $(SRCDIR)/setup_kwds.F $(BLDDIR)
+	ln -s $(SRCDIR)/read_inp.F 
+	$(Q)./checkkwds
+#	test "$(SRCDIR)" != "$(BLDDIR)" && cp $(SRCDIR)/setup_kwds.F $(BLDDIR)
 print_cppswitches: check_switches1.F print_cppswitches.F
-	$(Q)cd $(SRCDIR); $(FC) $(CPPFLAGS) -o $@ print_cppswitches.F $(SRCDIR)/check_switches1.F
+	$(Q)$(FC) $(CPPFLAGS) -o $@ $^ #print_cppswitches.F $(SRCDIR)/check_switches1.F
 
 # Debugging target
 print-ƒ:
@@ -185,11 +181,11 @@ test:
 
 clobber: distclean
 distclean: clean
-	cd $(SRCDIR); /bin/rm -f check_switches1.F setup_kwds.F check_srcs.F mpc 
-	cd $(BLDDIR); /bin/rm -f mpc check_switches1.F setup_kwds.F check_srcs.F \
+	/bin/rm -f mpc check_switches1.F setup_kwds.F check_srcs.F \
 	$(SBIN) $(SBIN)_cpl $(TOOLS) nsub core* *_genmod.mod *_genmod.f90 \
 	$(DEPDIR)/*.d print_cppswitches tests/make_*.log  tests/logs/*
 	rmdir $(DEPDIR)
+	cd ..; rmdir $(BLDDIR)
 
 # Rule for dependency files *.d
 # ---- --- ---------- ----- ---
