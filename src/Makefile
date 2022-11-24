@@ -77,8 +77,8 @@ FLTSRC := init_floats.F	init_arrays_floats.F	get_init_flts.F\
 	interp_rho.F	rhs_floats.F	step_floats.F\
 	def_floats.F	wrt_floats.F
 
-CPLOBJS = oas_roms_data.o oas_roms_set_cpl_grd.o oas_roms_comm.o oas_roms_def.o\
-          oas_roms_exchange.o oas_roms_send_receive.o
+CPLSRCF90 := oas_roms_data.F90  oas_roms_comm.F90  oas_roms_def.F90 oas_roms_exchange.F90
+CPLSRCF := oas_roms_send_receive.F oas_roms_set_cpl_grd.F 
 
 # old/obsolete/non-parallelized stuff
 #       pp_vmix.F	get_wwave.F	smol_adv.F	get_bsedim.F
@@ -89,16 +89,21 @@ BIOSRC := $(FLXSRC) $(NPZDSRC) $(BECSRC) # $(BECSRCOLD)
 
 SRCS := $(KRNSRC) $(IOSRC) $(BIOSRC)
 ifdef NO_IO
-SRCS := $(KRNSRC) $(BIOSRC)
+     SRCS := $(KRNSRC) $(BIOSRC)
 endif
 OBJS := $(SRCS:.F=.o)
+
+ifdef COUPLED
+     SRCS += $(CPLSRCF90) $(CPLSRCF)
+     OBJS += $(CPLSRCF90:.F90=.o) $(CPLSRCF:.F=.o)
+endif
 SBIN := roms
 
 # ROMS excutable
 
 $(SBIN): mpc print_cppswitches $(OBJS)
-	$(Q)print_cppswitches
-	$(Q)$(LDR) $(FFLAGS) $(LDFLAGS) -o $@ $(OBJS) $(LCDF) $(LMPI)
+	$(Q)./print_cppswitches 
+	$(LDR) $(FFLAGS) $(LDFLAGS) -o $@ $(OBJS) $(LCDF) $(LMPI) $(OASLIB)
 
 partit: partit.o lenstr.o insert_node.o
 	$(Q)cd $(BLDDIR); $(FC) $(FFLAGS) $(LDFLAGS) -o $@ $^ $(LCDF)
@@ -116,7 +121,7 @@ all: tools $(SBIN) ncjoin partit
 
 # Build roms and link with the coupling interface
 $(SBIN)_cpl: mpc $(CPLOBJS) $(OBJS)
-	$(LDR) $(FFLAGS) $(LDFLAGS) -o $(SBIN)_cpl $(OBJS) $(CPLOBJS) $(LCDF) $(LMPI) $(OASLIB)
+	$(LDR) $(FFLAGS) $(LDFLAGS) -o $@ $(OBJS) $(CPLOBJS) $(LCDF) $(LMPI) $(OASLIB)
 
 # A program to test MPI halo exchange routines.
 # - ------- -- ---- --- ---- -------- ---------
@@ -136,6 +141,14 @@ tools: $(TOOLS)
 mpc:  mpc.F
 	$(Q)cd $(BLDDIR); $(FC) $(CPPFLAGS) -o $@ $^
 
+ifdef COUPLED
+oas_roms_def.o: oas_roms_set_cpl_grd.o
+oas_roms_exchange.o: oas_roms_data.o
+oas_roms_send_receive.o: oas_roms_exchange.o
+main.o: oas_roms_send_receive.o oas_roms_def.o oas_roms_comm.o
+mpi_setup: oas_roms_data.o
+endif
+
 # We do not optimize the tools
 cppcheck: cppcheck.F
 	$(Q)$(FC) $(CPPFLAGS) -o $@ $^
@@ -151,14 +164,14 @@ check_switches1.F: cppcheck cppdefs_UP.h cppdefs.h
 check_srcs.F: srcscheck Makefile
 	$(Q) ./srcscheck
 setup_kwds.F: checkkwds read_inp.F
-	test "$(SRCDIR)" != "$(BLDDIR)" && ln -s $(SRCDIR)/read_inp.F read_inp.F
+	test -f read_inp.F  || ln -s $(SRCDIR)/read_inp.F read_inp.F
 	$(Q)./checkkwds
-	test "$(SRCDIR)" != "$(BLDDIR)" && rm read_inp.F
 print_cppswitches: check_switches1.F print_cppswitches.F
 	$(Q)$(FC) $(CPPFLAGS) -o $@ $^ #print_cppswitches.F $(SRCDIR)/check_switches1.F
 
 # Debugging target
-print-ƒ:
+#print-ƒ:
+print-%:
 	@echo '$*=$($*)'
 
 # Target to create tar file.
@@ -181,10 +194,9 @@ test:
 clobber: distclean
 distclean: clean
 	/bin/rm -f mpc check_switches1.F setup_kwds.F check_srcs.F $(BLDDIR)/read_inp.F\
-	$(SBIN) $(SBIN)_cpl $(TOOLS) nsub core* *_genmod.mod *_genmod.f90 \
-	$(DEPDIR)/*.d print_cppswitches tests/make_*.log  tests/logs/*
-	rmdir $(DEPDIR)
-	cd ..; rmdir $(BLDDIR)
+	$(SBIN) $(SBIN)_cpl $(TOOLS) core* *.mod *_genmod.f90 \
+	$(DEPDIR)/*.d print_cppswitches tests/make_*.log  tests/logs/* cppcheck
+	rmdir $(DEPDIR) 
 
 # Rule for dependency files *.d
 # ---- --- ---------- ----- ---

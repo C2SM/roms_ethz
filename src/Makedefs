@@ -14,10 +14,12 @@ DEPDIR := $(BLDDIR)/.depend
 
 ifdef COUPLED
 # Oasis/MCT coupler dir
-ifneq  ($(origin ROMSOC_OASIS_INSTALL), undefined)
-    OASDIR ?=$(ROMSOC_OASIS_INSTALL)
+#ifneq  ($(origin ROMSOC_OASIS_INSTALL), undefined)
+#OASDIR:=$(origin ROMSOC_OASIS_INSTALL)
+ifdef ROMSOC_OASIS_INSTALL
+    OASDIR :=$(ROMSOC_OASIS_INSTALL)
 else
-    OASDIR ?=$(shell spack location -i oasis)
+    OASDIR :=$(shell spack location -i oasis)
 endif
 OASINC := -I$(OASDIR)/build/lib/psmile.MPI1 \
           -I$(OASDIR)/build/lib/mct
@@ -76,7 +78,7 @@ endif
 # also create dependencies files when creating these.
 %.f: %.F mpc
 	$(Q)$(MAKEDEPEND) $(dir $<) $(CPPFLAGS) $< > $(DEPDIR)/$*.d
-	$(Q)$(CPP) $(CPPFTN) $(CPPFLAGS)  $< | mpc > $(BLDDIR)/$*.f
+	$(Q)$(CPP) $(CPPFTN) $(CPPFLAGS)  $< | ./mpc > $(BLDDIR)/$*.f
 
 
 # OASIS coupling code is written in FORTRAN free-format
@@ -86,6 +88,12 @@ endif
 	$(Q)$(MAKEDEPEND) $(dir $<) $(CPPFLAGS) $< > $(DEPDIR)/$*.d
 	$(Q)$(CPP) $(CPPFTN) $(CPPFLAGS) $< > $*.f90
 	$(Q)$(MPIFC) -c $(FFLAGS) $*.f90 -o $@
+%.mod: %.F90
+	@echo Compiling $<
+	$(Q)$(MAKEDEPEND) $(dir $<) $(CPPFLAGS) $< > $(DEPDIR)/$*.d
+	$(Q)$(CPP) $(CPPFTN) $(CPPFLAGS) $< > $*.f90
+	$(Q)$(MPIFC) -c $(FFLAGS) $*.f90 -o $@
+
 
 # Use C preprocessor
 # fpp might be an alternative but for consistancy one should
@@ -104,16 +112,20 @@ ifndef NO_IO
    NF-CONFIG = $(shell which nf-config 2>/dev/null)
    ifeq ($(NF-CONFIG),)
       $(error nf-config not found (NetCDF library))
+   else
+      NCINC += $(shell nf-config --fflags)
+      NCINC += -I$(shell nf-config --includedir)
    endif
    # netcdf-c
-   NC-CONFIG = $(shell which nf-config 2>/dev/null)
+   NC-CONFIG = $(shell which nc-config 2>/dev/null)
    ifeq ($(NC-CONFIG),)
       $(error nf-config not found (NetCDF library))
    endif
 
-   NCINC ?= -I$(shell nf-config --fflags)
+   NCINC += $(shell nc-config --fflags)
+   NCINC += -I$(shell nc-config --includedir)
    ifeq ($(NCINC),)
-      NCINC += $(shell nc-config --cflags)
+      NCINC += -I$(shell nc-config --cflags)
    endif
 
    NCLIB ?= $(shell nf-config --flibs)
@@ -135,7 +147,9 @@ else
    endif
 endif
 LDR = $(MPIFC)
-# LDFLAGS += $(OASLIB)
+ifdef COUPLED
+   LDFLAGS += $(OASLIB)
+endif
 
 
 # Legacy ROMS macro names

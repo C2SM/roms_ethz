@@ -29,7 +29,7 @@ fi
 # echo BLDDIR: $BLDDIR
 
 
-SETUPS="AMACAN PACTC HUMPAC SO BENGT CANAMA ONEDIM" # ATLTC SAEP OLDSTYLE MOONS
+SETUPS="AMACAN PACTC" # HUMPAC SO BENGT CANAMA ONEDIM" # ATLTC SAEP OLDSTYLE MOONS
 cd  $BLDDIR
 
 for setup in $SETUPS ; do
@@ -42,9 +42,8 @@ for setup in $SETUPS ; do
 		make -j > $LOGDIR/make_$setup.log 2>&1 && echo OK
 		if [ $? -ne 0 ] ; then
 			echo FAIL
-		else
-			mv $BLDDIR/roms $BLDDIR/roms_$setup
 		fi
+		mv $BLDDIR/roms $BLDDIR/roms_$setup
 	fi
 	if [ "$1" != "ROMS" ] ; then
 		echo -n '         - ROMSOC ... '
@@ -52,9 +51,8 @@ for setup in $SETUPS ; do
 		make -j COUPLED=1 > $LOGDIR/make_romsoc_$setup.log 2>&1 && echo OK
 		if [ $? -ne 0 ] ; then
 			echo FAIL
-		else
-			mv $BLDDIR/roms $BLDDIR/romsoc_$setup
 		fi
+		mv $BLDDIR/roms $BLDDIR/romsoc_$setup
 	fi
 	rm -f $SRCDIR/include/cppdefs.h
 done

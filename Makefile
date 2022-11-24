@@ -1,12 +1,13 @@
 # Source dir
 SRCDIR := $(CURDIR)/src
-#
-BLDDIR ?= $(CURDIR)/build
+# Build dir
+BLDDIR := $(CURDIR)/build
 
-#-include $(SRCDIR)/Makefile
-
+# Create build dir if neede and copy Makefile to it
 $(shell test -d $(BLDDIR) || mkdir -p $(BLDDIR) )
 $(shell cp $(SRCDIR)/Makefile $(BLDDIR)) 
+
+.PHONY: print-% roms roms_cpl all clean distclean
 
 roms:
 	$(MAKE) -C $(BLDDIR)
@@ -18,4 +19,5 @@ clean:
 	$(MAKE) -C $(BLDDIR) clean
 distclean:
 	$(MAKE) -C $(BLDDIR) distclean
+	rm -rf $(BLDDIR)
 
