@@ -18,4 +18,5 @@ clean:
 	$(MAKE) -C $(BLDDIR) clean
 distclean:
 	$(MAKE) -C $(BLDDIR) distclean
+	rm -rf $(BLDDIR)
 

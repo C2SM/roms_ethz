@@ -20,10 +20,9 @@ MODULE oas_roms_data
    !                                                 ! 1 : Debugging
    !                                                 ! 2 : Perfs measurement
    !                                                 ! 3 : OASIS restart production
-   LOGICAL, PUBLIC, SAVE :: l_oas_seq  &   ! Run in sequential mode, mainly to produce the
-                                           ! first restart files required by OASIS in concurrent mode
-                        & , l_snd_sst = .true.  &   ! send Sea Surface Temperature (SST) to atmos
-                        & , l_snd_sm  = .true.     ! send Sea Surface Momentum (SM) to atmos
+   LOGICAL, PUBLIC, SAVE :: l_oas_seq  &  ! Run sequentially to produce the initial restart for OASIS
+   &                      , l_snd_sst = .true.  &    ! send Sea Surface Temperature (SST) to atmos
+   &                      , l_snd_sm  = .true.       ! send Sea Surface Momentum (SM) to atmos
                         
 
    ! Coupling grids

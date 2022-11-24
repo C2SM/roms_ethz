@@ -53,7 +53,7 @@ MODULE oas_roms_def
       &                     u_cos_proj_u, v_cos_proj_u,           &
       &                     u_cos_proj_v, v_cos_proj_v,           &
       &                     IOASISDEBUGLVL, l_oas_seq,            &
-      &                     l_snd_sst, l_snd_sst
+      &                     l_snd_sst, l_snd_sm
 
    USE oas_roms_set_cpl_grd, ONLY: oas_roms_set_grd
       
