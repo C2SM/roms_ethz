@@ -14,7 +14,7 @@ C$    end
 
       subroutine mpi_setup (ierr)
 # ifdef COUP_OAS
-      USE oas_roms_data, ONLY: kl_comm
+      USE oas_roms_data, ONLY: kl_comm, l_snd_sst, l_snd_sm
 # endif
       implicit none
       integer ierr
@@ -30,7 +30,11 @@ C$    integer nthrds
       character(len=23) msg2 
 # endif
 # ifdef COUP_OAS
-      ocean_grid_comm=kl_comm
+      if ( l_snd_sst .or. l_snd_sm ) then
+        ocean_grid_comm=kl_comm
+      else
+        ocean_grid_comm=MPI_COMM_WORLD
+      endif
 #else
       ocean_grid_comm=MPI_COMM_WORLD
 #endif /* COUP_OAS */

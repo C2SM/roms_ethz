@@ -62,7 +62,7 @@ MODULE oas_roms_def
 
    PRIVATE
 
-   PUBLIC :: oas_roms_define
+   PUBLIC :: oas_roms_define, oas_roms_read_nml
 
    ! Module variables
    ! ----------------
@@ -189,9 +189,6 @@ CONTAINS
       ! --------------------------------- !
       ! Definition of the coupling Fields !
       ! --------------------------------- !
-      ! - ML - coupling of all fields activated by default.
-      !        In the final version, it should be defined by the user
-      !        (for example through namelist)
 
       ! Sent fields
       ! -----------
@@ -238,10 +235,7 @@ CONTAINS
 
    END SUBROUTINE oas_roms_define
    
-
-   ! *********************************************************************************** !
-   !                                PRIVATE SUBROUTINES                                  !
-   ! *********************************************************************************** !
+   ! ----------------------------------------------------------------------------------- !
 
    SUBROUTINE oas_roms_read_nml()
       ! Description
@@ -258,7 +252,7 @@ CONTAINS
       END IF
 
       ! Describe namelist content
-      NAMELIST /romsoc/ romsoc_aux_name, IOASISDEBUGLVL, l_oas_seq
+      NAMELIST /romsoc/ romsoc_aux_name, IOASISDEBUGLVL, l_oas_seq, l_snd_sst, l_snd_sm
 
       ! Initialize with default values
       romsoc_aux_name = "romsoc_aux.nc"
@@ -282,7 +276,9 @@ CONTAINS
       
    END SUBROUTINE oas_roms_read_nml
    
-   ! ----------------------------------------------------------------------------------- !
+   ! *********************************************************************************** !
+   !                                PRIVATE SUBROUTINES                                  !
+   ! *********************************************************************************** !
 
    SUBROUTINE oas_roms_wrt_grd(ncid, ncname, grd)
       ! Description

@@ -15,22 +15,21 @@
 # include "param.h"
 # ifdef COUP_OAS
 #  include "ncvars.h"
+      logical :: use_oasis
 # endif /* COUP_OAS */
 # ifdef MPI
       real*8 tstart, tend
 C$    integer level,req_lev
 #  include "mpif.h"
 # ifdef COUP_OAS
-      call oas_roms_init !Let Oasis define MPI communicator (Local instead of MPI_World_Comm)
-# endif /* COUP_OAS */
-c**   call system('uname -nmr')
-      ierr=1
-C$    req_lev=MPI_THREAD_MULTIPLE
-C$    call MPI_Init_thread(req_lev, level, ierr)
-C$ !!   write(*,*) 'MPI thread support levels =', req_lev,level
-C$    ierr=0
-#ifndef COUP_OAS 
-      if (ierr == 1) call MPI_Init(ierr) !If Oasis Coupling, MPI init handled by Oasis
+      if ( use_oasis() ) then
+        call oas_roms_init !Let Oasis define MPI communicator (Local instead of MPI_World_Comm)
+      else
+        ierr=1
+        call MPI_Init(ierr) !If Oasis Coupling, MPI init handled by Oasis
+      endif
+# else
+      call MPI_Init(ierr) !If Oasis Coupling, MPI init handled by Oasis
 # endif
       call mpi_setup (ierr)
       tstart=MPI_Wtime()
@@ -38,8 +37,11 @@ C$    ierr=0
 # endif
         call init_scalars(ierr)          ! Initialize global scalars,
 #ifdef COUP_OAS
+      if ( use_oasis() ) then
       call oas_roms_define(grdname) !Defines Grids and exchange fields for Oasis Coupler
+      endif
 #endif /* COUP_OAS */
+
 # ifdef OBSOLETE_SUB_INIT_SCALARS_IN_MAIN
 #  ifdef BIOLOGY_NPZDOC 
       if (ierr == 0) then
@@ -63,13 +65,16 @@ C$OMP END PARALLEL                       ! launch the model in OpenMP
       call MPI_Barrier(ocean_grid_comm, ierr)
       tend=MPI_Wtime()
       mpi_master_only write(*,*) 'MPI_run_time =', tend-tstart
-#ifndef COUP_OAS
-      call MPI_Finalize (ierr) !If Oasis Coupling, MPI finalize handled by Oasis
-#endif
+#  ifdef COUP_OAS
+      if ( use_oasis() ) then
+        call oas_roms_finalize   !If Oasis Coupling, MPI finalize handled by Oasis
+      else
+        call MPI_Finalize (ierr)
+      endif
+#  else
+      call MPI_Finalize (ierr)
+#  endif /* COUP_OAS */
 # endif
-# ifdef COUP_OAS
-      call oas_roms_finalize
-# endif /* COUP_OAS */
       stop
       end
 
@@ -422,6 +427,7 @@ C$OMP END MASTER
       USE oas_roms_send_receive, ONLY: oas_roms_send, oas_roms_receive
 #endif
       implicit none
+      logical :: use_oasis
       integer trd, tile, my_first, my_last, range
 #include "param.h"
 #include "scalars.h"
@@ -509,9 +515,11 @@ C$OMP BARRIER                          ! avoid MPI deadlock the exit is
       enddo
 C$OMP BARRIER
 
-       !Receive Coupling fields from Cosmo/Oasis
 #ifdef COUP_OAS 
+      !Receive Coupling fields from Cosmo/Oasis
+      if ( use_oasis() ) then
        call oas_roms_receive(iic-ntstart)
+      endif
 #endif
 
       do tile=my_tile_range
@@ -578,7 +586,9 @@ C$OMP BARRIER
 # endif
 #endif  /* SOLVE3D */
 # ifdef COUP_OAS
-      call oas_roms_send(iic-ntstart)
+      if ( use_oasis() ) then
+        call oas_roms_send(iic-ntstart)
+      endif
 # endif
 
 ! Output block: write restart/history files.
@@ -843,3 +853,50 @@ c**    call step_floats(1,nfloats)    ! serial version for debugging
 #endif
   99  return
       end
+
+!  #ifdef COUP_OAS
+      function use_oasis()
+      ! Read send field flags from the "romsoc.nml" namelist
+      ! To determine if the OASIS is needed at all (use_oasis=.true.)
+
+      USE oas_roms_data, ONLY: l_snd_sst, l_snd_sm
+      logical :: use_oasis
+      logical, save :: snd_fields = .true.
+     &               , firstcall = .true.
+
+      INTEGER, PARAMETER :: funit=67
+      CHARACTER(len=*), PARAMETER :: nml_file = "romsoc.nml"
+      INTEGER :: ierr
+
+      if (firstcall) then
+        ! only read the send switches once and return the save
+        ! value from then onwards. 
+        firstcall = .false.
+
+        WRITE(*,*) "OAS_ROMS : Reading namelist romsoc.nml"
+
+        namelist /send_flags/ l_snd_sst, l_snd_sm
+
+        OPEN(funit, FILE=nml_file, IOSTAT=ierr)
+        IF (ierr /= 0) return
+
+        READ(funit, send_flags, IOSTAT=ierr)
+        IF (ierr /= 0)
+     &     WRITE(*,*) 'WARNING: Error reading ROMS->OASIS fields'
+     &        ,'from ', nml_file
+           WRITE(*,*) 'OASIS coupler will be used'
+           return
+        else
+
+        snd_fields = (l_snd_sst .or. l_snd_sm)
+        if (snd_fields) then
+           WRITE(*,*) 'OASIS coupler will be used'
+        else
+           WRITE(*,*) 'OASIS coupler will NOT be used'
+        endif
+      endif  ! firstcall
+
+      use_oasis = snd_fields
+      return
+      end
+!  #endif
