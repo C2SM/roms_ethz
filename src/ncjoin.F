@@ -53,7 +53,7 @@
 #define ZLIB_COMPRESSION
 !-- #define KEEP_CLOSED
 !-- #define TIMING
-#define AUTORENICE
+!-- #define AUTORENICE
 #define NCFILEFORMAT nf_netcdf4
 
 
@@ -63,8 +63,9 @@
       integer, parameter :: part_XI=1,  part_ETA=2, part_2D=3
 
       logical complete, clean_set,  digit,  var_mask,  lnewvar, is_in_list
+      logical :: selective = .false.
 
-      logical :: timing = .false., renice = .true.
+      logical :: timing = .false., renice = .false.
      &         , fast = .true., quite = .false.
       integer nargs, nnodes,   size_XI,  XI_rho,  id_xi_rho,  id_xi_u,
      &        arg,   node,     size_ETA, ETA_rho, id_eta_rho, id_eta_v,
@@ -163,7 +164,7 @@
       integer iargc /* IBM xlf95 is a notable exclusion. So do 7.x  */
 #endif              /* and earlier versions of Intel compiler, but  */
                     /* it is intrinsic in 9.x and later versions.   */
-#ifdef AUTORENICE
+!-- #ifdef AUTORENICE
       integer getpid, pid            ! Sometimes it makes sense to
       character(len=32) cmd            ! run ncjoin in the background
 #if 0
@@ -179,7 +180,7 @@
         call system(cmd(1:lstr))
       endif
 #endif
-#endif
+!-- #endif
 #ifdef TIMING
       if (timing) then
 # ifdef __IFC
@@ -228,7 +229,7 @@
 #endif
         if ( nctestname(1:1)=='-' .and. (
      &       lsrc == 2  .and. nctestname(1:2) == '-n' )) then
-          renice=.false.
+          renice=.true.
           goto 2
         endif
         if ( nctestname(1:1)=='-' .and. (
@@ -239,6 +240,7 @@
 
         if ( nctestname(1:1)=='-' .and. (
      &       lsrc > 2  .and. nctestname(1:3) == '-i=' )) then
+        selective=.true.
           inc_var_list = nctestname(4:LEN_TRIM(nctestname))
           print'(2A)', 
      &       ' ---> List of variables requested in output: '
@@ -247,6 +249,7 @@
           goto 2
         endif
 
+# if 1 == 0
         if ( nctestname(1:1)=='-' .and. (
      &       lsrc > 2  .and. nctestname(1:3) == '-x=' )) then
           ex_var_list = nctestname(4:LEN_TRIM(nctestname))
@@ -256,6 +259,7 @@
           ex_var_list = trim(ex_var_list) / / ','
           goto 2
         endif
+#endif
            
 #ifdef ZLIB_COMPRESSION
         if ( nctestname(1:1)=='-' .and. (
@@ -742,11 +746,13 @@ c**         endif
                     endif
                   endif
                 enddo
-                if (lnewvar .and. (LEN_TRIM(inc_var_list) > 0) ) then
+                if (selective) then
+                  if (lnewvar .and. (LEN_TRIM(inc_var_list) > 0) ) then
                    lnewvar = is_in_list(inc_var_list,string)
+                  endif
+!                if (lnewvar .and. (LEN_TRIM(ex_var_list) > 0) )
+!     &             lnewvar = ( .not. is_in_list(ex_var_list,string) )
                 endif
-                if (lnewvar .and. (LEN_TRIM(ex_var_list) > 0) )
-     &             lnewvar = ( .not. is_in_list(ex_var_list,string) )
                 if (lnewvar) then
                   nvars=nvars+1  ; vid(nvars,node)=i
                   vname(nvars)=string(1:lstr)
@@ -2221,13 +2227,13 @@ c       ierr=nf_open(nctargname(1:ltrg), nf_write, nctarg)
      &   , '                 without spaces) to include'
      &   , '    -k           keep partial files'
      !&   , '    -m           reduce memory usage (slow mode)'
-     &   , '    -n           do not renice job to low priority'
+     &   , '    -n           Use low job priority'
      &   , '    -p           if record dim differs, use its minimum'
      !&   , '    -q           quite operation'
      !&   , '    -t           report operation time'
      &   , '    -v           increase verbosity'
-     &   , '    -x=<var_list> list of variables (comma-separated'
-     &   , '                 without spaces) to exclude'
+!     &   , '    -x=<var_list> list of variables (comma-separated'
+!     &   , '                 without spaces) to exclude'
      &   , '    -o=<dir>     output directory (default: working dir)'
      &   , 'NOTE:'
      &   , '     The variable lists are case sensitive.'
