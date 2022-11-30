@@ -854,7 +854,7 @@ c**    call step_floats(1,nfloats)    ! serial version for debugging
   99  return
       end
 
-!  #ifdef COUP_OAS
+#ifdef COUP_OAS
       function use_oasis()
       ! Read send field flags from the "romsoc.nml" namelist
       ! To determine if the OASIS is needed at all (use_oasis=.true.)
@@ -899,4 +899,4 @@ c**    call step_floats(1,nfloats)    ! serial version for debugging
       use_oasis = snd_fields
       return
       end
-!  #endif
+#endif

@@ -50,7 +50,7 @@ DEPFLAGS = -MT $@ -MMD -MP -MF $(DEPDIR)/$*.Td
 # Define Q for quite mode:
 Q ?= @
 # Verbose
-Q = 
+#Q = 
 
 # Include file locations
 CPPFLAGS += -I$(SRCDIR) -I$(INCDIR) -I$(BIODIR)
