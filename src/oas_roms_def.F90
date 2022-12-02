@@ -53,7 +53,7 @@ MODULE oas_roms_def
       &                     u_cos_proj_u, v_cos_proj_u,           &
       &                     u_cos_proj_v, v_cos_proj_v,           &
       &                     IOASISDEBUGLVL, l_oas_seq,            &
-      &                     l_snd_sst, l_snd_sm
+      &                     l_snd_sst, l_snd_sst
 
    USE oas_roms_set_cpl_grd, ONLY: oas_roms_set_grd
       
@@ -62,7 +62,7 @@ MODULE oas_roms_def
 
    PRIVATE
 
-   PUBLIC :: oas_roms_define, oas_roms_read_nml
+   PUBLIC :: oas_roms_define
 
    ! Module variables
    ! ----------------
@@ -193,7 +193,7 @@ CONTAINS
       ! Sent fields
       ! -----------
       ! Sea surface temperature [K]
-      IF (l_snd_sm) then
+      IF (l_snd_sst) then
          CALL oas_roms_def_var('snd', k_rho, 'SO_SST_A', oas_itemp, laction=.TRUE.)
       ENDIF
       IF (l_snd_sm) then
@@ -235,7 +235,10 @@ CONTAINS
 
    END SUBROUTINE oas_roms_define
    
-   ! ----------------------------------------------------------------------------------- !
+
+   ! *********************************************************************************** !
+   !                                PRIVATE SUBROUTINES                                  !
+   ! *********************************************************************************** !
 
    SUBROUTINE oas_roms_read_nml()
       ! Description
@@ -252,7 +255,7 @@ CONTAINS
       END IF
 
       ! Describe namelist content
-      NAMELIST /romsoc/ romsoc_aux_name, IOASISDEBUGLVL, l_oas_seq, l_snd_sst, l_snd_sm
+      NAMELIST /romsoc/ romsoc_aux_name, IOASISDEBUGLVL, l_oas_seq
 
       ! Initialize with default values
       romsoc_aux_name = "romsoc_aux.nc"
@@ -273,12 +276,11 @@ CONTAINS
          WRITE(*,*) 'OAS_ROMS : mype=', mype, ' Error while reading namelist romsoc from ', nml_filename
          CALL abort
       END IF
+      CLOSE(nuin)
       
    END SUBROUTINE oas_roms_read_nml
    
-   ! *********************************************************************************** !
-   !                                PRIVATE SUBROUTINES                                  !
-   ! *********************************************************************************** !
+   ! ----------------------------------------------------------------------------------- !
 
    SUBROUTINE oas_roms_wrt_grd(ncid, ncname, grd)
       ! Description
