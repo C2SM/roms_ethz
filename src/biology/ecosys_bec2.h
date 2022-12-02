@@ -63,15 +63,15 @@
       ! MOCSY is selected and the C chemistry is computed at depth. Otherwise they are
       ! 2d in space.
 !      integer ph_idx_t, pco2oc_idx_t, co2star_idx_t
-# ifdef CCHEM_MOCSY
-      ! Additional variables if if MOCSY is used instead of the OCMIP code for carbon
-      ! chemistry. The numbers of these variables are given by nr_cchem_mocsy_2d and
-      ! nr_cchem_mocsy_3d:
-     &        , co3_idx_t, hco3_idx_t
-#  ifdef CCHEM_TODEPTH
-     &        , omega_calc_idx_t, omega_arag_idx_t
-#  endif
-# endif /* CCHEM_MOCSY */
+!# ifdef CCHEM_MOCSY
+!      ! Additional variables if if MOCSY is used instead of the OCMIP code for carbon
+!      ! chemistry. The numbers of these variables are given by nr_cchem_mocsy_2d and
+!      ! nr_cchem_mocsy_3d:
+!     &        , co3_idx_t, hco3_idx_t
+!#  ifdef CCHEM_TODEPTH
+!     &        , omega_calc_idx_t, omega_arag_idx_t
+!#  endif
+!# endif /* CCHEM_MOCSY */
 
   ! MF: Control BEC2_DIAG Output vars
       logical wrtavg_bec2_diag_2d(nr_bec2_diag_2d)
@@ -131,13 +131,13 @@
 # else /* USE_EXPLICIT_VSINK */
 ! already defined above,no additional diagnostics
 # endif /* USE_EXPLICIT_VSINK */
-# if defined CCHEM_MOCSY && defined CCHEM_TODEPTH
-     &   ,ph_idx_t=LAST_I+1, pco2oc_idx_t=ph_idx_t+1, co3_idx_t=ph_idx_t+2
-     &   ,hco3_idx_t=ph_idx_t+3, co2star_idx_t=ph_idx_t+4
-     &   ,omega_calc_idx_t=ph_idx_t+5, omega_arag_idx_t=ph_idx_t+6
-#  undef LAST_I
-#  define LAST_I omega_arag_idx_t
-# endif
+!# if defined CCHEM_MOCSY && defined CCHEM_TODEPTH
+!     &   ,ph_idx_t=LAST_I+1, pco2oc_idx_t=ph_idx_t+1, co3_idx_t=ph_idx_t+2
+!     &   ,hco3_idx_t=ph_idx_t+3, co2star_idx_t=ph_idx_t+4
+!     &   ,omega_calc_idx_t=ph_idx_t+5, omega_arag_idx_t=ph_idx_t+6
+!#  undef LAST_I
+!#  define LAST_I omega_arag_idx_t
+!# endif
 # ifdef BEC_COCCO
       integer, parameter :: grazecocco_idx_t=LAST_I+1,coccoloss_idx_t=LAST_I+2,
      &   coccoagg_idx_t=LAST_I+3,photoccocco_idx_t=LAST_I+4,
@@ -199,11 +199,10 @@
 # undef LAST_I
 # define LAST_I dco2star_idx_t
 # ifdef CCHEM_MOCSY
-     &   ,ph_idx_t=pco2air_idx_t+16, pco2oc_idx_t=ph_idx_t+1, co3_idx_t=ph_idx_t+2
 #  ifndef CCHEM_TODEPTH
-     &   ,hco3_idx_t=ph_idx_t+3, co2star_idx_t=ph_idx_t+4
+     &   ,hco3_idx_t= LAST_I+1, co3_idx_t= LAST_I+2
 # undef LAST_I
-# define LAST_I co2star_idx_t
+# define LAST_I co3_idx_t
 #  endif
 # endif /* CCHEM_MOCSY */
       integer, parameter :: fesedflux_idx_t=LAST_I+1,
