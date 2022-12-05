@@ -861,7 +861,7 @@ c**    call step_floats(1,nfloats)    ! serial version for debugging
 
       USE oas_roms_data, ONLY: l_snd_sst, l_snd_sm
       logical :: use_oasis
-      logical, save :: snd_fields = .true.
+      logical, save :: l_exchange = .true.
      &               , firstcall = .true.
 
       INTEGER, PARAMETER :: funit=67
@@ -875,7 +875,7 @@ c**    call step_floats(1,nfloats)    ! serial version for debugging
 
         WRITE(*,*) "OAS_ROMS : Reading namelist romsoc.nml"
 
-        namelist /send_flags/ l_snd_sst, l_snd_sm
+        namelist /exchange_flags/ l_exchange, l_snd_sst, l_snd_sm
 
         OPEN(funit, FILE=nml_file, IOSTAT=ierr)
         IF (ierr /= 0) return
@@ -889,15 +889,15 @@ c**    call step_floats(1,nfloats)    ! serial version for debugging
            return
         else
 
-        snd_fields = (l_snd_sst .or. l_snd_sm)
-        if (snd_fields) then
+        if (l_exchange) l_exchange = (l_snd_sst .or. l_snd_sm)
+        if (l_exchange) then
            WRITE(*,*) 'OASIS coupler will be used'
         else
            WRITE(*,*) 'OASIS coupler will NOT be used'
         endif
       endif  ! firstcall
 
-      use_oasis = snd_fields
+      use_oasis = l_exchange
       return
       end
 #endif

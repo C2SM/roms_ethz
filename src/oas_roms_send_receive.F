@@ -185,15 +185,6 @@
             INTEGER ::  oas_dt, oas_step, jn, i, j
             REAL :: cff_wstr, cff_hflx, cff_fwflx
             REAL :: zflx_1, zflx_2
-#ifdef DIURNAL_SRFLUX
-            ! => latr, lonr
-# include "grid.h"
-            REAL :: cff, cff1, cff2
-            REAL :: cos_h, dec, cos_d, sin_d, tan_d, phi, h0, utc
-            REAL, PARAMETER :: year2day=365.25
-            REAL, PARAMETER :: day2year=1.D0/year2day
-            REAL, PARAMETER :: utc_cor=1.D0/360.D0
-#endif
             ! Skip if sequential coupling mode and first time step
             ! ----------------------------------------------------
             IF (l_oas_seq .AND. oas_step == 0) RETURN
@@ -236,47 +227,9 @@
 
             ! Solar Radiative Flux
             ! --------------------
-#ifdef DIURNAL_SRFLUX
-            ! DIURNAL CYCLE - USED IN BOTH PHYSICAL AND ECOSYSTEM MODELS
-            ! Patrick Marchesiello - 1999: Modulate average dayly insolation
-            ! to get diurnal cycle by:
-            !
-            !              cos(h)*cos(d)*cos(phi) + sin(d)*sin(phi)
-            !       pi * ---------------------------------------------
-            !             sin(h0)*cos(d)*cos(phi) + h0*sin(d)sin(phi)
-            !
-            ! where: h, d, phi -- are hour, declination, latitude angles;
-            !        h0 is hour angle at sunset and sunrise
-            !
-            ! Yusuke Uchiyama, 2009: UTC correction based on lonr is added.
-            !                        (ocean_)time should be in UTC.
-            !
-# define UTC_CORRECTION
-            !
-# ifndef UTC_CORRECTION
-            cos_h = COS(2.*pi * (tdays+.5-INT(tdays+.5)))
-# endif
-            dec = -0.406 * COS(deg2rad 
-     &                        *(tdays-INT(tdays*day2year)*year2day))
-            cos_d = COS(dec)
-            sin_d = SIN(dec)
-            tan_d = TAN(dec)
-#endif
             DO j = cpl_grd(k_rho)%jmin, cpl_grd(k_rho)%jmax
                DO i = cpl_grd(k_rho)%imin, cpl_grd(k_rho)%imax
                   zflx_1 = cff_hflx * srcv(oas_SWR)%pdata(i,j)
-#ifdef DIURNAL_SRFLUX
-# ifdef UTC_CORRECTION
-                  utc = lonr(i,j) * utc_cor
-                  cos_h = COS(2.*pi*(tdays+.5-INT(tdays+.5)+utc))
-# endif
-                  phi = latr(i,j) * deg2rad
-                  h0 = ACOS(-TAN(phi)*tan_d)
-                  cff1 = cos_d * COS(phi)
-                  cff2 = sin_d * SIN(phi)
-                  cff = pi* (cos_h*cff1+cff2) / (SIN(h0)*cff1+h0*cff2)
-                  zflx_1 = MAX(0., cff*zflx_1)
-#endif
                   srflx(i,j) = (1.0-alpha_rho(i,j)) * srflx(i,j)
      &                            + alpha_rho(i,j) * zflx_1
 
@@ -286,16 +239,6 @@
                   !
                   ! Restrict stflx to prevent surface temperature to go below -2
                   ! degrees C.
-                  !
-#if defined PACIFIC || defined STFLX_LIM
-                  zflx_2 = MAX( zflx_2,
-# ifdef LMD_KPP
-     &                          MAX(hbls(i,j,nstp), Hz(i,j,N))
-# else
-     &                                              Hz(i,j,N)
-# endif
-     &                            *(-2.D0-t(i,j,N,nrhs,itemp))/dt )
-#endif
                   stflx(i,j,itemp) =
      &                 (1.0-alpha_rho(i,j)) * stflx(i,j,itemp)
      &                    + alpha_rho(i,j) * zflx_2
