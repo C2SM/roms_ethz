@@ -880,7 +880,7 @@ c**    call step_floats(1,nfloats)    ! serial version for debugging
         OPEN(funit, FILE=nml_file, IOSTAT=ierr)
         IF (ierr /= 0) return
 
-        READ(funit, send_flags, IOSTAT=ierr)
+        READ(funit, exchange_flags, IOSTAT=ierr)
         CLOSE(funit)
         IF (ierr /= 0)
      &     WRITE(*,*) 'WARNING: Error reading ROMS->OASIS fields'
