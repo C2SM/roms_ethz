@@ -246,3 +246,6 @@ c>>>      if (ierr /= 0) may_day_flag=2
 #endif
       end
 
+#ifdef OAS_COUP
+      if (use_oasis()) call oas_merge_forces
+#endif

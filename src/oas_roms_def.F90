@@ -53,7 +53,8 @@ MODULE oas_roms_def
       &                     u_cos_proj_u, v_cos_proj_u,           &
       &                     u_cos_proj_v, v_cos_proj_v,           &
       &                     IOASISDEBUGLVL, l_oas_seq,            &
-      &                     l_snd_sst, l_snd_sst
+      &                     l_snd_sst, l_snd_sst                  &
+      &                     sustr_a, svstr_a, srflx_a, stflx_a
 
    USE oas_roms_set_cpl_grd, ONLY: oas_roms_set_grd
       
@@ -559,6 +560,14 @@ CONTAINS
          END IF
          
       END IF
+
+      ! Allocate storage for saving 2 time slices of received atms forcing field
+      ! Remark: We use 0:1 indexing for aesthetic reasons: (it=mode(it+1,2) versys it=3-it)
+      ALLOCATE(sustr_a, cpl_grd(k_u)%imin:cpl_grd(k_u)%imax, cpl_grd(k_u)%jmin:cpl_grd(k_u)%jmax, 0:1)
+      ALLOCATE(svstr_a, cpl_grd(k_v)%imin:cpl_grd(k_v)%imax, cpl_grd(k_v)%jmin:cpl_grd(k_v)%jmax, 0:1)
+      ALLOCATE(srflx_a, cpl_grd(k_rho)%imin:cpl_grd(k_rho)%imax, cpl_grd(k_rho)%jmin:cpl_grd(k_rho)%jmax, 0:1)
+      ! Remark: Hard code 2 tracer forcing fields temperature (heat) and salt (fresh water) 
+      ALLOCATE(stflx_a, cpl_grd(k_rho)%imin:cpl_grd(k_rho)%imax, cpl_grd(k_rho)%jmin:cpl_grd(k_rho)%jmax, 2, 0:1)
       
       IF (ierr /= OASIS_Success)  THEN
          CALL oasis_abort(ncomp_id, 'oas_roms_def',   &

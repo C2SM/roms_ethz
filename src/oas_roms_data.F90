@@ -49,6 +49,7 @@ MODULE oas_roms_data
       INTEGER(KIND=4) :: k_pt   ! Index of the grid on which the field is defined
       REAL(KIND=8), DIMENSION(:,:), ALLOCATABLE :: pdata   ! actual field data
    END TYPE FLD_CPL
+
    
    INTEGER(KIND=4), PARAMETER :: nmaxfld=40   ! Maximum number of coupling fields
    INTEGER(KIND=4), SAVE, PUBLIC :: ksnd=0, krcv=0   ! Number of send/received coupling fields
@@ -78,4 +79,12 @@ MODULE oas_roms_data
       & u_cos_proj_u, v_cos_proj_u,    &   ! Cosmo velocitiy projection at u-points
       & u_cos_proj_v, v_cos_proj_v         ! Cosmo velocitiy projection at v-points
    
+   ! 2 time slices of ROMS - style atmos forcing
+   ! (Using old-fashion ROMS style data format instead of TYPE declaration)
+   ! to merge with the forcing outside the coupling region.
+   ! ------------------------------------------------------
+   REAL(KIND=8), SAVE, DIMENSION(:,:,:),   ALLOCATABLE :: sustr_a, svstr_a, srflx_a
+   REAL(KIND=8), SAVE, DIMENSION(:,:,:,:), ALLOCATABLE :: stflx_a 
+   INTEGER(KIND=8),SAVE, DIMENSION(2) :: oas_time
+
 END MODULE oas_roms_data
