@@ -146,6 +146,7 @@ oas_roms_def.o: oas_roms_set_cpl_grd.o
 oas_roms_exchange.o: oas_roms_data.o
 oas_roms_send_receive.o: oas_roms_exchange.o
 main.o: oas_roms_send_receive.o oas_roms_def.o oas_roms_comm.o
+set_forces.o: oas_roms_send_receive.o
 mpi_setup: oas_roms_data.o
 endif
 

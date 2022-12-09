@@ -27,13 +27,15 @@
      &                            alpha_rho, alpha_u, alpha_v,
      &                            u_cos_proj_u, v_cos_proj_u,
      &                            u_cos_proj_v, v_cos_proj_v,
-     &                            l_snd_sst, l_snd_sm
+     &                            l_snd_sst, l_snd_sm,
+     &                            sustr_a, svstr_a, srflx_a, stflx_a,
+     &                            oas_time
 
          IMPLICIT NONE
 
          PRIVATE
 
-         PUBLIC :: oas_roms_send, oas_roms_receive
+         PUBLIC :: oas_roms_send, oas_roms_receive, oas_merge_forces
 
       CONTAINS
 
@@ -171,17 +173,17 @@
             !       Matthieu Leclair - ETHZ
             !
 
-            ! => itemp, isalt, N, mynode
-!#include "param.h"
+            ! => itemp, isalt, NT
+#include "param.h"
             ! => nstp, dt, tdays, nrhs, rho0, Cp, deg2rad
-!#include "scalars.h"
+#include "scalars.h"
             ! => t, Hz
-!#include "ocean3d.h"
-            ! => sustr, svstr, srflx, stflx
+#include "ocean3d.h"
+            ! => 
 !#include "forces.h"
             ! => hbls
 !#include "ncvars.h"
-            INTEGER(KIND=8) ::  oas_dt
+            INTEGER ::  oas_dt
             INTEGER :: oas_step, jn, i, j
             INTEGER, SAVE :: it = 1
             REAL :: cff_wstr, cff_hflx, cff_fwflx
@@ -237,7 +239,7 @@
                   ! Net Heat Flux (total lat+sens+tot_rad)
                   ! -------------
                   stflx_a(i,j,itemp,it) = cff_hflx * srcv(oas_NHF)%pdata(i,j) 
-     &                                    + srflx(i,j,it)
+     &                                    + srflx_a(i,j,it)
                   ! Fresh Water Flux
                   ! ----------------
                   stflx_a(i,j,isalt,it) = cff_fwflx * srcv(oas_TEP)%pdata(i,j)
@@ -258,52 +260,60 @@
             ! Use Initial forcing data as prior data
             ! This breaks EXACT RESTART!
             initial_call = .FALSE.
-            ii = it
+            i = it
             it = mod(it+1,2)
-            oas_time(it) = oas_time - oas_dt 
-            sustr_a(:,:,it) = sustr_a(:,:,ii)
-            svstr_a(:,:,it) = svstr_a(:,:,ii)
-            srflx_a(:,:,it) = srflx_a(:,:,ii)
-            stflx_a(:,:,:,it) = stflxr_a(:,:,:,ii)
+            oas_time(it) = oas_time(i) - oas_dt 
+            sustr_a(:,:,it) = sustr_a(:,:,i)
+            svstr_a(:,:,it) = svstr_a(:,:,i)
+            srflx_a(:,:,it) = srflx_a(:,:,i)
+            stflx_a(:,:,:,it) = stflx_a(:,:,:,i)
          ENDIF
 
          END SUBROUTINE oas_roms_receive
 
-      SUBROUTINE oas_merge_forces
-         IMPLICIT NONE
-         ! sustr, svstr, srflx, stflx are in forces.h
-#include forces.h
-         !  iic, ntstart are in scalars.h
-#include scalars.h
-         INTEGER :: i1, i2, it1, it2
-         REAL    :: w1, w2 ! time slice weights
-         !
-         ! Interpolate the atm forces in time to the current time
-         ! and use the alpha_x weights to merge these forces into 
-         ! the pre-existing forces outside the coupling region where alpha_? = 0.0 
-         !
-         it=iic-ntstart
-         i2 = maxloc(oas_time)
-         i1 = minloc(oas_time)
-         it2 = oas_time(i2) ! time of current ...
-         it1 = oas_time(i1) ! and past atm forces.
+         SUBROUTINE oas_merge_forces
+            IMPLICIT NONE
+#include "param.h"
+            ! sustr, svstr, srflx, stflx are in forces.h
+#include "forces.h"
+            !  iic, ntstart are in scalars.h
+#include "scalars.h"
+            INTEGER :: i1, i2, it1, it2
+            REAL    :: w1, w2 ! time slice weights
+            !
+            ! Interpolate the atm forces in time to the current time
+            ! and use the alpha_x weights to merge these forces into 
+            ! the pre-existing forces outside the coupling region where alpha_? = 0.0 
+            !
+            if( oas_time(1) > oas_time(0)) then
+                    i1=0
+                    i2=1
+            else
+                    i2=0
+                    i2=1
+            endif
+            it2 = oas_time(i2) ! time of current ...
+            it1 = oas_time(i1) ! and past atm forces.
  
-         ! Weights for linear time interpolation to current time (it)
-         w2 = (it - t1)/(it2-it1)
-         w1 = 1.0 - w2  
-         ! Remark:  Array operations below
-         sustr = (1.0 - alpha_u) * sustr
+            ! Weights for linear time interpolation to current time (it)
+            w2 = (iic-ntstart - it1)/(it2-it1)
+            w1 = 1.0 - w2  
+            ! Remark:  Array operations below
+            sustr = (1.0 - alpha_u) * sustr
      &                   + alpha_u  * ( w1 * sustr_a(:,:,i1) 
      &                                + w2 * sustr_a(:,:,i2) ) 
-         svstr = (1.0 - alpha_v) * svstr + 
+            svstr = (1.0 - alpha_v) * svstr + 
      &                   + alpha_v  * ( w1 * svstr_a(:,:,i1) 
      &                                + w2 * svstr_a(:,:,i2) ) 
-         srflx = (1.0 - alpha_rho) * srflx
+            srflx = (1.0 - alpha_rho) * srflx
      &                   + alpha_rho  * ( w1 * srflx_a(:,:,i1) 
      &                                  + w2 * srflx_a(:,:,i2) ) 
-         stflx = (1.0 - alpha_rho) * stflx(:,:,1:2,:) 
-     &                   + alpha_rho  * ( w1 * stflx_a(:,:,:,i1) 
-     &                                  + w2 * stflx_a(:,:,:,i2) )
-         END SUBROUTINE oas_merge_force
+            stflx(:,:,itemp) = (1.0 - alpha_rho) * stflx(:,:,itemp) 
+     &                   + alpha_rho  * ( w1 * stflx_a(:,:,itemp,i1) 
+     &                                  + w2 * stflx_a(:,:,itemp,i2) )
+            stflx(:,:,isalt) = (1.0 - alpha_rho) * stflx(:,:,isalt) 
+     &                   + alpha_rho  * ( w1 * stflx_a(:,:,isalt,i1) 
+     &                                  + w2 * stflx_a(:,:,isalt,i2) )
+         END SUBROUTINE oas_merge_forces
 
-      END MODULE oas_roms_send_receive
+       END MODULE oas_roms_send_receive

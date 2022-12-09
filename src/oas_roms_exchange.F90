@@ -63,8 +63,8 @@ CONTAINS
       ! Receive Fields from Atmospheric Model
 
       ! Arguments
-      INTEGER(KIND=8), INTENT(IN) :: kstep   ! ocean time-step in seconds
-      LOGICAL, INTENT(OUT) :: updates ! New data received 
+      INTEGER, INTENT(IN) :: kstep   ! ocean time-step in seconds
+      LOGICAL, INTENT(INOUT) :: updates ! New data received 
                          ! Note: It is assumed here that all fields are updated simultaneously by OASIS
       
       ! Local variables

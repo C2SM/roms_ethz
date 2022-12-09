@@ -83,8 +83,8 @@ MODULE oas_roms_data
    ! (Using old-fashion ROMS style data format instead of TYPE declaration)
    ! to merge with the forcing outside the coupling region.
    ! ------------------------------------------------------
-   REAL(KIND=8), SAVE, DIMENSION(:,:,:),   ALLOCATABLE :: sustr_a, svstr_a, srflx_a
-   REAL(KIND=8), SAVE, DIMENSION(:,:,:,:), ALLOCATABLE :: stflx_a 
-   INTEGER(KIND=8),SAVE, DIMENSION(2) :: oas_time
+   REAL(KIND=8), SAVE, DIMENSION(:,:,:),   ALLOCATABLE, PUBLIC :: sustr_a, svstr_a, srflx_a
+   REAL(KIND=8), SAVE, DIMENSION(:,:,:,:), ALLOCATABLE, PUBLIC :: stflx_a 
+   INTEGER, SAVE, DIMENSION(2), PUBLIC :: oas_time
 
 END MODULE oas_roms_data
