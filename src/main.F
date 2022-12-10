@@ -389,6 +389,22 @@ C$OMP BARRIER
 CR      write(*,*) '  0' MYID
       if (may_day_flag /=0 ) goto 99     !-->  EXIT
 
+#ifdef COUP_DEBUG
+      if (mynode == 60) then
+        ! For a central tile (60) presumably in the coupling region
+        ! Open CSV file to let oas_merge_forces write the  forcing
+        ! fields of one grid point before and after the merge.
+        open(unit=107, file="cpl_forcing_data_era.txt",
+     &     form = "formatted")
+        write(107,*)'time/s, ', 'sustr, ', 'svstr, '
+     &     , 'srflx, ', 'stflx(itemp), ', 'stflx(isalt)'
+        open(unit=108, file="cpl_forcing_data_era.txt",
+     &     form = "formatted")
+        write(107,*)'time/s, ', 'sustr, ', 'svstr, '
+     &     , 'srflx, ', 'stflx(itemp), ', 'stflx(isalt)'
+      endif
+#endif
+
 C$OMP MASTER
         mpi_master_only write(*,'(/1x,A/)')
      &     'main :: initialization complete; starting time-stepping.'

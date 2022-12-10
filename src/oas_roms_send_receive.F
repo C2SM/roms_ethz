@@ -273,6 +273,7 @@
 
          SUBROUTINE oas_merge_forces
             IMPLICIT NONE
+            ! also contains mynode
 #include "param.h"
             ! sustr, svstr, srflx, stflx are in forces.h
 #include "forces.h"
@@ -280,6 +281,7 @@
 #include "scalars.h"
             INTEGER :: i1, i2, it1, it2
             REAL    :: w1, w2 ! time slice weights
+            INTEGER :: imid,jmid
             !
             ! Interpolate the atm forces in time to the current time
             ! and use the alpha_x weights to merge these forces into 
@@ -298,6 +300,14 @@
             ! Weights for linear time interpolation to current time (it)
             w2 = (iic-ntstart - it1)/(it2-it1)
             w1 = 1.0 - w2  
+#ifdef COUP_DEBUG
+       imid=(istr+iend)/2; jmid=(jstr+jend)/2
+       write(unit=107,*) 'era: iic:, ', iic, ', ',sustr(imid,jmid)
+     &                               , ', ',svstr(imid,jmid)
+     &                               , ', ',srflx(imid,jmid)
+     &                               , ', ',stflx(imid,jmid,1)
+     &                               , ', ',stflx(imid,jmid,2)
+#endif
             ! Remark:  Array operations below
             sustr = (1.0 - alpha_u) * sustr
      &                   + alpha_u  * ( w1 * sustr_a(:,:,i1) 
@@ -314,6 +324,18 @@
             stflx(:,:,isalt) = (1.0 - alpha_rho) * stflx(:,:,isalt) 
      &                   + alpha_rho  * ( w1 * stflx_a(:,:,isalt,i1) 
      &                                  + w2 * stflx_a(:,:,isalt,i2) )
+#ifdef COUP_DEBUG
+       if (mynode ==60) then
+       imid=(istr+iend)/2; jmid=(jstr+jend)/2
+       write(unit=107,*) 'merged: iic:, ', iic, ', ',sustr(imid,jmid)
+     &                               , ', ',svstr(imid,jmid)
+     &                               , ', ',srflx(imid,jmid)
+     &                               , ', ',stflx(imid,jmid,1)
+     &                               , ', ',stflx(imid,jmid,2)
+       write(unit=107,*) 
+       endif
+#endif
+         
          END SUBROUTINE oas_merge_forces
 
        END MODULE oas_roms_send_receive
