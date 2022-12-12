@@ -275,6 +275,8 @@
             IMPLICIT NONE
             ! also contains mynode
 #include "param.h"
+            ! istr,iend,jstr,jend:
+#include "compute_tile_bounds.h"
             ! sustr, svstr, srflx, stflx are in forces.h
 #include "forces.h"
             !  iic, ntstart are in scalars.h

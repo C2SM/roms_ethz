@@ -225,6 +225,21 @@ CONTAINS
       ! Total evaporation - precipitation rate [kg/m2*s]
       CALL oas_roms_def_var('rcv', k_rho, 'RO_TEP_A', oas_TEP  , laction=.TRUE.)
 
+      ! 
+      ! Allocate storage for saving 2 time slices of received atms forcing field
+      ! Remark: We use 0:1 indexing for aesthetic reasons: (it=mode(it+1,2) versys it=3-it)
+      ! Remark: Hard code 2 tracer forcing fields temperature (heat) and salt (fresh water) 
+      ALLOCATE(sustr_a( cpl_grd(k_u)%imin:cpl_grd(k_u)%imax, &
+         &              cpl_grd(k_u)%jmin:cpl_grd(k_u)%jmax, 0:1), stat=ierr)
+      ALLOCATE(svstr_a( cpl_grd(k_v)%imin:cpl_grd(k_v)%imax, &
+         &              cpl_grd(k_v)%jmin:cpl_grd(k_v)%jmax, 0:1), stat=ierr)
+      ALLOCATE(srflx_a( cpl_grd(k_rho)%imin:cpl_grd(k_rho)%imax, &
+         &              cpl_grd(k_rho)%jmin:cpl_grd(k_rho)%jmax, 0:1), stat=ierr)
+      ALLOCATE(stflx_a( cpl_grd(k_rho)%imin:cpl_grd(k_rho)%imax, &
+         &              cpl_grd(k_rho)%jmin:cpl_grd(k_rho)%jmax, 2, 0:1), stat=ierr)
+      IF (ierr /= 0) CALL oasis_abort(ncomp_id, 'oas_roms_define',   &
+            &             'Allocation failure for ATM forcing fieds.',__FILE__, __LINE__)
+
       ! --------------------------- !
       ! End of the Definition Phase !
       ! --------------------------- !
@@ -561,17 +576,6 @@ CONTAINS
          
       END IF
 
-      ! Allocate storage for saving 2 time slices of received atms forcing field
-      ! Remark: We use 0:1 indexing for aesthetic reasons: (it=mode(it+1,2) versys it=3-it)
-      ! Remark: Hard code 2 tracer forcing fields temperature (heat) and salt (fresh water) 
-      ALLOCATE(sustr_a( cpl_grd(k_u)%imin:cpl_grd(k_u)%imax, &
-         &              cpl_grd(k_u)%jmin:cpl_grd(k_u)%jmax, 0:1), stat=ierr)
-      ALLOCATE(svstr_a( cpl_grd(k_v)%imin:cpl_grd(k_v)%imax, &
-         &              cpl_grd(k_v)%jmin:cpl_grd(k_v)%jmax, 0:1), stat=ierr)
-      ALLOCATE(srflx_a( cpl_grd(k_rho)%imin:cpl_grd(k_rho)%imax, &
-         &              cpl_grd(k_rho)%jmin:cpl_grd(k_rho)%jmax, 0:1), stat=ierr)
-      ALLOCATE(stflx_a( cpl_grd(k_rho)%imin:cpl_grd(k_rho)%imax, &
-         &              cpl_grd(k_rho)%jmin:cpl_grd(k_rho)%jmax, 2, 0:1), stat=ierr)
       
       IF (ierr /= OASIS_Success)  THEN
          CALL oasis_abort(ncomp_id, 'oas_roms_def',   &
