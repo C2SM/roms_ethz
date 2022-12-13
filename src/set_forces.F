@@ -252,7 +252,7 @@ c>>>      if (ierr /= 0) may_day_flag=2
       if (ZEROTH_TILE) call ana_psource
 #endif
 #ifdef COUP_OAS
-      if (use_oasis()) call oas_merge_forces
+      if (use_oasis()) call oas_merge_forces(istr,iend,jstr,jend,ierr)
 #endif
       end
 

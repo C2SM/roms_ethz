@@ -29,7 +29,8 @@
      &                            u_cos_proj_v, v_cos_proj_v,
      &                            l_snd_sst, l_snd_sm,
      &                            sustr_a, svstr_a, srflx_a, stflx_a,
-     &                            oas_time
+     &                            oas_tnow, oas_tprior,
+     &                            oas_inow, oas_iprior
 
          IMPLICIT NONE
 
@@ -184,8 +185,7 @@
             ! => hbls
 !#include "ncvars.h"
             INTEGER ::  oas_dt
-            INTEGER :: oas_step, jn, i, j
-            INTEGER, SAVE :: it = 1
+            INTEGER :: oas_step, jn, i, j, it
             REAL :: cff_wstr, cff_hflx, cff_fwflx
             REAL :: zflx_1, zflx_2
             LOGICAL :: updates
@@ -201,8 +201,17 @@
             oas_dt = oas_step * dt
             CALL oas_roms_rcv(oas_dt,updates)
             IF ( .NOT. updates ) RETURN
-            it = mod(it+1,2)
-            oas_time(it) = oas_dt
+            oas_iprior=oas_inow
+            it = mod(oas_iprior+1,2)
+            oas_inow = it
+
+            oas_tprior = oas_tnow
+            ! time extrapolation to future
+            ! more accurate but maybe dangeous (unstable)
+            ! oas_tnow = oas_dt
+            ! Safer to pretent the current time is 
+            ! one coupling time step ahead:
+            oas_tnow = oas_dt + dt 
 
             ! Set conversion coefficients
             ! ---------------------------    
@@ -231,20 +240,20 @@
             ENDDO
 
             DO j = cpl_grd(k_rho)%jmin, cpl_grd(k_rho)%jmax
-               DO i = cpl_grd(k_rho)%imin, cpl_grd(k_rho)%imax
-                  ! Solar Radiative Flux
-                  ! --------------------
-                  srflx_a(i,j,it) = cff_hflx * srcv(oas_SWR)%pdata(i,j)
+            DO i = cpl_grd(k_rho)%imin, cpl_grd(k_rho)%imax
+               ! Solar Radiative Flux
+               ! --------------------
+               srflx_a(i,j,it) = cff_hflx * srcv(oas_SWR)%pdata(i,j)
 
-                  ! Net Heat Flux (total lat+sens+tot_rad)
-                  ! -------------
-                  stflx_a(i,j,itemp,it) = cff_hflx * srcv(oas_NHF)%pdata(i,j) 
-     &                                    + srflx_a(i,j,it)
-                  ! Fresh Water Flux
-                  ! ----------------
-                  stflx_a(i,j,isalt,it) = cff_fwflx * srcv(oas_TEP)%pdata(i,j)
-     &                               * t(i,j,N,nrhs,isalt)
-               ENDDO
+               ! Net Heat Flux (total lat+sens+tot_rad)
+               ! -------------
+               stflx_a(i,j,itemp,it) = cff_hflx * 
+     &                srcv(oas_NHF)%pdata(i,j) + srflx_a(i,j,it)
+               ! Fresh Water Flux
+               ! ----------------
+               stflx_a(i,j,isalt,it) = cff_fwflx * 
+     &                srcv(oas_TEP)%pdata(i,j) * t(i,j,N,nrhs,isalt)
+            ENDDO
             ENDDO
 
             ! Write Debug File
@@ -257,12 +266,13 @@
      ! &                            "FRESH", stflx(:,:,isalt), k_rho )
 
          if (initial_call) then
-            ! Use Initial forcing data as prior data
+            ! At start up current forcing data 
+            ! also as prior forcing
             ! This breaks EXACT RESTART!
             initial_call = .FALSE.
             i = it
             it = mod(it+1,2)
-            oas_time(it) = oas_time(i) - oas_dt 
+            oas_tprior = oas_tnow - dt 
             sustr_a(:,:,it) = sustr_a(:,:,i)
             svstr_a(:,:,it) = svstr_a(:,:,i)
             srflx_a(:,:,it) = srflx_a(:,:,i)
@@ -271,36 +281,33 @@
 
          END SUBROUTINE oas_roms_receive
 
-         SUBROUTINE oas_merge_forces
+         SUBROUTINE oas_merge_forces(istr,iend,jstr,jend,ierr)
             IMPLICIT NONE
             ! also contains mynode
 #include "param.h"
-            ! istr,iend,jstr,jend:
-#include "compute_tile_bounds.h"
             ! sustr, svstr, srflx, stflx are in forces.h
 #include "forces.h"
             !  iic, ntstart are in scalars.h
 #include "scalars.h"
-            INTEGER :: i1, i2, it1, it2
+            INTEGER :: istr, iend, jstr, jend, ierr
+            INTEGER :: i, j, i1, i2, it1, it2
             REAL    :: w1, w2 ! time slice weights
-            INTEGER :: imid,jmid
+            INTEGER :: imid, jmid
+#include "compute_extended_bounds.h"
             !
             ! Interpolate the atm forces in time to the current time
             ! and use the alpha_x weights to merge these forces into 
             ! the pre-existing forces outside the coupling region where alpha_? = 0.0 
-            !
-            if( oas_time(1) > oas_time(0)) then
-                    i1=0
-                    i2=1
-            else
-                    i2=0
-                    i2=1
-            endif
-            it2 = oas_time(i2) ! time of current ...
-            it1 = oas_time(i1) ! and past atm forces.
  
-            ! Weights for linear time interpolation to current time (it)
-            w2 = (iic-ntstart - it1)/(it2-it1)
+            ! Weights for linear time interpolation to current time iic-ntstart
+            ! for the 2 forcing time slices at times oas_tnow and oas_tprior
+            ! stored in index oas_inow and oas_iprior
+            !
+            ! Note that this is currently a linear time extrapolation
+            ! It would be more stable  to interpolate by pretending that
+            ! the latest forcing received from the coupler is actually 
+            ! one coupling time step ahead.
+            w2 = (iic-ntstart - oas_tprior)/(oas_tnow-oas_tprior)
             w1 = 1.0 - w2  
 #ifdef COUP_DEBUG
        imid=(istr+iend)/2; jmid=(jstr+jend)/2
@@ -310,22 +317,34 @@
      &                               , ', ',stflx(imid,jmid,1)
      &                               , ', ',stflx(imid,jmid,2)
 #endif
-            ! Remark:  Array operations below
-            sustr = (1.0 - alpha_u) * sustr
-     &                   + alpha_u  * ( w1 * sustr_a(:,:,i1) 
-     &                                + w2 * sustr_a(:,:,i2) ) 
-            svstr = (1.0 - alpha_v) * svstr + 
-     &                   + alpha_v  * ( w1 * svstr_a(:,:,i1) 
-     &                                + w2 * svstr_a(:,:,i2) ) 
-            srflx = (1.0 - alpha_rho) * srflx
-     &                   + alpha_rho  * ( w1 * srflx_a(:,:,i1) 
-     &                                  + w2 * srflx_a(:,:,i2) ) 
-            stflx(:,:,itemp) = (1.0 - alpha_rho) * stflx(:,:,itemp) 
-     &                   + alpha_rho  * ( w1 * stflx_a(:,:,itemp,i1) 
-     &                                  + w2 * stflx_a(:,:,itemp,i2) )
-            stflx(:,:,isalt) = (1.0 - alpha_rho) * stflx(:,:,isalt) 
-     &                   + alpha_rho  * ( w1 * stflx_a(:,:,isalt,i1) 
-     &                                  + w2 * stflx_a(:,:,isalt,i2) )
+
+       !  taux, tauy 
+       do j = jstrR, jendR
+       do i = istrR, iendR
+          sustr(i,j) = (1.0 - alpha_u(i,j)) * sustr(i,j)
+     &         + alpha_u(i,j)  * ( w1 * sustr_a(i,j,oas_iprior)
+     &                           + w2 * sustr_a(i,j,oas_inow) )
+          svstr(i,j) = (1.0 - alpha_v(i,j)) * svstr(i,j) +
+     &         + alpha_v(i,j) * ( w1 * svstr_a(i,j,oas_iprior)
+     &                          + w2 * svstr_a(i,j,oas_inow) )
+       enddo
+       enddo
+
+       ! solar-, net heat- (or temp-), salt- flux
+       do j = jstr, jend
+       do i = istr, iend
+          srflx(i,j) = (1.0 - alpha_rho(i,j)) * srflx(i,j)
+     &         + alpha_rho(i,j)  * ( w1 * srflx_a(i,j,oas_iprior)
+     &                             + w2 * srflx_a(i,j,oas_inow) )
+          stflx(i,j,itemp) = (1.0 - alpha_rho(i,j)) * stflx(i,j,itemp)
+     &         + alpha_rho(i,j)  * ( w1 * stflx_a(i,j,itemp,oas_iprior)
+     &                             + w2 * stflx_a(i,j,itemp,oas_inow) )
+          stflx(i,j,isalt) = (1.0 - alpha_rho(i,j)) * stflx(i,j,isalt)
+     &         + alpha_rho(i,j)  * ( w1 * stflx_a(i,j,isalt,oas_iprior)
+     &                             + w2 * stflx_a(i,j,isalt,oas_inow) )
+       enddo
+       enddo
+
 #ifdef COUP_DEBUG
        if (mynode ==60) then
        imid=(istr+iend)/2; jmid=(jstr+jend)/2

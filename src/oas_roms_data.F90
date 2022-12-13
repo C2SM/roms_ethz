@@ -85,6 +85,6 @@ MODULE oas_roms_data
    ! ------------------------------------------------------
    REAL(KIND=8), SAVE, DIMENSION(:,:,:),   ALLOCATABLE, PUBLIC :: sustr_a, svstr_a, srflx_a
    REAL(KIND=8), SAVE, DIMENSION(:,:,:,:), ALLOCATABLE, PUBLIC :: stflx_a 
-   INTEGER, SAVE, DIMENSION(2), PUBLIC :: oas_time
+   INTEGER, SAVE, PUBLIC :: oas_tnow, oas_tprior, oas_inow, oas_iprior
 
 END MODULE oas_roms_data
