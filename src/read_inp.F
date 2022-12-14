@@ -412,7 +412,7 @@ c--      fname='roms.in.US_West'
             mpi_master_only write(*,'(6x,A,ES10.3,2x,A)')
      &     'ubind =', ubind, 'open boundary binding velcity [m/s]'
 
-
+# ifdef TCLIMATOLOGY
 ! Parameters for OBC nudging and nudging layers;
 ! converted from [days] to [sec^-1]
 
@@ -456,6 +456,7 @@ c--      fname='roms.in.US_West'
      &             'tauT =', tauT_in, tauT_out, '(in/out)  Nudging ',
      &                                          'for tracers [s^-1]'
 # endif
+# endif /* TCLIMATOLOGY */
 #endif
 
 
@@ -709,6 +710,10 @@ c--      fname='roms.in.US_West'
           read(input,*,err=95) ldefhis, nwrt, nrpfhis
           read(input,'(A)',err=95) fname
           lstr=lenstr(fname)
+          if ( index(fname,'#mode=nczarr') > 0 .and. nrpfhis == 0 ) then
+              ! nczarr format does not support unlimited dimensions
+              nrpfhis = ntimes/max(nwrt,1)
+          endif
 #if defined MPI && defined PARALLEL_FILES && !defined JOINED_HIS
           call insert_node(fname, lstr, mynode, NNODES, ierr)
 #endif
@@ -827,6 +832,10 @@ c--      fname='roms.in.US_West'
           call insert_node(fname, lstr, mynode, NNODES, ierr)
 # endif
           avgname=fname(1:lstr)
+          if ( index(fname,'#mode=nczarr') > 0 .and. nrpfavg == 0 ) then
+              ! nczarr format does not support unlimited dimensions
+              nrpfavg = (ntimes-ntsavg+1)/max(navg,1)
+          endif
           mpi_master_only write(*,'(/1x,A,I5,2x,A,I5,2x,A,I4,2x,3A)')
      &       'averages :: ntsavg = ', ntsavg,      'navg =', navg,
      &       'rec/file =', nrpfavg, 'file = ''', avgname(1:lstr), ''''

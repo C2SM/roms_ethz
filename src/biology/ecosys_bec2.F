@@ -1592,7 +1592,7 @@ c$$$       enddo
               where (NO3_loc < 0.5)
               PCmax = PCref(auto_ind) *  f_nut * Tfunc_dda
               elsewhere 
-              PCmax = (PCref(auto_ind) * 3.0) *  f_nut * Tfunc_dda    
+              PCmax = (PCref(auto_ind) * 1.5) *  f_nut * Tfunc_dda    
           end where
 # endif /* BEC_DDA_case2 */
 # ifdef BEC_PHAEO

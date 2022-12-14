@@ -20,8 +20,10 @@ MODULE oas_roms_data
    !                                                 ! 1 : Debugging
    !                                                 ! 2 : Perfs measurement
    !                                                 ! 3 : OASIS restart production
-   LOGICAL, PUBLIC, SAVE :: l_oas_seq   ! Run in sequential mode, mainly to produce the
-                                        ! first restart files required by OASIS in concurrent mode
+   LOGICAL, PUBLIC, SAVE :: l_oas_seq  &  ! Run sequentially to produce the initial restart for OASIS
+   &                      , l_snd_sst = .true.  &    ! send Sea Surface Temperature (SST) to atmos
+   &                      , l_snd_sm  = .true.       ! send Sea Surface Momentum (SM) to atmos
+                        
 
    ! Coupling grids
    ! --------------
@@ -47,21 +49,28 @@ MODULE oas_roms_data
       INTEGER(KIND=4) :: k_pt   ! Index of the grid on which the field is defined
       REAL(KIND=8), DIMENSION(:,:), ALLOCATABLE :: pdata   ! actual field data
    END TYPE FLD_CPL
+
    
    INTEGER(KIND=4), PARAMETER :: nmaxfld=40   ! Maximum number of coupling fields
    INTEGER(KIND=4), SAVE, PUBLIC :: ksnd=0, krcv=0   ! Number of send/received coupling fields
    TYPE(FLD_CPL), DIMENSION(nmaxfld), PUBLIC :: srcv, ssnd   ! Coupling fields
 
-   ! Sent fields ids
-   INTEGER, SAVE, PUBLIC :: oas_itemp   ! sea surface temperature [K]
-   ! received fields ids
-   INTEGER, SAVE, PUBLIC :: oas_UST_U   ! | 
-   INTEGER, SAVE, PUBLIC :: oas_VST_U   ! |  oas_XST_Y corresponds to COSMO X-wind STress
-   INTEGER, SAVE, PUBLIC :: oas_UST_V   ! |  at ROMS Y-points (momentum flux) [N/m2]
-   INTEGER, SAVE, PUBLIC :: oas_VST_V   ! |
-   INTEGER, SAVE, PUBLIC :: oas_NHF     ! Net Heat Flux [W/m2]
-   INTEGER, SAVE, PUBLIC :: oas_SWR     ! direct ShortWave downward Radiation [W/m2]
-   INTEGER, SAVE, PUBLIC :: oas_TEP     ! Total Evaporation - Precipitation [kg/m2*s]
+   ! Ids of sent and received fields
+   INTEGER, SAVE, PUBLIC ::   &
+      ! Sent fields ids
+      & oas_itemp,   &   ! sea surface temperature [K]
+      & oas_SSU_U,   &   ! ┌
+      & oas_SSU_V,   &   ! │ oas_SSX_Y corresponds to ROMS sea surface volicity [m/s]
+      & oas_SSV_U,   &   ! │ at X-points to be interpolated to COSMO Y-points
+      & oas_SSV_V,   &   ! └
+      ! received fields ids
+      & oas_UST_U,   &   ! ┌
+      & oas_VST_U,   &   ! │  oas_XST_Y corresponds to COSMO X-wind STress
+      & oas_UST_V,   &   ! │  at ROMS Y-points (momentum flux) [N/m2]
+      & oas_VST_V,   &   ! └
+      & oas_NHF  ,   &   ! Net Heat Flux [W/m2]
+      & oas_SWR  ,   &   ! direct ShortWave downward Radiation [W/m2]
+      & oas_TEP          ! Total Evaporation - Precipitation [kg/m2*s]
 
    ! ROMSOC auxiliary variables
    ! --------------------------
@@ -70,4 +79,12 @@ MODULE oas_roms_data
       & u_cos_proj_u, v_cos_proj_u,    &   ! Cosmo velocitiy projection at u-points
       & u_cos_proj_v, v_cos_proj_v         ! Cosmo velocitiy projection at v-points
    
+   ! 2 time slices of ROMS - style atmos forcing
+   ! (Using old-fashion ROMS style data format instead of TYPE declaration)
+   ! to merge with the forcing outside the coupling region.
+   ! ------------------------------------------------------
+   REAL(KIND=8), SAVE, DIMENSION(:,:,:),   ALLOCATABLE, PUBLIC :: sustr_a, svstr_a, srflx_a
+   REAL(KIND=8), SAVE, DIMENSION(:,:,:,:), ALLOCATABLE, PUBLIC :: stflx_a 
+   INTEGER, SAVE, DIMENSION(2), PUBLIC :: oas_time
+
 END MODULE oas_roms_data

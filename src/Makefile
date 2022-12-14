@@ -1,15 +1,11 @@
+# Source dir
+SRCDIR ?= $(CURDIR)/../src
+BLDDIR ?= .
 
-#========== ======= =========== ======== === ==== =====
 # Set machine dependent definitions and rules.
-SRCDIR ?= $(CURDIR)
-#-include obsolete/Makedefs_euler_oasis3mct
 -include $(SRCDIR)/Makedefs
 
-BLDDIR ?= .
-vpath %.f = $(BLDDIR)
-vpath %.o = $(BLDDIR)
-vpath %.h = $(INCDIR):$(BIODIR)
-vpath %.F = $(SRCDIR):$(BIODIR):$(SRCDIR)/biology/bec:$(SRCDIR)/biology/npzdoc:$(SRCDIR)/biology/pre_2014_bec
+VPATH := $(SRCDIR):$(INCDIR):$(BIODIR):$(BIODIR)/bec:$(BIODIR)/npzdoc:$(BIODIR)/pre_2014_bec
 
 # Configuration for ROMS model:  Source code files are sorted into
 # ------------- --- ---- ------  groups:
@@ -22,7 +18,7 @@ DRVSRC := main.F 	step2d_FB.F	read_inp.F	read_sta_pos.F \
 
 # Time stepping
 STEPSRC := prsgrd32AC1.F	pre_step3d4S.F	step3d_uv1.F	step3d_uv2.F \
-	step3d_t_ISO.F	set_depth.F	omega.F 	weno_flux.F\
+	step3d_t_ISO.F	set_depth.F	set_forces.F omega.F 	weno_flux.F\
 	visc3d_GP.F	t3dmix_GP.F	ana_vmix.F
 
 # Lateral boundary
@@ -71,7 +67,7 @@ IOSRC := checkdims.F	find_record.F	insert_node.F	ncdf_read_write.F\
 	get_grid.F	get_init.F	wrt_grid.F	put_global_atts.F\
 	def_rst.F	wrt_rst.F	def_his.F	wrt_his.F\
 	set_avg.F	wrt_avg.F	def_statn.F	wrt_statn.F\
-	get_forces.F	get_stflux.F	get_bry_all.F	set_forces.F\
+	get_forces.F	get_stflux.F	get_bry_all.F\
 	set_smflux.F	set_stflux.F	nf_read_bry.F	bulk_flux_COAMS.F\
 	set_seaice.F	get_tides.F	set_tides.F	set_srflux.F\
 	get_tclima.F	get_uclima.F	closecdf.F\
@@ -81,41 +77,51 @@ FLTSRC := init_floats.F	init_arrays_floats.F	get_init_flts.F\
 	interp_rho.F	rhs_floats.F	step_floats.F\
 	def_floats.F	wrt_floats.F
 
-CPLOBJS = oas_roms_data.o oas_roms_set_cpl_grd.o oas_roms_comm.o oas_roms_def.o\
-          oas_roms_exchange.o oas_roms_send_receive.o
+CPLSRCF90 := oas_roms_data.F90  oas_roms_comm.F90  oas_roms_def.F90 oas_roms_exchange.F90
+CPLSRCF := oas_roms_send_receive.F oas_roms_set_cpl_grd.F 
 
 # old/obsolete/non-parallelized stuff
 #       pp_vmix.F	get_wwave.F	smol_adv.F	get_bsedim.F
 
-KRNSRC := $(DRVSRC) $(STEPSRC) $(BRYSRC) $(EOSSRC) $(VMXSRC) $(CHKSRC) $(MPISRC)
+#KRNSRC := $(DRVSRC) $(STEPSRC) $(BRYSRC) $(EOSSRC) $(VMXSRC) $(CHKSRC) $(MPISRC)
+KRNSRC := $(STEPSRC) $(BRYSRC) $(EOSSRC) $(VMXSRC) $(CHKSRC) $(DRVSRC) $(MPISRC)
 BIOSRC := $(FLXSRC) $(NPZDSRC) $(BECSRC) # $(BECSRCOLD)
 
 SRCS := $(KRNSRC) $(IOSRC) $(BIOSRC)
+ifdef NO_IO
+     SRCS := $(KRNSRC) $(BIOSRC)
+endif
 OBJS := $(SRCS:.F=.o)
+
+ifdef COUPLED
+     SRCS += $(CPLSRCF90) $(CPLSRCF)
+     OBJS += $(CPLSRCF90:.F90=.o) $(CPLSRCF:.F=.o)
+endif
 SBIN := roms
 
 # ROMS excutable
 
-$(BLDDIR)/$(SBIN): mpc print_cppswitches $(OBJS)
-	$(Q)$(SRCDIR)/print_cppswitches
-	$(Q)cd $(BLDDIR); $(LDR) $(FFLAGS) $(LDFLAGS) -o $@ $(OBJS) $(LCDF) $(LMPI)
+$(SBIN): mpc print_cppswitches $(OBJS)
+	$(Q)./print_cppswitches 
+	$(LDR) $(FFLAGS) $(LDFLAGS) -o $@ $(OBJS) $(LCDF) $(LMPI) $(OASLIB)
 
 partit: partit.o lenstr.o insert_node.o
-	$(Q)cd $(BLDDIR); $(FC) $(FFLAGS) $(LDFLAGS) -o $@ partit.o lenstr.o insert_node.o $(LCDF)
+	$(Q)cd $(BLDDIR); $(FC) $(FFLAGS) $(LDFLAGS) -o $@ $^ $(LCDF)
 
 ncjoin: ncjoin.o lenstr.o
-	$(Q)cd $(BLDDIR); $(FC) $(FFLAGS) $(LDFLAGS) -o $@ ncjoin.o lenstr.o $(LCDF)
+	$(Q)cd $(BLDDIR); $(FC) $(FFLAGS) $(LDFLAGS) -o $@ $^ $(LCDF)
 
 check_forces: check_forces.o $(SBIN)
 	cp -pv check_forces.o main.o 	
 	$(LDR) $(FFLAGS) $(LDFLAGS) -o $@ $(OBJS) $(LCDF) $(LMPI)
 
+
 # Everything
-all: mpc tools $(SBIN)
+all: tools $(SBIN) ncjoin partit
 
 # Build roms and link with the coupling interface
 $(SBIN)_cpl: mpc $(CPLOBJS) $(OBJS)
-	$(LDR) $(FFLAGS) $(LDFLAGS) -o $(SBIN)_cpl $(OBJS) $(CPLOBJS) $(LCDF) $(LMPI) $(OASLIB)
+	$(LDR) $(FFLAGS) $(LDFLAGS) -o $@ $(OBJS) $(CPLOBJS) $(LCDF) $(LMPI) $(OASLIB)
 
 # A program to test MPI halo exchange routines.
 # - ------- -- ---- --- ---- -------- ---------
@@ -129,32 +135,43 @@ mpi_test: $(MPI_TEST_OBJ)
 
 # Auxiliary utility programs
 # --------- ------- --------
-TOOLS := mpc cppcheck srcscheck checkkwds ncextract redefs
+TOOLS := mpc srcscheck checkkwds ncextract redefs
 
 tools: $(TOOLS)
-mpc: mpc.F
-	$(Q)cd $(SRCDIR); $(FC) $(CPPFLAGS) -o $@ mpc.F
+mpc:  mpc.F
+	$(Q)cd $(BLDDIR); $(FC) $(CPPFLAGS) -o $@ $^
 
-# We do not optimise the tools
+ifdef COUPLED
+oas_roms_def.o: oas_roms_set_cpl_grd.o
+oas_roms_exchange.o: oas_roms_data.o
+oas_roms_send_receive.o: oas_roms_exchange.o
+main.o: oas_roms_send_receive.o oas_roms_def.o oas_roms_comm.o
+set_forces.o: oas_roms_send_receive.o
+mpi_setup: oas_roms_data.o
+endif
+
+# We do not optimize the tools
 cppcheck: cppcheck.F
-	$(Q)cd $(SRCDIR); $(FC) $(CPPFLAGS) -o $@ cppcheck.F
+	$(Q)$(FC) $(CPPFLAGS) -o $@ $^
 srcscheck: srcscheck.F
-	$(Q)cd $(SRCDIR); $(FC) $(CPPFLAGS) -o $@ srcscheck.F
+	$(Q)$(FC) $(CPPFLAGS) -o $@ $^
 checkkwds: checkkwds.F
-	$(Q)cd $(SRCDIR); $(FC) $(CPPFLAGS) -o $@ checkkwds.F
+	$(Q)$(FC) $(CPPFLAGS) -o $@ $^
 redefs: redefs.F
-	$(Q)cd $(SRCDIR); $(FC) $(CPPFLAGS) -o $@ redefs.F
+	$(Q)$(FC) $(CPPFLAGS) -o $@ $^
 checkdefs: check_switches1.F setup_kwds.F
 check_switches1.F: cppcheck cppdefs_UP.h cppdefs.h
-	$(Q)cd $(SRCDIR); ./cppcheck $(INCDIR)/cppdefs_UP.h $(INCDIR)/cppdefs.h
+	$(Q)./cppcheck $(INCDIR)/cppdefs_UP.h $(INCDIR)/cppdefs.h
 check_srcs.F: srcscheck Makefile
-	$(Q)cd $(SRCDIR); ./srcscheck
+	$(Q) ./srcscheck
 setup_kwds.F: checkkwds read_inp.F
-	$(Q)cd $(SRCDIR); ./checkkwds
+	test -f read_inp.F  || ln -s $(SRCDIR)/read_inp.F read_inp.F
+	$(Q)./checkkwds
 print_cppswitches: check_switches1.F print_cppswitches.F
-	$(Q)cd $(SRCDIR); $(FC) $(CPPFLAGS) -o $@ print_cppswitches.F $(SRCDIR)/check_switches1.F
+	$(Q)$(FC) $(CPPFLAGS) -o $@ $^ #print_cppswitches.F $(SRCDIR)/check_switches1.F
 
 # Debugging target
+#print-ƒ:
 print-%:
 	@echo '$*=$($*)'
 
@@ -170,14 +187,17 @@ tarfile: clean
 clean:
 	cd $(BLDDIR); /bin/rm -f *.f *.o *.a *.s *.trace *~ oas_roms_*.f90 $(COMP_FILES) \
 	oas_roms_*.mod
+	cd $(SRCDIR); /bin/rm -f *.f *.o *.a *.s *.trace *~ oas_roms_*.f90 $(COMP_FILES) \
+	oas_roms_*.mod
 test:
 	cd tests; compile_test.sh
 
 clobber: distclean
 distclean: clean
-	cd $(SRCDIR); /bin/rm -f check_switches1.F setup_kwds.F check_srcs.F \
-	$(SBIN) $(SBIN)_cpl $(TOOLS) nsub core* *_genmod.mod *_genmod.f90 \
-	$(DEPDIR)/*.d print_cppswitches tests/make_*.log  tests/logs/*
+	/bin/rm -f mpc check_switches1.F setup_kwds.F check_srcs.F $(BLDDIR)/read_inp.F\
+	$(SBIN) $(SBIN)_cpl $(TOOLS) core* *.mod *_genmod.f90 \
+	$(DEPDIR)/*.d print_cppswitches tests/make_*.log  tests/logs/* cppcheck
+	rmdir $(DEPDIR) 
 
 # Rule for dependency files *.d
 # ---- --- ---------- ----- ---

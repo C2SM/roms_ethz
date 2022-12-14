@@ -912,9 +912,9 @@ c**         t(i,j,k,1,itemp)=14.+8.*exp(z_r(i,j,k)/50.)
 #   define Z1 (-75.)
 #   define STRAT 150.
 
-#   define THKNSS 25.0
-#   define Z1 (-120.)
-#   define STRAT 75.
+!- #   define THKNSS 25.0
+!- #   define Z1 (-120.)
+!- #   define STRAT 75.
 
 c**         t(i,j,k,1,itemp)=14.+4.*tanh((z_r(i,j,k)-Z0)/THKNSS)
 c**  &                                     +(z_r(i,j,k)-Z1)/STRAT
@@ -1084,10 +1084,10 @@ c*     &                                  +(z_r(i,j,k)-Z1)/STRAT
       do k=1,N
         do j=jstrR,jendR
           do i=istrR,iendR
-            t(i,j,k,1,itemp)=???
-            t(i,j,k,2,itemp)=???
-            t(i,j,k,1,isalt)=???
-            t(i,j,k,2,isalt)=???
+            t(i,j,k,1,itemp)=10.0
+            t(i,j,k,2,itemp)=10.0
+            t(i,j,k,1,isalt)=35.0
+            t(i,j,k,2,isalt)=35.0
           enddo
         enddo
       enddo

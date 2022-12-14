@@ -15,22 +15,21 @@
 # include "param.h"
 # ifdef COUP_OAS
 #  include "ncvars.h"
+      logical :: use_oasis
 # endif /* COUP_OAS */
 # ifdef MPI
       real*8 tstart, tend
 C$    integer level,req_lev
 #  include "mpif.h"
 # ifdef COUP_OAS
-      call oas_roms_init !Let Oasis define MPI communicator (Local instead of MPI_World_Comm)
-# endif /* COUP_OAS */
-c**   call system('uname -nmr')
-      ierr=1
-C$    req_lev=MPI_THREAD_MULTIPLE
-C$    call MPI_Init_thread(req_lev, level, ierr)
-C$ !!   write(*,*) 'MPI thread support levels =', req_lev,level
-C$    ierr=0
-#ifndef COUP_OAS 
-      if (ierr == 1) call MPI_Init(ierr) !If Oasis Coupling, MPI init handled by Oasis
+      if ( use_oasis() ) then
+        call oas_roms_init !Let Oasis define MPI communicator (Local instead of MPI_World_Comm)
+      else
+        ierr=1
+        call MPI_Init(ierr) !If Oasis Coupling, MPI init handled by Oasis
+      endif
+# else
+      call MPI_Init(ierr) !If Oasis Coupling, MPI init handled by Oasis
 # endif
       call mpi_setup (ierr)
       tstart=MPI_Wtime()
@@ -38,8 +37,11 @@ C$    ierr=0
 # endif
         call init_scalars(ierr)          ! Initialize global scalars,
 #ifdef COUP_OAS
+      if ( use_oasis() ) then
       call oas_roms_define(grdname) !Defines Grids and exchange fields for Oasis Coupler
+      endif
 #endif /* COUP_OAS */
+
 # ifdef OBSOLETE_SUB_INIT_SCALARS_IN_MAIN
 #  ifdef BIOLOGY_NPZDOC 
       if (ierr == 0) then
@@ -63,13 +65,16 @@ C$OMP END PARALLEL                       ! launch the model in OpenMP
       call MPI_Barrier(ocean_grid_comm, ierr)
       tend=MPI_Wtime()
       mpi_master_only write(*,*) 'MPI_run_time =', tend-tstart
-#ifndef COUP_OAS
-      call MPI_Finalize (ierr) !If Oasis Coupling, MPI finalize handled by Oasis
-#endif
+#  ifdef COUP_OAS
+      if ( use_oasis() ) then
+        call oas_roms_finalize   !If Oasis Coupling, MPI finalize handled by Oasis
+      else
+        call MPI_Finalize (ierr)
+      endif
+#  else
+      call MPI_Finalize (ierr)
+#  endif /* COUP_OAS */
 # endif
-# ifdef COUP_OAS
-      call oas_roms_finalize
-# endif /* COUP_OAS */
       stop
       end
 
@@ -89,9 +94,11 @@ C$OMP END PARALLEL                       ! launch the model in OpenMP
       enddo
   99  call stop_timers()                 ! summarized among all nodes
 C$OMP BARRIER                            ! and broadcasted by "diag"
+#if !defined NO_RESTART && !defined NO_HISTORY
 C$OMP MASTER                             ! [which sets diag_sync=T to
       call closecdf                      ! signal that "may_day_flag"
 C$OMP END MASTER                         ! is in uniform state]. This
+#endif
       return                             ! is THE ONLY route to exit
       end                                ! if something goes wrong.
 #endif
@@ -223,6 +230,9 @@ C$OMP BARRIER                          ! from netCDF file.  Note that
         call ana_init(tile)            ! may require surface forcing
       enddo                            ! fields (e.g, wind stress),
 C$OMP BARRIER                          ! so call forces first.
+#endif
+#ifndef NO_RESTART
+#ifdef ANA_INITIAL
       if (nrrec > 0) then              ! Also note that ana_init may
 #endif
 #ifdef EXACT_RESTART
@@ -243,6 +253,7 @@ C$OMP END MASTER
 #ifdef ANA_INITIAL
       endif    !<-- nrrec>0
 #endif
+#endif /* NO_RESTART */
 C$OMP BARRIER
 #if defined PASSIVE_TRACER && defined AGE_DYE_TRACER
       do tile=my_tile_range
@@ -336,13 +347,15 @@ C$OMP PARALLEL DO PRIVATE(tile)
          do tile=0,NSUB_X*NSUB_E-1
             call calcpar(tile)
          enddo
-# endif /* BIOLOGY_NPZDOC */
+#endif /* BIOLOGY_NPZDOC */
 
 C$OMP MASTER
-#ifdef ANA_GRID
+# if !defined NO_HISTORY
+#  if defined ANA_GRID
         call wrt_ana_grid
-#endif
+#  endif
         if (ldefhis .and. wrthis(indxTime)) call wrt_his
+# endif /* NO_HISTORY */
 #ifdef FLOATS
 ! Initialization for Lagrangian floats
 !-------------------------------------------------------
@@ -375,6 +388,22 @@ C$OMP END MASTER
 C$OMP BARRIER
 CR      write(*,*) '  0' MYID
       if (may_day_flag /=0 ) goto 99     !-->  EXIT
+
+#ifdef COUP_DEBUG
+      if (mynode == 60) then
+        ! For a central tile (60) presumably in the coupling region
+        ! Open CSV file to let oas_merge_forces write the  forcing
+        ! fields of one grid point before and after the merge.
+        open(unit=107, file="cpl_forcing_data_era.txt",
+     &     form = "formatted")
+        write(107,*)'time/s, ', 'sustr, ', 'svstr, '
+     &     , 'srflx, ', 'stflx(itemp), ', 'stflx(isalt)'
+        open(unit=108, file="cpl_forcing_data_era.txt",
+     &     form = "formatted")
+        write(107,*)'time/s, ', 'sustr, ', 'svstr, '
+     &     , 'srflx, ', 'stflx(itemp), ', 'stflx(isalt)'
+      endif
+#endif
 
 C$OMP MASTER
         mpi_master_only write(*,'(/1x,A/)')
@@ -414,6 +443,7 @@ C$OMP END MASTER
       USE oas_roms_send_receive, ONLY: oas_roms_send, oas_roms_receive
 #endif
       implicit none
+      logical :: use_oasis
       integer trd, tile, my_first, my_last, range
 #include "param.h"
 #include "scalars.h"
@@ -477,10 +507,12 @@ C$OMP END MASTER
                                        ! Read forcing and climatology
       if (synchro_flag) then           ! data. This operation may raise
         synchro_flag=.false.           ! "may_day_flag" in the case of
+#if !(defined ANA_GRID && defined ANA_INITIAL && defined ANA_SMFLUX && defined ANA_STFLUX && defined  ANA_SSFLUX && defined ANA_SRFLUX && defined ANA_VMIX)
 C$OMP MASTER                           ! I/O errors which may occur on
         call get_forces                ! some nodes, but not on all at 
 C$OMP END MASTER                       ! the same time.  Therefore to
 C$OMP BARRIER                          ! avoid MPI deadlock the exit is
+#endif
       endif                            ! deferred until after broadcast
                                        ! of "may_day_flag" by diag.
 #ifdef SOLVE3D
@@ -499,9 +531,11 @@ C$OMP BARRIER                          ! avoid MPI deadlock the exit is
       enddo
 C$OMP BARRIER
 
-       !Receive Coupling fields from Cosmo/Oasis
 #ifdef COUP_OAS 
+      !Receive Coupling fields from Cosmo/Oasis
+      if ( use_oasis() ) then
        call oas_roms_receive(iic-ntstart)
+      endif
 #endif
 
       do tile=my_tile_range
@@ -568,7 +602,9 @@ C$OMP BARRIER
 # endif
 #endif  /* SOLVE3D */
 # ifdef COUP_OAS
-      call oas_roms_send(iic-ntstart)
+      if ( use_oasis() ) then
+        call oas_roms_send(iic-ntstart)
+      endif
 # endif
 
 ! Output block: write restart/history files.
@@ -650,6 +686,7 @@ C$OMP MASTER
 #ifdef FLOATS
         if (mod(iic-ntstart,nflt) == 0) nrecflt=nrecflt+1
 #endif
+#ifndef NO_RESTART
         if (mod(iic-ntstart,nrst) == 0
 #ifdef EXACT_RESTART
      &         .or. mod(iic-ntstart+1,nrst) == 0
@@ -659,6 +696,7 @@ C$OMP MASTER
           call wrt_his
 c          if (iic>60) nwrt=1 !<-- useful for debugging
         endif
+#endif /* NO_RESTART */
 
 #ifdef AVERAGES
 # ifdef SLICE_AVG
@@ -831,3 +869,51 @@ c**    call step_floats(1,nfloats)    ! serial version for debugging
 #endif
   99  return
       end
+
+#ifdef COUP_OAS
+      function use_oasis()
+      ! Read send field flags from the "romsoc.nml" namelist
+      ! To determine if the OASIS is needed at all (use_oasis=.true.)
+
+      USE oas_roms_data, ONLY: l_snd_sst, l_snd_sm
+      logical :: use_oasis
+      logical, save :: l_exchange = .true.
+     &               , firstcall = .true.
+
+      INTEGER, PARAMETER :: funit=67
+      CHARACTER(len=*), PARAMETER :: nml_file = "romsoc.nml"
+      INTEGER :: ierr
+
+      if (firstcall) then
+        ! only read the send switches once and return the save
+        ! value from then onwards. 
+        firstcall = .false.
+
+        WRITE(*,*) "OAS_ROMS : Reading namelist romsoc.nml"
+
+        namelist /exchange_flags/ l_exchange, l_snd_sst, l_snd_sm
+
+        OPEN(funit, FILE=nml_file, IOSTAT=ierr)
+        IF (ierr /= 0) return
+
+        READ(funit, exchange_flags, IOSTAT=ierr)
+        CLOSE(funit)
+        IF (ierr /= 0)
+     &     WRITE(*,*) 'WARNING: Error reading ROMS->OASIS fields'
+     &        ,'from ', nml_file
+           WRITE(*,*) 'OASIS coupler will be used'
+           return
+        else
+
+        if (l_exchange) l_exchange = (l_snd_sst .or. l_snd_sm)
+        if (l_exchange) then
+           WRITE(*,*) 'OASIS coupler will be used'
+        else
+           WRITE(*,*) 'OASIS coupler will NOT be used'
+        endif
+      endif  ! firstcall
+
+      use_oasis = l_exchange
+      return
+      end
+#endif

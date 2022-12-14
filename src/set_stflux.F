@@ -4,6 +4,10 @@
       subroutine set_stflux_tile(istr,iend,jstr,jend, itrc, ierr)
 
 ! Interpolate and assemble surface tracer flux for current tile.
+# ifdef COUP_OAS
+      ! Used to turn off restoring of temp and salt in the atm-coupled region 
+       use oas_roms_data, only: alpha_rho 
+# endif
 
       implicit none
       integer istr,iend,jstr,jend, itrc, ierr, i,j, it1,it2
@@ -13,6 +17,11 @@
 # include "param.h"
 # include "scalars.h"
 # include "ocean3d.h"
+# ifdef COUP_OAS
+       real, save, dimension(GLOBAL_2D_ARRAY) :: rest_wght  ! SSS/SST restoring weights
+       logical, save :: firstcall = .true.
+       integer       :: ii, jj
+# endif
 # define STFLUX_DATA
 # if defined QCORRECTION && !defined ANA_SST
       integer it3,it4, it5,it6
@@ -34,13 +43,46 @@
 ! hbls (in mixing.h) is needed for surface flux limitation if SST falls below freezing
 #  include "mixing.h"
 # endif
-# if defined ICEOBS || (defined SALINITY_MASKLATSTR && defined SALINITY_MASKLATEND) || defined WRITE_SALT_REST
+!# if defined ICEOBS || (defined SALINITY_MASKLATSTR && defined SALINITY_MASKLATEND) || defined WRITE_SALT_REST
 #  include "grid.h"
-# endif
+!# endif
 # ifdef WRITE_SALT_REST
       real, parameter :: eps=1.e-33
 # endif
 # include "compute_extended_bounds.h"
+
+# ifdef COUP_OAS
+      ! Set the correction/restoring weight
+      ! Note: alpha_rho is only defined within the computational bounds
+      !       while most fields in ROMS are define over extended bounds.
+      if (firstcall) then
+          ! Only computed once since weights never change.
+          ! ==> No need to optimize the loops below
+          firstcall = .false. ! skip from now on
+          ! Fill the ghostpoints with the values of the  closest value
+          !              in the computational domain 
+          do j=jstrR,jendR
+            if (j < jstr) then
+                    jj = jstr
+            elseif (j > jend) then
+                    jj = jend
+            else
+                    jj = j
+            endif               
+            do i=istr,iend
+               if (i < istr) then
+                    ii = istr
+               elseif (i > iend) then
+                    ii = iend
+               else
+                    ii = i
+               endif      
+               ! No restoring in the coupled region
+               rest_wght(i,j) = 1.0 - alpha_rho(ii,jj)
+            enddo
+          enddo
+      endif
+# endif
 
 ! Set coefficients for interpolation.  Also check that for the next
 ! time step [when time=time+dt] both weights will still be positive --
@@ -152,12 +194,18 @@
      &         *( t(i,j,N,nrhs,itemp) -cff3*sstg(i,j,it3)
      &                                -cff4*sstg(i,j,it4)
      &                                                  )
+#  ifdef COUP_OAS
+     &         *rest_wght(i,j)
+#  endif
 #  ifdef WRITE_TEMP_REST
               RestFlxTemp(i,j)=cff
      &         *((cff5*dqdtg(i,j,it5)+cff6*dqdtg(i,j,it6))
      &          *( t(i,j,N,nrhs,itemp) -cff3*sstg(i,j,it3)
      &                                 -cff4*sstg(i,j,it4)
      &                                                  ))
+#   ifdef COUP_OAS
+     &         *rest_wght(i,j)
+#   endif
 #   ifdef MASKING
      &                                 *rmask(i,j)
 #   endif
@@ -212,6 +260,9 @@
 c**  &                                        -tclm(i,j,N,isalt)
      &                  -(cff7*sssg(i,j,it7)+cff8*sssg(i,j,it8))
      &                                                         )
+#  ifdef COUP_OAS
+     &                                 *rest_wght(i,j)
+#  endif
 #  if defined SALINITY_MASKLATSTR && defined SALINITY_MASKLATEND
      &          *max(max(min(abs(latr(i,j)-(SALINITY_MASKLATEND))
      & /abs((SALINITY_MASKLATSTR)-(SALINITY_MASKLATEND)),1.),0.0)
@@ -227,6 +278,9 @@ c**  &                                        -tclm(i,j,N,isalt)
 #   ifdef MASKING
      &                                 *rmask(i,j)
 #   endif
+#  ifdef COUP_OAS
+     &                                 *rest_wght(i,j)
+#  endif
 #  endif
 #  ifdef SALINITY_MASK
 #   ifdef WRITE_SALT_REST

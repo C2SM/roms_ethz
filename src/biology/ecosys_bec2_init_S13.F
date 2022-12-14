@@ -53,27 +53,26 @@
       parm_o2_min            = 1.0  ! mmol/m^3 = nmol/cm^3 (MF 11.11.2016: Taking down DENITRIF following discussion with SY (Babbin et al. 2014))
       parm_o2_min_delta      = 2.0  ! mmol/m^3 = nmol/cm^3
       parm_kappa_nitrif      = 0.06 * dps ! (= 1/( days))
-      parm_nitrif_par_lim    = 4.0
+      parm_nitrif_par_lim    = 1.0
       parm_z_mort_0          = 0.1 * dps
       parm_z_mort2_0         = 0.4 * dps
-      parm_labile_ratio      = 0.87
+      !parm_labile_ratio      = 0.85
+      parm_labile_ratio      = 0.94
       parm_POMbury           = 1.4 ! x1 default
       parm_BSIbury           = 0.45 ! x1 default
-      parm_Fe_scavenge_rate0 = 1.7 ! x1 default     2.8
+      !parm_Fe_scavenge_rate0 = 1.3 ! x1 default     2.8
+      parm_Fe_scavenge_rate0 = 0.5 ! x1 default     2.8
+      !parm_Fe_scavenge_rate0 = 3.9 ! 300%
       parm_f_prod_sp_CaCO3   = 0.055 ! x1 default   0.04
-      parm_POC_diss          = 100.0   ! 88 in cBEC, 82
-      parm_SiO2_diss         = 250.0  ! 250 in cBEC, 360
+      parm_POC_diss          = 82.0   ! 88 in cBEC, 82
+      parm_SiO2_diss         = 360.0  ! 250 in cBEC, 360
       parm_CaCO3_diss        = 400.0  ! 150 in cBEC, 400
 # ifdef USE_EXPLICIT_VSINK
-      parm_scalelen_z    = (/ 130.0, 290.0, 670.0, 1700.0 /)
-      parm_scalelen_vals = (/     1.0,     1.6,     3.5,      8.0 /) ! MF: try new parametrization for explicit sinking
-# else
-! Cara's values
       parm_scalelen_z    = (/ 100.0, 250.0, 500.0, 750.0 /) ! DL: converted to m
       parm_scalelen_vals = (/     1.0,     2.9,     5.6,      5.7 /) ! x1 default
-! Martin's values
-!      parm_scalelen_z    = (/ 130.0, 290.0, 670.0, 1700.0 /) ! DL: converted to m
-!      parm_scalelen_vals = (/     1.0,     3.0,     5.0,      9.0 /) ! x1 default
+# else
+      parm_scalelen_z    = (/ 100.0, 250.0, 500.0, 750.0 /) ! DL: converted to m
+      parm_scalelen_vals = (/     1.0,     2.9,     5.6,      5.7 /) ! x1 default
 # endif
 
 ! Parameters for small phytoplankton
@@ -89,18 +88,20 @@
       Si_ind(auto_ind)        = 0
       imp_calcifier(auto_ind) = .true. ! this is over-written in case of BEC_COCCO
       CaCO3_ind(auto_ind)     = spCaCO3_ind_t
-      kFe(auto_ind)           = 0.08e-3
+      kFe(auto_ind)           = 0.08e-3   ! Master branch default: 0.08
       kPO4(auto_ind)          = 0.01
       kDOP(auto_ind)          = 0.26
-      kNO3(auto_ind)          = 0.5
+      kNO3(auto_ind)          = 0.1
       kNH4(auto_ind)          = 0.01
       kSiO3(auto_ind)         = 0.0
       Qp(auto_ind)            = 0.00855
-      gQfe_0(auto_ind)        = 20.0e-6
+      gQfe_0(auto_ind)        = 20e-6
       gQfe_min(auto_ind)      = 3.0e-6
-      alphaPI(auto_ind)       = 0.44*dps
-      PCref(auto_ind)         = 2.0*dps
-      thetaN_max(auto_ind)    = 2.5
+      alphaPI(auto_ind)       = 0.44*dps   ! Master branch default: 0.44
+      !PCref(auto_ind)         = 3.6*dps    ! Master branch default: 3.6
+      PCref(auto_ind)         = 2.7*dps    ! 75%
+      !thetaN_max(auto_ind)    = 2.5         ! Master branch default: 2.5
+      thetaN_max(auto_ind)    = 3.5          ! MF: sensitivity test
       loss_thres(auto_ind)   = 0.04
       loss_thres2(auto_ind)  = 0.0
       temp_thres(auto_ind)   = -10.0
@@ -108,12 +109,14 @@
       mort2(auto_ind)         = 0.001*dps
       agg_rate_max(auto_ind)  = 0.9
       agg_rate_min(auto_ind)  = 0.01
-      z_umax_0(auto_ind)      = 3.4*dps    ! was 4.4
+      !z_umax_0(auto_ind)      = 4.4*dps   ! Master branch default: 4.4
+      z_umax_0(auto_ind)      = 3.1*dps   ! 70%
       z_grz(auto_ind)         = 1.05
       graze_zoo(auto_ind)     = 0.3
       graze_poc(auto_ind)     = 0.05
-      graze_doc(auto_ind)     = 0.15
-      loss_poc(auto_ind)      = 0.2
+      !graze_doc(auto_ind)     = 0.15
+      graze_doc(auto_ind)     = 0.06
+      loss_poc(auto_ind)      = 0.0
       f_zoo_detr(auto_ind)    = 0.15
 
 ! Parameters for diatoms
@@ -129,18 +132,19 @@
       Fe_ind(auto_ind)        = diatFe_ind_t
       Si_ind(auto_ind)        = diatSi_ind_t
       CaCO3_ind(auto_ind)     = 0
-      kFe(auto_ind)           = 0.12e-3
-      kPO4(auto_ind)          = 0.06
-      kDOP(auto_ind)          = 2.0
-      kNO3(auto_ind)          = 1.2
+      kFe(auto_ind)           = 0.12e-3   ! Master branch default: 0.12e-3
+      kPO4(auto_ind)          = 0.05
+      kDOP(auto_ind)          = 0.9
+      kNO3(auto_ind)          = 0.5
       kNH4(auto_ind)          = 0.05
-      kSiO3(auto_ind)         = 1.8
+      kSiO3(auto_ind)         = 1.0       ! Master branch default: 1.0
       Qp(auto_ind)            = 0.00855
-      gQfe_0(auto_ind)        = 20.0e-6
+      gQfe_0(auto_ind)        = 20e-6
       gQfe_min(auto_ind)      = 3.0e-6
-      alphaPI(auto_ind)       = 0.46*dps
-      PCref(auto_ind)         = 3.5*dps
-      thetaN_max(auto_ind)    = 4.0
+      alphaPI(auto_ind)       = 0.465*dps ! Master branch default: 0.44
+      !PCref(auto_ind)         = 4.6*dps  ! Master branch default: 4.6
+      PCref(auto_ind)         = 3.4*dps  ! 75%
+      thetaN_max(auto_ind)    = 4.0      ! Master branch default: 4.0
       loss_thres(auto_ind)   = 0.04
       loss_thres2(auto_ind)  = 0.0
       temp_thres(auto_ind)   = -10.0
@@ -148,11 +152,13 @@
       mort2(auto_ind)         = 0.001*dps
       agg_rate_max(auto_ind)  = 0.9
       agg_rate_min(auto_ind)  = 0.02
-      z_umax_0(auto_ind)      = 2.8*dps
+      !z_umax_0(auto_ind)      = 3.8*dps  ! Master branch default: 3.8
+      z_umax_0(auto_ind)      = 3.3*dps  ! 90%
       z_grz(auto_ind)         = 1.0
       graze_zoo(auto_ind)     = 0.3
-      graze_poc(auto_ind)     = 0.42   ! was 0.42
-      graze_doc(auto_ind)     = 0.15
+      graze_poc(auto_ind)     = 0.42
+      !graze_doc(auto_ind)     = 0.15
+      graze_doc(auto_ind)     = 0.06
       loss_poc(auto_ind)      = 0.0
       f_zoo_detr(auto_ind)    = 0.2
 
@@ -169,30 +175,33 @@
       Fe_ind(auto_ind)        = diazFe_ind_t
       Si_ind(auto_ind)        = 0
       CaCO3_ind(auto_ind)     = 0
-      kFe(auto_ind)            = 0.5e-3 ! was 0.08
-      kPO4(auto_ind)          = 0.04 ! was 0.02
-      kDOP(auto_ind)          = 0.04  ! was 0.09
+      kFe(auto_ind)           = 0.08e-3   ! Master branch default:0.08e-3
+      kPO4(auto_ind)          = 0.02
+      kDOP(auto_ind)          = 0.09
       kNO3(auto_ind)          = 1.0
       kNH4(auto_ind)          = 0.15
       kSiO3(auto_ind)         = 0.0
       Qp(auto_ind)            = 0.002735
-      gQfe_0(auto_ind)        = 60.0e-6
+      gQfe_0(auto_ind)        = 60e-6
       gQfe_min(auto_ind)      = 12.0e-6
-      alphaPI(auto_ind)       = 0.38*dps
-      PCref(auto_ind)         = 0.55*dps
-      thetaN_max(auto_ind)    = 2.5
+      alphaPI(auto_ind)       = 0.38*dps  ! Master branch default: 0.38
+      !PCref(auto_ind)         = 0.9*dps  ! Master branch default: 0.9
+      PCref(auto_ind)         = 0.7*dps  ! 75%
+      thetaN_max(auto_ind)    = 2.5      ! Master branch default: 2.5
       loss_thres(auto_ind)   = 0.022
       loss_thres2(auto_ind)  = 0.001
-      temp_thres(auto_ind)   = 18.0
-      mort(auto_ind)          = 0.2*dps
-      mort2(auto_ind)         = 0.001*dps
+      temp_thres(auto_ind)   = 14.0
+      mort(auto_ind)          = 0.15*dps
+      mort2(auto_ind)         = 0.0*dps
       agg_rate_max(auto_ind)  = 0.0
       agg_rate_min(auto_ind)  = 0.0
-      z_umax_0(auto_ind)      = 2.0*dps   ! was 2.0
+      !z_umax_0(auto_ind)      = 2.0*dps  ! Master branch default: 2.0
+      z_umax_0(auto_ind)      = 1.4*dps  ! 70%
       z_grz(auto_ind)         = 1.2
       graze_zoo(auto_ind)     = 0.3
       graze_poc(auto_ind)     = 0.05
-      graze_doc(auto_ind)     = 0.15
+      !graze_doc(auto_ind)     = 0.15
+      graze_doc(auto_ind)     = 0.06
       loss_poc(auto_ind)      = 0.0
       f_zoo_detr(auto_ind)    = 0.15
 
@@ -253,34 +262,33 @@
       Fe_ind(auto_ind)        = ddaFe_ind_t
       Si_ind(auto_ind)        = ddaSi_ind_t
       CaCO3_ind(auto_ind)     = 0
-      kFe(auto_ind)           = 0.5e-3
-      kPO4(auto_ind)          = 0.06
-      kDOP(auto_ind)          = 0.06
-      kNO3(auto_ind)          = 1.2 
-      kNH4(auto_ind)          = 0.15
-      kSiO3(auto_ind)         = 1.8
+      kFe(auto_ind)           = 0.18e-3
+      kPO4(auto_ind)          = 0.1
+      kDOP(auto_ind)          = 0.9
+      kNO3(auto_ind)          = 0.8
+      kNH4(auto_ind)          = 0.05
+      kSiO3(auto_ind)         = 1.0
       Qp(auto_ind)            = 0.00855
-      gQfe_0(auto_ind)        = 60.0e-6
-      gQfe_min(auto_ind)      = 12.0e-6
-      alphaPI(auto_ind)       = 0.38*dps
-      PCref(auto_ind)         = 1.5*dps
+      gQfe_0(auto_ind)        = 20e-6
+      gQfe_min(auto_ind)      = 3.0e-6
+      alphaPI(auto_ind)       = 0.44*dps
+      PCref(auto_ind)         = 2.5*dps
       thetaN_max(auto_ind)    = 4.0
       loss_thres(auto_ind)   = 0.04
       loss_thres2(auto_ind)  = 0.0
-      temp_thres(auto_ind)   = 18.0
+      temp_thres(auto_ind)   = -10.0
       mort(auto_ind)          = 0.12*dps
       mort2(auto_ind)         = 0.001*dps
       agg_rate_max(auto_ind)  = 0.9
       agg_rate_min(auto_ind)  = 0.02
-      z_umax_0(auto_ind)      = 2.35*dps   ! was 3.8
+      z_umax_0(auto_ind)      = 3.8*dps
       z_grz(auto_ind)         = 1.0
       graze_zoo(auto_ind)     = 0.3
-      graze_poc(auto_ind)     = 0.42    ! was 0.42
+      graze_poc(auto_ind)     = 0.42
       graze_doc(auto_ind)     = 0.15
       loss_poc(auto_ind)      = 0.0
       f_zoo_detr(auto_ind)    = 0.2
-#endif 
-      
+#endif
 #ifdef BEC_PHAEO
 ! Parameters for Phaeocystis AA
       auto_ind = phaeo_ind
@@ -393,14 +401,14 @@
       alphaPI(diaz_ind) = 0.38*dps
       Q_10_phyto = (/ 1.6, 1.9, 1.8 /)
       Q_10_zoo = 1.5
-      kFe  = (/ 1.0d-4, 1.6d-4, 6.0d-4 /)  ! mmol m-3
+      kFe  = (/ 5.0d-4, 8.0d-4, 3.0d-3 /)  ! mmol m-3
       kPO4 = (/ 0.05, 0.08, 0.006 /)  ! mmol m-3
       kNO3 = (/ 0.8, 1.3, 0.1 /)  ! mmol m-3
       kNH4 = (/ 0.08, 0.13, 0.01 /)  ! mmol m-3
       kSiO3 = (/ 0.0, 1.2, 0.0 /)  ! mmol m-3
       kDOP = (/ 0.9, 0.9, 0.006 /)  ! mmol m-3
-      temp_thres = (/ -10, -10, 14 /)  ! °C
-      z_umax_0 = (/ 1.875*dps, 2.875*dps, 1.625*dps /)  ! s-1
+      temp_thres = (/ -10, -10, 18 /)  ! °C
+      z_umax_0 = (/ 2.34375*dps, 3.59375*dps, 2.03125*dps /)  ! s-1
       z_grz = (/ 1.05, 1.0, 1.2 /)  ! mmol m-3
       mort = (/ 0.12*dps, 0.12*dps, 0.15*dps /)  ! s-1
       mort2 = (/ 0.001*dps, 0.001*dps, 0.0 /)  ! s-1
@@ -472,14 +480,14 @@
       alphaPI(diaz_ind) = 0.38*dps
       Q_10_phyto = (/ 1.6, 1.9, 1.8 /)
       Q_10_zoo = 1.5
-      kFe  = (/ 1.0d-4, 1.6d-4, 6.0d-4 /)  ! mmol m-3
+      kFe  = (/ 5.0d-4, 8.0d-4, 3.0d-3 /)  ! mmol m-3
       kPO4 = (/ 0.08, 0.13, 0.02 /)  ! mmol m-3
       kNO3 = (/ 1.2, 2.1, 0.3 /)  ! mmol m-3
       kNH4 = (/ 0.12, 0.21, 0.03 /)  ! mmol m-3
       kSiO3 = (/ 0.0, 2.0, 0.0 /)  ! mmol m-3
       kDOP = (/ 0.9, 0.9, 0.02 /)  ! mmol m-3
       temp_thres = (/ -10, -10, 14 /)  ! °C
-      z_umax_0 = (/ 0.6*dps, 0.9*dps, 0.4*dps /)  ! s-1
+      z_umax_0 = (/ 0.75*dps, 1.125*dps, 0.5*dps /)  ! s-1
       z_grz = (/ 1.05, 1.0, 1.2 /)  ! mmol m-3
       mort = (/ 0.06*dps, 0.06*dps, 0.15*dps /)  ! s-1
       mort2 = (/ 0.001*dps, 0.001*dps, 0.0 /)  ! s-1
@@ -581,11 +589,9 @@
 #ifdef RIVER_LOAD_BIO
       lriver_load_n = .TRUE.
       lriver_load_p = .TRUE.
-!      lriver_load_fe = .TRUE.
-!      lriver_load_si = .TRUE.
-!      lriver_load_alk = .TRUE.
-!      lriver_load_dic = .TRUE.
-!      lriver_load_si = .TRUE.
+      !lriver_load_alk = .TRUE.
+      !lriver_load_dic = .TRUE.
+      !lriver_load_si = .TRUE.
 #endif
       lsource_sink  = .TRUE.  
 

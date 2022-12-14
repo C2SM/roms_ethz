@@ -32,6 +32,10 @@
 ! climatological data (e.g., salinity at surface) update tclima
 ! first.
 
+#ifdef COUP_OAS
+      USE oas_roms_send_receive, ONLY: oas_merge_forces
+#endif
+
       implicit none
       integer tile, ierr
 #include "param.h"
@@ -47,6 +51,9 @@
 #endif
 #if defined TSOURCE
 # include "sources.h"
+#endif
+#ifdef COUP_OAS
+      logical use_oasis
 #endif
 
 #include "compute_tile_bounds.h"
@@ -243,6 +250,9 @@ c***              no code here
 c>>>      if (ierr /= 0) may_day_flag=2
 #ifdef ANA_PSOURCE
       if (ZEROTH_TILE) call ana_psource
+#endif
+#ifdef COUP_OAS
+      if (use_oasis()) call oas_merge_forces
 #endif
       end
 

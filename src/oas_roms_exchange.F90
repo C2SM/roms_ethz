@@ -28,9 +28,6 @@ MODULE oas_roms_exchange
 
    USE oas_roms_data, ONLY: kl_comm,                             &
       &                     OAS_GRID, cpl_grd, k_rho, k_u, k_v,  &
-      &                     oas_itemp, oas_UST_U, oas_VST_U,     &
-      &                     oas_UST_V, oas_VST_V, oas_NHF,       &
-      &                     oas_SWR, oas_TEP,                    &
       &                     srcv, ssnd, krcv, ksnd,              &
       &                     IOASISDEBUGLVL
    
@@ -60,17 +57,20 @@ CONTAINS
    !                                 PUBLIC SUBROUTINES                                  !
    ! *********************************************************************************** !
 
-   SUBROUTINE oas_roms_rcv(kstep)
+   SUBROUTINE oas_roms_rcv(kstep, updates)
       ! Description
       ! -----------
       ! Receive Fields from Atmospheric Model
 
       ! Arguments
       INTEGER, INTENT(IN) :: kstep   ! ocean time-step in seconds
+      LOGICAL, INTENT(INOUT) :: updates ! New data received 
+                         ! Note: It is assumed here that all fields are updated simultaneously by OASIS
       
       ! Local variables
       INTEGER :: kinfo, jn
 
+      updates=.FALSE.
       DO jn=1, krcv
          IF (srcv(jn)%laction) THEN
             ! Fill in coupling field data at coupling time steps
@@ -81,6 +81,21 @@ CONTAINS
             IF (kinfo == OASIS_Recvd .OR. kinfo == OASIS_FromRest .OR.   &
                kinfo == OASIS_RecvOut .OR. kinfo == OASIS_FromRestOut) THEN
                srcv(jn)%pdata(:,:) = cpl_grd(srcv(jn)%k_pt)%exfld(:,:)
+               updates = .TRUE.
+
+               IF (IOASISDEBUGLVL >= 10) THEN
+                  WRITE(NULOUT,*) 'OAS_ROMS : ****************'
+                  WRITE(NULOUT,*) 'OAS_ROMS : ROMS received data:'
+                  WRITE(NULOUT,*) 'OAS_ROMS : oasis_get: ', srcv(jn)%clname
+                  WRITE(NULOUT,*) 'OAS_ROMS : oasis_get: ivarid '  , srcv(jn)%nid
+                  WRITE(NULOUT,*) 'OAS_ROMS : oasis_get: kstep', kstep
+                  WRITE(NULOUT,*) 'OAS_ROMS : oasis_get: info ', kinfo
+                  WRITE(NULOUT,*) 'OAS_ROMS :      - Minimum value is ', MINVAL(srcv(jn)%pdata(:,:))
+                  WRITE(NULOUT,*) 'OAS_ROMS :      - Maximum value is ', MAXVAL(srcv(jn)%pdata(:,:))
+                  WRITE(NULOUT,*) 'OAS_ROMS :      -     Sum value is ', SUM(srcv(jn)%pdata(:,:))
+                  WRITE(NULOUT,*) 'OAS_ROMS : ****************'
+               ENDIF
+               
             ENDIF
          ENDIF
       ENDDO
@@ -105,30 +120,20 @@ CONTAINS
 
             ! Call OASIS at each time step but field sent to other model only at coupling time step
             ! (accumulation otherwise, if asked in the namcouple configuration file)
-            ! - ML - writing restarts is not necessary, just use the namcouple with the EXPOUT property
-            ! CALL oasis_put(ssnd(jn)%nid, kstep, ssnd(jn)%pdata, kinfo,   &
-            !    & write_restart=(IOASISDEBUGLVL==3))
             CALL oasis_put(ssnd(jn)%nid, kstep, ssnd(jn)%pdata, kinfo)
 
-            ! - ML - Is that really necessary? Comment out for now
-            ! IF ( kinfo .EQ. OASIS_Sent .OR. kinfo .EQ. OASIS_ToRest .OR.   &
-            !    & kinfo .EQ. OASIS_SentOut  .OR. kinfo .EQ. OASIS_ToRestOut ) THEN
-            !    ssnd(jn)%pdata(:,:) = 0.
-            ! ENDIF
-
-            ! - ML - Why these dbg prints just for sending, not receiving ??
-            ! IF (IOASISDEBUGLVL > 1) THEN
-            !    WRITE(NULOUT,*) '****************'
-            !    WRITE(NULOUT,*) 'ROMS sent data:'
-            !    WRITE(NULOUT,*) 'oasis_put: ', ssnd(jn)%clname
-            !    WRITE(NULOUT,*) 'oasis_put: ivarid '  , ssnd(jn)%nid
-            !    WRITE(NULOUT,*) 'oasis_put: kstep', kstep
-            !    WRITE(NULOUT,*) 'oasis_put: info ', kinfo
-            !    WRITE(NULOUT,*) '     - Minimum value is ', MINVAL(ssnd(jn)%pdata(:,:))
-            !    WRITE(NULOUT,*) '     - Maximum value is ', MAXVAL(ssnd(jn)%pdata(:,:))
-            !    WRITE(NULOUT,*) '     -     Sum value is ', SUM(ssnd(jn)%pdata(:,:))
-            !    WRITE(NULOUT,*) '****************'
-            ! ENDIF
+            IF (IOASISDEBUGLVL >= 10) THEN
+               WRITE(NULOUT,*) 'OAS_ROMS : ****************'
+               WRITE(NULOUT,*) 'OAS_ROMS : ROMS sent data:'
+               WRITE(NULOUT,*) 'OAS_ROMS : oasis_put: ', ssnd(jn)%clname
+               WRITE(NULOUT,*) 'OAS_ROMS : oasis_put: ivarid '  , ssnd(jn)%nid
+               WRITE(NULOUT,*) 'OAS_ROMS : oasis_put: kstep', kstep
+               WRITE(NULOUT,*) 'OAS_ROMS : oasis_put: info ', kinfo
+               WRITE(NULOUT,*) 'OAS_ROMS :      - Minimum value is ', MINVAL(ssnd(jn)%pdata(:,:))
+               WRITE(NULOUT,*) 'OAS_ROMS :      - Maximum value is ', MAXVAL(ssnd(jn)%pdata(:,:))
+               WRITE(NULOUT,*) 'OAS_ROMS :      -     Sum value is ', SUM(ssnd(jn)%pdata(:,:))
+               WRITE(NULOUT,*) 'OAS_ROMS : ****************'
+            ENDIF
          END IF
       END DO
 

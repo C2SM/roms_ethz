@@ -19,28 +19,32 @@
          USE oas_roms_data, ONLY: IOASISDEBUGLVL, l_oas_seq,
      &                            ssnd, srcv, cpl_grd,
      &                            k_rho, k_u, k_v,
-     &                            oas_itemp, oas_UST_U, oas_VST_U,
+     &                            oas_itemp, oas_SSU_U, oas_SSU_V,
+     &                            oas_SSV_U, oas_SSV_V,
+     &                            oas_UST_U, oas_VST_U,
      &                            oas_UST_V, oas_VST_V, oas_NHF,
      &                            oas_SWR, oas_TEP,
      &                            alpha_rho, alpha_u, alpha_v,
      &                            u_cos_proj_u, v_cos_proj_u,
-     &                            u_cos_proj_v, v_cos_proj_v
+     &                            u_cos_proj_v, v_cos_proj_v,
+     &                            l_snd_sst, l_snd_sm,
+     &                            sustr_a, svstr_a, srflx_a, stflx_a,
+     &                            oas_time
 
          IMPLICIT NONE
 
          PRIVATE
 
-         PUBLIC :: oas_roms_send, oas_roms_receive
+         PUBLIC :: oas_roms_send, oas_roms_receive, oas_merge_forces
 
       CONTAINS
 
 
          SUBROUTINE oas_roms_send(oas_step)
-            !**** *oas_roms_prepsnd*  - 
             !
             !     Purpose.
             !     --------
-            !     Send coupling fields to Atmospheric model
+            !     Send  fields to OASIS 
             !
             !**   Interface.
             !     ----------
@@ -76,7 +80,7 @@
 #include "param.h"
             ! => nstp, dt, ntimes:
 #include "scalars.h"
-            ! => t:
+            ! => t, u, v:
 #include "ocean3d.h"
 
             
@@ -88,9 +92,25 @@
 
             ! Update fields for sending
             ! -------------------------
-            ssnd(oas_itemp)%pdata =
-     &           t(cpl_grd(k_rho)%imin:cpl_grd(k_rho)%imax,
+            IF (l_snd_sst) THEN
+                ssnd(oas_itemp)%pdata =
+     &             t(cpl_grd(k_rho)%imin:cpl_grd(k_rho)%imax,
      &             cpl_grd(k_rho)%jmin:cpl_grd(k_rho)%jmax,N,nstp,itemp)
+            ENDIF
+            IF (l_snd_sm) THEN
+            ssnd(oas_SSU_U)%pdata =
+     &           u(cpl_grd(k_u)%imin:cpl_grd(k_u)%imax,
+     &             cpl_grd(k_u)%jmin:cpl_grd(k_u)%jmax,N,nstp)
+            ssnd(oas_SSU_V)%pdata =
+     &           u(cpl_grd(k_u)%imin:cpl_grd(k_u)%imax,
+     &             cpl_grd(k_u)%jmin:cpl_grd(k_u)%jmax,N,nstp)
+            ssnd(oas_SSV_U)%pdata =
+     &           v(cpl_grd(k_v)%imin:cpl_grd(k_v)%imax,
+     &             cpl_grd(k_v)%jmin:cpl_grd(k_v)%jmax,N,nstp)
+            ssnd(oas_SSV_V)%pdata =
+     &           v(cpl_grd(k_v)%imin:cpl_grd(k_v)%imax,
+     &             cpl_grd(k_v)%jmin:cpl_grd(k_v)%jmax,N,nstp)
+            ENDIF
 
             ! Write Debug File
             ! ----------------
@@ -117,7 +137,7 @@
 
          ! ----------------------------------------------------------------------------------- !
 
-         SUBROUTINE oas_roms_receive(oas_step)                 
+         SUBROUTINE oas_roms_receive(oas_step)
             !**** *oas_roms_receive*  - 
             !
             !     Purpose.
@@ -153,28 +173,24 @@
             !       Matthieu Leclair - ETHZ
             !
 
-            ! => itemp, isalt, N, mynode
+            ! => itemp, isalt, NT
 #include "param.h"
             ! => nstp, dt, tdays, nrhs, rho0, Cp, deg2rad
 #include "scalars.h"
             ! => t, Hz
 #include "ocean3d.h"
-            ! => sustr, svstr, srflx, stflx
-#include "forces.h"
+            ! => 
+!#include "forces.h"
             ! => hbls
-#include "ncvars.h"
-            INTEGER ::  oas_dt, oas_step, jn, i, j
+!#include "ncvars.h"
+            INTEGER ::  oas_dt
+            INTEGER :: oas_step, jn, i, j
+            INTEGER, SAVE :: it = 1
             REAL :: cff_wstr, cff_hflx, cff_fwflx
             REAL :: zflx_1, zflx_2
-#ifdef DIURNAL_SRFLUX
-            ! => latr, lonr
-# include "grid.h"
-            REAL :: cff, cff1, cff2
-            REAL :: cos_h, dec, cos_d, sin_d, tan_d, phi, h0, utc
-            REAL, PARAMETER :: year2day=365.25
-            REAL, PARAMETER :: day2year=1.D0/year2day
-            REAL, PARAMETER :: utc_cor=1.D0/360.D0
-#endif
+            LOGICAL :: updates
+            LOGICAL, SAVE :: initial_call = .TRUE.
+
             ! Skip if sequential coupling mode and first time step
             ! ----------------------------------------------------
             IF (l_oas_seq .AND. oas_step == 0) RETURN
@@ -182,8 +198,11 @@
 
             ! Receive fields when necessary
             ! -----------------------------
-            oas_dt = oas_step * INT(dt)
-            CALL oas_roms_rcv(oas_dt)
+            oas_dt = oas_step * dt
+            CALL oas_roms_rcv(oas_dt,updates)
+            IF ( .NOT. updates ) RETURN
+            it = mod(it+1,2)
+            oas_time(it) = oas_dt
 
             ! Set conversion coefficients
             ! ---------------------------    
@@ -195,100 +214,36 @@
             ! -------------
             DO j = cpl_grd(k_u)%jmin, cpl_grd(k_u)%jmax
                DO i = cpl_grd(k_u)%imin, cpl_grd(k_u)%imax
-                  zflx_1 = u_cos_proj_u(i,j)
+                  sustr_a(i,j,it) = ( u_cos_proj_u(i,j)
      &                     * srcv(oas_UST_U)%pdata(i,j)
      &                   + v_cos_proj_u(i,j)
-     &                     * srcv(oas_VST_U)%pdata(i,j)
-                  sustr(i,j) = (1.0-alpha_u(i,j)) * sustr(i,j)
-     &                            + alpha_u(i,j) * cff_wstr * zflx_1
+     &                     * srcv(oas_VST_U)%pdata(i,j) ) * cff_wstr
                ENDDO
             ENDDO
 
             DO j = cpl_grd(k_v)%jmin, cpl_grd(k_v)%jmax
                DO i = cpl_grd(k_v)%imin, cpl_grd(k_v)%imax
-                  zflx_1 = u_cos_proj_v(i,j)
+                  svstr_a(i,j,it) = ( u_cos_proj_v(i,j)
      &                     * srcv(oas_UST_V)%pdata(i,j)
      &                   + v_cos_proj_v(i,j)
-     &                     * srcv(oas_VST_V)%pdata(i,j)
-                  svstr(i,j) = (1.0-alpha_v(i,j)) * svstr(i,j)
-     &                            + alpha_v(i,j) * cff_wstr * zflx_1
+     &                     * srcv(oas_VST_V)%pdata(i,j) ) * cff_wstr
                ENDDO
             ENDDO
 
-            ! Solar Radiative Flux
-            ! --------------------
-#ifdef DIURNAL_SRFLUX
-            ! DIURNAL CYCLE - USED IN BOTH PHYSICAL AND ECOSYSTEM MODELS
-            ! Patrick Marchesiello - 1999: Modulate average dayly insolation
-            ! to get diurnal cycle by:
-            !
-            !              cos(h)*cos(d)*cos(phi) + sin(d)*sin(phi)
-            !       pi * ---------------------------------------------
-            !             sin(h0)*cos(d)*cos(phi) + h0*sin(d)sin(phi)
-            !
-            ! where: h, d, phi -- are hour, declination, latitude angles;
-            !        h0 is hour angle at sunset and sunrise
-            !
-            ! Yusuke Uchiyama, 2009: UTC correction based on lonr is added.
-            !                        (ocean_)time should be in UTC.
-            !
-# define UTC_CORRECTION
-            !
-# ifndef UTC_CORRECTION
-            cos_h = COS(2.*pi * (tdays+.5-INT(tdays+.5)))
-# endif
-            dec = -0.406 * COS(deg2rad 
-     &                        *(tdays-INT(tdays*day2year)*year2day))
-            cos_d = COS(dec)
-            sin_d = SIN(dec)
-            tan_d = TAN(dec)
-#endif
             DO j = cpl_grd(k_rho)%jmin, cpl_grd(k_rho)%jmax
                DO i = cpl_grd(k_rho)%imin, cpl_grd(k_rho)%imax
-                  zflx_1 = cff_hflx * srcv(oas_SWR)%pdata(i,j)
-#ifdef DIURNAL_SRFLUX
-# ifdef UTC_CORRECTION
-                  utc = lonr(i,j) * utc_cor
-                  cos_h = COS(2.*pi*(tdays+.5-INT(tdays+.5)+utc))
-# endif
-                  phi = latr(i,j) * deg2rad
-                  h0 = ACOS(-TAN(phi)*tan_d)
-                  cff1 = cos_d * COS(phi)
-                  cff2 = sin_d * SIN(phi)
-                  cff = pi* (cos_h*cff1+cff2) / (SIN(h0)*cff1+h0*cff2)
-                  zflx_1 = MAX(0., cff*zflx_1)
-#endif
-                  srflx(i,j) = (1.0-alpha_rho(i,j)) * srflx(i,j)
-     &                            + alpha_rho(i,j) * zflx_1
+                  ! Solar Radiative Flux
+                  ! --------------------
+                  srflx_a(i,j,it) = cff_hflx * srcv(oas_SWR)%pdata(i,j)
 
-                  ! Net Heat Flux
+                  ! Net Heat Flux (total lat+sens+tot_rad)
                   ! -------------
-                  zflx_2 = cff_hflx * srcv(oas_NHF)%pdata(i,j) + zflx_1
-                  !
-                  ! Restrict stflx to prevent surface temperature to go below -2
-                  ! degrees C.
-                  !
-#if defined PACIFIC || defined STFLX_LIM
-                  zflx_2 = MAX( zflx_2,
-# ifdef LMD_KPP
-     &                          MAX(hbls(i,j,nstp), Hz(i,j,N))
-# else
-     &                                              Hz(i,j,N)
-# endif
-     &                            *(-2.D0-t(i,j,N,nrhs,itemp))/dt )
-#endif
-                  stflx(i,j,itemp) =
-     &                 (1.0-alpha_rho(i,j)) * stflx(i,j,itemp)
-     &                    + alpha_rho(i,j) * zflx_2
-
-
+                  stflx_a(i,j,itemp,it) = cff_hflx * srcv(oas_NHF)%pdata(i,j) 
+     &                                    + srflx_a(i,j,it)
                   ! Fresh Water Flux
                   ! ----------------
-                  zflx_1 = cff_fwflx * srcv(oas_TEP)%pdata(i,j)
+                  stflx_a(i,j,isalt,it) = cff_fwflx * srcv(oas_TEP)%pdata(i,j)
      &                               * t(i,j,N,nrhs,isalt)
-                  stflx(i,j,isalt) =
-     &                 (1.0-alpha_rho(i,j)) * stflx(i,j,isalt)
-     &                    + alpha_rho(i,j) * zflx_1
                ENDDO
             ENDDO
 
@@ -301,6 +256,86 @@
      ! &                            "SWR"  , srflx           , k_rho,
      ! &                            "FRESH", stflx(:,:,isalt), k_rho )
 
+         if (initial_call) then
+            ! Use Initial forcing data as prior data
+            ! This breaks EXACT RESTART!
+            initial_call = .FALSE.
+            i = it
+            it = mod(it+1,2)
+            oas_time(it) = oas_time(i) - oas_dt 
+            sustr_a(:,:,it) = sustr_a(:,:,i)
+            svstr_a(:,:,it) = svstr_a(:,:,i)
+            srflx_a(:,:,it) = srflx_a(:,:,i)
+            stflx_a(:,:,:,it) = stflx_a(:,:,:,i)
+         ENDIF
+
          END SUBROUTINE oas_roms_receive
 
-      END MODULE oas_roms_send_receive
+         SUBROUTINE oas_merge_forces
+            IMPLICIT NONE
+            ! also contains mynode
+#include "param.h"
+            ! sustr, svstr, srflx, stflx are in forces.h
+#include "forces.h"
+            !  iic, ntstart are in scalars.h
+#include "scalars.h"
+            INTEGER :: i1, i2, it1, it2
+            REAL    :: w1, w2 ! time slice weights
+            INTEGER :: imid,jmid
+            !
+            ! Interpolate the atm forces in time to the current time
+            ! and use the alpha_x weights to merge these forces into 
+            ! the pre-existing forces outside the coupling region where alpha_? = 0.0 
+            !
+            if( oas_time(1) > oas_time(0)) then
+                    i1=0
+                    i2=1
+            else
+                    i2=0
+                    i2=1
+            endif
+            it2 = oas_time(i2) ! time of current ...
+            it1 = oas_time(i1) ! and past atm forces.
+ 
+            ! Weights for linear time interpolation to current time (it)
+            w2 = (iic-ntstart - it1)/(it2-it1)
+            w1 = 1.0 - w2  
+#ifdef COUP_DEBUG
+       imid=(istr+iend)/2; jmid=(jstr+jend)/2
+       write(unit=107,*) 'era: iic:, ', iic, ', ',sustr(imid,jmid)
+     &                               , ', ',svstr(imid,jmid)
+     &                               , ', ',srflx(imid,jmid)
+     &                               , ', ',stflx(imid,jmid,1)
+     &                               , ', ',stflx(imid,jmid,2)
+#endif
+            ! Remark:  Array operations below
+            sustr = (1.0 - alpha_u) * sustr
+     &                   + alpha_u  * ( w1 * sustr_a(:,:,i1) 
+     &                                + w2 * sustr_a(:,:,i2) ) 
+            svstr = (1.0 - alpha_v) * svstr + 
+     &                   + alpha_v  * ( w1 * svstr_a(:,:,i1) 
+     &                                + w2 * svstr_a(:,:,i2) ) 
+            srflx = (1.0 - alpha_rho) * srflx
+     &                   + alpha_rho  * ( w1 * srflx_a(:,:,i1) 
+     &                                  + w2 * srflx_a(:,:,i2) ) 
+            stflx(:,:,itemp) = (1.0 - alpha_rho) * stflx(:,:,itemp) 
+     &                   + alpha_rho  * ( w1 * stflx_a(:,:,itemp,i1) 
+     &                                  + w2 * stflx_a(:,:,itemp,i2) )
+            stflx(:,:,isalt) = (1.0 - alpha_rho) * stflx(:,:,isalt) 
+     &                   + alpha_rho  * ( w1 * stflx_a(:,:,isalt,i1) 
+     &                                  + w2 * stflx_a(:,:,isalt,i2) )
+#ifdef COUP_DEBUG
+       if (mynode ==60) then
+       imid=(istr+iend)/2; jmid=(jstr+jend)/2
+       write(unit=107,*) 'merged: iic:, ', iic, ', ',sustr(imid,jmid)
+     &                               , ', ',svstr(imid,jmid)
+     &                               , ', ',srflx(imid,jmid)
+     &                               , ', ',stflx(imid,jmid,1)
+     &                               , ', ',stflx(imid,jmid,2)
+       write(unit=107,*) 
+       endif
+#endif
+         
+         END SUBROUTINE oas_merge_forces
+
+       END MODULE oas_roms_send_receive
