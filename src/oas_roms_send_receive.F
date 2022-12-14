@@ -272,7 +272,7 @@
             initial_call = .FALSE.
             i = it
             it = mod(it+1,2)
-            oas_tprior = oas_tnow - dt 
+            oas_tprior = oas_tnow
             sustr_a(:,:,it) = sustr_a(:,:,i)
             svstr_a(:,:,it) = svstr_a(:,:,i)
             srflx_a(:,:,it) = srflx_a(:,:,i)
