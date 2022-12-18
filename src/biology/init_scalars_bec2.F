@@ -1549,18 +1549,18 @@ CR      write(*,'(1x,A,I3)') 'indxNH4 =',indxNH4
      &                     .false.,.false.,.false. ,.false. ,.false.,  !FE_SCAVENGE_RATE, DON_PROD,DON_REMIN, DOFE_PROD, DOFE_REMIN,
      ! 50
      &                     .false.,.false.,.false.,.false.,.false.,  !DOP_PROD, DOP_REMIN,DIAT_SI_UPTAKE, PHOTOFE_SP, PHOTOFE_DIA,  
-     &                     .false.,.false. ,.false. ,.false.,.false.,  !PHOTOFE_DIAZ, NITRI,DENITRIF,SP_NO3_UPTAKE,DIAT_NO3_UPTAKE,  
-     &                     .false.,.false.,.false.,.false.,.false.,  !DIAZ_NO3_UPTAKE,SP_NH4_UPTAKE, DIAT_NH4_UPTAKE,DIAZ_NH4_UPTAKE,SP_GRAZE_DIC,  
-     &                     .false.,.false.,.false.,.false.,.false.,  !DIAT_GRAZE_DIC,DIAZ_GRAZE_DIC, SP_LOSS_DIC,DIAT_LOSS_DIC,DIAZ_LOSS_DIC,  
-     &                     .false.,.false.,.false.,.false.,.false.,  !ZOO_LOSS_DIC, DIAZ_AGG,GRAZE_SP_ZOO, GRAZE_DIAT_ZOO, GRAZE_DIAZ_ZOO, 
+     &                     .false.,.true. ,.true. ,.true.,.true.,  !PHOTOFE_DIAZ, NITRI,DENITRIF,SP_NO3_UPTAKE,DIAT_NO3_UPTAKE,  
+     &                     .true.,.true.,.true.,.true.,.false.,  !DIAZ_NO3_UPTAKE,SP_NH4_UPTAKE, DIAT_NH4_UPTAKE,DIAZ_NH4_UPTAKE,SP_GRAZE_DIC,  
+     &                     .false.,.false.,.true.,.true.,.true.,  !DIAT_GRAZE_DIC,DIAZ_GRAZE_DIC, SP_LOSS_DIC,DIAT_LOSS_DIC,DIAZ_LOSS_DIC,  
+     &                     .true.,.false.,.false.,.false.,.false.,  !ZOO_LOSS_DIC, DIAZ_AGG,GRAZE_SP_ZOO, GRAZE_DIAT_ZOO, GRAZE_DIAZ_ZOO, 
      &                     .false.,.false.,.false.,.false.,.false.,  !SPQCACO3, PHOTOACC_SP,PHOTOACC_DIAT, PHOTOACC_DIAZ, SPC_ZERO, 
      &                     .false.,.false.,.false.,.false.,.false.,  !DIATC_ZERO, DIAZC_ZERO, DOC_ZERO, ZOOC_ZERO, SPCACO3_ZERO, 
-     &                     .false.,.false.,.true.,.true.,.true.,     !DONR_REMIN, TOTCHL, SP_P_LIM, DIAT_P_LIM, DIAZ_P_LIM,
+     &                     .true.,.false.,.true.,.true.,.true.,     !DONR_REMIN, TOTCHL, SP_P_LIM, DIAT_P_LIM, DIAZ_P_LIM,
      &                     .true. ,.false.,.false.,.false.,.false.,  !TOT_PHYTO_C, POC_PROD_ZOO_LOSS, POC_PROD_DIAT, POC_PROD_SP, POC_PROD_DIAZ,
-     &                     .false.,.false.,.false.,.false.,.false.,  !QSI_DIAT, TOT_GRAZE, TOT_GRAZE_DIC, TOT_GRAZE_ZOO, TOT_AGG
+     &                     .false.,.false.,.true.,.false.,.false.,  !QSI_DIAT, TOT_GRAZE, TOT_GRAZE_DIC, TOT_GRAZE_ZOO, TOT_AGG
      ! 100
-     &                     .false., .false., .false.,.false.,.false.,  !TOT_NO3_UPTAKE,TOT_NH4_UPTAKE,TOT_LOSS,TOT_LOSS_DIC, NEXCRETE
-     &                     .false.,.false.                             !TOT_POC, NCP
+     &                     .true., .true., .false.,.false.,.true.,  !TOT_NO3_UPTAKE,TOT_NH4_UPTAKE,TOT_LOSS,TOT_LOSS_DIC, NEXCRETE
+     &                     .true.,.true.                             !TOT_POC, NCP
      ! 107 tracer
 # ifdef USE_EXPLICIT_VSINK
      ! +10

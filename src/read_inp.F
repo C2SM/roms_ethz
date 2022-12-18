@@ -419,10 +419,9 @@ c--      fname='roms.in.US_West'
 
         elseif (keyword(1:kwlen) == 'nudg_cof') then
           call cancel_kwd(keyword(1:kwlen), ierr)
-          read(input,*,err=95) tauM2_in, tauM2_out, attnM2
+          read(input,*,err=95) attnM2
 # ifdef SOLVE3D
-     &                       , tauM3_in, tauM3_out
-     &                       , tauT_in,  tauT_out
+     &                       , tauT_out
 # endif
           if (tauM2_in > 0.) then                ! convert relaxation
             tauM2_in =1./(tauM2_in *day2sec)     ! time [units = days]

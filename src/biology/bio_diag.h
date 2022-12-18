@@ -56,10 +56,9 @@
 # define LAST_I_BIO2D indxDCO2STAR
 #  ifdef CCHEM_MOCSY
 #   if !defined CCHEM_TODEPTH
-     &            , indxPH=LAST_I_BIO2D+1, indxPCO2=LAST_I_BIO2D+2, indxCO3=LAST_I_BIO2D+3
-     &            , indxHCO3=LAST_I_BIO2D+4, indxCO2STAR=LAST_I_BIO2D+5
+     &            , indxCO3=LAST_I_BIO2D+1, indxHCO3=LAST_I_BIO2D+2
 # undef LAST_I_BIO2D
-# define LAST_I_BIO2D indxCO2STAR
+# define LAST_I_BIO2D indxHCO3
 #   endif
 #  else /* CCHEM_MOCSY */
 !     &            , indxPH=LAST_I_BIO2D+1, indxPCO2=LAST_I_BIO2D+2, indxCO2STAR=LAST_I_BIO2D+3
