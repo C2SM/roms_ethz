@@ -63,7 +63,7 @@
       integer, parameter :: part_XI=1,  part_ETA=2, part_2D=3
 
       logical complete, clean_set,  digit,  var_mask,  lnewvar, is_in_list
-      logical :: selective = .false.
+      logical :: selective = .false., time_partition = .false.
 
       logical :: timing = .false., renice = .false.
      &         , fast = .true., quite = .false.
@@ -127,6 +127,7 @@
 #endif
       integer :: minrec=0 ! minrec>0 do not enforce same record number
                           ! in each partial file but use minimum.
+      integer :: nstart = 1, nend=0 
 
       character(len=9), parameter :: signame='nc_format'
 #ifdef ZLIB_COMPRESSION
@@ -235,6 +236,16 @@
         if ( nctestname(1:1)=='-' .and. (
      &       lsrc == 2  .and. nctestname(1:2) == '-p' )) then
           minrec=1
+          goto 2
+        endif
+        if ( nctestname(1:1)=='-' .and. (
+     &       lsrc == 2  .and. nctestname(1:3) == '-s=' )) then
+          read(nctestname(4:LEN_TRIM(nctestname)),*) nstart
+          goto 2
+        endif
+        if ( nctestname(1:1)=='-' .and. (
+     &       lsrc == 2  .and. nctestname(1:3) == '-e=' )) then
+          read(nctestname(4:LEN_TRIM(nctestname)),*) nend
           goto 2
         endif
 
@@ -945,6 +956,12 @@ c**         endif
 ! define its dimensions and copy global attributes.
 
           i=lenstr(root_bak)
+          do while (root_bak(i:i) == '.')  ! remove dots from end
+             i=i-1
+          enddo
+          if (time_partition)   ! Add starting time to output filename
+     &     write(root_bak(i+1:lenstr(root_bak)),*) '_t',nstart 
+          i=lenstr(root_bak)
       if (sffx_bak(1:1) /= ' ') then
             j=lenstr(sffx_bak)
         if (root_bak(i:i) == '.' .and. sffx_bak(1:1) == '.') then
@@ -1388,7 +1405,8 @@ c**         endif
 ! Transfer variables into combined file.
 !========= ========= ==== ======== =====
 
-        do rec=1,tsize
+        if (nend <= 0) nend = tsize
+        do rec=nstart,min(tsize,nend)
         if (tsize > 1) then
 #ifdef TIMING
       if (timing) then
@@ -2226,6 +2244,8 @@ c       ierr=nf_open(nctargname(1:ltrg), nf_write, nctarg)
      &   , '    -i=<var_list> list of variables (comma-separated '
      &   , '                 without spaces) to include'
      &   , '    -k           keep partial files'
+     &   , '    -s=<n>       output start with record n (time step)'
+     &   , '    -e=<m>       output ends with record m (time step)'
      !&   , '    -m           reduce memory usage (slow mode)'
      &   , '    -n           Use low job priority'
      &   , '    -p           if record dim differs, use its minimum'

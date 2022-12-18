@@ -18,6 +18,8 @@ roms:
 roms_cpl:
 	$(MAKE) -C $(BLDDIR) COUPLED=1
 	rm -f $(SRCDIR)/include/cppdefs.h
+nctools:
+	$(MAKE) -C $(BLDDIR) nctools
 all:
 	$(MAKE) -C $(BLDDIR) all
 clean:

@@ -135,9 +135,11 @@ mpi_test: $(MPI_TEST_OBJ)
 
 # Auxiliary utility programs
 # --------- ------- --------
-TOOLS := mpc srcscheck checkkwds ncextract redefs
+TOOLS := mpc srcscheck checkkwds redefs
+NCTOOLS := partit ncjoin
 
 tools: $(TOOLS)
+nctools: $(NCTOOLS)
 mpc:  mpc.F
 	$(Q)cd $(BLDDIR); $(FC) $(CPPFLAGS) -o $@ $^
 
