@@ -1476,7 +1476,7 @@ c$$$       enddo
           !f_nut = min(f_nut, VPO4(istr:iend,auto_ind))
 
           ! CN: consider VPtot instead of VPO4 only! DOP is taken up, so
-          ! it should also potentially be limiting (that's why half-sat
+          ! it should also potentially be limiting (that is why half-sat
           ! constants are defined for DOP!)
           f_nut = min(f_nut, VPtot(istr:iend,auto_ind))
 
@@ -1605,7 +1605,7 @@ c$$$       enddo
 
           PCmax = PCref(auto_ind) * f_nut * Tfunc_phyto(:,auto_ind)
 
-! apply temp_threshold below/above PFT doesn't grow anymore
+! apply temp_threshold below/above PFT does not grow anymore
 # ifdef BEC_PHAEO
           if (auto_ind==phaeo_ind) then ! restrict growth above this temp
              where (temp > temp_thres(auto_ind)) PCmax = c0
@@ -2488,7 +2488,7 @@ c$$$       enddo
 
        WORK1 = merge(c0, WORK1, NO3_loc == c0)
 
-       ! CN: See Simon's code: under low NO3, DENITRIF is reduced!
+       ! CN: See ode of Simon: under low NO3, DENITRIF is reduced!
        ! NO3min=2
 
        DENITRIF = WORK1 * ((DOC_remin
