@@ -394,13 +394,13 @@ CR      write(*,*) '  0' MYID
         ! For a central tile (60) presumably in the coupling region
         ! Open CSV file to let oas_merge_forces write the  forcing
         ! fields of one grid point before and after the merge.
-        open(unit=107, file="cpl_forcing_data_era.txt",
+        open(unit=107, file="atm_forces_era.txt",
      &     form = "formatted")
         write(107,*)'time/s, ', 'sustr, ', 'svstr, '
      &     , 'srflx, ', 'stflx(itemp), ', 'stflx(isalt)'
-        open(unit=108, file="cpl_forcing_data_era.txt",
+        open(unit=108, file="atm_forces_merged.txt",
      &     form = "formatted")
-        write(107,*)'time/s, ', 'sustr, ', 'svstr, '
+        write(108,*)'time/s, ', 'sustr, ', 'svstr, '
      &     , 'srflx, ', 'stflx(itemp), ', 'stflx(isalt)'
       endif
 #endif
@@ -515,6 +515,11 @@ C$OMP BARRIER                          ! avoid MPI deadlock the exit is
 #endif
       endif                            ! deferred until after broadcast
                                        ! of "may_day_flag" by diag.
+
+#ifdef COUP_OAS 
+      !Receive Coupling fields from Cosmo/Oasis
+      if ( use_oasis() ) call oas_roms_receive(iic-ntstart)
+#endif
 #ifdef SOLVE3D
       do tile=my_tile_range                 ! interpolate forcing
         call set_forces(tile)               ! data to model time and
@@ -530,13 +535,6 @@ C$OMP BARRIER                          ! avoid MPI deadlock the exit is
 #endif
       enddo
 C$OMP BARRIER
-
-#ifdef COUP_OAS 
-      !Receive Coupling fields from Cosmo/Oasis
-      if ( use_oasis() ) then
-       call oas_roms_receive(iic-ntstart)
-      endif
-#endif
 
       do tile=my_tile_range
         call omega(tile)

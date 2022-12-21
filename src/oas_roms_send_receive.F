@@ -211,7 +211,8 @@
             ! oas_tnow = oas_dt
             ! Safer to pretent the current time is 
             ! one coupling time step ahead:
-            oas_tnow = oas_dt + dt 
+            oas_tnow = oas_dt + dt
+            write(*,*) 'oas_dt,oas_tnow,dt,',oas_dt,oas_tnow,dt
 
             ! Set conversion coefficients
             ! ---------------------------    
@@ -307,11 +308,14 @@
             ! It would be more stable  to interpolate by pretending that
             ! the latest forcing received from the coupler is actually 
             ! one coupling time step ahead.
-            w2 = (iic-ntstart - oas_tprior)/(oas_tnow-oas_tprior)
+            w2 = ((iic-ntstart)*dt - oas_tprior)/(oas_tnow-oas_tprior)
             w1 = 1.0 - w2  
 #ifdef COUP_DEBUG
+      write(*,*) 'oas_tprior,oas_tnow, ',oas_tprior,oas_tnow
+      write(*,*) 'iic,ntstart,dt*(iic-ntstart), ',iic,ntstart,dt*float(iic-ntstart)
+      write(*,*) 'w1,w2, ',w1,w2
        imid=(istr+iend)/2; jmid=(jstr+jend)/2
-       write(unit=107,*) 'era: iic:, ', iic, ', ',sustr(imid,jmid)
+       write(unit=107,*) 'Era5: ', iic, ', ',sustr(imid,jmid)
      &                               , ', ',svstr(imid,jmid)
      &                               , ', ',srflx(imid,jmid)
      &                               , ', ',stflx(imid,jmid,1)
@@ -348,12 +352,12 @@
 #ifdef COUP_DEBUG
        if (mynode ==60) then
        imid=(istr+iend)/2; jmid=(jstr+jend)/2
-       write(unit=107,*) 'merged: iic:, ', iic, ', ',sustr(imid,jmid)
+       write(unit=108,*) 'Merged: ', iic, ', ',sustr(imid,jmid)
      &                               , ', ',svstr(imid,jmid)
      &                               , ', ',srflx(imid,jmid)
      &                               , ', ',stflx(imid,jmid,1)
      &                               , ', ',stflx(imid,jmid,2)
-       write(unit=107,*) 
+     &                               , ', ',alpha_rho(imid,jmid)
        endif
 #endif
          
