@@ -54,7 +54,8 @@ MODULE oas_roms_def
       &                     u_cos_proj_v, v_cos_proj_v,           &
       &                     IOASISDEBUGLVL, l_oas_seq,            &
       &                     l_snd_sst, l_snd_sm,                  &
-      &                     sustr_a, svstr_a, srflx_a, stflx_a
+      &                     sustr_a, svstr_a, srflx_a, stflx_a,   &
+      &                     shflx_a, ssflx_a
 
    USE oas_roms_set_cpl_grd, ONLY: oas_roms_set_grd
       
@@ -235,8 +236,12 @@ CONTAINS
          &              cpl_grd(k_v)%jmin:cpl_grd(k_v)%jmax, 0:1), stat=ierr)
       ALLOCATE(srflx_a( cpl_grd(k_rho)%imin:cpl_grd(k_rho)%imax, &
          &              cpl_grd(k_rho)%jmin:cpl_grd(k_rho)%jmax, 0:1), stat=ierr)
-      ALLOCATE(stflx_a( cpl_grd(k_rho)%imin:cpl_grd(k_rho)%imax, &
-         &              cpl_grd(k_rho)%jmin:cpl_grd(k_rho)%jmax, 2, 0:1), stat=ierr)
+      ALLOCATE(shflx_a( cpl_grd(k_rho)%imin:cpl_grd(k_rho)%imax, &
+         &              cpl_grd(k_rho)%jmin:cpl_grd(k_rho)%jmax, 0:1), stat=ierr)
+      ALLOCATE(ssflx_a( cpl_grd(k_rho)%imin:cpl_grd(k_rho)%imax, &
+         &              cpl_grd(k_rho)%jmin:cpl_grd(k_rho)%jmax, 0:1), stat=ierr)
+      !ALLOCATE(stflx_a( cpl_grd(k_rho)%imin:cpl_grd(k_rho)%imax, &
+      !   &              cpl_grd(k_rho)%jmin:cpl_grd(k_rho)%jmax, 2, 0:1), stat=ierr)
       IF (ierr /= 0) CALL oasis_abort(ncomp_id, 'oas_roms_define',   &
             &             'Allocation failure for ATM forcing fieds.',__FILE__, __LINE__)
 

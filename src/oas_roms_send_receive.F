@@ -28,7 +28,8 @@
      &                            u_cos_proj_u, v_cos_proj_u,
      &                            u_cos_proj_v, v_cos_proj_v,
      &                            l_snd_sst, l_snd_sm,
-     &                            sustr_a, svstr_a, srflx_a, stflx_a,
+     &                            sustr_a, svstr_a, srflx_a, !stflx_a,
+     &                            shflx_a, ssflx_a,
      &                            oas_tnow, oas_tprior,
      &                            oas_inow, oas_iprior
 
@@ -248,11 +249,15 @@
 
                ! Net Heat Flux (total lat+sens+tot_rad)
                ! -------------
-               stflx_a(i,j,itemp,it) = cff_hflx * 
+!               stflx_a(i,j,itemp,it) = cff_hflx * 
+!     &                srcv(oas_NHF)%pdata(i,j) + srflx_a(i,j,it)
+               shflx_a(i,j,it) = cff_hflx * 
      &                srcv(oas_NHF)%pdata(i,j) + srflx_a(i,j,it)
                ! Fresh Water Flux
                ! ----------------
-               stflx_a(i,j,isalt,it) = cff_fwflx * 
+!               stflx_a(i,j,isalt,it) = cff_fwflx * 
+!     &                srcv(oas_TEP)%pdata(i,j) * t(i,j,N,nrhs,isalt)
+               ssflx_a(i,j,it) = cff_fwflx * 
      &                srcv(oas_TEP)%pdata(i,j) * t(i,j,N,nrhs,isalt)
             ENDDO
             ENDDO
@@ -277,7 +282,9 @@
             sustr_a(:,:,it) = sustr_a(:,:,i)
             svstr_a(:,:,it) = svstr_a(:,:,i)
             srflx_a(:,:,it) = srflx_a(:,:,i)
-            stflx_a(:,:,:,it) = stflx_a(:,:,:,i)
+            shflx_a(:,:,it) = shflx_a(:,:,i)
+            ssflx_a(:,:,it) = ssflx_a(:,:,i)
+            !stflx_a(:,:,:,it) = stflx_a(:,:,:,i)
          ENDIF
 
          END SUBROUTINE oas_roms_receive
@@ -341,11 +348,15 @@
      &         + alpha_rho(i,j)  * ( w1 * srflx_a(i,j,oas_iprior)
      &                             + w2 * srflx_a(i,j,oas_inow) )
           stflx(i,j,itemp) = (1.0 - alpha_rho(i,j)) * stflx(i,j,itemp)
-     &         + alpha_rho(i,j)  * ( w1 * stflx_a(i,j,itemp,oas_iprior)
-     &                             + w2 * stflx_a(i,j,itemp,oas_inow) )
+     &         + alpha_rho(i,j)  * ( w1 * shflx_a(i,j,oas_iprior)
+     &                             + w2 * shflx_a(i,j,oas_inow) )
+!     &         + alpha_rho(i,j)  * ( w1 * stflx_a(i,j,itemp,oas_iprior)
+!     &                             + w2 * stflx_a(i,j,itemp,oas_inow) )
           stflx(i,j,isalt) = (1.0 - alpha_rho(i,j)) * stflx(i,j,isalt)
-     &         + alpha_rho(i,j)  * ( w1 * stflx_a(i,j,isalt,oas_iprior)
-     &                             + w2 * stflx_a(i,j,isalt,oas_inow) )
+     &         + alpha_rho(i,j)  * ( w1 * ssflx_a(i,j,oas_iprior)
+     &                             + w2 * ssflx_a(i,j,oas_inow) )
+!     &         + alpha_rho(i,j)  * ( w1 * stflx_a(i,j,isalt,oas_iprior)
+!     &                             + w2 * stflx_a(i,j,isalt,oas_inow) )
        enddo
        enddo
 
