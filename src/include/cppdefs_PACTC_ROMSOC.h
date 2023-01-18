@@ -125,7 +125,7 @@
 
 #define COUP_OAS
 #define PARALLEL_FILES
-#define WRITE_TEMP_REST
+
 
 !#undef SFLX_CORR
 #undef ANA_SSFLUX
