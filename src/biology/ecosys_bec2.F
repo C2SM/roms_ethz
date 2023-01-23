@@ -1361,9 +1361,10 @@ c$$$       enddo
     !  growth, mort and grazing rates scaled by Tfunc where they are computed
     !-----------------------------------------------------------------------
 
-       Tfunc_zoo = Q_10_zoo**(0.1*((temp  - T0_Kelvin))
+       Tfunc_zoo = Q_10_zoo**( 0.1*(temp - Tref) )
        do auto_ind = 1, autotroph_cnt
-          Tfunc_phyto(:,auto_ind) = Q_10_phyto(auto_ind)**(0.1*((temp + Tref))
+          Tfunc_phyto(:,auto_ind) = 
+     &                   Q_10_phyto(auto_ind)**(0.1*(temp - Tref))
        end do
     !  Tref = 30.0 reference temperature (deg. C)
 !# ifdef BEC_COCCO

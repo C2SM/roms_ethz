@@ -175,7 +175,7 @@
 !  "Scenario 12_1_k", see https://upwiki.ethz.ch/upwiki/doku.php?id=romsdoc:bec_parameters_setups
 ! parameter PFT indices: (1, 2, 3) = (sp, diat, diaz)  
 ! indices >3 for  cocco, dda, phaeo, ucyn
-      PCref(sp_ind)   = (/ 0.5, 1.1, 0.2 /)*dps  ! s-1
+      PCref(1:3)   = (/ 0.5, 1.1, 0.2 /)*dps  ! s-1
       Q_10_phyto(1:3) = (/ 1.6, 1.9, 1.8 /)
       kFe (1:3) = (/ 1.0d-4, 1.6d-4, 6.0d-4 /)  ! mmol m-3
       kPO4(1:3) = (/ 0.08, 0.13, 0.02 /)  ! mmol m-3
@@ -198,15 +198,15 @@
       kNH4(1:3) = (/ 0.08, 0.13, 0.01 /)  ! mmol m-3
       kSiO3(1:3) = (/ 0.0, 1.2, 0.0 /)  ! mmol m-3
       kDOP(1:3) = (/ 0.9, 0.9, 0.006 /)  ! mmol m-3
-      z_umax_0(1:3) = (/ 1.875*dps, 2.875*dps, 1.625*dps /)  ! s-1
+      z_umax_0(1:3) = (/ 1.875, 2.875, 1.625 /)*dps  ! s-1
       z_grz(1:3) = (/ 1.05, 1.0, 1.2 /)  ! mmol m-3
-      mort(1:3) = (/ 0.12*dps, 0.12*dps, 0.15*dps /)  ! s-1
+      mort(1:3) = (/ 0.12, 0.12, 0.15 /)*dps  ! s-1
 #endif /* BIOPAR_R */
 
-      alphaPI(sp_ind)   = (/ 0.44, 0.44, 0.38 /)*dps  ! mmol C m2 (mgChl)-1 W-1 s-1
+      alphaPI(1:3)   = (/ 0.44, 0.44, 0.38 /)*dps  ! mmol C m2 (mgChl)-1 W-1 s-1
       Q_10_zoo = 1.5
       temp_thres(1:3) = (/ -10, -10, 14 /)  ! C
-      mort2(1:3) = (/ 0.001*dps, 0.001*dps, 0.0 /)  ! s-1
+      mort2(1:3) = (/ 0.001, 0.001, 0.0 /)*dps  ! s-1
       agg_rate_max(1:3) = (/ 0.9, 0.9, 0.0 /)  ! d-1
       agg_rate_min(1:3) = (/ 0.01, 0.02, 0.0 /)  ! d-1
       loss_thres(1:3) = (/ 0.04, 0.04, 0.022 /) ! mmol m-3
@@ -243,16 +243,16 @@
       cksi = 5.0
       Q = 0.137
       Qp_zoo_pom = 0.00855
-      CaCO3_temp_thres1 = 6.0 ! °C
-      CaCO3_temp_thres2 = -2.0 ! °C
+      CaCO3_temp_thres1 = 6.0 ! DegC
+      CaCO3_temp_thres2 = -2.0 ! DegC
       CaCO3_sp_thres = 4.0  ! mmol m-3
       parm_f_prod_sp_CaCO3 = 0.055
       QCaCO3_max = 0.4
       parm_POC_diss = 82.0   ! m
       parm_SiO2_diss = 360.0    ! m
       parm_CaCO3_diss = 400.0   ! m
-      parm_scalelen_z(1:3) = (/ 130, 250, 500, 750 /) ! m
-      parm_scalelen_vals(1:3) = (/ 1.0, 2.9, 5.6, 5.7 /)
+      parm_scalelen_z = (/ 130, 250, 500, 750 /) ! m
+      parm_scalelen_vals = (/ 1.0, 2.9, 5.6, 5.7 /)
       parm_labile_ratio = 0.85
       parm_POMbury = 1.4
       parm_BSIbury = 0.45
@@ -539,13 +539,14 @@
 
       end subroutine ecosys2_init
 
-      ! rescale parameters to ROMS units (mostly SI units)
 
-      PCref = PCref*dps
 
 
       subroutine rescale_parameters
+      ! rescale parameters to ROMS units (mostly SI units)
 
+      PCref = PCref*dps
+      return
       end subroutine rescale_parameters
 
 #else /* BIOLOGY_BEC2 */
