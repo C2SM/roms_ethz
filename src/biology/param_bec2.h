@@ -124,7 +124,7 @@
   !   ecosystem parameters accessible via namelist input
   !----------------------------------------------------------------------------
 
-       real
+       real :: 
      &   parm_Fe_bioavail,       ! fraction of Fe flux that is bioavailable
      &   parm_o2_min,            ! min O2 needed for prod & consump. (nmol/cm^3)
      &   parm_o2_min_delta,      ! width of min O2 range (nmol/cm^3)
@@ -212,8 +212,8 @@
   !     fixed ratios
   !----------------------------------------------------------------------------
 
-       real r_Nfix_photo
-       parameter(r_Nfix_photo=1.30)         !N fix relative to C fix (non-dim)
+       real, dimension(autotroph_cnt) :: r_Nfix_photo = 0.0
+       !parameter(r_Nfix_photo=1.30)         !N fix relative to C fix (non-dim)
 
   !-----------------------------------------------------------------------
   !     SET FIXED RATIOS for N/C, P/C, SiO3/C, Fe/C
@@ -224,14 +224,14 @@
        real Q, Qp_zoo_pom, Qfe_zoo, gQsi_0, gQsi_max, gQsi_min, QCaCO3_max,
      &   denitrif_C_N, cks, cksi
        parameter(
-!     &   Q             = 0.137,   !N/C ratio (mmol/mmol) of phyto & zoo
-!     &   Qp_zoo_pom    = 0.00855, !P/C ratio (mmol/mmol) zoo & pom
+!     &   Q             = 0.137,   !=16/117: N/C ratio (mmol/mmol) of phyto & zoo
+!     &   Qp_zoo_pom    = 0.00855, !=1/117: P/C ratio (mmol/mmol) zoo & pom
 !     &   Qfe_zoo       = 3.0e-6,  !zooplankton fe/C ratio
 !     &   gQsi_0        = 0.137,   !initial Si/C ratio
 !     &   gQsi_max      = 0.685,   !max Si/C ratio
 !     &   gQsi_min      = 0.0457,  !min Si/C ratio
 !     &   QCaCO3_max    = 0.4,     !max QCaCO3
-     &   ! carbon:nitrogen ratio for denitrification
+!     &   ! carbon:nitrogen ratio for denitrification
      &   denitrif_C_N  = parm_Red_D_C_P/136.0
      & )
        common /ecosys_bec2/ Q, Qp_zoo_pom, Qfe_zoo, gQsi_0, gQsi_max, gQsi_min,

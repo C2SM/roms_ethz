@@ -1356,26 +1356,25 @@ c$$$       enddo
        end do
 
     !-----------------------------------------------------------------------
-    !  Tref = 30.0 reference temperature (deg. C)
     !
     !  Using q10 formulation with Q10 value of 2.0 (Doney et al., 1996).
     !  growth, mort and grazing rates scaled by Tfunc where they are computed
     !-----------------------------------------------------------------------
 
-!       Tfunc = Q_10**(((temp + T0_Kelvin) - (Tref + T0_Kelvin)) / c10)
-       Tfunc_zoo = Q_10_zoo**(((temp + T0_Kelvin) - (Tref + T0_Kelvin)) / c10)
+       Tfunc_zoo = Q_10_zoo**(0.1*((temp  - T0_Kelvin))
        do auto_ind = 1, autotroph_cnt
-          Tfunc_phyto(:,auto_ind) = Q_10_phyto(auto_ind)**(((temp + T0_Kelvin) - (Tref + T0_Kelvin)) / c10)
+          Tfunc_phyto(:,auto_ind) = Q_10_phyto(auto_ind)**(0.1*((temp + Tref))
        end do
-# ifdef BEC_COCCO
-       Tfunc_cocco = 1.45**(((temp + T0_Kelvin) - (Tref + T0_Kelvin)) / c10)
-# endif /* BEC_COCCO */
-# ifdef BEC_DDA
-       Tfunc_dda = 1.55**(((temp + T0_Kelvin) - (Tref + T0_Kelvin)) / c10)
-# endif /* BEC_DDA */
-# ifdef BEC_PHAEO
-       Tfunc_phaeo = 1.5**(((temp + T0_Kelvin) - (Tref + T0_Kelvin)) / c10)
-# endif /* BEC_PHAEO */
+    !  Tref = 30.0 reference temperature (deg. C)
+!# ifdef BEC_COCCO
+!       Tfunc_cocco = 1.45**(((temp + T0_Kelvin) - (Tref + T0_Kelvin)) / c10)
+!# endif /* BEC_COCCO */
+!# ifdef BEC_DDA
+!       Tfunc_dda = 1.55**(((temp + T0_Kelvin) - (Tref + T0_Kelvin)) / c10)
+!# endif /* BEC_DDA */
+!# ifdef BEC_PHAEO
+!       Tfunc_phaeo = 1.5**(((temp + T0_Kelvin) - (Tref + T0_Kelvin)) / c10)
+!# endif /* BEC_PHAEO */
 !       Tfunc_diat  = 1.55**(((temp + T0_Kelvin) - (Tref + T0_Kelvin)) / c10)
 
     !-----------------------------------------------------------------------
@@ -1562,9 +1561,12 @@ c$$$       enddo
        ! reduce phaeo growth linearly above 6degC
           if (auto_ind==phaeo_ind) then
           tcrit1 = 5.0
+                ! tfunc_tcrit1 = 1.5**(((tcrit1 + T0_Kelvin) - (Tref + T0_Kelvin)) / c10)  ! Tfunc at tcrit1
+                ! tfunc_tcrit1 = 1.5**((0.1*(tcrit1  - Tref ) )  ! Tfunc at tcrit1
+                ! tfunc_tcrit1 = 1.5**(-2.50 )  ! Tfunc at tcrit1
+          tfunc_tcrit1 = 0.5443310539518172 ! precomputed the above.
           do i=istr,iend
              if (temp(i)>tcrit1) then
-                tfunc_tcrit1 = 1.5**(((tcrit1 + T0_Kelvin) - (Tref + T0_Kelvin)) / c10)  ! Tfunc at tcrit1
                 tfunc_2 = -1.0*tfunc_tcrit1/(temp_thres(phaeo_ind)-tcrit1)  ! slope 
                 tfunc_3 = tfunc_tcrit1-(tcrit1*tfunc_2)  ! y-Achsenabschnitt
                 Tfunc_phaeo(i) = max(0.0,(tfunc_2*temp(i)+tfunc_3)*PCref(phaeo_ind))
