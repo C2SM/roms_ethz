@@ -10,7 +10,7 @@
 
       ! Variables used for namelist parameter input:
       integer status,  lvar,itrc,lenstr
-#ifdef BIOPAR_NAMELIST
+! #ifdef BIOPAR_NAMELIST
       character*100 filename_biopar_bec_nml, filename_biopar_out_bec_nml
 
       ! Define namelists  for ecosystem parameters:
@@ -40,15 +40,15 @@
      &    f_graze_CaCO3_remin, f_graze_si_remin
 
       namelist /carbon_routing/
-     &    DOC_remin, DOC_reminR,
-     &    DON_remin, DON_reminR,
-     &    DOP_remin, DOP_reminR,
-     &    DOFe_remin, DOFe_reminR,
-     &    DONr_remin, DOPr_remin
+     &    DOC_reminR,
+     &    DON_reminR,
+     &    DOP_reminR,
+     &    DOFe_reminR,
+     &    DONr_reminR, DOPr_reminR
 
       namelist /element_ratios/    ! Never changed by ETH tuning
      &    Qp,                              ! P/C per PFT
-     &    gQfe, gQfe_0, gQfe_min, Qfe_zoo, ! Fe/C per PFT
+     &    gQfe_0, gQfe_min, Qfe_zoo, ! Fe/C per PFT
      &    cks, 
      &    thetaN_max, 
      &    gQsi_0, gQsi_max, gQsi_min,
@@ -60,7 +60,7 @@
      &    QCaCO3_max,
      &    parm_POC_diss, parm_SiO2_diss, parm_CaCO3_diss,
      &    parm_scalelen_z, parm_scalelen_vals, 
-     &    parm_labile_ration,
+     &    parm_labile_ratio,
      &    parm_POMbury, parm_BSIbury,
      &    parm_kappa_nitrif, parm_nitrif_par_lim,
      &    parm_Fe_bioavail, parm_Fe_scavenge_rate0,
@@ -69,7 +69,7 @@
 
       filename_biopar_bec_nml = 'bec_parameter_in.nml'
       filename_biopar_out_bec_nml = 'bec_parameter_used.nml'
-#endif
+!#endif
 
       !---------------------------------------------------------------------------
       !   default namelist settings
@@ -108,7 +108,7 @@
       Nfixer(1:3)     = (/ .false., .false., .true. /)
       exp_calcifier(1:3) = (/ .false., .false., .false. /)
       exp_calcifier(1:3) = (/ .false., .false., .false. /)
-      grazee_ind(1:3)    = (/ 1:3, diat_ind, diaz_ind /)
+      grazee_ind(1:3)    = (/ sp_ind, diat_ind, diaz_ind /)
       C_ind(1:3)      = (/ spC_ind_t, diatC_ind_t, diazC_ind_t /)
       Chl_ind(1:3)    = (/spChl_ind_t, diatChl_ind_t, diazChl_ind_t/)
       Fe_ind(1:3)     = (/spFe_ind_t, diatFe_ind_t, diazFe_ind_t/)
@@ -236,6 +236,7 @@
       gQfe_min(cocco_ind)      = 3.0e-6
       alphaPI(cocco_ind)       = 0.4
       PCref(cocco_ind)         = 3.8
+      Q_10_phyto(cocco_ind)    = 1.75  ! old ratio to diat 1.78
       thetaN_max(cocco_ind)    = 2.5
       loss_thres(cocco_ind)   = 0.04
       loss_thres2(cocco_ind)  = 0.0
@@ -275,6 +276,7 @@
       gQfe_min(dda_ind)      = 3.0e-6
       alphaPI(dda_ind)       = 0.44
       PCref(dda_ind)         = 2.5
+      Q_10_phyto(dda_ind)    = 1.9   ! same as diat 
       thetaN_max(dda_ind)    = 4.0
       loss_thres(dda_ind)   = 0.04
       loss_thres2(dda_ind)  = 0.0
@@ -311,10 +313,11 @@
         kNH4(ucyn_ind)          = 0.12
         kSiO3(ucyn_ind)         = 0.0
         Qp(ucyn_ind)            = 0.00855
-        gQfe_0(ucyn_ind)        = 60.0e-6
+        gQfe_0(ucyn_ind)        = 60.0e-
         gQfe_min(ucyn_ind)      = 12.0e-6
         alphaPI(ucyn_ind)       = 0.44*dps
         PCref(ucyn_ind)         = 0.35*dps
+        Q_10_phyto(ucyn_ind)   = 1.85  ! same as phaeo 
         thetaN_max(ucyn_ind)    = 2.5
         loss_thres(ucyn_ind)   = 0.04
         loss_thres2(ucyn_ind)  = 0.0
@@ -356,6 +359,7 @@
       gQfe_min(phaeo_ind)      = 3.0e-6
       alphaPI(phaeo_ind)       = 0.5
       PCref(phaeo_ind)         = 4.6
+      Q_10_phyto(phaeo_ind)    = 1.85  ! old ratio to diat: 1.84
       thetaN_max(phaeo_ind)    = 2.5
       loss_thres(phaeo_ind)   = 0.04
       loss_thres2(phaeo_ind)  = 0.0
@@ -372,49 +376,49 @@
       loss_poc(phaeo_ind)      = 0.0
       f_zoo_detr(phaeo_ind)    = 0.2
 #endif
-#ifdef BIOPAR_NAMELIST
+!#ifdef BIOPAR_NAMELIST
       !---------------------------------------------------------------------------
       !   read in parameter namelists 
       !---------------------------------------------------------------------------
 
       open(73,file=filename_biopar_bec_nml, status='old',iostat=status
-     & .     , access='sequential')
+     &      , access='sequential')
       ! Since this file is optional, it is okay to proceed if it does not exist or
       ! cannot be read.
       if (status .eq. 0) then
          read(73,NML=phyto_growth,iostat=status)
-         if (iostat /= 0) 
-     & .     print*,'Info: "phyto_growth" namelist not found'
-     & .                  , '      --> using defaults.'
+         if (status /= 0) 
+     &       print*,'Info: "phyto_growth" namelist not found'
+     &                    , '      --> using defaults.'
          rewind(73)
 
          read(73,NML=phyto_loss,iostat=status)
-         if (iostat /= 0) print*,'Error reading phyto_loss namelist'
-     & .                  , ' --> using defaults'
+         if (status /= 0) print*,'Error reading phyto_loss namelist'
+     &                    , ' --> using defaults'
          rewind(73)
 
          read(73,NML=loss_routing,iostat=status)
-         if (iostat /= 0) 
-     & .     print*,'Info: "loss_routing" namelist not found'
-     & .                  , '      --> using defaults.'
+         if (status /= 0) 
+     &       print*,'Info: "loss_routing" namelist not found'
+     &                    , '      --> using defaults.'
          rewind(73)
 
          read(73,NML=carbon_routing,iostat=status)
-         if (iostat /= 0) 
-     & .     print*,'Info: "carbon_routing" namelist not found'
-     & .                  , '      --> using defaults.'
+         if (status /= 0) 
+     &       print*,'Info: "carbon_routing" namelist not found'
+     &                    , '      --> using defaults.'
          rewind(73)
 
          read(73,NML=element_ratios,iostat=status)
-         if (iostat /= 0) 
-     & .     print*,'Info: "element_ratios" namelist not found'
-     & .                  , '      --> using defaults.'
+         if (status /= 0) 
+     &       print*,'Info: "element_ratios" namelist not found'
+     &                    , '      --> using defaults.'
          rewind(73)
          
          read(73,NML=nutrient_change,iostat=status)
-         if (iostat /= 0) 
-     & .     print*,'Info: "nutrient_change" namelist not found'
-     & .                  , '      --> using defaults.'
+         if (status /= 0) 
+     &       print*,'Info: "nutrient_change" namelist not found'
+     &                    , '      --> using defaults.'
 #ifdef MPI
          if (mynode.eq.0) then
 #endif
@@ -461,7 +465,7 @@
       end if  ! (mynode.eq.0)
 # endif
 #endif /* BIOPAR_NOWRITE */
-#endif /* BIOPAR_NAMELIST */
+!#endif /* BIOPAR_NAMELIST */
 
 # ifdef MPI
       ! Master process writes file with parameters used:
@@ -489,14 +493,13 @@
       parm_z_mort_0 = parm_z_mort_0*dps
       parm_z_mort2_0 = parm_z_mort2_0*dps
       PCref = PCref*dps
-      z_umax = z_umax*dps
       z_umax_0 = z_umax_0*dps
       mort = mort*dps
       mort2 = mort2*dps
-      DOC_remin = DOC_remin*dps
-      DON_remin = DON_remin*dps
-      DOP_remin = DOP_remin*dps
-      DOFe_remin = DOFe_remin*dps
+      DOC_reminR = DOC_reminR*dps
+      DON_reminR = DON_reminR*dps
+      DOP_reminR = DOP_reminR*dps
+      DOFe_reminR = DOFe_reminR*dps
       DONr_reminR = DONr_reminR*dps
       DOPr_reminR = DOPr_reminR*dps
 
