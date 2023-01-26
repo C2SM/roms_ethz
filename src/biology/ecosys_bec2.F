@@ -861,7 +861,12 @@ c$$$       enddo
      &    ddaChl_loc,      ! local copy of model ddaChl
      &    ddaSi_loc,       ! local copy of model ddaCal
      &    ddaFe_loc,       ! local copy of model ddaFe
+# endif
      &    salt_loc,
+# ifdef BEC_UCYN
+     &    ucynC_loc,        ! local copy of model ucynC
+     &    ucynChl_loc,      ! local copy of model ucynChl
+     &    ucynFe_loc,       ! local copy of model ucynFe
 # endif
 # ifdef BEC_PHAEO
      &    phaeoC_loc,      ! local copy of model phaeoC
@@ -1034,6 +1039,11 @@ c$$$       enddo
        ddaSi_loc = MAX(c0, TRACER(istr:iend,j,k,ddasi_ind_t))
        ddaFe_loc = MAX(c0, TRACER(istr:iend,j,k,ddafe_ind_t))
 # endif
+# ifdef BEC_UCYN
+       ucynC_loc = MAX(c0, TRACER(istr:iend,j,k,ucync_ind_t))
+       ucynChl_loc = MAX(c0, TRACER(istr:iend,j,k,ucynchl_ind_t))
+       ucynFe_loc = MAX(c0, TRACER(istr:iend,j,k,ucynfe_ind_t))
+# endif
 # ifdef BEC_PHAEO
        phaeoC_loc = MAX(c0, TRACER(istr:iend,j,k,phaeoc_ind_t))
        phaeoChl_loc = MAX(c0, TRACER(istr:iend,j,k,phaeochl_ind_t))
@@ -1074,6 +1084,9 @@ c$$$       enddo
 # ifdef BEC_DDA
      &     + tracer(istr:iend,j,k,ddachl_ind_t)
 # endif
+# ifdef BEC_UCYN
+     &     + tracer(istr:iend,j,k,ucynchl_ind_t)
+# endif
 # ifdef BEC_PHAEO
      &     + tracer(istr:iend,j,k,phaeochl_ind_t)
 # endif
@@ -1084,6 +1097,9 @@ c$$$       enddo
 # endif
 # ifdef BEC_DDA
      &     + tracer(istr:iend,j,k,ddac_ind_t)
+# endif
+# ifdef BEC_UCYN
+     &     + tracer(istr:iend,j,k,ucync_ind_t)
 # endif
 # ifdef BEC_PHAEO
      &     + tracer(istr:iend,j,k,phaeoc_ind_t)
@@ -1140,6 +1156,13 @@ c$$$       enddo
           ddaFe_loc = c0
        END WHERE
 # endif
+# ifdef BEC_UCYN
+       WHERE (ucynC_loc == c0 .OR. ucynChl_loc == c0 .OR. ucynFe_loc == c0)
+          ucynC_loc = c0
+          ucynChl_loc = c0
+          ucynFe_loc = c0
+       END WHERE
+# endif
 # ifdef BEC_PHAEO
        WHERE (phaeoC_loc == c0 .OR. phaeoChl_loc == c0 .OR. phaeoFe_loc== c0)
           phaeoC_loc = c0
@@ -1180,6 +1203,13 @@ c$$$       enddo
        CaCO3_loc(istr:iend,dda_ind) = c0
        Si_loc(istr:iend,dda_ind) = ddaSi_loc
        autoFe_loc(istr:iend,dda_ind) = ddaFe_loc
+# endif
+# ifdef BEC_UCYN
+       C_loc(istr:iend,ucyn_ind) = ucynC_loc
+       Chl_loc(istr:iend,ucyn_ind) = ucynChl_loc
+       CaCO3_loc(istr:iend,ucyn_ind) = c0
+       Si_loc(istr:iend,ucyn_ind) = c0 
+       autoFe_loc(istr:iend,ucyn_ind) = ucynFe_loc
 # endif
 # ifdef BEC_PHAEO
        C_loc(istr:iend,phaeo_ind) = phaeoC_loc
@@ -1328,6 +1358,9 @@ c$$$       enddo
 # endif
 # ifdef BEC_DDA
      &        +ddaChl_loc(i)
+# endif
+# ifdef BEC_UCYN
+     &        +ucynChl_loc(i)
 # endif
 # ifdef BEC_PHAEO
      &        +phaeoChl_loc(i)
@@ -1514,6 +1547,11 @@ c$$$       enddo
           else if (auto_ind == dda_ind) then
              bec2_diag_3d(istr:iend,j,k,ddafeuptake_idx_t) = VFe
              bec2_diag_3d(istr:iend,j,k,ddapo4uptake_idx_t) =VPO4(istr:iend,dda_ind)
+#   endif
+#   ifdef BEC_UCYN
+          else if (auto_ind == ucyn_ind) then
+             bec2_diag_3d(istr:iend,j,k,ucynfeuptake_idx_t) = VFe
+             bec2_diag_3d(istr:iend,j,k,ucynpo4uptake_idx_t)=VPO4(istr:iend,ucyn_ind)
 #   endif
 #   ifdef BEC_PHAEO
           else if (auto_ind == phaeo_ind) then
@@ -1716,6 +1754,10 @@ c$$$       enddo
           else if (auto_ind == dda_ind) then
             bec2_diag_3d(istr:iend,j,k,ironuptakedda_idx_t) = photoFe(istr:iend,dda_ind)
 # endif
+# ifdef BEC_UCYN
+          else if (auto_ind == ucyn_ind) then
+            bec2_diag_3d(istr:iend,j,k,ironuptakeucyn_idx_t) =photoFe(istr:iend,ucyn_ind)
+# endif
 # ifdef BEC_PHAEO
           else if (auto_ind == phaeo_ind) then
             bec2_diag_3d(istr:iend,j,k,ironuptakephaeo_idx_t) = photoFe(istr:iend,phaeo_ind)
@@ -1780,6 +1822,9 @@ c$$$       enddo
 #   endif
 #   ifdef BEC_DDA
           bec2_diag_3d(istr:iend,j,k,ddaphotoacc_idx_t) = photoacc(istr:iend,dda_ind)
+#   endif
+#   ifdef BEC_UCYN
+          bec2_diag_3d(istr:iend,j,k,ucynphotoacc_idx_t) =photoacc(istr:iend,ucyn_ind)
 #   endif
 #   ifdef BEC_PHAEO
           bec2_diag_3d(istr:iend,j,k,phaeophotoacc_idx_t) =photoacc(istr:iend,phaeo_ind)
@@ -1924,6 +1969,7 @@ c$$$       enddo
     !  Diazotrophs fix more than they need then 20% is excreted
     !  DL: for DDAs --> no excretion and nofixation if NO3 is not
     !  depleted
+    !  for UCYN --> no excretion
     !-----------------------------------------------------------------------
 
           if (Nfixer(auto_ind)) then
@@ -1933,6 +1979,13 @@ c$$$       enddo
      &                 - NH4_V(istr:iend,auto_ind)
              Nexcrete(istr:iend,auto_ind) = Nfix(istr:iend,auto_ind) + NO3_V(istr:iend,auto_ind)
      &                 + NH4_V(istr:iend,auto_ind) - WORK1
+# ifdef BEC_UCYN
+       This line breaks the code for UCYN intentionally because this part next check & fix.
+             elseif (auto_ind == ucyn_ind) then
+             Nfix(istr:iend,auto_ind)     = WORK1 - NO3_V(istr:iend,auto_ind)
+     &                - NH4_V(istr:iend,auto_ind)
+             Nexcrete(istr:iend,auto_ind) = c0
+# endif
              else
                  where (NO3_loc > 0.5)
                      Nfix(istr:iend,auto_ind) =c0
@@ -1954,6 +2007,11 @@ c$$$       enddo
                bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(ddanfix_idx_t))= Nfix(istr:iend,auto_ind)
            end if 
 #   endif
+#   ifdef BEC_UCYN
+           if (auto_ind == ucyn_ind .and.bec2_diag_3d_l(ucynnfix_idx_t)) then
+               bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(ucynnfix_idx_t))= Nfix(istr:iend,auto_ind)
+           end if
+#   endif
 #  else
           if (auto_ind == diaz_ind) then
              bec2_diag_3d(istr:iend,j,k,diaznfix_idx_t) = Nfix(istr:iend,auto_ind)
@@ -1962,6 +2020,11 @@ c$$$       enddo
 #   ifdef BEC_DDA
           if (auto_ind == dda_ind) then
               bec2_diag_3d(istr:iend,j,k,ddanfix_idx_t) = Nfix(istr:iend,auto_ind)
+          end if
+#   endif
+#   ifdef BEC_UCYN
+          if (auto_ind == ucyn_ind) then
+              bec2_diag_3d(istr:iend,j,k,ucynnfix_idx_t) = Nfix(istr:iend,auto_ind)
           end if
 #   endif
 #  endif
@@ -2152,6 +2215,18 @@ c$$$       enddo
        bec2_diag_3d(istr:iend,j,k,ddalossdic_idx_t) = auto_loss_dic(istr:iend,dda_ind)
        bec2_diag_3d(istr:iend,j,k,grazeddazoo_idx_t) = auto_graze_zoo(istr:iend,dda_ind)
 #   endif /* BEC_DDA */
+#   ifdef BEC_UCYN
+       bec2_diag_3d(istr:iend,j,k,grazeucyn_idx_t) =auto_graze(istr:iend,ucyn_ind)
+       bec2_diag_3d(istr:iend,j,k,ucynloss_idx_t) =auto_loss(istr:iend,ucyn_ind)
+       bec2_diag_3d(istr:iend,j,k,ucynagg_idx_t) =auto_agg(istr:iend,ucyn_ind)
+       bec2_diag_3d(istr:iend,j,k,photocucyn_idx_t) =photoC(istr:iend,ucyn_ind)
+       bec2_diag_3d(istr:iend,j,k,ucynplim_idx_t) = VPtot(istr:iend,ucyn_ind)
+       bec2_diag_3d(istr:iend,j,k,ucynno3uptake_idx_t) =NO3_V(istr:iend,ucyn_ind)
+       bec2_diag_3d(istr:iend,j,k,ucynnh4uptake_idx_t) =NH4_V(istr:iend,ucyn_ind)
+       bec2_diag_3d(istr:iend,j,k,ucyngrazedic_idx_t) =auto_graze_dic(istr:iend,ucyn_ind)
+       bec2_diag_3d(istr:iend,j,k,ucynlossdic_idx_t) =auto_loss_dic(istr:iend,ucyn_ind)
+       bec2_diag_3d(istr:iend,j,k,grazeucynzoo_idx_t) =auto_graze_zoo(istr:iend,ucyn_ind)
+#   endif /* BEC_UCYN */
 #   ifdef BEC_PHAEO
        bec2_diag_3d(istr:iend,j,k,grazephaeo_idx_t) = auto_graze(istr:iend,phaeo_ind)
        bec2_diag_3d(istr:iend,j,k,phaeoloss_idx_t) = auto_loss(istr:iend,phaeo_ind)
