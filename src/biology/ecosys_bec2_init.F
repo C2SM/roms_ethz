@@ -295,7 +295,6 @@
 #endif
 
 # ifdef BEC_UCYN
-        ucyn_ind = ucyn_ind
         sname(ucyn_ind) = 'ucyn'
         lname(ucyn_ind) = 'UCYN'
         Nfixer(ucyn_ind) = .true.
@@ -313,7 +312,7 @@
         kNH4(ucyn_ind)          = 0.12
         kSiO3(ucyn_ind)         = 0.0
         Qp(ucyn_ind)            = 0.00855
-        gQfe_0(ucyn_ind)        = 60.0e-
+        gQfe_0(ucyn_ind)        = 60.0e-6
         gQfe_min(ucyn_ind)      = 12.0e-6
         alphaPI(ucyn_ind)       = 0.44*dps
         PCref(ucyn_ind)         = 0.35*dps

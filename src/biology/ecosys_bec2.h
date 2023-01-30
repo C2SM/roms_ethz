@@ -169,7 +169,22 @@
      &   ddaplim_idx_t=LAST_I+16,ddanfix_idx_t=LAST_I+17,
      &   ddasio3uptake_idx_t=LAST_I+18
 #  undef LAST_I
-#  define LAST_I ddaplim_idx_t
+#  define LAST_I ddasio3uptake_idx_t
+# endif
+# ifdef BEC_UCYN
+      integer, parameter :: grazeucyn_idx_t=LAST_I+1,ucynloss_idx_t=LAST_I+2,
+     &   ucynagg_idx_t=LAST_I+3,photocucyn_idx_t=LAST_I+4,
+     &   ucynnlim_idx_t=LAST_I+5,
+     &   ucynpo4uptake_idx_t=LAST_I+6,ucynfeuptake_idx_t=LAST_I+7,
+     &   ucynlightlim_idx_t=LAST_I+8,
+     &   ironuptakeucyn_idx_t=LAST_I+9,
+     &   ucynno3uptake_idx_t=LAST_I+10,ucynnh4uptake_idx_t=LAST_I+11,
+     &   ucyngrazedic_idx_t=LAST_I+12,
+     &   ucynlossdic_idx_t=LAST_I+13,grazeucynzoo_idx_t=LAST_I+14,
+     &   ucynphotoacc_idx_t=LAST_I+15,
+     &   ucynplim_idx_t=LAST_I+16,ucynnfix_idx_t=LAST_I+17
+#  undef LAST_I
+#  define LAST_I ucynnfix_idx_t
 # endif
 # ifdef BEC_PHAEO
       integer, parameter :: grazephaeo_idx_t=LAST_I+1,phaeoloss_idx_t=LAST_I+2,
@@ -314,6 +329,13 @@
      &     ddac_ind_t=LAST_I+1, ddachl_ind_t=LAST_I+2, ddasi_ind_t=LAST_I+3, ddafe_ind_t=LAST_I+4
 #  undef LAST_I
 #  define LAST_I ddafe_ind_t
+#endif
+#ifdef BEC_UCYN
+      integer, parameter ::
+     &     ucync_ind_t=LAST_I+1, ucynchl_ind_t=LAST_I+2, ucynsi_ind_t=LAST_I+3
+     &                , ucynfe_ind_t=LAST_I+4
+#  undef LAST_I
+#  define LAST_I ucynfe_ind_t
 #endif
 #ifdef BEC_PHAEO
       integer, parameter ::

@@ -1620,31 +1620,36 @@ c$$$       enddo
 ! CN: apply different Tfunc for coccos and diat
 !          if (auto_ind==diat_ind) then
 !             PCmax = PCref(auto_ind) * f_nut * Tfunc_diat
-# ifdef BEC_COCCO
-          else if (auto_ind==cocco_ind) then
-             PCmax = PCref(auto_ind) * f_nut * Tfunc_cocco
-# endif /* BEC_COCCO */
-# ifdef BEC_DDA_case1
-          else if (auto_ind==dda_ind) then
-             PCmax = PCref(auto_ind) * f_nut * Tfunc_dda
-# endif /* BEC_DDA_case1 */
-# ifdef BEC_DDA_case2
-          else if (auto_ind==dda_ind) then
-              where (NO3_loc < 0.5)
-              PCmax = PCref(auto_ind) *  f_nut * Tfunc_dda
-              elsewhere 
-              PCmax = (PCref(auto_ind) * 1.5) *  f_nut * Tfunc_dda    
-          end where
-# endif /* BEC_DDA_case2 */
-# ifdef BEC_PHAEO
-          else if (auto_ind==phaeo_ind) then
-             PCmax = PCref(auto_ind) * f_nut * Tfunc_phaeo
-# endif /* BEC_PHAEO */
+!# ifdef BEC_COCCO
+          !else if (auto_ind==cocco_ind) then
+             !PCmax = PCref(auto_ind) * f_nut * Tfunc_cocco
+!# endif /* BEC_COCCO */
+!# ifdef BEC_DDA_case1
+          !else if (auto_ind==dda_ind) then
+             !PCmax = PCref(auto_ind) * f_nut * Tfunc_dda
+!# endif /* BEC_DDA_case1 */
+!# ifdef BEC_DDA_case2
+          !else if (auto_ind==dda_ind) then
+              !where (NO3_loc < 0.5)
+              !PCmax = PCref(auto_ind) *  f_nut * Tfunc_dda
+              !elsewhere 
+              !PCmax = (PCref(auto_ind) * 1.5) *  f_nut * Tfunc_dda    
+          !end where
+!# endif /* BEC_DDA_case2 */
+!# ifdef BEC_PHAEO
+          !else if (auto_ind==phaeo_ind) then
+             !PCmax = PCref(auto_ind) * f_nut * Tfunc_phaeo
+!# endif /* BEC_PHAEO */
 !          else
 !             PCmax = PCref(auto_ind) * f_nut * Tfunc
 !          endif
 
           PCmax = PCref(auto_ind) * f_nut * Tfunc_phyto(:,auto_ind)
+# ifdef BEC_DDA
+          if (auto_ind == dda_ind)  then
+            where (NO3_loc >= 0.5 ) PCmax = PCmax * 1.5
+          endif
+# endif
 
 ! apply temp_threshold below/above PFT does not grow anymore
 # ifdef BEC_PHAEO
@@ -1899,14 +1904,14 @@ c$$$       enddo
 
 !       if (auto_ind == diat_ind) then
 !          auto_loss(istr:iend,auto_ind) =  mort(auto_ind) * Pprime(istr:iend,auto_ind) * Tfunc_diat
-# ifdef BEC_COCCO
-       elseif (auto_ind == cocco_ind) then
-          auto_loss(istr:iend,auto_ind) =  mort(auto_ind) * Pprime(istr:iend,auto_ind) * Tfunc_cocco
-# endif /* BEC_COCCO */
-# ifdef BEC_DDA
-       elseif (auto_ind == dda_ind) then
-          auto_loss(istr:iend,auto_ind) =  mort(auto_ind) * Pprime(istr:iend,auto_ind) * Tfunc_dda
-# endif /* BEC_DDA */
+!# ifdef BEC_COCCO
+       !elseif (auto_ind == cocco_ind) then
+          !auto_loss(istr:iend,auto_ind) =  mort(auto_ind) * Pprime(istr:iend,auto_ind) * Tfunc_cocco
+!# endif /* BEC_COCCO */
+!# ifdef BEC_DDA
+       !elseif (auto_ind == dda_ind) then
+          !auto_loss(istr:iend,auto_ind) =  mort(auto_ind) * Pprime(istr:iend,auto_ind) * Tfunc_dda
+!# endif /* BEC_DDA */
 # ifdef BEC_PHAEO
        elseif (auto_ind == phaeo_ind) then
           !auto_loss(istr:iend,auto_ind) =  mort(auto_ind) * 
@@ -1980,7 +1985,7 @@ c$$$       enddo
              Nexcrete(istr:iend,auto_ind) = Nfix(istr:iend,auto_ind) + NO3_V(istr:iend,auto_ind)
      &                 + NH4_V(istr:iend,auto_ind) - WORK1
 # ifdef BEC_UCYN
-       This line breaks the code for UCYN intentionally because this part next check & fix.
+       !This line breaks the code for UCYN intentionally because this part next check & fix.
              elseif (auto_ind == ucyn_ind) then
              Nfix(istr:iend,auto_ind)     = WORK1 - NO3_V(istr:iend,auto_ind)
      &                - NH4_V(istr:iend,auto_ind)

@@ -16,6 +16,9 @@
 #ifdef BEC_DDA
      &          +1
 #endif
+#ifdef BEC_UCYN
+     &          +1
+#endif
 #ifdef BEC_PHAEO
      &          +1
 #endif
@@ -34,6 +37,11 @@
      &  ,dda_ind =LAST_I+1! diatom-diazotroph assemblages
 #  undef LAST_I
 #  define LAST_I dda_ind
+#endif
+#ifdef BEC_UCYN
+     &  ,ucyn_ind =LAST_I+1! ucyn
+#  undef LAST_I
+#  define LAST_I UCYN
 #endif
 #ifdef BEC_PHAEO
      &  ,phaeo_ind = LAST_I+1  ! Phaeocystis Antarctica (colonial form only for now)
