@@ -8,7 +8,8 @@ config ?= PACTC
 # Create build dir if neede and copy Makefile to it
 $(shell test -d $(BLDDIR) || mkdir -p $(BLDDIR) )
 $(shell cp $(SRCDIR)/Makefile $(BLDDIR)) 
-$(shell cd $(SRCDIR)/include ; rm -f cppdefs.h ;  ln -s cppdefs_$(config).h cppdefs.h)
+# $(shell cd $(SRCDIR)/include ; rm -f cppdefs.h ;  ln -s cppdefs_$(config).h cppdefs.h)
+$(shell cp $(SRCDIR)/include/cppdefs_$(config).h $(BLDDIR) )
 
 .PHONY: print-% roms roms_cpl all clean distclean install
 
@@ -33,5 +34,5 @@ distclean:
 	rm -rf $(BLDDIR)
 
 install:
-	install $(BLDDIR)/roms 
+	install $(BLDDIR)/ncjoin $(BLDDIR)/partit $(HOME)/bin
 
