@@ -1381,7 +1381,8 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
 ! pH
 !
          lvar=lenstr(vname(1,indxPH_rst))
-        ierr=nf_def_var (ncid, vname(1,indxPH_rst)(1:lvar), NF_FOUT,
+        !mm ierr=nf_def_var (ncid, vname(1,indxPH_rst)(1:lvar), NF_FOUT,
+        ierr=nf_def_var (ncid, vname(1,indxPH_rst)(1:lvar), NF_FTYPE,
      &                                           3, r2dgrd, vidPH)
 #  ifdef AVRH
         text='averaged '/ /vname(2,indxPH_rst)

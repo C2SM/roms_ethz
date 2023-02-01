@@ -10,6 +10,7 @@
 # define BIOLOGY_BEC2
 #include "cppdefs_UP.h"
 !-- #define PACTCS60
+#define COUP_DEBUG
 
 #ifdef PACTCS60
 # define GRID_SIZE LLm=300, MMm=257, N=64      ! pactcs60 8-120km telescopic up to Antarctica
@@ -18,7 +19,8 @@
 ! default: PACTCS30 
 # define PACTCS30
 # define GRID_SIZE LLm=602, MMm=516, N=64      ! pactcs30 4.1-65km telescopic up to Antarctica
-# define DOMAIN_TILING NP_XI=8, NP_ETA=48, NSUB_X=1, NSUB_E=1 ! Euler
+!-- # define DOMAIN_TILING NP_XI=8, NP_ETA=48, NSUB_X=1, NSUB_E=1 ! Euler
+# define DOMAIN_TILING NP_XI=14, NP_ETA=66, NSUB_X=1, NSUB_E=1 ! Euler
 #endif
 
 
