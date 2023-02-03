@@ -16,6 +16,9 @@
 #ifdef BEC_DDA
      &          +1
 #endif
+#ifdef BEC_UCYN
+     &          +1
+#endif
 #ifdef BEC_PHAEO
      &          +1
 #endif
@@ -34,6 +37,11 @@
      &  ,dda_ind =LAST_I+1! diatom-diazotroph assemblages
 #  undef LAST_I
 #  define LAST_I dda_ind
+#endif
+#ifdef BEC_UCYN
+     &  ,ucyn_ind =LAST_I+1! ucyn
+#  undef LAST_I
+#  define LAST_I UCYN
 #endif
 #ifdef BEC_PHAEO
      &  ,phaeo_ind = LAST_I+1  ! Phaeocystis Antarctica (colonial form only for now)
@@ -124,7 +132,7 @@
   !   ecosystem parameters accessible via namelist input
   !----------------------------------------------------------------------------
 
-       real
+       real :: 
      &   parm_Fe_bioavail,       ! fraction of Fe flux that is bioavailable
      &   parm_o2_min,            ! min O2 needed for prod & consump. (nmol/cm^3)
      &   parm_o2_min_delta,      ! width of min O2 range (nmol/cm^3)
@@ -199,20 +207,21 @@
      &                            !   (mmol C/mmol CaCO3)
      &   spc_poc_fac      = 0.11, ! small phyto grazing factor (1/mmolC)
      &   f_graze_sp_poc_lim = 0.3,
-     &   f_photosp_CaCO3  = 0.4,  ! proportionality between small phyto
+     &   f_photosp_CaCO3  = 0.4   ! proportionality between small phyto
      &                            ! production and CaCO3 production
-     &   f_graze_CaCO3_remin = 0.33, ! fraction of spCaCO3 grazing
-     &                               !          which is remin
-     &   f_graze_si_remin    = 0.35  ! fraction of diatom Si grazing
-     &                               !          which is remin
-     & )
+!     &   f_graze_CaCO3_remin = 0.33, ! fraction of spCaCO3 grazing
+!     &                               !          which is remin
+!     &   f_graze_si_remin    = 0.35  ! fraction of diatom Si grazing
+!     &                               !          which is remin
+     &      )
+       common /ecosys_bec2/ f_graze_CaCO3_remin, f_graze_si_remin
 
   !----------------------------------------------------------------------------
   !     fixed ratios
   !----------------------------------------------------------------------------
 
-       real r_Nfix_photo
-       parameter(r_Nfix_photo=1.30)         !N fix relative to C fix (non-dim)
+       real, dimension(autotroph_cnt) :: r_Nfix_photo = 0.0
+       !parameter(r_Nfix_photo=1.30)         !N fix relative to C fix (non-dim)
 
   !-----------------------------------------------------------------------
   !     SET FIXED RATIOS for N/C, P/C, SiO3/C, Fe/C
@@ -221,18 +230,20 @@
   !-----------------------------------------------------------------------
 
        real Q, Qp_zoo_pom, Qfe_zoo, gQsi_0, gQsi_max, gQsi_min, QCaCO3_max,
-     &   denitrif_C_N
+     &   denitrif_C_N, cks, cksi
        parameter(
-     &   Q             = 0.137,   !N/C ratio (mmol/mmol) of phyto & zoo
-     &   Qp_zoo_pom    = 0.00855, !P/C ratio (mmol/mmol) zoo & pom
-     &   Qfe_zoo       = 3.0e-6,  !zooplankton fe/C ratio
-     &   gQsi_0        = 0.137,   !initial Si/C ratio
-     &   gQsi_max      = 0.685,   !max Si/C ratio
-     &   gQsi_min      = 0.0457,  !min Si/C ratio
-     &   QCaCO3_max    = 0.4,     !max QCaCO3
-     &   ! carbon:nitrogen ratio for denitrification
+!     &   Q             = 0.137,   !=16/117: N/C ratio (mmol/mmol) of phyto & zoo
+!     &   Qp_zoo_pom    = 0.00855, !=1/117: P/C ratio (mmol/mmol) zoo & pom
+!     &   Qfe_zoo       = 3.0e-6,  !zooplankton fe/C ratio
+!     &   gQsi_0        = 0.137,   !initial Si/C ratio
+!     &   gQsi_max      = 0.685,   !max Si/C ratio
+!     &   gQsi_min      = 0.0457,  !min Si/C ratio
+!     &   QCaCO3_max    = 0.4,     !max QCaCO3
+!     &   ! carbon:nitrogen ratio for denitrification
      &   denitrif_C_N  = parm_Red_D_C_P/136.0
      & )
+       common /ecosys_bec2/ Q, Qp_zoo_pom, Qfe_zoo, gQsi_0, gQsi_max, gQsi_min,
+     &        QCaCO3_max, cks, cksi
 
   !----------------------------------------------------------------------------
   !     loss term threshold parameters, chl:c ratios
@@ -240,14 +251,16 @@
 
        real thres_z1, thres_z2, loss_thres_zoo, CaCO3_temp_thres1,
      &   CaCO3_temp_thres2, CaCO3_sp_thres
-       parameter(
-     &   thres_z1          = 100.0,  ! threshold = C_loss_thres for z shallower than this (m)
-     &   thres_z2          = 150.0,  ! threshold = 0 for z deeper than this (m)
-     &   loss_thres_zoo    = 0.005,    ! zoo conc. where losses go to zero
-     &   CaCO3_temp_thres1 = 6.0,      ! upper temp threshold for CaCO3 prod
-     &   CaCO3_temp_thres2 = -2.0,     ! lower temp threshold
-     &   CaCO3_sp_thres    = 4.0       ! bloom condition thres (mmolC/m3)
-     & )
+!       parameter(
+!     &   thres_z1          = 100.0,  ! threshold = C_loss_thres for z shallower than this (m)
+!     &   thres_z2          = 150.0,  ! threshold = 0 for z deeper than this (m)
+!     &   loss_thres_zoo    = 0.005,    ! zoo conc. where losses go to zero
+!     &   CaCO3_temp_thres1 = 6.0,      ! upper temp threshold for CaCO3 prod
+!     &   CaCO3_temp_thres2 = -2.0,     ! lower temp threshold
+!     &   CaCO3_sp_thres    = 4.0       ! bloom condition thres (mmolC/m3)
+!     & )
+       common /ecosys_bec2/ thres_z1, thres_z2, loss_thres_zoo, CaCO3_temp_thres1,
+     &   CaCO3_temp_thres2, CaCO3_sp_thres
 
   !---------------------------------------------------------------------
   !     fraction of incoming shortwave assumed to be PAR
@@ -260,11 +273,12 @@
   !     Temperature parameters
   !---------------------------------------------------------------------
 
-       real Tref, Q_10
+       real Tref, Q_10, Q_10_phyto(autotroph_cnt), Q_10_zoo
        parameter(
      &   Tref = 30.0,   ! reference temperature (C)
      &   Q_10 = 1.5     ! factor for temperature dependence (non-dim)
      & )
+       common /ecosys_bec2/ Q_10_phyto, Q_10_zoo
 
   !---------------------------------------------------------------------
   !  DOM parameters for refractory components and DOP uptake
@@ -272,16 +286,18 @@
 
        real DOC_reminR, DON_reminR, DOFe_reminR, DOP_reminR, DONr_reminR,
      &   DOPr_reminR, DONrefract, DOPrefract
-       parameter(
-     &   DOC_reminR  = (c1/(250.0*8.0)) * dps,         ! rate for semi-labile DOC 1/250days
-     &   DON_reminR  = (c1/(160.0*8.0)) * dps,         ! rate for semi-labile DON 1/160days
-     &   DOFe_reminR = (c1/(160*8.0)) * dps,         ! rate for semi-labile DOFe 1/160days
-     &   DOP_reminR  = (c1/(160*8.0)) * dps,         ! rate for semi-labile DOP 1/160days  
-     &   DONr_reminR = (c1/(365.0*2.5*8.0)) * dps,   ! timescale for refrac DON 1/2.5yrs
-     &   DOPr_reminR = (c1/(365.0*2.5*8.0)) * dps,   ! timescale for refrac DOP 1/2.5yrs
-     &   DONrefract = 0.02,                      ! fraction of DON to refractory pool
-     &   DOPrefract = 0.006                       ! fraction of DOP to refractory pool
-     & )
+!       parameter(
+!     &   DOC_reminR  = (c1/(250.0*8.0)) * dps,         ! rate for semi-labile DOC 1/250days
+!     &   DON_reminR  = (c1/(160.0*8.0)) * dps,         ! rate for semi-labile DON 1/160days
+!     &   DOFe_reminR = (c1/(160*8.0)) * dps,         ! rate for semi-labile DOFe 1/160days
+!     &   DOP_reminR  = (c1/(160*8.0)) * dps,         ! rate for semi-labile DOP 1/160days  
+!     &   DONr_reminR = (c1/(365.0*2.5*8.0)) * dps,   ! timescale for refrac DON 1/2.5yrs
+!     &   DOPr_reminR = (c1/(365.0*2.5*8.0)) * dps,   ! timescale for refrac DOP 1/2.5yrs
+!     &   DONrefract = 0.02,                      ! fraction of DON to refractory pool
+!     &   DOPrefract = 0.006                       ! fraction of DOP to refractory pool
+!     & )
+       common /ecosys_bec2/ DOC_reminR, DON_reminR, DOFe_reminR, DOP_reminR, DONr_reminR,
+     &   DOPr_reminR, DONrefract, DOPrefract
 
   !---------------------------------------------------------------------
   !  Threshold for PAR used in computation of pChl:

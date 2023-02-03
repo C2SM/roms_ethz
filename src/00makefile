@@ -135,9 +135,11 @@ mpi_test: $(MPI_TEST_OBJ)
 
 # Auxiliary utility programs
 # --------- ------- --------
-TOOLS := mpc srcscheck checkkwds ncextract redefs
+TOOLS := mpc srcscheck checkkwds redefs
+NCTOOLS := partit ncjoin
 
 tools: $(TOOLS)
+nctools: $(NCTOOLS)
 mpc:  mpc.F
 	$(Q)cd $(BLDDIR); $(FC) $(CPPFLAGS) -o $@ $^
 
@@ -161,7 +163,7 @@ redefs: redefs.F
 	$(Q)$(FC) $(CPPFLAGS) -o $@ $^
 checkdefs: check_switches1.F setup_kwds.F
 check_switches1.F: cppcheck cppdefs_UP.h cppdefs.h
-	$(Q)./cppcheck $(INCDIR)/cppdefs_UP.h $(INCDIR)/cppdefs.h
+	$(Q)./cppcheck $(INCDIR)/cppdefs_UP.h $(BLDDIR)/cppdefs.h
 check_srcs.F: srcscheck Makefile
 	$(Q) ./srcscheck
 setup_kwds.F: checkkwds read_inp.F

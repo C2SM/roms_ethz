@@ -3,10 +3,10 @@
 
        subroutine ecosys_bec2_tile(Istr,Iend,Jstr,Jend)
 
-!# ifdef CCHEM_MOCSY
-!       use msingledouble
-!       use mvars
-!# endif
+# ifdef CCHEM_MOCSY
+       use msingledouble
+       use mvars
+# endif
 
        implicit none
 
@@ -820,9 +820,9 @@ c$$$       enddo
        REAL, PARAMETER :: 
      &    epsC      = 1.00e-8,  ! small C concentration (mmol C/m^3)
      &    epsTinv   = 3.17e-8,  ! small inverse time scale (1/year) (1/sec)
-     &    epsnondim = 1.00e-6,  ! small non-dimensional number (non-dim)
-     &    cks = 9.0,         ! constant used in Fe quota modification
-     &    cksi = 5.0         ! constant used in Si quota modification
+     &    epsnondim = 1.00e-6   ! small non-dimensional number (non-dim)
+!     &    cks = 9.0,         ! constant used in Fe quota modification
+!     &    cksi = 5.0         ! constant used in Si quota modification
 
        REAL, DIMENSION(istr:iend) :: 
      &    PO4_loc,         ! local copy of model PO4
@@ -861,7 +861,12 @@ c$$$       enddo
      &    ddaChl_loc,      ! local copy of model ddaChl
      &    ddaSi_loc,       ! local copy of model ddaCal
      &    ddaFe_loc,       ! local copy of model ddaFe
+# endif
      &    salt_loc,
+# ifdef BEC_UCYN
+     &    ucynC_loc,        ! local copy of model ucynC
+     &    ucynChl_loc,      ! local copy of model ucynChl
+     &    ucynFe_loc,       ! local copy of model ucynFe
 # endif
 # ifdef BEC_PHAEO
      &    phaeoC_loc,      ! local copy of model phaeoC
@@ -878,8 +883,9 @@ c$$$       enddo
      &    O2_PRODUCTION    ! O2 production
 
        REAL, DIMENSION(istr:iend) ::
-     &    Tfunc,           ! temp response function GD98 (non-dim)
-     &    Tfunc_diat,      ! temp response function GD98 (non-dim) for diatoms
+!     &    Tfunc,           ! temp response function GD98 (non-dim)
+!     &    Tfunc_diat,      ! temp response function GD98 (non-dim) for diatoms
+     &    Tfunc_zoo,       ! temp dependency of zoo losses
 # ifdef BEC_COCCO
      &    Tfunc_cocco,     ! temp response function GD98 (non-dim) for coccos
      &    light_lim_calc,  ! light limitation factor for calc of coccos
@@ -979,7 +985,8 @@ c$$$       enddo
      &    remaining_P_dop, ! remaining_P from mort routed to DOP pool
      &    remaining_P_dip, ! remaining_P from mort routed to remin
      &    Nfix,            ! total Nitrogen fixation (mmol N/m^3/sec)
-     &    Nexcrete         ! fixed N excretion
+     &    Nexcrete,        ! fixed N excretion
+     &    Tfunc_phyto      ! temp response function GD98 (non-dim) for PFTs
 
 
     !---------------------------------------------------------------------------
@@ -1032,6 +1039,11 @@ c$$$       enddo
        ddaSi_loc = MAX(c0, TRACER(istr:iend,j,k,ddasi_ind_t))
        ddaFe_loc = MAX(c0, TRACER(istr:iend,j,k,ddafe_ind_t))
 # endif
+# ifdef BEC_UCYN
+       ucynC_loc = MAX(c0, TRACER(istr:iend,j,k,ucync_ind_t))
+       ucynChl_loc = MAX(c0, TRACER(istr:iend,j,k,ucynchl_ind_t))
+       ucynFe_loc = MAX(c0, TRACER(istr:iend,j,k,ucynfe_ind_t))
+# endif
 # ifdef BEC_PHAEO
        phaeoC_loc = MAX(c0, TRACER(istr:iend,j,k,phaeoc_ind_t))
        phaeoChl_loc = MAX(c0, TRACER(istr:iend,j,k,phaeochl_ind_t))
@@ -1072,6 +1084,9 @@ c$$$       enddo
 # ifdef BEC_DDA
      &     + tracer(istr:iend,j,k,ddachl_ind_t)
 # endif
+# ifdef BEC_UCYN
+     &     + tracer(istr:iend,j,k,ucynchl_ind_t)
+# endif
 # ifdef BEC_PHAEO
      &     + tracer(istr:iend,j,k,phaeochl_ind_t)
 # endif
@@ -1082,6 +1097,9 @@ c$$$       enddo
 # endif
 # ifdef BEC_DDA
      &     + tracer(istr:iend,j,k,ddac_ind_t)
+# endif
+# ifdef BEC_UCYN
+     &     + tracer(istr:iend,j,k,ucync_ind_t)
 # endif
 # ifdef BEC_PHAEO
      &     + tracer(istr:iend,j,k,phaeoc_ind_t)
@@ -1138,6 +1156,13 @@ c$$$       enddo
           ddaFe_loc = c0
        END WHERE
 # endif
+# ifdef BEC_UCYN
+       WHERE (ucynC_loc == c0 .OR. ucynChl_loc == c0 .OR. ucynFe_loc == c0)
+          ucynC_loc = c0
+          ucynChl_loc = c0
+          ucynFe_loc = c0
+       END WHERE
+# endif
 # ifdef BEC_PHAEO
        WHERE (phaeoC_loc == c0 .OR. phaeoChl_loc == c0 .OR. phaeoFe_loc== c0)
           phaeoC_loc = c0
@@ -1178,6 +1203,13 @@ c$$$       enddo
        CaCO3_loc(istr:iend,dda_ind) = c0
        Si_loc(istr:iend,dda_ind) = ddaSi_loc
        autoFe_loc(istr:iend,dda_ind) = ddaFe_loc
+# endif
+# ifdef BEC_UCYN
+       C_loc(istr:iend,ucyn_ind) = ucynC_loc
+       Chl_loc(istr:iend,ucyn_ind) = ucynChl_loc
+       CaCO3_loc(istr:iend,ucyn_ind) = c0
+       Si_loc(istr:iend,ucyn_ind) = c0 
+       autoFe_loc(istr:iend,ucyn_ind) = ucynFe_loc
 # endif
 # ifdef BEC_PHAEO
        C_loc(istr:iend,phaeo_ind) = phaeoC_loc
@@ -1327,6 +1359,9 @@ c$$$       enddo
 # ifdef BEC_DDA
      &        +ddaChl_loc(i)
 # endif
+# ifdef BEC_UCYN
+     &        +ucynChl_loc(i)
+# endif
 # ifdef BEC_PHAEO
      &        +phaeoChl_loc(i)
 # endif
@@ -1354,23 +1389,27 @@ c$$$       enddo
        end do
 
     !-----------------------------------------------------------------------
-    !  Tref = 30.0 reference temperature (deg. C)
     !
     !  Using q10 formulation with Q10 value of 2.0 (Doney et al., 1996).
     !  growth, mort and grazing rates scaled by Tfunc where they are computed
     !-----------------------------------------------------------------------
 
-       Tfunc = Q_10**(((temp + T0_Kelvin) - (Tref + T0_Kelvin)) / c10)
-# ifdef BEC_COCCO
-       Tfunc_cocco = 1.45**(((temp + T0_Kelvin) - (Tref + T0_Kelvin)) / c10)
-# endif /* BEC_COCCO */
-# ifdef BEC_DDA
-       Tfunc_dda = 1.55**(((temp + T0_Kelvin) - (Tref + T0_Kelvin)) / c10)
-# endif /* BEC_DDA */
-# ifdef BEC_PHAEO
-       Tfunc_phaeo = 1.5**(((temp + T0_Kelvin) - (Tref + T0_Kelvin)) / c10)
-# endif /* BEC_PHAEO */
-       Tfunc_diat  = 1.55**(((temp + T0_Kelvin) - (Tref + T0_Kelvin)) / c10)
+       Tfunc_zoo = Q_10_zoo**( 0.1*(temp - Tref) )
+       do auto_ind = 1, autotroph_cnt
+          Tfunc_phyto(:,auto_ind) = 
+     &                   Q_10_phyto(auto_ind)**(0.1*(temp - Tref))
+       end do
+    !  Tref = 30.0 reference temperature (deg. C)
+!# ifdef BEC_COCCO
+!       Tfunc_cocco = 1.45**(((temp + T0_Kelvin) - (Tref + T0_Kelvin)) / c10)
+!# endif /* BEC_COCCO */
+!# ifdef BEC_DDA
+!       Tfunc_dda = 1.55**(((temp + T0_Kelvin) - (Tref + T0_Kelvin)) / c10)
+!# endif /* BEC_DDA */
+!# ifdef BEC_PHAEO
+!       Tfunc_phaeo = 1.5**(((temp + T0_Kelvin) - (Tref + T0_Kelvin)) / c10)
+!# endif /* BEC_PHAEO */
+!       Tfunc_diat  = 1.55**(((temp + T0_Kelvin) - (Tref + T0_Kelvin)) / c10)
 
     !-----------------------------------------------------------------------
     !  calculate the loss threshold interpolation factor
@@ -1470,7 +1509,7 @@ c$$$       enddo
           !f_nut = min(f_nut, VPO4(istr:iend,auto_ind))
 
           ! CN: consider VPtot instead of VPO4 only! DOP is taken up, so
-          ! it should also potentially be limiting (that's why half-sat
+          ! it should also potentially be limiting (that is why half-sat
           ! constants are defined for DOP!)
           f_nut = min(f_nut, VPtot(istr:iend,auto_ind))
 
@@ -1508,6 +1547,11 @@ c$$$       enddo
           else if (auto_ind == dda_ind) then
              bec2_diag_3d(istr:iend,j,k,ddafeuptake_idx_t) = VFe
              bec2_diag_3d(istr:iend,j,k,ddapo4uptake_idx_t) =VPO4(istr:iend,dda_ind)
+#   endif
+#   ifdef BEC_UCYN
+          else if (auto_ind == ucyn_ind) then
+             bec2_diag_3d(istr:iend,j,k,ucynfeuptake_idx_t) = VFe
+             bec2_diag_3d(istr:iend,j,k,ucynpo4uptake_idx_t)=VPO4(istr:iend,ucyn_ind)
 #   endif
 #   ifdef BEC_PHAEO
           else if (auto_ind == phaeo_ind) then
@@ -1556,9 +1600,12 @@ c$$$       enddo
        ! reduce phaeo growth linearly above 6degC
           if (auto_ind==phaeo_ind) then
           tcrit1 = 5.0
+                ! tfunc_tcrit1 = 1.5**(((tcrit1 + T0_Kelvin) - (Tref + T0_Kelvin)) / c10)  ! Tfunc at tcrit1
+                ! tfunc_tcrit1 = 1.5**((0.1*(tcrit1  - Tref ) )  ! Tfunc at tcrit1
+                ! tfunc_tcrit1 = 1.5**(-2.50 )  ! Tfunc at tcrit1
+          tfunc_tcrit1 = 0.5443310539518172 ! precomputed the above.
           do i=istr,iend
              if (temp(i)>tcrit1) then
-                tfunc_tcrit1 = 1.5**(((tcrit1 + T0_Kelvin) - (Tref + T0_Kelvin)) / c10)  ! Tfunc at tcrit1
                 tfunc_2 = -1.0*tfunc_tcrit1/(temp_thres(phaeo_ind)-tcrit1)  ! slope 
                 tfunc_3 = tfunc_tcrit1-(tcrit1*tfunc_2)  ! y-Achsenabschnitt
                 Tfunc_phaeo(i) = max(0.0,(tfunc_2*temp(i)+tfunc_3)*PCref(phaeo_ind))
@@ -1571,33 +1618,40 @@ c$$$       enddo
 
 
 ! CN: apply different Tfunc for coccos and diat
-          if (auto_ind==diat_ind) then
-             PCmax = PCref(auto_ind) * f_nut * Tfunc_diat
-# ifdef BEC_COCCO
-          else if (auto_ind==cocco_ind) then
-             PCmax = PCref(auto_ind) * f_nut * Tfunc_cocco
-# endif /* BEC_COCCO */
-# ifdef BEC_DDA_case1
-          else if (auto_ind==dda_ind) then
-             PCmax = PCref(auto_ind) * f_nut * Tfunc_dda
-# endif /* BEC_DDA_case1 */
-# ifdef BEC_DDA_case2
-          else if (auto_ind==dda_ind) then
-              where (NO3_loc < 0.5)
-              PCmax = PCref(auto_ind) *  f_nut * Tfunc_dda
-              elsewhere 
-              PCmax = (PCref(auto_ind) * 1.5) *  f_nut * Tfunc_dda    
-          end where
-# endif /* BEC_DDA_case2 */
-# ifdef BEC_PHAEO
-          else if (auto_ind==phaeo_ind) then
-             PCmax = PCref(auto_ind) * f_nut * Tfunc_phaeo
-# endif /* BEC_PHAEO */
-          else
-             PCmax = PCref(auto_ind) * f_nut * Tfunc
-          endif
+!          if (auto_ind==diat_ind) then
+!             PCmax = PCref(auto_ind) * f_nut * Tfunc_diat
+!# ifdef BEC_COCCO
+          !else if (auto_ind==cocco_ind) then
+             !PCmax = PCref(auto_ind) * f_nut * Tfunc_cocco
+!# endif /* BEC_COCCO */
+!# ifdef BEC_DDA_case1
+          !else if (auto_ind==dda_ind) then
+             !PCmax = PCref(auto_ind) * f_nut * Tfunc_dda
+!# endif /* BEC_DDA_case1 */
+!# ifdef BEC_DDA_case2
+          !else if (auto_ind==dda_ind) then
+              !where (NO3_loc < 0.5)
+              !PCmax = PCref(auto_ind) *  f_nut * Tfunc_dda
+              !elsewhere 
+              !PCmax = (PCref(auto_ind) * 1.5) *  f_nut * Tfunc_dda    
+          !end where
+!# endif /* BEC_DDA_case2 */
+!# ifdef BEC_PHAEO
+          !else if (auto_ind==phaeo_ind) then
+             !PCmax = PCref(auto_ind) * f_nut * Tfunc_phaeo
+!# endif /* BEC_PHAEO */
+!          else
+!             PCmax = PCref(auto_ind) * f_nut * Tfunc
+!          endif
 
-! apply temp_threshold below/above PFT doesn't grow anymore
+          PCmax = PCref(auto_ind) * f_nut * Tfunc_phyto(:,auto_ind)
+# ifdef BEC_DDA
+          if (auto_ind == dda_ind)  then
+            where (NO3_loc >= 0.5 ) PCmax = PCmax * 1.5
+          endif
+# endif
+
+! apply temp_threshold below/above PFT does not grow anymore
 # ifdef BEC_PHAEO
           if (auto_ind==phaeo_ind) then ! restrict growth above this temp
              where (temp > temp_thres(auto_ind)) PCmax = c0
@@ -1705,6 +1759,10 @@ c$$$       enddo
           else if (auto_ind == dda_ind) then
             bec2_diag_3d(istr:iend,j,k,ironuptakedda_idx_t) = photoFe(istr:iend,dda_ind)
 # endif
+# ifdef BEC_UCYN
+          else if (auto_ind == ucyn_ind) then
+            bec2_diag_3d(istr:iend,j,k,ironuptakeucyn_idx_t) =photoFe(istr:iend,ucyn_ind)
+# endif
 # ifdef BEC_PHAEO
           else if (auto_ind == phaeo_ind) then
             bec2_diag_3d(istr:iend,j,k,ironuptakephaeo_idx_t) = photoFe(istr:iend,phaeo_ind)
@@ -1769,6 +1827,9 @@ c$$$       enddo
 #   endif
 #   ifdef BEC_DDA
           bec2_diag_3d(istr:iend,j,k,ddaphotoacc_idx_t) = photoacc(istr:iend,dda_ind)
+#   endif
+#   ifdef BEC_UCYN
+          bec2_diag_3d(istr:iend,j,k,ucynphotoacc_idx_t) =photoacc(istr:iend,ucyn_ind)
 #   endif
 #   ifdef BEC_PHAEO
           bec2_diag_3d(istr:iend,j,k,phaeophotoacc_idx_t) =photoacc(istr:iend,phaeo_ind)
@@ -1841,16 +1902,16 @@ c$$$       enddo
     !-----------------------------------------------------------------------
 
 
-       if (auto_ind == diat_ind) then
-          auto_loss(istr:iend,auto_ind) =  mort(auto_ind) * Pprime(istr:iend,auto_ind) * Tfunc_diat
-# ifdef BEC_COCCO
-       elseif (auto_ind == cocco_ind) then
-          auto_loss(istr:iend,auto_ind) =  mort(auto_ind) * Pprime(istr:iend,auto_ind) * Tfunc_cocco
-# endif /* BEC_COCCO */
-# ifdef BEC_DDA
-       elseif (auto_ind == dda_ind) then
-          auto_loss(istr:iend,auto_ind) =  mort(auto_ind) * Pprime(istr:iend,auto_ind) * Tfunc_dda
-# endif /* BEC_DDA */
+!       if (auto_ind == diat_ind) then
+!          auto_loss(istr:iend,auto_ind) =  mort(auto_ind) * Pprime(istr:iend,auto_ind) * Tfunc_diat
+!# ifdef BEC_COCCO
+       !elseif (auto_ind == cocco_ind) then
+          !auto_loss(istr:iend,auto_ind) =  mort(auto_ind) * Pprime(istr:iend,auto_ind) * Tfunc_cocco
+!# endif /* BEC_COCCO */
+!# ifdef BEC_DDA
+       !elseif (auto_ind == dda_ind) then
+          !auto_loss(istr:iend,auto_ind) =  mort(auto_ind) * Pprime(istr:iend,auto_ind) * Tfunc_dda
+!# endif /* BEC_DDA */
 # ifdef BEC_PHAEO
        elseif (auto_ind == phaeo_ind) then
           !auto_loss(istr:iend,auto_ind) =  mort(auto_ind) * 
@@ -1859,10 +1920,13 @@ c$$$       enddo
           auto_loss(istr:iend,auto_ind) = mort(auto_ind)*(2.0-min(f_nut,light_lim))*
      &                    Pprime(istr:iend,auto_ind) * Tfunc_phaeo
 # endif /* BEC_PHAEO */
-       else
-          auto_loss(istr:iend,auto_ind) =  mort(auto_ind) * Pprime(istr:iend,auto_ind) * Tfunc
-       endif
+!       else
+!          auto_loss(istr:iend,auto_ind) =  mort(auto_ind) * Pprime(istr:iend,auto_ind) * Tfunc
+!       endif
 
+          auto_loss(istr:iend,auto_ind) =  mort(auto_ind) * Pprime(istr:iend,auto_ind) *
+     &                                     Tfunc_phyto(istr:iend,auto_ind)
+          
           auto_agg(istr:iend,auto_ind) = min(agg_rate_max(auto_ind) * dps * Pprime(istr:iend,auto_ind), 
      &                               mort2(auto_ind) * Pprime(istr:iend,auto_ind) * Pprime(istr:iend,auto_ind))
           auto_agg(istr:iend,auto_ind) = max((agg_rate_min(auto_ind) * dps) * Pprime(istr:iend,auto_ind),
@@ -1881,23 +1945,25 @@ c$$$       enddo
 !          WORK3 = 1.0   ! beta, set 1 for old grazing formulation, >1 for different ingestion function
 #  endif
 
-          do auto_ind2 = 1, autotroph_cnt
-             if (grazee_ind(auto_ind2) == grazee_ind(auto_ind))
-     &          WORK1 = WORK1 + Pprime(istr:iend,auto_ind)
-#  ifdef KILL_THE_WINNER
-     &                                                    **WORK2
-#  endif
-          end do
+!          do auto_ind2 = 1, autotroph_cnt
+!             if (grazee_ind(auto_ind2) == grazee_ind(auto_ind))
+!     &          WORK1 = WORK1 + Pprime(istr:iend,auto_ind)**2
+!#  ifdef KILL_THE_WINNER
+!     &                                                    **WORK2
+!#  endif
+!          end do
 
-          z_umax = z_umax_0(auto_ind) * Tfunc
+          !z_umax = z_umax_0(auto_ind) * Tfunc
+          z_umax = z_umax_0(auto_ind) * Tfunc_phyto(:,auto_ind)
+          WORK1 = Pprime(istr:iend,auto_ind)**2
           where (WORK1 > c0)
 #  ifdef KILL_THE_WINNER
              auto_graze(istr:iend,auto_ind) = (Pprime(istr:iend,auto_ind)**WORK2 / WORK1) *
      &           z_umax * zooC_loc * (WORK1 / (WORK1 + z_grz(auto_ind)))
 !     &           z_umax * zooC_loc * (WORK1**WORK3 / (WORK1**WORK3 + z_grz(auto_ind)**WORK3))
 #  else /* no prey switching */
-             auto_graze(istr:iend,auto_ind) = (Pprime(istr:iend,auto_ind) / WORK1) *
-     &           z_umax * zooC_loc * (WORK1 / (WORK1 + z_grz(auto_ind)))
+             auto_graze(istr:iend,auto_ind) = z_umax * zooC_loc *
+     &            (Pprime(istr:iend,auto_ind)**2 / (WORK1 + z_grz(auto_ind)**2))
 #  endif /* KILL_THE_WINNER */
           elsewhere
              auto_graze(istr:iend,auto_ind) = c0
@@ -1908,6 +1974,7 @@ c$$$       enddo
     !  Diazotrophs fix more than they need then 20% is excreted
     !  DL: for DDAs --> no excretion and nofixation if NO3 is not
     !  depleted
+    !  for UCYN --> no excretion
     !-----------------------------------------------------------------------
 
           if (Nfixer(auto_ind)) then
@@ -1917,6 +1984,13 @@ c$$$       enddo
      &                 - NH4_V(istr:iend,auto_ind)
              Nexcrete(istr:iend,auto_ind) = Nfix(istr:iend,auto_ind) + NO3_V(istr:iend,auto_ind)
      &                 + NH4_V(istr:iend,auto_ind) - WORK1
+# ifdef BEC_UCYN
+       !This line breaks the code for UCYN intentionally because this part next check & fix.
+             elseif (auto_ind == ucyn_ind) then
+             Nfix(istr:iend,auto_ind)     = WORK1 - NO3_V(istr:iend,auto_ind)
+     &                - NH4_V(istr:iend,auto_ind)
+             Nexcrete(istr:iend,auto_ind) = c0
+# endif
              else
                  where (NO3_loc > 0.5)
                      Nfix(istr:iend,auto_ind) =c0
@@ -1938,6 +2012,11 @@ c$$$       enddo
                bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(ddanfix_idx_t))= Nfix(istr:iend,auto_ind)
            end if 
 #   endif
+#   ifdef BEC_UCYN
+           if (auto_ind == ucyn_ind .and.bec2_diag_3d_l(ucynnfix_idx_t)) then
+               bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(ucynnfix_idx_t))= Nfix(istr:iend,auto_ind)
+           end if
+#   endif
 #  else
           if (auto_ind == diaz_ind) then
              bec2_diag_3d(istr:iend,j,k,diaznfix_idx_t) = Nfix(istr:iend,auto_ind)
@@ -1946,6 +2025,11 @@ c$$$       enddo
 #   ifdef BEC_DDA
           if (auto_ind == dda_ind) then
               bec2_diag_3d(istr:iend,j,k,ddanfix_idx_t) = Nfix(istr:iend,auto_ind)
+          end if
+#   endif
+#   ifdef BEC_UCYN
+          if (auto_ind == ucyn_ind) then
+              bec2_diag_3d(istr:iend,j,k,ucynnfix_idx_t) = Nfix(istr:iend,auto_ind)
           end if
 #   endif
 #  endif
@@ -2136,6 +2220,18 @@ c$$$       enddo
        bec2_diag_3d(istr:iend,j,k,ddalossdic_idx_t) = auto_loss_dic(istr:iend,dda_ind)
        bec2_diag_3d(istr:iend,j,k,grazeddazoo_idx_t) = auto_graze_zoo(istr:iend,dda_ind)
 #   endif /* BEC_DDA */
+#   ifdef BEC_UCYN
+       bec2_diag_3d(istr:iend,j,k,grazeucyn_idx_t) =auto_graze(istr:iend,ucyn_ind)
+       bec2_diag_3d(istr:iend,j,k,ucynloss_idx_t) =auto_loss(istr:iend,ucyn_ind)
+       bec2_diag_3d(istr:iend,j,k,ucynagg_idx_t) =auto_agg(istr:iend,ucyn_ind)
+       bec2_diag_3d(istr:iend,j,k,photocucyn_idx_t) =photoC(istr:iend,ucyn_ind)
+       bec2_diag_3d(istr:iend,j,k,ucynplim_idx_t) = VPtot(istr:iend,ucyn_ind)
+       bec2_diag_3d(istr:iend,j,k,ucynno3uptake_idx_t) =NO3_V(istr:iend,ucyn_ind)
+       bec2_diag_3d(istr:iend,j,k,ucynnh4uptake_idx_t) =NH4_V(istr:iend,ucyn_ind)
+       bec2_diag_3d(istr:iend,j,k,ucyngrazedic_idx_t) =auto_graze_dic(istr:iend,ucyn_ind)
+       bec2_diag_3d(istr:iend,j,k,ucynlossdic_idx_t) =auto_loss_dic(istr:iend,ucyn_ind)
+       bec2_diag_3d(istr:iend,j,k,grazeucynzoo_idx_t) =auto_graze_zoo(istr:iend,ucyn_ind)
+#   endif /* BEC_UCYN */
 #   ifdef BEC_PHAEO
        bec2_diag_3d(istr:iend,j,k,grazephaeo_idx_t) = auto_graze(istr:iend,phaeo_ind)
        bec2_diag_3d(istr:iend,j,k,phaeoloss_idx_t) = auto_loss(istr:iend,phaeo_ind)
@@ -2176,7 +2272,8 @@ c$$$       enddo
 
        Zprime = max(zooC_loc - C_loss_thres, c0)
 
-       zoo_loss = (parm_z_mort2_0 * Zprime**1.5 + parm_z_mort_0 * Zprime) * Tfunc
+       !zoo_loss = (parm_z_mort2_0 * Zprime**1.5 + parm_z_mort_0 * Zprime) * Tfunc
+       zoo_loss = (parm_z_mort2_0 * Zprime**1.5 + parm_z_mort_0 * Zprime) * Tfunc_zoo
 
        zoo_loss_doc = (c1 - parm_labile_ratio) * (c1 - f_zoo_detr_loc) * zoo_loss
        zoo_loss_dic = parm_labile_ratio * (c1 - f_zoo_detr_loc) * zoo_loss
@@ -2474,7 +2571,7 @@ c$$$       enddo
 
        WORK1 = merge(c0, WORK1, NO3_loc == c0)
 
-       ! CN: See Simon's code: under low NO3, DENITRIF is reduced!
+       ! CN: See ode of Simon: under low NO3, DENITRIF is reduced!
        ! NO3min=2
 
        DENITRIF = WORK1 * ((DOC_remin
