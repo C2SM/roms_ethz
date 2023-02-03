@@ -163,7 +163,7 @@ redefs: redefs.F
 	$(Q)$(FC) $(CPPFLAGS) -o $@ $^
 checkdefs: check_switches1.F setup_kwds.F
 check_switches1.F: cppcheck cppdefs_UP.h cppdefs.h
-	$(Q)./cppcheck $(INCDIR)/cppdefs_UP.h $(INCDIR)/cppdefs.h
+	$(Q)./cppcheck $(INCDIR)/cppdefs_UP.h $(BLDDIR)/cppdefs.h
 check_srcs.F: srcscheck Makefile
 	$(Q) ./srcscheck
 setup_kwds.F: checkkwds read_inp.F
