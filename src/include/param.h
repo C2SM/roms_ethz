@@ -358,6 +358,15 @@ c     &      NSUB_X=2, NSUB_E=8  ! <-- iswake 768x192
 #   else /* case not BEC_DDA */
      &       , ntrc_bio_dda=0
 #   endif /* BEC_DDA */
+#   ifdef BEC_UCYN
+     &       , iUCYNC=LAST_I+1, iUCYNCHL=LAST_I+2
+     &       , iUCYNFE=LAST_I+3
+     &       , ntrc_bio_ucyn=3
+#    undef LAST_I    
+#    define LAST_I iUCYNFE
+#   else /* case not BEC_UCYN */
+     &       , ntrc_bio_ucyn=0
+#   endif /* BEC_UCYN */
 #   ifdef BEC_PHAEO
      &       , iPHAEOC=LAST_I+1, iPHAEOCHL=LAST_I+2
      &       , iPHAEOFE=LAST_I+3
@@ -374,10 +383,10 @@ c     &      NSUB_X=2, NSUB_E=8  ! <-- iswake 768x192
      &       , iPOCSOFT=LAST_I+7, iPCACO3SOFT=LAST_I+8
      &       , iPSIO2SOFT=LAST_I+9, iPIRONSOFT=LAST_I+10
      &       , ntrc_bio=ntrc_bio_base+ntrc_bio_cocco+ntrc_bio_dda
-     &                  +ntrc_bio_phaeo+10
+     &                  +ntrc_bio_phaeo+ntrc_bio_ucyn+10
 #   else /* USE_EXPLICIT_VSINK */
      &       , ntrc_bio=ntrc_bio_base+ntrc_bio_cocco+ntrc_bio_dda
-     &                  +ntrc_bio_phaeo
+     &                  +ntrc_bio_phaeo+ntrc_bio_ucyn
 #   endif /* USE_EXPLICIT_VSINK */
 #  else  /* no  BIOLOGY */
      &       , ntrc_bio=0
