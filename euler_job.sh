@@ -15,7 +15,7 @@
 #-------job parameters---------------
 # set -x
 wall_clock=4 # Batch job max compute time [h], Choose 4, 24, or 120
-runtag=test2  # May be overwrittgen using option "-t"
+runtag=ucyn_t4  # May be overwrittgen using option "-t"
 #runtag=g82om41r2  # May be overwrittgen using option "-t"
 remarks="Using PACTCS/ANAMCA BEC parameters. Computing tendencies with absolute values"
 
@@ -38,7 +38,7 @@ store_dir/nfs/kryo/work/$LOGNAME/Roms/Output/$setup/runtag
 srcdir=$HOME/../muennicm/ROMS/roms_src_ethz
 
 # Build dir
-#export BLDDIR=$srcdir
+export BLDDIR=$srcdir/build
 
 # Namelist file for BEC parameters:
 # NOT USED: bio_nml=/nfs/malva/work/loher/ROMS/BEC_param/namelists/biopar
@@ -259,14 +259,16 @@ function get_exec() {
         fi
     fi
     if [ ! -f $rundir/run/roms ] ; then
-    # compile and archive ROMS src
-        cd $srcdir
-        if [[ $compile == 1 ]] ; then
-            make -j config=$SETUP
+        if [ ! -f $BLDDIR/roms ] ; then
+            # compile and archive ROMS src
+            cd $srcdir
+            if [[ $compile == 1 ]] ; then
+                make -j config=$SETUP
+            fi
+            #  Archive roms executable and source
+            tar -Jc --exclude '*.f' --exclude '*.o' --exclude '*.tar.xz' -f $rundir/run/roms_src.tar.xz *
         fi
-        cp build/roms $rundir/run/
-        #  Archive roms executable and source
-        tar -Jc --exclude '*.f' --exclude '*.o' --exclude '*.tar.xz' -f $rundir/run/roms_src.tar.xz src build/roms
+        cp $BLDDIR/roms $rundir/run/
     fi
     cd $rundir/run
     # make link for passive tracer
@@ -321,7 +323,8 @@ title:
    PACIFIC stretched 6.1km to 65km x2
 
 time_stepping: NTIMES   dt[sec]  NDTFAST  NINFO
-               35040    900     45        36     ! 1 years
+               960    900     45        36     ! 1 years
+!               35040    900     45        36     ! 1 years
 !               192    900     45        36     ! testing 2 days?
 
 
@@ -393,13 +396,13 @@ restart:          NRST, NRPFRST / filename
            ../rst/${fout}_rst.nc  2
 
 history: LDEFHIS, NWRT, NRPFHIS / filename   ! (write initial fields, every 5 day for dt=900, all records in 1 file)
-           T      480    0
+           T      50    0
            ../his/${fout}_his.nc
 
-averages: NTSAVG, NAVG, NRPFAVG / filename ! (from the beginning, every 30 day for dt=900, all records in 1 file) 
+averages: NTSAVG, NAVG, NRPFAVG / filename ! (from the beginning, every 30 day for dt=900, all records in 1 file)
             1      2880       0
           ../avg/${fout}_avg.nc
-!          file://../avg/${fout}_avg.za#mode=nczarr,file 
+!          file://../avg/${fout}_avg.za#mode=nczarr,file
 
 !Variable Names:                                   T S PO4 NO3 SiO3 NH4 Fe O2 DIC ALK DOC DON DOFe DOP DOPr DONr ZooC SPC SPChl SPFe SPCaCO3 DiatC DiatChl DiatFe DiatSi DiazC DiazChl DiazFe DUST_H POC_H PCACO3_H PSIO2_H PFE_H DUST_S POC_S PCACO3_S PSIO2_S PFE_S
 primary_history_fields:    zeta UBAR VBAR  U  V   wrtT(1:NT)                     wrtTsed(1:NT_sed)
@@ -410,7 +413,7 @@ primary_averages:          zeta UBAR VBAR  U  V   wrtT(1:NT)                    
                               T    T    T   T  T   T T T   T   T    T   T  T  T   T   T   T   F    F   F    F    T    T   F     F    F       T             F       F      F      T       F     F      F      F     F        F       F     F      F     F        F       F
 
 auxiliary_history_fields:  rho Omega  W  Akv  Akt  Aks  HBL BBL
-                             T    F    T   F    F    F    T   F      F F F F F F F F F F F F
+                             T    T    T   F    F    F    T   F      F F F F F F F F F F F F
 
 auxiliary_averages:        rho Omega  W  Akv  Akt  Aks  HBL BBL
                              T    F    T   F    F    F    T   F      F F F F F F F F F F F F
