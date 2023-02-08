@@ -598,7 +598,7 @@
             goto 99
           endif
 
-          ierr=checkdims(ncrst, rstname, rec)
+          ierr=checkdims(ncrst, rstname, rec, .true.)
           if (ierr == nf_noerr) then
             if (nrpfrst==0) then
               ierr=rec+1 - nrecrst

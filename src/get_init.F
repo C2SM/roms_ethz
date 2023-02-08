@@ -9,9 +9,14 @@
 
       integer req_rec, tindx, max_rec, record, ncid, varid,
      &        ierr,  start(2), count(2), ibuff(iaux),
-     &        linit, lvar, latt, lenstr, ncdf_read, checkdims
+     &        linit, lvar, latt, lenstr, checkdims
 #ifdef SOLVE3D
      &                                            , itrc
+#endif
+#if defined PARALLEL_FILES && !defined JOINED_INPUT
+      integer ncdf_read_partitioned
+#else
+      integer ncdf_read_joined
 #endif
       real time_scale
       integer init_type
@@ -84,7 +89,7 @@ c--#define VERBOSE
       init_type=0 ; linit=lenstr(ininame)
       ierr=nf_open(ininame(1:linit), nf_nowrite, ncid)
       if (ierr == nf_noerr) then
-        ierr=checkdims (ncid, ininame, max_rec)
+        ierr=checkdims (ncid, ininame, max_rec, input_partitioned)
         if (ierr == nf_noerr) then
           if (max_rec > 0) then
             if (req_rec > 0) then
@@ -438,20 +443,35 @@ c--#define VERBOSE
       lvar=lenstr(vname(1,indxZ))
       ierr=nf_inq_varid(ncid, vname(1,indxZ)(1:lvar), varid)
       if (ierr == nf_noerr) then
-        ierr=ncdf_read( ncid, varid, record, r_var,
+#if defined PARALLEL_FILES && !defined JOINED_INPUT
+        ierr=ncdf_read_partitioned(ncid, varid, record, r_var,
      &                  zeta(START_2D_ARRAY,1), 1)
+#else
+        ierr=ncdf_read_joined(ncid, varid, record, r_var,
+     &                  zeta(START_2D_ARRAY,1), 1)
+#endif
         if (ierr == nf_noerr) then
           lvar=lenstr(vname(1,indxUb))
           ierr=nf_inq_varid(ncid, vname(1,indxUb)(1:lvar), varid)
           if (ierr == nf_noerr) then
-            ierr=ncdf_read( ncid, varid, record, u_var,
+#if defined PARALLEL_FILES && !defined JOINED_INPUT
+            ierr=ncdf_read_partitioned(ncid, varid, record, u_var,
      &                      ubar(START_2D_ARRAY,1), 1)
+#else
+            ierr=ncdf_read_joined(ncid, varid, record, u_var,
+     &                      ubar(START_2D_ARRAY,1), 1)
+#endif
             if (ierr == nf_noerr) then
               lvar=lenstr(vname(1,indxVb))
               ierr=nf_inq_varid(ncid, vname(1,indxVb)(1:lvar), varid)
               if (ierr == nf_noerr) then
-                ierr=ncdf_read( ncid, varid, record, v_var,
+#if defined PARALLEL_FILES && !defined JOINED_INPUT
+                ierr=ncdf_read_partitioned(ncid, varid, record, v_var,
      &                          vbar(START_2D_ARRAY,1), 1)
+#else
+                ierr=ncdf_read_joined(ncid, varid, record, v_var,
+     &                          vbar(START_2D_ARRAY,1), 1)
+#endif
                 if (ierr /= nf_noerr) then
                   write(*,2) vname(1,indxVb)(1:lvar),   record,
      &                       ininame(1:linit), nf_strerror(ierr)
@@ -496,15 +516,33 @@ c--#define VERBOSE
           if (ierr == nf_noerr) then
             ierr=nf_inq_varid(ncid, 'DV_avg_bak', vid_DV_bak)
             if (ierr == nf_noerr) then
-              ierr=ncdf_read(ncid, vid_DU, record, u_var, DU_avg2, 1)
+#if defined PARALLEL_FILES && !defined JOINED_INPUT
+              ierr=ncdf_read_partitioned(ncid, vid_DU, record, u_var, DU_avg2, 1)
+#else
+              ierr=ncdf_read_joined(ncid, vid_DU, record, u_var, DU_avg2, 1)
+#endif
               if (ierr == nf_noerr) then
-                ierr=ncdf_read(ncid, vid_DV, record, v_var, DV_avg2,1)
+#if defined PARALLEL_FILES && !defined JOINED_INPUT
+                ierr=ncdf_read_partitioned(ncid, vid_DV, record, v_var, DV_avg2,1)
+#else
+                ierr=ncdf_read_joined(ncid, vid_DV, record, v_var, DV_avg2,1)
+#endif
                 if (ierr == nf_noerr) then
-                  ierr=ncdf_read(ncid, vid_DU_bak, record, u_var,
+#if defined PARALLEL_FILES && !defined JOINED_INPUT
+                  ierr=ncdf_read_partitioned(ncid, vid_DU_bak, record, u_var,
      &                                                  DU_avg_bak, 1)
+#else
+                  ierr=ncdf_read_joined(ncid, vid_DU_bak, record, u_var,
+     &                                                  DU_avg_bak, 1)
+#endif
                   if (ierr == nf_noerr) then
-                    ierr=ncdf_read(ncid, vid_DV_bak, record, v_var,
+#if defined PARALLEL_FILES && !defined JOINED_INPUT
+                    ierr=ncdf_read_partitioned(ncid, vid_DV_bak, record, v_var,
      &                                                  DV_avg_bak, 1)
+#else
+                    ierr=ncdf_read_joined(ncid, vid_DV_bak, record, v_var,
+     &                                                  DV_avg_bak, 1)
+#endif
                     if (ierr /= nf_noerr) then
                       write(*,2) 'DV_avg_bak', record,ininame(1:linit),
      &                                               nf_strerror(ierr)
@@ -540,11 +578,21 @@ c--#define VERBOSE
       if (ierr == nf_noerr) then
         ierr=nf_inq_varid(ncid,  'rvfrc_bak',  vid_rvfrc)
         if (ierr == nf_noerr) then
-          ierr=ncdf_read( ncid,  vid_rufrc,  record,  u_var,
+#if defined PARALLEL_FILES && !defined JOINED_INPUT
+          ierr=ncdf_read_partitioned( ncid,  vid_rufrc,  record,  u_var,
      &                     rufrc_bak(START_2D_ARRAY,tindx), 1)
+#else
+          ierr=ncdf_read_joined( ncid,  vid_rufrc,  record,  u_var,
+     &                     rufrc_bak(START_2D_ARRAY,tindx), 1)
+#endif
           if (ierr == nf_noerr) then
-            ierr=ncdf_read( ncid, vid_rvfrc,  record, v_var,
+#if defined PARALLEL_FILES && !defined JOINED_INPUT
+            ierr=ncdf_read_partitioned( ncid, vid_rvfrc,  record, v_var,
      &                     rvfrc_bak(START_2D_ARRAY,tindx), 1)
+#else
+            ierr=ncdf_read_joined( ncid, vid_rvfrc,  record, v_var,
+     &                     rvfrc_bak(START_2D_ARRAY,tindx), 1)
+#endif
             if (ierr /= nf_noerr) then
               write(*,2) 'rvfrc_bak', record, ininame(1:linit),
      &                                       nf_strerror(ierr)
@@ -568,14 +616,24 @@ c--#define VERBOSE
       lvar=lenstr(vname(1,indxU))
       ierr=nf_inq_varid(ncid, vname(1,indxU)(1:lvar), varid)
       if (ierr == nf_noerr) then
-        ierr=ncdf_read( ncid,  varid,  record,  u_var,
+#if defined PARALLEL_FILES && !defined JOINED_INPUT
+        ierr=ncdf_read_partitioned( ncid,  varid,  record,  u_var,
      &                  u(START_2D_ARRAY,1,tindx), N)
+#else
+        ierr=ncdf_read_joined( ncid,  varid,  record,  u_var,
+     &                  u(START_2D_ARRAY,1,tindx), N)
+#endif
         if (ierr == nf_noerr) then
           lvar=lenstr(vname(1,indxV))
           ierr=nf_inq_varid(ncid, vname(1,indxV)(1:lvar), varid)
           if (ierr == nf_noerr) then
-            ierr=ncdf_read( ncid,  varid,  record,  v_var,
+#if defined PARALLEL_FILES && !defined JOINED_INPUT
+            ierr=ncdf_read_partitioned( ncid,  varid,  record,  v_var,
      &                      v(START_2D_ARRAY,1,tindx), N)
+#else
+            ierr=ncdf_read_joined( ncid,  varid,  record,  v_var,
+     &                      v(START_2D_ARRAY,1,tindx), N)
+#endif
             if (ierr /= nf_noerr) then
               write(*,2) vname(1,indxV)(1:lvar),    record,
      &                   ininame(1:linit), nf_strerror(ierr)
@@ -600,8 +658,13 @@ c--#define VERBOSE
         lvar=lenstr(vname(1,indxT+itrc-1))
         ierr=nf_inq_varid(ncid, vname(1,indxT+itrc-1)(1:lvar), varid)
         if (ierr == nf_noerr) then
-          ierr=ncdf_read( ncid,   varid,   record,   r_var,
+#if defined PARALLEL_FILES && !defined JOINED_INPUT
+          ierr=ncdf_read_partitioned( ncid,   varid,   record,   r_var,
      &                    t(START_2D_ARRAY,1,tindx,itrc), N)
+#else
+          ierr=ncdf_read_joined( ncid,   varid,   record,   r_var,
+     &                    t(START_2D_ARRAY,1,tindx,itrc), N)
+#endif
           if (ierr /= nf_noerr) then
             write(*,2) vname(1,indxT+itrc-1)(1:lvar), record,
      &                     ininame(1:linit), nf_strerror(ierr)
@@ -636,8 +699,13 @@ c--#define VERBOSE
         ierr=nf_inq_varid (ncid, 
      &       vname(1,indxSedOrgN+itrc-1)(1:lvar), varid)
         if (ierr .eq. nf_noerr) then
-          ierr=ncdf_read (ncid,  varid, record, r_var
+#if defined PARALLEL_FILES && !defined JOINED_INPUT
+          ierr=ncdf_read_partitioned (ncid,  varid, record, r_var
      &                   , t_sed(START_2D_ARRAY,itrc), 1)
+#else
+          ierr=ncdf_read_joined (ncid,  varid, record, r_var
+     &                   , t_sed(START_2D_ARRAY,itrc), 1)
+#endif
           if (ierr .ne. nf_noerr) then
             write(*,2) vname(1,indxSedOrgN+itrc-1)(1:lvar),
      &            record,  trim(ininame)
@@ -660,8 +728,13 @@ c--#define VERBOSE
       lvar=lenstr(vname(1,indxPH_rst))
       ierr=nf_inq_varid (ncid, vname(1,indxPH_rst)(1:lvar), varid)
       if (ierr .eq. nf_noerr) then
-         ierr=ncdf_read (ncid,  varid, record, r_var
+#if defined PARALLEL_FILES && !defined JOINED_INPUT
+         ierr=ncdf_read_partitioned (ncid,  varid, record, r_var
      &                 , ph_hist(START_2D_ARRAY), 1)
+#else
+         ierr=ncdf_read_joined (ncid,  varid, record, r_var
+     &                 , ph_hist(START_2D_ARRAY), 1)
+#endif
          if (ierr .ne. nf_noerr) then
             write(*,2) vname(1,indxPH_rst)(1:lvar), record,
      &           trim(ininame)
@@ -682,8 +755,13 @@ c--#define VERBOSE
       lvar=lenstr(vname(1,indxPCO2_rst))
       ierr=nf_inq_varid (ncid, vname(1,indxPCO2_rst)(1:lvar), varid)
       if (ierr .eq. nf_noerr) then
-         ierr=ncdf_read (ncid,  varid, record, r_var
+#if defined PARALLEL_FILES && !defined JOINED_INPUT
+         ierr=ncdf_read_partitioned (ncid,  varid, record, r_var
      &                  , pCO2sw(START_2D_ARRAY), 1)
+#else
+         ierr=ncdf_read_joined (ncid,  varid, record, r_var
+     &                  , pCO2sw(START_2D_ARRAY), 1)
+#endif
          if (ierr .ne. nf_noerr) then
             write(*,2) vname(1,indxPCO2_rst)(1:lvar), record,
      &           trim(ininame)
@@ -700,8 +778,13 @@ c--#define VERBOSE
       lvar=lenstr(vname(1,indxPCO2air_rst))
       ierr=nf_inq_varid (ncid, vname(1,indxPCO2air_rst)(1:lvar), varid)
       if (ierr .eq. nf_noerr) then
-         ierr=ncdf_read (ncid,  varid, record, r_var
+#if defined PARALLEL_FILES && !defined JOINED_INPUT
+         ierr=ncdf_read_partitioned (ncid,  varid, record, r_var
      *                 , pCO2air(START_2D_ARRAY), 1)
+#else
+         ierr=ncdf_read_joined (ncid,  varid, record, r_var
+     *                 , pCO2air(START_2D_ARRAY), 1)
+#endif
          if (ierr .ne. nf_noerr) then
             write(*,2) vname(1,indxPCO2air_rst)(1:lvar), record,
      &           trim(ininame)
@@ -720,8 +803,13 @@ c--#define VERBOSE
       lvar=lenstr(vname(1,indxPH_rst))
       ierr=nf_inq_varid (ncid, vname(1,indxPH_rst)(1:lvar), varid)
       if (ierr .eq. nf_noerr) then
-         ierr=ncdf_read (ncid,  varid, record, r_var
+#if defined PARALLEL_FILES && !defined JOINED_INPUT
+         ierr=ncdf_read_partitioned (ncid,  varid, record, r_var
      &                 , ph_hist(START_2D_ARRAY), 1)
+#else
+         ierr=ncdf_read_joined (ncid,  varid, record, r_var
+     &                 , ph_hist(START_2D_ARRAY), 1)
+#endif
          if (ierr .ne. nf_noerr) then
             write(*,2) vname(1,indxPH_rst)(1:lvar), record,
      &           trim(ininame)
@@ -810,8 +898,13 @@ c--#define VERBOSE
       lvar=lenstr(vname(1,indxPAR_rst))
       ierr=nf_inq_varid (ncid, vname(1,indxPAR_rst)(1:lvar), varid)
       if (ierr .eq. nf_noerr) then
-         ierr=ncdf_read (ncid,  varid, record, r_var
+#  if defined PARALLEL_FILES && !defined JOINED_INPUT
+         ierr=ncdf_read_partitioned (ncid,  varid, record, r_var
      &                  , PAR(START_2D_ARRAY,1), N)
+#  else
+         ierr=ncdf_read_joined (ncid,  varid, record, r_var
+     &                  , PAR(START_2D_ARRAY,1), N)
+#  endif
          if (ierr .ne. nf_noerr) then
             write(*,2) vname(1,indxPAR_rst)(1:lvar), record,
      &           trim(ininame)
@@ -826,8 +919,13 @@ c--#define VERBOSE
       lvar=lenstr(vname(1,indxHbls))
       ierr=nf_inq_varid(ncid, vname(1,indxHbls)(1:lvar), varid)
       if (ierr == nf_noerr) then
-        ierr=ncdf_read( ncid,  varid,  record,  r_var,
+#  if defined PARALLEL_FILES && !defined JOINED_INPUT
+        ierr=ncdf_read_partitioned( ncid,  varid,  record,  r_var,
      &                  hbls(START_2D_ARRAY,tindx), 1)
+#  else
+        ierr=ncdf_read_joined( ncid,  varid,  record,  r_var,
+     &                  hbls(START_2D_ARRAY,tindx), 1)
+#  endif
         if (ierr /= nf_noerr) then
           write(*,2) vname(1,indxHbls)(1:lvar), record,
      &               ininame(1:linit), nf_strerror(ierr)
@@ -845,8 +943,13 @@ c--#define VERBOSE
       lvar=lenstr(vname(1,indxHbbl))
       ierr=nf_inq_varid(ncid, vname(1,indxHbbl)(1:lvar), varid)
       if (ierr == nf_noerr) then
-        ierr=ncdf_read( ncid,  varid,  record, r_var,
+#  if defined PARALLEL_FILES && !defined JOINED_INPUT
+        ierr=ncdf_read_partitioned( ncid,  varid,  record, r_var,
      &                  hbbl(START_2D_ARRAY,tindx),1)
+#  else
+        ierr=ncdf_read_joined( ncid,  varid,  record, r_var,
+     &                  hbbl(START_2D_ARRAY,tindx),1)
+#  endif
         if (ierr /= nf_noerr) then
           write(*,2) vname(1,indxHbbl)(1:lvar), record,
      &               ininame(1:linit), nf_strerror(ierr)

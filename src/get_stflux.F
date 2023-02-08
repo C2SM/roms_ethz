@@ -11,7 +11,12 @@
 # include "scalars.h"
 # include "ncvars.h"
 # include "netcdf.inc"
-      integer ncid, ifrc, ierr, lfrc,lvar,ltvar,lenstr, ncdf_read
+      integer ncid, ifrc, ierr, lfrc,lvar,ltvar,lenstr
+#if defined PARALLEL_FILES && !defined JOINED_INPUT
+      integer ncdf_read_partitioned
+#else
+      integer ncdf_read_joined
+#endif
       character(len=max_name_size) frcname
       character(len=8) stf_var, stf_time_var
       real(kind=8) dtime
@@ -140,8 +145,13 @@ c**       ierr=nf_close(ncid) ; ncfrc(ifrc)=-1
             stf_time(itstf(itrc),itrc)=dtime*day2sec
      &                     + stf_cycle(itrc)*stf_ncycle(itrc)
 
-            ierr=ncdf_read(ncid, stf_id(itrc),  stf_rec(itrc),  r_var,
+# if defined PARALLEL_FILES && !defined JOINED_INPUT
+            ierr=ncdf_read_partitioned(ncid, stf_id(itrc),  stf_rec(itrc),  r_var,
      &                     stflxg(START_2D_ARRAY,itstf(itrc),itrc), 1)
+#else
+            ierr=ncdf_read_joined(ncid, stf_id(itrc),  stf_rec(itrc),  r_var,
+     &                     stflxg(START_2D_ARRAY,itstf(itrc),itrc), 1)
+#endif
             if (ierr == nf_noerr) then
 # ifdef MPI_SILENT_MODE
               if (mynode == 0) then

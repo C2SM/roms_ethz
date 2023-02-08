@@ -4,7 +4,12 @@
       subroutine get_grid         ! Read in grid data from NetCDF file.
       implicit none
       character*1 char1
-      integer ierr, ncid, varid, lstr, lenstr, checkdims, ncdf_read
+      integer ierr, ncid, varid, lstr, lenstr, checkdims
+# if defined PARALLEL_FILES && !defined JOINED_INPUT
+      integer ncdf_read_partitioned
+# else
+      integer ncdf_read_joined
+# endif
 # include "param.h"
 # include "scalars.h"
 # include "grid.h"
@@ -17,7 +22,7 @@
       lstr=lenstr(grdname)
       ierr=nf_open(grdname(1:lstr), nf_nowrite, ncid)
       if (ierr == nf_noerr) then
-        ierr=checkdims (ncid, grdname, varid)
+        ierr=checkdims (ncid, grdname, varid, input_partitioned)
         if (ierr. ne. nf_noerr) goto 99
       else
         write(*,'(/1x,4A/12x,A)')  '### ERROR: get_grid :: Cannot ',
@@ -84,7 +89,11 @@
 
       ierr=nf_inq_varid (ncid, 'h', varid)
       if (ierr == nf_noerr) then
-        ierr=ncdf_read(ncid, varid, 0, r_var, h(START_2D_ARRAY), 1)
+# if defined PARALLEL_FILES && !defined JOINED_INPUT
+        ierr=ncdf_read_partitioned(ncid, varid, 0, r_var, h(START_2D_ARRAY), 1)
+# else
+        ierr=ncdf_read_joined(ncid, varid, 0, r_var, h(START_2D_ARRAY), 1)
+# endif
         if (ierr /= nf_noerr) then
           write(*,2) 'h', grdname(1:lstr), nf_strerror(ierr)
           goto 99                                        !--> ERROR
@@ -98,7 +107,11 @@
 
       ierr=nf_inq_varid (ncid, 'f', varid)
       if (ierr == nf_noerr) then
-        ierr=ncdf_read(ncid, varid, 0, r_var, f(START_2D_ARRAY), 1)
+# if defined PARALLEL_FILES && !defined JOINED_INPUT
+        ierr=ncdf_read_partitioned(ncid, varid, 0, r_var, f(START_2D_ARRAY), 1)
+# else
+        ierr=ncdf_read_joined(ncid, varid, 0, r_var, f(START_2D_ARRAY), 1)
+# endif
         if (ierr /= nf_noerr) then
           write(*,2) 'f', grdname(1:lstr), nf_strerror(ierr)
           goto 99                                        !--> ERROR
@@ -113,7 +126,11 @@
 
       ierr=nf_inq_varid (ncid, 'pm', varid)
       if (ierr == nf_noerr) then
-        ierr=ncdf_read(ncid, varid, 0, r_var, pm(START_2D_ARRAY), 1)
+# if defined PARALLEL_FILES && !defined JOINED_INPUT
+        ierr=ncdf_read_partitioned(ncid, varid, 0, r_var, pm(START_2D_ARRAY), 1)
+# else
+        ierr=ncdf_read_joined(ncid, varid, 0, r_var, pm(START_2D_ARRAY), 1)
+# endif
         if (ierr /= nf_noerr) then
           write(*,2) 'pm', grdname(1:lstr), nf_strerror(ierr)
           goto 99                                        !--> ERROR
@@ -125,7 +142,11 @@
 
       ierr=nf_inq_varid (ncid, 'pn', varid)
       if (ierr == nf_noerr) then
-        ierr=ncdf_read(ncid, varid, 0, r_var, pn(START_2D_ARRAY), 1)
+# if defined PARALLEL_FILES && !defined JOINED_INPUT
+        ierr=ncdf_read_partitioned(ncid, varid, 0, r_var, pn(START_2D_ARRAY), 1)
+# else
+        ierr=ncdf_read_joined(ncid, varid, 0, r_var, pn(START_2D_ARRAY), 1)
+# endif
         if (ierr /= nf_noerr) then
           write(*,2) 'pn', grdname(1:lstr), nf_strerror(ierr)
           goto 99                                        !--> ERROR
@@ -140,7 +161,11 @@
 # ifdef SPHERICAL
       ierr=nf_inq_varid (ncid, 'lon_rho', varid)
       if (ierr == nf_noerr) then
-        ierr=ncdf_read(ncid, varid, 0, r_var, lonr(START_2D_ARRAY), 1)
+#  if defined PARALLEL_FILES && !defined JOINED_INPUT
+        ierr=ncdf_read_partitioned(ncid, varid, 0, r_var, lonr(START_2D_ARRAY), 1)
+#  else
+        ierr=ncdf_read_joined(ncid, varid, 0, r_var, lonr(START_2D_ARRAY), 1)
+#  endif
         if (ierr /= nf_noerr) then
           write(*,2) 'lon_rho', grdname(1:lstr), nf_strerror(ierr)
           goto 99                                        !--> ERROR
@@ -152,7 +177,11 @@
 
       ierr=nf_inq_varid (ncid, 'lat_rho', varid)
       if (ierr == nf_noerr) then
-        ierr=ncdf_read(ncid, varid, 0, r_var, latr(START_2D_ARRAY), 1)
+#  if defined PARALLEL_FILES && !defined JOINED_INPUT
+        ierr=ncdf_read_partitioned(ncid, varid, 0, r_var, latr(START_2D_ARRAY), 1)
+#  else
+        ierr=ncdf_read_joined(ncid, varid, 0, r_var, latr(START_2D_ARRAY), 1)
+#  endif
         if (ierr /= nf_noerr) then
           write(*,2) 'lat_rho', grdname(1:lstr), nf_strerror(ierr)
           goto 99                                        !--> ERROR
@@ -161,10 +190,14 @@
         write(*,1) 'lat_rho', grdname(1:lstr)
         goto 99                                          !--> ERROR
       endif
-# else
+# else /* SPHERICAL */
       ierr=nf_inq_varid (ncid, 'x_rho', varid)
       if (ierr == nf_noerr) then
-        ierr=ncf_fread(ncid, varid, 0, r_var, xr(START_2D_ARRAY), 1)
+#  if defined PARALLEL_FILES && !defined JOINED_INPUT
+        ierr=ncf_fread_partitioned(ncid, varid, 0, r_var, xr(START_2D_ARRAY), 1)
+#  else
+        ierr=ncf_fread_joined(ncid, varid, 0, r_var, xr(START_2D_ARRAY), 1)
+#  endif
         if (ierr /= nf_noerr) then
           write(*,2) 'x_rho', grdname(1:lstr), nf_strerror(ierr)
           goto 99                                        !--> ERROR
@@ -176,7 +209,11 @@
 
       ierr=nf_inq_varid (ncid, 'y_rho', varid)
       if (ierr == nf_noerr) then
-        ierr=ncdf_read(ncid, varid, 0, r_var, yr(START_2D_ARRAY), 1)
+#  if defined PARALLEL_FILES && !defined JOINED_INPUT
+        ierr=ncdf_read_partitioned(ncid, varid, 0, r_var, yr(START_2D_ARRAY), 1)
+#  else
+        ierr=ncdf_read_joined(ncid, varid, 0, r_var, yr(START_2D_ARRAY), 1)
+#  endif
         if (ierr /= nf_noerr) then
           write(*,2) 'y_rho', grdname(1:lstr), nf_strerror(ierr)
           goto 99                                        !--> ERROR
@@ -185,14 +222,18 @@
         write(*,1) 'y_rho', grdname(1:lstr)
         goto 99                                          !--> ERROR
       endif
-# endif
+# endif /* SPHERICAL */
 # ifdef CURVGRID
 
 ! Angle (radians) between XI-axis and EAST at RHO-points.
 
       ierr=nf_inq_varid (ncid, 'angle', varid)
       if (ierr == nf_noerr) then
-        ierr=ncdf_read(ncid, varid, 0, r_var, angler(START_2D_ARRAY), 1)
+#  if defined PARALLEL_FILES && !defined JOINED_INPUT
+         ierr=ncdf_read_partitioned(ncid, varid, 0, r_var, angler(START_2D_ARRAY), 1)
+#  else
+         ierr=ncdf_read_joined(ncid, varid, 0, r_var, angler(START_2D_ARRAY), 1)
+#  endif
         if (ierr /= nf_noerr) then
           write(*,2) 'angle', grdname(1:lstr), nf_strerror(ierr)
           goto 99                                        !--> ERROR
@@ -201,14 +242,18 @@
         write(*,1) 'angle', grdname(1:lstr)
         goto 99                                          !--> ERROR
       endif
-# endif
+# endif /* CURVGRID */
 # ifdef MASKING
 
 ! Mask at RHO-points.
 
       ierr=nf_inq_varid (ncid, 'mask_rho', varid)
       if (ierr == nf_noerr) then
-        ierr=ncdf_read(ncid, varid, 0, r_var, rmask(START_2D_ARRAY), 1)
+#  if defined PARALLEL_FILES && !defined JOINED_INPUT
+        ierr=ncdf_read_partitioned(ncid, varid, 0, r_var, rmask(START_2D_ARRAY), 1)
+#  else
+        ierr=ncdf_read_joined(ncid, varid, 0, r_var, rmask(START_2D_ARRAY), 1)
+#  endif
         if (ierr /= nf_noerr) then
           write(*,2) 'mask_rho', grdname(1:lstr), nf_strerror(ierr)
           goto 99                                        !--> ERROR
