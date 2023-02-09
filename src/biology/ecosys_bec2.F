@@ -431,6 +431,7 @@ c$$$       enddo
 #   endif
 #  endif /* BEC2_DIAG */
 # else /* CCHEM_MOCSY */
+# if 0
 #  ifdef BEC2_DIAG
 #   ifdef BEC2_DIAG_USER
              ! pH is present in bec2_diag_2d, so bec2_diag_2d_idx(ph_idx_t)
@@ -455,7 +456,9 @@ c$$$       enddo
                 PHLO = phlo_init
                 PHHI = phhi_init
              END WHERE
+# endif /* if 0 */
 
+             phlo = phlo_init; phhi = phhi_init
              sssco2(istr:iend) = max(19.0, SSSS(istr:iend,j))
              CALL co2calc_row(LANDMASK(istr:iend,j),
      &         SSTT(istr:iend,j), sssco2(istr:iend),
@@ -1984,8 +1987,10 @@ c$$$       enddo
           if (Nfixer(auto_ind)) then
              Nfix(:,auto_ind) = Q*photoC(:,auto_ind) - NO3_V(:,auto_ind) - NH4_V(:,auto_ind)
              Nexcrete(:,auto_ind) = r_Nexcrete(auto_ind) * Nfix(:,auto_ind)
+#   ifdef BEC_DDA
              if (auto_ind == dda_ind)
      &           where (N03_loc > 0.5 ) Nfix(:,auto_ind) = c0          
+#   endif
           endif
 # ifdef BEC2_DIAG
 #  ifdef BEC2_DIAG_USER
