@@ -1972,19 +1972,20 @@ c$$$       enddo
 
     !-----------------------------------------------------------------------
     !  Get N fixation based on C fixation,
-    !  Diazotrophs fix more than they need. r_Nfix_photo (currently 30%) is excreted
-    !  DDAs --> no excretion and no fixation if is not depleted
+    !  Diazotrophs fix more than they need; r_Nexcrete(diaz_ind) (0.3 or 30%) is excreted
+    !  All others do not excrete r_Nexcrete = 0. 
+    !  DDAs --> no excretion and no fixation if is not depleted (NO3 > 0.5)
     !  UCYN --> no excretion
     !-----------------------------------------------------------------------
 
           Nfix(:,auto_ind) = c0
           Nexcrete(:,auto_ind) = c0
+          
           if (Nfixer(auto_ind)) then
-             Nfix(:,auto_ind) = Q*photoC(:,auto_ind) - NO3_V(:,auto_ind)
-     &                 - NH4_V(:,auto_ind)
-             if (auto_ind == diaz_ind)
-     &               Nexcrete(:,auto_ind) = r_Nfix_photo *Nfix(:,auto_ind)
-             endif  
+             Nfix(:,auto_ind) = Q*photoC(:,auto_ind) - NO3_V(:,auto_ind) - NH4_V(:,auto_ind)
+             Nexcrete(:,auto_ind) = r_Nexcrete(auto_ind) * Nfix(:,auto_ind)
+             if (auto_ind == dda_ind)
+     &           where (N03_loc > 0.5 ) Nfix(:,auto_ind) = c0          
           endif
 # ifdef BEC2_DIAG
 #  ifdef BEC2_DIAG_USER
