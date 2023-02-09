@@ -224,7 +224,8 @@
       Chl_ind(cocco_ind)       = coccoChl_ind_t
       Fe_ind(cocco_ind)        = coccoFe_ind_t
       Si_ind(cocco_ind)        = 0
-      CaCO3_ind(cocco_ind)     = coccoCal_ind_t
+      CaCO3_ind(cocco_ind)     = coccocal_ind_t
+      r_Nfix_photo(cocco_ind)  = 0.0
       kFe(cocco_ind)           = 0.10e-3
       kPO4(cocco_ind)          = 0.03
       kDOP(cocco_ind)          = 0.3
@@ -265,6 +266,7 @@
       Fe_ind(dda_ind)        = ddaFe_ind_t
       Si_ind(dda_ind)        = ddaSi_ind_t
       CaCO3_ind(dda_ind)     = 0
+      r_Nfix_photo(dda_ind)  = 0.
       kFe(dda_ind)           = 0.18e-3
       kPO4(dda_ind)          = 0.1
       kDOP(dda_ind)          = 0.9
@@ -295,43 +297,44 @@
 #endif
 
 # ifdef BEC_UCYN
-        sname(ucyn_ind) = 'ucyn'
-        lname(ucyn_ind) = 'UCYN'
-        Nfixer(ucyn_ind) = .true.
-        imp_calcifier(ucyn_ind) = .false.
-        exp_calcifier(ucyn_ind) = .false.
-        grazee_ind(ucyn_ind)    = ucyn_ind
-        C_ind(ucyn_ind)         = ucynC_ind_t
-        Chl_ind(ucyn_ind)       = ucynChl_ind_t
-        Fe_ind(ucyn_ind)        = ucynFe_ind_t
-        CaCO3_ind(ucyn_ind)     = 0
-        kFe(ucyn_ind)           = 6.0e-4
-        kPO4(ucyn_ind)          = 0.08
-        kDOP(ucyn_ind)          = 0.088
-        kNO3(ucyn_ind)          = 1.2
-        kNH4(ucyn_ind)          = 0.12
-        kSiO3(ucyn_ind)         = 0.0
-        Qp(ucyn_ind)            = 0.00855
-        gQfe_0(ucyn_ind)        = 60.0e-6
-        gQfe_min(ucyn_ind)      = 12.0e-6
-        alphaPI(ucyn_ind)       = 0.44*dps
-        PCref(ucyn_ind)         = 0.35*dps
-        Q_10_phyto(ucyn_ind)   = 1.85  ! same as phaeo 
-        thetaN_max(ucyn_ind)    = 2.5
-        loss_thres(ucyn_ind)   = 0.04
-        loss_thres2(ucyn_ind)  = 0.0
-        temp_thres(ucyn_ind)   = 14.0
-        mort(ucyn_ind)          = 0.06*dps
-        mort2(ucyn_ind)         = 0.001*dps
-        agg_rate_max(ucyn_ind)  = 0.9
-        agg_rate_min(ucyn_ind)  = 0.01
-        z_umax_0(ucyn_ind)      = 0.6*dps
-        z_grz(ucyn_ind)         = 1.1
-        graze_zoo(ucyn_ind)     = 0.3
-        graze_poc(ucyn_ind)     = 0.05
-        graze_doc(ucyn_ind)     = 0.15
-        loss_poc(ucyn_ind)      = 0.0
-        f_zoo_detr(ucyn_ind)    = 0.15
+      sname(ucyn_ind) = 'ucyn'
+      lname(ucyn_ind) = 'UCYN'
+      Nfixer(ucyn_ind) = .true.
+      imp_calcifier(ucyn_ind) = .false.
+      exp_calcifier(ucyn_ind) = .false.
+      grazee_ind(ucyn_ind)    = ucyn_ind
+      C_ind(ucyn_ind)         = ucynC_ind_t
+      Chl_ind(ucyn_ind)       = ucynChl_ind_t
+      Fe_ind(ucyn_ind)        = ucynFe_ind_t
+      CaCO3_ind(ucyn_ind)     = 0
+      r_Nfix_photo(dda_ind)  = 0.
+      kFe(ucyn_ind)           = 6.0e-4
+      kPO4(ucyn_ind)          = 0.08
+      kDOP(ucyn_ind)          = 0.088
+      kNO3(ucyn_ind)          = 1.2
+      kNH4(ucyn_ind)          = 0.12
+      kSiO3(ucyn_ind)         = 0.0
+      Qp(ucyn_ind)            = 0.00855
+      gQfe_0(ucyn_ind)        = 60.0e-6
+      gQfe_min(ucyn_ind)      = 12.0e-6
+      alphaPI(ucyn_ind)       = 0.44*dps
+      PCref(ucyn_ind)         = 0.35*dps
+      Q_10_phyto(ucyn_ind)   = 1.85  ! same as phaeo 
+      thetaN_max(ucyn_ind)    = 2.5
+      loss_thres(ucyn_ind)   = 0.04
+      loss_thres2(ucyn_ind)  = 0.0
+      temp_thres(ucyn_ind)   = 14.0
+      mort(ucyn_ind)          = 0.06*dps
+      mort2(ucyn_ind)         = 0.001*dps
+      agg_rate_max(ucyn_ind)  = 0.9
+      agg_rate_min(ucyn_ind)  = 0.01
+      z_umax_0(ucyn_ind)      = 0.6*dps
+      z_grz(ucyn_ind)         = 1.1
+      graze_zoo(ucyn_ind)     = 0.3
+      graze_poc(ucyn_ind)     = 0.05
+      graze_doc(ucyn_ind)     = 0.15
+      loss_poc(ucyn_ind)      = 0.0
+      f_zoo_detr(ucyn_ind)    = 0.15
 #endif
 
 #ifdef BEC_PHAEO
@@ -347,6 +350,7 @@
       Fe_ind(phaeo_ind)        = phaeoFe_ind_t
       Si_ind(phaeo_ind)        = 0
       CaCO3_ind(phaeo_ind)     = 0
+      r_Nfix_photo(dda_ind)  = 0.
       kFe(phaeo_ind)           = 0.18e-3
       kPO4(phaeo_ind)          = 0.1
       kDOP(phaeo_ind)          = 0.9
@@ -446,8 +450,8 @@
       ! Master process writes file with parameters used:
       if (mynode.eq.0) then
 # endif
-         open(74,file=filename_biopar_out_bec_nml,status='unknown',
-     &           iostat=status)
+         open(74,file=filename_biopar_out_bec_nml, status='unknown',
+     &           iostat=status, delim='quote')
          if (status .eq. 0) then
             write(74,NML=phyto_growth)
             write(74,NML=phyto_loss)
@@ -492,6 +496,7 @@
       parm_z_mort_0 = parm_z_mort_0*dps
       parm_z_mort2_0 = parm_z_mort2_0*dps
       PCref = PCref*dps
+      alphaPI = alphaPI*dps
       z_umax_0 = z_umax_0*dps
       mort = mort*dps
       mort2 = mort2*dps

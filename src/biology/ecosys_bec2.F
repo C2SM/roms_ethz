@@ -1606,6 +1606,7 @@ c$$$       enddo
           tfunc_tcrit1 = 0.5443310539518172 ! precomputed the above.
           do i=istr,iend
              if (temp(i)>tcrit1) then
+                tfunc_tcrit1 = 1.5**(((tcrit1 + T0_Kelvin) - (Tref + T0_Kelvin)) / c10)  ! Tfunc at tcrit1
                 tfunc_2 = -1.0*tfunc_tcrit1/(temp_thres(phaeo_ind)-tcrit1)  ! slope 
                 tfunc_3 = tfunc_tcrit1-(tcrit1*tfunc_2)  ! y-Achsenabschnitt
                 Tfunc_phaeo(i) = max(0.0,(tfunc_2*temp(i)+tfunc_3)*PCref(phaeo_ind))
@@ -1970,36 +1971,19 @@ c$$$       enddo
           end where
 
     !-----------------------------------------------------------------------
-    !  Get N fixation by diazotrophs based on C fixation,
-    !  Diazotrophs fix more than they need then 20% is excreted
-    !  DL: for DDAs --> no excretion and nofixation if NO3 is not
-    !  depleted
-    !  for UCYN --> no excretion
+    !  Get N fixation based on C fixation,
+    !  Diazotrophs fix more than they need. r_Nfix_photo (currently 30%) is excreted
+    !  DDAs --> no excretion and no fixation if is not depleted
+    !  UCYN --> no excretion
     !-----------------------------------------------------------------------
 
+          Nfix(:,auto_ind) = c0
+          Nexcrete(:,auto_ind) = c0
           if (Nfixer(auto_ind)) then
-             WORK1 = photoC(istr:iend,auto_ind) * Q
-             if (auto_ind == diaz_ind) then
-             Nfix(istr:iend,auto_ind)     = (WORK1 * r_Nfix_photo) - NO3_V(istr:iend,auto_ind)
-     &                 - NH4_V(istr:iend,auto_ind)
-             Nexcrete(istr:iend,auto_ind) = Nfix(istr:iend,auto_ind) + NO3_V(istr:iend,auto_ind)
-     &                 + NH4_V(istr:iend,auto_ind) - WORK1
-# ifdef BEC_UCYN
-       !This line breaks the code for UCYN intentionally because this part next check & fix.
-             elseif (auto_ind == ucyn_ind) then
-             Nfix(istr:iend,auto_ind)     = WORK1 - NO3_V(istr:iend,auto_ind)
-     &                - NH4_V(istr:iend,auto_ind)
-             Nexcrete(istr:iend,auto_ind) = c0
-# endif
-             else
-                 where (NO3_loc > 0.5)
-                     Nfix(istr:iend,auto_ind) =c0
-                     Nexcrete(istr:iend,auto_ind) =c0
-                 elsewhere
-             Nfix(istr:iend,auto_ind)     = WORK1 - NO3_V(istr:iend,auto_ind)
-     &                - NH4_V(istr:iend,auto_ind) 
-             Nexcrete(istr:iend,auto_ind) = c0
-                 end where
+             Nfix(:,auto_ind) = Q*photoC(:,auto_ind) - NO3_V(:,auto_ind)
+     &                 - NH4_V(:,auto_ind)
+             if (auto_ind == diaz_ind)
+     &               Nexcrete(:,auto_ind) = r_Nfix_photo *Nfix(:,auto_ind)
              endif  
           endif
 # ifdef BEC2_DIAG
