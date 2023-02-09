@@ -220,8 +220,7 @@
   !     fixed ratios
   !----------------------------------------------------------------------------
 
-       real, dimension(autotroph_cnt) :: r_Nfix_photo = 0.0
-       !parameter(r_Nfix_photo=1.30)         !N fix relative to C fix (non-dim)
+       real, dimension(autotroph_cnt) :: r_Nexcrete = 0.0 ! over fixation (diaz)
 
   !-----------------------------------------------------------------------
   !     SET FIXED RATIOS for N/C, P/C, SiO3/C, Fe/C

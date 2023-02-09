@@ -65,7 +65,7 @@
      &    parm_kappa_nitrif, parm_nitrif_par_lim,
      &    parm_Fe_bioavail, parm_Fe_scavenge_rate0,
      &    parm_o2_min, parm_o2_min_delta,
-     &    r_Nfix_photo
+     &    r_Nexcrete
 
       filename_biopar_bec_nml = 'bec_parameter_in.nml'
       filename_biopar_out_bec_nml = 'bec_parameter_used.nml'
@@ -115,7 +115,7 @@
       Si_ind(1:3)        = (/ 0, diatSi_ind_t, 0 /)
       imp_calcifier(1:3) = (/ .true. , .false., .false. /)! sp .true. is over-written in case of BEC_COCCO
       CaCO3_ind(1:3)     = (/spCaCO3_ind_t, 0, 0 /)
-      r_Nfix_photo(1:3)  = (/ 0.0, 0.0, 0.3 /) ! Diaz: 30% overfixation 
+      r_Nexcrete(1:3)  = (/ 0.0, 0.0, 0.3 /) ! Diaz: 30% overfixation 
 
       ! Default S12_1_k scenario parameter -> https://upwiki.ethz.ch/upwiki/doku.php?id=romsdoc:bec_parameters_setups
       PCref(1:3)   = (/ 0.5, 1.1, 0.2 /)  ! d-1
@@ -225,7 +225,7 @@
       Fe_ind(cocco_ind)        = coccoFe_ind_t
       Si_ind(cocco_ind)        = 0
       CaCO3_ind(cocco_ind)     = coccocal_ind_t
-      r_Nfix_photo(cocco_ind)  = 0.0
+      r_Nexcrete(cocco_ind)  = 0.0
       kFe(cocco_ind)           = 0.10e-3
       kPO4(cocco_ind)          = 0.03
       kDOP(cocco_ind)          = 0.3
@@ -266,7 +266,7 @@
       Fe_ind(dda_ind)        = ddaFe_ind_t
       Si_ind(dda_ind)        = ddaSi_ind_t
       CaCO3_ind(dda_ind)     = 0
-      r_Nfix_photo(dda_ind)  = 0.
+      r_Nexcrete(dda_ind)  = 0.
       kFe(dda_ind)           = 0.18e-3
       kPO4(dda_ind)          = 0.1
       kDOP(dda_ind)          = 0.9
@@ -307,7 +307,7 @@
       Chl_ind(ucyn_ind)       = ucynChl_ind_t
       Fe_ind(ucyn_ind)        = ucynFe_ind_t
       CaCO3_ind(ucyn_ind)     = 0
-      r_Nfix_photo(dda_ind)  = 0.
+      r_Nexcrete(dda_ind)  = 0.
       kFe(ucyn_ind)           = 6.0e-4
       kPO4(ucyn_ind)          = 0.08
       kDOP(ucyn_ind)          = 0.088
@@ -350,7 +350,7 @@
       Fe_ind(phaeo_ind)        = phaeoFe_ind_t
       Si_ind(phaeo_ind)        = 0
       CaCO3_ind(phaeo_ind)     = 0
-      r_Nfix_photo(dda_ind)  = 0.
+      r_Nexcrete(dda_ind)      = 0.
       kFe(phaeo_ind)           = 0.18e-3
       kPO4(phaeo_ind)          = 0.1
       kDOP(phaeo_ind)          = 0.9
