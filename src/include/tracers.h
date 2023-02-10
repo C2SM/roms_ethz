@@ -61,6 +61,12 @@
 #  undef LAST_I
 #  define LAST_I indxDdafe
 #endif
+# ifdef BEC_UCYN
+     &          , indxUcync=LAST_I+1, indxUcynchl=LAST_I+2
+     &          , indxUcynfe=LAST_I+3
+#  undef LAST_I
+#  define LAST_I indxUcynfe
+#endif
 # ifdef BEC_PHAEO
      &          , indxPhaeoc=LAST_I+1, indxPhaeochl=LAST_I+2
      &          , indxPhaeofe=LAST_I+3
