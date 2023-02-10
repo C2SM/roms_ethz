@@ -28,10 +28,15 @@
      &                            u_cos_proj_u, v_cos_proj_u,
      &                            u_cos_proj_v, v_cos_proj_v,
      &                            l_snd_sst, l_snd_sm,
-     &                            sustr_a, svstr_a, srflx_a, !stflx_a,
+#ifdef OAS_TIME_INTERPOLATE
+     &                            sustr_a, svstr_a, srflx_a,
      &                            shflx_a, ssflx_a,
      &                            oas_tnow, oas_tprior,
      &                            oas_inow, oas_iprior
+#else 
+     &                            sustr_a, svstr_a, srflx_a, stflx_a,
+     &                            oas_time
+#endif
 
          IMPLICIT NONE
 
@@ -186,7 +191,12 @@
             ! => hbls
 !#include "ncvars.h"
             INTEGER ::  oas_dt
+#ifdef OAS_TIME_INTERPOLATE
+            INTEGER :: oas_step, jn, i, j
+            INTEGER,save :: it = 1
+#else
             INTEGER :: oas_step, jn, i, j, it
+#endif
             REAL :: cff_wstr, cff_hflx, cff_fwflx
             REAL :: zflx_1, zflx_2
             LOGICAL :: updates
@@ -241,6 +251,7 @@
                ENDDO
             ENDDO
 
+#ifdef OAS_TIME_INTERPOLATE
             DO j = cpl_grd(k_rho)%jmin, cpl_grd(k_rho)%jmax
             DO i = cpl_grd(k_rho)%imin, cpl_grd(k_rho)%imax
                ! Solar Radiative Flux
@@ -249,18 +260,33 @@
 
                ! Net Heat Flux (total lat+sens+tot_rad)
                ! -------------
-!               stflx_a(i,j,itemp,it) = cff_hflx * 
-!     &                srcv(oas_NHF)%pdata(i,j) + srflx_a(i,j,it)
                shflx_a(i,j,it) = cff_hflx * 
      &                srcv(oas_NHF)%pdata(i,j) + srflx_a(i,j,it)
                ! Fresh Water Flux
                ! ----------------
-!               stflx_a(i,j,isalt,it) = cff_fwflx * 
-!     &                srcv(oas_TEP)%pdata(i,j) * t(i,j,N,nrhs,isalt)
                ssflx_a(i,j,it) = cff_fwflx * 
      &                srcv(oas_TEP)%pdata(i,j) * t(i,j,N,nrhs,isalt)
             ENDDO
             ENDDO
+#else
+            DO j = cpl_grd(k_rho)%jmin, cpl_grd(k_rho)%jmax
+               DO i = cpl_grd(k_rho)%imin, cpl_grd(k_rho)%imax
+                  ! Solar Radiative Flux
+                  ! --------------------
+                  srflx_a(i,j,it) = cff_hflx * srcv(oas_SWR)%pdata(i,j)
+
+                  ! Net Heat Flux (total lat+sens+tot_rad)
+                  ! -------------
+                  stflx_a(i,j,itemp,it) = cff_hflx * srcv(oas_NHF)%pdata(i,j) 
+     &                                    + srflx_a(i,j,it)
+                  ! Fresh Water Flux
+                  ! ----------------
+                  stflx_a(i,j,isalt,it) = cff_fwflx * srcv(oas_TEP)%pdata(i,j)
+     &                               * t(i,j,N,nrhs,isalt)
+               ENDDO
+            ENDDO
+#endif
+
 
             ! Write Debug File
             ! ----------------
