@@ -15,8 +15,7 @@
 #-------job parameters---------------
 # set -x
 wall_clock=4 # Batch job max compute time [h], Choose 4, 24, or 120
-runtag=ucyn_t4  # May be overwrittgen using option "-t"
-#runtag=g82om41r2  # May be overwrittgen using option "-t"
+runtag=run0  # May be overwrittgen using option "-t"
 remarks="Using PACTCS/ANAMCA BEC parameters. Computing tendencies with absolute values"
 
 # title string in netCDF output:
@@ -27,7 +26,7 @@ setup=pactcs60
 SETUP=PACTC60
 
 # Base dir for running the model (model is actually run in rundir/run)
-rundir=$SCRATCH/Roms/Output/$setup/$runtag
+rundir=$SCRATCH/roms/output/$setup/$runtag
 # model netCDF output is written into subdirectories under out_dir
 out_dir=$rundir
 # Sometime we like write the model netCDF output directly to our storage servers (kryo, meso)
@@ -44,7 +43,7 @@ export BLDDIR=$srcdir/build
 # NOT USED: bio_nml=/nfs/malva/work/loher/ROMS/BEC_param/namelists/biopar
 
 NP_XI=8
-NP_ETA=18
+NP_ETA=16
 tiling=${NP_XI}x${NP_ETA}
 #tiling=.
 let tiles=${NP_XI}*${NP_ETA}
@@ -53,11 +52,8 @@ let ncores=${NP_XI}*${NP_ETA}/${tiles_per_core}
 echo $ncores
 
 # Input files
-#in_dir="$HOME/mmwork/roms_in/$setup/"    # linked later to "$rundir/Input"
 in_dir=/cluster/work/climate/muennicm/roms_in/$setup
 fin_grd=Input/grd/${tiling}/${setup}_grd.nc # Grid file
-#fin_ini0=Input/ini/${tiling}/${setup}_spinup_hc_flora_y18_rst.nc
-#fin_ini0=Input/ini/rest/${tiling}/${setup}_ini_from_rest.nc
 fin_ini0=Input/ini/from_spinup/${tiling}/${setup}_ini_from_spinup.nc
 fin_bry=Input/bry/${tiling}/${setup}_bry.nc
 
@@ -73,11 +69,11 @@ else
    jobtag=$runtag
 fi
 scriptdir=`pwd`
-jobscript=$jobtag.bsub # batch script name
+jobscript=$jobtag.slurm # batch script name
 infile=$jobtag.in
 outfile=$jobtag.out
 postproc_log=${jobtag}_postproc.log
-postproc_job=${jobtag}_postproc.bsub
+postproc_job=${jobtag}_postproc.slurm
 
 echo '   jobtag: '$jobtag
 echo '   jobscript: '$jobscript
@@ -199,9 +195,9 @@ function set_next_job() {
 #   if [[ $wt == 1 ]] && (( "$job" > 1 )); then
 
 #     let waitjob=$job-1
-#     bsub_wait='BSUB -w "done('$runtag$waitjob')"'
+#     slurm_wait='slurm -w "done('$runtag$waitjob')"'
 #   fi
-#   bsub_wait_postproc='BSUB -w "done('$runtag$job')"'
+#   slurm_wait_postproc='slurm -w "done('$runtag$job')"'
 # }
 #------------------------------------------------------------------------------------------------
 
@@ -273,7 +269,6 @@ function get_exec() {
     cd $rundir/run
     # make link for passive tracer
     #mm ln -s $in_dir/originalfiles/ad_tracer_001.nc ad_tracer_001.nc
-    #mm ln -s $in_dir/originalfiles/ad_tracer_002.nc ad_tracer_002.nc
     # make link to input directory
     if [ ! -L Input ] ; then
       ln -s $in_dir Input
@@ -323,8 +318,8 @@ title:
    PACIFIC stretched 6.1km to 65km x2
 
 time_stepping: NTIMES   dt[sec]  NDTFAST  NINFO
-               960    900     45        36     ! 1 years
-!               35040    900     45        36     ! 1 years
+               35040    900     45        36     ! 1 years
+!               20    900     45        36      ! few testing time steps
 !               192    900     45        36     ! testing 2 days?
 
 
@@ -395,8 +390,8 @@ restart:          NRST, NRPFRST / filename
                   35040  2 !<--- yearly restart (2 for EXACT_RESTART)
            ../rst/${fout}_rst.nc  2
 
-history: LDEFHIS, NWRT, NRPFHIS / filename   ! (write initial fields, every 5 day for dt=900, all records in 1 file)
-           T      50    0
+history: LDEFHIS, NWRT, NRPFHIS / filename   ! (write initial fields, every 5 day for dt=900, 6 records per  file)
+           T      480    6
            ../his/${fout}_his.nc
 
 averages: NTSAVG, NAVG, NRPFAVG / filename ! (from the beginning, every 30 day for dt=900, all records in 1 file)
@@ -413,10 +408,10 @@ primary_averages:          zeta UBAR VBAR  U  V   wrtT(1:NT)                    
                               T    T    T   T  T   T T T   T   T    T   T  T  T   T   T   T   F    F   F    F    T    T   F     F    F       T             F       F      F      T       F     F      F      F     F        F       F     F      F     F        F       F
 
 auxiliary_history_fields:  rho Omega  W  Akv  Akt  Aks  HBL BBL
-                             T    T    T   F    F    F    T   F      F F F F F F F F F F F F
+                             T    T    F   F    F    F    T   F      F F F F F F F F F F F F
 
 auxiliary_averages:        rho Omega  W  Akv  Akt  Aks  HBL BBL
-                             T    F    T   F    F    F    T   F      F F F F F F F F F F F F
+                             T    F    F   F    F    F    T   F      F F F F F F F F F F F F
 
 EOINFILE
 }
@@ -425,16 +420,16 @@ EOINFILE
 function write_jobscript() {
 rundir=$1
 cd $rundir/run
-# -----------BSUB script setup  begin
+# -----------slurm script setup  begin
 cat > $jobscript <<EOT
 #!/bin/sh
-#SBATCH --time=02:00:00       # Max compute time (hh:mm:ss)
+#SBATCH --time=04:00:00       # Max compute time (hh:mm:ss)
 #SBATCH -n $ncores		   # Number of processors
 #SBATCH -o $jobtag.stdout	# stdout
 #SBATCH -e $jobtag.stderr	# stderr
 #SBATCH -J $jobtag         # job name
 
-# old: $bsub_wait
+# old: $slurm_wait
 #
 # M. Munnich 2008
 
@@ -471,8 +466,7 @@ set_params $runtag
 out_dir=$out_dir/$runtag
 out_dir=$rundir
 get_exec $rundir $out_dir
-set_wait_job
-set_next_job
+#set_next_job
 set_ini_file
 
 set_fout_stump
