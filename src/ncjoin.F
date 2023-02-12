@@ -970,7 +970,7 @@ c**         endif
           if (time_partition) then! Add starting time to output filename
             if (nend == 0) nend = tsize
             !if (nend>0) then
-               write(suffix,'(a,i0.3,a,i0.3,a)') '_t',nstart , ':',nend,'.nc'
+               write(suffix,'(a,i0.3,a,i0.3,a)') '_t',nstart , '-',nend,'.nc'
             !else
             !   write(suffix,'(a,i0.3,a)') '_t',nstart , ':.nc'
             !endif

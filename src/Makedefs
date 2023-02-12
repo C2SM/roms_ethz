@@ -179,7 +179,7 @@ ifeq ($(strip $(FCOMP)),ifort)
    ifdef DEBUG
       #FFLAGS := -g -check all -CA -CB -CS
       #FFLAGS := -g -check arg_temp_created,bounds,pointers,uninit,format,output_conversion
-      FFLAGS := -warn all -g -check arg_temp_created,bounds,pointers,uninit,format,output_conversion
+      FFLAGS := -warn all,noexternal -g -check arg_temp_created,bounds,pointers,uninit,format,output_conversion
    else
       # Agressive optimisation for current CPU
       #FFLAGS  = -O3 -xHOST -132 -fp-model source $(LARGE_MEM_FLAG)

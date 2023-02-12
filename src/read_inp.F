@@ -497,7 +497,7 @@ c--      fname='roms.in.US_West'
           call cancel_kwd(keyword(1:kwlen), ierr)
           read(input,'(A)',err=95) fname
           lstr=lenstr(fname)
-# if defined MPI && defined PARALLEL_FILES && !defined JOINED_GRD
+# if defined MPI && defined PARALLEL_FILES && !defined JOINED_INPUT
           call insert_node(fname, lstr, mynode, NNODES, ierr)
 # endif
           open(testunit,file=fname(1:lstr), status='old', err=97)
@@ -519,7 +519,7 @@ c--      fname='roms.in.US_West'
 #endif
             read(input,'(A)',err=95) fname
             lstr=lenstr(fname)
-#if defined MPI && defined PARALLEL_FILES
+#if defined MPI && defined PARALLEL_FILES && !defined JOINED_INPUT
             call insert_node(fname, lstr, mynode, NNODES, ierr)
 #endif
             ininame=fname(1:lstr)
@@ -548,7 +548,7 @@ c--      fname='roms.in.US_West'
             read(input,'(A)',err=95) fname
             lstr=lenstr(fname)
             if (lstr > 0) then
-# if defined MPI && defined PARALLEL_FILES
+# if defined MPI && defined PARALLEL_FILES && !defined JOINED_INPUT
               call insert_node(fname, lstr, mynode, NNODES, ierr)
 # endif
               open(testunit,file=fname(1:lstr),status='old',err=97)
@@ -595,7 +595,7 @@ c--      fname='roms.in.US_West'
             read(input,'(A)',err=95) fname
             lstr=lenstr(fname)
             if (lstr > 0) then
-#  if defined MPI && defined PARALLEL_FILES
+#  if defined MPI && defined PARALLEL_FILES && !defined JOINED_INPUT
               call insert_node(fname, lstr, mynode, NNODES, ierr)
 #  endif
               open(testunit, file=fname(1:lstr), status='old',err=97)
@@ -651,7 +651,7 @@ c--      fname='roms.in.US_West'
             read(input,'(A)',err=95) fname
             lstr=lenstr(fname)
             if (lstr > 0) then
-# if defined MPI && defined PARALLEL_FILES
+# if defined MPI && defined PARALLEL_FILES && !defined JOINED_INPUT
           call insert_node(fname, lstr, mynode, NNODES, ierr)
 # endif
               open(testunit, file=fname(1:lstr), status='old', err=97)

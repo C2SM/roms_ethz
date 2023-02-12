@@ -138,7 +138,12 @@
 #endif
 #include "netcdf.inc"
       character(len=max_name_size) frcname
-      integer ncid, ifrc, ierr, lfrc, lenstr, check_vardims, ncdf_read
+      integer ncid, ifrc, ierr, lfrc, lenstr, check_vardims
+#if defined PARALLEL_FILES && !defined JOINED_INPUT
+      integer ncdf_read_partitioned
+#else
+      integer ncdf_read_joined
+#endif
       real(kind=8) dtime
       character(len=40) fmt
 #ifndef timename
@@ -271,28 +276,28 @@ c**                   ierr=nf_close(ncid) ; ncfrc(ifrc)=-1
 #endif
                     if (ierr == nf_noerr) then
                       ierr=check_vardims(ncid, frcname, varid,
-     &                                         VAR_GRD_TYPE, 0)
+     &                     VAR_GRD_TYPE, 0, input_partitioned)
 #ifdef varname2
 # ifndef VAR_GRD_TYPE2
 #  define VAR_GRD_TYPE2 r_var
 # endif
                       if (ierr == nf_noerr) then
                         ierr=check_vardims(ncid, frcname, varid2,
-     &                                          VAR_GRD_TYPE2, 0)
+     &                       VAR_GRD_TYPE2, 0, input_partitioned)
 # ifdef varname3
 #  ifndef VAR_GRD_TYPE3
 #   define VAR_GRD_TYPE3 r_var
 #  endif
                         if (ierr == nf_noerr) then
                           ierr=check_vardims(ncid, frcname, varid3,
-     &                                            VAR_GRD_TYPE3, 0)
+     &                         VAR_GRD_TYPE3, 0, input_partitioned)
 #  ifdef varname4
 #   ifndef VAR_GRD_TYPE4
 #    define VAR_GRD_TYPE4 r_var
 #   endif
                           if (ierr == nf_noerr) then
                             ierr=check_vardims(ncid, frcname, varid4,
-     &                                             VAR_GRD_TYPE4, 0)
+     &                          VAR_GRD_TYPE4, 0, input_partitioned)
 #  endif
 # endif
 #endif
@@ -403,20 +408,40 @@ c**       ierr=nf_close(ncid) ; ncfrc(ifrc)=-1
             itsmth=3-itsmth
             timevar(itsmth)=dtime*day2sec + cycle_length*icycle
 
-            ierr=ncdf_read(ncid, varid, record, VAR_GRD_TYPE,
+#if defined PARALLEL_FILES && !defined JOINED_INPUT
+            ierr=ncdf_read_partitioned(ncid, varid, record, VAR_GRD_TYPE,
      &                           var(START_2D_ARRAY,itsmth), 1)
+#else
+            ierr=ncdf_read_joined(ncid, varid, record, VAR_GRD_TYPE,
+     &                           var(START_2D_ARRAY,itsmth), 1)
+#endif
             if (ierr == nf_noerr) then
 #ifdef varname2
-              ierr=ncdf_read(ncid, varid2, record, VAR_GRD_TYPE2,
+#if defined PARALLEL_FILES && !defined JOINED_INPUT
+              ierr=ncdf_read_partitioned(ncid, varid2, record, VAR_GRD_TYPE2,
      &                           var2(START_2D_ARRAY,itsmth), 1)
+#else
+              ierr=ncdf_read_joined(ncid, varid2, record, VAR_GRD_TYPE2,
+     &                           var2(START_2D_ARRAY,itsmth), 1)
+#endif
               if (ierr == nf_noerr) then
 # ifdef varname3
-                ierr=ncdf_read(ncid, varid3, record, VAR_GRD_TYPE3,
+#if defined PARALLEL_FILES && !defined JOINED_INPUT
+                ierr=ncdf_read_partitioned(ncid, varid3, record, VAR_GRD_TYPE3,
      &                             var3(START_2D_ARRAY,itsmth), 1)
+#else
+                ierr=ncdf_read_joined(ncid, varid3, record, VAR_GRD_TYPE3,
+     &                             var3(START_2D_ARRAY,itsmth), 1)
+#endif
                 if (ierr == nf_noerr) then
 #  ifdef varname4
-                  ierr=ncdf_read(ncid, varid4, record, VAR_GRD_TYPE4,
+#if defined PARALLEL_FILES && !defined JOINED_INPUT
+                  ierr=ncdf_read_partitioned(ncid, varid4, record, VAR_GRD_TYPE4,
      &                               var4(START_2D_ARRAY,itsmth), 1)
+#else
+                  ierr=ncdf_read_joined(ncid, varid4, record, VAR_GRD_TYPE4,
+     &                               var4(START_2D_ARRAY,itsmth), 1)
+#endif
                   if (ierr == nf_noerr) then
 #  endif
 # endif

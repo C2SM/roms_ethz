@@ -64,6 +64,7 @@ BECSRC := init_scalars_bec2.F init_biopar.F  ecosys_bec2.F ecosys_bec2_init.F
 BECSRCOLD := init_scalars_bec.F ecosys_bec.F ecosys_bec_init.F\
 
 IOSRC := checkdims.F	find_record.F	insert_node.F	ncdf_read_write.F\
+        ncdf_read_write_partitioned.F   ncdf_read_write_joined.F\
 	get_grid.F	get_init.F	wrt_grid.F	put_global_atts.F\
 	def_rst.F	wrt_rst.F	def_his.F	wrt_his.F\
 	set_avg.F	wrt_avg.F	def_statn.F	wrt_statn.F\

@@ -30,7 +30,7 @@
       lstr=lenstr(ininame)
       ierr=nf_open(ininame(1:lstr), nf_nowrite, ncid)
       if (ierr == nf_noerr) write (*,*) 'DAUBE'
-        ierr=checkdims (ncid, ininame, indx)
+        ierr=checkdims (ncid, ininame, indx, .true.)
         if (ierr /= nf_noerr) write (*,*) 'DAUBE2'
           if (indx==0) then
             indx=1

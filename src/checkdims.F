@@ -1,6 +1,6 @@
 #include "cppdefs.h"
 
-      integer function checkdims(ncid, fname, max_rec)
+      integer function checkdims(ncid, fname, max_rec, partitioned)
 
 ! Verify that all spatial dimensions in file with netCDF ID=ncid
 ! and file name=fname are consistent with the corresponding model
@@ -10,6 +10,10 @@
 !        fname     [both arguments are assumed to be defined,
 !                  however fname is used only to write error
 !                  messages something goes wrong.]
+!     partitioned  flag indicating whether the Netcdf input files
+!          are assumed to be partitioned (.false.: all input file are assumed to be
+!          unpartitioned; true: files are assumed to be partitioned
+!          if MPI and PARALLEL_FILES are both activated, otherwise unpartitioned)
 !
 ! output: checkdims (returned value) error status [=nf_noerr=0,
 !                                            if no error occurs]
@@ -21,6 +25,8 @@
      &                       dsize, id, ldim, lname, lenstr
       character(len=*) fname
       character(len=16) dname
+      logical partitioned
+      integer lxi_rho, lxi_u, leta_rho, leta_v
 #include "param.h"
 #include "ncvars.h"
 #include "netcdf.inc"
@@ -33,6 +39,19 @@
       icount=0      !--> initialize: error counter (must remain 0);
       recdim=0      ! netCDF ID of unlimited dimension (if exists);
       max_rec=0     ! current size unlimited dimension (if exists).
+
+      if (partitioned) then
+         ! xi_rho, eta_rho etc are already set depending on MPI and PARALLEL_FILES:
+         lxi_rho = xi_rho
+         lxi_u = xi_u
+         leta_rho = eta_rho
+         leta_v = eta_v
+      else
+         lxi_rho = xi_rho_joined
+         lxi_u = xi_u_joined
+         leta_rho = eta_rho_joined
+         leta_v = eta_v_joined
+      endif
 
       ierr=nf_inq_ndims (ncid, ndims)
       if (ierr == nf_noerr) then
@@ -47,26 +66,26 @@
             ldim=lenstr(dname)
             if ( (ldim == 6 .and. dname(1:ldim) == 'xi_rho') .or.
      &           (ldim == 4 .and. dname(1:ldim) == 'xi_v' ) ) then
-              if (dsize/=xi_rho) then
-                write(*,1) dname(1:ldim), dsize,fname(1:lname),xi_rho
+              if (dsize/=lxi_rho) then
+                write(*,1) dname(1:ldim), dsize,fname(1:lname),lxi_rho
                 icount=icount+1
               endif
             elseif ( (ldim == 4 .and. dname(1:ldim) == 'xi_u'  ) .or.
      &               (ldim == 6 .and. dname(1:ldim) == 'xi_psi') ) then
-              if (dsize /= xi_u) then
-                write(*,1) dname(1:ldim), dsize, fname(1:lname), xi_u
+              if (dsize /= lxi_u) then
+                write(*,1) dname(1:ldim), dsize, fname(1:lname), lxi_u
                 icount=icount+1
               endif
             elseif ( (ldim == 7 .and. dname(1:ldim) == 'eta_rho') .or.
      &               (ldim == 5 .and. dname(1:ldim) == 'eta_u' ) ) then
-              if (dsize/=eta_rho) then
-                write(*,1) dname(1:ldim), dsize,fname(1:lname),eta_rho
+              if (dsize/=leta_rho) then
+                write(*,1) dname(1:ldim), dsize,fname(1:lname),leta_rho
                 icount=icount+1
               endif
             elseif ( (ldim == 5 .and. dname(1:ldim) == 'eta_v' ) .or.
      &               (ldim == 7 .and. dname(1:ldim) =='eta_psi') ) then
-              if (dsize /= eta_v) then
-                write(*,1) dname(1:ldim), dsize, fname(1:lname), eta_v
+              if (dsize /= leta_v) then
+                write(*,1) dname(1:ldim), dsize, fname(1:lname), leta_v
                 icount=icount+1
               endif
 #ifdef SOLVE3D
@@ -112,7 +131,8 @@
       end
 
 
-      integer function check_vardims(ncid,fname, varid, horiz_type,n3)
+      integer function check_vardims(ncid,fname, varid, horiz_type,n3,
+     &                               partitioned)
 
 ! Verify that spatial dimensions of a specified variable in netCDF
 ! file match that expected by the running mode.
@@ -132,25 +152,38 @@
 
       implicit none
       integer ncid, varid, horiz_type, n3
+      logical partitioned
       character(len=*) fname
-      character(len=32) vname
+      character(len=32) varname
       integer ierr, vtype, ndims, natts, dimid(8),
-     &                size, i, lfnm, lvar, lenstr
+     &     size, i, lfnm, lvar, lenstr, count(2)
+      integer lxi_rho, leta_rho, lxi_u, leta_v
 #include "param.h"
+#include "ncvars.h"
 #include "netcdf.inc"
-#define NO_RECORD_CHECK
-#include "compute_starts_counts.h"
-#if defined MPI && !defined PARALLEL_FILES
-      count(1)=LLm+2  ! full  xi-size for rho-, v grid
-      count(2)=MMm+2  ! full etz-size for rho-, u grid
-      if (horiz_type == 1) count(1)=count(1)-1 !  xi-size for u-grid
-      if (horiz_type == 2) count(2)=count(2)-1 ! eta-size for v-grid
-#endif
+
+      if (partitioned) then
+         ! xi_rho, eta_rho are already set depending on MPI and PARALLEL_FILES:
+         lxi_rho = xi_rho
+         lxi_u = xi_u
+         leta_rho = eta_rho
+         leta_v = eta_v
+      else
+         lxi_rho = xi_rho_joined
+         lxi_u = xi_u_joined
+         leta_rho = eta_rho_joined
+         leta_v = eta_v_joined
+      endif
+
+      count(1) = lxi_rho
+      count(2) = leta_rho
+      if (horiz_type == 1) count(1)=lxi_u !  xi-size for u-grid
+      if (horiz_type == 2) count(2)=leta_v ! eta-size for v-grid
 
       lfnm=lenstr(fname)
-      ierr=nf_inq_var(ncid, varid, vname, vtype, ndims, dimid, natts)
+      ierr=nf_inq_var(ncid, varid, varname, vtype, ndims, dimid, natts)
       if (ierr == nf_noerr) then
-        lvar=lenstr(vname)
+        lvar=lenstr(varname)
         do i=1,2
           if (ierr == nf_noerr) then
             ierr=nf_inq_dimlen(ncid, dimid(i), size)
@@ -158,7 +191,7 @@
               if (count(i) /= size) then
                 write(*,'(/2A,I3,1x,5A,2(I5,1x,A)/)')   '### ERROR: ',
      &                    'checkvardims :: mismatch in dimension #', i,
-     &                    'for variable ''', vname(1:lvar), ''' in ''',
+     &                    'for variable ''', varname(1:lvar), ''' in ''',
      &                     fname(1:lfnm),  ''': expecting',   count(i),
      &                              'instead of', size, 'in the file.'
                 ierr=nf_noerr-1
@@ -166,7 +199,7 @@
             else
               write(*,'(/1x,2A,I3,1x,6A/)') '### ERROR: checkvardims ',
      &                    ':: Cannot determine size of dimension #', i,
-     &                    'for variable ''', vname(1:lvar), ''' in ''',
+     &                    'for variable ''', varname(1:lvar), ''' in ''',
      &                       fname(1:lfnm), ''', ', nf_strerror(ierr)
             endif
           endif
@@ -178,14 +211,14 @@
             if (n3 /= size) then
               write(*,'(/6A,2(I4,1x,A)/)')  '### ERROR: checkvardims ',
      &                    ':: mismatch in dimension #3 of variable ''',
-     &                        vname(1:lvar), ''' in ''', fname(1:lfnm),
+     &                        varname(1:lvar), ''' in ''', fname(1:lfnm),
      &         ''': expecting', n3, 'instead of', size, 'in the file.'
               ierr=nf_noerr-1
             endif
           else
             write(*,'(/1x,7A/)')  '### ERROR: checkvardims :: Cannot ',
      &                'determine size of dimension #3 for variable ''',
-     &                vname(1:lvar), ''' in ''', fname(1:lfnm), ''', ',
+     &                varname(1:lvar), ''' in ''', fname(1:lfnm), ''', ',
      &                                               nf_strerror(ierr)
           endif
         endif ! <-- n3 > 0

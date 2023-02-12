@@ -202,3 +202,15 @@ C$OMP THREADPRIVATE(/priv_scalars/)
       real nmol_cm2_to_mmol_m2
       parameter (nmol_cm2_to_mmol_m2 = 0.01)
 #endif
+
+! Flag indicating whether the Netcdf input files are assumed to be
+! partitioned:
+! true: files are assumed to be partitioned if MPI and PARALLEL_FILES
+!     are both activated, otherwise unpartitioned
+! false: all input file are assumed to be unpartitioned
+      logical, parameter ::  input_partitioned
+#ifdef JOINED_INPUT
+     &         = .false.
+#else
+     &         = .true.
+#endif

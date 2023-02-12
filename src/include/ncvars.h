@@ -295,6 +295,10 @@
       integer, parameter :: xi_rho=LLm+2, eta_rho=MMm+2,
      &                     xi_u=xi_rho-1, eta_v=eta_rho-1
 #endif
+      integer, parameter :: xi_rho_joined=LLm+2,
+     &  eta_rho_joined=MMm+2,
+     &  xi_u_joined=xi_rho_joined-1,
+     &     eta_v_joined=eta_rho_joined-1
 
       integer, parameter :: max_name_size=256
       character date_str*44, title*80

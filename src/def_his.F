@@ -1720,7 +1720,7 @@ c  for netcdf4 (HDF5) 2 and 3d fields in output
             goto 99
           endif
 
-          ierr=checkdims(ncid, fname, rec)
+          ierr=checkdims(ncid, fname, rec, .true.)
           if (ierr == nf_noerr) then
             if (rec_per_file == 0) then
               ierr=rec+1 - total_rec

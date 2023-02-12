@@ -490,7 +490,7 @@ C$OMP BARRIER
             goto 99
           endif
 
-          ierr=checkdims(nchis, hisname, rec)
+          ierr=checkdims(nchis, hisname, rec, input_partitioned)
           if (ierr == nf_noerr) then
             if (nrpfhis == 0) then
               ierr=rec+1 - total_rec
