@@ -57,20 +57,28 @@ CONTAINS
    !                                 PUBLIC SUBROUTINES                                  !
    ! *********************************************************************************** !
 
+#ifdef OAS_TIME_INTERPOLATE
    SUBROUTINE oas_roms_rcv(kstep, updates)
+#else
+   SUBROUTINE oas_roms_rcv(kstep)
+#endif
       ! Description
       ! -----------
       ! Receive Fields from Atmospheric Model
 
       ! Arguments
       INTEGER, INTENT(IN) :: kstep   ! ocean time-step in seconds
+#ifdef OAS_TIME_INTERPOLATE
       LOGICAL, INTENT(INOUT) :: updates ! New data received 
                          ! Note: It is assumed here that all fields are updated simultaneously by OASIS
+#endif
       
       ! Local variables
       INTEGER :: kinfo, jn
 
+#ifdef OAS_TIME_INTERPOLATE
       updates=.FALSE.
+#endif
       DO jn=1, krcv
          IF (srcv(jn)%laction) THEN
             ! Fill in coupling field data at coupling time steps
@@ -81,7 +89,9 @@ CONTAINS
             IF (kinfo == OASIS_Recvd .OR. kinfo == OASIS_FromRest .OR.   &
                kinfo == OASIS_RecvOut .OR. kinfo == OASIS_FromRestOut) THEN
                srcv(jn)%pdata(:,:) = cpl_grd(srcv(jn)%k_pt)%exfld(:,:)
+#ifdef OAS_TIME_INTERPOLATE
                updates = .TRUE.
+#endif
 
                IF (IOASISDEBUGLVL >= 10) THEN
                   WRITE(NULOUT,*) 'OAS_ROMS : ****************'

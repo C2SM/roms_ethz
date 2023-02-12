@@ -53,11 +53,11 @@ MODULE oas_roms_def
       &                     u_cos_proj_u, v_cos_proj_u,           &
       &                     u_cos_proj_v, v_cos_proj_v,           &
       &                     IOASISDEBUGLVL, l_oas_seq,            &
-      &                     l_snd_sst, l_snd_sm,                  &
+      &                     l_snd_sst, l_snd_sm
 #ifdef OAS_TIME_INTERPOLATE
-      &                     shflx_a, ssflx_a                      &
-#endif
+   USE oas_roms_data, ONLY: shflx_a, ssflx_a                      &
       &                     sustr_a, svstr_a, srflx_a, stflx_a
+#endif
 
    USE oas_roms_set_cpl_grd, ONLY: oas_roms_set_grd
       
@@ -582,7 +582,6 @@ CONTAINS
          END IF
          
       END IF
-
       
       IF (ierr /= OASIS_Success)  THEN
          CALL oasis_abort(ncomp_id, 'oas_roms_def',   &

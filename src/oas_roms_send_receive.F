@@ -27,22 +27,22 @@
      &                            alpha_rho, alpha_u, alpha_v,
      &                            u_cos_proj_u, v_cos_proj_u,
      &                            u_cos_proj_v, v_cos_proj_v,
-     &                            l_snd_sst, l_snd_sm,
+     &                            l_snd_sst, l_snd_sm
 #ifdef OAS_TIME_INTERPOLATE
-     &                            sustr_a, svstr_a, srflx_a,
-     &                            shflx_a, ssflx_a,
-     &                            oas_tnow, oas_tprior,
-     &                            oas_inow, oas_iprior
-#else 
-     &                            sustr_a, svstr_a, srflx_a, stflx_a,
-     &                            oas_time
+     &                            , sustr_a, svstr_a, srflx_a
+     &                            , shflx_a, ssflx_a
+     &                            , oas_tnow, oas_tprior
+     &                            , oas_inow, oas_iprior
 #endif
 
          IMPLICIT NONE
 
          PRIVATE
 
-         PUBLIC :: oas_roms_send, oas_roms_receive, oas_merge_forces
+         PUBLIC :: oas_roms_send, oas_roms_receive
+#ifdef OAS_TIME_INTERPOLATE
+         PUBLIC :: oas_merge_forces
+#endif
 
       CONTAINS
 
@@ -51,7 +51,7 @@
             !
             !     Purpose.
             !     --------
-            !     Send  fields to OASIS 
+            !     Send  fields to coupler
             !
             !**   Interface.
             !     ----------
@@ -187,21 +187,20 @@
             ! => t, Hz
 #include "ocean3d.h"
             ! => 
-!#include "forces.h"
+#include "forces.h"
             ! => hbls
-!#include "ncvars.h"
-            INTEGER ::  oas_dt
+#include "ncvars.h"
 #ifdef OAS_TIME_INTERPOLATE
+            INTEGER ::  oas_dt
             INTEGER :: oas_step, jn, i, j
             INTEGER,save :: it = 1
+            LOGICAL :: updates
+            LOGICAL, SAVE :: initial_call = .TRUE.
 #else
-            INTEGER :: oas_step, jn, i, j, it
+            INTEGER ::  oas_dt, oas_step, jn, i, j
 #endif
             REAL :: cff_wstr, cff_hflx, cff_fwflx
             REAL :: zflx_1, zflx_2
-            LOGICAL :: updates
-            LOGICAL, SAVE :: initial_call = .TRUE.
-
             ! Skip if sequential coupling mode and first time step
             ! ----------------------------------------------------
             IF (l_oas_seq .AND. oas_step == 0) RETURN
@@ -210,6 +209,7 @@
             ! Receive fields when necessary
             ! -----------------------------
             oas_dt = oas_step * dt
+#ifdef OAS_TIME_INTERPOLATE
             CALL oas_roms_rcv(oas_dt,updates)
             IF ( .NOT. updates ) RETURN
             oas_iprior=oas_inow
@@ -224,6 +224,9 @@
             ! one coupling time step ahead:
             oas_tnow = oas_dt + dt
             write(*,*) 'oas_dt,oas_tnow,dt,',oas_dt,oas_tnow,dt
+#else
+            CALL oas_roms_rcv(oas_dt)
+#endif
 
             ! Set conversion coefficients
             ! ---------------------------    
@@ -235,25 +238,42 @@
             ! -------------
             DO j = cpl_grd(k_u)%jmin, cpl_grd(k_u)%jmax
                DO i = cpl_grd(k_u)%imin, cpl_grd(k_u)%imax
+#ifdef OAS_TIME_INTERPOLATE
                   sustr_a(i,j,it) = ( u_cos_proj_u(i,j)
      &                     * srcv(oas_UST_U)%pdata(i,j)
      &                   + v_cos_proj_u(i,j)
      &                     * srcv(oas_VST_U)%pdata(i,j) ) * cff_wstr
+#else
+                  zflx_1 = u_cos_proj_u(i,j)
+     &                     * srcv(oas_UST_U)%pdata(i,j)
+     &                   + v_cos_proj_u(i,j)
+     &                     * srcv(oas_VST_U)%pdata(i,j)
+                  sustr(i,j) = (1.0-alpha_u(i,j)) * sustr(i,j)
+     &                            + alpha_u(i,j) * cff_wstr * zflx_1
+#endif
                ENDDO
             ENDDO
 
             DO j = cpl_grd(k_v)%jmin, cpl_grd(k_v)%jmax
                DO i = cpl_grd(k_v)%imin, cpl_grd(k_v)%imax
+#ifdef OAS_TIME_INTERPOLATE
                   svstr_a(i,j,it) = ( u_cos_proj_v(i,j)
      &                     * srcv(oas_UST_V)%pdata(i,j)
      &                   + v_cos_proj_v(i,j)
      &                     * srcv(oas_VST_V)%pdata(i,j) ) * cff_wstr
+#else
+                  zflx_1 = u_cos_proj_v(i,j)
+     &                     * srcv(oas_UST_V)%pdata(i,j)
+     &                   + v_cos_proj_v(i,j)
+     &                     * srcv(oas_VST_V)%pdata(i,j)
+                  svstr(i,j) = (1.0-alpha_v(i,j)) * svstr(i,j)
+     &                            + alpha_v(i,j) * cff_wstr * zflx_1
+#endif
                ENDDO
             ENDDO
-
-#ifdef OAS_TIME_INTERPOLATE
             DO j = cpl_grd(k_rho)%jmin, cpl_grd(k_rho)%jmax
-            DO i = cpl_grd(k_rho)%imin, cpl_grd(k_rho)%imax
+               DO i = cpl_grd(k_rho)%imin, cpl_grd(k_rho)%imax
+#ifdef OAS_TIME_INTERPOLATE
                ! Solar Radiative Flux
                ! --------------------
                srflx_a(i,j,it) = cff_hflx * srcv(oas_SWR)%pdata(i,j)
@@ -266,27 +286,34 @@
                ! ----------------
                ssflx_a(i,j,it) = cff_fwflx * 
      &                srcv(oas_TEP)%pdata(i,j) * t(i,j,N,nrhs,isalt)
-            ENDDO
-            ENDDO
 #else
-            DO j = cpl_grd(k_rho)%jmin, cpl_grd(k_rho)%jmax
-               DO i = cpl_grd(k_rho)%imin, cpl_grd(k_rho)%imax
                   ! Solar Radiative Flux
                   ! --------------------
-                  srflx_a(i,j,it) = cff_hflx * srcv(oas_SWR)%pdata(i,j)
+                  zflx_1 = cff_hflx * srcv(oas_SWR)%pdata(i,j)
+                  srflx(i,j) = (1.0-alpha_rho(i,j)) * srflx(i,j)
+     &                            + alpha_rho(i,j) * zflx_1
 
-                  ! Net Heat Flux (total lat+sens+tot_rad)
+                  ! Net Heat Flux
                   ! -------------
-                  stflx_a(i,j,itemp,it) = cff_hflx * srcv(oas_NHF)%pdata(i,j) 
-     &                                    + srflx_a(i,j,it)
+                  zflx_2 = cff_hflx * srcv(oas_NHF)%pdata(i,j) + zflx_1
+                  !
+                  ! Restrict stflx to prevent surface temperature to go below -2
+                  ! degrees C.
+                  stflx(i,j,itemp) =
+     &                 (1.0-alpha_rho(i,j)) * stflx(i,j,itemp)
+     &                    + alpha_rho(i,j) * zflx_2
+
+
                   ! Fresh Water Flux
                   ! ----------------
-                  stflx_a(i,j,isalt,it) = cff_fwflx * srcv(oas_TEP)%pdata(i,j)
+                  zflx_1 = cff_fwflx * srcv(oas_TEP)%pdata(i,j)
      &                               * t(i,j,N,nrhs,isalt)
+                  stflx(i,j,isalt) =
+     &                 (1.0-alpha_rho(i,j)) * stflx(i,j,isalt)
+     &                    + alpha_rho(i,j) * zflx_1
+#endif
                ENDDO
             ENDDO
-#endif
-
 
             ! Write Debug File
             ! ----------------
@@ -297,6 +324,7 @@
      ! &                            "SWR"  , srflx           , k_rho,
      ! &                            "FRESH", stflx(:,:,isalt), k_rho )
 
+#ifdef OAS_TIME_INTERPOLATE
          if (initial_call) then
             ! At start up current forcing data 
             ! also as prior forcing
@@ -304,17 +332,17 @@
             initial_call = .FALSE.
             i = it
             it = mod(it+1,2)
-            oas_tprior = oas_tnow-dt
+            oas_tprior = oas_tnow - dt 
             sustr_a(:,:,it) = sustr_a(:,:,i)
             svstr_a(:,:,it) = svstr_a(:,:,i)
             srflx_a(:,:,it) = srflx_a(:,:,i)
             shflx_a(:,:,it) = shflx_a(:,:,i)
             ssflx_a(:,:,it) = ssflx_a(:,:,i)
-            !stflx_a(:,:,:,it) = stflx_a(:,:,:,i)
-         ENDIF
-
+         endif
+#endif
          END SUBROUTINE oas_roms_receive
 
+#ifdef OAS_TIME_INTERPOLATE
          SUBROUTINE oas_merge_forces(istr,iend,jstr,jend,ierr)
             IMPLICIT NONE
             ! also contains mynode
@@ -344,7 +372,7 @@
             itnow = (iic-ntstart)*dt
             w2 = ((iic-ntstart)*dt - oas_tprior)/(oas_tnow-oas_tprior)
             w1 = 1.0 - w2  
-#ifdef COUP_DEBUG
+#  ifdef COUP_DEBUG
        if (mynode ==60) then
       write(*,*) 'oas_tprior,oas_tnow, ',oas_tprior,oas_tnow
       write(*,*) 'iic,ntstart,dt*(iic-ntstart), ',iic,ntstart,dt*float(iic-ntstart)
@@ -358,7 +386,7 @@
      &                               , ', ',stflx(imid,jmid,1)
      &                               , ', ',stflx(imid,jmid,2)
        endif
-#endif
+#  endif
 
        !  taux, tauy 
        do j = jstrR, jendR
@@ -381,17 +409,13 @@
           stflx(i,j,itemp) = (1.0 - alpha_rho(i,j)) * stflx(i,j,itemp)
      &         + alpha_rho(i,j)  * ( w1 * shflx_a(i,j,oas_iprior)
      &                             + w2 * shflx_a(i,j,oas_inow) )
-!     &         + alpha_rho(i,j)  * ( w1 * stflx_a(i,j,itemp,oas_iprior)
-!     &                             + w2 * stflx_a(i,j,itemp,oas_inow) )
           stflx(i,j,isalt) = (1.0 - alpha_rho(i,j)) * stflx(i,j,isalt)
      &         + alpha_rho(i,j)  * ( w1 * ssflx_a(i,j,oas_iprior)
      &                             + w2 * ssflx_a(i,j,oas_inow) )
-!     &         + alpha_rho(i,j)  * ( w1 * stflx_a(i,j,isalt,oas_iprior)
-!     &                             + w2 * stflx_a(i,j,isalt,oas_inow) )
        enddo
        enddo
 
-#ifdef COUP_DEBUG
+#  ifdef COUP_DEBUG
        if (mynode ==60) then
        imid=(istr+iend)/2; jmid=(jstr+jend)/2
        write(unit=108,*) 'Merged: ', iic
@@ -403,8 +427,7 @@
      &                               , ', ',stflx(imid,jmid,2)
      &                               , ', ',alpha_rho(imid,jmid)
        endif
-#endif
-         
+#  endif
          END SUBROUTINE oas_merge_forces
-
+#endif
        END MODULE oas_roms_send_receive

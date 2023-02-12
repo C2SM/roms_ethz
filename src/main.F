@@ -524,8 +524,7 @@ C$OMP BARRIER                          ! avoid MPI deadlock the exit is
 #endif
       endif                            ! deferred until after broadcast
                                        ! of "may_day_flag" by diag.
-
-#ifdef COUP_OAS 
+#ifdef COUP_OAS
       !Receive Coupling fields from Cosmo/Oasis
       if ( coupled ) call oas_roms_receive(iic-ntstart)
 #endif
