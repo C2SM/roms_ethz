@@ -18,7 +18,7 @@ roms:
 	@echo Config: $(config)
 	@echo
 roms_cpl:
-	$(MAKE) -C $(BLDDIR) COUPLED=1
+	$(MAKE) -C $(BLDDIR) COUPLED=1 config=PACTC
 	@echo
 	@echo Config: $(config)
 	@echo
