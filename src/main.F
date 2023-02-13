@@ -13,10 +13,10 @@
       implicit none              ! with single parallel region using
       integer ierr               ! explicit barrier synchronization.
 # include "param.h"
-# ifdef COUP_OAS
-#  include "ncvars.h"
-      logical :: use_oasis
+# include "ncvars.h"
       logical, save :: coupled = .false.  ! coupled yes/no
+# ifdef COUP_OAS
+      logical :: use_oasis
 # endif /* COUP_OAS */
 # ifdef MPI
       real*8 tstart, tend
