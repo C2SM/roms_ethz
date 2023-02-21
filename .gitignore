@@ -1,4 +1,4 @@
 scripts/
 .nfs*
 .vscode/
-build/
+*build*/
