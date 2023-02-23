@@ -5,7 +5,7 @@
                      /* Include standard UP ETH Zurich switches */
                      /* *** ACTIVATE BIOLOGY HERE *** */
                      /* (Otherwise standard UP bio switches are not set) */
-!-- #define BIOLOGY_BEC2
+#define BIOLOGY_BEC2
 #include "cppdefs_UP.h"
 
 #define SOUTHERNOCEAN

@@ -1989,7 +1989,7 @@ c$$$       enddo
              Nexcrete(:,auto_ind) = r_Nexcrete(auto_ind) * Nfix(:,auto_ind)
 #   ifdef BEC_DDA
              if (auto_ind == dda_ind)
-     &           where (N03_loc > 0.5 ) Nfix(:,auto_ind) = c0          
+     &           where (NO3_loc > 0.5 ) Nfix(:,auto_ind) = c0
 #   endif
           endif
 # ifdef BEC2_DIAG
