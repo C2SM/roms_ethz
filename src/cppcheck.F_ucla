@@ -39,7 +39,7 @@
      &                      iin=11, iout=12, nwords=16
 
       character(len=max_str_size) string
-      character(len=256) fname(4), switch(max_switches)
+      character(len=64) fname(4), switch(max_switches)
       integer nfiles, nswtchs,   nexample,nstdpth, fswtch(8),
      &        ifile,  ierr, i,k, is, istr(nwords), size(max_switches),
      &        count,  lstr,ln,n, ie, iend(nwords), line(max_switches)
@@ -51,8 +51,6 @@
 ! exclusion. So do 7.x and earlier versions of Intel IFC compiler, but
 ! starting with version 8.x IFORT recognizes it as intrinsic. Portland
 ! Group PGF compiler also needs it to be declared.
-
-!#define VERBOSE
 
 #ifdef INT_IARGC
       integer iargc
@@ -86,7 +84,7 @@
      &                      'version of "check_switches1.F".'
       do ifile=1,nfiles
         call getarg(ifile,fname(ifile))
-        write(*,'(1x,2A)') '   - processing: ', trim(fname(ifile))
+        write(*,'(1x,2A)') '   - processing: ', fname(ifile)
         open(unit=iin,file=fname(ifile),status='old',form='formatted')
         ierr=0
         count=0                 ! Reset error flag, line counter and,
@@ -282,26 +280,35 @@ c**         enddo
      &                          'iexample=0'
 
       do ifile=1,nfiles
-        write(iout,'(A/A,1x,A/A)') '!', '!', trim(fname(ifile)), '!'
-        ln = len_trim(fname(ifile))
+        write(iout,'(A/A,1x,A/A)') '!', '!', fname(ifile), '!'
+
+        ln=32
+        do while(fname(ifile)(ln:ln) == ' ')
+          ln=ln-1
+        enddo
+c**     write(iout,'(6x,4A)') 'mpi_master_only write(*,''(1x,A)'') ',
+c**  &                              '''<', fname(ifile)(1:ln), '>'''
+
         if (ifile == 1) then
-             write(iout,'(6x,A,I3)') 'is=1 ; ie=is+', ln+1
+          if (ln > 8) then
+             write(iout,'(6x,A,I2)')   'is=1 ; ie=is+', ln+1
+          else
+             write(iout,'(6x,A,I1)')   'is=1 ; ie=is+', ln+1
+          endif
         else
-             write(iout,'(6x,A,I3)') 'is=ie+2 ; ie=is+', ln+1
+          if (ln > 8) then
+             write(iout,'(6x,A,I2)') 'is=ie+2 ; ie=is+', ln+1
+          else
+             write(iout,'(6x,A,I1)') 'is=ie+2 ; ie=is+', ln+1
+          endif
         endif
 
         write(iout,'(6x,A/6x,3A/6x,A/6x,A)')
      &             'if (ie >= max_opt_size) goto 99',
-     &             'cpps(is:ie)=''<''' 
-        is=1
-        do while (is <= ln)
-           ie=min(ln,is+50)
-           write(iout,'(5x,3A)') '&   / /'''
-     &          , fname(ifile)(is:ie),''''
-           is=ie+1
-        enddo
-        write(iout,'(5xA/6xA)')  '&   / / ''>'''
-     &       , 'cpps(ie+1:ie+1)='' '''
+     &             'cpps(is:ie)=''<', fname(ifile)(1:ln), '>''',
+     &             'cpps(ie+1:ie+1)='' '''
+!mm       print*,' fswitch(',ifile,')=',fswtch(ifile)
+!mm       print*,' fswitch(',ifile+1,')=',fswtch(ifile+1)
 
         do i=fswtch(ifile),fswtch(ifile+1)-1
           ln=size(i)
@@ -345,4 +352,5 @@ c**         enddo
      &                    '''Increase the size it and recompile.'''
       write(iout,'(6x,A,2(/6x,A))') 'ierr=ierr+1', 'return', 'end'
       close(unit=iout)
+      print *
       end

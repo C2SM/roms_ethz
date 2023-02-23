@@ -204,7 +204,7 @@ C$OMP MASTER
 C$OMP END MASTER
 C$OMP BARRIER
 
-#ifdef SOLVE3D
+C#ifdef SOLVE3D
       do tile=my_tile_range                 ! interpolate forcing
         call set_forces(tile)               ! data to model time and
       enddo

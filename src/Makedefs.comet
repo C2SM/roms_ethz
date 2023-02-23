@@ -1,0 +1,56 @@
+#Definitions for Intel ifc FORTRAN compiler on Linux
+# =========== === ===== === ======= ======== == =====
+
+.SUFFIXES: .o .f .F
+
+.F.o:
+	$(CPP) -P $(CPPFLAGS) $*.F | ./mpc > $*.f
+	$(CFT) -c $(FFLAGS) $*.f -o $*.o
+#/bin/rm -f $*.f
+.F.f:
+	$(CPP) -P $(CPPFLAGS) $*.F | ./mpc > $*.f
+.f.o:
+	$(CFT) -c $(FFLAGS) $*.f -o $*.o
+.F:
+	$(CFT) -o $@ $(FFLAGS) $(LDFLAGS) $<
+.f:
+	$(CFT) -o $@ $(FFLAGS) $(LDFLAGS) $<
+.o:
+	$(CFT) -o $@ $(FFLAGS) $(LDFLAGS) $<
+
+
+#
+# C-preprocessor from Intel compiler package. Note: in this case
+# __IFC is a pre-defined macro, so there is no need to include it
+# into CPPFLAGS.
+#
+#     CPP = fpp
+      FC=ifort
+      CPP = /lib/cpp -traditional
+      CPPFLAGS = -D__IFC -I$(MPI_ROOT)/include -I$(NETCDF)/include -I$(NETCDFF)/include
+
+
+        LARGE_MEM_FLAG = -mcmodel=medium -i-dynamic
+
+#        OMP_FLAG = -fpp2 -openmp
+
+#	CFT = mpif90 -align dcommon -auto -stack_temps #-traceback  -check all -CA -CB -CS -traceback -g
+	CFT = mpifort -align dcommon -auto -stack_temps #-traceback  -check all -CA -CB -CS -traceback -g
+#	CFT = mpif90 -align dcommon -auto -stack_temps -traceback  -check all -CA -CB -CS -traceback -g
+ 
+        LDR = $(CFT)
+
+        FFLAGS = -O3 
+#        FFLAGS = -O2 -mp1
+
+ 	LDFLAGS = 
+
+ 	COMP_FILES = work.pc work.pcl ifc??????
+
+#	LCDF = -L$(NETCDF)/lib/ -lnetcdff -lnetcdf
+	LCDF = -L$(NETCDF)/lib/ -lnetcdf -L$(NETCDFF)/lib/ -lnetcdff -Wl,-rpath $(NETCDF)/lib -Wl,-rpath $(NETCDFF)/lib
+
+# 	LMPI = -L$(MPI_ROOT)/lib/
+ 	LMPI = -L$(MPI_ROOT)/lib/ -Wl,-rpath $(MPI_ROOT)/lib
+
+

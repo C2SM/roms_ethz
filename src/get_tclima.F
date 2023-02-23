@@ -1,6 +1,6 @@
 #include "cppdefs.h"
-#if defined SOLVE3D && ( defined TCLIMATOLOGY || ( defined TNUDGING &&\
-                         defined T_FRC_BRY  )) && !defined ANA_TCLIMA
+#if defined SOLVE3D && ! defined ANA_TCLIMA && \
+      (defined TCLIMATOLOGY || (defined TNUDGING && defined T_FRC_BRY))
 
                                        ! Read climatology fields for
       subroutine get_tclima(ierr)      ! tracers from climatological
@@ -519,8 +519,9 @@
           endif
 <<<<<<< HEAD
 
-# ifdef BIOLOGY
-=======
+!Potential bug? SY
+!# ifdef BIOLOGY
+!=======
 # if defined BIOLOGY || defined BIOLOGY_NPZDOC
 >>>>>>> iso_adv2017_11
 #  define temp cff

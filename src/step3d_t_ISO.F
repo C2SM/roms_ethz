@@ -156,6 +156,18 @@ c--#  define ntdf nrhs
         do k=1,N
 # endif
 
+!start Pierre test
+!      if (mynode==218 .and. k==48 .and. itrc==4) then
+!         write(*,'(7x,A)') '************************'
+!         write(*,'(7x,A,F10.4)') 'NO3 (before phys)=', 
+!     &  t(11,12,k,nnew,itrc)/Hz(11,12,k)
+!      endif
+!      if (mynode==218 .and. k==29 .and. itrc==22) then
+!         write(*,'(7x,A,F10.4)') 'DIATC (before phys)=',
+!     &  t(11,12,k,nnew,itrc)/Hz(11,12,k)
+!      endif
+!end Pierre test
+
 ! Compute and add in contribution due to horizontal advection fluxes.
 ! Note that at this moment the content of array t(:,:,:,nnew,itrc) is
 ! concentration of tracer "itrc" taken at time corresponding to "nstp"
@@ -171,6 +183,41 @@ c--#  define ntdf nrhs
      &                                                           )
               enddo
             enddo                 !-->  discard FX,FE
+
+!start Pierre test    divide by dt
+!     if (mynode==218 .and. k==48 .and. itrc==4) then
+!         write(*,'(7x,A,F10.4)') 'NO3 (after horiz)=',
+!     &  t(11,12,k,nnew,itrc)/Hz(11,12,k)
+!      endif
+!      if (mynode==218 .and. k==29 .and. itrc==22) then
+!         write(*,'(7x,A,F10.4)') 'DIATC (after horiz)=',
+!     &  t(11,12,k,nnew,itrc)/Hz(11,12,k)
+!      endif
+!end Pierre test
+
+# ifdef PHYS_FLUX_ANALYSIS
+            if (itrc .le. NT_PFA) then
+              do j=Jstr,Jend
+                do i=Istr,Iend+1
+                                ! unit: mmol / s
+                  HorXAdvFlux(i,j,k,itrc) = FX(i,j)
+#  ifdef MASKING
+     &                  * rmask(i,j)
+#  endif
+               enddo
+             enddo
+           
+             do j=Jstr,Jend+1
+               do i=Istr,Iend
+                                ! unit: mmol / s
+                 HorYAdvFlux(i,j,k,itrc) = FE(i,j)
+# ifdef MASKING
+     &                  * rmask(i,j)
+# endif
+               enddo
+             enddo
+           endif
+# endif /* PHYS_FLUX_ANALYSIS */
 
 # ifdef ADV_ISONEUTRAL
           endif !<-- k > 0
@@ -555,19 +602,19 @@ c--#  define ntdf nrhs
      &                                                           )
               enddo
             enddo
-# ifdef PHYS_FLUX_ANALYSIS
-            if (itrc >= NT_PFA) then
-              do j=Jstr,Jend
-                do i=Istr,Iend+1
-                                ! unit: mmol / s
-                  HorXAdvFlux(i,j,k,itrc) = FX(i,j)
-#  ifdef MASKING
-     &                  * rmask(i,j)
-#  endif
-               enddo
-             enddo
-           endif
-# endif /* PHYS_FLUX_ANALYSIS */
+!# ifdef PHYS_FLUX_ANALYSIS
+!            if (itrc .le. NT_PFA) then
+!              do j=Jstr,Jend
+!                do i=Istr,Iend+1
+!                                ! unit: mmol / s
+!                  HorXAdvFlux(i,j,k,itrc) = FX(i,j)
+!#  ifdef MASKING
+!     &                  * rmask(i,j)
+!#  endif
+!               enddo
+!             enddo
+!           endif
+!# endif /* PHYS_FLUX_ANALYSIS */
 
             do j=jstr,jend+1
               do i=istr,iend
@@ -584,19 +631,19 @@ c--#  define ntdf nrhs
      &                                                           )
               enddo
             enddo
-# ifdef PHYS_FLUX_ANALYSIS
-           if (itrc >= NT_PFA) then
-             do j=Jstr,Jend+1
-               do i=Istr,Iend
-                                ! unit: mmol / s
-                 HorYAdvFlux(i,j,k,itrc) = FE(i,j)
-# ifdef MASKING
-     &                  * rmask(i,j)
-# endif
-               enddo
-             enddo
-           endif
-# endif /* PHYS_FLUX_ANALYSIS */
+!# ifdef PHYS_FLUX_ANALYSIS
+!           if (itrc .le. NT_PFA) then
+!             do j=Jstr,Jend+1
+!               do i=Istr,Iend
+!                                ! unit: mmol / s
+!                 HorYAdvFlux(i,j,k,itrc) = FE(i,j)
+!# ifdef MASKING
+!     &                  * rmask(i,j)
+!# endif
+!               enddo
+!             enddo
+!           endif
+!# endif /* PHYS_FLUX_ANALYSIS */
 
             if (k < N) then    ! Compute the vertical component...
               do j=jstr,jend
@@ -770,12 +817,47 @@ c**               cff=1./(z_r(i,j,k+1)-z_r(i,j,k))
      &                                    +FSC(i,j,k2)-FSC(i,j,k1) )
               enddo
             enddo
+
+# ifdef PHYS_FLUX_ANALYSIS
+            if (itrc .le. NT_PFA) then
+              do j=Jstr,Jend
+                do i=Istr,Iend+1
+                                ! unit: mmol / s
+                  HorXAdvFlux(i,j,k,itrc) = HorXAdvFlux(i,j,k,itrc) - FX(i,j)
+#  ifdef MASKING
+     &                  * rmask(i,j)
+#  endif
+               enddo
+             enddo
+
+             do j=Jstr,Jend+1
+               do i=Istr,Iend
+                                ! unit: mmol / s
+                 HorYAdvFlux(i,j,k,itrc) = HorYAdvFlux(i,j,k,itrc) - FE(i,j)
+# ifdef MASKING
+     &                  * rmask(i,j)
+# endif
+               enddo
+             enddo
+           endif
+# endif /* PHYS_FLUX_ANALYSIS */
+
           endif   !<-- k > 0
+
 # endif /* ADV_ISONEUTRAL */
         enddo      !<-- k
 
 
-
+!start Pierre test
+!      if (mynode==218 .and. itrc==4) then
+!         write(*,'(7x,A,F10.4)') 'NO3 (after isoN.)=',
+!     &  t(11,12,48,nnew,itrc)/Hz(11,12,48)
+!      endif
+!      if (mynode==218 .and. itrc==22) then
+!         write(*,'(7x,A,F10.4)') 'DIATC (after isoN.)=',
+!     &  t(11,12,29,nnew,itrc)/Hz(11,12,29)
+!      endif
+!end Pierre test
 
 ! Compute and apply vertical advective fluxes.
 
@@ -790,10 +872,20 @@ c**               cff=1./(z_r(i,j,k+1)-z_r(i,j,k))
             enddo
           enddo
 
+!start Pierre test   divide by dt
+!      if (mynode==218 .and. j==12 .and. itrc==4) then
+!         write(*,'(7x,A,F10.4)') 'NO3 ( + vertADV )=',
+!     &  t(11,12,48,nnew,itrc)/Hz(11,12,48)
+!      endif
+!      if (mynode==218 .and. j==12 .and. itrc==22) then
+!         write(*,'(7x,A,F10.4)') 'DIATC ( + vertADV )=',
+!     &  t(11,12,29,nnew,itrc)/Hz(11,12,29)
+!      endif
+!end Pierre test
+
 
 ! Start computation of vertical diffusion: add surface forcing fluxes
 
-# if defined PASSIVE_TRACER && defined AGE_DYE_TRACER
 # ifdef PHYS_FLUX_ANALYSIS
           if (itrc .le. NT_PFA) then
 ! separate do loop (for better efficiency) to store the fluxes
@@ -809,6 +901,8 @@ c**               cff=1./(z_r(i,j,k+1)-z_r(i,j,k))
              enddo
           end if
 # endif /* PHYS_FLUX_ANALYSIS */
+
+# if defined PASSIVE_TRACER && defined AGE_DYE_TRACER
 # ifdef TSOURCE
 ! AH17: Add tracer sources
 ! Add source and dillute all tracers with volume of water 
@@ -858,16 +952,16 @@ c**               cff=1./(z_r(i,j,k+1)-z_r(i,j,k))
           end if
 # endif /* FULL_PHYS_FLUX_ANALYSIS */
 
-# if defined PHYS_FLUX_ANALYSIS && defined VERT_DIFF_ANALYSIS
-! The vertical diffusive flux is not added in a step like the other fluxes,
-! so we store the old concentration (depth is already factored in here) first, 
-! and then add the new concentration.
-          do k=1,N
-            do i=Istr,Iend
-               ThisVDF(i, j, k) = t(i,j,k,nnew,itrc)
-            end do
-         end do
-# endif /* PHYS_FLUX_ANALYSIS & VERT_DIFF_ANALYSIS */
+!# if defined PHYS_FLUX_ANALYSIS && defined VERT_DIFF_ANALYSIS
+!! The vertical diffusive flux is not added in a step like the other fluxes,
+!! so we store the old concentration (depth is already factored in here) first, 
+!! and then add the new concentration.
+!          do k=1,N
+!            do i=Istr,Iend
+!               ThisVDF(i, j, k) = t(i,j,k,nnew,itrc)
+!            end do
+!         end do
+!# endif /* PHYS_FLUX_ANALYSIS & VERT_DIFF_ANALYSIS */
 
 # if defined LMD_KPP && defined ICEOBS && defined BRINE_PLUMES
 ! AH15: Distributing salt fluxes due freezing uniformly over
@@ -1060,6 +1154,17 @@ c??         enddo
             enddo
           enddo           !--> discard FC,WC,CF,DC
 
+!start Pierre test
+!      if (mynode==218 .and. j==12 .and. itrc==4) then
+!         write(*,'(7x,A,F10.4)') 'NO3 ( + vertDIFF)=',
+!     &  t(11,12,48,nnew,itrc)
+!      endif
+!      if (mynode==218 .and. j==12 .and. itrc==22) then
+!         write(*,'(7x,A,F10.4)') 'DIATC ( + vertDIFF)=',
+!     &  t(11,12,29,nnew,itrc)
+!      endif
+!end Pierre test
+
 # if defined PHYS_FLUX_ANALYSIS && defined VERT_DIFF_ANALYSIS
           do k=1,N
             do i=Istr,Iend
@@ -1247,6 +1352,17 @@ c??         enddo
 # elif defined BIOLOGY || defined BIOLOGY_NPZDOC
       call biology_tile (istr,iend,jstr,jend)     ! NPZDOC
 # endif
+
+!start Pierre test
+!      if (mynode==218) then
+!         write(*,'(7x,A,F10.4)') 'NO3 ( after BGC )=',
+!     &  t(11,12,48,nnew,4)
+!      endif
+!      if (mynode==218) then
+!         write(*,'(7x,A,F10.4)') 'DIATC ( after BGC )=',
+!     &  t(11,12,29,nnew,22)
+!      endif
+!end Pierre test
 
 # if defined EW_PERIODIC || defined NS_PERIODIC || defined MPI
       do itrc=1,NT-1,2

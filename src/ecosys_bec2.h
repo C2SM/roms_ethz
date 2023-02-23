@@ -32,7 +32,7 @@
 
       parameter( nr_bec2_diag_3d=93+nr_cchem_mocsy_3d
 # ifdef Ncycle_SY
-     &  +9
+     &  +14
 #endif
 #ifdef N2O_NEV
      &  +2 
@@ -165,9 +165,12 @@
       integer, parameter :: ammox_idx_t=LAST_I+1,nitrox_idx_t=LAST_I+2,
      &   anammox_idx_t=LAST_I+3,denitrif1_idx_t=LAST_I+4, denitrif2_idx_t=LAST_I+5,
      &   denitrif3_idx_t=LAST_I+6,spno2uptake_idx_t=LAST_I+7,
-     &   diatno2uptake_idx_t=LAST_I+8,diazno2uptake_idx_t=LAST_I+9
+     &   diatno2uptake_idx_t=LAST_I+8,diazno2uptake_idx_t=LAST_I+9,
+     &   n2oammox_idx_t=LAST_I+10,n2osoden_cons_idx_t=LAST_I+11,
+     &   n2oao1_cons_idx_t=LAST_I+12,n2oatm_cons_idx_t=LAST_I+13,
+     &   n2osiden_cons_idx_t=LAST_I+14
 #  undef LAST_I
-#  define LAST_I diazno2uptake_idx_t
+#  define LAST_I n2osiden_cons_idx_t
 # endif
 
 # ifdef N2O_NEV

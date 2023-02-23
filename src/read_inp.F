@@ -627,8 +627,8 @@ c-->    elseif (keyword(1:kwlen) == 'nudg_cof') then
 ! climatology file is needed.  The following code segments also
 ! checks for availability of clm_files.
 
-#if defined SOLVE3D && ( defined TCLIMATOLOGY ||( defined TNUDGING && \
-                        defined T_FRC_BRY )) || defined BGC_RESTORE !defined ANA_TCLIMA
+#if defined BGC_RESTORE && !defined ANA_TCLIMA || defined SOLVE3D && \
+   ( defined TCLIMATOLOGY || ( defined TNUDGING && defined T_FRC_BRY )) 
 
         elseif (keyword(1:kwlen) == 'climatology') then
           call cancel_kwd (keyword(1:kwlen), ierr)

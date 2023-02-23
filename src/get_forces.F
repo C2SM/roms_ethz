@@ -28,10 +28,10 @@ c--#define VERBOSE
       call get_uclima(ierr)
 #endif
 #ifdef SOLVE3D
-# if ( defined TCLIMATOLOGY ||( defined TNUDGING && \
-       defined T_FRC_BRY )) && !defined ANA_TCLIMA
+#if !defined ANA_TCLIMA && ( defined TCLIMATOLOGY || \
+        (defined TNUDGING && defined T_FRC_BRY )) 
       call get_tclima(ierr)
-#  ifdef TNUDGE_WEIGHTS
+#ifdef TNUDGE_WEIGHTS
       call get_nudg_weights(ierr)
 #  endif
 # endif
@@ -352,7 +352,7 @@ c--#define VERBOSE
 
 # define get_smth get_dqdt
 # define varname 'dQdSST'
-c--#  define timename 'dqdt_time'
+c# define timename 'dqdt_time' 
 # define DQDT_DATA
 # define var dqdtg
 # define timevar dqdt_time

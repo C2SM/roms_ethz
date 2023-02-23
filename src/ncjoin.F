@@ -54,8 +54,8 @@
 c--#define KEEP_CLOSED
 #define TIMING
 c--#define AUTORENICE
-c--#define VERBOSE
-#define AUTORENICE
+#define VERBOSE
+c--#define AUTORENICE
 #define NCFILEFORMAT nf_netcdf4
 
 
@@ -1040,8 +1040,8 @@ c**         endif
 #ifdef ZLIB_COMPRESSION
               ! if (vdims(i) > 1 .and. deflate_level > 0 ) then
               if (vdims(i) > 1) then
-                ierr=nf_def_var_deflate(nctarg, varid(i), shuffle,
-     &                                     deflate, deflate_level)
+!                ierr=nf_def_var_deflate(nctarg, varid(i), shuffle,
+!     &                                     deflate, deflate_level)
               endif
               if (ierr == nf_noerr) then
 #endif

@@ -296,7 +296,8 @@
         enddo
       enddo
 # endif
-# if (defined TCLIMATOLOGY || defined TNUDGING) && !defined ANA_TCLIMA
+# if (defined TCLIMATOLOGY || defined TNUDGING) \
+   && !defined ANA_TCLIMA
       do itrc=1,NT
         do k=1,N
           do j=jstrR,jendR

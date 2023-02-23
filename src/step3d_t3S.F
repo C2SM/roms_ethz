@@ -522,6 +522,7 @@ c??         enddo
       enddo
 
       call ecosys_bec2_tile (I_RANGE,J_RANGE)       ! BEC, 2014 version
+# endif
 
 # if defined MOORE_BEC
       enddo                                    ! Multi-Group species

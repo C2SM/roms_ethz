@@ -1,7 +1,7 @@
       program mpc
 
 ! Multi-functional pre-compiler to be inserted between CPP and Fortran
-! compiler to: 
+! compiler to:
 !------------
 ! (1) Eliminate blank lines and garbage left by CPP as well as Fortran
 !     comments, but keep compiler directives like C$OMP DO PARALLEL in
@@ -174,7 +174,7 @@ c--#define TRAP_BARRIERS
 ! but it is compatible with both old and new ways without any
 ! adjustment to the code and/or CPP-switches.
 
-      iin=-1 ; iout=-1 ; ibarr=0 
+      iin=-1 ; iout=-1 ; ibarr=0
       tab=char(9) ; quote=char(39) ; double_quote=char(34)
       case_fold=ichar('a')-ichar('A')
       lswtch=.false. ;  dir_switch=.false.
@@ -396,14 +396,14 @@ c**  &      ' not_end_of_file =', not_end_of_file
             if (type == char_type) then  ! Finally, modify the line
               isft=isft+6                ! of code: add the number of
               do k=length,ie+1,-1        ! newly inserted characters to
-                symbol(k+isft)=symbol(k) ! "isft", then move the rest 
-              enddo                      ! of the line to the right in 
+                symbol(k+isft)=symbol(k) ! "isft", then move the rest
+              enddo                      ! of the line to the right in
               length=length+isft         ! order to make room for the
               symbol(i+1)='('            ! insertion, adjust the length
-              symbol(i+2)='l'            ! of the line accordingly, 
+              symbol(i+2)='l'            ! of the line accordingly,
               symbol(i+3)='e'            ! then insert the new-style
               symbol(i+4)='n'            ! size specification.
-              symbol(i+5)='=' 
+              symbol(i+5)='='
               do k=1,ie-is+1
                 symbol(i+k+5)=bffr(k)
               enddo
@@ -766,7 +766,7 @@ c--#endif
                       i=i+1
                     enddo
                     if (i == length) then
-                      if (iout > 0) then   
+                      if (iout > 0) then
                         write(iout,'(A)') '!dir$ ivdep'
 
 ! If the target processor is Itanium 2, suppress vectorization
@@ -972,7 +972,7 @@ c                       write(*,'(A)') '!dir$ unroll'
             endif
           endif
           if (is1 > 0 .and. is2 == 0) then
-            if (iout > 0) then 
+            if (iout > 0) then
               write(iout,'(/6x,2A/)') '### ERROR: No closing bracket ',
      &                                               'in shared list.'
             else

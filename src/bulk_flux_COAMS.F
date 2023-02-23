@@ -103,10 +103,11 @@
       cff3=cff3*cff ; cff4=cff4*cff
 
 !> rhum
+! convert to fraction
       it6=itrhum ; cff5=rhum_time(it6)-tmid
       it5=3-it6  ; cff6=tmid-rhum_time(it5) 
       if (cff5 < dt) synchro_flag=.true.
-      cff=1./(cff5+cff6)
+      cff=1./(100.*(cff5+cff6))
       cff5=cff5*cff ; cff6=cff6*cff
 
 !> prate
@@ -115,9 +116,12 @@
       if (cff7 < dt) synchro_flag=.true.
 
 ! Drakkar rain is in units of [kg/m^2/s^2]. convert it to [m/s]
+!! UNITS?? isn't it [kg/m^2/s]?
+!cff7 and cff8 units of 1/precip?
 ! using fresh water density rho=1000.
+! SY New units of cm/day--convert to m/s. 
 
-      cff=1./(1000.*(cff7+cff8))
+      cff=1./(100.*3600.*24.*(cff7+cff8))
       cff7=cff7*cff ; cff8=cff8*cff
 
 !> lwrad

@@ -149,9 +149,10 @@
      &            , indxammox=LAST_I+1,indxnitrox=LAST_I+2
      &            , indxanammox=LAST_I+3,indxDENITRIF1=LAST_I+4,indxDENITRIF2=LAST_I+5
      &            , indxDENITRIF3=LAST_I+6, indxSPNO2UPTAKE=LAST_I+7,indxDIATNO2UPTAKE=LAST_I+8
-     &            , indxDIAZNO2UPTAKE=LAST_I+9
+     &            , indxDIAZNO2UPTAKE=LAST_I+9, indxN2OAMMOX=LAST_I+10, indxN2OSODEN_CONS=LAST_I+11
+     &            , indxN2OAO1_CONS=LAST_I+12, indxN2OATM_CONS=LAST_I+13, indxN2OSIDEN_CONS=LAST_I+14
 #  undef LAST_I
-#  define LAST_I indxDIAZNO2UPTAKE
+#  define LAST_I indxN2OSIDEN_CONS
 # endif
 # ifdef N2O_NEV
      &            , indxn2oprodnev=LAST_I+1,indxn2oconsnev=LAST_I+2
