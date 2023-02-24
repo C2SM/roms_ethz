@@ -1,13 +1,13 @@
 /*
-  UP ETH Pacific Telescopic Setup - USWC Focus
-  == === ======= ========== ===== = ==== =====
+UP ETH Pacific Telescopic Setup - USWC Focus
+== === ======= ========== ===== = ==== =====
 */
 
-                     /* Include standard CPP switches for UP ETH Zurich */  
-                     /* *** ACTIVATE BIOLOGY HERE *** */
-                     /* (Otherwise standard UP bio switches are not set) */
+                 /* Include standard CPP switches for UP ETH Zurich */  
+                 /* *** ACTIVATE BIOLOGY HERE *** */
+                 /* (Otherwise standard UP bio switches are not set) */
 
-!--> # define BIOLOGY_BEC2
+# define BIOLOGY_BEC2
 #include "cppdefs_UP.h"
 #define PACTCS60
 #define CALENDAR  '365_day'
@@ -15,7 +15,7 @@
 
 #ifdef PACTCS60
 # define GRID_SIZE LLm=300, MMm=257, N=64      ! pactcs60 8-120km telescopic up to Antarctica
-# define DOMAIN_TILING NP_XI=8, NP_ETA=18, NSUB_X=1, NSUB_E=1 ! Euler
+# define DOMAIN_TILING NP_XI=8, NP_ETA=16, NSUB_X=1, NSUB_E=1 ! Euler
 #else 
 ! default: PACTCS30 
 # define PACTCS30
@@ -24,10 +24,10 @@
 #endif
 
 
-     /* Open Boundaries */
+ /* Open Boundaries */
 #define OBC_SOUTH
 
-     /* Open Boundary Conditions */
+ /* Open Boundary Conditions */
 !-- Try to treat inflow/outflow of ACC differently! (not yet tested, so far I used M2FLATHER)
 !-- new only indic/pacific, see below #define OBC_M2SPECIFIED /* special for SO */
 #define OBC_SOUTH_M2SPECIFIED_TILESTR 000 /* OBC_M2SPECIFIED for a certain range of tiles */
@@ -36,11 +36,11 @@
 #define OBC_TORLANSKI /* Tracer BC: OBC_TORLANSKI, OBC_TSPECIFIED */
 
 
-     /* Open Boundary Conditions */
+ /* Open Boundary Conditions */
 !-- #define CLMFORCING
 
 
-    /*  Use CLM Files */
+/*  Use CLM Files */
 !-- #ifdef CLMFORCING
 !# define TCLIMATOLOGY
 /* Partial restoring of TS in user-defined region via 2D field nudg_weights in clm file (MF)*/
@@ -61,18 +61,18 @@
 !--> # undef SPONGE /* note: UP ETH before 8/2015 did not use SPONGE with BRY */
 !-- #endif
 
-    /* Bottom KPP */
+/* Bottom KPP */
 #define LMD_BKPP
 
 
 !--> #undef OBC_M2FLATHER  /* undefine default in cppdefs_UP.h */
 !--> #define OBC_M2SPECIFIED
 
-     /* Seaice SSS masking and read seaice conc */
+ /* Seaice SSS masking and read seaice conc */
 !--> # define SALINITY_MASK
 !# define ICEOBS
 
-     /* Output */
+ /* Output */
 #define AVERAGES
 !#define SLICE_AVG
 #ifdef PACTCS30
@@ -86,7 +86,7 @@
 ! define to switch on WENO scheme advection:
 !--> #define ADV_WENO 
 
-     /* Biology */
+ /* Biology */
 !--> #define BIOLOGY_NPZDOC
 
 #ifdef BIOLOGY_BEC2
