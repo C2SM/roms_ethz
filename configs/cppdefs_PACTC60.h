@@ -12,6 +12,7 @@ UP ETH Pacific Telescopic Setup - USWC Focus
 #define PACTCS60
 #define CALENDAR  '365_day'
 #define ADV_WENO
+#define JOINED_INPUT
 
 #ifdef PACTCS60
 # define GRID_SIZE LLm=300, MMm=257, N=64      ! pactcs60 8-120km telescopic up to Antarctica

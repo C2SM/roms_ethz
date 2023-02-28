@@ -1,5 +1,7 @@
 # Source dir
 SRCDIR := $(CURDIR)/src
+# Configuration direcgtory
+CNFDIR ?=  $(CURDIR)/configs
 # Default ROMS configuration:
 config ?= PACTC60
 # Build dir
@@ -8,8 +10,8 @@ BLDDIR ?= $(CURDIR)/$(config)_build
 # Create build dir if needed and copy make and configuration files to it
 $(shell test -d $(BLDDIR) || mkdir -p $(BLDDIR) )
 $(shell cp $(SRCDIR)/00makefile $(BLDDIR)/Makefile) 
-$(shell cp $(SRCDIR)/include/cppdefs_UP.h $(BLDDIR)/ )
-$(shell cp $(SRCDIR)/include/cppdefs_$(config).h $(BLDDIR)/cppdefs.h )
+$(shell cp $(CNFDIR)/cppdefs_UP.h $(BLDDIR)/ )
+$(shell cp $(CNFDIR)/cppdefs_$(config).h $(BLDDIR)/cppdefs.h )
 
 .PHONY: print-% roms roms_cpl all clean distclean install
 
