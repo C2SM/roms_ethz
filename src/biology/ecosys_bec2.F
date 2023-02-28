@@ -3261,14 +3261,15 @@ c$$$       enddo
     !  ballast production from net POC_PROD.
     !-----------------------------------------------------------------------
  
-             POC_PROD_avail = POC_prod(i) -
+             POC_PROD_avail = max(POC_prod(i) -
      &          P_CaCO3_rho * P_CaCO3_prod(i) -
-     &          P_SiO2_rho * P_SiO2_prod(i)
+     &          P_SiO2_rho * P_SiO2_prod(i), 0.0)
 
+# if 0
     !-----------------------------------------------------------------------
     !  Check for POC production bounds violations
     !-----------------------------------------------------------------------
-
+    
              if (POC_PROD_avail < c0) then
                 print *, 'subroutine compute_particulate_terms:',
      &            ' non_dust ballast production exceeds POC production'
@@ -3279,6 +3280,7 @@ c$$$       enddo
                 print*,'P_SiO2_rho * P_SiO2_prod(i)',P_SiO2_rho * P_SiO2_prod(i)
                 poc_error = .true.
              endif
+# endif
 
     !-----------------------------------------------------------------------
     !  Compute 1st approximation to new QA_dust_def, the QA_dust
