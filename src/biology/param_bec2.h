@@ -72,6 +72,9 @@
      &   kPO4(autotroph_cnt),
      &   kDOP(autotroph_cnt),
      &   kNO3(autotroph_cnt),
+# ifdef Ncycle_SY
+     &   kNO2(autotroph_cnt),
+# endif
      &   kNH4(autotroph_cnt),
      &   kSiO3(autotroph_cnt),
      &   Qp(autotroph_cnt),                  ! P/C ratio
@@ -105,6 +108,9 @@
      &        Qp, gQfe_0, gQfe_min, alphaPI, PCref, thetaN_max, loss_thres, loss_thres2,
      &        temp_thres, mort, mort2, agg_rate_max, agg_rate_min, z_umax_0, z_grz,
      &        graze_zoo, graze_poc, graze_doc, loss_poc, f_zoo_detr
+# ifdef Ncycle_SY
+     &        , kNO2
+# endif
 
   !-----------------------------------------------------------------------------
   !   Redfield Ratios, dissolved & particulate
@@ -113,6 +119,9 @@
        real parm_Red_D_C_P, parm_Red_D_N_P, parm_Red_D_O2_P, parm_Remin_D_O2_P,
      &   parm_Red_P_C_P, parm_Red_D_C_N, parm_Red_P_C_N, parm_Red_D_C_O2,
      &   parm_Remin_D_C_O2, parm_Red_P_C_O2, parm_Red_Fe_C, parm_Red_D_C_O2_diaz
+# ifdef Ncycle_SY
+     &   ,parm_Red_D_C_O2_NO2V
+# endif
        parameter(
      &   parm_Red_D_C_P  = 117.0,                  ! carbon:phosphorus
      &   parm_Red_D_N_P  =  16.0,                  ! nitrogen:phosphorus
@@ -137,6 +146,45 @@
      &   parm_o2_min,            ! min O2 needed for prod & consump. (nmol/cm^3)
      &   parm_o2_min_delta,      ! width of min O2 range (nmol/cm^3)
      &   parm_kappa_nitrif,      ! nitrification inverse time constant (1/sec)
+# ifdef TDEP_REMIN
+     &   parm_ktfunc_soft, ! parameter for the temperature dependance of remin on temp (Laufkoeuter 2017)
+# endif
+# ifdef Ncycle_SY
+     &   parm_kao,        ! max ammonium oxidation rate (1/s)
+     &   parm_kno,        ! max nitrite oxidation rate (1/s)
+     &   parm_ko2_ao,     ! Michaelis Menton O2 constant for ammonium oxidation (mmol m-3)
+     &   parm_knh4_ao,    ! Michaelis Menton NH4 constant for ammonium oxidation (mmol m-3)
+     &   parm_ko2_no,     ! Michaelis Menton O2 constant for nitrite oxidation (mmol m-3)
+     &   parm_kno2_no,    ! Michaelis Menton NO2 constant for nitrite oxidation (mmol m-3)
+     &   parm_kno3_den1,       ! no3 half saturation constant for denitrification 1 (no3-> no2, mmol/m^3)
+     &   parm_kno2_den2,       ! no2 half saturation constant for denitrification 2 (no2-> n2o, mmol/m^3)
+     &   parm_kn2o_den3,       ! n2o half saturation constant for denitrification 3 (n2o-> n2, mmol/m^3)
+     &   parm_ko2_oxic,       ! half saturation constant for oxygen consumption during oxic remin (mmol/m^3)	
+     &   parm_ko2_den1,       ! exponential decay constant for denitrification 1 (NO3-> NO2, mmol/m^3)
+     &   parm_ko2_den2,       ! exponential decay constant for denitrification 2 (NO2-> N2O, mmol/m^3)
+     &   parm_ko2_den3,       ! exponential decay constant for denitrification 3 (N2O-> N2, mmol/m^3)
+     &   parm_koxic,       ! maximum oxic remin specific rate (mmol C/m^3/s)
+     &   parm_kden1,       ! maximum denitrification 1 specific rate (mmol C/m^3/s)  
+     &   parm_kden2,       ! maximum denitrification 2 specific rate (mmol C/m^3/s)
+     &   parm_kden3,       ! maximum denitrification 3 specific rate (mmol C/m^3/s)
+     &   parm_kax,         ! maximum anaerobic ammonium oxidation specific rate (mmol N/m^3/s) 
+     &   parm_knh4_ax,     ! NH4 half saturation constant for anammox (mmol/m^3)
+     &   parm_kno2_ax,    ! NO2 half saturation constant for anammox (mmol/m^3)
+     &   parm_ko2_ax,      ! exponential decay constant for anammox (mmol/m^3)
+     &   r_no2tonh4_ax, ! ratio of N consumed from NO2 vs NH4 during anammox (unitless)
+     &   parm_n2o_ji_a, ! n2o yield constant (Ji et al.  2015)
+     &   parm_n2o_ji_b, ! n2o yield constant (Ji et al.  2015)
+     &   parm_n2o_gor_a, ! n2o yield constant (Goreau et al. 1980)
+     &   parm_n2o_gor_b, ! n2o yield constant (Goreau et al. 1980)
+# endif
+# ifdef N2O_NEV
+     &   parm_n2o_nev_a1, ! n2o production constant (Nevison et al. 2oo3)
+     &   parm_n2o_nev_a2, ! n2o production constant (Nevison et al. 2oo3)
+     &   O2_crit_nev, ! [O2] at which we switch to N2O consumption (Nevison et al. 2003)
+     &   N2O_cons_tau_nev, ! n2o consumption timescale [1/s] (Cornejo and Farias 2007)
+     &   z_scale_nev, ! Depth scale for N2O production (Nevison et al. 2oo3)
+# endif
+
      &   parm_nitrif_par_lim,    ! PAR limit for nitrif. (W/m^2)
      &   parm_z_mort_0,          ! zoo linear mort rate (1/sec)
      &   parm_z_mort2_0,         ! zoo quad mort rate (1/sec/((mmol C/m3))
@@ -158,6 +206,22 @@
      &   parm_BSIbury, parm_Fe_scavenge_rate0, parm_f_prod_sp_CaCO3, parm_POC_diss,
      &   parm_SiO2_diss, parm_CaCO3_diss,
      &   parm_scalelen_z, parm_scalelen_vals
+# ifdef NO3_UCLA
+     &  , parm_lowo2_remin_factor
+# endif
+# ifdef TDEP_REMIN
+     &   , parm_ktfunc_soft
+# endif
+# ifdef Ncycle_SY
+     &   , parm_kao, parm_kno, parm_ko2_ao, parm_knh4_ao, parm_ko2_no, parm_kno2_no, parm_kno3_den1,
+     &   parm_kno2_den2, parm_kn2o_den3, parm_ko2_oxic, parm_ko2_den1, parm_ko2_den2, parm_ko2_den3,
+     &   parm_koxic, parm_kden1, parm_kden2, parm_kden3, parm_kax, parm_knh4_ax, 
+     &   parm_kno2_ax, parm_ko2_ax, r_no2tonh4_ax, parm_n2o_ji_a, parm_n2o_ji_b, parm_n2o_gor_a,
+     &   parm_n2o_gor_b
+# endif
+# ifdef N2O_NEV
+     &   ,parm_n2o_nev_a1, parm_n2o_nev_a2, O2_crit_nev, N2O_cons_tau_nev, z_scale_nev
+# endif
 
   !---------------------------------------------------------------------
   !     Misc. Rate constants
@@ -205,8 +269,13 @@
      &   caco3_poc_min    = 0.4,  ! minimum proportionality between
      &                            !   QCaCO3 and grazing losses to POC
      &                            !   (mmol C/mmol CaCO3)
+#ifdef NO3_UCLA
+     &   spc_poc_fac      = 0.14, ! small phyto grazing factor (1/mmolC)
+     &   f_graze_sp_poc_lim = 0.36, 
+#else
      &   spc_poc_fac      = 0.11, ! small phyto grazing factor (1/mmolC)
      &   f_graze_sp_poc_lim = 0.3,
+#endif
      &   f_photosp_CaCO3  = 0.4   ! proportionality between small phyto
      &                            ! production and CaCO3 production
 !     &   f_graze_CaCO3_remin = 0.33, ! fraction of spCaCO3 grazing
@@ -241,6 +310,13 @@
 !     &   ! carbon:nitrogen ratio for denitrification
      &   denitrif_C_N  = parm_Red_D_C_P/136.0
      & )
+# ifdef Ncycle_SY
+      real, parameter :: r_Nfix_photo=1.25
+      real, parameter ::
+     &   denitrif_NO3_C  = 472.0 / 2.0 / 106.0, ! need to comment on that and check 
+     &   denitrif_NO2_C  = 472.0 / 2.0 / 106.0, ! (commment from UCLA)
+     &   denitrif_N2O_C  = 472.0 / 2.0 / 106.0
+# endif
        common /ecosys_bec2/ Q, Qp_zoo_pom, Qfe_zoo, gQsi_0, gQsi_max, gQsi_min,
      &        QCaCO3_max, cks, cksi
 
@@ -275,7 +351,11 @@
        real Tref, Q_10, Q_10_phyto(autotroph_cnt), Q_10_zoo
        parameter(
      &   Tref = 30.0,   ! reference temperature (C)
+# ifdef NO3_UCLA
+     &   Q_10 = 1.7     ! factor for temperature dependence (non-dim)
+# else
      &   Q_10 = 1.5     ! factor for temperature dependence (non-dim)
+# endif
      & )
        common /ecosys_bec2/ Q_10_phyto, Q_10_zoo
 
