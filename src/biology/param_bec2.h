@@ -206,9 +206,6 @@
      &   parm_BSIbury, parm_Fe_scavenge_rate0, parm_f_prod_sp_CaCO3, parm_POC_diss,
      &   parm_SiO2_diss, parm_CaCO3_diss,
      &   parm_scalelen_z, parm_scalelen_vals
-# ifdef NO3_UCLA
-     &  , parm_lowo2_remin_factor
-# endif
 # ifdef TDEP_REMIN
      &   , parm_ktfunc_soft
 # endif
