@@ -27,7 +27,7 @@
 # else /* CCHEM_MOCSY */
       parameter( nr_cchem_mocsy_2d=0, nr_cchem_mocsy_3d=0 )
 # endif /* CCHEM_MOCSY */
-      parameter( nr_bec2_diag_3d=107+nr_cchem_mocsy_3d
+      parameter( nr_bec2_diag_3d=109+nr_cchem_mocsy_3d
 # ifdef Ncycle_SY
      &  +14
 #endif
@@ -46,6 +46,7 @@
 # ifdef BEC_PHAEO
      &    +17
 # endif
+     & , nr_bec2_diag_2d=29+nr_cchem_mocsy_2d 
 # ifdef Ncycle_SY
      &  +8
 # ifdef N2O_TRACER_DECOMP
@@ -55,7 +56,7 @@
 #ifdef N2O_NEV
      &  +1 ! 0 from coccos, 0 from impl sinking
 #endif /* N2O_NEV*/
-     &          ,nr_bec2_diag_2d=29+nr_cchem_mocsy_2d )
+     &  )
       parameter( nr_bec2_diag=nr_bec2_diag_2d+nr_bec2_diag_3d )
 # ifdef BEC2_DIAG_USER
       real, pointer, dimension(:,:,:,:) :: bec2_diag_3d
@@ -185,6 +186,8 @@
 
 # ifdef N2O_NEV
       integer, parameter :: n2oprodnev_idx_t=LAST_I+1,n2oconsnev_idx_t=LAST_I+2
+# undef LAST_I
+# define LAST_I n2oconsnev_idx_t
 # endif
 
 # ifdef BEC_DDA

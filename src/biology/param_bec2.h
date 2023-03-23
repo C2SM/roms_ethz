@@ -135,6 +135,9 @@
      &   parm_Red_P_C_O2 = parm_Red_D_C_O2,                 ! carbon:oxygen
      &   parm_Red_Fe_C   = 3.0e-6,                 ! iron:carbon
      &   parm_Red_D_C_O2_diaz = parm_Red_D_C_P/150.0   ! carbon:oxygen for diazotrophs
+# ifdef Ncycle_SY
+     &   ,parm_Red_D_C_O2_NO2V = parm_Red_D_C_P/162.0   ! carbon:oxygen for HNO2 uptake (assuming OM is C117H297O85N16P)
+# endif 
      & )
 
   !----------------------------------------------------------------------------
@@ -206,9 +209,6 @@
      &   parm_BSIbury, parm_Fe_scavenge_rate0, parm_f_prod_sp_CaCO3, parm_POC_diss,
      &   parm_SiO2_diss, parm_CaCO3_diss,
      &   parm_scalelen_z, parm_scalelen_vals
-# ifdef NO3_UCLA
-     &  , parm_lowo2_remin_factor
-# endif
 # ifdef TDEP_REMIN
      &   , parm_ktfunc_soft
 # endif

@@ -54,6 +54,24 @@
      &            , indxDCO2STAR=indxPCO2air+18
 # undef LAST_I_BIO2D
 # define LAST_I_BIO2D indxDCO2STAR
+# ifdef Ncycle_SY
+     &            , indxschmidt_n2o=LAST_I_BIO2D+1, indxpvn2o=LAST_I_BIO2D+2, indxn2osat=LAST_I_BIO2D+3
+     &		  , indxfgn2o=LAST_I_BIO2D+4,indxschmidt_n2=LAST_I_BIO2D+5, indxpvn2=LAST_I_BIO2D+6
+     &            , indxfgn2=LAST_I_BIO2D+7, indxn2sat=LAST_I_BIO2D+8
+# undef LAST_I_BIO2D
+# define LAST_I_BIO2D indxn2sat
+# ifdef N2O_TRACER_DECOMP
+     &            , indxfgn2o_ao1=LAST_I_BIO2D+1, indxfgn2o_siden=LAST_I_BIO2D+2
+     &            , indxfgn2o_soden=LAST_I_BIO2D+3, indxfgn2o_atm=LAST_I_BIO2D+4
+# undef LAST_I_BIO2D
+# define LAST_I_BIO2D indxfgn2o_atm
+# endif
+# endif
+# ifdef N2O_NEV
+     &            , indxfgn2o_nev=LAST_I_BIO2D+1
+# undef LAST_I_BIO2D
+# define LAST_I_BIO2D indxfgn2o_nev
+# endif
 #  ifdef CCHEM_MOCSY
 #   if !defined CCHEM_TODEPTH
      &            , indxCO3=LAST_I_BIO2D+1, indxHCO3=LAST_I_BIO2D+2
@@ -112,9 +130,10 @@
      &            , indxQSI=indxPAR+95,indxTOTGRAZE=indxPAR+96,indxTOTGRAZEDIC=indxPAR+97
      &            , indxTOTGRAZEZOO=indxPAR+98,indxTOTAGG=indxPAR+99,indxTOTNO3UPTAKE=indxPAR+100
      &            , indxTOTNH4UPTAKE=indxPAR+101,indxTOTLOSS=indxPAR+102,indxTOTLOSSDIC=indxPAR+103
-     &            , indxNEXCRETE=indxPAR+104,indxTOTPOC=indxPAR+105,indxNCP=indxPAR+106
+     &            , indxNEXCRETE=indxPAR+104,indxTOTPOC=indxPAR+105,indxNCP=indxPAR+106 
+     &            , indxo2cons=indxPAR+107, indxo2prod=indxPAR+108
 #  undef LAST_I_BIO3D
-#  define LAST_I_BIO3D indxNCP
+#  define LAST_I_BIO3D indxo2prod
 #  if defined CCHEM_MOCSY && defined CCHEM_TODEPTH
      &            , indxPH=LAST_I_BIO3D+1, indxPCO2=indxPH+1, indxCO3=indxPH+2
      &            , indxHCO3=indxPH+3, indxCO2STAR=indxPH+4
@@ -176,6 +195,21 @@
 #  undef LAST_I_BIO3D
 #  define LAST_I_BIO3D indxPOCPRODPHAEO
 # endif
+
+# ifdef Ncycle_SY
+     &            , indxammox=LAST_I_BIO3D+1,indxnitrox=LAST_I_BIO3D+2
+     &            , indxanammox=LAST_I_BIO3D+3,indxDENITRIF1=LAST_I_BIO3D+4,indxDENITRIF2=LAST_I_BIO3D+5
+     &            , indxDENITRIF3=LAST_I_BIO3D+6, indxSPNO2UPTAKE=LAST_I_BIO3D+7,indxDIATNO2UPTAKE=LAST_I_BIO3D+8
+     &            , indxDIAZNO2UPTAKE=LAST_I_BIO3D+9, indxN2OAMMOX=LAST_I_BIO3D+10, indxN2OSODEN_CONS=LAST_I_BIO3D+11
+     &            , indxN2OAO1_CONS=LAST_I_BIO3D+12, indxN2OATM_CONS=LAST_I_BIO3D+13, indxN2OSIDEN_CONS=LAST_I_BIO3D+14
+#  undef LAST_I_BIO3D
+#  define LAST_I_BIO3D indxN2OSIDEN_CONS
+# endif
+
+# ifdef N2O_NEV
+     &            , indxn2oprodnev=LAST_I_BIO3D+1,indxn2oconsnev=LAST_I_BIO3D+2
+# endif
+
 # endif /* BEC2_DIAG */
 #endif /* BIOLOGY_BEC2 */
 
