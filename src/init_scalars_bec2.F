@@ -1523,7 +1523,7 @@ CR      write(*,'(1x,A,I3)') 'indxNH4 =',indxNH4
      &                     .false.,.false.,.false.,.false.,.false.,       !DUST_FLUX_IN, DUST_REMIN,P_IRON_FLUX_IN, P_IRON_PROD, P_IRON_REMIN,
      &                     .false.,.false.,.false.,.false.,.false.,       !GRAZE_SP, GRAZE_DIAT,GRAZE_DIAZ, SP_LOSS, DIAT_LOSS,
      &                     .false.,.false.,.false.,.false.,.false.,       !ZOO_LOSS, SP_AGG, DIAT_AGG,PHOTOC_SP, PHOTOC_DIA,
-     &                     .true.,.false.,.false.,.false.,.false.,       !TOT_PROD, DOC_PROD,DOC_REMIN, FE_SCAVENGE, SP_N_LIM, 
+     &                     .false.,.false.,.false.,.false.,.false.,       !TOT_PROD, DOC_PROD,DOC_REMIN, FE_SCAVENGE, SP_N_LIM, 
      &                     .false.,.false.,.false.,.false.,.false.,       !SP_FE_LIM, SP_PO4_LIM,SP_LIGHT_LIM, DIAT_N_LIM, DIAT_FE_LIM,
      &                     .false.,.false.,.false.,.false.,.false.,       !DIAT_PO4_LIM, DIAT_SIO3_LIM,DIAT_LIGHT_LIM, CACO3_PROD, DIAZ_NFIX,
      &                     .false.,.false.,.false.,.false.,.false.,       !DIAZ_LOSS, PHOTOC_DIAZ,DIAZ_PO4_LIM, DIAZ_FE_LIM, DIAZ_LIGHT_LIM,
@@ -1535,8 +1535,8 @@ CR      write(*,'(1x,A,I3)') 'indxNH4 =',indxNH4
      &                     .false.,.false.,.false.,.false.,.false.,  !ZOO_LOSS_DIC, DIAZ_AGG,GRAZE_SP_ZOO, GRAZE_DIAT_ZOO, GRAZE_DIAZ_ZOO, 
      &                     .false.,.false.,.false.,.false.,          !SPQCACO3,PHOTOACC_SP,PHOTOACC_DIAT, PHOTOACC_DIAZ,
      &                     .false.,.false.,.false.,.false.,.false.,  !SPC_ZERO, DIATC_ZERO, DIAZC_ZERO, DOC_ZERO, ZOOC_ZERO
-     &                     .false.,.false.,.true.,.false.,           !SPCACO3_ZERO, DONR_REMIN, TOTCHL, SP_P_LIM 
-     &                     .false.,.false.,.true.,                     !DIAT_P_LIM,DIAZ_P_LIM, TOT_PHYTO_C
+     &                     .false.,.false.,.false.,.false.,           !SPCACO3_ZERO, DONR_REMIN, TOTCHL, SP_P_LIM 
+     &                     .false.,.false.,.false.,                     !DIAT_P_LIM,DIAZ_P_LIM, TOT_PHYTO_C
      &                     .false.,.false.,.false.,.false.,     !POC_PROD_ZOO_LOSS,POC_PROD_DIAT,POC_PROD_SP,POC_PROD_DIAZ
      &                     .false.,.false.,.false.,.false.,.false.,  ! QSI_DIAT,TOT_GRAZE,TOT_GRAZE_DIC,TOT_GRAZE_ZOO,TOT_AGG
      &                     .false.,.false.,.false.,.false.,.false., ! TOT_NO3_UPTAKE,TOT_NH4_UPTAKE,TOT_LOSS,TOT_LOSS_DIC, NEXCRETE

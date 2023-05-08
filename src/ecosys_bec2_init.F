@@ -487,9 +487,9 @@
 #ifdef RIVER_LOAD_BIO
       lriver_load_n = .TRUE.
       lriver_load_p = .TRUE.
-      lriver_load_alk = .TRUE.
-      lriver_load_dic = .TRUE.
-      lriver_load_si = .TRUE.
+      !lriver_load_alk = .TRUE. !Commented by FD 11.01.2022 as those river load forcings were only produced for CN setup (Southern Ocean) - Match master branch code
+      !lriver_load_dic = .TRUE. !Commented by FD 11.01.2022 as those river load forcings were only produced for CN setup (Southern Ocean) - Match master branch code
+      !lriver_load_si = .TRUE.  !Commented by FD 11.01.2022 as those river load forcings were only produced for CN setup (Southern Ocean) - Match master branch code
 #endif
       lsource_sink  = .TRUE.  
 
