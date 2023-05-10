@@ -331,7 +331,7 @@ c$$$       enddo
             end do  ! i
          end do  ! j
        END IF
-# endif
+# endif /* Ncycle_SY || N2O_NEV */
 
 # ifdef Ncycle_SY 
     !------------------------------------------------------------------------
