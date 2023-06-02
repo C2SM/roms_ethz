@@ -1067,7 +1067,9 @@ c$$$       enddo
 # endif
      &    QA_dust_def,     ! incoming deficit in the QA(dust) POC flux
      &    NITRIF,          ! nitrification (NH4 -> NO3) (mmol N/m^3/sec)
+# ifndef Ncycle_SY
      &    DENITRIF,        ! water column nitrification (NO3 -> N2) (mmol N/m^3/sec)
+# endif
      &    SED_DENITRIF,    ! sedimentary denitrification (mmol N/m^3/sec)
      &    OTHER_REMIN,     ! organic C remin not due oxic or denitrif (mmolC/m^3/sec)
      &    flux_oxidated,   ! carbon oxidation rate in sediment

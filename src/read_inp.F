@@ -519,7 +519,7 @@ c--      fname='roms.in.US_West'
 #endif
             read(input,'(A)',err=95) fname
             lstr=lenstr(fname)
-#if defined MPI && defined PARALLEL_FILES && !defined JOINED_INPUT
+#if defined MPI && defined PARALLEL_FILES && !defined JOINED_INITIAL
             call insert_node(fname, lstr, mynode, NNODES, ierr)
 #endif
             ininame=fname(1:lstr)
