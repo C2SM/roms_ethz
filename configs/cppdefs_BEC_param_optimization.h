@@ -80,10 +80,6 @@
 #endif
 !--> #define STARTDATE '0001-01-01' /* part of netCDF CF-convention time units attribute default: '0001-01-01'*/
 
-      /* WENO */
-#define TS_HADV_WENO3
-#define TS_VADV_WENO5
-
 !!#define ADV_ISONEUTRAL
 
      /* Biology */

@@ -38,7 +38,6 @@
 #undef LMD_MIXING
 #undef LMD_BKPP
 
-#define ADV_WENO
 
      /* Output */
 !--> #define AVERAGES

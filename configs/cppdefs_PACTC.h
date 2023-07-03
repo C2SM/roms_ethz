@@ -81,9 +81,6 @@
 
 !--> #define ADV_ISONEUTRAL
 
-! define to switch on WENO scheme advection:
-!--> #define ADV_WENO 
-
      /* Biology */
 !--> #define BIOLOGY_NPZDOC
 

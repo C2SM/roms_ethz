@@ -35,7 +35,6 @@
 
      /* Advection*/
 #define ADV_ISONEUTRAL
-#define ADV_WENO
 
      /* Biology */
 !--> #define BIOLOGY_NPZDOC

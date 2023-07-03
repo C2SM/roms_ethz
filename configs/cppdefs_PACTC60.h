@@ -11,7 +11,6 @@ UP ETH Pacific Telescopic Setup - USWC Focus
 #include "cppdefs_UP.h"
 #define PACTCS60
 #define CALENDAR  '365_day'
-#define ADV_WENO
 #define JOINED_INPUT
 
 #ifdef PACTCS60
@@ -83,9 +82,6 @@ UP ETH Pacific Telescopic Setup - USWC Focus
 
 
 !--> #define ADV_ISONEUTRAL
-
-! define to switch on WENO scheme advection:
-!--> #define ADV_WENO 
 
  /* Biology */
 !--> #define BIOLOGY_NPZDOC

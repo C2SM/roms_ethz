@@ -12,7 +12,6 @@
 #include "cppdefs_UP.h"
 #define PACTCS60
 #define CALENDAR  '365_day'
-#define ADV_WENO
 #define JOINED_INPUT
 
 #ifdef PACTCS60
@@ -82,11 +81,8 @@
 #endif
 !--> #define STARTDATE '0001-01-01' /* part of netCDF CF-convention time units attribute default: '0001-01-01'*/
 
-
 !--> #define ADV_ISONEUTRAL
 
-! define to switch on WENO scheme advection:
-!--> #define ADV_WENO 
 
      /* Biology */
 !--> #define BIOLOGY_NPZDOC
