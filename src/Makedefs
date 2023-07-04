@@ -41,7 +41,7 @@ DEPFLAGS = -MT $@ -MMD -MP -MF $(DEPDIR)/$*.Td
 
 # Declare *.f files precious to keep them
 .PRECIOUS: %.f %.f90
-.INTERMEDIATE: %.f %.f90
+# .INTERMEDIATE: %.f %.f90
 
 # Clear implicit rules:
 %.o: %.F

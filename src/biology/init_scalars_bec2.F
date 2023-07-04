@@ -1778,45 +1778,6 @@ CR      write(*,'(1x,A,I3)') 'indxNH4 =',indxNH4
 # ifdef BEC2_DIAG
 
         ! MF: Control BEC2_DIAG Output vars
-      wrtavg_bec2_diag_3d=(/.false.,.true.,.true. ,.true. ,.false.,    !PAR, POC_FLUX_IN, POC_Prod,POC_REMIN, CACO3_FLUX_IN,
-     &                     .false.,.false.,.false.,.false.,.false.,    !PCACO3_PROD, CACO3_REMIN,SIO2_FLUX_IN, SIO2_PROD, SIO2_REMIN,
-     &                     .false.,.false.,.false.,.false.,.false.,    !DUST_FLUX_IN, DUST_REMIN,P_IRON_FLUX_IN, P_IRON_PROD, P_IRON_REMIN,
-     &                     .false.,.false. ,.false.,.false.,.false. ,  !GRAZE_SP, GRAZE_DIAT,GRAZE_DIAZ, SP_LOSS, DIAT_LOSS,
-     &                     .false.,.false.,.false.,.true.,.true.,      !ZOO_LOSS, SP_AGG, DIAT_AGG,PHOTOC_SP, PHOTOC_DIA,
-     &                     .true. ,.true. ,.true. ,.false.,.true. ,    !TOT_PROD, DOC_PROD,DOC_REMIN, FE_SCAVENGE, SP_N_LIM, 
-     &                     .true. ,.true.,.true. ,.true. ,.true. ,     !SP_FE_LIM, SP_PO4_LIM,SP_LIGHT_LIM, DIAT_N_LIM, DIAT_FE_LIM,
-     &                     .true. ,.true. ,.true. ,.true.,.true. ,     !DIAT_PO4_LIM, DIAT_SIO3_LIM,DIAT_LIGHT_LIM, CACO3_PROD, DIAZ_NFIX,
-     &                     .false.,.true.,.true.,.true. ,.true. ,      !DIAZ_LOSS, PHOTOC_DIAZ,DIAZ_PO4_LIM, DIAZ_FE_LIM, DIAZ_LIGHT_LIM,
-     &                     .false.,.false.,.false. ,.false. ,.false.,  !FE_SCAVENGE_RATE, DON_PROD,DON_REMIN, DOFE_PROD, DOFE_REMIN,
-     ! 50
-     &                     .false.,.false.,.false.,.false.,.false.,  !DOP_PROD, DOP_REMIN,DIAT_SI_UPTAKE, PHOTOFE_SP, PHOTOFE_DIA,  
-     &                     .false.                                   !PHOTOFE_DIA      
-# ifndef Ncycle_SY
-     &                     ,.true.,.true.                            !NITRIF, DENITRIF
-# else
-     &                     ,.false.,.false.                          !NITRIF, DENITRIF
-# endif
-     &                     ,.false.,.false.,                         !SP_NO3_UPTAKE,DIAT_NO3_UPTAKE,  
-     &                     .false.,.false.,.false.,.false.,.false.,  !DIAZ_NO3_UPTAKE,SP_NH4_UPTAKE, DIAT_NH4_UPTAKE,DIAZ_NH4_UPTAKE,SP_GRAZE_DIC,  
-     &                     .false.,.false.,.false.,.false.,.false.,  !DIAT_GRAZE_DIC,DIAZ_GRAZE_DIC, SP_LOSS_DIC,DIAT_LOSS_DIC,DIAZ_LOSS_DIC,  
-     &                     .false.,.false.,.false.,.false.,.false.,  !ZOO_LOSS_DIC, DIAZ_AGG,GRAZE_SP_ZOO, GRAZE_DIAT_ZOO, GRAZE_DIAZ_ZOO, 
-     &                     .false.,.false.,.false.,.false.,.false.,  !SPQCACO3, PHOTOACC_SP,PHOTOACC_DIAT, PHOTOACC_DIAZ, SPC_ZERO, 
-     &                     .false.,.false.,.false.,.false.,.false.,  !DIATC_ZERO, DIAZC_ZERO, DOC_ZERO, ZOOC_ZERO, SPCACO3_ZERO, 
-     &                     .false.,.true.,.false.,.false.,.false.,   !DONR_REMIN, TOTCHL, SP_P_LIM, DIAT_P_LIM, DIAZ_P_LIM,
-     &                     .false. ,.false.,.false.,.false.,.false., !TOT_PHYTO_C, POC_PROD_ZOO_LOSS, POC_PROD_DIAT, POC_PROD_SP, POC_PROD_DIAZ,
-     &                     .false.,.false.,.false.,.false.,.false.,  !QSI_DIAT, TOT_GRAZE, TOT_GRAZE_DIC, TOT_GRAZE_ZOO, TOT_AGG
-     ! 100
-     &                     .false.,.false.,.true.,.true.,.false.,    !TOT_NO3_UPTAKE,TOT_NH4_UPTAKE,TOT_LOSS,TOT_LOSS_DIC, NEXCRETE
-     &                     .true.,.false.,.true.,.true.              !TOT_POC, NCP, O2_CONSUMPTION, O2_PRODUCTION
-     ! 109 tracer
-# ifdef USE_EXPLICIT_VSINK
-     ! +10
-     &                     ,.false.,.false.,.false.,.true.,.false.,  ! PIRON_HARD_REMIN, CACO3_HARD_REMIN, SIO2_HARD_REMIN, POC_HARD_REMIN,DUST_HARD_REMIN
-     &                     .false.,.false.,.false.,.true.,.false.    ! PIRON_SOFT_REMIN, CACO3_SOFT_REMIN, SIO2_SOFT_REMIN, POC_SOFT_REMIN,DUST_SOFT_REMIN
-# endif
-# ifdef BEC2_DIAG
-
-        ! MF: Control BEC2_DIAG Output vars
       wrtavg_bec2_diag_3d=(/.false.,.false.,.true. ,.false. ,.false.,  !PAR, POC_FLUX_IN, POC_Prod,POC_REMIN, CACO3_FLUX_IN,
      &                     .false.,.false.,.false.,.false.,.false.,  !PCACO3_PROD, CACO3_REMIN,SIO2_FLUX_IN, SIO2_PROD, SIO2_REMIN,
      &                     .false.,.false.,.false.,.false.,.false.,  !DUST_FLUX_IN, DUST_REMIN,P_IRON_FLUX_IN, P_IRON_PROD, P_IRON_REMIN,
