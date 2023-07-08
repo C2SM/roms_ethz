@@ -191,8 +191,9 @@
 #endif
 ! ETH default parameter for sp, diatoms, diazotrophs since 2023
 ! parameter PFT indices: (1, 2, 3) = (sp, diat, diaz)  
-      sname(1:3)         = (/ 'sp', 'diat', 'diaz' /)
-      lname(1:3)         = (/ 'Small Phyto', 'Diatom', 'Diazotroph' /)
+! sname, lname space padded to same length to adhere to FORTRAN standard
+      sname(1:3) = (/ 'sp  ', 'diat', 'diaz' /)
+      lname(1:3) = (/ 'Small Phyto', 'Diatom     ', 'Diazotroph ' /)
       Nfixer(1:3)     = (/ .false., .false., .true. /)
       exp_calcifier(1:3) = (/ .false., .false., .false. /)
       exp_calcifier(1:3) = (/ .false., .false., .false. /)
