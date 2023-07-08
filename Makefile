@@ -6,6 +6,8 @@ CNFDIR ?=  $(CURDIR)/configs
 config ?= PACTC60
 # Build dir
 BLDDIR ?= $(CURDIR)/$(config)_build
+# Install prefix:
+PREFIX ?= $(HOME)
 
 # Create build dir if needed and copy make and configuration files to it
 $(shell test -d $(BLDDIR) || mkdir -p $(BLDDIR) )
@@ -23,7 +25,7 @@ roms:
 roms_cpl:
 	$(MAKE) -C $(BLDDIR) COUPLED=1 config=PACTC
 	@echo
-	@echo Config: $(config)
+	@echo ROMSOC Config: $(config)
 	@echo
 nctools:
 	$(MAKE) -C $(BLDDIR) nctools
@@ -35,5 +37,6 @@ distclean:
 	rm -rf $(BLDDIR)
 
 install:
-	install $(BLDDIR)/ncjoin $(BLDDIR)/partit $(HOME)/bin
+	install $(BLDDIR)/roms $(PREFIX)/bin
+#	install $(BLDDIR)/ncjoin $(BLDDIR)/partit $(BLDDIR)/roms $(PREFIX)/bin
 
