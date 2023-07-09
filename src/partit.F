@@ -136,11 +136,7 @@ c--#define VERBOSE
       real(kind=4) etime
 # endif
 #endif
-                    /* Function "iargc" is intrinsic in most modern */
-#ifdef XLF          /* compilers and does not need to be declared.  */
-      integer iargc /* IBM xlf95 is a notable exclusion. So do 7.x  */
-#endif              /* and earlier versions of Intel compiler, but  */
-                    /* it is intrinsic in 9.x and later versions.   */
+
 #ifdef AUTORENICE
       integer getpid, pid            ! Sometimes it makes sense to
       character(len=32) cmd          ! run partit in the background
@@ -168,7 +164,7 @@ c--#define VERBOSE
 ! if too few, otherwise extract NP_X and NP_E from the first two
 ! arguments.
 
-      nargs=iargc()
+      nargs=command_argument_count()
       if (nargs < 3) then
         !write(*,'(/1x,A/32x,A/)')      'Usage of partit should be:',
      !&                       'partit NP_X NP_E ncname1 ... ncnameN'

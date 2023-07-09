@@ -46,17 +46,8 @@
       logical word, new, status, state(max_switches),
      &        example,  comment, command, macro(nwords)
 
-! Most modern Fortran compilers recognize "iargc" as an intrinsic
-! function, so it does not need to be declared. IBM xlf95 is a notable
-! exclusion. So do 7.x and earlier versions of Intel IFC compiler, but
-! starting with version 8.x IFORT recognizes it as intrinsic. Portland
-! Group PGF compiler also needs it to be declared.
-
 !#define VERBOSE
 
-#ifdef INT_IARGC
-      integer iargc
-#endif
 #ifdef UCLA_CPPDEFS_STYLE
       example=.true. ; nexample=0    ! UCLA stores all setups in on cppdefs.h file
                                      ! and needs one setup switch defined
@@ -74,7 +65,7 @@
         switch(i)='                                '
       enddo     !  12345678901234567890123456789012
 
-      nfiles=iargc()
+      nfiles=command_argument_count()
       if (nfiles==0) then
         write(*,'(/1x,2A/24x,A)') '### ERROR: cppcheck :: No file ',
      &                  'name specified. At least one command-line',

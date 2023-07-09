@@ -2,9 +2,6 @@
       integer, parameter :: max_length=72, max_filename=32
       character file_in*(max_filename), file_out*(max_filename)
       integer iin, iout, last_arg,itype
-#ifdef INT_IARGC
-      integer iargc
-#endif
       character(len=32) varname(1024), svarname(1024),  vardim(1024)
       integer ivar, nvars, namelen(1024), dimlen(1024), varstat(1024)
       data nvars/0/ namelen/1024*0/ dimlen/1024*0/ varstat/1024*0/
@@ -14,14 +11,13 @@
       logical not_end_of_file, lswtch, directive
       integer line, length, ierr, i,j, istrt, nwords,
      &        is(32),ie(32), io,ic, case_fold, ibrack
-
       quote=char(39)
       case_fold=ichar('a')-ichar('A')
       ibrack=0
 
       file_in='                                '
       file_out='                                '
-      last_arg=iargc()
+      last_arg=command_argument_count()
       if (last_arg>0) then
         iin=11
         call getarg(1,file_in)

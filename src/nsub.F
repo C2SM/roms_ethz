@@ -35,10 +35,7 @@
       character(len=max_str) str
       character(len=4) nsub_x,nsub_e
       integer ierr, i,j,ixe, is,ie, ipass, lstr,lenstr
-#ifdef INT_IARGC
-      integer iargc
-#endif
-      lstr=iargc()
+      lstr=command_argument_count()
       if (lstr>0) then
         do i=1,max_str
           str(i:i)=' '

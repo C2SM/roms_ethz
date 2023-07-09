@@ -20,7 +20,7 @@
       character suffix*2, fname*32,  bffr*(max_string_size),
      &  string*(16*max_string_size), small*(16*max_string_size)
       integer kA,kZ,ksa,ksz,k0,k9,ksft, line, istr,iend, length,
-     &    nwords,is(maxwords),ie(maxwords), i,j,k,n, last_arg, iargc
+     &    nwords,is(maxwords),ie(maxwords), i,j,k,n, last_arg
 
 ! Derive suffix from the current directory name. The last symbol of
 ! the directory name is expected to be a digit 1, 2, 3, etc... where
@@ -72,7 +72,7 @@
 ! multiple common block declaration by a single common statement
 ! spread on several lines.
 !
-      last_arg=iargc()
+      last_arg=command_argument_count()
       if (last_arg>0) then
         open (unit=iout, file='redefs.X', form='formatted')
         write(iout,'(A,1x,A)') '#define GRID_LEVEL', suffix(2:2)

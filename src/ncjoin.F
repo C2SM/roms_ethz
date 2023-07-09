@@ -127,7 +127,7 @@
 #endif
       integer :: minrec=0 ! minrec>0 do not enforce same record number
                           ! in each partial file but use minimum.
-      integer :: nstart = 1, nend=0 
+      integer :: nstart = 1, nend=0 , get_argument_count
 
       character(len=9), parameter :: signame='nc_format'
 #ifdef ZLIB_COMPRESSION
@@ -160,11 +160,6 @@
       real(kind=4) etime
 # endif
 #endif
-                    /* Function "iargc" is intrinsic in most modern */
-#ifdef XLF          /* compilers and does not need to be declared.  */
-      integer iargc /* IBM xlf95 is a notable exclusion. So do 7.x  */
-#endif              /* and earlier versions of Intel compiler, but  */
-                    /* it is intrinsic in 9.x and later versions.   */
 !-- #ifdef AUTORENICE
       integer getpid, pid            ! Sometimes it makes sense to
       character(len=32) cmd            ! run ncjoin in the background
@@ -200,7 +195,7 @@
 
       ntest=-1 ; maxnodes=-1
 
-      nargs=iargc() ; arg=0
+      nargs=command_argument_count() ; arg=0
       if ( nargs < 1 ) then
         call usage
         call exit(-1)

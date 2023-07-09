@@ -139,16 +139,6 @@ c--#define TRAP_BARRIERS
       integer ndots, indx(max_length)
 #endif
 
-! Most modern Fortran compilers recognize "iargc" as an intrinsic
-! function, so it does not need to be declared. IBM xlf95 is a notable
-! exclusion. So do 7.x and earlier versions of Intel IFC compiler, but
-! starting with version 8.x IFORT recognizes it as intrinsic. Portland
-! Group PGF compiler also needs it to be declared.
-
-#ifdef INT_IARGC
-      integer iargc
-#endif
-
 #ifdef ZIG_ZAG_OLD
       logical par_region, lnest
       integer ip1,ip2, is1,is2
@@ -181,7 +171,7 @@ c--#define TRAP_BARRIERS
       do i=1,max_filename
         file_in(i:i)=' ' ; file_out(i:i)=' '
       enddo
-      last_arg=iargc()
+      last_arg=command_argument_count()
       if (last_arg > 0) then
         iin=11 ; call getarg(1,file_in)
         open(iin, file=file_in, form='formatted', status='old')

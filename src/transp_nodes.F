@@ -99,15 +99,6 @@
      &                        i,j, ii,jj, lstr, lbfr, lfnm, lenstr
       logical lswitch
 
-! Function "iargc" is viewed as intrinsic by most modern compilers
-! and does not need to be declared. IBM xlf95 is a notable exclusion.
-! So do 7.x and earlier versions of Intel IFC compiler, but starting
-! with version 8.x IFORT recognize it as intrinsic.
-
-#ifdef INT_IARGC
-      integer iargc
-#endif
-
 ! Open hostname file, inquire about its size in bytes, allocate
 ! a character string of sufficient length to accommodate the whole
 ! file and try to read it. Because different type queueing system
@@ -122,7 +113,7 @@
 ! a long string.
 
       nhosts=0
-      if (iargc() == 1) then
+      if (command_argument_count() == 1) then
         call getarg(1,fname)
         lfnm=lenstr(fname)
         open(unit=iin, file=fname(1:lfnm), status='old', iostat=ierr)

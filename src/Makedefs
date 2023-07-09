@@ -207,7 +207,7 @@ else ifneq (,$(filter $(strip $(FCOMP)), pgf90 nvhpc))
    # ============= PGI (now nvidia) compiler =============
    #
    MPIFC := $(FC)
-   FCFLAGS  := -DPGI -DINT_IARGC
+   FCFLAGS  := -DPGI
    ifdef OPENMP
       OPENMP := -mp
    endif
@@ -217,7 +217,7 @@ else ifeq ($(strip $(FCOMP)),ftn)
    # ============= CSCS cray fortran  compiler =============
    #
    MPIFC := $(FC)
-   FCFLAGS  := -DINT_IARGC -DPGI 
+   FCFLAGS  := -DPGI 
    ifdef OPENMP
       OPENMP := -homp
    endif
