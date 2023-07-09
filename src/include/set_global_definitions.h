@@ -368,8 +368,7 @@ c-# define IMPLICIT_BOTTOM_DRAG
  roundoff errors. However, not all compilers support quad precision,
  so it can be conditionally switched on-and-off. */
 
-#if defined DBLEPREC && !defined GCC && !defined __IFC \
-                     && !defined PGI && !defined CRAY
+#if defined DBLEPREC &&  ( defined GNU  || defined __IFC )
 # define QUAD 16
 # define QuadZero 0.Q0
 /* #  define QuadZero 0.0_16 */
