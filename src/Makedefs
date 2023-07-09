@@ -199,10 +199,14 @@ ifeq ($(strip $(FCOMP)),ifort)
       CPPFLAGS += -I$(I_MPI_ROOT)/include64
       CPPFLAGS += -I$(I_MPI_ROOT)/intel64/include
    endif
-else ifeq ($(strip $(FCOMP)),pgf90)
+#else ifeq ($(strip $(FCOMP)),pgf90)
+# below is the convoluted makefile-way of 
+# asking if the basename of FCOMP is either pgf90 or nvhpc 
+else ifneq (,$(filter $(strip $(FCOMP)), pgf90 nvhpc))
    #
-   # ============= PGI compiler =============
+   # ============= PGI (now nvidia) compiler =============
    #
+   MPIFC := $(FC)
    FCFLAGS  := -DPGI -DINT_IARGC
    ifdef OPENMP
       OPENMP := -mp
@@ -236,8 +240,8 @@ else ifeq ($(strip $(FCOMP)),gfortran)
       FFLAGS := -O3 $(OPENMP)
    endif
 else
-    default:
-    $(error Unknown Compiler $(FCOMP). Add settings to Makedefs)
+#    Unknown Compiler $(FCOMP)
+   MPIFC ?= $(FC)
 endif
 
 CPPFLAGS += $(FCFLAGS)
