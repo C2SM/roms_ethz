@@ -115,22 +115,25 @@ ifndef NO_IO
    else
       NCINC += $(shell nf-config --fflags)
       NCINC += -I$(shell nf-config --includedir)
-   endif
-   # netcdf-c
-   NC-CONFIG = $(shell which nc-config 2>/dev/null)
-   ifeq ($(NC-CONFIG),)
-      $(error nf-config not found (NetCDF library))
+      NCLIB ?= $(shell nf-config --flibs)
    endif
 
-   NCINC += $(shell nc-config --fflags)
-   NCINC += -I$(shell nc-config --includedir)
    ifeq ($(NCINC),)
-      NCINC += -I$(shell nc-config --cflags)
+      # try using nc-config
+      NC-CONFIG = $(shell which nc-config 2>/dev/null)
+      ifeq ($(NC-CONFIG),)
+         $(error nf-config not found (NetCDF library))
+      endif
+
+      NCINC += $(shell nc-config --fflags)
+      NCINC += -I$(shell nc-config --includedir)
+      ifeq ($(NCINC),)
+         NCINC += -I$(shell nc-config --cflags)
+      endif
    endif
 
-   NCLIB ?= $(shell nf-config --flibs)
-   NCLIB +=  $(shell nc-config --libs)
    ifeq ($(NCLIB),)
+   NCLIB +=  $(shell nc-config --libs)
       NCLIB := $(shell nc-config --libs)
    endif
 

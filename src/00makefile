@@ -104,7 +104,7 @@ SBIN := roms
 
 $(SBIN): mpc print_cppswitches $(OBJS)
 	$(Q)./print_cppswitches 
-	$(LDR) $(FFLAGS) $(LDFLAGS) -o $@ $(OBJS) $(LCDF) $(LMPI) $(OASLIB)
+	$(LDR) $(FFLAGS) $(LDFLAGS) -o $@ $(OBJS) $(OASLIB) $(LCDF) $(LMPI)
 
 partit: partit.o lenstr.o insert_node.o
 	$(Q)cd $(BLDDIR); $(FC) $(FFLAGS) $(LDFLAGS) -o $@ $^ $(LCDF)
