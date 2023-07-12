@@ -127,7 +127,7 @@
 #endif
       integer :: minrec=0 ! minrec>0 do not enforce same record number
                           ! in each partial file but use minimum.
-      integer :: nstart = 1, nend=0 , get_argument_count
+      integer :: nstart = 1, nend=0
 
       character(len=9), parameter :: signame='nc_format'
 #ifdef ZLIB_COMPRESSION
