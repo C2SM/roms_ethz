@@ -595,7 +595,7 @@ c--      fname='roms.in.US_West'
             read(input,'(A)',err=95) fname
             lstr=lenstr(fname)
             if (lstr > 0) then
-#  if defined MPI && defined PARALLEL_FILES && !defined JOINED_INPUT
+#  if defined MPI && defined PARALLEL_FILES
               call insert_node(fname, lstr, mynode, NNODES, ierr)
 #  endif
               open(testunit, file=fname(1:lstr), status='old',err=97)
