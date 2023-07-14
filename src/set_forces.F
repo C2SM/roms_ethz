@@ -32,7 +32,7 @@
 ! climatological data (e.g., salinity at surface) update tclima
 ! first.
 
-#ifdef COUP_OAS
+#if defined COUP_OAS && defined OAS_TIME_INTERPOLATE
       USE oas_roms_send_receive, ONLY: oas_merge_forces
 #endif
 
@@ -52,7 +52,7 @@
 #if defined TSOURCE
 # include "sources.h"
 #endif
-#ifdef COUP_OAS
+#if defined COUP_OAS && defined OAS_TIME_INTERPOLATE
       logical use_oasis
 #endif
 
@@ -251,8 +251,8 @@ c>>>      if (ierr /= 0) may_day_flag=2
 #ifdef ANA_PSOURCE
       if (ZEROTH_TILE) call ana_psource
 #endif
-#ifdef COUP_OAS
-      if (use_oasis()) call oas_merge_forces
+#if defined COUP_OAS && defined OAS_TIME_INTERPOLATE
+      if (use_oasis()) call oas_merge_forces(istr,iend,jstr,jend,ierr)
 #endif
       end
 
