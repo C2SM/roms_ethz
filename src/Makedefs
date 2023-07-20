@@ -19,7 +19,7 @@ ifdef COUPLED
 ifdef ROMSOC_OASIS_INSTALL
     OASDIR :=$(ROMSOC_OASIS_INSTALL)
 else
-    OASDIR :=$(shell spack location -i oasis)
+    OASDIR :=$(shell spack location -i oasis 2>/dev/null)
 endif
 OASINC := -I$(OASDIR)/build/lib/psmile.MPI1 \
           -I$(OASDIR)/build/lib/mct
@@ -130,11 +130,17 @@ ifndef NO_IO
       ifeq ($(NCINC),)
          NCINC += -I$(shell nc-config --cflags)
       endif
+      ifeq ($(NCINC),)
+         NCINC += -I$(shell nc-config --prefix)/include
+      endif
    endif
 
    ifeq ($(NCLIB),)
-   NCLIB +=  $(shell nc-config --libs)
       NCLIB := $(shell nc-config --libs)
+   endif
+
+   ifeq ($(NCLIB),)
+      NCLIB := -L$(shell nc-config --prefix)/lib
    endif
 
    CPPFLAGS += $(NCINC)
