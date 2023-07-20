@@ -27,26 +27,21 @@ $(shell cp $(CNFDIR)/cppdefs_$(config).h $(BLDDIR)/cppdefs.h )
 
 roms:
 	$(MAKE) -C $(BLDDIR)
-	EXECS += roms
 	@echo
 	@echo Config: $(config)
 	@echo
 roms_cpl:
 	$(MAKE) -C $(BLDDIR) COUPLED=1
-	EXECS += roms
 	@echo
 	@echo ROMSOC Config: $(config)
 	@echo
 nctools:
 	$(MAKE) -C $(BLDDIR) nctools
-	EXECS += partit ncjoin
 all:
 	$(MAKE) -C $(BLDDIR) all
-	EXECS += roms partit ncjoin
 clean:
 	$(MAKE) -C $(BLDDIR) clean
 distclean:
 	rm -rf $(BLDDIR)
 install:
 	cd $(BLDDIR) && install $(EXECS) $(PREFIX)/bin/.
-
