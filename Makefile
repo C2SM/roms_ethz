@@ -44,4 +44,9 @@ clean:
 distclean:
 	rm -rf $(BLDDIR)
 install:
-	cd $(BLDDIR) && install $(EXECS) $(PREFIX)/bin/.
+	mkdir -p $(PREFIX)/bin $(PREFIX)/scripts $(PREFIX)/doc
+	install euler_job.sh  $(PREFIX)/scripts
+	install $(BLDDIR)/cppdefs*.h  $(PREFIX)/doc
+	install $(BLDDIR)/roms  $(PREFIX)/bin
+	if [ -x $(BLDDIR)/ncjoin ] ; then install $(BLDDIR)/ncjoin $(PREFIX)/bin; fi
+	if [ -x $(BLDDIR)/partit ] ; then install $(BLDDIR)/partit $(PREFIX)/bin; fi
