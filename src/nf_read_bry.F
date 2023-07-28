@@ -20,7 +20,8 @@
 #include "buffer.h"
 #include "netcdf.inc"
 
-#include "compute_starts_counts.h"
+!#include "compute_starts_counts.h"
+#include "compute_starts_counts_bry.h"
 
 #ifdef VERBOSE
       write(*,*) 'enter read_bry_EW...' MYID
@@ -85,7 +86,8 @@
 #include "buffer.h"
 #include "netcdf.inc"
 
-#include "compute_starts_counts.h"
+!#include "compute_starts_counts.h"
+#include "compute_starts_counts_bry.h"
 
 #ifdef VERBOSE
       write(*,*) 'enter read_bry_NS...'   MYID
