@@ -1778,7 +1778,7 @@ CR      write(*,'(1x,A,I3)') 'indxNH4 =',indxNH4
 # ifdef BEC2_DIAG
 
         ! MF: Control BEC2_DIAG Output vars
-      wrtavg_bec2_diag_3d=(/.false.,.false.,.true. ,.false. ,.false.,  !PAR, POC_FLUX_IN, POC_Prod,POC_REMIN, CACO3_FLUX_IN,
+      wrtavg_bec2_diag_3d=(/.false.,.true.,.true. ,.false. ,.false.,  !PAR, POC_FLUX_IN, POC_Prod,POC_REMIN, CACO3_FLUX_IN,
      &                     .false.,.false.,.false.,.false.,.false.,  !PCACO3_PROD, CACO3_REMIN,SIO2_FLUX_IN, SIO2_PROD, SIO2_REMIN,
      &                     .false.,.false.,.false.,.false.,.false.,  !DUST_FLUX_IN, DUST_REMIN,P_IRON_FLUX_IN, P_IRON_PROD, P_IRON_REMIN,
      &                     .false.,.true. ,.false.,.false.,.true. ,  !GRAZE_SP, GRAZE_DIAT,GRAZE_DIAZ, SP_LOSS, DIAT_LOSS,
@@ -1796,7 +1796,7 @@ CR      write(*,'(1x,A,I3)') 'indxNH4 =',indxNH4
      &                     .true.,.false.,.false.,.false.,.false.,  !ZOO_LOSS_DIC, DIAZ_AGG,GRAZE_SP_ZOO, GRAZE_DIAT_ZOO, GRAZE_DIAZ_ZOO, 
      &                     .false.,.false.,.false.,.false.,.false.,  !SPQCACO3, PHOTOACC_SP,PHOTOACC_DIAT, PHOTOACC_DIAZ, SPC_ZERO, 
      &                     .false.,.false.,.false.,.false.,.false.,  !DIATC_ZERO, DIAZC_ZERO, DOC_ZERO, ZOOC_ZERO, SPCACO3_ZERO, 
-     &                     .true.,.false.,.true.,.true.,.true.,     !DONR_REMIN, TOTCHL, SP_P_LIM, DIAT_P_LIM, DIAZ_P_LIM,
+     &                     .true.,.true.,.true.,.true.,.true.,     !DONR_REMIN, TOTCHL, SP_P_LIM, DIAT_P_LIM, DIAZ_P_LIM,
      &                     .true. ,.false.,.false.,.false.,.false.,  !TOT_PHYTO_C, POC_PROD_ZOO_LOSS, POC_PROD_DIAT, POC_PROD_SP, POC_PROD_DIAZ,
      &                     .false.,.false.,.true.,.false.,.false.,  !QSI_DIAT, TOT_GRAZE, TOT_GRAZE_DIC, TOT_GRAZE_ZOO, TOT_AGG
      ! 100
