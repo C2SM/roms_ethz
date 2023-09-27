@@ -86,6 +86,7 @@
 
 #ifdef BIOLOGY_BEC2
 !-->#  define DAILYPAR_BEC
+#  undef DAILYPAR_BEC
 #  define USE_EXPLICIT_VSINK
 #  define BIOPAR_R
 #  define DEFAULT_BRY_VALUES
