@@ -100,6 +100,7 @@
 !-- # define FULL_PHYS_FLUX_ANALYSIS
 !-- # define VERT_DIFF_ANALYSIS
 !-- # define SELECTED_FLUX_ANALYSIS
+!-- # define BGC_FLUX_ANALYSIS
 #endif
 
 
@@ -107,6 +108,7 @@
 #ifdef BIOLOGY_BEC2
 #  define BIOPAR_R
 #  define BEC_COCCO
+!-- #  define USE_EXPLICIT_VSINK
 #  define KILL_THE_WINNER
 #  define BEC2_DIAG
 #  define PCO2AIR_FORCING

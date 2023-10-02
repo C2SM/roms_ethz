@@ -213,7 +213,7 @@
       ! over-write sp information: no implicit calcifiers in this case    
       imp_calcifier(sp_ind) = .false.
       CaCO3_ind(sp_ind)     = 0
-! Parameters for coccos
+! Parameters for coccos (not tuned for k-scenario yet)
       sname(cocco_ind)         = 'cocco'
       lname(cocco_ind)         = 'Coccolithophores'
       Nfixer(cocco_ind)        = .false.
@@ -235,8 +235,8 @@
       gQfe_0(cocco_ind)        = 20e-6
       gQfe_min(cocco_ind)      = 3.0e-6
       alphaPI(cocco_ind)       = 0.44
-      PCref(cocco_ind)         = 0.909
-      Q_10_phyto(cocco_ind)    = 1.9  ! old ratio to diat 1.78
+      PCref(cocco_ind)         = NaN ! Needs to be tuned for k-scenario
+      Q_10_phyto(cocco_ind)    = 1.14  ! Le Quere 2016
       thetaN_max(cocco_ind)    = 2.5
       loss_thres(cocco_ind)   = 0.04
       loss_thres2(cocco_ind)  = 0.0
@@ -245,7 +245,7 @@
       mort2(cocco_ind)         = 0.001
       agg_rate_max(cocco_ind)  = 0.9
       agg_rate_min(cocco_ind)  = 0.01
-      z_umax_0(cocco_ind)      = 1.042
+      z_umax_0(cocco_ind)      = NaN ! Needs to be tuned for k-scenario
       z_grz(cocco_ind)         = 1.05
       graze_zoo(cocco_ind)     = 0.3
       graze_poc(cocco_ind)     = 0.20
@@ -255,10 +255,10 @@
 
 #ifdef BIOPAR_R
       MPI_master_only print*, 'BEC parameters initialized with ',
-     & 'S12_1_r scenario '
-      PCref(cocco_ind)   = 1.983
-      Q_10_phyto(cocco_ind) = 1.9
-      z_umax_0(cocco_ind) = 3.329
+     & 'T19_r scenario '
+      PCref(cocco_ind)   = 0.8
+      Q_10_phyto(cocco_ind) = 1.14 ! Le Quere 2016
+      z_umax_0(cocco_ind) = 4.577
       z_grz(cocco_ind) = 1.05
       mort(cocco_ind) = 0.12
 #endif /* BIOPAR_R */
