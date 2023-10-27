@@ -524,10 +524,12 @@ C$OMP BARRIER                          ! avoid MPI deadlock the exit is
 #endif
       endif                            ! deferred until after broadcast
                                        ! of "may_day_flag" by diag.
-#ifdef COUP_OAS
+
+#ifdef COUP_OAS && defined OAS_TIME_INTERPOLATE
       !Receive Coupling fields from Cosmo/Oasis
       if ( coupled ) call oas_roms_receive(iic-ntstart)
 #endif
+
 #ifdef SOLVE3D
       do tile=my_tile_range                 ! interpolate forcing
         call set_forces(tile)               ! data to model time and
@@ -543,6 +545,11 @@ C$OMP BARRIER                          ! avoid MPI deadlock the exit is
 #endif
       enddo
 C$OMP BARRIER
+
+#ifdef COUP_OAS && !defined OAS_TIME_INTERPOLATE
+      !Receive Coupling fields from Cosmo/Oasis
+      if ( coupled ) call oas_roms_receive(iic-ntstart)
+#endif
 
       do tile=my_tile_range
         call omega(tile)
