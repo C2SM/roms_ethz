@@ -55,6 +55,7 @@
 !-- #define TIMING
 !-- #define AUTORENICE
 #define NCFILEFORMAT nf_netcdf4
+#define CLOSE_NETCDF_AFTER_TREC
 
 
       implicit none
@@ -1995,12 +1996,27 @@ c**         endif
         net_clk=net_clk+inc_clk
         net_gray_clk=net_gray_clk+inc_clk
 #endif
-          ierr=nf_sync (nctarg)
+        ierr=nf_sync (nctarg)
 
-c        write(*,*) 'close'
-c        ierr=nf_close(nctarg)
-c        write(*,*) 'reopen'
-c       ierr=nf_open(nctargname(1:ltrg), nf_write, nctarg)
+#ifdef CLOSE_NETCDF_AFTER_TREC
+        if (rec .lt. min(tsize,nend)) then
+           write(*,*) 'close netcdf files'
+           do node=0,nnodes-1
+             if (ncsrc(node) /= -1) then
+               ierr=nf_close(ncsrc(node))
+             endif
+           enddo
+           ierr=nf_close(nctarg)
+           write(*,*) 'reopen netcdf files'
+           ierr=nf_open(nctargname(1:ltrg), nf_write, nctarg)
+           do node=0,nnodes-1
+             if (ncsrc(node) /= -1) then
+               ierr=nf_open(srcname(node),nf_nowrite,ncsrc(node))
+             endif
+           enddo
+        endif
+#endif
+
 #if defined TIMING
         nclk=3-nclk
         call system_clock(iclk(nclk), clk_rate, clk_max)
@@ -2253,11 +2269,11 @@ c       ierr=nf_open(nctargname(1:ltrg), nf_write, nctarg)
      &   , '    -k           keep partial files'
      &   , '    -s=<n>       output start with record n (time step)'
      &   , '    -e=<m>       output ends with record m (time step)'
-     !&   , '    -m           reduce memory usage (slow mode)'
+!     &   , '    -m           reduce memory usage (slow mode)'
      &   , '    -n           Use low job priority'
      &   , '    -p           if record dim differs, use its minimum'
-     !&   , '    -q           quite operation'
-     !&   , '    -t           report operation time'
+!     &   , '    -q           quite operation'
+!     &   , '    -t           report operation time'
      &   , '    -v           increase verbosity'
 !     &   , '    -x=<var_list> list of variables (comma-separated'
 !     &   , '                 without spaces) to exclude'

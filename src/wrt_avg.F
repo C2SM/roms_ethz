@@ -99,10 +99,9 @@ CR      mpi_master_only print *, '--- NOTE: Executing ', wrt_ AVR
 ! Averaged time
 
       if (vname(3,indxTime)(1:6) == 'second') then
-        ierr=nf_put_var1_double(ncavg, avgTime, record, time_avg)
+        ierr=nf_put_var1_double(nc AVR, AVR Time, record, time_ AVR)
       else
-        time_avg=time_avg*sec2day
-        ierr=nf_put_var1_double(ncavg, avgTime, record, time_avg)
+        ierr=nf_put_var1_double(nc AVR, AVR Time, record, time_ AVR * sec2day)
       endif
       if (ierr /= nf_noerr) then
         lvar=lenstr(vname(1,indxTime))
