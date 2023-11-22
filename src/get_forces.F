@@ -73,6 +73,9 @@ c--#define VERBOSE
 #  endif
 # endif /* BULK_FLUX */
 
+# if defined SWF_RIVER_FORCING || defined SWF_COUP_OAS
+      call get_swf_river
+# endif 
 
 # if defined QCORRECTION && !defined ANA_SST
       call get_sst(ierr)
@@ -466,6 +469,31 @@ c--#  define timename 'dqdt_time'
 # define VAR_NOW iron
 # include "get_smth.F"
 #endif
+
+# ifdef RIVER_VOL
+!  River Mass flux (added via precipitation)
+!  --- ----- ---- 
+#  define get_smth get_swf_river
+#  define varname 'swflux'
+#  define timename 'swf_time'
+!--> #  define RIVER_DATA
+#  define var swf_riverg
+#  define timevar swf_river_time
+#  define file_id swf_river_file_id
+#  define NC_ID_LIST ncfrc
+#  define NC_FILE_LIST frcfile
+#  define varid swf_river_id
+#  define timevarid swf_river_tid
+#  define record swf_river_rec
+#  define ntsmth nt_swf_river
+#  define itsmth it_swf_river
+#  define icycle swf_river_icycle
+#  define cycle_length swf_river_cyc_len
+#  define SET_SMTH set_swf_river
+#  define VAR_CFF 1.0
+#  define VAR_NOW swf_river
+#  include "get_smth.F"
+# endif
 
 # ifdef RIVER_LOAD_N
 !  din river flux

@@ -219,6 +219,10 @@ CSDISTRIBUTE_RESHAPE lwflxg(BLOCK_PATTERN,*) BLOCK_CLAUSE
       real stflx(GLOBAL_2D_ARRAY,NT)
 CSDISTRIBUTE_RESHAPE stflx(BLOCK_PATTERN,*) BLOCK_CLAUSE
       common /frc_stflx/stflx
+# if defined SWF_RIVER_FORCING || defined SWF_COUP_OAS
+      real swf_river(GLOBAL_2D_ARRAY,NT)
+      common /swf_river/swf_river
+# endif
 # if defined WRITE_CO2FLX
       real CO2flx(GLOBAL_2D_ARRAY)
 CSDISTRIBUTE_RESHAPE CO2flx(BLOCK_PATTERN) BLOCK_CLAUSE

@@ -310,7 +310,11 @@
      &                               * t(i,j,N,nrhs,isalt)
                   stflx(i,j,isalt) =
      &                 (1.0-alpha_rho(i,j)) * stflx(i,j,isalt)
-     &                    + alpha_rho(i,j) * zflx_1
+     &                    + alpha_rho(i,j) * ( zflx_1
+# if defined SWF_RIVER_FORCING || SWF_COUP_OAS
+     &                                         + swf_river(i,j)
+# endif
+     &                                        )
 #endif
                ENDDO
             ENDDO
