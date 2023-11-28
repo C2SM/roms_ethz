@@ -315,8 +315,7 @@
       Chl_ind(cocco_ind)       = coccoChl_ind_t
       Fe_ind(cocco_ind)        = coccoFe_ind_t
       Si_ind(cocco_ind)        = 0
-      CaCO3_ind(cocco_ind)     = coccocal_ind_t
-      r_Nexcrete(cocco_ind)  = 0.0
+      CaCO3_ind(cocco_ind)     = coccoCal_ind_t
       kFe(cocco_ind)           = 0.10e-3
       kPO4(cocco_ind)          = 0.03
       kDOP(cocco_ind)          = 0.3
@@ -326,25 +325,38 @@
       Qp(cocco_ind)            = 0.00855
       gQfe_0(cocco_ind)        = 20e-6
       gQfe_min(cocco_ind)      = 3.0e-6
-      alphaPI(cocco_ind)       = 0.4
-      PCref(cocco_ind)         = 3.8
-      Q_10_phyto(cocco_ind)    = 1.75  ! old ratio to diat 1.78
+      alphaPI(cocco_ind)       = 0.44
+      PCref(cocco_ind)         = 0.909
+      Q_10_phyto(cocco_ind)    = NaN ! k-szenario with Cocco needs tuning.
       thetaN_max(cocco_ind)    = 2.5
       loss_thres(cocco_ind)   = 0.04
       loss_thres2(cocco_ind)  = 0.0
       temp_thres(cocco_ind)   = -10.0
-      mort(cocco_ind)          = 0.12
+      mort(cocco_ind)          = 0.06
       mort2(cocco_ind)         = 0.001
       agg_rate_max(cocco_ind)  = 0.9
       agg_rate_min(cocco_ind)  = 0.01
-      z_umax_0(cocco_ind)      = 4.4
+      z_umax_0(cocco_ind)      = 1.042
       z_grz(cocco_ind)         = 1.05
       graze_zoo(cocco_ind)     = 0.3
       graze_poc(cocco_ind)     = 0.20
       graze_doc(cocco_ind)     = 0.15
       loss_poc(cocco_ind)      = 0.2
       f_zoo_detr(cocco_ind)    = 0.2
+
+#ifdef BIOPAR_R
+      MPI_master_only 
+     & print*, 'BEC parameters initialized with S12_1_r scenario'
+      PCref(cocco_ind)    = (/ 1.0,   2.4,   0.6,   0.8 /)
+      Q_10_phyto(1:3)     = (/ 1.6,   1.9,   1.8,   1.14 /)
+      z_umax_0(cocco_ind) = (/ 2.577, 3.955, 2.234, 4.577 /)
+      z_grz(cocco_ind)    = 1.05
+      mort(cocco_ind)     = 0.12
+#endif /* BIOPAR_R */
+
 #endif
+
+
 #ifdef BEC_DDA
       sname(dda_ind)         = 'dda'
       lname(dda_ind)         = 'Diatom Diazotroph Assemblages'

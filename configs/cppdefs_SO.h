@@ -14,7 +14,7 @@
 
 
                      /* Resolution */
-#define SO_d05 /* SO_d05, SO_d025, SO_d0125, SO_d01 */
+#define SO_d025 /* SO_d05, SO_d025, SO_d0125, SO_d01 */
 
 #ifdef SO_d05        /*                     - 1/2 degree setup (SO_d05) */
 # define GRID_SIZE LLm=720, MMm=216, N=64
@@ -35,8 +35,8 @@
 
 
                      /*  Dynamics */
-!-- #define ADV_ISONEUTRAL
-
+#define ADV_ISONEUTRAL
+#define ADV_WENO
 
                      /*  Forcing */
                      /*          - surface */
@@ -105,13 +105,16 @@
 
                       /* Biology (SO specific) */
 #ifdef BIOLOGY_BEC2
-# ifdef SO_CN
+#  define BIOPAR_R
 #  define BEC_COCCO
 #  define KILL_THE_WINNER
-!-- #  define BEC2_DIAG
-!-- #  undef DAILYPAR_BEC
+#  define BEC2_DIAG
+#  define PCO2AIR_FORCING
+#  define VFLX_CORR
+#  define DEFAULT_BRY_VALUES
+#  undef DAILYPAR_BEC /* on by default */
 # endif
-#endif
+
 !-- #define RIVER_LOAD_N
 !-- #define RIVER_LOAD_P
 !-- # define PCO2AIR_FORCING
@@ -120,8 +123,8 @@
 
                       /* Other tracers */
 #ifdef SO_AH
-# define PASSIVE_TRACER
-# define AGE_DYE_TRACER
+!--  # define PASSIVE_TRACER
+! -- # define AGE_DYE_TRACER
 #endif
 
 #include "set_global_definitions.h"
