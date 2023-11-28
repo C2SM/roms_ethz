@@ -3,13 +3,14 @@
   == === ======= ========== ===== = ==== =====
 */
 
-                     /* Include standard CPP switches for UP ETH Zurich */  
+                     /* Include standard CPP switches for UP ETH Zurich */
                      /* *** ACTIVATE BIOLOGY HERE *** */
                      /* (Otherwise standard UP bio switches are not set) */
 
 # define BIOLOGY_BEC2
 #include "cppdefs_UP.h"
-!-- #define PACTCS60
+!!#define PACTCS60
+#define PACTCS  ! needed in ecosys_bec2_init.F
 
 #ifdef PACTCS60
 # define GRID_SIZE LLm=300, MMm=257, N=64      ! pactcs60 8-120km telescopic up to Antarctica
@@ -21,6 +22,7 @@
 # define DOMAIN_TILING NP_XI=8, NP_ETA=48, NSUB_X=1, NSUB_E=1 ! Euler
 #endif
 
+!mf #define DOMAIN_TILING NP_XI=8, NP_ETA=30, NSUB_X=1, NSUB_E=1 ! Euler
 
      /* Open Boundaries */
 #define OBC_SOUTH
@@ -78,17 +80,13 @@
 #endif
 !--> #define STARTDATE '0001-01-01' /* part of netCDF CF-convention time units attribute default: '0001-01-01'*/
 
-
-!--> #define ADV_ISONEUTRAL
-
-! define to switch on WENO scheme advection:
-!--> #define ADV_WENO 
+!!#define ADV_ISONEUTRAL
 
      /* Biology */
 !--> #define BIOLOGY_NPZDOC
 
 #ifdef BIOLOGY_BEC2
-#  define DAILYPAR_BEC
+!--> #  define DAILYPAR_BEC
 #  define USE_EXPLICIT_VSINK
 #  define DEFAULT_BRY_VALUES
 !--> # define MULT_CLIM_FILES
@@ -101,6 +99,8 @@
 # define PCO2AIR_FORCING
 # define NHY_FORCING
 # define NOX_FORCING
+!!# define BIOPAR_NAMELIST
+!# define BEC_COCCO
 #endif /* BIOLOGY_BEC2 */
 
 
@@ -121,4 +121,13 @@
 
 #include "set_global_definitions.h"
 
-!--> #undef PARALLEL_FILES
+!!#undef PARALLEL_FILES
+! For BEC param optimization runs:
+#undef DAILYPAR_BEC
+!#define DAILYPAR_BEC
+!#define BIOPAR_R2
+#define BIOPAR_R
+!#define BIOPAR_K
+!#define BIOPAR_M1
+!#define BIOPAR_K1
+!#define CCHEM_MOCSY

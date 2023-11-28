@@ -5,7 +5,7 @@
 # Only ROMS and ROMSOC are tried to compile if you call it with
 # argmument ROMS or ROMSOC, respectively
 
-SETUPS="PACTC60 AMACAN PACTC HUMPAC SO BENGT CANAMA ONEDIM" # ATLTC SAEP OLDSTYLE MOONS
+SETUPS="PACTC60 AMACAN PACTC HUMPAC N_HUMPAC SO BENGT CANAMA UCYN ONEDIM" # ATLTC SAEP OLDSTYLE MOONS
 
 echo '    ' Testing ROMS and/or ROMSOC compilation for various ETH setups:
 

@@ -236,6 +236,9 @@
               stflx(i,j,isalt)=(t(i,j,N,nrhs,isalt)*(
      &                     cff1*stflxg(i,j,it1,isalt)
      &                  +cff2*stflxg(i,j,it2,isalt)))
+#  ifdef SWF_RIVER_FORCING
+     &                                +swf_river(i,j)
+#  endif
 #  ifdef ICEOBS
      &                                  +melting(i,j)
 #   if !defined BRINE_PLUMES

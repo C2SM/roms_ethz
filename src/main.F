@@ -13,8 +13,9 @@
       implicit none              ! with single parallel region using
       integer ierr               ! explicit barrier synchronization.
 # include "param.h"
+# include "ncvars.h"
+      logical, save :: coupled = .false.  ! coupled yes/no
 # ifdef COUP_OAS
-#  include "ncvars.h"
       logical :: use_oasis
 # endif /* COUP_OAS */
 # ifdef MPI
@@ -22,13 +23,19 @@
 C$    integer level,req_lev
 #  include "mpif.h"
 # ifdef COUP_OAS
-      if ( use_oasis() ) then
+      coupled=use_oasis()
+      print*,'ROMS(main): coupled = ',coupled
+      if ( coupled ) then
+              mpi_master_only print*,'(main): calling oas_roms_init.'
         call oas_roms_init !Let Oasis define MPI communicator (Local instead of MPI_World_Comm)
+              mpi_master_only print*,' (main): Calling oas_roms_init.'
       else
+        mpi_master_only print*,'(main): ROMS uncoupled -> MPI_init'
         ierr=1
         call MPI_Init(ierr) !If Oasis Coupling, MPI init handled by Oasis
       endif
 # else
+        mpi_master_only print*,'(main): ROMS-only -> MPI_init'
       call MPI_Init(ierr) !If Oasis Coupling, MPI init handled by Oasis
 # endif
       call mpi_setup (ierr)
@@ -37,9 +44,7 @@ C$    integer level,req_lev
 # endif
         call init_scalars(ierr)          ! Initialize global scalars,
 #ifdef COUP_OAS
-      if ( use_oasis() ) then
-      call oas_roms_define(grdname) !Defines Grids and exchange fields for Oasis Coupler
-      endif
+      if ( coupled ) call oas_roms_define(grdname) !Defines Grids and exchange fields for Oasis Coupler
 #endif /* COUP_OAS */
 
 # ifdef OBSOLETE_SUB_INIT_SCALARS_IN_MAIN
@@ -57,7 +62,7 @@ C$    integer level,req_lev
         if (ierr == 0) then              ! model tunable parameters,
 C$        call omp_set_dynamic(.false.)
 C$OMP PARALLEL                           ! fast-time averaging weights
-          call roms_thread               ! for barotropic mode, and
+          call roms_thread(coupled)      ! for barotropic mode, and
 C$OMP END PARALLEL                       ! launch the model in OpenMP
         endif                            ! parallel regime.
 # ifdef MPI
@@ -66,7 +71,7 @@ C$OMP END PARALLEL                       ! launch the model in OpenMP
       tend=MPI_Wtime()
       mpi_master_only write(*,*) 'MPI_run_time =', tend-tstart
 #  ifdef COUP_OAS
-      if ( use_oasis() ) then
+      if ( coupled ) then
         call oas_roms_finalize   !If Oasis Coupling, MPI finalize handled by Oasis
       else
         call MPI_Finalize (ierr)
@@ -79,17 +84,18 @@ C$OMP END PARALLEL                       ! launch the model in OpenMP
       end
 
 
-      subroutine roms_thread
+      subroutine roms_thread(coupled)
       implicit none
 # include "param.h"
 # include "scalars.h"
+      logical :: coupled
                                          ! Note: Because there is
       call start_timers()                ! a possibility of I/O error
       call roms_init                     ! occurring on some MPI nodes,
       if (may_day_flag /= 0) goto 99     ! but not simultaneously on
       do iic=ntstart,ntstart+ntimes      ! all, exiting is deferred
         diag_sync=.false.                ! until "may_day_flag" is
-        call roms_step
+        call roms_step(coupled)
         if (diag_sync .and. may_day_flag /= 0) goto 99
       enddo
   99  call stop_timers()                 ! summarized among all nodes
@@ -394,13 +400,13 @@ CR      write(*,*) '  0' MYID
         ! For a central tile (60) presumably in the coupling region
         ! Open CSV file to let oas_merge_forces write the  forcing
         ! fields of one grid point before and after the merge.
-        open(unit=107, file="cpl_forcing_data_era.txt",
+        open(unit=107, file="atm_forces_era.txt",
      &     form = "formatted")
         write(107,*)'time/s, ', 'sustr, ', 'svstr, '
      &     , 'srflx, ', 'stflx(itemp), ', 'stflx(isalt)'
-        open(unit=108, file="cpl_forcing_data_era.txt",
+        open(unit=108, file="atm_forces_merged.txt",
      &     form = "formatted")
-        write(107,*)'time/s, ', 'sustr, ', 'svstr, '
+        write(108,*)'time/s, ', 'sustr, ', 'svstr, '
      &     , 'srflx, ', 'stflx(itemp), ', 'stflx(isalt)'
       endif
 #endif
@@ -438,12 +444,14 @@ C$OMP END MASTER
 !      *****       ***    ***   ***   ***   ***     ***
 
 
-      subroutine roms_step
+      subroutine roms_step(coupled)
 #ifdef COUP_OAS
       USE oas_roms_send_receive, ONLY: oas_roms_send, oas_roms_receive
 #endif
       implicit none
-      logical :: use_oasis
+      !logical :: use_oasis
+      !logical, save :: coupled = .false. 
+      logical :: coupled
       integer trd, tile, my_first, my_last, range
 #include "param.h"
 #include "scalars.h"
@@ -469,6 +477,7 @@ C$OMP END MASTER
 # include "bec_avg.h"
 #endif
  
+      !coupled=use_oasis()
       trd=proc(2)
       range=(NSUB_X*NSUB_E+numthreads-1)/numthreads
       my_first=trd*range
@@ -515,6 +524,8 @@ C$OMP BARRIER                          ! avoid MPI deadlock the exit is
 #endif
       endif                            ! deferred until after broadcast
                                        ! of "may_day_flag" by diag.
+
+
 #ifdef SOLVE3D
       do tile=my_tile_range                 ! interpolate forcing
         call set_forces(tile)               ! data to model time and
@@ -533,9 +544,7 @@ C$OMP BARRIER
 
 #ifdef COUP_OAS 
       !Receive Coupling fields from Cosmo/Oasis
-      if ( use_oasis() ) then
-       call oas_roms_receive(iic-ntstart)
-      endif
+      if ( coupled ) call oas_roms_receive(iic-ntstart)
 #endif
 
       do tile=my_tile_range
@@ -602,7 +611,7 @@ C$OMP BARRIER
 # endif
 #endif  /* SOLVE3D */
 # ifdef COUP_OAS
-      if ( use_oasis() ) then
+      if ( coupled ) then
         call oas_roms_send(iic-ntstart)
       endif
 # endif
@@ -889,7 +898,7 @@ c**    call step_floats(1,nfloats)    ! serial version for debugging
         ! value from then onwards. 
         firstcall = .false.
 
-        WRITE(*,*) "OAS_ROMS : Reading namelist romsoc.nml"
+        mpi_master_only print*, "(use_oasis) Reading romsoc.nml"
 
         namelist /exchange_flags/ l_exchange, l_snd_sst, l_snd_sm
 
@@ -899,18 +908,18 @@ c**    call step_floats(1,nfloats)    ! serial version for debugging
         READ(funit, exchange_flags, IOSTAT=ierr)
         CLOSE(funit)
         IF (ierr /= 0)
-     &     WRITE(*,*) 'WARNING: Error reading ROMS->OASIS fields'
-     &        ,'from ', nml_file
-           WRITE(*,*) 'OASIS coupler will be used'
+     &     print*, 'WARNING: (use_oasis) Error reading ROMS->OASIS '
+     &        ,'field sfrom ', nml_file
+           mpi_master_only print*, '=> Using coupler by default' 
+           use_oasis = .true.
            return
         else
-
-        if (l_exchange) l_exchange = (l_snd_sst .or. l_snd_sm)
-        if (l_exchange) then
-           WRITE(*,*) 'OASIS coupler will be used'
-        else
-           WRITE(*,*) 'OASIS coupler will NOT be used'
-        endif
+           if (l_exchange) l_exchange = (l_snd_sst .or. l_snd_sm)
+           if (l_exchange) then
+              mpi_master_only print*, 'Coupler selected (romsoc.nml)'
+           else
+              mpi_master_only print*, 'Coupler deselected (romsoc.nml)'
+           endif
       endif  ! firstcall
 
       use_oasis = l_exchange

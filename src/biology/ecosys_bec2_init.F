@@ -15,6 +15,42 @@
 
       ! Define namelists  for ecosystem parameters:
 
+# ifdef Ncycle_SY
+      namelist /ncycle_parameters/
+     &    parm_kao,
+     &    parm_kno,
+     &    parm_ko2_ao,
+     &    parm_knh4_ao,
+     &    parm_ko2_no,
+     &    parm_kno2_no,
+     &    parm_kno3_den1,
+     &    parm_kno2_den2,
+     &    parm_kn2o_den3,
+     &    parm_ko2_den1,
+     &    parm_ko2_oxic,
+     &    parm_ko2_den2,
+     &    parm_ko2_den3,
+     &    parm_koxic,
+     &    parm_kden1,
+     &    parm_kden2,
+     &    parm_kden3,
+     &    parm_kax,
+     &    parm_knh4_ax,
+     &    parm_kno2_ax,
+     &    parm_ko2_ax,
+     &    r_no2tonh4_ax,
+     &    parm_n2o_ji_a,
+     &    parm_n2o_ji_b,
+     &    parm_n2o_gor_a,
+     &    parm_n2o_gor_b
+# endif
+# ifdef N2O_NEV
+     &    , parm_n2o_nev_a1,
+     &    parm_n2o_nev_a2,
+     &    N2O_cons_tau_nev,
+     &    O2_crit_nev,
+     &    z_scale_nev
+# endif
       namelist /phyto_growth/
      &    PCref, ! [1/d]
      &    alphaPI, ! [mmol m^2/W d]
@@ -100,7 +136,59 @@
       parm_scalelen_z    = (/ 100.0, 250.0, 500.0, 750.0 /) ! DL: converted to m
       parm_scalelen_vals = (/     1.0,     2.9,     5.6,      5.7 /) ! x1 default
 # endif
+# ifdef Ncycle_SY
+      parm_kao = 0.0500 * dps
+      parm_kno = 0.0500 * dps
+      parm_ko2_ao = 0.333
+      parm_knh4_ao = 0.305
+      parm_ko2_no = 0.778
+      parm_kno2_no = 0.509
+      parm_kno3_den1 = 1
+      parm_kno2_den2 = 0.01
+      parm_kn2o_den3 = 0.159
+      parm_ko2_oxic = 1
+      parm_ko2_den1 = 6
+      parm_ko2_den2 = 2.3  ! from 2.969 in tune5
+      parm_ko2_den3 = 0.506
+      parm_koxic = 0.08 * dps ! CONSTANT
+      parm_kden1 = 0.0160 * dps ! from 0.205 in tune5
+      parm_kden2 = 0.008 * dps
+      parm_kden3 = 0.0496 * dps
+      parm_kax = 0.441 * dps
+      parm_knh4_ax = 1
+      parm_kno2_ax = 1
+      parm_ko2_ax = 6
+      r_no2tonh4_ax = 1.00 ! Strous et al. 1998 (Some NO2 is oxidized to NO3 via CO2)
+      parm_n2o_ji_a = 0.3
+      parm_n2o_ji_b = 0.1
+      parm_n2o_gor_a = 0.2
+      parm_n2o_gor_b = -0.0004
+# endif
+# ifdef N2O_NEV
+      parm_n2o_nev_a1 = 0.2
+      parm_n2o_nev_a2 = 0.08
+      O2_crit_nev = 3.0
+      N2O_cons_tau_nev = 0.5 * dps
+      z_scale_nev = 3000.0
+#endif
 
+#ifdef IODINE
+      parm_iod1_cstflux = 5.0 * yps ! Constant excess Iodine flux in mmol m-2 -s
+      parm_iod2_fz2 = 5.0 * yps  ! Iodine flux at z=z2 in mmol m-2 -s
+      parm_iod2_z2 = 100.0 ! Reference depth for Iodine flux calculation
+      parm_iod2_z1 = 50.0 ! Depth at which Iodine flux is maximum
+      parm_iod2_b = -0.52 ! power law exponent
+      parm_iod3_ric_ox = 10.0e-4 ! ratio of excess I produced to C oxidized in the sediments
+      parm_iod4_maxflux = 10.0 * yps  ! Max Iodine flux in mmol m-2 -s
+# endif
+#ifdef UCLA_NO3
+      parm_BSIbury           = 0.65 ! x1 default
+      parm_Fe_scavenge_rate0 = 2.5  ! test initial scavenging rate 3 times higher
+      parm_f_prod_sp_CaCO3   = 0.055 ! x1 default
+      parm_POC_diss          = 88.0
+      parm_SiO2_diss         = 250.0
+      parm_CaCO3_diss        = 150.0
+#endif
 ! ETH default parameter for sp, diatoms, diazotrophs since 2023
 ! parameter PFT indices: (1, 2, 3) = (sp, diat, diaz)  
       sname(1:3)         = (/ 'sp', 'diat', 'diaz' /)
@@ -123,6 +211,9 @@
       kFe (1:3) = (/ 1.0d-4, 1.6d-4, 6.0d-4 /)  ! mmol m-3
       kPO4(1:3) = (/ 0.08, 0.13, 0.02 /)  ! mmol m-3
       kNO3(1:3) = (/ 1.2, 2.1, 0.3 /)  ! mmol m-3
+# ifdef Ncycle_SY
+      kNO2(1:3) = (/ 0.0300, 0.24, 0.8 /)        ! mmol N/m3  ! 0.0
+# endif
       kNH4(1:3) = (/ 0.12, 0.21, 0.03 /)  ! mmol m-3
       kSiO3(1:3) = (/ 0.0, 2.0, 0.0 /)  ! mmol m-3
       kDOP(1:3) = (/ 0.9, 0.9, 0.02 /)  ! mmol m-3
@@ -235,8 +326,8 @@
       gQfe_0(cocco_ind)        = 20e-6
       gQfe_min(cocco_ind)      = 3.0e-6
       alphaPI(cocco_ind)       = 0.44
-      PCref(cocco_ind)         = NaN ! Needs to be tuned for k-scenario
-      Q_10_phyto(cocco_ind)    = 1.14  ! Le Quere 2016
+      PCref(cocco_ind)         = NaN
+      Q_10_phyto(cocco_ind)    = NaN ! k-szenario with Cocco needs tuning.
       thetaN_max(cocco_ind)    = 2.5
       loss_thres(cocco_ind)   = 0.04
       loss_thres2(cocco_ind)  = 0.0
@@ -254,13 +345,13 @@
       f_zoo_detr(cocco_ind)    = 0.2
 
 #ifdef BIOPAR_R
-      MPI_master_only print*, 'BEC parameters initialized with ',
-     & 'T19_r scenario '
-      PCref(cocco_ind)   = 0.8
-      Q_10_phyto(cocco_ind) = 1.14 ! Le Quere 2016
-      z_umax_0(cocco_ind) = 4.577
-      z_grz(cocco_ind) = 1.05
-      mort(cocco_ind) = 0.12
+      MPI_master_only 
+     & print*, 'BEC parameters initialized with S12_1_r scenario'
+      PCref(cocco_ind)    = (/ 1.0,   2.4,   0.6,   0.8 /)
+      Q_10_phyto(1:3)     = (/ 1.6,   1.9,   1.8,   1.14 /)
+      z_umax_0(cocco_ind) = (/ 2.577, 3.955, 2.234, 4.577 /)
+      z_grz(cocco_ind)    = 1.05
+      mort(cocco_ind)     = 0.12
 #endif /* BIOPAR_R */
 
 #endif
@@ -434,6 +525,14 @@
          if (status /= 0) 
      &       print*,'Info: "nutrient_change" namelist not found'
      &                    , '      --> using defaults.'
+         rewind(73)
+
+#ifdef Ncycle_SY
+         read(73,NML=ncycle_parameters,iostat=status)
+         if (status /= 0)
+     &       print*,'Info: "ncycle_parameters" namelist not found'
+     &                    , '      --> using defaults.'
+#endif
 #ifdef MPI
          if (mynode.eq.0) then
 #endif
@@ -471,6 +570,9 @@
             write(74,NML=carbon_routing)
             write(74,NML=element_ratios)
             write(74,NML=nutrient_change)
+#ifdef Ncycle_SY
+            write(74,NML=ncycle_parameters)
+#endif
          close(74)
          else
             print *, 'Could not create output file ',
@@ -496,8 +598,12 @@
          write(*,NML=carbon_routing)
          write(*,*)'! carbon_routing:'
          write(*,NML=element_ratios)
-         write(*,*)'! nutrient_chang:'
+         write(*,*)'! nutrient_change:'
          write(*,NML=nutrient_change)
+#ifdef Ncycle_SY
+         write(*,*)'! ncycle_parameters:'
+         write(*,NML=ncycle_parameters)
+#endif
 # ifdef MPI
       end if  ! (mynode.eq.0)
 # endif
@@ -555,6 +661,10 @@
       press = 1.
 
       lflux_gas_o2  = .TRUE.
+# ifdef Ncycle_SY
+      lflux_gas_n2o  = .TRUE.
+      lflux_gas_n2  = .TRUE.
+# endif
       lflux_gas_co2 = .TRUE.
       liron_flux = .TRUE.
 #ifdef RIVER_LOAD_BIO

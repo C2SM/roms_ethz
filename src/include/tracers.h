@@ -55,6 +55,7 @@
 #  undef LAST_I
 #  define LAST_I indxCal
 # endif
+
 # ifdef BEC_DDA
      &          , indxDdac=LAST_I+1, indxDdachl=LAST_I+2
      &          , indxDdasi=LAST_I+3, indxDdafe=LAST_I+4
@@ -72,6 +73,24 @@
      &          , indxPhaeofe=LAST_I+3
 #  undef LAST_I
 #  define LAST_I indxPhaeofe
+# endif
+# ifdef Ncycle_SY
+     &          , indxno2=LAST_I+1, indxn2=LAST_I+2
+     &          , indxn2o=LAST_I+3
+#  undef LAST_I
+#  define LAST_I indxn2o
+# ifdef N2O_TRACER_DECOMP
+     &          , indxn2o_ao1=LAST_I+1, indxn2o_siden=LAST_I+2
+     &          , indxn2o_soden=LAST_I+3, indxn2o_atm=LAST_I+4
+     &          , indxn2_sed=LAST_I+5
+#  undef LAST_I
+#  define LAST_I indxn2_sed
+# endif
+# endif
+# ifdef N2O_NEV
+     &          , indxn2o_nev=LAST_I+1
+#  undef LAST_I
+#  define LAST_I indxn2o_nev
 # endif
 # ifdef USE_EXPLICIT_VSINK
      &          , indxdusthard=LAST_I+1, indxpochard=indxdusthard+1

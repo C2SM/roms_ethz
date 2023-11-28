@@ -7,6 +7,7 @@
 #define SOLVE3D
 #define UV_ADV
 #define UV_COR
+#define ADV_WENO
                      /*  Equation of State */
 #define NONLIN_EOS
 #define SPLIT_EOS

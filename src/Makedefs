@@ -41,7 +41,7 @@ DEPFLAGS = -MT $@ -MMD -MP -MF $(DEPDIR)/$*.Td
 
 # Declare *.f files precious to keep them
 .PRECIOUS: %.f %.f90
-.INTERMEDIATE: %.f %.f90
+# .INTERMEDIATE: %.f %.f90
 
 # Clear implicit rules:
 %.o: %.F
@@ -72,7 +72,7 @@ endif
 
 # Using pattern rules
 %.o: %.f
-	@echo Compiling $<
+	@echo FC $<
 	$(Q)cd $(BLDDIR); $(MPIFC) -c $(FFLAGS) $(notdir $<)
 # Rule to create .f files;
 # also create dependencies files when creating these.

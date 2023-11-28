@@ -78,13 +78,15 @@ MODULE oas_roms_data
       & alpha_rho, alpha_u, alpha_v,   &   ! coupling coefficients
       & u_cos_proj_u, v_cos_proj_u,    &   ! Cosmo velocitiy projection at u-points
       & u_cos_proj_v, v_cos_proj_v         ! Cosmo velocitiy projection at v-points
-   
+
+#ifdef OAS_TIME_INTERPOLATE
    ! 2 time slices of ROMS - style atmos forcing
    ! (Using old-fashion ROMS style data format instead of TYPE declaration)
    ! to merge with the forcing outside the coupling region.
    ! ------------------------------------------------------
-   REAL(KIND=8), SAVE, DIMENSION(:,:,:),   ALLOCATABLE, PUBLIC :: sustr_a, svstr_a, srflx_a
    REAL(KIND=8), SAVE, DIMENSION(:,:,:,:), ALLOCATABLE, PUBLIC :: stflx_a 
-   INTEGER, SAVE, DIMENSION(2), PUBLIC :: oas_time
+   REAL(KIND=8), SAVE, DIMENSION(:,:,:),   ALLOCATABLE, PUBLIC :: svstr_a, srflx_a, shflx_a, ssflx_a
+   INTEGER, SAVE, PUBLIC :: oas_tnow, oas_tprior, oas_inow, oas_iprior
+#endif
 
 END MODULE oas_roms_data

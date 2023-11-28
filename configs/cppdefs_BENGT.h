@@ -8,35 +8,28 @@
                      /* (Otherwise standard UP bio switches are not set) */
 
 # define BIOLOGY_BEC2
-! #define UCYN
 #include "cppdefs_UP.h"
-#define PACTCS60
-#define CALENDAR  '365_day'
-#define ADV_WENO
-#define JOINED_INPUT
 
-#ifdef PACTCS60
-# define GRID_SIZE LLm=300, MMm=257, N=64      ! pactcs60 8-120km telescopic up to Antarctica
-# define DOMAIN_TILING NP_XI=8, NP_ETA=16, NSUB_X=1, NSUB_E=1 ! Euler
-#else 
-! default: PACTCS30 
-# define PACTCS30
-# define GRID_SIZE LLm=602, MMm=516, N=64      ! pactcs30 4.1-65km telescopic up to Antarctica
-# define DOMAIN_TILING NP_XI=8, NP_ETA=48, NSUB_X=1, NSUB_E=1 ! Euler
-#endif
+! CHOOSE SETUP HERE
+#define BENGT27E16S
 
+# define GRID_SIZE LLm=547, MMm=167, N=64      ! benguela telescopic 6.6-13km
+# define DOMAIN_TILING NP_XI=6, NP_ETA=24, NSUB_X=1, NSUB_E=1 ! Mobilis - EL2020
+
+      ! NB: LLm and MMn correspond to xi_rho-2 and eta_rho-2
 
      /* Open Boundaries */
 #define OBC_SOUTH
+#define OBC_EAST
 
      /* Open Boundary Conditions */
-!-- Try to treat inflow/outflow of ACC differently! (not yet tested, so far I used M2FLATHER)
-!-- new only indic/pacific, see below #define OBC_M2SPECIFIED /* special for SO */
-#define OBC_SOUTH_M2SPECIFIED_TILESTR 000 /* OBC_M2SPECIFIED for a certain range of tiles */
-#define OBC_SOUTH_M2SPECIFIED_TILEEND 004 /* OBC_M2SPECIFIED for a certain range of tiles */
 #define OBC_M3ORLANSKI /* Baroclin. BC: OBC_M3ORLANSKI, OBC_M3SPECIFIED */
 #define OBC_TORLANSKI /* Tracer BC: OBC_TORLANSKI, OBC_TSPECIFIED */
 
+!-- Try to treat inflow/outflow of ACC differently! (not yet tested, so far I used M2FLATHER)
+!-- new only indic/pacific, see below #define OBC_M2SPECIFIED /* special for SO */
+! #define OBC_SOUTH_M2SPECIFIED_TILESTR 000 /* OBC_M2SPECIFIED for a certain range of tiles */
+! #define OBC_SOUTH_M2SPECIFIED_TILEEND 004 /* OBC_M2SPECIFIED for a certain range of tiles */
 
      /* Open Boundary Conditions */
 !-- #define CLMFORCING
@@ -77,16 +70,12 @@
      /* Output */
 #define AVERAGES
 !#define SLICE_AVG
-#ifdef PACTCS30
+#ifdef BENGT27E16S
 # define CALENDAR '365_day'     /* netCDF CF-convention CALENDAR attribute default: '360_day' */
 #endif
 !--> #define STARTDATE '0001-01-01' /* part of netCDF CF-convention time units attribute default: '0001-01-01'*/
 
-
-!--> #define ADV_ISONEUTRAL
-
-! define to switch on WENO scheme advection:
-!--> #define ADV_WENO 
+#define ADV_ISONEUTRAL
 
      /* Biology */
 !--> #define BIOLOGY_NPZDOC
@@ -99,12 +88,12 @@
 !# define BUDGETVARS
 # define VFLX_CORR /* MF: make sure this is always on if running with BIOLOGY */
 # define BEC2_DIAG
-# define RIVER_LOAD_ALK_DIC_SI
+!# define RIVER_LOAD_ALK_DIC_SI
 # define RIVER_LOAD_N
 # define RIVER_LOAD_P
 # define PCO2AIR_FORCING
-# define NHY_FORCING
-# define NOX_FORCING
+!# define NHY_FORCING
+!# define NOX_FORCING
 #endif /* BIOLOGY_BEC2 */
 
 
@@ -125,5 +114,4 @@
 
 #include "set_global_definitions.h"
 
-!#undef PARALLEL_FILES
-!--> #define PARALLEL_FILES
+!--> #undef PARALLEL_FILES

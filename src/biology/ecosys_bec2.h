@@ -27,7 +27,13 @@
 # else /* CCHEM_MOCSY */
       parameter( nr_cchem_mocsy_2d=0, nr_cchem_mocsy_3d=0 )
 # endif /* CCHEM_MOCSY */
-      parameter( nr_bec2_diag_3d=107+nr_cchem_mocsy_3d
+      parameter( nr_bec2_diag_3d=109+nr_cchem_mocsy_3d
+# ifdef Ncycle_SY
+     &  +14
+#endif
+#ifdef N2O_NEV
+     &  +2 
+#endif
 # ifdef USE_EXPLICIT_VSINK
      &    +10
 # endif
@@ -40,7 +46,17 @@
 # ifdef BEC_PHAEO
      &    +17
 # endif
-     &          ,nr_bec2_diag_2d=29+nr_cchem_mocsy_2d )
+     & , nr_bec2_diag_2d=29+nr_cchem_mocsy_2d 
+# ifdef Ncycle_SY
+     &  +8
+# ifdef N2O_TRACER_DECOMP
+     &  +4 ! 0 from coccos, 0 from impl sinking
+#endif /* N2O_TRACER_DECOMP*/
+#endif
+#ifdef N2O_NEV
+     &  +1 ! 0 from coccos, 0 from impl sinking
+#endif /* N2O_NEV*/
+     &  )
       parameter( nr_bec2_diag=nr_bec2_diag_2d+nr_bec2_diag_3d )
 # ifdef BEC2_DIAG_USER
       real, pointer, dimension(:,:,:,:) :: bec2_diag_3d
@@ -116,9 +132,10 @@
      &   totgraze_idx_t=par_idx_t+96,totgrazedic_idx_t=par_idx_t+97,totgrazezoo_idx_t=par_idx_t+98,
      &   totagg_idx_t=par_idx_t+99,totno3uptake_idx_t=par_idx_t+100,totnh4uptake_idx_t=par_idx_t+101,
      &   totloss_idx_t=par_idx_t+102,totlossdic_idx_t=par_idx_t+103,nexcrete_idx_t=par_idx_t+104,
-     &   totpoc_idx_t=par_idx_t+105,ncp_idx_t=par_idx_t+106
+     &   totpoc_idx_t=par_idx_t+105,ncp_idx_t=par_idx_t+106,o2cons_idx_t=par_idx_t+107, 
+     &   o2prod_idx_t=par_idx_t+108
 #  undef LAST_I
-#  define LAST_I ncp_idx_t
+#  define LAST_I o2prod_idx_t 
 # ifdef USE_EXPLICIT_VSINK
      &   ,pironhardremin_idx_t=LAST_I+1,caco3hardremin_idx_t=LAST_I+2
      &   ,sio2hardremin_idx_t=LAST_I+3
@@ -155,6 +172,24 @@
 #  undef LAST_I
 #  define LAST_I pocprodcocco_idx_t
 # endif
+# ifdef Ncycle_SY
+      integer, parameter :: ammox_idx_t=LAST_I+1,nitrox_idx_t=LAST_I+2,
+     &   anammox_idx_t=LAST_I+3,denitrif1_idx_t=LAST_I+4, denitrif2_idx_t=LAST_I+5,
+     &   denitrif3_idx_t=LAST_I+6,spno2uptake_idx_t=LAST_I+7,
+     &   diatno2uptake_idx_t=LAST_I+8,diazno2uptake_idx_t=LAST_I+9,
+     &   n2oammox_idx_t=LAST_I+10,n2osoden_cons_idx_t=LAST_I+11,
+     &   n2oao1_cons_idx_t=LAST_I+12,n2oatm_cons_idx_t=LAST_I+13,
+     &   n2osiden_cons_idx_t=LAST_I+14
+#  undef LAST_I
+#  define LAST_I n2osiden_cons_idx_t
+# endif
+
+# ifdef N2O_NEV
+      integer, parameter :: n2oprodnev_idx_t=LAST_I+1,n2oconsnev_idx_t=LAST_I+2
+# undef LAST_I
+# define LAST_I n2oconsnev_idx_t
+# endif
+
 # ifdef BEC_DDA
       integer, parameter :: grazedda_idx_t=LAST_I+1,ddaloss_idx_t=LAST_I+2,
      &   ddaagg_idx_t=LAST_I+3,photocdda_idx_t=LAST_I+4,
@@ -213,6 +248,24 @@
      &   co2star_idx_t=pco2air_idx_t+16,pco2oc_idx_t=pco2air_idx_t+17,dco2star_idx_t=pco2air_idx_t+18
 # undef LAST_I
 # define LAST_I dco2star_idx_t
+#ifdef Ncycle_SY
+     &   ,schmidt_n2o_idx_t=LAST_I+1, pvn2o_idx_t=LAST_I+2, n2osat_idx_t=LAST_I+3,
+     &    fgn2o_idx_t=LAST_I+4, schmidt_n2_idx_t=LAST_I+5, pvn2_idx_t=LAST_I+6, 
+     &    fgn2_idx_t=LAST_I+7, n2sat_idx_t=LAST_I+8
+# undef LAST_I
+# define LAST_I n2sat_idx_t
+#ifdef N2O_TRACER_DECOMP
+     &   ,fgn2o_ao1_idx_t=LAST_I+1, fgn2o_siden_idx_t=LAST_I+2,
+     &   fgn2o_soden_idx_t=LAST_I+3, fgn2o_atm_idx_t=LAST_I+4
+# undef LAST_I
+# define LAST_I fgn2o_atm_idx_t
+# endif
+# endif
+#ifdef N2O_NEV
+     &   ,fgn2o_nev_idx_t=LAST_I+1
+# undef LAST_I
+# define LAST_I fgn2o_nev_idx_t
+# endif
 # ifdef CCHEM_MOCSY
 #  ifndef CCHEM_TODEPTH
      &   ,hco3_idx_t= LAST_I+1, co3_idx_t= LAST_I+2
@@ -278,8 +331,14 @@
       logical landmask(GLOBAL_2D_ARRAY)
       common /calcation/landmask
 
-      logical lsource_sink,lflux_gas_o2, lflux_gas_co2,
-     &  liron_flux,ldust_flux
+      logical lsource_sink,lflux_gas_o2, lflux_gas_co2
+#if defined Ncycle_SY || defined N2O_NEV
+     &  ,lflux_gas_n2o
+#endif
+#ifdef Ncycle_SY
+     &  ,lflux_gas_n2
+# endif
+     &  ,liron_flux,ldust_flux
 #ifdef RIVER_LOAD_N
      &  ,lriver_load_n
 #endif
@@ -330,6 +389,26 @@
 #  undef LAST_I
 #  define LAST_I ddafe_ind_t
 #endif
+#ifdef Ncycle_SY
+      integer, parameter ::
+     &     no2_ind_t=LAST_I+1, n2_ind_t=LAST_I+2,  n2o_ind_t=LAST_I+3
+#  undef LAST_I
+#  define LAST_I n2o_ind_t
+#ifdef N2O_TRACER_DECOMP
+     &     ,n2o_ao1_ind_t=LAST_I+1, n2o_siden_ind_t=LAST_I+2, 
+     &     n2o_soden_ind_t=LAST_I+3, n2o_atm_ind_t=LAST_I+4,
+     &     n2_sed_ind_t=LAST_I+5
+#  undef LAST_I
+#  define LAST_I n2_sed_ind_t
+# endif
+# endif
+
+# ifdef N2O_NEV
+      integer, parameter ::
+     &      n2o_nev_ind_t=LAST_I+1
+#  undef LAST_I
+#  define LAST_I n2o_nev_ind_t
+# endif
 #ifdef BEC_UCYN
       integer, parameter ::
      &     ucync_ind_t=LAST_I+1, ucynchl_ind_t=LAST_I+2, ucynsi_ind_t=LAST_I+3
