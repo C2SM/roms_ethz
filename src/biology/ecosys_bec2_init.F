@@ -236,7 +236,7 @@
       gQfe_min(cocco_ind)      = 3.0e-6
       alphaPI(cocco_ind)       = 0.44
       PCref(cocco_ind)         = 0.909
-      Q_10_phyto(cocco_ind)    = 1.9  ! old ratio to diat 1.78
+      Q_10_phyto(cocco_ind)    = NaN ! k-szenario with Cocco needs tuning.
       thetaN_max(cocco_ind)    = 2.5
       loss_thres(cocco_ind)   = 0.04
       loss_thres2(cocco_ind)  = 0.0
@@ -254,13 +254,13 @@
       f_zoo_detr(cocco_ind)    = 0.2
 
 #ifdef BIOPAR_R
-      MPI_master_only print*, 'BEC parameters initialized with ',
-     & 'S12_1_r scenario '
-      PCref(cocco_ind)   = 1.983
-      Q_10_phyto(cocco_ind) = 1.9
-      z_umax_0(cocco_ind) = 3.329
-      z_grz(cocco_ind) = 1.05
-      mort(cocco_ind) = 0.12
+      MPI_master_only 
+     & print*, 'BEC parameters initialized with S12_1_r scenario'
+      PCref(cocco_ind)    = (/ 1.0,   2.4,   0.6,   0.8 /)
+      Q_10_phyto(1:3)     = (/ 1.6,   1.9,   1.8,   1.14 /)
+      z_umax_0(cocco_ind) = (/ 2.577, 3.955, 2.234, 4.577 /)
+      z_grz(cocco_ind)    = 1.05
+      mort(cocco_ind)     = 0.12
 #endif /* BIOPAR_R */
 
 #endif
