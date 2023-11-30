@@ -64,8 +64,10 @@
           imax=iend+1
 #endif
 
-#ifdef T_HADV_WENO
-
+#if defined T_HADV_WENO 
+# if defined ITRC_START_WENO
+          if (itrc >= is_weno) then   !<- WENO for high index tracers  only
+# endif
 !-------------------------------------------------------------------!
 !!!!!!!!!!!!! COMPUTATION OF FX (loop on i indices) !!!!!!!!!!!!!!!!!
 !-------------------------------------------------------------------!
@@ -121,8 +123,10 @@
           ENDDO ! i_loop_x_flux_5
 
 
-
-#else
+# ifdef ITRC_START_WENO
+          else   !<-- itrc < is_weno (no WENO for low index tracers).
+# endif  
+#elif  ITRC_START_WENO || ! defined T_HADV_WENO  
 
 
           do j=jstr,jend
@@ -181,6 +185,9 @@
           enddo
 
 #endif
+#ifdef ITRC_START_WENO
+          endif   !<-- itrc >= is_weno (WENO for high index tracers  only)
+#endif
 !endif weno i loop
           
 #ifndef NS_PERIODIC
@@ -200,7 +207,9 @@
 #endif
 
 #ifdef T_HADV_WENO
-
+# if defined ITRC_START_WENO
+          if (itrc >= is_weno) then   !<- WENO for high index tracers
+# endif
 !-------------------------------------------------------------------!
 !!!!!!!!!!!!! COMPUTATION OF FE (loop on j indices) !!!!!!!!!!!!!!!!!
 !-------------------------------------------------------------------!
@@ -257,7 +266,10 @@
             ENDIF
           ENDDO ! j_loop_y_flux_5
 
-#else
+# ifdef ITRC_START_WENO
+          else   !<-- itrc < is_weno (no WENO for low index tracers)
+# endif  
+#elif  ITRC_START_WENO || ! defined T_HADV_WENO  
 
           do j=jmin,jmax+1
             do i=istr,iend
@@ -316,6 +328,9 @@
           enddo             !--> discard curv,grad, keep FE
           
 #endif 
+#ifdef ITRC_START_WENO
+          endif   !<-- itrc <= is_weno (no WENO for low index tracers)
+#endif
 !endif weno j loop
 
 #ifdef PSOURCE

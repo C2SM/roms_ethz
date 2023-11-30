@@ -38,7 +38,10 @@ c--#define AKIMA_V
           else
 #endif
 
-#ifdef SPLINE_TS
+#if defined SPLINE_TS || defined ITRC_START_WENO
+# ifdef ITRC_START_WENO
+            if (itrc < is_weno) then   !<- no WENO for low index tracers 
+# endif
           do i=istr,iend
 # if defined NEUMANN_TS
             CF(i,1)=0.5  ;  FC(i,0)=1.5*t(i,j,1,nrhs,itrc)
@@ -73,9 +76,14 @@ c--#define AKIMA_V
             FC(i,N)=0.                         ! Set top and bottom
             FC(i,0)=0.                         ! boundary conditions.
           enddo
+# ifdef ITRC_START_WENO
+            endif  !<-- itrc < is_weno,  !<- no WENO for low index tracers 
+# endif  !<-- ITRC_START_WENO     
           
-# elif defined T_VADV_WENO
-
+# elif defined T_VADV_WENO || defined ITRC_START_WENO
+#if defined ITRC_START_WENO
+        if (itrc > is_weno) then   !<-- biological components only
+#endif
 !
 !----------------------------------------------------------
 ! Compute vertical advective fluxes 

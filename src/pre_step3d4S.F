@@ -52,6 +52,9 @@
       REAL    :: flx2, flx3
       REAL    :: mask1
       REAL    :: flux3_weno, flux5_weno
+# ifdef ITRC_START_WENO
+      integer :: is_weno :: ITRC_START_WENO ! Start tracer index for WENO advection
+# endif
 #endif
 
 # include "compute_auxiliary_bounds.h"
