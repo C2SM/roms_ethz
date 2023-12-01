@@ -633,10 +633,6 @@ CR      write(*,'(1x,A,I3)') 'indxNH4 =',indxNH4
 # ifdef CCHEM_MOCSY
      &                     .false.,.false.,                                ! HCO3, CO3
 # endif
-<<<<<<< HEAD
-     &                     .false.,.false.,.false.,.false.,.false.,   ! FE_SED_FLUX,FLUX_TO_SED,CACO3_FLUX_TO_SED,SIO2_FLUX_TO_SED,PIRON_FLUX_TO_SED
-     &                     .false.,.false.,.false.,.false.,.false./)  ! DUST_FLUX_SED, POC_SED_LOSS, OTHER_REMIN,CaCO3_sed_loss,P_SiO2_sed_loss
-=======
 #ifdef Ncycle_SY
      &                     .false.,.false.,.false.,.true.,              !SCHMIDT_N2O, PV_N2O, N2OSAT, FG_N2O
      &                     .false.,.false.,.false.,.true.,              !SCHMIDT_N2,PV_N2, N2SAT, FG_N2
@@ -647,9 +643,8 @@ CR      write(*,'(1x,A,I3)') 'indxNH4 =',indxNH4
 # ifdef N2O_NEV
      &                     .false.,                                    !FG_N2O_NEV
 #endif
-     &                     .true.,.true.,.true.,.true.,.true.,   ! FE_SED_FLUX,FLUX_TO_SED,CACO3_FLUX_TO_SED,SIO2_FLUX_TO_SED,PIRON_FLUX_TO_SED
-     &                     .true.,.true.,.true.,.true.,.true./)  ! DUST_FLUX_SED, POC_SED_LOSS, OTHER_REMIN,CaCO3_sed_loss,P_SiO2_sed_loss
->>>>>>> master
+     &                     .false.,.false.,.false.,.false.,.false.,   ! FE_SED_FLUX,FLUX_TO_SED,CACO3_FLUX_TO_SED,SIO2_FLUX_TO_SED,PIRON_FLUX_TO_SED
+     &                     .false.,.false.,.false.,.false.,.false./)  ! DUST_FLUX_SED, POC_SED_LOSS, OTHER_REMIN,CaCO3_sed_loss,P_SiO2_sed_loss
 
       !
       ! More 3d diagnostics:
@@ -1783,11 +1778,7 @@ CR      write(*,'(1x,A,I3)') 'indxNH4 =',indxNH4
 # ifdef BEC2_DIAG
 
         ! MF: Control BEC2_DIAG Output vars
-<<<<<<< HEAD
       wrtavg_bec2_diag_3d=(/.false.,.true.,.false. ,.false. ,.false.,  !PAR, POC_FLUX_IN, POC_Prod,POC_REMIN, CACO3_FLUX_IN,
-=======
-      wrtavg_bec2_diag_3d=(/.false.,.true.,.true. ,.false. ,.false.,  !PAR, POC_FLUX_IN, POC_Prod,POC_REMIN, CACO3_FLUX_IN,
->>>>>>> master
      &                     .false.,.false.,.false.,.false.,.false.,  !PCACO3_PROD, CACO3_REMIN,SIO2_FLUX_IN, SIO2_PROD, SIO2_REMIN,
      &                     .false.,.false.,.false.,.false.,.false.,  !DUST_FLUX_IN, DUST_REMIN,P_IRON_FLUX_IN, P_IRON_PROD, P_IRON_REMIN,
      &                     .false.,.false. ,.false.,.false.,.false. ,  !GRAZE_SP, GRAZE_DIAT,GRAZE_DIAZ, SP_LOSS, DIAT_LOSS,
@@ -1805,23 +1796,13 @@ CR      write(*,'(1x,A,I3)') 'indxNH4 =',indxNH4
      &                     .false.,.false.,.false.,.false.,.false.,  !ZOO_LOSS_DIC, DIAZ_AGG,GRAZE_SP_ZOO, GRAZE_DIAT_ZOO, GRAZE_DIAZ_ZOO, 
      &                     .false.,.false.,.false.,.false.,.false.,  !SPQCACO3, PHOTOACC_SP,PHOTOACC_DIAT, PHOTOACC_DIAZ, SPC_ZERO, 
      &                     .false.,.false.,.false.,.false.,.false.,  !DIATC_ZERO, DIAZC_ZERO, DOC_ZERO, ZOOC_ZERO, SPCACO3_ZERO, 
-<<<<<<< HEAD
-     &                     .false.,.false.,.false.,.false.,.false.,     !DONR_REMIN, TOTCHL, SP_P_LIM, DIAT_P_LIM, DIAZ_P_LIM,
-=======
-     &                     .true.,.true.,.true.,.true.,.true.,     !DONR_REMIN, TOTCHL, SP_P_LIM, DIAT_P_LIM, DIAZ_P_LIM,
->>>>>>> master
+     &                     .false.,.true.,.false.,.false.,.false.,     !DONR_REMIN, TOTCHL, SP_P_LIM, DIAT_P_LIM, DIAZ_P_LIM,
      &                     .true. ,.false.,.false.,.false.,.false.,  !TOT_PHYTO_C, POC_PROD_ZOO_LOSS, POC_PROD_DIAT, POC_PROD_SP, POC_PROD_DIAZ,
      &                     .false.,.false.,.false.,.false.,.false.,  !QSI_DIAT, TOT_GRAZE, TOT_GRAZE_DIC, TOT_GRAZE_ZOO, TOT_AGG
      ! 100
-<<<<<<< HEAD
-     &                     .false., .false., .false.,.false.,.false.,  !TOT_NO3_UPTAKE,TOT_NH4_UPTAKE,TOT_LOSS,TOT_LOSS_DIC, NEXCRETE
-     &                     .true.,.true.                             !TOT_POC, NCP
-     ! 107 tracer
-=======
      &                     .true., .true., .false.,.false.,.true.,  !TOT_NO3_UPTAKE,TOT_NH4_UPTAKE,TOT_LOSS,TOT_LOSS_DIC, NEXCRETE
      &                     .true.,.true.,.true.,.true.               !TOT_POC, NCP, O2_CONSUMPTION, O2_PRODUCTION
      ! 109 tracer
->>>>>>> master
 # ifdef USE_EXPLICIT_VSINK
      ! +10
      &                     ,.false.,.false.,.false.,.false.,.false.,  ! PIRON_HARD_REMIN, CACO3_HARD_REMIN, SIO2_HARD_REMIN, POC_HARD_REMIN,DUST_HARD_REMIN
