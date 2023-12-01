@@ -111,7 +111,7 @@ c--# define CONST_TRACERS
       REAL    :: mask1
       REAL    :: flux3_weno, flux5_weno
 # ifdef ITRC_START_WENO
-      integer :: is_weno :: ITRC_START_WENO ! Start tracer index for WENO advection
+      integer :: is_weno = ITRC_START_WENO ! Start tracer index for WENO advection
 # endif
 #endif
 
