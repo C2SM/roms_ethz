@@ -80,6 +80,7 @@
 
 
 #define ADV_ISONEUTRAL
+#define RIVER_VOLUME
 
      /* Biology */
 !--> #define BIOLOGY_NPZDOC
@@ -117,6 +118,7 @@
 !--> #define VERBOSE
 !#define HIS_DOUBLE
 !--> #define DEBUG
+
 
 #include "set_global_definitions.h"
 

@@ -147,8 +147,11 @@
           cff=0.01/day2sec
           do j=jstrR,jendR
             do i=istrR,iendR
-              stflx(i,j,isalt)=(cff*stflxg(i,j,itstf(isalt),isalt)
-     &                                       *t(i,j,N,nrhs,isalt))
+              stflx(i,j,isalt)=(cff*(stflxg(i,j,itstf(isalt),isalt)
+#  ifdef RIVER_VOLUME
+     &                                + swf_river(i,j) 
+#  endif
+     &                                      )*t(i,j,N,nrhs,isalt))
 #  ifdef ICEOBS
      &                                               +melting(i,j)
 #   if !defined BRINE_PLUMES
@@ -236,7 +239,7 @@
               stflx(i,j,isalt)=(t(i,j,N,nrhs,isalt)*(
      &                     cff1*stflxg(i,j,it1,isalt)
      &                  +cff2*stflxg(i,j,it2,isalt)))
-#  ifdef SWF_RIVER_FORCING
+#  ifdef RIVER_VOLUME
      &                                +swf_river(i,j)
 #  endif
 #  ifdef ICEOBS

@@ -100,7 +100,7 @@ c***              no code here
 # endif
 #endif
 
-# if defined SWF_RIVER_FORCING || defined SWF_COUP_OAS
+# if defined RIVER_VOLUME
       call set_swf_river_tile(istr,iend,jstr,jend,ierr)
 # endif
 # ifdef PCO2AIR_FORCING

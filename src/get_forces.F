@@ -73,7 +73,7 @@ c--#define VERBOSE
 #  endif
 # endif /* BULK_FLUX */
 
-# if defined SWF_RIVER_FORCING || defined SWF_COUP_OAS
+# if defined RIVER_VOLUME
       call get_swf_river
 # endif 
 
@@ -470,13 +470,13 @@ c--#  define timename 'dqdt_time'
 # include "get_smth.F"
 #endif
 
-# ifdef RIVER_VOL
+# ifdef RIVER_VOLUME
 !  River Mass flux (added via precipitation)
 !  --- ----- ---- 
 #  define get_smth get_swf_river
-#  define varname 'swflux'
-#  define timename 'swf_time'
-!--> #  define RIVER_DATA
+#  define varname 'swflux_river'
+#  define timename 'swflux_time'
+#  define RIVER_VOLUME_DATA
 #  define var swf_riverg
 #  define timevar swf_river_time
 #  define file_id swf_river_file_id
@@ -487,8 +487,8 @@ c--#  define timename 'dqdt_time'
 #  define record swf_river_rec
 #  define ntsmth nt_swf_river
 #  define itsmth it_swf_river
-#  define icycle swf_river_icycle
-#  define cycle_length swf_river_cyc_len
+#  define icycle swf_river_ncycle
+#  define cycle_length swf_river_cycle
 #  define SET_SMTH set_swf_river
 #  define VAR_CFF 1.0
 #  define VAR_NOW swf_river
