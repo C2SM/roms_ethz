@@ -141,6 +141,9 @@
       logical del_part_files
       character(len=128) rmcmd
 #endif
+#ifdef CLOSE_NETCDF_AFTER_TREC
+      integer :: rec_close = 10
+#endif
 #ifdef TIMING
       real(kind=4) tstart, RUN_time, CPU_time(2)
       real(kind=8) InitTime, ReadSize, ReadTime, WrtSize,  WrtTime,
@@ -266,6 +269,15 @@
           inc_var_list = trim(inc_var_list) / / ','
           goto 2
         endif
+
+#ifdef CLOSE_NETCDF_AFTER_TREC
+        if ( nctestname(1:1)=='-' .and. (
+     &       lsrc > 10 .and. nctestname(1:10) == '--ncclose=' )) then
+          read(nctestname(11:LEN_TRIM(nctestname)),*) rec_close
+	  print *, 'Frequency of closing netcdf files [time records]: ', rec_close
+	  goto 2
+	endif
+#endif
 
 # if 1 == 0
         if ( nctestname(1:1)=='-' .and. (
@@ -1999,7 +2011,7 @@ c**         endif
         ierr=nf_sync (nctarg)
 
 #ifdef CLOSE_NETCDF_AFTER_TREC
-        if (rec .lt. min(tsize,nend)) then
+        if (rec .lt. min(tsize,nend) .and. mod(rec,rec_close)==0) then
            write(*,*) 'close netcdf files'
            do node=0,nnodes-1
              if (ncsrc(node) /= -1) then
@@ -2253,8 +2265,11 @@ c**         endif
      &   , '     (NCJOIN  is the inverse of PARTIT.)'
      &   , ' '
      &   , 'USAGE:'
-     &   , '     ncjoin [-3hknpqv -c=<n> -i=<list> -x=<list>]'
-     &   / / ' files.*.nc'
+     &   , '     ncjoin [-3hknpqv -c=<n> -i=<list> -x=<list>'
+#ifdef CLOSE_NETCDF_AFTER_TREC
+     &   / / ' --ncclose=<num>'
+#endif
+     &   / / '] files.*.nc'
      &   , ' '
      &   , '     where files.*.nc matches one or more complete set of' 
      &   , '     partial files'
@@ -2278,6 +2293,10 @@ c**         endif
 !     &   , '    -x=<var_list> list of variables (comma-separated'
 !     &   , '                 without spaces) to exclude'
      &   , '    -o=<dir>     output directory (default: working dir)'
+#ifdef CLOSE_NETCDF_AFTER_TREC
+     &   , '    --ncclose=<num> close and reopen Netcdf files every'
+     &   , '                    <num> time records (default: 10)'
+#endif
      &   , 'NOTE:'
      &   , '     The variable lists are case sensitive.'
       end subroutine usage
