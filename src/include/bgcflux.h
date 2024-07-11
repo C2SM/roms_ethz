@@ -153,6 +153,10 @@
       real pCO2air(GLOBAL_2D_ARRAY)
       common /gasexc_co2/ pCO2air
 #   endif
+#   ifndef N2OAIR_FORCING
+      real N2Oair(GLOBAL_2D_ARRAY)
+      common /gasexc_n2o/ N2Oair
+#   endif
 #  endif /* CARBON */
 #endif /* OXYGEN */
 

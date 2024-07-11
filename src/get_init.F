@@ -799,6 +799,30 @@ c--#define VERBOSE
      &        , 'PCO2air not in initial file.  Initialized to 0.0'
       endif
 #  endif
+#  ifndef N2OAIR_FORCING /* if N2Oair is not a 2D forcing field */
+
+      ! N2O in the air:
+      lvar=lenstr(vname(1,indxN2Oair_rst))
+      ierr=nf_inq_varid (ncid, vname(1,indxN2Oair_rst)(1:lvar), varid)
+      if (ierr .eq. nf_noerr) then
+#if defined PARALLEL_FILES && !defined JOINED_INITIAL
+         ierr=ncdf_read_partitioned (ncid,  varid, record, r_var
+     *                 , N2Oair(START_2D_ARRAY), 1)
+#else
+         ierr=ncdf_read_joined (ncid,  varid, record, r_var
+     *                 , N2Oair(START_2D_ARRAY), 1)
+#endif
+         if (ierr .ne. nf_noerr) then
+            write(*,2) vname(1,indxN2Oair_rst)(1:lvar), record,
+     &           trim(ininame)
+            goto 99             !--> ERROR
+         endif
+      else
+         MPI_master_only write(*,*) ' --- WARNING: '
+     &        , 'N2Oair not in initial file.  Initialized to 0.0'
+      endif
+#  endif
+
 # endif /* BIOLOGY_BEC || (BIOLOGY_NPZDOC && OXYGEN && CARBON) */
 # ifdef BIOLOGY_BEC2
       !

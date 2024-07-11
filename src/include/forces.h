@@ -57,7 +57,6 @@ CSDISTRIBUTE_RESHAPE windmag(BLOCK_PATTERN,*) BLOCK_CLAUSE
 #endif /* !ANA_SMFLUX */
 
 
-
 #ifdef SOLVE3D
 ! Solar short-wave radiation flux:
 !------ ---------- --------- ------
@@ -199,22 +198,6 @@ CSDISTRIBUTE_RESHAPE lwflxg(BLOCK_PATTERN,*) BLOCK_CLAUSE
 !XXXXXXXXXXXXXXXXXXX
 
 
-! River freshwater flux added as rain fall [cm day-1]
-! ----- ---------- ---- ----- -- ---- ---- ----------
-#  if defined RIVER_VOLUME_DATA
-      real swf_riverg(GLOBAL_2D_ARRAY,2)
-      common/swf_river_data/ swf_riverg
-
-      real(kind=8) swf_river_cycle, swf_river_time(2)
-      integer swf_river_ncycle,  it_swf_river, nt_swf_river,
-     &        swf_river_rec, swf_river_file_id, swf_river_tid,
-     &        swf_river_id
-      common /swf_riverdat/ swf_river_cycle,  swf_river_time,
-     &        swf_river_ncycle,  it_swf_river, nt_swf_river,
-     &        swf_river_rec, swf_river_file_id, swf_river_tid,
-     &        swf_river_id
-#  endif
-
 
 
 
@@ -236,14 +219,15 @@ CSDISTRIBUTE_RESHAPE lwflxg(BLOCK_PATTERN,*) BLOCK_CLAUSE
       real stflx(GLOBAL_2D_ARRAY,NT)
 CSDISTRIBUTE_RESHAPE stflx(BLOCK_PATTERN,*) BLOCK_CLAUSE
       common /frc_stflx/stflx
-# if defined RIVER_VOLUME
-      real swf_river(GLOBAL_2D_ARRAY)
-      common /swf_river/swf_river
-# endif
 # if defined WRITE_CO2FLX
       real CO2flx(GLOBAL_2D_ARRAY)
 CSDISTRIBUTE_RESHAPE CO2flx(BLOCK_PATTERN) BLOCK_CLAUSE
       common /frc_co2flx/CO2flx
+# endif
+# if defined WRITE_N2OFLX
+      real N2Oflx(GLOBAL_2D_ARRAY)
+CSDISTRIBUTE_RESHAPE N2Oflx(BLOCK_PATTERN) BLOCK_CLAUSE
+      common /frc_n2oflx/N2Oflx
 # endif
 # if defined WRITE_HEATFLX
       real Heatflx(GLOBAL_2D_ARRAY)

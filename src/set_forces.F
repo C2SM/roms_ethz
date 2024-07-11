@@ -100,11 +100,11 @@ c***              no code here
 # endif
 #endif
 
-# if defined RIVER_VOLUME
-      call set_swf_river_tile(istr,iend,jstr,jend,ierr)
-# endif
 # ifdef PCO2AIR_FORCING
       call set_pco2air_tile(istr,iend,jstr,jend,ierr)
+# endif
+# ifdef N2OAIR_FORCING
+      call set_n2oair_tile(istr,iend,jstr,jend,ierr)
 # endif
 # ifdef RIVER_LOAD_N
       call set_din_river_tile(istr,iend,jstr,jend,ierr)

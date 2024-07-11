@@ -73,9 +73,6 @@ c--#define VERBOSE
 #  endif
 # endif /* BULK_FLUX */
 
-# if defined RIVER_VOLUME
-      call get_swf_river
-# endif 
 
 # if defined QCORRECTION && !defined ANA_SST
       call get_sst(ierr)
@@ -93,6 +90,9 @@ c--#define VERBOSE
 # endif
 # ifdef PCO2AIR_FORCING
       call get_pco2air(ierr)
+# endif
+# ifdef N2OAIR_FORCING
+      call get_n2oair(ierr)
 # endif
 # ifdef BIOLOGY_BEC2
 #  ifdef NOX_FORCING
@@ -470,31 +470,6 @@ c--#  define timename 'dqdt_time'
 # include "get_smth.F"
 #endif
 
-# ifdef RIVER_VOLUME
-!  River Mass flux (added via precipitation)
-!  --- ----- ---- 
-#  define get_smth get_swf_river
-#  define varname 'swflux_river'
-#  define timename 'swflux_time'
-#  define RIVER_VOLUME_DATA
-#  define var swf_riverg
-#  define timevar swf_river_time
-#  define file_id swf_river_file_id
-#  define NC_ID_LIST ncfrc
-#  define NC_FILE_LIST frcfile
-#  define varid swf_river_id
-#  define timevarid swf_river_tid
-#  define record swf_river_rec
-#  define ntsmth nt_swf_river
-#  define itsmth it_swf_river
-#  define icycle swf_river_ncycle
-#  define cycle_length swf_river_cycle
-#  define SET_SMTH set_swf_river
-#  define VAR_CFF 1.0
-#  define VAR_NOW swf_river
-#  include "get_smth.F"
-# endif
-
 # ifdef RIVER_LOAD_N
 !  din river flux
 !  --- ----- ---- 
@@ -645,3 +620,29 @@ c--#  define timename 'dqdt_time'
 #  define VAR_NOW pco2air
 #  include "get_smth.F"
 # endif
+
+# ifdef N2OAIR_FORCING
+!  n2oair flux
+!  ------- ---- 
+#  define get_smth get_n2oair
+#  define varname 'n2o_air'
+#  define timename 'pn2o_time'
+#  define N2OAIR_DATA
+#  define var n2oairg
+#  define timevar n2oair_time
+#  define file_id n2oair_file_id
+#  define NC_ID_LIST ncfrc
+#  define NC_FILE_LIST frcfile
+#  define varid n2oair_id
+#  define timevarid n2oair_tid
+#  define record n2oair_rec
+#  define ntsmth ntn2oair
+#  define itsmth itn2oair
+#  define icycle n2oair_ncycle
+#  define cycle_length n2oair_cycle
+#  define SET_SMTH set_n2oair
+#  define VAR_CFF 1.0
+#  define VAR_NOW n2oair
+#  include "get_smth.F"
+# endif
+

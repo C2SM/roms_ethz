@@ -37,6 +37,9 @@
 #  ifdef WRITE_CO2FLX
 #   define co2flx_AVR(i,j) co2flx_avg(i,j)
 #  endif
+#  ifdef WRITE_N2OFLX
+#   define n2oflx_AVR(i,j) n2oflx_avg(i,j)
+#  endif
 #  ifdef WRITE_HEATFLX
 #   define heatflx_AVR(i,j) heatflx_avg(i,j)
 #  endif
@@ -102,6 +105,9 @@
 #  define akv_AVR(i,j,k) akv_slavg(i,j)
 #  ifdef WRITE_CO2FLX
 #   define co2flx_AVR(i,j) co2flx_slavg(i,j)
+#  endif
+#  ifdef WRITE_N2OFLX
+#   define n2oflx_AVR(i,j) n2oflx_slavg(i,j)
 #  endif
 #  ifdef WRITE_HEATFLX
 #   define heatflx_AVR(i,j) heatflx_slavg(i,j)
@@ -214,6 +220,11 @@
 # if (defined BIOLOGY_NPZDOC && defined PCO2AIR_FORCING) || \
      defined WRITE_TEMP_REST || defined WRITE_SALT_REST || \
      defined WRITE_HEATFLX || defined WRITE_CO2FLX
+#  include "forces.h"
+# endif
+# if (defined BIOLOGY_NPZDOC && defined N2OAIR_FORCING) || \
+     defined WRITE_TEMP_REST || defined WRITE_SALT_REST || \
+     defined WRITE_HEATFLX || defined WRITE_N2OFLX
 #  include "forces.h"
 # endif
 # ifdef BIOLOGY_NPZDOC
@@ -394,6 +405,16 @@
             enddo
           endif
 #  endif
+#  if defined WRITE_N2OFLX
+          if (wrtAVR(indxN2Oflx)) then
+            do j=jstrR,jendR
+              do i=istrR,iendR
+                n2oflx_AVR(i,j)=cff1*n2oflx_AVR(i,j) +cff*N2Oflx(i,j)
+              enddo
+            enddo
+          endif
+#  endif
+
 #  if defined WRITE_HEATFLX
           if (wrtAVR(indxHeatflx)) then
             do j=jstrR,jendR
@@ -630,6 +651,9 @@
 # undef akt_AVR
 # if defined WRITE_CO2FLX
 #  undef co2flx_AVR
+# endif
+# if defined WRITE_N2OFLX
+#  undef n2oflx_AVR
 # endif
 # if defined WRITE_HEATFLX
 #  undef heatflx_AVR

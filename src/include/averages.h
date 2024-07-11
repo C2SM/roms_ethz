@@ -41,6 +41,11 @@ CSDISTRIBUTE_RESHAPE aks_avg(BLOCK_PATTERN,*) BLOCK_CLAUSE
 CSDISTRIBUTE_RESHAPE co2flx_avg(BLOCK_PATTERN) BLOCK_CLAUSE
       common /avg_co2flx/co2flx_avg
 #  endif
+#  ifdef WRITE_N2OFLX
+      real n2oflx_avg(GLOBAL_2D_ARRAY)
+CSDISTRIBUTE_RESHAPE n2oflx_avg(BLOCK_PATTERN) BLOCK_CLAUSE
+      common /avg_n2oflx/n2oflx_avg
+#  endif
 #  ifdef WRITE_HEATFLX
       real heatflx_avg(GLOBAL_2D_ARRAY)
 CSDISTRIBUTE_RESHAPE heatflx_avg(BLOCK_PATTERN) BLOCK_CLAUSE
@@ -178,6 +183,12 @@ CSDISTRIBUTE_RESHAPE aks_slavg(BLOCK_PATTERN) BLOCK_CLAUSE
 CSDISTRIBUTE_RESHAPE co2flx_slavg(BLOCK_PATTERN) BLOCK_CLAUSE
       common /slavg_co2flx/co2flx_slavg
 #  endif
+#  ifdef WRITE_N2OFLX
+      real n2oflx_slavg(GLOBAL_2D_ARRAY)
+CSDISTRIBUTE_RESHAPE n2oflx_slavg(BLOCK_PATTERN) BLOCK_CLAUSE
+      common /slavg_n2oflx/n2oflx_slavg
+#  endif
+#
 #  ifdef WRITE_HEATFLX
       real heatflx_slavg(GLOBAL_2D_ARRAY)
 CSDISTRIBUTE_RESHAPE heatflx_slavg(BLOCK_PATTERN) BLOCK_CLAUSE

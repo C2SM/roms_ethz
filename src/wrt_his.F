@@ -17,7 +17,8 @@
 #endif
 #if defined PCO2AIR_FORCING || \
         defined WRITE_TEMP_REST || defined WRITE_SALT_REST || \
-        defined WRITE_HEATFLX || defined WRITE_CO2FLX
+        defined WRITE_HEATFLX || defined WRITE_CO2FLX ||\
+        defined WRITE_N2OFLX
 # include "forces.h"
 #endif
 #ifdef BIOLOGY_BEC
