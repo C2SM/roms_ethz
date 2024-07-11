@@ -289,6 +289,10 @@
   !     fixed ratios
   !----------------------------------------------------------------------------
 
+       real r_Nfix_photo
+       parameter(r_Nfix_photo=1.25)         !N fix relative to C fix (non-dim)
+
+
        real, dimension(autotroph_cnt) :: r_Nexcrete = 0.0 ! over fixation (diaz)
 
   !-----------------------------------------------------------------------
@@ -311,7 +315,7 @@
      &   denitrif_C_N  = parm_Red_D_C_P/136.0
      & )
 # ifdef Ncycle_SY
-      real, parameter :: r_Nfix_photo=1.25
+!      real, parameter :: r_Nfix_photo=1.25
       real, parameter ::
      &   denitrif_NO3_C  = 472.0 / 2.0 / 106.0, ! need to comment on that and check 
      &   denitrif_NO2_C  = 472.0 / 2.0 / 106.0, ! (commment from UCLA)

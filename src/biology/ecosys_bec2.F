@@ -3,10 +3,10 @@
 
        subroutine ecosys_bec2_tile(Istr,Iend,Jstr,Jend)
 
-# ifdef CCHEM_MOCSY
-       use msingledouble
-       use mvars
-# endif
+!# ifdef CCHEM_MOCSY
+!       use msingledouble
+!       use mvars
+!# endif
 
        implicit none
 
@@ -262,7 +262,11 @@ c$$$       enddo
 # ifdef MASKING
      &                      * rmask(i,j)
 # endif
+# ifndef N2OAIR_FORCING
         XN2O = 300.0 * 1e-9 !!! need to figure out namelists here
+# else
+        XN2O(istr:iend) = n2oair(istr:iend,j) * 1e-9
+# endif
                N2OSAT_USED = AP_USED(i,j) * N2OSAT_1atm(i,j) * XN2O(i)
 # ifdef MASKING
      &                      * rmask(i,j)
@@ -330,6 +334,9 @@ c$$$       enddo
 #endif
             end do  ! i
          end do  ! j
+# ifdef WRITE_N2OFLX
+          N2Oflx(istr:iend,jstr:jend) = FLUX(istr:iend,jstr:jend)
+# endif
        END IF
 # endif /* Ncycle_SY || N2O_NEV */
 
@@ -588,7 +595,6 @@ c$$$       enddo
 #   endif
 #  endif /* BEC2_DIAG */
 # else /* CCHEM_MOCSY */
-# if 0
 #  ifdef BEC2_DIAG
 #   ifdef BEC2_DIAG_USER
              ! pH is present in bec2_diag_2d, so bec2_diag_2d_idx(ph_idx_t)
@@ -613,9 +619,7 @@ c$$$       enddo
                 PHLO = phlo_init
                 PHHI = phhi_init
              END WHERE
-# endif /* if 0 */
 
-             phlo = phlo_init; phhi = phhi_init
              sssco2(istr:iend) = max(19.0, SSSS(istr:iend,j))
              CALL co2calc_row(LANDMASK(istr:iend,j),
      &         SSTT(istr:iend,j), sssco2(istr:iend),
@@ -980,7 +984,7 @@ c$$$       enddo
        REAL, PARAMETER :: 
      &    epsC      = 1.00e-8,  ! small C concentration (mmol C/m^3)
      &    epsTinv   = 3.17e-8,  ! small inverse time scale (1/year) (1/sec)
-     &    epsnondim = 1.00e-6   ! small non-dimensional number (non-dim)
+     &    epsnondim = 1.00e-6  ! small non-dimensional number (non-dim)
 !     &    cks = 9.0,         ! constant used in Fe quota modification
 !     &    cksi = 5.0         ! constant used in Si quota modification
 
@@ -1083,9 +1087,8 @@ c$$$       enddo
 # endif
 
        REAL, DIMENSION(istr:iend) ::
-!     &    Tfunc,           ! temp response function GD98 (non-dim)
-!     &    Tfunc_diat,      ! temp response function GD98 (non-dim) for diatoms
-     &    Tfunc_zoo,       ! temp dependency of zoo losses
+     &    Tfunc,           ! temp response function GD98 (non-dim)
+     &    Tfunc_diat,      ! temp response function GD98 (non-dim) for diatoms
 # ifdef BEC_COCCO
      &    Tfunc_cocco,     ! temp response function GD98 (non-dim) for coccos
      &    light_lim_calc,  ! light limitation factor for calc of coccos
@@ -1190,8 +1193,7 @@ c$$$       enddo
      &    remaining_P_dop, ! remaining_P from mort routed to DOP pool
      &    remaining_P_dip, ! remaining_P from mort routed to remin
      &    Nfix,            ! total Nitrogen fixation (mmol N/m^3/sec)
-     &    Nexcrete,        ! fixed N excretion
-     &    Tfunc_phyto      ! temp response function GD98 (non-dim) for PFTs
+     &    Nexcrete         ! fixed N excretion
 
 
     !---------------------------------------------------------------------------
@@ -1607,27 +1609,23 @@ c$$$       enddo
        end do
 
     !-----------------------------------------------------------------------
+    !  Tref = 30.0 reference temperature (deg. C)
     !
     !  Using q10 formulation with Q10 value of 2.0 (Doney et al., 1996).
     !  growth, mort and grazing rates scaled by Tfunc where they are computed
     !-----------------------------------------------------------------------
 
-       Tfunc_zoo = Q_10_zoo**( 0.1*(temp - Tref) )
-       do auto_ind = 1, autotroph_cnt
-          Tfunc_phyto(:,auto_ind) = 
-     &                   Q_10_phyto(auto_ind)**(0.1*(temp - Tref))
-       end do
-    !  Tref = 30.0 reference temperature (deg. C)
-!# ifdef BEC_COCCO
-!       Tfunc_cocco = 1.45**(((temp + T0_Kelvin) - (Tref + T0_Kelvin)) / c10)
-!# endif /* BEC_COCCO */
-!# ifdef BEC_DDA
-!       Tfunc_dda = 1.55**(((temp + T0_Kelvin) - (Tref + T0_Kelvin)) / c10)
-!# endif /* BEC_DDA */
-!# ifdef BEC_PHAEO
-!       Tfunc_phaeo = 1.5**(((temp + T0_Kelvin) - (Tref + T0_Kelvin)) / c10)
-!# endif /* BEC_PHAEO */
-!       Tfunc_diat  = 1.55**(((temp + T0_Kelvin) - (Tref + T0_Kelvin)) / c10)
+       Tfunc = Q_10**(((temp + T0_Kelvin) - (Tref + T0_Kelvin)) / c10)
+# ifdef BEC_COCCO
+       Tfunc_cocco = 1.45**(((temp + T0_Kelvin) - (Tref + T0_Kelvin)) / c10)
+# endif /* BEC_COCCO */
+# ifdef BEC_DDA
+       Tfunc_dda = 1.55**(((temp + T0_Kelvin) - (Tref + T0_Kelvin)) / c10)
+# endif /* BEC_DDA */
+# ifdef BEC_PHAEO
+       Tfunc_phaeo = 1.5**(((temp + T0_Kelvin) - (Tref + T0_Kelvin)) / c10)
+# endif /* BEC_PHAEO */
+       Tfunc_diat  = 1.55**(((temp + T0_Kelvin) - (Tref + T0_Kelvin)) / c10)
 
     !-----------------------------------------------------------------------
     !  calculate the loss threshold interpolation factor
@@ -1741,7 +1739,7 @@ c$$$       enddo
           !f_nut = min(f_nut, VPO4(istr:iend,auto_ind))
 
           ! CN: consider VPtot instead of VPO4 only! DOP is taken up, so
-          ! it should also potentially be limiting (that is why half-sat
+          ! it should also potentially be limiting (that's why half-sat
           ! constants are defined for DOP!)
           f_nut = min(f_nut, VPtot(istr:iend,auto_ind))
 
@@ -1832,10 +1830,6 @@ c$$$       enddo
        ! reduce phaeo growth linearly above 6degC
           if (auto_ind==phaeo_ind) then
           tcrit1 = 5.0
-                ! tfunc_tcrit1 = 1.5**(((tcrit1 + T0_Kelvin) - (Tref + T0_Kelvin)) / c10)  ! Tfunc at tcrit1
-                ! tfunc_tcrit1 = 1.5**((0.1*(tcrit1  - Tref ) )  ! Tfunc at tcrit1
-                ! tfunc_tcrit1 = 1.5**(-2.50 )  ! Tfunc at tcrit1
-          tfunc_tcrit1 = 0.5443310539518172 ! precomputed the above.
           do i=istr,iend
              if (temp(i)>tcrit1) then
                 tfunc_tcrit1 = 1.5**(((tcrit1 + T0_Kelvin) - (Tref + T0_Kelvin)) / c10)  ! Tfunc at tcrit1
@@ -1851,40 +1845,33 @@ c$$$       enddo
 
 
 ! CN: apply different Tfunc for coccos and diat
-!          if (auto_ind==diat_ind) then
-!             PCmax = PCref(auto_ind) * f_nut * Tfunc_diat
-!# ifdef BEC_COCCO
-          !else if (auto_ind==cocco_ind) then
-             !PCmax = PCref(auto_ind) * f_nut * Tfunc_cocco
-!# endif /* BEC_COCCO */
-!# ifdef BEC_DDA_case1
-          !else if (auto_ind==dda_ind) then
-             !PCmax = PCref(auto_ind) * f_nut * Tfunc_dda
-!# endif /* BEC_DDA_case1 */
-!# ifdef BEC_DDA_case2
-          !else if (auto_ind==dda_ind) then
-              !where (NO3_loc < 0.5)
-              !PCmax = PCref(auto_ind) *  f_nut * Tfunc_dda
-              !elsewhere 
-              !PCmax = (PCref(auto_ind) * 1.5) *  f_nut * Tfunc_dda    
-          !end where
-!# endif /* BEC_DDA_case2 */
-!# ifdef BEC_PHAEO
-          !else if (auto_ind==phaeo_ind) then
-             !PCmax = PCref(auto_ind) * f_nut * Tfunc_phaeo
-!# endif /* BEC_PHAEO */
-!          else
-!             PCmax = PCref(auto_ind) * f_nut * Tfunc
-!          endif
-
-          PCmax = PCref(auto_ind) * f_nut * Tfunc_phyto(:,auto_ind)
-# ifdef BEC_DDA
-          if (auto_ind == dda_ind)  then
-            where (NO3_loc >= 0.5 ) PCmax = PCmax * 1.5
+          if (auto_ind==diat_ind) then
+             PCmax = PCref(auto_ind) * f_nut * Tfunc_diat
+# ifdef BEC_COCCO
+          else if (auto_ind==cocco_ind) then
+             PCmax = PCref(auto_ind) * f_nut * Tfunc_cocco
+# endif /* BEC_COCCO */
+# ifdef BEC_DDA_case1
+          else if (auto_ind==dda_ind) then
+             PCmax = PCref(auto_ind) * f_nut * Tfunc_dda
+# endif /* BEC_DDA_case1 */
+# ifdef BEC_DDA_case2
+          else if (auto_ind==dda_ind) then
+              where (NO3_loc < 0.5)
+              PCmax = PCref(auto_ind) *  f_nut * Tfunc_dda
+              elsewhere 
+              PCmax = (PCref(auto_ind) * 3.0) *  f_nut * Tfunc_dda    
+          end where
+# endif /* BEC_DDA_case2 */
+# ifdef BEC_PHAEO
+          else if (auto_ind==phaeo_ind) then
+             PCmax = PCref(auto_ind) * f_nut * Tfunc_phaeo
+# endif /* BEC_PHAEO */
+          else
+             PCmax = PCref(auto_ind) * f_nut * Tfunc
           endif
-# endif
 
-! apply temp_threshold below/above PFT does not grow anymore
+! apply temp_threshold below/above PFT doesn't grow anymore
 # ifdef BEC_PHAEO
           if (auto_ind==phaeo_ind) then ! restrict growth above this temp
              where (temp > temp_thres(auto_ind)) PCmax = c0
@@ -2170,16 +2157,16 @@ c$$$       enddo
     !-----------------------------------------------------------------------
 
 
-!       if (auto_ind == diat_ind) then
-!          auto_loss(istr:iend,auto_ind) =  mort(auto_ind) * Pprime(istr:iend,auto_ind) * Tfunc_diat
-!# ifdef BEC_COCCO
-       !elseif (auto_ind == cocco_ind) then
-          !auto_loss(istr:iend,auto_ind) =  mort(auto_ind) * Pprime(istr:iend,auto_ind) * Tfunc_cocco
-!# endif /* BEC_COCCO */
-!# ifdef BEC_DDA
-       !elseif (auto_ind == dda_ind) then
-          !auto_loss(istr:iend,auto_ind) =  mort(auto_ind) * Pprime(istr:iend,auto_ind) * Tfunc_dda
-!# endif /* BEC_DDA */
+       if (auto_ind == diat_ind) then
+          auto_loss(istr:iend,auto_ind) =  mort(auto_ind) * Pprime(istr:iend,auto_ind) * Tfunc_diat
+# ifdef BEC_COCCO
+       elseif (auto_ind == cocco_ind) then
+          auto_loss(istr:iend,auto_ind) =  mort(auto_ind) * Pprime(istr:iend,auto_ind) * Tfunc_cocco
+# endif /* BEC_COCCO */
+# ifdef BEC_DDA
+       elseif (auto_ind == dda_ind) then
+          auto_loss(istr:iend,auto_ind) =  mort(auto_ind) * Pprime(istr:iend,auto_ind) * Tfunc_dda
+# endif /* BEC_DDA */
 # ifdef BEC_PHAEO
        elseif (auto_ind == phaeo_ind) then
           !auto_loss(istr:iend,auto_ind) =  mort(auto_ind) * 
@@ -2188,13 +2175,10 @@ c$$$       enddo
           auto_loss(istr:iend,auto_ind) = mort(auto_ind)*(2.0-min(f_nut,light_lim))*
      &                    Pprime(istr:iend,auto_ind) * Tfunc_phaeo
 # endif /* BEC_PHAEO */
-!       else
-!          auto_loss(istr:iend,auto_ind) =  mort(auto_ind) * Pprime(istr:iend,auto_ind) * Tfunc
-!       endif
+       else
+          auto_loss(istr:iend,auto_ind) =  mort(auto_ind) * Pprime(istr:iend,auto_ind) * Tfunc
+       endif
 
-          auto_loss(istr:iend,auto_ind) =  mort(auto_ind) * Pprime(istr:iend,auto_ind) *
-     &                                     Tfunc_phyto(istr:iend,auto_ind)
-          
           auto_agg(istr:iend,auto_ind) = min(agg_rate_max(auto_ind) * dps * Pprime(istr:iend,auto_ind), 
      &                               mort2(auto_ind) * Pprime(istr:iend,auto_ind) * Pprime(istr:iend,auto_ind))
           auto_agg(istr:iend,auto_ind) = max((agg_rate_min(auto_ind) * dps) * Pprime(istr:iend,auto_ind),
@@ -2213,36 +2197,33 @@ c$$$       enddo
 !          WORK3 = 1.0   ! beta, set 1 for old grazing formulation, >1 for different ingestion function
 #  endif
 
-!          do auto_ind2 = 1, autotroph_cnt
-!             if (grazee_ind(auto_ind2) == grazee_ind(auto_ind))
-!     &          WORK1 = WORK1 + Pprime(istr:iend,auto_ind)**2
-!#  ifdef KILL_THE_WINNER
-!     &                                                    **WORK2
-!#  endif
-!          end do
+          do auto_ind2 = 1, autotroph_cnt
+             if (grazee_ind(auto_ind2) == grazee_ind(auto_ind))
+     &          WORK1 = WORK1 + Pprime(istr:iend,auto_ind)
+#  ifdef KILL_THE_WINNER
+     &                                                    **WORK2
+#  endif
+          end do
 
-          !z_umax = z_umax_0(auto_ind) * Tfunc
-          z_umax = z_umax_0(auto_ind) * Tfunc_phyto(:,auto_ind)
-          WORK1 = Pprime(istr:iend,auto_ind)**2
+          z_umax = z_umax_0(auto_ind) * Tfunc
           where (WORK1 > c0)
 #  ifdef KILL_THE_WINNER
              auto_graze(istr:iend,auto_ind) = (Pprime(istr:iend,auto_ind)**WORK2 / WORK1) *
      &           z_umax * zooC_loc * (WORK1 / (WORK1 + z_grz(auto_ind)))
 !     &           z_umax * zooC_loc * (WORK1**WORK3 / (WORK1**WORK3 + z_grz(auto_ind)**WORK3))
 #  else /* no prey switching */
-             auto_graze(istr:iend,auto_ind) = z_umax * zooC_loc *
-     &            (Pprime(istr:iend,auto_ind)**2 / (WORK1 + z_grz(auto_ind)**2))
+             auto_graze(istr:iend,auto_ind) = (Pprime(istr:iend,auto_ind) / WORK1) *
+     &           z_umax * zooC_loc * (WORK1 / (WORK1 + z_grz(auto_ind)))
 #  endif /* KILL_THE_WINNER */
           elsewhere
              auto_graze(istr:iend,auto_ind) = c0
           end where
 
     !-----------------------------------------------------------------------
-    !  Get N fixation based on C fixation,
-    !  Diazotrophs fix more than they need; r_Nexcrete(diaz_ind) (0.3 or 30%) is excreted
-    !  All others do not excrete r_Nexcrete = 0. 
-    !  DDAs --> no excretion and no fixation if is not depleted (NO3 > 0.5)
-    !  UCYN --> no excretion
+    !  Get N fixation by diazotrophs based on C fixation,
+    !  Diazotrophs fix more than they need then 20% is excreted
+    !  DL: for DDAs --> no excretion and nofixation if NO3 is not
+    !  depleted
     !-----------------------------------------------------------------------
 # ifdef Ncycle_SY
           if (Nfixer(auto_ind)) then
@@ -2251,7 +2232,7 @@ c$$$       enddo
      &                 - NH4_V(istr:iend,auto_ind)
              Nexcrete(istr:iend,auto_ind) = Nfix(istr:iend,auto_ind) + NO3_V(istr:iend,auto_ind) + NO2_V(istr:iend,auto_ind)
      &                 + NH4_V(istr:iend,auto_ind) - WORK1
-          endif
+             endif  
 # else
           Nfix(:,auto_ind) = c0
           Nexcrete(:,auto_ind) = c0
@@ -2279,7 +2260,7 @@ c$$$       enddo
 #   ifdef BEC_UCYN
            if (auto_ind == ucyn_ind .and.bec2_diag_3d_l(ucynnfix_idx_t)) then
                bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(ucynnfix_idx_t))= Nfix(istr:iend,auto_ind)
-           end if
+           end if 
 #   endif
 #  else
           if (auto_ind == diaz_ind) then
@@ -2549,8 +2530,7 @@ c$$$       enddo
 
        Zprime = max(zooC_loc - C_loss_thres, c0)
 
-       !zoo_loss = (parm_z_mort2_0 * Zprime**1.5 + parm_z_mort_0 * Zprime) * Tfunc
-       zoo_loss = (parm_z_mort2_0 * Zprime**1.5 + parm_z_mort_0 * Zprime) * Tfunc_zoo
+       zoo_loss = (parm_z_mort2_0 * Zprime**1.5 + parm_z_mort_0 * Zprime) * Tfunc
 
        zoo_loss_doc = (c1 - parm_labile_ratio) * (c1 - f_zoo_detr_loc) * zoo_loss
        zoo_loss_dic = parm_labile_ratio * (c1 - f_zoo_detr_loc) * zoo_loss
@@ -2912,8 +2892,11 @@ c$$$       enddo
 
 ! ANAMMOX NO2 + NH4 --> N2
        where  (NH4_loc .gt. c0 .and. NO2_loc .gt. c0)
+!                anammox = parm_kax * (NH4_loc / (parm_knh4_ax + NH4_loc)) * 
+!     &                  (NO2_loc / (parm_kno2_den2 + NO2_loc)) * exp(-max(O2_loc,c0)/parm_ko2_ax)
+
                 anammox = parm_kax * (NH4_loc / (parm_knh4_ax + NH4_loc)) * 
-     &                  (NO2_loc / (parm_kno2_den2 + NO2_loc)) * exp(-max(O2_loc,c0)/parm_ko2_ax)
+     &                  (NO2_loc / (parm_kno2_ax + NO2_loc)) * exp(-max(O2_loc,c0)/parm_ko2_ax)
         elsewhere
                 anammox = c0
         end where
@@ -3046,18 +3029,11 @@ c$$$       enddo
 # endif
 
 # else
-# ifndef UCLA_NO3
-       DTRACER_MODULE(istr:iend,j,k,no3_ind_t) = NITRIF - (DENITRIF +
-     &                                 SED_DENITRIF) * (1 -
-     &                                 denitrif_C_N/parm_Red_P_C_N) - sum(NO3_V, dim=2)
-# else /* UCLA_NO3 */
        DTRACER_MODULE(istr:iend,j,k,no3_ind_t) = NITRIF - DENITRIF - 
      &                                 SED_DENITRIF - sum(NO3_V, dim=2)
 # ifdef NO3_RESTORE
      &                                 + restore_no3
 # endif
-# endif /* UCLA_NO3*TREND */
-
        DTRACER_MODULE(istr:iend,j,k,nh4_ind_t) = -sum(NH4_V, dim=2) - NITRIF + DON_remin + DONr_remin
      &     + Q * (zoo_loss_dic + sum(auto_loss_dic, dim=2) + sum(auto_graze_dic, dim=2)
      &     + POC_remin(istr:iend,j)
@@ -3302,7 +3278,7 @@ c$$$       enddo
 
 # ifdef BEC2_DIAG
       bec2_diag_3d(istr:iend,j,k,o2prod_idx_t) = O2_PRODUCTION
-      bec2_diag_3d(istr:iend,j,k,o2cons_idx_t) = O2_CONSUMPTION
+       bec2_diag_3d(istr:iend,j,k,o2cons_idx_t) = O2_CONSUMPTION
 # endif        
 
 # ifdef N2O_NEV
@@ -3826,15 +3802,14 @@ c$$$       enddo
     !  ballast production from net POC_PROD.
     !-----------------------------------------------------------------------
  
-             POC_PROD_avail = max(POC_prod(i) -
+             POC_PROD_avail = POC_prod(i) -
      &          P_CaCO3_rho * P_CaCO3_prod(i) -
-     &          P_SiO2_rho * P_SiO2_prod(i), 0.0)
+     &          P_SiO2_rho * P_SiO2_prod(i)
 
-# if 0
     !-----------------------------------------------------------------------
     !  Check for POC production bounds violations
     !-----------------------------------------------------------------------
-    
+
              if (POC_PROD_avail < c0) then
                 print *, 'subroutine compute_particulate_terms:',
      &            ' non_dust ballast production exceeds POC production'
@@ -3845,7 +3820,6 @@ c$$$       enddo
                 print*,'P_SiO2_rho * P_SiO2_prod(i)',P_SiO2_rho * P_SiO2_prod(i)
                 poc_error = .true.
              endif
-# endif
 
     !-----------------------------------------------------------------------
     !  Compute 1st approximation to new QA_dust_def, the QA_dust
@@ -4109,7 +4083,7 @@ c$$$       enddo
                if (NO3_loc(i) < parm_sed_denitrif_NO3_limit) then
                SED_DENITRIF(i) = dzr_loc * min(flux * (0.06 + 0.19 *
      &                 0.99**(O2_loc(i)-NO3_loc(i))),
-     &                (flux-POC_sed_loss(i,j))/denitrif_C_N)
+     &                flux-POC_sed_loss(i,j)*denitrif_C_N)
                SED_DENITRIF(i) = 1/parm_sed_denitrif_NO3_limit*NO3_loc(i)*SED_DENITRIF(i)
                else
                SED_DENITRIF(i) = dzr_loc * min(flux * (0.06 + 0.19 *
@@ -4165,21 +4139,12 @@ c$$$       enddo
 
             ! convert from mmol m-2 s-1 to mmol m-2 d-1
             flux_oxidated(i) = flux_oxidated(i) * 86400  ! day2sec=86400
-#ifdef UCLA_NO3
+
             ! constant 170 in umol m-2 d-1, flux_oxidated in mmol m-2
             ! day-1, o2 in muM
-            if (flux_oxidated(i) == 0) then
-                FESEDFLUX(i) = 0 
-            elseif (flux_oxidated(i) > 0) then
-                FESEDFLUX(i) = 170.0 * tanh(flux_oxidated(i)/O2_loc(i))
-            elseif (flux_oxidated(i) > 0 .and. O2_loc(i)==0) then
-                FESEDFLUX(i) = 170.0 
-            endif
-#else
             if (flux_oxidated(i) > 0) then
                 FESEDFLUX(i) = 170 * tanh(flux_oxidated(i)/max(O2_loc(i),1e-15))
             endif
-#endif
             ! convert from umol m-2 d-1 to mmol m-2 s-1
             FESEDFLUX(i) = FESEDFLUX(i)*0.001/86400.     !sec2day=1/86400
 # endif
