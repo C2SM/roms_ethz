@@ -121,7 +121,6 @@
       parm_z_mort2_0         = 0.4
       parm_labile_ratio      = 0.85
       !parm_labile_ratio      = 0.94
-      parm_POMbury           = 1.4 ! x1 default
       parm_f_prod_sp_CaCO3   = 0.055 ! x1 default   0.04
       Q_10_zoo               = 1.5
       f_graze_CaCO3_remin = 0.33
@@ -146,8 +145,6 @@
       parm_CaCO3_diss        = 150.0  
       loss_thres_zoo         = 0.06    ! mmol m-3
       CaCO3_sp_thres         = 2.5  ! mmol m-3
-      DONrefract             = 0.08
-      DOPrefract             = 0.03
       DOC_reminR             = (c1/(365.0*15.0)) ! d-1
       DON_reminR             = (c1/(365.0*15.0)) ! d-1
       DOP_reminR             = (c1/(365.0*9.0)) ! d-1
