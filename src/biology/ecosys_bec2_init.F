@@ -157,7 +157,14 @@
       loss_thres_zoo = 0.005    ! mmol m-3
       thres_z1 = 100            ! m
       thres_z2 = 150     
-            
+#ifdef UCLA_PARAMS
+      parm_BSIbury           = 0.65 ! x1 default
+      parm_Fe_scavenge_rate0 = 2.5  ! test initial scavenging rate 3 times higher
+      parm_f_prod_sp_CaCO3   = 0.055 ! x1 default
+      parm_POC_diss          = 88.0
+      parm_SiO2_diss         = 250.0
+      parm_CaCO3_diss        = 150.0     
+#endif    
 # ifdef USE_EXPLICIT_VSINK
       parm_scalelen_z    = (/ 100.0, 250.0, 500.0, 750.0 /) ! DL: converted to m
       parm_scalelen_vals = (/     1.0,     2.9,     5.6,      5.7 /) ! x1 default

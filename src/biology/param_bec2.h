@@ -269,7 +269,7 @@
      &   caco3_poc_min    = 0.4,  ! minimum proportionality between
      &                            !   QCaCO3 and grazing losses to POC
      &                            !   (mmol C/mmol CaCO3)
-#ifdef NO3_UCLA
+#ifdef UCLA_PARAMS
      &   spc_poc_fac      = 0.14, ! small phyto grazing factor (1/mmolC)
      &   f_graze_sp_poc_lim = 0.36, 
 #else
@@ -355,7 +355,7 @@
        real Tref, Q_10, Q_10_phyto(autotroph_cnt), Q_10_zoo
        parameter(
      &   Tref = 30.0,   ! reference temperature (C)
-# ifdef NO3_UCLA
+# ifdef UCLA_PARAMS
      &   Q_10 = 1.7     ! factor for temperature dependence (non-dim)
 # else
      &   Q_10 = 1.5     ! factor for temperature dependence (non-dim)
