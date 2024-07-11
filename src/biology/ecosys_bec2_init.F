@@ -114,10 +114,10 @@
       parm_Fe_bioavail       = 0.02
       parm_o2_min            = 1.0  ! mmol/m^3 = nmol/cm^3 (MF 11.11.2016: Taking down DENITRIF following discussion with SY (Babbin et al. 2014))
       parm_o2_min_delta      = 2.0  ! mmol/m^3 = nmol/cm^3
-      parm_kappa_nitrif      = 0.06 * dps ! (= 1/( days))
+      parm_kappa_nitrif      = 0.06 ! (= 1/( days))
       parm_nitrif_par_lim    = 1.0
-      parm_z_mort_0          = 0.1 * dps
-      parm_z_mort2_0         = 0.4 * dps
+      parm_z_mort_0          = 0.1
+      parm_z_mort2_0         = 0.4
       !parm_labile_ratio      = 0.85
       parm_labile_ratio      = 0.94
       parm_POMbury           = 1.4 ! x1 default
@@ -137,8 +137,8 @@
       parm_scalelen_vals = (/     1.0,     2.9,     5.6,      5.7 /) ! x1 default
 # endif
 # ifdef Ncycle_SY
-      parm_kao = 0.0500 * dps
-      parm_kno = 0.0500 * dps
+      parm_kao = 0.0500
+      parm_kno = 0.0500
       parm_ko2_ao = 0.333
       parm_knh4_ao = 0.305
       parm_ko2_no = 0.778
@@ -150,11 +150,11 @@
       parm_ko2_den1 = 6
       parm_ko2_den2 = 2.3  ! from 2.969 in tune5
       parm_ko2_den3 = 0.506
-      parm_koxic = 0.08 * dps ! CONSTANT
-      parm_kden1 = 0.0160 * dps ! from 0.205 in tune5
-      parm_kden2 = 0.008 * dps
-      parm_kden3 = 0.0496 * dps
-      parm_kax = 0.441 * dps
+      parm_koxic = 0.08 ! CONSTANT
+      parm_kden1 = 0.0160 ! from 0.205 in tune5
+      parm_kden2 = 0.008
+      parm_kden3 = 0.0496
+      parm_kax = 0.441
       parm_knh4_ax = 1
       parm_kno2_ax = 1
       parm_ko2_ax = 6
@@ -168,7 +168,7 @@
       parm_n2o_nev_a1 = 0.2
       parm_n2o_nev_a2 = 0.08
       O2_crit_nev = 3.0
-      N2O_cons_tau_nev = 0.5 * dps
+      N2O_cons_tau_nev = 0.5
       z_scale_nev = 3000.0
 #endif
 
@@ -625,7 +625,18 @@
       DONr_reminR = DONr_reminR*dps
       DOPr_reminR = DOPr_reminR*dps
 
-
+# ifdef Ncycle_SY
+      parm_kao = parm_kao * dps
+      parm_kno = parm_kno * dps
+      parm_koxic = parm_koxic * dps ! CONSTANT
+      parm_kden1 = parm_kden1 * dps ! from 0.205 in tune5
+      parm_kden2 = parm_kden2 * dps
+      parm_kden3 = parm_kden3 * dps
+      parm_kax = parm_kax * dps
+# endif
+# ifdef N2O_NEV
+      N2O_cons_tau_nev = N2O_cons_tau_nev * dps
+#endif
 
 #ifdef BEC2_DIAG
       !---------------------------------------------------------------------------
