@@ -15,7 +15,6 @@
       character*100 filename_biopar_bec_nml, filename_biopar_out_bec_nml
 
       ! Define namelists  for ecosystem parameters:
-
 # ifdef Ncycle_SY
       namelist /ncycle_parameters/
      &    parm_kao,
@@ -114,6 +113,7 @@
 
       parm_Fe_bioavail       = 0.02
       parm_o2_min            = 1.0  ! mmol/m^3 = nmol/cm^3 (MF 11.11.2016: Taking down DENITRIF following discussion with SY (Babbin et al. 2014))
+!      parm_lowo2_remin_factor = 3.3  !hardcoded in ecosys_bec2.F but equal to 3.3
       parm_o2_min_delta      = 2.0  ! mmol/m^3 = nmol/cm^3
       parm_kappa_nitrif      = 0.06 ! (= 1/( days))
       parm_nitrif_par_lim    = 1.0
@@ -122,49 +122,64 @@
       parm_labile_ratio      = 0.85
       !parm_labile_ratio      = 0.94
       parm_POMbury           = 1.4 ! x1 default
-      parm_BSIbury           = 0.45 ! x1 default
-      parm_Fe_scavenge_rate0 = 1.3 ! x1 default     2.8
-      !parm_Fe_scavenge_rate0 = 0.5 ! x1 default     2.8
-      !parm_Fe_scavenge_rate0 = 3.9 ! 300%
       parm_f_prod_sp_CaCO3   = 0.055 ! x1 default   0.04
-      parm_POC_diss          = 82.0   ! 88 in cBEC, 82
-      parm_SiO2_diss         = 360.0  ! 250 in cBEC, 360
-      parm_CaCO3_diss        = 400.0  ! 150 in cBEC, 400
       Q_10_zoo               = 1.5
       f_graze_CaCO3_remin = 0.33
-      f_graze_si _remin = 0.35
-      DONrefract = 0.08
-      DOPrefract = 0.03
-      DOC_reminR = (c1/250.0) ! d-1
-      DON_reminR = (c1/160.0) ! d-1
-      DOP_reminR = (c1/160.0) ! d-1
-      DOFe_reminR  = (c1/160.0) ! d-1
-      DONr_reminR = (c1/(365*2.5)) ! d-1
-      DOPr_reminR = (c1/(365*2.5)) ! d-1
+      f_graze_si_remin = 0.35
       Qfe_zoo = 3d-6
       cks = 9.0
       gQsi_0 = 0.137
-      gQsi_max = 0.685
-      gQsi_min = 0.0457
       cksi = 5.0
       Q = 0.137
       Qp_zoo_pom = 0.00855
       CaCO3_temp_thres1 = 6.0 ! DegC
       CaCO3_temp_thres2 = -2.0 ! DegC
-      CaCO3_sp_thres = 4.0  ! mmol m-3
-      parm_f_prod_sp_CaCO3 = 0.055
       QCaCO3_max = 0.4
-      loss_thres_zoo = 0.005    ! mmol m-3
       thres_z1 = 100            ! m
       thres_z2 = 150     
-#ifdef UCLA_PARAMS
+# ifdef UCLA_PARAMS
       parm_BSIbury           = 0.65 ! x1 default
+      parm_POMbury           = 1.0 ! x1 default
       parm_Fe_scavenge_rate0 = 2.5  ! test initial scavenging rate 3 times higher
-      parm_f_prod_sp_CaCO3   = 0.055 ! x1 default
       parm_POC_diss          = 88.0
       parm_SiO2_diss         = 250.0
-      parm_CaCO3_diss        = 150.0     
-#endif    
+      parm_CaCO3_diss        = 150.0  
+      loss_thres_zoo         = 0.06    ! mmol m-3
+      CaCO3_sp_thres         = 2.5  ! mmol m-3
+      DONrefract             = 0.08
+      DOPrefract             = 0.03
+      DOC_reminR             = (c1/(365.0*15.0)) ! d-1
+      DON_reminR             = (c1/(365.0*15.0)) ! d-1
+      DOP_reminR             = (c1/(365.0*9.0)) ! d-1
+      DOFe_reminR            = (c1/(365.0*60.0)) ! d-1
+      DONr_reminR            = (c1/(365.0*9500.0)) ! d-1
+      DOPr_reminR            = (c1/(365.0*16000.0)) ! d-1
+      DONrefract             = 0.0115
+      DOPrefract             = 0.003    
+      gQsi_max               = 0.8   !max Si/C ratio
+      gQsi_min               = 0.0429  !min Si/C ratio
+# else 
+      parm_BSIbury           = 0.45 ! x1 default
+      parm_POMbury           = 1.4 ! x1 default
+      parm_Fe_scavenge_rate0 = 1.3 ! x1 default     2.8
+      !parm_Fe_scavenge_rate0 = 0.5 ! x1 default     2.8
+      !parm_Fe_scavenge_rate0 = 3.9 ! 300%
+      parm_POC_diss          = 82.0   ! 88 in cBEC, 82
+      parm_SiO2_diss         = 360.0  ! 250 in cBEC, 360
+      parm_CaCO3_diss        = 400.0  ! 150 in cBEC, 400    
+      loss_thres_zoo         = 0.005    ! mmol m-3
+      CaCO3_sp_thres         = 4.0  ! mmol m-3
+      DOC_reminR             = (c1/250.0) ! d-1
+      DON_reminR             = (c1/160.0) ! d-1
+      DOP_reminR             = (c1/160.0) ! d-1
+      DOFe_reminR            = (c1/160.0) ! d-1
+      DONr_reminR            = (c1/(365*2.5)) ! d-1
+      DOPr_reminR            = (c1/(365*2.5)) ! d-1
+      DONrefract             = 0.08
+      DOPrefract             = 0.03 
+      gQsi_max               = 0.685
+      gQsi_min               = 0.0457             
+# endif    
 # ifdef USE_EXPLICIT_VSINK
       parm_scalelen_z    = (/ 100.0, 250.0, 500.0, 750.0 /) ! DL: converted to m
       parm_scalelen_vals = (/     1.0,     2.9,     5.6,      5.7 /) ! x1 default
@@ -217,6 +232,82 @@
       parm_iod3_ric_ox = 10.0e-4 ! ratio of excess I produced to C oxidized in the sediments
       parm_iod4_maxflux = 10.0 * yps  ! Max Iodine flux in mmol m-2 -s
 # endif
+
+# ifdef UCLA_PARAMS
+      kFe = (/ 0.025e-3, 0.05e-3, 0.025e-3 /) ! mmol Fe/m3
+      kPO4 = (/ 0.0075, 0.06, 0.015 /)         ! mmol P/m3
+      kDOP = (/ 0.22, 0.6, 0.05 /)          !
+      kNO3 = (/ 0.2, 0.6, 2.0 /)            ! mmol N/m3   ! 0.11 0.45  8
+# ifdef EXPLICIT_NO2UPTAKE     
+      kNO2 = (/ 0.0300, 0.24, 0.8 /)        ! mmol N/m3  ! 0.0
+      kNH4 = (/ 0.0025, 0.02, 0.0667 /)     ! mmol N/m3  ! 0.01 0.04  0.8
+# else
+      kNH4 = (/ 0.0075, 0.06, 0.2 /)         ! mmol N/m3  ! 0.01 0.04  0.8      
+# endif
+      kSiO3 = (/ 0.0, 0.6, 0.0 /)           ! mmol SiO3/m3
+      Qp = (/ 0.008547, 0.008547, 0.008547 /)
+      gQfe_0 = (/ 33.0e-6, 33.0e-6, 66.0e-6 /)
+      gQfe_min = (/ 2.7e-6, 2.7e-6, 6.0e-6 /)
+      alphaPI = (/ 0.4, 0.31, 0.33 /)  ! previous defaults, Chl. specific initial slope of P_I curve (GD98) (mmol C m^2/(mg Chl W sec))
+      PCref = (/ 3.54, 3.54, 0.51/) ! MF: sensitivity tests70%
+      thetaN_max = (/ 2.5, 4.0, 2.5 /)
+      loss_thres = (/ 0.02, 0.02, 0.02 /)
+      loss_thres2 = (/ 0.0, 0.0, 0.001 /)
+      temp_thres = (/ -10.0, -10.0, 16.0 /)
+      mort = (/ 0.1, 0.1, 0.1 /)  ! non-grazing mortality (1/sec)
+      mort2 = (/ 0.01, 0.01, 0.01 /)
+      agg_rate_max = (/ 0.5, 0.5, 0.5 /)
+      agg_rate_min = (/ 0.01, 0.02, 0.01 /)
+      z_umax_0 = (/ 3.3, 3.05, 3.3 /) ! MF: sensitivity test 75%
+      z_grz = (/ 1.2, 1.2, 1.2 /)      ! grazing coefficient (mmol C/m^3)
+      graze_zoo = (/ 0.3, 0.25, 0.3 /)
+      graze_poc = (/ 0.0, 0.4, 0.1 /)
+      graze_doc = (/ 0.06, 0.06, 0.06 /)
+      loss_poc = (/ 0.0, 0.0, 0.0 /)
+      f_zoo_detr = (/ 0.1, 0.2, 0.1 /)
+      r_Nexcrete = (/ 0.0, 0.0, 0.3/)
+
+      auto_ind = sp_ind
+      sname(auto_ind)         = 'sp'
+      lname(auto_ind)         = 'Small Phyto'
+      Nfixer(auto_ind)        = .false.
+      exp_calcifier(auto_ind) = .false.
+      grazee_ind(auto_ind)    = auto_ind
+      C_ind(auto_ind)         = spC_ind_t
+      Chl_ind(auto_ind)       = spChl_ind_t
+      Fe_ind(auto_ind)        = spFe_ind_t
+      Si_ind(auto_ind)        = 0
+      imp_calcifier(auto_ind) = .true. ! this is over-written in case of BEC_COCCO
+      CaCO3_ind(auto_ind)     = spCaCO3_ind_t
+
+      ! More default parameters for diatoms:
+      auto_ind = diat_ind
+      sname(auto_ind)         = 'diat'
+      lname(auto_ind)         = 'Diatom'
+      Nfixer(auto_ind)        = .false.
+      imp_calcifier(auto_ind) = .false.
+      exp_calcifier(auto_ind) = .false.
+      grazee_ind(auto_ind)    = auto_ind
+      C_ind(auto_ind)         = diatC_ind_t
+      Chl_ind(auto_ind)       = diatChl_ind_t
+      Fe_ind(auto_ind)        = diatFe_ind_t
+      Si_ind(auto_ind)        = diatSi_ind_t
+      CaCO3_ind(auto_ind)     = 0
+
+      ! More default parameters for diazotrophs:
+      auto_ind = diaz_ind
+      sname(auto_ind)         = 'diaz'
+      lname(auto_ind)         = 'Diazotroph'
+      Nfixer(auto_ind)        = .true.
+      imp_calcifier(auto_ind) = .false.
+      exp_calcifier(auto_ind) = .false.
+      grazee_ind(auto_ind)    = auto_ind
+      C_ind(auto_ind)         = diazC_ind_t
+      Chl_ind(auto_ind)       = diazChl_ind_t
+      Fe_ind(auto_ind)        = diazFe_ind_t
+      Si_ind(auto_ind)        = 0
+      CaCO3_ind(auto_ind)     = 0
+# else
 ! Parameters for small phytoplankton
       auto_ind = sp_ind
       sname(auto_ind)         = 'sp'
@@ -235,8 +326,9 @@
       kDOP(auto_ind)          = 0.26
       kNO3(auto_ind)          = 0.1
       kNH4(auto_ind)          = 0.01
-#ifdef Ncycle_SY
-      kNO2(auto_ind)          = 0.03
+#ifdef EXPLICIT_NO2UPTAKE
+      kNO2(auto_ind)          =  0.0300        ! mmol N/m3  ! 0.0
+      kNH4(auto_ind)          =  0.0025    ! mmol N/m3  ! 0.01 0.04  0.8
 #endif      
       kSiO3(auto_ind)         = 0.0
       Qp(auto_ind)            = 0.00855
@@ -284,8 +376,9 @@
       kDOP(auto_ind)          = 0.9
       kNO3(auto_ind)          = 0.5
       kNH4(auto_ind)          = 0.05
-#ifdef Ncycle_SY      
-      kNO2(auto_ind)          = 0.24
+#ifdef EXPLICIT_NO2UPTAKE     
+      kNO2(auto_ind)          = 0.24      ! mmol N/m3  ! 0.0
+      kNH4(auto_ind)          = 0.02     ! mmol N/m3  ! 0.01 0.04  0.8
 #endif      
       kSiO3(auto_ind)         = 1.0       ! Master branch default: 1.0
       Qp(auto_ind)            = 0.00855
@@ -332,8 +425,9 @@
       kDOP(auto_ind)          = 0.09
       kNO3(auto_ind)          = 1.0
       kNH4(auto_ind)          = 0.15
-#ifdef Ncycle_SY
-      kNO2(auto_ind)          = 0.8
+#ifdef EXPLICIT_NO2UPTAKE
+      kNO2(auto_ind)          = 0.8      ! mmol N/m3  ! 0.0
+      kNH4(auto_ind)          = 0.0667   ! mmol N/m3  ! 0.01 0.04  0.8
 #endif
       kSiO3(auto_ind)         = 0.0
       Qp(auto_ind)            = 0.002735
@@ -361,6 +455,7 @@
       f_zoo_detr(auto_ind)    = 0.15
       r_Nexcrete(auto_ind)    = 0.3
       Q_10_phyto(auto_ind)    = 1.8
+# endif /* UCLA_PARAM */
 #ifdef BEC_COCCO
       ! over-write sp information: no implicit calcifiers in this case    
       imp_calcifier(sp_ind) = .false.

@@ -1149,8 +1149,12 @@ c$$$       enddo
      &    CaCO3_loc,       ! amount of CaCO3 in each autotroph species
      &    QCaCO3,          ! CaCO3/C ratio (mmol CaCO3/mmol C)
 # ifdef Ncycle_SY
-     &    VNOX,            ! NO3 + NO2 uptake rate (non-dim)
      &    NO2_V,           ! nitrite uptake (mmol NO2/m^3/sec)
+     &    VNOX,            ! NO3 + NO2 uptake rate (non-dim)
+# ifdef EXPLICIT_NO2UPTAKE
+     &    VNO3,            ! NO3 uptake rate (non-dim)
+     &    VNO2,            ! NO2 uptake rate (non-dim)
+# endif
 # else
      &    VNO3,            ! NO3 uptake rate (non-dim)
 # endif 
@@ -1686,20 +1690,23 @@ c$$$       enddo
           else
 # endif /*BEC_DDA_case2*/
 # ifdef Ncycle_SY
+# ifdef EXPLICIT_NO2UPTAKE
+          VNO3(istr:iend,auto_ind) = (NO3_loc / kNO3(auto_ind)) /
+     &        (c1 + (NO3_loc / kNO3(auto_ind)) + (NO2_loc / kNO2(auto_ind)) + (NH4_loc / kNH4(auto_ind)))
+          VNO2(istr:iend,auto_ind) = (NO2_loc / kNO2(auto_ind)) /
+     &        (c1 + (NO3_loc / kNO3(auto_ind)) + (NO2_loc / kNO2(auto_ind)) + (NH4_loc / kNH4(auto_ind)))
+          VNH4(istr:iend,auto_ind) = (NH4_loc / kNH4(auto_ind)) /
+     &        (c1 + (NO3_loc / kNO3(auto_ind)) + (NO2_loc / kNO2(auto_ind)) + (NH4_loc / kNH4(auto_ind)))
+          VNtot(istr:iend,auto_ind) = VNO3(istr:iend,auto_ind) + VNO2(istr:iend,auto_ind) + VNH4(istr:iend,auto_ind)
+          if (Nfixer(auto_ind)) VNtot(istr:iend,auto_ind) = c1
+#  else
           VNOX(istr:iend,auto_ind) = ((NO3_loc + NO2_loc) / kNO3(auto_ind)) /
      &        (c1 + ((NO3_loc + NO2_loc) / kNO3(auto_ind)) + (NH4_loc / kNH4(auto_ind)))
-!          VNO3(istr:iend,auto_ind) = (NO3_loc / kNO3(auto_ind)) /
-!     &        (c1 + (NO3_loc / kNO3(auto_ind)) + (NO2_loc / kNO2(auto_ind)) + (NH4_loc / kNH4(auto_ind)))
-!          VNO2(istr:iend,auto_ind) = (NO2_loc / kNO2(auto_ind)) /
-!     &        (c1 + (NO3_loc / kNO3(auto_ind)) + (NO2_loc / kNO2(auto_ind)) + (NH4_loc / kNH4(auto_ind)))
           VNH4(istr:iend,auto_ind) = (NH4_loc / kNH4(auto_ind)) /
      &        (c1 + ((NO3_loc + NO2_loc) / kNO3(auto_ind)) + (NH4_loc / kNH4(auto_ind)))
-!          VNH4(istr:iend,auto_ind) = (NH4_loc / kNH4(auto_ind)) /
-!     &        (c1 + (NO3_loc / kNO3(auto_ind)) + (NO2_loc / kNO2(auto_ind)) + (NH4_loc / kNH4(auto_ind)))
-!          VNtot(istr:iend,auto_ind) = VNO3(istr:iend,auto_ind) + VNO2(istr:iend,auto_ind) + VNH4(istr:iend,auto_ind)
-!          if (Nfixer(auto_ind)) VNtot(istr:iend,auto_ind) = c1
           VNtot(istr:iend,auto_ind) = VNOX(istr:iend,auto_ind) + VNH4(istr:iend,auto_ind)
           if (Nfixer(auto_ind)) VNtot(istr:iend,auto_ind) = c1
+#endif
 # else         
           VNO3(istr:iend,auto_ind) = (NO3_loc / kNO3(auto_ind)) /
      &        (c1 + (NO3_loc / kNO3(auto_ind)) + (NH4_loc / kNH4(auto_ind)))
@@ -1932,28 +1939,20 @@ c$$$       enddo
     !  total N uptake VNC is used in photoadaption
     !-----------------------------------------------------------------------
 # ifdef Ncycle_SY
+# ifdef EXPLICIT_NO2UPTAKE
        epsN = 1.0e-30 ! small value to avoid dividing by 0
-         where (VNtot(istr:iend,auto_ind) > c0)
-            where ((NO2_loc+NO3_loc) .le. c0)
+          where (VNtot(istr:iend,auto_ind) > c0)
+             where (NO3_loc .le. c0)
                 NO3_V(istr:iend,auto_ind) = c0
+             elsewhere
+                NO3_V(istr:iend,auto_ind) = (VNO3(istr:iend,auto_ind) / VNtot(istr:iend,auto_ind)) 
+     &                                        * photoC(istr:iend,auto_ind) * Q 
+             end where
+             where (NO2_loc .le. c0)
                 NO2_V(istr:iend,auto_ind) = c0
-            elsewhere
-                NO3_V(istr:iend,auto_ind) = (((NO3_loc)/(NO2_loc+NO3_loc))*VNOX(istr:iend,auto_ind) 
-     &                   / VNtot(istr:iend,auto_ind)) * photoC(istr:iend,auto_ind) * Q
-                NO2_V(istr:iend,auto_ind) = (((NO2_loc)/(NO2_loc+NO3_loc))*VNOX(istr:iend,auto_ind) 
-     &                  / VNtot(istr:iend,auto_ind))  * photoC(istr:iend,auto_ind) * Q 
-!          where (VNtot(istr:iend,auto_ind) > c0)
-!             where (NO3_loc .le. c0)
-!                NO3_V(istr:iend,auto_ind) = c0
-!             elsewhere
-!                NO3_V(istr:iend,auto_ind) = (VNO3(istr:iend,auto_ind) / VNtot(istr:iend,auto_ind)) 
-!     &                                        * photoC(istr:iend,auto_ind) * Q 
-!             end where
-!             where (NO2_loc .le. c0)
-!                NO2_V(istr:iend,auto_ind) = c0
-!             elsewhere
-!                NO2_V(istr:iend,auto_ind) = (VNO2(istr:iend,auto_ind) / VNtot(istr:iend,auto_ind)) 
-!     &                                        * photoC(istr:iend,auto_ind) * Q 
+             elsewhere
+                NO2_V(istr:iend,auto_ind) = (VNO2(istr:iend,auto_ind) / VNtot(istr:iend,auto_ind)) 
+     &                                        * photoC(istr:iend,auto_ind) * Q 
              end where
              NH4_V(istr:iend,auto_ind) = (VNH4(istr:iend,auto_ind) / VNtot(istr:iend,auto_ind))
      &                    * photoC(istr:iend,auto_ind) * Q
@@ -1965,6 +1964,30 @@ c$$$       enddo
              NH4_V(istr:iend,auto_ind) = c0
              VNC = c0
           end where
+
+# else
+       epsN = 1.0e-30 ! small value to avoid dividing by 0
+          where (VNtot(istr:iend,auto_ind) > c0)
+             where ((NO2_loc+NO3_loc) .le. c0)
+                NO3_V(istr:iend,auto_ind) = c0
+                NO2_V(istr:iend,auto_ind) = c0
+             elsewhere
+                NO3_V(istr:iend,auto_ind) = (((NO3_loc)/(NO2_loc+NO3_loc))*VNOX(istr:iend,auto_ind) 
+     &                   / VNtot(istr:iend,auto_ind)) * photoC(istr:iend,auto_ind) * Q
+                NO2_V(istr:iend,auto_ind) = (((NO2_loc)/(NO2_loc+NO3_loc))*VNOX(istr:iend,auto_ind) 
+     &                  / VNtot(istr:iend,auto_ind))  * photoC(istr:iend,auto_ind) * Q 
+             end where
+             NH4_V(istr:iend,auto_ind) = (VNH4(istr:iend,auto_ind) / VNtot(istr:iend,auto_ind))
+     &                    * photoC(istr:iend,auto_ind) * Q 
+                
+             VNC = PCphoto * Q
+          elsewhere
+             NO3_V(istr:iend,auto_ind) = c0
+             NO2_V(istr:iend,auto_ind) = c0
+             NH4_V(istr:iend,auto_ind) = c0
+             VNC = c0
+          end where
+# endif
 # else
           where (VNtot(istr:iend,auto_ind) > c0)
              NO3_V(istr:iend,auto_ind) = (VNO3(istr:iend,auto_ind) / VNtot(istr:iend,auto_ind))
