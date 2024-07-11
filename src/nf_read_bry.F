@@ -152,16 +152,18 @@
 #if defined NS_PERIODIC || defined MPI
 
       subroutine exch_bry_EW_tile (jstr,jend, A, nmax)
+# ifdef MPI
+      use mpi
+# endif
       implicit none
 # include "param.h"
       integer jstr,jend, nmax, k
       real A(0:Mm+1,nmax)
 # include "buffer.h"
 # if defined MPI
-#  include "mpif.h"
 #  include "hidden_mpi_vars.h"
       integer, parameter :: ibss=100000
-      integer req(2), status(MPI_STATUS_SIZE,2), ierr
+      integer req(2), ierr !, status(MPI_STATUS_SIZE,2), ierr
       real, dimension(N+1) :: bffr_rsv_S, bffr_snd_S,
      &                        bffr_rsv_N, bffr_snd_N
 # endif
@@ -211,13 +213,13 @@
      &                   p_N, ibss+1, ocean_grid_comm,    ierr)
         endif
         if (SOUTH_MSG_EXCH) then
-          call MPI_Wait (req(1),status(1,1),ierr)
+          call MPI_Wait (req(1),MPI_STATUS_IGNORE,ierr)
           do k=1,nmax
             A(jstr-1,k)=bffr_rsv_S(k)
           enddo
         endif
         if (NORTH_MSG_EXCH) then
-          call MPI_Wait (req(2),status(1,2),ierr)
+          call MPI_Wait (req(2),MPI_STATUS_IGNORE,ierr)
           do k=1,nmax
             A(jend+1,k)=bffr_rsv_N(k)
           enddo
@@ -232,15 +234,17 @@
 #if defined EW_PERIODIC || defined MPI
 
       subroutine exch_bry_NS_tile (istr,iend, A, nmax)
+# if defined MPI
+      use mpi
+# endif
       implicit none
 # include "param.h"
       integer istr,iend, nmax, k
       real A(0:Lm+1,nmax)
 # if defined MPI
-#  include "mpif.h"
 #  include "hidden_mpi_vars.h"
       integer, parameter :: ibss=100000
-      integer req(2), status(MPI_STATUS_SIZE,2), ierr
+      integer req(2), ierr !,status(MPI_STATUS_SIZE,2), ierr
       real, dimension(N+1) :: bffr_rsv_W, bffr_rsv_E,
      &                        bffr_snd_W, bffr_snd_E
 # endif
@@ -292,13 +296,13 @@
         endif
 
         if (WEST_MSG_EXCH) then
-          call MPI_Wait (req(1),status(1,1),ierr)
+          call MPI_Wait (req(1),MPI_STATUS_IGNORE,ierr)
           do k=1,nmax
             A(istr-1,k)=bffr_rsv_W(k)
           enddo
         endif
         if (EAST_MSG_EXCH) then
-          call MPI_Wait (req(2),status(1,2),ierr)
+          call MPI_Wait (req(2),MPI_STATUS_IGNORE,ierr)
           do k=1,nmax
             A(iend+1,k)=bffr_rsv_E(k)
           enddo
