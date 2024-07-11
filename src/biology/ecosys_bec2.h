@@ -558,7 +558,11 @@
       real pco2air
       common /c_chem/pco2air
 # endif
-
+# ifndef N2OAIR_FORCING
+!     otherwise defined in bgc_forces.h
+      real n2oair
+      common /c_chem/n2oair
+# endif
       real, dimension(GLOBAL_2D_ARRAY) ::
      &   ph_avg, pCO2_avg, pCO2air_avg, PARinc_avg
       real, dimension(GLOBAL_2D_ARRAY,N) ::
