@@ -262,7 +262,11 @@ c$$$       enddo
 # ifdef MASKING
      &                      * rmask(i,j)
 # endif
+# ifndef N2OAIR_FORCING
         XN2O = 300.0 * 1e-9 !!! need to figure out namelists here
+# else
+        XN2O(istr:iend) = n2oair(istr:iend,j) * 1e-9
+# endif
                N2OSAT_USED = AP_USED(i,j) * N2OSAT_1atm(i,j) * XN2O(i)
 # ifdef MASKING
      &                      * rmask(i,j)
@@ -330,6 +334,9 @@ c$$$       enddo
 #endif
             end do  ! i
          end do  ! j
+# ifdef WRITE_N2OFLX
+          N2Oflx(istr:iend,jstr:jend) = FLUX(istr:iend,jstr:jend)
+# endif
        END IF
 # endif /* Ncycle_SY || N2O_NEV */
 

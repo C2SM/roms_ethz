@@ -37,7 +37,8 @@
 #  include "bgcflux.h"
 # endif
 # if defined WRITE_TEMP_REST || defined WRITE_SALT_REST || \
-        defined WRITE_HEATFLX || defined WRITE_CO2FLX
+        defined WRITE_HEATFLX || defined WRITE_CO2FLX ||\
+        defined WRITE_N2OFLX
 #  include "forces.h"
 # endif
 # ifdef BIOLOGY_BEC
@@ -343,6 +344,18 @@ CR      write(*,*) 'wrt_ AVR :  wrtT_sed  ' MYID
         if (ierr /= nf_noerr) then
           lvar=lenstr(vname(1,indxCO2flx))
           write(*,1) vname(1,indxCO2flx)(1:lvar), record MYID
+        endif
+      endif
+# endif
+# if defined WRITE_N2OFLX
+! Surface N2O flux
+
+      if (wrt AVR (indxN2Oflx) .and. ierr == nf_noerr) then
+        ierr=ncdf_write(nc AVR ,  AVR N2Oflx, record, r_var,
+     &                  n2oflx_ AVR (START_2D_ARRAY), 1)
+        if (ierr /= nf_noerr) then
+          lvar=lenstr(vname(1,indxN2Oflx))
+          write(*,1) vname(1,indxN2Oflx)(1:lvar), record MYID
         endif
       endif
 # endif

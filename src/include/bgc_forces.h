@@ -22,6 +22,30 @@ CSDISTRIBUTE_RESHAPE  pco2airg(BLOCK_PATTERN,*) BLOCK_CLAUSE
 # endif
 #endif /* PCO2AIR_FORCING */
 
+#ifdef N2OAIR_FORCING
+! N2Oair concentration
+! ------- -------------
+!     N2Oair: N2Oair concentraion [ppb]
+
+      real n2oair(GLOBAL_2D_ARRAY)
+      common /frc_n2oair/ n2oair
+CSDISTRIBUTE_RESHAPE  N2Oair(BLOCK_PATTERN,*) BLOCK_CLAUSE
+# if defined N2OAIR_DATA || defined ALL_DATA
+# ifndef SET_SMTH
+#  undef N2OAIR_DATA
+# endif
+      real n2oairg(GLOBAL_2D_ARRAY,2)
+CSDISTRIBUTE_RESHAPE  n2oairg(BLOCK_PATTERN,*) BLOCK_CLAUSE
+      common /n2oairg_dat/ n2oairg
+      real n2oair_cycle, n2oair_time(2)
+      integer n2oair_ncycle,  n2oair_rec, itn2oair, ntn2oair,
+     &        n2oair_file_id, n2oair_id,  n2oair_tid
+      common /n2oairdat/ n2oair_cycle,    n2oair_time,
+     &        n2oair_ncycle,  n2oair_rec, itn2oair, ntn2oair,
+     &        n2oair_file_id, n2oair_id,  n2oair_tid
+# endif
+#endif /* N2OAIR_FORCING */
+
 !--------- NHY_FORCING_START
 
 #ifdef NHY_FORCING

@@ -14,7 +14,7 @@
 #include "scoord.h"
 #include "scalars.h"
 #include "ncvars.h"
-#if defined WRITE_TEMP_REST || defined WRITE_SALT_REST || defined WRITE_HEATFLX || defined WRITE_CO2FLX
+#if defined WRITE_TEMP_REST || defined WRITE_SALT_REST || defined WRITE_HEATFLX || defined WRITE_CO2FLX || defined WRITE_N2OFLX
 # include "forces.h"
 #endif
 #include "boundary.h"
@@ -783,6 +783,9 @@ c--      fname='roms.in.US_West'
 # endif
 # if defined  WRITE_CO2FLX
      &                                            ,  wrthis(indxCO2flx)
+# endif
+# if defined  WRITE_N2OFLX
+     &                                            ,  wrthis(indxN2Oflx)
 # endif
 
       BEGIN_MPI_MASTER

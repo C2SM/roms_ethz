@@ -94,6 +94,9 @@ c--#define VERBOSE
 # ifdef PCO2AIR_FORCING
       call get_pco2air(ierr)
 # endif
+# ifdef N2OAIR_FORCING
+      call get_n2oair(ierr)
+# endif
 # ifdef BIOLOGY_BEC2
 #  ifdef NOX_FORCING
       call get_nox(ierr)
@@ -645,3 +648,29 @@ c--#  define timename 'dqdt_time'
 #  define VAR_NOW pco2air
 #  include "get_smth.F"
 # endif
+
+# ifdef N2OAIR_FORCING
+!  n2oair flux
+!  ------- ---- 
+#  define get_smth get_n2oair
+#  define varname 'n2o_air'
+#  define timename 'pn2o_time'
+#  define N2OAIR_DATA
+#  define var n2oairg
+#  define timevar n2oair_time
+#  define file_id n2oair_file_id
+#  define NC_ID_LIST ncfrc
+#  define NC_FILE_LIST frcfile
+#  define varid n2oair_id
+#  define timevarid n2oair_tid
+#  define record n2oair_rec
+#  define ntsmth ntn2oair
+#  define itsmth itn2oair
+#  define icycle n2oair_ncycle
+#  define cycle_length n2oair_cycle
+#  define SET_SMTH set_n2oair
+#  define VAR_CFF 1.0
+#  define VAR_NOW n2oair
+#  include "get_smth.F"
+# endif
+

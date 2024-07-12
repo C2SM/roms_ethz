@@ -478,6 +478,17 @@
         enddo
       enddo
 # endif
+# if defined WRITE_N2OFLX
+! Surface N2O flux
+      do j=jstrR,jendR
+        do i=istrR,iendR
+          N2Oflx(i,j)=0.  ! init
+#  ifdef AVERAGES
+          n2oflx_avg(i,j)=init
+#  endif
+        enddo
+      enddo
+# endif
 # if defined WRITE_HEATFLX
 ! Surface heat flux
       do j=jstrR,jendR

@@ -72,6 +72,16 @@
 #   undef LAST_I
 #   define LAST_I indxCO2flx
 # endif
+# if defined WRITE_N2OFLX
+     &       , indxN2Oflx=LAST_I+1
+#   undef LAST_I
+#   define LAST_I indxN2Oflx
+# endif
+# if defined WRITE_N2OFLX
+     &       , indxN2Oflx=LAST_I+1
+#   undef LAST_I
+#   define LAST_I indxN2Oflx
+# endif
 # if defined WRITE_HEATFLX
      &       , indxHeatflx=LAST_I+1
 #   undef LAST_I
@@ -258,7 +268,7 @@
 #endif /* STATIONS */
 
 #ifdef SOLVE3D
-# define NWRTHIS 16+NT-2+4  /* +4 to accomodate writing of Heatflx, TEMP-, SALT REST, CO2FLX */
+# define NWRTHIS 16+NT-2+5  /* +5 to accomodate writing of Heatflx, TEMP-, SALT REST, CO2FLX, N2OFLX */
 !mm old: # define NWRTHIS 100+NT
 #endif
       logical ldefhis, wrthis(NWRTHIS)
@@ -400,6 +410,23 @@
      &      , slavgCO2flx
 #  endif
 # endif /* WRITE_CO2FLX */
+
+# ifdef WRITE_N2OFLX
+      integer hisN2Oflx
+#  ifdef AVERAGES
+     &      , avgN2Oflx
+#  endif
+#  ifdef SLICE_AVG
+     &      , slavgN2Oflx
+#  endif
+      common /ncvars/ hisN2Oflx
+#  ifdef AVERAGES
+     &      , avgN2Oflx
+#  endif
+#  ifdef SLICE_AVG
+     &      , slavgN2Oflx
+#  endif
+# endif /* WRITE_N2OFLX */
 
 # ifdef WRITE_HEATFLX
       integer hisHeatflx
