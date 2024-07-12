@@ -181,14 +181,6 @@
       parm_iod3_ric_ox = 10.0e-4 ! ratio of excess I produced to C oxidized in the sediments
       parm_iod4_maxflux = 10.0 * yps  ! Max Iodine flux in mmol m-2 -s
 # endif
-#ifdef UCLA_PARAMS
-      parm_BSIbury           = 0.65 ! x1 default
-      parm_Fe_scavenge_rate0 = 2.5  ! test initial scavenging rate 3 times higher
-      parm_f_prod_sp_CaCO3   = 0.055 ! x1 default
-      parm_POC_diss          = 88.0
-      parm_SiO2_diss         = 250.0
-      parm_CaCO3_diss        = 150.0
-#endif
 ! ETH default parameter for sp, diatoms, diazotrophs since 2023
 ! parameter PFT indices: (1, 2, 3) = (sp, diat, diaz)  
       sname(1:3)         = (/ 'sp', 'diat', 'diaz' /)
@@ -305,6 +297,27 @@
       parm_o2_min = 4.0         ! mmol/m^3
       parm_o2_min_delta = 2.0   ! mmol/m^3
       parm_fe_scavenge_rate0 = 1.3
+
+# ifdef UCLA_PARAMS
+      parm_BSIbury           = 0.65 ! x1 default
+      parm_POMbury           = 1.0 ! x1 default
+      parm_Fe_scavenge_rate0 = 2.5  ! test initial scavenging rate 3 times higher
+      parm_POC_diss          = 88.0
+      parm_SiO2_diss         = 250.0
+      parm_CaCO3_diss        = 150.0  
+      loss_thres_zoo         = 0.06    ! mmol m-3
+      CaCO3_sp_thres         = 2.5  ! mmol m-3
+      DOC_reminR             = (c1/(365.0*15.0)) ! d-1
+      DON_reminR             = (c1/(365.0*15.0)) ! d-1
+      DOP_reminR             = (c1/(365.0*9.0)) ! d-1
+      DOFe_reminR            = (c1/(365.0*60.0)) ! d-1
+      DONr_reminR            = (c1/(365.0*9500.0)) ! d-1
+      DOPr_reminR            = (c1/(365.0*16000.0)) ! d-1
+      DONrefract             = 0.0115
+      DOPrefract             = 0.003    
+      gQsi_max               = 0.8   !max Si/C ratio
+      gQsi_min               = 0.0429  !min Si/C ratio
+# endif
 
 
 ! indices >3 for  cocco, dda, phaeo, ucyn turn on via CPP switches
