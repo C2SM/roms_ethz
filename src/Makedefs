@@ -19,7 +19,7 @@ ifdef COUPLED
 ifdef ROMSOC_OASIS_INSTALL
     OASDIR :=$(ROMSOC_OASIS_INSTALL)
 else
-    OASDIR :=$(shell spack location -i oasis)
+    OASDIR :=$(shell spack location -i oasis 2>/dev/null)
 endif
 OASINC := -I$(OASDIR)/build/lib/psmile.MPI1 \
           -I$(OASDIR)/build/lib/mct
@@ -115,23 +115,32 @@ ifndef NO_IO
    else
       NCINC += $(shell nf-config --fflags)
       NCINC += -I$(shell nf-config --includedir)
-   endif
-   # netcdf-c
-   NC-CONFIG = $(shell which nc-config 2>/dev/null)
-   ifeq ($(NC-CONFIG),)
-      $(error nf-config not found (NetCDF library))
+      NCLIB ?= $(shell nf-config --flibs)
    endif
 
-   NCINC += $(shell nc-config --fflags)
-   NCINC += -I$(shell nc-config --includedir)
    ifeq ($(NCINC),)
-      NCINC += -I$(shell nc-config --cflags)
+      # try using nc-config
+      NC-CONFIG = $(shell which nc-config 2>/dev/null)
+      ifeq ($(NC-CONFIG),)
+         $(error nf-config not found (NetCDF library))
+      endif
+
+      NCINC += $(shell nc-config --fflags)
+      NCINC += -I$(shell nc-config --includedir)
+      ifeq ($(NCINC),)
+         NCINC += -I$(shell nc-config --cflags)
+      endif
+      ifeq ($(NCINC),)
+         NCINC += -I$(shell nc-config --prefix)/include
+      endif
    endif
 
-   NCLIB ?= $(shell nf-config --flibs)
-   NCLIB +=  $(shell nc-config --libs)
    ifeq ($(NCLIB),)
       NCLIB := $(shell nc-config --libs)
+   endif
+
+   ifeq ($(NCLIB),)
+      NCLIB := -L$(shell nc-config --prefix)/lib
    endif
 
    CPPFLAGS += $(NCINC)
@@ -199,11 +208,15 @@ ifeq ($(strip $(FCOMP)),ifort)
       CPPFLAGS += -I$(I_MPI_ROOT)/include64
       CPPFLAGS += -I$(I_MPI_ROOT)/intel64/include
    endif
-else ifeq ($(strip $(FCOMP)),pgf90)
+#else ifeq ($(strip $(FCOMP)),pgf90)
+# below is the convoluted makefile-way of 
+# asking if the basename of FCOMP is either pgf90 or nvhpc 
+else ifneq (,$(filter $(strip $(FCOMP)), pgf90 nvhpc))
    #
-   # ============= PGI compiler =============
+   # ============= PGI (now nvidia) compiler =============
    #
-   FCFLAGS  := -DPGI -DINT_IARGC
+   MPIFC := $(FC)
+   FCFLAGS  := -DPGI
    ifdef OPENMP
       OPENMP := -mp
    endif
@@ -213,7 +226,7 @@ else ifeq ($(strip $(FCOMP)),ftn)
    # ============= CSCS cray fortran  compiler =============
    #
    MPIFC := $(FC)
-   FCFLAGS  := -DINT_IARGC -DPGI 
+   FCFLAGS  := -DPGI 
    ifdef OPENMP
       OPENMP := -homp
    endif
@@ -235,9 +248,10 @@ else ifeq ($(strip $(FCOMP)),gfortran)
    else
       FFLAGS := -O3 $(OPENMP)
    endif
+   FFLAGS += -fallow-argument-mismatch
 else
-    default:
-    $(error Unknown Compiler $(FCOMP). Add settings to Makedefs)
+#    Unknown Compiler $(FCOMP)
+   MPIFC ?= $(FC)
 endif
 
 CPPFLAGS += $(FCFLAGS)

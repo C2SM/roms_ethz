@@ -141,9 +141,6 @@
       logical del_part_files
       character(len=128) rmcmd
 #endif
-#ifdef CLOSE_NETCDF_AFTER_TREC
-      integer :: rec_close = 10
-#endif
 #ifdef TIMING
       real(kind=4) tstart, RUN_time, CPU_time(2)
       real(kind=8) InitTime, ReadSize, ReadTime, WrtSize,  WrtTime,
@@ -180,7 +177,7 @@
         cmd(11:lstr+10)=cmd(1:lstr)    ! pid of its own process and
         lstr=lstr+10                   ! executes re-nice command.
         cmd(1:10)='renice 19'
-        if (verbose)  
+        if (verbose>0)  
      &  write(*,'(/3A//)') 'Autorenice: executing ''',cmd(1:lstr),'''.'
         call system(cmd(1:lstr))
       endif
@@ -269,15 +266,6 @@
           inc_var_list = trim(inc_var_list) / / ','
           goto 2
         endif
-
-#ifdef CLOSE_NETCDF_AFTER_TREC
-        if ( nctestname(1:1)=='-' .and. (
-     &       lsrc > 10 .and. nctestname(1:10) == '--ncclose=' )) then
-          read(nctestname(11:LEN_TRIM(nctestname)),*) rec_close
-	  print *, 'Frequency of closing netcdf files [time records]: ', rec_close
-	  goto 2
-	endif
-#endif
 
 # if 1 == 0
         if ( nctestname(1:1)=='-' .and. (
@@ -819,7 +807,7 @@ c**         endif
             endif
       enddo  !<-- node=0,nnodes-1
 
-      if (verbose)  then
+      if (verbose>0)  then
         write(*,'(/1x,A,I3)') 'Inventory of variables: nvars =', nvars
         do i=1,nvars
           lvar=lenstr(vname(i))
@@ -931,7 +919,7 @@ c**         endif
           enddo ! <-- i loop over dimensions
 
 
-      if (verbose) 
+      if (verbose>0) 
      &  write(*,'(1x,A)') 'Identifying presence of boundary edges:'
           do node=0,nnodes-1
         western_edge(node)=.true.  ;  eastern_edge(node)=.true.
@@ -957,7 +945,7 @@ c**         endif
      &                             ) northern_edge(node)=.false.
             endif
 
-        if (verbose) then
+        if (verbose>0) then
             if (node == 0) then
               write(*,'(8x,A,I4,4(2x,A,L1))') 'node =', node,
      &        'WST=',western_edge(node),  'EST=',eastern_edge(node),
@@ -1035,7 +1023,7 @@ c**         endif
 ! Define dimensions: also compute the size of buffer needed to
 ! accommodate the largest array.
 
-      if (verbose)
+      if (verbose>0)
      & write(*,'(/1x,A,3x,A,1x,A,1x,A)') 'Dimensions:', 'id', 'size',
      &                                                       'name'
       size_XI=1 ; size_ETA=1 ; size_S=1
@@ -1046,7 +1034,7 @@ c**         endif
      &                     dimsize(i,nnodes), dimid(i))
         if (ierr == nf_noerr) then
           if (dimid(i) == i) then
-      if (verbose)
+      if (verbose>0)
      &      write(*,'(14x,I3,I5,1x,3A)') dimid(i), dimsize(i,nnodes),
      &                                '''', dimname(i)(1:lvar), ''''
             if (dimname(i)(1:3) == 'xi_') then
@@ -1073,7 +1061,7 @@ c**         endif
 
 ! Copy all global attributes, except 'partition'.
 
-      if (verbose)
+      if (verbose>0)
      &    write(*,'(1x,A)') 'Copying global attributes:'
       lsrc=lenstr(srcname(0))
       if (ncsrc(0) == -1) ierr=nf_open(srcname(0),nf_nowrite,ncsrc(0))
@@ -1094,7 +1082,7 @@ c**         endif
      &                                    '''.',  nf_strerror(ierr)
                   goto 97
                 endif
-      if (verbose)
+      if (verbose>0)
      &          write(*,'(20x,3A)') '''', string(1:lvar), ''''
               endif
             else
@@ -1122,7 +1110,7 @@ c**         endif
 
 ! Define variables and copy their attributes.
 
-      if (verbose)
+      if (verbose>0)
      &write(*,'(1x,A)') 'Variables, their dimensions and attributes:'
           do i=1,nvars
         node=vnode(i)
@@ -1147,7 +1135,7 @@ c**         endif
               endif
               if (ierr == nf_noerr) then
 #endif
-      if (verbose)
+      if (verbose>0)
      &         write(*,'(8x,3A,8I3)')  '''', vname(i)(1:lvar)
      &        , '''         dimids =', (dimids(j,i), j=1,vdims(i))
                 do j=1,varatts
@@ -1164,7 +1152,7 @@ c**         endif
      &                nctargname(1:ltrg), '''.  ', nf_strerror(ierr)
                       goto 97
                     endif
-      if (verbose)
+      if (verbose>0)
      &               write(*,'(16x,3A)') '''', string(1:lstr), ''''
                   else
                     write(*,'(/1x,A,I3/12x,3A/12x,A/)')
@@ -1232,7 +1220,7 @@ c**         endif
 ! Leave definition mode
 
           ierr=nf_enddef (nctarg)
-      if (verbose)
+      if (verbose>0)
      & write(*,'(/1x,A)') 'Leaving definition mode.'
 
 ! Allocate buffer arrays: Scan all the variables to find the largest
@@ -1679,14 +1667,14 @@ c**         endif
                   if (vname(i)(lvar-5:lvar) == '_south' .and.
      &                              southern_edge(node)) then
                       var_mask=.true.
-      if (verbose)
+      if (verbose>0)
      &                write(*,'(3x,A,I4,1x,4A)')  'node =', node,
      &               'identified XI-partitioned southern ',
      &               'boundary array ''', vname(i)(1:lvar), ''''
                   elseif (vname(i)(lvar-5:lvar) == '_north' .and.
      &                                 northern_edge(node)) then
                       var_mask=.true.
-      if (verbose)
+      if (verbose>0)
      &                write(*,'(3x,A,I4,1x,4A)')   'node =', node,
      &               'identified XI-partitioned northern ',
      &               'boundary array ''', vname(i)(1:lvar), ''''
@@ -1695,21 +1683,21 @@ c**         endif
                   if (vname(i)(lvar-4:lvar) =='_west' .and.
      &                                 western_edge(node)) then
                       var_mask=.true.
-      if (verbose)
+      if (verbose>0)
      &                write(*,'(3x,A,I4,1x,4A)')     'node =', node,
      &               'identified ETA-partitioned western ',
      &               'boundary array ''', vname(i)(1:lvar), ''''
                   elseif (vname(i)(lvar-4:lvar)=='_east'
      &                          .and. eastern_edge(node)) then
                       var_mask=.true.
-      if (verbose)
+      if (verbose>0)
      &                write(*,'(3x,A,I4,1x,4A)')     'node =', node,
      &               'identified ETA-partitioned eastern ',
      &               'boundary array ''', vname(i)(1:lvar), ''''
                     endif
                 elseif (part_type(i) == 3) then
                     var_mask=.true.
-      if (verbose)
+      if (verbose>0)
      &              write(*,'(3x,A,I4,1x,4A)')   'node =', node,
      &                     'identified 2D-partitioned array ''',
      &                                  vname(i)(1:lvar), ''''
@@ -1765,7 +1753,7 @@ c**         endif
      &                                      nf_nowrite, ncsrc(node))
                   if (ierr == nf_noerr) then
 #endif
-      if (verbose)
+      if (verbose>0)
      &               write(*,'(3x,A,I4,2x,A,I7,2x,A,I4,1x,A,I4,1x,A)')
      &                     'node =', node, 'ncsrc=',ncsrc(node),
      &                     'xi_start =', xi_start(node),
@@ -1858,7 +1846,7 @@ c**         endif
                     goto 97
                   endif
 #endif
-      if (verbose)
+      if (verbose>0)
      &               write(*,'(1x,A)')  'copying ...'
 
 ! In the code segment below there are two strategies, resulting in
@@ -2011,7 +1999,7 @@ c**         endif
         ierr=nf_sync (nctarg)
 
 #ifdef CLOSE_NETCDF_AFTER_TREC
-        if (rec .lt. min(tsize,nend) .and. mod(rec,rec_close)==0) then
+        if (rec .lt. min(tsize,nend)) then
            write(*,*) 'close netcdf files'
            do node=0,nnodes-1
              if (ncsrc(node) /= -1) then
@@ -2265,11 +2253,8 @@ c**         endif
      &   , '     (NCJOIN  is the inverse of PARTIT.)'
      &   , ' '
      &   , 'USAGE:'
-     &   , '     ncjoin [-3hknpqv -c=<n> -i=<list> -x=<list>'
-#ifdef CLOSE_NETCDF_AFTER_TREC
-     &   / / ' --ncclose=<num>'
-#endif
-     &   / / '] files.*.nc'
+     &   , '     ncjoin [-3hknpqv -c=<n> -i=<list> -x=<list>]'
+     &   / / ' files.*.nc'
      &   , ' '
      &   , '     where files.*.nc matches one or more complete set of' 
      &   , '     partial files'
@@ -2293,10 +2278,6 @@ c**         endif
 !     &   , '    -x=<var_list> list of variables (comma-separated'
 !     &   , '                 without spaces) to exclude'
      &   , '    -o=<dir>     output directory (default: working dir)'
-#ifdef CLOSE_NETCDF_AFTER_TREC
-     &   , '    --ncclose=<num> close and reopen Netcdf files every'
-     &   , '                    <num> time records (default: 10)'
-#endif
      &   , 'NOTE:'
      &   , '     The variable lists are case sensitive.'
       end subroutine usage
