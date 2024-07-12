@@ -2919,8 +2919,11 @@ c$$$       enddo
 
 ! ANAMMOX NO2 + NH4 --> N2
        where  (NH4_loc .gt. c0 .and. NO2_loc .gt. c0)
+!                anammox = parm_kax * (NH4_loc / (parm_knh4_ax + NH4_loc)) * 
+!     &                  (NO2_loc / (parm_kno2_den2 + NO2_loc)) * exp(-max(O2_loc,c0)/parm_ko2_ax)
+
                 anammox = parm_kax * (NH4_loc / (parm_knh4_ax + NH4_loc)) * 
-     &                  (NO2_loc / (parm_kno2_den2 + NO2_loc)) * exp(-max(O2_loc,c0)/parm_ko2_ax)
+     &                  (NO2_loc / (parm_kno2_ax + NO2_loc)) * exp(-max(O2_loc,c0)/parm_ko2_ax)
         elsewhere
                 anammox = c0
         end where
