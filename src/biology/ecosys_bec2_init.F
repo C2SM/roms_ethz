@@ -181,7 +181,7 @@
       parm_iod3_ric_ox = 10.0e-4 ! ratio of excess I produced to C oxidized in the sediments
       parm_iod4_maxflux = 10.0 * yps  ! Max Iodine flux in mmol m-2 -s
 # endif
-#ifdef UCLA_NO3
+#ifdef UCLA_PARAMS
       parm_BSIbury           = 0.65 ! x1 default
       parm_Fe_scavenge_rate0 = 2.5  ! test initial scavenging rate 3 times higher
       parm_f_prod_sp_CaCO3   = 0.055 ! x1 default
@@ -211,8 +211,12 @@
       kFe (1:3) = (/ 1.0d-4, 1.6d-4, 6.0d-4 /)  ! mmol m-3
       kPO4(1:3) = (/ 0.08, 0.13, 0.02 /)  ! mmol m-3
       kNO3(1:3) = (/ 1.2, 2.1, 0.3 /)  ! mmol m-3
-# ifdef Ncycle_SY
+# ifdef EXPLICIT_NO2UPTAKE
       kNO2(1:3) = (/ 0.0300, 0.24, 0.8 /)        ! mmol N/m3  ! 0.0
+      kNH4(1:3) = (/ 0.04, 0.07, 0.001 /)  ! mmol m-3
+
+# else      
+      kNH4(1:3) = (/ 0.12, 0.21, 0.03 /)  ! mmol m-3
 # endif
       kNH4(1:3) = (/ 0.12, 0.21, 0.03 /)  ! mmol m-3
       kSiO3(1:3) = (/ 0.0, 2.0, 0.0 /)  ! mmol m-3
@@ -229,7 +233,12 @@
       kFe(1:3)  = (/ 1.0d-4, 1.6d-4, 6.0d-4 /)  ! mmol m-3
       kPO4(1:3) = (/ 0.05, 0.08, 0.006 /)  ! mmol m-3
       kNO3(1:3) = (/ 0.8, 1.3, 0.1 /)  ! mmol m-3
+# ifdef EXPLICIT_NO2UPTAKE
+      kNH4(1:3) = (/ 0.02667, 0.04333, 0.00333 /)  ! mmol m-3
+
+# else
       kNH4(1:3) = (/ 0.08, 0.13, 0.01 /)  ! mmol m-3
+# endif
       kSiO3(1:3) = (/ 0.0, 1.2, 0.0 /)  ! mmol m-3
       kDOP(1:3) = (/ 0.9, 0.9, 0.006 /)  ! mmol m-3
       z_umax_0(1:3) = (/ 1.875, 2.875, 1.625 /)  ! d-1

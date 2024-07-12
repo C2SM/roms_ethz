@@ -72,7 +72,7 @@
      &   kPO4(autotroph_cnt),
      &   kDOP(autotroph_cnt),
      &   kNO3(autotroph_cnt),
-# ifdef Ncycle_SY
+# ifdef EXPLICIT_NO2UPTAKE
      &   kNO2(autotroph_cnt),
 # endif
      &   kNH4(autotroph_cnt),
@@ -108,7 +108,7 @@
      &        Qp, gQfe_0, gQfe_min, alphaPI, PCref, thetaN_max, loss_thres, loss_thres2,
      &        temp_thres, mort, mort2, agg_rate_max, agg_rate_min, z_umax_0, z_grz,
      &        graze_zoo, graze_poc, graze_doc, loss_poc, f_zoo_detr
-# ifdef Ncycle_SY
+# ifdef EXPLICIT_NO2UPTAKE
      &        , kNO2
 # endif
 
@@ -149,9 +149,6 @@
      &   parm_o2_min,            ! min O2 needed for prod & consump. (nmol/cm^3)
      &   parm_o2_min_delta,      ! width of min O2 range (nmol/cm^3)
      &   parm_kappa_nitrif,      ! nitrification inverse time constant (1/sec)
-# ifdef TDEP_REMIN
-     &   parm_ktfunc_soft, ! parameter for the temperature dependance of remin on temp (Laufkoeuter 2017)
-# endif
 # ifdef Ncycle_SY
      &   parm_kao,        ! max ammonium oxidation rate (1/s)
      &   parm_kno,        ! max nitrite oxidation rate (1/s)
@@ -209,9 +206,6 @@
      &   parm_BSIbury, parm_Fe_scavenge_rate0, parm_f_prod_sp_CaCO3, parm_POC_diss,
      &   parm_SiO2_diss, parm_CaCO3_diss,
      &   parm_scalelen_z, parm_scalelen_vals
-# ifdef TDEP_REMIN
-     &   , parm_ktfunc_soft
-# endif
 # ifdef Ncycle_SY
      &   , parm_kao, parm_kno, parm_ko2_ao, parm_knh4_ao, parm_ko2_no, parm_kno2_no, parm_kno3_den1,
      &   parm_kno2_den2, parm_kn2o_den3, parm_ko2_oxic, parm_ko2_den1, parm_ko2_den2, parm_ko2_den3,
@@ -269,7 +263,7 @@
      &   caco3_poc_min    = 0.4,  ! minimum proportionality between
      &                            !   QCaCO3 and grazing losses to POC
      &                            !   (mmol C/mmol CaCO3)
-#ifdef NO3_UCLA
+#ifdef UCLA_PARAMS
      &   spc_poc_fac      = 0.14, ! small phyto grazing factor (1/mmolC)
      &   f_graze_sp_poc_lim = 0.36, 
 #else
@@ -351,7 +345,7 @@
        real Tref, Q_10, Q_10_phyto(autotroph_cnt), Q_10_zoo
        parameter(
      &   Tref = 30.0,   ! reference temperature (C)
-# ifdef NO3_UCLA
+# ifdef UCLA_PARAMS
      &   Q_10 = 1.7     ! factor for temperature dependence (non-dim)
 # else
      &   Q_10 = 1.5     ! factor for temperature dependence (non-dim)

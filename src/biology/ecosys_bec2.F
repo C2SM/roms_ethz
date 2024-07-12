@@ -1074,9 +1074,7 @@ c$$$       enddo
 # endif
      &    QA_dust_def,     ! incoming deficit in the QA(dust) POC flux
      &    NITRIF,          ! nitrification (NH4 -> NO3) (mmol N/m^3/sec)
-# ifndef Ncycle_SY
      &    DENITRIF,        ! water column nitrification (NO3 -> N2) (mmol N/m^3/sec)
-# endif
      &    SED_DENITRIF,    ! sedimentary denitrification (mmol N/m^3/sec)
      &    OTHER_REMIN,     ! organic C remin not due oxic or denitrif (mmolC/m^3/sec)
      &    flux_oxidated,   ! carbon oxidation rate in sediment
@@ -1164,11 +1162,15 @@ c$$$       enddo
      &    Si_loc,          ! amount of Si in each autotroph species
      &    CaCO3_loc,       ! amount of CaCO3 in each autotroph species
      &    QCaCO3,          ! CaCO3/C ratio (mmol CaCO3/mmol C)
-     &    VNO3,            ! NO3 uptake rate (non-dim)
 # ifdef Ncycle_SY
+     &    NO2_V,           ! nitrite uptake (mmol NO2/m^3/sec)
      &    VNOX,            ! NO3 + NO2 uptake rate (non-dim)
+# ifdef EXPLICIT_NO2UPTAKE
+     &    VNO3,            ! NO3 uptake rate (non-dim)
      &    VNO2,            ! NO2 uptake rate (non-dim)
-     &    NO2_V,           ! nitrate uptake (mmol NO3/m^3/sec)
+# endif
+# else
+     &    VNO3,            ! NO3 uptake rate (non-dim)
 # endif 
      &    VNH4,            ! NH4 uptake rate (non-dim)
      &    VNtot,           ! total N uptake rate (non-dim)
@@ -1261,14 +1263,16 @@ c$$$       enddo
        phaeoChl_loc = MAX(c0, TRACER(istr:iend,j,k,phaeochl_ind_t))
        phaeoFe_loc = MAX(c0, TRACER(istr:iend,j,k,phaeofe_ind_t))
 # endif
-# ifdef N2O_TRACER_DECOMP
+# ifdef Ncycle_SY
        NO2_loc  = MAX(c0, TRACER(istr:iend,j,k,no2_ind_t))
+       N2_loc  = MAX(c0, TRACER(istr:iend,j,k,n2_ind_t))
+       N2O_loc = MAX(c0, TRACER(istr:iend,j,k,n2o_ind_t))
+# ifdef N2O_TRACER_DECOMP
        N2O_atm_loc = MAX(c0, TRACER(istr:iend,j,k,n2o_atm_ind_t))
        N2O_ao1_loc  = MAX(c0, TRACER(istr:iend,j,k,n2o_ao1_ind_t))
        N2O_siden_loc  = MAX(c0, TRACER(istr:iend,j,k,n2o_siden_ind_t))
        N2O_soden_loc  = MAX(c0, TRACER(istr:iend,j,k,n2o_soden_ind_t))
-       N2_loc  = MAX(c0, TRACER(istr:iend,j,k,n2_ind_t))
-       N2O_loc = MAX(c0, TRACER(istr:iend,j,k,n2o_ind_t))
+# endif       
 # endif
 # ifdef N2O_NEV
        N2O_nev_loc  = MAX(c0, TRACER(istr:iend,j,k,n2o_nev_ind_t))
@@ -1705,18 +1709,23 @@ c$$$       enddo
           else
 # endif /*BEC_DDA_case2*/
 # ifdef Ncycle_SY
-!         VNOX(istr:iend,auto_ind) = ((NO3_loc + NO2_loc) / kNO3(auto_ind)) /
-!    &        (c1 + ((NO3_loc + NO2_loc) / kNO3(auto_ind)) + (NH4_loc / kNH4(auto_ind)))
+# ifdef EXPLICIT_NO2UPTAKE
           VNO3(istr:iend,auto_ind) = (NO3_loc / kNO3(auto_ind)) /
      &        (c1 + (NO3_loc / kNO3(auto_ind)) + (NO2_loc / kNO2(auto_ind)) + (NH4_loc / kNH4(auto_ind)))
           VNO2(istr:iend,auto_ind) = (NO2_loc / kNO2(auto_ind)) /
      &        (c1 + (NO3_loc / kNO3(auto_ind)) + (NO2_loc / kNO2(auto_ind)) + (NH4_loc / kNH4(auto_ind)))
-!         VNH4(istr:iend,auto_ind) = (NH4_loc / kNH4(auto_ind)) /
-!    &        (c1 + ((NO3_loc + NO2_loc) / kNO3(auto_ind)) + (NH4_loc / kNH4(auto_ind)))
           VNH4(istr:iend,auto_ind) = (NH4_loc / kNH4(auto_ind)) /
      &        (c1 + (NO3_loc / kNO3(auto_ind)) + (NO2_loc / kNO2(auto_ind)) + (NH4_loc / kNH4(auto_ind)))
           VNtot(istr:iend,auto_ind) = VNO3(istr:iend,auto_ind) + VNO2(istr:iend,auto_ind) + VNH4(istr:iend,auto_ind)
           if (Nfixer(auto_ind)) VNtot(istr:iend,auto_ind) = c1
+#  else
+          VNOX(istr:iend,auto_ind) = ((NO3_loc + NO2_loc) / kNO3(auto_ind)) /
+     &        (c1 + ((NO3_loc + NO2_loc) / kNO3(auto_ind)) + (NH4_loc / kNH4(auto_ind)))
+          VNH4(istr:iend,auto_ind) = (NH4_loc / kNH4(auto_ind)) /
+     &        (c1 + ((NO3_loc + NO2_loc) / kNO3(auto_ind)) + (NH4_loc / kNH4(auto_ind)))
+          VNtot(istr:iend,auto_ind) = VNOX(istr:iend,auto_ind) + VNH4(istr:iend,auto_ind)
+          if (Nfixer(auto_ind)) VNtot(istr:iend,auto_ind) = c1
+#endif
 # else         
           VNO3(istr:iend,auto_ind) = (NO3_loc / kNO3(auto_ind)) /
      &        (c1 + (NO3_loc / kNO3(auto_ind)) + (NH4_loc / kNH4(auto_ind)))
@@ -1960,16 +1969,8 @@ c$$$       enddo
     !  total N uptake VNC is used in photoadaption
     !-----------------------------------------------------------------------
 # ifdef Ncycle_SY
+# ifdef EXPLICIT_NO2UPTAKE
        epsN = 1.0e-30 ! small value to avoid dividing by 0
-!         where (VNtot(istr:iend,auto_ind) > c0)
-!            where ((NO2_loc+NO3_loc) .le. c0)
-!               NO3_V(istr:iend,auto_ind) = c0
-!               NO2_V(istr:iend,auto_ind) = c0
-!            elsewhere
-!               NO3_V(istr:iend,auto_ind) = (((NO3_loc)/(NO2_loc+NO3_loc))*VNOX(istr:iend,auto_ind) 
-!    &                   / VNtot(istr:iend,auto_ind)) * photoC(istr:iend,auto_ind) * Q
-!               NO2_V(istr:iend,auto_ind) = (((NO2_loc)/(NO2_loc+NO3_loc))*VNOX(istr:iend,auto_ind) 
-!    &                  / VNtot(istr:iend,auto_ind))  * photoC(istr:iend,auto_ind) * Q 
           where (VNtot(istr:iend,auto_ind) > c0)
              where (NO3_loc .le. c0)
                 NO3_V(istr:iend,auto_ind) = c0
@@ -1993,6 +1994,30 @@ c$$$       enddo
              NH4_V(istr:iend,auto_ind) = c0
              VNC = c0
           end where
+
+# else
+       epsN = 1.0e-30 ! small value to avoid dividing by 0
+          where (VNtot(istr:iend,auto_ind) > c0)
+             where ((NO2_loc+NO3_loc) .le. c0)
+                NO3_V(istr:iend,auto_ind) = c0
+                NO2_V(istr:iend,auto_ind) = c0
+             elsewhere
+                NO3_V(istr:iend,auto_ind) = (((NO3_loc)/(NO2_loc+NO3_loc))*VNOX(istr:iend,auto_ind) 
+     &                   / VNtot(istr:iend,auto_ind)) * photoC(istr:iend,auto_ind) * Q
+                NO2_V(istr:iend,auto_ind) = (((NO2_loc)/(NO2_loc+NO3_loc))*VNOX(istr:iend,auto_ind) 
+     &                  / VNtot(istr:iend,auto_ind))  * photoC(istr:iend,auto_ind) * Q 
+             end where
+             NH4_V(istr:iend,auto_ind) = (VNH4(istr:iend,auto_ind) / VNtot(istr:iend,auto_ind))
+     &                    * photoC(istr:iend,auto_ind) * Q 
+                
+             VNC = PCphoto * Q
+          elsewhere
+             NO3_V(istr:iend,auto_ind) = c0
+             NO2_V(istr:iend,auto_ind) = c0
+             NH4_V(istr:iend,auto_ind) = c0
+             VNC = c0
+          end where
+# endif
 # else
           where (VNtot(istr:iend,auto_ind) > c0)
              NO3_V(istr:iend,auto_ind) = (VNO3(istr:iend,auto_ind) / VNtot(istr:iend,auto_ind))
@@ -2885,7 +2910,7 @@ c$$$       enddo
      &    bec2_diag_3d(istr:iend,j,k,bec2_diag_3d_idx(nitrif_idx_t)) = NITRIF
 #  else
        bec2_diag_3d(istr:iend,j,k,nitrif_idx_t) = NITRIF
-#  endif
+# endif
 # endif
 # endif
 
@@ -3056,17 +3081,17 @@ c$$$       enddo
 # endif
 
 # else
-# ifndef UCLA_NO3
+# ifndef Ncycle_SY
        DTRACER_MODULE(istr:iend,j,k,no3_ind_t) = NITRIF - (DENITRIF +
      &                                 SED_DENITRIF) * (1 -
      &                                 denitrif_C_N/parm_Red_P_C_N) - sum(NO3_V, dim=2)
-# else /* UCLA_NO3 */
+# else /* Ncycle_SY*/
        DTRACER_MODULE(istr:iend,j,k,no3_ind_t) = NITRIF - DENITRIF - 
      &                                 SED_DENITRIF - sum(NO3_V, dim=2)
 # ifdef NO3_RESTORE
      &                                 + restore_no3
 # endif
-# endif /* UCLA_NO3*TREND */
+# endif /* Ncycle_SY*TREND */
 
        DTRACER_MODULE(istr:iend,j,k,nh4_ind_t) = -sum(NH4_V, dim=2) - NITRIF + DON_remin + DONr_remin
      &     + Q * (zoo_loss_dic + sum(auto_loss_dic, dim=2) + sum(auto_graze_dic, dim=2)
@@ -4109,13 +4134,13 @@ c$$$       enddo
 
             ! CN (Oct 2015): constrain SED_DENITRIF by what is left to
             ! be remineralized after POC_sed_loss
-#ifdef UCLA_NO3
+# ifdef Ncycle_SY
             ! SY: Changed to Michaelis Menton limitation by NO3
                SED_DENITRIF(i) = dzr_loc * min(flux * (0.06 + 0.19 *
      &            0.99**(O2_loc(i)-NO3_loc(i))),
      &            flux-POC_sed_loss(i,j)*denitrif_C_N) * 
      &            (NO3_loc(i)/(NO3_loc(i)+parm_sed_denitrif_NO3_limit))
-#else
+# else
                if (NO3_loc(i) < parm_sed_denitrif_NO3_limit) then
                SED_DENITRIF(i) = dzr_loc * min(flux * (0.06 + 0.19 *
      &                 0.99**(O2_loc(i)-NO3_loc(i))),
@@ -4126,7 +4151,7 @@ c$$$       enddo
      &                 0.99**(O2_loc(i)-NO3_loc(i))),
      &                flux-POC_sed_loss(i,j)*denitrif_C_N)
                endif
-#endif
+# endif
 
 #ifdef BEC2_DIAG
 # ifdef BEC2_DIAG_USER
@@ -4175,9 +4200,9 @@ c$$$       enddo
 
             ! convert from mmol m-2 s-1 to mmol m-2 d-1
             flux_oxidated(i) = flux_oxidated(i) * 86400  ! day2sec=86400
-#ifdef UCLA_NO3
             ! constant 170 in umol m-2 d-1, flux_oxidated in mmol m-2
             ! day-1, o2 in muM
+# ifdef Ncycle_SY
             if (flux_oxidated(i) == 0) then
                 FESEDFLUX(i) = 0 
             elseif (flux_oxidated(i) > 0) then
@@ -4185,13 +4210,15 @@ c$$$       enddo
             elseif (flux_oxidated(i) > 0 .and. O2_loc(i)==0) then
                 FESEDFLUX(i) = 170.0 
             endif
-#else
+            ! convert from umol m-2 d-1 to mmol m-2 s-1
+            FESEDFLUX(i) = FESEDFLUX(i)*0.001/86400.
+# else
             if (flux_oxidated(i) > 0) then
                 FESEDFLUX(i) = 170 * tanh(flux_oxidated(i)/max(O2_loc(i),1e-15))
             endif
-#endif
             ! convert from umol m-2 d-1 to mmol m-2 s-1
             FESEDFLUX(i) = FESEDFLUX(i)*0.001/86400.     !sec2day=1/86400
+# endif
 # endif
 
 # ifdef IODINE
