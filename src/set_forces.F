@@ -125,7 +125,11 @@ c***              no code here
 # ifdef POX_FORCING
       call set_pox_tile(istr,iend,jstr,jend,ierr)
 # endif
-
+# ifdef RIVER_LOAD_ALK_DIC_SI
+      call set_alk_river_tile(istr,iend,jstr,jend,ierr)
+      call set_dic_river_tile(istr,iend,jstr,jend,ierr)
+      call set_si_river_tile(istr,iend,jstr,jend,ierr)
+# endif
 
 #ifdef ANA_SMFLUX
       call ana_smflux_tile(istr,iend,jstr,jend)

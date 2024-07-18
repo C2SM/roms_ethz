@@ -113,7 +113,12 @@ c--#define VERBOSE
 #  ifdef RIVER_LOAD_P
       call get_dip_river(ierr)
 #  endif
-#endif
+#  ifdef RIVER_LOAD_ALK_DIC_SI
+      call get_alk_river(ierr)
+      call get_dic_river(ierr)
+      call get_si_river(ierr)
+#  endif
+# endif /* BIOLOGY_BEC2 */
 # if defined PASSIVE_TRACER && defined AGE_DYE_TRACER
       call get_agedye(ierr)
 # endif
@@ -548,6 +553,71 @@ c--#  define timename 'dqdt_time'
 #  define VAR_NOW dip_river
 #  include "get_smth.F"
 # endif
+
+# ifdef RIVER_LOAD_ALK_DIC_SI
+#  define get_smth get_alk_river
+#  define varname 'alk_river_flux'
+#  define timename 'alk_river_time'
+#  define RIVER_DATA_ALK_DIC_SI
+#  define var alk_riverg
+#  define timevar alk_river_time
+#  define file_id alk_river_file_id
+#  define NC_ID_LIST ncfrc
+#  define NC_FILE_LIST frcfile
+#  define varid alk_river_id
+#  define timevarid alk_river_tid
+#  define record alk_river_rec
+#  define ntsmth ntalk_river
+#  define itsmth italk_river
+#  define icycle alk_river_ncycle
+#  define cycle_length alk_river_cycle
+#  define SET_SMTH set_alk_river
+#  define VAR_CFF 1.0
+#  define VAR_NOW alk_river
+#  include "get_smth.F"
+
+#  define get_smth get_dic_river
+#  define varname 'dic_river_flux'
+#  define timename 'dic_river_time'
+#  define RIVER_DATA_ALK_DIC_SI
+#  define var dic_riverg
+#  define timevar dic_river_time
+#  define file_id dic_river_file_id
+#  define NC_ID_LIST ncfrc
+#  define NC_FILE_LIST frcfile
+#  define varid dic_river_id
+#  define timevarid dic_river_tid
+#  define record dic_river_rec
+#  define ntsmth ntdic_river
+#  define itsmth itdic_river
+#  define icycle dic_river_ncycle
+#  define cycle_length dic_river_cycle
+#  define SET_SMTH set_dic_river
+#  define VAR_CFF 1.0
+#  define VAR_NOW dic_river
+#  include "get_smth.F"
+
+#  define get_smth get_si_river
+#  define varname 'si_river_flux'
+#  define timename 'si_river_time'
+#  define RIVER_DATA_ALK_DIC_SI
+#  define var si_riverg
+#  define timevar si_river_time
+#  define file_id si_river_file_id
+#  define NC_ID_LIST ncfrc
+#  define NC_FILE_LIST frcfile
+#  define varid si_river_id
+#  define timevarid si_river_tid
+#  define record si_river_rec
+#  define ntsmth ntsi_river
+#  define itsmth itsi_river
+#  define icycle si_river_ncycle
+#  define cycle_length si_river_cycle
+#  define SET_SMTH set_si_river
+#  define VAR_CFF 1.0
+#  define VAR_NOW si_river
+#  include "get_smth.F"
+# endif /* RIVER_LOAD_ALK_DIC_SI */
 
 # ifdef NHY_FORCING
 !  NHY flux

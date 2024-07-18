@@ -786,7 +786,7 @@ c$$$       enddo
 !     &         *dt/Hz(istr:iend,jstr:jend,N)
 # endif /* RIVER_LOAD_P */
 
-# ifdef RIVER_LOAD_SI_ALK_DIC   
+# ifdef RIVER_LOAD_ALK_DIC_SI
        !CN: Si loads from rivers
        if (lriver_load_si) then
           FLUX(istr:iend,jstr:jend)=si_river(istr:iend,jstr:jend)
@@ -830,7 +830,7 @@ c$$$       enddo
      &         tracer(istr:iend,jstr:jend,N,dic_ind_t) +
      &         FLUX(istr:iend,jstr:jend)
      &         *dt/Hz(istr:iend,jstr:jend,N)
-# endif /* RIVER_LOAD_SI_ALK_DIC */
+# endif /* RIVER_LOAD_ALK_DIC_SI */
 
 
        !CN: iron fluxes in forcing file are in nmol Fe cm-2 s-1

@@ -194,4 +194,41 @@ CSDISTRIBUTE_RESHAPE  dip_riverg(BLOCK_PATTERN,*) BLOCK_CLAUSE
      &        dip_river_file_id, dip_river_id, dip_river_tid
 #  endif /* defined RIVER_DATA || defined ALL_DATA */
 # endif /* RIVER_LOAD_N || RIVER_LOAD_P */
+
+# ifdef RIVER_LOAD_ALK_DIC_SI
+      real, dimension(GLOBAL_2D_ARRAY) :: alk_river, dic_river, si_river
+      common /frc_river_alk/ alk_river, dic_river, si_river
+CSDISTRIBUTE_RESHAPE  alk_river(BLOCK_PATTERN) BLOCK_CLAUSE
+CSDISTRIBUTE_RESHAPE  dic_river(BLOCK_PATTERN) BLOCK_CLAUSE
+CSDISTRIBUTE_RESHAPE  si_river(BLOCK_PATTERN) BLOCK_CLAUSE
+#  if defined RIVER_DATA_ALK_DIC_SI || defined ALL_DATA
+#   ifndef SET_SMTH
+#    undef RIVER_DATA_ALK_DIC_SI
+#   endif
+      real, dimension(GLOBAL_2D_ARRAY,2) :: alk_riverg, dic_riverg, si_riverg
+CSDISTRIBUTE_RESHAPE  alk_riverg(BLOCK_PATTERN,*) BLOCK_CLAUSE
+CSDISTRIBUTE_RESHAPE  dic_riverg(BLOCK_PATTERN,*) BLOCK_CLAUSE
+CSDISTRIBUTE_RESHAPE  si_riverg(BLOCK_PATTERN,*) BLOCK_CLAUSE
+      common /riverg_dat_alk/alk_riverg,dic_riverg,si_riverg
+      real alk_river_cycle, alk_river_time(2),
+     &     dic_river_cycle, dic_river_time(2),
+     &     si_river_cycle,  si_river_time(2)
+      integer alk_river_ncycle, alk_river_rec, italk_river, ntalk_river,
+     &        alk_river_file_id, alk_river_id, alk_river_tid,
+     &        dic_river_ncycle, dic_river_rec, itdic_river, ntdic_river,
+     &        dic_river_file_id, dic_river_id,  dic_river_tid,
+     &        si_river_ncycle, si_river_rec, itsi_river, ntsi_river,
+     &        si_river_file_id, si_river_id,  si_river_tid
+      common/riverdat_alk/
+     &        alk_river_cycle, alk_river_time,
+     &        dic_river_cycle, dic_river_time,
+     &        si_river_cycle,  si_river_time,
+     &        alk_river_ncycle, alk_river_rec, italk_river, ntalk_river,
+     &        alk_river_file_id, alk_river_id, alk_river_tid,
+     &        dic_river_ncycle, dic_river_rec, itdic_river, ntdic_river,
+     &        dic_river_file_id, dic_river_id, dic_river_tid,
+     &        si_river_ncycle, si_river_rec, itsi_river, ntsi_river,
+     &     si_river_file_id, si_river_id, si_river_tid
+#  endif /* defined RIVER_DATA_ALK_DIC_SI || defined ALL_DATA */
+# endif  /* RIVER_LOAD_ALK_DIC_SI */
 #endif /* BIOLOG_BEC || BIOLOG_BEC2 */
