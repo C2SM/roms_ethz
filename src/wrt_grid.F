@@ -82,7 +82,7 @@
 !                        IDs for dimensions 'xi_rho' and 'eta_rho'.
 
       implicit none
-      integer ncid, r2dgrd(2), nf_ftype, varid, ierr
+      integer ncid, r0dgrd(1), r2dgrd(2), nf_ftype, varid, ierr
 #include "param.h"
 #include "ncvars.h"
 #include "netcdf.inc"
@@ -97,7 +97,7 @@
 
 ! Grid type switch: Spherical or Cartesian.
 
-      ierr=nf_def_var(ncid, 'spherical', nf_char, 0, 0, varid)
+      ierr=nf_def_var(ncid, 'spherical', nf_char, 0, r0dgrd, varid)
       ierr=nf_put_att_text(ncid, varid, 'long_name',24,
      &                                  'grid type logical switch')
       ierr=nf_put_att_text(ncid, varid, 'option_T', 9, 'spherical')

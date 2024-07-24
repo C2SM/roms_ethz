@@ -3,6 +3,8 @@
       subroutine put_global_atts (ncid, ierr)
       implicit none
       integer ncid, ierr, nf_ftype, lvar,lenstr
+      integer itmp(1)
+      real ftmp(1)
 #include "param.h"
 #include "scoord.h"
 #include "scalars.h"
@@ -118,17 +120,22 @@ c     &                                       aparnam(1:lvar))
 #endif
 
 ! Time stepping parameters
-
-      ierr=nf_put_att_int(ncid, nf_global, 'ntimes',  nf_int, 1,ntimes)
-      ierr=nf_put_att_int(ncid, nf_global, 'ndtfast', nf_int,1,ndtfast)
-      ierr=nf_put_att_FTYPE(ncid, nf_global, 'dt',    nf_ftype, 1,  dt)
+      itmp(1) = ntimes
+      ierr=nf_put_att_int(ncid, nf_global, 'ntimes',  nf_int, 1, itmp)
+      itmp(1) = ndtfast
+      ierr=nf_put_att_int(ncid, nf_global, 'ndtfast', nf_int, 1, itmp)
+      ftmp(1) = dt
+      ierr=nf_put_att_FTYPE(ncid, nf_global, 'dt',    nf_ftype, 1, ftmp)
+      ftmp(1) = dtfast
       ierr=nf_put_att_FTYPE(ncid, nf_global, 'dtfast',nf_ftype,  1,
-     &                                                          dtfast)
-      ierr=nf_put_att_int (ncid, nf_global, 'nwrt',  nf_int, 1, nwrt)
+     &                      ftmp)
+      itmp(1) = nwrt
+      ierr=nf_put_att_int (ncid, nf_global, 'nwrt',  nf_int, 1, itmp)
 #ifdef AVERAGES
-      ierr=nf_put_att_int (ncid, nf_global, 'ntsavg',nf_int, 1, ntsavg)
-
-      ierr=nf_put_att_int (ncid, nf_global, 'navg',  nf_int, 1,   navg)
+      itmp(1) = ntsavg
+      ierr=nf_put_att_int (ncid, nf_global, 'ntsavg',nf_int, 1, itmp)
+      itmp(1) = navg
+      ierr=nf_put_att_int (ncid, nf_global, 'navg',  nf_int, 1, itmp)
 #endif
 #ifdef STATIONS
       ierr=nf_put_att_int (ncid, nf_global, 'nsta',  nf_int, 1,  nsta)
@@ -146,11 +153,14 @@ c     &                                       aparnam(1:lvar))
       ierr=nf_put_att_text(ncid, nf_global, 'VertCoordType', 4, 'SH94')
 # endif
 
+      ftmp(1) = theta_s
       ierr=nf_put_att_FTYPE(ncid, nf_global, 'theta_s', nf_ftype, 1,
-     &                                                        theta_s)
+     &                                                        ftmp)
+      ftmp(1) = theta_b
       ierr=nf_put_att_FTYPE(ncid, nf_global, 'theta_b', nf_ftype, 1,
-     &                                                        theta_b)
-      ierr=nf_put_att_FTYPE(ncid, nf_global, 'hc', nf_ftype, 1, hc)
+     &                                                        ftmp)
+      ftmp(1) = hc
+      ierr=nf_put_att_FTYPE(ncid, nf_global, 'hc', nf_ftype, 1,ftmp)
 
       ierr=nf_put_att_FTYPE(ncid, nf_global, 'Cs_w',nf_ftype,N+1,Cs_w)
 
@@ -158,7 +168,8 @@ c     &                                       aparnam(1:lvar))
 
 ! Boussinesq reference density and EOS coefficients for linear EOS.
 
-      ierr=nf_put_att_FTYPE(ncid, nf_global, 'rho0', nf_ftype, 1, rho0)
+      ftmp(1) = rho0
+      ierr=nf_put_att_FTYPE(ncid, nf_global, 'rho0', nf_ftype, 1, ftmp)
       ierr=nf_put_att_text (ncid, nf_global, 'rho0_units', 6, 'kg/m^3')
 # ifndef NONLIN_EOS
       ierr=nf_put_att_FTYPE(ncid, nf_global,'Tcoef',nf_ftype, 1, Tcoef)
@@ -182,13 +193,14 @@ c     &                                       aparnam(1:lvar))
 ! Horizontal viscosity and mixing coefficients.
 
 #ifdef UV_VIS2
-      ierr=nf_put_att_FTYPE(ncid,nf_global, 'visc2',nf_ftype, 1,visc2)
+      ftmp(1) = visc2
+      ierr=nf_put_att_FTYPE(ncid,nf_global, 'visc2',nf_ftype, 1, ftmp)
       ierr=nf_put_att_text (ncid,nf_global, 'visc2_units', 5, 'm^2/s')
 
 ! Lateral slipperiness parameter
-
+      ftmp(1) = gamma2
       ierr=nf_put_att_FTYPE(ncid, nf_global, 'gamma2', nf_ftype, 1,
-     &                                                       gamma2)
+     &                                                       ftmp)
 #endif
 #ifdef SOLVE3D
 # ifdef TS_DIF2
@@ -234,16 +246,18 @@ c     &                                       aparnam(1:lvar))
   || defined Z_FRC_BRY || defined M3_FRC_BRY || defined M2NUDGING \
                        || defined M3NUDGING  || defined WKB_FRC_BRY
 
+      ftmp(1) = ubind
       ierr=nf_put_att_FTYPE(ncid, nf_global, 'ubind',  nf_ftype,  1,
-     &                                                        ubind)
+     &                                                        ftmp)
       ierr=nf_put_att_text (ncid, nf_global, 'ubind_units', 3,'m/s')
 #endif
 
 ! Maximum viscosity in sponge layer
 
 #ifdef SPONGE
+      ftmp(1) = v_sponge
       ierr=nf_put_att_FTYPE(ncid, nf_global, 'v_sponge', nf_ftype, 1,
-     &                                                     v_sponge)
+     &                                                     ftmp)
       ierr=nf_put_att_text (ncid, nf_global, 'v_sponge_units',  5,
      &                                                      'm^2/s')
 
@@ -252,22 +266,25 @@ c     &                                       aparnam(1:lvar))
 ! Sea surface salinity correction "piston velocity"
 
 #if defined SFLX_CORR && defined SALINITY
+      ftmp(1) = dSSSdt*(100.*day2sec)
       ierr=nf_put_att_FTYPE(ncid, nf_global, 'dSSSdt',  nf_ftype, 1,
-     &                                        dSSSdt*(100.*day2sec))
+     &                                                      ftmp)
       ierr=nf_put_att_text (ncid, nf_global, 'dSSSdt_units',  6,
      &                                                     'cm/day')
 #endif
 
 ! Bottom drag parameters.
 
-      ierr=nf_put_att_FTYPE(ncid,nf_global, 'rdrg', nf_ftype,1, rdrg)
+      ftmp(1) = rdrg
+      ierr=nf_put_att_FTYPE(ncid,nf_global, 'rdrg', nf_ftype,1, ftmp)
       ierr=nf_put_att_text (ncid,nf_global, 'rdrg_units',    3,'m/s')
-
-      ierr=nf_put_att_FTYPE(ncid,nf_global, 'rdrg2',nf_ftype,1,rdrg2)
+      ftmp(1) = rdrg2
+      ierr=nf_put_att_FTYPE(ncid,nf_global, 'rdrg2',nf_ftype,1,ftmp)
       ierr=nf_put_att_text (ncid,nf_global, 'rdrg2_units', 14,
      &                                              'nondimensional')
 #ifdef SOLVE3D
-      ierr=nf_put_att_FTYPE(ncid,nf_global, 'Zob',  nf_ftype, 1, Zob)
+      ftmp(1) = Zob
+      ierr=nf_put_att_FTYPE(ncid,nf_global, 'Zob',  nf_ftype, 1, ftmp)
       ierr=nf_put_att_text (ncid,nf_global, 'Zob_units',      1, 'm')
 #endif
 

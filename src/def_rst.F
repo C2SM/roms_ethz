@@ -18,7 +18,7 @@
 # include "ncvars_floats.h"
 #endif
       logical create_new_file
-      integer lenstr, checkdims, my_nf_def_dim
+      integer lenstr, checkdims, my_nf_def_dim, itmp(1)
       integer rec, lrst, lvar, timedim, prev_fill_mode,
      &        r2dgrd(3), u2dgrd(3), v2dgrd(3),  auxil(2)
 #ifdef SOLVE3D
@@ -198,8 +198,9 @@
 ! Time.
 
         lvar=lenstr(vname(1,indxTime))
+        itmp(1) = timedim
         ierr=nf_def_var(ncrst, vname(1,indxTime)(1:lvar), NF_FTYPE,
-     &                                        1, timedim, rstTime)
+     &                                        1, itmp, rstTime)
         lvar=lenstr(vname(2,indxTime))
         ierr=nf_put_att_text (ncrst, rstTime, 'long_name', lvar,
      &                                   vname(2,indxTime)(1:lvar))
