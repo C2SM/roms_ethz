@@ -103,6 +103,20 @@
      &    parm_o2_min, parm_o2_min_delta,
      &    r_Nexcrete
 
+# ifdef RIVER_LOAD_N
+      namelist /river_input/
+     &    lriver_load_n
+# endif
+# ifdef RIVER_LOAD_P
+      namelist /river_input/
+     &    lriver_load_p
+# endif
+# ifdef RIVER_LOAD_ALK_DIC_SI
+      namelist /river_input/
+     &    lriver_load_alk, lriver_load_dic,
+     &    lriver_load_si
+# endif
+
       filename_biopar_bec_nml = 'bec_parameter_in.nml'
       filename_biopar_out_bec_nml = 'bec_parameter_used.nml'
 !#endif
@@ -170,6 +184,18 @@
       O2_crit_nev = 3.0
       N2O_cons_tau_nev = 0.5
       z_scale_nev = 3000.0
+#endif
+      ! Default values for namelist "river_input":
+#ifdef RIVER_LOAD_N
+      lriver_load_n = .false.
+#endif
+#ifdef RIVER_LOAD_P
+      lriver_load_p = .false.
+#endif
+#ifdef RIVER_LOAD_ALK_DIC_SI
+      lriver_load_alk = .false.
+      lriver_load_dic = .false.
+      lriver_load_si = .false.
 #endif
 
 #ifdef IODINE
@@ -548,6 +574,14 @@
      &                    , '      --> using defaults.'
          rewind(73)
 
+#if defined RIVER_LOAD_N || defined RIVER_LOAD_P || defined RIVER_LOAD_ALK_DIC_SI
+         read(73, NML=river_input, iostat=status)
+         if (status /= 0)
+     &       print*,'Info: "river_input" namelist not found'
+     &                    , '      --> using defaults.'
+         rewind(73)
+#endif
+
 #ifdef Ncycle_SY
          read(73,NML=ncycle_parameters,iostat=status)
          if (status /= 0)
@@ -593,6 +627,9 @@
             write(74,NML=nutrient_change)
 #ifdef Ncycle_SY
             write(74,NML=ncycle_parameters)
+#endif
+#if defined RIVER_LOAD_N || defined RIVER_LOAD_P || defined RIVER_LOAD_ALK_DIC_SI
+            write(74,NML=river_input)
 #endif
          close(74)
          else
@@ -699,13 +736,6 @@
 # endif
       lflux_gas_co2 = .TRUE.
       liron_flux = .TRUE.
-#ifdef RIVER_LOAD_BIO
-      lriver_load_n = .TRUE.
-      lriver_load_p = .TRUE.
-      !lriver_load_alk = .TRUE.
-      !lriver_load_dic = .TRUE.
-      !lriver_load_si = .TRUE.
-#endif
       lsource_sink  = .TRUE.  
 
       where(rmask==1)
