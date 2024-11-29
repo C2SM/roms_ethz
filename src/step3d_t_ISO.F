@@ -163,7 +163,12 @@ c--#  define ntdf nrhs
 ! (iii) arrays of RHO-type are computed at k -
 
 
+# ifdef NO_NCYCLE_TRACER_STEPPING
+      do itrc=1,NT-ntrc_bio_ncycle
+# else
       do itrc=1,NT
+# endif /* NO_NCYCLE_TRACER_STEPPING */     
+
 # ifdef ADV_ISONEUTRAL
         k2=1
         do k=0,N,+1       !--> recursive
