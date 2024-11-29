@@ -30,7 +30,7 @@
       character(len=64) vinfo(4)
 #endif
 #ifdef MASK_LAND_DATA
-# ifdef DBLEPREC
+# ifdef DBLEPREC_FOR_RST
       real*8, parameter :: spv_set=1.D+33
 # else
       real*4, parameter :: spv_set=1.E+33
