@@ -154,6 +154,10 @@ else
    ifdef MPI_ROOT
       CPPFLAGS += -I$(MPI_ROOT)/include
    endif
+   ifdef I_MPI_ROOT
+      # Intel compiler:
+      MPIFC := $(I_MPI_ROOT)/bin/mpiifort
+   endif
 endif
 LDR = $(MPIFC)
 ifdef COUPLED
