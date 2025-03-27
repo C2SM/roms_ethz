@@ -217,14 +217,9 @@
 #  include "work.h"
 # endif
 
-# if (defined BIOLOGY_NPZDOC && defined PCO2AIR_FORCING) || \
-     defined WRITE_TEMP_REST || defined WRITE_SALT_REST || \
-     defined WRITE_HEATFLX || defined WRITE_CO2FLX
-#  include "forces.h"
-# endif
-# if (defined BIOLOGY_NPZDOC && defined N2OAIR_FORCING) || \
-     defined WRITE_TEMP_REST || defined WRITE_SALT_REST || \
-     defined WRITE_HEATFLX || defined WRITE_N2OFLX
+# if defined WRITE_TEMP_REST || defined WRITE_SALT_REST || \
+     defined WRITE_HEATFLX || defined WRITE_CO2FLX || \
+     defined WRITE_N2OFLX
 #  include "forces.h"
 # endif
 # ifdef BIOLOGY_NPZDOC
