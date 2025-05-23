@@ -23,5 +23,5 @@ may work.  It compiles the code in a coarse version for our _PACific TelesCopic_
 
 > make config=HUMPAC
 
-for our HUMboldt PACific setup.
+for our HUMboldt PACific setup.  Have a look in the `configs/` directory for other setups.  Each `cppdef_XXXX.h` selects the `cpp` switches and dimensions for configuration `XXXX`.
 
