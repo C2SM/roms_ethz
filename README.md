@@ -1,11 +1,11 @@
 # ROMS_ETHZ
 ## Overview
-This is repository contains the source code of the version of _Regional Ocean Modelling System_ (https://www.myroms.org/, https://github.com/myroms/roms)
-used by the UP group (https://up.ethz.ch) at  ETH Zurich. 
+This is repository contains the source code of the version of [Regional Ocean Modelling System](https://www.myroms.org/)
+used by the [UP group at ETH Zurich](https://up.ethz.ch). 
 
-The physics is mostly identical to the _UCLA_ version of ROMS (http://https://github.com/CESR-lab/ucla-roms).  
-Over the years, we made a small changes to the _UCLA_ code, like adding the _WENO_ advection scheme. 
-It contains 2 biogeochemical moduls, a simple NPZD-model and the Biogeochemical Elemental Cycling (BEC) of the CESR model. 
+The physics is mostly identical to the [UCLA version of ROMS](http://https://github.com/CESR-lab/ucla-roms).  Over the years, we made a small changes to the _UCLA_ code, like adding the _WENO_ advection scheme based on [CROCO's implementation](https://en.ird.fr/project-croco-coastal-and-regional-ocean-community-model) . 
+
+It contains 2 biogeochemical moduls, a simple NPZD-model and the Biogeochemical Elemental Cycling (BEC) of the [CESM](https://www.cesm.ucar.edu/models/cesm3). 
 We added several additional plankton functional types (PFT) to BEC:  Coccolithophores, Southern-Ocean Phaeocystis, DDA (Diazotroph, Diatom Assemplage), UCYN.
 
 
@@ -14,12 +14,14 @@ We added several additional plankton functional types (PFT) to BEC:  Coccolithop
 Some sometimes outdated documentation in form of READMEs can be found in the `src/Documentation` subfolder.
 
 ## Compilation
+### Prerequisites
+You need a working FORTRAN compiler, the [NetCDF library](https://www.unidata.ucar.edu/software/netcdf/) (both, NetCDF-c and NetCDF-FORTRAN) installed.  Usually the code is run in parallel using MPI, which mean you will also need an installed [MPI library](https://www.mpi-forum.org/)
 
-At the top level a simple
+With this at the top level a simple
 
     make 
 
-may work.  It compiles the code in a coarse version for our _PACific TelesCopic_  US Westcoast setup .   For other setups you need to specify the configuration, e.g.,
+should work.  It compiles the code for our default PACTC60 setup,  a coarse version for our _PACific TelesCopic_  US Westcoast.   For other setups you need to specify the configuration, e.g.,
 
     make config=HUMPAC
 
