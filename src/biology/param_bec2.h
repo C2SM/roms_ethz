@@ -311,9 +311,12 @@
 # ifdef Ncycle_SY
 !      real, parameter :: r_Nfix_photo=1.25
       real, parameter ::
-     &   denitrif_NO3_C  = 472.0 / 2.0 / 106.0, ! need to comment on that and check 
-     &   denitrif_NO2_C  = 472.0 / 2.0 / 106.0, ! (commment from UCLA)
-     &   denitrif_N2O_C  = 472.0 / 2.0 / 106.0
+!     &   denitrif_NO3_C  = 472.0 / 2.0 / 106.0, ! this ratio applies for a stoichiometry of C106H175O42N16P
+!     &   denitrif_NO2_C  = 472.0 / 2.0 / 106.0,
+!     &   denitrif_N2O_C  = 472.0 / 2.0 / 106.0
+     &   denitrif_NO3_C  = 276.0 / 117.0, ! this ratio applies for the BEC stoichiometry (C117H297O85N16P) 
+     &   denitrif_NO2_C  = 276.0 / 117.0, ! this ratio applies for the BEC stoichiometry (C117H297O85N16P)
+     &   denitrif_N2O_C  = 276.0 / 117.0  ! this ratio applies for the BEC stoichiometry (C117H297O85N16P) 
 # endif
        common /ecosys_bec2/ Q, Qp_zoo_pom, Qfe_zoo, gQsi_0, gQsi_max, gQsi_min,
      &        QCaCO3_max, cks, cksi
