@@ -437,39 +437,39 @@ CR      write(*,'(1x,A,I3)') 'indxNH4 =',indxNH4
 #ifdef N2O_NEV
       vname_bec2_diag_2d(1,indxfgn2o_nev)='FG_N2O_NEV'
       vname_bec2_diag_2d(2,indxfgn2o_nev)='Air-sea N2O flux (Nevison)'
-      vname_bec2_diag_2d(3,indxfgn2o_nev)='mmol/m2/s '
+      vname_bec2_diag_2d(3,indxfgn2o_nev)='mmol N2O/m2/s '
       vname_bec2_diag_2d(4,indxfgn2o_nev)=' '
 #endif
 # ifdef Ncycle_SY
 # ifdef N2O_TRACER_DECOMP
       vname_bec2_diag_2d(1,indxfgn2o_ao1)='FG_N2O_AO1'
       vname_bec2_diag_2d(2,indxfgn2o_ao1)='Air-sea flux of N2O from AO1'
-      vname_bec2_diag_2d(3,indxfgn2o_ao1)='mmol/m2/s'
+      vname_bec2_diag_2d(3,indxfgn2o_ao1)='mmol N2O/m2/s'
       vname_bec2_diag_2d(4,indxfgn2o_ao1)=' '
 
       vname_bec2_diag_2d(1,indxfgn2o_siden)='FG_N2O_SIDEN'
       vname_bec2_diag_2d(2,indxfgn2o_siden)=
      &   'Air-sea flux of N2O from denitrification sink'
-      vname_bec2_diag_2d(3,indxfgn2o_siden)='mmol/m2/s '
+      vname_bec2_diag_2d(3,indxfgn2o_siden)='mmol N2O/m2/s '
       vname_bec2_diag_2d(4,indxfgn2o_siden)=' '
 
       vname_bec2_diag_2d(1,indxfgn2o_soden)='FG_N2O_SODEN'
       vname_bec2_diag_2d(2,indxfgn2o_soden)=
      &   'Air-sea flux of N2O from denitrification source'
-      vname_bec2_diag_2d(3,indxfgn2o_soden)='mmol/m2/s '
+      vname_bec2_diag_2d(3,indxfgn2o_soden)='mmol N2O/m2/s '
       vname_bec2_diag_2d(4,indxfgn2o_soden)=' '
 
       vname_bec2_diag_2d(1,indxfgn2o_atm)='FG_N2O_ATM'
       vname_bec2_diag_2d(2,indxfgn2o_atm)=
      &   'Air-sea flux of atmopsheric N2O'
-      vname_bec2_diag_2d(3,indxfgn2o_atm)='mmol/m2/s '
+      vname_bec2_diag_2d(3,indxfgn2o_atm)='mmol N2O/m2/s '
       vname_bec2_diag_2d(4,indxfgn2o_atm)=' '
 # endif
 
       vname_bec2_diag_2d(1,indxfgn2o)='FG_N2O'
       vname_bec2_diag_2d(2,indxfgn2o)=
      &   'Air-sea flux of N2O '
-      vname_bec2_diag_2d(3,indxfgn2o)='mmol/m2/s '
+      vname_bec2_diag_2d(3,indxfgn2o)='mmol N2O/m2/s '
       vname_bec2_diag_2d(4,indxfgn2o)=' '
 
       vname_bec2_diag_2d(1,indxschmidt_n2o)='SCHMIDT_N2O'
@@ -1600,47 +1600,47 @@ CR      write(*,'(1x,A,I3)') 'indxNH4 =',indxNH4
       vname_bec2_diag_3d(1,indxanammox)='ANAMMOX'
       vname_bec2_diag_3d(2,indxanammox)=
      &  'Anammox (NO2+NH4 -> N2)'
-      vname_bec2_diag_3d(3,indxanammox)='mmol N/m3/s'
+      vname_bec2_diag_3d(3,indxanammox)='mmol N2/m3/s'
       vname_bec2_diag_3d(4,indxanammox)=' '
 
       vname_bec2_diag_3d(1,indxDENITRIF1)='DENITRIF1'
       vname_bec2_diag_3d(2,indxDENITRIF1)='Denitrification1'
-      vname_bec2_diag_3d(3,indxDENITRIF1)='mmol/m3/s'
+      vname_bec2_diag_3d(3,indxDENITRIF1)='mmol N/m3/s'
       vname_bec2_diag_3d(4,indxDENITRIF1)=' '
 
       vname_bec2_diag_3d(1,indxDENITRIF2)='DENITRIF2'
       vname_bec2_diag_3d(2,indxDENITRIF2)='Denitrification2'
-      vname_bec2_diag_3d(3,indxDENITRIF2)='mmol/m3/s'
+      vname_bec2_diag_3d(3,indxDENITRIF2)='mmol N/m3/s'
       vname_bec2_diag_3d(4,indxDENITRIF2)=' '
 
       vname_bec2_diag_3d(1,indxDENITRIF3)='DENITRIF3'
       vname_bec2_diag_3d(2,indxDENITRIF3)='Denitrification3'
-      vname_bec2_diag_3d(3,indxDENITRIF3)='mmol/m3/s'
+      vname_bec2_diag_3d(3,indxDENITRIF3)='mmol N2/m3/s'
       vname_bec2_diag_3d(4,indxDENITRIF3)=' '
 
       vname_bec2_diag_3d(1,indxN2OAMMOX)='N2OAMMOX'
       vname_bec2_diag_3d(2,indxN2OAMMOX)='N2O produced by Ammox'
-      vname_bec2_diag_3d(3,indxN2OAMMOX)='mmol/m3/s'
+      vname_bec2_diag_3d(3,indxN2OAMMOX)='mmol N2/m3/s'
       vname_bec2_diag_3d(4,indxN2OAMMOX)=''
 
       vname_bec2_diag_3d(1,indxN2OSODEN_CONS)='N2OSODEN_CONS'
       vname_bec2_diag_3d(2,indxN2OSODEN_CONS)='N2O_SODEN consumption'
-      vname_bec2_diag_3d(3,indxN2OSODEN_CONS)='mmol/m3/s'
+      vname_bec2_diag_3d(3,indxN2OSODEN_CONS)='mmol N2/m3/s'
       vname_bec2_diag_3d(4,indxN2OSODEN_CONS)=''
 
       vname_bec2_diag_3d(1,indxN2OAO1_CONS)='N2OAO1_CONS'
       vname_bec2_diag_3d(2,indxN2OAO1_CONS)='N2O_AO1 consumption'
-      vname_bec2_diag_3d(3,indxN2OAO1_CONS)='mmol/m3/s'
+      vname_bec2_diag_3d(3,indxN2OAO1_CONS)='mmol N2/m3/s'
       vname_bec2_diag_3d(4,indxN2OAO1_CONS)=''
 
       vname_bec2_diag_3d(1,indxN2OSIDEN_CONS)='N2OSIDEN_CONS'
       vname_bec2_diag_3d(2,indxN2OSIDEN_CONS)='N2O_SIDEN consumption'
-      vname_bec2_diag_3d(3,indxN2OSIDEN_CONS)='mmol/m3/s'
+      vname_bec2_diag_3d(3,indxN2OSIDEN_CONS)='mmol N2/m3/s'
       vname_bec2_diag_3d(4,indxN2OSIDEN_CONS)=''
 
       vname_bec2_diag_3d(1,indxN2OATM_CONS)='N2OATM_CONS'
       vname_bec2_diag_3d(2,indxN2OATM_CONS)='N2O_ATM consumption'
-      vname_bec2_diag_3d(3,indxN2OATM_CONS)='mmol/m3/s'
+      vname_bec2_diag_3d(3,indxN2OATM_CONS)='mmol N2/m3/s'
       vname_bec2_diag_3d(4,indxN2OATM_CONS)=''
 
       vname_bec2_diag_3d(1,indxSPNO2UPTAKE)='SP_NO2_UPTAKE'
