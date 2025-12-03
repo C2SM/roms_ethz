@@ -15,8 +15,7 @@
 #ifdef SEDIMENT_BIOLOGY
 # include "bgcflux.h"
 #endif
-#if defined PCO2AIR_FORCING || \
-        defined WRITE_TEMP_REST || defined WRITE_SALT_REST || \
+#if defined WRITE_TEMP_REST || defined WRITE_SALT_REST || \
         defined WRITE_HEATFLX || defined WRITE_CO2FLX ||\
         defined WRITE_N2OFLX
 # include "forces.h"
