@@ -979,7 +979,7 @@ c**         endif
             suffix = '.nc'
           endif
           print*,'suffix = ',suffix
-          nctargname=trim(root_bak)/ /trim(suffix)
+          nctargname=trim(root_bak) // trim(suffix)
       ltrg=lenstr(nctargname)
                                                 ! Check whether the
       j=0                                       ! file name contains
@@ -991,7 +991,7 @@ c**         endif
         ltrg=ltrg-j+1                           ! default into the current
       endif                                     ! working directory.
       if (ldir > 0) then
-        nctargname= odir(1:ldir)/ /'/'/ /nctargname(j:ltrg)
+        nctargname= odir(1:ldir) // '/' // nctargname(j:ltrg)
         ltrg=lenstr(nctargname)
       endif
 
