@@ -991,7 +991,7 @@ c**         endif
         ltrg=ltrg-j+1                           ! default into the current
       endif                                     ! working directory.
       if (ldir > 0) then
-        nctargname= odir(1:ldir) // '/' // nctargname(j:ltrg)
+        nctargname= odir(1:ldir) // '/' // nctargname(1:ltrg)
         ltrg=lenstr(nctargname)
       endif
 
